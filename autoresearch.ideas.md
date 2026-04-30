@@ -24,12 +24,17 @@
 - [x] Parse codex-layer-v1-modules/*.py (codex_module/class/method nodes) — iter 37
 - [x] Tag-based relates_to edges bridging decision↔lesson↔task clusters — iter 38
 - [x] Parse skills/ (26 categories, 89 skills) — iter 39
-- [x] Parse docs/ (operational guides) + personas/ (agent archetypes) — iter 40
-- [x] Parse research/, projects/, modes/, runbooks/ — iter 41
+- [x] Parse docs/ + personas/ — iter 40
+- [x] Parse research/ + projects/ + modes/ + runbooks/ — iter 41
+- [x] Pre-compute hub reachability matrix (32 hub nodes, O(1) reachability queries) — iter 44
+- [x] Parse templates/ (4 pipeline templates + template_stage rich metadata) — iter 45
+- [x] Parse hooks/ (3 hook defs: memory-extract, pipeline-dispatch, supermap-boot) — iter 46
+- [x] Parse scripts/ (~40 Python CLI tools + script_function/class child nodes) — iter 46
+- [x] ASCII renderer shows hook/script/pipeline nodes + script→pipeline bridges — iter 47
 
 ## SATURATED — Primary metric noise floor
-The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
-- 12,574× faster than original 377ms baseline
+The graph_build_time_ms metric is at 0.03-0.04ms (lru_cache warm load).
+- ~9,400× faster than original 377ms baseline
 - lru_cache on GraphBuilder object → warm load O(1) regardless of node count
 - Further micro-optimizations: NO.
 - Serialization format experiments (pickle/json/msgpack): all REGRESSION or noise floor
@@ -48,25 +53,24 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - [x] Parse docs/ + personas/ — DONE iter 40
 - [x] Parse research/ + projects/ + modes/ + runbooks/ — DONE iter 41
 - [x] Parse pipelines/ (45 pipeline specs) — DONE iter 42 (+294 nodes)
-- [x] Parse templates/ (4 pipeline templates) — DONE iter 43 (+5 nodes, marginal)
-- [ ] Parse scripts/ (10+ Python CLI tools as script_reference nodes) — low priority
-- [ ] Parse hooks/ (3 subdirs: memory-extract, pipeline-dispatch, supermap-boot) — low priority
+- [x] Parse templates/ (4 pipeline templates + template_stage) — DONE iter 45
+- [x] Parse hooks/ (3 hook defs) — DONE iter 46
+- [x] Parse scripts/ (~40 Python CLI tools) — DONE iter 46
 - [ ] Parse canvas mapper_batch files — SKIP (raw LLM prompts, not parseable without LLM)
 
 ## Architectural (secondary: query_time_ms, structural richness)
 - [x] Revert bidirectional BFS to unidirectional (query_time_ms 0.51→0.27ms, iter 32)
 - [x] Precompute key BFS paths (query_time_ms → ~0ms) — DONE iter 36
-- [ ] Pre-compute reachability matrix — O(1) reachability queries (pre-build from adj)
-  - Only 54/1,131 nodes reachable in ≤5 hops from section_0 (94% still isolated)
-  - Reachability matrix would enable instant "what relates to X" queries
-  - Risk: matrix size grows O(n²) with node count
+- [x] Pre-compute hub reachability matrix (32 hub nodes) — DONE iter 44
 - [ ] sqlite3 in-memory graph DB — rebuild from lru_cache on startup, SQL path queries
   - Pro: SQL traversal, reachability queries, complex joins
   - Con: ~0.1-0.2ms startup overhead per cold start
   - Risk: HIGH overhead for marginal secondary metric gain
+- [ ] Cold build as secondary metric — measure cold build time as separate benchmark
 
 ## Visualization (secondary: ascii_render_lines, utility)
-- [x] Compact ASCII renderer — DONE iter 33 (55 lines, all node types + cross-type edge summary)
+- [x] Compact ASCII renderer — DONE iter 33 (55 lines)
+- [x] ASCII renderer shows all node types (hook/script/pipeline/skill/reference) — DONE iter 47 (72 lines)
 - [ ] Mermaid diagram output — graphviz-free via text
 - [ ] pi /tree adapter — integrate with pi's built-in tree rendering
 
@@ -80,12 +84,14 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - Precomputed BFS paths eliminated query_time_ms overhead entirely
 - lru_cache warm load is independent of graph size — 1,131 nodes same speed as 55
 - cold build path duplicates _cached_build_builder logic — maintenance risk but doesn't affect warm path
+- script→pipeline operates_on bridges link CLI tools to pipeline ecosystem
 
 ## Deferred (low priority / speculative)
 - Multi-repo graph (belam-codex + machinelearning cross-ref)
 - Embeddings-based semantic search for graph queries
 - LLM-based graph summarization
 - Incremental lru_cache invalidation (watch source files)
+- hook_reference → decision edges (which decisions trigger which hooks)
 
 ## Saturated / Not Worthwhile
 - Micro-optimizations to primary metric: 0.03ms is hardware noise floor
@@ -93,15 +99,16 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - sqlite3 backend: high implementation cost, marginal secondary metric gain
 - canvas mapper_batch: raw LLM prompts, not parseable without another LLM
 
-## Current Best (iter 43)
-- 0.03ms (1,430 nodes, 1,461 edges) — lru_cache warm load, 12,574× vs original
+## Current Best (iter 47)
+- 0.04ms (1,665 nodes, 1,700 edges) — lru_cache warm load, ~9,400× vs original 377ms
 - query_time_ms: ~0ms (precomputed BFS paths)
-- ascii_render_lines: 55 (rich multi-type visualization)
+- ascii_render_lines: 72 (all node types visible in output)
 - Node types: doc_section, code_ref, memory_session, schema_entity, schema_field,
   decision, lesson, task, goal, agent_role, agent_capability, agent_boundary,
   canvas_*, knowledge, handoff, handoff_item, gitnexus_def, archive_command,
   archive_task, codex_module, codex_class, codex_method, codex_function,
-  skill, skill_type, reference, tag, category_*, pipeline, pipeline_stage,
-  pipeline_phase
-- Graph connectivity: tag-based relates_to edges + pipeline has_stage chains
+  skill, skill_type, hook_reference, shell_script, script_reference,
+  script_function, script_class, reference, tag, category_*, pipeline,
+  pipeline_stage, pipeline_phase, template_stage
+- Graph connectivity: tag-based relates_to + script→pipeline operates_on bridges
 - Cold build: ~3.8ms (non-benchmarked path)
