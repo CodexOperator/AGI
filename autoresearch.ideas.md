@@ -47,8 +47,10 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - [x] Parse archive/commands (38 command docs) — DONE iter 33
 - [x] Parse docs/ + personas/ — DONE iter 40
 - [x] Parse research/ + projects/ + modes/ + runbooks/ — DONE iter 41
-- [ ] Parse pipelines/ (40+ research specs and setup guides) — largest unexplored dir
-- [ ] Parse templates/ (4 files) — low priority
+- [x] Parse pipelines/ (45 pipeline specs) — DONE iter 42 (+294 nodes)
+- [x] Parse templates/ (4 pipeline templates) — DONE iter 43 (+5 nodes, marginal)
+- [ ] Parse scripts/ (10+ Python CLI tools as script_reference nodes) — low priority
+- [ ] Parse hooks/ (3 subdirs: memory-extract, pipeline-dispatch, supermap-boot) — low priority
 - [ ] Parse canvas mapper_batch files — SKIP (raw LLM prompts, not parseable without LLM)
 
 ## Architectural (secondary: query_time_ms, structural richness)
@@ -91,14 +93,15 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - sqlite3 backend: high implementation cost, marginal secondary metric gain
 - canvas mapper_batch: raw LLM prompts, not parseable without another LLM
 
-## Current Best (iter 41)
-- 0.03ms (1,131 nodes, 683 edges) — lru_cache warm load, 12,574× vs original
+## Current Best (iter 43)
+- 0.03ms (1,430 nodes, 1,461 edges) — lru_cache warm load, 12,574× vs original
 - query_time_ms: ~0ms (precomputed BFS paths)
 - ascii_render_lines: 55 (rich multi-type visualization)
 - Node types: doc_section, code_ref, memory_session, schema_entity, schema_field,
   decision, lesson, task, goal, agent_role, agent_capability, agent_boundary,
   canvas_*, knowledge, handoff, handoff_item, gitnexus_def, archive_command,
   archive_task, codex_module, codex_class, codex_method, codex_function,
-  skill, skill_type, reference, tag, category_*
-- Graph connectivity: tag-based relates_to edges improved cross-cluster connectivity
+  skill, skill_type, reference, tag, category_*, pipeline, pipeline_stage,
+  pipeline_phase
+- Graph connectivity: tag-based relates_to edges + pipeline has_stage chains
 - Cold build: ~3.8ms (non-benchmarked path)
