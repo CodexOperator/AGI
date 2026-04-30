@@ -59,7 +59,7 @@ class GraphBuilder:
 
     def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
-        """Add a node to the graph. Stored as tuple (id, type, label)."""
+        """Add a node to the graph."""
         if node_id is None:
             node_id = f"{node_type}_{len(self.nodes)}"
 
@@ -71,14 +71,19 @@ class GraphBuilder:
             node_id = f"{base_id}_{counter}"
 
         self._node_ids.add(node_id)
-        # Store as compact tuple for smaller pickle
-        self.nodes.append((node_id, node_type, label[:60]))
+        self.nodes.append({
+            "id": node_id,
+            "type": node_type,
+            "label": label[:60],
+            "content": content[:120] if content else "",
+            "source": source
+        })
         return node_id
 
     def add_edge(self, from_id: str, to_id: str, edge_type: str = "references"):
         """Add an edge between nodes."""
         if from_id in self._node_ids and to_id in self._node_ids:
-            self.edges.append((from_id, to_id, edge_type))  # Compact tuple
+            self.edges.append({"from": from_id, "to": to_id, "type": edge_type})
             self.adj[from_id].append(to_id)
             self.adj[to_id].append(from_id)  # Bidirectional for traversal
 
@@ -343,12 +348,12 @@ class GraphBuilder:
         return count
 
     def build_adjacency(self):
-        """Build adjacency dict from edges (tuple format: from, to, type)."""
+        """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
         for edge in self.edges:
-            if edge[0] in self._node_ids and edge[1] in self._node_ids:
-                self.adj[edge[0]].append(edge[1])
-                self.adj[edge[1]].append(edge[0])
+            if edge["from"] in self._node_ids and edge["to"] in self._node_ids:
+                self.adj[edge["from"]].append(edge["to"])
+                self.adj[edge["to"]].append(edge["from"])
 
     def get_stats(self) -> Dict[str, Any]:
         """Get graph statistics."""
@@ -360,10 +365,10 @@ class GraphBuilder:
         }
 
     def _count_by_type(self) -> Dict[str, int]:
-        """Count nodes by type. Nodes are tuples: (id, type, label)."""
+        """Count nodes by type."""
         counts = defaultdict(int)
         for node in self.nodes:
-            counts[node[1]] += 1
+            counts[node["type"]] += 1
         return dict(counts)
 
 

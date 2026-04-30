@@ -132,7 +132,7 @@ else:
     build_time_ms = (time.perf_counter() - start) * 1000
     
     # Build adjacency
-    adj = {n[0]: [] for n in nodes}
+    adj = {n["id"]: [] for n in nodes}
     for e in edges:
         if e["from"] in adj and e["to"] in adj:
             adj[e["from"]].append(e["to"])
@@ -146,7 +146,7 @@ metric("graph_edge_count", len(edges))
 start = time.perf_counter()
 path_result = ""
 if len(nodes) >= 2:
-    section_nodes = [n[0] for n in nodes if n[0].startswith("agents_section_")]
+    section_nodes = [n["id"] for n in nodes if n["id"].startswith("agents_section_")]
     if len(section_nodes) >= 2:
         start_node, end_node = section_nodes[0], section_nodes[-1]
         visited = {start_node}
@@ -174,12 +174,12 @@ if nodes:
     lines.append(f" nodes={len(nodes)}  edges={len(edges)}")
     lines.append("-" * 60)
     
-    section_nodes = [n for n in nodes if n[1] == "doc_section"]
-    node_lookup = {n[0]: n for n in nodes}
+    section_nodes = [n for n in nodes if n["type"] == "doc_section"]
+    node_lookup = {n["id"]: n for n in nodes}
     
     for i, n in enumerate(section_nodes[:10]):
-        label = n[2][:50]
-        children = adj.get(n[0]) or []
+        label = n["label"][:50]
+        children = adj.get(n["id"]) or []
         child_labels = [node_lookup[c][2][:20] for c in children[:3] if c in node_lookup]
         child_str = f" → {', '.join(child_labels)}" if child_labels else ""
         lines.append(f"{'  ' if i > 0 else ''}├─ {label}{child_str}")
