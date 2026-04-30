@@ -288,15 +288,7 @@ class GraphBuilder:
                 )
                 count += 1
 
-                # Link to related decisions via upstream/downstream tags
-                for tag in meta.get('tags', '').strip('[]').replace("'", "").split(','):
-                    tag = tag.strip()
-                    if tag:
-                        tag_id = self.add_node(
-                            "decision_tag", tag, "", "decisions",
-                            f"dectag_{tag}"
-                        )
-                        self.add_edge(decision_id, tag_id, "tagged")
+                # Skip tag nodes - not needed for core graph, saves nodes/edges
 
             except Exception:
                 pass
@@ -344,15 +336,7 @@ class GraphBuilder:
                 )
                 count += 1
 
-                # Tag nodes
-                for tag in meta.get('tags', '').strip('[]').replace("'", "").split(','):
-                    tag = tag.strip()
-                    if tag:
-                        tag_id = self.add_node(
-                            "lesson_tag", tag, "", "lessons",
-                            f"lestag_{tag}"
-                        )
-                        self.add_edge(lesson_id, tag_id, "tagged")
+                # Skip tag nodes - not needed for core graph, saves nodes/edges
 
             except Exception:
                 pass
