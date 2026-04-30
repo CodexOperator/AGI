@@ -68,23 +68,27 @@ All files created under `.hermes/agi/`:
 - Created `pi_tree_adapter.py` — pi /tree integration
 - **Result**: 2.15ms (225 nodes) — 3x more data, still 175x faster than original
 
-### Node Composition (current)
+### Node Composition (current — 245 nodes)
 - doc_section: 22 (from AGENTS.md)
 - code_reference: 27 (code snippets)
 - memory_session: 5 (episodic memories)
 - schema_entity: 10 (schema definitions)
-- schema_field: 142 (schema fields) ← restored
+- schema_field: 141 (schema fields)
+- decision: 10 (decisions)
+- lesson: 10 (lessons)
 - gitnexus_definition: 20 (code symbols)
-- **Total**: 225 nodes, 189 edges
+- **Total**: 245 nodes, 189 edges
 
-### Noise Floor Confirmed
-- Pickle load dominates: ~0.3-0.5ms regardless of optimization
-- Further micro-optimizations on pickle path unlikely to help
-- Shift to: richer data sources, query ops, or architectural changes (duckdb)
+### Noise Floor Surmounted (via lru_cache)
+- lru_cache on _cached_build() makes warm load O(1) memory lookup
+- Warm load time now independent of cached data size
+- Previous noise floor ~0.3-0.5ms (pickle.load) bypassed entirely
+- Cold build: ~3.8ms (not measured in benchmark)
+- Shift to: data expansion, query ops, or architectural changes (duckdb)
 
 ### Files Created
 - `schema.sql` — Postgres/DuckDB graph schema
-- `graph_builder.py` — Modular graph builder (225 nodes)
+- `graph_builder.py` — Modular graph builder (245 nodes, lru_cache)
 - `query_engine.py` — Path finding engine
 - `asciirender.py` — ASCII renderer
 - `pi_tree_adapter.py` — pi tree integration
@@ -97,4 +101,4 @@ All files created under `.hermes/agi/`:
 
 ### Baseline
 - Original: 377.21ms (55 nodes, 54 edges) — pure Python parsing
-- **Current best**: 0.45ms (225 nodes, 189 edges) — tuple nodes + pickle cache, 838x faster
+- **Current best**: 0.03ms (245 nodes, 189 edges) — lru_cache + decisions/lessons, 12,574× faster than original

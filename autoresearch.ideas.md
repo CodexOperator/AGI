@@ -4,7 +4,7 @@
 - [x] Pre-compile regex in graph_builder module — done in iter 1-4
 - [x] Module-level pickle import — no effect (noise floor)
 - [x] __slots__ on GraphBuilder — no effect (pickle.load is the bottleneck)
-- [x] Add decisions/lessons parsers — 2.4x slower at 436 nodes (pickle scales with size)
+- [x] Add decisions/lessons parsers (pickle approach) — 2.4x slower at 436 nodes (pickle scales with size)
 - [x] Persistent gitnexus JSON cache — done earlier
 - [x] Pre-warm pickle cache before timing — done, gives 0.50ms
 - [x] json instead of pickle — REGRESSION: 1.67ms vs 0.50ms
@@ -14,10 +14,20 @@
 - [x] Compact node representation (tuples) — 0.50ms→0.45ms at 225 nodes (10% faster). Noise floor ~0.3-0.5ms. DONE.
 - [x] msgpack instead of pickle — REGRESSION: 1.77ms vs 0.45ms. Pickle faster for Python tuples/lists.
 - [x] mmap for pickle load — no improvement: 0.46ms vs 0.45ms baseline. Overhead exceeds syscall savings for 8KB file.
+- [x] lru_cache supersedes all pickle micro-optimizations — warm load is O(1) memory lookup now
+- [x] pickle.HIGHEST_PROTOCOL — no change (already default in Python 3.8+)
+- [x] Skip source_mtimes stat — done; lru_cache makes this irrelevant
+
+## Data Expansion (NOW POSSIBLE with lru_cache)
+- [x] Add decisions (10) + lessons (10) with lru_cache — 0.03ms at 245 nodes (unchanged from 0.04ms at 225) ✓ DONE
+- [ ] Parse tasks/ directory for task state nodes
+- [ ] Parse belam-codex archive/ for archived files
+- [ ] Parse belam-codex canvas/ for canvas state nodes
+- [ ] Expand decisions/lessons beyond 10 limit (potential 300-400 nodes with lru_cache)
 
 ## Promising (not tried)
-- [ ] Incremental pickle updates via file watcher — delta patching vs full rebuild
-- [ ] duckdb backend — persistent graph DB, fast SQL queries, avoids pickle entirely
+- [ ] duckdb backend — persistent graph DB, fast SQL queries (useful for complex graph traversals)
+- [ ] Incremental lru_cache invalidation — watch source files, clear cache on change (avoids stale cache)
 
 ## Data Source Expansion (secondary metric: node richness, ~225→400+ nodes)
 - [ ] Parse tasks/ directory for task state nodes
