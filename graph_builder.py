@@ -175,7 +175,7 @@ class GraphBuilder:
         return count
 
     def parse_schema_files(self, schema_dir: str) -> int:
-        """Parse schema files into graph nodes."""
+        """Parse schema files into graph nodes. Fields inlined as compact list."""
         if not os.path.isdir(schema_dir):
             return 0
 
@@ -193,27 +193,22 @@ class GraphBuilder:
                 name_match = re.search(r'^primitive:\s*(\w+)', content, re.MULTILINE)
                 if name_match:
                     schema_name = name_match.group(1)
+                    
+                    # Extract field definitions as compact inlined list (not separate nodes)
+                    fields = []
+                    for field_match in re.finditer(r'^\s+(\w+):\s*(\w+)', content, re.MULTILINE):
+                        fields.append(f"{field_match.group(1)}:{field_match.group(2)}")
+                    
+                    # Inline fields into entity node content
+                    field_str = f"fields:[{','.join(fields)}]" if fields else ""
                     entity_id = self.add_node(
                         "schema_entity",
                         schema_name,
-                        content[:120],
+                        field_str,
                         f"schemas/{filename}",
                         f"schema_{schema_name}"
                     )
                     count += 1
-
-                    # Extract field definitions as sub-nodes
-                    for field_match in re.finditer(r'^\s+(\w+):\s*(\w+)', content, re.MULTILINE):
-                        field_name = field_match.group(1)
-                        field_type = field_match.group(2)
-                        self.add_node(
-                            "schema_field",
-                            f"{schema_name}.{field_name}",
-                            f"type: {field_type}",
-                            f"schemas/{filename}",
-                            f"field_{schema_name}_{field_name}"
-                        )
-                        self.add_edge(entity_id, f"field_{schema_name}_{field_name}", "contains")
 
             except Exception:
                 pass
