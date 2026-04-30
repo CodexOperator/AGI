@@ -821,6 +821,90 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_archive_commands(self, archive_dir: str) -> int:
+        """Parse archived command documentation files.
+        
+        Creates archive_command nodes from archive/commands/*.md with frontmatter
+        metadata (command, aliases, category, tags, upstream). Uses upstream field
+        to create cross-type edges to decision nodes. Adds sequential edges between
+        commands in alphabetical order.
+        """
+        commands_dir = os.path.join(archive_dir, "commands")
+        if not os.path.isdir(commands_dir):
+            return 0
+
+        files = sorted(os.listdir(commands_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+        last_cmd_id = None
+
+        for filename in md_files:
+            filepath = os.path.join(commands_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                command_name = meta.get('command', filename[:-3])
+                aliases_str = meta.get('aliases', '[]')
+                category = meta.get('category', '')
+                tags_str = meta.get('tags', '[]')
+                upstream_str = meta.get('upstream', '[]')
+
+                # Extract first section body as description
+                desc_match = re.search(r'## [Uu]sage[\s\S]*?\n\n(.+?)(?:\n##|```|$)', content)
+                desc = desc_match.group(1).strip()[:100] if desc_match else ""
+
+                # Extract code example if present
+                example_match = re.search(r'```[\w]*\n(.+?)```', content, re.DOTALL)
+                example = example_match.group(1).strip()[:80] if example_match else ""
+
+                label = command_name[:50] if command_name else filename[:-3]
+                summary = f"{category}|{aliases_str[:40]}|{tags_str[:50]}"
+
+                cmd_key = filename[:-3]  # strip .md
+                node_id = self.add_node(
+                    "archive_command",
+                    label,
+                    summary,
+                    f"archive/commands/{filename}",
+                    f"archive_cmd_{cmd_key[:50]}"
+                )
+                count += 1
+
+                # Sequential edges between commands
+                if last_cmd_id:
+                    self.add_edge(last_cmd_id, node_id, "next_command")
+                last_cmd_id = node_id
+
+                # Upstream edges: link to referenced decision/primitive nodes
+                if upstream_str and upstream_str != '[]':
+                    upstream_items = re.findall(r'[\w/-]+', upstream_str)
+                    for ref in upstream_items[:5]:
+                        ref_clean = ref.strip().replace('/', '_')
+                        ref_id = f"decision_{ref_clean}"
+                        if ref_id in self._node_ids:
+                            self.add_edge(node_id, ref_id, "upstream")
+                            count += 1
+                        else:
+                            # Try canvas_decision format
+                            canvas_ref = f"canvas_decision_{ref_clean}"
+                            if canvas_ref in self._node_ids:
+                                self.add_edge(node_id, canvas_ref, "upstream")
+                                count += 1
+
+            except Exception:
+                pass
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -999,6 +1083,11 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(handoff_dir):
         builder.parse_handoff(handoff_dir)
 
+    # Parse archive/commands (38 command docs with upstream links to decision nodes)
+    archive_dir = os.path.join(hermes_dir, "belam-codex", "archive")
+    if os.path.isdir(archive_dir):
+        builder.parse_archive_commands(archive_dir)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -1106,6 +1195,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     handoff_dir = os.path.join(hermes_dir, "belam-codex", "handoff")
     if os.path.isdir(handoff_dir):
         builder.parse_handoff(handoff_dir)
+
+    # Parse archive/commands (38 command docs with upstream links to decision nodes)
+    archive_dir = os.path.join(hermes_dir, "belam-codex", "archive")
+    if os.path.isdir(archive_dir):
+        builder.parse_archive_commands(archive_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
