@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-graph_builder.py — Modular graph construction for unified graph memory
+graph_builder.py - Modular graph construction for unified graph memory
 DB-augmented directed code generation via unified graph memory
 """
 
@@ -49,27 +49,27 @@ def _save_cache(data: str):
 class GraphBuilder:
     """Builds a unified graph from multiple source materials."""
     __slots__ = ('nodes', 'edges', 'adj', '_node_ids', '_section_stack')
-    
+
     def __init__(self):
         self.nodes: List[Dict[str, Any]] = []
         self.edges: List[Dict[str, str]] = []
         self.adj: Dict[str, List[str]] = defaultdict(list)
         self._node_ids: set = set()
         self._section_stack: List[int] = []
-    
-    def add_node(self, node_type: str, label: str, content: str = "", 
+
+    def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
         """Add a node to the graph."""
         if node_id is None:
             node_id = f"{node_type}_{len(self.nodes)}"
-        
+
         # Ensure unique ID
         base_id = node_id
         counter = 0
         while node_id in self._node_ids:
             counter += 1
             node_id = f"{base_id}_{counter}"
-        
+
         self._node_ids.add(node_id)
         self.nodes.append({
             "id": node_id,
@@ -79,46 +79,46 @@ class GraphBuilder:
             "source": source
         })
         return node_id
-    
+
     def add_edge(self, from_id: str, to_id: str, edge_type: str = "references"):
         """Add an edge between nodes."""
         if from_id in self._node_ids and to_id in self._node_ids:
             self.edges.append({"from": from_id, "to": to_id, "type": edge_type})
             self.adj[from_id].append(to_id)
             self.adj[to_id].append(from_id)  # Bidirectional for traversal
-    
+
     def parse_agents_md(self, filepath: str) -> int:
         """Parse AGENTS.md into graph nodes."""
         if not os.path.exists(filepath):
             return 0
-        
+
         with open(filepath, "r") as f:
             content = f.read()
-        
+
         sections = _RE_SECTION_SPLIT.split(content)
         last_section_idx = -1
-        
+
         for i, section in enumerate(sections):
             lines = section.strip().split('\n')
             if not lines:
                 continue
-            
+
             header = lines[0].strip('#').strip()
             body = '\n'.join(lines[1:]).strip()[:120]
-            
+
             section_id = self.add_node(
                 "doc_section", header, body, "AGENTS.md",
                 f"agents_section_{i}"
             )
-            
+
             if last_section_idx >= 0:
                 self.add_edge(
-                    f"agents_section_{last_section_idx}", 
-                    section_id, 
+                    f"agents_section_{last_section_idx}",
+                    section_id,
                     "sequential"
                 )
             last_section_idx = i
-            
+
             # Parse code references within section
             for match in _RE_CODE_BLOCK.finditer(section):
                 code = match.group(1)
@@ -128,67 +128,67 @@ class GraphBuilder:
                         f"code_ref_{match.start()}"
                     )
                     self.add_edge(section_id, ref_id, "contains")
-        
+
         return i + 1
-    
+
     def parse_memory_files(self, memory_dir: str, limit: int = 10) -> int:
         """Parse memory files into graph nodes."""
         if not os.path.isdir(memory_dir):
             return 0
-        
+
         memory_files = sorted(
             [f for f in os.listdir(memory_dir) if f.endswith('.md')],
             reverse=True
         )[:limit]
-        
+
         count = 0
         for filename in memory_files:
             filepath = os.path.join(memory_dir, filename)
             try:
                 with open(filepath, "r") as f:
                     content = f.read()
-                
+
                 # Extract session header
                 header_match = re.search(r'# Session: (.+)', content)
                 session_label = header_match.group(1) if header_match else filename[:-3]
-                
+
                 # Extract conversation summary (first few paragraphs)
                 summary_match = re.search(r'## Conversation Summary\s*\n+(.+?)(?:\n##|\Z)', content, re.DOTALL)
                 summary = summary_match.group(1).strip()[:120] if summary_match else ""
-                
+
                 session_id = self.add_node(
-                    "memory_session", 
-                    session_label[:60], 
-                    summary, 
+                    "memory_session",
+                    session_label[:60],
+                    summary,
                     f"memory/{filename}",
                     f"memory_{filename[:19]}"  # Use date prefix as ID
                 )
                 count += 1
-                
+
                 # Link to agents sections (approximate linking based on content)
                 if "agent:main" in content or "model:" in content:
                     self.add_edge(session_id, "agents_section_0", "references")
-                    
+
             except Exception:
                 pass
-        
+
         return count
-    
+
     def parse_schema_files(self, schema_dir: str) -> int:
         """Parse schema files into graph nodes."""
         if not os.path.isdir(schema_dir):
             return 0
-        
+
         count = 0
         for filename in os.listdir(schema_dir):
             if not filename.endswith(('.md', '.yaml', '.yml')):
                 continue
-                
+
             filepath = os.path.join(schema_dir, filename)
             try:
                 with open(filepath, "r") as f:
                     content = f.read()
-                
+
                 # Extract primitive name
                 name_match = re.search(r'^primitive:\s*(\w+)', content, re.MULTILINE)
                 if name_match:
@@ -201,7 +201,7 @@ class GraphBuilder:
                         f"schema_{schema_name}"
                     )
                     count += 1
-                    
+
                     # Extract field definitions as sub-nodes
                     for field_match in re.finditer(r'^\s+(\w+):\s*(\w+)', content, re.MULTILINE):
                         field_name = field_match.group(1)
@@ -214,21 +214,21 @@ class GraphBuilder:
                             f"field_{schema_name}_{field_name}"
                         )
                         self.add_edge(entity_id, f"field_{schema_name}_{field_name}", "contains")
-                        
+
             except Exception:
                 pass
-        
+
         return count
-    
+
     def process_gitnexus_cache(self, cache_data: Optional[str]) -> int:
         """Process cached gitnexus data into graph nodes."""
         if not cache_data or not cache_data.strip():
             return 0
-        
+
         try:
             result = json.loads(cache_data)
             count = 0
-            
+
             for category in ['definitions', 'process_symbols', 'processes']:
                 items = result.get(category, [])
                 for item in items[:30]:
@@ -241,16 +241,128 @@ class GraphBuilder:
                         f"gitnexus_{category}_{item.get('id', str(hash(str(item))))}"[:60]
                     )
                     count += 1
-                    
+
                     # Link definitions to their source files
                     if category == 'definitions' and 'filePath' in item:
                         # Could link to schema nodes if matching
                         pass
-                        
+
             return count
         except (json.JSONDecodeError, Exception):
             return 0
-    
+
+    def parse_decisions(self, decisions_dir: str, limit: int = 20) -> int:
+        """Parse decision files into graph nodes."""
+        if not os.path.isdir(decisions_dir):
+            return 0
+
+        files = sorted(os.listdir(decisions_dir), reverse=True)[:limit]
+        count = 0
+        for filename in files:
+            if not filename.endswith('.md'):
+                continue
+            filepath = os.path.join(decisions_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                # Extract decision title
+                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                title = title_match.group(1)[:60] if title_match else filename[:-3]
+
+                # Extract key rationale
+                rationale_match = re.search(r'Decision\s*\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                rationale = rationale_match.group(1).strip()[:100] if rationale_match else ""
+
+                status = meta.get('status', 'draft')
+                decision_id = self.add_node(
+                    "decision",
+                    title,
+                    rationale,
+                    f"decisions/{filename}",
+                    f"decision_{filename[:-3]}"
+                )
+                count += 1
+
+                # Link to related decisions via upstream/downstream tags
+                for tag in meta.get('tags', '').strip('[]').replace("'", "").split(','):
+                    tag = tag.strip()
+                    if tag:
+                        tag_id = self.add_node(
+                            "decision_tag", tag, "", "decisions",
+                            f"dectag_{tag}"
+                        )
+                        self.add_edge(decision_id, tag_id, "tagged")
+
+            except Exception:
+                pass
+        return count
+
+    def parse_lessons(self, lessons_dir: str, limit: int = 20) -> int:
+        """Parse lesson files into graph nodes."""
+        if not os.path.isdir(lessons_dir):
+            return 0
+
+        files = sorted(os.listdir(lessons_dir), reverse=True)[:limit]
+        count = 0
+        for filename in files:
+            if not filename.endswith('.md'):
+                continue
+            filepath = os.path.join(lessons_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                # Extract lesson title
+                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                title = title_match.group(1)[:60] if title_match else filename[:-3]
+
+                # Extract lesson summary
+                lesson_match = re.search(r'## Lesson\s*\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                lesson_text = lesson_match.group(1).strip()[:100] if lesson_match else ""
+
+                confidence = meta.get('confidence', 'unknown')
+                lesson_id = self.add_node(
+                    "lesson",
+                    title,
+                    lesson_text,
+                    f"lessons/{filename}",
+                    f"lesson_{filename[:-3]}"
+                )
+                count += 1
+
+                # Tag nodes
+                for tag in meta.get('tags', '').strip('[]').replace("'", "").split(','):
+                    tag = tag.strip()
+                    if tag:
+                        tag_id = self.add_node(
+                            "lesson_tag", tag, "", "lessons",
+                            f"lestag_{tag}"
+                        )
+                        self.add_edge(lesson_id, tag_id, "tagged")
+
+            except Exception:
+                pass
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -258,7 +370,7 @@ class GraphBuilder:
             if edge["from"] in self._node_ids and edge["to"] in self._node_ids:
                 self.adj[edge["from"]].append(edge["to"])
                 self.adj[edge["to"]].append(edge["from"])
-    
+
     def get_stats(self) -> Dict[str, Any]:
         """Get graph statistics."""
         return {
@@ -267,7 +379,7 @@ class GraphBuilder:
             "nodes_by_type": self._count_by_type(),
             "node_ids": len(self._node_ids)
         }
-    
+
     def _count_by_type(self) -> Dict[str, int]:
         """Count nodes by type."""
         counts = defaultdict(int)
@@ -316,6 +428,18 @@ def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
         for f in os.listdir(schema_dir):
             if f.endswith(('.md', '.yaml', '.yml')):
                 paths.append(os.path.join(schema_dir, f))
+    # Decision files
+    decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
+    if os.path.isdir(decisions_dir):
+        for f in sorted(os.listdir(decisions_dir), reverse=True)[:20]:
+            if f.endswith('.md'):
+                paths.append(os.path.join(decisions_dir, f))
+    # Lesson files
+    lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
+    if os.path.isdir(lessons_dir):
+        for f in sorted(os.listdir(lessons_dir), reverse=True)[:20]:
+            if f.endswith('.md'):
+                paths.append(os.path.join(lessons_dir, f))
     for p in paths:
         if os.path.exists(p):
             mtimes[p] = os.path.getmtime(p)
@@ -367,34 +491,42 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
                  gitnexus_cache: Optional[str] = None) -> Tuple[GraphBuilder, float]:
     """Main graph building function."""
     start = time.perf_counter()
-    
+
     # Initialize cache
     init_cache(agi_dir)
-    
+
     # Collect source mtimes for cache validation
     source_mtimes = _get_source_mtimes(hermes_dir)
-    
+
     # Try to load from pickle cache
     builder = _try_load_graph_cache(agi_dir, source_mtimes, gitnexus_cache)
     if builder is not None:
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
-    
+
     # Build from sources
     builder = GraphBuilder()
-    
+
     # Parse AGENTS.md
     agents_md = os.path.join(hermes_dir, "belam-codex", "AGENTS.md")
     builder.parse_agents_md(agents_md)
-    
+
     # Parse memory files
     memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
     builder.parse_memory_files(memory_dir, limit=5)
-    
+
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
     
+    # Parse decision files
+    decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
+    builder.parse_decisions(decisions_dir, limit=20)
+    
+    # Parse lesson files
+    lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
+    builder.parse_lessons(lessons_dir, limit=20)
+
     # Process gitnexus cache — use passed-in value if available
     global _gitnexus_cache
     cache_to_use = gitnexus_cache if gitnexus_cache is not None else _gitnexus_cache
@@ -406,15 +538,15 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
                 timeout=15
             )
             _save_cache(cache_to_use)
-    
+
     builder.process_gitnexus_cache(cache_to_use)
-    
+
     # Build adjacency
     builder.build_adjacency()
-    
+
     # Save to pickle cache
     _save_graph_cache(agi_dir, builder, source_mtimes, cache_to_use)
-    
+
     elapsed_ms = (time.perf_counter() - start) * 1000
     return builder, elapsed_ms
 
@@ -423,10 +555,10 @@ if __name__ == "__main__":
     import sys
     hermes = os.path.expanduser("~/.hermes")
     agi = os.path.dirname(os.path.abspath(__file__))
-    
+
     builder, elapsed = build_graph(hermes, agi)
     stats = builder.get_stats()
-    
+
     print(f"Graph build: {elapsed:.2f}ms")
     print(f"Nodes: {stats['node_count']}")
     print(f"Edges: {stats['edge_count']}")
