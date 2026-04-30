@@ -59,7 +59,7 @@ class GraphBuilder:
 
     def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
-        """Add a node to the graph. Stored as tuple (id, type, label, content, source)."""
+        """Add a node to the graph. Stored as tuple (id, type, label)."""
         if node_id is None:
             node_id = f"{node_type}_{len(self.nodes)}"
 
@@ -71,14 +71,14 @@ class GraphBuilder:
             node_id = f"{base_id}_{counter}"
 
         self._node_ids.add(node_id)
-        # Store as tuple for faster pickle serialization
-        self.nodes.append((node_id, node_type, label[:60], content[:40] if content else "", source))
+        # Store as compact tuple for smaller pickle
+        self.nodes.append((node_id, node_type, label[:60]))
         return node_id
 
     def add_edge(self, from_id: str, to_id: str, edge_type: str = "references"):
         """Add an edge between nodes."""
         if from_id in self._node_ids and to_id in self._node_ids:
-            self.edges.append({"from": from_id, "to": to_id, "type": edge_type})
+            self.edges.append((from_id, to_id, edge_type))  # Compact tuple
             self.adj[from_id].append(to_id)
             self.adj[to_id].append(from_id)  # Bidirectional for traversal
 
@@ -359,12 +359,12 @@ class GraphBuilder:
         return count
 
     def build_adjacency(self):
-        """Build adjacency dict from edges."""
+        """Build adjacency dict from edges (tuple format: from, to, type)."""
         self.adj = defaultdict(list)
         for edge in self.edges:
-            if edge["from"] in self._node_ids and edge["to"] in self._node_ids:
-                self.adj[edge["from"]].append(edge["to"])
-                self.adj[edge["to"]].append(edge["from"])
+            if edge[0] in self._node_ids and edge[1] in self._node_ids:
+                self.adj[edge[0]].append(edge[1])
+                self.adj[edge[1]].append(edge[0])
 
     def get_stats(self) -> Dict[str, Any]:
         """Get graph statistics."""
@@ -376,7 +376,7 @@ class GraphBuilder:
         }
 
     def _count_by_type(self) -> Dict[str, int]:
-        """Count nodes by type. Nodes are tuples: (id, type, label, content, source)."""
+        """Count nodes by type. Nodes are tuples: (id, type, label)."""
         counts = defaultdict(int)
         for node in self.nodes:
             counts[node[1]] += 1
@@ -398,7 +398,6 @@ def run_subprocess(cmd: str, timeout: int = 30) -> str:
 # Graph pickle cache file
 _GRAPH_CACHE_FILE = None
 import pickle  # Module-level for faster cache loads
-import gzip
 
 def _get_graph_cache_file(agi_dir: str) -> str:
     global _GRAPH_CACHE_FILE
@@ -443,12 +442,12 @@ def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
 
 def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
                            gitnexus_cache: Optional[str]) -> Optional[GraphBuilder]:
-    """Try to load graph from gzip-compressed pickle cache if sources unchanged."""
+    """Try to load graph from pickle cache if sources unchanged."""
     cache_file = _get_graph_cache_file(agi_dir)
     if not os.path.exists(cache_file):
         return None
     try:
-        with gzip.open(cache_file, 'rb') as f:
+        with open(cache_file, 'rb') as f:
             cached = pickle.load(f)
         # Verify source mtimes match
         if cached.get('_source_mtimes') != source_mtimes:
@@ -468,7 +467,7 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
 def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
                        source_mtimes: Dict[str, float],
                        gitnexus_cache: Optional[str]):
-    """Save built graph to gzip-compressed pickle cache."""
+    """Save built graph to pickle cache."""
     try:
         cache_file = _get_graph_cache_file(agi_dir)
         cached = {
@@ -479,7 +478,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             '_source_mtimes': source_mtimes,
             '_gitnexus_cache': gitnexus_cache,
         }
-        with gzip.open(cache_file, 'wb', compresslevel=1) as f:
+        with open(cache_file, 'wb') as f:
             pickle.dump(cached, f)
     except Exception:
         pass
