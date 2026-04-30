@@ -790,7 +790,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
         pass
 
 @lru_cache(maxsize=1)
-def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _cache_ver: int = 1) -> Tuple[Tuple, Tuple, Dict]:
+def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _cache_ver: int = 1) -> GraphBuilder:
     """Cached builder internals — returns serializable parts only.
     
     lru_cache eliminates pickle.load entirely for warm calls.
@@ -824,10 +824,10 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _cache_ver:
     if os.path.isdir(lessons_dir):
         builder.parse_lessons(lessons_dir, limit=999)
 
-    # Parse tasks (expanded to all 84)
+    # Parse tasks (all 84 files)
     tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
     if os.path.isdir(tasks_dir):
-        builder.parse_tasks(tasks_dir, limit=100)
+        builder.parse_tasks(tasks_dir, limit=999)
 
     # Parse goals (goal nodes with status/priority/urgency)
     goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
@@ -862,8 +862,8 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _cache_ver:
     # Save to pickle cache (for cold starts)
     _save_graph_cache(agi_dir, builder, cache_to_use)
 
-    # Return serializable parts as tuples/dicts (cacheable by lru_cache)
-    return builder.nodes, builder.edges, dict(builder.adj)
+    # Return builder directly — lru_cache on GraphBuilder means warm calls are O(1) object return
+    return builder
 
 
 def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
@@ -882,13 +882,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver=2 to bust cache after code/data changes
     try:
-        nodes, edges, adj = _cached_build(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=2)
-        # Reconstruct builder from cached parts
-        builder = GraphBuilder()
-        builder.nodes = list(nodes)
-        builder.edges = list(edges)
-        builder.adj = adj
-        builder._node_ids = {n[0] for n in nodes}
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=2)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
