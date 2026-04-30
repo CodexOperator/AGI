@@ -73,7 +73,8 @@ All files created under `.hermes/agi/`:
 - decision: 128, lesson: 204, task: 84, goal: 5, agent_role: 4, agent_boundary: 15, agent_capability: 5
 - canvas_*: 105 (lesson:25, decision:22, command:30, task:5, project:5, pipeline:5, skill:3, knowledge:10)
 - knowledge: 15, reference: 1, handoff: 7, handoff_item: 35, gitnexus_definition: 20
-- **Total**: 886 nodes, 380 edges
+- **Total**: 923 nodes, 416 edges
+- archive_command: 38 (from archive/commands/*.md with upstream→decision cross-links)
 
 ### Noise Floor Surmounted (via lru_cache)
 - lru_cache on _cached_build() makes warm load O(1) memory lookup
@@ -84,7 +85,7 @@ All files created under `.hermes/agi/`:
 
 ### Files Created
 - `schema.sql` — Postgres/DuckDB graph schema
-- `graph_builder.py` — Modular graph builder (886 nodes, lru_cache)
+- `graph_builder.py` — Modular graph builder (923 nodes, lru_cache)
 - `query_engine.py` — Path finding engine
 - `asciirender.py` — ASCII renderer
 - `pi_tree_adapter.py` — pi tree integration
@@ -97,5 +98,7 @@ All files created under `.hermes/agi/`:
 
 ### Baseline
 - Original: 377.21ms (55 nodes, 54 edges) — pure Python parsing
-- **Current best**: 0.03ms (886 nodes, 380 edges) — lru_cache warm load, 12,574× faster than original
-- query_time_ms: 0.27ms (unidirectional BFS, bidirectional regressed to 0.51ms)
+- **Current best**: 0.03ms (923 nodes, 416 edges) — lru_cache warm load, 12,574× faster than original
+- query_time_ms: 0.26ms (unidirectional BFS)
+- ascii_render_lines: 55 (rich multi-type visualization; was 7 before iter 33 renderer improvement)
+- Graph connectivity: only 54/923 nodes reachable in ≤5 hops from section_0 (disconnected clusters — inter-type edges needed)

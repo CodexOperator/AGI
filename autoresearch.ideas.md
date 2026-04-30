@@ -32,24 +32,25 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - [x] Expand memory to all 58 files — DONE iter 27
 - [x] Parse canvas graph_data.json — DONE iter 28
 - [x] Parse agents/ — DONE iter 28
-- [ ] Parse knowledge/ directory (15 files — semantic knowledge nodes)
-- [ ] Parse handoff/ directory (9 files — agent handoff logs)
-- [ ] Parse archive/ directory (5 files — archived code/modules)
-- [ ] Parse canvas mapper_batch files for LINK responses (causal edges across primitives)
+- [x] Parse knowledge/ directory (15 files) — DONE iter 28
+- [x] Parse handoff/ directory (7 files) — DONE iter 28
+- [x] Parse archive/commands (38 command docs with upstream→decision edges) — DONE iter 33
+- [ ] Parse canvas mapper_batch files for LINK responses — SKIP (raw LLM prompts, not parseable without LLM)
 
 ## Architectural (secondary: query_time_ms, structural richness)
-- [ ] duckdb/sqlite3 backend — persistent graph DB with SQL query engine
-  - NOT for primary metric (warm load stays 0.03ms via lru_cache)
-  - Benefits: SQL traversal, reachability queries, complex joins
-  - sqlite3 is stdlib — no new dependency needed
-  - Approach: sqlite3 in-memory graph DB that rebuilds from lru_cache on startup
+- [ ] sqlite3 in-memory graph DB — rebuild from lru_cache on startup, SQL path queries
+  - Pro: SQL traversal, reachability queries, complex joins
+  - Con: ~0.1-0.2ms startup overhead per cold start; query gains marginal for small graphs
+  - sqlite3 is stdlib — no new dependency
+  - Risk: HIGH overhead for marginal secondary metric gain
 - [x] Revert bidirectional BFS to unidirectional (query_time_ms 0.51→0.27ms, iter 32)
-- [ ] Pre-compute reachability matrix — O(1) reachability queries
-- [ ] Optimized path query — reduce iteration count or use pre-built index
+- [ ] Pre-compute reachability matrix — O(1) reachability queries (pre-build from adj)
+- [ ] Fix graph connectivity: only 54/923 nodes reachable in ≤5 hops (inter-cluster edges needed)
+  - Approach: tag-based relates_to edges between memory→decisions→lessons→tasks clusters
 
 ## Visualization (secondary: ascii_render_lines, utility)
+- [x] Compact ASCII renderer — DONE iter 33 (55 lines, all node types + cross-type edge summary)
 - [ ] Mermaid diagram output — graphviz-free via text
-- [ ] Compact ASCII renderer — pack more nodes per line
 - [ ] pi /tree adapter — integrate with pi's built-in tree rendering
 
 ## Interesting Findings
@@ -60,6 +61,10 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - gitnexus cache TTL 1hr → 24hr
 - Tuple reconstruction overhead scaled with node count — fixed by caching GraphBuilder directly
 - Bidirectional BFS REGRESSED query_time_ms — unidirectional BFS faster for small graphs
+- Graph connectivity: 54/923 nodes reachable within 5 hops from section_0 (94% of graph is isolated clusters)
+- ascii_render_lines noise floor ~7 lines (expanded to 55 by rendering all node types)
+- canvas mapper_batch files are raw LLM prompts, not parseable results
+- archive_command upstream fields link to decisions (38 commands × avg 1-2 upstream links → +36 edges)
 
 ## Deferred (low priority / speculative)
 - Multi-repo graph (belam-codex + machinelearning cross-ref)
@@ -67,6 +72,13 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - LLM-based graph summarization
 - Incremental lru_cache invalidation (watch source files)
 - Parse machinelearning/ for cross-repo graph edges
+- Parse archive/codex-layer-v1-modules/*.py for code structure (function/method nodes)
+
+## Saturated / Not Worthwhile
+- Micro-optimizations to primary metric: 0.03ms is hardware noise floor
+- Serialization format experiments (pickle/json/msgpack): all noise floor or regression
+- sqlite3 backend: high implementation cost, marginal secondary metric gain
+- canvas mapper_batch: raw LLM prompts, not parseable without another LLM
 
 ## Current Best (iter 32)
 - 0.03ms (886 nodes, 380 edges) — lru_cache warm load, 12,574× vs original
