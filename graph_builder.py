@@ -905,6 +905,104 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_archive_tasks(self, archive_dir: str) -> int:
+        """Parse archive/tasks/ into archive_task nodes with upstream/downstream edges.
+        
+        Archive tasks have rich frontmatter (status, priority, upstream, downstream, tags)
+        that can create cross-type edges bridging isolated graph clusters.
+        """
+        tasks_dir = os.path.join(archive_dir, "tasks")
+        if not os.path.isdir(tasks_dir):
+            return 0
+
+        files = sorted(os.listdir(tasks_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+        task_ids = {}  # filename -> node_id for downstream linking
+
+        for filename in md_files:
+            filepath = os.path.join(tasks_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                status = meta.get('status', '')
+                priority = meta.get('priority', '')
+                upstream_str = meta.get('upstream', '[]')
+                downstream_str = meta.get('downstream', '[]')
+                tags_str = meta.get('tags', '[]')
+                project = meta.get('project', '')
+
+                # Extract title from content
+                title_match = re.search(r'^# (.+)', content, re.MULTILINE)
+                title = title_match.group(1).strip()[:50] if title_match else filename[:-3]
+
+                summary = f"{status}|{priority}|{project[:30]}" if project else f"{status}|{priority}"
+
+                node_id = self.add_node(
+                    "archive_task",
+                    title,
+                    summary,
+                    f"archive/tasks/{filename}",
+                    f"archive_task_{filename[:-3]}"
+                )
+                task_ids[filename] = node_id
+                count += 1
+
+                # Upstream edges: link to decision/lesson nodes
+                if upstream_str and upstream_str != '[]':
+                    upstream_items = re.findall(r'[\w/-]+', upstream_str)
+                    for ref in upstream_items[:8]:
+                        ref_clean = ref.strip().replace('/', '_')
+                        # Try decision format
+                        ref_id = f"decision_{ref_clean}"
+                        if ref_id in self._node_ids:
+                            self.add_edge(node_id, ref_id, "upstream")
+                            count += 1
+                        # Try canvas_decision format
+                        canvas_ref = f"canvas_decision_{ref_clean}"
+                        if canvas_ref in self._node_ids:
+                            self.add_edge(node_id, canvas_ref, "upstream")
+                            count += 1
+                        # Try lesson format
+                        lesson_ref = f"lesson_{ref_clean}"
+                        if lesson_ref in self._node_ids:
+                            self.add_edge(node_id, lesson_ref, "upstream")
+                            count += 1
+
+                # Downstream edges: link to other archive tasks
+                if downstream_str and downstream_str != '[]':
+                    downstream_items = re.findall(r'[\w-]+', downstream_str)
+                    for ref in downstream_items[:5]:
+                        ref_clean = ref.strip()
+                        target_file = f"{ref_clean}.md"
+                        if target_file in task_ids:
+                            self.add_edge(node_id, task_ids[target_file], "downstream")
+                            count += 1
+
+                # Tag-based relates_to edges
+                if tags_str and tags_str != '[]':
+                    tags = re.findall(r'\w+', tags_str)
+                    for tag in tags[:5]:
+                        tag_node_id = f"tag_{tag}"
+                        if tag_node_id not in self._node_ids:
+                            self.add_node("tag", tag, "", f"archive/tasks/{filename}", tag_node_id)
+                        self.add_edge(node_id, tag_node_id, "tagged_with")
+                        count += 1
+
+            except Exception:
+                pass
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -1087,6 +1185,7 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     archive_dir = os.path.join(hermes_dir, "belam-codex", "archive")
     if os.path.isdir(archive_dir):
         builder.parse_archive_commands(archive_dir)
+        builder.parse_archive_tasks(archive_dir)
 
     # Process gitnexus cache
     cache_to_use = None
@@ -1124,9 +1223,9 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
         except Exception:
             pass
 
-    # Try lru_cache first (no pickle.load) — bump _cache_ver=2 to bust cache after code/data changes
+    # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=3)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=4)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -1200,6 +1299,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     archive_dir = os.path.join(hermes_dir, "belam-codex", "archive")
     if os.path.isdir(archive_dir):
         builder.parse_archive_commands(archive_dir)
+        builder.parse_archive_tasks(archive_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
