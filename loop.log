@@ -43,3 +43,9 @@ Thu Apr 30 08:05:45 UTC 2026 — iter done, timeout exit=0
 Thu Apr 30 08:14:12 UTC 2026 — iter done, timeout exit=0
 **Iteration #35: KEEP** — Parse archive/tasks: +17 nodes (940), +15 edges (431). Primary 0.03ms unchanged (noise floor saturated). Archive tasks with upstream→decision edges add graph richness but don't affect warm load time.
 Thu Apr 30 08:21:29 UTC 2026 — iter done, timeout exit=0
+**Iteration 37 (commit 2c4a3fe): KEEP**
+
+- **Primary**: 0.03ms unchanged (noise floor saturated)
+- **Nodes**: 960 (+37) — codex_module:3, codex_class:4, codex_method:~15, codex_function:~8
+- **Edges**: 448 (+17) — defines, implements, imports, implements_pipeline
+- lru_cache absorbs new data at zero cost to warm load time
