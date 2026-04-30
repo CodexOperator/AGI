@@ -22,3 +22,4 @@ Thu Apr 30 07:20:25 UTC 2026 — iter done, timeout exit=0
 **Iteration result**: `pickle.HIGHEST_PROTOCOL` → 0.43ms vs 0.45ms baseline. **Discard** — within noise floor. The box runs Python 3.10+, so protocol 5 was already the default. No change to serialize.
 
 Noise floor at ~0.4ms confirmed. Serialization micro-optimizations exhausted. Stopping.
+Thu Apr 30 07:26:44 UTC 2026 — iter done, timeout exit=0

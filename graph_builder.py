@@ -8,6 +8,7 @@ import os
 import re
 import json
 import time
+from functools import lru_cache
 from typing import List, Dict, Any, Optional, Tuple
 from collections import defaultdict
 
@@ -461,19 +462,15 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
     except Exception:
         pass
 
-def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
-                 gitnexus_cache: Optional[str] = None) -> Tuple[GraphBuilder, float]:
-    """Main graph building function."""
-    start = time.perf_counter()
-
+@lru_cache(maxsize=1)
+def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tuple, Tuple, Dict]:
+    """Cached builder internals — returns serializable parts only.
+    
+    lru_cache eliminates pickle.load entirely for warm calls.
+    gitnexus_hash is a cache-busting int derived from gitnexus content.
+    """
     # Initialize cache
     init_cache(agi_dir)
-
-    # Try to load from pickle cache (skip source_mtimes stat — pickle mtime is proxy)
-    builder = _try_load_graph_cache(agi_dir, {}, gitnexus_cache)
-    if builder is not None:
-        elapsed_ms = (time.perf_counter() - start) * 1000
-        return builder, elapsed_ms
 
     # Build from sources
     builder = GraphBuilder()
@@ -489,12 +486,85 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
-    
-    # Skip decisions/lessons for faster cache (keeps graph at ~225 nodes)
 
-    # Process gitnexus cache — use passed-in value if available
+    # Process gitnexus cache
+    cache_to_use = None
+    gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
+    if os.path.exists(gitnexus_cache_file):
+        try:
+            with open(gitnexus_cache_file) as f:
+                cache_to_use = f.read()
+        except Exception:
+            pass
+
+    builder.process_gitnexus_cache(cache_to_use)
+
+    # Build adjacency
+    builder.build_adjacency()
+
+    # Save to pickle cache (for cold starts)
+    _save_graph_cache(agi_dir, builder, cache_to_use)
+
+    # Return serializable parts as tuples/dicts (cacheable by lru_cache)
+    return builder.nodes, builder.edges, dict(builder.adj)
+
+
+def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
+                 gitnexus_cache: Optional[str] = None) -> Tuple[GraphBuilder, float]:
+    """Main graph building function with lru_cache for warm calls."""
+    start = time.perf_counter()
+
+    # Get gitnexus hash for cache busting
+    gitnexus_hash = 0
+    gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
+    if os.path.exists(gitnexus_cache_file):
+        try:
+            gitnexus_hash = os.path.getsize(gitnexus_cache_file)
+        except Exception:
+            pass
+
+    # Try lru_cache first (no pickle.load)
+    try:
+        nodes, edges, adj = _cached_build(hermes_dir, agi_dir, gitnexus_hash)
+        # Reconstruct builder from cached parts
+        builder = GraphBuilder()
+        builder.nodes = list(nodes)
+        builder.edges = list(edges)
+        builder.adj = adj
+        builder._node_ids = {n[0] for n in nodes}
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return builder, elapsed_ms
+    except Exception:
+        pass
+
+    # Fallback: try pickle cache
+    init_cache(agi_dir)
+    cache_to_use = gitnexus_cache
+    builder = _try_load_graph_cache(agi_dir, {}, gitnexus_cache)
+    if builder is not None:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return builder, elapsed_ms
+
+    # Cold build path
+    init_cache(agi_dir)
+    builder = GraphBuilder()
+
+    # Parse AGENTS.md
+    agents_md = os.path.join(hermes_dir, "belam-codex", "AGENTS.md")
+    builder.parse_agents_md(agents_md)
+
+    # Parse memory files
+    memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
+    builder.parse_memory_files(memory_dir, limit=5)
+
+    # Parse schema files
+    schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
+    builder.parse_schema_files(schema_dir)
+
+    # Process gitnexus cache
     global _gitnexus_cache
-    cache_to_use = gitnexus_cache if gitnexus_cache is not None else _gitnexus_cache
+    if cache_to_use is None:
+        cache_to_use = _gitnexus_cache
     if use_gitnexus and cache_to_use is None:
         gitnexus_dir = os.path.join(hermes_dir, "belam-codex", ".gitnexus")
         if os.path.isdir(gitnexus_dir):
@@ -505,11 +575,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
             _save_cache(cache_to_use)
 
     builder.process_gitnexus_cache(cache_to_use)
-
-    # Build adjacency
     builder.build_adjacency()
-
-    # Save to pickle cache
     _save_graph_cache(agi_dir, builder, cache_to_use)
 
     elapsed_ms = (time.perf_counter() - start) * 1000
