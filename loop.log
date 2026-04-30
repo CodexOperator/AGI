@@ -31,3 +31,6 @@ Thu Apr 30 07:38:11 UTC 2026 — iter done, timeout exit=0
 
 Graph expanded 82% (295→539 nodes) while primary metric stayed at noise floor. Primary metric is SATURATED — lru_cache warm load cannot improve further.
 Thu Apr 30 07:43:33 UTC 2026 — iter done, timeout exit=0
+**Iteration result**: `graph_build_time_ms=0.05ms` (noise floor unchanged) | `graph_node_count=591` (+24 from agent roles) | **keep**
+
+**What changed**: Added `parse_agent_roles()` → 4 `agent_role` + 5 `agent_capability` + 15 `agent_boundary` nodes with `communicates_with`, `can_do`, `refuses_to` edges. Primary metric stays at noise floor (0.03-0.05ms). Graph richness: 567→591 nodes, 270→302 edges.

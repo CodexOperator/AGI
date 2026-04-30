@@ -612,6 +612,70 @@ class GraphBuilder:
 
         return count
 
+    def parse_canvas_graph(self, canvas_dir: str) -> Tuple[int, int]:
+        """Parse canvas graph_data.json with pre-computed cross-primitive edges.
+        
+        Returns (nodes_added, edges_added). Adds 105 nodes (lesson, decision, task,
+        project, pipeline, command, skill, knowledge) and 8 causal edges from
+        LLM-judged relationship data.
+        """
+        graph_file = os.path.join(canvas_dir, "graph_data.json")
+        if not os.path.exists(graph_file):
+            return 0, 0
+
+        try:
+            with open(graph_file) as f:
+                data = json.load(f)
+        except Exception:
+            return 0, 0
+
+        canvas_nodes = data.get('nodes', [])
+        canvas_edges = data.get('edges', [])
+
+        if not canvas_nodes:
+            return 0, 0
+
+        # Build ID mapping: canvas slug -> our node_id
+        # Canvas format: 'decision/belam-codex-resurrection'
+        # Our format: 'decision_belam-codex-resurrection' or 'decision_belam_codex_resurrection'
+        slug_to_id = {}
+        id_type_map = {}  # canvas_id -> (type_label, node_id)
+
+        nodes_added = 0
+        for cn in canvas_nodes:
+            canvas_id = cn.get('id', '')
+            node_type = cn.get('type', 'primitive')
+            title = cn.get('title', canvas_id)[:60]
+            tags = ','.join(cn.get('tags', [])[:5])[:60]
+            source = f"canvas/graph_data.json"
+            # Create our node ID: type_slug format
+            our_id = canvas_id.replace('/', '_')
+            node_id = self.add_node(
+                f"canvas_{node_type}",
+                title,
+                tags,
+                source,
+                our_id
+            )
+            slug_to_id[canvas_id] = our_id
+            id_type_map[canvas_id] = (node_type, node_id)
+            nodes_added += 1
+
+        edges_added = 0
+        for ce in canvas_edges:
+            src = ce.get('source', '')
+            tgt = ce.get('target', '')
+            if not src or not tgt:
+                continue
+            # Map canvas IDs to our IDs
+            src_id = slug_to_id.get(src)
+            tgt_id = slug_to_id.get(tgt)
+            if src_id and tgt_id and src_id in self._node_ids and tgt_id in self._node_ids:
+                self.add_edge(src_id, tgt_id, "causes")
+                edges_added += 1
+
+        return nodes_added, edges_added
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -775,6 +839,11 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     if os.path.isdir(agents_dir):
         builder.parse_agent_roles(agents_dir)
 
+    # Parse canvas graph (pre-computed cross-primitive causal edges)
+    canvas_dir = os.path.join(hermes_dir, "belam-codex", "canvas")
+    if os.path.isdir(canvas_dir):
+        builder.parse_canvas_graph(canvas_dir)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -873,6 +942,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     agents_dir = os.path.join(hermes_dir, "belam-codex", "agents")
     if os.path.isdir(agents_dir):
         builder.parse_agent_roles(agents_dir)
+
+    # Parse canvas graph (pre-computed cross-primitive causal edges)
+    canvas_dir = os.path.join(hermes_dir, "belam-codex", "canvas")
+    if os.path.isdir(canvas_dir):
+        builder.parse_canvas_graph(canvas_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
