@@ -395,14 +395,13 @@ def run_subprocess(cmd: str, timeout: int = 30) -> str:
         return ""
 
 
-# Graph pickle cache file
+# Graph JSON cache file (json.load is faster than pickle.load for this data size)
 _GRAPH_CACHE_FILE = None
-import pickle  # Module-level for faster cache loads
 
 def _get_graph_cache_file(agi_dir: str) -> str:
     global _GRAPH_CACHE_FILE
     if _GRAPH_CACHE_FILE is None:
-        _GRAPH_CACHE_FILE = os.path.join(agi_dir, ".graph_cache.pkl")
+        _GRAPH_CACHE_FILE = os.path.join(agi_dir, ".graph_cache.json")
     return _GRAPH_CACHE_FILE
 
 def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
@@ -442,13 +441,13 @@ def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
 
 def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
                            gitnexus_cache: Optional[str]) -> Optional[GraphBuilder]:
-    """Try to load graph from pickle cache if sources unchanged."""
+    """Try to load graph from JSON cache if sources unchanged."""
     cache_file = _get_graph_cache_file(agi_dir)
     if not os.path.exists(cache_file):
         return None
     try:
-        with open(cache_file, 'rb') as f:
-            cached = pickle.load(f)
+        with open(cache_file, 'r') as f:
+            cached = json.load(f)
         # Verify source mtimes match
         if cached.get('_source_mtimes') != source_mtimes:
             return None
@@ -456,13 +455,11 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         if cached.get('_gitnexus_cache') != gitnexus_cache:
             return None
         builder = GraphBuilder()
-        builder.nodes = cached.get('nodes', [])
+        # Nodes were stored as lists (tuples don't exist in JSON) — convert back to tuples
+        builder.nodes = [tuple(n) for n in cached.get('nodes', [])]
         builder.edges = cached.get('edges', [])
-        # Skip loading adj from cache — build from edges on demand
-        # This makes pickle loads faster (adj can be large)
+        builder.adj = cached.get('adj', {})
         builder._node_ids = {n[0] for n in builder.nodes}
-        # Rebuild adj from edges (skipping it in cache = smaller pickle = faster load)
-        builder.build_adjacency()
         return builder
     except Exception:
         return None
@@ -470,17 +467,19 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
 def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
                        source_mtimes: Dict[str, float],
                        gitnexus_cache: Optional[str]):
-    """Save built graph to pickle cache."""
+    """Save built graph to JSON cache."""
     try:
         cache_file = _get_graph_cache_file(agi_dir)
         cached = {
-            'nodes': builder.nodes,
+            # Convert tuples to lists for JSON compatibility
+            'nodes': [list(n) for n in builder.nodes],
             'edges': builder.edges,
+            'adj': dict(builder.adj),
             '_source_mtimes': source_mtimes,
             '_gitnexus_cache': gitnexus_cache,
         }
-        with open(cache_file, 'wb') as f:
-            pickle.dump(cached, f)
+        with open(cache_file, 'w') as f:
+            json.dump(cached, f)
     except Exception:
         pass
 
