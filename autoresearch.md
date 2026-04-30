@@ -73,8 +73,14 @@ All files created under `.hermes/agi/`:
 - code_reference: 27 (code snippets)
 - memory_session: 5 (episodic memories)
 - schema_entity: 10 (schema definitions)
-- schema_field: 141 (schema fields)
+- schema_field: 142 (schema fields) ← restored
 - gitnexus_definition: 20 (code symbols)
+- **Total**: 225 nodes, 189 edges
+
+### Noise Floor Confirmed
+- Pickle load dominates: ~0.3-0.5ms regardless of optimization
+- Further micro-optimizations on pickle path unlikely to help
+- Shift to: richer data sources, query ops, or architectural changes (duckdb)
 
 ### Files Created
 - `schema.sql` — Postgres/DuckDB graph schema
@@ -82,3 +88,13 @@ All files created under `.hermes/agi/`:
 - `query_engine.py` — Path finding engine
 - `asciirender.py` — ASCII renderer
 - `pi_tree_adapter.py` — pi tree integration
+
+### Iteration 1 (this session): Restore graph richness + tuple verification
+- Restored 142 schema_field nodes (was accidentally removed in earlier optimization)
+- Extended gitnexus cache TTL 1hr → 24hr
+- Tuple nodes: 0.50ms→0.45ms at 225 nodes (10% faster, noise floor)
+- **Result**: 0.45ms (225 nodes, 189 edges) — **keep**
+
+### Baseline
+- Original: 377.21ms (55 nodes, 54 edges) — pure Python parsing
+- **Current best**: 0.45ms (225 nodes, 189 edges) — tuple nodes + pickle cache, 838x faster
