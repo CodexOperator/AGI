@@ -1283,6 +1283,166 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_research_projects(self, hermes_dir: str) -> int:
+        """Parse research/, projects/, modes/, runbooks/ directories into knowledge nodes.
+        
+        - research/: technical research documents (containerization, orchestration tooling, etc.)
+        - projects/: project definitions with frontmatter (status, priority, owner, tags)
+        - modes/: orchestration mode definitions (create, edit, extend, orchestrate)
+        - runbooks/: operational how-to guides
+        
+        Each becomes a knowledge node with category edges. Returns total nodes added.
+        """
+        count = 0
+        base = os.path.join(hermes_dir, "belam-codex")
+
+        # research/ — technical documents (markdown prose, tables, code)
+        research_dir = os.path.join(base, "research")
+        if os.path.isdir(research_dir):
+            for filename in sorted(os.listdir(research_dir)):
+                if not filename.endswith('.md'):
+                    continue
+                filepath = os.path.join(research_dir, filename)
+                try:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                    title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                    title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
+                    # Extract first paragraph after metadata block
+                    body_match = re.search(r'(?:\n\n)(.+?)(?:\n\n|##)', content, re.DOTALL)
+                    body = body_match.group(1).strip()[:100] if body_match else ""
+                    node_id = self.add_node(
+                        "knowledge",
+                        title[:50],
+                        body,
+                        f"research/{filename}",
+                        f"research_{filename[:-3]}"
+                    )
+                    # Category edge
+                    cat_id = "category_research"
+                    if cat_id not in self._node_ids:
+                        self.add_node("tag", "research", "", f"research/{filename}", cat_id)
+                    self.add_edge(node_id, cat_id, "categorized_as")
+                    count += 1
+                except Exception:
+                    pass
+
+        # projects/ — project definitions with frontmatter
+        projects_dir = os.path.join(base, "projects")
+        if os.path.isdir(projects_dir):
+            for filename in sorted(os.listdir(projects_dir)):
+                if not filename.endswith('.md'):
+                    continue
+                filepath = os.path.join(projects_dir, filename)
+                try:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                    fm_match = _RE_FRONT_MATTER.match(content)
+                    meta = {}
+                    if fm_match:
+                        for line in fm_match.group(1).split('\n'):
+                            m = _RE_YAML_PAIR.match(line)
+                            if m:
+                                meta[m.group(1)] = m.group(2)
+                    title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                    title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
+                    status = meta.get('status', '')
+                    priority = meta.get('priority', '')
+                    tags_str = meta.get('tags', '[]')
+                    owner = meta.get('owner', '')
+                    summary = f"{status}|{priority}|{owner[:20]}|{tags_str[:40]}"
+                    node_id = self.add_node(
+                        "knowledge",
+                        title[:50],
+                        summary,
+                        f"projects/{filename}",
+                        f"project_{filename[:-3]}"
+                    )
+                    # Tag edges
+                    if tags_str and tags_str != '[]':
+                        tags = re.findall(r'[\w-]+', tags_str)
+                        for tag in tags[:5]:
+                            tag_id = f"tag_{tag}"
+                            if tag_id not in self._node_ids:
+                                self.add_node("tag", tag, "", f"projects/{filename}", tag_id)
+                            self.add_edge(node_id, tag_id, "tagged_with")
+                            count += 1
+                    # Category edge
+                    cat_id = "category_project"
+                    if cat_id not in self._node_ids:
+                        self.add_node("tag", "project", "", f"projects/{filename}", cat_id)
+                    self.add_edge(node_id, cat_id, "categorized_as")
+                    count += 1
+                except Exception:
+                    pass
+
+        # modes/ — orchestration mode definitions (create, edit, extend, orchestrate)
+        modes_dir = os.path.join(base, "modes")
+        if os.path.isdir(modes_dir):
+            for filename in sorted(os.listdir(modes_dir)):
+                if not filename.endswith('.md'):
+                    continue
+                filepath = os.path.join(modes_dir, filename)
+                try:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                    title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                    title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
+                    # Extract first paragraph
+                    body_match = re.search(r'\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                    body = body_match.group(1).strip()[:100] if body_match else ""
+                    mode_type = filename[:-3]  # create, edit, extend, orchestrate
+                    node_id = self.add_node(
+                        "agent_capability",
+                        title[:50],
+                        body,
+                        f"modes/{filename}",
+                        f"mode_{mode_type}"
+                    )
+                    # Sequential edges between modes
+                    if hasattr(self, '_last_mode_id') and self._last_mode_id:
+                        self.add_edge(self._last_mode_id, node_id, "next_mode")
+                    self._last_mode_id = node_id
+                    count += 1
+                except Exception:
+                    pass
+
+        # runbooks/ — operational how-to guides
+        runbooks_dir = os.path.join(base, "runbooks")
+        if os.path.isdir(runbooks_dir):
+            for filename in sorted(os.listdir(runbooks_dir)):
+                if not filename.endswith('.md'):
+                    continue
+                filepath = os.path.join(runbooks_dir, filename)
+                try:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                    title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                    title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
+                    body_match = re.search(r'\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                    body = body_match.group(1).strip()[:100] if body_match else ""
+                    node_id = self.add_node(
+                        "knowledge",
+                        title[:50],
+                        body,
+                        f"runbooks/{filename}",
+                        f"runbook_{filename[:-3]}"
+                    )
+                    # Category edge
+                    cat_id = "category_runbook"
+                    if cat_id not in self._node_ids:
+                        self.add_node("tag", "runbook", "", f"runbooks/{filename}", cat_id)
+                    self.add_edge(node_id, cat_id, "categorized_as")
+                    count += 1
+                except Exception:
+                    pass
+
+        # Reset _last_mode_id if it was set
+        if hasattr(self, '_last_mode_id'):
+            delattr(self, '_last_mode_id')
+
+        return count
+
     def parse_archive_tasks(self, archive_dir: str) -> int:
         """Parse archive/tasks/ into archive_task nodes with upstream/downstream edges.
         
@@ -1829,6 +1989,9 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(personas_dir):
         builder.parse_personas(personas_dir)
 
+    # Parse research/, projects/, modes/, runbooks/ directories
+    builder.parse_research_projects(hermes_dir)
+
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
     builder.build_tag_bridges(hermes_dir)
 
@@ -1870,7 +2033,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=9)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=10)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -1961,6 +2124,9 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     personas_dir = os.path.join(hermes_dir, "belam-codex", "personas")
     if os.path.isdir(personas_dir):
         builder.parse_personas(personas_dir)
+
+    # Parse research/, projects/, modes/, runbooks/ directories
+    builder.parse_research_projects(hermes_dir)
 
     # Bridge isolated clusters via shared tags
     builder.build_tag_bridges(hermes_dir)
