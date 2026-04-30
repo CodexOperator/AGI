@@ -333,8 +333,7 @@ class GraphBuilder:
                 lesson_match = re.search(r'## Lesson\s*\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
                 lesson_text = lesson_match.group(1).strip()[:100] if lesson_match else ""
 
-                confidence = meta.get('confidence', 'unknown')
-                lesson_id = self.add_node(
+                self.add_node(
                     "lesson",
                     title,
                     lesson_text,
@@ -343,10 +342,100 @@ class GraphBuilder:
                 )
                 count += 1
 
-                # Skip tag nodes - not needed for core graph, saves nodes/edges
+            except Exception:
+                pass
+        return count
+
+    def parse_tasks(self, tasks_dir: str, limit: int = 50) -> int:
+        """Parse task files into graph nodes with status/priority edges."""
+        if not os.path.isdir(tasks_dir):
+            return 0
+
+        files = sorted(os.listdir(tasks_dir), reverse=True)
+        # Filter to .md files only
+        md_files = [f for f in files if f.endswith('.md')][:limit]
+
+        task_ids = {}  # filename -> node_id for dependency linking
+        count = 0
+
+        for filename in md_files:
+            filepath = os.path.join(tasks_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                # Extract task title
+                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                title = title_match.group(1)[:60] if title_match else filename[:-3]
+
+                # Extract goal summary (first paragraph after frontmatter)
+                goal_match = re.search(r'### Goal\s*\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                goal_text = goal_match.group(1).strip()[:100] if goal_match else ""
+
+                status = meta.get('status', 'open')
+                priority = meta.get('priority', 'medium')
+                created = meta.get('created', '')
+
+                # Summary label: title + status
+                label = f"{title[:50]}"
+                summary = f"{status}|{priority}|{created[:10]}|{goal_text[:40]}"
+
+                task_key = filename[:-3]  # strip .md
+                task_id = self.add_node(
+                    "task",
+                    label,
+                    summary,
+                    f"tasks/{filename}",
+                    f"task_{task_key[:50]}"
+                )
+                task_ids[task_key] = task_id
+                count += 1
 
             except Exception:
                 pass
+
+        # Second pass: add depends_on edges
+        for filename in md_files:
+            filepath = os.path.join(tasks_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+                fm_match = _RE_FRONT_MATTER.match(content)
+                if not fm_match:
+                    continue
+                meta = {}
+                for line in fm_match.group(1).split('\n'):
+                    m = _RE_YAML_PAIR.match(line)
+                    if m:
+                        meta[m.group(1)] = m.group(2)
+
+                dep_str = meta.get('depends_on', '').strip('[] ')
+                if not dep_str:
+                    continue
+
+                depends = [d.strip().strip("'").strip('"') for d in dep_str.split(',') if d.strip()]
+                src_key = filename[:-3]
+                src_id = task_ids.get(src_key)
+                if not src_id:
+                    continue
+
+                for dep in depends:
+                    dep_id = task_ids.get(dep)
+                    if dep_id:
+                        self.add_edge(src_id, dep_id, "depends_on")
+
+            except Exception:
+                pass
+
         return count
 
     def build_adjacency(self):
@@ -497,6 +586,11 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     if os.path.isdir(lessons_dir):
         builder.parse_lessons(lessons_dir, limit=10)
 
+    # Parse tasks (limit 50 — task nodes with status/priority/depends_on edges)
+    tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
+    if os.path.isdir(tasks_dir):
+        builder.parse_tasks(tasks_dir, limit=50)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -580,6 +674,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
     if os.path.isdir(lessons_dir):
         builder.parse_lessons(lessons_dir, limit=10)
+
+    # Parse tasks (fallback cold path)
+    tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
+    if os.path.isdir(tasks_dir):
+        builder.parse_tasks(tasks_dir, limit=50)
 
     # Process gitnexus cache
     global _gitnexus_cache
