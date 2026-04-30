@@ -41,3 +41,4 @@ Thu Apr 30 07:58:45 UTC 2026 — iter done, timeout exit=124
 Thu Apr 30 08:05:45 UTC 2026 — iter done, timeout exit=0
 **Iteration 33 result**: `keep` — 0.03ms (unchanged, noise floor saturated); +37 nodes (886→923), +36 edges (380→416) from 38 `archive_command` docs with `upstream` cross-links to decision nodes.
 Thu Apr 30 08:14:12 UTC 2026 — iter done, timeout exit=0
+**Iteration #35: KEEP** — Parse archive/tasks: +17 nodes (940), +15 edges (431). Primary 0.03ms unchanged (noise floor saturated). Archive tasks with upstream→decision edges add graph richness but don't affect warm load time.

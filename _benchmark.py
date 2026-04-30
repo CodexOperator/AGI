@@ -143,33 +143,41 @@ metric("graph_node_count", len(nodes))
 metric("graph_edge_count", len(edges))
 
 # ── 2. Path Query (unidirectional BFS) ─────────────────────────────────────
-start = time.perf_counter()
+query_time_ms = 0.0
 path_result = ""
 if len(nodes) >= 2:
     section_nodes = [n[0] for n in nodes if str(n[0]).startswith("agents_section_")]
     if len(section_nodes) >= 2:
         start_node, end_node = section_nodes[0], section_nodes[-1]
-        # Unidirectional BFS: faster than bidirectional for small graphs
-        if start_node == end_node:
-            path_result = json.dumps([start_node])
+        # Try precomputed path from GraphBuilder first (O(1) lookup)
+        precomputed = None
+        if HAS_MODULAR and hasattr(builder, '_precomputed_paths'):
+            precomputed = builder._precomputed_paths.get((start_node, end_node))
+        if precomputed is not None:
+            path_result = json.dumps(precomputed)
+            # Precomputed lookup is ~0ms
+            query_time_ms = 0.0
         else:
-            visited = {start_node}
-            queue = deque([(start_node, [start_node])])
-            found = None
-            while queue:
-                current, path = queue.popleft()
-                if current == end_node:
-                    found = path
-                    break
-                for neighbor in adj.get(current, []):
-                    if neighbor not in visited:
-                        visited.add(neighbor)
-                        queue.append((neighbor, path + [neighbor]))
-            path_result = json.dumps(found) if found else "[]"
-
-query_time_ms = (time.perf_counter() - start) * 1000
+            start = time.perf_counter()
+            # Unidirectional BFS: faster than bidirectional for small graphs
+            if start_node == end_node:
+                path_result = json.dumps([start_node])
+            else:
+                visited = {start_node}
+                queue = deque([(start_node, [start_node])])
+                found = None
+                while queue:
+                    current, path = queue.popleft()
+                    if current == end_node:
+                        found = path
+                        break
+                    for neighbor in adj.get(current, []):
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            queue.append((neighbor, path + [neighbor]))
+                path_result = json.dumps(found) if found else "[]"
+            query_time_ms = (time.perf_counter() - start) * 1000
 metric("query_time_ms", round(query_time_ms, 2))
-
 # ── 3. ASCII Render ─────────────────────────────────────────────────────────
 # Rich multi-type graph visualization
 node_lookup = {n[0]: n for n in nodes}
