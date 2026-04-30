@@ -458,8 +458,11 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         builder = GraphBuilder()
         builder.nodes = cached.get('nodes', [])
         builder.edges = cached.get('edges', [])
-        builder.adj = cached.get('adj', {})
+        # Skip loading adj from cache — build from edges on demand
+        # This makes pickle loads faster (adj can be large)
         builder._node_ids = {n[0] for n in builder.nodes}
+        # Rebuild adj from edges (skipping it in cache = smaller pickle = faster load)
+        builder.build_adjacency()
         return builder
     except Exception:
         return None
@@ -473,7 +476,6 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
         cached = {
             'nodes': builder.nodes,
             'edges': builder.edges,
-            'adj': dict(builder.adj),
             '_source_mtimes': source_mtimes,
             '_gitnexus_cache': gitnexus_cache,
         }

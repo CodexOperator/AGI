@@ -5,3 +5,5 @@ Thu Apr 30 06:28:44 UTC 2026 — iter done, timeout exit=0
 
 Current best: **0.49ms** (225 nodes, 189 edges) — 769x faster than original 377.21ms baseline.
 Thu Apr 30 06:34:48 UTC 2026 — iter done, timeout exit=0
+**Iteration result**: `discard` — 1.02ms (436 nodes) vs baseline 0.50ms (225 nodes). **Key finding**: Tuple format is genuinely faster per pickle-load (microbenchmark: 1.47x), but the pickle cache now stores 436 nodes (decisions+lessons included) vs old 225-node baseline, inflating absolute time. Rollback reverted code changes. Next: isolate format test at fixed node count, or try msgpack.
+Thu Apr 30 06:43:53 UTC 2026 — iter done, timeout exit=124
