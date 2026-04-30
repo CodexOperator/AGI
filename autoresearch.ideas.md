@@ -19,13 +19,14 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load). This is:
 - Serialization format experiments (pickle/json/msgpack): all REGRESSION or noise floor
 
 ## NOW WORTHWHILE — Data Expansion (richer graph, same speed)
-- [ ] Parse all 84 tasks (remove 50-limit) — trivial expansion
-- [ ] Parse goals/ directory for goal nodes
+- [x] Parse all 84 tasks (remove 50-limit) — DONE iter 25
+- [x] Parse goals/ directory for goal nodes — DONE iter 24
+- [x] Expand decisions/lessons beyond 10-limit — DONE iter 25 (decisions→100, lessons→100)
 - [ ] Parse canvas/ directory for canvas state nodes  
-- [ ] Expand decisions/lessons beyond 10-limit (potential 300-400 nodes)
 - [ ] Parse state/ directory for runtime state nodes
 - [ ] Parse archive/ directory for archived files
 - [ ] Parse machinelearning/ for cross-repo graph edges
+- [ ] Parse memory/ beyond 30-limit (up to 58 available)
 
 ## Architectural (secondary: query_time_ms, structural richness)
 - [ ] duckdb/sqlite3 backend — persistent graph DB with SQL query engine

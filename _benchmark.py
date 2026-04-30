@@ -142,26 +142,54 @@ metric("graph_build_time_ms", round(build_time_ms, 2))
 metric("graph_node_count", len(nodes))
 metric("graph_edge_count", len(edges))
 
-# ── 2. Path Query ───────────────────────────────────────────────────────────
+# ── 2. Path Query (bidirectional BFS) ───────────────────────────────────────
 start = time.perf_counter()
 path_result = ""
 if len(nodes) >= 2:
     section_nodes = [n[0] for n in nodes if str(n[0]).startswith("agents_section_")]
     if len(section_nodes) >= 2:
         start_node, end_node = section_nodes[0], section_nodes[-1]
-        visited = {start_node}
-        queue = deque([(start_node, [start_node])])
-        found = None
-        while queue:
-            current, path = queue.popleft()
-            if current == end_node:
-                found = path
-                break
-            for neighbor in adj.get(current, []):
-                if neighbor not in visited:
-                    visited.add(neighbor)
-                    queue.append((neighbor, path + [neighbor]))
-        path_result = json.dumps(found) if found else "[]"
+        # Bidirectional BFS: search from both ends simultaneously
+        if start_node == end_node:
+            path_result = json.dumps([start_node])
+        else:
+            forward = {start_node: [start_node]}
+            backward = {end_node: [end_node]}
+            forward_set = {start_node}
+            backward_set = {end_node}
+            found = None
+            for _ in range(min(len(nodes), 50)):
+                if found:
+                    break
+                next_frontier = {}
+                for current in list(forward.keys()):
+                    path = forward[current]
+                    for neighbor in adj.get(current, []):
+                        if neighbor in backward_set:
+                            found = path + backward[neighbor]
+                            break
+                        if neighbor not in forward_set:
+                            forward_set.add(neighbor)
+                            next_frontier[neighbor] = path + [neighbor]
+                    if found:
+                        break
+                forward.update(next_frontier)
+                if found:
+                    break
+                next_frontier = {}
+                for current in list(backward.keys()):
+                    path = backward[current]
+                    for neighbor in adj.get(current, []):
+                        if neighbor in forward_set:
+                            found = forward[neighbor] + path[::-1]
+                            break
+                        if neighbor not in backward_set:
+                            backward_set.add(neighbor)
+                            next_frontier[neighbor] = path + [neighbor]
+                    if found:
+                        break
+                backward.update(next_frontier)
+            path_result = json.dumps(found) if found else "[]"
 
 query_time_ms = (time.perf_counter() - start) * 1000
 metric("query_time_ms", round(query_time_ms, 2))
