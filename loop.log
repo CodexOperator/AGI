@@ -58,3 +58,5 @@ Thu Apr 30 08:47:41 UTC 2026 — iter done, timeout exit=0
 Thu Apr 30 08:54:32 UTC 2026 — iter done, timeout exit=0
 **Iteration 44 result:** `keep` — 0.03ms (noise floor unchanged); added hub reachability matrix (32 hubs × BFS frozensets → O(1) connectivity queries, +0.85ms cold, 0ms warm).
 Thu Apr 30 09:03:37 UTC 2026 — iter done, timeout exit=124
+**iter-44 result: ✅ keep** — 0.03ms (1,451 nodes, 1,493 edges) — enhanced parse_templates with rich YAML metadata (role/action/session/cli) for template_stage nodes. Primary metric unchanged at noise floor.
+Thu Apr 30 09:12:42 UTC 2026 — iter done, timeout exit=124

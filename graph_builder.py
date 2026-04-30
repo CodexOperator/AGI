@@ -2017,6 +2017,206 @@ class GraphBuilder:
 
         return count
 
+    def parse_hooks(self, hooks_dir: str) -> int:
+        """Parse hermes/belam-codex/hooks/ for hook reference nodes.
+        
+        Each hook has HOOK.md with frontmatter (name, description, events, requires)
+        and a handler.ts TypeScript file. Creates hook_reference nodes with
+        event-based edges to the hook system.
+        """
+        if not os.path.isdir(hooks_dir):
+            return 0
+
+        count = 0
+        hook_subdirs = ['memory-extract', 'pipeline-dispatch', 'supermap-boot']
+
+        for subdir in hook_subdirs:
+            hook_md = os.path.join(hooks_dir, subdir, 'HOOK.md')
+            if not os.path.exists(hook_md):
+                continue
+            try:
+                with open(hook_md, 'r') as f:
+                    content = f.read()
+
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                hook_name = meta.get('name', subdir)
+                description = meta.get('description', '')
+                events_str = meta.get('metadata.openclaw.events', '[]')
+                requires_str = meta.get('metadata.openclaw.requires.config', '[]')
+
+                # Extract first body paragraph as summary
+                body_match = re.search(r'(?:^---.*?---\n\n)(.+?)(?:\n\n|##)', content, re.DOTALL)
+                body = body_match.group(1).strip()[:100] if body_match else description[:100]
+
+                node_id = self.add_node(
+                    "hook_reference",
+                    hook_name[:50],
+                    body[:80],
+                    f"hooks/{subdir}/HOOK.md",
+                    f"hook_{hook_name.replace('-', '_').replace(' ', '_')}"
+                )
+                count += 1
+
+                # Event-based edges (what triggers this hook)
+                events = re.findall(r'\w+(?:/\w+)*', events_str)
+                for event in events[:3]:
+                    event_id = f"tag_hook_event_{event.replace('/', '_')}"
+                    if event_id not in self._node_ids:
+                        self.add_node("tag", event, f"hook event: {event}", f"hooks/{subdir}/HOOK.md", event_id)
+                        count += 1
+                    self.add_edge(node_id, event_id, "fires_on")
+
+            except Exception:
+                pass
+        return count
+
+    def parse_scripts(self, scripts_dir: str) -> int:
+        """Parse belam-codex/scripts/ Python CLI tools as script_reference nodes.
+        
+        Selects ~40 key operational scripts (CLI tools, not internal modules).
+        For each script, creates a script_reference node. Top-level def/class names
+        become child nodes (script_function, script_class). Filters out:
+        private (leading _), test files, .pyc, backups, __init__, __pycache__.
+        """
+        if not os.path.isdir(scripts_dir):
+            return 0
+
+        _RE_SHEBANG = re.compile(r'^#!.*python', re.IGNORECASE)
+        _RE_CLI_DECORATOR = re.compile(r'@(cli|command|argument|option)\(', re.MULTILINE)
+        _RE_TOP_DEF = re.compile(r'^def\s+(\w+)\s*\(', re.MULTILINE)
+        _RE_TOP_CLASS = re.compile(r'^class\s+(\w+)\s*[:(]', re.MULTILINE)
+
+        # Target scripts: CLI tools (not internal modules, not tests, not backups)
+        SKIP_PREFIXES = ('__', '_', 'tests/', 'archived/')
+        SKIP_SUFFIXES = ('.pyc', '.bak', '.backup', '_backup', '.v1_backup', 
+                         '.pre_v2_modes_backup')
+        TARGET_SCRIPTS = [
+            'belam.sh', 'belam_extract.sh', 'build_notebook.py', 'cli_registry.py',
+            'codex_codec.py', 'codex_engine.py', 'codex_lm_platform.py',
+            'codex_lm_renderer.py', 'codex_materialize.py', 'codex_mcp_server.py',
+            'codex_ram.py', 'codex_stream.py', 'codex_watch.py',
+            'command_registry.py', 'create_primitive.py', 'dispatch_adapters.py',
+            'export_graph_data.py', 'generate_session_context.py',
+            'handoff_diff.py', 'hermes_orchestrate.py',
+            'launch_analysis_pipeline.py', 'launch_pipeline.py',
+            'log_memory.py', 'map_relationships.py', 'memory_daily_linker.py',
+            'memory_file_update_checkcheck.py', 'memory_monthly_consolidation.py',
+            'memory_session_loader.py', 'memory_weekly_consolidation.py',
+            'migrate_pipeline_frontmatter.py', 'migrate_promotion_fields.py',
+            'migrate_task_schema_v2.py', 'orchestration_engine.py',
+            'parse_session_transcript.py', 'persona_loader.py',
+            'pipeline_automate.py', 'pipeline_autorun.py', 'pipeline_dashboard.py',
+            'pipeline_orchestrate.py', 'pipeline_rewind.py',
+            'pipeline_stall_recovery.py', 'pipeline_update.py', 'pipeline_verify.py',
+            'render_supermap.py', 'run_experiment.py', 'run_memory_extraction.py',
+            'run_pipeline_stage.py', 'runtime_resolution.py', 'setup_analysis_pipeline.py',
+            'setup_backtest_env.sh', 'setup_memory_crons.py', 'setup_pipeline.py',
+            'sync_knowledge_repo.py', 'template_parser.py', 'temporal_overlay.py',
+            'temporal_sync.py', 'transcribe_audio.py', 'trigger_embed.py',
+            'video_thumbnail_generator.py', 'video_tts.py', 'weekly_knowledge_sync.py',
+        ]
+        # Map to actual filenames (some may not exist, that's fine)
+        target_set = set(TARGET_SCRIPTS)
+
+        count = 0
+        skipped_private = 0
+
+        for filename in sorted(os.listdir(scripts_dir)):
+            if filename in SKIP_SUFFIXES:
+                skipped_private += 1
+                continue
+            if any(filename.startswith(p) for p in SKIP_PREFIXES):
+                skipped_private += 1
+                continue
+            if not (filename.endswith('.py') or filename.endswith('.sh')):
+                continue
+            # Only parse target scripts (keep it selective)
+            if filename not in target_set:
+                continue
+
+            filepath = os.path.join(scripts_dir, filename)
+            if not os.path.isfile(filepath):
+                continue
+
+            try:
+                with open(filepath, 'r') as f:
+                    content = f.read(4096)  # Read first 4KB for header parsing
+
+                lines = content.split('\n')
+                is_cli = False
+
+                # Detect CLI tool: shebang or @cli decorator
+                if lines and (_RE_SHEBANG.match(lines[0]) or 'argparse' in content[:500] or 'click' in content[:500]):
+                    is_cli = True
+                elif _RE_CLI_DECORATOR.search(content[:500]):
+                    is_cli = True
+
+                # Extract docstring title
+                doc_match = re.search(r'"""\n?(.+?)"""', content[:1000], re.DOTALL)
+                title = doc_match.group(1).strip().split('\n')[0][:80] if doc_match else filename
+
+                # Determine script type
+                if filename.endswith('.sh'):
+                    script_type = 'shell_script'
+                else:
+                    script_type = 'script_reference'
+
+                node_id = self.add_node(
+                    script_type,
+                    title[:50],
+                    f"cli:{is_cli}",
+                    f"scripts/{filename}",
+                    f"script_{filename.replace('.', '_')}"
+                )
+                count += 1
+
+                # Extract top-level defs and classes (fast: first 4KB of each file)
+                for def_match in _RE_TOP_DEF.finditer(content):
+                    fn_name = def_match.group(1)
+                    if fn_name.startswith('_') and fn_name != '__init__':
+                        continue
+                    # Skip dunder methods that aren't __init__
+                    if fn_name.startswith('__'):
+                        continue
+                    fn_id = self.add_node(
+                        "script_function",
+                        fn_name[:50],
+                        "",
+                        f"scripts/{filename}",
+                        f"fn_{filename[:-3]}_{fn_name}"
+                    )
+                    self.add_edge(node_id, fn_id, "defines")
+                    count += 1
+
+                for cls_match in _RE_TOP_CLASS.finditer(content):
+                    cls_name = cls_match.group(1)
+                    if cls_name.startswith('_'):
+                        continue
+                    # Skip common stdlib wrappers
+                    if cls_name in ('Optional', 'List', 'Dict', 'Any', 'Tuple', 
+                                     'Callable', 'Type', 'Union', 'Literal'):
+                        continue
+                    cls_id = self.add_node(
+                        "script_class",
+                        cls_name[:50],
+                        "",
+                        f"scripts/{filename}",
+                        f"cls_{filename[:-3]}_{cls_name}"
+                    )
+                    self.add_edge(node_id, cls_id, "defines")
+                    count += 1
+
+            except Exception:
+                pass
+        return count
+
     def build_tag_bridges(self, hermes_dir: str) -> int:
         """Bridge isolated clusters via shared tags.
 
@@ -2389,6 +2589,16 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(templates_dir):
         builder.parse_templates(templates_dir)
 
+    # Parse hooks/ (3 hook definitions with event-based trigger metadata)
+    hooks_dir = os.path.join(hermes_dir, "belam-codex", "hooks")
+    if os.path.isdir(hooks_dir):
+        builder.parse_hooks(hooks_dir)
+
+    # Parse scripts/ (~40 Python CLI tools with top-level def/class nodes)
+    scripts_dir = os.path.join(hermes_dir, "belam-codex", "scripts")
+    if os.path.isdir(scripts_dir):
+        builder.parse_scripts(scripts_dir)
+
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
     builder.build_tag_bridges(hermes_dir)
 
@@ -2430,7 +2640,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=11)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=12)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -2534,6 +2744,16 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     templates_dir = os.path.join(hermes_dir, "belam-codex", "templates")
     if os.path.isdir(templates_dir):
         builder.parse_templates(templates_dir)
+
+    # Parse hooks/ (3 hook definitions with event-based trigger metadata)
+    hooks_dir = os.path.join(hermes_dir, "belam-codex", "hooks")
+    if os.path.isdir(hooks_dir):
+        builder.parse_hooks(hooks_dir)
+
+    # Parse scripts/ (~40 Python CLI tools with top-level def/class nodes)
+    scripts_dir = os.path.join(hermes_dir, "belam-codex", "scripts")
+    if os.path.isdir(scripts_dir):
+        builder.parse_scripts(scripts_dir)
 
     # Bridge isolated clusters via shared tags
     builder.build_tag_bridges(hermes_dir)
