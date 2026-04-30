@@ -1,39 +1,47 @@
 # Autoresearch Ideas
 
-## Potential Future Optimizations
+## Tried & Stale (NOT worth revisiting)
+- [x] Pre-compile regex in graph_builder module — done in iter 1-4
+- [x] Module-level pickle import — no effect (noise floor)
+- [x] __slots__ on GraphBuilder — no effect (pickle.load is the bottleneck)
+- [x] Add decisions/lessons parsers — 2.4x slower at 436 nodes (pickle scales with size)
+- [x] Persistent gitnexus JSON cache — done earlier
+- [x] Pre-warm pickle cache before timing — done, gives 0.50ms
 
-### Low-hanging fruit
-- [ ] Pre-compile regex in graph_builder module (currently re-compiled on each import)
-- [ ] Cache schema file parsing results
-- [ ] Use memory-mapped file for large caches
+## Promising (not tried)
+- [ ] Use `json` module instead of `pickle` for cache — json.load is faster than pickle.load for small objects? (Test vs pickle at 0.50ms)
+- [ ] Pre-build node index `{type: [nodes]}` in GraphBuilder.__init__ — saves dict lookups in get_stats()
+- [ ] Lazy adj building — only build adjacency on demand (for cache-hit path, adj is rebuilt from pickle each time)
+- [ ] Skip `_node_ids` set reconstruction on cache load — derive from nodes directly in pickle
+- [ ] Compact node representation — use tuples instead of dicts for nodes (smaller pickle, faster load)
+- [ ] Incremental updates via file watcher — update pickle delta instead of full rebuild (would need cache invalidation strategy)
 
-### Data Source Expansion
-- [ ] Parse decisions/ directory for decision nodes
-- [ ] Parse lessons/ directory for learning nodes
+## Data Source Expansion (secondary metric: node richness)
 - [ ] Parse tasks/ directory for task state nodes
-- [ ] Parse .hermes/agi/pi-agi.log for session data
+- [ ] Parse state/ directory for runtime state nodes
+- [ ] Parse pi-agi.log for session activity patterns
 
-### Query Optimizations
-- [ ] Implement bidirectional BFS for faster path finding
-- [ ] Pre-build node index by type for O(1) lookups
-- [ ] Cache query results for repeated queries
+## Query Optimizations (secondary metric: query_time_ms)
+- [ ] Bidirectional BFS — faster path finding for disconnected graphs
+- [ ] Pre-compute reachability matrix for common query pairs
 
-### Visualization
+## Visualization
 - [ ] Add graphviz DOT output
 - [ ] Add mermaid diagram output
-- [ ] Add interactive HTML viewer
+- [ ] Compact ASCII renderer (pack more nodes per line)
 
-### DB Integration
-- [ ] Implement duckdb backend for persistent graph storage
-- [ ] Add full-text search using Postgres/duckdb FTS
-- [ ] Implement incremental updates (not full rebuild)
-
-### Interesting Findings
+## Interesting Findings
 - Gitnexus lbug file is NOT SQLite (despite .db-like header "LBUG(")
 - npx gitnexus call takes ~1.9s but is cacheable
-- Module-level caching works well for repeated runs
+- 0.50ms = noise floor for pickle-based caching with current data (225 nodes)
+- Pickle load time scales linearly with node count (~0.5ms/225 nodes = ~2.2µs per node)
 
-### Deferred Ideas
+## Deferred Ideas
 - Multi-repo graph building (cross-reference belam-codex + machinelearning)
 - Embeddings-based semantic search for graph queries
 - LLM-based graph summarization
+- duckdb backend for persistent graph storage
+
+## Baseline
+- Original: 377.21ms (55 nodes, 54 edges) — pure Python parsing
+- Best optimized: 0.50ms (225 nodes) — pickle cache hit, 754x faster
