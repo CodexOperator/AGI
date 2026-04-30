@@ -385,9 +385,9 @@ def run_subprocess(cmd: str, timeout: int = 30) -> str:
         return ""
 
 
-# Graph pickle cache file
+# Graph cache file (msgpack for faster serialization)
 _GRAPH_CACHE_FILE = None
-import pickle  # Module-level for faster cache loads
+import msgpack  # Binary format, faster than pickle
 
 def _get_graph_cache_file(agi_dir: str) -> str:
     global _GRAPH_CACHE_FILE
@@ -420,13 +420,13 @@ def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
 
 def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
                            gitnexus_cache: Optional[str]) -> Optional[GraphBuilder]:
-    """Try to load graph from pickle cache if sources unchanged."""
+    """Try to load graph from msgpack cache if sources unchanged."""
     cache_file = _get_graph_cache_file(agi_dir)
     if not os.path.exists(cache_file):
         return None
     try:
         with open(cache_file, 'rb') as f:
-            cached = pickle.load(f)
+            cached = msgpack.unpackb(f.read(), raw=False)
         # Verify source mtimes match
         if cached.get('_source_mtimes') != source_mtimes:
             return None
@@ -445,7 +445,7 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
 def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
                        source_mtimes: Dict[str, float],
                        gitnexus_cache: Optional[str]):
-    """Save built graph to pickle cache."""
+    """Save built graph to msgpack cache."""
     try:
         cache_file = _get_graph_cache_file(agi_dir)
         cached = {
@@ -458,7 +458,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             '_node_count': len(builder.nodes),
         }
         with open(cache_file, 'wb') as f:
-            pickle.dump(cached, f)
+            msgpack.packb(cached, f)
     except Exception:
         pass
 
