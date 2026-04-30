@@ -72,7 +72,7 @@ class GraphBuilder:
 
         self._node_ids.add(node_id)
         # Store as tuple for faster pickle serialization
-        self.nodes.append((node_id, node_type, label[:60], content[:120] if content else "", source))
+        self.nodes.append((node_id, node_type, label[:60], content[:40] if content else "", source))
         return node_id
 
     def add_edge(self, from_id: str, to_id: str, edge_type: str = "references"):

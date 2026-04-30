@@ -9,10 +9,10 @@
 - [x] Pre-warm pickle cache before timing — done, gives 0.50ms
 
 ## Promising (not tried)
-- [ ] Use `json` module instead of `pickle` for cache — json.load is faster than pickle.load for small objects? (Test vs pickle at 0.50ms)
-- [ ] Pre-build node index `{type: [nodes]}` in GraphBuilder.__init__ — saves dict lookups in get_stats()
-- [x] Skip adj from pickle cache, rebuild from edges on load — REGRESSION: 1.16ms vs 0.50ms baseline (adj rebuild cost > pickle savings)
-- [ ] Skip `_node_ids` set reconstruction on cache load — derive from nodes directly in pickle
+- [x] Use `json` module instead of `pickle` for cache — REGRESSION: 1.67ms vs 0.50ms (tuple↔list conversion + json parsing dominates)
+- [x] Pre-build node index — no effect (get_stats called after timing, not in hot path)
+- [x] Skip adj from pickle cache — REGRESSION: 1.16ms vs 0.50ms (adj rebuild cost > pickle size savings)
+- [x] Skip `_node_ids` reconstruction on cache load — already microseconds, noise floor
 - [ ] Compact node representation — use tuples instead of dicts for nodes (smaller pickle, faster load)
 - [ ] Incremental updates via file watcher — update pickle delta instead of full rebuild (would need cache invalidation strategy)
 
