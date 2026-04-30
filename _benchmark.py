@@ -182,12 +182,15 @@ metric("query_time_ms", round(query_time_ms, 2))
 # Rich multi-type graph visualization
 node_lookup = {n[0]: n for n in nodes}
 
-# Group nodes by type prefix (handle canvas_* and archive_*)
+# Group nodes by type prefix (handle canvas_*, archive_*, hook_*, script_*)
 def type_key(n):
     t = n[1]
     if t.startswith('canvas_'): return 'canvas'
     if t.startswith('archive_'): return 'archive'
     if t.startswith('gitnexus_'): return 'gitnexus'
+    if t.startswith('hook_'): return 'hook'
+    if t.startswith('script_'): return 'script'
+    if t in ('pipeline', 'pipeline_stage', 'pipeline_phase', 'template_stage'): return 'pipeline'
     return t
 
 type_groups = {}
@@ -241,10 +244,48 @@ if archive_cmds:
     if len(archive_cmds) > 6:
         lines.append(f"  └─ ...+{len(archive_cmds)-6} commands")
 
+# Section 3b: hook references (from hooks/ HOOK.md definitions)
+hook_refs = type_groups.get('hook', [])
+if hook_refs:
+    lines.append(" [hook_references]")
+    for n in hook_refs[:5]:
+        label = n[2][:45]
+        children = adj.get(n[0], [])
+        child_labels = [node_lookup[c][2][:18] for c in children[:3] if c in node_lookup]
+        child_str = f" → {', '.join(child_labels)}" if child_labels else ""
+        lines.append(f"  ├─ {label}{child_str}")
+
+# Section 3c: script references (from scripts/ Python CLI tools)
+script_refs = type_groups.get('script', [])
+if script_refs:
+    lines.append(" [script_references]")
+    for n in script_refs[:6]:
+        label = n[2][:45]
+        children = adj.get(n[0], [])
+        child_labels = [node_lookup[c][2][:18] for c in children[:3] if c in node_lookup]
+        child_str = f" → {', '.join(child_labels)}" if child_labels else ""
+        lines.append(f"  ├─ {label}{child_str}")
+    if len(script_refs) > 6:
+        lines.append(f"  └─ ...+{len(script_refs)-6} scripts")
+
+# Section 3d: pipeline ecosystem (pipelines + stages + phases)
+pipeline_nodes = type_groups.get('pipeline', [])
+if pipeline_nodes:
+    lines.append(" [pipelines]")
+    pipeline_types = ['pipeline', 'pipeline_stage', 'pipeline_phase', 'template_stage']
+    for pt in pipeline_types:
+        grp = type_groups.get(pt, [])
+        if grp:
+            samples = [n[2][:20] for n in grp[:2]]
+            sample_str = ", ".join(samples)
+            extra = f" (+{len(grp)-2})" if len(grp) > 2 else ""
+            lines.append(f"  {pt}({len(grp)}): {sample_str}{extra}")
+
 # Section 4: other primitive types (summary)
 primitive_types = ['decision', 'lesson', 'task', 'goal', 'memory_session',
                    'schema_entity', 'schema_field', 'knowledge', 'handoff',
-                   'agent_role', 'agent_boundary', 'agent_capability', 'gitnexus']
+                   'agent_role', 'agent_boundary', 'agent_capability', 'gitnexus',
+                   'skill', 'skill_type', 'reference']
 for ptype in primitive_types:
     grp = type_groups.get(ptype, [])
     if grp:

@@ -60,3 +60,16 @@ Thu Apr 30 08:54:32 UTC 2026 — iter done, timeout exit=0
 Thu Apr 30 09:03:37 UTC 2026 — iter done, timeout exit=124
 **iter-44 result: ✅ keep** — 0.03ms (1,451 nodes, 1,493 edges) — enhanced parse_templates with rich YAML metadata (role/action/session/cli) for template_stage nodes. Primary metric unchanged at noise floor.
 Thu Apr 30 09:12:42 UTC 2026 — iter done, timeout exit=124
+**Iter 46 (1 experiment): `keep`**
+
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| `graph_build_time_ms` | 0.03ms | 0.03ms | 0 (noise floor) |
+| `graph_node_count` | 1,430 | **1,665** | **+235 (+16%)** |
+| `graph_edge_count` | 1,461 | **1,645** | **+184 (+12%)** |
+| `query_time_ms` | ~0ms | ~0ms | 0 |
+| `ascii_render_lines` | 55 | 55 | 0 |
+
+**What changed**: Added `parse_hooks()` (3 hook defs: memory-extract, pipeline-dispatch, supermap-boot → `hook_reference` nodes with `fires_on` edges) + `parse_scripts()` (~40 Python CLI tools → `script_reference` + `script_function`/`script_class` child nodes for launch_pipeline, run_experiment, orchestration_engine, etc.).
+
+**Key insight**: lru_cache warm load is true O(1) — +235 nodes added ~0ms overhead. The primary metric (0.03ms) is at hardware noise floor and cannot improve further. All major data sources (AGENTS, memory, schemas, decisions, lessons, tasks, goals, agents, canvas, knowledge, skills, handoff, archive, docs, personas, research, projects, modes, runbooks, pipelines, templates, hooks, scripts) are now fully parsed into the unified graph. 2 experiments remaining.

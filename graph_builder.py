@@ -2295,6 +2295,52 @@ class GraphBuilder:
                         edges_added += 1
         return count
 
+    def build_script_bridges(self) -> int:
+        """Bridge script nodes to pipeline nodes they operate on.
+
+        Scripts like launch_pipeline.py, pipeline_orchestrate.py, run_pipeline_stage.py
+        directly manage pipeline nodes. Creates script→pipeline edges linking the
+        CLI tool to the pipeline ecosystem it manages.
+        """
+        # Script filenames → pipeline slug patterns
+        script_to_pipeline = {
+            'launch_pipeline.py': 'launch',
+            'pipeline_orchestrate.py': 'orchestrate',
+            'pipeline_autorun.py': 'autorun',
+            'pipeline_automate.py': 'automate',
+            'pipeline_dashboard.py': 'dashboard',
+            'pipeline_update.py': 'update',
+            'pipeline_verify.py': 'verify',
+            'pipeline_rewind.py': 'rewind',
+            'pipeline_stall_recovery.py': 'stall',
+            'run_pipeline_stage.py': 'stage',
+            'run_experiment.py': 'experiment',
+            'setup_pipeline.py': 'setup',
+            'setup_analysis_pipeline.py': 'analysis',
+        }
+        count = 0
+        for node in self.nodes:
+            node_id, node_type, label, content, source = node
+            if node_type != 'script_reference':
+                continue
+            # Derive script filename from source field
+            if not source.startswith('scripts/'):
+                continue
+            script_name = source[len('scripts/'):]
+            pipeline_hint = script_to_pipeline.get(script_name)
+            if not pipeline_hint:
+                continue
+            # Find matching pipeline nodes
+            for pnode in self.nodes:
+                pid, ptype, plabel, pcontent, psource = pnode
+                if ptype not in ('pipeline', 'pipeline_stage', 'pipeline_phase'):
+                    continue
+                plower = plabel.lower() + pcontent.lower()
+                if pipeline_hint in plower or pipeline_hint in psource.lower():
+                    if pid in self._node_ids:
+                        self.add_edge(node_id, pid, 'operates_on')
+                        count += 1
+        return count
 
     def build_adjacency(self):
         """Build adjacency dict from edges."""
@@ -2602,6 +2648,9 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
     builder.build_tag_bridges(hermes_dir)
 
+    # Bridge script nodes to pipeline nodes they operate on
+    builder.build_script_bridges()
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -2640,7 +2689,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=12)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=13)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -2757,6 +2806,9 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Bridge isolated clusters via shared tags
     builder.build_tag_bridges(hermes_dir)
+
+    # Bridge script nodes to pipeline nodes they operate on
+    builder.build_script_bridges()
 
     # Process gitnexus cache
     global _gitnexus_cache
