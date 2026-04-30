@@ -487,6 +487,16 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
 
+    # Parse decisions (limit 10 — only titles/rationale, no tag nodes)
+    decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
+    if os.path.isdir(decisions_dir):
+        builder.parse_decisions(decisions_dir, limit=10)
+
+    # Parse lessons (limit 10 — only titles/summaries, no tag nodes)
+    lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
+    if os.path.isdir(lessons_dir):
+        builder.parse_lessons(lessons_dir, limit=10)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -560,6 +570,16 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
+
+    # Parse decisions (limit 10 — fallback cold path)
+    decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
+    if os.path.isdir(decisions_dir):
+        builder.parse_decisions(decisions_dir, limit=10)
+
+    # Parse lessons (limit 10 — fallback cold path)
+    lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
+    if os.path.isdir(lessons_dir):
+        builder.parse_lessons(lessons_dir, limit=10)
 
     # Process gitnexus cache
     global _gitnexus_cache
