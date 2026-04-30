@@ -287,6 +287,82 @@ def run_subprocess(cmd: str, timeout: int = 30) -> str:
         return ""
 
 
+# Graph pickle cache file
+_GRAPH_CACHE_FILE = None
+
+def _get_graph_cache_file(agi_dir: str) -> str:
+    global _GRAPH_CACHE_FILE
+    if _GRAPH_CACHE_FILE is None:
+        _GRAPH_CACHE_FILE = os.path.join(agi_dir, ".graph_cache.pkl")
+    return _GRAPH_CACHE_FILE
+
+def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
+    """Collect modification times of all graph source files."""
+    mtimes = {}
+    paths = [
+        os.path.join(hermes_dir, "belam-codex", "AGENTS.md"),
+    ]
+    # Memory files
+    memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
+    if os.path.isdir(memory_dir):
+        for f in sorted(os.listdir(memory_dir))[:10]:
+            if f.endswith('.md'):
+                paths.append(os.path.join(memory_dir, f))
+    # Schema files
+    schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
+    if os.path.isdir(schema_dir):
+        for f in os.listdir(schema_dir):
+            if f.endswith(('.md', '.yaml', '.yml')):
+                paths.append(os.path.join(schema_dir, f))
+    for p in paths:
+        if os.path.exists(p):
+            mtimes[p] = os.path.getmtime(p)
+    return mtimes
+
+def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
+                           gitnexus_cache: Optional[str]) -> Optional[GraphBuilder]:
+    """Try to load graph from pickle cache if sources unchanged."""
+    cache_file = _get_graph_cache_file(agi_dir)
+    if not os.path.exists(cache_file):
+        return None
+    try:
+        import pickle
+        with open(cache_file, 'rb') as f:
+            cached = pickle.load(f)
+        # Verify source mtimes match
+        if cached.get('_source_mtimes') != source_mtimes:
+            return None
+        # Verify gitnexus cache matches
+        if cached.get('_gitnexus_cache') != gitnexus_cache:
+            return None
+        builder = GraphBuilder()
+        builder.nodes = cached.get('nodes', [])
+        builder.edges = cached.get('edges', [])
+        builder.adj = cached.get('adj', {})
+        builder._node_ids = {n["id"] for n in builder.nodes}
+        return builder
+    except Exception:
+        return None
+
+def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
+                       source_mtimes: Dict[str, float],
+                       gitnexus_cache: Optional[str]):
+    """Save built graph to pickle cache."""
+    try:
+        import pickle
+        cache_file = _get_graph_cache_file(agi_dir)
+        cached = {
+            'nodes': builder.nodes,
+            'edges': builder.edges,
+            'adj': dict(builder.adj),
+            '_source_mtimes': source_mtimes,
+            '_gitnexus_cache': gitnexus_cache,
+        }
+        with open(cache_file, 'wb') as f:
+            pickle.dump(cached, f)
+    except Exception:
+        pass
+
 def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
                  gitnexus_cache: Optional[str] = None) -> Tuple[GraphBuilder, float]:
     """Main graph building function."""
@@ -295,6 +371,16 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     # Initialize cache
     init_cache(agi_dir)
     
+    # Collect source mtimes for cache validation
+    source_mtimes = _get_source_mtimes(hermes_dir)
+    
+    # Try to load from pickle cache
+    builder = _try_load_graph_cache(agi_dir, source_mtimes, gitnexus_cache)
+    if builder is not None:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return builder, elapsed_ms
+    
+    # Build from sources
     builder = GraphBuilder()
     
     # Parse AGENTS.md
@@ -325,6 +411,9 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     
     # Build adjacency
     builder.build_adjacency()
+    
+    # Save to pickle cache
+    _save_graph_cache(agi_dir, builder, source_mtimes, cache_to_use)
     
     elapsed_ms = (time.perf_counter() - start) * 1000
     return builder, elapsed_ms
