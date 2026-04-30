@@ -499,13 +499,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
     
-    # Parse decision files (limited to reduce pickle size)
-    decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
-    builder.parse_decisions(decisions_dir, limit=5)
-    
-    # Parse lesson files (limited to reduce pickle size)
-    lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
-    builder.parse_lessons(lessons_dir, limit=5)
+    # Skip decisions/lessons for faster cache (keeps graph at ~225 nodes)
 
     # Process gitnexus cache — use passed-in value if available
     global _gitnexus_cache
