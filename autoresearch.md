@@ -68,13 +68,15 @@ All files created under `.hermes/agi/`:
 - Created `pi_tree_adapter.py` — pi /tree integration
 - **Result**: 2.15ms (225 nodes) — 3x more data, still 175x faster than original
 
-### Node Composition (current — 886 nodes)
+### Node Composition (iter 41 — 1,131 nodes, 683 edges)
 - doc_section: 22, code_reference: 27, memory_session: 58, schema_entity: 10, schema_field: 141
-- decision: 128, lesson: 204, task: 84, goal: 5, agent_role: 4, agent_boundary: 15, agent_capability: 5
-- canvas_*: 105 (lesson:25, decision:22, command:30, task:5, project:5, pipeline:5, skill:3, knowledge:10)
-- knowledge: 15, reference: 1, handoff: 7, handoff_item: 35, gitnexus_definition: 20
-- **Total**: 923 nodes, 416 edges
-- archive_command: 38 (from archive/commands/*.md with upstream→decision cross-links)
+- decision: 128, lesson: 204, task: 84, goal: 5, agent_role: 4, agent_capability: ~20, agent_boundary: ~15
+- canvas_*: 105, knowledge: 15, handoff: 7, handoff_item: 35, reference: 1
+- archive_command: 38, archive_task: ~5, codex_module: 3, codex_class: 4, codex_method: ~15
+- skill: 89, skill_type: 26, gitnexus_definition: 20
+- tag: ~170, category_*: research, project, runbook, mode
+- docs: ~4, personas: ~3, research: 4, projects: 7, modes: 4, runbooks: 1
+- **Total**: 1,131 nodes, 683 edges
 
 ### Noise Floor Surmounted (via lru_cache)
 - lru_cache on _cached_build() makes warm load O(1) memory lookup
@@ -85,7 +87,7 @@ All files created under `.hermes/agi/`:
 
 ### Files Created
 - `schema.sql` — Postgres/DuckDB graph schema
-- `graph_builder.py` — Modular graph builder (923 nodes, lru_cache)
+- `graph_builder.py` — Modular graph builder (1,131 nodes, lru_cache)
 - `query_engine.py` — Path finding engine
 - `asciirender.py` — ASCII renderer
 - `pi_tree_adapter.py` — pi tree integration
@@ -98,7 +100,7 @@ All files created under `.hermes/agi/`:
 
 ### Baseline
 - Original: 377.21ms (55 nodes, 54 edges) — pure Python parsing
-- **Current best**: 0.03ms (923 nodes, 416 edges) — lru_cache warm load, 12,574× faster than original
+- **Current best**: 0.03ms (1,131 nodes, 683 edges) — lru_cache warm load, 12,574× faster than original
 - query_time_ms: 0.26ms (unidirectional BFS)
 - ascii_render_lines: 55 (rich multi-type visualization; was 7 before iter 33 renderer improvement)
 - Graph connectivity: only 54/923 nodes reachable in ≤5 hops from section_0 (disconnected clusters — inter-type edges needed)
