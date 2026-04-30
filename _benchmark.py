@@ -171,31 +171,94 @@ query_time_ms = (time.perf_counter() - start) * 1000
 metric("query_time_ms", round(query_time_ms, 2))
 
 # ── 3. ASCII Render ─────────────────────────────────────────────────────────
+# Rich multi-type graph visualization
+node_lookup = {n[0]: n for n in nodes}
+
+# Group nodes by type prefix (handle canvas_* and archive_*)
+def type_key(n):
+    t = n[1]
+    if t.startswith('canvas_'): return 'canvas'
+    if t.startswith('archive_'): return 'archive'
+    if t.startswith('gitnexus_'): return 'gitnexus'
+    return t
+
+type_groups = {}
+for n in nodes:
+    k = type_key(n)
+    type_groups.setdefault(k, []).append(n)
+
 lines = []
-if nodes:
-    lines.append(" UNIFIED GRAPH ")
-    lines.append("=" * 60)
-    lines.append(f" nodes={len(nodes)}  edges={len(edges)}")
-    lines.append("-" * 60)
-    
-    section_nodes = [n for n in nodes if n[1] == "doc_section"]
-    node_lookup = {n[0]: n for n in nodes}
-    
-    for i, n in enumerate(section_nodes[:10]):
-        node = node_lookup.get(n)
-        if not node:
-            continue
-        label = node[2][:50]
-        children = adj.get(n) or []
-        child_labels = [node_lookup[c][2][:20] for c in children[:3] if c in node_lookup]
+lines.append(" UNIFIED GRAPH ")
+lines.append("=" * 60)
+lines.append(f" nodes={len(nodes)}  edges={len(edges)}")
+lines.append("-" * 60)
+
+# Section 1: doc_sections with children (from AGENTS.md)
+section_nodes = type_groups.get('doc_section', [])
+if section_nodes:
+    lines.append(" [doc_sections]")
+    for i, n in enumerate(section_nodes[:8]):
+        label = n[2][:45]
+        children = adj.get(n[0], [])
+        child_labels = [node_lookup[c][2][:18] for c in children[:3] if c in node_lookup]
         child_str = f" → {', '.join(child_labels)}" if child_labels else ""
-        lines.append(f"{'  ' if i > 0 else ''}├─ {label}{child_str}")
-    
-    if len(section_nodes) > 10:
-        lines.append(f"  ... +{len(section_nodes) - 10} more sections")
-    
-    lines.append("-" * 60)
-    lines.append(f" path_query: {path_result[:80]}{'...' if len(path_result) > 80 else ''}")
+        prefix = "  " if i > 0 else ""
+        lines.append(f"{prefix}├─ {label}{child_str}")
+    if len(section_nodes) > 8:
+        lines.append(f"  └─ ...+{len(section_nodes)-8} sections")
+
+# Section 2: canvas commands (from canvas graph_data.json)
+canvas_cmds = type_groups.get('canvas', [])
+if canvas_cmds:
+    lines.append(" [canvas_commands]")
+    for n in canvas_cmds[:8]:
+        label = n[2][:45]
+        children = adj.get(n[0], [])
+        child_labels = [node_lookup[c][2][:18] for c in children[:3] if c in node_lookup]
+        child_str = f" → {', '.join(child_labels)}" if child_labels else ""
+        lines.append(f"  ├─ {label}{child_str}")
+    if len(canvas_cmds) > 8:
+        lines.append(f"  └─ ...+{len(canvas_cmds)-8} canvas nodes")
+
+# Section 3: archive commands (from archive/commands/*.md)
+archive_cmds = type_groups.get('archive', [])
+if archive_cmds:
+    lines.append(" [archive_commands]")
+    for n in archive_cmds[:6]:
+        label = n[2][:45]
+        children = adj.get(n[0], [])
+        child_labels = [node_lookup[c][2][:18] for c in children[:3] if c in node_lookup]
+        child_str = f" → {', '.join(child_labels)}" if child_labels else ""
+        lines.append(f"  ├─ {label}{child_str}")
+    if len(archive_cmds) > 6:
+        lines.append(f"  └─ ...+{len(archive_cmds)-6} commands")
+
+# Section 4: other primitive types (summary)
+primitive_types = ['decision', 'lesson', 'task', 'goal', 'memory_session',
+                   'schema_entity', 'schema_field', 'knowledge', 'handoff',
+                   'agent_role', 'agent_boundary', 'agent_capability', 'gitnexus']
+for ptype in primitive_types:
+    grp = type_groups.get(ptype, [])
+    if grp:
+        samples = [n[2][:20] for n in grp[:3]]
+        sample_str = ", ".join(samples)
+        extra = f" (+{len(grp)-3})" if len(grp) > 3 else ""
+        lines.append(f" [n={len(grp)}] {ptype}: {sample_str}{extra}")
+
+# Section 5: cross-type edge summary
+edge_types = {}
+for e in edges:
+    edge_types.setdefault(e['type'], []).append(e)
+lines.append("-" * 60)
+lines.append(" [cross_type_edges]")
+for etype, elist in sorted(edge_types.items(), key=lambda x: -len(x[1]))[:6]:
+    samples = [(node_lookup.get(e['from'], ('','',''))[2][:15], node_lookup.get(e['to'], ('','',''))[2][:15]) for e in elist[:2]]
+    sample_str = "; ".join([f"{s[0]}→{s[1]}" for s in samples])
+    extra = f" (+{len(elist)-2})" if len(elist) > 2 else ""
+    lines.append(f"  {etype}({len(elist)}): {sample_str}{extra}")
+
+lines.append("-" * 60)
+lines.append(f" path_query: {path_result[:80]}{'...' if len(path_result) > 80 else ''}")
 
 ascii_output = '\n'.join(lines)
 ascii_lines = len(ascii_output.strip().split('\n'))
