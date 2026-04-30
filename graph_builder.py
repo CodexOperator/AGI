@@ -1134,68 +1134,70 @@ class GraphBuilder:
 
         return count
 
-    def build_tag_bridges(self) -> int:
+    def build_tag_bridges(self, hermes_dir: str) -> int:
         """Bridge isolated clusters via shared tags.
-        
+
         Decisions, lessons, and tasks are largely isolated (94% unreachable in 5 hops).
-        Tag-based relates_to edges connect nodes that share tags but are different types.
-        170 tags span multiple types — creates cross-cluster connectivity.
-        
-        Approach: extract tags from decision/lesson/task frontmatter, add relates_to edges
-        between cross-type nodes sharing each tag. Does NOT add edges between same-type
-        nodes (that would be redundant with existing intra-cluster edges).
+        Reads frontmatter from source files via hermes_dir, extracts tags,
+        adds relates_to edges between cross-type nodes sharing each tag.
+        Top 20 shared tags, max 5 edges each to prevent edge explosion.
         """
-        # Tag → set of (node_id, node_type) tuples
         tag_map: Dict[str, set] = defaultdict(set)
-        
-        # Collect tags from all decision/lesson/task nodes
-        cross_type_prefixes = ('decision_', 'lesson_', 'task_', 'canvas_decision_', 
+        cross_type_prefixes = ('decision_', 'lesson_', 'task_', 'canvas_decision_',
                                'canvas_lesson_', 'canvas_task_')
-        
+        source_dir_map = {
+            'decisions/': 'decisions',
+            'lessons/': 'lessons',
+            'tasks/': 'tasks',
+        }
+
         for node in self.nodes:
             node_id, node_type, label, content, source = node
-            
-            # Only process cross-type nodes (decision/lesson/task + variants)
             if not any(node_id.startswith(p) for p in cross_type_prefixes):
                 continue
-            
-            # Extract tags from content (frontmatter block)
-            fm_match = _RE_FRONT_MATTER.search(content)
+
+            subdir = None
+            for src_prefix, sub in source_dir_map.items():
+                if source.startswith(src_prefix):
+                    subdir = sub
+                    filename = source[len(src_prefix):]
+                    break
+            if not subdir:
+                continue
+
+            filepath = os.path.join(hermes_dir, 'belam-codex', subdir, filename)
+            if not os.path.exists(filepath):
+                continue
+            try:
+                with open(filepath, 'r') as f:
+                    file_content = f.read()
+            except Exception:
+                continue
+
+            fm_match = _RE_FRONT_MATTER.match(file_content)
             if not fm_match:
                 continue
-            
-            tags_text = fm_match.group(1)
             tags = []
-            for line in tags_text.split('\n'):
+            for line in fm_match.group(1).split('\n'):
                 m = _RE_YAML_PAIR.match(line)
                 if m and m.group(1) == 'tags':
                     raw = m.group(2)
                     tags = re.findall(r'\w+', raw)
                     break
-            
             for tag in tags:
                 tag_map[tag].add((node_id, node_type))
-        
-        # Build relates_to edges for cross-type tag sharing
-        # Limit edges per tag to avoid explosion (top 20 tags, max 5 edges each)
+
         count = 0
         sorted_tags = sorted(tag_map.items(), key=lambda x: -len(x[1]))
-        
-        for tag, node_set in sorted_tags[:20]:  # top 20 most-shared tags
+        for tag, node_set in sorted_tags[:20]:
             if len(node_set) < 2:
                 continue
-            
-            # Get unique types in this tag group
             types_present = {nt for _, nt in node_set}
             if len(types_present) < 2:
-                continue  # all same type — no cross-cluster benefit
-            
-            # Add relates_to edges: max 5 per tag to avoid explosion
-            # Connect first node of each type to first node of other types
+                continue
             by_type: Dict[str, list] = defaultdict(list)
             for nid, ntype in node_set:
                 by_type[ntype].append(nid)
-            
             type_keys = list(by_type.keys())
             edges_added = 0
             for i in range(len(type_keys)):
@@ -1205,11 +1207,11 @@ class GraphBuilder:
                     src = by_type[type_keys[i]][0]
                     tgt = by_type[type_keys[j]][0]
                     if src in self._node_ids and tgt in self._node_ids:
-                        self.add_edge(src, tgt, "relates_to")
+                        self.add_edge(src, tgt, 'relates_to')
                         count += 1
                         edges_added += 1
-            
         return count
+
 
     def build_adjacency(self):
         """Build adjacency dict from edges."""
@@ -1436,7 +1438,7 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
         builder.parse_codex_modules(archive_dir)
 
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
-    builder.build_tag_bridges()
+    builder.build_tag_bridges(hermes_dir)
 
     # Process gitnexus cache
     cache_to_use = None
@@ -1554,7 +1556,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
         builder.parse_codex_modules(archive_dir)
 
     # Bridge isolated clusters via shared tags
-    builder.build_tag_bridges()
+    builder.build_tag_bridges(hermes_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
