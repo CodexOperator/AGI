@@ -459,7 +459,7 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         builder.nodes = cached.get('nodes', [])
         builder.edges = cached.get('edges', [])
         builder.adj = cached.get('adj', {})
-        builder._node_ids = {n[0] for n in builder.nodes}
+        builder._node_ids = cached.get('_node_ids', {n[0] for n in builder.nodes})
         return builder
     except Exception:
         return None
@@ -474,6 +474,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             'nodes': builder.nodes,
             'edges': builder.edges,
             'adj': dict(builder.adj),
+            '_node_ids': builder._node_ids,
             '_source_mtimes': source_mtimes,
             '_gitnexus_cache': gitnexus_cache,
         }
