@@ -59,7 +59,7 @@ class GraphBuilder:
 
     def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
-        """Add a node to the graph."""
+        """Add a node to the graph. Stored as tuple (id, type, label, content, source)."""
         if node_id is None:
             node_id = f"{node_type}_{len(self.nodes)}"
 
@@ -71,13 +71,8 @@ class GraphBuilder:
             node_id = f"{base_id}_{counter}"
 
         self._node_ids.add(node_id)
-        self.nodes.append({
-            "id": node_id,
-            "type": node_type,
-            "label": label[:60],
-            "content": content[:120] if content else "",
-            "source": source
-        })
+        # Store as tuple for faster pickle serialization
+        self.nodes.append((node_id, node_type, label[:60], content[:120] if content else "", source))
         return node_id
 
     def add_edge(self, from_id: str, to_id: str, edge_type: str = "references"):
@@ -381,10 +376,10 @@ class GraphBuilder:
         }
 
     def _count_by_type(self) -> Dict[str, int]:
-        """Count nodes by type."""
+        """Count nodes by type. Nodes are tuples: (id, type, label, content, source)."""
         counts = defaultdict(int)
         for node in self.nodes:
-            counts[node["type"]] += 1
+            counts[node[1]] += 1
         return dict(counts)
 
 
@@ -464,7 +459,7 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         builder.nodes = cached.get('nodes', [])
         builder.edges = cached.get('edges', [])
         builder.adj = cached.get('adj', {})
-        builder._node_ids = {n["id"] for n in builder.nodes}
+        builder._node_ids = {n[0] for n in builder.nodes}
         return builder
     except Exception:
         return None

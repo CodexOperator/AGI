@@ -124,7 +124,7 @@ class QueryEngine:
         """Get subgraph centered on a node."""
         reachable = self.find_reachable(center_id, max_depth=depth)
         
-        subgraph_nodes = [n for n in self.builder.nodes if n["id"] in reachable]
+        subgraph_nodes = [n for n in self.builder.nodes if n[0] in reachable]
         subgraph_edges = [e for e in self.builder.edges 
                           if e["from"] in reachable and e["to"] in reachable]
         
@@ -138,11 +138,11 @@ class QueryEngine:
     
     def query_by_type(self, node_type: str) -> List[Dict[str, Any]]:
         """Get all nodes of a specific type."""
-        return [n for n in self.builder.nodes if n["type"] == node_type]
+        return [n for n in self.builder.nodes if n[1] == node_type]
     
     def query_by_source(self, source: str) -> List[Dict[str, Any]]:
         """Get all nodes from a specific source."""
-        return [n for n in self.builder.nodes if source in n["source"]]
+        return [n for n in self.builder.nodes if source in n[4]]
     
     def search_content(self, query: str, limit: int = 10) -> List[Tuple[Dict[str, Any], int]]:
         """Search nodes by content (simple keyword match)."""
@@ -151,9 +151,9 @@ class QueryEngine:
         
         for node in self.builder.nodes:
             score = 0
-            if query_lower in node.get("label", "").lower():
+            if query_lower in node[2].lower():
                 score += 2
-            if query_lower in node.get("content", "").lower():
+            if query_lower in node[3].lower():
                 score += 1
             if score > 0:
                 results.append((node, score))
@@ -187,12 +187,12 @@ if __name__ == "__main__":
     engine = QueryEngine(builder)
     
     # Find path between first and last section
-    section_nodes = [n for n in builder.nodes if n["id"].startswith("agents_section_")]
+    section_nodes = [n for n in builder.nodes if n[0].startswith("agents_section_")]
     if len(section_nodes) >= 2:
         path, query_time = timed_query(
             engine, 
-            section_nodes[0]["id"], 
-            section_nodes[-1]["id"]
+            section_nodes[0][0], 
+            section_nodes[-1][0]
         )
         print(f"Path query: {query_time:.2f}ms")
         if path:

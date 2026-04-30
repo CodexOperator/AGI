@@ -78,8 +78,8 @@ if HAS_MODULAR:
     builder, _ = build_graph(HERMES_DIR, AGI_DIR, gitnexus_cache=_gitnexus_cache)
     build_time_ms = (time.perf_counter() - start) * 1000
     
-    nodes = builder.nodes
-    edges = builder.edges
+    nodes = builder.nodes  # tuples: (id, type, label, content, source)
+    edges = builder.edges  # dicts: {from, to, type}
     adj = builder.adj
 else:
     # Fallback to inline implementation
@@ -104,13 +104,7 @@ else:
                 continue
             header = lines[0].strip('#').strip()
             body = '\n'.join(lines[1:]).strip()[:120]
-            nodes.append({
-                "id": f"agents_section_{i}",
-                "type": "doc_section",
-                "label": header[:60],
-                "content": body,
-                "source": "AGENTS.md"
-            })
+            nodes.append((f"agents_section_{i}", "doc_section", header[:60], body, "AGENTS.md"))
             if last_section_idx >= 0:
                 edges.append({"from": f"agents_section_{last_section_idx}", "to": f"agents_section_{i}", "type": "sequential"})
             last_section_idx = i
@@ -118,13 +112,7 @@ else:
         for match in _RE_CODE_BLOCK.finditer(content):
             code = match.group(1)
             if len(code) > 3 and ' ' in code:
-                nodes.append({
-                    "id": f"code_ref_{match.start()}",
-                    "type": "code_reference",
-                    "label": code[:60],
-                    "content": code,
-                    "source": "AGENTS.md"
-                })
+                nodes.append((f"code_ref_{match.start()}", "code_reference", code[:60], code, "AGENTS.md"))
                 edges.append({
                     "from": f"agents_section_{last_section_idx}",
                     "to": f"code_ref_{match.start()}",
@@ -137,20 +125,14 @@ else:
             result = json.loads(_gitnexus_cache)
             for category in ['definitions', 'process_symbols', 'processes']:
                 for item in result.get(category, [])[:30]:
-                    nodes.append({
-                        "id": f"gitnexus_{category}_{item.get('id', '')[:40]}",
-                        "type": f"gitnexus_{category.rstrip('s')}",
-                        "label": item.get('name', item.get('id', ''))[:60],
-                        "content": f"{item.get('filePath', '')}:{item.get('startLine', '')}",
-                        "source": "gitnexus_index"
-                    })
+                    nodes.append((f"gitnexus_{category}_{item.get('id', '')[:40]}", f"gitnexus_{category.rstrip('s')}", item.get('name', item.get('id', ''))[:60], f"{item.get('filePath', '')}:{item.get('startLine', '')}", "gitnexus_index"))
         except json.JSONDecodeError:
             pass
     
     build_time_ms = (time.perf_counter() - start) * 1000
     
     # Build adjacency
-    adj = {n["id"]: [] for n in nodes}
+    adj = {n[0]: [] for n in nodes}
     for e in edges:
         if e["from"] in adj and e["to"] in adj:
             adj[e["from"]].append(e["to"])
@@ -164,7 +146,7 @@ metric("graph_edge_count", len(edges))
 start = time.perf_counter()
 path_result = ""
 if len(nodes) >= 2:
-    section_nodes = [n["id"] for n in nodes if n["id"].startswith("agents_section_")]
+    section_nodes = [n[0] for n in nodes if n[0].startswith("agents_section_")]
     if len(section_nodes) >= 2:
         start_node, end_node = section_nodes[0], section_nodes[-1]
         visited = {start_node}
@@ -192,13 +174,13 @@ if nodes:
     lines.append(f" nodes={len(nodes)}  edges={len(edges)}")
     lines.append("-" * 60)
     
-    section_nodes = [n for n in nodes if n["type"] == "doc_section"]
-    node_lookup = {n["id"]: n for n in nodes}
+    section_nodes = [n for n in nodes if n[1] == "doc_section"]
+    node_lookup = {n[0]: n for n in nodes}
     
     for i, n in enumerate(section_nodes[:10]):
-        label = n["label"][:50]
-        children = adj.get(n["id"]) or []
-        child_labels = [node_lookup[c]["label"][:20] for c in children[:3] if c in node_lookup]
+        label = n[2][:50]
+        children = adj.get(n[0]) or []
+        child_labels = [node_lookup[c][2][:20] for c in children[:3] if c in node_lookup]
         child_str = f" → {', '.join(child_labels)}" if child_labels else ""
         lines.append(f"{'  ' if i > 0 else ''}├─ {label}{child_str}")
     

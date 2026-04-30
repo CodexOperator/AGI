@@ -16,7 +16,8 @@ class ASCIIRenderer:
     
     def __init__(self, builder: GraphBuilder):
         self.builder = builder
-        self._node_lookup = {n["id"]: n for n in builder.nodes}
+        # Nodes are tuples: (id, type, label, content, source)
+        self._node_lookup = {n[0]: n for n in builder.nodes}
     
     def render_summary(self) -> str:
         """Render a summary view of the graph."""
@@ -44,13 +45,13 @@ class ASCIIRenderer:
         lines.append(" GRAPH TREE ")
         lines.append("=" * 60)
         
-        # Default root
+        # Default root — nodes are tuples (id, type, label, content, source)
         if root_id is None:
-            section_nodes = [n for n in self.builder.nodes if n["type"] == "doc_section"]
+            section_nodes = [n for n in self.builder.nodes if n[1] == "doc_section"]
             if section_nodes:
-                root_id = section_nodes[0]["id"]
+                root_id = section_nodes[0][0]
             else:
-                root_id = self.builder.nodes[0]["id"]
+                root_id = self.builder.nodes[0][0]
         
         visited = set()
         self._render_node_tree(root_id, "", True, lines, visited, max_depth, 0)
@@ -69,8 +70,8 @@ class ASCIIRenderer:
             return
         
         connector = "└─ " if is_last else "├─ "
-        label = node["label"][:50]
-        node_type = node["type"][:15]
+        label = node[2][:50]
+        node_type = node[1][:15]
         lines.append(f"{prefix}{connector}[{node_type}] {label}")
         
         # Get children
@@ -92,23 +93,23 @@ class ASCIIRenderer:
         lines.append(" GRAPH HIERARCHY ")
         lines.append("=" * 60)
         
-        section_nodes = [n for n in self.builder.nodes if n["type"] == "doc_section"]
+        section_nodes = [n for n in self.builder.nodes if n[1] == "doc_section"]
         
         for i, node in enumerate(section_nodes[:max_sections]):
             indent = "  " if i > 0 else ""
             is_last = i == min(len(section_nodes) - 1, max_sections - 1)
             
-            label = node["label"][:50]
+            label = node[2][:50]
             
             # Get children
             children = [e["to"] for e in self.builder.edges 
-                       if e["from"] == node["id"] and e["type"] == "contains"]
+                       if e["from"] == node[0] and e["type"] == "contains"]
             
             child_labels = []
             for c in children[:3]:
                 cn = self._node_lookup.get(c)
                 if cn:
-                    child_labels.append(cn["label"][:20])
+                    child_labels.append(cn[2][:20])
             
             child_str = f" → {', '.join(child_labels)}" if child_labels else ""
             connector = "└─" if is_last else "├─"
@@ -132,7 +133,7 @@ class ASCIIRenderer:
                 continue
             
             connector = "→" if i > 0 else "●"
-            label = node["label"][:50]
+            label = node[2][:50]
             lines.append(f"{connector} {label}")
         
         return '\n'.join(lines)
@@ -144,14 +145,14 @@ class ASCIIRenderer:
             return f"Node not found: {node_id}"
         
         lines = []
-        lines.append(f" NODE: {node['label']} ")
+        lines.append(f" NODE: {node[2]} ")
         lines.append("=" * 60)
-        lines.append(f" ID:     {node['id']}")
-        lines.append(f" Type:   {node['type']}")
-        lines.append(f" Source: {node['source']}")
+        lines.append(f" ID:     {node[0]}")
+        lines.append(f" Type:   {node[1]}")
+        lines.append(f" Source: {node[4]}")
         lines.append("-" * 60)
         lines.append(" Content:")
-        lines.append(node.get('content', '(none)'))
+        lines.append(node[3] or '(none)')
         lines.append("-" * 60)
         
         # Show neighbors
@@ -160,7 +161,7 @@ class ASCIIRenderer:
         for n in neighbors[:5]:
             nn = self._node_lookup.get(n)
             if nn:
-                lines.append(f"  - {nn['type']}: {nn['label'][:40]}")
+                lines.append(f"  - {nn[1]}: {nn[2][:40]}")
         
         return '\n'.join(lines)
     
