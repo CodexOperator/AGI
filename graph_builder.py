@@ -620,28 +620,28 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     agents_md = os.path.join(hermes_dir, "belam-codex", "AGENTS.md")
     builder.parse_agents_md(agents_md)
 
-    # Parse memory files
+    # Parse memory files (expanded to 30)
     memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
-    builder.parse_memory_files(memory_dir, limit=5)
+    builder.parse_memory_files(memory_dir, limit=30)
 
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
 
-    # Parse decisions (limit 10 — only titles/rationale, no tag nodes)
+    # Parse decisions (expanded to 100)
     decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
     if os.path.isdir(decisions_dir):
-        builder.parse_decisions(decisions_dir, limit=10)
+        builder.parse_decisions(decisions_dir, limit=100)
 
-    # Parse lessons (limit 10 — only titles/summaries, no tag nodes)
+    # Parse lessons (expanded to 100)
     lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
     if os.path.isdir(lessons_dir):
-        builder.parse_lessons(lessons_dir, limit=10)
+        builder.parse_lessons(lessons_dir, limit=100)
 
-    # Parse tasks (limit 50 — task nodes with status/priority/depends_on edges)
+    # Parse tasks (expanded to all 84)
     tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
     if os.path.isdir(tasks_dir):
-        builder.parse_tasks(tasks_dir, limit=50)
+        builder.parse_tasks(tasks_dir, limit=100)
 
     # Parse goals (goal nodes with status/priority/urgency)
     goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
@@ -714,30 +714,30 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     agents_md = os.path.join(hermes_dir, "belam-codex", "AGENTS.md")
     builder.parse_agents_md(agents_md)
 
-    # Parse memory files
+    # Parse memory files (expanded to 30)
     memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
-    builder.parse_memory_files(memory_dir, limit=5)
+    builder.parse_memory_files(memory_dir, limit=30)
 
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
 
-    # Parse decisions (limit 10 — fallback cold path)
+    # Parse decisions (expanded to 100)
     decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
     if os.path.isdir(decisions_dir):
-        builder.parse_decisions(decisions_dir, limit=10)
+        builder.parse_decisions(decisions_dir, limit=100)
 
-    # Parse lessons (limit 10 — fallback cold path)
+    # Parse lessons (expanded to 100)
     lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
     if os.path.isdir(lessons_dir):
-        builder.parse_lessons(lessons_dir, limit=10)
+        builder.parse_lessons(lessons_dir, limit=100)
 
-    # Parse tasks (fallback cold path)
+    # Parse tasks (expanded to all 84)
     tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
     if os.path.isdir(tasks_dir):
-        builder.parse_tasks(tasks_dir, limit=50)
+        builder.parse_tasks(tasks_dir, limit=100)
 
-    # Parse goals (fallback cold path)
+    # Parse goals (goal nodes with status/priority/urgency)
     goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
     if os.path.isdir(goals_dir):
         builder.parse_goals(goals_dir)
