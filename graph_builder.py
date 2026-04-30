@@ -620,9 +620,9 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     agents_md = os.path.join(hermes_dir, "belam-codex", "AGENTS.md")
     builder.parse_agents_md(agents_md)
 
-    # Parse memory files (expanded to 30)
+    # Parse memory files (expanded to all 58)
     memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
-    builder.parse_memory_files(memory_dir, limit=30)
+    builder.parse_memory_files(memory_dir, limit=58)
 
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
@@ -714,9 +714,9 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     agents_md = os.path.join(hermes_dir, "belam-codex", "AGENTS.md")
     builder.parse_agents_md(agents_md)
 
-    # Parse memory files (expanded to 30)
+    # Parse memory files (expanded to all 58)
     memory_dir = os.path.join(hermes_dir, "belam-codex", "memory")
-    builder.parse_memory_files(memory_dir, limit=30)
+    builder.parse_memory_files(memory_dir, limit=58)
 
     # Parse schema files
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
