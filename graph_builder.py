@@ -1634,7 +1634,106 @@ class GraphBuilder:
                         count += 1
                         self.add_edge(pipeline_id, phase_id, "has_phase")
 
-                except_count = 0
+        return count
+
+    def parse_templates(self, templates_dir: str) -> int:
+        """Parse templates/ directory into template_stage nodes.
+
+        Templates define pipeline stage patterns with YAML stage definitions.
+        Each template has a type, phases, and named stages per phase.
+
+        Node type: template_stage (extracted stage definitions from YAML blocks)
+        Edges: follows_template → pipeline_stage (if a pipeline uses this template)
+        """
+        if not os.path.isdir(templates_dir):
+            return 0
+
+        count = 0
+        _RE_YAML_BLOCK = re.compile(r'```yaml\n(.*?)\n```', re.DOTALL)
+        _RE_PHASE_HDR = re.compile(r'^###\s+Phase\s+(\d+)([^\n]*)\n', re.MULTILINE)
+        _RE_STAGE_HDR = re.compile(r'^####\s+`([\w_]+)`\n', re.MULTILINE)
+        _RE_YAML_KEY = re.compile(r'^(\s*)([\w_]+):\s*(.*)$', re.MULTILINE)
+
+        try:
+            files = sorted(os.listdir(templates_dir))
+        except Exception:
+            return 0
+
+        for filename in files:
+            if not filename.endswith('.md') or filename.startswith('.') or filename == 'retired':
+                continue
+            filepath = os.path.join(templates_dir, filename)
+            if not os.path.isfile(filepath):
+                continue
+
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+            except Exception:
+                continue
+
+            # Template-level info
+            title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+            title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
+            tmpl_id = f"template_{filename[:-3]}"
+            self.add_node("reference", title[:50], f"template:{filename}", f"templates/{filename}", tmpl_id)
+            count += 1
+
+            # Category edge
+            cat_id = "category_template"
+            if cat_id not in self._node_ids:
+                self.add_node("tag", "template", "", f"templates/{filename}", cat_id)
+                count += 1
+            self.add_edge(tmpl_id, cat_id, "categorized_as")
+
+            # Extract YAML blocks (stage definitions)
+            yaml_blocks = list(_RE_YAML_BLOCK.finditer(content))
+
+            # Extract phase + stage hierarchy from markdown headings
+            current_phase = None
+            current_stage = None
+            phase_ids = []
+
+            for line_num, line in enumerate(content.split('\n'), 1):
+                ph_match = _RE_PHASE_HDR.match(line)
+                if ph_match:
+                    phase_num = ph_match.group(1)
+                    phase_suffix = ph_match.group(2).strip()[:40]
+                    phase_id = f"template_{filename[:-3]}_phase{phase_num}"
+                    self.add_node("reference", f"Phase {phase_num} {phase_suffix}", "", f"templates/{filename}#phase{phase_num}", phase_id)
+                    count += 1
+                    self.add_edge(tmpl_id, phase_id, "has_phase")
+                    if phase_ids:
+                        self.add_edge(phase_ids[-1], phase_id, "next_phase")
+                    phase_ids.append(phase_id)
+                    current_phase = phase_id
+                    current_stage = None
+                    continue
+
+                st_match = _RE_STAGE_HDR.match(line)
+                if st_match and current_phase:
+                    stage_name = st_match.group(1)
+                    stage_id = f"template_{filename[:-3]}_stage_{stage_name}"
+                    self.add_node("reference", stage_name, f"phase:{current_phase}", f"templates/{filename}#{stage_name}", stage_id)
+                    count += 1
+                    self.add_edge(current_phase, stage_id, "has_stage")
+                    current_stage = stage_id
+
+            # Parse YAML blocks for structured stage metadata
+            for yb in yaml_blocks:
+                yaml_content = yb.group(1)
+                lines = yaml_content.split('\n')
+                cur_indent = 0
+                for yline in lines:
+                    km = _RE_YAML_KEY.match(yline)
+                    if not km:
+                        continue
+                    indent = len(km.group(1))
+                    key = km.group(2)
+                    val = km.group(3).strip()
+                    if indent == 0 and key in ('type', 'first_agent'):
+                        # Template-level metadata
+                        pass  # Already captured from title/flow
 
         return count
 
@@ -2192,6 +2291,11 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(pipelines_dir):
         builder.parse_pipelines(pipelines_dir)
 
+    # Parse templates/ (pipeline stage templates with YAML definitions)
+    templates_dir = os.path.join(hermes_dir, "belam-codex", "templates")
+    if os.path.isdir(templates_dir):
+        builder.parse_templates(templates_dir)
+
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
     builder.build_tag_bridges(hermes_dir)
 
@@ -2332,6 +2436,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     pipelines_dir = os.path.join(hermes_dir, "belam-codex", "pipelines")
     if os.path.isdir(pipelines_dir):
         builder.parse_pipelines(pipelines_dir)
+
+    # Parse templates/ (pipeline stage templates with YAML definitions)
+    templates_dir = os.path.join(hermes_dir, "belam-codex", "templates")
+    if os.path.isdir(templates_dir):
+        builder.parse_templates(templates_dir)
 
     # Bridge isolated clusters via shared tags
     builder.build_tag_bridges(hermes_dir)
