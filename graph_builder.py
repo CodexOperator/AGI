@@ -48,6 +48,7 @@ def _save_cache(data: str):
 
 class GraphBuilder:
     """Builds a unified graph from multiple source materials."""
+    __slots__ = ('nodes', 'edges', 'adj', '_node_ids', '_section_stack')
     
     def __init__(self):
         self.nodes: List[Dict[str, Any]] = []
