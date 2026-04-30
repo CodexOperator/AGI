@@ -1,0 +1,24 @@
+graph_build_time_ms=0.42
+graph_node_count=75
+graph_edge_count=54
+query_time_ms=0.03
+ascii_render_lines=17
+
+--- ASCII GRAPH RENDER ---
+ UNIFIED GRAPH 
+============================================================
+ nodes=75  edges=54
+------------------------------------------------------------
+├─ AGENTS.md - Your Workspace
+  ├─ First Run
+  ├─ Every Session
+  ├─ Injection Template
+  ├─ Memory
+  ├─ Safety
+  ├─ External vs Internal
+  ├─ Group Chats
+  ├─ Tools
+  ├─ Heartbeats
+  ... +12 more sections
+------------------------------------------------------------
+ path_query: []

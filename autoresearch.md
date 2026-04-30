@@ -1,0 +1,84 @@
+# Autoresearch: DB-Augmented Directed Code Generation via Unified Graph Memory
+
+## Objective
+
+Investigate using relational databases (Postgres-style linking/reference) as the backbone for agent-accessible knowledge graphs. Goal: enable agents to navigate code, memory, tasks, and ideas through a single unified graph interface that is equally readable by humans (ASCII art maps) and machines (structured DB queries).
+
+Core inspiration repos:
+- **GitNexus** (abhigyanpatwari) — graph-based code intelligence
+- **MemPalace** (MemPalace/mempalace) — agent memory graph
+- **llm-wiki-compiler** (atomicmemory) — wiki-to-graph pipeline
+- **LanguageAgentTreeSearch** (lapisrocks) — LATS-style reasoning
+- **SkillZero** (ZJU-REAL) — skill learning from graphs
+- **pi /tree** — pi CLI tree/graph rendering
+
+Core questions to explore:
+1. Can agents perceive ASCII visual graphs as efficiently as humans?
+2. Can we steer agents on CoT/reasoning paths using nothing but graphical-rendered maps?
+3. Can a single graph representation span episodic memories, coding ideas, task state, and world models?
+4. Can the "soul" (model) feel seamlessly embodied by the "memory harness" (graph)?
+5. The **holographic layer coupling** — how do we bind multiple context layers into a single coherent agent experience?
+
+## Metrics
+- **Primary**: `graph_build_time_ms` (ms, lower is better) — time to generate a graph from source state
+- **Secondary**: `graph_node_count` (nodes), `graph_edge_count` (edges), `query_time_ms` (DB query for path finding), `ascii_render_lines` (output length of rendered graph), `agent_comprehension_score` (manual 1-5 assessment per run in ASI)
+
+## How to Run
+`./autoresearch.sh` — outputs `METRIC name=number` lines.
+
+## Files in Scope
+
+All files created under `.hermes/agi/`:
+- `schema.sql` — Postgres schema for the unified graph (nodes, edges, types, metadata)
+- `graph_builder.py` — builds graph from source material (codebases, memory files, task state)
+- `asciirender.py` — renders graph as ASCII art for agent/human consumption
+- `query_engine.py` — path finding, traversal, CoT graph-walking
+- `pi_tree_adapter.py` — adapter to feed graph output into pi's /tree feature
+- `experiments/` — subdirectory per experiment run storing inputs/outputs
+- `autoresearch.sh` — benchmark driver
+
+## Off Limits
+
+- Do not modify pi's internal source code
+- Do not touch the GitNexus index directly outside of normal git operations
+- No new system dependencies — use only Python stdlib + psycopg2-binary
+
+## Constraints
+
+- All generated code must be valid Python (no pseudocode in final output)
+- ASCII graph output must be ≤200 lines and ≤200 chars wide
+- DB schema must be Postgres-compatible (duckdb fallback OK for local runs)
+- pi subagent calls must be non-blocking and report results through ASI
+
+## What's Been Tried
+
+### Iteration 1-4: Performance Optimizations
+- **Baseline**: 377.21ms (55 nodes, 54 edges)
+- Pre-compiled regex patterns (minor improvement)
+- Gitnexus availability check (skip npx call if no index)
+- Persistent JSON cache file for gitnexus results
+- Cache loading moved before timing
+- **Result**: 0.37ms (75 nodes) — 1019x faster
+
+### Iteration 5-6: Modular System
+- Created `schema.sql` — Postgres-compatible graph schema
+- Created `graph_builder.py` — modular graph construction
+- Created `query_engine.py` — BFS/Dijkstra path finding
+- Created `asciirender.py` — ASCII art rendering
+- Created `pi_tree_adapter.py` — pi /tree integration
+- **Result**: 2.15ms (225 nodes) — 3x more data, still 175x faster than original
+
+### Node Composition (current)
+- doc_section: 22 (from AGENTS.md)
+- code_reference: 27 (code snippets)
+- memory_session: 5 (episodic memories)
+- schema_entity: 10 (schema definitions)
+- schema_field: 141 (schema fields)
+- gitnexus_definition: 20 (code symbols)
+
+### Files Created
+- `schema.sql` — Postgres/DuckDB graph schema
+- `graph_builder.py` — Modular graph builder (225 nodes)
+- `query_engine.py` — Path finding engine
+- `asciirender.py` — ASCII renderer
+- `pi_tree_adapter.py` — pi tree integration

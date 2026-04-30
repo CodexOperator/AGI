@@ -1,0 +1,24 @@
+graph_build_time_ms=2.16
+graph_node_count=225
+graph_edge_count=189
+query_time_ms=0.1
+ascii_render_lines=17
+
+--- ASCII GRAPH RENDER ---
+ UNIFIED GRAPH 
+============================================================
+ nodes=225  edges=189
+------------------------------------------------------------
+├─ AGENTS.md - Your Workspace → First Run
+  ├─ First Run → AGENTS.md - Your Wor, Every Session
+  ├─ Every Session → First Run, Injection Template
+  ├─ Injection Template → Every Session, Memory
+  ├─ Memory → Injection Template, Safety
+  ├─ Safety → Memory, External vs Internal
+  ├─ External vs Internal → Safety, Group Chats
+  ├─ Group Chats → External vs Internal, Tools
+  ├─ Tools → Group Chats, Heartbeats
+  ├─ Heartbeats → Tools, Make It Yours
+  ... +12 more sections
+------------------------------------------------------------
+ path_query: ["agents_section_0", "agents_section_1", "agents_section_2", "agents_section_3",...

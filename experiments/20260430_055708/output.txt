@@ -1,0 +1,7 @@
+graph_build_time_ms=444.39
+graph_node_count=0
+graph_edge_count=0
+query_time_ms=0.0
+ascii_render_lines=1
+
+--- ASCII GRAPH RENDER ---
