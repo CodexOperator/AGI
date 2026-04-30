@@ -13,6 +13,7 @@
 - [x] Skip `_node_ids` reconstruction — noise floor
 - [x] Compact node representation (tuples) — 0.50ms→0.45ms at 225 nodes (10% faster). Noise floor ~0.3-0.5ms. DONE.
 - [x] msgpack instead of pickle — REGRESSION: 1.77ms vs 0.45ms. Pickle faster for Python tuples/lists.
+- [x] mmap for pickle load — no improvement: 0.46ms vs 0.45ms baseline. Overhead exceeds syscall savings for 8KB file.
 
 ## Promising (not tried)
 - [ ] Incremental pickle updates via file watcher — delta patching vs full rebuild

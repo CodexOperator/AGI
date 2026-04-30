@@ -388,7 +388,6 @@ def run_subprocess(cmd: str, timeout: int = 30) -> str:
 # Graph pickle cache file
 _GRAPH_CACHE_FILE = None
 import pickle  # Module-level for faster cache loads
-import mmap  # Memory-mapped file for faster cache loads
 
 def _get_graph_cache_file(agi_dir: str) -> str:
     global _GRAPH_CACHE_FILE
@@ -427,8 +426,7 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         return None
     try:
         with open(cache_file, 'rb') as f:
-            # Use mmap for direct memory access - avoids syscall overhead
-            cached = pickle.load(mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ))
+            cached = pickle.load(f)
         # Verify source mtimes match
         if cached.get('_source_mtimes') != source_mtimes:
             return None
