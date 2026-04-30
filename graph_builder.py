@@ -676,6 +676,151 @@ class GraphBuilder:
 
         return nodes_added, edges_added
 
+    def parse_knowledge(self, knowledge_dir: str) -> int:
+        """Parse knowledge files into graph nodes.
+        
+        Knowledge files have frontmatter with topic, tags, related, sources.
+        Each file becomes a knowledge node with tag and related edges.
+        """
+        if not os.path.isdir(knowledge_dir):
+            return 0
+
+        files = sorted(os.listdir(knowledge_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+
+        for filename in md_files:
+            filepath = os.path.join(knowledge_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                topic = meta.get('topic', filename[:-3])
+                tags_str = meta.get('tags', '[]')
+                related_str = meta.get('related', '[]')
+                created = meta.get('created', '')
+
+                # Extract first section body as content
+                body_match = re.search(r'## Claim\s*\n+(.+?)(?:\n##|\Z)', content, re.DOTALL)
+                body = body_match.group(1).strip()[:100] if body_match else ""
+
+                label = topic[:50]
+                summary = f"tags:{tags_str[:60]}|related:{related_str[:40]}"
+
+                node_id = self.add_node(
+                    "knowledge",
+                    label,
+                    summary,
+                    f"knowledge/{filename}",
+                    f"knowledge_{filename[:-3]}"
+                )
+                count += 1
+
+                # Parse related references as edges (to existing nodes)
+                if related_str and related_str != '[]':
+                    related_items = re.findall(r'(\w+(?:-\w+)*)', related_str)
+                    for rel in related_items[:5]:
+                        rel_id = self._find_or_add_reference(rel, f"knowledge/{filename}")
+                        if rel_id:
+                            self.add_edge(node_id, rel_id, "related_to")
+
+            except Exception:
+                pass
+        return count
+
+    def _find_or_add_reference(self, ref: str, source: str) -> Optional[str]:
+        """Find existing node by slug-like reference or add a stub reference node."""
+        # Convert slug to node ID format used in our graph
+        candidates = [
+            f"decision_{ref.replace('/', '_')}",
+            f"lesson_{ref.replace('/', '_')}",
+            f"knowledge_{ref.replace('/', '_')}",
+            f"canvas_decision_{ref.replace('/', '_')}",
+            f"canvas_lesson_{ref.replace('/', '_')}",
+        ]
+        for cid in candidates:
+            if cid in self._node_ids:
+                return cid
+        # Stub reference node
+        stub_id = f"ref_{ref.replace('/', '_')[:50]}"
+        if stub_id not in self._node_ids:
+            self.add_node("reference", ref[:60], "", source, stub_id)
+        return stub_id
+
+    def parse_handoff(self, handoff_dir: str) -> int:
+        """Parse handoff files into graph nodes.
+        
+        Handoff files are TODO/planning documents with controller, timestamp,
+        goals, and investigation notes. Creates handoff nodes with goal edges.
+        """
+        if not os.path.isdir(handoff_dir):
+            return 0
+
+        files = sorted(os.listdir(handoff_dir), reverse=True)
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+
+        for filename in md_files:
+            filepath = os.path.join(handoff_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                controller = meta.get('controller', '')
+                timestamp = meta.get('timestamp', '')
+                goal_match = re.search(r'## User goal\s*\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                goal = goal_match.group(1).strip()[:100] if goal_match else ""
+
+                # Extract TODO items
+                todo_items = re.findall(r'(?:^[-*]\s*(.+)$|TODO:\s*(.+)$)', content, re.MULTILINE)
+                todos = [t[0] or t[1] for t in todo_items if t[0] or t[1]][:5]
+
+                label = filename[:50]
+                summary = f"{controller}|{timestamp[:10]}|{goal[:50]}"
+
+                node_id = self.add_node(
+                    "handoff",
+                    label,
+                    summary,
+                    f"handoff/{filename}",
+                    f"handoff_{filename[:40]}"
+                )
+                count += 1
+
+                # Add TODO items as child nodes
+                for i, todo in enumerate(todos):
+                    todo_id = self.add_node(
+                        "handoff_item",
+                        todo[:60],
+                        "",
+                        f"handoff/{filename}",
+                        f"handoff_item_{filename[:30]}_{i}"
+                    )
+                    self.add_edge(node_id, todo_id, "contains")
+                    count += 1
+
+            except Exception:
+                pass
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -844,6 +989,16 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(canvas_dir):
         builder.parse_canvas_graph(canvas_dir)
 
+    # Parse knowledge directory (semantic knowledge nodes with tag edges)
+    knowledge_dir = os.path.join(hermes_dir, "belam-codex", "knowledge")
+    if os.path.isdir(knowledge_dir):
+        builder.parse_knowledge(knowledge_dir)
+
+    # Parse handoff directory (agent handoff logs with TODO items)
+    handoff_dir = os.path.join(hermes_dir, "belam-codex", "handoff")
+    if os.path.isdir(handoff_dir):
+        builder.parse_handoff(handoff_dir)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -882,7 +1037,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver=2 to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=2)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=3)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -941,6 +1096,16 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     canvas_dir = os.path.join(hermes_dir, "belam-codex", "canvas")
     if os.path.isdir(canvas_dir):
         builder.parse_canvas_graph(canvas_dir)
+
+    # Parse knowledge directory (semantic knowledge nodes with tag edges)
+    knowledge_dir = os.path.join(hermes_dir, "belam-codex", "knowledge")
+    if os.path.isdir(knowledge_dir):
+        builder.parse_knowledge(knowledge_dir)
+
+    # Parse handoff directory (agent handoff logs with TODO items)
+    handoff_dir = os.path.join(hermes_dir, "belam-codex", "handoff")
+    if os.path.isdir(handoff_dir):
+        builder.parse_handoff(handoff_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
