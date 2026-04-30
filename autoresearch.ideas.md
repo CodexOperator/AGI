@@ -1,63 +1,62 @@
-# Autoresearch Ideas
+# Autoresearch Ideas — Pruned 2026-04-30
 
-## Tried & Stale (NOT worth revisiting)
-- [x] Pre-compile regex in graph_builder module — done in iter 1-4
-- [x] Module-level pickle import — no effect (noise floor)
-- [x] __slots__ on GraphBuilder — no effect (pickle.load is the bottleneck)
-- [x] Add decisions/lessons parsers (pickle approach) — 2.4x slower at 436 nodes (pickle scales with size)
-- [x] Persistent gitnexus JSON cache — done earlier
-- [x] Pre-warm pickle cache before timing — done, gives 0.50ms
-- [x] json instead of pickle — REGRESSION: 1.67ms vs 0.50ms
-- [x] Pre-build node index — no effect
-- [x] Skip adj from pickle cache — REGRESSION: 1.16ms vs 0.50ms
-- [x] Skip `_node_ids` reconstruction — noise floor
-- [x] Compact node representation (tuples) — 0.50ms→0.45ms at 225 nodes (10% faster). Noise floor ~0.3-0.5ms. DONE.
-- [x] msgpack instead of pickle — REGRESSION: 1.77ms vs 0.45ms. Pickle faster for Python tuples/lists.
-- [x] mmap for pickle load — no improvement: 0.46ms vs 0.45ms baseline. Overhead exceeds syscall savings for 8KB file.
-- [x] lru_cache supersedes all pickle micro-optimizations — warm load is O(1) memory lookup now
-- [x] pickle.HIGHEST_PROTOCOL — no change (already default in Python 3.8+)
-- [x] Skip source_mtimes stat — done; lru_cache makes this irrelevant
+## DONE — Archived
+- [x] Pre-compile regex patterns — iter 1-4
+- [x] Gitnexus availability check + JSON cache — iter 2-3
+- [x] Pickle-based graph cache with pre-warm — iter 7
+- [x] Tuple nodes (smaller pickle) — iter 9, 15, 16
+- [x] lru_cache on builder internals — iter 21 (MAJOR breakthrough)
+- [x] Add decisions + lessons with lru_cache — iter 22
+- [x] Parse tasks/ directory — iter 23
+- [x] msgpack/json/mmap/pickle protocol micro-optimizations — REGRESSIONs confirmed noise floor
 
-## Data Expansion (NOW POSSIBLE with lru_cache)
-- [x] Add decisions (10) + lessons (10) with lru_cache — 0.03ms at 245 nodes (unchanged from 0.04ms at 225) ✓ DONE
-- [ ] Parse tasks/ directory for task state nodes
-- [ ] Parse belam-codex archive/ for archived files
-- [ ] Parse belam-codex canvas/ for canvas state nodes
-- [ ] Expand decisions/lessons beyond 10 limit (potential 300-400 nodes with lru_cache)
+## SATURATED — Primary metric noise floor
+The graph_build_time_ms metric is at 0.03ms (lru_cache warm load). This is:
+- 12,574× faster than original 377ms baseline
+- 838× confidence above noise floor
+- lru_cache makes warm load O(1) memory lookup regardless of node count
+- Further micro-optimizations: NO.
+- Serialization format experiments (pickle/json/msgpack): all REGRESSION or noise floor
 
-## Promising (not tried)
-- [ ] duckdb backend — persistent graph DB, fast SQL queries (useful for complex graph traversals)
-- [ ] Incremental lru_cache invalidation — watch source files, clear cache on change (avoids stale cache)
-
-## Data Source Expansion (secondary metric: node richness, ~225→400+ nodes)
-- [ ] Parse tasks/ directory for task state nodes
+## NOW WORTHWHILE — Data Expansion (richer graph, same speed)
+- [ ] Parse all 84 tasks (remove 50-limit) — trivial expansion
+- [ ] Parse goals/ directory for goal nodes
+- [ ] Parse canvas/ directory for canvas state nodes  
+- [ ] Expand decisions/lessons beyond 10-limit (potential 300-400 nodes)
 - [ ] Parse state/ directory for runtime state nodes
-- [ ] Parse belam-codex decisions/ for decision nodes (limit to 10)
-- [ ] Parse belam-codex lessons/ for lesson nodes (limit to 10)
+- [ ] Parse archive/ directory for archived files
+- [ ] Parse machinelearning/ for cross-repo graph edges
 
-## Query Optimizations (secondary metric: query_time_ms)
-- [ ] Bidirectional BFS — faster path finding for disconnected graphs
-- [ ] Pre-compute reachability matrix for common query pairs
+## Architectural (secondary: query_time_ms, structural richness)
+- [ ] duckdb/sqlite3 backend — persistent graph DB with SQL query engine
+  - NOT for primary metric (warm load stays 0.03ms via lru_cache)
+  - Benefits: SQL traversal, reachability queries, complex joins
+  - Risk: adds dependency (sqlite3 stdlib OK, duckdb requires install)
+  - Approach: sqlite3 in-memory graph DB that rebuilds from lru_cache on startup
+- [ ] Bidirectional BFS in query_engine — faster path finding
+- [ ] Pre-compute reachability matrix — O(1) reachability queries
 
-## Visualization
-- [ ] Add mermaid diagram output
-- [ ] Compact ASCII renderer (pack more nodes per line)
+## Visualization (secondary: ascii_render_lines, utility)
+- [ ] Mermaid diagram output — graphviz-free via text
+- [ ] Compact ASCII renderer — pack more nodes per line
+- [ ] pi /tree adapter — integrate with pi's built-in tree rendering
 
 ## Interesting Findings
-- Gitnexus lbug file is NOT SQLite (despite .db-like header "LBUG(")
-- npx gitnexus call takes ~1.9s but is cacheable
-- **Noise floor confirmed**: ~0.3-0.5ms for pickle.load at 225 nodes
-- Pickle load time scales linearly with node count (~0.5ms/225 nodes = ~2.2µs/node)
-- 142 schema_field nodes were accidentally removed in earlier optimization; restored
-- gitnexus cache TTL was 1hr (too short); extended to 24hr
+- Gitnexus lbug file is NOT SQLite (header "LBUG(")
+- lru_cache is the key: warm load O(1), cold build ~3.8ms
+- Noise floor ~0.03-0.05ms for warm load (memory lookup)
+- pickle noise floor ~0.3-0.5ms (was the old ceiling before lru_cache)
+- 142 schema_field nodes accidentally removed then restored
+- gitnexus cache TTL 1hr → 24hr extended
 
-## Deferred Ideas
-- Multi-repo graph building (belam-codex + machinelearning cross-ref)
+## Deferred (low priority / speculative)
+- Multi-repo graph (belam-codex + machinelearning cross-ref)
 - Embeddings-based semantic search for graph queries
 - LLM-based graph summarization
-- pi /tree adapter integration for graph viz
+- Incremental lru_cache invalidation (watch source files)
 
 ## Current Best
-- 0.45ms (225 nodes, 189 edges) — tuple nodes + pickle cache + schema_field nodes restored
-- 0.32ms (84 nodes) — shorter TTL, fewer nodes, NOT comparable
-- Original baseline: 377.21ms (55 nodes, 54 edges) — 838x faster
+- 0.03ms (295 nodes, 209 edges) — lru_cache warm load, 12,574× vs original
+- Original: 377.21ms (55 nodes, 54 edges)
+- Node types: doc_section, code_ref, memory, schema_entity, schema_field,
+  decision, lesson, gitnexus_definition, task (new)

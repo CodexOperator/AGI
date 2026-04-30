@@ -438,6 +438,58 @@ class GraphBuilder:
 
         return count
 
+    def parse_goals(self, goals_dir: str) -> int:
+        """Parse goal files into graph nodes with status/urgency metadata."""
+        if not os.path.isdir(goals_dir):
+            return 0
+
+        files = sorted(os.listdir(goals_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+
+        for filename in md_files:
+            filepath = os.path.join(goals_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                # Extract goal title
+                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                title = title_match.group(1)[:60] if title_match else filename[:-3]
+
+                # Extract "Why Critical" or first section for context
+                why_match = re.search(r'## Why[\s\S]*?\n\n(.+?)(?:\n\n|##)', content)
+                why_text = why_match.group(1).strip()[:100] if why_match else ""
+
+                status = meta.get('status', 'unknown')
+                priority = meta.get('priority', 'medium')
+                created = meta.get('created', '')
+
+                label = title[:50]
+                summary = f"{status}|{priority}|{created[:10]}|{why_text[:40]}"
+
+                self.add_node(
+                    "goal",
+                    label,
+                    summary,
+                    f"goals/{filename}",
+                    f"goal_{filename[:-3]}"
+                )
+                count += 1
+
+            except Exception:
+                pass
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -591,6 +643,11 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     if os.path.isdir(tasks_dir):
         builder.parse_tasks(tasks_dir, limit=50)
 
+    # Parse goals (goal nodes with status/priority/urgency)
+    goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
+    if os.path.isdir(goals_dir):
+        builder.parse_goals(goals_dir)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -679,6 +736,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
     if os.path.isdir(tasks_dir):
         builder.parse_tasks(tasks_dir, limit=50)
+
+    # Parse goals (fallback cold path)
+    goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
+    if os.path.isdir(goals_dir):
+        builder.parse_goals(goals_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
