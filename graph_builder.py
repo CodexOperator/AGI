@@ -412,18 +412,6 @@ def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
         for f in os.listdir(schema_dir):
             if f.endswith(('.md', '.yaml', '.yml')):
                 paths.append(os.path.join(schema_dir, f))
-    # Decision files
-    decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
-    if os.path.isdir(decisions_dir):
-        for f in sorted(os.listdir(decisions_dir), reverse=True)[:20]:
-            if f.endswith('.md'):
-                paths.append(os.path.join(decisions_dir, f))
-    # Lesson files
-    lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
-    if os.path.isdir(lessons_dir):
-        for f in sorted(os.listdir(lessons_dir), reverse=True)[:20]:
-            if f.endswith('.md'):
-                paths.append(os.path.join(lessons_dir, f))
     for p in paths:
         if os.path.exists(p):
             mtimes[p] = os.path.getmtime(p)
