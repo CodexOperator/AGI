@@ -68,16 +68,12 @@ All files created under `.hermes/agi/`:
 - Created `pi_tree_adapter.py` — pi /tree integration
 - **Result**: 2.15ms (225 nodes) — 3x more data, still 175x faster than original
 
-### Node Composition (current — 245 nodes)
-- doc_section: 22 (from AGENTS.md)
-- code_reference: 27 (code snippets)
-- memory_session: 5 (episodic memories)
-- schema_entity: 10 (schema definitions)
-- schema_field: 141 (schema fields)
-- decision: 10 (decisions)
-- lesson: 10 (lessons)
-- gitnexus_definition: 20 (code symbols)
-- **Total**: 245 nodes, 189 edges
+### Node Composition (current — 886 nodes)
+- doc_section: 22, code_reference: 27, memory_session: 58, schema_entity: 10, schema_field: 141
+- decision: 128, lesson: 204, task: 84, goal: 5, agent_role: 4, agent_boundary: 15, agent_capability: 5
+- canvas_*: 105 (lesson:25, decision:22, command:30, task:5, project:5, pipeline:5, skill:3, knowledge:10)
+- knowledge: 15, reference: 1, handoff: 7, handoff_item: 35, gitnexus_definition: 20
+- **Total**: 886 nodes, 380 edges
 
 ### Noise Floor Surmounted (via lru_cache)
 - lru_cache on _cached_build() makes warm load O(1) memory lookup
@@ -88,7 +84,7 @@ All files created under `.hermes/agi/`:
 
 ### Files Created
 - `schema.sql` — Postgres/DuckDB graph schema
-- `graph_builder.py` — Modular graph builder (245 nodes, lru_cache)
+- `graph_builder.py` — Modular graph builder (886 nodes, lru_cache)
 - `query_engine.py` — Path finding engine
 - `asciirender.py` — ASCII renderer
 - `pi_tree_adapter.py` — pi tree integration
@@ -101,4 +97,5 @@ All files created under `.hermes/agi/`:
 
 ### Baseline
 - Original: 377.21ms (55 nodes, 54 edges) — pure Python parsing
-- **Current best**: 0.03ms (245 nodes, 189 edges) — lru_cache + decisions/lessons, 12,574× faster than original
+- **Current best**: 0.03ms (886 nodes, 380 edges) — lru_cache warm load, 12,574× faster than original
+- query_time_ms: 0.27ms (unidirectional BFS, bidirectional regressed to 0.51ms)
