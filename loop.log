@@ -50,3 +50,5 @@ Thu Apr 30 08:21:29 UTC 2026 — iter done, timeout exit=0
 - **Edges**: 448 (+17) — defines, implements, imports, implements_pipeline
 - lru_cache absorbs new data at zero cost to warm load time
 Thu Apr 30 08:29:40 UTC 2026 — iter done, timeout exit=0
+**Iteration result**: `keep` — Parse skills/ directory added +115 nodes (26 skill_type categories, 89 skills with related_skill edges). Primary metric stays at 0.03ms noise floor. Graph richness improved: 1075 nodes (+1854% vs original), 585 edges (+983% vs original), without speed regression.
+Thu Apr 30 08:38:45 UTC 2026 — iter done, timeout exit=124

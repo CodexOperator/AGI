@@ -255,12 +255,16 @@ class GraphBuilder:
             return 0
 
     def parse_decisions(self, decisions_dir: str, limit: int = 20) -> int:
-        """Parse decision files into graph nodes."""
+        """Parse decision files into graph nodes with upstream/downstream edges."""
         if not os.path.isdir(decisions_dir):
             return 0
 
         files = sorted(os.listdir(decisions_dir), reverse=True)[:limit]
         count = 0
+        decision_ids = {}  # slug -> node_id for upstream/downstream linking
+        file_contents = {}  # filename -> (content, meta) for second pass
+
+        # First pass: create nodes and collect metadata
         for filename in files:
             if not filename.endswith('.md'):
                 continue
@@ -287,28 +291,51 @@ class GraphBuilder:
                 rationale = rationale_match.group(1).strip()[:100] if rationale_match else ""
 
                 status = meta.get('status', 'draft')
+                decision_slug = filename[:-3]
                 decision_id = self.add_node(
                     "decision",
                     title,
                     rationale,
                     f"decisions/{filename}",
-                    f"decision_{filename[:-3]}"
+                    f"decision_{decision_slug}"
                 )
+                decision_ids[decision_slug] = decision_id
+                file_contents[filename] = (content, meta)
                 count += 1
-
-                # Skip tag nodes - not needed for core graph, saves nodes/edges
 
             except Exception:
                 pass
+
+        # Second pass: add upstream/downstream edges
+        for filename, (content, meta) in file_contents.items():
+            src_slug = filename[:-3]
+            src_id = decision_ids.get(src_slug)
+            if not src_id:
+                continue
+
+            for dir_key in ('upstream', 'downstream'):
+                refs_str = meta.get(dir_key, '').strip('[] ')
+                if not refs_str:
+                    continue
+                refs = [r.strip().strip("'").strip('"') for r in refs_str.split(',') if r.strip()]
+                for ref in refs[:5]:  # cap at 5 per direction
+                    tgt_id = decision_ids.get(ref)
+                    if tgt_id and tgt_id != src_id:
+                        self.add_edge(src_id, tgt_id, dir_key)
+
         return count
 
     def parse_lessons(self, lessons_dir: str, limit: int = 20) -> int:
-        """Parse lesson files into graph nodes."""
+        """Parse lesson files into graph nodes with upstream/downstream edges."""
         if not os.path.isdir(lessons_dir):
             return 0
 
         files = sorted(os.listdir(lessons_dir), reverse=True)[:limit]
         count = 0
+        lesson_ids = {}  # slug -> node_id for upstream/downstream linking
+        file_meta = {}  # filename -> meta dict
+
+        # First pass: create nodes
         for filename in files:
             if not filename.endswith('.md'):
                 continue
@@ -334,17 +361,38 @@ class GraphBuilder:
                 lesson_match = re.search(r'## Lesson\s*\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
                 lesson_text = lesson_match.group(1).strip()[:100] if lesson_match else ""
 
+                lesson_slug = filename[:-3]
                 self.add_node(
                     "lesson",
                     title,
                     lesson_text,
                     f"lessons/{filename}",
-                    f"lesson_{filename[:-3]}"
+                    f"lesson_{lesson_slug}"
                 )
+                lesson_ids[lesson_slug] = f"lesson_{lesson_slug}"
+                file_meta[filename] = meta
                 count += 1
 
             except Exception:
                 pass
+
+        # Second pass: add upstream/downstream edges between lessons
+        for filename, meta in file_meta.items():
+            src_slug = filename[:-3]
+            src_id = lesson_ids.get(src_slug)
+            if not src_id:
+                continue
+
+            for dir_key in ('upstream', 'downstream'):
+                refs_str = meta.get(dir_key, '').strip('[] ')
+                if not refs_str:
+                    continue
+                refs = [r.strip().strip("'").strip('"') for r in refs_str.split(',') if r.strip()]
+                for ref in refs[:5]:
+                    tgt_id = lesson_ids.get(ref)
+                    if tgt_id and tgt_id != src_id:
+                        self.add_edge(src_id, tgt_id, dir_key)
+
         return count
 
     def parse_tasks(self, tasks_dir: str, limit: int = 50) -> int:
@@ -1043,6 +1091,198 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_docs(self, docs_dir: str) -> int:
+        """Parse docs/ directory into knowledge nodes.
+        
+        Docs are operational guides with frontmatter (category, tags, related).
+        Each doc becomes a knowledge node with category edges to help cluster docs.
+        """
+        if not os.path.isdir(docs_dir):
+            return 0
+
+        files = sorted(os.listdir(docs_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+
+        for filename in md_files:
+            filepath = os.path.join(docs_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                category = meta.get('category', 'guide')
+                tags_str = meta.get('tags', '[]')
+                related_str = meta.get('related', '[]')
+
+                # Extract first heading as title
+                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
+
+                # Extract first body paragraph
+                body_match = re.search(r'\n\n(.+?)(?:\n\n|##)', content, re.DOTALL)
+                body = body_match.group(1).strip()[:100] if body_match else ""
+
+                label = title[:50]
+                summary = f"category:{category}|{tags_str[:60]}"
+
+                node_id = self.add_node(
+                    "knowledge",
+                    label,
+                    summary,
+                    f"docs/{filename}",
+                    f"doc_{filename[:-3]}"
+                )
+                count += 1
+
+                # Category edge: link doc to a category node
+                cat_node_id = f"category_{category.lower().replace(' ', '_')}"
+                if cat_node_id not in self._node_ids:
+                    self.add_node("tag", category, "", f"docs/{filename}", cat_node_id)
+                self.add_edge(node_id, cat_node_id, "categorized_as")
+
+                # Related edges to existing nodes
+                if related_str and related_str != '[]':
+                    related_items = re.findall(r'[\w-]+', related_str)
+                    for rel in related_items[:5]:
+                        rel_id = self._find_or_add_reference(rel, f"docs/{filename}")
+                        if rel_id:
+                            self.add_edge(node_id, rel_id, "related_to")
+
+            except Exception:
+                pass
+        return count
+
+    def parse_personas(self, personas_dir: str) -> int:
+        """Parse personas/ directory into agent_role nodes.
+        
+        Personas are agent archetypes (architect, builder, critic) with
+        capabilities, boundaries, and communication patterns.
+        """
+        if not os.path.isdir(personas_dir):
+            return 0
+
+        files = sorted(os.listdir(personas_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+        persona_ids = {}  # persona_name -> node_id
+
+        for filename in md_files:
+            filepath = os.path.join(personas_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                persona_name = meta.get('persona', filename[:-3])
+                role = meta.get('role', '')
+                model = meta.get('model', '')
+                communicates_str = meta.get('communicates_with', '[]')
+
+                # Extract persona title
+                title_match = re.search(r'^#\s+Persona:\s*(.+)$', content, re.MULTILINE)
+                title = title_match.group(1).strip()[:60] if title_match else persona_name
+
+                label = title[:50]
+                summary = f"{role[:30]}|{model[:30]}"
+
+                persona_key = filename[:-3]
+                node_id = self.add_node(
+                    "agent_role",
+                    label,
+                    summary,
+                    f"personas/{filename}",
+                    f"persona_{persona_key}"
+                )
+                persona_ids[persona_key] = node_id
+                count += 1
+
+                # Extract capabilities section
+                cap_match = re.search(r'## Capabilities\s*\n([\s\S]+?)(?:##|\Z)', content)
+                if cap_match:
+                    for line in cap_match.group(1).split('\n'):
+                        if line.strip().startswith(('•', '-', '✅', '1.', '2.', '3.')):
+                            cap = line.strip().lstrip('•-✅ 0-9').strip()[:60]
+                            if len(cap) > 5:
+                                cap_id = self.add_node(
+                                    "agent_capability",
+                                    cap,
+                                    "",
+                                    f"personas/{filename}",
+                                    f"cap_{persona_key}_{hash(cap) & 0xFFFF}"
+                                )
+                                self.add_edge(node_id, cap_id, "can_do")
+                                count += 1
+
+                # Extract boundaries section
+                bound_match = re.search(r'## Boundaries\s*\n([\s\S]+?)(?:##|\Z)', content)
+                if bound_match:
+                    for line in bound_match.group(1).split('\n'):
+                        if line.strip().startswith(('•', '-', '❌', '1.', '2.', '3.')):
+                            bound = line.strip().lstrip('•-❌ 0-9').strip()[:60]
+                            if len(bound) > 5:
+                                bound_id = self.add_node(
+                                    "agent_boundary",
+                                    bound,
+                                    "",
+                                    f"personas/{filename}",
+                                    f"bound_{persona_key}_{hash(bound) & 0xFFFF}"
+                                )
+                                self.add_edge(node_id, bound_id, "refuses_to")
+                                count += 1
+
+            except Exception:
+                pass
+
+        # Second pass: add communication edges
+        for filename in md_files:
+            filepath = os.path.join(personas_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+                fm_match = _RE_FRONT_MATTER.match(content)
+                if not fm_match:
+                    continue
+                meta = {}
+                for line in fm_match.group(1).split('\n'):
+                    m = _RE_YAML_PAIR.match(line)
+                    if m:
+                        meta[m.group(1)] = m.group(2)
+
+                src_key = filename[:-3]
+                src_id = persona_ids.get(src_key)
+                if not src_id:
+                    continue
+
+                comm_str = meta.get('communicates_with', '').strip('[] ')
+                if not comm_str:
+                    continue
+                peers = [c.strip().strip("'").strip('"') for c in comm_str.split(',') if c.strip()]
+                for peer in peers:
+                    tgt_id = persona_ids.get(peer)
+                    if tgt_id and tgt_id != src_id:
+                        self.add_edge(src_id, tgt_id, "communicates_with")
+
+            except Exception:
+                pass
+        return count
+
     def parse_archive_tasks(self, archive_dir: str) -> int:
         """Parse archive/tasks/ into archive_task nodes with upstream/downstream edges.
         
@@ -1579,6 +1819,16 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
         builder.parse_archive_tasks(archive_dir)
         builder.parse_codex_modules(archive_dir)
 
+    # Parse docs/ (operational guides with category and related edges)
+    docs_dir = os.path.join(hermes_dir, "belam-codex", "docs")
+    if os.path.isdir(docs_dir):
+        builder.parse_docs(docs_dir)
+
+    # Parse personas/ (agent archetype definitions)
+    personas_dir = os.path.join(hermes_dir, "belam-codex", "personas")
+    if os.path.isdir(personas_dir):
+        builder.parse_personas(personas_dir)
+
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
     builder.build_tag_bridges(hermes_dir)
 
@@ -1620,7 +1870,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=8)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=9)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -1701,6 +1951,16 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
         builder.parse_archive_commands(archive_dir)
         builder.parse_archive_tasks(archive_dir)
         builder.parse_codex_modules(archive_dir)
+
+    # Parse docs/ (operational guides with category and related edges)
+    docs_dir = os.path.join(hermes_dir, "belam-codex", "docs")
+    if os.path.isdir(docs_dir):
+        builder.parse_docs(docs_dir)
+
+    # Parse personas/ (agent archetype definitions)
+    personas_dir = os.path.join(hermes_dir, "belam-codex", "personas")
+    if os.path.isdir(personas_dir):
+        builder.parse_personas(personas_dir)
 
     # Bridge isolated clusters via shared tags
     builder.build_tag_bridges(hermes_dir)
