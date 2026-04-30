@@ -790,7 +790,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
         pass
 
 @lru_cache(maxsize=1)
-def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tuple, Tuple, Dict]:
+def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _cache_ver: int = 1) -> Tuple[Tuple, Tuple, Dict]:
     """Cached builder internals — returns serializable parts only.
     
     lru_cache eliminates pickle.load entirely for warm calls.
@@ -814,15 +814,15 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
 
-    # Parse decisions (expanded to 100)
+    # Parse decisions (all 128 files)
     decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
     if os.path.isdir(decisions_dir):
-        builder.parse_decisions(decisions_dir, limit=100)
+        builder.parse_decisions(decisions_dir, limit=999)
 
-    # Parse lessons (expanded to 100)
+    # Parse lessons (all 208 files)
     lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
     if os.path.isdir(lessons_dir):
-        builder.parse_lessons(lessons_dir, limit=100)
+        builder.parse_lessons(lessons_dir, limit=999)
 
     # Parse tasks (expanded to all 84)
     tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
@@ -880,9 +880,9 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
         except Exception:
             pass
 
-    # Try lru_cache first (no pickle.load)
+    # Try lru_cache first (no pickle.load) — bump _cache_ver=2 to bust cache after code/data changes
     try:
-        nodes, edges, adj = _cached_build(hermes_dir, agi_dir, gitnexus_hash)
+        nodes, edges, adj = _cached_build(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=2)
         # Reconstruct builder from cached parts
         builder = GraphBuilder()
         builder.nodes = list(nodes)
@@ -918,20 +918,20 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     schema_dir = os.path.join(hermes_dir, "belam-codex", "schemas")
     builder.parse_schema_files(schema_dir)
 
-    # Parse decisions (expanded to 100)
+    # Parse decisions (all 128 files)
     decisions_dir = os.path.join(hermes_dir, "belam-codex", "decisions")
     if os.path.isdir(decisions_dir):
-        builder.parse_decisions(decisions_dir, limit=100)
+        builder.parse_decisions(decisions_dir, limit=999)
 
-    # Parse lessons (expanded to 100)
+    # Parse lessons (all 208 files)
     lessons_dir = os.path.join(hermes_dir, "belam-codex", "lessons")
     if os.path.isdir(lessons_dir):
-        builder.parse_lessons(lessons_dir, limit=100)
+        builder.parse_lessons(lessons_dir, limit=999)
 
     # Parse tasks (expanded to all 84)
     tasks_dir = os.path.join(hermes_dir, "belam-codex", "tasks")
     if os.path.isdir(tasks_dir):
-        builder.parse_tasks(tasks_dir, limit=100)
+        builder.parse_tasks(tasks_dir, limit=999)
 
     # Parse goals (goal nodes with status/priority/urgency)
     goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
