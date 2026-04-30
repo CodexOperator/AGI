@@ -132,7 +132,7 @@ else:
     build_time_ms = (time.perf_counter() - start) * 1000
     
     # Build adjacency
-    adj = {n["id"]: [] for n in nodes}
+    adj = {n[0]: [] for n in nodes}
     for e in edges:
         if e["from"] in adj and e["to"] in adj:
             adj[e["from"]].append(e["to"])
@@ -174,7 +174,7 @@ if nodes:
     lines.append(f" nodes={len(nodes)}  edges={len(edges)}")
     lines.append("-" * 60)
     
-    section_nodes = [n for n in nodes if n["type"] == "doc_section"]
+    section_nodes = [n for n in nodes if n[1] == "doc_section"]
     node_lookup = {n[0]: n for n in nodes}
     
     for i, n in enumerate(section_nodes[:10]):

@@ -24,6 +24,11 @@
       "filePath": "scripts/demo_tictactoe.py"
     },
     {
+      "id": "File:scripts/runtime_resolution.py",
+      "name": "runtime_resolution.py",
+      "filePath": "scripts/runtime_resolution.py"
+    },
+    {
       "id": "Property:scripts/runtime_resolution.py:merged",
       "name": "merged",
       "filePath": "scripts/runtime_resolution.py",
@@ -36,13 +41,6 @@
       "filePath": "scripts/runtime_resolution.py",
       "startLine": 117,
       "endLine": 117
-    },
-    {
-      "id": "Property:scripts/runtime_resolution.py:arg_list",
-      "name": "arg_list",
-      "filePath": "scripts/runtime_resolution.py",
-      "startLine": 170,
-      "endLine": 170
     },
     {
       "id": "Section:decisions/symbolic-dispatch-architecture.md:L17:symbolic-dispatch-architecture",
