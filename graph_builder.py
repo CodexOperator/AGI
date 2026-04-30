@@ -59,7 +59,7 @@ class GraphBuilder:
 
     def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
-        """Add a node to the graph."""
+        """Add a node to the graph as a compact tuple (id, type, label, content, source)."""
         if node_id is None:
             node_id = f"{node_type}_{len(self.nodes)}"
 
@@ -71,13 +71,8 @@ class GraphBuilder:
             node_id = f"{base_id}_{counter}"
 
         self._node_ids.add(node_id)
-        self.nodes.append({
-            "id": node_id,
-            "type": node_type,
-            "label": label[:60],
-            "content": content[:120] if content else "",
-            "source": source
-        })
+        # Store as tuple: smaller pickle, faster load than dict
+        self.nodes.append((node_id, node_type, label[:60], content[:120] if content else "", source))
         return node_id
 
     def add_edge(self, from_id: str, to_id: str, edge_type: str = "references"):
@@ -360,10 +355,10 @@ class GraphBuilder:
         }
 
     def _count_by_type(self) -> Dict[str, int]:
-        """Count nodes by type."""
+        """Count nodes by type (tuple access: [1] = type)."""
         counts = defaultdict(int)
         for node in self.nodes:
-            counts[node["type"]] += 1
+            counts[node[1]] += 1
         return dict(counts)
 
 
@@ -449,6 +444,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             '_node_ids': builder._node_ids,
             '_source_mtimes': source_mtimes,
             '_gitnexus_cache': gitnexus_cache,
+            '_node_count': len(builder.nodes),
         }
         with open(cache_file, 'wb') as f:
             pickle.dump(cached, f)
