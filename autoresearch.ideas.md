@@ -43,6 +43,7 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
   - Benefits: SQL traversal, reachability queries, complex joins
   - sqlite3 is stdlib — no new dependency needed
   - Approach: sqlite3 in-memory graph DB that rebuilds from lru_cache on startup
+- [x] Revert bidirectional BFS to unidirectional (query_time_ms 0.51→0.27ms, iter 32)
 - [ ] Pre-compute reachability matrix — O(1) reachability queries
 - [ ] Optimized path query — reduce iteration count or use pre-built index
 
@@ -67,8 +68,12 @@ The graph_build_time_ms metric is at 0.03ms (lru_cache warm load).
 - Incremental lru_cache invalidation (watch source files)
 - Parse machinelearning/ for cross-repo graph edges
 
-## Current Best (iter 30)
-- 0.03ms (828 nodes, 310 edges) — lru_cache warm load, 12,574× vs original
+## Current Best (iter 32)
+- 0.03ms (886 nodes, 380 edges) — lru_cache warm load, 12,574× vs original
+- query_time_ms: 0.27ms (unidirectional BFS, 47% faster than bidirectional)
+- Node types: doc_section:22, code_ref:27, memory:58, schema_entity:10, schema_field:141,
+  decision:128, lesson:204, task:84, goal:5, agent_role:4, agent_boundary:15,
+  agent_capability:5, canvas_*:105, knowledge:15, reference:1, handoff:7, handoff_item:35, gitnexus_def:20
 - Original: 377.21ms (55 nodes, 54 edges)
 - Node types: doc_section:22, code_ref:27, memory:58, schema_entity:10, schema_field:141,
   decision:128, lesson:204, task:84, goal:5, agent_role:4, agent_boundary:15,
