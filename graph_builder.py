@@ -458,7 +458,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             '_node_count': len(builder.nodes),
         }
         with open(cache_file, 'wb') as f:
-            pickle.dump(cached, f)
+            pickle.dump(cached, f, protocol=pickle.HIGHEST_PROTOCOL)
     except Exception:
         pass
 

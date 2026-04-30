@@ -1,0 +1,14 @@
+graph_build_time_ms=0.46
+graph_node_count=225
+graph_edge_count=189
+query_time_ms=0.1
+ascii_render_lines=7
+
+--- ASCII GRAPH RENDER ---
+ UNIFIED GRAPH 
+============================================================
+ nodes=225  edges=189
+------------------------------------------------------------
+  ... +12 more sections
+------------------------------------------------------------
+ path_query: ["agents_section_0", "agents_section_1", "agents_section_2", "agents_section_3",...
