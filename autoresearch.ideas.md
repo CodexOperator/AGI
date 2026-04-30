@@ -13,7 +13,7 @@
 - [x] Pre-build node index — no effect (get_stats called after timing, not in hot path)
 - [x] Skip adj from pickle cache — REGRESSION: 1.16ms vs 0.50ms (adj rebuild cost > pickle size savings)
 - [x] Skip `_node_ids` reconstruction on cache load — already microseconds, noise floor
-- [ ] Compact node representation — use tuples instead of dicts for nodes (smaller pickle, faster load)
+- [x] Compact node representation — use tuples instead of dicts for nodes — 0.50ms→0.32ms at 84 nodes (36% faster, noise floor). NEEDS re-benchmark at 225 nodes to confirm.
 - [ ] Incremental updates via file watcher — update pickle delta instead of full rebuild (would need cache invalidation strategy)
 
 ## Data Source Expansion (secondary metric: node richness)

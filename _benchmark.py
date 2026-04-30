@@ -52,7 +52,7 @@ if os.path.exists(_GITNEXUS_CACHE_FILE):
     try:
         mtime = os.path.getmtime(_GITNEXUS_CACHE_FILE)
         age_hours = (time.time() - mtime) / 3600
-        if age_hours < 1:
+        if age_hours < 24:
             with open(_GITNEXUS_CACHE_FILE) as f:
                 _gitnexus_cache = f.read()
     except Exception:

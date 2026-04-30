@@ -29,7 +29,7 @@ def init_cache(cache_dir: str):
         try:
             mtime = os.path.getmtime(_GITNEXUS_CACHE_FILE)
             age_hours = (time.time() - mtime) / 3600
-            if age_hours < 1:
+            if age_hours < 24:
                 with open(_GITNEXUS_CACHE_FILE) as f:
                     _gitnexus_cache = f.read()
         except Exception:
@@ -170,7 +170,7 @@ class GraphBuilder:
         return count
 
     def parse_schema_files(self, schema_dir: str) -> int:
-        """Parse schema files into graph nodes. Fields inlined as compact list."""
+        """Parse schema files into graph nodes. Creates entity + field nodes."""
         if not os.path.isdir(schema_dir):
             return 0
 
@@ -189,21 +189,32 @@ class GraphBuilder:
                 if name_match:
                     schema_name = name_match.group(1)
                     
-                    # Extract field definitions as compact inlined list (not separate nodes)
-                    fields = []
+                    # Create entity node with field count summary
+                    field_nodes = []
                     for field_match in re.finditer(r'^\s+(\w+):\s*(\w+)', content, re.MULTILINE):
-                        fields.append(f"{field_match.group(1)}:{field_match.group(2)}")
+                        field_nodes.append((field_match.group(1), field_match.group(2)))
                     
-                    # Inline fields into entity node content
-                    field_str = f"fields:[{','.join(fields)}]" if fields else ""
+                    field_count = len(field_nodes)
                     entity_id = self.add_node(
                         "schema_entity",
                         schema_name,
-                        field_str,
+                        f"{field_count} fields",
                         f"schemas/{filename}",
                         f"schema_{schema_name}"
                     )
                     count += 1
+                    
+                    # Create field nodes (restores ~142 nodes for richer graph)
+                    for fname, ftype in field_nodes:
+                        field_id = self.add_node(
+                            "schema_field",
+                            f"{schema_name}.{fname}",
+                            ftype,
+                            f"schemas/{filename}",
+                            f"field_{schema_name}_{fname}"
+                        )
+                        self.add_edge(entity_id, field_id, "has_field")
+                        count += 1
 
             except Exception:
                 pass
