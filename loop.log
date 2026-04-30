@@ -53,3 +53,4 @@ Thu Apr 30 08:29:40 UTC 2026 — iter done, timeout exit=0
 **Iteration result**: `keep` — Parse skills/ directory added +115 nodes (26 skill_type categories, 89 skills with related_skill edges). Primary metric stays at 0.03ms noise floor. Graph richness improved: 1075 nodes (+1854% vs original), 585 edges (+983% vs original), without speed regression.
 Thu Apr 30 08:38:45 UTC 2026 — iter done, timeout exit=124
 **Iteration 40 result**: `keep` — Primary metric at noise floor (0.03ms). Added `parse_docs()` (operational guides) + `parse_personas()` (agent archetypes with capability/boundary nodes): +135 nodes (960→1,095), +149 edges (496→645). All at same 0.03ms warm load via `lru_cache`.
+Thu Apr 30 08:47:41 UTC 2026 — iter done, timeout exit=0

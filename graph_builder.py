@@ -1443,6 +1443,201 @@ class GraphBuilder:
 
         return count
 
+    def parse_pipelines(self, pipelines_dir: str) -> int:
+        """Parse pipelines/ directory into pipeline + pipeline_stage nodes.
+
+        Each pipeline file has YAML frontmatter (version, status, priority, type,
+        agents, tags, project) and per-phase stage history tables.
+
+        Node types:
+          - pipeline: top-level pipeline record
+          - pipeline_stage: individual stage entries from stage history tables
+
+        Edges:
+          - has_stage: pipeline → pipeline_stage (ordered by occurrence)
+          - uses_agent: pipeline → agent_role
+          - tagged_with: pipeline → tag
+          - belongs_to_project: pipeline → knowledge (project)
+          - next_stage: pipeline_stage → pipeline_stage (temporal order)
+          - categorized_as: pipeline → tag (status, priority, type)
+        """
+        if not os.path.isdir(pipelines_dir):
+            return 0
+
+        # Also scan archive/pipelines/
+        archive_pipelines = os.path.join(pipelines_dir, "archive")
+        dirs_to_scan = [pipelines_dir]
+        if os.path.isdir(archive_pipelines):
+            dirs_to_scan.append(archive_pipelines)
+
+        count = 0
+        _RE_STAGE_TABLE = re.compile(
+            r'^\|\s*Stage\s*\|.*?\|.*?\|.*?\|.*?\|\n((?:\|.*?\n)+)',
+            re.MULTILINE
+        )
+        _RE_STAGE_ROW = re.compile(
+            r'^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|$'
+        )
+        _RE_PHASE_SECTION = re.compile(
+            r'^## (Phase \d+[^\n]*)\n.*?\n(?:### Stage History\n)?((?:\|.*?\n)+)',
+            re.MULTILINE
+        )
+        _RE_PHASE_SIMPLE = re.compile(r'^## (Phase \d+[^\n]*?)(?:\n| )', re.MULTILINE)
+
+        for base_d in dirs_to_scan:
+            subdir = "pipelines" if base_d == pipelines_dir else "archive/pipelines"
+            try:
+                files = sorted(os.listdir(base_d))
+            except Exception:
+                continue
+
+            for filename in files:
+                if not filename.endswith('.md') or filename.startswith('.'):
+                    continue
+                # Skip non-pipeline files (e.g., handoffs/ subdir)
+                if not os.path.isfile(os.path.join(base_d, filename)):
+                    continue
+
+                filepath = os.path.join(base_d, filename)
+                try:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                except Exception:
+                    continue
+
+                # Extract YAML frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2).strip()
+
+                version = meta.get('version', filename[:-3])
+                status = meta.get('status', '')
+                priority = meta.get('priority', '')
+                ptype = meta.get('type', '')
+                agents_str = meta.get('agents', '')
+                tags_str = meta.get('tags', '[]')
+                project = meta.get('project', '')
+                pending = meta.get('pending_action', '')
+
+                # Extract title
+                title_match = re.search(r'^#\s+Implementation Pipeline:\s*(.+)$', content, re.MULTILINE)
+                title = title_match.group(1).strip()[:60] if title_match else version
+
+                pipeline_id = self.add_node(
+                    "pipeline",
+                    title[:50],
+                    f"{status}|{priority}|{ptype}",
+                    f"{subdir}/{filename}",
+                    f"pipeline_{version}"
+                )
+                count += 1
+
+                # Tag edges (from YAML tags)
+                if tags_str and tags_str != '[]':
+                    tags = re.findall(r'[\w-]+', tags_str)
+                    for tag in tags[:8]:
+                        tag_id = f"tag_{tag}"
+                        if tag_id not in self._node_ids:
+                            self.add_node("tag", tag, "", f"{subdir}/{filename}", tag_id)
+                        self.add_edge(pipeline_id, tag_id, "tagged_with")
+                        count += 1
+
+                # Agent edges
+                if agents_str:
+                    agents = re.findall(r'[\w-]+', agents_str)
+                    for agent in agents[:6]:
+                        role_id = f"agent_role_{agent}"
+                        if role_id not in self._node_ids:
+                            self.add_node("agent_role", agent, "", f"{subdir}/{filename}", role_id)
+                        self.add_edge(pipeline_id, role_id, "uses_agent")
+
+                # Status/priority/type category edges
+                for cat_val, cat_prefix in [(status, "pipeline_status"), (priority, "pipeline_priority"), (ptype, "pipeline_type")]:
+                    if cat_val:
+                        cat_id = f"tag_{cat_prefix}_{cat_val}"
+                        if cat_id not in self._node_ids:
+                            self.add_node("tag", f"{cat_prefix}:{cat_val}", "", f"{subdir}/{filename}", cat_id)
+                        self.add_edge(pipeline_id, cat_id, "categorized_as")
+
+                # Project edge
+                if project:
+                    proj_id = f"project_{project}"
+                    if proj_id not in self._node_ids:
+                        self.add_node("knowledge", project, f"project:{project}", f"{subdir}/{filename}", proj_id)
+                        count += 1
+                    self.add_edge(pipeline_id, proj_id, "belongs_to_project")
+
+                # Extract stage history: parse all | Stage | Date | Agent | Notes | table rows
+                all_stages = []
+                # Find phase sections with stage history tables
+                for ph_match in _RE_PHASE_SECTION.finditer(content):
+                    phase_name = ph_match.group(1).strip()
+                    table_block = ph_match.group(2)
+                    for row_match in _RE_STAGE_ROW.finditer(table_block):
+                        stage_name = row_match.group(1).strip()
+                        stage_date = row_match.group(2).strip()
+                        stage_agent = row_match.group(3).strip()
+                        stage_notes = row_match.group(4).strip()[:80]
+                        all_stages.append((stage_name, stage_date, stage_agent, stage_notes))
+
+                # Also extract standalone stage tables (some pipelines put them without phase headers)
+                if not all_stages:
+                    for tbl_match in _RE_STAGE_TABLE.finditer(content):
+                        table_block = tbl_match.group(1)
+                        for row_match in _RE_STAGE_ROW.finditer(table_block):
+                            stage_name = row_match.group(1).strip()
+                            stage_date = row_match.group(2).strip()
+                            stage_agent = row_match.group(3).strip()
+                            stage_notes = row_match.group(4).strip()[:80]
+                            all_stages.append((stage_name, stage_date, stage_agent, stage_notes))
+
+                # Create pipeline_stage nodes
+                prev_stage_id = None
+                for (stage_name, stage_date, stage_agent, stage_notes) in all_stages[:40]:
+                    stage_id = self.add_node(
+                        "pipeline_stage",
+                        stage_name[:40],
+                        f"{stage_date}|{stage_agent}|{stage_notes}",
+                        f"{subdir}/{filename}#{stage_name}",
+                        f"pipeline_{version}_stage_{stage_name}"
+                    )
+                    count += 1
+                    self.add_edge(pipeline_id, stage_id, "has_stage")
+                    if prev_stage_id:
+                        self.add_edge(prev_stage_id, stage_id, "next_stage")
+                    prev_stage_id = stage_id
+
+                    # Agent node for stage actor
+                    if stage_agent and stage_agent not in ('unknown', 'belam-main'):
+                        role_id = f"agent_role_{stage_agent}"
+                        if role_id not in self._node_ids:
+                            self.add_node("agent_role", stage_agent, "", f"{subdir}/{filename}", role_id)
+                        self.add_edge(stage_id, role_id, "executed_by")
+
+                # Phase summary nodes (Phase 1, Phase 2, etc.)
+                phase_names_seen = set()
+                for ph_match in _RE_PHASE_SIMPLE.finditer(content):
+                    phase_name = ph_match.group(1).strip()
+                    if phase_name not in phase_names_seen:
+                        phase_names_seen.add(phase_name)
+                        phase_id = self.add_node(
+                            "pipeline_phase",
+                            phase_name[:40],
+                            "",
+                            f"{subdir}/{filename}#{phase_name}",
+                            f"pipeline_{version}_phase_{len(phase_names_seen)}"
+                        )
+                        count += 1
+                        self.add_edge(pipeline_id, phase_id, "has_phase")
+
+                except_count = 0
+
+        return count
+
     def parse_archive_tasks(self, archive_dir: str) -> int:
         """Parse archive/tasks/ into archive_task nodes with upstream/downstream edges.
         
@@ -1992,6 +2187,11 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     # Parse research/, projects/, modes/, runbooks/ directories
     builder.parse_research_projects(hermes_dir)
 
+    # Parse pipelines/ (45+ pipeline specs with stage history, phase tracking)
+    pipelines_dir = os.path.join(hermes_dir, "belam-codex", "pipelines")
+    if os.path.isdir(pipelines_dir):
+        builder.parse_pipelines(pipelines_dir)
+
     # Bridge isolated clusters via shared tags (170 tags span decision/lesson/task)
     builder.build_tag_bridges(hermes_dir)
 
@@ -2127,6 +2327,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Parse research/, projects/, modes/, runbooks/ directories
     builder.parse_research_projects(hermes_dir)
+
+    # Parse pipelines/ (45+ pipeline specs with stage history, phase tracking)
+    pipelines_dir = os.path.join(hermes_dir, "belam-codex", "pipelines")
+    if os.path.isdir(pipelines_dir):
+        builder.parse_pipelines(pipelines_dir)
 
     # Bridge isolated clusters via shared tags
     builder.build_tag_bridges(hermes_dir)
