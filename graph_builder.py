@@ -1651,8 +1651,8 @@ class GraphBuilder:
 
         count = 0
         _RE_YAML_BLOCK = re.compile(r'```yaml\n(.*?)\n```', re.DOTALL)
-        _RE_PHASE_HDR = re.compile(r'^###\s+Phase\s+(\d+)([^\n]*)\n', re.MULTILINE)
-        _RE_STAGE_HDR = re.compile(r'^####\s+`([\w_]+)`\n', re.MULTILINE)
+        _RE_PHASE_HDR = re.compile(r'^###\s+Phase\s+(\d+)(.*)$', re.MULTILINE)
+        _RE_STAGE_HDR = re.compile(r'^####\s+`([\w_]+)`', re.MULTILINE)
         _RE_YAML_KEY = re.compile(r'^(\s*)([\w_]+):\s*(.*)$', re.MULTILINE)
 
         try:
@@ -1689,6 +1689,63 @@ class GraphBuilder:
 
             # Extract YAML blocks (stage definitions)
             yaml_blocks = list(_RE_YAML_BLOCK.finditer(content))
+            
+            # Pre-parse YAML blocks to build stage -> (role, action, session, cli) map
+            stage_meta = {}  # stage_name -> {role, action, session, cli}
+            for yb in yaml_blocks:
+                yaml_content = yb.group(1)
+                lines = yaml_content.split('\n')
+                cur_phase = None
+                in_stages = False
+                
+                for i, yline in enumerate(lines):
+                    stripped = yline.strip()
+                    
+                    # Track phases nested under 'phases:'
+                    if stripped.startswith('phase') and ':' in stripped:
+                        phase_key = stripped.split(':')[0].strip()
+                        if phase_key in ('phase1', 'phase2', 'phase3'):
+                            cur_phase = phase_key
+                            in_stages = False
+                    
+                    # Detect stages section
+                    if stripped.startswith('stages:'):
+                        in_stages = True
+                        continue
+                    
+                    # Parse stage definitions: collect multi-line until next '- role:'
+                    if in_stages and stripped.startswith('- role:'):
+                        role = stripped.split('role:')[1].strip().split()[0]
+                        # Collect continuation lines (indented) until next '- role:'
+                        stage_lines = [stripped]
+                        j = i + 1
+                        while j < len(lines):
+                            next_stripped = lines[j].strip()
+                            # Break on next stage definition
+                            if next_stripped.startswith('- role:'):
+                                break
+                            # Break on non-indented content (end of stages)
+                            if next_stripped and not lines[j].startswith(' '):
+                                break
+                            if next_stripped:
+                                stage_lines.append(next_stripped)
+                            j += 1
+                        
+                        full_stage = '\n'.join(stage_lines)
+                        action_match = re.search(r'action:\s*(\w+)', full_stage)
+                        session_match = re.search(r'session:\s*(\w+)', full_stage)
+                        cli_match = re.search(r'cli:\s*(\w+)', full_stage)
+                        
+                        if role and cur_phase:
+                            action = action_match.group(1) if action_match else ''
+                            stage_key = f"p{cur_phase[-1]}_{role}_{action}"
+                            stage_meta[stage_key] = {
+                                'role': role,
+                                'action': action,
+                                'session': session_match.group(1) if session_match else '',
+                                'cli': cli_match.group(1) if cli_match else '',
+                                'phase': cur_phase
+                            }
 
             # Extract phase + stage hierarchy from markdown headings
             current_phase = None
@@ -1715,26 +1772,20 @@ class GraphBuilder:
                 if st_match and current_phase:
                     stage_name = st_match.group(1)
                     stage_id = f"template_{filename[:-3]}_stage_{stage_name}"
-                    self.add_node("reference", stage_name, f"phase:{current_phase}", f"templates/{filename}#{stage_name}", stage_id)
+                    # Rich metadata from YAML: role, action, session, cli
+                    meta = stage_meta.get(stage_name, {})
+                    summary = f"role:{meta.get('role','')}|action:{meta.get('action','')}|session:{meta.get('session','')}|cli:{meta.get('cli','')}"
+                    self.add_node("template_stage", stage_name, summary, f"templates/{filename}#{stage_name}", stage_id)
                     count += 1
                     self.add_edge(current_phase, stage_id, "has_stage")
                     current_stage = stage_id
-
-            # Parse YAML blocks for structured stage metadata
-            for yb in yaml_blocks:
-                yaml_content = yb.group(1)
-                lines = yaml_content.split('\n')
-                cur_indent = 0
-                for yline in lines:
-                    km = _RE_YAML_KEY.match(yline)
-                    if not km:
-                        continue
-                    indent = len(km.group(1))
-                    key = km.group(2)
-                    val = km.group(3).strip()
-                    if indent == 0 and key in ('type', 'first_agent'):
-                        # Template-level metadata
-                        pass  # Already captured from title/flow
+                    # Link stage to agent_role if role is known
+                    if meta.get('role'):
+                        role_id = f"agent_role_{meta['role']}"
+                        if role_id not in self._node_ids:
+                            self.add_node("agent_role", meta['role'], "", f"templates/{filename}", role_id)
+                            count += 1
+                        self.add_edge(stage_id, role_id, "uses_role")
 
         return count
 
@@ -2379,7 +2430,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=10)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=11)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:

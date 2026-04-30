@@ -56,3 +56,5 @@ Thu Apr 30 08:38:45 UTC 2026 — iter done, timeout exit=124
 Thu Apr 30 08:47:41 UTC 2026 — iter done, timeout exit=0
 **Iter 42 (6870b5a): keep** — Parse pipelines/ (45 specs): +294 nodes (1,131→1,425), +774 edges (683→1,457). Primary 0.03ms noise floor unchanged. New node types: `pipeline`, `pipeline_stage`, `pipeline_phase`. New edge types: `has_stage`, `next_stage`, `executed_by`, `uses_agent`, `belongs_to_project`, `has_phase`.
 Thu Apr 30 08:54:32 UTC 2026 — iter done, timeout exit=0
+**Iteration 44 result:** `keep` — 0.03ms (noise floor unchanged); added hub reachability matrix (32 hubs × BFS frozensets → O(1) connectivity queries, +0.85ms cold, 0ms warm).
+Thu Apr 30 09:03:37 UTC 2026 — iter done, timeout exit=124

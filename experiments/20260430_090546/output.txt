@@ -1,0 +1,62 @@
+graph_build_time_ms=0.03
+graph_node_count=1430
+graph_edge_count=1461
+query_time_ms=0.0
+ascii_render_lines=55
+
+--- ASCII GRAPH RENDER ---
+ UNIFIED GRAPH 
+============================================================
+ nodes=1430  edges=1461
+------------------------------------------------------------
+ [doc_sections]
+├─ AGENTS.md - Your Workspace → First Run, 2026-04-13 05:22:4, 2026-04-06 17:53:4
+  ├─ First Run → AGENTS.md - Your W, Every Session
+  ├─ Every Session → First Run, Injection Template
+  ├─ Injection Template → Every Session, Memory
+  ├─ Memory → Injection Template, Safety
+  ├─ Safety → Memory, External vs Intern
+  ├─ External vs Internal → Safety, Group Chats
+  ├─ Group Chats → External vs Intern, Tools
+  └─ ...+14 sections
+ [canvas_commands]
+  ├─ Always Back Up Workspace to GitHub
+  ├─ Lesson: Analysis Phase 2 is a Mandatory Gate 
+  ├─ β Convergence Is Market-Determined
+  ├─ Calculate Breakeven Accuracy Before Building
+  ├─ Lesson: Checkpoint-and-Resume for Long Agent 
+  ├─ Confident Abstention Is a Real Signal Type
+  ├─ Continuous Input Mode Consistently Outperform
+  ├─ Control Input Dimensionality When Comparing E
+  └─ ...+97 canvas nodes
+ [archive_commands]
+  ├─ "R analyze-local <ver>" → "R analyze <ver>"
+  ├─ "R analyze <ver>" → "R analyze-local <, "R audit"
+  ├─ "R audit" → "R analyze <ver>", "R autorun"
+  ├─ "R autorun" → "R audit", "R build <ver>"
+  ├─ "R build <ver>" → "R autorun", "R cleanup"
+  ├─ "R cleanup" → "R build <ver>", "R consolidate"
+  └─ ...+36 commands
+ [n=128] decision: zoom-replaces-superm, wiggum-restart-on-ex, Decision: Webhook Ho (+125)
+ [n=204] lesson: workflow-doc-step-re, wiggum-steer-require, wiggum-steer-only-on (+201)
+ [n=84] task: Video Pipeline: Stan, Validate Scheme B Sh, Temporal Interaction (+81)
+ [n=5] goal: Autonomous Trading S, Codex as Universal N, Genuine Cross-Sessio (+2)
+ [n=58] memory_session: daily_update_report, INDEX, 2026-04-17 (+55)
+ [n=10] schema_entity: project, launch, agent (+7)
+ [n=141] schema_field: project.status, project.required, project.default (+138)
+ [n=34] knowledge: README, _index, _tags (+31)
+ [n=7] handoff: 2026-04-20-claude-im, 2026-04-19-hermes-co, 2026-04-19-cli-agnos (+4)
+ [n=10] agent_role: Belam Architect 🏗️, Belam Builder 🔨, Belam Critic 🔍 (+7)
+ [n=15] agent_boundary: Spawn subagents — I , Build code — that's , Run statistical test (+12)
+ [n=21] agent_capability: Coordinate and deleg, Maintain memory and , Spawn subagents for  (+18)
+ [n=20] gitnexus: setup_game, get_board, demo_tictactoe.py (+17)
+------------------------------------------------------------
+ [cross_type_edges]
+  tagged_with(229): Build Codex Eng→infrastructure; Build Codex Eng→cli (+227)
+  categorized_as(188): Observing Belam→guide; Migrating to Co→guide (+186)
+  uses_agent(180): BUILD-CODEX-LAY→architect; BUILD-CODEX-LAY→critic (+178)
+  has_phase(178): BUILD-CODEX-LAY→Phase 1:; BUILD-CODEX-LAY→Phase 2: (+176)
+  has_field(141): project→project.status; project→project.require (+139)
+  belongs_to(89): apple→apple-notes; apple→imessage (+87)
+------------------------------------------------------------
+ path_query: ["agents_section_0", "agents_section_1", "agents_section_2", "agents_section_3",...
