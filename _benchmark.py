@@ -180,7 +180,7 @@ if nodes:
     for i, n in enumerate(section_nodes[:10]):
         label = n["label"][:50]
         children = adj.get(n["id"]) or []
-        child_labels = [node_lookup[c][2][:20] for c in children[:3] if c in node_lookup]
+        child_labels = [node_lookup[c]["label"][:20] for c in children[:3] if c in node_lookup]
         child_str = f" → {', '.join(child_labels)}" if child_labels else ""
         lines.append(f"{'  ' if i > 0 else ''}├─ {label}{child_str}")
     
