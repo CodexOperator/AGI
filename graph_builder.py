@@ -738,6 +738,143 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_skills(self, skills_dir: str) -> int:
+        """Parse hermes/skills/ directory into skill nodes with related_skill edges.
+        
+        Each skill category becomes a skill_type node.
+        Each individual skill becomes a skill node with tags and related_skill edges.
+        """
+        if not os.path.isdir(skills_dir):
+            return 0
+
+        count = 0
+        skill_ids = {}  # skill_name -> node_id for related_skill edges
+        category_ids = {}  # category_name -> node_id
+
+        # First pass: create category and skill nodes
+        categories = sorted(os.listdir(skills_dir))
+        for category in categories:
+            category_path = os.path.join(skills_dir, category)
+            if not os.path.isdir(category_path):
+                continue
+
+            # Create category node
+            category_id = self.add_node(
+                "skill_type",
+                category,
+                f"category: {category}",
+                f"skills/{category}",
+                f"skill_type_{category}"
+            )
+            category_ids[category] = category_id
+            count += 1
+
+            # Find SKILL.md files (may be in subdirectories)
+            skill_mds = []
+            for root, _, files in os.walk(category_path):
+                for f in files:
+                    if f == 'SKILL.md':
+                        skill_mds.append(os.path.join(root, f))
+
+            for skill_md in skill_mds:
+                try:
+                    with open(skill_md, "r") as f:
+                        content = f.read()
+
+                    # Extract frontmatter
+                    fm_match = _RE_FRONT_MATTER.match(content)
+                    meta = {}
+                    if fm_match:
+                        for line in fm_match.group(1).split('\n'):
+                            m = _RE_YAML_PAIR.match(line)
+                            if m:
+                                meta[m.group(1)] = m.group(2)
+
+                    skill_name = meta.get('name', os.path.basename(os.path.dirname(skill_md)))
+                    description = meta.get('description', '')[:80]
+                    tags_str = meta.get('tags', '[]')
+                    related_str = meta.get('related_skills', meta.get('related', '[]'))
+                    version = meta.get('version', '1.0.0')
+
+                    # Create skill node
+                    skill_node_id = self.add_node(
+                        "skill",
+                        skill_name[:50],
+                        description,
+                        f"skills/{skill_md}",
+                        f"skill_{skill_name.replace('-', '_').replace(' ', '_')}"
+                    )
+                    skill_ids[skill_name] = skill_node_id
+                    self.add_edge(category_id, skill_node_id, "belongs_to")
+                    count += 1
+
+                    # Parse related_skill references (add to queue for second pass)
+                    if related_str and related_str != '[]':
+                        related = re.findall(r'\[?([\w-]+)\]?', related_str)
+                        for rel in related[:5]:
+                            rel_clean = rel.strip()
+                            if rel_clean != skill_name and rel_clean not in skill_ids:
+                                # Create stub skill node for related skill
+                                stub_id = self.add_node(
+                                    "skill",
+                                    rel_clean[:50],
+                                    f"related_skill (stub)",
+                                    f"skills/{skill_md}",
+                                    f"skill_{rel_clean.replace('-', '_').replace(' ', '_')}"
+                                )
+                                skill_ids[rel_clean] = stub_id
+                                count += 1
+
+                except Exception:
+                    pass
+
+        # Second pass: add related_skill edges between actual skill nodes
+        edges_added = 0
+        for category in categories:
+            category_path = os.path.join(skills_dir, category)
+            if not os.path.isdir(category_path):
+                continue
+
+            for root, _, files in os.walk(category_path):
+                for f in files:
+                    if f != 'SKILL.md':
+                        continue
+                    skill_md = os.path.join(root, f)
+                    try:
+                        with open(skill_md, "r") as fh:
+                            content = fh.read()
+
+                        fm_match = _RE_FRONT_MATTER.match(content)
+                        if not fm_match:
+                            continue
+                        meta = {}
+                        for line in fm_match.group(1).split('\n'):
+                            m = _RE_YAML_PAIR.match(line)
+                            if m:
+                                meta[m.group(1)] = m.group(2)
+
+                        skill_name = meta.get('name', '')
+                        src_id = skill_ids.get(skill_name)
+                        if not src_id:
+                            continue
+
+                        related_str = meta.get('related_skills', meta.get('related', '[]'))
+                        if not related_str or related_str == '[]':
+                            continue
+
+                        related = re.findall(r'\[?([\w-]+)\]?', related_str)
+                        for rel in related[:5]:
+                            rel_clean = rel.strip()
+                            tgt_id = skill_ids.get(rel_clean)
+                            if tgt_id and tgt_id != src_id:
+                                self.add_edge(src_id, tgt_id, "related_skill")
+                                edges_added += 1
+
+                    except Exception:
+                        pass
+
+        return count
+
     def _find_or_add_reference(self, ref: str, source: str) -> Optional[str]:
         """Find existing node by slug-like reference or add a stub reference node."""
         # Convert slug to node ID format used in our graph
@@ -1425,6 +1562,11 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(knowledge_dir):
         builder.parse_knowledge(knowledge_dir)
 
+    # Parse skills directory (skill ecosystem with category/type nodes + related_skill edges)
+    skills_dir = os.path.join(hermes_dir, "skills")
+    if os.path.isdir(skills_dir):
+        builder.parse_skills(skills_dir)
+
     # Parse handoff directory (agent handoff logs with TODO items)
     handoff_dir = os.path.join(hermes_dir, "belam-codex", "handoff")
     if os.path.isdir(handoff_dir):
@@ -1478,7 +1620,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=7)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=8)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -1542,6 +1684,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     knowledge_dir = os.path.join(hermes_dir, "belam-codex", "knowledge")
     if os.path.isdir(knowledge_dir):
         builder.parse_knowledge(knowledge_dir)
+
+    # Parse skills directory (skill ecosystem with category/type nodes + related_skill edges)
+    skills_dir = os.path.join(hermes_dir, "skills")
+    if os.path.isdir(skills_dir):
+        builder.parse_skills(skills_dir)
 
     # Parse handoff directory (agent handoff logs with TODO items)
     handoff_dir = os.path.join(hermes_dir, "belam-codex", "handoff")
