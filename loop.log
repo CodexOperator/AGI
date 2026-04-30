@@ -17,3 +17,4 @@ Thu Apr 30 06:58:27 UTC 2026 — iter done, timeout exit=124
 Thu Apr 30 07:07:32 UTC 2026 — iter done, timeout exit=124
 **Iteration result**: `0.50ms → 0.32ms` (36% faster) — **keep**. Tuple nodes shrink pickle ~8KB→~3KB, faster load. Secondary node count dropped to 84 (gitnexus cache TTL=1hr, needs refresh). Commit `dbc48ab`.
 Thu Apr 30 07:14:51 UTC 2026 — iter done, timeout exit=0
+**Iteration #17 result**: ❌ **discard** — msgpack (1.77ms) is 3.9x slower than pickle (0.45ms) for Python tuple/list structures. Noise floor reached at ~0.5ms. Next: duckdb backend to bypass pickle entirely.
