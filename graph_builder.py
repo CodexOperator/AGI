@@ -490,6 +490,128 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_agent_roles(self, agents_dir: str) -> int:
+        """Parse agent role definition files into graph nodes."""
+        if not os.path.isdir(agents_dir):
+            return 0
+
+        files = sorted(os.listdir(agents_dir))
+        md_files = [f for f in files if f.endswith('.md')]
+        count = 0
+        agent_ids = {}  # agent_id -> node_id for communication edges
+
+        for filename in md_files:
+            filepath = os.path.join(agents_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+                # Extract frontmatter
+                fm_match = _RE_FRONT_MATTER.match(content)
+                meta = {}
+                if fm_match:
+                    for line in fm_match.group(1).split('\n'):
+                        m = _RE_YAML_PAIR.match(line)
+                        if m:
+                            meta[m.group(1)] = m.group(2)
+
+                agent_id = meta.get('agent_id', filename[:-3])
+                role = meta.get('role', '')
+                model = meta.get('model', '')
+                status = meta.get('status', 'unknown')
+                skills = meta.get('skills', '')
+
+                # Extract agent title
+                title_match = re.search(r'^#\s+Agent:\s*(.+)$', content, re.MULTILINE)
+                title = title_match.group(1).strip()[:60] if title_match else agent_id
+
+                label = title[:50]
+                summary = f"{status}|{role[:30]}|{model[:30]}|{skills[:30]}"
+
+                agent_id_key = filename[:-3]  # strip .md
+                node_id = self.add_node(
+                    "agent_role",
+                    label,
+                    summary,
+                    f"agents/{filename}",
+                    f"agent_{agent_id_key}"
+                )
+                agent_ids[agent_id] = node_id
+                count += 1
+
+                # Extract "What I Do" sections for actionable items
+                does_match = re.search(r'## What I Do\s*\n([\s\S]+?)(?:##|\Z)', content)
+                if does_match:
+                    for line in does_match.group(1).split('\n'):
+                        if line.strip().startswith('✅') or line.strip().startswith('-'):
+                            action = line.strip().lstrip('✅- ').strip()[:60]
+                            if len(action) > 5:
+                                action_id = self.add_node(
+                                    "agent_capability",
+                                    action[:60],
+                                    "",
+                                    f"agents/{filename}",
+                                    f"cap_{agent_id_key}_{hash(action) & 0xFFFF}"
+                                )
+                                self.add_edge(node_id, action_id, "can_do")
+                                count += 1
+
+                # Extract "What I Do NOT Do" sections
+                not_does_match = re.search(r'## What I Do NOT Do\s*\n([\s\S]+?)(?:##|\Z)', content)
+                if not_does_match:
+                    for line in not_does_match.group(1).split('\n'):
+                        if line.strip().startswith('❌') or line.strip().startswith('-'):
+                            action = line.strip().lstrip('❌- ').strip()[:60]
+                            if len(action) > 5:
+                                action_id = self.add_node(
+                                    "agent_boundary",
+                                    action[:60],
+                                    "",
+                                    f"agents/{filename}",
+                                    f"bound_{agent_id_key}_{hash(action) & 0xFFFF}"
+                                )
+                                self.add_edge(node_id, action_id, "refuses_to")
+                                count += 1
+
+            except Exception:
+                pass
+
+        # Second pass: add communication edges between agents
+        for filename in md_files:
+            filepath = os.path.join(agents_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+                fm_match = _RE_FRONT_MATTER.match(content)
+                if not fm_match:
+                    continue
+                meta = {}
+                for line in fm_match.group(1).split('\n'):
+                    m = _RE_YAML_PAIR.match(line)
+                    if m:
+                        meta[m.group(1)] = m.group(2)
+
+                agent_id = meta.get('agent_id', filename[:-3])
+                src_id = agent_ids.get(agent_id)
+                if not src_id:
+                    continue
+
+                # Parse communicates_with: [architect, critic, builder]
+                comm_str = meta.get('communicates_with', '').strip('[] ')
+                if not comm_str:
+                    continue
+
+                peers = [c.strip().strip("'").strip('"') for c in comm_str.split(',') if c.strip()]
+                for peer in peers:
+                    tgt_id = agent_ids.get(peer)
+                    if tgt_id:
+                        self.add_edge(src_id, tgt_id, "communicates_with")
+
+            except Exception:
+                pass
+
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -648,6 +770,11 @@ def _cached_build(hermes_dir: str, agi_dir: str, gitnexus_hash: int) -> Tuple[Tu
     if os.path.isdir(goals_dir):
         builder.parse_goals(goals_dir)
 
+    # Parse agent roles (main, architect, builder, critic)
+    agents_dir = os.path.join(hermes_dir, "belam-codex", "agents")
+    if os.path.isdir(agents_dir):
+        builder.parse_agent_roles(agents_dir)
+
     # Process gitnexus cache
     cache_to_use = None
     gitnexus_cache_file = os.path.join(agi_dir, ".gitnexus_cache.json")
@@ -741,6 +868,11 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     goals_dir = os.path.join(hermes_dir, "belam-codex", "goals")
     if os.path.isdir(goals_dir):
         builder.parse_goals(goals_dir)
+
+    # Parse agent roles (main, architect, builder, critic)
+    agents_dir = os.path.join(hermes_dir, "belam-codex", "agents")
+    if os.path.isdir(agents_dir):
+        builder.parse_agent_roles(agents_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
