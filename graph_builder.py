@@ -1004,6 +1004,136 @@ class GraphBuilder:
                 pass
         return count
 
+    def parse_codex_modules(self, archive_dir: str) -> int:
+        """Parse archive/codex-layer-v1-modules/*.py for code architecture.
+        
+        Creates: codex_module, codex_class, codex_function nodes + defines/implements/imports edges.
+        Bridges isolated code clusters with structural code architecture data.
+        """
+        modules_dir = os.path.join(archive_dir, "codex-layer-v1-modules")
+        if not os.path.isdir(modules_dir):
+            return 0
+
+        _RE_CLASS = re.compile(r'^class\s+(\w+)', re.MULTILINE)
+        _RE_DEF = re.compile(r'^    def\s+(\w+)\s*\(', re.MULTILINE)
+        _RE_IMPORT = re.compile(r'^from\s+(\w+)\s+import', re.MULTILINE)
+        _RE_PIPELINE = re.compile(r'Pipeline:\s*(.+)', re.IGNORECASE)
+        _RE_PHASE = re.compile(r'Phase\s+([A-Z])\.?\s*of', re.IGNORECASE)
+        _RE_FLAG = re.compile(r'FLAG-\d+:', re.IGNORECASE)
+
+        count = 0
+        module_ids = {}  # filename_without_ext -> node_id
+        class_ids = {}   # class_name -> node_id
+        py_files = sorted([f for f in os.listdir(modules_dir) if f.endswith('.py')])
+
+        # First pass: create module nodes
+        for filename in py_files:
+            filepath = os.path.join(modules_dir, filename)
+            try:
+                with open(filepath, "r") as f:
+                    content = f.read()
+            except Exception:
+                continue
+
+            module_name = filename[:-3]  # strip .py
+            module_id = self.add_node(
+                "codex_module",
+                module_name,
+                content[:100].strip(),
+                f"archive/codex-layer-v1-modules/{filename}",
+                f"codex_module_{module_name}"
+            )
+            module_ids[module_name] = module_id
+            count += 1
+
+            # Extract classes and functions
+            classes = _RE_CLASS.findall(content)
+            for cls_name in classes:
+                if cls_name in ('Optional', 'List', 'Dict', 'Any', 'Tuple'):
+                    continue  # typing-only classes
+                cls_id = self.add_node(
+                    "codex_class",
+                    cls_name,
+                    f"class in {module_name}",
+                    f"archive/codex-layer-v1-modules/{filename}",
+                    f"codex_class_{cls_name}"
+                )
+                class_ids[cls_name] = cls_id
+                self.add_edge(module_id, cls_id, "defines")
+                count += 1
+
+                # Methods within class body
+                # Find class body boundaries
+                class_start = content.find(f'class {cls_name}')
+                if class_start < 0:
+                    continue
+                # Find next class or top-level def
+                rest = content[class_start + len(f'class {cls_name}'):]
+                next_class = rest.find('\nclass ')
+                next_def = rest.find('\ndef ')
+                class_end = len(rest)
+                if next_class > 0:
+                    class_end = min(class_end, next_class)
+                if next_def > 0:
+                    class_end = min(class_end, next_def)
+                class_body = rest[:class_end]
+                methods = _RE_DEF.findall(class_body)
+                for method_name in methods:
+                    if method_name.startswith('_') and method_name != '__init__':
+                        continue  # skip private methods
+                    method_id = self.add_node(
+                        "codex_method",
+                        f"{cls_name}.{method_name}",
+                        f"method in {cls_name}",
+                        f"archive/codex-layer-v1-modules/{filename}",
+                        f"codex_method_{cls_name}_{method_name}"
+                    )
+                    self.add_edge(cls_id, method_id, "implements")
+                    count += 1
+
+            # Top-level functions (outside classes)
+            lines = content.split('\n')
+            in_class = False
+            for line in lines:
+                stripped = line.rstrip()
+                if stripped.startswith('class ') and _RE_CLASS.match(stripped):
+                    in_class = True
+                    continue
+                if stripped.startswith('class '):
+                    in_class = False
+                    continue
+                if stripped.startswith('def ') and not in_class:
+                    m = re.match(r'def\s+(\w+)', stripped)
+                    if m:
+                        fn_id = self.add_node(
+                            "codex_function",
+                            m.group(1),
+                            f"function in {module_name}",
+                            f"archive/codex-layer-v1-modules/{filename}",
+                            f"codex_fn_{module_name}_{m.group(1)}"
+                        )
+                        self.add_edge(module_id, fn_id, "defines")
+                        count += 1
+
+            # Import edges between modules
+            imports = _RE_IMPORT.findall(content)
+            for imported in imports:
+                if imported in module_ids and module_id != module_ids[imported]:
+                    self.add_edge(module_id, module_ids[imported], "imports")
+
+            # Phase/Pipeline metadata → links to related nodes
+            pipeline_match = _RE_PIPELINE.search(content)
+            if pipeline_match:
+                pipeline = pipeline_match.group(1).strip()
+                # Link module to related decisions/lessons via pipeline name
+                pipeline_key = pipeline.lower().replace(' ', '_').replace('-', '_')
+                related_id = f"decision_{pipeline_key}"
+                if related_id in self._node_ids:
+                    self.add_edge(module_id, related_id, "implements_pipeline")
+                    count += 1
+
+        return count
+
     def build_adjacency(self):
         """Build adjacency dict from edges."""
         self.adj = defaultdict(list)
@@ -1226,6 +1356,7 @@ def _cached_build_builder(hermes_dir: str, agi_dir: str, gitnexus_hash: int, _ca
     if os.path.isdir(archive_dir):
         builder.parse_archive_commands(archive_dir)
         builder.parse_archive_tasks(archive_dir)
+        builder.parse_codex_modules(archive_dir)
 
     # Process gitnexus cache
     cache_to_use = None
@@ -1265,7 +1396,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
 
     # Try lru_cache first (no pickle.load) — bump _cache_ver to bust cache after code/data changes
     try:
-        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=5)
+        builder = _cached_build_builder(hermes_dir, agi_dir, gitnexus_hash, _cache_ver=6)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
     except Exception:
@@ -1340,6 +1471,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     if os.path.isdir(archive_dir):
         builder.parse_archive_commands(archive_dir)
         builder.parse_archive_tasks(archive_dir)
+        builder.parse_codex_modules(archive_dir)
 
     # Process gitnexus cache
     global _gitnexus_cache
