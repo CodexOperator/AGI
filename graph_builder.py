@@ -49,7 +49,7 @@ def _save_cache(data: str):
 
 class GraphBuilder:
     """Builds a unified graph from multiple source materials."""
-    __slots__ = ('nodes', 'edges', 'adj', '_node_ids', '_section_stack', '_precomputed_paths')
+    __slots__ = ('nodes', 'edges', 'adj', '_node_ids', '_section_stack', '_precomputed_paths', 'hub_reachable')
 
     def __init__(self):
         self.nodes: List[Dict[str, Any]] = []
@@ -58,6 +58,7 @@ class GraphBuilder:
         self._node_ids: set = set()
         self._section_stack: List[int] = []
         self._precomputed_paths: Dict[str, Any] = {}  # (start, end) -> path or None
+        self.hub_reachable: Dict[str, frozenset] = {}  # hub_id -> frozenset of reachable node ids
 
     def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
@@ -2053,6 +2054,8 @@ class GraphBuilder:
                 self.adj[edge["to"]].append(edge["from"])
         # Pre-compute key paths for benchmark query (first→last section)
         self._precompute_key_paths()
+        # Pre-compute reachability from hub nodes (cold build only; pickled with graph)
+        self._precompute_reachability(hub_count=32)
 
     def _precompute_key_paths(self):
         """Pre-compute BFS paths between key node pairs for O(1) query_time.
@@ -2068,6 +2071,40 @@ class GraphBuilder:
             start, end = section_nodes[0], section_nodes[-1]
             path = self._bfs_path(start, end)
             self._precomputed_paths[(start, end)] = path
+
+    def _precompute_reachability(self, hub_count: int = 32) -> None:
+        """Pre-compute reachability from high-degree hub nodes.
+        
+        Enables O(1) reachability queries: 'is node X reachable from hub Y?'
+        Stored as hub_reachable[hub_id] = frozenset(reachable_node_ids).
+        Cold build cost: O(hub_count * (n + m)). Pickled with graph cache.
+        Warm load cost: 0 (just dict lookup).
+        """
+        # Find hub nodes: highest degree (most connected)
+        degree = {}
+        for node_id in self._node_ids:
+            degree[node_id] = len(self.adj.get(node_id, []))
+        hubs = sorted(degree.keys(), key=lambda x: -degree[x])[:hub_count]
+
+        self.hub_reachable = {}
+        for hub in hubs:
+            reachable = self._bfs_reachable(hub)
+            self.hub_reachable[hub] = frozenset(reachable)
+
+    def _bfs_reachable(self, start_id: str) -> List[str]:
+        """Return list of all nodes reachable from start_id via BFS."""
+        from collections import deque
+        if start_id not in self._node_ids:
+            return []
+        visited = {start_id}
+        queue = deque([start_id])
+        while queue:
+            current = queue.popleft()
+            for neighbor in self.adj.get(current, []):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+        return list(visited)
 
     def _bfs_path(self, start_id: str, end_id: str) -> Optional[List[str]]:
         """BFS path finder (used for pre-computation)."""
@@ -2174,6 +2211,10 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         builder._precomputed_paths = cached.get('_precomputed_paths', {})
         if not builder._precomputed_paths:
             builder._precompute_key_paths()  # Rebuild paths from loaded adj
+        # Restore hub reachability
+        builder.hub_reachable = cached.get('hub_reachable', {})
+        if not builder.hub_reachable:
+            builder._precompute_reachability(hub_count=32)
         return builder
     except Exception:
         return None
@@ -2190,6 +2231,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             '_node_ids': builder._node_ids,
             '_gitnexus_cache': gitnexus_cache,
             '_precomputed_paths': builder._precomputed_paths,
+            'hub_reachable': getattr(builder, 'hub_reachable', {}),
         }
         with open(cache_file, 'wb') as f:
             pickle.dump(cached, f, protocol=pickle.HIGHEST_PROTOCOL)
