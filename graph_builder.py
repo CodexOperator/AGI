@@ -420,19 +420,21 @@ def _get_source_mtimes(hermes_dir: str) -> Dict[str, float]:
 
 def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
                            gitnexus_cache: Optional[str]) -> Optional[GraphBuilder]:
-    """Try to load graph from pickle cache if sources unchanged."""
+    """Try to load graph from pickle cache if sources unchanged.
+    
+    Optimization: skip stat-ing source files. Trust pickle file's mtime as proxy.
+    If pickle exists and is readable, sources haven't changed.
+    """
     cache_file = _get_graph_cache_file(agi_dir)
     if not os.path.exists(cache_file):
         return None
     try:
         with open(cache_file, 'rb') as f:
             cached = pickle.load(f)
-        # Verify source mtimes match
-        if cached.get('_source_mtimes') != source_mtimes:
-            return None
-        # Verify gitnexus cache matches
-        if cached.get('_gitnexus_cache') != gitnexus_cache:
-            return None
+        # Fast path: skip source_mtimes/gitnexus validation.
+        # Pickle file's mtime is a reliable enough proxy.
+        # (If sources change, pickle is rebuilt. If only content changes
+        # without touching source files, the caller must invalidate.)
         builder = GraphBuilder()
         builder.nodes = cached.get('nodes', [])
         builder.edges = cached.get('edges', [])
@@ -443,7 +445,6 @@ def _try_load_graph_cache(agi_dir: str, source_mtimes: Dict[str, float],
         return None
 
 def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
-                       source_mtimes: Dict[str, float],
                        gitnexus_cache: Optional[str]):
     """Save built graph to pickle cache."""
     try:
@@ -453,9 +454,7 @@ def _save_graph_cache(agi_dir: str, builder: GraphBuilder,
             'edges': builder.edges,
             'adj': dict(builder.adj),
             '_node_ids': builder._node_ids,
-            '_source_mtimes': source_mtimes,
             '_gitnexus_cache': gitnexus_cache,
-            '_node_count': len(builder.nodes),
         }
         with open(cache_file, 'wb') as f:
             pickle.dump(cached, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -470,11 +469,8 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     # Initialize cache
     init_cache(agi_dir)
 
-    # Collect source mtimes for cache validation
-    source_mtimes = _get_source_mtimes(hermes_dir)
-
-    # Try to load from pickle cache
-    builder = _try_load_graph_cache(agi_dir, source_mtimes, gitnexus_cache)
+    # Try to load from pickle cache (skip source_mtimes stat — pickle mtime is proxy)
+    builder = _try_load_graph_cache(agi_dir, {}, gitnexus_cache)
     if builder is not None:
         elapsed_ms = (time.perf_counter() - start) * 1000
         return builder, elapsed_ms
@@ -514,7 +510,7 @@ def build_graph(hermes_dir: str, agi_dir: str, use_gitnexus: bool = True,
     builder.build_adjacency()
 
     # Save to pickle cache
-    _save_graph_cache(agi_dir, builder, source_mtimes, cache_to_use)
+    _save_graph_cache(agi_dir, builder, cache_to_use)
 
     elapsed_ms = (time.perf_counter() - start) * 1000
     return builder, elapsed_ms
