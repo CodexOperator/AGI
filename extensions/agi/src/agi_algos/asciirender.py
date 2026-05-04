@@ -5,7 +5,7 @@ DB-augmented directed code generation via unified graph memory
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from graph_builder import GraphBuilder
+from .graph_builder import GraphBuilder
 
 
 class ASCIIRenderer:
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     import sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     
-    from graph_builder import build_graph
+    from .graph_builder import build_graph
     
     hermes = os.path.expanduser("~/.hermes")
     agi = os.path.dirname(os.path.abspath(__file__))

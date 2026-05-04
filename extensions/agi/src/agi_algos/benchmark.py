@@ -19,9 +19,9 @@ from collections import deque
 
 # Try to import modular system
 try:
-    from graph_builder import build_graph, GraphBuilder
-    from query_engine import QueryEngine
-    from asciirender import ASCIIRenderer
+    from .graph_builder import build_graph, GraphBuilder
+    from .query_engine import QueryEngine
+    from .asciirender import ASCIIRenderer
     HAS_MODULAR = True
 except ImportError:
     HAS_MODULAR = False
