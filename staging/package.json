@@ -1,0 +1,14 @@
+{
+  "name": "autoresearch-tree",
+  "version": "0.1.0",
+  "description": "Capillary DAG memory for fast LLM agent onboarding — pi extension + skill that auto-injects an ASCII map of any project's research graph into Claude Code sessions, and runs parallel agents to extend the graph.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodexOperator/autoresearch-tree.git"
+  },
+  "pi": {
+    "extensions": ["./extensions"],
+    "skills": ["./skills"]
+  }
+}
