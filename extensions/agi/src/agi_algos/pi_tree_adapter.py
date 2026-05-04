@@ -12,8 +12,8 @@ from typing import List, Dict, Any, Optional
 # Add parent directory for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from graph_builder import build_graph, GraphBuilder
-from asciirender import ASCIIRenderer
+from .graph_builder import build_graph, GraphBuilder
+from .asciirender import ASCIIRenderer
 
 
 class PiTreeAdapter:
