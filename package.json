@@ -1,11 +1,11 @@
 {
-  "name": "autoresearch-tree",
+  "name": "agi",
   "version": "0.1.0",
-  "description": "Capillary DAG memory for fast LLM agent onboarding — pi extension + skill that auto-injects an ASCII map of any project's research graph into Claude Code sessions, and runs parallel agents to extend the graph.",
+  "description": "agi — Artificial Graph Intelligence. Unified repository housing graph algorithms (graph_builder, query_engine, asciirender, pi_tree_adapter, benchmark) and the research loop harness (engine, bridge, skill) that operates on them. The loop dogfoods by treating the agi codebase itself as graph nodes.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CodexOperator/autoresearch-tree.git"
+    "url": "git+https://github.com/CodexOperator/agi.git"
   },
   "pi": {
     "extensions": ["./extensions"],

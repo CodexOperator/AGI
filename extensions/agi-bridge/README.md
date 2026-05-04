@@ -23,10 +23,9 @@ All steps are try/catch wrapped; failures degrade silently to no-op via
 
 Pi discovers this extension via the parent repo's `package.json`:
 `{ "pi": { "extensions": ["./extensions"] } }`. Both
-`extensions/autoresearch-tree/` and `extensions/autoresearch-tree-bridge/` are
-picked up automatically.
+`extensions/agi/` and `extensions/agi-bridge/` are picked up automatically.
 
 ## Plugin root resolution
 
 `$AUTORESEARCH_TREE_PLUGIN_ROOT` → sibling extension dir from `import.meta.url`
-→ fallback `~/autoresearch-tree/extensions/autoresearch-tree`.
+→ fallback `~/.hermes/agi/extensions/agi`.
