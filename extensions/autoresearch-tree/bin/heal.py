@@ -64,6 +64,9 @@ def main() -> int:
                 continue
             rec = json.loads(ap_file.read_text())
             status = rec.get("status", "running")
+            # Sync manifest status from agent.json so post_wire sees current state
+            if entry.get("status") != status:
+                entry["status"] = status
             if status in TERMINAL:
                 continue
             if status != "running":
@@ -81,7 +84,11 @@ def main() -> int:
                     rec["finished_at"] = int(time.time())
                     rec["fail_reason"] = "pid disappeared without completion signal"
                     ap_file.write_text(json.dumps(rec, indent=2))
+                    # Sync to manifest too
+                    entry["status"] = "failed"
                     print(f"agent {agent_id} marked failed (pid {pid} gone)")
+        # Persist manifest so post_wire sees current status
+        manifest_path.write_text(json.dumps(manifest, indent=2))
         if all_terminal:
             print("all agents terminal")
             return 0

@@ -23,8 +23,21 @@ PROJECT_ROOT = Path(
     or os.environ.get("PROJECT_ROOT")
     or os.getcwd()
 ).resolve()
+# Ensure project src (which has chain_engine) is on sys.path.
+# Append it AFTER plugin src so plugin's graph_core takes precedence
+# (graph_core types must come from plugin, chain_engine from project).
 SRC = PLUGIN_ROOT / "src"
 sys.path.insert(0, str(SRC))
+PROJ_SRC = PROJECT_ROOT / "src"
+if PROJ_SRC.is_dir():
+    sys.path.append(str(PROJ_SRC))
+
+try:
+    from chain_engine.chains import find_chains
+    _HAS_CHAIN_ENGINE = True
+except ImportError:
+    _HAS_CHAIN_ENGINE = False
+    find_chains = None  # type: ignore[assignment]
 
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -34,7 +47,22 @@ from graph_core.edge import Edge
 from graph_core.graph import Graph
 from graph_core.loader import load_directory
 from renderers import build_representation, render_ascii
-from chain_engine.chains import find_chains
+
+# Detect sqlite config for optional DB-backed loading
+def _load_graph_sqlite(nodes_dir: Path) -> tuple[Graph, list]:
+    """Load graph via SQLiteBackend if persistence.type=sqlite, else None."""
+    cfg_path = PROJECT_ROOT / "autoresearch-tree.config.json"
+    if not cfg_path.exists():
+        return None, []
+    import json
+    cfg = json.loads(cfg_path.read_text())
+    if cfg.get("persistence", {}).get("type") != "sqlite":
+        return None, []
+    db_path = PROJECT_ROOT / cfg["persistence"]["path"]
+    from graph_core.persistence.sqlite_backend import SQLiteBackend
+    from graph_core.db_loader import DBLoader
+    return DBLoader(SQLiteBackend(db_path)).load_directory()
+
 
 
 def main() -> int:
@@ -43,8 +71,15 @@ def main() -> int:
         print(f"ERR: nodes dir not found: {nodes_dir}", file=sys.stderr)
         return 1
 
-    g, loaded = load_directory(nodes_dir)
-    print(f"loaded {len(loaded)} nodes from {nodes_dir}")
+    # Try SQLite first if configured, fall back to filesystem
+    g, loaded = None, []
+    sq_g, sq_loaded = _load_graph_sqlite(nodes_dir)
+    if sq_g is not None:
+        g, loaded = sq_g, sq_loaded
+        print(f"loaded {len(loaded)} nodes from SQLite (persistence.type=sqlite)")
+    else:
+        g, loaded = load_directory(nodes_dir)
+        print(f"loaded {len(loaded)} nodes from {nodes_dir}")
 
     # Wire parent/child edges from frontmatter; also populate child sets so
     # chain-walking (longest_chain_length, descendant counts) reflects the DAG.
@@ -72,9 +107,16 @@ def main() -> int:
         by_type[n.type] += 1
 
     # Chain stats: use find_chains() for chain-based longest path (via 'next' edges)
-    chains = find_chains(g)
-    longest_len = max((len(c) for c in chains), default=0)
-    chain_count = len(chains)
+    # NOTE: find_chains reads next_edges from YAML frontmatter directly (loader does
+    # not parse next_edges into g.edges). No post_wire call needed.
+    if _HAS_CHAIN_ENGINE and find_chains is not None:
+        chains = find_chains(g, graph_dir=str(nodes_dir))
+        longest_len = max((len(c) for c in chains), default=0)
+        chain_count = len(chains)
+    else:
+        chains = []
+        longest_len = 0
+        chain_count = 0
     
     # Also compute spawns-based longest chain for comparison
     spawns_longest = _longest_chain_length(g)

@@ -5,6 +5,7 @@ from .frontmatter import load_node_dir, DirLoadResult, LoadError
 from .backend import PersistenceBackend
 from .filesystem import FilesystemBackend
 from .in_memory import InMemoryBackend
+from .sqlite_backend import SQLiteBackend
 
 __all__ = [
     "load_node_file",
@@ -16,4 +17,5 @@ __all__ = [
     "PersistenceBackend",
     "FilesystemBackend",
     "InMemoryBackend",
+    "SQLiteBackend",
 ]

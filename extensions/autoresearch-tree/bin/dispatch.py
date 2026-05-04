@@ -159,6 +159,9 @@ def main() -> int:
             "log_file": str(log_file),
             "command": " ".join(shlex.quote(a) for a in pi_args),
         }
+        if scaffold_info:
+            agent_record["node_id"] = scaffold_info.get("node_id", "")
+            agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
         manifest["agents"].append(agent_record)
         print(f"spawned {agent_id} pid={proc.pid} level={level} target={target or '-'} strategy={strategy}")
@@ -199,7 +202,20 @@ def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple
                 closed_chains.add(line)
 
     # Build graph
-    g, loaded = load_directory(root / "nodes")
+    cfg_path = root / "autoresearch-tree.config.json"
+    use_sqlite = False
+    if cfg_path.exists():
+        cfg = json.loads(cfg_path.read_text())
+        use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
+
+    if use_sqlite:
+        from graph_core.persistence.sqlite_backend import SQLiteBackend
+        from graph_core.db_loader import DBLoader
+        db_path = root / cfg["persistence"]["path"]
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+    else:
+        g, loaded = load_directory(root / "nodes")
+
     for ln in loaded:
         for parent_id in ln.node.parents:
             if g.has_node(parent_id):
@@ -287,7 +303,20 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
                 closed_chains.add(line)
 
     # --- Build graph ---
-    g, loaded = load_directory(root / "nodes")
+    cfg_path = root / "autoresearch-tree.config.json"
+    use_sqlite = False
+    if cfg_path.exists():
+        cfg = json.loads(cfg_path.read_text())
+        use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
+
+    if use_sqlite:
+        from graph_core.persistence.sqlite_backend import SQLiteBackend
+        from graph_core.db_loader import DBLoader
+        db_path = root / cfg["persistence"]["path"]
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+    else:
+        g, loaded = load_directory(root / "nodes")
+
     for ln in loaded:
         for parent_id in ln.node.parents:
             if g.has_node(parent_id):
@@ -446,9 +475,6 @@ def _scaffold_node_for_agent(
     node_dir.mkdir(parents=True, exist_ok=True)
     node_file = node_dir / f"{slug}.md"
 
-    if node_file.exists():
-        return None
-
     prompts = {
         "hypothesis": "## Hypothesis\n\nWhat is the testable claim?\nWhat would prove it? What would disprove it?\n\n",
         "experiment": "## Experiment\n\nWhat did you do? What happened?\nInclude command/inputs and actual outputs.\n\n## Evidence\n\nRaw output, logs.\n\n",
@@ -458,6 +484,21 @@ def _scaffold_node_for_agent(
         "bigger-outcome": "## Bigger Outcome\n\nWhat purpose does this serve?\n\n",
         "app-purpose": "## App Purpose\n\nTop-level mission?\n\n",
     }
+
+    # Check if file exists and has real content (not just scaffold prompts)
+    if node_file.exists():
+        existing = node_file.read_text()
+        # Split on second --- to get body content
+        parts = existing.split("---", 2)
+        if len(parts) >= 3:
+            body = parts[2].strip()
+            # If body is just the scaffold prompt (empty/minimal), overwrite it
+            # Otherwise content exists → return None to preserve it
+            if body not in prompts.get(node_type, ""):
+                return None
+        else:
+            # Malformed file, overwrite with fresh scaffold
+            pass
 
     body = prompts.get(node_type, "")
     fm = [

@@ -86,12 +86,33 @@ def _compose_small(root: Path, inject_text: str, args: argparse.Namespace) -> st
     """Extract subtree around target from nodes/."""
     sys.path.insert(0, str(root / "src"))
     try:
-        from graph_core.loader import load_directory
         from graph_core.edge import Edge
     except Exception as e:
         return f"# zoom small fallback (loader unavailable: {e})\n\n{inject_text}"
 
-    g, loaded = load_directory(root / "nodes")
+    # Detect sqlite vs filesystem
+    cfg_path = root / "autoresearch-tree.config.json"
+    use_sqlite = False
+    if cfg_path.exists():
+        import json
+        cfg = json.loads(cfg_path.read_text())
+        use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
+
+    if use_sqlite:
+        try:
+            from graph_core.persistence.sqlite_backend import SQLiteBackend
+            from graph_core.db_loader import DBLoader
+            db_path = root / cfg["persistence"]["path"]
+            g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        except Exception as e:
+            return f"# zoom small fallback (sqlite unavailable: {e})\n\n{inject_text}"
+    else:
+        try:
+            from graph_core.loader import load_directory
+        except Exception as e:
+            return f"# zoom small fallback (loader unavailable: {e})\n\n{inject_text}"
+        g, loaded = load_directory(root / "nodes")
+
     # Wire children
     for ln in loaded:
         for parent_id in ln.node.parents:

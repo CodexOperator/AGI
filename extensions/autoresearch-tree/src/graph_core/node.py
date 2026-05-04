@@ -19,7 +19,7 @@ from typing import Optional
 class Node:
     """Generic graph node.
 
-    Exactly six fields. No timestamps. No auto-derived fields.
+    Exactly seven fields. No timestamps. No auto-derived fields.
     """
 
     id: str
@@ -28,6 +28,7 @@ class Node:
     parents: set[str] = field(default_factory=set)
     children: set[str] = field(default_factory=set)
     tags: set[str] = field(default_factory=set)
+    origin: Optional[str] = None  # "build-site" if from snapshot, None = agent-generated
 
     @property
     def is_root(self) -> bool:

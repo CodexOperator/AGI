@@ -69,6 +69,9 @@ def _node_from_frontmatter(
     children = set(fm.get("children", []) or [])
     tags = set(fm.get("tags", []) or [])
     payload_ref = fm.get("payload_ref")
+    origin = fm.get("origin")
+    if not isinstance(origin, str):
+        origin = None
     return Node(
         id=nid,
         type=type_str,
@@ -76,6 +79,7 @@ def _node_from_frontmatter(
         parents=parents,
         children=children,
         tags=tags,
+        origin=origin,
     )
 
 
