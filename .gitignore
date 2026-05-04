@@ -1,0 +1,14 @@
+.gitnexus
+.graph_cache.pkl
+.gitnexus_cache.json
+loop.log
+pi-agi.log
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.claude/worktrees/
+sessions/
+experiments/
