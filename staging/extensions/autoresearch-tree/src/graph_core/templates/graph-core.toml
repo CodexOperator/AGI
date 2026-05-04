@@ -1,0 +1,8 @@
+# Default graph-core config (T-015 / R8.4)
+
+[persistence]
+backend = "filesystem"  # filesystem | in_memory | sqlite
+
+# Used when backend = "sqlite"
+[persistence.sqlite]
+path = "nodes.db"  # path relative to project root
