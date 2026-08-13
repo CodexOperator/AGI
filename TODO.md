@@ -25,6 +25,47 @@ Persistent register of deferred work. Survives across sessions. Built site: `con
 
 ## Harness side
 
+### H0. Stale project-local `snapshot-build-site.py` override wipes entire node corpus — P0 🔴 DATA LOSS
+**Symptom:** Running the loop (`agi --max-iters N`, or even `agi --smoke`) inside `~/.hermes/agi-tree/` deletes every node file not regenerated from `build-site.md`. Observed 29,422 node files → 158. Exit code 0, no warning, nothing printed. Silent.
+
+**Root cause — two parts:**
+1. `~/.hermes/agi-tree/bin/snapshot-build-site.py:161-165` is a **stale copy** predating the plugin's incremental rewrite. It does:
+   ```python
+   if NODES_DIR.exists():
+       # Wipe — fresh snapshot
+       import shutil
+       shutil.rmtree(NODES_DIR)
+   NODES_DIR.mkdir(parents=True)
+   ```
+2. `extensions/agi/driver.sh:79` (and `:86` for render) gives **project-local scripts precedence** over the plugin's:
+   ```bash
+   [[ -x "$PROJECT_ROOT/bin/snapshot-build-site.py" ]] && SNAPSHOT_PY="$PROJECT_ROOT/bin/snapshot-build-site.py"
+   ```
+   The dangerous stale copy therefore shadows the safe plugin version on every run.
+
+**The plugin's own version is SAFE.** `extensions/agi/bin/snapshot-build-site.py` does incremental upsert and prunes only nodes carrying `origin: build-site` frontmatter (lines 330-338). Agent-generated verdict/experiment nodes carry no `origin` field, so they are never touched by it.
+
+**Evidence (reproduced in throwaway clones, 2026-08-13):**
+
+| Probe | Result |
+|---|---|
+| Plugin `snapshot-build-site.py` standalone | 29,422 → 29,422 (0 deletions) |
+| Plugin `render-context.py` standalone | 29,422 → 29,422 |
+| Plugin `benchmark.py` standalone | 29,422 → 29,422 |
+| Full `agi --smoke` through `driver.sh` | 29,422 → **158** (29,264 deleted) |
+
+Divergence isolates cleanly to the driver's project-override precedence selecting `agi-tree/bin/snapshot-build-site.py`.
+
+**Blast radius:** any project shipping its own stale `bin/snapshot-build-site.py`. `~/.hermes/agi-tree/` confirmed affected. Audit `~/.hermes/belam-codex-modularnn-spike-viz/.../modularNN/` before running the loop there.
+
+**Actions:**
+1. **Immediate (unblocks safe loop runs):** delete or rename `~/.hermes/agi-tree/bin/snapshot-build-site.py` so the plugin's safe version is used. Same audit for the project-local `bin/render-context.py`.
+2. **Structural:** make the driver's project-override opt-in — require an explicit `"allow_local_script_overrides": true` in `autoresearch-tree.config.json`, or version-stamp plugin scripts and refuse an override older than the plugin's.
+3. **Defense in depth:** no snapshot path should ever `rmtree` the node corpus. Guard against deleting more than N% of existing nodes in one run absent an explicit `--force-rebuild` flag.
+4. **Regression test:** seed a temp project with agent-origin nodes (no `origin` frontmatter), run the full driver, assert node count unchanged.
+
+**Related:** handoff line 192 described this as *"seed hypothesis nodes get clobbered by snapshot each iter … Acceptable for now."* That framing badly understates it — it is total corpus deletion, not seed-node churn.
+
 ### H1. DB-only state migration (drop `.md` state files) — P0
 **Rationale:** Today the loop emits `nodes/{type}/*.md` files (frontmatter+markdown) and `sessions/iter-NNN/*.json` manifests. These are racey on concurrent writes, scattered across multiple dirs, and not queryable. `extensions/agi/src/graph_core/persistence/sqlite_backend.py` (278 lines) and `extensions/agi/src/graph_core/db_loader.py` (173 lines) already exist as scaffolding — promote them to the canonical persistence layer and drop the filesystem backend from the hot path.
 **Evidence:** sqlite_backend.py + db_loader.py exist; cavekit-deferred-todo R2; user's stated long-term direction ("no more state files at all"); `extensions/agi/scripts/migrate_to_sqlite.py` exists as one-shot migration tool.
@@ -88,9 +129,27 @@ The davebcn87/pi-autoresearch and ar-tree project copies are no longer canonical
 **Verdict:** T-067 will push only `master`. Other branches (e.g., `iter24-extend-300hop`, `claude/wonderful-lamport-51c9a9`) stay local.
 **Optional follow-up (P2):** push iter branches as backup if desired; they're transient.
 
-### F4. agi-tree dirty working tree at fold start — DEFERRED
-**Verdict:** agi-tree had `M autoresearch-tree.config.json`, `M autoresearch.jsonl`, `M src/chain_engine/chains.py`, untracked `nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`, `exp-a01-extend-2000hop.py` at fold start. T-067 push will fail without resolution.
-**Action (pre-T-067):** stash or commit legitimate edits, gitignore cache files, then push.
+### F4. agi-tree working tree — DIRTY + 29,264 NODES MISSING FROM DISK — 🔴 BLOCKING
+**At fold start:** `M autoresearch-tree.config.json`, `M autoresearch.jsonl`, `M src/chain_engine/chains.py`, untracked `nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`, `exp-a01-extend-2000hop.py`. No deletions at that point.
+
+**Now (after a `--smoke` run detonated H0):** additionally **29,264 node files deleted from disk**. `nodes/` holds 158 files; git HEAD holds 29,422. Breakdown of deletions: 14,579 verdict, 14,559 experiment, 41 hypothesis, 21 mvp, 20 outcome, 14 bigger-outcome, plus idea/app-purpose.
+
+**Nothing is permanently lost.** Every deleted path verified present in HEAD via `git cat-file -e`. Of the 158 survivors, 15 differ from HEAD and are strictly *worse* (regeneration stripped their `next_edges` links); 0 are new. So a full restore from HEAD loses no information.
+
+**Action 1 — restore (needs explicit authorization; a prior attempt was correctly blocked by the safety classifier because it discards working-tree state in research data):**
+```bash
+git -C ~/.hermes/agi-tree checkout -- nodes/
+```
+Verify after: `find ~/.hermes/agi-tree/nodes -name '*.md' | wc -l` → expect 29,422.
+
+**Action 2 — defuse H0 before any further loop run in this project** (otherwise the next run wipes it again):
+```bash
+mv ~/.hermes/agi-tree/bin/snapshot-build-site.py ~/.hermes/agi-tree/bin/snapshot-build-site.py.STALE-DO-NOT-USE
+```
+
+**Action 3 — then resolve dirty tree and push:** stash or commit the legitimate edits, gitignore the cache files (`nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`), create `CodexOperator/agi-tree` on GitHub, push `master`.
+
+**Ordering matters:** Action 2 before any loop run; Action 1 before Action 3.
 
 ### F5. Pytest baseline 167 (166 pass / 1 known fail) — RECORDED
 **Verdict:** R1 verification baseline = 166 pass, 1 known fail (`test_field_set_is_exactly_six`). Handoff's "274 pass" claim discrepant; operative baseline captured in `context/refs/pytest-baseline-prefold.md`.
