@@ -243,7 +243,9 @@ python3 -c "from agi_algos import build_graph, GraphBuilder, QueryEngine, PiTree
 
 These involve local state that is not in any git remote. If the old machine is being retired, do these first or accept the loss.
 
-### 5a. 🔴 Restore the agi-tree node corpus
+> **Update 2026-08-13:** §5a is **done** — the corpus is restored (29,422 files) and H0 is defused in that project. But restoring it surfaced two further blockers, **H0b** and **H0c** in `TODO.md`: a second stale project-local override (`render-context.py`, recursive → `RecursionError`), and `find_chains()` failing to terminate within 300 s on the full corpus. **The loop still cannot be run against `~/.hermes/agi-tree/`.** §5b and §5c below remain open.
+
+### 5a. ✅ Restore the agi-tree node corpus — DONE
 
 `~/.hermes/agi-tree/` has **29,264 node files deleted from disk** by the H0 bug. All are present in git HEAD — verified individually with `git cat-file -e`. Of the 158 survivors, 15 differ from HEAD and are strictly *worse* (regeneration stripped their `next_edges` links); 0 are new. A full restore therefore loses nothing.
 
