@@ -17,6 +17,9 @@ This repo is the result of folding [`CodexOperator/autoresearch-tree`](https://g
 | `extensions/agi-bridge/` | TypeScript pi extension — hooks `before_agent_start`, refreshes `INJECTION.md` per agent turn |
 | `skills/agi/SKILL.md` | The Claude/agent skill that drives loop iterations |
 | `TODO.md` | Persistent register of deferred work (DB-only state migration, ASCII renderer unification, metric overhaul, …) |
+| `HANDOFF.md` | **Start here on a new machine.** Bootstrap from zero, current state, pending actions, known bugs. |
+
+> ⚠️ **Before running the loop in any project, read `TODO.md` → H0.** A stale project-local `bin/snapshot-build-site.py` can silently delete that project's entire node corpus. `HANDOFF.md` §1 has the one-line check.
 
 ## Companion repositories
 
