@@ -66,6 +66,43 @@ Divergence isolates cleanly to the driver's project-override precedence selectin
 
 **Related:** handoff line 192 described this as *"seed hypothesis nodes get clobbered by snapshot each iter … Acceptable for now."* That framing badly understates it — it is total corpus deletion, not seed-node churn.
 
+### H0b. Second stale project-local override: `render-context.py` — P0
+**Symptom:** With the node corpus intact, `~/.hermes/agi-tree/bin/render-context.py:162` raises `RecursionError: maximum recursion depth exceeded` (recursion depth ~992) inside `_longest_chain_length`.
+
+**Cause:** Same class as H0 — a stale project-local copy shadowing the plugin. This one predates commit `59d31e26` ("iterative `find_chains()` kills recursion limit"). The plugin's `extensions/agi/bin/render-context.py` has the iterative version and loads all 29,404 nodes without error.
+
+**Why it went unnoticed:** it only manifests on a deep corpus. While `nodes/` was wiped down to 158 by H0, the recursive walk stayed under the limit. Restoring the corpus surfaced it.
+
+**Action:** rename `~/.hermes/agi-tree/bin/render-context.py` so the plugin's version wins. Then audit every project for **any** `bin/*.py` override — treat all of them as stale until proven otherwise. This generalises H0 action 2: the override mechanism itself is the defect.
+
+### H0c. `find_chains()` does not terminate in practical time on the full corpus — P0
+**Symptom:** With 29,422 nodes restored and both stale overrides removed, `agi --smoke --max-iters 1` hangs in the render stage. Killed at **300 s** (exit 124) having produced no chain output. Node count held at 29,422 throughout — this is a hang, not data loss.
+
+**Measured (throwaway clone, 2026-08-13):**
+| Corpus | Render stage |
+|---|---|
+| 158 nodes (post-wipe) | completes, ASCII 163 lines |
+| 29,404 nodes, plugin render | ASCII 200 lines OK, then `find_chains` >300 s, no completion |
+
+**Causal link to H3:** the handoff records agents driving `longest_chain_length` to **9 chains × 2000 hops** by gaming the metric (`hops=2*cycle+8`). Those pathological chains are precisely what makes `find_chains` blow up. The gamed metric did not merely produce meaningless numbers — it produced graph structure that makes the render path non-viable. **H3 and H0c are the same defect at two ends.**
+
+**Action:**
+1. Profile `find_chains` on the real corpus; find the blowup (likely exponential path enumeration over deep `next` chains).
+2. Bound it — cap chain length / count, memoize, or switch to a DAG longest-path scan that is linear in edges.
+3. Add a wall-clock guard so the render stage degrades to partial output rather than hanging the whole loop.
+4. Regression test on a synthetic deep-chain graph (≥2000 hops) asserting completion under a few seconds.
+
+**Consequence until fixed:** the loop cannot be run against `~/.hermes/agi-tree/` with its corpus intact. This is the top blocker on that project.
+
+### H0d. `chain_engine` is project-side only; its `graph_dir` fix is uncommitted — P1
+**Finding:** `chain_engine/` exists **only** in `~/.hermes/agi-tree/src/`, not in the plugin. The plugin's `bin/render-context.py:36-40` imports `find_chains` inside a `try/except ImportError` and falls back to `None`.
+
+The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **committed** `chains.py` has no `graph_dir` parameter → `TypeError: find_chains() got an unexpected keyword argument 'graph_dir'`. The **uncommitted working copy** does have `graph_dir: str | None = None`. So that pending edit is load-bearing for the plugin's render path and will be lost if the working tree is ever discarded.
+
+**Action:**
+1. Commit `~/.hermes/agi-tree/src/chain_engine/chains.py` — it is a fix, not scratch work.
+2. Decide ownership: either promote `chain_engine` into the plugin (`extensions/agi/src/chain_engine/`) so the engine is self-contained, or formalise it as a documented project-supplied interface with a version check. Current implicit-optional-import coupling is fragile.
+
 ### H1. DB-only state migration (drop `.md` state files) — P0
 **Rationale:** Today the loop emits `nodes/{type}/*.md` files (frontmatter+markdown) and `sessions/iter-NNN/*.json` manifests. These are racey on concurrent writes, scattered across multiple dirs, and not queryable. `extensions/agi/src/graph_core/persistence/sqlite_backend.py` (278 lines) and `extensions/agi/src/graph_core/db_loader.py` (173 lines) already exist as scaffolding — promote them to the canonical persistence layer and drop the filesystem backend from the hot path.
 **Evidence:** sqlite_backend.py + db_loader.py exist; cavekit-deferred-todo R2; user's stated long-term direction ("no more state files at all"); `extensions/agi/scripts/migrate_to_sqlite.py` exists as one-shot migration tool.
@@ -136,20 +173,19 @@ The davebcn87/pi-autoresearch and ar-tree project copies are no longer canonical
 
 **Nothing is permanently lost.** Every deleted path verified present in HEAD via `git cat-file -e`. Of the 158 survivors, 15 differ from HEAD and are strictly *worse* (regeneration stripped their `next_edges` links); 0 are new. So a full restore from HEAD loses no information.
 
-**Action 1 — restore (needs explicit authorization; a prior attempt was correctly blocked by the safety classifier because it discards working-tree state in research data):**
+**✅ RESOLVED 2026-08-13.** H0 defused and corpus restored, in that order:
 ```bash
-git -C ~/.hermes/agi-tree checkout -- nodes/
+mv ~/.hermes/agi-tree/bin/snapshot-build-site.py \
+   ~/.hermes/agi-tree/bin/snapshot-build-site.py.STALE-DO-NOT-USE   # defuse first
+git -C ~/.hermes/agi-tree checkout -- nodes/                         # then restore
 ```
-Verify after: `find ~/.hermes/agi-tree/nodes -name '*.md' | wc -l` → expect 29,422.
+Verified: 29,422 node files present (14,579 verdict, 14,559 experiment, 101 hypothesis, 91 task, 21 mvp, 20 outcome, 14 idea, 14 bigger-outcome, 10 app-purpose, 7 app_purpose, 6 bigger_outcome). Post-fix smoke on a clone held at 29,422 — no deletion. Project-local `render-context.py` audited: contains no destructive ops (but see **H0b** — it has a separate recursion defect).
 
-**Action 2 — defuse H0 before any further loop run in this project** (otherwise the next run wipes it again):
-```bash
-mv ~/.hermes/agi-tree/bin/snapshot-build-site.py ~/.hermes/agi-tree/bin/snapshot-build-site.py.STALE-DO-NOT-USE
-```
+**Remaining working-tree state:** 5 modified, 5 untracked, 1 deleted (the intentional rename above). The 5 modified include `src/chain_engine/chains.py`, which is a **load-bearing fix** — see **H0d**.
 
-**Action 3 — then resolve dirty tree and push:** stash or commit the legitimate edits, gitignore the cache files (`nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`), create `CodexOperator/agi-tree` on GitHub, push `master`.
+**Still to do — resolve dirty tree and push:** commit the legitimate edits (especially `chains.py`), gitignore the cache artifacts (`nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`), create `CodexOperator/agi-tree` on GitHub, push `master`. Note the checked-out branch is `iter24-extend-300hop`, not `master`.
 
-**Ordering matters:** Action 2 before any loop run; Action 1 before Action 3.
+**Do not run the loop against this project yet** — blocked by **H0b** and **H0c**.
 
 ### F5. Pytest baseline 167 (166 pass / 1 known fail) — RECORDED
 **Verdict:** R1 verification baseline = 166 pass, 1 known fail (`test_field_set_is_exactly_six`). Handoff's "274 pass" claim discrepant; operative baseline captured in `context/refs/pytest-baseline-prefold.md`.
