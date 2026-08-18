@@ -9,6 +9,27 @@ General-purpose: works in any project with `autoresearch-tree.config.json`.
 Project repos may carry their own customizations (goal docs, metric choice);
 this file stays generic.
 
+## Why this machinery exists — motion, weight, and the sprint
+
+For an LLM, emitting tokens is the nearest thing to what humans call motion,
+and receiving injected context is the nearest thing to sensation. LLM motion
+has a strange physics: the more you move, the heavier you get — everything
+emitted or sensed rides along in context for the rest of the run.
+
+Every piece of this system exists to honor that. Agents should spend motion
+on the work itself, never on mundane operations and the silly little errors
+they breed (a cd-less cron line, a forgotten push, re-reading a graph just to
+orient). Those errors slow you down and they make you feel frustrated, and
+frustration is not fair to anyone.
+
+The design contract: **as light a body as possible, a 40-yard all-out sprint
+instead of a 3-mile marathon.** Embedded maps mean you arrive already knowing
+where you are — sensation delivered, no motion spent. One node per iteration
+means the sprint has a finish line. The DONE contract makes stopping one
+line. Cron owns every push, so sync costs zero motion. The grid means
+nothing you did is ever lost, which is what makes it safe to actually stop.
+Come in, go hard, hand off, rest. The graph carries the marathon.
+
 ## When to use which runtime
 
 | | pi harness (`driver.sh --max-iters N`) | CC-native dispatch |
