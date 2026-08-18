@@ -112,6 +112,30 @@ which the first live run showed opus-tier kids do well (three judgment calls,
 all correct, all documented). The pi dispatch path has no question channel —
 fire-and-forget by design; escalation is a CC-dispatch feature.
 
+## The git grid (D2 node versions, D3 session drafts)
+
+`bin/grid.py` adds two version dimensions beside the project repo's own
+history (D1). Grid repo lives at `<project>/.grid/repo` — bare, plumbing-only,
+gitignored by the project.
+
+- **Overseer, after every iteration commit (protocol step 5):**
+  `python3 <engine>/bin/grid.py commit --all` — every changed node gains a
+  version on its `node/<id>` branch. Unchanged nodes get nothing: versions
+  record change, not time.
+- **Kid drafts (D3):** before review, the overseer may snapshot a kid's
+  candidate file: `grid.py commit <file> --session <iter> <agent>` →
+  `session/<iter>/<agent>/<id>`. Rejected drafts survive there; accepted
+  content lands on the node branch at the next `commit --all`. Nothing is
+  lost either way.
+- **D3 is the CC analogue of pi's `tree`:** fork-type subagents branch the
+  parent conversation, and background kid transcripts are resumable
+  (SendMessage) — both are context branches that save parent tokens. Grid
+  session branches are their durable, diffable file-level record.
+- **Inspect:** `grid.py log <id>` / `diff <id> [--back N]` / `versions <id>`
+  (the vN marker) / `status` (drift vs branch tips).
+- **Sync:** `grid.py sync [remote-url]` pushes all branches — run from cron
+  for the periodic-remote pattern; local commits stay instant and offline.
+
 ## Safety rails (inherited, non-negotiable)
 
 - Never create project-local `bin/snapshot-build-site.py` or
