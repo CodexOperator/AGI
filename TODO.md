@@ -158,6 +158,18 @@ The davebcn87/pi-autoresearch and ar-tree project copies are no longer canonical
 2. *Fail-forward:* no pause — kid writes the question INTO its node body as a `pending` verdict with `blocked_on:` field; the next iteration's dispatch targets it preferentially. Zero new plumbing, uses the graph itself as the message bus. Cheaper, loses same-turn context.
 Whichever lands: enforce the same four escalation triggers and per-kid budget as CC-dispatch, and add a regression test that a question never extends `agent_timeout_mins` unboundedly.
 
+**Direction chosen (user, 2026-08-18): Option 2 — fail-forward, graph as message bus.** A stuck kid's question is just another node for the swarm. Option 1 stays here as the fallback if same-turn context turns out to matter.
+
+### H10. Per-node git trees — "the git grid" — P2, ENGINE ONLY
+**Rationale:** Each node is a long-lived thought that gets extended, forked, deprecated — so each node should carry its own version history ("versions"), independent of the graph-wide history. Two parallel dimensions of git trees: the outer repo's history tracks graph-wide snapshots (the chain dimension); a per-node tree tracks that single thought's evolution (the time dimension). Engine feature only — tracking this at skill/prompt level is a nightmare; the engine creates and manages a folder per node entry. This is what the renderer research was for: `src/renderers/git_diff.py` already exists to render version diffs into agent context.
+**Evidence:** user direction 2026-08-18 (fantasia session); `extensions/agi/src/renderers/git_diff.py`; H1 sqlite scaffolding (interacts — see design 3).
+**Action (candidate designs, pick after a spike):**
+1. *Nested repos, gitignored inner `.git/`* — simplest, works with stock git today: node folder contents tracked by the outer repo as plain files; each node folder also holds its own local `.git` which the outer repo ignores. Local commits per node edit; cron job periodically commits/pushes the outer repo (branch-merge or plain commit — the inner trees never leave the machine unless explicitly bundled). Caveat: ~100KB+ of `.git` overhead per node → gigabytes at 29k nodes. Fine for hundreds of nodes; measure before scaling.
+2. *Branch-per-node in one repo* — node versions as refs (`refs/nodes/<id>/vN`), packed-refs keeps 29k+ refs cheap; `git worktree` materializes a node folder only while an agent actively edits it. No per-node `.git` duplication; harder mental model.
+3. *SQLite-versioned bodies (rides H1)* — node versions as content-addressed rows in the DB; git keeps only the outer dimension. Cheapest at scale, loses native git tooling on the inner dimension; `git_diff` renderer reads the DB instead.
+NOT submodules — 29k `.gitmodules` entries is clone hell.
+Whichever lands: engine creates the folder-per-node layout via `graph_core/persistence`, snapshot/render stay oblivious (they read files as today), cron sync is a driver flag (`--sync-remote-mins N`), and the injection map gains a per-node version marker (vN) so kids see at a glance that a thought has history worth diffing.
+
 ---
 
 ## Fold-time decisions
