@@ -43,6 +43,16 @@ One iteration = one node per kid, reviewed and committed by the overseer.
      (rule 6) — write the node file(s), report, stop. The overseer owns
      commit and record-keeping.
    - One node added or extended, nothing else (rule 2 unchanged).
+   - **End-of-job contract — keep it minimal.** The kid's final message is:
+     ```
+     DONE <node-id>
+     caveats: <optional, one line>
+     struggles: <optional, one line>
+     question: <optional — ONLY under the four escalation triggers>
+     ```
+     plus whatever numbers the brief asked for. Nothing else is required:
+     no git, no push, no sync, no cli.py — spending tokens on any of those
+     is waste; automation owns all remote traffic.
 4. **Review (the gate).** For each kid's node: parent link resolves, taxonomy
    valid, and — H4, enforced here because the cli gate is unbuilt —
    `proved`/`disproved` verdicts REQUIRE experiment evidence
@@ -136,14 +146,16 @@ dimensions. `grid.py init` configures the origin fetch refspec
   session branches are their durable, diffable file-level record.
 - **Inspect:** `grid.py log <id>` / `diff <id> [--back N]` / `versions <id>`
   (the vN marker) / `status` (drift vs branch tips).
-- **Sync — two cadences:** grid refs are tiny (delta-only), the D1 branch is
-  the curated history, so split them:
-  - every 5 min: `cd <project> && grid.py commit --all --prefix "cron: "`
-    then `git push -q origin 'refs/grid/*:refs/grid/*'` — auto-snapshots any
-    in-flight node edits and makes them durable; change-only versioning means
-    an idle graph pushes nothing. This is the crash-recovery window: a run
-    that dies horribly loses at most 5 minutes of node state.
-  - hourly: `git push -q origin <branch>` — the reviewed D1 sync.
+- **Sync is AUTOMATED — nobody syncs by hand.** `grid.py cron install` sets
+  both cadences in one shot (idempotent per project; `cron show|remove` to
+  inspect/uninstall):
+  - every 5 min (`--snapshot-mins N` to tune): auto-snapshot
+    (`commit --all --prefix 'cron: '`) + push `refs/grid/*` — in-flight node
+    edits become durable; an idle graph pushes nothing (change-only
+    versioning). Crash-recovery window ≤ N minutes.
+  - hourly: push the D1 branch — the reviewed, curated sync.
+  Neither kids nor the overseer run `push` or `sync` manually; the overseer's
+  only git surface is the local iteration commit, a kid's is nothing at all.
   The `cron:` prefix keeps auto-snapshots distinguishable from
   overseer-reviewed versions in `grid.py log`. Concurrency note: `update-ref`
   is atomic per ref but last-writer-wins; per-ref CAS is TODO H10 if many

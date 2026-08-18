@@ -91,6 +91,17 @@ def test_sanitize_refuses_ref_hostile_chars():
     assert ".." not in grid.sanitize("a:..b")
 
 
+def test_cron_lines_are_cwd_proof(tmp_path):
+    # Regression: cron runs from $HOME; a line without cd/-C fails silently.
+    lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
+    assert lines[0].startswith(f"*/5 * * * * cd {tmp_path} && ")
+    assert f"'{grid.PUSH_SPEC}'" in lines[0]
+    assert "--prefix 'cron: '" in lines[0]
+    assert lines[1].startswith(f"7 * * * * git -C {tmp_path} push -q origin main")
+    for line in lines:
+        assert str(tmp_path / "g.log") in line  # log path doubles as the marker
+
+
 def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
     grid.cmd_commit(project, [], do_all=True, session=None)
     remote = tmp_path / "remote.git"
