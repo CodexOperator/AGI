@@ -182,7 +182,15 @@ stdlib+git only, regex frontmatter parse, no pyyaml. Deployed on fantasia:
 **Remaining:** driver auto-commit hook after snapshot, injection vN marker,
 `--sync-remote-mins` driver flag, pi-path parity, scale test at 10k+ branches,
 and the D3↔pi-`tree` bridge (pi conversation branches recorded as session
-branches the way CC fork/background transcripts are).
+branches the way CC fork/background transcripts are). For heavy concurrency:
+(a) per-ref CAS on writes — `update-ref <ref> <new> <expected-old>` — so two
+agents racing the same node ref fail loudly instead of last-writer-wins;
+(b) RAM-backed object writes (tmpfs GIT_OBJECT_DIRECTORY or memfs alternates)
+if plumbing I/O ever shows up in profiles — not yet needed, snapshots are ms.
+**Two-cadence sync pattern (deployed on fantasia 2026-08-18):** cron every
+5 min runs `grid.py commit --all --prefix "cron: "` + push `refs/grid/*` only
+(tiny, delta-only — makes in-flight agent work durable within 5 min for crash
+recovery); D1 branch pushed hourly as the curated sync.
 
 ---
 
