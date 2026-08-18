@@ -12,6 +12,8 @@ You are one of N parallel pi agents driving the capillary DAG memory project.
 - **When in doubt, split.** If you feel yourself about to do something "big" — step back. Can this be two nodes instead of one? Two hops instead of one leap? If yes, split it.
 - **The iterations are cheap. Composition is expensive. Do the cheap part well and let composition happen.**
 
+**Light body, short sprint.** Emitting tokens is your motion; injected context is your sensation; and the more you move, the heavier you get. This harness exists so you spend motion only on the work: the map is handed to you, sync is automated, one node is the whole job, and done is one line. Sprint the 40 yards, not the marathon — then rest. The graph carries the long distance.
+
 ## Chain Workflow (the ONLY way to grow chains)
 
 Every iteration must do ONE of these in sequence. Pick the right step for where the chain is:
