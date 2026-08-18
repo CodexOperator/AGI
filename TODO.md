@@ -170,6 +170,17 @@ Whichever lands: enforce the same four escalation triggers and per-kid budget as
 NOT submodules — 29k `.gitmodules` entries is clone hell.
 Whichever lands: engine creates the folder-per-node layout via `graph_core/persistence`, snapshot/render stay oblivious (they read files as today), cron sync is a driver flag (`--sync-remote-mins N`), and the injection map gains a per-node version marker (vN) so kids see at a glance that a thought has history worth diffing.
 
+**MVP landed 2026-08-18 — design 2 variant.** `extensions/agi/bin/grid.py`:
+single bare repo at `<project>/.grid/repo`, branch per node (`node/<type>/<slug>`),
+commits via plumbing (hash-object→mktree→commit-tree, no checkout ever), D3
+session-draft branches (`session/<iter>/<agent>/<id>`), change-only versioning,
+`sync` pushes all branches (cron-able). 7 tests in `tests/test_grid.py`.
+Harness-agnostic: stdlib+git only, regex frontmatter parse, no pyyaml.
+**Remaining:** driver auto-commit hook after snapshot, injection vN marker,
+`--sync-remote-mins` driver flag, pi-path parity, scale test at 10k+ branches,
+and the D3↔pi-`tree` bridge (pi conversation branches recorded as session
+branches the way CC fork/background transcripts are).
+
 ---
 
 ## Fold-time decisions
