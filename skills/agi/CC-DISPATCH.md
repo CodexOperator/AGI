@@ -115,8 +115,11 @@ fire-and-forget by design; escalation is a CC-dispatch feature.
 ## The git grid (D2 node versions, D3 session drafts)
 
 `bin/grid.py` adds two version dimensions beside the project repo's own
-history (D1). Grid repo lives at `<project>/.grid/repo` — bare, plumbing-only,
-gitignored by the project.
+history (D1). The grid is BAKED INTO the project repo as a dedicated ref
+namespace — `refs/grid/node/*` and `refs/grid/session/*` — never checked out,
+invisible to `git branch`, blobs deduped against D1, one remote syncs all
+dimensions. `grid.py init` configures the origin fetch refspec
+(`+refs/grid/*:refs/grid/*`) so fresh clones can pull the grid.
 
 - **Overseer, after every iteration commit (protocol step 5):**
   `python3 <engine>/bin/grid.py commit --all` — every changed node gains a
@@ -133,8 +136,10 @@ gitignored by the project.
   session branches are their durable, diffable file-level record.
 - **Inspect:** `grid.py log <id>` / `diff <id> [--back N]` / `versions <id>`
   (the vN marker) / `status` (drift vs branch tips).
-- **Sync:** `grid.py sync [remote-url]` pushes all branches — run from cron
-  for the periodic-remote pattern; local commits stay instant and offline.
+- **Sync:** `grid.py sync [remote-url]` pushes `refs/grid/*` to origin; or
+  push D1+grid together from cron:
+  `git -C <project> push -q origin <branch> 'refs/grid/*:refs/grid/*'`.
+  Local commits stay instant and offline; the remote is periodic.
 
 ## Safety rails (inherited, non-negotiable)
 
