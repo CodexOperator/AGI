@@ -61,6 +61,32 @@ SMALL-zoom kids = cheapest capable tier (bounded 2-hop work). As zoom levels
 generalize beyond BIG/SMALL, assign one tier per level; each level's output is
 reviewed at the level above.
 
+## Field notes (validated on a live 6-iteration run, 2026-08-18)
+
+- **Embed the map, don't reference it.** Generate the per-agent context with
+  `bin/zoom.py <project> <iter> <agent_id> --level big|small [--target id]`,
+  then paste the rendered map INTO the kid's spawn prompt. Kids spend zero
+  tool calls orienting; observed drop from 11–13 to 5–7 calls per kid.
+- **Healing (CC analogue of heal.py).** On an API-error death: check the
+  filesystem BEFORE resuming — kids often die after the node file landed,
+  losing only their report; then the artifact is reviewable and no resume is
+  needed. Otherwise resume the same agent (transcript context intact) rather
+  than respawning cold. On 529 overload waves, back off 60s+ before resuming,
+  and give resumed kids a degraded-mode fallback (fewer trials with the
+  reduced n recorded honestly) so a wave can't stall the run.
+- **Parallel-kid hygiene.** Kids see each other's untracked files in
+  `git status`. Instruct: report unexpected files, never touch or clean them.
+  Kids reliably flag them unprompted — treat that as the expected behavior.
+- **Verdict precedent.** Judge the chain's CORE claim; when a mechanism
+  prescription inside the hypothesis fails but the core claim survives,
+  return the verdict on the core claim and name the failed prescription as
+  explicitly unendorsed. State the proved invariant at the level it actually
+  holds — overclaiming in a verdict poisons every downstream reader.
+- **Cheap-agent experiments stay cheap.** When a hypothesis is about what
+  weak models do, the orchestrating kid must dispatch genuinely weak
+  subagents (e.g. haiku) for those roles and keep ground truth + scoring to
+  itself, with scratch under gitignored `sessions/`, never `nodes/`.
+
 ## Safety rails (inherited, non-negotiable)
 
 - Never create project-local `bin/snapshot-build-site.py` or
