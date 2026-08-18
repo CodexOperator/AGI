@@ -75,6 +75,7 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
     - `$PROJECT_ROOT` (your research graph): nodes, kits, schemas, experiments, MVPs, verdicts, project-specific `src/` modules. Default for almost all your work.
     - `$PLUGIN_ROOT` (the autoresearch-tree engine): graph_core, renderers, embeddings, schema_registry, driver.sh, dispatch/heal/zoom/cli, snapshot/render scripts, SKILL.md, agent-prompt.md, SessionStart hook.
     If you improve the **method itself** (rendering, dispatch, healing, schema parsing, embedding pipeline, agent prompt rules, hook behavior) → change files under `$PLUGIN_ROOT` and commit there:
+12. **Never push to any remote, never run sync commands.** Remote sync is automated (`grid.py cron` — the two-cadence pattern). Local commits per rule 5 are your entire git surface; tokens spent on push/pull/sync are waste.
     ```
     git -C "$PLUGIN_ROOT/../.." add -A && git -C "$PLUGIN_ROOT/../.." \
       -c user.email=auto@autoresearch -c user.name=autoresearch \

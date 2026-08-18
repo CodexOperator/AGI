@@ -30,7 +30,10 @@ Usage:
   grid.py diff NODE_ID [--back N]   # default: latest vs previous
   grid.py status                    # per-node drift vs ref tip
   grid.py versions NODE_ID          # version count (the vN marker)
-  grid.py sync [REMOTE]             # push refs/grid/* to origin; cron-able
+  grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
+  grid.py cron install|show|remove  # manage the two-cadence sync cron entries
+                                    #   */N: snapshot + push grid refs
+                                    #   hourly: push the D1 branch
 """
 
 import argparse
@@ -234,6 +237,59 @@ def cmd_sync(root: Path, remote: str | None) -> None:
     print(out or "grid: synced")
 
 
+def cron_log(root: Path) -> Path:
+    return Path.home() / "logs" / f"grid-sync-{root.name}.log"
+
+
+def cron_lines(root: Path, branch: str, mins: int, log: Path) -> list[str]:
+    """The two-cadence entries. The `cd` is load-bearing: cron runs from $HOME
+    and find_project_root walks up from cwd — a cd-less line fails silently."""
+    script = Path(__file__).resolve()
+    snap = (f"*/{mins} * * * * cd {root} && "
+            f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
+            f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
+    d1 = f"7 * * * * git -C {root} push -q origin {branch} >> {log} 2>&1"
+    return [snap, d1]
+
+
+def read_crontab() -> list[str]:
+    res = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+    return res.stdout.splitlines() if res.returncode == 0 else []
+
+
+def write_crontab(lines: list[str]) -> None:
+    text = "\n".join(lines) + ("\n" if lines else "")
+    res = subprocess.run(["crontab", "-"], input=text, capture_output=True,
+                         text=True)
+    if res.returncode != 0:
+        sys.exit(f"ERR: crontab install failed: {res.stderr.strip()}")
+
+
+def cmd_cron(root: Path, action: str, mins: int) -> None:
+    ensure_repo(root)
+    log = cron_log(root)
+    marker = str(log)  # unique per project; filters our entries only
+    current = read_crontab()
+    ours = [l for l in current if marker in l]
+    keep = [l for l in current if marker not in l]
+    if action == "show":
+        print("\n".join(ours) if ours else "grid cron: no entries installed")
+        return
+    if action == "remove":
+        write_crontab(keep)
+        print(f"grid cron: removed {len(ours)} entr(y/ies)")
+        return
+    # install (idempotent: replaces any prior entries for this project)
+    branch = git(root, "symbolic-ref", "--short", "HEAD")
+    if "origin" not in git(root, "remote").splitlines():
+        sys.exit("ERR: no origin remote — `grid.py sync <remote-url>` first")
+    log.parent.mkdir(parents=True, exist_ok=True)
+    new = cron_lines(root, branch, mins, log)
+    write_crontab(keep + new)
+    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly):")
+    print("\n".join(new))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="per-node git grid (D2/D3)")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -255,6 +311,9 @@ def main() -> None:
     sub.add_parser("status")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
+    cr = sub.add_parser("cron")
+    cr.add_argument("action", choices=["install", "show", "remove"])
+    cr.add_argument("--snapshot-mins", type=int, default=5)
     args = ap.parse_args()
     root = find_project_root()
     if args.cmd == "init":
@@ -273,6 +332,8 @@ def main() -> None:
         cmd_status(root)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
+    elif args.cmd == "cron":
+        cmd_cron(root, args.action, args.snapshot_mins)
 
 
 if __name__ == "__main__":
