@@ -146,7 +146,7 @@ def iter_node_files(root: Path):
 
 
 def cmd_commit(root: Path, files: list[str], do_all: bool,
-               session: tuple[str, str] | None) -> None:
+               session: tuple[str, str] | None, prefix: str = "") -> None:
     ensure_repo(root)
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
@@ -162,11 +162,11 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             continue
         if session:
             ref = session_ref(session[0], session[1], node_id)
-            prefix = f"session {session[0]}/{session[1]}: "
+            msg_prefix = prefix + f"session {session[0]}/{session[1]}: "
         else:
             ref = node_ref(node_id)
-            prefix = ""
-        v = commit_file(root, p, ref, prefix)
+            msg_prefix = prefix
+        v = commit_file(root, p, ref, msg_prefix)
         if v:
             written += 1
             print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
@@ -242,6 +242,8 @@ def main() -> None:
     c.add_argument("files", nargs="*")
     c.add_argument("--all", action="store_true")
     c.add_argument("--session", nargs=2, metavar=("ITER", "AGENT"))
+    c.add_argument("--prefix", default="",
+                   help='commit-message prefix, e.g. "cron: " for auto-snapshots')
     lg = sub.add_parser("log")
     lg.add_argument("node_id")
     lg.add_argument("-n", type=int, default=20)
@@ -259,7 +261,8 @@ def main() -> None:
         cmd_init(root)
     elif args.cmd == "commit":
         cmd_commit(root, args.files, args.all,
-                   tuple(args.session) if args.session else None)
+                   tuple(args.session) if args.session else None,
+                   prefix=args.prefix)
     elif args.cmd == "log":
         cmd_log(root, args.node_id, args.n)
     elif args.cmd == "diff":

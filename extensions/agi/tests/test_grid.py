@@ -78,6 +78,14 @@ def test_node_without_id_is_skipped(project):
     assert grid.ref_tip(project, "refs/grid/node/noid") is None
 
 
+def test_commit_prefix_marks_auto_snapshots(project):
+    f = project / "nodes" / "idea" / "x.md"
+    grid.cmd_commit(project, [str(f)], do_all=False, session=None,
+                    prefix="cron: ")
+    msg = grid.git(project, "log", "-1", "--format=%s", grid.node_ref("idea:x"))
+    assert msg == "cron: v1 idea:x"
+
+
 def test_sanitize_refuses_ref_hostile_chars():
     assert grid.sanitize("hyp:weird id~^?.") == "hyp/weird-id---"
     assert ".." not in grid.sanitize("a:..b")

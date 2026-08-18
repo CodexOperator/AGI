@@ -136,10 +136,18 @@ dimensions. `grid.py init` configures the origin fetch refspec
   session branches are their durable, diffable file-level record.
 - **Inspect:** `grid.py log <id>` / `diff <id> [--back N]` / `versions <id>`
   (the vN marker) / `status` (drift vs branch tips).
-- **Sync:** `grid.py sync [remote-url]` pushes `refs/grid/*` to origin; or
-  push D1+grid together from cron:
-  `git -C <project> push -q origin <branch> 'refs/grid/*:refs/grid/*'`.
-  Local commits stay instant and offline; the remote is periodic.
+- **Sync — two cadences:** grid refs are tiny (delta-only), the D1 branch is
+  the curated history, so split them:
+  - every 5 min: `cd <project> && grid.py commit --all --prefix "cron: "`
+    then `git push -q origin 'refs/grid/*:refs/grid/*'` — auto-snapshots any
+    in-flight node edits and makes them durable; change-only versioning means
+    an idle graph pushes nothing. This is the crash-recovery window: a run
+    that dies horribly loses at most 5 minutes of node state.
+  - hourly: `git push -q origin <branch>` — the reviewed D1 sync.
+  The `cron:` prefix keeps auto-snapshots distinguishable from
+  overseer-reviewed versions in `grid.py log`. Concurrency note: `update-ref`
+  is atomic per ref but last-writer-wins; per-ref CAS is TODO H10 if many
+  agents ever race the same node.
 
 ## Safety rails (inherited, non-negotiable)
 
