@@ -150,6 +150,14 @@ done
 ```
 The davebcn87/pi-autoresearch and ar-tree project copies are no longer canonical — only the two CC/hermes registry locations remain.
 
+### H9. Kid→overseer question channel for the pi dispatch path — P2
+**Rationale:** CC-dispatch kids can escalate judgment calls mid-task (SendMessage to main; four triggers + one-question budget — see `skills/agi/CC-DISPATCH.md` "Kid → overseer questions"). The pi path has no equivalent: `dispatch.py` is fire-and-forget and `heal.py` only kills/replaces. Unattended weak-model runs are exactly where a wrong silent judgment call is most likely, so parity matters — but blocking a subprocess on a question conflicts with fire-and-forget, so the design is the work.
+**Evidence:** CC-DISPATCH.md escalation section (commit `2ee9c5d`); first live CC run 2026-08-18 (fantasia): three kid judgment calls, all handled decide-and-document, protocol added kid-initiated stop/resume on top.
+**Action (design open, pick one):**
+1. *Poll-based:* agent writes `question.json` beside `agent.json`; `heal.py` (already polling every 30s) detects it, pauses the timeout clock, and either (a) surfaces it to the loop log for a human, or (b) dispatches a one-shot answerer agent (config `overseer_model`) whose reply is written to `answer.json` for the kid to poll.
+2. *Fail-forward:* no pause — kid writes the question INTO its node body as a `pending` verdict with `blocked_on:` field; the next iteration's dispatch targets it preferentially. Zero new plumbing, uses the graph itself as the message bus. Cheaper, loses same-turn context.
+Whichever lands: enforce the same four escalation triggers and per-kid budget as CC-dispatch, and add a regression test that a question never extends `agent_timeout_mins` unboundedly.
+
 ---
 
 ## Fold-time decisions
