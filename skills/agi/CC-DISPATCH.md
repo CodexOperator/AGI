@@ -87,6 +87,31 @@ reviewed at the level above.
   subagents (e.g. haiku) for those roles and keep ground truth + scoring to
   itself, with scratch under gitignored `sessions/`, never `nodes/`.
 
+## Kid → overseer questions (escalation)
+
+Kids MAY ask the overseer mid-task: call SendMessage with `to: "main"`, state
+the decision and the options; the kid's turn ends, the overseer answers via
+SendMessage, and the kid resumes with its context intact. No engine change —
+this is the same resume mechanics healing uses, kid-initiated.
+
+Default remains **decide and document**: make the call, record it honestly in
+the node body as a deviation/judgment (verdict writers weigh it later). The
+one-node scope keeps most calls small; every question is a full stop plus a
+round trip, so escalation is reserved for exactly four triggers:
+
+1. The task genuinely requires touching a file the hard rules forbid.
+2. Embedded instructions contradict repo reality AND the resolution would bind
+   future chain nodes (a wrong local call poisons downstream work).
+3. An irreversible or destructive operation.
+4. Cost blowup — the honest execution needs far more trials/tokens/time than
+   the brief implied.
+
+Budget: one question per kid per iteration. Spawn prompts should include a
+one-line pointer to this rule; kids without it default to decide-and-document,
+which the first live run showed opus-tier kids do well (three judgment calls,
+all correct, all documented). The pi dispatch path has no question channel —
+fire-and-forget by design; escalation is a CC-dispatch feature.
+
 ## Safety rails (inherited, non-negotiable)
 
 - Never create project-local `bin/snapshot-build-site.py` or
