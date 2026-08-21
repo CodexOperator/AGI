@@ -512,7 +512,7 @@ The only remaining `autoresearch-tree` strings in the skill are the literal conf
 
 **Referential integrity** is live: a `goal:`-prefixed parent that resolves to no goal prints `INTEGRITY: <file> references unknown goal '<id>'`. Exit stays 0 by default (the loop must never break on it); `--strict` exits 1.
 
-**Safety:** a missing/renamed `GOALS.md` is a no-op that prunes **nothing** — it must never be able to wipe the goal corpus. Status values are *not* enum-enforced: fantasia's G3 is `status: horizon`, outside the documented `active | phasing-out | complete` set, so unknown values are preserved verbatim with a stderr warning.
+**Safety:** a missing/renamed `GOALS.md` is a no-op that prunes **nothing** — it must never be able to wipe the goal corpus. Status values are *not* enum-enforced: unknown values are preserved verbatim with a stderr warning. **Updated 2026-08-21:** `horizon` — fantasia's G3 — was adopted into the taxonomy rather than warned about, since "declared, not yet being worked" is exactly the queued state L5 rotation needs and `max_goals_active` (3) already implies. Taxonomy is now `active | horizon | phasing-out | complete`; pass-through coverage moved to a genuinely unknown value.
 
 **Verified end-to-end on a fantasia copy** (not just unit tests): edges 12 → 19 (+7, one per goal→seed), `by type: … goal=7 …`, ASCII 33 → 40 lines. 12 tests in `extensions/agi/tests/test_snapshot_goals.py`. Project side: fantasia's 7 seed ideas now carry `parents: [goal:gN]`, mapping verified 1:1 against each seed's own body text.
 

@@ -129,7 +129,7 @@ A project holds **data and configuration; never engine code.**
 
 ```
 <project>/
-  GOALS.md                       long-term goals with status: active | phasing-out | complete
+  GOALS.md                       long-term goals: active | horizon | phasing-out | complete
   agi-tree.config.json           metrics, dispatch, timeouts
   nodes/<type>/*.md              the graph — frontmatter + body
   context/INJECTION.md           generated map
@@ -139,6 +139,8 @@ A project holds **data and configuration; never engine code.**
 ```
 
 **Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `phasing-out` and **deprecating — never deleting** its seed node; retired chains remain prior art.
+
+**Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `phasing-out` (retiring), `complete`. `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph.
 
 The engine is never committed into a project. Gitignore it:
 
