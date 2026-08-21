@@ -13,3 +13,8 @@ __pycache__/
 sessions/
 experiments/
 .claude/skills/
+
+# GitNexus-generated (wholly inside <!-- gitnexus:start/end -->; rebuilt by
+# `npx gitnexus analyze`, whose stat line churns on every commit)
+AGENTS.md
+CLAUDE.md
