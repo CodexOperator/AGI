@@ -154,3 +154,26 @@ def test_evidence_weighted_depth_is_zero_without_evidence(project):
     _node(project, "verdict", "v1", "verdict: proved", parents=["hypothesis:h1"])
     m = metrics.compute(project)
     assert m["evidence_weighted_depth"] == 0.0
+
+
+# ------------------------------------------------- deep corpora (H0c/H3b class)
+
+def test_deep_chain_does_not_blow_the_stack(project):
+    """The agi-tree corpus is gamed to 2000 hops; the recursive walk died at ~990.
+
+    A descriptive-only metric must never be able to abort the metrics stage.
+    """
+    _node(project, "idea", "n0000")
+    for i in range(1, 2000):
+        _node(project, "hypothesis", f"n{i:04d}",
+              parents=[f"hypothesis:n{i - 1:04d}" if i > 1 else "idea:n0000"])
+
+    m = metrics.compute(project)
+    assert m["longest_chain_length"] == 1999
+
+
+def test_cycle_in_parents_terminates(project):
+    """Back-edges resolve rather than looping (chain_engine's convention)."""
+    _node(project, "hypothesis", "a", parents=["hypothesis:b"])
+    _node(project, "hypothesis", "b", parents=["hypothesis:a"])
+    assert metrics.compute(project)["longest_chain_length"] >= 0

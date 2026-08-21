@@ -23,6 +23,7 @@ from graph_core.graph import Graph
 from graph_core.node import Node
 
 from chain_engine.chains import (
+    CHAIN_CACHE_VERSION,
     DEFAULT_MAX_CHAINS,
     DEFAULT_MAX_PATH_LEN,
     DEFAULT_DEADLINE_S,
@@ -325,3 +326,67 @@ def test_cache_path_is_per_directory(tmp_path):
     find_chains(gb, graph_dir=str(nb))
     assert (na / ".chain_cache.pkl").exists()
     assert (nb / ".chain_cache.pkl").exists()
+
+
+# ---------------------------------------------------------------------------
+# H0e: a truncated result must never be served as a complete one
+# ---------------------------------------------------------------------------
+
+def _deep_frontmatter_chain(tmp_path: Path, hops: int):
+    """`_deep_chain_graph`, but persisted so find_chains can cache it."""
+    ids = ["idea:0"] + [f"hyp:{i:05d}" for i in range(hops)] + ["exp:0"]
+    types = ["idea"] + ["hypothesis"] * hops + ["experiment"]
+    for t in TAIL_TYPES:
+        ids.append(f"{t}:0")
+        types.append(t)
+    return _build_from_frontmatter(
+        tmp_path,
+        dict(zip(ids, types)),
+        {a: [b] for a, b in zip(ids, ids[1:])},
+    )
+
+
+def test_truncated_result_rewarns_on_every_cache_hit(tmp_path, capsys):
+    """The defect: the cold run warned, every warm run was silent."""
+    g, nodes = _deep_frontmatter_chain(tmp_path, 40)
+
+    assert find_chains(g, graph_dir=str(nodes), max_path_len=10) == []
+    assert "WARN: find_chains truncated (max_path_len)" in capsys.readouterr().err
+
+    assert find_chains(g, graph_dir=str(nodes), max_path_len=10) == []
+    err = capsys.readouterr().err
+    assert "WARN: find_chains truncated (max_path_len, cached)" in err
+
+
+def test_complete_result_stays_silent_on_cache_hit(tmp_path, capsys):
+    """Re-warning must be driven by truncation, not by cache hits as such."""
+    g, nodes = _build_from_frontmatter(tmp_path, LINEAR_TYPES, LINEAR_EDGES)
+
+    find_chains(g, graph_dir=str(nodes))
+    capsys.readouterr()
+    assert find_chains(g, graph_dir=str(nodes))
+    assert "WARN" not in capsys.readouterr().err
+
+
+def test_truncation_reason_is_persisted(tmp_path):
+    g, nodes = _deep_frontmatter_chain(tmp_path, 40)
+    find_chains(g, graph_dir=str(nodes), max_path_len=10)
+
+    payload = pickle.loads((nodes / ".chain_cache.pkl").read_bytes())
+    assert payload["truncated_reason"] == "max_path_len"
+    assert payload["cache_version"] == CHAIN_CACHE_VERSION
+
+
+def test_unversioned_cache_is_refused(tmp_path):
+    """A pre-H0e cache cannot say whether it is complete, so it is not trusted."""
+    g, nodes = _build_from_frontmatter(tmp_path, LINEAR_TYPES, LINEAR_EDGES)
+    md = list(nodes.rglob("*.md"))
+    (nodes / ".chain_cache.pkl").write_bytes(pickle.dumps({
+        "chains": [["idea:stale"]],
+        "node_count": len(md),
+        "mtime": max(f.stat().st_mtime for f in md),
+        "saved_at": time.time(),
+    }))
+
+    chains = find_chains(g, graph_dir=str(nodes))
+    assert chains and chains[0][0] == "idea:1"
