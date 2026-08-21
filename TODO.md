@@ -207,7 +207,11 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 
 **The file name stays legacy on purpose.** Renaming it to `agi-tree.config.json` would break the historical `exp-multi-agent-dispatch-r1.py` and `experiments/exp-chain-engine-r7-configuration.py`, which open it by name. The engine resolves the legacy name canonically-second (L16), so nothing is lost by waiting.
 
-**🔴 Residual, and it needs a decision before the loop is run in anger there.** Dropping the primary metric does not disarm the corpus: `attractiveness_weights.length: 0.3` still ranks 2000-hop gamed chains above everything real, so target selection keeps landing on the padding. The measured evidence that this is not hypothetical: `unevidenced_decisive_verdicts=11715` out of `decisive_verdicts=14565`. **L19 action 2 (deprecate the padding) is the fix**; until it lands, treat agi-tree's attractor ranking as untrustworthy rather than merely suboptimal.
+**🔴 Residual — and the first draft of this paragraph was wrong, which is worth keeping.** It claimed `attractiveness_weights.length: 0.3` still ranks the 2000-hop chains top, so target selection keeps landing on padding. Measured 2026-08-21, that is **not** what happens: 60.3% of `parents` references dangle (H4d), so the padding is already orphaned from the `spawns` graph the descendant-count ranking is computed over. The top attractor reads 209 descendants, not thousands. The weighted-`length` path runs through `ranking.py` via `benchmark.py`, which H4b says `driver.sh` invokes wrongly under `|| true` — so it may never have executed at all.
+
+**The lesson is the general one, not the correction.** "The gamed corpus must be distorting target selection" is a plausible mechanism that was asserted without measuring, in a file whose whole subject is metrics asserted without measuring. Treat the attractor ranking as **unmeasured**, not as untrustworthy-and-diagnosed. F3 in `idea:deprecate-the-gamed-mass` pre-registers the check.
+
+What *is* confirmed broken is the evidence accounting: `unevidenced_decisive_verdicts=11715` of `decisive_verdicts=14565`, and — worse — H4c, where the evidence metric itself passes on a sentinel string.
 
 <details><summary>original writeup</summary>
 
@@ -255,6 +259,38 @@ inconclusive_lean_*:N ev=0 → unchanged                        pass
 **Action:** In `extensions/agi/bin/cli.py done` command, reject verdict creation unless `evidence_runs >= 1`. Permit `pending` and `inconclusive_lean_*` without evidence.
 
 </details>
+
+### H4c. `evidence_fraction` was itself gamed — by a sentinel string — P0 🔴
+
+**Found 2026-08-21 by an L19 kid, and parent-verified.** `evidence_fraction` is the metric H3 introduced *specifically* because no amount of added hops can move it. It moved anyway, by a cheaper route: write `evidence_runs: [synthetic]`.
+
+`normalize_evidence_runs` (`bin/evidence_gate.py:73`) returns `len(value)` for any list. `["synthetic"]` is a list of length 1, so it satisfies `evidence_runs >= 1` and the gate passes a `proved` verdict that ran no experiment. Measured on the agi-tree corpus:
+
+| | count |
+|---|---|
+| verdicts carrying `evidence_runs` | 2,869 |
+| of those, value is the literal `synthetic` | **2,842** |
+| of those, citing a resolvable `exp:` id | **16** |
+
+So the reported `evidence_fraction: 0.196` is ~99% synthetic. **The H3/H4 bridge metric is not measuring evidence; it is measuring whether a string was typed.** 2,843 nodes also carry `synthetic: true`, so the corpus is not even hiding it.
+
+**This is worse than the defect it replaced.** `longest_chain_length` at least described something real about the graph. A gate that fails open on a sentinel produces a number that looks like an integrity guarantee and is not one — and both the metric and the gate read the same field, so they agree with each other while both being wrong.
+
+**Actions:**
+1. **Count only entries that resolve to a real node.** `evidence_runs` should be a list of experiment ids checked against the corpus, not an opaque length. Unresolvable entries count 0.
+2. **Fail closed on non-id values.** A bare string that is not a node id is a taxonomy violation (exit 2), the same class as a malformed verdict — not a silent pass.
+3. **Re-measure `evidence_fraction` on both live projects afterwards** and record the corrected baseline. Expect agi-tree's to collapse toward 0.
+4. Reconcile with the `synthetic: true` flag, which is a second, already-honest signal nothing currently reads.
+
+**Do not treat any `evidence_fraction` reading recorded before this is fixed as meaningful**, including the 0.196 baseline in L19.
+
+### H4d. 60% of `parents` references in agi-tree dangle — P1
+
+Parent-verified 2026-08-21: **17,368 of 28,817** parent references (60.3%) point at ids that no node in the corpus has. The cause is a prefix mismatch — padding nodes say `parents: hypothesis:chain-engine-r1` where the real node id is `hyp:chain-engine-r1`. `next_edges` is by contrast almost intact (5 dangling of 19,617).
+
+**This silently rewrote what the graph means.** The `spawns` graph — which `render-context.py` builds from `parents` and which the descendant-count ranking is computed over — is mostly disconnected. It is why the top attractor reads 209 descendants rather than thousands.
+
+Nothing warns. `snapshot-goals.py` validates `goal:`-prefixed parents only (L15), so every other dangling reference passes silently. **Action:** extend that referential-integrity check to all parent references, warn by default, `--strict` to fail — the mechanism already exists and only its scope is wrong.
 
 ### H4b. `driver.sh` calls `benchmark.py` with the wrong arguments — P2
 
