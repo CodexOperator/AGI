@@ -24,6 +24,9 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 SRC_GRAPH = PLUGIN_ROOT / "src" / "graph_core"
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import evidence_gate  # noqa: E402
+
 
 def _find_root(cwd: Path | None = None) -> Path:
     d = (cwd or Path.cwd()).resolve()
@@ -91,6 +94,24 @@ def _write_node(path: Path, fm: dict, body: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def _gate(agent: dict, fm: dict):
+    """Apply the H4 evidence gate to one agent record (post_wire writer path).
+
+    Evidence count comes from the agent record first (written by `cli.py done`),
+    falling back to the node's own `evidence_runs` frontmatter.
+    """
+    runs = agent.get("evidence_runs")
+    if runs is None:
+        runs = fm.get("evidence_runs")
+    res = evidence_gate.apply_gate(
+        agent.get("verdict") or "pending",
+        runs,
+        bypass=str(agent.get("evidence_gate", "")) == "bypassed",
+    )
+    evidence_gate.announce(res)
+    return res
+
+
 def cmd_wire(args: argparse.Namespace) -> int:
     root = _find_root()
     iter_dir = root / "sessions" / f"iter-{args.iter_n:03d}"
@@ -119,6 +140,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
     updated_nodes: list[str] = []
     added_edges: list[str] = []
     skipped: list[str] = []
+    demoted: list[str] = []
 
     for agent in manifest.get("agents", []):
         if agent.get("status") != "done":
@@ -139,8 +161,15 @@ def cmd_wire(args: argparse.Namespace) -> int:
         if node_path and node_path.exists():
             content = node_path.read_text(encoding="utf-8")
             fm, body = _read_frontmatter(content)
+            # H4 evidence gate — this is the second writer path, and it must
+            # enforce the same rule as cli.py done.
+            gate = _gate(agent, fm)
+            verdict = gate.verdict
+            if gate.demoted:
+                demoted.append(f"{node_id}: {gate.original} -> {gate.verdict}")
             fm["verdict"] = verdict
             fm["confidence"] = confidence
+            evidence_gate.stamp(fm, gate)
             fm["wired_at"] = int(time.time())
             fm["wired_from"] = agent["id"]
             if notes:
@@ -154,6 +183,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
             slug = _slug_from_node_id(node_id)
             vpath = verdict_dir / f"{slug}.md"
             import yaml
+            gate = _gate(agent, {})
+            verdict = gate.verdict
+            if gate.demoted:
+                demoted.append(f"verdict:{agent['id']}: {gate.original} -> {gate.verdict}")
             fm = {
                 "id": f"verdict:{agent['id']}",
                 "type": "verdict",
@@ -164,6 +197,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
                 "wired_from": agent["id"],
                 "wired_at": int(time.time()),
             }
+            evidence_gate.stamp(fm, gate)
             vpath.write_text(
                 "---\n"
                 + yaml.dump(fm, default_flow_style=False)
@@ -229,6 +263,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
     print(f"  edges added: {len(added_edges)}")
     for e in added_edges:
         print(f"    - {e}")
+    if demoted:
+        print(f"  evidence-gate demotions: {len(demoted)}")
+        for d in demoted:
+            print(f"    - {d}")
     if skipped:
         print(f"  skipped: {len(skipped)}")
         for s in skipped:

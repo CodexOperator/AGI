@@ -83,6 +83,7 @@ One iteration = one node per kid, reviewed and committed by the parent.
 3. **Spawn kids.** Generate each kid's context with `bin/zoom.py`, then **embed the rendered map in the spawn prompt** — don't merely reference it. Each prompt must be self-contained: zoom scope, target parent node id, chain step, node file format, verdict taxonomy, project paths (`INJECTION.md`, `GOALS.md`, spec).
    Kid deltas from the normal rules: **do not commit**, and do not call `cli.py done` — write the node file, report, stop. The parent owns commits and record-keeping.
 4. **Review — this is the gate.** For each node: parent link resolves, taxonomy valid, and **`proved`/`disproved` REQUIRE experiment evidence (`evidence_runs >= 1`)**. Demote unevidenced verdicts to `pending` or `inconclusive_lean_*`. Reject orphans.
+   The evidence half is now enforced in code — `bin/evidence_gate.py`, applied by both writer paths (`bin/cli.py done` and `bin/post_wire.py`). An unevidenced `proved`/`disproved` is auto-demoted to `inconclusive_lean_*:50` and stamped `demoted_from` / `demote_reason`; the node is kept, only the overclaim is dropped. `--no-evidence-gate` bypasses it loudly and stamps `evidence_gate: bypassed` — treat any such node as unreviewed. Still yours by hand: parent-link resolution and orphan rejection.
 5. **Commit** accepted nodes in one commit: `iter-N: <kid-a summary>; <kid-b summary>`. Then `bin/grid.py commit --all`.
 6. **Re-render** and report metric deltas.
 
@@ -115,6 +116,12 @@ Budget: one question per kid per iteration. Mechanism: `SendMessage` to the pare
 **Never optimize raw chain length.** Agents proved it gameable: 9 chains × 2000 hops via shortcut cycles, carrying no signal — and the resulting pathological structure then broke the render path outright. Set `metric_primary` to something goal-attributable (e.g. `outcome_coverage`) and leave `longest_chain_length` in `secondary_metrics` as a descriptive statistic only.
 
 Pair that with the evidence gate. A gameable metric plus unevidenced verdicts produces impressive numbers that mean nothing.
+
+Metrics are computed by `bin/metrics.py` (called from `driver.sh`). It reads `metric_primary` from the config and falls back to `outcome_coverage` — never chain length — when the config omits it, and prints a `METRIC_WARNING gameable_primary=…` line if a project still names a gameable metric as primary. Alongside the structural statistics it emits:
+
+- `evidence_fraction` — asserting verdicts (everything but `pending`) that carry `evidence_runs >= 1`. This is the metric counterpart of the H4 gate: it moves only when experiments are actually run, and adding hops cannot shift it.
+- `unevidenced_decisive_verdicts` — should be `0`. Nonzero means a gate bypass or a hand-edited node.
+- `evidence_weighted_depth` — `avg_chain_depth × evidence_fraction`, depth discounted by what backs it.
 
 ## Project layout
 
