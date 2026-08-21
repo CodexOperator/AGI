@@ -1,20 +1,29 @@
 # HANDOFF — agi, for a fresh session on a new machine
 
 > Self-contained. Assumes **nothing** exists locally: no clone, no deps, no CLI, no auth.
-> Written 2026-08-13. Repo state: `CodexOperator/agi` **private**, default branch `master`, 118 commits, 266 tracked files.
+> Updated 2026-08-18. `CodexOperator/agi` **private**, default branch `master`.
+> Local paths note: `~/.hermes/agi` is now a **symlink → `~/work/agi`**. Either path works.
 
 ---
 
 ## 0. TL;DR
 
-`agi` = **Artificial Graph Intelligence**. One repo holding two things that used to be separate:
+`agi` = **Artificial Graph Intelligence**. One repo holding:
 
 1. **Graph algorithms** — build a graph from a codebase, query it, render it as ASCII, benchmark it.
-2. **A research loop harness** — spawns parallel LLM agents that extend a research DAG (idea → hypothesis → experiment → verdict → mvp → outcome), one node per iteration.
+2. **A loop harness** — spawns parallel LLM agents ("kids") that extend a DAG, one node per iteration, with a reviewing overseer.
 
-The point of the fold: **the loop researches its own code**. Graph nodes correspond to actual files and functions in this repo, so the loop can reason about — and eventually modify — its own algorithms.
+**The loop works on its own code.** Graph nodes correspond to real files and functions, so the loop can reason about — and eventually modify — its own algorithms.
 
-The fold from `CodexOperator/autoresearch-tree` into this repo is **complete and pushed**. Both git histories are preserved via subtree merge.
+### Where this is going — read `TODO.md` §"Long-term direction" (L0–L13)
+
+The system is generalizing **from a research loop into a general-task loop**: game, app, web, SEO, ops. Each node stops being a research artifact and becomes a **long-lived thought** — extended, forked, deprecated over time.
+
+**Design ethic governing all of it:** emitted tokens are an agent's motion; injected context is its sensation; context growth makes motion heavier. Every capability exists to keep agent bodies light. Sprint one node hard, rest, let the graph carry the marathon. Mundane operations — and the small errors they breed — are the system's job to absorb, never the agent's. Full statement in `skills/agi/CC-DISPATCH.md` §"Why this machinery exists".
+
+`TODO.md` L0 has a status table separating what is **built** from what is only **described**. Read it before planning — several capabilities exist as prose only.
+
+⚠️ **There is no long-term goal system yet.** Two unrelated fragments use the word "goal" and neither is one; `TODO.md` L0a has the detail and the decision that has to be made before L4/L5. Don't build on a goal system assuming it exists.
 
 ---
 
@@ -41,7 +50,9 @@ If that prints an `rmtree` line, **rename the file** so the plugin's safe versio
 mv <project>/bin/snapshot-build-site.py <project>/bin/snapshot-build-site.py.STALE-DO-NOT-USE
 ```
 
-Audit the same way for `<project>/bin/render-context.py`.
+**Audit `<project>/bin/render-context.py` the same way** — there is a second stale copy in the wild (`TODO.md` H0b) that uses a recursive chain walk and dies with `RecursionError` on any deep corpus. It doesn't destroy data, but it does break the render stage.
+
+**General rule (`TODO.md` H0b):** treat *any* project-local `bin/*.py` as stale until proven otherwise. The override mechanism itself is the defect — `TODO.md` H0 action 2 proposes making it opt-in.
 
 ---
 
@@ -162,7 +173,8 @@ python3 -c "from agi_algos import build_graph, GraphBuilder, QueryEngine, PiTree
       driver.sh                      orchestrator; resolves PLUGIN_ROOT + PROJECT_ROOT
       conftest.py                    pytest path injection for src/
       bin/                           snapshot-build-site, render-context, dispatch,
-                                     heal, zoom, cli, benchmark, post_wire
+                                     heal, zoom, cli, benchmark, post_wire,
+                                     grid.py (per-node git versions + cron sync)
       hooks/cc-session-start.sh      Claude Code SessionStart injector
       lib/                           find-root.sh, agent-prompt.md (builder agent rules)
       scripts/migrate_to_sqlite.py   one-shot filesystem -> sqlite migration
@@ -184,7 +196,11 @@ python3 -c "from agi_algos import build_graph, GraphBuilder, QueryEngine, PiTree
       index.ts                       pi extension: hooks before_agent_start,
                                      refreshes INJECTION.md per agent turn
 
-  skills/agi/SKILL.md                the skill doc driving loop iterations
+  skills/agi/
+    SKILL.md                         the skill doc driving loop iterations
+    CC-DISPATCH.md                   CC-native dispatch protocol (kids as CC
+                                     subagents), design philosophy, escalation,
+                                     model tiering, git grid usage
 
   context/
     kits/                            5 cavekits + overview (the fold spec)
@@ -226,90 +242,86 @@ python3 -c "from agi_algos import build_graph, GraphBuilder, QueryEngine, PiTree
 | SessionStart hook | emits map header with graph snapshot + top-10 attractive ideas |
 | `from agi_algos import ...` | all public symbols import |
 
+### Landed since the fold (2026-08-18)
+
+| Work | Where |
+|---|---|
+| **CC-native dispatch** — Claude Code subagents as builder kids | `skills/agi/CC-DISPATCH.md`. Validated on a live 6-iteration run. Substantially delivers `TODO.md` L12. |
+| **Kid → overseer escalation** — four triggers, one question per kid per iteration | `CC-DISPATCH.md` §"Kid → overseer questions" |
+| **The git grid** — per-node versions in `refs/grid/*`, session drafts, cron sync | `extensions/agi/bin/grid.py`, `TODO.md` H10 |
+| **Design philosophy** — motion / sensation / weight | `CC-DISPATCH.md` §"Why this machinery exists", `extensions/agi/lib/agent-prompt.md` |
+| **agi-tree corpus restored + pushed** | 29,422 nodes; `CodexOperator/agi-tree` exists with all branches pushed; working tree clean |
+
 ### NOT done — deliberately
 
 | Item | Why |
 |---|---|
-| **Live agent run** (`agi --max-iters 1` without `--smoke`) | Never executed. Consumes tokens. This is what verifies the env-leak fix — see §5. |
-| **Bridge-load verification** | Needs a live pi + CC session. Bridge code is preserved verbatim but unproven post-fold. |
-| **`CodexOperator/agi-tree` repo** | Remote URL is configured in `~/.hermes/agi-tree/` but **the GitHub repo was never created and nothing was pushed**. Blocked on the H0 fallout — see §5. |
-| **Archiving `CodexOperator/autoresearch-tree`** | Still **public and unarchived**. It does **not** contain the fold. Gated on verification. |
-| **Deleting legacy `~/autoresearch-tree/`** | `TODO.md` → C1. Note its local `main` has 2 commits never pushed to its origin. |
-| **Loop-against-self** | `~/.hermes/agi/` is not yet itself a research project — it has no `autoresearch-tree.config.json` or `nodes/`. Bootstrapping that is the real "dogfood" milestone. |
+| **Loop run against agi-tree** | 🔴 Blocked by **H0b** (stale project-local `render-context.py` → `RecursionError`) and **H0c** (`find_chains` hangs >300 s on the full corpus). Fix both before running. |
+| **Live pi agent run** (`agi --max-iters 1` via pi, no `--smoke`) | Never executed. Would verify the env-leak scrub. The CC-dispatch path has been exercised live instead. |
+| **Bridge-load verification** | Needs a live pi + CC session. Bridge code preserved verbatim but unproven post-fold. |
+| **Archiving `CodexOperator/autoresearch-tree`** | Still **public and unarchived**. Does **not** contain the fold. `TODO.md` C2. |
+| **Deleting legacy `~/autoresearch-tree/`** | `TODO.md` C1. |
+| **Loop-against-self** | `~/work/agi/` is not itself a project yet — no `autoresearch-tree.config.json` or `nodes/`. Bootstrapping that is the real dogfood milestone, and it interacts with L8 — read that first. |
 
 ---
 
-## 5. Pending actions that can only happen on the OLD machine
+## 5. Local-only state (not in any git remote)
 
-These involve local state that is not in any git remote. If the old machine is being retired, do these first or accept the loss.
+Most of what used to live here is done. What remains:
 
-> **Update 2026-08-13:** §5a is **done** — the corpus is restored (29,422 files) and H0 is defused in that project. But restoring it surfaced two further blockers, **H0b** and **H0c** in `TODO.md`: a second stale project-local override (`render-context.py`, recursive → `RecursionError`), and `find_chains()` failing to terminate within 300 s on the full corpus. **The loop still cannot be run against `~/.hermes/agi-tree/`.** §5b and §5c below remain open.
+- **`~/.hermes/agi-tree/`** — restored to 29,422 nodes, working tree clean, pushed to `CodexOperator/agi-tree` (branches `master`, `iter24-extend-300hop`, `claude/wonderful-lamport-51c9a9`). Its stale `bin/snapshot-build-site.py` is renamed `.STALE-DO-NOT-USE`. **Its `bin/render-context.py` is still stale — H0b.** Do not run the loop here yet.
+- **`~/autoresearch-tree/`** — legacy directory, fully captured inside the agi subtree merge. Safe to delete (`TODO.md` C1).
+- **`~/.hermes/belam-codex-modularnn-spike-viz/`** — separate modularNN worktree, unrelated. `TODO.md` C4. **Audit it for the H0/H0b stale-script landmine before ever running the loop there.**
+- **`~/.claude/settings.json`** — the SessionStart hook entry still points at the legacy `~/autoresearch-tree/...` path. Works today; breaks the moment C1 runs.
+- **`~/.hermes/HANDOFF-autoresearch-2026-05-01.md`** — superseded by this file. Retains iters 6–37 detail (embedding wins, metric gaming) worth one read.
 
-### 5a. ✅ Restore the agi-tree node corpus — DONE
+### Live verification still owed
 
-`~/.hermes/agi-tree/` has **29,264 node files deleted from disk** by the H0 bug. All are present in git HEAD — verified individually with `git cat-file -e`. Of the 158 survivors, 15 differ from HEAD and are strictly *worse* (regeneration stripped their `next_edges` links); 0 are new. A full restore therefore loses nothing.
-
-```bash
-# 1. defuse H0 FIRST, or the next run wipes it again
-mv ~/.hermes/agi-tree/bin/snapshot-build-site.py \
-   ~/.hermes/agi-tree/bin/snapshot-build-site.py.STALE-DO-NOT-USE
-
-# 2. restore
-git -C ~/.hermes/agi-tree checkout -- nodes/
-
-# 3. verify — expect 29422
-find ~/.hermes/agi-tree/nodes -name '*.md' -type f | wc -l
-```
-
-> This was attempted during the fold session and **correctly blocked** by the Claude Code safety classifier, on the grounds that discarding working-tree state across a research corpus needs the user to name that path explicitly. Run it yourself, or authorize it.
-
-### 5b. Push agi-tree
-
-Only after 5a. The working tree also carries pre-existing edits (`autoresearch-tree.config.json`, `autoresearch.jsonl`, `src/chain_engine/chains.py`) and untracked artifacts (`nodes.db`, `.chain_cache.pkl`, `exp-a01-extend-2000hop.py`, `.claude/worktrees/`).
+The pi dispatch path has never been run live post-fold. If you use it:
 
 ```bash
-cd ~/.hermes/agi-tree
-git status                       # review before staging
-# gitignore the cache/worktree artifacts, commit or stash the real edits
-gh repo create CodexOperator/agi-tree --private --source=. --remote=origin
-git push -u origin master        # master only; iter branches stay local
-```
-
-Current branch there is `iter24-extend-300hop`, not `master` — check out `master` first, or decide deliberately which to push.
-
-### 5c. Live verification (the real gate)
-
-```bash
-cd ~/.hermes/agi-tree            # only after 5a + H0 defused
+cd <project>
 agi --max-iters 1 |& tee /tmp/agi-iter1.log
 tail -50 sessions/iter-*/a00-*/output.log
 ```
 
-**Must NOT contain** `api.anthropic.com`, `Token Plan`, or HTTP 429. If it does, pi is leaking the Claude Code subscription quota again — that was fixed in commit `5d7c7f1` (dispatch.py scrubs `ANTHROPIC_*` / `CLAUDE_CODE_*` from the pi subprocess env), so a recurrence means a new leak path. Expected instead: minimax-style output.
-
-### 5d. Other local-only state
-
-- `~/autoresearch-tree/` — legacy dir; local `main` is 2 commits ahead of its origin (`006d808` tier-0 tracking, `1aebdf7` pre-fold WIP). Both are already captured inside the agi subtree merge, so nothing is lost by deleting it.
-- `~/.hermes/belam-codex-modularnn-spike-viz/` — separate modularNN research worktree. Unrelated to the fold. `TODO.md` → C4. **Audit it for the H0 stale-script landmine before ever running the loop there.**
-- `~/.hermes/HANDOFF-autoresearch-2026-05-01.md` — the previous handoff. Superseded by this file, but retains detail on iters 6–37 (embedding wins, metric gaming) worth reading once.
+**Must NOT contain** `api.anthropic.com`, `Token Plan`, or HTTP 429. If it does, pi is leaking the Claude Code subscription quota — fixed once in `5d7c7f1` (dispatch.py scrubs `ANTHROPIC_*`/`CLAUDE_CODE_*` from the pi child env), so a recurrence means a new leak path. CC-native dispatch (`CC-DISPATCH.md`) is the *sanctioned* way to spend subscription tokens; never bypass the scrub instead.
 
 ---
 
 ## 6. What to work on next
 
-`TODO.md` is the register. Priority order:
+`TODO.md` is the register. Two tracks: **unblock** (fix what's broken) and **direction** (build toward the general-task loop). Unblock first — the direction work runs on top of a loop that currently can't run on a real corpus.
+
+### Track 1 — unblock (do these first)
 
 | ID | Item | Why first |
 |---|---|---|
-| **H0** | Stale snapshot override wipes node corpus | Data loss. Blocks safe loop runs anywhere. |
-| **H3** | Replace `longest_chain_length` metric | Agents proved it gameable — they hit 2000 hops via shortcut chains (`hops=2*cycle+8`) with zero research signal. Until this changes, the loop optimizes noise. |
-| **H4** | Orphan-verdict gate (`evidence_runs > 0`) | 99.7% of verdicts in the iter 6–37 run had no backing experiment. The system flagged its own bullshit (commit `67ead2f0`) but the gate was never added to the writer path. |
-| **H1** | DB-only state migration | The stated long-term direction: no state files, DB as the only state reference, graph as the render layer. `sqlite_backend.py` (278 lines) and `db_loader.py` (173 lines) already exist as scaffolding. |
-| **H2** | Import agi-tree nodes into the DB | 29,422 accumulated research nodes become queryable prior art. Depends on H1. |
-| **A1 → A2** | Data-source-agnostic `graph_builder`, then unify the two ASCII renderers | Unblocks a single rendering path across both taxonomies. |
-| **H7** | Ship gensim+UMAP embeddings to production | Already PROVED: Spearman 0.79+ vs 0.49 for PCA; k-NN 45.4% vs 8.4%. Sitting unused in `src/embeddings/`. |
+| **H0b** | Stale project-local `render-context.py` (recursive → `RecursionError`) | One rename unblocks agi-tree. Then audit *every* project for any `bin/*.py` override. |
+| **H0c** | `find_chains()` hangs >300 s on the full corpus | The loop cannot run on agi-tree until this is bounded. |
+| **L7 bug** | `zoom.py:89-91` silently serves the whole graph when `graph_core` import fails | Subtree bounding never engages on big corpora — the opposite of the design intent. Small fix, immediate payoff. |
+| **H3 + H4** | Gameable metric; unevidenced verdicts | Together these are the credibility problem: impressive numbers that mean little. H0c is H3's downstream damage — same defect, two ends. |
 
-**H3 and H4 together are the credibility problem.** The loop currently produces impressive-looking numbers that mean very little: a gameable primary metric plus verdicts with no evidence backing. Fixing those matters more than adding capability.
+### Track 2 — direction (`TODO.md` L0–L13)
+
+Recommended order, with the dependencies that force it:
+
+1. **L0a — decide where goals live.** Everything scoring-related (L4, L5) blocks on this, and it's a 30-minute decision, not a build. Recommendation in the entry: project-side.
+2. **L1 — the 5-step zoom axis**, starting with **level 3** (code nodes stitchable into a runnable directory). Level 3 is what makes the graph an executable artifact instead of a description of one. L3 (model tiering) and much of L2 block on this.
+3. **L11 — rename `overseer` → `parent`, and script away the copy-paste spawn step.** Cheap, and it directly serves the design ethic: every un-scripted step is motion spent on operations instead of work.
+4. **L2 — IO maps.** These are what keep L1's decompose/rollup honest; contracts are what survive a zoom change.
+5. **L12 — finish the CC runtime.** Mostly built; needs the pi-invocation flag and a hook-parity audit. **If the audit finds a gap, report it and plan rather than improvising.**
+6. **L13 — strip stale history from spawn-time docs.** Every stale line is sensation an agent pays for and can't act on.
+
+L8 (one repo vs two), L9 (forkability), L10 (peek/dashboard), L6 (recursive sub-loops) are P2 and can follow.
+
+### Architecture questions — current answers
+
+**Should `agi-tree` live inside `agi`?** *Optional, and there's a better shape.* No paradox — a repo holding a graph that describes itself is ordinary self-reference. But two real costs: **self-inflation** (graph storage inside the parsed tree means each iteration feeds the next build; needs an explicit parser exclusion shipped in the same commit) and **clone weight** (29,422 node files ride along for every consumer). Recommended instead: put the graph in a dedicated ref namespace `refs/tree/*`, exactly as `grid.py` already does with `refs/grid/*` — baked in, never checked out, fetched on demand. Full analysis in `TODO.md` L8.
+
+**Should `agi` sit inside every project that uses it?** **No.** That's the H0/H0b failure mode generalized — stale project-local copies of engine scripts silently destroyed 29,264 files. Vendoring the *entire engine* per project makes every project a stale override waiting to happen. Engine installed once and referenced by version; each project owns only its own graph + config + goals doc. This is also the precondition for L9 (forkability).
+
+**Is the goal system reflected in `agi-tree`?** No — because it doesn't exist in `agi` either. See `TODO.md` L0a. `agi-tree` is simply stale relative to the engine; its last substantive work is the 2000-hop chain extension that produced H3 and H0c.
 
 ---
 
