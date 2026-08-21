@@ -209,24 +209,33 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 | Capability | State |
 |---|---|
 | Zoom axis | **BIG/SMALL only.** `bin/zoom.py --level big\|small`. No numeric axis. |
-| Model tiering | **Described, not built.** `CC-DISPATCH.md:87-93` maps tiers onto zoom; blocked on L1. |
+| Model tiering | **Described, not built.** `CC-DISPATCH.md:87-93`. Now specified as fully custom + three-tier (delegator/parent/kid) — see L3. |
 | H4 evidence gate | **Enforced by hand.** Overseer checks at review (`CC-DISPATCH.md:77-81`); the `cli.py` gate is unbuilt. |
-| Goal-fulfillment scoring | **Does not exist.** See L0a. |
+| Goal-fulfillment scoring | **Goals exist project-side** (`fantasia/GOALS.md`, G1–G7); **scoring against them does not**. `outcome_coverage` is a proxy. See L0a. |
 | IO maps | **Do not exist.** |
 | CC-native dispatch | **Largely built** — `skills/agi/CC-DISPATCH.md`, validated on a live 6-iteration run. See L12. |
 | Git grid | **Built** — `bin/grid.py`, refs namespace, cron sync (H10). |
 | Per-agent condensed injection | **Built, with a known bug** — see L7. |
 
-### L0a. There is no long-term goal system yet — read before building on one
+### L0a. The goal system EXISTS — it lives project-side, in `fantasia` — ✅ DECIDED
 
-Two unrelated things in this repo use the word "goal". Neither is a goal system for growing chains.
+**Correction (2026-08-18).** An earlier draft of this entry claimed no goal system existed. Wrong — it was looked for in `agi` and `agi-tree` only. It lives in the **project** repo:
 
-1. **`graph_builder.parse_goals()`** (`extensions/agi/src/agi_algos/graph_builder.py:491`) parses a `goals/` directory into `goal`-type nodes with status/priority/urgency. It belongs to the **hermes 35-node-type code graph**, not the loop's chain graph. Its call site (`:2579`) hardcodes `<hermes_dir>/belam-codex/goals` — **a path that doesn't exist on this machine**, so it returns 0. Effectively dead code.
-2. **`CC-DISPATCH.md`** references a "goals doc" / "goal custody" (`:9`, `:61`, `:89`) as a *project-side convention*. Line 9 says outright: *"Project repos may carry their own customizations (goal docs, metric choice); this file stays generic."* No such doc exists in `agi` or `agi-tree`.
+**`~/work/fantasia/GOALS.md`** — root goals `G1..G7`, each with `status:` (`active` / `phasing-out` / `complete`). Seed nodes in `nodes/idea/` reference goals by id. Chains are scored on progress toward them via `metric_primary: outcome_coverage` (fraction of chains reaching a real outcome) in `fantasia/autoresearch-tree.config.json` — note fantasia has **already moved off the gameable `longest_chain_length`**, which now sits in `secondary_metrics`.
 
-**So `agi-tree` reflects no goal system, because there is none to reflect.** `agi-tree`'s most recent substantive work is `d7d9ad47 a01: extend 9 chains to 2000 hops` — the gamed-metric work that produced H3 and H0c. It's stale relative to the engine, not out of sync with a goal feature.
+**Goal lifecycle, as practiced:** each long-term goal is a build tree. Retire by marking the section `status: phasing-out` and **deprecating — never deleting** its seed node; a phased-out goal's tree is marked `complete`, or is retired node by node as other nodes absorb its function. **Retired chains remain prior art.** That is the mechanism L5 formalizes.
 
-**Decide before building L4/L5:** either (a) formalize goals as a project-side artifact (`<project>/goals/*.md`) that the loop reads and scores against — then repoint or delete `parse_goals`; or (b) make goals first-class engine nodes at zoom level 1. **(a) recommended** — goals are domain content, and the engine staying domain-free is what makes L9 (forkability) possible. Don't leave both fragments in place; the name collision will mislead every future reader.
+**Decision: goals are project-side artifacts.** Confirmed by the user 2026-08-18, and already validated in production by fantasia. The engine stays domain-free — which is exactly what makes L9 (forkability) possible.
+
+**What's actually missing is engine support:**
+1. `outcome_coverage` is a *proxy* — it counts chains reaching an outcome, not their **attribution to a specific goal**. True goal-fulfillment scoring (L4) is still unbuilt.
+2. Goal `status` transitions are a human convention in Markdown; nothing reads or enforces them (L5).
+3. Nothing validates that a seed node's goal reference resolves to a real goal id — an orphaned reference fails silently.
+
+**Cleanup — resolve the name collision.** `graph_builder.parse_goals()` (`extensions/agi/src/agi_algos/graph_builder.py:491`) parses a *different* `goals/` directory into `goal`-type nodes for the hermes 35-node-type **code** graph. Its call site (`:2579`) hardcodes `<hermes_dir>/belam-codex/goals`, **a path that no longer exists**, so it returns 0. It is dead code and unrelated to `GOALS.md`. Repoint it or delete it — two different things named "goal" in one codebase will mislead every future reader.
+
+**`agi-tree` has no goals** and no `GOALS.md`. It predates the pattern; its last substantive work is the 2000-hop chain extension that produced H3 and H0c. If `agi-tree` is to keep being worked, it needs its own `GOALS.md` — otherwise its chains are unscoreable.
+
 
 ### L1. Adjustable zoom — generalize BIG/SMALL into a 5-step numeric axis — P1
 Today `zoom.py` takes `--level big|small`. Replace with `--level 1..5`.
@@ -253,10 +262,25 @@ Every node declares **required inputs** and **promised outputs**. Each entry car
 
 IO maps **re-derive when neighbors change**, so decomposing a node never orphans its contracts. This is the mechanism that keeps L1's decompose/rollup honest — contracts are what survive a zoom change.
 
-### L3. Model tiering by zoom — P1 (blocked on L1)
-Cheap models work zoomed-in nodes; progressively stronger models review outward; the frontier model holds root goals. Each level's output is reviewed at the level above.
+### L3. Model tiering — fully custom, three-tier — P1 (blocked on L1 for per-level assignment)
 
-Half-specified already in `CC-DISPATCH.md:87-93` for the BIG/SMALL case. Generalizing to the numeric axis is mostly a config table: one tier per level. Pairs with L1's fine-tuning data — the long game is a level-specialized small model per tier.
+**Not a fixed ladder — a config the user sets and experiments with.** Specify the model for the parent and for the kids independently, and run different combinations to find what works for a given project and zoom level. Nothing hardcoded.
+
+**Three tiers, not two:**
+
+| Tier | Role | Runs as |
+|---|---|---|
+| **Delegator** | The main chat the user actually sees. Holds user intent, coordinates **several parent/kid groups** at once, reports progress back to the user. | The user's session |
+| **Parent** | Owns one loop: picks zoom targets, spawns kids, reviews their nodes, enforces the evidence gate, commits the iteration. | **A subagent**, separate from the main flow |
+| **Kid** | One node per iteration, bounded zoom scope. | Subagent spawned by a parent |
+
+**Default: the parent is a subagent, not the main flow.** This keeps the user's own context light — parent work (reviewing every node, running the gate) is exactly the kind of motion that should not accumulate in the chat the user is reading.
+
+**Exception, deliberately supported:** when the user's flow *is* the run — they want progress reported directly, or they're feeding run-specific instructions in as it goes — the overarching model acts as parent itself. Make this an explicit mode, not an accident.
+
+**Why the delegator tier matters:** it's what lets several parent/kid groups run concurrently against different goals, coordinated in one place. That is the user-facing half of L6 (recursive sub-loops) — L6 supplies the scheduling and the shared iteration budget, L3 supplies who runs what.
+
+Half-specified already in `CC-DISPATCH.md:87-93` for the BIG/SMALL case. Once L1 lands, extend the config to one tier per zoom level, each level reviewed at the level above. Pairs with L1's per-level fine-tuning data — the long game is a level-specialized small model per tier.
 
 ### L4. Goal-fulfillment scoring — P0
 Score chains by **contribution to goals**, never raw chain length (H3: hop count proven gameable; H0c: that gaming produced graph structure which broke the render path). Verdicts require experiment evidence (H4).
@@ -264,7 +288,12 @@ Score chains by **contribution to goals**, never raw chain length (H3: hop count
 Move the H4 gate out of the overseer's head and into `cli.py` so both dispatch paths enforce it. Depends on L0a's goal-location decision.
 
 ### L5. Goal rotation — P1
-Swap or phase out goals without invalidating history. A retired goal's chains stay valid and attributable as history; they simply stop accruing score. Requires goals to be addressable, versioned entities — another reason to settle L0a first.
+
+Swap or phase out goals without invalidating history. **The convention already exists and is practiced** — `fantasia/GOALS.md` defines it: mark the section `status: phasing-out`, **deprecate (never delete)** the seed node, mark a finished goal's tree `complete`, and let retired chains stand as prior art. A goal can also retire node by node as other nodes absorb its function.
+
+What's missing is that **nothing reads or enforces any of it** — `status:` is a human-maintained Markdown field today. Build: parse goal status, stop accruing score to `phasing-out`/`complete` goals while keeping their chains attributable, and validate that every seed node's goal reference resolves to a real goal id (orphaned references currently fail silently).
+
+Depends on L4 for the scoring side.
 
 ### L6. Recursive sub-loops for goal concurrency — P2
 How many goals are worked at once becomes a knob (`max_goals_active`). Mechanism: **agi loops spawn agi sub-loops** — one inner loop per goal/subtree, an outer loop scheduling across goals. Nesting is also how zoom granularity stays hierarchical: an inner loop owns one level.
@@ -280,20 +309,54 @@ Design intent — instant swarm awareness: *"this is a swarm action, do my part 
 
 🔴 **Known bug:** `extensions/agi/bin/zoom.py:89-91` — `_compose_small` imports `graph_core`, and on `ImportError` returns `"# zoom small fallback (loader unavailable)"` **plus the entire INJECTION.md**. Subtree bounding silently doesn't engage, so on a big corpus every kid receives the whole graph — the exact opposite of intent, and squarely against the design ethic. Fix the import path; make the fallback **fail loudly** instead of silently serving the whole graph.
 
-### L8. One repo or two — analysis, then decide — P2
-Proposal: fold `agi-tree` into `agi`, with `agi-tree` becoming a procedurally-updated derivative produced by rules living in `agi`.
+### L8. One repo or two — **keep them separate for now** — P2, decision deferred
 
-**No true paradox.** A repo holding a graph that describes itself is ordinary self-reference (like a repo holding its own docs). But two real costs:
+Original proposal: fold `agi-tree` into `agi` via a `refs/tree/*` namespace, mirroring `grid.py`'s `refs/grid/*`.
 
-1. **Self-inflation feedback.** If the graph's own storage sits inside the tree the graph parses, each iteration adds node files → next build sees more files → more nodes → unbounded growth. Mitigation is simple but easy to forget: **an explicit parser exclusion for the graph's own storage.** Any merge must ship that exclusion in the same commit.
-2. **Clone weight.** `agi-tree` is **29,422 node files** plus grid refs. Vendoring that into the engine means every consumer clones agi's own research, which is irrelevant to them.
+**Open-source / paywall constraint changes the answer. Facts:**
 
-**Recommended shape — reuse the grid pattern already built here.** Keep the working tree light and put the graph in a dedicated ref namespace (`refs/tree/*`), exactly as `grid.py` does with `refs/grid/*`: baked into the repo, never checked out, invisible to `git branch`, fetched on demand. One repo, one remote, no clone-weight penalty, no vendored duplication.
+1. **GitHub visibility is per-repository.** Not per-directory, per-branch, or per-ref. There is no way to make part of one repo public and part private. A `refs/tree/*` namespace would give **clone-weight control, not access control** — the moment the repo goes public, every ref in it goes public.
+2. **Git history is permanent.** Folding `agi-tree` in means its full 29,422-node history rides along forever. At open-source time you'd be filtering or squashing history under pressure — precisely when mistakes are expensive.
+3. **One wrong flag leaks everything.** With both in one repo, a single `git push --mirror` or `--all` to a public remote publishes the private graph. Separate repos make that failure impossible rather than merely unlikely.
 
-**Do not vendor the engine into each project.** That's the H0/H0b failure mode generalized: stale project-local copies of engine scripts silently destroyed 29,264 files. Vendoring the *whole engine* per project makes every project a stale override waiting to happen. Engine installed once and referenced by version; projects own only their graph + config. See L9.
+**Decision: keep `agi` and `agi-tree` as separate repos while their intended visibility differs.** Revisit `refs/tree/*` only if both end up with the same visibility — at which point it becomes a clean optimization rather than a risk.
+
+**This costs nothing.** The `fantasia` pattern (L9) already proves separate repos compose fine: the engine is a gitignored drop-in clone inside the project, and neither repo's history touches the other.
+
+**If you want partial visibility later, the real options are:**
+- **Two repos** — engine public, data/research private. (Current shape. Recommended.)
+- **Submodule** — public repo references a private submodule; users without access simply can't fetch it. Adds friction for contributors.
+- **Public mirror** — private repo of record, plus a curated public repo built from filtered history. Most control, most maintenance.
+
+Paywall-then-open-source works cleanly with any of these: the engine is the thing with reuse value, and it's already the piece with no private data in it.
 
 ### L9. Forkability — let anyone grow their own tree — P2
-People should be able to fork/branch/set up their own `agi` and grow an `agi-tree` shaped to their own tasks. Needs: `agi init` scaffolding a project (config, `nodes/`, goals doc, grid refs), an engine-version pin, and zero engine code copied into the project (L8).
+
+**The project-layout question is already answered, and `fantasia` is the reference implementation.** Verified 2026-08-18:
+
+```
+~/work/fantasia/                     ← the project repo (CodexOperator/fantasia)
+  GOALS.md                           long-term goals G1..G7 with status:
+  autoresearch-tree.config.json      metric_primary: outcome_coverage
+  nodes/                             the graph (27 nodes)
+  context/  sessions/                generated / gitignored
+  SPEC.md  src/  test/               the game itself
+  agi/                               ← GITIGNORED drop-in clone of CodexOperator/agi
+```
+
+`fantasia/.gitignore` carries exactly the right comment:
+```
+# agi research-loop engine (drop-in clone of CodexOperator/agi — never commit here)
+agi/
+```
+
+**So: a project repo contains data and configuration, never engine code.** Concretely — `GOALS.md`, `autoresearch-tree.config.json`, `nodes/`, project-specific node types / schema extensions, and the project's own source. The engine arrives as a gitignored clone (later: a versioned install). That is all the flexibility a project needs: new node types are *schema*, which is configuration, not code.
+
+**This is why the engine must never be vendored** — H0/H0b proved that stale project-local *scripts* silently destroyed 29,264 files. A gitignored clone can be `git pull`ed; a committed copy diverges forever.
+
+🔴 **Gap found: the clone is unpinned and silently stale.** `fantasia/agi` sits at `2923cef`, behind canonical `master`. Nothing declares which engine version the project expects, and nothing warns on drift. **Action:** record an engine version/commit in `autoresearch-tree.config.json` and have `driver.sh` warn (not fail) when the running engine doesn't match. Cheap, and it closes the whole staleness class that H0/H0b belong to.
+
+**Remaining forkability work:** an `agi init` that scaffolds a project (config, `nodes/`, `GOALS.md` template, grid refs) so the fantasia layout is reproducible without copying by hand.
 
 **Recursive tree creation is the interesting case.** A tree per task domain: an OpenClaw/hermes agent keeps a tree for getting smarter and tracking memories, and that tree spawns child trees for specific personas it finds useful. Individual skills, plugins, and MCP servers can each own a tree.
 
@@ -325,6 +388,26 @@ Stale references to `autoresearch-tree` (repo, pi skill), davebcn paths, and the
 Keep exactly the history that changes present behavior — the H0/H0b stale-override lesson, the H3 metric-gaming lesson, the quota-scrub rationale. Delete the rest. Migration notes belong in git history, not in docs an agent reads at spawn time. **Every stale line is sensation an agent pays for and can't act on.**
 
 Config key `autoresearch-tree.config.json` and env var `AUTORESEARCH_TREE_PROJECT_ROOT` still carry the old name; renaming them is a breaking change across every project — schedule it deliberately with a compatibility window, don't do it incidentally.
+
+### L14. One skill, CLI-first — merge `SKILL.md` + `CC-DISPATCH.md` — P1
+
+**Current state:** two docs in `skills/agi/`, and nothing anywhere else (`agi-tree` has no skill files; the `.claude/skills/gitnexus/*` hits are unrelated Claude Code plugin metadata, already gitignored per C6).
+
+| File | Lines | Problem |
+|---|---|---|
+| `SKILL.md` | 318 | Frontmatter still `name: autoresearch-tree`. Sells **"longest-chain-wins"** — the metric H3 proved gameable. pi-centric. Has a "Two repos, two purposes" section describing the pre-fold world. |
+| `CC-DISPATCH.md` | 194 | Current and accurate; validated on a live run. Contains the design philosophy, escalation protocol, model tiering, grid usage. |
+
+**Target: a single `skills/agi/SKILL.md` that is thin and CLI-first** — it names commands and points at them, rather than restating what the CLI already does. Everything the loop does should be reachable as a command; the skill's job is to say which command, when, and what the contract is.
+
+**Do these together in one pass** — they touch the same two files, and doing them separately means rewriting twice:
+- **L14** — merge into one skill, drop the duplicated prose, make every workflow a named command.
+- **L11** — rename `overseer` → `parent` throughout (and reflect L3's delegator/parent/kid tiers).
+- **L13** — strip `autoresearch-tree` / davebcn / fold-era references; describe the present system.
+- Replace the longest-chain framing with goal-fulfillment (L0a/L4), so the skill stops teaching the gameable metric.
+
+**Keep as a separate doc only what is genuinely reference material** (verdict taxonomy table, config schema). The protocol itself belongs in the one skill.
+
 
 ---
 
