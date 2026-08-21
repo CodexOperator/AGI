@@ -22,10 +22,23 @@ from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = Path(
-    os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")
+    os.environ.get("AGI_TREE_PROJECT_ROOT")
+    or os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")  # legacy, rename window
     or os.environ.get("PROJECT_ROOT")
     or os.getcwd()
 ).resolve()
+
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
+def config_path(root: Path) -> Path | None:
+    """First existing config file in `root`, or None if it is not a project."""
+    for name in CONFIG_NAMES:
+        p = root / name
+        if p.exists():
+            return p
+    return None
 BUILD_SITE = PROJECT_ROOT / "context" / "plans" / "build-site.md"
 KITS_DIR = PROJECT_ROOT / "context" / "kits"
 NODES_DIR = PROJECT_ROOT / "nodes"
@@ -50,9 +63,9 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
     this call syncs the DB when configured.
     """
     if not hasattr(_upsert_node_to_db, "_backend"):
-        cfg_path = PROJECT_ROOT / "autoresearch-tree.config.json"
+        cfg_path = config_path(PROJECT_ROOT)
         _upsert_node_to_db._backend = None
-        if cfg_path.exists():
+        if cfg_path is not None:
             cfg = json.loads(cfg_path.read_text())
             if cfg.get("persistence", {}).get("type") == "sqlite":
                 db_path = PROJECT_ROOT / cfg["persistence"]["path"]

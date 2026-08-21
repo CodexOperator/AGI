@@ -30,7 +30,7 @@ Corollary for anyone extending this system: **if a step is repeated and mechanic
 
 ## CLI
 
-Everything the loop does is a command. `<engine>` = the agi checkout; run from inside a project (a directory containing `autoresearch-tree.config.json`). Scripts live in `<engine>/extensions/agi/`.
+Everything the loop does is a command. `<engine>` = the agi checkout; run from inside a project (a directory containing `agi-tree.config.json`). Scripts live in `<engine>/extensions/agi/`.
 
 | Command | Does |
 |---|---|
@@ -123,7 +123,7 @@ A project holds **data and configuration; never engine code.**
 ```
 <project>/
   GOALS.md                       long-term goals with status: active | phasing-out | complete
-  autoresearch-tree.config.json  metrics, dispatch, timeouts
+  agi-tree.config.json           metrics, dispatch, timeouts
   nodes/<type>/*.md              the graph — frontmatter + body
   context/INJECTION.md           generated map
   sessions/                      per-iteration scratch (gitignore this)
@@ -162,7 +162,7 @@ Fields: `confidence` (0..1), `evidence_runs`, `supports`, `contradicts`.
 
 ## Configuration
 
-`<project>/autoresearch-tree.config.json`:
+`<project>/agi-tree.config.json`:
 
 ```jsonc
 {
@@ -186,9 +186,13 @@ Fields: `confidence` (0..1), `evidence_runs`, `supports`, `contradicts`.
 
 One namespace per runtime — `agent_dispatch.*` for pi, `cc_dispatch.*` for Claude Code. Keep them separate.
 
+**The config file is the project's whole customization surface.** It is per-project, owned by the project repo, and meant to be edited programmatically — the engine reads it, never writes engine behavior back into it. A project changes metrics, dispatch, and schema here; it never forks engine code to change behavior.
+
+**Legacy name.** Projects created before the rename carry `autoresearch-tree.config.json`. Every engine entry point still resolves it, canonical name first, so old projects keep running unchanged. New projects use `agi-tree.config.json`. Same for `$AGI_TREE_PROJECT_ROOT`, whose legacy spelling `$AUTORESEARCH_TREE_PROJECT_ROOT` is still read and still set.
+
 ## Auto-injection
 
-`hooks/cc-session-start.sh`, registered as a Claude Code `SessionStart` hook, injects the project's map into every new session. It walks up from cwd for `autoresearch-tree.config.json`, re-renders if stale, and emits the head of `INJECTION.md`. **Silent no-op outside projects**, so it's safe to register globally.
+`hooks/cc-session-start.sh`, registered as a Claude Code `SessionStart` hook, injects the project's map into every new session. It walks up from cwd for `agi-tree.config.json`, re-renders if stale, and emits the head of `INJECTION.md`. **Silent no-op outside projects**, so it's safe to register globally.
 
 ## Long runs
 

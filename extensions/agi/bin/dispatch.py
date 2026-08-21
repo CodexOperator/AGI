@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts.
 
-Reads <project>/autoresearch-tree.config.json for parallelism + model.
+Reads <project>/agi-tree.config.json for parallelism + model.
 Writes session manifest at <project>/sessions/iter-NNN/manifest.json so
 heal.py can detect timeouts.
 
 Each agent gets:
 - zoom context file (built by zoom.py)
-- skill manifest pointer (autoresearch-tree)
+- skill manifest pointer (agi)
 - completion-CLI instruction
 
 The pi processes run detached; this script returns once they're spawned.
@@ -30,9 +30,22 @@ import uuid
 from pathlib import Path
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parent.parent  # extensions/autoresearch-tree
+PLUGIN_ROOT = Path(__file__).resolve().parent.parent  # extensions/agi
 ZOOM_PY = PLUGIN_ROOT / "bin" / "zoom.py"
 CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
+
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
+def config_path(root: Path) -> Path | None:
+    """First existing config file in `root`, or None if it is not a project."""
+    for name in CONFIG_NAMES:
+        p = root / name
+        if p.exists():
+            return p
+    return None
+
 
 # Env vars Claude Code injects so its own agent can use the user's Anthropic
 # subscription (Token Plan). If pi inherits these, every spawned subagent
@@ -72,9 +85,9 @@ def main() -> int:
     args = ap.parse_args()
 
     root = Path(args.project_root).resolve()
-    cfg_path = root / "autoresearch-tree.config.json"
-    if not cfg_path.exists():
-        print(f"ERR: no config at {cfg_path}", file=sys.stderr)
+    cfg_path = config_path(root)
+    if cfg_path is None:
+        print(f"ERR: no {CONFIG_NAMES[0]} in {root}", file=sys.stderr)
         return 1
     cfg = json.loads(cfg_path.read_text())
 
@@ -202,9 +215,9 @@ def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple
                 closed_chains.add(line)
 
     # Build graph
-    cfg_path = root / "autoresearch-tree.config.json"
+    cfg_path = config_path(root)
     use_sqlite = False
-    if cfg_path.exists():
+    if cfg_path is not None:
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
@@ -303,9 +316,9 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
                 closed_chains.add(line)
 
     # --- Build graph ---
-    cfg_path = root / "autoresearch-tree.config.json"
+    cfg_path = config_path(root)
     use_sqlite = False
-    if cfg_path.exists():
+    if cfg_path is not None:
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 

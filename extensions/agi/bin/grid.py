@@ -42,7 +42,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-CONFIG_MARKER = "autoresearch-tree.config.json"
+CONFIG_MARKER = "agi-tree.config.json"
+# Compatibility window: legacy-named projects still resolve. Canonical name first.
+CONFIG_MARKERS = (CONFIG_MARKER, "autoresearch-tree.config.json")
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
 REF_NS = "refs/grid"
@@ -53,7 +55,7 @@ PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
 def find_project_root(start: Path | None = None) -> Path:
     cur = (start or Path.cwd()).resolve()
     for p in [cur, *cur.parents]:
-        if (p / CONFIG_MARKER).exists():
+        if any((p / name).exists() for name in CONFIG_MARKERS):
             return p
     sys.exit(f"ERR: no {CONFIG_MARKER} found walking up from {cur}")
 

@@ -60,7 +60,7 @@ Divergence isolates cleanly to the driver's project-override precedence selectin
 
 **Actions:**
 1. **Immediate (unblocks safe loop runs):** delete or rename `~/.hermes/agi-tree/bin/snapshot-build-site.py` so the plugin's safe version is used. Same audit for the project-local `bin/render-context.py`.
-2. **Structural:** make the driver's project-override opt-in — require an explicit `"allow_local_script_overrides": true` in `autoresearch-tree.config.json`, or version-stamp plugin scripts and refuse an override older than the plugin's.
+2. **Structural:** make the driver's project-override opt-in — require an explicit `"allow_local_script_overrides": true` in `agi-tree.config.json`, or version-stamp plugin scripts and refuse an override older than the plugin's.
 3. **Defense in depth:** no snapshot path should ever `rmtree` the node corpus. Guard against deleting more than N% of existing nodes in one run absent an explicit `--force-rebuild` flag.
 4. **Regression test:** seed a temp project with agent-origin nodes (no `origin` frontmatter), run the full driver, assert node count unchanged.
 
@@ -116,7 +116,7 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 ### H3. Replace `longest_chain_length` primary metric — P0
 **Rationale:** Agents proved the metric is gameable via shortcut chains (`hops=2*cycle+8`); 2000 hops on 9 chains achieved with no real research signal. Composite metric (chain_depth × evidence_fraction) or evidence-fraction-only is harder to game.
 **Evidence:** `~/.hermes/HANDOFF-autoresearch-2026-05-01.md` line 29; `~/.hermes/agi-tree/autoresearch-tree.config.json` declares the metric.
-**Action:** Edit `autoresearch-tree.config.json` schema (or wherever metric is declared); implement composite metric in `extensions/agi/bin/snapshot-build-site.py` (or wherever metrics are emitted); migrate all live projects' configs.
+**Action:** Edit `agi-tree.config.json` schema (or wherever metric is declared); implement composite metric in `extensions/agi/bin/snapshot-build-site.py` (or wherever metrics are emitted); migrate all live projects' configs.
 
 ### H4. Orphan-verdict gate (require `evidence_runs > 0`) — P0
 **Rationale:** 99.7% of verdicts in the agi-tree run were orphaned (created without backing experiment evidence). The loop self-aware-flagged it (commit `67ead2f0`) but the gate isn't in the writer path. Without this, `proved`/`disproved` verdicts are noise.
@@ -355,7 +355,7 @@ Paywall-then-open-source works cleanly with any of these: the engine is the thin
 ```
 ~/work/fantasia/                     ← the project repo (CodexOperator/fantasia)
   GOALS.md                           long-term goals G1..G7 with status:
-  autoresearch-tree.config.json      metric_primary: outcome_coverage
+  agi-tree.config.json               metric_primary: outcome_coverage
   nodes/                             the graph (27 nodes)
   context/  sessions/                generated / gitignored
   SPEC.md  src/  test/               the game itself
@@ -368,11 +368,11 @@ Paywall-then-open-source works cleanly with any of these: the engine is the thin
 agi/
 ```
 
-**So: a project repo contains data and configuration, never engine code.** Concretely — `GOALS.md`, `autoresearch-tree.config.json`, `nodes/`, project-specific node types / schema extensions, and the project's own source. The engine arrives as a gitignored clone (later: a versioned install). That is all the flexibility a project needs: new node types are *schema*, which is configuration, not code.
+**So: a project repo contains data and configuration, never engine code.** Concretely — `GOALS.md`, `agi-tree.config.json`, `nodes/`, project-specific node types / schema extensions, and the project's own source. The engine arrives as a gitignored clone (later: a versioned install). That is all the flexibility a project needs: new node types are *schema*, which is configuration, not code.
 
 **This is why the engine must never be vendored** — H0/H0b proved that stale project-local *scripts* silently destroyed 29,264 files. A gitignored clone can be `git pull`ed; a committed copy diverges forever.
 
-🔴 **Gap found: the clone is unpinned and silently stale.** `fantasia/agi` sits at `2923cef`, behind canonical `master`. Nothing declares which engine version the project expects, and nothing warns on drift. **Action:** record an engine version/commit in `autoresearch-tree.config.json` and have `driver.sh` warn (not fail) when the running engine doesn't match. Cheap, and it closes the whole staleness class that H0/H0b belong to.
+🔴 **Gap found: the clone is unpinned and silently stale.** `fantasia/agi` sits at `2923cef`, behind canonical `master`. Nothing declares which engine version the project expects, and nothing warns on drift. **Action:** record an engine version/commit in `agi-tree.config.json` and have `driver.sh` warn (not fail) when the running engine doesn't match. Cheap, and it closes the whole staleness class that H0/H0b belong to.
 
 **Remaining forkability work:** an `agi init` that scaffolds a project (config, `nodes/`, `GOALS.md` template, grid refs) so the fantasia layout is reproducible without copying by hand.
 
@@ -409,7 +409,7 @@ The rename isn't cosmetic — it sets the intended relationship (caring, respons
 
 **Still open:**
 - `README.md` and `HANDOFF.md` still carry fold-era framing. HANDOFF is legitimately a migration document, so it can keep more; README should be rewritten to describe the present system.
-- The config key `autoresearch-tree.config.json` and env var `AUTORESEARCH_TREE_PROJECT_ROOT` still carry the old name. Renaming them breaks every existing project — **schedule it deliberately with a compatibility window; do not do it incidentally.** This is the last real load-bearing use of the old name.
+- ✅ **Config key + env var renamed 2026-08-21** — canonical names are now `agi-tree.config.json` and `$AGI_TREE_PROJECT_ROOT`, matching the repo. Done with the compatibility window this entry asked for: every engine entry point resolves the canonical name first and falls back to the legacy one, and `driver.sh` / `cc-session-start.sh` / `agi-bridge` export **both** env spellings, so a project on an older engine clone still works. Covered by `test_find_project_root_accepts_canonical_and_legacy_config`. Removing the legacy fallback is a separate, later decision — see **L16**.
 
 ### L14. One skill, CLI-first — ✅ DONE 2026-08-18
 
@@ -450,7 +450,29 @@ The only remaining `autoresearch-tree` strings in the skill are the literal conf
 - Chain-validity rules currently expect chains to start at `idea`. Extending the canonical chain to `goal → idea → hypothesis → …` touches `chain_engine` and every chain-shape assumption — plan that deliberately rather than as a side effect.
 - `agi-tree` has no goals at all; giving it a `GOALS.md` is a precondition for its chains ever being scoreable.
 
+### L16. Close the `agi-tree.config.json` compatibility window — P2 (do not rush)
 
+**Landed 2026-08-21:** the config marker is `agi-tree.config.json` and the env var is `$AGI_TREE_PROJECT_ROOT`, matching the repo name so setup reads as one thing rather than two. The legacy `autoresearch-tree.config.json` / `$AUTORESEARCH_TREE_PROJECT_ROOT` still resolve everywhere, and writers emit **both** env spellings.
+
+**Why the fallback stays for now.** A project directory and the engine clone inside it version independently (see L9, and the unpinned-clone gap in L8). Dropping the legacy name would break exactly the projects whose engine clone is stale — the H0/H0b staleness class again, arriving through a different door.
+
+**Close it only after all three hold:**
+1. Engine version is pinned and checked (the L8 action: record the expected engine commit in the config, warn on drift). Without that, there is no way to know which projects would break.
+2. Every live project has been migrated and its config renamed.
+3. The engine has emitted a deprecation warning on legacy-name resolution for at least one full release cycle — **the warning does not exist yet; adding it is step one of this entry**, and it belongs in `lib/find-root.sh` plus the four Python entry points that resolve the config.
+
+**Do not remove the fallback as a cleanup pass.** It is load-bearing until (1) exists.
+
+### L17. Project config as the whole customization surface — P1
+
+**The rename made the intended shape legible, and it should now be enforced.** A project owns `GOALS.md`, `agi-tree.config.json`, `nodes/`, and its own source. The engine arrives as a clone and is never edited per-project. Everything a project needs to differ — metrics, dispatch, timeouts, model tiering, schema extensions, node types — is *configuration*, written programmatically into its own `agi-tree.config.json`.
+
+**This is the structural fix for H0.** The data-loss defect was project-local `bin/` scripts silently overriding engine scripts; the surviving override handles in `driver.sh` and `hooks/cc-session-start.sh` are still live. Config-as-only-surface is the principle that removes the *need* for script overrides, which is what makes deleting them safe rather than merely strict.
+
+**Build order:**
+- **Schema for the config.** There is none — every reader does `cfg.get(...)` with an inline default, so a typo'd key fails silently as a default value. A declared schema (with defaults in one place) is a precondition for anything writing configs programmatically.
+- **A writer.** `agi-tree config set <key> <value>` / an init command that scaffolds a valid config for a new project. Today the only way to make one is by hand, which is precisely the mundane motion `SKILL.md` says to script away.
+- **Then** make script overrides opt-in behind an explicit config key (the H0 structural action, TODO line ~63) — by then the escape hatch has a legitimate alternative.
 
 ---
 

@@ -19,6 +19,18 @@ import json
 import sys
 from pathlib import Path
 
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
+def config_path(root: Path) -> Path | None:
+    """First existing config file in `root`, or None if it is not a project."""
+    for name in CONFIG_NAMES:
+        p = root / name
+        if p.exists():
+            return p
+    return None
+
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -60,7 +72,7 @@ def main() -> int:
     args = ap.parse_args()
 
     root = Path(args.project_root).resolve()
-    if not (root / "autoresearch-tree.config.json").exists():
+    if config_path(root) is None:
         print(f"ERR: not a project root: {root}", file=sys.stderr)
         return 1
 
@@ -132,9 +144,9 @@ def _compose_small(root: Path, inject_text: str, args: argparse.Namespace) -> st
         raise ZoomUnavailable(f"graph_core import failed: {e}") from e
 
     # Detect sqlite vs filesystem
-    cfg_path = root / "autoresearch-tree.config.json"
+    cfg_path = config_path(root)
     use_sqlite = False
-    if cfg_path.exists():
+    if cfg_path is not None:
         import json
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
