@@ -1,0 +1,156 @@
+"""Tests for bin/metrics.py — the H3 replacement for the gameable primary metric.
+
+Core claims under test:
+- the default primary metric is never `longest_chain_length`
+- `evidence_fraction` is computable from the corpus and cannot be inflated by
+  adding hops (the exact gaming that produced H3 and H0c)
+"""
+
+import importlib.util
+import io
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+BIN = Path(__file__).resolve().parents[1] / "bin"
+
+spec = importlib.util.spec_from_file_location("metrics", BIN / "metrics.py")
+metrics = importlib.util.module_from_spec(spec)
+sys.modules["metrics"] = metrics
+spec.loader.exec_module(metrics)
+
+
+def _node(root, ntype, slug, fm_extra="", parents=()):
+    d = root / "nodes" / ntype.replace("-", "_")
+    d.mkdir(parents=True, exist_ok=True)
+    lines = ["---", f'id: "{ntype}:{slug}"', f"type: {ntype}"]
+    if parents:
+        lines.append("parents:")
+        lines += [f"  - {p}" for p in parents]
+    if fm_extra:
+        lines.append(fm_extra.rstrip())
+    lines += ["---", "", "body", ""]
+    (d / f"{slug}.md").write_text("\n".join(lines))
+
+
+@pytest.fixture()
+def project(tmp_path):
+    (tmp_path / "autoresearch-tree.config.json").write_text("{}")
+    (tmp_path / "nodes").mkdir()
+    return tmp_path
+
+
+# ------------------------------------------------------------ primary metric
+
+
+def test_default_primary_is_not_the_gameable_metric():
+    assert metrics.DEFAULT_METRIC_PRIMARY not in metrics.GAMEABLE_METRICS
+    assert metrics.DEFAULT_METRIC_PRIMARY == "outcome_coverage"
+
+
+def test_primary_falls_back_to_default_when_config_omits_it():
+    assert metrics.primary_metric_name({}) == metrics.DEFAULT_METRIC_PRIMARY
+    assert metrics.primary_metric_name({"metric_primary": "  "}) == \
+        metrics.DEFAULT_METRIC_PRIMARY
+
+
+def test_primary_honours_config():
+    assert metrics.primary_metric_name({"metric_primary": "evidence_fraction"}) == \
+        "evidence_fraction"
+
+
+def test_gameable_primary_emits_a_warning(project, capsys):
+    (project / "autoresearch-tree.config.json").write_text(
+        json.dumps({"metric_primary": "longest_chain_length"})
+    )
+    _node(project, "hypothesis", "h1")
+    metrics.emit(project)
+    out = capsys.readouterr()
+    assert "gameable" in out.err
+    assert "METRIC_WARNING gameable_primary=longest_chain_length" in out.out
+
+
+def test_emit_prints_primary_name_and_value(project):
+    (project / "autoresearch-tree.config.json").write_text(
+        json.dumps({"metric_primary": "evidence_fraction"})
+    )
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    buf = io.StringIO()
+    metrics.emit(project, out=buf)
+    text = buf.getvalue()
+    assert "METRIC primary_metric=evidence_fraction" in text
+    assert "METRIC primary_value=1.0" in text
+
+
+# --------------------------------------------------------- evidence_fraction
+
+
+def test_evidence_fraction_counts_only_asserting_verdicts(project):
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    _node(project, "verdict", "v2", "verdict: inconclusive_lean_proved:60")
+    _node(project, "verdict", "v3", "verdict: pending")   # excluded entirely
+    _node(project, "hypothesis", "h1")                    # no verdict field
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["verdicts_asserting"] == 2
+    assert s["verdicts_pending"] == 1
+    assert s["verdicts_evidence_backed"] == 1
+    assert s["evidence_fraction"] == 0.5
+
+
+def test_pending_without_evidence_does_not_lower_the_score(project):
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    before = metrics.evidence_stats(project / "nodes")["evidence_fraction"]
+    for i in range(10):
+        _node(project, "verdict", f"p{i}", "verdict: pending")
+    after = metrics.evidence_stats(project / "nodes")["evidence_fraction"]
+    assert before == after == 1.0
+
+
+def test_unevidenced_decisive_counter_is_the_gate_violation_alarm(project):
+    _node(project, "verdict", "v1", "verdict: proved")             # orphan
+    _node(project, "verdict", "v2", "verdict: disproved\nevidence_runs: 3")
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["decisive_verdicts"] == 2
+    assert s["unevidenced_decisive_verdicts"] == 1
+    assert s["decisive_evidence_fraction"] == 0.5
+
+
+def test_empty_corpus_is_zero_not_a_crash(project):
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["evidence_fraction"] == 0.0
+    assert s["unevidenced_decisive_verdicts"] == 0
+
+
+def test_adding_hops_cannot_inflate_evidence_fraction(project):
+    """The H3 gaming attack: hops=2*cycle+8. Chain length moves; evidence doesn't."""
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    _node(project, "verdict", "v2", "verdict: disproved")
+    base = metrics.compute(project)
+    prev = "verdict:v1"
+    for i in range(30):
+        _node(project, "hypothesis", f"hop{i}", parents=[prev])
+        prev = f"hypothesis:hop{i}"
+    after = metrics.compute(project)
+    assert after["longest_chain_length"] > base["longest_chain_length"]  # gamed
+    assert after["evidence_fraction"] == base["evidence_fraction"] == 0.5  # immune
+
+
+def test_compute_emits_the_full_metric_set(project):
+    _node(project, "hypothesis", "h1")
+    _node(project, "mvp", "m1", parents=["hypothesis:h1"])
+    m = metrics.compute(project)
+    for key in ("longest_chain_length", "avg_chain_depth", "mvp_count",
+                "outcome_coverage", "chain_branching_factor", "node_count",
+                "edge_count", "evidence_fraction", "evidence_weighted_depth",
+                "unevidenced_decisive_verdicts"):
+        assert key in m, key
+    assert m["outcome_coverage"] == 1.0
+
+
+def test_evidence_weighted_depth_is_zero_without_evidence(project):
+    _node(project, "hypothesis", "h1")
+    _node(project, "verdict", "v1", "verdict: proved", parents=["hypothesis:h1"])
+    m = metrics.compute(project)
+    assert m["evidence_weighted_depth"] == 0.0

@@ -13,15 +13,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 import time
 from pathlib import Path
 
-
-VERDICT_RE = re.compile(
-    r"^(proved|disproved|inconclusive_lean_proved:\d{1,3}|inconclusive_lean_disproved:\d{1,3}|pending)$"
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import evidence_gate  # noqa: E402
+from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
 NODE_TYPES = ("hypothesis", "experiment", "verdict", "mvp", "outcome", "bigger-outcome", "app-purpose")
 
@@ -41,10 +39,27 @@ def _agent_path(root: Path, iter_n: int, agent_id: str) -> Path:
     return root / "sessions" / f"iter-{iter_n:03d}" / agent_id / "agent.json"
 
 
+def _node_evidence_runs(root: Path, node_id: str | None) -> int:
+    """Read `evidence_runs` off an existing node file, if any (H4 inference)."""
+    if not node_id:
+        return 0
+    nf = _find_node_file(root, node_id)
+    if not nf or not nf.exists():
+        return 0
+    try:
+        import yaml
+        text = nf.read_text()
+        if not text.startswith("---"):
+            return 0
+        fm = yaml.safe_load(text.split("---", 2)[1]) or {}
+    except Exception:
+        return 0
+    return evidence_gate.normalize_evidence_runs(fm.get("evidence_runs"))
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
-        print(f"ERR: invalid verdict '{args.verdict}'. Allowed: proved | disproved | "
-              f"inconclusive_lean_proved:N | inconclusive_lean_disproved:N | pending",
+        print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
               file=sys.stderr)
         return 2
     root = _find_root()
@@ -52,21 +67,41 @@ def cmd_done(args: argparse.Namespace) -> int:
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
+
+    # H4 evidence gate. `--evidence-runs` wins; otherwise infer from the node
+    # file the agent already wrote, so a real experiment isn't punished for a
+    # missing flag.
+    runs = args.evidence_runs
+    if runs is None:
+        runs = _node_evidence_runs(root, args.node_id)
+    gate = evidence_gate.apply_gate(
+        args.verdict, runs, bypass=args.no_evidence_gate
+    )
+    evidence_gate.announce(gate)
+    verdict = gate.verdict
+
     rec = json.loads(ap.read_text())
     rec["status"] = "done"
     rec["finished_at"] = int(time.time())
-    rec["verdict"] = args.verdict
+    rec["verdict"] = verdict
     rec["confidence"] = args.confidence
     rec["node_id"] = args.node_id
     rec["parent"] = args.parent
     rec["notes"] = args.notes
+    rec["evidence_runs"] = gate.evidence_runs
+    if gate.demoted:
+        rec["demoted_from"] = gate.original
+        rec["demote_reason"] = gate.reason
+    if gate.bypassed:
+        rec["evidence_gate"] = "bypassed"
     ap.write_text(json.dumps(rec, indent=2))
 
     # Write or update the node file with verdict info
     if args.node_id:
         node_file = _find_node_file(root, args.node_id)
         if node_file and node_file.exists():
-            _append_verdict_to_node(node_file, args.verdict, args.confidence, args.notes, args.next_edge)
+            _append_verdict_to_node(node_file, verdict, args.confidence, args.notes,
+                                    args.next_edge, gate)
             print(f"updated verdict in: {node_file}")
         else:
             # Fallback: write verdict node
@@ -78,10 +113,16 @@ def cmd_done(args: argparse.Namespace) -> int:
                 "---",
                 f"id: verdict:{slug}",
                 "type: verdict",
-                f"verdict: {args.verdict}",
+                f"verdict: {verdict}",
                 f"confidence: {args.confidence}",
+                f"evidence_runs: {gate.evidence_runs}",
                 f"next_edges: [{args.next_edge}]" if args.next_edge else "next_edges: []",
             ]
+            if gate.demoted:
+                fm_lines.append(f"demoted_from: {gate.original}")
+                fm_lines.append(f"demote_reason: {gate.reason}")
+            if gate.bypassed:
+                fm_lines.append("evidence_gate: bypassed")
             if args.parent:
                 fm_lines.append(f"parents:\n  - {args.parent}")
             fm_lines.append("---")
@@ -89,7 +130,7 @@ def cmd_done(args: argparse.Namespace) -> int:
             vfile.write_text("\n".join(fm_lines) + f"\n\n{body}\n")
             print(f"wrote verdict: {vfile}")
 
-    print(f"agent {args.agent_id} status=done verdict={args.verdict}")
+    print(f"agent {args.agent_id} status=done verdict={verdict}")
     return 0
 
 
@@ -317,7 +358,8 @@ def cmd_reclaim(args: argparse.Namespace) -> int:
     return 0 if success else 1
 
 
-def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, notes: str, next_edge: str | None = None) -> None:
+def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, notes: str,
+                            next_edge: str | None = None, gate=None) -> None:
     """Add verdict frontmatter fields to an existing node file."""
     content = node_file.read_text()
     if "---" not in content:
@@ -329,9 +371,17 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
     # Add verdict fields to frontmatter
     fm_lines = fm.strip().splitlines()
     # Remove any existing verdict/confidence lines
-    fm_lines = [l for l in fm_lines if not l.startswith(("verdict:", "confidence:", "next_edges:"))]
+    fm_lines = [l for l in fm_lines
+                if not l.startswith(("verdict:", "confidence:", "next_edges:",
+                                     "demoted_from:", "demote_reason:", "evidence_gate:"))]
     fm_lines.append(f"verdict: {verdict}")
     fm_lines.append(f"confidence: {confidence}")
+    if gate is not None:
+        if gate.demoted:
+            fm_lines.append(f"demoted_from: {gate.original}")
+            fm_lines.append(f"demote_reason: {gate.reason}")
+        if gate.bypassed:
+            fm_lines.append("evidence_gate: bypassed")
     if next_edge:
         fm_lines.append(f"next_edges: [{next_edge}]")
     new_fm = "---\n" + "\n".join(fm_lines) + "\n---"
@@ -371,6 +421,15 @@ def main() -> int:
     p_done.add_argument("--parent", default=None)
     p_done.add_argument("--notes", default="")
     p_done.add_argument("--next-edge", default=None)
+    p_done.add_argument(
+        "--evidence-runs", type=int, default=None,
+        help="number of backing experiment runs. proved/disproved require >= 1 "
+             "(TODO.md H4). Omitted = inferred from the node file's frontmatter.")
+    p_done.add_argument(
+        "--no-evidence-gate", action="store_true",
+        help="LOUDLY bypass the H4 evidence gate. For backfills/imports of "
+             "historical nodes whose evidence lives outside the corpus. Stamps "
+             "'evidence_gate: bypassed' on the node.")
     p_done.set_defaults(func=cmd_done)
 
     p_pend = sub.add_parser("pending")

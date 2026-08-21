@@ -122,66 +122,9 @@ iter_run() {
 
 emit_metrics() {
   local iter_n="$1"
-  PROJECT_ROOT="$PROJECT_ROOT" PLUGIN_ROOT="$PLUGIN_ROOT" python3 - <<PYEOF | tee -a "$LOG"
-import os, sys
-from pathlib import Path
-root = Path(os.environ["PROJECT_ROOT"])
-plugin_root = Path(os.environ["PLUGIN_ROOT"])
-# Engine modules live in plugin's src/ (post-migration). Project's src/ wins
-# if present, so projects can override engine modules locally.
-proj_src = root / "src"
-if (proj_src / "graph_core").is_dir():
-    sys.path.insert(0, str(proj_src))
-sys.path.insert(0, str(plugin_root / "src"))
-from collections import defaultdict
-from graph_core.loader import load_directory
-from graph_core.edge import Edge
-
-g, loaded = load_directory(root / "nodes")
-for ln in loaded:
-    for parent_id in ln.node.parents:
-        if g.has_node(parent_id):
-            try:
-                g.add_edge(Edge(source_id=parent_id, target_id=ln.node.id, relation="spawns"))
-            except Exception:
-                pass
-            pn = g.get_node(parent_id)
-            if pn is not None:
-                pn.children.add(ln.node.id)
-
-def longest(g):
-    cache = {}
-    def d(nid):
-        if nid in cache: return cache[nid]
-        n = g.get_node(nid)
-        if n is None or not n.children:
-            cache[nid] = 0; return 0
-        best = 0
-        for c in n.children:
-            if c == nid: continue
-            best = max(best, d(c) + 1)
-        cache[nid] = best; return best
-    if not g.node_ids: return 0
-    return max(d(nid) for nid in g.node_ids)
-
-by_type = defaultdict(int)
-for n in g.nodes: by_type[n.type] += 1
-
-mvp_count = by_type.get("mvp", 0)
-hyp_count = by_type.get("hypothesis", 1)
-outcome_coverage = mvp_count / max(hyp_count, 1)
-non_leaf = [n for n in g.nodes if n.children]
-branching = sum(len(n.children) for n in non_leaf) / max(len(non_leaf), 1)
-avg_depth = sum(len(n.parents) for n in g.nodes) / max(len(g), 1)
-
-print(f"METRIC longest_chain_length={longest(g)}")
-print(f"METRIC avg_chain_depth={avg_depth:.2f}")
-print(f"METRIC mvp_count={mvp_count}")
-print(f"METRIC outcome_coverage={outcome_coverage:.3f}")
-print(f"METRIC chain_branching_factor={branching:.2f}")
-print(f"METRIC node_count={len(g)}")
-print(f"METRIC edge_count={g.edge_count}")
-PYEOF
+  # Metric computation lives in bin/metrics.py (TODO.md H3) so it is testable
+  # and so the primary metric is config-driven, never chain length.
+  python3 "$PLUGIN_ROOT/bin/metrics.py" "$PROJECT_ROOT" 2>&1 | tee -a "$LOG"
 }
 
 for i in $(seq 1 "$MAX_ITERS"); do

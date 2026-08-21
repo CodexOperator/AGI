@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+"""metrics.py — compute and emit the loop's METRIC lines (TODO.md H3).
+
+Was an inline heredoc inside `driver.sh:emit_metrics`, which made the
+metric untestable and left `longest_chain_length` as the de-facto primary.
+Agents proved that metric gameable — 9 chains x 2000 hops via shortcut
+cycles (`hops=2*cycle+8`) carrying no signal, and the pathological
+structure then broke the render path (H0c).
+
+The primary metric now comes from `autoresearch-tree.config.json`
+(`metric_primary`), defaulting to :data:`DEFAULT_METRIC_PRIMARY` —
+never chain length. `longest_chain_length` stays as a descriptive
+secondary statistic.
+
+`evidence_fraction` is the bridge to the H4 evidence gate: the fraction
+of asserting verdicts that carry `evidence_runs >= 1`. It cannot be
+inflated by adding hops — only by doing experiments.
+
+Usage:
+    metrics.py <project_root>
+"""
+from __future__ import annotations
+
+import json
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from evidence_gate import (  # noqa: E402
+    DECISIVE_VERDICTS,
+    normalize_evidence_runs,
+)
+
+#: Fallback when a project's config omits `metric_primary`. Deliberately not
+#: `longest_chain_length` (H3).
+DEFAULT_METRIC_PRIMARY = "outcome_coverage"
+
+#: Metrics that are descriptive only and must never be primary.
+GAMEABLE_METRICS = ("longest_chain_length",)
+
+
+def _load_graph(root: Path):
+    proj_src = root / "src"
+    if (proj_src / "graph_core").is_dir():
+        sys.path.insert(0, str(proj_src))
+    sys.path.insert(0, str(PLUGIN_ROOT / "src"))
+    from graph_core.loader import load_directory
+    from graph_core.edge import Edge
+
+    g, loaded = load_directory(root / "nodes")
+    for ln in loaded:
+        for parent_id in ln.node.parents:
+            if g.has_node(parent_id):
+                try:
+                    g.add_edge(Edge(source_id=parent_id, target_id=ln.node.id,
+                                    relation="spawns"))
+                except Exception:
+                    pass
+                pn = g.get_node(parent_id)
+                if pn is not None:
+                    pn.children.add(ln.node.id)
+    return g
+
+
+def longest_chain_length(g) -> int:
+    """Longest descendant chain. Descriptive only — gameable (H3)."""
+    cache: dict[str, int] = {}
+
+    def d(nid: str) -> int:
+        if nid in cache:
+            return cache[nid]
+        n = g.get_node(nid)
+        if n is None or not n.children:
+            cache[nid] = 0
+            return 0
+        best = 0
+        for c in n.children:
+            if c == nid:
+                continue
+            best = max(best, d(c) + 1)
+        cache[nid] = best
+        return best
+
+    if not g.node_ids:
+        return 0
+    return max(d(nid) for nid in g.node_ids)
+
+
+def _iter_frontmatter(nodes_dir: Path):
+    import yaml
+    if not nodes_dir.is_dir():
+        return
+    for nf in sorted(nodes_dir.rglob("*.md")):
+        try:
+            text = nf.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if not text.startswith("---"):
+            continue
+        parts = text.split("---", 2)
+        if len(parts) < 3:
+            continue
+        try:
+            fm = yaml.safe_load(parts[1]) or {}
+        except Exception:
+            continue
+        if isinstance(fm, dict):
+            yield nf, fm
+
+
+def evidence_stats(nodes_dir: Path) -> dict:
+    """Evidence accounting over verdict-bearing nodes.
+
+    Denominator is *asserting* verdicts — everything except `pending`.
+    `pending` is excluded on purpose: H4 permits it without evidence, so
+    counting it would penalise honest uncertainty.
+    """
+    asserting = 0
+    backed = 0
+    decisive = 0
+    decisive_backed = 0
+    pending = 0
+    for _nf, fm in _iter_frontmatter(nodes_dir):
+        v = fm.get("verdict")
+        if not isinstance(v, str) or not v.strip():
+            continue
+        v = v.strip()
+        runs = normalize_evidence_runs(fm.get("evidence_runs"))
+        if v == "pending":
+            pending += 1
+            continue
+        asserting += 1
+        if runs >= 1:
+            backed += 1
+        if v in DECISIVE_VERDICTS:
+            decisive += 1
+            if runs >= 1:
+                decisive_backed += 1
+    return {
+        "verdicts_asserting": asserting,
+        "verdicts_pending": pending,
+        "verdicts_evidence_backed": backed,
+        "evidence_fraction": (backed / asserting) if asserting else 0.0,
+        "decisive_verdicts": decisive,
+        "decisive_evidence_fraction": (decisive_backed / decisive) if decisive else 0.0,
+        # Gate-violation counter: should be 0 once H4 holds in both writer
+        # paths. Nonzero = a bypass or a hand-edited node.
+        "unevidenced_decisive_verdicts": decisive - decisive_backed,
+    }
+
+
+def read_config(root: Path) -> dict:
+    cfg_path = root / "autoresearch-tree.config.json"
+    if not cfg_path.exists():
+        return {}
+    try:
+        return json.loads(cfg_path.read_text()) or {}
+    except Exception:
+        return {}
+
+
+def primary_metric_name(cfg: dict) -> str:
+    """Config's `metric_primary`, else the non-gameable default (H3)."""
+    name = cfg.get("metric_primary")
+    if not isinstance(name, str) or not name.strip():
+        return DEFAULT_METRIC_PRIMARY
+    return name.strip()
+
+
+def compute(root: Path) -> dict:
+    g = _load_graph(root)
+
+    by_type: dict[str, int] = defaultdict(int)
+    for n in g.nodes:
+        by_type[n.type] += 1
+
+    mvp_count = by_type.get("mvp", 0)
+    hyp_count = by_type.get("hypothesis", 0)
+    outcome_coverage = mvp_count / max(hyp_count, 1)
+    non_leaf = [n for n in g.nodes if n.children]
+    branching = sum(len(n.children) for n in non_leaf) / max(len(non_leaf), 1)
+    avg_depth = sum(len(n.parents) for n in g.nodes) / max(len(g), 1)
+
+    m: dict[str, float | int | str] = {
+        "longest_chain_length": longest_chain_length(g),
+        "avg_chain_depth": round(avg_depth, 2),
+        "mvp_count": mvp_count,
+        "outcome_coverage": round(outcome_coverage, 3),
+        "chain_branching_factor": round(branching, 2),
+        "node_count": len(g),
+        "edge_count": g.edge_count,
+    }
+    ev = evidence_stats(root / "nodes")
+    m.update(ev)
+    m["evidence_fraction"] = round(ev["evidence_fraction"], 3)
+    m["decisive_evidence_fraction"] = round(ev["decisive_evidence_fraction"], 3)
+    # Composite suggested by H3: depth is only worth what the evidence
+    # behind it is worth. Bounded by evidence_fraction <= 1.
+    m["evidence_weighted_depth"] = round(avg_depth * ev["evidence_fraction"], 3)
+    return m
+
+
+def emit(root: Path, out=None) -> dict:
+    out = out if out is not None else sys.stdout
+    cfg = read_config(root)
+    m = compute(root)
+    primary = primary_metric_name(cfg)
+
+    if primary in GAMEABLE_METRICS:
+        print(
+            f"!! METRIC-WARNING metric_primary='{primary}' is gameable (TODO.md H3): "
+            "agents reached 9 chains x 2000 hops via shortcut cycles carrying no "
+            f"signal. Move it to secondary_metrics and set metric_primary to "
+            f"'{DEFAULT_METRIC_PRIMARY}' or 'evidence_fraction'.",
+            file=sys.stderr,
+        )
+        print(f"METRIC_WARNING gameable_primary={primary}", file=out)
+
+    for k, v in m.items():
+        print(f"METRIC {k}={v}", file=out)
+
+    if primary not in m:
+        print(f"!! METRIC-WARNING metric_primary='{primary}' is not computed by "
+              "metrics.py; no primary value emitted.", file=sys.stderr)
+    else:
+        print(f"METRIC primary_metric={primary}", file=out)
+        print(f"METRIC primary_value={m[primary]}", file=out)
+    return m
+
+
+def _find_root(start: Path) -> Path:
+    d = start.resolve()
+    while d != d.parent:
+        if (d / "autoresearch-tree.config.json").exists():
+            return d
+        d = d.parent
+    print("ERR: no autoresearch-tree.config.json found", file=sys.stderr)
+    sys.exit(1)
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    root = Path(argv[0]) if argv else _find_root(Path.cwd())
+    emit(root)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
