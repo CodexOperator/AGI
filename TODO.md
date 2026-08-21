@@ -75,7 +75,23 @@ Divergence isolates cleanly to the driver's project-override precedence selectin
 
 **Note:** agi-tree is still blocked by **H0c** (`find_chains` hang), so this alone does not make the loop runnable there.
 
-### H0c. `find_chains()` does not terminate in practical time on the full corpus — P0
+### H0c. `find_chains()` does not terminate in practical time on the full corpus — ✅ FIXED 2026-08-21
+
+**Fixed.** `chain_engine` was **promoted into the engine** at `extensions/agi/src/chain_engine/` (this also settles H0d — plugin `src` is inserted at `sys.path[0]` while project `src` is only appended, so the promoted copy shadows agi-tree's). `chains.py` traversal rewritten: single mutable path + `on_path` cycle guard (no per-step path copy), iterative `_can_reach_terminal` (no `RecursionError` on deep chains), and three keyword bounds — `max_path_len=512`, `max_chains=10_000`, `deadline_s=20.0`. On any cap it returns partial chains plus `WARN: find_chains truncated (<reason>)` on stderr; it never raises and never hangs. The wall-clock budget is shared fairly across idea roots (`remaining / roots_left`), which on the real corpus is the difference between 0 and 28 chains. Also fixed a latent bug: `_get_chain_cache_file` memoized the cache path in a module global, so the first `graph_dir` in a process captured the path for every later one.
+
+**Verified on the real 29,422-node corpus (cold cache, parent-reproduced):**
+| | Before | After |
+|---|---|---|
+| Render stage | hang, killed at 300 s (exit 124), no output | **15.6 s cold / 2.0 s warm**, exit 0 |
+| Output | none | 200-line ASCII, INJECTION.md written |
+| Chains | none | 28 chains, longest 502 hops, deadline-truncated |
+
+Tests: `extensions/agi/tests/test_chain_engine.py` (18) + `tests/chain_engine/` (21 ported from agi-tree, pass unmodified).
+
+**Note:** the blowup is driven by the `spawns_edges` fallback (max fan-out 1001), not `next_edges` — `next_edges` alone traverses in ~0 s. So chain counts there are deadline-bound, not path-bound. Follow-up defect recorded as **H0e**.
+
+<details><summary>original writeup</summary>
+
 **Symptom:** With 29,422 nodes restored and both stale overrides removed, `agi --smoke --max-iters 1` hangs in the render stage. Killed at **300 s** (exit 124) having produced no chain output. Node count held at 29,422 throughout — this is a hang, not data loss.
 
 **Measured (throwaway clone, 2026-08-13):**
@@ -94,7 +110,23 @@ Divergence isolates cleanly to the driver's project-override precedence selectin
 
 **Consequence until fixed:** the loop cannot be run against `~/.hermes/agi-tree/` with its corpus intact. This is the top blocker on that project.
 
-### H0d. `chain_engine` is project-side only; its `graph_dir` fix is uncommitted — P1
+</details>
+
+### H0e. A truncated `find_chains` result is cached and later served as complete — P1
+
+**Found 2026-08-21 while verifying H0c.** When `find_chains` hits a bound it returns partial chains and warns — correct. But the partial result is then written to `.chain_cache.pkl` like any other result, and the cache is keyed only on node count + max mtime. Every subsequent run reads the truncated answer back and prints **no warning at all** (parent-reproduced: the warm run on the agi-tree corpus emits nothing). A partial answer becomes indistinguishable from a complete one for the rest of the corpus's life.
+
+This matters because chain counts feed metrics and attractiveness ranking — a silently-truncated corpus quietly under-reports forever, which is the same class of defect as H3 (numbers that look authoritative and aren't).
+
+**Action:** persist a `truncated` flag + the reason alongside the cached chains; re-emit the warning on every cache hit. Consider refusing to cache truncated results at all — cheaper and harder to get wrong.
+
+### H0d. `chain_engine` is project-side only; its `graph_dir` fix is uncommitted — ✅ RESOLVED 2026-08-21
+
+**Both halves closed.** The `graph_dir` parameter is committed in agi-tree (working tree verified clean), and the ownership question is settled the way H0d's option 1 proposed: `chain_engine` is now **engine code**, promoted to `extensions/agi/src/chain_engine/`. Confirmed by import test that the plugin copy shadows agi-tree's. agi-tree's copy was deliberately left in place and untouched — retiring it is a separate, deliberate step, not a side effect.
+
+<details><summary>original writeup</summary>
+
+#### H0d (original). `chain_engine` is project-side only; its `graph_dir` fix is uncommitted — P1
 **Finding:** `chain_engine/` exists **only** in `~/.hermes/agi-tree/src/`, not in the plugin. The plugin's `bin/render-context.py:36-40` imports `find_chains` inside a `try/except ImportError` and falls back to `None`.
 
 The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **committed** `chains.py` has no `graph_dir` parameter → `TypeError: find_chains() got an unexpected keyword argument 'graph_dir'`. The **uncommitted working copy** does have `graph_dir: str | None = None`. So that pending edit is load-bearing for the plugin's render path and will be lost if the working tree is ever discarded.
@@ -102,6 +134,8 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 **Action:**
 1. Commit `~/.hermes/agi-tree/src/chain_engine/chains.py` — it is a fix, not scratch work.
 2. Decide ownership: either promote `chain_engine` into the plugin (`extensions/agi/src/chain_engine/`) so the engine is self-contained, or formalise it as a documented project-supplied interface with a version check. Current implicit-optional-import coupling is fragile.
+
+</details>
 
 ### H1. DB-only state migration (drop `.md` state files) — P0
 **Rationale:** Today the loop emits `nodes/{type}/*.md` files (frontmatter+markdown) and `sessions/iter-NNN/*.json` manifests. These are racey on concurrent writes, scattered across multiple dirs, and not queryable. `extensions/agi/src/graph_core/persistence/sqlite_backend.py` (278 lines) and `extensions/agi/src/graph_core/db_loader.py` (173 lines) already exist as scaffolding — promote them to the canonical persistence layer and drop the filesystem backend from the hot path.
@@ -113,15 +147,52 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 **Evidence:** `~/.hermes/agi-tree/nodes/{hypothesis,idea,task,experiment,verdict,mvp,outcome}/*.md`; cavekit-deferred-todo R2.
 **Action:** Build a one-shot importer (`extensions/agi/scripts/import_agitree_nodes.py`) that reads each frontmatter file, validates against schema_registry, and writes via sqlite_backend. Idempotent — re-run safe.
 
-### H3. Replace `longest_chain_length` primary metric — P0
+### H3. Replace `longest_chain_length` primary metric — ✅ DONE 2026-08-21 (one config migration outstanding)
+
+**Engine side done.** Metric computation moved out of the untestable `driver.sh` heredoc into `extensions/agi/bin/metrics.py`. All 7 original `METRIC` lines emit identical values (parent-verified against the deleted heredoc), plus:
+
+- `evidence_fraction` — asserting verdicts (everything but `pending`) carrying `evidence_runs >= 1`. **This is the H3/H4 bridge:** it moves only when experiments actually run, and no amount of added hops shifts it. `pending` is excluded from the denominator on purpose, so honest uncertainty isn't penalised.
+- `decisive_evidence_fraction`, `unevidenced_decisive_verdicts` (alarm counter — must be `0`), `evidence_weighted_depth` (= `avg_chain_depth × evidence_fraction`), `primary_metric` / `primary_value`.
+
+`DEFAULT_METRIC_PRIMARY = "outcome_coverage"` is the fallback when config omits it — never chain length. `longest_chain_length` is listed in `GAMEABLE_METRICS`; naming it primary emits `METRIC_WARNING gameable_primary=…`. A test reproduces the actual attack: appending 30 hops moves `longest_chain_length` and leaves `evidence_fraction` flat.
+
+**🔴 Outstanding — migrate `~/.hermes/agi-tree/autoresearch-tree.config.json`.** It still declares `"metric_primary": "longest_chain_length"`, `"metric_unit": "hops"`, **and `attractiveness_weights.length: 0.4` — the highest weight, which actively rewards the same gaming.** Should become `metric_primary: outcome_coverage`, `metric_unit: fraction`, `longest_chain_length` demoted to `secondary_metrics`, weights rebalanced off `length` — i.e. match `fantasia/autoresearch-tree.config.json`, which migrated already. Do this **before** any agi-tree run. Until then the engine warns every iteration.
+
+<details><summary>original writeup</summary>
+
 **Rationale:** Agents proved the metric is gameable via shortcut chains (`hops=2*cycle+8`); 2000 hops on 9 chains achieved with no real research signal. Composite metric (chain_depth × evidence_fraction) or evidence-fraction-only is harder to game.
 **Evidence:** `~/.hermes/HANDOFF-autoresearch-2026-05-01.md` line 29; `~/.hermes/agi-tree/autoresearch-tree.config.json` declares the metric.
 **Action:** Edit `autoresearch-tree.config.json` schema (or wherever metric is declared); implement composite metric in `extensions/agi/bin/snapshot-build-site.py` (or wherever metrics are emitted); migrate all live projects' configs.
 
-### H4. Orphan-verdict gate (require `evidence_runs > 0`) — P0
+</details>
+
+### H4. Orphan-verdict gate (require `evidence_runs > 0`) — ✅ DONE 2026-08-21
+
+**The gate is out of the parent's head and into code** (which is what L4 asked for). `extensions/agi/bin/evidence_gate.py` is shared by **both** writer paths — `cli.py done` and `post_wire.py` (both its update-existing and create-verdict branches).
+
+**Behaviour: demote, not hard-fail.** A non-zero exit would discard the expensive part (the experiment and write-up) to punish the cheap part (a wrong label). So `proved` → `inconclusive_lean_proved:50`, `disproved` → `inconclusive_lean_disproved:50`, exit 0, node kept, stamped `demoted_from` + `demote_reason` so every demotion is greppable and reversible. Hard-fail stays reserved for a malformed verdict (taxonomy violation → exit 2). Parent-verified matrix:
+
+```
+proved                ev=0 → inconclusive_lean_proved:50      DEMOTED
+proved                ev=1 → proved                           pass
+disproved             ev=0 → inconclusive_lean_disproved:50   DEMOTED
+pending               ev=0 → pending                          pass
+inconclusive_lean_*:N ev=0 → unchanged                        pass
+```
+
+`evidence_runs` is inferred from the target node's frontmatter when the flag is omitted, so a kid that ran a real experiment isn't demoted for forgetting a CLI flag. Escape hatch `--no-evidence-gate` exists for the H2 historical importer (157 agi-tree nodes whose evidence predates the field); it prints `EVIDENCE-GATE BYPASSED`, stamps `evidence_gate: bypassed`, and every such node is counted in `unevidenced_decisive_verdicts` so bypasses cannot hide. `SKILL.md` review step 4 updated — parent-link resolution and orphan rejection are still by hand.
+
+<details><summary>original writeup</summary>
+
 **Rationale:** 99.7% of verdicts in the agi-tree run were orphaned (created without backing experiment evidence). The loop self-aware-flagged it (commit `67ead2f0`) but the gate isn't in the writer path. Without this, `proved`/`disproved` verdicts are noise.
 **Evidence:** `~/.hermes/HANDOFF-autoresearch-2026-05-01.md` line 26 (`67ead2f0`).
 **Action:** In `extensions/agi/bin/cli.py done` command, reject verdict creation unless `evidence_runs >= 1`. Permit `pending` and `inconclusive_lean_*` without evidence.
+
+</details>
+
+### H4b. `driver.sh` calls `benchmark.py` with the wrong arguments — P2
+
+**Found 2026-08-21 in passing.** `driver.sh` step 4 runs `benchmark.py "$PROJECT_ROOT"`, but that script's argparse expects a `chain_id`. The call is masked by `|| true`, so the pre-dispatch benchmark has been silently failing on every iteration rather than emitting attractiveness scores. Pre-existing, unrelated to H3/H4, deliberately not fixed in that pass.
 
 ### H5. Wire R11 loader path-safety bug — P1
 **Rationale:** Commit `141df8d6` claimed `disproved` for R11 but the loader is genuinely not wired — the disproof is a real bug masquerading as research artefact.
@@ -210,8 +281,10 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 |---|---|
 | Zoom axis | **BIG/SMALL only.** `bin/zoom.py --level big\|small`. No numeric axis. |
 | Model tiering | **Described, not built.** `SKILL.md §"The three tiers"`. Now specified as fully custom + three-tier (delegator/parent/kid) — see L3. |
-| H4 evidence gate | **Enforced by hand.** Overseer checks at review (`SKILL.md §"Iteration protocol" step 4`); the `cli.py` gate is unbuilt. |
-| Goal-fulfillment scoring | **Goals exist project-side** (`fantasia/GOALS.md`, G1–G7); **scoring against them does not**. `outcome_coverage` is a proxy. See L0a. |
+| H4 evidence gate | **Built and enforced in code** (2026-08-21) — `bin/evidence_gate.py`, applied by both writer paths (`cli.py done`, `post_wire.py`). Demotes rather than hard-fails. See H4. |
+| Goal nodes | **Built** (2026-08-21) — `bin/snapshot-goals.py` derives `nodes/goal/*.md` from `GOALS.md`. Linked by `parents: [goal:gN]`. See L15. |
+| Goal-fulfillment scoring | **Still a proxy.** `evidence_fraction` (H3) answers *was the work real*; goal **attribution** — *did it count* — is L4 and is unbuilt. The goal nodes L4 needs now exist. |
+| Chain finding | **Bounded** (2026-08-21) — `chain_engine` promoted into the engine; caps + deadline, degrades to partial output. See H0c. Caveat: truncated results are cached and re-served silently — H0e. |
 | IO maps | **Do not exist.** |
 | CC-native dispatch | **Largely built** — `skills/agi/SKILL.md`, validated on a live 6-iteration run. See L12. |
 | Git grid | **Built** — `bin/grid.py`, refs namespace, cron sync (H10). |
@@ -393,6 +466,8 @@ Two capabilities:
 
 The rename isn't cosmetic — it sets the intended relationship (caring, responsible-for) over the supervisory one, and it lines up with L3's delegator/parent/kid tiers.
 
+**Where this is tracked (decided 2026-08-21):** it stays a TODO entry for now — **no goal node yet.** The candidates were fantasia's G2 (cheap, but tracks engine work inside a game repo) or bootstrapping `agi` as its own project with its own `GOALS.md`. The latter is HANDOFF §4's "real dogfood milestone" and interacts with **L8** (one repo or two), so the where-do-engine-goals-live question is deferred until L8 is settled rather than answered by accident. The machinery to make it a goal node the moment that lands now exists (L15).
+
 **Still open — cut the parent's machine-tending to near zero.** A parent should spend motion on the *kids*, never on the computer. Concretely: rendering a kid's map with `zoom.py` and then hand-pasting it into the spawn prompt should be **one command that renders and spawns**. `SKILL.md` now states the general rule — any repeated, mechanical step gets scripted away, and manual handles need a written reason — but the spawn command itself is not built.
 
 ### L12. Claude Code as a first-class runtime — P1 (largely done; finish it)
@@ -427,7 +502,25 @@ Preserved in full: the design ethic, the four escalation triggers, the DONE cont
 
 The only remaining `autoresearch-tree` strings in the skill are the literal config filename, which is L13's scheduled breaking change.
 
-### L15. Goals become first-class nodes in `nodes/goal/` — P1
+### L15. Goals become first-class nodes in `nodes/goal/` — ✅ DONE 2026-08-21
+
+**Built as recommended — the `build-site.md` → `task` pattern, reused verbatim.** `extensions/agi/bin/snapshot-goals.py` derives `nodes/goal/<gid>-<slug>.md` from `GOALS.md`, stamped `origin: goals-doc`, with H0-safe incremental upsert and origin-guarded prune. `GOALS.md` stays the human-authored source of truth. Wired into `driver.sh` as step 1a — **plugin-only, with no project-local override lookup**, because that override mechanism *is* the H0 data-loss defect and must not be extended to new scripts.
+
+**Open question 1 settled — parent-pointing, and no new frontmatter field.** A node joins a goal by putting the goal id in its existing `parents:` list (`parents: [goal:g2]`). `render-context.py` already turns `parents` into `spawns` edges, so rendering and traversal came free. `snapshot-goals.py` only *reads* those pointers to compute each goal's `seeds:` list.
+
+**Open question 2 dodged, deliberately.** Goal→idea is a `spawns` edge only; **no `next_edges` are emitted and chain shape is untouched.** The canonical-chain extension (`goal → idea → …`) that would ripple through `chain_engine` remains a separate, deliberate piece of work — exactly as this entry warned.
+
+**Referential integrity** is live: a `goal:`-prefixed parent that resolves to no goal prints `INTEGRITY: <file> references unknown goal '<id>'`. Exit stays 0 by default (the loop must never break on it); `--strict` exits 1.
+
+**Safety:** a missing/renamed `GOALS.md` is a no-op that prunes **nothing** — it must never be able to wipe the goal corpus. Status values are *not* enum-enforced: fantasia's G3 is `status: horizon`, outside the documented `active | phasing-out | complete` set, so unknown values are preserved verbatim with a stderr warning.
+
+**Verified end-to-end on a fantasia copy** (not just unit tests): edges 12 → 19 (+7, one per goal→seed), `by type: … goal=7 …`, ASCII 33 → 40 lines. 12 tests in `extensions/agi/tests/test_snapshot_goals.py`. Project side: fantasia's 7 seed ideas now carry `parents: [goal:gN]`, mapping verified 1:1 against each seed's own body text.
+
+**Two follow-ups noticed while building:**
+- **G2's seed under-describes G2.** `idea:goal-zoom-level-granularity` covers the zoom axis, IO maps, model tiering and scoring, but not goal rotation (L5), recursive sub-loops (L6), or per-agent condensed injection (L7). Harmless today; the moment L4 scores by attribution, G2 will look under-served because its seed under-claims. Extend the seed *before* L4 lands.
+- **`nodes/task/t-011-guild-hub-menu-lobby.md`** has `parents: []` and prose tying it to G3/G7. Left unlinked on purpose — attaching a `task` node directly to a goal is a chain-shape decision, not a data fix.
+
+<details><summary>original writeup</summary>
 
 **Goals are the baseline every chain grows from, so they belong in the graph — not only in prose.** Today `fantasia/GOALS.md` holds G1..G7 as Markdown, and `nodes/` has one directory per type (`idea`, `hypothesis`, `experiment`, `verdict`, `mvp`, `outcome`, `task`) — **no `goal/`**. Seed ideas reference goals by id in text, which nothing validates and nothing can traverse.
 
@@ -449,6 +542,8 @@ The only remaining `autoresearch-tree` strings in the skill are the literal conf
 - Do goal nodes carry `next_edges` into their seed ideas, or do seed ideas carry `parents: [goal:G1]`? Parent-pointing matches how the rest of the graph already works.
 - Chain-validity rules currently expect chains to start at `idea`. Extending the canonical chain to `goal → idea → hypothesis → …` touches `chain_engine` and every chain-shape assumption — plan that deliberately rather than as a side effect.
 - `agi-tree` has no goals at all; giving it a `GOALS.md` is a precondition for its chains ever being scoreable.
+
+</details>
 
 
 
