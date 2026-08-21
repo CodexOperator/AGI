@@ -1,12 +1,12 @@
 #!/bin/bash
 # cc-session-start.sh — Claude Code SessionStart hook.
 #
-# When a new CC session begins, this hook auto-injects the capillary DAG
-# ASCII map for the current project (if cwd is inside an autoresearch-tree
+# When a new CC session begins, this hook auto-injects the thoughtgraph
+# ASCII map for the current project (if cwd is inside an agi-tree
 # project tree). Output goes to stdout → CC injects as additional_context.
 #
 # Graceful degradation: if no project found, or build fails, emits nothing
-# (no map for non-autoresearch repos, no error noise).
+# (no map for non-agi-tree repos, no error noise).
 #
 # Cache: re-uses INJECTION.md if <max_age_seconds old; otherwise rebuilds.
 
@@ -42,8 +42,8 @@ if [[ "$need_rebuild" == "true" ]]; then
   [[ -x "$PROJECT_ROOT/bin/snapshot-build-site.py" ]] && SNAPSHOT_PY="$PROJECT_ROOT/bin/snapshot-build-site.py"
   RENDER_PY="$PLUGIN_ROOT/bin/render-context.py"
   [[ -x "$PROJECT_ROOT/bin/render-context.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/render-context.py"
-  [[ -f "$SNAPSHOT_PY" ]] && AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$SNAPSHOT_PY" >/dev/null 2>&1 || true
-  [[ -f "$RENDER_PY" ]] && AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" >/dev/null 2>&1 || true
+  [[ -f "$SNAPSHOT_PY" ]] && AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$SNAPSHOT_PY" >/dev/null 2>&1 || true
+  [[ -f "$RENDER_PY" ]] && AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" >/dev/null 2>&1 || true
 fi
 
 # If still no INJECTION_FILE, exit silently — no map available.
@@ -52,14 +52,14 @@ if [[ ! -f "$INJECTION_FILE" ]]; then
 fi
 
 # Emit a compact map injection for CC context.
-echo "## autoresearch-tree map (auto-injected)"
+echo "## agi-tree map (auto-injected)"
 echo ""
 echo "Project: \`$PROJECT_ROOT\`"
-echo "Run: \`autoresearch-tree --max-iters N --delay-mins M\`"
+echo "Run: \`agi-tree --max-iters N --delay-mins M\`"
 echo ""
 # First N lines of INJECTION.md = stats + attractor list + ASCII top.
 head -n "$MAX_INJECT_LINES" "$INJECTION_FILE"
 echo ""
 echo "---"
-echo "Full injection at \`$INJECTION_FILE\`. Skill: \`autoresearch-tree\`."
+echo "Full injection at \`$INJECTION_FILE\`. Skill: \`agi\`."
 exit 0

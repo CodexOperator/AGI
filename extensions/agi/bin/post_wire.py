@@ -25,13 +25,17 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 SRC_GRAPH = PLUGIN_ROOT / "src" / "graph_core"
 
 
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
 def _find_root(cwd: Path | None = None) -> Path:
     d = (cwd or Path.cwd()).resolve()
     while d != d.parent:
-        if (d / "autoresearch-tree.config.json").exists():
+        if any((d / name).exists() for name in CONFIG_NAMES):
             return d
         d = d.parent
-    raise SystemExit("ERR: no autoresearch-tree.config.json found")
+    raise SystemExit("ERR: no agi-tree.config.json found")
 
 
 def _load_graph_core():

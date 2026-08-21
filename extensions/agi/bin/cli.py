@@ -26,14 +26,18 @@ VERDICT_RE = re.compile(
 NODE_TYPES = ("hypothesis", "experiment", "verdict", "mvp", "outcome", "bigger-outcome", "app-purpose")
 
 
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
 def _find_root() -> Path:
-    """Walk up cwd to find autoresearch-tree.config.json."""
+    """Walk up cwd to find agi-tree.config.json."""
     d = Path.cwd().resolve()
     while d != d.parent:
-        if (d / "autoresearch-tree.config.json").exists():
+        if any((d / name).exists() for name in CONFIG_NAMES):
             return d
         d = d.parent
-    print("ERR: no autoresearch-tree.config.json found from cwd up", file=sys.stderr)
+    print("ERR: no agi-tree.config.json found from cwd up", file=sys.stderr)
     sys.exit(1)
 
 
