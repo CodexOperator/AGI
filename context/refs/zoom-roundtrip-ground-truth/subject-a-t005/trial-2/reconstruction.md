@@ -1,0 +1,3 @@
+## Procedural Dungeon Generation Pipeline
+
+End-to-end system for generating, validating, and rendering playable dungeons. Takes a seed input to drive a seeded PRNG that controls all procedural decisions. Generates discrete rooms (axis-aligned rectangles with configurable dimensions) and connects them with corridors via pathfinding. Validates the complete layout against invariants (no overlaps, no unreachable spaces, all within bounds). Converts the validated abstract spatial layout to Three.js geometry (floor and wall meshes, with z-fighting offsets), applies materials, and assembles into the scene graph. Same seed guarantees identical output every call. Bridges procedural content generation to the Three.js renderer.

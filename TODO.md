@@ -294,7 +294,9 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 
 **Correction (2026-08-18).** An earlier draft of this entry claimed no goal system existed. Wrong — it was looked for in `agi` and `agi-tree` only. It lives in the **project** repo:
 
-**`~/work/fantasia/GOALS.md`** — root goals `G1..G7`, each with `status:` (`active` / `phasing-out` / `complete`). Seed nodes in `nodes/idea/` reference goals by id. Chains are scored on progress toward them via `metric_primary: outcome_coverage` (fraction of chains reaching a real outcome) in `fantasia/autoresearch-tree.config.json` — note fantasia has **already moved off the gameable `longest_chain_length`**, which now sits in `secondary_metrics`.
+**`~/work/fantasia/GOALS.md`** — root goals with `status:` (`active` / `horizon` / `phasing-out` / `complete`). Seed nodes in `nodes/idea/` reference goals by id. Chains are scored on progress toward them via `metric_primary: outcome_coverage` (fraction of chains reaching a real outcome) in `fantasia/agi-tree.config.json` — note fantasia has **already moved off the gameable `longest_chain_length`**, which now sits in `secondary_metrics`.
+
+**Updated 2026-08-21:** fantasia's goals are now `G1, G3..G7` — **G2 was removed.** G2 ("persistent ideation system with zoom levels") was engine work parked in a game repo: all seven of its capabilities are L1–L7 of this file. Its goal section, seed node, and full evidence chain were deleted from fantasia and the substance merged here — the measurements into L1, the contract-slice requirement into L2, the cheap-tier boundary into L3. **The G-numbering is deliberately left with a gap**; renumbering would break every node that references a goal by id. This is also the shape of the L8 rule in practice: a project holds goals about *its own domain*, and engine goals live in the engine's repo.
 
 **Goal lifecycle, as practiced:** each long-term goal is a build tree. Retire by marking the section `status: phasing-out` and **deprecating — never deleting** its seed node; a phased-out goal's tree is marked `complete`, or is retired node by node as other nodes absorb its function. **Retired chains remain prior art.** That is the mechanism L5 formalizes.
 
@@ -323,6 +325,32 @@ Today `zoom.py` takes `--level big|small`. Replace with `--level 1..5`.
 
 **Invariant:** one node at level N ⇔ a collection of nodes at level N+1, and back. Decomposition and rollup must both round-trip.
 
+🔴 **That invariant is already falsified for the free-form implementation — measured, not suspected.** Evidence migrated here from fantasia's G2 chain (`hyp:zoom-roundtrip-claim-loss-r1` → `exp:zoom-roundtrip-recall-haiku-r1` → `verdict:zoom-loss-hits-contracts-not-prose-r1`, `inconclusive_lean_proved:80`, `evidence_runs: 6`), which was engine research living in a game repo; the chain was deleted there when its goal moved to this file.
+
+**Protocol.** Two subjects, ground-truth claim lists and scoring rule locked before any decomposition ran. Each round trip used two *different* cheap (haiku) agents with no shared context: one decomposed a node into 3–6 children, a second — given only the children file — reconstructed a single node. 12 agents, 6 complete round trips, 111 claim-instances. Doubles as the L3 model-tiering demo: expensive orchestration, cheap zoom ops.
+
+| category | recall |
+|---|---|
+| description (prose) | **0.792** |
+| dependencies | 0.778 |
+| invariant citations | 0.267 |
+| file paths | 0.111 |
+| structured frontmatter | **0.000** (0/24 — every field, every trial, both subjects, zero variance) |
+| **overall** | **0.441** against a 0.90 bar |
+
+**Three things to carry forward:**
+1. **Loss is category-structured, not uniform.** Prose survives; node identity is destroyed outright. A round-tripped node cannot be identified as the node it came from.
+2. **It is not a capacity problem.** The children were *longer* than the parents — the cheap agents were expanding, not compressing, and still lost 56% of claims. More context will not fix it.
+3. **The mechanism is understood.** A parent-level universal ("*every* chain landing code must respect SPEC.md §V") reliably attaches to exactly one of six children, at which point the summarizer correctly reads it as that child's local detail and drops it. Neither agent misbehaves. The loss is a compounding artifact of the decompose/resummarize *shape*.
+
+**Design consequence — zoom is not a view operation as prototyped; it is a lossy transform.** To make it behave like a view, the contract-bearing parts must not pass through the model at all. A child node = **(a)** mechanically inherited frontmatter plus a contract slice, attached by the harness, **(b)** model-authored prose. Only (b) ever round-trips through a summarizer. That splits cleanly across L2 (the contract slices) and L3 (what the cheap tier is allowed to touch).
+
+**Held back from `proved`, and the limits matter:** the dependency leg came in at 0.778 — statistically indistinguishable from prose, so a named conjunct failed; its post-hoc rescue ("dependencies survived because the dependency list *was* the decomposition axis") is a new hypothesis, not a tested result. One model tier, one prompt shape, two thin subjects, single rater who also authored the ground truth. **Precision was never scored** — a reconstruction inventing plausible-but-false contracts would have scored identically, which for a contract layer is at least as dangerous as loss.
+
+**The raw artifacts are kept** at `context/refs/zoom-roundtrip-ground-truth/` — claim lists, scoring rule, and all 6 children/reconstruction pairs. They were gitignored in fantasia (machine-local, at risk); they are tracked here because the follow-up A/B is only cheap if this exact baseline survives.
+
+**Next node, when L1 is picked up:** *mechanically inherited contract slices restore round-trip fidelity without a smarter model.* Cheap and directly comparable — ground truth, scoring rule and baseline all exist. Pre-register: metadata recall 1.00 by construction, citations and paths ≥ 0.90, prose unchanged near 0.79. Pre-register the live falsifiers too: prose recall *drops* because the structural scaffold crowds out the summarizer, or citations die anyway because a summarizer discards inherited fields it did not author. Add a third dense subject whose dependency list is deliberately *not* the decomposition axis, and score precision this time.
+
 Levels 4–5 aren't primarily for authoring — they're for **debugging** and for **recombining records into zoom-level-specific fine-tuning data** (train a small model to operate well at exactly one level; see L3).
 
 Level 3's stitch-to-directory capability is the load-bearing one: it's what makes the graph an executable artifact rather than a description of one. Build it first; treat the other levels as projections around it.
@@ -334,6 +362,8 @@ Every node declares **required inputs** and **promised outputs**. Each entry car
 - a **security note** (e.g. potential vulnerability).
 
 IO maps **re-derive when neighbors change**, so decomposing a node never orphans its contracts. This is the mechanism that keeps L1's decompose/rollup honest — contracts are what survive a zoom change.
+
+**L1's evidence promotes this from nice-to-have to load-bearing.** "Decomposing a node orphans its contracts" is no longer a worry with a hand-waved fix; it is an observed mechanism with a measured rate (invariant citations 0.267, file paths 0.111, frontmatter 0.000). The requirement that falls out: IO maps and invariant citations must be **explicitly inherited slices of the parent's contract set, attached to children mechanically by the harness, never restated by a decomposer.** At 0.00 frontmatter recall there is no prompt-tuning fix worth trying first — the field has to leave the model's hands entirely.
 
 ### L3. Model tiering — fully custom, three-tier — P1 (blocked on L1 for per-level assignment)
 
@@ -354,6 +384,8 @@ IO maps **re-derive when neighbors change**, so decomposing a node never orphans
 **Why the delegator tier matters:** it's what lets several parent/kid groups run concurrently against different goals, coordinated in one place. That is the user-facing half of L6 (recursive sub-loops) — L6 supplies the scheduling and the shared iteration budget, L3 supplies who runs what.
 
 Half-specified already in `SKILL.md §"The three tiers"` for the BIG/SMALL case. Once L1 lands, extend the config to one tier per zoom level, each level reviewed at the level above. Pairs with L1's per-level fine-tuning data — the long game is a level-specialized small model per tier.
+
+**Tiering is not refuted by L1's zoom evidence — its price is now a number.** Prose recall of 0.792 from a haiku tier is precisely what a cheap tier is *for*. What that chain refutes is handing the cheap tier the **contract layer** (frontmatter 0.000, paths 0.111, citations 0.267). Tiering survives if the zoom operation is split in two: **the model authors prose, the harness moves structure.** Assign tiers per zoom level accordingly — no tier, however cheap, should ever be the thing that carries node identity across a decomposition.
 
 ### L4. Goal-fulfillment scoring — P0
 Score chains by **contribution to goals**, never raw chain length (H3: hop count proven gameable; H0c: that gaming produced graph structure which broke the render path). Verdicts require experiment evidence (H4).
@@ -427,7 +459,7 @@ Paywall-then-open-source works cleanly with any of these: the engine is the thin
 
 ```
 ~/work/fantasia/                     ← the project repo (CodexOperator/fantasia)
-  GOALS.md                           long-term goals G1..G7 with status:
+  GOALS.md                           long-term goals (G1, G3..G7) with status:
   agi-tree.config.json               metric_primary: outcome_coverage
   nodes/                             the graph (27 nodes)
   context/  sessions/                generated / gitignored
