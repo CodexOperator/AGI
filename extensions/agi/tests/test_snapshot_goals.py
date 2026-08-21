@@ -235,3 +235,31 @@ def test_parse_goals_body_cap():
     text = "## G1 — Big — status: active\n\n" + ("x" * 6000)
     goals = sg.parse_goals(text)
     assert len(goals[0]["body"]) == 4000
+
+
+# --------------------------------------------- H0i: re-snapshot must not strip
+
+def test_resnapshot_preserves_fields_the_snapshot_does_not_own(project):
+    """Regression: rebuilding frontmatter from GOALS.md dropped everything else.
+
+    The same defect in snapshot-build-site.py severed `next_edges` on 15 nodes
+    of the live agi-tree corpus — chain structure deleted by a render pass.
+    """
+    assert run(project).returncode == 0
+    node = next((project / "nodes" / "goal").glob("g1-*.md"))
+
+    text = node.read_text(encoding="utf-8")
+    head, body = text.split("---", 2)[1], text.split("---", 2)[2]
+    node.write_text(
+        f"---{head}next_edges:\n  - idea:seeded\nembedding_coords: [0.1, 0.2]\n"
+        f"---{body}",
+        encoding="utf-8",
+    )
+
+    assert run(project).returncode == 0
+    fm = fm_of(node)
+    assert fm["next_edges"] == ["idea:seeded"]
+    assert "embedding_coords" in fm
+    # Snapshot-owned fields still come from GOALS.md, not the old file.
+    assert fm["status"] == "active"
+    assert fm["goal_id"] == "G1"

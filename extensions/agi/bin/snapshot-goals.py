@@ -132,8 +132,19 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
     _upsert_node_to_db._backend.save(node_id, nf)
 
 
-def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "") -> None:
+def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
+                      preserve: dict | None = None) -> None:
+    """Write a node file.  `preserve` carries forward fields we do not own.
+
+    Kept in sync with snapshot-build-site.py, where rebuilding frontmatter from
+    scratch silently severed `next_edges` on every re-snapshot.  Snapshot-owned
+    keys win; anything a later writer added survives.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    if preserve:
+        merged = {k: v for k, v in preserve.items() if k not in fm}
+        if merged:
+            fm = {**merged, **fm}
     if origin:
         fm = dict(fm)  # copy so we don't mutate caller's dict
         fm["origin"] = origin
@@ -293,7 +304,8 @@ def main(argv: list[str] | None = None) -> int:
         }
         slug = f"{g['gid'].lower()}-{slugify(g['title'])}"
         out_path = NODES_DIR / "goal" / f"{slug}.md"
-        write_frontmatter(out_path, fm, g["body"], origin=ORIGIN)
+        write_frontmatter(out_path, fm, g["body"], origin=ORIGIN,
+                          preserve=existing.get(node_id, {}).get("fm"))
         _upsert_node_to_db(node_id, fm, g["body"], origin=ORIGIN)
         written.add(node_id)
         written_paths.add(out_path.resolve())
