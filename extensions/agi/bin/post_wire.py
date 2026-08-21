@@ -28,13 +28,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
 
 
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
 def _find_root(cwd: Path | None = None) -> Path:
     d = (cwd or Path.cwd()).resolve()
     while d != d.parent:
-        if (d / "autoresearch-tree.config.json").exists():
+        if any((d / name).exists() for name in CONFIG_NAMES):
             return d
         d = d.parent
-    raise SystemExit("ERR: no autoresearch-tree.config.json found")
+    raise SystemExit("ERR: no agi-tree.config.json found")
 
 
 def _load_graph_core():

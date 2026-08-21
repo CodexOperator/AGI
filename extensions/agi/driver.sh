@@ -1,14 +1,14 @@
 #!/bin/bash
-# autoresearch-tree driver — orchestrates parallel pi agent dispatch + healing.
+# agi-tree driver — orchestrates parallel pi agent dispatch + healing.
 #
-# Lives in pi-autoresearch plugin. Auto-detects project root by walking up
-# from cwd until it finds autoresearch-tree.config.json.
+# Lives in the agi engine. Auto-detects project root by walking up
+# from cwd until it finds agi-tree.config.json (legacy: autoresearch-tree.config.json).
 #
 # Usage:
 #   driver.sh [--max-iters N] [--delay-mins M] [--smoke] [--no-heal]
 #
 # Project layout expected:
-#   <project>/autoresearch-tree.config.json
+#   <project>/agi-tree.config.json
 #   <project>/context/INJECTION.md
 #   <project>/nodes/
 #   <project>/sessions/   (created)
@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-# Resolve real path so symlinks (e.g. ~/.local/bin/autoresearch-tree) point back
+# Resolve real path so symlinks (e.g. ~/.local/bin/agi-tree) point back
 # to the plugin dir, not the symlink dir.
 SCRIPT_REAL="$(readlink -f "${BASH_SOURCE[0]}")"
 PLUGIN_ROOT="$(cd "$(dirname "$SCRIPT_REAL")" && pwd)"
@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
     --no-heal) NO_HEAL=true; shift ;;
     -h|--help)
       cat <<HELP
-autoresearch-tree driver — capillary DAG loop for pi-autoresearch
+agi-tree driver — thoughtgraph loop for agi
 
 OPTIONS:
   --max-iters N      Run N iterations (default 1)
@@ -46,7 +46,7 @@ OPTIONS:
 
 PROJECT ROOT:
   Auto-detected by walking up from \$PWD looking for
-  autoresearch-tree.config.json.
+  agi-tree.config.json (legacy name autoresearch-tree.config.json still works).
 
 PLUGIN ROOT:
   $PLUGIN_ROOT
@@ -58,7 +58,7 @@ HELP
 done
 
 PROJECT_ROOT=$(find_project_root "$PWD") || {
-  echo "ERR: not inside an autoresearch-tree project (no autoresearch-tree.config.json found above $PWD)" >&2
+  echo "ERR: not inside an agi-tree project (no agi-tree.config.json found above $PWD)" >&2
   exit 1
 }
 echo "[driver] PROJECT_ROOT=$PROJECT_ROOT"
@@ -76,7 +76,8 @@ iter_run() {
   # 1a. Derive nodes/goal/ from GOALS.md (plugin-only; no project-local override
   #     on purpose — project-local bin/*.py overrides are the H0 data-loss defect)
   if [[ -f "$PLUGIN_ROOT/bin/snapshot-goals.py" ]]; then
-    AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" 2>&1 | tee -a "$LOG"
+    AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
+      python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" 2>&1 | tee -a "$LOG"
   fi
 
   # 1. Refresh nodes/ from build-site (idempotent rebuild)
@@ -84,14 +85,16 @@ iter_run() {
   local SNAPSHOT_PY="$PLUGIN_ROOT/bin/snapshot-build-site.py"
   [[ -x "$PROJECT_ROOT/bin/snapshot-build-site.py" ]] && SNAPSHOT_PY="$PROJECT_ROOT/bin/snapshot-build-site.py"
   if [[ -f "$SNAPSHOT_PY" ]]; then
-    AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$SNAPSHOT_PY" 2>&1 | tee -a "$LOG"
+    AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
+      python3 "$SNAPSHOT_PY" 2>&1 | tee -a "$LOG"
   fi
 
   # 2. Render context → INJECTION.md
   local RENDER_PY="$PLUGIN_ROOT/bin/render-context.py"
   [[ -x "$PROJECT_ROOT/bin/render-context.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/render-context.py"
   if [[ -f "$RENDER_PY" ]]; then
-    AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" 2>&1 | tee -a "$LOG"
+    AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
+      python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" 2>&1 | tee -a "$LOG"
   fi
 
   # 3. Emit METRICs

@@ -23,13 +23,17 @@ DEFAULT_MODEL = "qwen3:4b"
 CLOSED_CHAINS_FILE = "closed_chains.txt"
 
 
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
 def _find_root() -> Path:
     d = Path.cwd().resolve()
     while d != d.parent:
-        if (d / "autoresearch-tree.config.json").exists():
+        if any((d / name).exists() for name in CONFIG_NAMES):
             return d
         d = d.parent
-    print("ERR: no autoresearch-tree.config.json found from cwd up", file=sys.stderr)
+    print("ERR: no agi-tree.config.json found from cwd up", file=sys.stderr)
     sys.exit(1)
 
 

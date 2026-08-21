@@ -123,7 +123,7 @@ def test_stamp_records_demotion():
 
 @pytest.fixture()
 def project(tmp_path, monkeypatch):
-    (tmp_path / "autoresearch-tree.config.json").write_text("{}")
+    (tmp_path / "agi-tree.config.json").write_text("{}")
     (tmp_path / "nodes" / "experiment").mkdir(parents=True)
     sess = tmp_path / "sessions" / "iter-001" / "a1"
     sess.mkdir(parents=True)
@@ -212,7 +212,7 @@ def test_cli_done_escape_hatch_is_loud(project):
 
 @pytest.fixture()
 def wired_project(tmp_path, monkeypatch):
-    (tmp_path / "autoresearch-tree.config.json").write_text("{}")
+    (tmp_path / "agi-tree.config.json").write_text("{}")
     exp = tmp_path / "nodes" / "experiment"
     exp.mkdir(parents=True)
     (exp / "e1.md").write_text(

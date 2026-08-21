@@ -7,7 +7,7 @@ Agents proved that metric gameable — 9 chains x 2000 hops via shortcut
 cycles (`hops=2*cycle+8`) carrying no signal, and the pathological
 structure then broke the render path (H0c).
 
-The primary metric now comes from `autoresearch-tree.config.json`
+The primary metric now comes from `agi-tree.config.json`
 (`metric_primary`), defaulting to :data:`DEFAULT_METRIC_PRIMARY` —
 never chain length. `longest_chain_length` stays as a descriptive
 secondary statistic.
@@ -152,9 +152,22 @@ def evidence_stats(nodes_dir: Path) -> dict:
     }
 
 
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
+def config_path(root: Path) -> Path | None:
+    """First existing config file in `root`, or None if it is not a project."""
+    for name in CONFIG_NAMES:
+        p = root / name
+        if p.exists():
+            return p
+    return None
+
+
 def read_config(root: Path) -> dict:
-    cfg_path = root / "autoresearch-tree.config.json"
-    if not cfg_path.exists():
+    cfg_path = config_path(root)
+    if cfg_path is None:
         return {}
     try:
         return json.loads(cfg_path.read_text()) or {}
@@ -234,10 +247,10 @@ def emit(root: Path, out=None) -> dict:
 def _find_root(start: Path) -> Path:
     d = start.resolve()
     while d != d.parent:
-        if (d / "autoresearch-tree.config.json").exists():
+        if config_path(d) is not None:
             return d
         d = d.parent
-    print("ERR: no autoresearch-tree.config.json found", file=sys.stderr)
+    print("ERR: no agi-tree.config.json found", file=sys.stderr)
     sys.exit(1)
 
 

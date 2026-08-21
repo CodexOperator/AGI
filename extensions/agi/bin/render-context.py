@@ -19,10 +19,23 @@ from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = Path(
-    os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")
+    os.environ.get("AGI_TREE_PROJECT_ROOT")
+    or os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")  # legacy, rename window
     or os.environ.get("PROJECT_ROOT")
     or os.getcwd()
 ).resolve()
+
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+
+def config_path(root: Path) -> Path | None:
+    """First existing config file in `root`, or None if it is not a project."""
+    for name in CONFIG_NAMES:
+        p = root / name
+        if p.exists():
+            return p
+    return None
 # Ensure project src (which has chain_engine) is on sys.path.
 # Append it AFTER plugin src so plugin's graph_core takes precedence
 # (graph_core types must come from plugin, chain_engine from project).
@@ -51,8 +64,8 @@ from renderers import build_representation, render_ascii
 # Detect sqlite config for optional DB-backed loading
 def _load_graph_sqlite(nodes_dir: Path) -> tuple[Graph, list]:
     """Load graph via SQLiteBackend if persistence.type=sqlite, else None."""
-    cfg_path = PROJECT_ROOT / "autoresearch-tree.config.json"
-    if not cfg_path.exists():
+    cfg_path = config_path(PROJECT_ROOT)
+    if cfg_path is None:
         return None, []
     import json
     cfg = json.loads(cfg_path.read_text())
@@ -131,7 +144,7 @@ def main() -> int:
 
     # Build INJECTION.md
     out_lines = [
-        "# autoresearch-tree INJECTION CONTEXT",
+        "# agi-tree INJECTION CONTEXT",
         f"_generated {datetime.now(timezone.utc).isoformat(timespec='seconds')}_",
         "",
         "## graph snapshot",
