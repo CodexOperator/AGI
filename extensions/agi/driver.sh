@@ -73,6 +73,12 @@ iter_run() {
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
   echo "=== iter $n @ $ts ===" | tee -a "$LOG"
 
+  # 1a. Derive nodes/goal/ from GOALS.md (plugin-only; no project-local override
+  #     on purpose — project-local bin/*.py overrides are the H0 data-loss defect)
+  if [[ -f "$PLUGIN_ROOT/bin/snapshot-goals.py" ]]; then
+    AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" 2>&1 | tee -a "$LOG"
+  fi
+
   # 1. Refresh nodes/ from build-site (idempotent rebuild)
   # Plugin scripts are canonical; project-local copies override if present.
   local SNAPSHOT_PY="$PLUGIN_ROOT/bin/snapshot-build-site.py"
