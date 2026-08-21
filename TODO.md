@@ -147,6 +147,18 @@ Two defects, found together the first time `snapshot-goals.py` ran against a pro
 
 **Root cause of (1) being invisible until now:** `fantasia` declares no `persistence` block, so the sqlite path had never executed on a live project.
 
+### H0i. Re-snapshotting silently severed chain structure — ✅ FIXED 2026-08-21 🔴 DATA LOSS
+
+**Caught by reviewing the diff of the first agi-tree snapshot, not by any test or warning.** `snapshot-build-site.py` rebuilds each node's frontmatter from `build-site.md` + the kits and writes it with `write_frontmatter`, which emitted **only the fields the snapshot owns**. Every field a later writer had added was dropped. The load-bearing casualty is `next_edges` — the chain structure `post_wire.py` records — so **a render pass deleted chains and reported success**: 15 nodes on the live corpus, 8 hypothesis + 7 idea.
+
+This is H0's family (a routine operation destroying data it did not own) with two aggravating differences: it is in the **engine**, not a stale project-local copy, so no amount of override hygiene prevents it; and it fires on **every driver iteration**, so the loss is continuous rather than one-shot.
+
+**Fix:** `write_frontmatter(..., preserve=<existing frontmatter>)` merges instead of replacing — snapshot-owned keys still win, everything else carries forward. Wired at all three call sites (`idea`, `hypothesis`, `task`), which already had `existing` in hand. The same shape existed in `snapshot-goals.py` and got the same fix, kept in sync deliberately.
+
+Verified on the live corpus: restore from HEAD, re-run both snapshots, `next_edges` file count holds at 29,231 and total nodes at 29,430. The residual diff is `next_edges` **moving into sorted key position** — a move, not a loss. Tests: 4 in the new `test_snapshot_build_site.py`, 1 in `test_snapshot_goals.py`.
+
+**Worth generalising:** the snapshot scripts are the only writers that rebuild a node rather than amend it, and neither had a test that wrote a node twice. Any future writer with that shape needs the same preserve contract and the same round-trip test.
+
 ### H0h. `agi-tree/src/` is a vendored copy of engine code and shadows the engine — P1
 
 Found while fixing H0g. `~/work/agi-tree/src/` contains project-local copies of `graph_core`, `chain_engine`, `renderers`, `schema_registry`, `embeddings` and `environment_indexers`. The documented override convention (`driver.sh`, `zoom.py`) gives a project's `src/graph_core` precedence over the plugin's — so agi-tree runs on **its own stale copy**, which predates `graph_core/persistence/sqlite_backend.py` entirely.

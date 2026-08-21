@@ -107,8 +107,22 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
     _upsert_node_to_db._backend.save(node_id, nf)
 
 
-def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "") -> None:
+def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
+                      preserve: dict | None = None) -> None:
+    """Write a node file.  `preserve` carries forward fields we do not own.
+
+    The snapshot rebuilds frontmatter from `build-site.md` and the kits, so it
+    only knows about its own fields.  Anything a later writer added — most
+    importantly `next_edges`, which post_wire.py uses to record chain structure
+    — used to be silently dropped on every re-snapshot, severing chains that
+    had already been built.  Snapshot-owned keys still win; everything else on
+    the existing node survives.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    if preserve:
+        merged = {k: v for k, v in preserve.items() if k not in fm}
+        if merged:
+            fm = {**merged, **fm}
     if origin:
         fm = dict(fm)  # copy so we don't mutate caller's dict
         fm["origin"] = origin
@@ -282,6 +296,7 @@ def main() -> int:
             },
             d["body"],
             origin="build-site",
+            preserve=existing.get(d["id"], {}).get("fm"),
         )
         _upsert_node_to_db(d["id"], {
             "id": d["id"],
@@ -311,6 +326,7 @@ def main() -> int:
             },
             r["body"][:2000],  # cap body size
             origin="build-site",
+            preserve=existing.get(r["id"], {}).get("fm"),
         )
         _upsert_node_to_db(r["id"], {
             "id": r["id"],
@@ -350,6 +366,7 @@ def main() -> int:
             },
             "\n\n".join(t["body"]),
             origin="build-site",
+            preserve=existing.get(f"task:{t['id'].lower()}", {}).get("fm"),
         )
         _upsert_node_to_db(f"task:{t['id'].lower()}", {
             "id": f"task:{t['id'].lower()}",
