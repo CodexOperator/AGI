@@ -166,6 +166,21 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 
 </details>
 
+### H3b. The generated injection still taught longest-chain-wins — ✅ FIXED 2026-08-21
+
+**The last place the dead metric was still being taught.** L13/L14 took longest-chain-wins out of `skills/agi/SKILL.md`, but `bin/render-context.py` kept emitting `- longest-chain attracts but mid-chain join allowed` under "chain rules" and led the snapshot with `longest chain: N hops`. `context/INJECTION.md` is auto-injected into every agent session by both the CC SessionStart hook and the pi bridge — so the skill said one thing and the context every agent actually reads said the opposite.
+
+**Fixed in the generator, not the artifact:**
+- the snapshot headline is now the project's `metric_primary` (shared with `bin/metrics.py` — one definition of `outcome_coverage`, so map and METRIC lines cannot disagree). A config still naming a `GAMEABLE_METRICS` entry as primary gets `not a valid target` plus a pointer at `outcome_coverage`, mirroring the `METRIC_WARNING` — which is what `~/.hermes/agi-tree/` will render until the H3 config migration above is done.
+- chain count / longest chain moved under `## chain diagnostics (descriptive — not targets)` with the H3+H0c reasoning attached.
+- chain rules restated: length is never a target, attraction is the descendant list, decisive verdicts need `evidence_runs >= 1`.
+
+**Ordering was load-bearing.** Both injectors take only the first **80 lines** (`MAX_INJECT_LINES`, `INJECTION_LINES`), and the rules sat *below* a ≤200-line ASCII block — so on any real graph they were never injected at all. Rules now precede the ASCII view: on a 120-node graph everything through next-steps ends at line 53.
+
+Also removed `_longest_chain_length()` — its result was computed every render and never used, and it is the same recursive walk that raised `RecursionError` at ~992 deep in H0b. Chain stats come from the bounded `find_chains`; when `chain_engine` is unimportable the map now says `unavailable` instead of reporting `0`.
+
+Tests: `extensions/agi/tests/test_render_context.py` (6) — all six fail against the pre-fix generator.
+
 ### H4. Orphan-verdict gate (require `evidence_runs > 0`) — ✅ DONE 2026-08-21
 
 **The gate is out of the parent's head and into code** (which is what L4 asked for). `extensions/agi/bin/evidence_gate.py` is shared by **both** writer paths — `cli.py done` and `post_wire.py` (both its update-existing and create-verdict branches).
@@ -626,6 +641,36 @@ Every piece works. Only the driver refuses, and it refuses *before* render and m
 3. **Name the stage in `SKILL.md`.** A project is usable at three depths: goals only (ideation), goals + seed ideas (chains starting), goals + build site (execution). Agents should know a goals-only project is a legitimate state and not a broken one.
 
 **Why it's worth doing before more engine features:** it is the only thing standing between "I have an idea" and "the loop is running on it," and it is also how the engine gets tested against a project that isn't fantasia.
+
+### L19. Close the loop — decompose agi's machinery into agi-tree's graph — P1
+
+**The shape being proposed.** `agi-tree` is the thoughtgraph that builds `agi`; `agi` is the code that operates on thoughtgraphs. Run those against each other and the pair is closed: a change to the engine originates as a node in the graph, and the engine that grows the graph is the thing the node changed. The DNA analogy is exact enough to be useful — the graph is the sequence, the engine is the machinery that reads it, and neither is the author of the other. Today the loop is open: engine reasoning lives in `TODO.md` and `CLAUDE.md` as prose, gets read by agents, and never returns to the graph.
+
+**It half-exists already, which is the surprise.** `agi-tree`'s idea layer is *already* a per-module decomposition of the engine — 14 ideas, most of them `Domain: <module>`:
+
+| agi-tree idea | Engine surface today |
+|---|---|
+| `domain-graph-core`, `domain-renderers`, `domain-chain-engine`, `domain-schema-registry`, `domain-embeddings` | ✅ still `extensions/agi/src/*` |
+| `domain-exporters`, `domain-environment-indexers` | 🔴 no such module — the graph describes an engine that no longer exists |
+| `domain-autoresearch-tree-skill`, `domain-test-coverage`, `domain-cli-invocation`, `domain-session-management` | ⚠️ pre-rename names; partly real |
+| — | 🔴 **no idea node**: `src/agi_algos`, all 12 `bin/*.py`, `driver.sh`, `hooks/`, `lib/`, `scripts/`, `extensions/agi-bridge/` |
+
+So the graph covers the library half of an older engine and **none of the loop harness** — which is precisely where every 2026-08 change landed (H0/H0b/H0c/H0e, H3, H3b, H4, L15). The half that changes is the half with no representation.
+
+**And below the idea layer it is not a decomposition of anything.** 14,559 experiments and 14,579 verdicts against 14 ideas — roughly 1000:1. That is the H3 gaming artifact, not thought about the engine.
+
+**Preconditions (all already recorded, none new):**
+1. **H3 config migration** — `agi-tree` still declares `metric_primary: longest_chain_length` and `attractiveness_weights.length: 0.4`. Decomposing into a graph that rewards hop-padding reproduces the defect at larger scale. Do this first.
+2. **`GOALS.md` for `agi-tree`** (L0a, L18) — it has none, so no chain is scoreable and `outcome_coverage` has no denominator that means anything. The goals write themselves here: they are the engine's own design contract (SKILL.md "motion, weight, and the sprint").
+3. **H0e** — a truncated `find_chains` result is cached and re-served as complete. A self-referential corpus that under-reports itself is worse than one that under-reports someone else.
+
+**Actions:**
+1. **Generate the decomposition; do not hand-write it.** One idea node per engine module and per `bin/` entry point, seeded from goals — `bin/decompose-engine.py`, idempotent, re-runnable as the engine changes. Hand-authoring 30 domain nodes is exactly the repeated mechanical motion `SKILL.md` says to script away, and a hand-written map goes stale the same way `exporters` did. GitNexus already indexes this repo (symbols, call graph, execution flows) and is the obvious seed source.
+2. **Deprecate the 29k padding — never delete it.** Mark the gamed experiment/verdict mass deprecated so it stays prior art (and stays evidence for H3) without competing for attractiveness. Deleting it would repeat H0's mistake in slow motion.
+3. **Make the return path real.** An engine change should be reviewable as: node → verdict → commit. The mechanism already exists (`grid.py`, the evidence gate, `metric_primary`); what is missing is the convention that engine work *starts* in the graph.
+4. **Decide what `TODO.md` becomes.** If engine reasoning lives in the graph, this file is either generated from it or demoted to an index. Do not run both by hand — two sources of truth about the same defects is how the injection ended up teaching the opposite of the skill (H3b).
+
+**Do not start this before the preconditions.** A closed loop amplifies whatever it is fed: with a gameable primary metric and no goals, closing it means the engine optimises itself against a metric H3 already proved meaningless.
 
 ---
 

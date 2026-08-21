@@ -183,6 +183,17 @@ def primary_metric_name(cfg: dict) -> str:
     return name.strip()
 
 
+def outcome_coverage(mvp_count: int, hypothesis_count: int) -> float:
+    """The default primary metric: mvps per hypothesis.
+
+    Goal-attributable — it moves only when a hypothesis actually reaches an
+    mvp, so padding hops cannot shift it (H3). Shared with
+    `bin/render-context.py`, which reports it in the injected map, so the map
+    and the METRIC lines can never disagree about what the loop is scored on.
+    """
+    return mvp_count / max(hypothesis_count, 1)
+
+
 def compute(root: Path) -> dict:
     g = _load_graph(root)
 
@@ -192,7 +203,6 @@ def compute(root: Path) -> dict:
 
     mvp_count = by_type.get("mvp", 0)
     hyp_count = by_type.get("hypothesis", 0)
-    outcome_coverage = mvp_count / max(hyp_count, 1)
     non_leaf = [n for n in g.nodes if n.children]
     branching = sum(len(n.children) for n in non_leaf) / max(len(non_leaf), 1)
     avg_depth = sum(len(n.parents) for n in g.nodes) / max(len(g), 1)
@@ -201,7 +211,7 @@ def compute(root: Path) -> dict:
         "longest_chain_length": longest_chain_length(g),
         "avg_chain_depth": round(avg_depth, 2),
         "mvp_count": mvp_count,
-        "outcome_coverage": round(outcome_coverage, 3),
+        "outcome_coverage": round(outcome_coverage(mvp_count, hyp_count), 3),
         "chain_branching_factor": round(branching, 2),
         "node_count": len(g),
         "edge_count": g.edge_count,
