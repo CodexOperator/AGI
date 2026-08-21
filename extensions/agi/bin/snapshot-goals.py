@@ -85,6 +85,22 @@ def slugify(s: str) -> str:
     return "-".join(p for p in parts if p) or "untitled"
 
 
+def _add_graph_core_to_path() -> None:
+    """Put graph_core on sys.path, plugin src last so a project can override.
+
+    Mirrors driver.sh's convention and zoom.py's `_add_graph_core_to_path`.
+    Without this the sqlite branch below raised ModuleNotFoundError *mid-run*,
+    after some goal files had already been written — a project with
+    `persistence.type: sqlite` could not snapshot its goals at all.
+    """
+    plugin_src = PLUGIN_ROOT / "src"
+    if plugin_src.is_dir() and str(plugin_src) not in sys.path:
+        sys.path.insert(0, str(plugin_src))
+    proj_src = PROJECT_ROOT / "src"
+    if (proj_src / "graph_core").is_dir() and str(proj_src) not in sys.path:
+        sys.path.insert(0, str(proj_src))
+
+
 def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
     """Upsert a node into SQLite if persistence.type=sqlite."""
     if not hasattr(_upsert_node_to_db, "_backend"):
@@ -94,8 +110,18 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
             cfg = json.loads(cfg_path.read_text())
             if cfg.get("persistence", {}).get("type") == "sqlite":
                 db_path = PROJECT_ROOT / cfg["persistence"]["path"]
-                from graph_core.persistence.sqlite_backend import SQLiteBackend
-                _upsert_node_to_db._backend = SQLiteBackend(db_path)
+                _add_graph_core_to_path()
+                # The DB is a mirror of the files just written, so an
+                # unavailable backend must degrade to a warning. Raising here
+                # aborts mid-corpus and leaves a partially-snapshotted graph —
+                # a project shadowing graph_core with a stale copy that predates
+                # sqlite_backend hit exactly that.
+                try:
+                    from graph_core.persistence.sqlite_backend import SQLiteBackend
+                    _upsert_node_to_db._backend = SQLiteBackend(db_path)
+                except Exception as exc:
+                    print(f"WARN: sqlite persistence unavailable ({exc}); "
+                          f"nodes written to files only", file=sys.stderr)
     if _upsert_node_to_db._backend is None:
         return
     from graph_core.persistence.frontmatter import NodeFile

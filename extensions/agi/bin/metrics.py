@@ -66,27 +66,44 @@ def _load_graph(root: Path):
 
 
 def longest_chain_length(g) -> int:
-    """Longest descendant chain. Descriptive only — gameable (H3)."""
+    """Longest descendant chain. Descriptive only — gameable (H3).
+
+    Deliberately iterative. The recursive version raised RecursionError at ~990
+    deep on the agi-tree corpus, whose chains were gamed to 2000 hops — the same
+    defect H3b removed from render-context.py, and it aborted the whole metrics
+    stage over a metric that is only descriptive. Back-edges resolve to 0 rather
+    than looping, matching chain_engine's cycle convention.
+    """
     cache: dict[str, int] = {}
+    on_stack: set[str] = set()
 
-    def d(nid: str) -> int:
-        if nid in cache:
-            return cache[nid]
-        n = g.get_node(nid)
-        if n is None or not n.children:
-            cache[nid] = 0
-            return 0
-        best = 0
-        for c in n.children:
-            if c == nid:
+    for root in g.node_ids:
+        if root in cache:
+            continue
+        stack: list[tuple[str, bool]] = [(root, False)]
+        while stack:
+            nid, expanded = stack.pop()
+            if expanded:
+                n = g.get_node(nid)
+                cache[nid] = max(
+                    (cache.get(c, 0) + 1 for c in n.children if c != nid),
+                    default=0,
+                )
+                on_stack.discard(nid)
                 continue
-            best = max(best, d(c) + 1)
-        cache[nid] = best
-        return best
+            if nid in cache:
+                continue
+            n = g.get_node(nid)
+            if n is None or not n.children:
+                cache[nid] = 0
+                continue
+            on_stack.add(nid)
+            stack.append((nid, True))
+            for c in n.children:
+                if c != nid and c not in cache and c not in on_stack:
+                    stack.append((c, False))
 
-    if not g.node_ids:
-        return 0
-    return max(d(nid) for nid in g.node_ids)
+    return max(cache.values(), default=0)
 
 
 def _iter_frontmatter(nodes_dir: Path):

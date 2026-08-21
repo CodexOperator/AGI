@@ -26,15 +26,29 @@ def _get_chain_cache_file(graph_dir: str) -> str:
     return str(Path(graph_dir).resolve() / ".chain_cache.pkl")
 
 
+# Bumped whenever the cache payload gains a field the reader depends on.
+# Version 1 caches predate `truncated_reason` (TODO.md H0e): a partial result
+# written by that code is indistinguishable from a complete one, so they are
+# refused outright rather than trusted.
+CHAIN_CACHE_VERSION = 2
+
+
 def _save_chain_cache(graph_dir: str, chains: list[Chain],
-                      node_count: int, mtime: float) -> None:
-    """Save find_chains results to pickle cache."""
+                      node_count: int, mtime: float,
+                      truncated_reason: str | None = None) -> None:
+    """Save find_chains results to pickle cache.
+
+    `truncated_reason` records that the result is partial, so a warm hit can
+    re-warn instead of serving the truncation silently (H0e).
+    """
     try:
         cache_file = _get_chain_cache_file(graph_dir)
         cached = {
+            "cache_version": CHAIN_CACHE_VERSION,
             "chains": chains,
             "node_count": node_count,
             "mtime": mtime,
+            "truncated_reason": truncated_reason,
             "saved_at": time.time(),
         }
         with open(cache_file, "wb") as f:
@@ -44,15 +58,21 @@ def _save_chain_cache(graph_dir: str, chains: list[Chain],
 
 
 def _load_chain_cache(graph_dir: str, node_count: int, mtime: float) \
-        -> list[Chain] | None:
-    """Load cached chains if sources unchanged."""
+        -> tuple[list[Chain], str | None] | None:
+    """Load cached chains if sources unchanged.
+
+    Returns `(chains, truncated_reason)`, or None on any miss. A pre-versioned
+    cache is a miss: it cannot say whether it is complete.
+    """
     try:
         cache_file = _get_chain_cache_file(graph_dir)
         with open(cache_file, "rb") as f:
             cached = pickle.load(f)
+        if cached.get("cache_version") != CHAIN_CACHE_VERSION:
+            return None
         if (cached.get("node_count") == node_count
                 and cached.get("mtime") == mtime):
-            return cached["chains"]
+            return cached["chains"], cached.get("truncated_reason")
     except Exception:
         pass
     return None
@@ -228,6 +248,8 @@ def find_chains(graph: RenderableGraph,
     partial output rather than hanging the loop (TODO.md H0c).
 
     Results are cached to graph_dir/.chain_cache.pkl (node_count + mtime bust).
+    Truncation is cached with them and re-warned on every warm hit, so a partial
+    answer can never be served as a complete one (TODO.md H0e).
 
     Args:
         graph: A RenderableGraph (Graph or subgraph) to search.
@@ -254,7 +276,14 @@ def find_chains(graph: RenderableGraph,
                 )
             cached = _load_chain_cache(graph_dir, node_count, mtime)
             if cached is not None:
-                return cached
+                cached_chains, cached_reason = cached
+                # A truncated answer stays labelled truncated for as long as it
+                # is served — otherwise the corpus under-reports forever with no
+                # warning at all (H0e).
+                if cached_reason:
+                    _warn_truncated(f"{cached_reason}, cached",
+                                    len(cached_chains))
+                return cached_chains
         except OSError:
             pass
 
@@ -369,8 +398,9 @@ def find_chains(graph: RenderableGraph,
         if reason == "max_chains":
             break
 
-    if reasons:
-        _warn_truncated("+".join(sorted(reasons)), len(chains))
+    truncated_reason = "+".join(sorted(reasons)) if reasons else None
+    if truncated_reason:
+        _warn_truncated(truncated_reason, len(chains))
 
     # ---- Cache results ----
     if graph_dir is not None:
@@ -385,7 +415,8 @@ def find_chains(graph: RenderableGraph,
                      if f.is_file()),
                     default=0.0,
                 )
-            _save_chain_cache(graph_dir, chains, node_count, mtime)
+            _save_chain_cache(graph_dir, chains, node_count, mtime,
+                              truncated_reason=truncated_reason)
         except OSError:
             pass
 

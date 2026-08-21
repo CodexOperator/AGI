@@ -112,13 +112,48 @@ Tests: `extensions/agi/tests/test_chain_engine.py` (18) + `tests/chain_engine/` 
 
 </details>
 
-### H0e. A truncated `find_chains` result is cached and later served as complete — P1
+### H0e. A truncated `find_chains` result is cached and later served as complete — ✅ FIXED 2026-08-21
+
+**Fixed as the action described, keeping the cache.** `_save_chain_cache` now persists `truncated_reason` alongside the chains, and every warm hit that carries one re-emits `WARN: find_chains truncated (<reason>, cached)`. Refusing to cache truncated results was the other option and was rejected: on this corpus the cold path costs the full 20 s deadline every render, so it would have traded a silent-wrong-answer defect for a per-iteration tax on exactly the graphs that need the cache most.
+
+**Pre-existing caches are refused, not trusted.** The payload carries `cache_version: 2`; a v1 cache cannot say whether it is complete, so it is treated as a miss and recomputed. Without this the fix would have left every already-truncated `.chain_cache.pkl` on disk still lying.
+
+Verified live on the agi-tree corpus: the smoke run now prints `WARN: find_chains truncated (deadline); returning 29 partial chain(s)` where it previously printed nothing. Tests: 4 in `extensions/agi/tests/test_chain_engine.py` (re-warn on hit, silence when complete, reason persisted, unversioned cache refused).
+
+<details><summary>original writeup</summary>
 
 **Found 2026-08-21 while verifying H0c.** When `find_chains` hits a bound it returns partial chains and warns — correct. But the partial result is then written to `.chain_cache.pkl` like any other result, and the cache is keyed only on node count + max mtime. Every subsequent run reads the truncated answer back and prints **no warning at all** (parent-reproduced: the warm run on the agi-tree corpus emits nothing). A partial answer becomes indistinguishable from a complete one for the rest of the corpus's life.
 
 This matters because chain counts feed metrics and attractiveness ranking — a silently-truncated corpus quietly under-reports forever, which is the same class of defect as H3 (numbers that look authoritative and aren't).
 
 **Action:** persist a `truncated` flag + the reason alongside the cached chains; re-emit the warning on every cache hit. Consider refusing to cache truncated results at all — cheaper and harder to get wrong.
+
+</details>
+
+### H0f. `metrics.py` still walked chains recursively — ✅ FIXED 2026-08-21
+
+**The H3b defect surviving in a second file.** H3b removed the recursive `_longest_chain_length()` from `render-context.py` because it raised `RecursionError` at ~992 deep. The identical recursive walk was still live in `bin/metrics.py:longest_chain_length`, and on the agi-tree corpus it **aborted the entire metrics stage** — so the loop could not run there at all, over a metric that is explicitly descriptive-only.
+
+Rewritten as an iterative post-order DFS with a cycle guard (back-edges resolve to 0, matching `chain_engine`'s convention). Tests: a 2000-hop corpus asserting `longest_chain_length == 1999`, and a parent cycle that terminates.
+
+**The general lesson, worth more than the fix:** a *descriptive* statistic took down the stage that computes the *primary* metric. Diagnostics must degrade, never abort — same rule the H0c bounds established for `find_chains`.
+
+### H0g. Both snapshot scripts crashed mid-corpus on a sqlite-configured project — ✅ FIXED 2026-08-21
+
+Two defects, found together the first time `snapshot-goals.py` ran against a project with `persistence.type: sqlite`:
+
+1. **`graph_core` was never put on `sys.path`.** `zoom.py` has `_add_graph_core_to_path()`; `snapshot-goals.py` and `snapshot-build-site.py` did not, so the sqlite branch raised `ModuleNotFoundError`. The same helper is now in all three.
+2. **The failure aborted the run mid-write.** The DB is a *mirror* of files already written, so an unavailable backend now warns and continues (`WARN: sqlite persistence unavailable (...); nodes written to files only`). Raising left a partially-snapshotted corpus — the G7 class, reached through a new door.
+
+**Root cause of (1) being invisible until now:** `fantasia` declares no `persistence` block, so the sqlite path had never executed on a live project.
+
+### H0h. `agi-tree/src/` is a vendored copy of engine code and shadows the engine — P1
+
+Found while fixing H0g. `~/work/agi-tree/src/` contains project-local copies of `graph_core`, `chain_engine`, `renderers`, `schema_registry`, `embeddings` and `environment_indexers`. The documented override convention (`driver.sh`, `zoom.py`) gives a project's `src/graph_core` precedence over the plugin's — so agi-tree runs on **its own stale copy**, which predates `graph_core/persistence/sqlite_backend.py` entirely.
+
+This is H0/H0b's defect class arriving through the `src/` door rather than the `bin/` one, and it is the same thing H0d deferred for `chain_engine` ("retiring it is a separate, deliberate step, not a side effect"). L9 states the rule it violates: **the engine must never be vendored.**
+
+Interim: agi-tree's `persistence` block was removed from its config, since it declared a backend the project's own vendored code cannot provide. **Action:** retire `agi-tree/src/` deliberately — verify nothing project-specific lives there, then delete it so the plugin copy is the only one. Do not do it as a cleanup pass; the historical `exp-*.py` scripts import from it.
 
 ### H0d. `chain_engine` is project-side only; its `graph_dir` fix is uncommitted — ✅ RESOLVED 2026-08-21
 
@@ -147,7 +182,7 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 **Evidence:** `~/.hermes/agi-tree/nodes/{hypothesis,idea,task,experiment,verdict,mvp,outcome}/*.md`; cavekit-deferred-todo R2.
 **Action:** Build a one-shot importer (`extensions/agi/scripts/import_agitree_nodes.py`) that reads each frontmatter file, validates against schema_registry, and writes via sqlite_backend. Idempotent — re-run safe.
 
-### H3. Replace `longest_chain_length` primary metric — ✅ DONE 2026-08-21 (one config migration outstanding)
+### H3. Replace `longest_chain_length` primary metric — ✅ FULLY DONE 2026-08-21
 
 **Engine side done.** Metric computation moved out of the untestable `driver.sh` heredoc into `extensions/agi/bin/metrics.py`. All 7 original `METRIC` lines emit identical values (parent-verified against the deleted heredoc), plus:
 
@@ -156,7 +191,11 @@ The plugin calls `find_chains(g, graph_dir=str(nodes_dir))`, but agi-tree's **co
 
 `DEFAULT_METRIC_PRIMARY = "outcome_coverage"` is the fallback when config omits it — never chain length. `longest_chain_length` is listed in `GAMEABLE_METRICS`; naming it primary emits `METRIC_WARNING gameable_primary=…`. A test reproduces the actual attack: appending 30 hops moves `longest_chain_length` and leaves `evidence_fraction` flat.
 
-**🔴 Outstanding — migrate `~/.hermes/agi-tree/autoresearch-tree.config.json`.** It still declares `"metric_primary": "longest_chain_length"`, `"metric_unit": "hops"`, **and `attractiveness_weights.length: 0.4` — the highest weight, which actively rewards the same gaming.** Should become `metric_primary: outcome_coverage`, `metric_unit: fraction`, `longest_chain_length` demoted to `secondary_metrics`, weights rebalanced off `length` — i.e. match `fantasia/autoresearch-tree.config.json`, which migrated already. Do this **before** any agi-tree run. Until then the engine warns every iteration.
+**✅ Config migrated 2026-08-21.** `~/work/agi-tree/autoresearch-tree.config.json` now matches fantasia: `metric_primary: outcome_coverage`, `metric_unit: fraction`, `longest_chain_length` demoted to `secondary_metrics`, `attractiveness_weights.length` 0.4 → 0.3 with `mvp_count` 0.2 → 0.3. `cc_dispatch` added so the CC-native runtime can drive it. Verified: the smoke run emits `METRIC primary_metric=outcome_coverage` / `primary_value=0.202` and no `METRIC_WARNING`.
+
+**The file name stays legacy on purpose.** Renaming it to `agi-tree.config.json` would break the historical `exp-multi-agent-dispatch-r1.py` and `experiments/exp-chain-engine-r7-configuration.py`, which open it by name. The engine resolves the legacy name canonically-second (L16), so nothing is lost by waiting.
+
+**🔴 Residual, and it needs a decision before the loop is run in anger there.** Dropping the primary metric does not disarm the corpus: `attractiveness_weights.length: 0.3` still ranks 2000-hop gamed chains above everything real, so target selection keeps landing on the padding. The measured evidence that this is not hypothetical: `unevidenced_decisive_verdicts=11715` out of `decisive_verdicts=14565`. **L19 action 2 (deprecate the padding) is the fix**; until it lands, treat agi-tree's attractor ranking as untrustworthy rather than merely suboptimal.
 
 <details><summary>original writeup</summary>
 
@@ -298,7 +337,7 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 | Model tiering | **Described, not built.** `SKILL.md §"The three tiers"`. Now specified as fully custom + three-tier (delegator/parent/kid) — see L3. |
 | H4 evidence gate | **Built and enforced in code** (2026-08-21) — `bin/evidence_gate.py`, applied by both writer paths (`cli.py done`, `post_wire.py`). Demotes rather than hard-fails. See H4. |
 | Goal nodes | **Built** (2026-08-21) — `bin/snapshot-goals.py` derives `nodes/goal/*.md` from `GOALS.md`. Linked by `parents: [goal:gN]`. See L15. |
-| Goal-fulfillment scoring | **Still a proxy.** `evidence_fraction` (H3) answers *was the work real*; goal **attribution** — *did it count* — is L4 and is unbuilt. The goal nodes L4 needs now exist. |
+| Goal-fulfillment scoring | **Still a proxy.** `evidence_fraction` (H3) answers *was the work real*; goal **attribution** — *did it count* — is L4 and is unbuilt. The goal nodes L4 needs now exist in **both** live projects (fantasia 2026-08-21, agi-tree 2026-08-21). |
 | Chain finding | **Bounded** (2026-08-21) — `chain_engine` promoted into the engine; caps + deadline, degrades to partial output. See H0c. Caveat: truncated results are cached and re-served silently — H0e. |
 | IO maps | **Do not exist.** |
 | CC-native dispatch | **Largely built** — `skills/agi/SKILL.md`, validated on a live 6-iteration run. See L12. |
@@ -324,7 +363,7 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 
 **Cleanup — resolve the name collision.** `graph_builder.parse_goals()` (`extensions/agi/src/agi_algos/graph_builder.py:491`) parses a *different* `goals/` directory into `goal`-type nodes for the hermes 35-node-type **code** graph. Its call site (`:2579`) hardcodes `<hermes_dir>/belam-codex/goals`, **a path that no longer exists**, so it returns 0. It is dead code and unrelated to `GOALS.md`. Repoint it or delete it — two different things named "goal" in one codebase will mislead every future reader.
 
-**`agi-tree` has no goals** and no `GOALS.md`. It predates the pattern; its last substantive work is the 2000-hop chain extension that produced H3 and H0c. If `agi-tree` is to keep being worked, it needs its own `GOALS.md` — otherwise its chains are unscoreable.
+**✅ `agi-tree` now has `GOALS.md`** (2026-08-21) — eight goals, derived into `nodes/goal/`. See L19's precondition list for the set. The where-do-engine-goals-live question L11 deferred until L8 settled is settled the way L8 implies: **engine goals live in `agi-tree`, the engine's own project repo**, never in a project like fantasia.
 
 
 ### L1. Adjustable zoom — generalize BIG/SMALL into a 5-step numeric axis — P1
@@ -659,10 +698,24 @@ So the graph covers the library half of an older engine and **none of the loop h
 
 **And below the idea layer it is not a decomposition of anything.** 14,559 experiments and 14,579 verdicts against 14 ideas — roughly 1000:1. That is the H3 gaming artifact, not thought about the engine.
 
-**Preconditions (all already recorded, none new):**
-1. **H3 config migration** — `agi-tree` still declares `metric_primary: longest_chain_length` and `attractiveness_weights.length: 0.4`. Decomposing into a graph that rewards hop-padding reproduces the defect at larger scale. Do this first.
-2. **`GOALS.md` for `agi-tree`** (L0a, L18) — it has none, so no chain is scoreable and `outcome_coverage` has no denominator that means anything. The goals write themselves here: they are the engine's own design contract (SKILL.md "motion, weight, and the sprint").
-3. **H0e** — a truncated `find_chains` result is cached and re-served as complete. A self-referential corpus that under-reports itself is worse than one that under-reports someone else.
+**Preconditions — ✅ ALL CLEARED 2026-08-21:**
+1. ~~**H3 config migration**~~ — done; see H3. Residual: `attractiveness_weights.length` still ranks the padding, which action 2 below is what actually fixes.
+2. ~~**`GOALS.md` for `agi-tree`**~~ — written, and it is the engine's design contract as this entry predicted: **G1** zero-operations loop · **G2** adjustable zoom with surviving contracts · **G3** scoring that added motion cannot move · **G4** model tiering + goal concurrency · **G5** goals as a lifecycle the engine reads · **G6** the closed loop (this entry) · **G7** nothing is silently lost · **G8** forkability. Eight `nodes/goal/*.md` derived by `snapshot-goals.py`; `active` = G3, G6, G7. Each goal names the `L`/`H` entries it owns, so this file and `GOALS.md` cross-reference instead of restating each other (action 4).
+3. ~~**H0e**~~ — fixed; see H0e.
+
+**Three more blockers surfaced only once the loop was actually pointed at agi-tree** — none were predictable from reading: **H0f** (recursive `longest_chain_length` aborted the metrics stage), **H0g** (both snapshot scripts crashed mid-corpus on a sqlite-configured project), **H0h** (agi-tree's vendored `src/` shadows the engine). H0f and H0g are fixed; H0h is deferred deliberately. The loop now completes a full smoke pass on the 29,430-node corpus.
+
+**Baseline recorded 2026-08-21, before any decomposition work:**
+
+| metric | value |
+|---|---|
+| `node_count` | 29,430 (29,422 + 8 goal nodes; nothing dropped) |
+| `primary_value` (`outcome_coverage`) | 0.202 |
+| `evidence_fraction` | 0.196 |
+| `unevidenced_decisive_verdicts` | 11,715 / 14,565 decisive |
+| `find_chains` | truncated on deadline, 29 partial chains |
+
+**Every goal currently has `seeds: []`** — deliberately. Linking today's 14 `domain-*` ideas to fresh goals would attach an accurate-looking edge to a decomposition of an engine that no longer exists. Seeding is action 1's job, not a data fix.
 
 **Actions:**
 1. **Generate the decomposition; do not hand-write it.** One idea node per engine module and per `bin/` entry point, seeded from goals — `bin/decompose-engine.py`, idempotent, re-runnable as the engine changes. Hand-authoring 30 domain nodes is exactly the repeated mechanical motion `SKILL.md` says to script away, and a hand-written map goes stale the same way `exporters` did. GitNexus already indexes this repo (symbols, call graph, execution flows) and is the obvious seed source.
