@@ -37,7 +37,7 @@ def _node(root, ntype, slug, fm_extra="", parents=()):
 
 @pytest.fixture()
 def project(tmp_path):
-    (tmp_path / "autoresearch-tree.config.json").write_text("{}")
+    (tmp_path / "agi-tree.config.json").write_text("{}")
     (tmp_path / "nodes").mkdir()
     return tmp_path
 
@@ -62,7 +62,7 @@ def test_primary_honours_config():
 
 
 def test_gameable_primary_emits_a_warning(project, capsys):
-    (project / "autoresearch-tree.config.json").write_text(
+    (project / "agi-tree.config.json").write_text(
         json.dumps({"metric_primary": "longest_chain_length"})
     )
     _node(project, "hypothesis", "h1")
@@ -73,7 +73,7 @@ def test_gameable_primary_emits_a_warning(project, capsys):
 
 
 def test_emit_prints_primary_name_and_value(project):
-    (project / "autoresearch-tree.config.json").write_text(
+    (project / "agi-tree.config.json").write_text(
         json.dumps({"metric_primary": "evidence_fraction"})
     )
     _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")

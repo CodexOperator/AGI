@@ -70,7 +70,7 @@ git clone https://github.com/CodexOperator/agi.git ~/.hermes/agi
 cd ~/.hermes/agi
 ```
 
-Path `~/.hermes/agi` is conventional, not required — nothing in the code hardcodes it. Scripts resolve `PLUGIN_ROOT` from `$BASH_SOURCE` and `PROJECT_ROOT` from `$AUTORESEARCH_TREE_PROJECT_ROOT` or by walking up for `autoresearch-tree.config.json`.
+Path `~/.hermes/agi` is conventional, not required — nothing in the code hardcodes it. Scripts resolve `PLUGIN_ROOT` from `$BASH_SOURCE` and `PROJECT_ROOT` from `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT` still read) or by walking up for `agi-tree.config.json` (legacy `autoresearch-tree.config.json` still resolves).
 
 ### 2b. Dependencies
 
@@ -123,7 +123,7 @@ Injects the project's graph map into every new CC session. In `~/.claude/setting
 }
 ```
 
-The hook is a **silent no-op** outside projects containing `autoresearch-tree.config.json`, so it's safe to register globally.
+The hook is a **silent no-op** outside projects containing `agi-tree.config.json`, so it's safe to register globally.
 
 > ⚠️ **On the old machine this entry is stale** — it still points at `/home/ubuntu/autoresearch-tree/extensions/autoresearch-tree/hooks/cc-session-start.sh`. That path still resolves today but breaks the moment `TODO.md` → C1 deletes the legacy directory. Fix it there or accept the breakage.
 
@@ -261,7 +261,7 @@ python3 -c "from agi_algos import build_graph, GraphBuilder, QueryEngine, PiTree
 | **Bridge-load verification** | Needs a live pi + CC session. Bridge code preserved verbatim but unproven post-fold. |
 | **Archiving `CodexOperator/autoresearch-tree`** | Still **public and unarchived**. Does **not** contain the fold. `TODO.md` C2. |
 | **Deleting legacy `~/autoresearch-tree/`** | `TODO.md` C1. |
-| **Loop-against-self** | `~/work/agi/` is not itself a project yet — no `autoresearch-tree.config.json` or `nodes/`. Bootstrapping that is the real dogfood milestone, and it interacts with L8 — read that first. |
+| **Loop-against-self** | `~/work/agi/` is not itself a project yet — no `agi-tree.config.json` or `nodes/`. Bootstrapping that is the real dogfood milestone, and it interacts with L8 — read that first. |
 
 ---
 
@@ -378,7 +378,7 @@ tmux attach -t agi      # Ctrl-B D to detach
 - **Capillary DAG** — the research chain shape (see §7).
 - **Zoom level** — BIG (whole graph) vs SMALL (2-hop subtree) agent context.
 - **PLUGIN_ROOT** — the engine directory, `extensions/agi/`. Resolved from `$BASH_SOURCE`.
-- **PROJECT_ROOT** — the research project's own directory, holding `autoresearch-tree.config.json`, `nodes/`, `sessions/`, `context/`. From `$AUTORESEARCH_TREE_PROJECT_ROOT` or by walking up from cwd.
+- **PROJECT_ROOT** — the research project's own directory, holding `agi-tree.config.json`, `nodes/`, `sessions/`, `context/`. From `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) or by walking up from cwd.
 - **INJECTION.md** — the rendered ASCII graph map injected into agent context each turn.
 
 ---

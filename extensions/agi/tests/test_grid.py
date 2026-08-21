@@ -16,7 +16,7 @@ spec.loader.exec_module(grid)
 @pytest.fixture()
 def project(tmp_path):
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
-    (tmp_path / "autoresearch-tree.config.json").write_text("{}")
+    (tmp_path / "agi-tree.config.json").write_text("{}")
     d = tmp_path / "nodes" / "idea"
     d.mkdir(parents=True)
     (d / "x.md").write_text(
@@ -32,7 +32,7 @@ def versions(root, node_id):
 
 
 def test_init_idempotent_and_refuses_non_repo(tmp_path):
-    (tmp_path / "autoresearch-tree.config.json").write_text("{}")
+    (tmp_path / "agi-tree.config.json").write_text("{}")
     with pytest.raises(SystemExit):
         grid.cmd_init(tmp_path)  # not a git repo -> hard error, no silent grid
 
@@ -116,3 +116,18 @@ def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
     # a fresh clone must be able to fetch the grid: refspec configured
     specs = grid.git(project, "config", "--get-all", "remote.origin.fetch")
     assert grid.FETCH_SPEC in specs.splitlines()
+
+
+def test_find_project_root_accepts_canonical_and_legacy_config(tmp_path):
+    # Rename window: agi-tree.config.json is canonical, but projects still
+    # carrying autoresearch-tree.config.json must keep resolving.
+    canonical = tmp_path / "canonical"
+    legacy = tmp_path / "legacy"
+    nested = legacy / "nodes" / "idea"
+    canonical.mkdir()
+    nested.mkdir(parents=True)
+    (canonical / "agi-tree.config.json").write_text("{}")
+    (legacy / "autoresearch-tree.config.json").write_text("{}")
+
+    assert grid.find_project_root(canonical) == canonical
+    assert grid.find_project_root(nested) == legacy

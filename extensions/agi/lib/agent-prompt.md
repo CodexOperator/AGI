@@ -70,7 +70,7 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
      --notes "<short summary>"
    ```
 7. **If stuck >2 attempts on the same approach** → write `pending` verdict and stop. Don't loop.
-8. **Predecessor `agi/` is FROZEN.** Never write to it. Project root is the dir holding `autoresearch-tree.config.json`.
+8. **Predecessor `agi/` is FROZEN.** Never write to it. Project root is the dir holding `agi-tree.config.json`.
 9. **Test-first mindset.** Add a test that proves your acceptance criterion before claiming done.
 10. **Caveman speak in stdout/log is fine; kit/code stays plain English.**
 11. **Two repos, two purposes — commit to the right one:**
