@@ -19,6 +19,36 @@ import json
 import sys
 from pathlib import Path
 
+PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+
+
+class ZoomUnavailable(RuntimeError):
+    """Subtree bounding could not be computed.
+
+    Raised instead of silently returning the whole graph: an unbounded context
+    defeats the entire point of small zoom, and a silent fallback hides the
+    breakage from every caller. Fail loudly — dispatch.py runs zoom.py with
+    check=True, so this surfaces as a CalledProcessError rather than a
+    context-bomb delivered to a kid.
+    """
+
+
+def _add_graph_core_to_path(root: Path) -> None:
+    """Put graph_core on sys.path, plugin src last so a project can override.
+
+    Mirrors driver.sh's convention: the engine lives in PLUGIN_ROOT/src, and a
+    project may shadow it with its own src/graph_core. Previously only the
+    project's src was added, so on any project without its own graph_core
+    (the normal case) the import always failed and small zoom silently
+    degraded to the whole graph.
+    """
+    plugin_src = PLUGIN_ROOT / "src"
+    if plugin_src.is_dir():
+        sys.path.insert(0, str(plugin_src))
+    proj_src = root / "src"
+    if (proj_src / "graph_core").is_dir():
+        sys.path.insert(0, str(proj_src))
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -50,7 +80,18 @@ def main() -> int:
         if not args.target:
             print("ERR: --target required for --level small", file=sys.stderr)
             return 1
-        out_path.write_text(_compose_small(root, inject_text, args), encoding="utf-8")
+        try:
+            small = _compose_small(root, inject_text, args)
+        except ZoomUnavailable as e:
+            print(
+                f"ERR: small zoom could not bound the subtree: {e}\n"
+                f"     Refusing to fall back to the whole graph — an unbounded\n"
+                f"     context defeats small zoom. Fix the graph_core import or\n"
+                f"     dispatch this agent at --level big deliberately.",
+                file=sys.stderr,
+            )
+            return 1
+        out_path.write_text(small, encoding="utf-8")
 
     print(out_path)
     return 0
@@ -84,11 +125,11 @@ If stuck >2 attempts on same approach → write a `pending` verdict and stop.
 
 def _compose_small(root: Path, inject_text: str, args: argparse.Namespace) -> str:
     """Extract subtree around target from nodes/."""
-    sys.path.insert(0, str(root / "src"))
+    _add_graph_core_to_path(root)
     try:
         from graph_core.edge import Edge
     except Exception as e:
-        return f"# zoom small fallback (loader unavailable: {e})\n\n{inject_text}"
+        raise ZoomUnavailable(f"graph_core import failed: {e}") from e
 
     # Detect sqlite vs filesystem
     cfg_path = root / "autoresearch-tree.config.json"
@@ -105,12 +146,12 @@ def _compose_small(root: Path, inject_text: str, args: argparse.Namespace) -> st
             db_path = root / cfg["persistence"]["path"]
             g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
         except Exception as e:
-            return f"# zoom small fallback (sqlite unavailable: {e})\n\n{inject_text}"
+            raise ZoomUnavailable(f"sqlite backend unavailable: {e}") from e
     else:
         try:
             from graph_core.loader import load_directory
         except Exception as e:
-            return f"# zoom small fallback (loader unavailable: {e})\n\n{inject_text}"
+            raise ZoomUnavailable(f"filesystem loader unavailable: {e}") from e
         g, loaded = load_directory(root / "nodes")
 
     # Wire children

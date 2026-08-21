@@ -66,14 +66,14 @@ Divergence isolates cleanly to the driver's project-override precedence selectin
 
 **Related:** handoff line 192 described this as *"seed hypothesis nodes get clobbered by snapshot each iter … Acceptable for now."* That framing badly understates it — it is total corpus deletion, not seed-node churn.
 
-### H0b. Second stale project-local override: `render-context.py` — P0
-**Symptom:** With the node corpus intact, `~/.hermes/agi-tree/bin/render-context.py:162` raises `RecursionError: maximum recursion depth exceeded` (recursion depth ~992) inside `_longest_chain_length`.
+### H0b. Second stale project-local override: `render-context.py` — ✅ FIXED 2026-08-18
+**Was:** with the node corpus intact, `~/.hermes/agi-tree/bin/render-context.py:162` raised `RecursionError` (~992 deep) inside `_longest_chain_length`. Same class as H0 — a stale project-local copy shadowing the plugin, predating commit `59d31e26` ("iterative `find_chains()` kills recursion limit"). Invisible while `nodes/` was wiped to 158; restoring the corpus surfaced it.
 
-**Cause:** Same class as H0 — a stale project-local copy shadowing the plugin. This one predates commit `59d31e26` ("iterative `find_chains()` kills recursion limit"). The plugin's `extensions/agi/bin/render-context.py` has the iterative version and loads all 29,404 nodes without error.
+**Fix applied:** renamed to `bin/render-context.py.STALE-DO-NOT-USE`, so the plugin's iterative version wins. `~/.hermes/agi-tree/bin/` now contains only `autoresearch-tree.sh` plus the two `.STALE-DO-NOT-USE` files.
 
-**Why it went unnoticed:** it only manifests on a deep corpus. While `nodes/` was wiped down to 158 by H0, the recursive walk stayed under the limit. Restoring the corpus surfaced it.
+**Still open — the general rule.** Treat *any* project-local `bin/*.py` as stale until proven otherwise; the override mechanism itself is the defect (H0 action 2 proposes making it opt-in, and L9 proposes an engine-version pin plus a drift warning). Audit `~/.hermes/belam-codex-modularnn-spike-viz/.../modularNN/` before running the loop there. `~/work/fantasia/` is clean — it ships no `bin/` overrides.
 
-**Action:** rename `~/.hermes/agi-tree/bin/render-context.py` so the plugin's version wins. Then audit every project for **any** `bin/*.py` override — treat all of them as stale until proven otherwise. This generalises H0 action 2: the override mechanism itself is the defect.
+**Note:** agi-tree is still blocked by **H0c** (`find_chains` hang), so this alone does not make the loop runnable there.
 
 ### H0c. `find_chains()` does not terminate in practical time on the full corpus — P0
 **Symptom:** With 29,422 nodes restored and both stale overrides removed, `agi --smoke --max-iters 1` hangs in the render stage. Killed at **300 s** (exit 124) having produced no chain output. Node count held at 29,422 throughout — this is a hang, not data loss.
@@ -215,7 +215,7 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 | IO maps | **Do not exist.** |
 | CC-native dispatch | **Largely built** — `skills/agi/CC-DISPATCH.md`, validated on a live 6-iteration run. See L12. |
 | Git grid | **Built** — `bin/grid.py`, refs namespace, cron sync (H10). |
-| Per-agent condensed injection | **Built, with a known bug** — see L7. |
+| Per-agent condensed injection | **Built; the silent whole-graph fallback bug is fixed** (2026-08-18) — see L7. |
 
 ### L0a. The goal system EXISTS — it lives project-side, in `fantasia` — ✅ DECIDED
 
@@ -302,12 +302,25 @@ How many goals are worked at once becomes a knob (`max_goals_active`). Mechanism
 
 *Naming:* the existing key is `agent_dispatch.claude_max_parallel` (`CC-DISPATCH.md:57`). Put `max_goals_active` in that same namespace rather than inventing `cc_dispatch.*`, or rename both together — don't end up with two dispatch namespaces.
 
-### L7. Per-agent condensed graph injection — P1 (bug fix ready to do now)
+### L7. Per-agent condensed graph injection — P1 (⚠️ bug ✅ FIXED 2026-08-18)
 Every dispatched agent receives a condensed ASCII map showing **which part of the long-term thoughtgraph it occupies** and its task for this run. Built: `bin/zoom.py` → `sessions/iter-NNN/<agent>/context.md`, cached renderers.
 
 Design intent — instant swarm awareness: *"this is a swarm action, do my part and move on"* / *"glad to be part of this, not on the hook for the whole thing."* Payoff already measured: embedding the map dropped kids from 11–13 tool calls to 5–7 (`CC-DISPATCH.md:97-100`).
 
-🔴 **Known bug:** `extensions/agi/bin/zoom.py:89-91` — `_compose_small` imports `graph_core`, and on `ImportError` returns `"# zoom small fallback (loader unavailable)"` **plus the entire INJECTION.md**. Subtree bounding silently doesn't engage, so on a big corpus every kid receives the whole graph — the exact opposite of intent, and squarely against the design ethic. Fix the import path; make the fallback **fail loudly** instead of silently serving the whole graph.
+**✅ Fixed: small zoom never actually bounded anything.** `zoom.py` added only the *project's* `src` to `sys.path`, never the plugin's — so on any project without its own `src/graph_core` (the normal case) the `graph_core` import always failed, and three separate `except` branches each returned the **entire INJECTION.md**. Every kid silently received the whole graph: the exact opposite of intent, and squarely against the design ethic.
+
+Two changes:
+1. `_add_graph_core_to_path()` inserts `PLUGIN_ROOT/src`, with the project's `src` taking precedence only when it actually contains `graph_core` — matching `driver.sh`'s documented override convention.
+2. The three silent fallbacks now raise `ZoomUnavailable`, which `main()` reports on stderr and exits 1. `dispatch.py:128` runs zoom with `check=True`, so this surfaces as a real failure instead of a context bomb delivered to a kid. **Refusing to serve an unbounded context is the correct behavior** — falling back to the whole graph defeats the feature.
+
+**Measured on `~/work/fantasia` (27-node graph), same target node:**
+
+| | context.md |
+|---|---|
+| Before | **73 lines** (whole INJECTION.md + fallback header) |
+| After | **22 lines** (bounded subtree, 2 hops) |
+
+Tests: 176 passed, 1 pre-existing known fail (`test_field_set_is_exactly_six`) — no regression. On a 29k-node corpus the difference is far larger; this was silently inflating every kid's context on every run.
 
 ### L8. One repo or two — **keep them separate for now** — P2, decision deferred
 
