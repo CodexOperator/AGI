@@ -57,7 +57,9 @@ echo ""
 echo "Project: \`$PROJECT_ROOT\`"
 echo "Run: \`agi-tree --max-iters N --delay-mins M\`"
 echo ""
-# First N lines of INJECTION.md = stats + attractor list + ASCII top.
+# First N lines of INJECTION.md = stats + chain diagnostics + attractor list +
+# the loop's rules, then the ASCII top. render-context.py emits the rules
+# before the ASCII block precisely so this truncation cannot drop them.
 head -n "$MAX_INJECT_LINES" "$INJECTION_FILE"
 echo ""
 echo "---"
