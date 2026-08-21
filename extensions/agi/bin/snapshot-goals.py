@@ -30,7 +30,10 @@ import yaml
 from pathlib import Path
 
 ORIGIN = "goals-doc"
-KNOWN_STATUSES = {"active", "phasing-out", "complete"}
+# `horizon` = declared and committed to, but deliberately not being worked yet.
+# It is what lets L5 goal rotation distinguish queued goals from active ones
+# when `cc_dispatch.max_goals_active` is below the number of declared goals.
+KNOWN_STATUSES = {"active", "horizon", "phasing-out", "complete"}
 BODY_CAP = 4000
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent

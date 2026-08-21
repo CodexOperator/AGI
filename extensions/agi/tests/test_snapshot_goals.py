@@ -32,6 +32,10 @@ Adapt the research loop.
 
 Design sketch only.
 
+## G5 — Retired experiment — status: mothballed
+
+Status value outside the taxonomy.
+
 ## G4 — Movement system
 
 No status clause here.
@@ -79,7 +83,7 @@ def test_parses_ids_titles_statuses(project):
     r = run(project)
     assert r.returncode == 0, r.stderr
     nodes = goal_nodes(project)
-    assert set(nodes) == {"goal:g1", "goal:g2", "goal:g3", "goal:g4"}
+    assert set(nodes) == {"goal:g1", "goal:g2", "goal:g3", "goal:g4", "goal:g5"}
 
     path, fm = nodes["goal:g1"]
     assert fm["goal_id"] == "G1"
@@ -113,8 +117,15 @@ def test_no_next_edges_emitted(project):
 def test_unknown_status_preserved_and_warns(project):
     r = run(project)
     assert r.returncode == 0
+    assert goal_nodes(project)["goal:g5"][1]["status"] == "mothballed"
+    assert "WARN: goal G5 has unrecognized status 'mothballed'" in r.stderr
+
+
+def test_horizon_is_a_known_status(project):
+    # `horizon` is in the taxonomy: a goal declared but not yet being worked.
+    r = run(project)
     assert goal_nodes(project)["goal:g3"][1]["status"] == "horizon"
-    assert "WARN: goal G3 has unrecognized status 'horizon'" in r.stderr
+    assert "horizon" not in r.stderr
 
 
 # --- 3. seeds from parents -------------------------------------------------
@@ -152,7 +163,7 @@ def test_unknown_goal_ref_fails_under_strict(project):
     assert r.returncode == 1
     assert "INTEGRITY" in r.stderr
     # goal nodes are still written even in strict mode
-    assert set(goal_nodes(project)) == {"goal:g1", "goal:g2", "goal:g3", "goal:g4"}
+    assert set(goal_nodes(project)) == {"goal:g1", "goal:g2", "goal:g3", "goal:g4", "goal:g5"}
 
 
 def test_strict_exits_zero_when_all_refs_resolve(project):
