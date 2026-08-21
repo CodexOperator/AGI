@@ -3,7 +3,9 @@ confidence: 1.0
 goal_id: G6
 id: "goal:g6"
 origin: goals-doc
-seeds: []
+seeds:
+  - idea:deprecate-the-gamed-mass
+  - idea:engine-self-decomposition
 status: active
 tags:
   - goal
