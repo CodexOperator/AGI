@@ -11,19 +11,19 @@
 `agi` = **Artificial Graph Intelligence**. One repo holding:
 
 1. **Graph algorithms** — build a graph from a codebase, query it, render it as ASCII, benchmark it.
-2. **A loop harness** — spawns parallel LLM agents ("kids") that extend a DAG, one node per iteration, with a reviewing overseer.
+2. **A loop harness** — spawns parallel LLM agents ("kids") that extend a DAG, one node per iteration, with a reviewing parent.
 
 **The loop works on its own code.** Graph nodes correspond to real files and functions, so the loop can reason about — and eventually modify — its own algorithms.
 
-### Where this is going — read `TODO.md` §"Long-term direction" (L0–L13)
+### Where this is going — read `TODO.md` §"Long-term direction" (L0–L15)
 
 The system is generalizing **from a research loop into a general-task loop**: game, app, web, SEO, ops. Each node stops being a research artifact and becomes a **long-lived thought** — extended, forked, deprecated over time.
 
-**Design ethic governing all of it:** emitted tokens are an agent's motion; injected context is its sensation; context growth makes motion heavier. Every capability exists to keep agent bodies light. Sprint one node hard, rest, let the graph carry the marathon. Mundane operations — and the small errors they breed — are the system's job to absorb, never the agent's. Full statement in `skills/agi/CC-DISPATCH.md` §"Why this machinery exists".
+**Design ethic governing all of it:** emitted tokens are an agent's motion; injected context is its sensation; context growth makes motion heavier. Every capability exists to keep agent bodies light. Sprint one node hard, rest, let the graph carry the marathon. Mundane operations — and the small errors they breed — are the system's job to absorb, never the agent's. Full statement in `skills/agi/SKILL.md` §"Why this machinery exists".
 
 `TODO.md` L0 has a status table separating what is **built** from what is only **described**. Read it before planning — several capabilities exist as prose only.
 
-⚠️ **There is no long-term goal system yet.** Two unrelated fragments use the word "goal" and neither is one; `TODO.md` L0a has the detail and the decision that has to be made before L4/L5. Don't build on a goal system assuming it exists.
+**Goals live project-side.** `~/work/fantasia/GOALS.md` is the reference implementation — root goals `G1..G7` with `status: active | phasing-out | complete`, seed nodes referencing them by id, and a goal-attributable `metric_primary`. The engine stays domain-free. What is *not* built is engine support: attribution-based scoring, status enforcement, and goal nodes in `nodes/goal/`. See `TODO.md` L0a, L4, L5, L15.
 
 ---
 
@@ -146,7 +146,7 @@ cd ~/.hermes/agi
 pytest extensions/agi/tests/ -q --tb=no -p no:cacheprovider
 ```
 
-**Expected: `1 failed, 166 passed`.** The one failure is pre-existing and known:
+**Expected: `1 failed, 176 passed`.** The one failure is pre-existing and known:
 `extensions/agi/tests/graph_core/test_node.py::test_field_set_is_exactly_six`.
 That is the accepted baseline — recorded in `context/refs/pytest-baseline-prefold.md`. Do not treat it as a regression.
 
@@ -246,10 +246,10 @@ python3 -c "from agi_algos import build_graph, GraphBuilder, QueryEngine, PiTree
 
 | Work | Where |
 |---|---|
-| **CC-native dispatch** — Claude Code subagents as builder kids | `skills/agi/CC-DISPATCH.md`. Validated on a live 6-iteration run. Substantially delivers `TODO.md` L12. |
-| **Kid → overseer escalation** — four triggers, one question per kid per iteration | `CC-DISPATCH.md` §"Kid → overseer questions" |
+| **CC-native dispatch** — Claude Code subagents as builder kids | `skills/agi/SKILL.md`. Validated on a live 6-iteration run. Substantially delivers `TODO.md` L12. |
+| **Kid → parent escalation** — four triggers, one question per kid per iteration | `skills/agi/SKILL.md` §"Kid → parent questions" |
 | **The git grid** — per-node versions in `refs/grid/*`, session drafts, cron sync | `extensions/agi/bin/grid.py`, `TODO.md` H10 |
-| **Design philosophy** — motion / sensation / weight | `CC-DISPATCH.md` §"Why this machinery exists", `extensions/agi/lib/agent-prompt.md` |
+| **Design philosophy** — motion / sensation / weight | `skills/agi/SKILL.md` §"Why this machinery exists", `extensions/agi/lib/agent-prompt.md` |
 | **agi-tree corpus restored + pushed** | 29,422 nodes; `CodexOperator/agi-tree` exists with all branches pushed; working tree clean |
 
 ### NOT done — deliberately
@@ -285,7 +285,7 @@ agi --max-iters 1 |& tee /tmp/agi-iter1.log
 tail -50 sessions/iter-*/a00-*/output.log
 ```
 
-**Must NOT contain** `api.anthropic.com`, `Token Plan`, or HTTP 429. If it does, pi is leaking the Claude Code subscription quota — fixed once in `5d7c7f1` (dispatch.py scrubs `ANTHROPIC_*`/`CLAUDE_CODE_*` from the pi child env), so a recurrence means a new leak path. CC-native dispatch (`CC-DISPATCH.md`) is the *sanctioned* way to spend subscription tokens; never bypass the scrub instead.
+**Must NOT contain** `api.anthropic.com`, `Token Plan`, or HTTP 429. If it does, pi is leaking the Claude Code subscription quota — fixed once in `5d7c7f1` (dispatch.py scrubs `ANTHROPIC_*`/`CLAUDE_CODE_*` from the pi child env), so a recurrence means a new leak path. CC-native dispatch (`skills/agi/SKILL.md`) is the *sanctioned* way to spend subscription tokens; never bypass the scrub instead.
 
 ---
 
@@ -302,16 +302,18 @@ tail -50 sessions/iter-*/a00-*/output.log
 | **L7 bug** | `zoom.py:89-91` silently serves the whole graph when `graph_core` import fails | Subtree bounding never engages on big corpora — the opposite of the design intent. Small fix, immediate payoff. |
 | **H3 + H4** | Gameable metric; unevidenced verdicts | Together these are the credibility problem: impressive numbers that mean little. H0c is H3's downstream damage — same defect, two ends. |
 
-### Track 2 — direction (`TODO.md` L0–L13)
+### Track 2 — direction (`TODO.md` L0–L15)
 
 Recommended order, with the dependencies that force it:
 
 1. **L0a — decide where goals live.** Everything scoring-related (L4, L5) blocks on this, and it's a 30-minute decision, not a build. Recommendation in the entry: project-side.
 2. **L1 — the 5-step zoom axis**, starting with **level 3** (code nodes stitchable into a runnable directory). Level 3 is what makes the graph an executable artifact instead of a description of one. L3 (model tiering) and much of L2 block on this.
-3. **L11 — rename `overseer` → `parent`, and script away the copy-paste spawn step.** Cheap, and it directly serves the design ethic: every un-scripted step is motion spent on operations instead of work.
+3. **L11 (remainder) — script away the copy-paste spawn step.** The rename is done; the one-command render-and-spawn is not. Directly serves the design ethic: every un-scripted step is motion spent on operations instead of work.
 4. **L2 — IO maps.** These are what keep L1's decompose/rollup honest; contracts are what survive a zoom change.
 5. **L12 — finish the CC runtime.** Mostly built; needs the pi-invocation flag and a hook-parity audit. **If the audit finds a gap, report it and plan rather than improvising.**
-6. **L13 — strip stale history from spawn-time docs.** Every stale line is sensation an agent pays for and can't act on.
+6. **L15 — make goals first-class nodes** in `nodes/goal/`, derived from `GOALS.md` the same way `build-site.md` already derives `task` nodes. This is what turns L4 scoring from a proxy into real attribution, and it *is* zoom level 1.
+
+**Already done (2026-08-18):** L11 rename (`overseer` → `parent`), L13 for the skill, and L14 — `SKILL.md` and `CC-DISPATCH.md` merged into one 215-line CLI-first skill. L7's silent whole-graph fallback and H0b are fixed.
 
 L8 (one repo vs two), L9 (forkability), L10 (peek/dashboard), L6 (recursive sub-loops) are P2 and can follow.
 
@@ -387,7 +389,7 @@ tmux attach -t agi      # Ctrl-B D to detach
 cd ~/.hermes/agi
 git log --oneline | head -3                              # expect fold: / track: commits
 git log --oneline | grep -c 9a8c8b3                      # expect 1 — ar-tree history present
-pytest extensions/agi/tests/ -q --tb=no 2>&1 | tail -1   # expect "1 failed, 166 passed"
+pytest extensions/agi/tests/ -q --tb=no 2>&1 | tail -1   # expect "1 failed, 176 passed"
 which agi && readlink -f "$(which agi)"                   # resolves into extensions/agi/driver.sh
 agi --help | head -2
 ```
