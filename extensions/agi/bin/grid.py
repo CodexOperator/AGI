@@ -6,7 +6,7 @@ Three dimensions of history, all inside the PROJECT repo itself:
   D2 node dimension    — ref `refs/grid/node/<id>`; one commit per version of
                          that single node file.
   D3 session dimension — ref `refs/grid/session/<iter>/<agent>/<id>` for an
-                         agent's in-flight drafts before the overseer accepts.
+                         agent's in-flight drafts before the parent accepts.
 
 Design notes (why this shape — see TODO.md H10):
   - Baked into the work repo via a dedicated ref namespace, NOT a separate

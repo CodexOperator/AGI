@@ -150,11 +150,11 @@ done
 ```
 The davebcn87/pi-autoresearch and ar-tree project copies are no longer canonical — only the two CC/hermes registry locations remain.
 
-### H9. Kid→overseer question channel for the pi dispatch path — P2
-**Rationale:** CC-dispatch kids can escalate judgment calls mid-task (SendMessage to main; four triggers + one-question budget — see `skills/agi/CC-DISPATCH.md` "Kid → overseer questions"). The pi path has no equivalent: `dispatch.py` is fire-and-forget and `heal.py` only kills/replaces. Unattended weak-model runs are exactly where a wrong silent judgment call is most likely, so parity matters — but blocking a subprocess on a question conflicts with fire-and-forget, so the design is the work.
+### H9. Kid→parent question channel for the pi dispatch path — P2
+**Rationale:** CC-dispatch kids can escalate judgment calls mid-task (SendMessage to main; four triggers + one-question budget — see `skills/agi/SKILL.md` §"Escalation — kid → parent"). The pi path has no equivalent: `dispatch.py` is fire-and-forget and `heal.py` only kills/replaces. Unattended weak-model runs are exactly where a wrong silent judgment call is most likely, so parity matters — but blocking a subprocess on a question conflicts with fire-and-forget, so the design is the work.
 **Evidence:** CC-DISPATCH.md escalation section (commit `2ee9c5d`); first live CC run 2026-08-18 (fantasia): three kid judgment calls, all handled decide-and-document, protocol added kid-initiated stop/resume on top.
 **Action (design open, pick one):**
-1. *Poll-based:* agent writes `question.json` beside `agent.json`; `heal.py` (already polling every 30s) detects it, pauses the timeout clock, and either (a) surfaces it to the loop log for a human, or (b) dispatches a one-shot answerer agent (config `overseer_model`) whose reply is written to `answer.json` for the kid to poll.
+1. *Poll-based:* agent writes `question.json` beside `agent.json`; `heal.py` (already polling every 30s) detects it, pauses the timeout clock, and either (a) surfaces it to the loop log for a human, or (b) dispatches a one-shot answerer agent (config `parent_model`) whose reply is written to `answer.json` for the kid to poll.
 2. *Fail-forward:* no pause — kid writes the question INTO its node body as a `pending` verdict with `blocked_on:` field; the next iteration's dispatch targets it preferentially. Zero new plumbing, uses the graph itself as the message bus. Cheaper, loses same-turn context.
 Whichever lands: enforce the same four escalation triggers and per-kid budget as CC-dispatch, and add a regression test that a question never extends `agent_timeout_mins` unboundedly.
 
@@ -198,7 +198,7 @@ recovery); D1 branch pushed hourly as the curated sync.
 
 Everything below serves one shift: **each node stops being a research artifact and becomes a long-lived *thought*** — extended, forked, deprecated over time. The loop generalizes from research to any build domain (game, app, web, SEO, ops).
 
-**Design ethic (governs every item here).** Emitted tokens are an agent's motion; injected context is its sensation; context growth makes motion heavier. Every capability exists to keep agent bodies light. Sprint one node hard, rest, let the graph carry the marathon. Mundane operations — and the small errors they breed — are the system's job to absorb, never the agent's. Full statement: `skills/agi/CC-DISPATCH.md` §"Why this machinery exists".
+**Design ethic (governs every item here).** Emitted tokens are an agent's motion; injected context is its sensation; context growth makes motion heavier. Every capability exists to keep agent bodies light. Sprint one node hard, rest, let the graph carry the marathon. Mundane operations — and the small errors they breed — are the system's job to absorb, never the agent's. Full statement: `skills/agi/SKILL.md` §"Why this machinery exists".
 
 **Applies to this doc too:** these entries get read by agents at spawn time. Keep them dense. An item that can't be acted on without opening three other files is badly written.
 
@@ -209,11 +209,11 @@ Recorded 2026-08-18 so later readers don't re-litigate it.
 | Capability | State |
 |---|---|
 | Zoom axis | **BIG/SMALL only.** `bin/zoom.py --level big\|small`. No numeric axis. |
-| Model tiering | **Described, not built.** `CC-DISPATCH.md:87-93`. Now specified as fully custom + three-tier (delegator/parent/kid) — see L3. |
-| H4 evidence gate | **Enforced by hand.** Overseer checks at review (`CC-DISPATCH.md:77-81`); the `cli.py` gate is unbuilt. |
+| Model tiering | **Described, not built.** `SKILL.md §"The three tiers"`. Now specified as fully custom + three-tier (delegator/parent/kid) — see L3. |
+| H4 evidence gate | **Enforced by hand.** Overseer checks at review (`SKILL.md §"Iteration protocol" step 4`); the `cli.py` gate is unbuilt. |
 | Goal-fulfillment scoring | **Goals exist project-side** (`fantasia/GOALS.md`, G1–G7); **scoring against them does not**. `outcome_coverage` is a proxy. See L0a. |
 | IO maps | **Do not exist.** |
-| CC-native dispatch | **Largely built** — `skills/agi/CC-DISPATCH.md`, validated on a live 6-iteration run. See L12. |
+| CC-native dispatch | **Largely built** — `skills/agi/SKILL.md`, validated on a live 6-iteration run. See L12. |
 | Git grid | **Built** — `bin/grid.py`, refs namespace, cron sync (H10). |
 | Per-agent condensed injection | **Built; the silent whole-graph fallback bug is fixed** (2026-08-18) — see L7. |
 
@@ -280,12 +280,12 @@ IO maps **re-derive when neighbors change**, so decomposing a node never orphans
 
 **Why the delegator tier matters:** it's what lets several parent/kid groups run concurrently against different goals, coordinated in one place. That is the user-facing half of L6 (recursive sub-loops) — L6 supplies the scheduling and the shared iteration budget, L3 supplies who runs what.
 
-Half-specified already in `CC-DISPATCH.md:87-93` for the BIG/SMALL case. Once L1 lands, extend the config to one tier per zoom level, each level reviewed at the level above. Pairs with L1's per-level fine-tuning data — the long game is a level-specialized small model per tier.
+Half-specified already in `SKILL.md §"The three tiers"` for the BIG/SMALL case. Once L1 lands, extend the config to one tier per zoom level, each level reviewed at the level above. Pairs with L1's per-level fine-tuning data — the long game is a level-specialized small model per tier.
 
 ### L4. Goal-fulfillment scoring — P0
 Score chains by **contribution to goals**, never raw chain length (H3: hop count proven gameable; H0c: that gaming produced graph structure which broke the render path). Verdicts require experiment evidence (H4).
 
-Move the H4 gate out of the overseer's head and into `cli.py` so both dispatch paths enforce it. Depends on L0a's goal-location decision.
+Move the H4 gate out of the parent's head and into `cli.py` so both dispatch paths enforce it. Depends on L0a's goal-location decision.
 
 ### L5. Goal rotation — P1
 
@@ -296,16 +296,21 @@ What's missing is that **nothing reads or enforces any of it** — `status:` is 
 Depends on L4 for the scoring side.
 
 ### L6. Recursive sub-loops for goal concurrency — P2
-How many goals are worked at once becomes a knob (`max_goals_active`). Mechanism: **agi loops spawn agi sub-loops** — one inner loop per goal/subtree, an outer loop scheduling across goals. Nesting is also how zoom granularity stays hierarchical: an inner loop owns one level.
+
+How many goals are worked at once is a knob. **`cc_dispatch.max_goals_active` already exists** — `fantasia/autoresearch-tree.config.json` sets it to `3`, alongside `iterations_per_run`, `kids_per_iter`, and `kid_model`. Nothing reads it yet.
+
+*(Correction to an earlier draft of this entry: it claimed `cc_dispatch.*` would be an invented second namespace and should fold into `agent_dispatch.*`. Wrong — both exist and the split is deliberate: `agent_dispatch.*` configures the pi runtime, `cc_dispatch.*` the Claude Code runtime. One namespace per runtime is correct; keep them.)*
+
+Mechanism: **agi loops spawn agi sub-loops** — one inner loop per goal/subtree, an outer loop scheduling across goals. Nesting is also how zoom granularity stays hierarchical: an inner loop owns one level.
 
 **Budget invariant:** inner-loop completions count as iterations against a **single global iteration budget**, so the budget bounds total work regardless of nesting depth. Without this, recursion is unbounded.
 
-*Naming:* the existing key is `agent_dispatch.claude_max_parallel` (`CC-DISPATCH.md:57`). Put `max_goals_active` in that same namespace rather than inventing `cc_dispatch.*`, or rename both together — don't end up with two dispatch namespaces.
+The user-facing half of this is L3's delegator tier — the delegator is what coordinates several parent/kid groups across active goals.
 
 ### L7. Per-agent condensed graph injection — P1 (⚠️ bug ✅ FIXED 2026-08-18)
 Every dispatched agent receives a condensed ASCII map showing **which part of the long-term thoughtgraph it occupies** and its task for this run. Built: `bin/zoom.py` → `sessions/iter-NNN/<agent>/context.md`, cached renderers.
 
-Design intent — instant swarm awareness: *"this is a swarm action, do my part and move on"* / *"glad to be part of this, not on the hook for the whole thing."* Payoff already measured: embedding the map dropped kids from 11–13 tool calls to 5–7 (`CC-DISPATCH.md:97-100`).
+Design intent — instant swarm awareness: *"this is a swarm action, do my part and move on"* / *"glad to be part of this, not on the hook for the whole thing."* Payoff already measured: embedding the map dropped kids from 11–13 tool calls to 5–7 (`SKILL.md §"Field notes"`).
 
 **✅ Fixed: small zoom never actually bounded anything.** `zoom.py` added only the *project's* `src` to `sys.path`, never the plugin's — so on any project without its own `src/graph_core` (the normal case) the `graph_core` import always failed, and three separate `except` branches each returned the **entire INJECTION.md**. Every kid silently received the whole graph: the exact opposite of intent, and squarely against the design ethic.
 
@@ -380,46 +385,71 @@ Two capabilities:
 1. **Ride along as a kid.** Load the kid experience and see the exact context injection a kid receives on arrival — the fastest way to judge whether briefs are genuinely self-contained.
 2. **ASCII dashboard.** The graph rendered friendlier: nodes as rounded-off squares, plus a **live count of active agents and where each is working**, across all zoom levels at once.
 
-### L11. Rename `overseer` → `parent`, and script away the manual steps — P1
-**Correction to the request:** the term in the codebase is **`overseer`**, not `supervisor` — `supervisor` appears nowhere. 16 occurrences: `skills/agi/CC-DISPATCH.md` ×12, `TODO.md` ×3, `extensions/agi/bin/grid.py` ×1. Rename all; `kid` already matches.
+### L11. Rename `overseer` → `parent` — ✅ DONE 2026-08-18 (scripting-away still open)
 
-The rename isn't cosmetic — it sets the intended relationship (caring, responsible-for) over the supervisory one.
+*(The original request said `supervisor`; that term appeared nowhere. The codebase term was `overseer` — 16 occurrences.)*
 
-**Then cut the parent's machine-tending to near zero.** A parent should spend motion on the *kids*, never on the computer. Concretely: the copy-paste step in `CC-DISPATCH.md:97-100` — run `zoom.py`, then hand-paste the rendered map into each spawn prompt — should become one command that renders and spawns. **General rule: any repeated, automated action gets scripted away unless it genuinely needs a manual handle, and that reason gets written down.** Every un-scripted step is motion spent on operations instead of work, plus a fresh source of small errors.
+**Done:** all 16 renamed — `skills/agi/SKILL.md` (via the L14 merge), `TODO.md`, `extensions/agi/bin/grid.py`. `git grep overseer` now returns only these entries describing the rename itself. The config key `parent_model` replaces the proposed `overseer_model` in H9. `kid` already matched.
+
+The rename isn't cosmetic — it sets the intended relationship (caring, responsible-for) over the supervisory one, and it lines up with L3's delegator/parent/kid tiers.
+
+**Still open — cut the parent's machine-tending to near zero.** A parent should spend motion on the *kids*, never on the computer. Concretely: rendering a kid's map with `zoom.py` and then hand-pasting it into the spawn prompt should be **one command that renders and spawns**. `SKILL.md` now states the general rule — any repeated, mechanical step gets scripted away, and manual handles need a written reason — but the spawn command itself is not built.
 
 ### L12. Claude Code as a first-class runtime — P1 (largely done; finish it)
-**Already built, don't rebuild:** `skills/agi/CC-DISPATCH.md` defines CC-native dispatch — Claude Code subagents as builder kids, same graph/node format/chain workflow, overseer owns review + commit, validated on a live 6-iteration run. Kid→parent escalation is specified (four triggers, one question per kid per iteration). Model tiering per kid. Healing analogue for API-error deaths.
+**Already built, don't rebuild:** `skills/agi/SKILL.md` defines CC-native dispatch — Claude Code subagents as builder kids, same graph/node format/chain workflow, parent owns review + commit, validated on a live 6-iteration run. Kid→parent escalation is specified (four triggers, one question per kid per iteration). Model tiering per kid. Healing analogue for API-error deaths.
 
 **Remaining:**
 - Anywhere the engine invokes `pi`, allow invoking a Claude Code instance instead — a runtime flag, not a parallel code path.
 - Hook parity audit: confirm every pi hook has a CC equivalent. **If any gap turns up, report it and plan together rather than improvising.**
 - Fold in L11's one-command spawn so the CC path stops feeling manual.
 
-### L13. Drop the history, describe the present — P1
-Stale references to `autoresearch-tree` (repo, pi skill), davebcn paths, and the fold narrative make the docs confusing for anyone arriving now. Rewrite `README.md`, `HANDOFF.md`, `SKILL.md`, and `CC-DISPATCH.md` to describe **the current unified `agi` / `agi-tree` system** and where it's heading.
+### L13. Drop the history, describe the present — ✅ MOSTLY DONE 2026-08-18
 
-Keep exactly the history that changes present behavior — the H0/H0b stale-override lesson, the H3 metric-gaming lesson, the quota-scrub rationale. Delete the rest. Migration notes belong in git history, not in docs an agent reads at spawn time. **Every stale line is sensation an agent pays for and can't act on.**
+**Done:** `skills/agi/SKILL.md` was rewritten from scratch in the L14 merge — no `autoresearch-tree` repo references, no davebcn references, no fold narrative, no "Two repos, two purposes". It keeps exactly the history that changes present behavior: the stale-override lesson (as a safety rail), the metric-gaming lesson (as the reason not to optimize chain length), and the quota-scrub rationale.
 
-Config key `autoresearch-tree.config.json` and env var `AUTORESEARCH_TREE_PROJECT_ROOT` still carry the old name; renaming them is a breaking change across every project — schedule it deliberately with a compatibility window, don't do it incidentally.
+**Still open:**
+- `README.md` and `HANDOFF.md` still carry fold-era framing. HANDOFF is legitimately a migration document, so it can keep more; README should be rewritten to describe the present system.
+- The config key `autoresearch-tree.config.json` and env var `AUTORESEARCH_TREE_PROJECT_ROOT` still carry the old name. Renaming them breaks every existing project — **schedule it deliberately with a compatibility window; do not do it incidentally.** This is the last real load-bearing use of the old name.
 
-### L14. One skill, CLI-first — merge `SKILL.md` + `CC-DISPATCH.md` — P1
+### L14. One skill, CLI-first — ✅ DONE 2026-08-18
 
-**Current state:** two docs in `skills/agi/`, and nothing anywhere else (`agi-tree` has no skill files; the `.claude/skills/gitnexus/*` hits are unrelated Claude Code plugin metadata, already gitignored per C6).
+**Merged** `SKILL.md` (318 lines) and `CC-DISPATCH.md` (194) into a single `skills/agi/SKILL.md` of **215 lines** — 58% smaller than the 512 it replaces. `CC-DISPATCH.md` deleted; all references across `TODO.md` and `HANDOFF.md` repointed to `SKILL.md` sections.
 
-| File | Lines | Problem |
-|---|---|---|
-| `SKILL.md` | 318 | Frontmatter still `name: autoresearch-tree`. Sells **"longest-chain-wins"** — the metric H3 proved gameable. pi-centric. Has a "Two repos, two purposes" section describing the pre-fold world. |
-| `CC-DISPATCH.md` | 194 | Current and accurate; validated on a live run. Contains the design philosophy, escalation protocol, model tiering, grid usage. |
+Landed in the same pass, as planned (all three touched the same two files):
+- **L14** — one skill, opening with a CLI table where every loop capability is a named command.
+- **L11** — `overseer` → `parent` throughout, plus the delegator/parent/kid tiers from L3.
+- **L13** — stale `autoresearch-tree` / davebcn / fold references stripped.
+- **Metric framing replaced** — the old skill actively taught "longest-chain-wins", the very metric H3 proved gameable. It now says never to optimize chain length, explains why (2000-hop shortcut chains, and the render breakage that followed), and points at goal-attributable metrics.
 
-**Target: a single `skills/agi/SKILL.md` that is thin and CLI-first** — it names commands and points at them, rather than restating what the CLI already does. Everything the loop does should be reachable as a command; the skill's job is to say which command, when, and what the contract is.
+Also corrected: frontmatter `name: autoresearch-tree` → `name: agi`.
 
-**Do these together in one pass** — they touch the same two files, and doing them separately means rewriting twice:
-- **L14** — merge into one skill, drop the duplicated prose, make every workflow a named command.
-- **L11** — rename `overseer` → `parent` throughout (and reflect L3's delegator/parent/kid tiers).
-- **L13** — strip `autoresearch-tree` / davebcn / fold-era references; describe the present system.
-- Replace the longest-chain framing with goal-fulfillment (L0a/L4), so the skill stops teaching the gameable metric.
+Preserved in full: the design ethic, the four escalation triggers, the DONE contract, verdict-taxonomy judgment guidance, grid usage, and the validated field notes.
 
-**Keep as a separate doc only what is genuinely reference material** (verdict taxonomy table, config schema). The protocol itself belongs in the one skill.
+The only remaining `autoresearch-tree` strings in the skill are the literal config filename, which is L13's scheduled breaking change.
+
+### L15. Goals become first-class nodes in `nodes/goal/` — P1
+
+**Goals are the baseline every chain grows from, so they belong in the graph — not only in prose.** Today `fantasia/GOALS.md` holds G1..G7 as Markdown, and `nodes/` has one directory per type (`idea`, `hypothesis`, `experiment`, `verdict`, `mvp`, `outcome`, `task`) — **no `goal/`**. Seed ideas reference goals by id in text, which nothing validates and nothing can traverse.
+
+**Target:** `nodes/goal/<goal-id>.md`, same frontmatter convention as every other type, so goals get ids, edges, rendering, and traversal like anything else.
+
+**Recommended mechanism — reuse the pattern that already exists.** `snapshot-build-site.py` parses `build-site.md` into `task` nodes stamped `origin: build-site`, and prunes only nodes carrying that stamp. Do exactly the same for goals: `GOALS.md` stays the human-authored source of truth, and snapshot derives `nodes/goal/*.md` stamped `origin: goals-doc`. This gets three things for free:
+- the H0-safe incremental upsert and origin-guarded prune (agent-authored nodes are never touched),
+- edit-in-Markdown ergonomics — you keep writing goals in prose,
+- one direction of truth, so the doc and the nodes can't silently diverge.
+
+**What becomes possible once goals are nodes:**
+- **L4 scoring by attribution** — a chain's contribution is measured along real edges to a real goal node, instead of the `outcome_coverage` proxy.
+- **L5 lifecycle enforcement** — `status: active | phasing-out | complete` becomes a node field the engine reads, rather than a human convention in Markdown.
+- **Referential integrity** — a seed node pointing at a nonexistent goal id fails loudly instead of silently.
+- **L1 zoom level 1** — the skill-tree view is literally "render the goal nodes and their descendants." Goals are what level 1 *is*.
+- **Rendering** — goals appear in the ASCII map and the L10 dashboard as roots, so an agent can see what it's ultimately serving.
+
+**Open questions to settle when building:**
+- Do goal nodes carry `next_edges` into their seed ideas, or do seed ideas carry `parents: [goal:G1]`? Parent-pointing matches how the rest of the graph already works.
+- Chain-validity rules currently expect chains to start at `idea`. Extending the canonical chain to `goal → idea → hypothesis → …` touches `chain_engine` and every chain-shape assumption — plan that deliberately rather than as a side effect.
+- `agi-tree` has no goals at all; giving it a `GOALS.md` is a precondition for its chains ever being scoreable.
+
 
 
 ---
