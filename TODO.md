@@ -194,6 +194,140 @@ recovery); D1 branch pushed hourly as the curated sync.
 
 ---
 
+## Long-term direction — from research loop to general-task loop
+
+Everything below serves one shift: **each node stops being a research artifact and becomes a long-lived *thought*** — extended, forked, deprecated over time. The loop generalizes from research to any build domain (game, app, web, SEO, ops).
+
+**Design ethic (governs every item here).** Emitted tokens are an agent's motion; injected context is its sensation; context growth makes motion heavier. Every capability exists to keep agent bodies light. Sprint one node hard, rest, let the graph carry the marathon. Mundane operations — and the small errors they breed — are the system's job to absorb, never the agent's. Full statement: `skills/agi/CC-DISPATCH.md` §"Why this machinery exists".
+
+**Applies to this doc too:** these entries get read by agents at spawn time. Keep them dense. An item that can't be acted on without opening three other files is badly written.
+
+### L0. Status check — what actually exists today
+
+Recorded 2026-08-18 so later readers don't re-litigate it.
+
+| Capability | State |
+|---|---|
+| Zoom axis | **BIG/SMALL only.** `bin/zoom.py --level big\|small`. No numeric axis. |
+| Model tiering | **Described, not built.** `CC-DISPATCH.md:87-93` maps tiers onto zoom; blocked on L1. |
+| H4 evidence gate | **Enforced by hand.** Overseer checks at review (`CC-DISPATCH.md:77-81`); the `cli.py` gate is unbuilt. |
+| Goal-fulfillment scoring | **Does not exist.** See L0a. |
+| IO maps | **Do not exist.** |
+| CC-native dispatch | **Largely built** — `skills/agi/CC-DISPATCH.md`, validated on a live 6-iteration run. See L12. |
+| Git grid | **Built** — `bin/grid.py`, refs namespace, cron sync (H10). |
+| Per-agent condensed injection | **Built, with a known bug** — see L7. |
+
+### L0a. There is no long-term goal system yet — read before building on one
+
+Two unrelated things in this repo use the word "goal". Neither is a goal system for growing chains.
+
+1. **`graph_builder.parse_goals()`** (`extensions/agi/src/agi_algos/graph_builder.py:491`) parses a `goals/` directory into `goal`-type nodes with status/priority/urgency. It belongs to the **hermes 35-node-type code graph**, not the loop's chain graph. Its call site (`:2579`) hardcodes `<hermes_dir>/belam-codex/goals` — **a path that doesn't exist on this machine**, so it returns 0. Effectively dead code.
+2. **`CC-DISPATCH.md`** references a "goals doc" / "goal custody" (`:9`, `:61`, `:89`) as a *project-side convention*. Line 9 says outright: *"Project repos may carry their own customizations (goal docs, metric choice); this file stays generic."* No such doc exists in `agi` or `agi-tree`.
+
+**So `agi-tree` reflects no goal system, because there is none to reflect.** `agi-tree`'s most recent substantive work is `d7d9ad47 a01: extend 9 chains to 2000 hops` — the gamed-metric work that produced H3 and H0c. It's stale relative to the engine, not out of sync with a goal feature.
+
+**Decide before building L4/L5:** either (a) formalize goals as a project-side artifact (`<project>/goals/*.md`) that the loop reads and scores against — then repoint or delete `parse_goals`; or (b) make goals first-class engine nodes at zoom level 1. **(a) recommended** — goals are domain content, and the engine staying domain-free is what makes L9 (forkability) possible. Don't leave both fragments in place; the name collision will mislead every future reader.
+
+### L1. Adjustable zoom — generalize BIG/SMALL into a 5-step numeric axis — P1
+Today `zoom.py` takes `--level big|small`. Replace with `--level 1..5`.
+
+| Level | Grain |
+|---|---|
+| 1 | Above code — the larger thought/technical process. Each goal renders as a **skill tree** with very general nodes growing off it: `player-movement`, `player-skills`, `town-area`. |
+| 2 | Sub-systems and their relationships. |
+| **3** | **Actual code nodes.** The level whose content can be **dynamically stitched into a conventional directory-of-files layout and run** as the real software — including simple helper and demo scripts. |
+| 4 | Functions and call-level detail. |
+| 5 | Individual built-in functions, **including inside external libraries where resolvable**. |
+
+**Invariant:** one node at level N ⇔ a collection of nodes at level N+1, and back. Decomposition and rollup must both round-trip.
+
+Levels 4–5 aren't primarily for authoring — they're for **debugging** and for **recombining records into zoom-level-specific fine-tuning data** (train a small model to operate well at exactly one level; see L3).
+
+Level 3's stitch-to-directory capability is the load-bearing one: it's what makes the graph an executable artifact rather than a description of one. Build it first; treat the other levels as projections around it.
+
+### L2. Live IO maps — P1
+Every node declares **required inputs** and **promised outputs**. Each entry carries:
+- **how/why** it's needed or produced,
+- a **performance note** (e.g. sluggish parsing risk),
+- a **security note** (e.g. potential vulnerability).
+
+IO maps **re-derive when neighbors change**, so decomposing a node never orphans its contracts. This is the mechanism that keeps L1's decompose/rollup honest — contracts are what survive a zoom change.
+
+### L3. Model tiering by zoom — P1 (blocked on L1)
+Cheap models work zoomed-in nodes; progressively stronger models review outward; the frontier model holds root goals. Each level's output is reviewed at the level above.
+
+Half-specified already in `CC-DISPATCH.md:87-93` for the BIG/SMALL case. Generalizing to the numeric axis is mostly a config table: one tier per level. Pairs with L1's fine-tuning data — the long game is a level-specialized small model per tier.
+
+### L4. Goal-fulfillment scoring — P0
+Score chains by **contribution to goals**, never raw chain length (H3: hop count proven gameable; H0c: that gaming produced graph structure which broke the render path). Verdicts require experiment evidence (H4).
+
+Move the H4 gate out of the overseer's head and into `cli.py` so both dispatch paths enforce it. Depends on L0a's goal-location decision.
+
+### L5. Goal rotation — P1
+Swap or phase out goals without invalidating history. A retired goal's chains stay valid and attributable as history; they simply stop accruing score. Requires goals to be addressable, versioned entities — another reason to settle L0a first.
+
+### L6. Recursive sub-loops for goal concurrency — P2
+How many goals are worked at once becomes a knob (`max_goals_active`). Mechanism: **agi loops spawn agi sub-loops** — one inner loop per goal/subtree, an outer loop scheduling across goals. Nesting is also how zoom granularity stays hierarchical: an inner loop owns one level.
+
+**Budget invariant:** inner-loop completions count as iterations against a **single global iteration budget**, so the budget bounds total work regardless of nesting depth. Without this, recursion is unbounded.
+
+*Naming:* the existing key is `agent_dispatch.claude_max_parallel` (`CC-DISPATCH.md:57`). Put `max_goals_active` in that same namespace rather than inventing `cc_dispatch.*`, or rename both together — don't end up with two dispatch namespaces.
+
+### L7. Per-agent condensed graph injection — P1 (bug fix ready to do now)
+Every dispatched agent receives a condensed ASCII map showing **which part of the long-term thoughtgraph it occupies** and its task for this run. Built: `bin/zoom.py` → `sessions/iter-NNN/<agent>/context.md`, cached renderers.
+
+Design intent — instant swarm awareness: *"this is a swarm action, do my part and move on"* / *"glad to be part of this, not on the hook for the whole thing."* Payoff already measured: embedding the map dropped kids from 11–13 tool calls to 5–7 (`CC-DISPATCH.md:97-100`).
+
+🔴 **Known bug:** `extensions/agi/bin/zoom.py:89-91` — `_compose_small` imports `graph_core`, and on `ImportError` returns `"# zoom small fallback (loader unavailable)"` **plus the entire INJECTION.md**. Subtree bounding silently doesn't engage, so on a big corpus every kid receives the whole graph — the exact opposite of intent, and squarely against the design ethic. Fix the import path; make the fallback **fail loudly** instead of silently serving the whole graph.
+
+### L8. One repo or two — analysis, then decide — P2
+Proposal: fold `agi-tree` into `agi`, with `agi-tree` becoming a procedurally-updated derivative produced by rules living in `agi`.
+
+**No true paradox.** A repo holding a graph that describes itself is ordinary self-reference (like a repo holding its own docs). But two real costs:
+
+1. **Self-inflation feedback.** If the graph's own storage sits inside the tree the graph parses, each iteration adds node files → next build sees more files → more nodes → unbounded growth. Mitigation is simple but easy to forget: **an explicit parser exclusion for the graph's own storage.** Any merge must ship that exclusion in the same commit.
+2. **Clone weight.** `agi-tree` is **29,422 node files** plus grid refs. Vendoring that into the engine means every consumer clones agi's own research, which is irrelevant to them.
+
+**Recommended shape — reuse the grid pattern already built here.** Keep the working tree light and put the graph in a dedicated ref namespace (`refs/tree/*`), exactly as `grid.py` does with `refs/grid/*`: baked into the repo, never checked out, invisible to `git branch`, fetched on demand. One repo, one remote, no clone-weight penalty, no vendored duplication.
+
+**Do not vendor the engine into each project.** That's the H0/H0b failure mode generalized: stale project-local copies of engine scripts silently destroyed 29,264 files. Vendoring the *whole engine* per project makes every project a stale override waiting to happen. Engine installed once and referenced by version; projects own only their graph + config. See L9.
+
+### L9. Forkability — let anyone grow their own tree — P2
+People should be able to fork/branch/set up their own `agi` and grow an `agi-tree` shaped to their own tasks. Needs: `agi init` scaffolding a project (config, `nodes/`, goals doc, grid refs), an engine-version pin, and zero engine code copied into the project (L8).
+
+**Recursive tree creation is the interesting case.** A tree per task domain: an OpenClaw/hermes agent keeps a tree for getting smarter and tracking memories, and that tree spawns child trees for specific personas it finds useful. Individual skills, plugins, and MCP servers can each own a tree.
+
+Highest-value application: **AI "experts" that compound** — agents that get sharper the longer they're exposed to your workflow. That's why recursion matters here, not novelty.
+
+### L10. Let the human peek — P2
+Two capabilities:
+1. **Ride along as a kid.** Load the kid experience and see the exact context injection a kid receives on arrival — the fastest way to judge whether briefs are genuinely self-contained.
+2. **ASCII dashboard.** The graph rendered friendlier: nodes as rounded-off squares, plus a **live count of active agents and where each is working**, across all zoom levels at once.
+
+### L11. Rename `overseer` → `parent`, and script away the manual steps — P1
+**Correction to the request:** the term in the codebase is **`overseer`**, not `supervisor` — `supervisor` appears nowhere. 16 occurrences: `skills/agi/CC-DISPATCH.md` ×12, `TODO.md` ×3, `extensions/agi/bin/grid.py` ×1. Rename all; `kid` already matches.
+
+The rename isn't cosmetic — it sets the intended relationship (caring, responsible-for) over the supervisory one.
+
+**Then cut the parent's machine-tending to near zero.** A parent should spend motion on the *kids*, never on the computer. Concretely: the copy-paste step in `CC-DISPATCH.md:97-100` — run `zoom.py`, then hand-paste the rendered map into each spawn prompt — should become one command that renders and spawns. **General rule: any repeated, automated action gets scripted away unless it genuinely needs a manual handle, and that reason gets written down.** Every un-scripted step is motion spent on operations instead of work, plus a fresh source of small errors.
+
+### L12. Claude Code as a first-class runtime — P1 (largely done; finish it)
+**Already built, don't rebuild:** `skills/agi/CC-DISPATCH.md` defines CC-native dispatch — Claude Code subagents as builder kids, same graph/node format/chain workflow, overseer owns review + commit, validated on a live 6-iteration run. Kid→parent escalation is specified (four triggers, one question per kid per iteration). Model tiering per kid. Healing analogue for API-error deaths.
+
+**Remaining:**
+- Anywhere the engine invokes `pi`, allow invoking a Claude Code instance instead — a runtime flag, not a parallel code path.
+- Hook parity audit: confirm every pi hook has a CC equivalent. **If any gap turns up, report it and plan together rather than improvising.**
+- Fold in L11's one-command spawn so the CC path stops feeling manual.
+
+### L13. Drop the history, describe the present — P1
+Stale references to `autoresearch-tree` (repo, pi skill), davebcn paths, and the fold narrative make the docs confusing for anyone arriving now. Rewrite `README.md`, `HANDOFF.md`, `SKILL.md`, and `CC-DISPATCH.md` to describe **the current unified `agi` / `agi-tree` system** and where it's heading.
+
+Keep exactly the history that changes present behavior — the H0/H0b stale-override lesson, the H3 metric-gaming lesson, the quota-scrub rationale. Delete the rest. Migration notes belong in git history, not in docs an agent reads at spawn time. **Every stale line is sensation an agent pays for and can't act on.**
+
+Config key `autoresearch-tree.config.json` and env var `AUTORESEARCH_TREE_PROJECT_ROOT` still carry the old name; renaming them is a breaking change across every project — schedule it deliberately with a compatibility window, don't do it incidentally.
+
+---
+
 ## Fold-time decisions
 
 ### F1. pi-extension symlink verdict — RECORDED
@@ -208,7 +342,7 @@ recovery); D1 branch pushed hourly as the curated sync.
 **Verdict:** T-067 will push only `master`. Other branches (e.g., `iter24-extend-300hop`, `claude/wonderful-lamport-51c9a9`) stay local.
 **Optional follow-up (P2):** push iter branches as backup if desired; they're transient.
 
-### F4. agi-tree working tree — DIRTY + 29,264 NODES MISSING FROM DISK — 🔴 BLOCKING
+### F4. agi-tree corpus wipe + dirty tree — ✅ FULLY RESOLVED
 **At fold start:** `M autoresearch-tree.config.json`, `M autoresearch.jsonl`, `M src/chain_engine/chains.py`, untracked `nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`, `exp-a01-extend-2000hop.py`. No deletions at that point.
 
 **Now (after a `--smoke` run detonated H0):** additionally **29,264 node files deleted from disk**. `nodes/` holds 158 files; git HEAD holds 29,422. Breakdown of deletions: 14,579 verdict, 14,559 experiment, 41 hypothesis, 21 mvp, 20 outcome, 14 bigger-outcome, plus idea/app-purpose.
@@ -223,11 +357,9 @@ git -C ~/.hermes/agi-tree checkout -- nodes/                         # then rest
 ```
 Verified: 29,422 node files present (14,579 verdict, 14,559 experiment, 101 hypothesis, 91 task, 21 mvp, 20 outcome, 14 idea, 14 bigger-outcome, 10 app-purpose, 7 app_purpose, 6 bigger_outcome). Post-fix smoke on a clone held at 29,422 — no deletion. Project-local `render-context.py` audited: contains no destructive ops (but see **H0b** — it has a separate recursion defect).
 
-**Remaining working-tree state:** 5 modified, 5 untracked, 1 deleted (the intentional rename above). The 5 modified include `src/chain_engine/chains.py`, which is a **load-bearing fix** — see **H0d**.
+**✅ Dirty tree and push also resolved (verified 2026-08-18).** `~/.hermes/agi-tree` working tree is **clean**; `origin` = `https://github.com/CodexOperator/agi-tree.git` with `origin/master`, `origin/iter24-extend-300hop`, and `origin/claude/wonderful-lamport-51c9a9` all present; 0 unpushed commits on the checked-out branch (`iter24-extend-300hop`). Node count holding at 29,422. `~/.hermes/agi` is now a symlink → `~/work/agi`.
 
-**Still to do — resolve dirty tree and push:** commit the legitimate edits (especially `chains.py`), gitignore the cache artifacts (`nodes.db`, `.chain_cache.pkl`, `.claude/worktrees/`), create `CodexOperator/agi-tree` on GitHub, push `master`. Note the checked-out branch is `iter24-extend-300hop`, not `master`.
-
-**Do not run the loop against this project yet** — blocked by **H0b** and **H0c**.
+**Still true:** do not run the loop against this project until **H0b** (stale project-local `render-context.py`) and **H0c** (`find_chains` hang) are fixed.
 
 ### F5. Pytest baseline 167 (166 pass / 1 known fail) — RECORDED
 **Verdict:** R1 verification baseline = 166 pass, 1 known fail (`test_field_set_is_exactly_six`). Handoff's "274 pass" claim discrepant; operative baseline captured in `context/refs/pytest-baseline-prefold.md`.
