@@ -601,6 +601,32 @@ The only remaining `autoresearch-tree` strings in the skill are the literal conf
 - **A writer.** `agi-tree config set <key> <value>` / an init command that scaffolds a valid config for a new project. Today the only way to make one is by hand, which is precisely the mundane motion `SKILL.md` says to script away.
 - **Then** make script overrides opt-in behind an explicit config key (the H0 structural action, TODO line ~63) — by then the escape hatch has a legitimate alternative.
 
+### L18. The ideation stage — a project that is only a GOALS.md — P1
+
+**Already works:** goal nodes derive from **every** goal regardless of status. `snapshot-goals.py` warns on an unrecognized status but never filters on one, so fantasia's `G3 — status: horizon` is a real node today (`nodes/goal/g3-…md`, `seeds: [idea:goal-agent-marketplace-pop]`). A `horizon` goal is a first-class part of the graph the moment it is written down — that is the point of the state.
+
+**The gap is earlier than that: you cannot start a project from goals alone.** There is a stage before any skill tree exists — goals are being drafted by hand or through the skill workflow, and the graph should already be usable as an ideation surface. fantasia is *past* this stage; a new project has to get through it, and right now it can't.
+
+**Reproduced on a bare project** (`GOALS.md` + `agi-tree.config.json`, nothing else):
+
+| Step | Result |
+|---|---|
+| `snapshot-goals.py` | ✅ 2 goal nodes written |
+| `render-context.py` | ✅ INJECTION.md, ASCII map, `by type: goal=2` |
+| `metrics.py` | ✅ emits, `primary_value=0.0` |
+| **`driver.sh --smoke`** | 🔴 **aborts** — `ERR: build site not found: context/plans/build-site.md` |
+
+Every piece works. Only the driver refuses, and it refuses *before* render and metrics, so the project gets no map at all.
+
+**Root cause is a one-line asymmetry between the two snapshot scripts.** `snapshot-goals.py:239` treats a missing `GOALS.md` as a safe no-op (`print(… skipping); return 0`) with a comment explaining why. `snapshot-build-site.py:141` treats a missing `build-site.md` as `sys.exit(1)`, and `driver.sh` runs under `set -euo pipefail`, so that one exit kills the iteration. A build site is a *later-stage* artifact; requiring one to render a graph inverts the order of work.
+
+**Actions:**
+1. **Make the build site optional.** Missing `build-site.md` → skip with a note, exactly as the goals path does. This alone unblocks the whole stage; it is the smallest possible change and the highest-value one here.
+2. **`agi-tree init`.** Scaffold `agi-tree.config.json` (valid defaults, from L17's schema), `nodes/`, and a commented `GOALS.md` skeleton. Today the only way to start is to hand-write a config, which is precisely the mundane motion `SKILL.md` says to script away. This is L17's "a writer" seen from the other end — build them together.
+3. **Name the stage in `SKILL.md`.** A project is usable at three depths: goals only (ideation), goals + seed ideas (chains starting), goals + build site (execution). Agents should know a goals-only project is a legitimate state and not a broken one.
+
+**Why it's worth doing before more engine features:** it is the only thing standing between "I have an idea" and "the loop is running on it," and it is also how the engine gets tested against a project that isn't fantasia.
+
 ---
 
 ## Fold-time decisions
