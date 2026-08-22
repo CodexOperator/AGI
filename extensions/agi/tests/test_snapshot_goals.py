@@ -173,6 +173,96 @@ def test_strict_exits_zero_when_all_refs_resolve(project):
     assert r.returncode == 0
 
 
+# --- 4b. referential integrity, extended to every parent prefix (G7.1) -----
+#
+# L15 (later G7.1) only ever validated `goal:`-prefixed parents. On the real
+# corpus 89 non-goal parent refs dangled with nothing reporting it — a
+# `hypothesis:` vs `hyp:` prefix typo silently disconnected most of the
+# `spawns` graph. These tests pin the extension: same mechanism (warn by
+# default, exit 0; --strict exits 1), now applied to every prefix, plus a
+# distinct message when the dangling ref is a same-slug/different-prefix typo
+# of a real id (actionable) versus a genuinely missing node (noise otherwise).
+
+
+def test_unknown_non_goal_ref_warns_but_exits_zero(project):
+    write_node(project, "idea/orphan.md",
+               {"id": "idea:orphan", "type": "idea",
+                "parents": ["hyp:does-not-exist-anywhere"]})
+    r = run(project)
+    assert r.returncode == 0
+    assert "INTEGRITY" in r.stderr
+    assert "unknown parent 'hyp:does-not-exist-anywhere'" in r.stderr
+    assert "orphan.md" in r.stderr
+
+
+def test_unknown_non_goal_ref_fails_under_strict(project):
+    write_node(project, "idea/orphan.md",
+               {"id": "idea:orphan", "type": "idea",
+                "parents": ["hyp:does-not-exist-anywhere"]})
+    r = run(project, "--strict")
+    assert r.returncode == 1
+    assert "INTEGRITY" in r.stderr
+
+
+def test_known_non_goal_ref_is_not_flagged(project):
+    write_node(project, "hyp/real.md",
+               {"id": "hyp:real-thing", "type": "hyp"})
+    write_node(project, "idea/child.md",
+               {"id": "idea:child", "type": "idea", "parents": ["hyp:real-thing"]})
+    r = run(project, "--strict")
+    assert r.returncode == 0
+    assert "INTEGRITY" not in r.stderr
+
+
+def test_prefix_mismatch_reported_distinctly_with_suggestion(project):
+    """`hypothesis:` vs `hyp:` — the real cause found on the live corpus."""
+    write_node(project, "hyp/real.md",
+               {"id": "hyp:chain-engine-r1", "type": "hyp"})
+    write_node(project, "idea/child.md",
+               {"id": "idea:child", "type": "idea",
+                "parents": ["hypothesis:chain-engine-r1"]})
+    r = run(project)
+    assert r.returncode == 0
+    assert "unknown parent 'hypothesis:chain-engine-r1'" in r.stderr
+    assert "prefix typo" in r.stderr
+    assert "did you mean 'hyp:chain-engine-r1'" in r.stderr
+
+
+def test_genuinely_missing_ref_has_no_suggestion(project):
+    """No node anywhere shares the slug — must not fabricate a suggestion."""
+    write_node(project, "idea/child.md",
+               {"id": "idea:child", "type": "idea",
+                "parents": ["hyp:totally-unrelated-slug"]})
+    r = run(project)
+    assert r.returncode == 0
+    assert "unknown parent 'hyp:totally-unrelated-slug'" in r.stderr
+    assert "prefix typo" not in r.stderr
+
+
+def test_goal_ref_message_unchanged_by_the_extension(project):
+    """Backward compatibility: `goal:` refs keep their original exact wording."""
+    write_node(project, "idea/orphan.md",
+               {"id": "idea:orphan", "type": "idea", "parents": ["goal:g99"]})
+    r = run(project)
+    assert r.returncode == 0
+    assert "INTEGRITY" in r.stderr
+    assert "unknown goal 'goal:g99'" in r.stderr
+    assert "unknown parent 'goal:g99'" not in r.stderr
+
+
+def test_summary_line_splits_prefix_mismatch_from_missing(project):
+    write_node(project, "hyp/real.md", {"id": "hyp:chain-engine-r1", "type": "hyp"})
+    write_node(project, "idea/a.md",
+               {"id": "idea:a", "type": "idea",
+                "parents": ["hypothesis:chain-engine-r1"]})  # prefix mismatch
+    write_node(project, "idea/b.md",
+               {"id": "idea:b", "type": "idea",
+                "parents": ["hyp:nothing-like-this-exists"]})  # genuinely missing
+    r = run(project)
+    assert r.returncode == 0
+    assert "unresolved parent references: 2 (1 prefix-mismatch, 1 missing)" in r.stdout
+
+
 # --- 5. pruning ------------------------------------------------------------
 
 

@@ -23,6 +23,9 @@
     "extensions/agi/scripts/migrate_to_sqlite.py": "goal:g7",
     "extensions/agi/bin/render-context.py": "goal:g9",
     "extensions/agi/src/renderers": "goal:g9",
-    "extensions/agi/hooks/cc-session-start.sh": "goal:g9"
+    "extensions/agi/hooks/cc-session-start.sh": "goal:g9",
+    "extensions/agi/bin/dashboard.py": "goal:g9.1",
+    "extensions/agi/bin/decompose-engine.py": "goal:g6.1",
+    "extensions/agi/bin/level3.py": "goal:g2.1"
   }
 }

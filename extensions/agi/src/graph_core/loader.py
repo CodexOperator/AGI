@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Optional
 
 from .edge import Edge
+from .errors import GraphCoreError
 from .graph import Graph
 from .identity import IdRegistry, mint_id
 from .node import Node
@@ -24,6 +26,26 @@ from .persistence import load_node_file
 from .persistence.frontmatter import NodeFile
 
 NODE_BODY_DELIM = "---"
+
+
+class DuplicateIdError(GraphCoreError):
+    """Raised by :func:`load_directory` in strict mode (G7.2).
+
+    Two or more files declaring the same ``id`` is content loss, not a
+    cosmetic clash: ``load_directory`` keeps the first (sorted-walk order)
+    and every later file is silently absent from the graph for every tool
+    that reads it. Non-strict callers get a warning per collision and
+    keep running with the existing first-wins behaviour; strict callers get
+    this exception after the full pass so they can see every collision at
+    once, not just the first.
+    """
+
+    def __init__(self, duplicates: list[tuple[str, Path, Path]]) -> None:
+        self.duplicates = duplicates
+        detail = "; ".join(
+            f"'{nid}' kept={kept} hidden={hidden}" for nid, kept, hidden in duplicates
+        )
+        super().__init__(f"{len(duplicates)} duplicate node id(s) found: {detail}")
 
 
 @dataclass
@@ -153,14 +175,36 @@ def walk_node_files(directory: str | Path) -> list[Path]:
 def load_directory(
     directory: str | Path,
     registry: Optional[IdRegistry] = None,
+    strict: bool = False,
 ) -> tuple[Graph, list[LoadedNode]]:
     """Load every .md/.json node file under ``directory`` into a Graph (T-011 / R6).
 
     Recursive subgraphs are loaded as well (T-009 / R5) — each LoadedNode carries
     its inner Graph if frontmatter said so.
+
+    Id uniqueness (G7.2): when two files declare the same ``id``, the first one
+    encountered in sorted-walk order is kept (unchanged behaviour); every later
+    file is dropped from the returned graph. That drop used to be silent. It no
+    longer is: this reuses the single pass this function already makes over the
+    corpus (no second directory walk) to record every collision as it is found.
+
+    - Default (``strict=False``): each collision prints one line to stderr —
+      ``WARN: duplicate node id '<id>': kept <path>, hidden <path>`` — and
+      loading proceeds exactly as before. The loop never breaks on this.
+    - ``strict=True``: the same warnings are printed, then :class:`DuplicateIdError`
+      is raised once the full pass completes (so a caller sees every collision,
+      not just the first one hit).
+
+    Either way, the full list of collisions is also exposed as
+    ``graph.duplicate_ids`` — ``list[tuple[id, kept_path, hidden_path]]`` — on
+    the returned ``Graph`` instance, without changing this function's 2-tuple
+    return shape (callers unpack ``g, loaded = load_directory(...)`` all over
+    the codebase; that contract is unchanged).
     """
     g = Graph()
     loaded: list[LoadedNode] = []
+    duplicates: list[tuple[str, Path, Path]] = []
+    kept_paths: dict[str, Path] = {}
     if registry is None:
         registry = IdRegistry()
     for p in walk_node_files(directory):
@@ -168,7 +212,19 @@ def load_directory(
             ln = load_node_with_subgraph(p, registry=registry)
         except Exception:
             continue
-        if not g.has_node(ln.node.id):
+        nid = ln.node.id
+        if not g.has_node(nid):
             g.add_node(ln.node)
             loaded.append(ln)
+            kept_paths[nid] = p
+        else:
+            kept_path = kept_paths.get(nid)
+            duplicates.append((nid, kept_path, p))
+            print(
+                f"WARN: duplicate node id '{nid}': kept {kept_path}, hidden {p}",
+                file=sys.stderr,
+            )
+    g.duplicate_ids = duplicates
+    if strict and duplicates:
+        raise DuplicateIdError(duplicates)
     return g, loaded

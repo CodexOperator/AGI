@@ -74,6 +74,17 @@ STATUS_RE = re.compile(r"[—\-]?\s*status\s*:\s*(.+?)\s*$", re.IGNORECASE)
 GOAL_ID_RE = re.compile(r"^goal:")
 
 
+def _id_rest(node_id: str) -> str:
+    """Everything after the first ``:`` in an id, or the whole id if there is none.
+
+    Used to spot G7.1's common real cause: a typo'd type prefix (a node writes
+    ``hypothesis:chain-engine-r1`` when the real id is ``hyp:chain-engine-r1``).
+    Two ids with the same "rest" but different prefixes are almost certainly
+    the same node referenced under the wrong prefix, not two unrelated ids.
+    """
+    return node_id.split(":", 1)[1] if ":" in node_id else node_id
+
+
 def _set_project_root(path: Path) -> None:
     """Re-point the module-level path globals (used by --project in tests)."""
     global PROJECT_ROOT, GOALS_MD, NODES_DIR
@@ -267,18 +278,35 @@ def parse_goals(text: str) -> list[dict]:
 
 
 def collect_parent_refs(existing: dict) -> dict:
-    """Map goal-id -> sorted list of node ids whose `parents` reference it."""
+    """Map any referenced id -> sorted list of node ids whose `parents` reference it.
+
+    G7.1: this used to filter down to `goal:`-prefixed refs only, because the
+    only consumer was goal-seed population and the goal integrity check. Both
+    still work off this same dict — seed lookups key on `goal:` ids, which are
+    still in here — but now every prefix is collected so the integrity check
+    below can validate ALL parent references, not just goals.
+    """
     refs: dict[str, list[str]] = {}
+    empty_parent_entries: dict[str, int] = {}
     for node_id, node in existing.items():
         parents = node["fm"].get("parents") or []
         if isinstance(parents, str):
             parents = [parents]
         for p in parents:
-            p = str(p).strip()
-            if GOAL_ID_RE.match(p):
-                refs.setdefault(p, []).append(node_id)
+            # An empty YAML list item (`parents:\n  - `) parses to None. That is
+            # malformed frontmatter, not a reference to a node called "None" —
+            # reporting it as a dangling ref sent readers looking for a missing
+            # node that never existed. Skipped here and counted separately below.
+            if p is None or not str(p).strip():
+                empty_parent_entries.setdefault(node_id, 0)
+                empty_parent_entries[node_id] += 1
+                continue
+            refs.setdefault(str(p).strip(), []).append(node_id)
     for k in refs:
         refs[k] = sorted(set(refs[k]))
+    for node_id, n in sorted(empty_parent_entries.items()):
+        print(f"INTEGRITY: {node_id} has {n} empty entry/entries under `parents:` "
+              f"(malformed frontmatter, not a missing node)", file=sys.stderr)
     return refs
 
 
@@ -341,16 +369,42 @@ def main(argv: list[str] | None = None) -> int:
         written.add(node_id)
         written_paths.add(out_path.resolve())
 
-    # Referential integrity: `goal:` parents that no goal in GOALS.md resolves.
+    # Referential integrity (G7.1): every parent reference must resolve to a
+    # known node id — not just `goal:`-prefixed ones. This used to check goal
+    # refs only; the mechanism (warn by default, --strict to fail) is unchanged,
+    # only its scope. `goal_ids` is the fresh set this run computed from
+    # GOALS.md (a goal's file may not exist on disk yet this run); `existing`
+    # is every id already on disk. Together they're the full universe a
+    # `parents:` entry may legitimately point at.
+    known_ids = set(existing.keys()) | goal_ids
+    rest_index: dict[str, list[str]] = {}
+    for kid in known_ids:
+        rest_index.setdefault(_id_rest(kid), []).append(kid)
+
     unresolved = 0
-    for goal_ref in sorted(refs):
-        if goal_ref in goal_ids:
+    prefix_mismatches = 0
+    genuinely_missing = 0
+    for ref in sorted(refs):
+        if ref in known_ids:
             continue
-        for node_id in refs[goal_ref]:
+        for node_id in refs[ref]:
             unresolved += 1
             path = existing[node_id]["path"]
-            print(f"INTEGRITY: {path} references unknown goal '{goal_ref}'",
-                  file=sys.stderr)
+            if GOAL_ID_RE.match(ref):
+                # Preserve the original message verbatim for `goal:` refs.
+                print(f"INTEGRITY: {path} references unknown goal '{ref}'",
+                      file=sys.stderr)
+                continue
+            candidates = sorted(c for c in rest_index.get(_id_rest(ref), []) if c != ref)
+            if candidates:
+                prefix_mismatches += 1
+                print(f"INTEGRITY: {path} references unknown parent '{ref}' "
+                      f"(possible prefix typo — did you mean '{candidates[0]}'?)",
+                      file=sys.stderr)
+            else:
+                genuinely_missing += 1
+                print(f"INTEGRITY: {path} references unknown parent '{ref}'",
+                      file=sys.stderr)
 
     # Prune only nodes stamped with our origin that we did not write this run
     # (covers both removed goals and goals whose title/slug changed).
@@ -365,8 +419,11 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"wrote: {len(goals)} goal nodes")
     print(f"target dir: {NODES_DIR / 'goal'}")
+    if unresolved:
+        print(f"unresolved parent references: {unresolved} "
+              f"({prefix_mismatches} prefix-mismatch, {genuinely_missing} missing)")
     if unresolved and args.strict:
-        print(f"ERR: {unresolved} unresolved goal reference(s) (--strict)",
+        print(f"ERR: {unresolved} unresolved parent reference(s) (--strict)",
               file=sys.stderr)
         return 1
     return 0
