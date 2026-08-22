@@ -5,6 +5,7 @@ goal_kind: long-term
 id: "goal:g4"
 origin: goals-doc
 seeds:
+  - goal:g4.1
   - idea:engine-agi-bridge-index
   - idea:engine-dispatch
   - idea:engine-heal

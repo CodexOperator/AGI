@@ -6,7 +6,8 @@ id: "goal:g9.1"
 origin: goals-doc
 parents:
   - goal:g9
-seeds: []
+seeds:
+  - exp:dashboard-cli-r1
 status: active
 tags:
   - goal
