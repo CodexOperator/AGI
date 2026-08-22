@@ -8,6 +8,8 @@ seeds:
   - goal:g9.1
   - goal:g9.2
   - goal:g9.3
+  - goal:g9.4
+  - goal:g9.5
   - idea:engine-cc-session-start
   - idea:engine-render-context
   - idea:engine-renderers

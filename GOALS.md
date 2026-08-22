@@ -2,9 +2,13 @@
 
 `agi-tree` is the thoughtgraph that builds `agi`; `agi` is the code that operates
 on thoughtgraphs. These goals are the **engine's own design contract** — the
-durable commitments engine work serves. They are not a task list: concrete
-defects and work items live in `agi/TODO.md`, and each goal below names the
-entries it owns so the two never restate each other (`TODO.md` L19 action 4).
+durable commitments engine work serves, and **the only place new work is
+recorded**. `agi/TODO.md` was demoted to an archive on 2026-08-22 (L19 action 4):
+it keeps the reasoning behind each closed defect, which is worth preserving, but
+nothing new is added there. Goals below cite the `L`/`H` entries they absorbed so
+the reasoning stays reachable without the two documents restating each other —
+two sources of truth about the same defects is how the injected context once
+ended up teaching the opposite of the skill (H3b).
 
 Seed nodes in `nodes/idea/` join a goal by listing its id in their own
 `parents:` list (`parents: [goal:g3]`). `bin/snapshot-goals.py` derives
@@ -33,6 +37,37 @@ which is precisely how a long-term commitment gets worked one step at a time.
 **Goal ids are never renumbered.** Nodes reference goals by id, so a gap is
 always preferable to a renumber. Sub-goal numbers are likewise permanent: a
 completed `G7.2` stays `G7.2` and the next step is `G7.3`.
+
+**Sub-goals are sub-nodes, not a separate concept.** A goal node contains
+sub-nodes the same way any node contains sub-nodes at the next zoom level down.
+`goal:g7` at level 1 ⇔ `goal:g7.1`, `goal:g7.2`, … at the level below, and each
+of those ⇔ the ideas, hypotheses and level-3 nodes beneath it. The zoom axis and
+the goal hierarchy are the same mechanism, not two that resemble each other.
+
+---
+
+## The working rule — every change starts here and is built back into the engine
+
+**All future work — fixes, upgrades, extensions, reworks — originates as a node
+in `agi-tree` and is built back into `agi` for subsequent use.** Not "recorded
+here afterwards": *originates* here. The engine is the artefact this graph
+assembles; a change that appears in the engine without a node behind it is the
+open loop G6 exists to close.
+
+The mechanism is in place and measured as of 2026-08-22: `decompose-engine.py`
+mints one census node per engine surface, `level3.py` mints one node per code
+file with a derived contract, and `stitch.py --verify` reports drift in four
+categories, including a contract that no longer matches the code it describes.
+`stitch.py` materialises the graph back to a tree byte-for-byte.
+
+**Build nodes and non-build nodes.** A **build node** contains or points at
+production code — today that is the `level3` type, whose `payload_ref` resolves
+to a real file. A **non-build node** is everything else: idea, hypothesis,
+experiment, verdict, outcome, goal. **Both are equally important.** The
+non-build layer is where a change is argued, tested and judged; the build layer
+is where it lands. A build node with no non-build chain behind it is
+unattributed work, and a non-build chain that never reaches a build node has
+not shipped.
 
 **The design ethic binds every goal here, whatever its status.** Emitted tokens
 are an agent's motion; injected context is its sensation; context growth makes
@@ -66,7 +101,56 @@ Owns: **L11** remainder (one command that renders *and* spawns — the parent's
 last machine-tending chore), **L12** remainder (a runtime flag rather than a
 parallel code path; hook parity audit), **L17** (config schema plus a writer, so
 configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
-project). Queued rather than active: the handles are named but untouched.
+project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
+prior session manifests).
+
+### G1.1 — An agent should need only the graph to orient — status: active
+
+**Recon happens in the graph, not in the filesystem.** Today a kid arrives with
+a rendered map and then reads files anyway, because the map cannot answer
+follow-up questions. Every one of those reads is motion spent re-deriving
+context the graph already holds.
+
+What has to exist: an agent can **move** through the graph from where it was
+dropped — step to a neighbour, pull a snapshot of an adjacent region, widen to
+the enclosing map — without opening a source file and without a second spawn.
+The level-3 nodes make this newly plausible: a node already carries
+`payload_ref` and a derived contract, so "what does this module take and
+promise" is answerable from the graph alone.
+
+The measurable version, and the reason this is worth doing: kids dropped from
+11–13 tool calls to 5–7 when the map was embedded in the prompt. The target is
+the same curve applied to follow-up reads — an agent that navigates instead of
+grepping. Falsifier: if agents given navigation still read the same number of
+files, the graph is not carrying the context it claims to.
+
+Shares its substrate with G9.4 — the viewport a human pans and the region an
+agent requests are the same query at different resolutions. Build them as one
+mechanism with two front-ends, not two renderers that drift.
+
+### G1.2 — One skill: fold in caveman, cavekit, and gitnexus — status: horizon
+
+Four systems overlap in this repo and none of them know about the others:
+**agi** (this loop), **caveman** (compressed communication, ~75% fewer tokens),
+**cavekit** (kits → build sites → tiered task graphs, with its own peer-review
+and convergence machinery), and **gitnexus** (a real code index with symbols,
+call graph and execution flows).
+
+Each holds a piece this loop needs. Caveman is directly the design ethic —
+motion is expensive, so compress it — and belongs in kid briefs, not just in
+chat. Cavekit's build-site → task decomposition is *already* wired in, via
+`snapshot-build-site.py`, and its tier/dependency model is close to what G6.4
+needs for build-node branching. GitNexus is the natural seed for zoom levels 4–5
+where agi has no data at all.
+
+Take pieces; do not merge wholesale. The failure to avoid is four overlapping
+vocabularies for one idea — this project has already shown what happens when two
+documents describe the same defects (H3b). Absorbs **H8** (SKILL.md propagation),
+which should be done as part of deciding the boundary rather than before it.
+
+**Known constraint, measured:** GitNexus excludes any directory named `bin/`, so
+it currently indexes zero symbols for all fifteen engine entry points. See
+**S1** — that is the same problem from the other end.
 
 ## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
@@ -112,11 +196,54 @@ What has to be true:
   symbol coverage of all twelve `bin/*.py`, which is the half of the engine
   where every 2026-08 change landed.
 
-### G2.2 — IO maps as inherited contract slices — status: horizon
+### G2.2 — IO maps as inherited contract slices — status: active
 
 Every node declares required inputs and promised outputs, each with a how/why,
 a performance note and a security note; the maps re-derive when neighbours
-change. Blocked on G2.1 — an IO map needs a code-level node to hang off.
+change.
+
+**Half of this shipped 2026-08-22 and the half that shipped is the mechanical
+half** — `level3.py` emits 1,110 contract entries whose `how` is derived from
+`ast` with a line number, and `stitch.py --verify` re-derives and diffs them, so
+a contract that drifts from its code is detected rather than rotting invisibly.
+That is the freshness problem the anatomy node had recorded as unsolved.
+
+**What remains is the judgement half.** `why`, `perf` and `security` are emitted
+as explicit `TODO(model)` placeholders — deliberately blank, because a
+fabricated security note is worse than an absent one. Filling them is a model
+pass over the placeholders, and it is the first real test of the split this goal
+rests on: the harness owns the shape, the model only ever fills free text. Its
+falsifier is already pre-registered in `hyp:level3-node-anatomy` — harness
+fields must hit 1.000 recall by construction, and prose must hold ≥ 0.792.
+
+Do the model pass only after **S3** — a truncated `how` can currently contain a
+fence-lookalike that trips a naive reader, and the model pass is exactly the
+next consumer that would hit it.
+
+### G2.3 — `graph_builder` becomes data-source-agnostic and cold-builds fast — status: horizon
+
+`agi_algos/graph_builder.py` is the code-intelligence layer and the natural
+substrate for zoom levels 4–5, but it is coupled to specific data sources and is
+slow on a cold build. Absorbs **A1** (data-source-agnostic refactor) and **A3**
+(cold-build optimisation).
+
+Also carries a cleanup with a real trap in it: `graph_builder.parse_goals()`
+parses a *different* `goals/` directory into `goal`-type nodes for a 35-node-type
+code graph, and its only call site hardcodes a path that no longer exists, so it
+returns 0. It is dead code, unrelated to `GOALS.md`, and **two different things
+named "goal" in one codebase will mislead every future reader.** Repoint or
+delete it.
+
+### G2.4 — Embeddings into the production renderer path — status: horizon
+
+gensim + UMAP embeddings exist and are not on the renderer path (**H7**).
+Relevant to this goal rather than to G9 because a projection is a zoom
+operation: it is how level 1 and 2 get a spatial layout that is stable as the
+graph grows, which is what G9.4's viewport needs to pan across without the graph
+rearranging itself under the reader.
+
+Note `.gitnexus/meta.json` reports `embeddings: 0` — nothing is generated today,
+and `npx gitnexus analyze` without `--embeddings` deletes any that exist.
 
 ## G3 — Scoring that added motion cannot move — status: active
 
@@ -206,6 +333,42 @@ engine-writing kids within an iteration; or partition by file ownership
 declared in the brief. Measure before choosing — the worktree option costs a
 checkout per kid and may not be worth it at two kids.
 
+**Partial result, 2026-08-22:** file ownership declared explicitly in the brief
+was tried across two iterations of two kids each. No collisions, and both kids
+correctly attributed sibling breakage instead of claiming it. That is one
+data point at two kids on disjoint files, not a solution — it says nothing
+about kids that genuinely need the same file.
+
+### G4.2 — A reasoning-effort dial, not just a model name — status: active
+
+`cc_dispatch.kid_model` selects the model. **Nothing selects how hard it
+thinks.** Asked for "sonnet 5 on max settings" the honest answer was that the
+dispatch surface exposes model choice and not reasoning budget, so the request
+had to be approximated by wording in the brief.
+
+That is a real gap in L3's "fully configurable per tier" claim: a tier is
+currently a model name and nothing else. Add effort/reasoning budget as a
+per-tier config key alongside `kid_model` and `parent_model`, and make the
+delegator tier configurable the same way.
+
+Worth measuring rather than assuming: run the same brief at different efforts
+and see whether node quality moves enough to justify the cost. This project's
+own evidence says cheap tiers are fine for prose and catastrophic for contract
+structure (0.792 vs 0.000) — effort may split the same way.
+
+### G4.3 — Finish the runtime split: pi and Claude Code as one path — status: horizon
+
+**L12** remainder plus **H9**. Anywhere the engine invokes `pi`, allow invoking
+Claude Code instead — a runtime flag, not a parallel code path — and audit hook
+parity between the two. H9's kid→parent question channel exists for the CC path
+(four escalation triggers, one question per kid) and not for pi.
+
+**H4b** belongs here too: `driver.sh` calls `benchmark.py` with the wrong
+arguments under `|| true`, so it may never have run. That matters beyond the
+bug — `benchmark.py` is what reaches `ranking.py` and the weighted attractiveness
+path, which means the ranking this loop supposedly selects targets with has
+never been confirmed to execute at all.
+
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: horizon
 
 `status:` should be a field the engine acts on: stop accruing score to
@@ -280,6 +443,57 @@ Result: 29,432 → 516 nodes; `outcome_coverage` unchanged at 0.202 (the
 pre-registered must-not-move check); `find_chains` stopped truncating, so
 H0c's "the loop cannot be run against this corpus" is now false.
 
+### G6.3 — A fix lands as a new version of a build node — status: active
+
+**The mechanism to test, and the reason to test it on real work.** Today an
+engine fix is edited in the engine repo, and `level3.py` re-derives the build
+node afterwards — the node trails the code. The target is the reverse: a fix is
+applied *as a version update to the build node*, and the engine file follows
+from it via `stitch.py`.
+
+This is also how the grid's version dimension gets exercised for the first time
+on content that matters. `refs/grid/node/<id>` already records one version per
+change and the grid held 535 refs after its first full pass; what has never been
+tested is a build node accumulating **meaningful** versions — v1 → v2 → v3 as a
+real fix evolves — and `stitch.py` materialising a chosen version rather than
+whichever is current.
+
+Falsifier: take one real fix from this session, apply it as a build-node version
+update, stitch it out, and confirm the engine file is byte-identical to what the
+direct edit produced. If it is not, the version layer is not yet a source of
+truth and should not be described as one.
+
+### G6.4 — Non-build work branches off a build version and returns a new one — status: horizon
+
+The full cycle, once G6.3 holds: a non-build chain — idea → hypothesis →
+experiment → verdict — **branches off a specific version of a build node**, and
+its accepted verdict produces the **next version** of that build node.
+
+That makes provenance answerable in the direction that matters: not "what
+changed in this file" but *"which argument produced this line, and what was the
+state of the code when that argument was made"*. It also makes a rejected
+verdict cheap — the branch simply never lands a new build version, and the
+attempt survives as prior art (G9.5's rejected-draft case).
+
+Depends on G6.3 for versioning and on G9.5 for the session→version link, without
+which a branch point cannot be identified after the fact.
+
+### G6.5 — Rebuild agi from agi-tree automatically, on the grid's cron — status: horizon
+
+The grid already syncs on two cadences (5-minute grid push, hourly branch push)
+and `grid.py cron install` sets both. Add the rebuild to that schedule: when the
+cron runs, re-derive the census, re-scan level 3, and run `stitch --verify`, so
+drift between graph and engine is detected within one cadence instead of
+whenever someone happens to look.
+
+**Verify only, until G6.3 lands.** A cron that *writes* the engine from the
+graph before the version layer is trusted is a data-loss defect waiting to
+happen, and this project has already paid for that class twice. Report drift;
+do not silently reconcile it.
+
+Pairs with **S2** (cron parity with fantasia) — there is no point scheduling a
+rebuild on a project whose basic sync cadence is not set up.
+
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
 The graph is what makes it safe to stop mid-sprint, which only holds if stopping
@@ -347,6 +561,90 @@ in order to close a hole nobody has yet exploited. Decide deliberately — the
 H4c lesson is that any unverifiable field eventually gets gamed, so the
 question is when, not whether.
 
+### G7.4 — Two loaders, two opposite duplicate-id policies — status: active
+
+`graph_core/loader.py::load_directory` keeps the **first**-sorted file on an id
+collision and, as of 2026-08-22, reports every collision via
+`graph.duplicate_ids`, a `WARN:` line, and `DuplicateIdError` under `strict`.
+`snapshot-goals.py::load_existing_nodes` keeps the **last**-sorted file, by
+plain dict overwrite, and reports nothing.
+
+**Not cosmetic — it silently narrows the integrity check that was just built.**
+`collect_parent_refs` and the whole G7.1 check read off `load_existing_nodes`,
+so when a duplicate pair disagrees on `parents:`, the losing file's references
+are invisible and its dangling refs are never reported. Measured on this
+corpus: an independent raw scan finds **89** dangling parent references;
+`snapshot-goals.py` finds **88**. The missing one is
+`nodes/task/t-090-bfsdfs-traversal-primitives.md → hyp:graph-core-r11`, whose
+id `task:t-090` is shared with `t-090-schema-as-file-with.md` — one of G7.2's
+17 pairs, where the wrong sibling wins.
+
+Fix: one duplicate-id policy, in one place, reported the same way by both
+readers. First-wins plus a warning is the established behaviour; make
+`load_existing_nodes` conform rather than inventing a third rule. The 88-vs-89
+gap is the regression test.
+
+### G7.5 — Parse failures are swallowed with zero signal — status: active
+
+`load_directory`'s `except Exception: continue` and `load_existing_nodes`'s
+`except Exception: pass` both silently drop any file that raises while its
+frontmatter is parsed. **No caller learns anything.**
+
+On the live corpus this hides exactly one file:
+`nodes/hypothesis/a00-1467544f-chain-600hop.md`, whose frontmatter carries a
+stray `- "exp:a00-1467544f-chain-600hop"` list line between `id:` and
+`parents:`, breaking YAML block-mapping parsing. That file is invisible to the
+renderer, the metrics, the chain finder and the dashboard alike — the same
+failure mode as G7.1 and G7.2, reached through a hard parse error instead of a
+bad reference or an id collision.
+
+Fix: both sites warn with the file path and the exception, following the
+warn-by-default / strict-to-fail pattern G7.1 and G7.2 already established.
+**Do not repair the malformed node.** Fixing the corpus is a separate,
+deliberate decision — the G7.2 rule. This goal is about making the failure
+visible, not about making it go away.
+
+### G7.6 — One persistence model: frontmatter, JSON, or a database — status: horizon
+
+Three representations exist and none is authoritative. Markdown frontmatter is
+what the loop actually reads and writes. A JSON/SQLite backend exists
+(`graph_core/persistence/sqlite_backend.py`, `db_loader.py`, plus a one-shot
+migration script) and is wired into the snapshot scripts behind a config key —
+but agi-tree's own `persistence` block was removed this session because the
+project's vendored `graph_core` predates the backend entirely.
+
+The question to settle deliberately: **unify on one, support both honestly, or
+migrate to a real database.** The case for a database is not tidiness — it is
+that several defects this session are *schema problems wearing filesystem
+clothes*: duplicate ids (G7.2, G7.4) cannot happen under a primary key; dangling
+references (G7.1) are a foreign-key constraint; unresolvable `evidence_runs`
+(G3.1) is a join. A store that can express those constraints removes whole
+classes of bug rather than detecting them after the fact.
+
+The case against is equally real: frontmatter is human-editable, greppable,
+diffable, and it is what makes the git grid work at all — a node's version
+history is a file's history. A database gives that up unless the grid is
+rebuilt on top of it.
+
+Absorbs **H1** (DB-only state migration, long carried as P0) and **H2** (import
+the historical corpus). Decide before building either: H1 has sat at P0 without
+the decision being made, which is why it never moved.
+
+### G7.7 — Retire the vendored engine copy and the last loader path bug — status: horizon
+
+Two carried defects with one root: `agi-tree/src/` holds project-local copies of
+`graph_core`, `chain_engine`, `renderers`, `schema_registry`, `embeddings` and
+`environment_indexers`, and the documented override convention gives them
+precedence over the engine's own. The project therefore runs on a stale copy
+that predates `sqlite_backend.py` — which is how a snapshot came to crash
+mid-corpus this session (H0g).
+
+This is H0/H0b's defect class arriving through the `src/` door, and L9 states
+the rule it breaks: **the engine must never be vendored.** Retire the directory
+deliberately — the historical `exp-*.py` scripts import from it, so verify
+before deleting. Absorbs **H0h** and **H5** (the R11 loader path-safety bug,
+which lives in the same code).
+
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 
 A project repo holds data and configuration; the engine arrives as a clone.
@@ -405,3 +703,135 @@ started until G9.1 has been used enough to know which panels matter.
 Load the exact context injection a kid receives on arrival. The fastest way to
 judge whether a brief is genuinely self-contained, and the only way to see the
 system from the inside without spending an agent. Was L10's first half.
+
+### G9.4 — The live graph viewport: watch the whole thing, moving — status: active
+
+**This supersedes the dashboard as the primary view.** G9.1 answers "what is the
+state" in panels of text. This answers "what does the graph *look* like, right
+now, while agents are working in it" — and that is a different instrument.
+
+What it is:
+- **The whole node graph rendered as a navigable web**, at level 3 by default —
+  not a 200-line truncated snapshot, the actual graph.
+- **A terminal viewport that pans** up/down and left/right across a graph far
+  larger than the screen. The screen is a window onto the graph, not a summary
+  of it.
+- **Agents appear as spiders on the web**, positioned where they are actually
+  working — kids, parents and the director each distinguishable, moving as they
+  move. The point is to *watch the swarm*, not read a log of it.
+- **Zoom is the same axis as everywhere else** (`--level 1..5`). Zooming out
+  aggregates the web; agents take appropriate positions at each grain, so a
+  parent working across a whole goal reads as one spider at level 1 and resolves
+  into its kids at level 3. Levels 1–3 are enough to start; 4–5 follow the axis.
+
+Progression, deliberately: **ASCII first, then a rudimentary ASCII web, then a
+3D-looking ASCII web in the wireframe style of the original *Elite*, then the
+browser version (G9.2).** Each stage has to be usable on its own — the terminal
+version is the one that runs beside a Claude Code session, and it is not a
+throwaway prototype for the web one.
+
+Absorbs **A2** (ASCII renderer unification): there are currently several ASCII
+renderers with overlapping jobs, and this needs one that can render a viewport
+rather than a whole-graph dump. Do the unification as part of this, not before
+it — the viewport requirement is what tells you what the unified renderer needs
+to do.
+
+Inherits G9's invariants: reader-never-writer, and it renders damage rather than
+hiding it — a broken region of the graph should be visibly broken on the web.
+
+### G9.5 — Pick a node, see its history; pick a version, see how it got there — status: active
+
+The viewport is only half of it. From any node on the web:
+- **select the node → its version history**, straight off the git grid
+  (`refs/grid/node/<id>`), which already records one version per change;
+- **select a version → what produced it** — for a non-build node, the chat and
+  reasoning that wrote it; for a build node, the code at that version and the
+  chain that led to it.
+
+The data mostly exists already and is unused: the grid holds per-node and
+per-session refs, `grid.py log|diff|versions` can read them, and session drafts
+are versioned under `refs/grid/session/*` — including drafts that were rejected.
+**Rejected drafts are the interesting ones**, because they are the only record
+of what the loop considered and declined.
+
+Gap to close: nothing currently links a node version back to the *session* that
+produced it. That link is what turns the grid from storage into history.
+
+---
+
+## S1 — Retire `bin/` as a directory name — status: active
+
+**Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
+holds fifteen `.py` files with shebangs, plus `driver.sh` alongside in the
+parent. Nothing in it is compiled and nothing in it is a binary.
+
+The name has a measured cost: **GitNexus excludes any directory called `bin/`
+by default**, so it indexes zero symbols for all fifteen — verified after a
+fresh reindex, against a working control probe on `src/`. That is the half of
+the engine where every 2026-08 change landed, and it is why the engine census
+had to be seeded from `git ls-files` instead of the code index.
+
+Rename to something that describes what is there — `cmd/`, `tools/`, `scripts/`
+— and take the opportunity to reconsider the layout as a whole rather than
+doing a one-word rename. Fifteen flat scripts with three separate generators
+among them (`snapshot-goals`, `snapshot-build-site`, `decompose-engine`,
+`level3`) have a structure worth making explicit.
+
+**Not a cheap change.** `driver.sh`, `dispatch.py`, the hooks, the skill, the
+tests and every one of the 27 census nodes reference these paths; `zoom.py`'s
+`--level` aliases are invoked by `dispatch.py` by path. Do it as a deliberate
+pass with the census re-run afterwards, and confirm GitNexus actually picks the
+directory up before committing to the churn — the exclusion is inferred from
+behaviour, not from a documented setting.
+
+## S2 — Cron parity with fantasia — status: active
+
+`grid.py cron install` sets both cadences — a 5-minute grid snapshot + push
+(crash window ≤ 5 minutes) and an hourly main-branch push. fantasia has this;
+**agi-tree does not**, and the grid was only initialised in this project on
+2026-08-22.
+
+Until it is installed, every guarantee that rests on "sync is automated, nobody
+syncs by hand" is false here, and the grid's 535 refs exist only on this
+machine. Install it, verify both entries land, and confirm a push actually
+reaches the remote rather than assuming the cron line is correct — a cd-less
+cron line is exactly the class of small operational error the design ethic says
+the system should absorb.
+
+Precondition for **G6.5** (automatic rebuild on the grid's cadence).
+
+## S3 — A truncated contract value can contain a fence lookalike — status: active
+
+`level3.py`'s `_cap()` truncates derived text to 240 characters. In
+`nodes/level3/bin-heal.md` the `healer_ctx` input's `how` field is the truncated
+source of a `write_text(f"""...```json ...```...""")` call, so the truncated
+value contains a literal ` ```json ` sequence **inside** the YAML scalar.
+
+The file is valid YAML today — `yaml.safe_dump` escapes it correctly. The trap
+is on the reading side: any consumer that locates the contract's closing fence
+by scanning for the first ` ``` ` after ` ```yaml ` stops at the embedded one and
+gets a truncated, broken parse. This was hit for real while writing
+`stitch.py`, and fixed there by bounding extraction on the
+`LEVEL3-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
+there is a regression test reproducing the exact `bin-heal.md` shape.
+
+Fix it at the source, cheaply: either neutralise fence-lookalike sequences in
+`_cap()`'s output, or document the bounded-extraction requirement in a comment
+beside `_cap()` and the marker constants. **The next consumer is the G2.2 model
+pass** that fills `why`/`perf`/`security`, so this should land before that runs.
+Must not regress the 20 existing level3 tests.
+
+## S4 — Retire the legacy directories and repos — status: horizon
+
+Housekeeping carried from TODO **C1–C6**, gated on bug-sweep clearance and
+grouped here because none of it is worth its own long-term goal:
+
+- `~/autoresearch-tree/` local directory (C1) and the
+  `CodexOperator/autoresearch-tree` repo (C2) — archive rather than delete.
+- The old pi fallback under `~/.pi/agent/git/.../extensions/autoresearch-tree/`
+  (C3), pending verification that nothing resolves through it.
+- The modularNN spike worktree (C4) and legacy `~/.hermes/agi/` artifacts (C5).
+- `.claude/skills/gitnexus/*/SKILL.md` accidentally tracked (C6).
+
+Do these last. Every one is a deletion, and the two data-loss defects this
+project has already paid for both arrived as routine cleanup.

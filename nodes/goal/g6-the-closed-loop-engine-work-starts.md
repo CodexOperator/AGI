@@ -7,6 +7,9 @@ origin: goals-doc
 seeds:
   - goal:g6.1
   - goal:g6.2
+  - goal:g6.3
+  - goal:g6.4
+  - goal:g6.5
   - idea:deprecate-the-gamed-mass
   - idea:engine-self-decomposition
 status: active

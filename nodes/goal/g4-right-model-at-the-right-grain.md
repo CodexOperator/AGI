@@ -6,6 +6,8 @@ id: "goal:g4"
 origin: goals-doc
 seeds:
   - goal:g4.1
+  - goal:g4.2
+  - goal:g4.3
   - idea:engine-agi-bridge-index
   - idea:engine-dispatch
   - idea:engine-heal

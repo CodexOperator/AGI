@@ -5,6 +5,8 @@ goal_kind: long-term
 id: "goal:g1"
 origin: goals-doc
 seeds:
+  - goal:g1.1
+  - goal:g1.2
   - idea:engine-cli
   - idea:engine-driver-sh
   - idea:engine-find-root
@@ -30,4 +32,5 @@ Owns: **L11** remainder (one command that renders *and* spawns — the parent's
 last machine-tending chore), **L12** remainder (a runtime flag rather than a
 parallel code path; hook parity audit), **L17** (config schema plus a writer, so
 configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
-project). Queued rather than active: the handles are named but untouched.
+project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
+prior session manifests).
