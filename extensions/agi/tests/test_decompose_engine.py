@@ -223,8 +223,19 @@ def test_dry_run_writes_nothing(project, engine):
 # --- 5. goal mapping: declared only, never guessed ---------------------------
 
 
-def test_unit_with_no_goal_map_entry_is_parentless_and_flagged(project, engine):
-    r = run(project, engine)
+def test_unit_with_no_goal_map_entry_is_parentless_and_flagged(
+    project, engine, tmp_path
+):
+    """Must use an explicitly empty map, never the shipped default.
+
+    This asserted against the real `decompose-engine.goalmap.json`, so it
+    passed only while that file happened to be empty and broke the moment a
+    mapping was declared. A test that reads production data is measuring the
+    data, not the behaviour.
+    """
+    gm = tmp_path / "empty-goalmap.json"
+    gm.write_text('{"mappings": {}}', encoding="utf-8")
+    r = run(project, engine, goal_map=gm)
     assert r.returncode == 0
     _path, fm = idea_nodes(project)["idea:engine-graph-core"]
     assert "parents" not in fm
