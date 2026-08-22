@@ -6,7 +6,8 @@ id: "goal:g7.1"
 origin: goals-doc
 parents:
   - goal:g7
-seeds: []
+seeds:
+  - exp:integrity-detection-r1
 status: active
 tags:
   - goal
