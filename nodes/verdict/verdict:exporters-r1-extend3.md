@@ -13,8 +13,7 @@ tags:
 - chain-extension
 - third-cycle
 - proved
-next_edges:
-- exp:exporters-r1-extend4
+next_edges: []
 synthetic: true
 evidence_runs:
 - synthetic

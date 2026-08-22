@@ -14,8 +14,7 @@ tags:
 - chain-extension
 - third-cycle
 - proved
-next_edges:
-- exp:autoresearch-tree-skill-r1-extend4
+next_edges: []
 synthetic: true
 evidence_runs:
 - synthetic

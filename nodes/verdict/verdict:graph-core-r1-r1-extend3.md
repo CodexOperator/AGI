@@ -5,8 +5,7 @@ verdict: proved
 confidence: 1.0
 parents:
   - "hypothesis:graph-core-r1-r1"
-next_edges:
-  - "exp:graph-core-r1-r1-extend4"
+next_edges: []
 ---
 # verdict:graph-core-r1-r1-extend3
 

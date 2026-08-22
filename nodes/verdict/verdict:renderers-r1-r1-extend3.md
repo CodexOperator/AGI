@@ -5,8 +5,7 @@ verdict: proved
 confidence: 1.0
 parents:
   - "hypothesis:renderers-r1-r1"
-next_edges:
-  - "exp:renderers-r1-r1-extend4"
+next_edges: []
 ---
 # verdict:renderers-r1-r1-extend3
 

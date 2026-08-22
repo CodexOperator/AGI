@@ -13,8 +13,7 @@ tags:
 - r17
 - third-cycle
 - proved
-next_edges:
-- exp:chain-engine-r1-extend4
+next_edges: []
 synthetic: true
 evidence_runs:
 - synthetic
