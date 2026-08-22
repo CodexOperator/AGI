@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 goal_id: G5
+goal_kind: long-term
 id: "goal:g5"
 origin: goals-doc
 seeds: []

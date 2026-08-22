@@ -16,8 +16,23 @@ to, not yet being worked) · `phasing-out` (retiring) · `complete`. Retire by
 marking the section `status: phasing-out` and **deprecating — never deleting**
 its seed node; retired chains remain prior art.
 
+**Three kinds of goal, all first-class nodes.** This is where new work gets
+recorded — a defect or an idea belongs here, not in a second document.
+
+| Heading | Becomes | Use for |
+|---|---|---|
+| `## G7 — Title — status: X` | `goal:g7`, a root | A long-term commitment. Rare; these barely change. |
+| `### G7.2 — Title — status: X` | `goal:g7.2`, `parents: [goal:g7]` | A concrete near-term step **inside** a long-term goal. This is where most new work lands. |
+| `## S4 — Title — status: X` | `goal:s4`, a root | A standalone short-term item that serves no single long-term goal. TODO-shaped. |
+
+A sub-goal parent-points at its long-term goal exactly the way a seed idea
+does, so it renders and traverses for free. Sub-goals carry their own `status`
+independently of their parent — `G2` can be `horizon` while `G2.1` is `active`,
+which is precisely how a long-term commitment gets worked one step at a time.
+
 **Goal ids are never renumbered.** Nodes reference goals by id, so a gap is
-always preferable to a renumber.
+always preferable to a renumber. Sub-goal numbers are likewise permanent: a
+completed `G7.2` stays `G7.2` and the next step is `G7.3`.
 
 **The design ethic binds every goal here, whatever its status.** Emitted tokens
 are an agent's motion; injected context is its sensation; context growth makes
@@ -53,7 +68,7 @@ parallel code path; hook parity audit), **L17** (config schema plus a writer, so
 configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
 project). Queued rather than active: the handles are named but untouched.
 
-## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
+## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
 One graph readable at five grains, where level 3 is **actual code nodes that
 stitch into a runnable directory layout** — the property that makes the graph an
@@ -76,6 +91,32 @@ round-trips. Ground truth and scoring rule are preserved at
 `agi/context/refs/zoom-roundtrip-ground-truth/` so the follow-up A/B stays cheap.
 
 Owns: **L1** (the 1..5 axis), **L2** (live IO maps as inherited contract slices).
+
+### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: active
+
+**Build level 3 before any other level.** It is the one that makes the graph an
+executable artifact rather than a description of one, and it is the level with
+an existing index to stand on: GitNexus already holds this repo's symbols, call
+graph and execution flows. A level-3 node is not a new parse of the code — it is
+a code surface **plus the thought attached to it**: why it exists, what it
+promises, what it requires.
+
+What has to be true:
+- A level-3 node round-trips: graph → directory of files → running software →
+  back to graph, with no hand-editing in either direction.
+- Its contract half (IO map, invariant citations, file paths, frontmatter) is
+  **attached mechanically by the harness**, never authored by a summarising
+  model. G2's measured falsifier is why: 0.000 frontmatter recall, 0.111 file
+  paths.
+- The index is a *seed*, not the source of truth. Known gap: GitNexus has zero
+  symbol coverage of all twelve `bin/*.py`, which is the half of the engine
+  where every 2026-08 change landed.
+
+### G2.2 — IO maps as inherited contract slices — status: horizon
+
+Every node declares required inputs and promised outputs, each with a how/why,
+a performance note and a security note; the maps re-derive when neighbours
+change. Blocked on G2.1 — an IO map needs a code-level node to hang off.
 
 ## G3 — Scoring that added motion cannot move — status: active
 
@@ -102,6 +143,23 @@ Still open, and the reason this stays active: **L4** — `outcome_coverage` is a
 *proxy* that counts chains reaching an outcome, not their **attribution to a
 specific goal**. True goal-fulfilment scoring is unbuilt. The goal nodes it
 needs exist as of L15.
+
+### G3.1 — `evidence_runs` must resolve to a real node — status: active
+
+🔴 **The evidence metric was itself gamed, and by the cheapest possible move.**
+`normalize_evidence_runs` returns `len(value)` for any list, so
+`evidence_runs: [synthetic]` — the literal string — satisfies `evidence_runs >= 1`
+and the gate passes a `proved` verdict that ran nothing. Measured on this
+corpus before the padding offload: 2,842 of 2,869 verdicts carrying
+`evidence_runs` used that sentinel; 16 cited a resolvable `exp:` id.
+
+Fix: count only entries that resolve to a real node in the corpus; treat a
+non-id string as a taxonomy violation that fails closed, not a silent pass.
+Then re-measure and record a corrected baseline on both live projects.
+
+**Until this lands, no `evidence_fraction` reading means anything** — including
+the post-offload 0.365, of which 33 of 121 surviving verdicts are still
+sentinel-backed. Owns TODO **H4c**.
 
 ## G4 — Right model at the right grain, several goals at once — status: horizon
 
@@ -170,6 +228,33 @@ Owns: **L19**. Preconditions cleared 2026-08-21: H3 config migration (this
 project), this file, and H0e (truncated chain results no longer cached as
 complete).
 
+### G6.1 — agi-tree becomes the source of truth agi is assembled from — status: active
+
+**The direction of authority reverses.** Today the graph describes the engine
+after the fact. The target is that the engine is *assembled from* the graph —
+the code is a projection of level-3 nodes, not a thing the nodes comment on.
+This is the goal G2.1 serves and the reason level 3 is built first.
+
+Ordering that follows from it: a decomposition census (which surfaces exist) →
+level-3 nodes with contracts attached (what each promises) → stitch-to-directory
+(the projection runs) → the engine's own changes originating as nodes.
+
+### G6.2 — Retire the padding and keep it recoverable — status: complete
+
+Done 2026-08-21. 28,916 gamed `-extend<N>` experiment/verdict nodes were
+removed from the working tree and archived outside the repo with a manifest
+recording the predicate, family and index of every one. 122 family heads were
+preserved in-tree as prior art for H3's own finding.
+
+Deviation recorded on purpose: G6/G7 say deprecate, never delete. The owner
+directed removal so the git grid would not be initialised over ~29k refs of
+baggage. "Never delete" was honoured by **relocation** — archive plus manifest,
+plus git history — rather than by retention in-tree.
+
+Result: 29,432 → 516 nodes; `outcome_coverage` unchanged at 0.202 (the
+pre-registered must-not-move check); `find_chains` stopped truncating, so
+H0c's "the loop cannot be run against this corpus" is now false.
+
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
 The graph is what makes it safe to stop mid-sprint, which only holds if stopping
@@ -195,6 +280,17 @@ warn, never fail, on drift — it closes the whole staleness class), **H1**/**H2
 (state into the DB), **L16** (close the config-name compatibility window only
 once pinning exists — it is load-bearing until then).
 
+### G7.1 — Referential integrity on every parent reference — status: active
+
+L15 validates `goal:`-prefixed parents only. Everything else dangles silently,
+and on this corpus 60.3% of parent references did — a `hypothesis:` vs `hyp:`
+prefix mismatch that quietly disconnected most of the `spawns` graph the
+attractiveness ranking is computed over. Nothing warned, and the ranking was
+read as authoritative for months.
+
+Extend the existing check to all parent references: warn by default, `--strict`
+to fail. The mechanism exists; only its scope is wrong. Owns TODO **H4d**.
+
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 
 A project repo holds data and configuration; the engine arrives as a clone.
@@ -207,5 +303,49 @@ and MCP servers can each own one. The payoff that justifies the recursion is
 exposed to a workflow.
 
 Owns: **L9** (scaffolding a project without copying by hand — shares its writer
-with G1/L17), **L10** (ride along as a kid to judge whether briefs are genuinely
-self-contained; an ASCII dashboard with live agent positions across zoom levels).
+with G1/L17). L10 moved to **G9**, which is where legibility now lives.
+
+## G9 — Legibility: a human can see what the loop is doing — status: active
+
+**Stated plainly by the owner, and it is the sharpest usability signal this
+project has had:** *"You keep referencing these items and I have no idea what
+you are talking about."* Every artefact this system produces today is addressed
+to an agent. `INJECTION.md` is generated for a spawn prompt. `GOALS.md` and
+`TODO.md` are dense on purpose. The ASCII map is capped at 200 lines and
+truncates silently. There is no view built for a person.
+
+That is not a documentation gap, it is a **product gap**, and it gates every
+other goal: a system whose state only agents can read cannot be evaluated,
+corrected, or handed to anyone else. G8 (forkability) is unreachable without it.
+
+**Invariant:** the dashboard is a *reader*, never a writer. It must be safe to
+run at any moment, mid-iteration, with zero possibility of touching the corpus.
+
+**Design constraint that shapes the whole thing:** it renders the graph
+*truthfully*, including its damage. Truncation, dangling references,
+unevidenced verdicts and deprecated mass are the things a human most needs to
+see — a dashboard that shows a clean graph over a broken one is worse than none.
+
+### G9.1 — CLI dashboard, runnable as a Claude Code side terminal — status: active
+
+First deliverable, and deliberately the humble one. A terminal view that
+answers, without the reader knowing any of this system's vocabulary:
+
+- what goals exist, their status, and what is actually being worked
+- which chains are real and which are stubs
+- where every metric currently stands, **with its known contamination named**
+- what the loop did last iteration, and what it would pick next
+
+Runs in a repeating-refresh mode so it can sit in a split terminal beside a
+Claude Code session. No install step beyond the engine itself.
+
+### G9.2 — The same view in a browser — status: horizon
+
+The CLI view earns the data model; the web version earns the audience. Not
+started until G9.1 has been used enough to know which panels matter.
+
+### G9.3 — Ride along as a kid — status: horizon
+
+Load the exact context injection a kid receives on arrival. The fastest way to
+judge whether a brief is genuinely self-contained, and the only way to see the
+system from the inside without spending an agent. Was L10's first half.

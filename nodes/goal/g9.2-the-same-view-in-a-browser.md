@@ -1,0 +1,19 @@
+---
+confidence: 1.0
+goal_id: G9.2
+goal_kind: subgoal
+id: "goal:g9.2"
+origin: goals-doc
+parents:
+  - goal:g9
+seeds: []
+status: horizon
+tags:
+  - goal
+  - subgoal
+title: "G9.2: The same view in a browser"
+type: goal
+---
+
+The CLI view earns the data model; the web version earns the audience. Not
+started until G9.1 has been used enough to know which panels matter.

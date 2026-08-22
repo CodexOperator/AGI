@@ -1,10 +1,11 @@
 ---
 confidence: 1.0
 goal_id: G2
+goal_kind: long-term
 id: "goal:g2"
 origin: goals-doc
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - root
