@@ -5,6 +5,7 @@ goal_kind: long-term
 id: "goal:g2"
 origin: goals-doc
 seeds:
+  - exp:zoom-numeric-axis-r1
   - goal:g2.1
   - goal:g2.2
   - idea:engine-embeddings

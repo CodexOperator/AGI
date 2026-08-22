@@ -1,10 +1,16 @@
+# autoresearch-tree iteration 9003 — agent zoom-r1-legacy-big
+
+## Zoom Level: BIG (legacy alias for numeric level 1 — Goals)
+You are exploring the WHOLE graph. Pick a high-level idea or new chain to extend.
+Bias: introduce a fresh idea, fork an under-explored chain, or seed a new domain.
+
 # agi-tree INJECTION CONTEXT
-_generated 2026-08-22T04:21:15+00:00_
+_generated 2026-08-22T03:59:39+00:00_
 
 ## graph snapshot
-- nodes: 621
-- edges: 526
-- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=21, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
+- nodes: 617
+- edges: 522
+- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=103, goal=21, hypothesis=101, idea=42, level3=73, mvp=20, node=3, outcome=18, task=90, verdict=113
 - **scored on `outcome_coverage`** (`metric_primary`) — this is the target
 - outcome_coverage: 0.198 (mvps per hypothesis; goal-attributable)
 
@@ -53,8 +59,8 @@ Each iteration MUST first answer: **explore a big idea or small idea?**
 
 ## ASCII view (≤200 lines)
 ```
-# graph: 621 nodes
-# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=21, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
+# graph: 617 nodes
+# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=103, goal=21, hypothesis=101, idea=42, level3=73, mvp=20, node=3, outcome=18, task=90, verdict=113
 #
         app-purpose:autoresearch-tree-skill :: app_purpose
               app-purpose:chain-engine :: app-purpose
@@ -186,16 +192,14 @@ exp:schema-registry-r2-bracket-conventio :: experiment [spawns->verdict:schema-r
 exp:session-management-r1-r1-extend1 :: experiment
 exp:session-management-r1-r1-extend2 :: experiment
 exp:session-management-r1-r1-extend3 :: experiment
-    exp:stitch-roundtrip-r1 :: experiment
     exp:topological-queries-r1 :: experiment [spawns->verdict:topological-queries-r1]
-  exp:zoom-numeric-axis-r1 :: experiment
       experiment:a00-ddbe3410-exp001-graph-cor :: experiment [spawns->verdict:a00-ddbe3410-verdict001-graph-core-r1-t001]
     experiment:a00-ddbe3410-exp002-structura :: experiment [spawns->verdict:a00-ddbe3410-verdict002-structural-repair]
     experiment:a00-ddbe3410-exp003-iterative :: experiment [spawns->verdict:a00-ddbe3410-verdict003-iterative-traversal]
   experiment:exp-a00-4125fa6d-005488 :: experiment [spawns->verdict:verdict-a00-4125fa6d-005488]
   experiment:exp:a00-204c9d9e-1d958f :: experiment [spawns->verdict:verdict:a00-204c9d9e-1d958f]
 goal:g1 :: goal [spawns->idea:engine-cli, spawns->idea:engine-driver-sh, spawns->idea:engine-find-root]
-goal:g2 :: goal [spawns->exp:zoom-numeric-axis-r1, spawns->goal:g2.1, spawns->goal:g2.2 (+2)]
+goal:g2 :: goal [spawns->goal:g2.1, spawns->goal:g2.2, spawns->idea:engine-embeddings (+1)]
   goal:g2.1 :: goal [spawns->hyp:level3-node-anatomy, spawns->idea:engine-agi-algos, spawns->idea:engine-level3]
   goal:g2.2 :: goal
 goal:g3 :: goal [spawns->goal:g3.1, spawns->idea:engine-benchmark, spawns->idea:engine-chain-engine (+1)]
@@ -204,7 +208,7 @@ goal:g4 :: goal [spawns->goal:g4.1, spawns->idea:engine-agi-bridge-index, spawns
   goal:g4.1 :: goal
 goal:g5 :: goal [spawns->idea:engine-schema-registry, spawns->idea:engine-snapshot-build-site, spawns->idea:engine-snapshot-goals]
 goal:g6 :: goal [spawns->goal:g6.1, spawns->goal:g6.2, spawns->idea:deprecate-the-gamed-mass (+1)]
-  goal:g6.1 :: goal [spawns->exp:stitch-roundtrip-r1, spawns->idea:engine-decompose-engine, spawns->idea:engine-stitch]
+  goal:g6.1 :: goal [spawns->idea:engine-decompose-engine]
   goal:g6.2 :: goal
 goal:g7 :: goal [spawns->goal:g7.1, spawns->goal:g7.2, spawns->goal:g7.3 (+3)]
   goal:g7.1 :: goal [spawns->exp:integrity-detection-r1]
@@ -249,8 +253,26 @@ hyp:cli-invocation-r1 :: hypothesis [spawns->exp:cli-invocation-r1]
   hyp:environment-indexers-r2 :: hypothesis [spawns->task:t-033]
   hyp:environment-indexers-r3 :: hypothesis [spawns->task:t-034, spawns->task:t-035, spawns->task:t-036]
   hyp:environment-indexers-r4 :: hypothesis [spawns->task:t-037, spawns->task:t-038]
-... [truncated, 428 more nodes]
+  hyp:environment-indexers-r5 :: hypothesis [spawns->task:t-039, spawns->task:t-040]
+  hyp:environment-indexers-r6 :: hypothesis [spawns->task:t-041]
+... [truncated, 424 more nodes]
 ----
-Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=21, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
-Edges: spawns=526
+Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=103, goal=21, hypothesis=101, idea=42, level3=73, mvp=20, node=3, outcome=18, task=90, verdict=113
+Edges: spawns=522
 ```
+
+
+## Your Task
+1. Decide: extend longest chain, fork mid-chain, or start fresh idea.
+2. Pick or create one node id (idea/hypothesis/experiment/mvp/outcome).
+3. Run the experiment / implement the MVP / write the outcome.
+4. When done, signal completion:
+   ```
+   python3 <plugin>/bin/cli.py done 9003 zoom-r1-legacy-big \
+     --verdict <proved|disproved|inconclusive_lean_proved:N|inconclusive_lean_disproved:N|pending> \
+     --confidence <0.0-1.0> \
+     --node-id <new_or_extended_node_id> \
+     --notes "<one-line>"
+   ```
+
+If stuck >2 attempts on same approach → write a `pending` verdict and stop.

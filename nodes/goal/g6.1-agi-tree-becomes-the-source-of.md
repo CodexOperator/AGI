@@ -7,7 +7,9 @@ origin: goals-doc
 parents:
   - goal:g6
 seeds:
+  - exp:stitch-roundtrip-r1
   - idea:engine-decompose-engine
+  - idea:engine-stitch
 status: active
 tags:
   - goal

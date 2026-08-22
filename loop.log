@@ -1201,3 +1201,153 @@ METRIC primary_metric=outcome_coverage
 METRIC primary_value=0.198
 ERR: ollama package not installed (pip install ollama)
 [smoke] skipping agent dispatch + heal
+=== iter 1 @ 2026-08-22T04:21:14Z ===
+INTEGRITY: hypothesis:a00-4125fa6d-005488 has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: hypothesis:a00-4e910101-16a85f has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: hypothesis:a00-a27efbb9-06e58a has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: hypothesis:a00-a4ab8de0-bbc27a has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: hypothesis:a00-a8357dc5-08d530 has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: hypothesis:a00-d6d5858f-fe248c has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: hypothesis:a00-e07eb43f-0ae7b3 has 1 empty entry/entries under `parents:` (malformed frontmatter, not a missing node)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:a00-c2ec59b7-b391d9-r2.md references unknown parent 'exp:a00-c2ec59b7-b391d9-r2' (possible prefix typo — did you mean 'hypothesis:a00-c2ec59b7-b391d9-r2'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict_chain-engine-r15.md references unknown parent 'exp:chain-engine-r15' (possible prefix typo — did you mean 'verdict:chain-engine-r15'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r2-extend3.md references unknown parent 'exp:schema-registry-r2-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/a00-1467544f-chain-600hop.md references unknown parent 'hyp:a00-1467544f-chain-600hop' (possible prefix typo — did you mean 'exp:a00-1467544f-chain-600hop'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/task/t-092-query-api-and-path.md references unknown parent 'hyp:graph-core-r11'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:autoresearch-tree-skill-r1-r1-extend1.md references unknown parent 'hypothesis:autoresearch-tree-skill-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:autoresearch-tree-skill-r1-r1-extend2.md references unknown parent 'hypothesis:autoresearch-tree-skill-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:autoresearch-tree-skill-r1-r1-extend3.md references unknown parent 'hypothesis:autoresearch-tree-skill-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:autoresearch-tree-skill-r1-r1-extend1.md references unknown parent 'hypothesis:autoresearch-tree-skill-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:autoresearch-tree-skill-r1-r1-extend2.md references unknown parent 'hypothesis:autoresearch-tree-skill-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:autoresearch-tree-skill-r1-r1-extend3.md references unknown parent 'hypothesis:autoresearch-tree-skill-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:chain-engine-r1-r1-extend1.md references unknown parent 'hypothesis:chain-engine-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:chain-engine-r1-r1-extend2.md references unknown parent 'hypothesis:chain-engine-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:chain-engine-r1-r1-extend3.md references unknown parent 'hypothesis:chain-engine-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:chain-engine-r1-r1-extend1.md references unknown parent 'hypothesis:chain-engine-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:chain-engine-r1-r1-extend2.md references unknown parent 'hypothesis:chain-engine-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:chain-engine-r1-r1-extend3.md references unknown parent 'hypothesis:chain-engine-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:cli-invocation-r1-r1-extend1.md references unknown parent 'hypothesis:cli-invocation-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:cli-invocation-r1-r1-extend2.md references unknown parent 'hypothesis:cli-invocation-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:cli-invocation-r1-r1-extend3.md references unknown parent 'hypothesis:cli-invocation-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:cli-invocation-r1-r1-extend1.md references unknown parent 'hypothesis:cli-invocation-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:cli-invocation-r1-r1-extend2.md references unknown parent 'hypothesis:cli-invocation-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:cli-invocation-r1-r1-extend3.md references unknown parent 'hypothesis:cli-invocation-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:embeddings-r1-extend1.md references unknown parent 'hypothesis:embeddings-r1' (possible prefix typo — did you mean 'hyp:embeddings-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:embeddings-r1-extend2.md references unknown parent 'hypothesis:embeddings-r1' (possible prefix typo — did you mean 'hyp:embeddings-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:embeddings-r1-extend3.md references unknown parent 'hypothesis:embeddings-r1' (possible prefix typo — did you mean 'hyp:embeddings-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:embeddings-r1-extend1.md references unknown parent 'hypothesis:embeddings-r1' (possible prefix typo — did you mean 'hyp:embeddings-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:embeddings-r1-extend2.md references unknown parent 'hypothesis:embeddings-r1' (possible prefix typo — did you mean 'hyp:embeddings-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:embeddings-r1-extend3.md references unknown parent 'hypothesis:embeddings-r1' (possible prefix typo — did you mean 'hyp:embeddings-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:embeddings-r1-r1-extend1.md references unknown parent 'hypothesis:embeddings-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:embeddings-r1-r1-extend2.md references unknown parent 'hypothesis:embeddings-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:embeddings-r1-r1-extend3.md references unknown parent 'hypothesis:embeddings-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:embeddings-r1-r1-extend1.md references unknown parent 'hypothesis:embeddings-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:embeddings-r1-r1-extend2.md references unknown parent 'hypothesis:embeddings-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:embeddings-r1-r1-extend3.md references unknown parent 'hypothesis:embeddings-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:environment-indexers-r1-r1-extend1.md references unknown parent 'hypothesis:environment-indexers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:environment-indexers-r1-r1-extend2.md references unknown parent 'hypothesis:environment-indexers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:environment-indexers-r1-r1-extend3.md references unknown parent 'hypothesis:environment-indexers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:environment-indexers-r1-r1-extend1.md references unknown parent 'hypothesis:environment-indexers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:environment-indexers-r1-r1-extend2.md references unknown parent 'hypothesis:environment-indexers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:environment-indexers-r1-r1-extend3.md references unknown parent 'hypothesis:environment-indexers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:exporters-r1-r1-extend1.md references unknown parent 'hypothesis:exporters-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:exporters-r1-r1-extend2.md references unknown parent 'hypothesis:exporters-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:exporters-r1-r1-extend3.md references unknown parent 'hypothesis:exporters-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:exporters-r1-r1-extend1.md references unknown parent 'hypothesis:exporters-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:exporters-r1-r1-extend2.md references unknown parent 'hypothesis:exporters-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:exporters-r1-r1-extend3.md references unknown parent 'hypothesis:exporters-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/a00-ddbe3410-exp001-graph-core-r1-t001.md references unknown parent 'hypothesis:graph-core-r1' (possible prefix typo — did you mean 'bigger-outcome:graph-core-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:graph-core-r1-r1-extend1.md references unknown parent 'hypothesis:graph-core-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:graph-core-r1-r1-extend2.md references unknown parent 'hypothesis:graph-core-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:graph-core-r1-r1-extend3.md references unknown parent 'hypothesis:graph-core-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:graph-core-r1-r1-extend1.md references unknown parent 'hypothesis:graph-core-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:graph-core-r1-r1-extend2.md references unknown parent 'hypothesis:graph-core-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:graph-core-r1-r1-extend3.md references unknown parent 'hypothesis:graph-core-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:renderers-r1-r1-extend1.md references unknown parent 'hypothesis:renderers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:renderers-r1-r1-extend2.md references unknown parent 'hypothesis:renderers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:renderers-r1-r1-extend3.md references unknown parent 'hypothesis:renderers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:renderers-r1-r1-extend1.md references unknown parent 'hypothesis:renderers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:renderers-r1-r1-extend2.md references unknown parent 'hypothesis:renderers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:renderers-r1-r1-extend3.md references unknown parent 'hypothesis:renderers-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r1-extend1.md references unknown parent 'hypothesis:schema-registry-r1' (possible prefix typo — did you mean 'bigger-outcome:schema-registry-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r1-extend2.md references unknown parent 'hypothesis:schema-registry-r1' (possible prefix typo — did you mean 'bigger-outcome:schema-registry-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r1-extend3.md references unknown parent 'hypothesis:schema-registry-r1' (possible prefix typo — did you mean 'bigger-outcome:schema-registry-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r1-extend1.md references unknown parent 'hypothesis:schema-registry-r1' (possible prefix typo — did you mean 'bigger-outcome:schema-registry-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r1-extend2.md references unknown parent 'hypothesis:schema-registry-r1' (possible prefix typo — did you mean 'bigger-outcome:schema-registry-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r1-extend3.md references unknown parent 'hypothesis:schema-registry-r1' (possible prefix typo — did you mean 'bigger-outcome:schema-registry-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r1-r1-extend1.md references unknown parent 'hypothesis:schema-registry-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r1-r1-extend2.md references unknown parent 'hypothesis:schema-registry-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r1-r1-extend3.md references unknown parent 'hypothesis:schema-registry-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r1-r1-extend1.md references unknown parent 'hypothesis:schema-registry-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r1-r1-extend2.md references unknown parent 'hypothesis:schema-registry-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r1-r1-extend3.md references unknown parent 'hypothesis:schema-registry-r1-r1'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:session-management-r1-r1-extend1.md references unknown parent 'hypothesis:session-management-r1-r1' (possible prefix typo — did you mean 'mvp:session-management-r1-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:session-management-r1-r1-extend2.md references unknown parent 'hypothesis:session-management-r1-r1' (possible prefix typo — did you mean 'mvp:session-management-r1-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:session-management-r1-r1-extend3.md references unknown parent 'hypothesis:session-management-r1-r1' (possible prefix typo — did you mean 'mvp:session-management-r1-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1-r1-extend1.md references unknown parent 'hypothesis:session-management-r1-r1' (possible prefix typo — did you mean 'mvp:session-management-r1-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1-r1-extend2.md references unknown parent 'hypothesis:session-management-r1-r1' (possible prefix typo — did you mean 'mvp:session-management-r1-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1-r1-extend3.md references unknown parent 'hypothesis:session-management-r1-r1' (possible prefix typo — did you mean 'mvp:session-management-r1-r1'?)
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:autoresearch-tree-skill-r1:extend8.md references unknown parent 'verdict:autoresearch-tree-skill-r1:extend7'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r2-bracket-convention-extend3.md references unknown parent 'verdict:schema-registry-r2-bracket-convention-extend2'
+INTEGRITY: /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r2-bracket-convention-extend3.md references unknown parent 'verdict:schema-registry-r2-bracket-convention-extend2'
+wrote: 21 goal nodes
+target dir: /home/ubuntu/work/agi-tree/nodes/goal
+unresolved parent references: 81 (22 prefix-mismatch, 59 missing)
+wrote: 7 idea + 60 hypothesis + 91 task = 158 nodes
+target dir: /home/ubuntu/work/agi-tree/nodes
+WARN: duplicate node id 'app-purpose:graph-core': kept /home/ubuntu/work/agi-tree/nodes/app-purpose/app-purpose-graph-core.md, hidden /home/ubuntu/work/agi-tree/nodes/app-purpose/graph-core.md
+WARN: duplicate node id 'bigger-outcome:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bigger-outcome-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bo-cli-invocation-r1.md
+WARN: duplicate node id 'bigger-outcome:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bigger-outcome-graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/bigger-outcome/graph-core-r1.md
+WARN: duplicate node id 'bigger-outcome:session-management-r1': kept /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bigger-outcome:session-management-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/bigger_outcome/bigger-outcome:session-management-r1.md
+WARN: duplicate node id 'exp:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/experiment/exp-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/experiment/exp:cli-invocation-r1.md
+WARN: duplicate node id 'exp:schema-registry-r2': kept /home/ubuntu/work/agi-tree/nodes/experiment/exp-schema-registry-r2.md, hidden /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r2.md
+WARN: duplicate node id 'exp:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/experiment/exp-graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/experiment/graph-core-r1.md
+WARN: duplicate node id 'mvp:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/mvp/graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/mvp/mvp-graph-core-r1.md
+WARN: duplicate node id 'outcome:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/outcome/graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/outcome/outcome-graph-core-r1.md
+WARN: duplicate node id 'outcome:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/outcome/outcome-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/outcome/outcome:cli-invocation-r1.md
+WARN: duplicate node id 'task:t-090': kept /home/ubuntu/work/agi-tree/nodes/task/t-090-bfsdfs-traversal-primitives.md, hidden /home/ubuntu/work/agi-tree/nodes/task/t-090-schema-as-file-with.md
+WARN: duplicate node id 'verdict:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict-graph-core-r1.md
+WARN: duplicate node id 'verdict:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:cli-invocation-r1.md
+WARN: duplicate node id 'verdict:idea_domain-cli-invocation': kept /home/ubuntu/work/agi-tree/nodes/verdict/idea_domain-cli-invocation.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:idea_domain-cli-invocation.md
+WARN: duplicate node id 'verdict:schema-registry-r2': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict-schema-registry-r2.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r2.md
+WARN: duplicate node id 'verdict:session-management-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict-session-management-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1.md
+WARN: duplicate node id 'verdict:verdict_session-management-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1-base.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict_session-management-r1.md
+loaded 621 nodes from /home/ubuntu/work/agi-tree/nodes
+ASCII rendering: 200 lines
+wrote: /home/ubuntu/work/agi-tree/context/INJECTION.md
+WARN: duplicate node id 'app-purpose:graph-core': kept /home/ubuntu/work/agi-tree/nodes/app-purpose/app-purpose-graph-core.md, hidden /home/ubuntu/work/agi-tree/nodes/app-purpose/graph-core.md
+WARN: duplicate node id 'bigger-outcome:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bigger-outcome-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bo-cli-invocation-r1.md
+WARN: duplicate node id 'bigger-outcome:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bigger-outcome-graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/bigger-outcome/graph-core-r1.md
+WARN: duplicate node id 'bigger-outcome:session-management-r1': kept /home/ubuntu/work/agi-tree/nodes/bigger-outcome/bigger-outcome:session-management-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/bigger_outcome/bigger-outcome:session-management-r1.md
+WARN: duplicate node id 'exp:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/experiment/exp-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/experiment/exp:cli-invocation-r1.md
+WARN: duplicate node id 'exp:schema-registry-r2': kept /home/ubuntu/work/agi-tree/nodes/experiment/exp-schema-registry-r2.md, hidden /home/ubuntu/work/agi-tree/nodes/experiment/exp:schema-registry-r2.md
+WARN: duplicate node id 'exp:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/experiment/exp-graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/experiment/graph-core-r1.md
+WARN: duplicate node id 'mvp:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/mvp/graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/mvp/mvp-graph-core-r1.md
+WARN: duplicate node id 'outcome:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/outcome/graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/outcome/outcome-graph-core-r1.md
+WARN: duplicate node id 'outcome:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/outcome/outcome-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/outcome/outcome:cli-invocation-r1.md
+WARN: duplicate node id 'task:t-090': kept /home/ubuntu/work/agi-tree/nodes/task/t-090-bfsdfs-traversal-primitives.md, hidden /home/ubuntu/work/agi-tree/nodes/task/t-090-schema-as-file-with.md
+WARN: duplicate node id 'verdict:graph-core-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/graph-core-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict-graph-core-r1.md
+WARN: duplicate node id 'verdict:cli-invocation-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict-cli-invocation-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:cli-invocation-r1.md
+WARN: duplicate node id 'verdict:idea_domain-cli-invocation': kept /home/ubuntu/work/agi-tree/nodes/verdict/idea_domain-cli-invocation.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:idea_domain-cli-invocation.md
+WARN: duplicate node id 'verdict:schema-registry-r2': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict-schema-registry-r2.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:schema-registry-r2.md
+WARN: duplicate node id 'verdict:session-management-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict-session-management-r1.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1.md
+WARN: duplicate node id 'verdict:verdict_session-management-r1': kept /home/ubuntu/work/agi-tree/nodes/verdict/verdict:session-management-r1-base.md, hidden /home/ubuntu/work/agi-tree/nodes/verdict/verdict_session-management-r1.md
+METRIC longest_chain_length=9
+METRIC avg_chain_depth=0.99
+METRIC mvp_count=20
+METRIC outcome_coverage=0.198
+METRIC chain_branching_factor=1.99
+METRIC node_count=621
+METRIC edge_count=526
+METRIC verdicts_asserting=115
+METRIC verdicts_pending=7
+METRIC verdicts_evidence_backed=4
+METRIC evidence_fraction=0.035
+METRIC decisive_verdicts=107
+METRIC decisive_evidence_fraction=0.028
+METRIC unevidenced_decisive_verdicts=104
+METRIC evidence_weighted_depth=0.035
+METRIC primary_metric=outcome_coverage
+METRIC primary_value=0.198
+ERR: ollama package not installed (pip install ollama)
+[smoke] skipping agent dispatch + heal

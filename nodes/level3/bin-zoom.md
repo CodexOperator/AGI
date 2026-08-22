@@ -22,42 +22,42 @@ payload_ref: extensions/agi/bin/zoom.py
 parse_ok: true
 inputs:
 - name: __future__.annotations
-  how: '`from __future__ import annotations` at line 15'
+  how: '`from __future__ import annotations` at line 48'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: argparse
-  how: '`import argparse` at line 17'
+  how: '`import argparse` at line 50'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json
-  how: '`import json` at line 18'
+  how: '`import json` at line 51'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sys
-  how: '`import sys` at line 19'
+  how: '`import sys` at line 52'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: pathlib.Path
-  how: '`from pathlib import Path` at line 20'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: inject_path
-  how: '`inject_path.read_text(encoding=''utf-8'')` at line 87'
+  how: '`from pathlib import Path` at line 53'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 151'
+  how: '`json.loads(cfg_path.read_text())` at line 201'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 151'
+  how: '`cfg_path.read_text()` at line 201'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: inject_path
+  how: '`inject_path.read_text(encoding=''utf-8'')` at line 323'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -68,51 +68,75 @@ inputs:
   security: TODO(model)
 outputs:
 - name: config_path
-  how: 'defines public function `config_path` at line 26, signature: (root: Path)'
+  how: 'defines public function `config_path` at line 59, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ZoomUnavailable
-  how: defines public class `ZoomUnavailable` at line 37
+  how: defines public class `ZoomUnavailable` at line 70
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _add_graph_core_to_path
-  how: 'defines private function `_add_graph_core_to_path` at line 48, signature:
+  how: 'defines private function `_add_graph_core_to_path` at line 166, signature:
     (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _load_wired_graph
+  how: 'defines private function `_load_wired_graph` at line 183, signature: (root:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _bfs_neighbors
+  how: 'defines private function `_bfs_neighbors` at line 229, signature: (g, target:
+    str, hops: int=2)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _frontmatter_for
+  how: 'defines private function `_frontmatter_for` at line 247, signature: (root:
+    Path, dir_name: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: main
-  how: defines public function `main` at line 65
+  how: defines public function `main` at line 272
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _unavailable_message
+  how: 'defines private function `_unavailable_message` at line 348, signature: (level:
+    int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _compose_big
-  how: 'defines private function `_compose_big` at line 112, signature: (inject_text:
+  how: 'defines private function `_compose_big` at line 359, signature: (inject_text:
     str, args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _compose_small
-  how: 'defines private function `_compose_small` at line 138, signature: (root: Path,
-    inject_text: str, args: argparse.Namespace)'
+  how: 'defines private function `_compose_small` at line 385, signature: (root: Path,
+    args: argparse.Namespace)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _render_level
+  how: 'defines private function `_render_level` at line 438, signature: (root: Path,
+    args: argparse.Namespace, level: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text(_compose_big(inject_text, args), encoding=''utf-8'')`
-    at line 90'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: out_path
-  how: '`out_path.write_text(small, encoding=''utf-8'')` at line 106'
+  how: '`out_path.write_text(content, encoding=''utf-8'')` at line 343'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 5 `print()` call(s) at line(s) [76, 85, 93, 98, 108]
+  how: 7 `print()` call(s) at line(s) [292, 298, 314, 321, 327, 333, 344]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
