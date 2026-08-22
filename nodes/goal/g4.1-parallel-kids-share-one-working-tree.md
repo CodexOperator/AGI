@@ -37,3 +37,9 @@ Options, undecided: give each engine-writing kid its own worktree
 engine-writing kids within an iteration; or partition by file ownership
 declared in the brief. Measure before choosing — the worktree option costs a
 checkout per kid and may not be worth it at two kids.
+
+**Partial result, 2026-08-22:** file ownership declared explicitly in the brief
+was tried across two iterations of two kids each. No collisions, and both kids
+correctly attributed sibling breakage instead of claiming it. That is one
+data point at two kids on disjoint files, not a solution — it says nothing
+about kids that genuinely need the same file.
