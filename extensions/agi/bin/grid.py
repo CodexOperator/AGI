@@ -71,11 +71,31 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
 
 
 def sanitize(node_id: str) -> str:
-    # "hyp:zoom-x-r1" -> "hyp/zoom-x-r1": the type prefix becomes a ref
-    # namespace so refs group naturally by node type.
-    parts = node_id.replace(":", "/").split("/")
-    clean = [re.sub(r"[^A-Za-z0-9._-]", "-", p).strip(".") for p in parts if p]
-    return "/".join(clean)
+    """Map a node id to `<type>/<rest>` — exactly two ref path segments.
+
+    "hyp:zoom-x-r1" -> "hyp/zoom-x-r1": the type prefix becomes a ref namespace
+    so refs group naturally by node type.
+
+    Only the **first** colon separates. Every later one is escaped rather than
+    turned into another path separator, because git cannot hold both a ref
+    `a/b` and a ref `a/b/c` — the first is a file where the second needs a
+    directory. Splitting on all colons made `exp:x-r1:extend8` collide with
+    `exp:x-r1` and abort the whole `commit --all` run, losing versioning for
+    every node after it (found live, 3 such ids in the agi-tree corpus).
+
+    Escaping keeps the map injective: collapsing `:` to `-` instead would let
+    `exp:x-r1:extend8` and `exp:x-r1-extend8` share one ref and silently
+    overwrite each other, which is a worse failure than the crash.
+    """
+    head, sep, tail = node_id.partition(":")
+
+    def clean(s: str) -> str:
+        # `%` first, so the escape alphabet cannot be forged by the input.
+        s = s.replace("%", "%25").replace(":", "%3A")
+        return re.sub(r"[^A-Za-z0-9._%-]", "-", s).strip(".")
+
+    parts = [clean(head)] + ([clean(tail)] if sep and tail else [])
+    return "/".join(p for p in parts if p)
 
 
 def node_ref(node_id: str) -> str:

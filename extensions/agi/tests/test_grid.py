@@ -131,3 +131,38 @@ def test_find_project_root_accepts_canonical_and_legacy_config(tmp_path):
 
     assert grid.find_project_root(canonical) == canonical
     assert grid.find_project_root(nested) == legacy
+
+
+# ------------------------------- ref-namespace collisions (found live, iter-2)
+
+def test_only_the_first_colon_separates():
+    """A later colon must not become a second path separator.
+
+    git cannot hold a ref `a/b` and a ref `a/b/c` at once, so mapping every
+    colon to `/` made `exp:x-r1:extend8` unversionable whenever `exp:x-r1`
+    already had a ref -- and the failure aborted `commit --all`, losing
+    versioning for every node after it.
+    """
+    assert grid.sanitize("exp:x-r1") == "exp/x-r1"
+    assert grid.sanitize("exp:x-r1:extend8").count("/") == 1
+    assert not grid.sanitize("exp:x-r1:extend8").startswith("exp/x-r1/")
+
+
+def test_no_node_ref_is_a_path_prefix_of_another():
+    ids = ["exp:x-r1", "exp:x-r1:extend8", "verdict:verdict:a00-1d9",
+           "experiment:exp:a00-1d9", "hyp:x", "hyp:x:y:z"]
+    refs = [grid.node_ref(i) for i in ids]
+    for a in refs:
+        for b in refs:
+            if a is not b:
+                assert not b.startswith(a + "/"), f"{b} nests under {a}"
+
+
+def test_sanitize_is_injective_across_colon_and_dash():
+    """Collapsing `:` to `-` would silently merge two distinct nodes."""
+    assert grid.sanitize("exp:x-r1:extend8") != grid.sanitize("exp:x-r1-extend8")
+
+
+def test_escape_alphabet_cannot_be_forged():
+    """A literal `%` in an id must not be able to imitate an escape."""
+    assert grid.sanitize("exp:a%3Ab") != grid.sanitize("exp:a:b")
