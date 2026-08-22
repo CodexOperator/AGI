@@ -1,5 +1,25 @@
 # TODO — agi
 
+> **⚠️ This file is no longer where new work is recorded. `agi-tree/GOALS.md` is.**
+>
+> L19 action 4 asked what this file becomes once engine reasoning lives in the
+> graph. Answered 2026-08-22: **`GOALS.md` is the live surface; this file is the
+> archive of how each defect was found and closed.** New defects and new
+> capabilities go into `GOALS.md` as a long-term goal (`## G7`), a sub-goal
+> (`### G7.2`), or a standalone short-term item (`## S4`) — all three become
+> nodes. Two sources of truth about the same defects is exactly how the injected
+> context ended up teaching the opposite of the skill (H3b).
+>
+> Entries here stay because the *reasoning* is worth keeping: what was measured,
+> what was tried, and what was rejected. Do not add new ones.
+>
+> **Session of 2026-08-21/22 — closed here, now tracked in `GOALS.md`:**
+> H0e, H0f, H0g, H0i (data-integrity class → G7) · H3 config migration and H4c
+> (→ G3, G3.1) · H4d (→ G7.1) · L15 sub-goals (→ G5) · L19 (→ G6, G6.1, G6.2).
+> Still open and now carried as goals: G2.2 IO-map slices, G4.1 parallel-kid
+> collisions, G7.2 duplicate ids, G7.3 unverifiable integer evidence, G9.2 web
+> dashboard, G9.3 ride-along.
+
 Persistent register of deferred work. Survives across sessions. Built site: `context/plans/build-site.md`. Each entry has: rationale, evidence, priority (P0/P1/P2). Pick a P0 and execute without further context.
 
 ---
