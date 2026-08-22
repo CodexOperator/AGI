@@ -6,7 +6,8 @@ id: "goal:g6.1"
 origin: goals-doc
 parents:
   - goal:g6
-seeds: []
+seeds:
+  - idea:engine-decompose-engine
 status: active
 tags:
   - goal

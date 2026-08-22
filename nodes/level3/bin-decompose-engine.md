@@ -1,0 +1,175 @@
+---
+confidence: 1.0
+id: "level3:bin-decompose-engine"
+origin: level3-scan
+parents:
+  - idea:engine-decompose-engine
+payload_ref: extensions/agi/bin/decompose-engine.py
+tags:
+  - level3
+  - g2.1
+title: "Level-3: extensions/agi/bin/decompose-engine.py"
+type: level3
+---
+
+`extensions/agi/bin/decompose-engine.py` — level-3 code node (one file, one canonical node).
+
+Census parent: `idea:engine-decompose-engine`.
+
+<!-- LEVEL3-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
+```yaml
+payload_ref: extensions/agi/bin/decompose-engine.py
+parse_ok: true
+inputs:
+- name: __future__.annotations
+  how: '`from __future__ import annotations` at line 45'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: argparse
+  how: '`import argparse` at line 47'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: importlib.util
+  how: '`import importlib.util` at line 48'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json
+  how: '`import json` at line 49'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: os
+  how: '`import os` at line 50'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: re
+  how: '`import re` at line 51'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: subprocess
+  how: '`import subprocess` at line 52'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: sys
+  how: '`import sys` at line 53'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: pathlib.Path
+  how: '`from pathlib import Path` at line 54'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.read_text(encoding=''utf-8'')` at line 243'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(path.read_text(encoding=''utf-8''))` at line 262'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: path
+  how: '`path.read_text(encoding=''utf-8'')` at line 262'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cli-args
+  how: builds an `argparse.ArgumentParser` (module-wide, no single call site)
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+outputs:
+- name: _set_project_root
+  how: 'defines private function `_set_project_root` at line 75, signature: (path:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: git_ls_files
+  how: 'defines public function `git_ls_files` at line 117, signature: (engine_root:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: discover_units
+  how: 'defines public function `discover_units` at line 133, signature: (engine_root:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _extract_py_docstring
+  how: 'defines private function `_extract_py_docstring` at line 199, signature: (text:
+    str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _extract_sh_header
+  how: 'defines private function `_extract_sh_header` at line 209, signature: (text:
+    str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _extract_block_comment
+  how: 'defines private function `_extract_block_comment` at line 229, signature:
+    (text: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: extract_doc
+  how: 'defines public function `extract_doc` at line 238, signature: (engine_root:
+    Path, doc_source: str | None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: load_goal_map
+  how: 'defines public function `load_goal_map` at line 258, signature: (path: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: build_node
+  how: 'defines public function `build_node` at line 278, signature: (unit: dict,
+    doc: str | None, goal_id: str | None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _tokens
+  how: 'defines private function `_tokens` at line 318, signature: (s: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _overlaps
+  how: 'defines private function `_overlaps` at line 323, signature: (a_tokens: list[str],
+    b_tokens: list[str])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: report_stale_domain_nodes
+  how: 'defines public function `report_stale_domain_nodes` at line 327, signature:
+    (existing: dict, units: list[dict])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: main
+  how: 'defines public function `main` at line 353, signature: (argv: list[str] |
+    None=None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: stdout
+  how: 18 `print()` call(s) at line(s) [264, 269, 344, 376, 402, 413, 424, 441, 444,
+    448, 449, 451, 453, 454, 455, 457, 458, 459]
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+```
+<!-- LEVEL3-CONTRACT:END -->
+
+Generated by `level3.py` (see `hyp:level3-node-anatomy` in the graph repo for the design). `how` fields above are derived mechanically via the standard library `ast` module; `why`/`perf`/`security` are placeholders for a later model pass — never fabricated by this generator.

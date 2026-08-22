@@ -8,6 +8,7 @@ parents:
   - goal:g9
 seeds:
   - exp:dashboard-cli-r1
+  - idea:engine-dashboard
 status: active
 tags:
   - goal
