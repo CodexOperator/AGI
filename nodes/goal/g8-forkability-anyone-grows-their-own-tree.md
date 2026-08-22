@@ -4,7 +4,9 @@ goal_id: G8
 goal_kind: long-term
 id: "goal:g8"
 origin: goals-doc
-seeds: []
+seeds:
+  - goal:g8.1
+  - goal:g8.2
 status: horizon
 tags:
   - goal
