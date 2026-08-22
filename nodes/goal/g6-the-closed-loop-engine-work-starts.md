@@ -5,6 +5,8 @@ goal_kind: long-term
 id: "goal:g6"
 origin: goals-doc
 seeds:
+  - goal:g6.1
+  - goal:g6.2
   - idea:deprecate-the-gamed-mass
   - idea:engine-self-decomposition
 status: active

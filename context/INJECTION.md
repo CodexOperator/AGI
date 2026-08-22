@@ -1,12 +1,12 @@
 # agi-tree INJECTION CONTEXT
-_generated 2026-08-22T02:47:21+00:00_
+_generated 2026-08-22T03:10:27+00:00_
 
 ## graph snapshot
-- nodes: 498
-- edges: 405
-- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=98, goal=8, hypothesis=99, idea=16, mvp=20, node=3, outcome=18, task=90, verdict=113
+- nodes: 534
+- edges: 440
+- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=99, goal=18, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
 - **scored on `outcome_coverage`** (`metric_primary`) — this is the target
-- outcome_coverage: 0.202 (mvps per hypothesis; goal-attributable)
+- outcome_coverage: 0.198 (mvps per hypothesis; goal-attributable)
 
 ## chain diagnostics (descriptive — not targets)
 - chain count: 26
@@ -53,8 +53,8 @@ Each iteration MUST first answer: **explore a big idea or small idea?**
 
 ## ASCII view (≤200 lines)
 ```
-# graph: 498 nodes
-# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=98, goal=8, hypothesis=99, idea=16, mvp=20, node=3, outcome=18, task=90, verdict=113
+# graph: 534 nodes
+# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=99, goal=18, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
 #
         app-purpose:autoresearch-tree-skill :: app_purpose
               app-purpose:chain-engine :: app-purpose
@@ -131,6 +131,7 @@ exp:embeddings-r1-r1-extend3 :: experiment
     exp:embeddings-r3-extend :: experiment [spawns->verdict:embeddings-r3-extend]
         exp:embeddings-r3-extend2 :: experiment [spawns->verdict:embeddings-r3-extend2]
           exp:embeddings-r3-extend3 :: experiment [spawns->verdict:embeddings-r3-extend3]
+      exp:engine-census-r1 :: experiment
     exp:environment-indexers-r1 :: experiment [spawns->mvp:environment-indexers-r1, spawns->verdict:environment-indexers-r1]
     exp:environment-indexers-r1-extend :: experiment [spawns->verdict:environment-indexers-r1-extend]
         exp:environment-indexers-r1-extend2 :: experiment [spawns->verdict:environment-indexers-r1-chain-extension, spawns->verdict:environment-indexers-r1-extend2]
@@ -187,14 +188,24 @@ exp:session-management-r1-r1-extend3 :: experiment
     experiment:a00-ddbe3410-exp003-iterative :: experiment [spawns->verdict:a00-ddbe3410-verdict003-iterative-traversal]
   experiment:exp-a00-4125fa6d-005488 :: experiment [spawns->verdict:verdict-a00-4125fa6d-005488]
   experiment:exp:a00-204c9d9e-1d958f :: experiment [spawns->verdict:verdict:a00-204c9d9e-1d958f]
-goal:g1 :: goal
-goal:g2 :: goal
-goal:g3 :: goal
-goal:g4 :: goal
-goal:g5 :: goal
-goal:g6 :: goal [spawns->idea:deprecate-the-gamed-mass, spawns->idea:engine-self-decomposition]
-goal:g7 :: goal
+goal:g1 :: goal [spawns->idea:engine-cli, spawns->idea:engine-driver-sh, spawns->idea:engine-find-root]
+goal:g2 :: goal [spawns->goal:g2.1, spawns->goal:g2.2, spawns->idea:engine-embeddings (+1)]
+  goal:g2.1 :: goal [spawns->hyp:level3-node-anatomy, spawns->idea:engine-agi-algos]
+  goal:g2.2 :: goal
+goal:g3 :: goal [spawns->goal:g3.1, spawns->idea:engine-benchmark, spawns->idea:engine-chain-engine (+1)]
+  goal:g3.1 :: goal [spawns->idea:engine-evidence-gate, spawns->idea:engine-post-wire]
+goal:g4 :: goal [spawns->idea:engine-agi-bridge-index, spawns->idea:engine-dispatch, spawns->idea:engine-heal]
+goal:g5 :: goal [spawns->idea:engine-schema-registry, spawns->idea:engine-snapshot-build-site, spawns->idea:engine-snapshot-goals]
+goal:g6 :: goal [spawns->goal:g6.1, spawns->goal:g6.2, spawns->idea:deprecate-the-gamed-mass (+1)]
+  goal:g6.1 :: goal
+  goal:g6.2 :: goal
+goal:g7 :: goal [spawns->goal:g7.1, spawns->idea:engine-graph-core, spawns->idea:engine-grid (+1)]
+  goal:g7.1 :: goal
 goal:g8 :: goal
+goal:g9 :: goal [spawns->goal:g9.1, spawns->goal:g9.2, spawns->goal:g9.3 (+3)]
+  goal:g9.1 :: goal
+  goal:g9.2 :: goal
+  goal:g9.3 :: goal
   hyp:a00-1467544f-aaaa25 :: hypothesis [spawns->exp:a00-1467544f-aaaa25]
   hyp:a01-7031af17-449ecb :: hypothesis [spawns->mvp:a01-7031af17-449ecb-r11, spawns->verdict:a01-7031af17-449ecb-r11]
   hyp:autoresearch-tree-skill-r1 :: hypothesis [spawns->exp:autoresearch-tree-skill-r1, spawns->task:t-076, spawns->task:t-088 (+1)]
@@ -223,6 +234,7 @@ hyp:cli-invocation-r1 :: hypothesis [spawns->exp:cli-invocation-r1]
   hyp:embeddings-r5 :: hypothesis [spawns->task:t-073]
   hyp:embeddings-r6 :: hypothesis [spawns->task:t-074]
   hyp:embeddings-r7 :: hypothesis [spawns->task:t-075]
+    hyp:engine-census-generated :: hypothesis [spawns->exp:engine-census-r1]
   hyp:environment-indexers-r1 :: hypothesis [spawns->exp:environment-indexers-r1, spawns->exp:environment-indexers-r1-extend, spawns->task:t-032 (+1)]
   hyp:environment-indexers-r1-chain-extens :: node
   hyp:environment-indexers-r2 :: hypothesis [spawns->task:t-033]
@@ -237,20 +249,8 @@ hyp:cli-invocation-r1 :: hypothesis [spawns->exp:cli-invocation-r1]
   hyp:graph-core-r1 :: hypothesis [spawns->exp:graph-core-r1, spawns->exp:graph-core-r1-extend, spawns->task:t-001 (+1)]
   hyp:graph-core-r10 :: hypothesis [spawns->task:t-018]
   hyp:graph-core-r2 :: hypothesis [spawns->task:t-003, spawns->task:t-004]
-  hyp:graph-core-r3 :: hypothesis [spawns->task:t-005]
-  hyp:graph-core-r4 :: hypothesis [spawns->task:t-006, spawns->task:t-007, spawns->task:t-008]
-  hyp:graph-core-r5 :: hypothesis [spawns->task:t-009, spawns->task:t-010]
-  hyp:graph-core-r6 :: hypothesis [spawns->task:t-011, spawns->task:t-012]
-  hyp:graph-core-r7 :: hypothesis [spawns->task:t-013, spawns->task:t-014]
-  hyp:graph-core-r8 :: hypothesis [spawns->task:t-015]
-  hyp:graph-core-r9 :: hypothesis [spawns->task:t-016, spawns->task:t-017]
-  hyp:renderers-r1 :: hypothesis [spawns->exp:renderers-r1, spawns->exp:renderers-r1-extend, spawns->task:t-060]
-  hyp:renderers-r2 :: hypothesis [spawns->task:t-061, spawns->task:t-062]
-  hyp:renderers-r3 :: hypothesis [spawns->task:t-063]
-  hyp:renderers-r4 :: hypothesis [spawns->task:t-064]
-  hyp:renderers-r5 :: hypothesis [spawns->task:t-065]
-... [truncated, 305 more nodes]
+... [truncated, 341 more nodes]
 ----
-Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=98, goal=8, hypothesis=99, idea=16, mvp=20, node=3, outcome=18, task=90, verdict=113
-Edges: spawns=405
+Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=99, goal=18, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
+Edges: spawns=440
 ```

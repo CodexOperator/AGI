@@ -4,7 +4,11 @@ goal_id: G7
 goal_kind: long-term
 id: "goal:g7"
 origin: goals-doc
-seeds: []
+seeds:
+  - goal:g7.1
+  - idea:engine-graph-core
+  - idea:engine-grid
+  - idea:engine-migrate-to-sqlite
 status: active
 tags:
   - goal

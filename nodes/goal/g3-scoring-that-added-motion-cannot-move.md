@@ -4,7 +4,11 @@ goal_id: G3
 goal_kind: long-term
 id: "goal:g3"
 origin: goals-doc
-seeds: []
+seeds:
+  - goal:g3.1
+  - idea:engine-benchmark
+  - idea:engine-chain-engine
+  - idea:engine-metrics
 status: active
 tags:
   - goal

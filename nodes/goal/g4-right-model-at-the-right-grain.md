@@ -4,7 +4,10 @@ goal_id: G4
 goal_kind: long-term
 id: "goal:g4"
 origin: goals-doc
-seeds: []
+seeds:
+  - idea:engine-agi-bridge-index
+  - idea:engine-dispatch
+  - idea:engine-heal
 status: horizon
 tags:
   - goal

@@ -4,7 +4,10 @@ goal_id: G5
 goal_kind: long-term
 id: "goal:g5"
 origin: goals-doc
-seeds: []
+seeds:
+  - idea:engine-schema-registry
+  - idea:engine-snapshot-build-site
+  - idea:engine-snapshot-goals
 status: horizon
 tags:
   - goal
