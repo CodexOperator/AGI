@@ -263,3 +263,88 @@ def test_resnapshot_preserves_fields_the_snapshot_does_not_own(project):
     # Snapshot-owned fields still come from GOALS.md, not the old file.
     assert fm["status"] == "active"
     assert fm["goal_id"] == "G1"
+
+
+# ------------------------------------- sub-goals and standalone short-term goals
+
+NESTED_DOC = """# GOALS.md
+
+## G1 — Long term thing — status: active
+
+Long body.
+
+### G1.2 — A short step inside G1 — status: active
+
+Sub body.
+
+### G1.3 — Another step — status: complete
+
+Sub body two.
+
+## S1 — Standalone short-term item — status: active
+
+Short body.
+
+## G2 — Second long term — status: horizon
+
+Second body.
+"""
+
+
+@pytest.fixture()
+def nested(tmp_path):
+    (tmp_path / "GOALS.md").write_text(NESTED_DOC, encoding="utf-8")
+    (tmp_path / "nodes").mkdir()
+    return tmp_path
+
+
+def _by_id(project: Path) -> dict:
+    return {fm_of(p)["id"]: fm_of(p)
+            for p in (project / "nodes" / "goal").glob("*.md")}
+
+
+def test_subgoals_and_short_term_goals_become_nodes(nested):
+    assert run(nested).returncode == 0
+    nodes = _by_id(nested)
+    assert set(nodes) == {"goal:g1", "goal:g1.2", "goal:g1.3", "goal:s1",
+                          "goal:g2"}
+
+
+def test_subgoal_parent_points_at_its_long_term_goal(nested):
+    run(nested)
+    nodes = _by_id(nested)
+    assert nodes["goal:g1.2"]["parents"] == ["goal:g1"]
+    assert nodes["goal:g1.3"]["parents"] == ["goal:g1"]
+    assert nodes["goal:g1.2"]["goal_kind"] == "subgoal"
+    # A sub-goal is not a root.
+    assert "root" not in nodes["goal:g1.2"]["tags"]
+
+
+def test_short_term_goal_is_a_root_with_no_parent(nested):
+    run(nested)
+    s1 = _by_id(nested)["goal:s1"]
+    assert s1["goal_kind"] == "short-term"
+    assert "parents" not in s1
+    assert "root" in s1["tags"]
+
+
+def test_subgoal_carries_its_own_status(nested):
+    run(nested)
+    nodes = _by_id(nested)
+    assert nodes["goal:g1.2"]["status"] == "active"
+    assert nodes["goal:g1.3"]["status"] == "complete"
+
+
+def test_subgoal_body_is_not_absorbed_into_its_parent(nested):
+    run(nested)
+    g1 = next((nested / "nodes" / "goal").glob("g1-*.md")).read_text()
+    assert "Long body." in g1
+    assert "Sub body." not in g1
+
+
+def test_long_term_goals_are_unchanged_by_the_new_kinds(nested):
+    run(nested)
+    g2 = _by_id(nested)["goal:g2"]
+    assert g2["goal_kind"] == "long-term"
+    assert g2["tags"] == ["goal", "root"]
+    assert "parents" not in g2

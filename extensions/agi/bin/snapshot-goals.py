@@ -59,8 +59,16 @@ def config_path(root: Path) -> Path | None:
 GOALS_MD = PROJECT_ROOT / "GOALS.md"
 NODES_DIR = PROJECT_ROOT / "nodes"
 
-# `## G1 — Title — status: active`
-GOAL_RE = re.compile(r"^##\s*(G\d+)\b(.*)$")
+# `## G1 — Title — status: active`             long-term goal
+# `### G1.2 — Title — status: active`          sub-goal, nested under G1
+# `## S3 — Title — status: active`             standalone short-term goal
+#
+# Sub-goals and short-term goals exist so that work small enough to be a TODO
+# item still lands in the graph instead of in a second document. A sub-goal
+# parent-points at its long-term goal exactly the way a seed idea does; a
+# short-term goal is its own root and needs no parent to be legitimate.
+GOAL_RE = re.compile(r"^##\s*([GS]\d+)\b(.*)$")
+SUBGOAL_RE = re.compile(r"^###\s*(G\d+\.\d+)\b(.*)$")
 HEADING_RE = re.compile(r"^##\s")
 STATUS_RE = re.compile(r"[—\-]?\s*status\s*:\s*(.+?)\s*$", re.IGNORECASE)
 GOAL_ID_RE = re.compile(r"^goal:")
@@ -212,25 +220,36 @@ def parse_goals(text: str) -> list[dict]:
     """
     goals: list[dict] = []
     current: dict | None = None
+
+    def _start(gid: str, rest: str) -> dict:
+        status = "active"
+        m_status = STATUS_RE.search(rest)
+        if m_status:
+            status = m_status.group(1).strip()
+            rest = rest[: m_status.start()]
+        title = _strip_separators(rest)
+        return {
+            "gid": gid,
+            "title": title or gid,
+            "status": status or "active",
+            # A sub-goal carries its long-term goal as a parent; a top-level
+            # goal (G or S) is a root and carries none.
+            "parent_gid": gid.split(".")[0] if "." in gid else None,
+            "body": [],
+        }
+
     for line in text.splitlines():
         m = GOAL_RE.match(line)
         if m:
             if current is not None:
                 goals.append(current)
-            gid = m.group(1)
-            rest = m.group(2)
-            status = "active"
-            m_status = STATUS_RE.search(rest)
-            if m_status:
-                status = m_status.group(1).strip()
-                rest = rest[: m_status.start()]
-            title = _strip_separators(rest)
-            current = {
-                "gid": gid,
-                "title": title or gid,
-                "status": status or "active",
-                "body": [],
-            }
+            current = _start(m.group(1), m.group(2))
+            continue
+        m_sub = SUBGOAL_RE.match(line)
+        if m_sub:
+            if current is not None:
+                goals.append(current)
+            current = _start(m_sub.group(1), m_sub.group(2))
             continue
         if HEADING_RE.match(line):
             # A non-goal `## ` heading terminates the current goal body.
@@ -292,16 +311,28 @@ def main(argv: list[str] | None = None) -> int:
                   file=sys.stderr)
         node_id = f"goal:{g['gid'].lower()}"
         title = f"{g['gid']}: {g['title']}"
+        parent_gid = g.get("parent_gid")
+        if parent_gid:
+            kind, tags = "subgoal", ["goal", "subgoal"]
+        elif g["gid"].startswith("S"):
+            kind, tags = "short-term", ["goal", "root", "short-term"]
+        else:
+            kind, tags = "long-term", ["goal", "root"]
         fm = {
             "id": node_id,
             "type": "goal",
             "goal_id": g["gid"],
             "title": title,
             "status": g["status"],
+            "goal_kind": kind,
             "seeds": refs.get(node_id, []),
-            "tags": ["goal", "root"],
+            "tags": tags,
             "confidence": 1.0,
         }
+        if parent_gid:
+            # Same parent-pointing convention seed ideas use, so a sub-goal
+            # renders and traverses under its long-term goal for free.
+            fm["parents"] = [f"goal:{parent_gid.lower()}"]
         slug = f"{g['gid'].lower()}-{slugify(g['title'])}"
         out_path = NODES_DIR / "goal" / f"{slug}.md"
         write_frontmatter(out_path, fm, g["body"], origin=ORIGIN,
