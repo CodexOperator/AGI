@@ -1,0 +1,466 @@
+"""Tests for bin/stitch.py — materialize level-3 nodes into a directory tree,
+and verify the graph against the live engine tree without writing.
+
+Scope mirrors test_level3.py's fixture style (temp engine repo + temp project
+repo, `l3.build_node`/`l3.write_frontmatter` reused to mint realistic nodes)
+plus the four drift categories `hyp:level3-node-anatomy` and this script's own
+docstring name: missing payload, orphan files, duplicate payload_ref, and
+stale contracts (mechanical `how` drift only — never `why`/`perf`/`security`).
+"""
+
+import importlib.util
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+BIN = Path(__file__).resolve().parents[1] / "bin"
+
+_l3_spec = importlib.util.spec_from_file_location("level3_test", BIN / "level3.py")
+l3 = importlib.util.module_from_spec(_l3_spec)
+_l3_spec.loader.exec_module(l3)
+
+_st_spec = importlib.util.spec_from_file_location("stitch_test", BIN / "stitch.py")
+st = importlib.util.module_from_spec(_st_spec)
+_st_spec.loader.exec_module(st)
+
+STITCH_BIN = BIN / "stitch.py"
+
+
+# --- fixtures ----------------------------------------------------------------
+
+ENGINE_FILES = {
+    "extensions/agi/bin/foo.py":
+        "import os\n\n\ndef foo():\n    pass\n",
+    "extensions/agi/src/pkg/__init__.py": "",
+    "extensions/agi/src/pkg/bar.py":
+        "import sys\n\n\ndef bar():\n    pass\n",
+}
+
+
+def write_engine_tree(root: Path, files: dict[str, str] | None = None) -> Path:
+    merged = dict(ENGINE_FILES)
+    if files:
+        merged.update(files)
+    for rel, content in merged.items():
+        p = root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+    return root
+
+
+@pytest.fixture()
+def engine(tmp_path) -> Path:
+    return write_engine_tree(tmp_path / "engine")
+
+
+@pytest.fixture()
+def project(tmp_path) -> Path:
+    p = tmp_path / "project"
+    (p / "nodes" / "level3").mkdir(parents=True)
+    return p
+
+
+def mint_node(engine_root: Path, project_root: Path, rel_path: str,
+              parent_id: str | None = None, id_suffix: str = "") -> str:
+    """Mint a realistic, fresh (matching) level-3 node via level3.py's own
+    build_node — never hand-crafted YAML — so fixtures look exactly like the
+    real 73-node corpus. `id_suffix` lets a test mint a *second* node
+    pointing at the same payload_ref, for the duplicate-ref case."""
+    abs_path = engine_root / rel_path
+    node_id, fm, body, _analysis = l3.build_node(rel_path, abs_path, parent_id)
+    if id_suffix:
+        node_id = f"{node_id}-{id_suffix}"
+        fm = dict(fm)
+        fm["id"] = node_id
+    slug = node_id.split(":", 1)[-1]
+    out_path = project_root / "nodes" / "level3" / f"{slug}.md"
+    l3.write_frontmatter(out_path, fm, body, origin="level3-scan")
+    return node_id
+
+
+def run(project: Path, engine: Path | None, *args):
+    cmd = [sys.executable, str(STITCH_BIN), "--project", str(project)]
+    if engine is not None:
+        cmd += ["--engine-root", str(engine)]
+    cmd += list(args)
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+# --- materialize: the happy path --------------------------------------------
+
+
+def test_materialize_copies_every_payload_byte_identical(tmp_path, engine, project):
+    for rel in ENGINE_FILES:
+        mint_node(engine, project, rel)
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out)
+
+    assert stats["written"] == len(ENGINE_FILES)
+    assert stats["skipped_missing"] == []
+    assert stats["skipped_duplicate"] == []
+    total_bytes = sum((engine / rel).stat().st_size for rel in ENGINE_FILES)
+    assert stats["bytes_written"] == total_bytes
+    for rel in ENGINE_FILES:
+        assert (out / rel).read_bytes() == (engine / rel).read_bytes()
+
+
+def test_materialize_preserves_relative_structure(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/src/pkg/bar.py")
+    out = tmp_path / "out"
+    st.materialize(project, engine, out)
+    assert (out / "extensions" / "agi" / "src" / "pkg" / "bar.py").is_file()
+
+
+def test_materialize_zero_nodes_writes_nothing(tmp_path, engine, project):
+    out = tmp_path / "out"
+    stats = st.materialize(project, engine, out)
+    assert stats["nodes_total"] == 0
+    assert stats["written"] == 0
+
+
+# --- materialize: safety -----------------------------------------------------
+
+
+def test_materialize_refuses_nonempty_out_without_force(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "stray.txt").write_text("pre-existing")
+
+    with pytest.raises(st.StitchSafetyError):
+        st.materialize(project, engine, out)
+    # nothing was written on the refusal path
+    assert not (out / "extensions").exists()
+
+
+def test_materialize_force_writes_into_nonempty_out(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "stray.txt").write_text("pre-existing")
+
+    stats = st.materialize(project, engine, out, force=True)
+    assert stats["written"] == 1
+    assert (out / "stray.txt").read_text() == "pre-existing"  # untouched, not deleted
+    assert (out / "extensions/agi/bin/foo.py").is_file()
+
+
+def test_materialize_refuses_to_write_into_project_root(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    with pytest.raises(st.StitchSafetyError):
+        st.materialize(project, engine, project)
+
+
+def test_materialize_refuses_to_write_into_engine_root(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    with pytest.raises(st.StitchSafetyError):
+        st.materialize(project, engine, engine)
+
+
+def test_materialize_refuses_to_write_into_subdir_of_engine_root(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    with pytest.raises(st.StitchSafetyError):
+        st.materialize(project, engine, engine / "some" / "nested" / "dir")
+
+
+# --- materialize: missing / duplicate payloads --------------------------------
+
+
+def test_materialize_skips_missing_payload_and_reports_it(tmp_path, engine, project):
+    node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    (engine / "extensions/agi/bin/foo.py").unlink()  # node outlived the code
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out)
+    assert stats["written"] == 0
+    assert stats["skipped_missing"] == [node_id]
+
+
+def test_materialize_first_writer_wins_on_duplicate_ref(tmp_path, engine, project):
+    id_a = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    id_b = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="dup")
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out)
+    # Exactly one of the two nodes wins the write; which one depends on
+    # filename sort order (an implementation detail), not on id string order —
+    # assert the invariant (one written, one skipped, no duplication) rather
+    # than a specific winner.
+    assert stats["written"] == 1
+    assert stats["skipped_duplicate"] == [id_a] or stats["skipped_duplicate"] == [id_b]
+    assert len(stats["skipped_duplicate"]) == 1
+    assert (out / "extensions/agi/bin/foo.py").is_file()
+    assert (out / "extensions/agi/bin/foo.py").read_bytes() == \
+        (engine / "extensions/agi/bin/foo.py").read_bytes()
+
+
+# --- verify: [1] missing_payload ---------------------------------------------
+
+
+def test_verify_finds_missing_payload(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    (engine / "extensions/agi/bin/foo.py").unlink()
+
+    report = st.verify_tree(project, engine)
+    assert len(report["missing_payload"]) == 1
+    assert report["missing_payload"][0]["payload_ref"] == "extensions/agi/bin/foo.py"
+    assert st.has_drift(report)
+
+
+def test_has_drift_false_when_all_categories_empty():
+    clean = {"missing_payload": [], "orphan_files": [], "duplicate_payload_ref": {},
+             "stale_contracts": [], "unreadable_contracts": []}
+    assert not st.has_drift(clean)
+
+
+def test_verify_clean_tree_has_no_drift(tmp_path, engine, project):
+    for rel in ENGINE_FILES:
+        mint_node(engine, project, rel)
+    report = st.verify_tree(project, engine)
+    assert report["missing_payload"] == []
+    assert report["orphan_files"] == []
+    assert report["duplicate_payload_ref"] == {}
+    assert report["stale_contracts"] == []
+    assert report["unreadable_contracts"] == []
+    assert not st.has_drift(report)
+
+
+# --- verify: [2] orphan_files -------------------------------------------------
+
+
+def test_verify_finds_orphan_file(tmp_path, engine, project):
+    # only mint a node for one of the three engine files
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+
+    report = st.verify_tree(project, engine)
+    assert "extensions/agi/src/pkg/bar.py" in report["orphan_files"]
+    assert "extensions/agi/bin/foo.py" not in report["orphan_files"]
+
+
+def test_verify_orphan_scan_skips_when_engine_not_git_repo(tmp_path, project):
+    engine = tmp_path / "plain_engine"
+    for rel, content in ENGINE_FILES.items():
+        p = engine / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+    # deliberately no `git init` here
+
+    report = st.verify_tree(project, engine)
+    assert report["scope_files_total"] is None
+    assert report["orphan_files"] == []
+    assert any("not a git repo" in w for w in report["warnings"])
+
+
+# --- verify: [3] duplicate_payload_ref -----------------------------------------
+
+
+def test_verify_finds_duplicate_payload_ref(tmp_path, engine, project):
+    id_a = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    id_b = mint_node(engine, project, "extensions/agi/bin/foo.py", id_suffix="dup")
+
+    report = st.verify_tree(project, engine)
+    dup = report["duplicate_payload_ref"]
+    assert "extensions/agi/bin/foo.py" in dup
+    assert set(dup["extensions/agi/bin/foo.py"]) == {id_a, id_b}
+
+
+# --- verify: [4] stale_contracts -----------------------------------------------
+
+
+def test_verify_finds_stale_contract_after_source_edit(tmp_path, engine, project):
+    node_id = mint_node(engine, project, "extensions/agi/src/pkg/bar.py")
+
+    report_before = st.verify_tree(project, engine)
+    assert report_before["stale_contracts"] == []
+
+    # code changes after the node was minted -> contract's mechanical `how`
+    # half (imports) is now stale relative to the file it describes.
+    bar = engine / "extensions/agi/src/pkg/bar.py"
+    bar.write_text("import sys\nimport json\n\n\ndef bar():\n    pass\n", encoding="utf-8")
+
+    report_after = st.verify_tree(project, engine)
+    stale_ids = [s["node_id"] for s in report_after["stale_contracts"]]
+    assert node_id in stale_ids
+    entry = next(s for s in report_after["stale_contracts"] if s["node_id"] == node_id)
+    assert "inputs" in entry["diff"]
+    added_names = {e["name"] for e in entry["diff"]["inputs"]["added"]}
+    assert "json" in added_names
+
+
+def test_verify_ignores_model_authored_prose_drift(tmp_path, engine, project):
+    """A later model pass filling why/perf/security must never register as
+    contract staleness — those fields are free-text and not mechanically
+    reproducible by design."""
+    node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    slug = node_id.split(":", 1)[-1]
+    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    text = node_path.read_text(encoding="utf-8")
+    text = text.replace("why: TODO(model)", "why: some model-authored rationale")
+    node_path.write_text(text, encoding="utf-8")
+
+    report = st.verify_tree(project, engine)
+    assert report["stale_contracts"] == []
+
+
+def test_verify_unreadable_contract_reported_not_crashed(tmp_path, engine, project):
+    node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    slug = node_id.split(":", 1)[-1]
+    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    # strip the contract markers entirely -> no LEVEL3-CONTRACT block found
+    text = node_path.read_text(encoding="utf-8")
+    text = text.split("<!-- LEVEL3-CONTRACT:BEGIN")[0]
+    node_path.write_text(text, encoding="utf-8")
+
+    report = st.verify_tree(project, engine)
+    unreadable_ids = [u["node_id"] for u in report["unreadable_contracts"]]
+    assert node_id in unreadable_ids
+    assert st.has_drift(report)
+
+
+def test_verify_reads_contract_with_embedded_backtick_fence(tmp_path, engine, project):
+    """Regression: a `how` field can itself contain a ``` fence (e.g. a
+    write_text(f\"\"\"...```json...```...\"\"\") call site, truncated mid-string
+    by level3.py's `_cap`). A naive "first ``` after ```yaml" scan stops at
+    that embedded fence and truncates the contract mid-YAML. Real case:
+    `level3:bin-heal` in the actual agi-tree corpus. Extraction must bound on
+    the LEVEL3-CONTRACT markers and take the *last* ``` inside that span."""
+    rel = "extensions/agi/bin/tricky.py"
+    src = engine / rel
+    src.parent.mkdir(parents=True, exist_ok=True)
+    src.write_text(
+        "def f(rec):\n"
+        '    ctx.write_text(f"""## Header\\n\\n```json\\n{rec}\\n```\\n\\nmore text ' +
+        "x" * 200 + '""")\n',
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+
+    node_id = mint_node(engine, project, rel)
+    slug = node_id.split(":", 1)[-1]
+    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    text = node_path.read_text(encoding="utf-8")
+    # confirm the fixture actually reproduces the embedded-fence shape
+    assert "```json" in text
+
+    nodes, warnings = st.load_level3_nodes(project)
+    node = next(n for n in nodes if n.node_id == node_id)
+    assert node.contract is not None, f"contract failed to parse: {node.contract_error}"
+    assert node.contract.get("payload_ref") == rel
+
+    report = st.verify_tree(project, engine)
+    assert report["unreadable_contracts"] == []
+
+
+def test_diff_contract_ignores_prose_fields_directly():
+    stored = {"parse_ok": True, "inputs": [{"name": "os", "how": "`import os` at line 1",
+                                             "why": "TODO(model)", "perf": "TODO(model)",
+                                             "security": "TODO(model)"}],
+              "outputs": []}
+    fresh = {"parse_ok": True, "inputs": [{"name": "os", "how": "`import os` at line 1"}],
+             "outputs": []}
+    assert st.diff_contract(stored, fresh) is None
+
+
+def test_diff_contract_reports_added_and_removed():
+    stored = {"parse_ok": True,
+              "inputs": [{"name": "os", "how": "`import os` at line 1"}], "outputs": []}
+    fresh = {"parse_ok": True,
+             "inputs": [{"name": "json", "how": "`import json` at line 1"}], "outputs": []}
+    diff = st.diff_contract(stored, fresh)
+    assert diff is not None
+    assert diff["inputs"]["added"] == [{"name": "json", "how": "`import json` at line 1"}]
+    assert diff["inputs"]["removed"] == [{"name": "os", "how": "`import os` at line 1"}]
+
+
+# --- verify: graceful degradation, no crashes --------------------------------
+
+
+def test_verify_engine_root_missing_degrades(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    missing_engine = tmp_path / "does-not-exist"
+
+    report = st.verify_tree(project, missing_engine)
+    assert report["engine_readable"] is False
+    assert report["missing_payload"] == []
+    assert report["orphan_files"] == []
+    assert report["stale_contracts"] == []
+    assert any("missing or unreadable" in w for w in report["warnings"])
+
+
+def test_verify_project_with_no_level3_dir_degrades(tmp_path, engine):
+    empty_project = tmp_path / "empty_project"
+    empty_project.mkdir()
+
+    nodes, warnings = st.load_level3_nodes(empty_project)
+    assert nodes == []
+    assert warnings
+
+    report = st.verify_tree(empty_project, engine)
+    assert report["nodes_total"] == 0
+
+
+def test_load_level3_nodes_skips_wrong_type_and_malformed(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    (project / "nodes" / "level3" / "not-level3.md").write_text(
+        "---\nid: idea:stray\ntype: idea\n---\nbody\n", encoding="utf-8")
+    (project / "nodes" / "level3" / "garbage.md").write_text(
+        "not frontmatter at all\n", encoding="utf-8")
+
+    nodes, warnings = st.load_level3_nodes(project)
+    assert len(nodes) == 1
+    assert len(warnings) == 2
+
+
+# --- CLI ---------------------------------------------------------------------
+
+
+def test_cli_verify_exit_0_by_default_even_with_drift(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    (engine / "extensions/agi/bin/foo.py").unlink()
+
+    result = run(project, engine, "--verify")
+    assert result.returncode == 0
+    assert "missing_payload: 1" in result.stdout
+
+
+def test_cli_verify_strict_exit_1_with_drift(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    (engine / "extensions/agi/bin/foo.py").unlink()
+
+    result = run(project, engine, "--verify", "--strict")
+    assert result.returncode == 1
+
+
+def test_cli_verify_strict_exit_0_when_clean(tmp_path, engine, project):
+    for rel in ENGINE_FILES:
+        mint_node(engine, project, rel)
+    result = run(project, engine, "--verify", "--strict")
+    assert result.returncode == 0
+
+
+def test_cli_materialize_requires_out(tmp_path, engine, project):
+    result = run(project, engine)
+    assert result.returncode == 2
+    assert "--out is required" in result.stderr
+
+
+def test_cli_materialize_end_to_end(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    out = tmp_path / "out"
+
+    result = run(project, engine, "--out", str(out))
+    assert result.returncode == 0
+    assert (out / "extensions/agi/bin/foo.py").is_file()
+    assert "written: 1 file" in result.stdout
+
+
+def test_cli_materialize_refuses_engine_root_as_out(tmp_path, engine, project):
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    result = run(project, engine, "--out", str(engine))
+    assert result.returncode == 2
+    assert "refusing to write" in result.stderr

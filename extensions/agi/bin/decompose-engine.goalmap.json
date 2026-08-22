@@ -26,6 +26,7 @@
     "extensions/agi/hooks/cc-session-start.sh": "goal:g9",
     "extensions/agi/bin/dashboard.py": "goal:g9.1",
     "extensions/agi/bin/decompose-engine.py": "goal:g6.1",
-    "extensions/agi/bin/level3.py": "goal:g2.1"
+    "extensions/agi/bin/level3.py": "goal:g2.1",
+    "extensions/agi/bin/stitch.py": "goal:g6.1"
   }
 }
