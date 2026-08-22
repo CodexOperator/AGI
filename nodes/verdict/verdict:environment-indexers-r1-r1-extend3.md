@@ -5,8 +5,7 @@ verdict: proved
 confidence: 1.0
 parents:
   - "hypothesis:environment-indexers-r1-r1"
-next_edges:
-  - "exp:environment-indexers-r1-r1-extend4"
+next_edges: []
 ---
 # verdict:environment-indexers-r1-r1-extend3
 

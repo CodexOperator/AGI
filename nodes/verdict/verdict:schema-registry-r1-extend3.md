@@ -5,8 +5,7 @@ verdict: proved
 confidence: 1.0
 parents:
   - "hypothesis:schema-registry-r1"
-next_edges:
-  - "exp:schema-registry-r1-extend4"
+next_edges: []
 ---
 # verdict:schema-registry-r1-extend3
 

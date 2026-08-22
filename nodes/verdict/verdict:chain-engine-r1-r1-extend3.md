@@ -5,8 +5,7 @@ verdict: proved
 confidence: 1.0
 parents:
   - "hypothesis:chain-engine-r1-r1"
-next_edges:
-  - "exp:chain-engine-r1-r1-extend4"
+next_edges: []
 ---
 # verdict:chain-engine-r1-r1-extend3
 

@@ -942,3 +942,58 @@ METRIC primary_metric=outcome_coverage
 METRIC primary_value=0.202
 ERR: ollama package not installed (pip install ollama)
 [smoke] skipping agent dispatch + heal
+=== iter 1 @ 2026-08-21T23:16:33Z ===
+wrote: 8 goal nodes
+target dir: /home/ubuntu/work/agi-tree/nodes/goal
+wrote: 7 idea + 60 hypothesis + 91 task = 158 nodes
+target dir: /home/ubuntu/work/agi-tree/nodes
+WARN: find_chains truncated (deadline); returning 28 partial chain(s)
+loaded 29414 nodes from /home/ubuntu/work/agi-tree/nodes
+ASCII rendering: 200 lines
+wrote: /home/ubuntu/work/agi-tree/context/INJECTION.md
+METRIC longest_chain_length=192
+METRIC avg_chain_depth=1.0
+METRIC mvp_count=20
+METRIC outcome_coverage=0.202
+METRIC chain_branching_factor=1.07
+METRIC node_count=29414
+METRIC edge_count=11977
+METRIC verdicts_asserting=14573
+METRIC verdicts_pending=7
+METRIC verdicts_evidence_backed=2855
+METRIC evidence_fraction=0.196
+METRIC decisive_verdicts=14565
+METRIC decisive_evidence_fraction=0.196
+METRIC unevidenced_decisive_verdicts=11715
+METRIC evidence_weighted_depth=0.196
+METRIC primary_metric=outcome_coverage
+METRIC primary_value=0.202
+ERR: ollama package not installed (pip install ollama)
+[smoke] skipping agent dispatch + heal
+=== iter 1 @ 2026-08-22T02:47:19Z ===
+wrote: 8 goal nodes
+target dir: /home/ubuntu/work/agi-tree/nodes/goal
+wrote: 7 idea + 60 hypothesis + 91 task = 158 nodes
+target dir: /home/ubuntu/work/agi-tree/nodes
+loaded 498 nodes from /home/ubuntu/work/agi-tree/nodes
+ASCII rendering: 200 lines
+wrote: /home/ubuntu/work/agi-tree/context/INJECTION.md
+METRIC longest_chain_length=9
+METRIC avg_chain_depth=0.99
+METRIC mvp_count=20
+METRIC outcome_coverage=0.202
+METRIC chain_branching_factor=1.78
+METRIC node_count=498
+METRIC edge_count=405
+METRIC verdicts_asserting=115
+METRIC verdicts_pending=7
+METRIC verdicts_evidence_backed=42
+METRIC evidence_fraction=0.365
+METRIC decisive_verdicts=107
+METRIC decisive_evidence_fraction=0.346
+METRIC unevidenced_decisive_verdicts=70
+METRIC evidence_weighted_depth=0.363
+METRIC primary_metric=outcome_coverage
+METRIC primary_value=0.202
+ERR: ollama package not installed (pip install ollama)
+[smoke] skipping agent dispatch + heal

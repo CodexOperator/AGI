@@ -1,7 +1,0 @@
----
-id: "exp:environment-indexers-r1-extend70"
-type: experiment
-parent: verdict:environment-indexers-r1-extend69
-next_edges:
-  - "verdict:environment-indexers-r1-extend70"
----

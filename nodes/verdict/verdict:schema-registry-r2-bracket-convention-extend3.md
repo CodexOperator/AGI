@@ -13,8 +13,7 @@ tags:
 - r17
 - third-cycle
 - proved
-next_edges:
-- exp:schema-registry-r2-bracket-convention-extend4
+next_edges: []
 synthetic: true
 evidence_runs:
 - synthetic
