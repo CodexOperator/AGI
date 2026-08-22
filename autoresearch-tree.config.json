@@ -34,6 +34,7 @@
     "iterations_per_run": 5,
     "max_goals_active": 3,
     "kids_per_iter": 2,
-    "kid_model": "claude-opus-5"
+    "kid_model": "claude-sonnet-5",
+    "parent_model": "claude-opus-5"
   }
 }

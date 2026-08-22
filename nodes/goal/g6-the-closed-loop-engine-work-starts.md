@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 goal_id: G6
+goal_kind: long-term
 id: "goal:g6"
 origin: goals-doc
 seeds:

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 goal_id: G8
+goal_kind: long-term
 id: "goal:g8"
 origin: goals-doc
 seeds: []
@@ -22,5 +23,4 @@ and MCP servers can each own one. The payoff that justifies the recursion is
 exposed to a workflow.
 
 Owns: **L9** (scaffolding a project without copying by hand — shares its writer
-with G1/L17), **L10** (ride along as a kid to judge whether briefs are genuinely
-self-contained; an ASCII dashboard with live agent positions across zoom levels).
+with G1/L17). L10 moved to **G9**, which is where legibility now lives.
