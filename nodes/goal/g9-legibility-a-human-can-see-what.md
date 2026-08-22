@@ -4,7 +4,13 @@ goal_id: G9
 goal_kind: long-term
 id: "goal:g9"
 origin: goals-doc
-seeds: []
+seeds:
+  - goal:g9.1
+  - goal:g9.2
+  - goal:g9.3
+  - idea:engine-cc-session-start
+  - idea:engine-render-context
+  - idea:engine-renderers
 status: active
 tags:
   - goal

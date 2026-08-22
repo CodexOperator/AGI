@@ -4,7 +4,10 @@ goal_id: G1
 goal_kind: long-term
 id: "goal:g1"
 origin: goals-doc
-seeds: []
+seeds:
+  - idea:engine-cli
+  - idea:engine-driver-sh
+  - idea:engine-find-root
 status: horizon
 tags:
   - goal

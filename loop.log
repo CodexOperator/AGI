@@ -997,3 +997,30 @@ METRIC primary_metric=outcome_coverage
 METRIC primary_value=0.202
 ERR: ollama package not installed (pip install ollama)
 [smoke] skipping agent dispatch + heal
+=== iter 1 @ 2026-08-22T03:10:26Z ===
+wrote: 18 goal nodes
+target dir: /home/ubuntu/work/agi-tree/nodes/goal
+wrote: 7 idea + 60 hypothesis + 91 task = 158 nodes
+target dir: /home/ubuntu/work/agi-tree/nodes
+loaded 534 nodes from /home/ubuntu/work/agi-tree/nodes
+ASCII rendering: 200 lines
+wrote: /home/ubuntu/work/agi-tree/context/INJECTION.md
+METRIC longest_chain_length=9
+METRIC avg_chain_depth=0.99
+METRIC mvp_count=20
+METRIC outcome_coverage=0.198
+METRIC chain_branching_factor=1.85
+METRIC node_count=534
+METRIC edge_count=440
+METRIC verdicts_asserting=115
+METRIC verdicts_pending=7
+METRIC verdicts_evidence_backed=42
+METRIC evidence_fraction=0.365
+METRIC decisive_verdicts=107
+METRIC decisive_evidence_fraction=0.346
+METRIC unevidenced_decisive_verdicts=70
+METRIC evidence_weighted_depth=0.362
+METRIC primary_metric=outcome_coverage
+METRIC primary_value=0.198
+ERR: ollama package not installed (pip install ollama)
+[smoke] skipping agent dispatch + heal

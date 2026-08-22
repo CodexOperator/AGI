@@ -4,7 +4,11 @@ goal_id: G2
 goal_kind: long-term
 id: "goal:g2"
 origin: goals-doc
-seeds: []
+seeds:
+  - goal:g2.1
+  - goal:g2.2
+  - idea:engine-embeddings
+  - idea:engine-zoom
 status: active
 tags:
   - goal
