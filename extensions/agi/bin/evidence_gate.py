@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evidence_gate.py — the orphan-verdict gate (TODO.md H4).
+"""evidence_gate.py — the orphan-verdict gate (TODO.md H4, H4c).
 
 99.7% of verdicts in the agi-tree run were orphaned: `proved`/`disproved`
 written with no backing experiment evidence. The loop self-flagged it
@@ -8,7 +8,9 @@ been enforced by hand by the parent at review time
 (`skills/agi/SKILL.md`, "Iteration protocol" step 4).
 
 This module is that gate, as code. Both writer paths import it:
-`bin/cli.py done` and `bin/post_wire.py`.
+`bin/cli.py done` and `bin/post_wire.py`. `bin/metrics.py` imports
+`normalize_evidence_runs` and `build_corpus` from here too, so the gate and
+the `evidence_fraction` metric can never drift apart (G3, H4c item 4).
 
 Rule
 ----
@@ -21,12 +23,43 @@ research and mislabelled its verdict should keep its node; only the
 overclaim is removed. The demotion is loud (stderr + stdout) and is
 stamped into the node frontmatter (`demoted_from`, `demote_reason`) so a
 reviewer can find and reverse it.
+
+H4c — evidence_runs must resolve (goal:g3.1)
+---------------------------------------------
+`evidence_runs` used to be trusted at face value: `len(["synthetic"])` is 1,
+so the literal sentinel string satisfied `evidence_runs >= 1` and the gate
+passed a `proved` verdict that ran nothing. Fixed here in two parts:
+
+1. **Resolution.** A list entry only counts if it is shaped like a node id
+   (`type:slug`) *and* names an id that actually exists in the corpus
+   (`build_corpus`). An unresolvable-but-id-shaped entry (a typo, a
+   deleted node) counts 0 — silently, same as having no evidence at all.
+2. **Taxonomy.** An entry that is not even shaped like a node id (a bare
+   word like `synthetic`, a stray dict, a non-string) is a *taxonomy
+   violation* — the same class of defect as a malformed verdict
+   (`VERDICT_RE`), not a quieter one. For a verdict that actually requires
+   evidence, `apply_gate` reports this as `rejected`, not `demoted`:
+   writing a sentinel is an active claim of evidence that doesn't exist,
+   which is worse than honestly having none. The caller (`cli.py done`)
+   turns `rejected` into the same hard failure (exit 2) it already uses
+   for a malformed verdict — nothing is written. `pending` and
+   `inconclusive_lean_*` never reach this check (see `requires_evidence`),
+   so the honest-uncertainty path is untouched.
+
+Resolution needs a corpus (the set of real node ids) to check against.
+`normalize_evidence_runs(value, corpus=...)` takes it as an explicit,
+optional parameter. **`corpus=None` means every list-shaped value counts
+0** — a gate that cannot resolve must not silently trust a length again.
+Only `int` / `bool` / numeric-string forms (a direct number, not a
+reference) are unaffected by the corpus, because they were never the
+vector the sentinel-string defect used.
 """
 from __future__ import annotations
 
 import re
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 
 VERDICT_RE = re.compile(
     r"^(proved|disproved|inconclusive_lean_proved:\d{1,3}"
@@ -37,6 +70,13 @@ VERDICT_HELP = (
     "proved | disproved | inconclusive_lean_proved:N | "
     "inconclusive_lean_disproved:N | pending"
 )
+
+#: Shape of a legitimate `evidence_runs` entry: `type:slug`, no whitespace.
+#: Purely syntactic — matching this says nothing about whether the id
+#: actually exists in the corpus (see `build_corpus` / `normalize_evidence_runs`
+#: for that). A string that does *not* match is a taxonomy violation, the
+#: same class of defect as a verdict that fails `VERDICT_RE`.
+NODE_ID_RE = re.compile(r"^[A-Za-z][\w.-]*:\S+$")
 
 #: Verdicts that assert a decided outcome and therefore require evidence.
 DECISIVE_VERDICTS = ("proved", "disproved")
@@ -58,11 +98,91 @@ def requires_evidence(verdict: str | None) -> bool:
     return verdict in DECISIVE_VERDICTS
 
 
-def normalize_evidence_runs(value) -> int:
-    """Coerce an `evidence_runs` frontmatter value to a count.
+def is_node_id_shaped(value) -> bool:
+    """Pure syntactic check: does `value` look like a `type:slug` node id?
 
-    Accepts a list (its length), an int, a numeric string, or None.
-    Anything unrecognised counts as 0 — the gate fails closed.
+    Says nothing about whether the id resolves to a real node — that needs
+    a corpus (`build_corpus`). Mirrors `is_valid_verdict`'s role for
+    `VERDICT_RE`: a taxonomy check independent of context.
+    """
+    return isinstance(value, str) and bool(NODE_ID_RE.match(value.strip()))
+
+
+def evidence_runs_violations(value) -> list:
+    """Entries in an `evidence_runs` list that are not node-id-shaped.
+
+    This is the taxonomy check (H4c item 2): a bare word like `synthetic`,
+    a stray dict, a bare int inside the list — anything that isn't even
+    trying to name a node. Distinct from, and checked before, resolution:
+    an id-*shaped* entry that simply doesn't exist in the corpus is not a
+    violation, it just doesn't count (see `normalize_evidence_runs`).
+
+    Non-list values (int, bool, numeric string, None) have no entries to
+    check and always return `[]` — they are not the vector this defect
+    used.
+    """
+    if isinstance(value, (list, tuple, set)):
+        return [v for v in value if not is_node_id_shaped(v)]
+    return []
+
+
+def build_corpus(nodes_dir) -> frozenset:
+    """The set of real node ids under `nodes_dir` — what `evidence_runs`
+    entries are allowed to resolve against (goal:g3.1).
+
+    A plain frontmatter scan (own `id:` field only), independent of
+    `graph_core`, so both writer paths can build it cheaply without
+    loading the full graph. `metrics.py` calls this exact function too —
+    one definition, so the gate and the metric cannot drift apart (G3).
+    """
+    import yaml
+
+    ids: set[str] = set()
+    p = Path(nodes_dir)
+    if not p.is_dir():
+        return frozenset(ids)
+    for nf in sorted(p.rglob("*.md")):
+        try:
+            text = nf.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if not text.startswith("---"):
+            continue
+        parts = text.split("---", 2)
+        if len(parts) < 3:
+            continue
+        try:
+            fm = yaml.safe_load(parts[1]) or {}
+        except Exception:
+            continue
+        if not isinstance(fm, dict):
+            continue
+        nid = fm.get("id")
+        if isinstance(nid, str) and nid.strip():
+            ids.add(nid.strip())
+    return frozenset(ids)
+
+
+def normalize_evidence_runs(value, corpus=None) -> int:
+    """Coerce an `evidence_runs` frontmatter value to a count of entries
+    that actually resolve to a real node (goal:g3.1 / TODO.md H4c).
+
+    - `None` -> 0
+    - `bool` -> `int(value)`               (direct attestation, not a ref)
+    - `int` -> `max(value, 0)`             (direct attestation, not a ref)
+    - numeric string -> `int(s)`           (direct attestation, not a ref)
+    - `list`/`tuple`/`set` -> count of entries that are node-id-shaped
+      *and* present in `corpus`. A sentinel like `"synthetic"` counts 0
+      (it isn't even id-shaped); a dangling `"exp:deleted-thing"` counts 0
+      (id-shaped, but not in the corpus).
+    - anything else -> 0
+
+    `corpus` is the set of real node ids (see `build_corpus`). **If
+    `corpus` is `None`, no list entry can be verified, so every
+    list-shaped value counts 0** — a gate that cannot resolve must not
+    silently trust a length again. This is a deliberate fail-closed
+    default, not an oversight: callers that want list entries to count
+    must supply a corpus.
     """
     if value is None:
         return 0
@@ -71,7 +191,9 @@ def normalize_evidence_runs(value) -> int:
     if isinstance(value, int):
         return max(value, 0)
     if isinstance(value, (list, tuple, set)):
-        return len(value)
+        if corpus is None:
+            return 0
+        return sum(1 for v in value if is_node_id_shaped(v) and v.strip() in corpus)
     if isinstance(value, str):
         s = value.strip()
         if s.isdigit():
@@ -87,26 +209,68 @@ class GateResult:
     evidence_runs: int
     demoted: bool = False
     bypassed: bool = False
+    rejected: bool = False       # taxonomy violation on a verdict that needs evidence
+    taxonomy_violations: list = field(default_factory=list)
     reason: str = ""
     messages: list[str] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
         """True when the requested verdict survived the gate unchanged."""
-        return not self.demoted
+        return not self.demoted and not self.rejected
 
 
-def apply_gate(verdict: str, evidence_runs, *, bypass: bool = False) -> GateResult:
+def apply_gate(
+    verdict: str, evidence_runs, *, bypass: bool = False, corpus=None
+) -> GateResult:
     """Apply the evidence gate to a requested verdict.
 
     Returns a :class:`GateResult` whose ``verdict`` is what should be
-    written. Never raises for a policy violation — it demotes, so the
-    research work behind the node is preserved.
+    written. `corpus` is the set of real node ids (`build_corpus`) that
+    `evidence_runs` entries are resolved against — pass `None` only when
+    no corpus is available, which makes every list-shaped `evidence_runs`
+    count 0 (fail closed, see `normalize_evidence_runs`).
+
+    Two distinct failure modes, deliberately not merged:
+    - **Demoted** (existing H4 behaviour): a syntactically clean
+      `evidence_runs` that just doesn't resolve to >=1 real run. The verdict
+      is downgraded to an honest `inconclusive_lean_*:50`; the node is kept.
+    - **Rejected** (new, H4c): `evidence_runs` contains a taxonomy
+      violation — a value that isn't even shaped like a node id (e.g. the
+      `synthetic` sentinel). Writing that is an active false claim, not an
+      absence of evidence, so it is treated like a malformed verdict:
+      nothing is written. Callers surface this as a hard failure.
+      Bypassed and non-decisive (`pending` / `inconclusive_lean_*`)
+      verdicts never reach this branch.
+
+    Never raises. The caller decides what "rejected" means for its own
+    exit behaviour (`cli.py done` turns it into exit 2, matching the
+    existing malformed-verdict convention).
     """
-    runs = normalize_evidence_runs(evidence_runs)
-    res = GateResult(verdict=verdict, original=verdict, evidence_runs=runs)
+    runs = normalize_evidence_runs(evidence_runs, corpus=corpus)
+    violations = evidence_runs_violations(evidence_runs)
+    res = GateResult(
+        verdict=verdict, original=verdict, evidence_runs=runs,
+        taxonomy_violations=violations,
+    )
 
     if not requires_evidence(verdict):
+        return res
+
+    if violations and not bypass:
+        res.rejected = True
+        res.reason = (
+            f"evidence_runs contains non-id value(s) {violations!r} — a "
+            "taxonomy violation (TODO.md H4c), not evidence"
+        )
+        res.messages.append(
+            f"EVIDENCE-GATE REJECTED: '{verdict}' requires evidence_runs to "
+            f"name real experiment ids; {violations!r} is not a node id and "
+            "cannot be resolved. This is a taxonomy violation, not an "
+            "absence of evidence — cite a real experiment id, drop the bad "
+            "entry, or write an honest inconclusive_lean_* instead. "
+            "(--no-evidence-gate bypasses this for historical backfills.)"
+        )
         return res
 
     if runs >= 1:
@@ -143,7 +307,10 @@ def announce(res: GateResult, stream=None) -> None:
     stream = stream if stream is not None else sys.stderr
     for m in res.messages:
         print(f"!! {m}", file=stream)
-    if res.demoted:
+    if res.rejected:
+        print(f"EVIDENCE-GATE REJECTED {res.original} "
+              f"taxonomy_violations={res.taxonomy_violations}")
+    elif res.demoted:
         print(f"EVIDENCE-GATE DEMOTED {res.original} -> {res.verdict} "
               f"evidence_runs={res.evidence_runs}")
     elif res.bypassed:
@@ -151,7 +318,12 @@ def announce(res: GateResult, stream=None) -> None:
 
 
 def stamp(fm: dict, res: GateResult) -> dict:
-    """Record the gate's decision in a node's frontmatter dict."""
+    """Record the gate's decision in a node's frontmatter dict.
+
+    Never call this with a `rejected` result — rejection means nothing
+    should be written at all (the caller must stop before this point,
+    same as it does for a malformed verdict).
+    """
     if res.demoted:
         fm["verdict"] = res.verdict
         fm["demoted_from"] = res.original
