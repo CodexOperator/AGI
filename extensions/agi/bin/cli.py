@@ -43,22 +43,26 @@ def _agent_path(root: Path, iter_n: int, agent_id: str) -> Path:
     return root / "sessions" / f"iter-{iter_n:03d}" / agent_id / "agent.json"
 
 
-def _node_evidence_runs(root: Path, node_id: str | None) -> int:
-    """Read `evidence_runs` off an existing node file, if any (H4 inference)."""
+def _node_evidence_runs_raw(root: Path, node_id: str | None):
+    """Read the *raw* `evidence_runs` value off an existing node file, if any
+    (H4 inference). Returns it unnormalized (int / list / str / None) so the
+    caller can both taxonomy-check and resolve it against the corpus (H4c) —
+    normalizing here would throw away the shape a taxonomy check needs.
+    """
     if not node_id:
-        return 0
+        return None
     nf = _find_node_file(root, node_id)
     if not nf or not nf.exists():
-        return 0
+        return None
     try:
         import yaml
         text = nf.read_text()
         if not text.startswith("---"):
-            return 0
+            return None
         fm = yaml.safe_load(text.split("---", 2)[1]) or {}
     except Exception:
-        return 0
-    return evidence_gate.normalize_evidence_runs(fm.get("evidence_runs"))
+        return None
+    return fm.get("evidence_runs")
 
 
 def cmd_done(args: argparse.Namespace) -> int:
@@ -77,11 +81,24 @@ def cmd_done(args: argparse.Namespace) -> int:
     # missing flag.
     runs = args.evidence_runs
     if runs is None:
-        runs = _node_evidence_runs(root, args.node_id)
+        runs = _node_evidence_runs_raw(root, args.node_id)
+    corpus = evidence_gate.build_corpus(root / "nodes")
     gate = evidence_gate.apply_gate(
-        args.verdict, runs, bypass=args.no_evidence_gate
+        args.verdict, runs, bypass=args.no_evidence_gate, corpus=corpus
     )
     evidence_gate.announce(gate)
+    if gate.rejected:
+        # H4c: same class of failure as an invalid verdict — nothing is
+        # written. A sentinel like 'synthetic' is a taxonomy violation, not
+        # an absence of evidence, so it doesn't get the softer demotion.
+        print(
+            f"ERR: evidence_runs taxonomy violation for '{args.verdict}': "
+            f"{gate.taxonomy_violations!r} is not a resolvable node id "
+            "(TODO.md H4c). Cite a real experiment id, or use "
+            "--no-evidence-gate for historical backfills.",
+            file=sys.stderr,
+        )
+        return 2
     verdict = gate.verdict
 
     rec = json.loads(ap.read_text())

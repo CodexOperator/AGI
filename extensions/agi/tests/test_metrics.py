@@ -16,6 +16,15 @@ import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 
+# Load evidence_gate first and register it in sys.modules *before* metrics is
+# loaded, so metrics.py's own `from evidence_gate import ...` binds the exact
+# same function objects this test module holds — needed for the identity
+# check in test_metrics_shares_evidence_gates_normalize_function below.
+eg_spec = importlib.util.spec_from_file_location("evidence_gate", BIN / "evidence_gate.py")
+evidence_gate = importlib.util.module_from_spec(eg_spec)
+sys.modules["evidence_gate"] = evidence_gate
+eg_spec.loader.exec_module(evidence_gate)
+
 spec = importlib.util.spec_from_file_location("metrics", BIN / "metrics.py")
 metrics = importlib.util.module_from_spec(spec)
 sys.modules["metrics"] = metrics
@@ -76,7 +85,8 @@ def test_emit_prints_primary_name_and_value(project):
     (project / "agi-tree.config.json").write_text(
         json.dumps({"metric_primary": "evidence_fraction"})
     )
-    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    _node(project, "experiment", "r1")
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - experiment:r1")
     buf = io.StringIO()
     metrics.emit(project, out=buf)
     text = buf.getvalue()
@@ -88,7 +98,8 @@ def test_emit_prints_primary_name_and_value(project):
 
 
 def test_evidence_fraction_counts_only_asserting_verdicts(project):
-    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    _node(project, "experiment", "r1")
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - experiment:r1")
     _node(project, "verdict", "v2", "verdict: inconclusive_lean_proved:60")
     _node(project, "verdict", "v3", "verdict: pending")   # excluded entirely
     _node(project, "hypothesis", "h1")                    # no verdict field
@@ -99,8 +110,19 @@ def test_evidence_fraction_counts_only_asserting_verdicts(project):
     assert s["evidence_fraction"] == 0.5
 
 
+def test_sentinel_evidence_runs_does_not_count_as_backed(project):
+    """H4c: the exact defect. `evidence_runs: [synthetic]` must not satisfy
+    `evidence_fraction`'s `>= 1` any more than it satisfies the gate's."""
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - synthetic")
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["verdicts_evidence_backed"] == 0
+    assert s["evidence_fraction"] == 0.0
+    assert s["unevidenced_decisive_verdicts"] == 1
+
+
 def test_pending_without_evidence_does_not_lower_the_score(project):
-    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    _node(project, "experiment", "r1")
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - experiment:r1")
     before = metrics.evidence_stats(project / "nodes")["evidence_fraction"]
     for i in range(10):
         _node(project, "verdict", f"p{i}", "verdict: pending")
@@ -123,9 +145,29 @@ def test_empty_corpus_is_zero_not_a_crash(project):
     assert s["unevidenced_decisive_verdicts"] == 0
 
 
+def test_metrics_shares_evidence_gates_normalize_function():
+    """One resolution function, not two — metrics.py must not drift from
+    the gate (goal:g3.1 item 5: they read the same field, so they must
+    share one definition or they will quietly disagree again)."""
+    assert metrics.normalize_evidence_runs is evidence_gate.normalize_evidence_runs
+    assert metrics.build_corpus is evidence_gate.build_corpus
+
+
+def test_gate_and_metrics_agree_on_the_same_input(project):
+    """Same evidence_runs value, evaluated through both entry points,
+    produces the same count."""
+    _node(project, "experiment", "real")
+    corpus = evidence_gate.build_corpus(project / "nodes")
+    for value in (["synthetic"], ["experiment:real"], ["experiment:ghost"], 3, None):
+        gate_count = evidence_gate.normalize_evidence_runs(value, corpus=corpus)
+        metrics_count = metrics.normalize_evidence_runs(value, corpus=corpus)
+        assert gate_count == metrics_count
+
+
 def test_adding_hops_cannot_inflate_evidence_fraction(project):
     """The H3 gaming attack: hops=2*cycle+8. Chain length moves; evidence doesn't."""
-    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - r1")
+    _node(project, "experiment", "r1")
+    _node(project, "verdict", "v1", "verdict: proved\nevidence_runs:\n  - experiment:r1")
     _node(project, "verdict", "v2", "verdict: disproved")
     base = metrics.compute(project)
     prev = "verdict:v1"

@@ -98,11 +98,13 @@ def _write_node(path: Path, fm: dict, body: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def _gate(agent: dict, fm: dict):
+def _gate(agent: dict, fm: dict, corpus):
     """Apply the H4 evidence gate to one agent record (post_wire writer path).
 
     Evidence count comes from the agent record first (written by `cli.py done`),
-    falling back to the node's own `evidence_runs` frontmatter.
+    falling back to the node's own `evidence_runs` frontmatter. `corpus` is
+    the set of real node ids (`evidence_gate.build_corpus`) evidence_runs
+    entries are resolved against (H4c / goal:g3.1).
     """
     runs = agent.get("evidence_runs")
     if runs is None:
@@ -111,6 +113,7 @@ def _gate(agent: dict, fm: dict):
         agent.get("verdict") or "pending",
         runs,
         bypass=str(agent.get("evidence_gate", "")) == "bypassed",
+        corpus=corpus,
     )
     evidence_gate.announce(res)
     return res
@@ -127,6 +130,11 @@ def cmd_wire(args: argparse.Namespace) -> int:
 
     manifest = json.loads(manifest_path.read_text())
     load_directory, Edge, Node = _load_graph_core()
+
+    # H4c / goal:g3.1 — the corpus evidence_runs entries resolve against.
+    # Built once per wire pass; the node set doesn't change mid-loop (no
+    # verdict's own evidence_runs can name a node this same pass creates).
+    corpus = evidence_gate.build_corpus(root / "nodes")
 
     # Build current graph
     g, loaded = load_directory(root / "nodes")
@@ -145,6 +153,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
     added_edges: list[str] = []
     skipped: list[str] = []
     demoted: list[str] = []
+    rejected: list[str] = []
 
     for agent in manifest.get("agents", []):
         if agent.get("status") != "done":
@@ -167,7 +176,13 @@ def cmd_wire(args: argparse.Namespace) -> int:
             fm, body = _read_frontmatter(content)
             # H4 evidence gate — this is the second writer path, and it must
             # enforce the same rule as cli.py done.
-            gate = _gate(agent, fm)
+            gate = _gate(agent, fm, corpus)
+            if gate.rejected:
+                # H4c: a taxonomy violation (e.g. 'synthetic') is worse than
+                # no evidence — reject the whole write, same as cli.py done's
+                # exit 2. Nothing about this node or its next_edges changes.
+                rejected.append(f"{node_id}: {gate.reason}")
+                continue
             verdict = gate.verdict
             if gate.demoted:
                 demoted.append(f"{node_id}: {gate.original} -> {gate.verdict}")
@@ -187,7 +202,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
             slug = _slug_from_node_id(node_id)
             vpath = verdict_dir / f"{slug}.md"
             import yaml
-            gate = _gate(agent, {})
+            gate = _gate(agent, {}, corpus)
+            if gate.rejected:
+                rejected.append(f"verdict:{agent['id']}: {gate.reason}")
+                continue
             verdict = gate.verdict
             if gate.demoted:
                 demoted.append(f"verdict:{agent['id']}: {gate.original} -> {gate.verdict}")
@@ -271,6 +289,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
         print(f"  evidence-gate demotions: {len(demoted)}")
         for d in demoted:
             print(f"    - {d}")
+    if rejected:
+        print(f"  evidence-gate rejections (H4c taxonomy violation): {len(rejected)}")
+        for r in rejected:
+            print(f"    - {r}")
     if skipped:
         print(f"  skipped: {len(skipped)}")
         for s in skipped:

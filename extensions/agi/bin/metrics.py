@@ -31,6 +31,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from evidence_gate import (  # noqa: E402
     DECISIVE_VERDICTS,
+    build_corpus,
     normalize_evidence_runs,
 )
 
@@ -134,7 +135,14 @@ def evidence_stats(nodes_dir: Path) -> dict:
     Denominator is *asserting* verdicts — everything except `pending`.
     `pending` is excluded on purpose: H4 permits it without evidence, so
     counting it would penalise honest uncertainty.
+
+    `evidence_runs` is resolved against the corpus (goal:g3.1 / H4c) using
+    the exact same `build_corpus` + `normalize_evidence_runs` functions
+    `evidence_gate.py` uses to gate a write. One definition, shared by
+    import, not reimplemented here — so this metric and the gate cannot
+    read the same field and disagree (that drift was the H4c root cause).
     """
+    corpus = build_corpus(nodes_dir)
     asserting = 0
     backed = 0
     decisive = 0
@@ -145,7 +153,7 @@ def evidence_stats(nodes_dir: Path) -> dict:
         if not isinstance(v, str) or not v.strip():
             continue
         v = v.strip()
-        runs = normalize_evidence_runs(fm.get("evidence_runs"))
+        runs = normalize_evidence_runs(fm.get("evidence_runs"), corpus=corpus)
         if v == "pending":
             pending += 1
             continue

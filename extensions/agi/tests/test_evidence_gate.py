@@ -102,12 +102,143 @@ def test_bypass_is_a_noop_when_evidence_exists():
     "value,expected",
     [
         (None, 0), (0, 0), (2, 2), (-5, 0),
-        ([], 0), ([{"run": 1}, {"run": 2}], 2),
-        ("3", 3), ("many", 0), ({"a"}, 1), (True, 1),
+        ("3", 3), ("many", 0), (True, 1),
     ],
 )
-def test_normalize_evidence_runs(value, expected):
+def test_normalize_evidence_runs_scalars_are_corpus_independent(value, expected):
+    """int / bool / numeric-string are a direct attestation, not a node
+    reference — corpus or no corpus, these are unaffected (H4c)."""
     assert eg.normalize_evidence_runs(value) == expected
+    assert eg.normalize_evidence_runs(value, corpus={"exp:real"}) == expected
+
+
+@pytest.mark.parametrize(
+    "value",
+    [[], ["synthetic"], [{"run": 1}, {"run": 2}], {"a"}, ["exp:real"]],
+)
+def test_normalize_evidence_runs_lists_need_a_corpus(value):
+    """H4c: a gate that cannot resolve must not silently trust a length.
+    No corpus supplied -> every list-shaped value counts 0, even one that
+    would resolve if a corpus were given (see the with-corpus tests below).
+    """
+    assert eg.normalize_evidence_runs(value) == 0
+
+
+def test_normalize_evidence_runs_sentinel_string_counts_zero_not_one():
+    """The exact H4c defect: `["synthetic"]` must not satisfy `>= 1`."""
+    corpus = {"exp:real"}
+    assert eg.normalize_evidence_runs(["synthetic"], corpus=corpus) == 0
+
+
+def test_normalize_evidence_runs_resolves_a_real_id():
+    corpus = {"exp:real"}
+    assert eg.normalize_evidence_runs(["exp:real"], corpus=corpus) == 1
+
+
+def test_normalize_evidence_runs_unresolvable_id_shaped_entry_counts_zero():
+    """Id-*shaped* but not in the corpus (typo, deleted node) — silent 0,
+    not a taxonomy violation (that's a different, louder failure mode)."""
+    corpus = {"exp:real"}
+    assert eg.normalize_evidence_runs(["exp:ghost"], corpus=corpus) == 0
+
+
+def test_normalize_evidence_runs_mixed_list_counts_only_resolvable():
+    corpus = {"exp:real"}
+    assert eg.normalize_evidence_runs(
+        ["synthetic", "exp:real", "exp:ghost"], corpus=corpus
+    ) == 1
+
+
+# ------------------------------------------------------- taxonomy violations
+
+
+@pytest.mark.parametrize(
+    "value,violations",
+    [
+        (None, []),
+        (0, []),
+        ("3", []),
+        (["exp:real"], []),
+        (["synthetic"], ["synthetic"]),
+        (["exp:real", "synthetic"], ["synthetic"]),
+        ([{"run": 1}], [{"run": 1}]),
+        (["exp:ghost"], []),  # id-shaped, just doesn't resolve — not a violation
+    ],
+)
+def test_evidence_runs_violations(value, violations):
+    assert eg.evidence_runs_violations(value) == violations
+
+
+def test_is_node_id_shaped():
+    assert eg.is_node_id_shaped("exp:real")
+    assert not eg.is_node_id_shaped("synthetic")
+    assert not eg.is_node_id_shaped("run-a")       # no colon
+    assert not eg.is_node_id_shaped(1)
+    assert not eg.is_node_id_shaped(None)
+
+
+def test_build_corpus_reads_declared_ids(tmp_path):
+    d = tmp_path / "nodes" / "experiment"
+    d.mkdir(parents=True)
+    (d / "e1.md").write_text('---\nid: "exp:e1"\ntype: experiment\n---\n\nbody\n')
+    (d / "e2.md").write_text("---\ntype: experiment\n---\n\nno id field\n")
+    corpus = eg.build_corpus(tmp_path / "nodes")
+    assert corpus == {"exp:e1"}
+
+
+def test_build_corpus_missing_dir_is_empty_not_a_crash(tmp_path):
+    assert eg.build_corpus(tmp_path / "nowhere") == frozenset()
+
+
+# --------------------------------------------- apply_gate: reject vs demote
+
+
+def test_sentinel_evidence_rejects_a_decisive_verdict_not_demotes():
+    """H4c: writing 'synthetic' is worse than writing nothing — it is an
+    active false claim, so it is rejected (nothing written), not demoted
+    the way an honestly-empty evidence_runs is."""
+    res = eg.apply_gate("proved", ["synthetic"], corpus={"exp:real"})
+    assert res.rejected
+    assert not res.demoted
+    assert not res.ok
+    assert res.taxonomy_violations == ["synthetic"]
+    assert any("REJECTED" in m for m in res.messages)
+
+
+def test_empty_evidence_still_demotes_not_rejects():
+    """Contrast case: genuinely no evidence (not a sentinel) keeps the
+    softer, existing demotion behaviour."""
+    res = eg.apply_gate("proved", [], corpus={"exp:real"})
+    assert res.demoted
+    assert not res.rejected
+
+
+def test_resolvable_evidence_passes():
+    res = eg.apply_gate("proved", ["exp:real"], corpus={"exp:real"})
+    assert res.ok
+    assert res.verdict == "proved"
+    assert res.evidence_runs == 1
+
+
+def test_bypass_overrides_rejection():
+    res = eg.apply_gate("proved", ["synthetic"], bypass=True, corpus={"exp:real"})
+    assert res.bypassed
+    assert not res.rejected
+    assert res.ok
+
+
+@pytest.mark.parametrize(
+    "verdict", ["pending", "inconclusive_lean_proved:60", "inconclusive_lean_disproved:40"]
+)
+def test_sentinel_evidence_does_not_reject_uncertain_verdicts(verdict):
+    """H4c must not touch the honest-uncertainty path: pending/lean verdicts
+    never require evidence, so a taxonomy violation sitting in evidence_runs
+    (leftover data, unrelated to this write) can't block them either."""
+    res = eg.apply_gate(verdict, ["synthetic"], corpus={"exp:real"})
+    assert res.ok
+    assert not res.rejected
+    assert not res.demoted
+    assert res.verdict == verdict
 
 
 def test_stamp_records_demotion():
@@ -183,16 +314,58 @@ def test_cli_done_rejects_invalid_verdict(project):
 
 
 def test_cli_done_infers_evidence_from_node_frontmatter(project):
-    """A real experiment must not be punished for a missing flag."""
+    """A real experiment must not be punished for a missing flag.
+
+    H4c: the cited runs must resolve against the corpus, so this fixture
+    creates real nodes for them (`experiment:run-a`, `experiment:run-b`) —
+    bare unresolvable words are covered separately by
+    `test_cli_done_rejects_sentinel_evidence_runs`.
+    """
+    (project / "nodes" / "experiment" / "run-a.md").write_text(
+        '---\nid: "experiment:run-a"\ntype: experiment\n---\n\nrun a\n'
+    )
+    (project / "nodes" / "experiment" / "run-b.md").write_text(
+        '---\nid: "experiment:run-b"\ntype: experiment\n---\n\nrun b\n'
+    )
     nf = project / "nodes" / "experiment" / "e1.md"
     nf.write_text(
         "---\nid: experiment:e1\ntype: experiment\n"
-        "evidence_runs:\n  - run-a\n  - run-b\n---\n\nran it twice\n"
+        "evidence_runs:\n  - experiment:run-a\n  - experiment:run-b\n---\n\nran it twice\n"
     )
     r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
                                   "--node-id", "experiment:e1"])
     assert r.returncode == 0, r.stderr
     assert "DEMOTED" not in r.stdout + r.stderr
+    assert "verdict: proved" in nf.read_text()
+
+
+def test_cli_done_rejects_sentinel_evidence_runs(project):
+    """H4c: `evidence_runs: [synthetic]` must hard-fail (exit 2), the same
+    class of failure as a malformed verdict — not a silent pass, and not
+    even a demotion (that's reserved for honestly-empty evidence)."""
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        "evidence_runs:\n  - synthetic\n---\n\nbody\n"
+    )
+    r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
+                                  "--node-id", "experiment:e1"])
+    assert r.returncode == 2
+    assert "taxonomy violation" in r.stderr
+    assert "verdict: proved" not in nf.read_text()   # nothing written
+    assert _agent_rec(project)["status"] == "running"  # agent record untouched
+
+
+def test_cli_done_no_evidence_gate_bypasses_sentinel_rejection(project):
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        "evidence_runs:\n  - synthetic\n---\n\nbody\n"
+    )
+    r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
+                                  "--node-id", "experiment:e1", "--no-evidence-gate"])
+    assert r.returncode == 0, r.stderr
+    assert "EVIDENCE-GATE BYPASSED" in (r.stdout + r.stderr)
     assert "verdict: proved" in nf.read_text()
 
 
@@ -259,10 +432,16 @@ def test_post_wire_permits_lean_without_evidence(wired_project):
 
 
 def test_post_wire_falls_back_to_node_frontmatter_evidence(wired_project):
+    """H4c: the fallback value must still resolve against the corpus to
+    count — so this fixture cites a real node (`experiment:r1`), unlike
+    the pre-H4c version of this test which trusted a bare word."""
     root, iter_dir = wired_project
+    (root / "nodes" / "experiment" / "r1.md").write_text(
+        '---\nid: "experiment:r1"\ntype: experiment\n---\n\nbody\n'
+    )
     nf = root / "nodes" / "experiment" / "e1.md"
     nf.write_text('---\nid: "experiment:e1"\ntype: experiment\n'
-                  "evidence_runs:\n  - r1\n---\n\nbody\n")
+                  "evidence_runs:\n  - experiment:r1\n---\n\nbody\n")
     _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "proved",
                      "node_id": "experiment:e1"})   # no evidence_runs key
     assert "verdict: proved" in nf.read_text()
@@ -275,3 +454,25 @@ def test_post_wire_creates_demoted_verdict_node_when_file_missing(wired_project)
     text = (root / "nodes" / "verdict" / "ghost.md").read_text()
     assert "verdict: inconclusive_lean_proved:50" in text
     assert "demoted_from: proved" in text
+
+
+def test_post_wire_rejects_sentinel_evidence_runs(wired_project):
+    """H4c in the second writer path: a sentinel in the agent record's own
+    evidence_runs must reject (not demote, not silently pass) — nothing
+    about the target node changes."""
+    root, iter_dir = wired_project
+    before = (root / "nodes" / "experiment" / "e1.md").read_text()
+    _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "proved",
+                     "node_id": "experiment:e1", "evidence_runs": ["synthetic"]})
+    after = (root / "nodes" / "experiment" / "e1.md").read_text()
+    assert after == before
+    assert "verdict" not in after
+
+
+def test_post_wire_sentinel_does_not_reject_uncertain_verdicts(wired_project):
+    root, iter_dir = wired_project
+    _wire(iter_dir, {"id": "a1", "status": "done",
+                     "verdict": "inconclusive_lean_proved:60",
+                     "node_id": "experiment:e1", "evidence_runs": ["synthetic"]})
+    text = (root / "nodes" / "experiment" / "e1.md").read_text()
+    assert "verdict: inconclusive_lean_proved:60" in text
