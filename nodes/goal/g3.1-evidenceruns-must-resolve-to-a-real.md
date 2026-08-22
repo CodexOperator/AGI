@@ -7,6 +7,7 @@ origin: goals-doc
 parents:
   - goal:g3
 seeds:
+  - exp:evidence-gate-resolution-r1
   - idea:engine-evidence-gate
   - idea:engine-post-wire
 status: active

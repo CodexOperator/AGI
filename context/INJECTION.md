@@ -1,10 +1,10 @@
 # agi-tree INJECTION CONTEXT
-_generated 2026-08-22T03:10:27+00:00_
+_generated 2026-08-22T03:36:29+00:00_
 
 ## graph snapshot
-- nodes: 534
-- edges: 440
-- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=99, goal=18, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
+- nodes: 539
+- edges: 445
+- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=101, goal=21, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
 - **scored on `outcome_coverage`** (`metric_primary`) — this is the target
 - outcome_coverage: 0.198 (mvps per hypothesis; goal-attributable)
 
@@ -53,8 +53,8 @@ Each iteration MUST first answer: **explore a big idea or small idea?**
 
 ## ASCII view (≤200 lines)
 ```
-# graph: 534 nodes
-# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=99, goal=18, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
+# graph: 539 nodes
+# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=101, goal=21, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
 #
         app-purpose:autoresearch-tree-skill :: app_purpose
               app-purpose:chain-engine :: app-purpose
@@ -117,6 +117,7 @@ exp:cli-invocation-r1-extend3 :: experiment
 exp:cli-invocation-r1-r1-extend1 :: experiment
 exp:cli-invocation-r1-r1-extend2 :: experiment
 exp:cli-invocation-r1-r1-extend3 :: experiment
+    exp:dashboard-cli-r1 :: experiment
 exp:embeddings-r1-extend1 :: experiment
 exp:embeddings-r1-extend2 :: experiment
 exp:embeddings-r1-extend3 :: experiment
@@ -139,6 +140,7 @@ exp:embeddings-r1-r1-extend3 :: experiment
 exp:environment-indexers-r1-r1-extend1 :: experiment
 exp:environment-indexers-r1-r1-extend2 :: experiment
 exp:environment-indexers-r1-r1-extend3 :: experiment
+    exp:evidence-gate-resolution-r1 :: experiment
   exp:exp-a00-407fa689-verdict-pareto :: experiment
     exp:exp-a00-407fa689-verdict-repair :: experiment
   exp:exporters-r1 :: experiment [spawns->verdict:exporters-r1]
@@ -193,17 +195,20 @@ goal:g2 :: goal [spawns->goal:g2.1, spawns->goal:g2.2, spawns->idea:engine-embed
   goal:g2.1 :: goal [spawns->hyp:level3-node-anatomy, spawns->idea:engine-agi-algos]
   goal:g2.2 :: goal
 goal:g3 :: goal [spawns->goal:g3.1, spawns->idea:engine-benchmark, spawns->idea:engine-chain-engine (+1)]
-  goal:g3.1 :: goal [spawns->idea:engine-evidence-gate, spawns->idea:engine-post-wire]
-goal:g4 :: goal [spawns->idea:engine-agi-bridge-index, spawns->idea:engine-dispatch, spawns->idea:engine-heal]
+  goal:g3.1 :: goal [spawns->exp:evidence-gate-resolution-r1, spawns->idea:engine-evidence-gate, spawns->idea:engine-post-wire]
+goal:g4 :: goal [spawns->goal:g4.1, spawns->idea:engine-agi-bridge-index, spawns->idea:engine-dispatch (+1)]
+  goal:g4.1 :: goal
 goal:g5 :: goal [spawns->idea:engine-schema-registry, spawns->idea:engine-snapshot-build-site, spawns->idea:engine-snapshot-goals]
 goal:g6 :: goal [spawns->goal:g6.1, spawns->goal:g6.2, spawns->idea:deprecate-the-gamed-mass (+1)]
   goal:g6.1 :: goal
   goal:g6.2 :: goal
-goal:g7 :: goal [spawns->goal:g7.1, spawns->idea:engine-graph-core, spawns->idea:engine-grid (+1)]
+goal:g7 :: goal [spawns->goal:g7.1, spawns->goal:g7.2, spawns->goal:g7.3 (+3)]
   goal:g7.1 :: goal
+  goal:g7.2 :: goal
+  goal:g7.3 :: goal
 goal:g8 :: goal
 goal:g9 :: goal [spawns->goal:g9.1, spawns->goal:g9.2, spawns->goal:g9.3 (+3)]
-  goal:g9.1 :: goal
+  goal:g9.1 :: goal [spawns->exp:dashboard-cli-r1]
   goal:g9.2 :: goal
   goal:g9.3 :: goal
   hyp:a00-1467544f-aaaa25 :: hypothesis [spawns->exp:a00-1467544f-aaaa25]
@@ -244,13 +249,8 @@ hyp:cli-invocation-r1 :: hypothesis [spawns->exp:cli-invocation-r1]
   hyp:environment-indexers-r6 :: hypothesis [spawns->task:t-041]
   hyp:environment-indexers-r7 :: hypothesis [spawns->task:t-042]
   hyp:environment-indexers-r8 :: hypothesis [spawns->task:t-043]
-  hyp:environment-indexers-r9 :: hypothesis [spawns->task:t-044, spawns->task:t-045, spawns->task:t-046]
-  hyp:exporters-r1 :: hypothesis [spawns->exp:exporters-r1, spawns->exp:exporters-r1-extend, spawns->exp:exporters-r1-extend2 (+1)]
-  hyp:graph-core-r1 :: hypothesis [spawns->exp:graph-core-r1, spawns->exp:graph-core-r1-extend, spawns->task:t-001 (+1)]
-  hyp:graph-core-r10 :: hypothesis [spawns->task:t-018]
-  hyp:graph-core-r2 :: hypothesis [spawns->task:t-003, spawns->task:t-004]
-... [truncated, 341 more nodes]
+... [truncated, 346 more nodes]
 ----
-Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=99, goal=18, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
-Edges: spawns=440
+Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=101, goal=21, hypothesis=101, idea=39, mvp=20, node=3, outcome=18, task=90, verdict=113
+Edges: spawns=445
 ```

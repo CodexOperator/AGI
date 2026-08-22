@@ -181,6 +181,31 @@ Owns: **L3** (per-tier and eventually per-level model assignment), **L6**
 (recursive sub-loops; `cc_dispatch.max_goals_active` exists and is unread).
 Blocked on G2 for per-level assignment.
 
+### G4.1 — Parallel kids share one working tree and collide — status: active
+
+Observed live 2026-08-22, by both kids of the same iteration independently.
+Two kids doing **engine** work ran concurrently in one checkout: one was
+rewriting `evidence_gate.py`, `metrics.py`, `cli.py` and `post_wire.py` while
+the other was running the test suite against them. Consequences seen: the test
+suite failed for several minutes on code neither kid had broken, and
+`evidence_fraction` flipped between 0.365 and 0.035 on an unchanged corpus —
+a stale-`.pyc` race against a file being rewritten underneath the interpreter.
+
+Both kids diagnosed it correctly and neither corrupted anything, so the cost
+this time was wasted motion and a briefly false test signal. **The failure
+mode is that a kid reports a red suite it did not cause, or a green one it did
+not earn.**
+
+Kids writing *nodes* are naturally isolated — one file each. Kids writing
+*engine code* are not isolated at all, and the closed loop (G6) makes engine
+work the normal case rather than the exception.
+
+Options, undecided: give each engine-writing kid its own worktree
+(`isolation: worktree` already exists in the dispatch layer); serialise
+engine-writing kids within an iteration; or partition by file ownership
+declared in the brief. Measure before choosing — the worktree option costs a
+checkout per kid and may not be worth it at two kids.
+
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: horizon
 
 `status:` should be a field the engine acts on: stop accruing score to
@@ -290,6 +315,37 @@ read as authoritative for months.
 
 Extend the existing check to all parent references: warn by default, `--strict`
 to fail. The mechanism exists; only its scope is wrong. Owns TODO **H4d**.
+
+### G7.2 — Duplicate node ids silently hide files on disk — status: active
+
+Found 2026-08-22 by the G9.1 dashboard on its first run, which is the argument
+for G9 in miniature: **17 node ids are declared by two files each.** The loader
+keeps one and drops the other, so 17 files sit on disk fully invisible to every
+tool that reads this graph — the renderer, the metrics, the chain finder, and
+the dashboard itself.
+
+The dropped file is frequently the *larger* one: `app-purpose:graph-core` keeps
+a 276-byte file and hides a 575-byte one; `bigger-outcome:graph-core-r1` keeps
+315 bytes and hides 1,217. This is not a cosmetic duplicate — it is content
+loss that has already happened and that nothing reported.
+
+Fix: id uniqueness must be checked at load and at write. A second file claiming
+a live id is an error, not a silent preference for whichever sorts first.
+**Do not resolve the existing 17 by deleting either side** — merge or re-id
+them deliberately, the G7 rule.
+
+### G7.3 — `evidence_runs` as a bare integer is still unverifiable — status: horizon
+
+Residual left open by G3.1 and named here so it is not forgotten. After the
+H4c fix a list entry must resolve to a real node, but an integer
+(`evidence_runs: 3`) is still accepted as direct attestation and counts 3.
+Writing an integer is exactly as cheap as writing the `synthetic` sentinel was.
+
+Not closed immediately on purpose: many honest nodes legitimately record a
+count rather than ids, and forcing ids everywhere would break the honest path
+in order to close a hole nobody has yet exploited. Decide deliberately — the
+H4c lesson is that any unverifiable field eventually gets gamed, so the
+question is when, not whether.
 
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 

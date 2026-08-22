@@ -6,6 +6,8 @@ id: "goal:g7"
 origin: goals-doc
 seeds:
   - goal:g7.1
+  - goal:g7.2
+  - goal:g7.3
   - idea:engine-graph-core
   - idea:engine-grid
   - idea:engine-migrate-to-sqlite
