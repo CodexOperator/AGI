@@ -5,7 +5,7 @@ goal_kind: short-term
 id: "goal:s2"
 origin: goals-doc
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - root
@@ -25,5 +25,17 @@ machine. Install it, verify both entries land, and confirm a push actually
 reaches the remote rather than assuming the cron line is correct — a cd-less
 cron line is exactly the class of small operational error the design ethic says
 the system should absorb.
+
+**Done 2026-08-22.** Both cadences installed and verified, targeting `master`
+(fantasia's line pushes `main`; the engine's installer got the branch right
+rather than copying it). First push completed: 84 commits and 641 grid refs are
+now on the remote, where before this the entire session existed on one disk.
+
+**Found while installing it, and it is the more useful half:** agi-tree's
+working branch was `iter24-extend-300hop`, a leftover from the 2026-05 padding
+run, and every commit this session landed there rather than on `master`. The
+branch was 84 ahead / 0 behind, so `master` fast-forwarded cleanly with nothing
+lost — but a cron installed before checking would have pushed `master` and
+silently published nothing at all, for as long as nobody looked.
 
 Precondition for **G6.5** (automatic rebuild on the grid's cadence).
