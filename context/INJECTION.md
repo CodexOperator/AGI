@@ -1,10 +1,10 @@
 # agi-tree INJECTION CONTEXT
-_generated 2026-08-22T05:10:31+00:00_
+_generated 2026-08-22T05:27:03+00:00_
 
 ## graph snapshot
-- nodes: 640
-- edges: 541
-- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=40, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
+- nodes: 643
+- edges: 543
+- by type: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=43, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
 - **scored on `outcome_coverage`** (`metric_primary`) — this is the target
 - outcome_coverage: 0.198 (mvps per hypothesis; goal-attributable)
 
@@ -53,8 +53,8 @@ Each iteration MUST first answer: **explore a big idea or small idea?**
 
 ## ASCII view (≤200 lines)
 ```
-# graph: 640 nodes
-# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=40, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
+# graph: 643 nodes
+# types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=43, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
 #
         app-purpose:autoresearch-tree-skill :: app_purpose
               app-purpose:chain-engine :: app-purpose
@@ -223,7 +223,9 @@ goal:g7 :: goal [spawns->goal:g7.1, spawns->goal:g7.2, spawns->goal:g7.3 (+7)]
   goal:g7.5 :: goal
   goal:g7.6 :: goal
   goal:g7.7 :: goal
-goal:g8 :: goal
+goal:g8 :: goal [spawns->goal:g8.1, spawns->goal:g8.2]
+  goal:g8.1 :: goal
+  goal:g8.2 :: goal
 goal:g9 :: goal [spawns->goal:g9.1, spawns->goal:g9.2, spawns->goal:g9.3 (+5)]
   goal:g9.1 :: goal [spawns->exp:dashboard-cli-r1, spawns->idea:engine-dashboard]
   goal:g9.2 :: goal
@@ -234,6 +236,7 @@ goal:s1 :: goal
 goal:s2 :: goal
 goal:s3 :: goal
 goal:s4 :: goal
+goal:s5 :: goal
   hyp:a00-1467544f-aaaa25 :: hypothesis [spawns->exp:a00-1467544f-aaaa25]
   hyp:a01-7031af17-449ecb :: hypothesis [spawns->mvp:a01-7031af17-449ecb-r11, spawns->verdict:a01-7031af17-449ecb-r11]
   hyp:autoresearch-tree-skill-r1 :: hypothesis [spawns->exp:autoresearch-tree-skill-r1, spawns->task:t-076, spawns->task:t-088 (+1)]
@@ -246,11 +249,8 @@ goal:s4 :: goal
   hyp:autoresearch-tree-skill-r8 :: hypothesis [spawns->task:t-087]
   hyp:autoresearch-tree-skill-r9 :: hypothesis [spawns->task:t-089]
   hyp:chain-engine-r1 :: hypothesis [spawns->exp:chain-engine-r1, spawns->exp:chain-engine-r1-extend, spawns->task:t-047]
-  hyp:chain-engine-r2 :: hypothesis [spawns->task:t-048]
-  hyp:chain-engine-r3 :: hypothesis [spawns->task:t-049]
-  hyp:chain-engine-r4 :: hypothesis [spawns->task:t-050]
-... [truncated, 447 more nodes]
+... [truncated, 450 more nodes]
 ----
-Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=40, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
-Edges: spawns=541
+Types: app-purpose=2, app_purpose=14, bigger-outcome=2, bigger_outcome=15, experiment=105, goal=43, hypothesis=101, idea=43, level3=74, mvp=20, node=3, outcome=18, task=90, verdict=113
+Edges: spawns=543
 ```

@@ -478,21 +478,41 @@ attempt survives as prior art (G9.5's rejected-draft case).
 Depends on G6.3 for versioning and on G9.5 for the session→version link, without
 which a branch point cannot be identified after the fact.
 
-### G6.5 — Rebuild agi from agi-tree automatically, on the grid's cron — status: horizon
+### G6.5 — The cron rebuilds agi from agi-tree, then commits and pushes it — status: active
 
-The grid already syncs on two cadences (5-minute grid push, hourly branch push)
-and `grid.py cron install` sets both. Add the rebuild to that schedule: when the
-cron runs, re-derive the census, re-scan level 3, and run `stitch --verify`, so
-drift between graph and engine is detected within one cadence instead of
-whenever someone happens to look.
+**The shape being committed to: `agi-tree` is the development environment,
+`agi` is the shippable package.** Work happens in the graph; the engine repo is
+what falls out of it. When the grid cron runs it should re-derive the census,
+re-scan level 3, `stitch` the result into the engine tree, and — once that is
+trustworthy — **commit and push the engine repo too**, so `agi` is always a
+published build of `agi-tree` rather than a thing edited in parallel.
 
-**Verify only, until G6.3 lands.** A cron that *writes* the engine from the
-graph before the version layer is trusted is a data-loss defect waiting to
-happen, and this project has already paid for that class twice. Report drift;
-do not silently reconcile it.
+**Answering the question directly: today the two repos' commits are NOT the
+same work, and that is the defect.** This session's engine changes were edited
+directly in `agi`, and the level-3 nodes merely *describe* the result through
+`payload_ref`. The graph trails the code. G6.3 reverses the arrow (a fix lands
+as a build-node version), G6.4 gives it provenance (a non-build chain produces
+the next version), and only then is an automatic rebuild-and-push safe — at
+that point the engine commit is a *derivation*, and its message can cite the
+node and verdict that caused it.
 
-Pairs with **S2** (cron parity with fantasia) — there is no point scheduling a
-rebuild on a project whose basic sync cadence is not set up.
+**Sequencing, and it is not negotiable:**
+1. **Now — verify only.** Cron runs the generators and `stitch --verify`, and
+   reports drift. It writes nothing to the engine.
+2. **After G6.3** — cron may stitch and commit the engine.
+3. **After G6.4** — the engine commit message carries the node → verdict →
+   version chain that produced it.
+
+A cron that writes the engine from the graph before the version layer is
+trusted is a data-loss defect waiting to happen, and this project has already
+paid for that class twice (H0, H0b). Report drift; never silently reconcile it.
+
+**The generality worth preserving:** `agi` already has the tooling to run
+against *any* project, including itself. Pointing it at itself is what makes
+this loop closed; pointing it at fantasia is what makes it a product. Neither
+should require a different engine — see **G8.2**.
+
+Pairs with **S2** (done) and **S5** (the engine repo has no sync at all yet).
 
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
@@ -658,6 +678,65 @@ exposed to a workflow.
 
 Owns: **L9** (scaffolding a project without copying by hand — shares its writer
 with G1/L17). L10 moved to **G9**, which is where legibility now lives.
+
+### G8.1 — Decide the distribution shape: drop-in clone, skill package, or install — status: active
+
+**The engine currently arrives by being cloned into a project and gitignored.**
+That was chosen to prevent vendoring (H0/H0b: a committed copy diverges
+forever, and a stale one destroyed 29,264 files). It works, but it means every
+project carries a full checkout it must remember to pull, and L9 already found
+the gap: **the clone is unpinned and silently stale** — nothing declares which
+engine version a project expects and nothing warns on drift.
+
+Three candidate shapes, and the question is which one the engine should *be*:
+
+1. **Drop-in clone (today).** Simple, pullable, no packaging step. Costs a
+   checkout per project and has no version pinning.
+2. **Skill package(s).** Most of the engine is Python scripts invoked by a
+   skill; as features get more advanced the question is whether the `.py` files
+   belong *inside* skill packages rather than beside them. This would make the
+   engine installable the way every other skill is, and would fold naturally
+   into **G1.2** (folding caveman/cavekit/gitnexus into one skill). Open
+   question: whether a skill package is a sane home for ~15 entry points, a
+   `src/` tree and a test suite, or whether that is stretching the format past
+   what it is for.
+3. **A real install** (`pip`/`uv` tool, pinned version). Clean dependency and
+   version story; adds a release step and a packaging surface the project does
+   not have today.
+
+**Not a cosmetic choice — it decides who owns the engine's history.** Cloning
+into a work repo keeps the engine out of the project's history and lets the
+project maintain its own node set independently, which is the property that
+makes forkability work at all. Any shape chosen must preserve that separation.
+
+Pull L9's pinning gap in here regardless of the outcome: record the expected
+engine commit in `agi-tree.config.json` and warn (never fail) on drift. That
+closes the whole staleness class H0/H0b belong to, and it is cheap under any of
+the three shapes.
+
+**Related and load-bearing: S1.** Retiring `bin/` is partly a packaging
+question — a directory of scripts named `bin/` is exactly what a package
+layout would have to rename anyway, and it is currently costing GitNexus
+coverage of all fifteen entry points.
+
+### G8.2 — One engine, any project, including itself — status: active
+
+**The engine must never need to know which project it is running.** It already
+mostly holds: `driver.sh` walks up for a config file, the goal and build-site
+snapshots are project-agnostic, and the same binary ran against fantasia (a
+game) and agi-tree (an engine graph) this session without modification.
+
+What is newly true and worth protecting: **agi can be pointed at itself.** The
+census, the level-3 scan and `stitch` all ran against the engine's own source
+this session, which is what makes G6 a closed loop rather than a slogan. That
+self-application must stay a *normal use of the general tool*, never a special
+mode — the moment there is an `if project == "agi-tree"` branch anywhere, the
+generality that makes G8 possible is gone.
+
+Falsifier, and it is cheap to run: a third project — neither fantasia nor
+agi-tree — should reach a rendered map and a first chain with no engine change
+at all. L18 already proved the goals-only stage works on a bare project; this
+extends it through a full iteration.
 
 ## G9 — Legibility: a human can see what the loop is doing — status: active
 
@@ -847,3 +926,34 @@ grouped here because none of it is worth its own long-term goal:
 
 Do these last. Every one is a deletion, and the two data-loss defects this
 project has already paid for both arrived as routine cleanup.
+
+## S5 — The engine repo has no sync at all — status: active
+
+`agi-tree` got both grid cadences on 2026-08-22 (**S2**). **`agi` got nothing** —
+no cron, and as of that date 11 unpushed commits on `master` carrying every
+engine fix this session produced.
+
+**The consequence is worse than "not backed up", and it is specific:**
+`agi-tree` is now published, and its 74 level-3 nodes carry `payload_ref`
+values pointing at engine files at commits that exist only on one disk. A fresh
+clone of `agi-tree` gets a graph that describes code it cannot fetch —
+`stitch.py` would report every payload missing. The graph and its subject are
+published at different times, which is a new way for the two to disagree.
+
+Immediate fix, one line:
+
+```
+git -C /home/ubuntu/work/agi push origin master
+```
+
+Then decide the standing arrangement, which is **not** simply "install the same
+cron". The engine repo's sync should eventually be a *consequence* of the
+rebuild in **G6.5**, not an independent schedule racing it — two crons pushing
+two repos on separate cadences is exactly how the graph and the engine drift
+apart at the moment either one is slow. Until G6.3 makes the rebuild
+trustworthy, a plain hourly push of `agi` is the honest interim.
+
+Check the same thing that made S2 worth doing: **verify which branch is
+actually checked out before trusting any push.** agi-tree's work had
+accumulated on a stale `iter24-extend-300hop` branch, and a cron pushing
+`master` would have published nothing, silently, indefinitely.
