@@ -152,6 +152,79 @@ which should be done as part of deciding the boundary rather than before it.
 it currently indexes zero symbols for all fifteen engine entry points. See
 **S1** — that is the same problem from the other end.
 
+### G1.3 — The injected map teaches its own use — status: active
+
+**The map shows what is in the graph and says nothing about how to move through
+it.** An agent arrives holding 200 lines of ASCII render and no addressing
+scheme, so the only move it knows is the one it brought from outside: open a
+file. G1.1 asks for navigation to *exist*; this asks for the injected context to
+*teach* it, in the same block, at the top, before the agent has spent a token.
+
+**Adopt the supermap convention rather than inventing one.** The `.openclaw` and
+`.hermes` harnesses already address a workspace coordinate-first — short stable
+handles, a compact legend, full injection on the first turn and deltas after,
+with an explicit refresh command instead of a per-turn re-render. Two properties
+are worth copying exactly:
+
+- **Coordinates, not identifiers.** A node is reachable by a short handle an
+  agent can hold in working memory and name in one token, not by a 40-character
+  id it has to copy. Ids stay canonical on disk; coordinates are the interface.
+- **Full once, deltas after.** The first injection carries the whole map and the
+  legend. Subsequent refreshes carry what changed. Re-rendering the entire graph
+  every turn is precisely the motion this loop exists to remove.
+
+The legend is the part that does not exist today and is the cheapest half: a
+short header listing the moves available — step to a neighbour, widen, pull an
+adjacent region, refresh — so navigation is discoverable from the context rather
+than from a skill file the kid was never given.
+
+**Familiarity is the point, and it is a real constraint, not a preference.** The
+operator already thinks in this vocabulary across two other harnesses. A third
+dialect for the same idea is the G1.2 failure mode — four overlapping
+vocabularies for one concept — arriving through the front door.
+
+Falsifier, and it must be checked both ways: if kids given coordinates still
+quote full node ids and still request whole-graph renders to answer a follow-up,
+the layer added tokens instead of saving them. If the injected block grows
+faster than tool calls fall, the legend is too long.
+
+Shares its substrate with **G1.1** and **G9.4** — the coordinate a kid names,
+the region it requests and the viewport a human pans are one query at three
+resolutions. Build one mechanism with three front-ends.
+
+### G1.4 — Kids get the graph and nothing else — status: active
+
+**A kid should not be able to spend motion on anything but the graph.** Weight
+is the reason: everything a kid reads rides along in its context for the rest of
+the run, and most of what it reads is context the graph already holds — this is
+G1.1's finding stated as a permission rather than a capability. A kid that
+*cannot* open a source file cannot re-derive what it was already handed.
+
+The parent is exempt. It reviews, judges and commits; that is filesystem work by
+definition. This is a constraint on kids only.
+
+**Staged on purpose, and the order is not negotiable.**
+
+1. **Now — say it and measure it.** The kid brief states graph-only, and
+   `dispatch.py` logs every tool call a kid makes. A metric counts non-graph
+   calls per kid per iteration. Kids can still escape when genuinely stuck, and
+   *that escape is the measurement* — it says exactly which question the graph
+   could not answer.
+2. **Then — the allowlist.** Kids spawn with graph tools only; no `Read`,
+   `Grep`, `Glob`, `Bash`. The allowlist is derived from what stage 1 observed,
+   not guessed in advance.
+
+**The gate between the stages, stated so it cannot be skipped:** if stage 1 shows
+kids reaching for files the graph genuinely cannot answer, that is a **G1.1 gap,
+not a discipline problem**. Clamping the tools first would convert a missing
+navigation feature into a silent kid failure, and the loop would report fewer
+tool calls while producing worse nodes — the metric improving as the work gets
+worse. Fix the graph, then clamp.
+
+Falsifier: non-graph tool calls per kid trend to zero in stage 1 *without* node
+quality dropping. If quality drops, the graph is not yet carrying what it claims
+and stage 2 must not ship.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -513,6 +586,43 @@ this loop closed; pointing it at fantasia is what makes it a product. Neither
 should require a different engine — see **G8.2**.
 
 Pairs with **S2** (done) and **S5** (the engine repo has no sync at all yet).
+
+### G6.6 — Level 3 covers the non-code surfaces too — status: active
+
+**A projection that omits half the engine cannot rebuild it.** `level3.py`'s
+scope is deliberately narrow and says so in its own docstring:
+`extensions/agi/src/**/*.py` plus `extensions/agi/bin/*.py`, about 70 files.
+Everything else in `agi` is outside the graph entirely —
+
+- `skills/agi/SKILL.md`, the document that tells every agent what this loop *is*
+- `extensions/agi/lib/agent-prompt.md`, the kid brief itself
+- `extensions/agi/driver.sh`, `lib/find-root.sh`, `hooks/cc-session-start.sh` —
+  the shell surfaces, including the one that injects context into every session
+- `extensions/agi-bridge/index.ts`, `schema.sql`, `README.md`, `run-loop.sh`
+
+That was the right call for a first pass and it is now the thing blocking
+**G6.1**. Stitch cannot assemble `agi` from `agi-tree` while the skill, the kid
+brief and the session hook are files the graph has never seen. Worse, they are
+the *highest-leverage* files in the repo: a change to `agent-prompt.md` alters
+every kid in every future iteration, and today that change can be made with no
+node behind it — which is exactly the open loop **G6** exists to close, in the
+one place where it costs the most.
+
+What has to exist: a level-3 node per non-code surface, carrying the same
+derived contract shape as a code node — what it takes, what it promises — so
+`stitch.py --verify` reports drift on a prose file the same way it does on a
+module. Prose has no signature to parse, so the contract has to come from
+somewhere else; deciding what a `SKILL.md` node's contract *is* is the real work
+here, not the scanning.
+
+Note the reflexive case and do not skip it: **G1.3 and G1.4 are changes to
+`agent-prompt.md` and `dispatch.py`.** Under G6.1 they should originate as node
+versions, which means this sub-goal is on their critical path, not parallel to
+it. If they land as direct engine edits, they are two more entries in the
+evidence that the arrow still points the wrong way.
+
+Falsifier: run `stitch.py --verify` after editing one word of `SKILL.md`. If it
+reports no drift, the surface is not covered.
 
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
@@ -957,3 +1067,48 @@ Check the same thing that made S2 worth doing: **verify which branch is
 actually checked out before trusting any push.** agi-tree's work had
 accumulated on a stale `iter24-extend-300hop` branch, and a cron pushing
 `master` would have published nothing, silently, indefinitely.
+
+## S6 — Strip agi-tree to the graph and its inputs — status: complete
+
+Done 2026-08-23. `agi-tree` had accumulated a second copy of most of `agi`:
+~95 one-off `exp-*.py` / `extend-*.py` scripts at the root, a vendored engine
+tree (`src/`, `tests/`, `engines/` — the copy **G7.7** wanted retired), the
+cavekit-era runner, both `.STALE-DO-NOT-USE` snapshot scripts, a duplicate
+`skill/autoresearch-tree/` under the pre-rename name, and 768 tracked session
+transcripts. 1,026 files, −281k lines; git history is the archive.
+
+**The rule that replaces it, now in `CLAUDE.md` as a table:** this repo holds
+`nodes/`, the inputs the nodes are derived from (`GOALS.md`, `context/kits/`,
+`context/plans/build-site.md`, `context/schemas/`), and `agi-tree.config.json`.
+A `.py` file added here belongs in the engine.
+
+The engine arrives as a gitignored clone at `agi/`, the way `fantasia` takes it,
+so `driver.sh --smoke` runs from this repo with no install step. That is an
+interim shape and **G8.1** still owns the real answer — it is a second working
+copy of a repo that also lives at `~/work/agi`, and G6.5 wants exactly one
+stitch target. Recorded here so the interim is not mistaken for the decision.
+
+The duplicate skill was deleted rather than re-pointed: `~/.claude/skills/agi`
+already symlinks to `agi/skills/agi`. One skill, one source — **G1.2**'s first
+concrete step, taken by subtraction.
+
+Two things this surfaced that were not housekeeping:
+
+- **`agi` was 11 commits ahead of `origin`** — exactly **S5**'s defect, caught
+  because a fresh clone would have pulled an engine 11 commits stale. Pushed
+  before cloning. S5's standing arrangement is still open.
+- **`context/kits/` and `context/plans/build-site.md` are generators, not
+  stale output.** They mint 159 of 661 nodes, and `snapshot-build-site.py`
+  unlinks every `origin: build-site` node it does not re-derive on a run — so
+  deleting them prunes a quarter of the graph silently, at loop time rather than
+  at delete time. Kept, and the hazard is written into `CLAUDE.md`. This is the
+  **H0i** class a third time, and the third time it was found by reading the
+  script rather than by losing the data.
+
+Verified: `driver.sh --smoke --max-iters 1` completes and `nodes/` is
+byte-identical afterwards.
+
+**Left standing on purpose:** `nodes.db` (7.8 MB, gitignored — **G7.6** owns the
+persistence question, and deleting it while two loaders disagree is not
+cleanup), and the `.claude/worktrees/` worktree still registered against a
+`~/.hermes/agi-tree/` path (**S4** C5, which is gated and explicitly last).
