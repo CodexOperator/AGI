@@ -1,8 +1,0 @@
-**Iteration 1 complete** ✅
-
-**Summary:**
-- Extending `idea:domain-environment-indexers` (25-node subtree)
-- Gap identified: existing hypotheses R1-R9 cover invocation, filesystem, code, Python, API, container indexers — no incremental/delta indexing
-- Spawned `hyp:environment-indexers-r10` — Incremental Indexer with Manifest-Based Change Detection
-- Parent idea updated with new child reference
-- Verdict: pending (no experiment run yet)

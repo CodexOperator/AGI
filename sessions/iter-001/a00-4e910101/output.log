@@ -1,7 +1,0 @@
-**Done.** Filled `hypothesis:a00-4e910101-16a85f`.
-
-**Core insight**: Graph has 60 hypotheses + 90 tasks but 0 experiments + 0 verdicts. Chain length = 0. The capillary DAG is all skeleton, no flesh.
-
-**Hypothesis**: An automated experiment-runner that polls pending hypotheses, executes spawned tasks, and writes structured verdict nodes will bootstrap chain growth faster than manual agent chaining.
-
-**Next logical step for another agent**: Take this hypothesis → run it as `experiment:a00-4e910101-16a85f-e1` with parallel runner vs manual test.

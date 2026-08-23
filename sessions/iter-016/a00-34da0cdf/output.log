@@ -1,5 +1,0 @@
-**iter 16 done.** 
-
-**Fix:** Created `nodes/bigger-outcome/schema-registry-r2.md` — the missing `bigger-outcome` node that `outcome:schema-registry-r2-bracket-convention` was pointing to in its `next_edges`. Chain now fully closes: idea → hyp → exp → verdict → mvp → outcome → bigger_outcome → app_purpose.
-
-**Result:** Schema-registry domain recovered from 8-hop broken chain → 16-hop complete chain. All 8 domains now covered. 17 chains total, max 16 hops. 241 tests pass.

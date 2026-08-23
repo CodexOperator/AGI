@@ -1,7 +1,0 @@
-Done. Extended `idea:domain-autoresearch-tree-skill` with:
-
-- **hyp:autoresearch-tree-skill-r9** — Iteration checkpointing enables crash recovery (R9)
-- **exp:checkpoint-r9-01** — Crash recovery experiment with success metrics
-- **task:t-089** — Checkpoint phase write and resume logic (blocked by t-085, t-078)
-
-Commit: `bce840b` | Verdict: `pending` | Confidence: `0.3`

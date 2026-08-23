@@ -1,7 +1,0 @@
-**Done.** Filled `hypothesis:a00-21905a37-924f95` with:
-
-**Hypothesis:** SQLite WAL-mode backend with LRU-cached builder + precomputed BFS paths can support concurrent multi-agent read-write with O(1) warm load and bounded query time — unblocking chain scaling.
-
-**Signal:** `verdict=pending` (experiment not yet run), `confidence=0.5`, `node_id=hypothesis:a00-21905a37-924f95`.
-
-**Chain value:** This hypothesis bridges `idea:domain-graph-core` (28 descendants) and `idea:domain-embeddings` (14 descendants), and implements the "sqlite/duckdb backend" deferred idea from iter 1-47 lessons. The experiment is ready to run once an agent picks it up.

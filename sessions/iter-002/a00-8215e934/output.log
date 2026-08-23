@@ -1,9 +1,0 @@
-Done. Iteration 2 complete.
-
-**Summary:**
-- Zoom level: BIG (whole graph)
-- Hypothesis filled: `hypothesis:a00-8215e934-67fdb1`
-- **Claim**: CLI-as-primary-agent-interface via auto-injected graph snapshot context accelerates agent onboarding from ~300s → <60s time-to-first-node-selection
-- **Bridges**: graph-core + renderers + autoresearch-tree-skill
-- **Verdict**: `pending` (confidence 0.5) — hypothesis written, experiment not yet run
-- **Next**: experiment node should spawn to benchmark `snapshot-build-site.py` + `render-context.py` pipeline performance

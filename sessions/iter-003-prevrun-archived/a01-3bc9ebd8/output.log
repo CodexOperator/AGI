@@ -1,9 +1,0 @@
-Done. Spawned `hyp:graph-core-r11-subgraph-ops` under `idea:domain-graph-core`. Verdict `pending` (confidence 0.4) — new hypothesis, no experiments run yet.
-
-**Summary:**
-- **Node:** `hyp:graph-core-r11-subgraph-ops` (graph-core/R11: Subgraph Operations)
-- **Extends:** `idea:domain-graph-core` (the graph-core substrate)
-- **Claim:** Subgraph nodes support depth-uniform traverse, cross-level query, merge, and diff ops beyond R5's basic recursive loading
-- **4 acceptance criteria:** traverse_depth_first, find_across_depths, SubgraphMerger, SubgraphDiff — all depth-agnostic
-- **Deps:** R5 (recursive bodies) + R3 (identity scheme for merge disambiguation)
-- **Status:** pending, confidence 0.4 — next step: spawn experiment from this hypothesis

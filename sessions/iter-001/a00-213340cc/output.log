@@ -1,9 +1,0 @@
-Done. Filled `hypothesis:a00-213340cc-61bbbb` with:
-
-**Claim**: Graph has 60 hypotheses across 7 domains but 0 mvp/outcome nodes. Cross-domain synthesis (spanning 2+ domains simultaneously) will produce the first concrete deliverables faster than extending any single-domain chain.
-
-**Verdict**: `pending` — hypothesis written, awaiting experiment run.
-
-```
-status=done verdict=pending node=hypothesis:a00-213340cc-61bbbb
-```

@@ -1,5 +1,0 @@
-Done. Filled `hypothesis:a00-ffc62953-720017` with:
-
-**Hypothesis**: Agents with DAG context make fewer repeated-failure decisions. Test by comparing ollama subagents on analogous tasks — half with DAG injection in system prompt, half without.
-
-**Gap filled**: Zero `outcome` nodes in graph of 157. This hypothesis seeds the "agents-as-users" layer — tests whether the memory substrate actually changes behavior at decision time. Verdict: `pending`, needs experiment run.

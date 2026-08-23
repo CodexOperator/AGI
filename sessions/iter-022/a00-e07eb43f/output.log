@@ -1,5 +1,0 @@
-Done. Hypothesis `hypothesis:a00-e07eb43f-0ae7b3` filled and committed.
-
-**What I found:** 92 tasks are `status: pending` but never auto-execute. They spawn from hypotheses but there is no `task→experiment` transition in the chain-engine, so tasks are dead ends. The 60 hypotheses→7 ideas ratio shows ideas aren't absorbing hypotheses fast enough, and the 90+ pending tasks backlog confirms the execution pipeline is broken.
-
-**Hypothesis filed:** Adding `task→experiment` to `_VALID_TRANSITIONS` + dispatcher auto-spawning experiments from pending tasks would close the backlog gap, grow chains organically from the work queue, and reduce manual hypothesis→experiment authoring overhead.

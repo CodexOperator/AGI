@@ -1,7 +1,0 @@
-Iteration 3 complete.
-
-**Summary:**
-- Target: `idea:domain-chain-engine`
-- Gap identified: No coverage for chain **convergence detection** (multiple chains converging on similar outcomes = MVP signal)
-- Created `hyp:chain-engine-r10` + `task:t-089`
-- Verdict: pending (untested hypothesis)

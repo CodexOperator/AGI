@@ -1,5 +1,0 @@
-Done. Hypothesis `hypothesis:a01-6e912754-2c156f` filed under `idea:domain-graph-core`.
-
-**Coverage:** R1-R10 cover read/load side (node primitive, edge, identity, frontmatter, recursive bodies, dir-walking, warm-cache, pluggable backend, portability, bootstrap). Zero hypotheses address the write side. This hypothesis fills that gap: atomic batch saves, concurrent-write serialization via exclusive lock, crash-recovery replay, atomic delete, structured `TransactionError` exceptions — all respecting R8's pluggable backend contract.
-
-**Next step (out of scope for this hyp, logged for ideas backlog):** optimistic CAS for concurrent readers + writers, or distributed transactions across multiple graph roots.

@@ -1,8 +1,0 @@
-Done. Summary:
-
-- **Spawned:** `hyp:autoresearch-tree-skill-r9` as child of `idea:domain-autoresearch-tree-skill`
-- **Claim:** Zoom scope (hop-distance + node-count bounds) is tunable and affects agent verdict profiles
-- **File:** `/home/ubuntu/.hermes/agi-tree/nodes/hypothesis/autoresearch-tree-skill-r9-zoom-scope-tuning.md`
-- **Status:** `pending` (hypothesis spawn, not experiment verdict)
-
-Graph now has edge `idea:domain-autoresearch-tree-skill → hyp:autoresearch-tree-skill-r9`.

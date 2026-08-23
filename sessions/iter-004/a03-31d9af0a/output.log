@@ -1,8 +1,0 @@
-Done. Spawned two nodes:
-
-| Node | Type | Content |
-|---|---|---|
-| `hyp:chain-engine-r10` | hypothesis | Chain Convergence Detection — staleness threshold, `converged_chains()` / `active_chains()` queries, lazy recompute on node add |
-| `task:t-060` | task | Experiment spec with implementation steps and test verification pattern |
-
-**Coverage gap filled:** R1–R9 cover definition, virtuality, attractor, mid-chain join, fork mechanics, attractiveness function, config, verdict taxonomy, and query API. R10 adds convergence detection — the missing signal for when a chain is quiescent vs. alive.

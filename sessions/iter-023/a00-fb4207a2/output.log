@@ -1,9 +1,0 @@
-Done. Iteration 23 complete.
-
-**Summary:**
-- **Achieved**: 72 hops (3 chains: chain-engine-r1, environment-indexers-r1, graph-core-r1 at 32 cycles each)
-- **Formula verified**: `hops = 2*cycle + 8` (32×2+8=72 ✓)
-- **Chain count**: 17 total (3 @72, 1 @56, 4 @48, 1 @46, 8 @8)
-- **Tests**: 257 passing
-- **Ideas backlog**: Updated with 72-hop milestone and iter 23 state
-- **Git**: Committed via experiment script (`8b6d037`)
