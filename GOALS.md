@@ -1226,3 +1226,13 @@ the wiring a second phase over the completed set. Assert the fixed point in a
 test — run twice, second run writes nothing. Related to **G7.1** (referential
 integrity on every parent reference), which checks the reference that exists;
 this is the reference that silently does not.
+
+
+## S8 — `zoom.py` bakes the pi-runtime completion contract into the kid context — status: active
+When using the script to inject context, eventually zoom.py fires and inserts the
+reference for each kid on how to mark the completion of their task. It currently
+inserts a pi-runtime reference for completion, rather than being properly runtime-
+agnostic. 
+
+Fix: make zoom.py or whatever upstream file be runtime aware and offer the proper
+completion contract or have this be set during install. 
