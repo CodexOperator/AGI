@@ -7,6 +7,9 @@ origin: goals-doc
 seeds:
   - goal:g1.1
   - goal:g1.2
+  - goal:g1.3
+  - goal:g1.4
+  - goal:g1.5
   - idea:engine-cli
   - idea:engine-driver-sh
   - idea:engine-find-root

@@ -225,6 +225,45 @@ Falsifier: non-graph tool calls per kid trend to zero in stage 1 *without* node
 quality dropping. If quality drops, the graph is not yet carrying what it claims
 and stage 2 must not ship.
 
+### G1.5 — `init` leaves nothing to install by hand — status: active
+
+**Setting up a project is currently three manual steps and a memory test.** The
+commands all exist and none of them are called by anything:
+
+- `grid.py init` — adds the `refs/grid/*` fetch refspec to origin. Skip it and a
+  fresh clone silently has no version history; nothing warns, the grid is simply
+  absent.
+- `grid.py cron install` — the two-cadence sync (5-minute snapshot + grid push,
+  hourly D1 push). Skip it and the crash-recovery window is not ≤5 minutes, it
+  is however long since someone last remembered.
+- The project scaffold itself — `agi-tree.config.json`, `nodes/`, `context/` —
+  is **L18 action 2** and does not exist at all. `cli.py scaffold` scaffolds a
+  node, not a project.
+
+This is G1's invariant failing on G1's own setup path: three repeated mechanical
+steps, none of them a named command, none carrying a written reason for staying
+manual. The failure mode is silent in both directions — an uninitialised grid
+and an uninstalled cron both look exactly like a working project until the day
+you need the history.
+
+What has to exist: one command that takes a directory to a running project —
+config written from a schema (**L17**) rather than by hand, `nodes/` and
+`context/` scaffolded, grid refspec configured, crons installed, and the whole
+thing idempotent so re-running it on a live project is safe and does nothing.
+
+**Verify the cron the way S2 had to be verified.** `grid.py cron install` must
+confirm which branch is actually checked out, because agi-tree's own work once
+sat on a stale `iter24-extend-300hop` branch while a cron pushed `master` and
+published nothing, silently, indefinitely. An installer that writes a crontab
+line without that check just automates the same failure faster.
+
+Pairs with **G8.1** — whatever the distribution shape turns out to be
+(drop-in clone, skill package, installer), this is the command it has to end in.
+
+Falsifier: clone the repo to an empty machine, run the one command, and check
+that `git fetch` brings the grid down and `crontab -l` shows both cadences. If
+either needs a second command, this is not done.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -623,6 +662,55 @@ evidence that the arrow still points the wrong way.
 
 Falsifier: run `stitch.py --verify` after editing one word of `SKILL.md`. If it
 reports no drift, the surface is not covered.
+
+### G6.7 — Publish the engine as a grid ref, not a written tree — status: horizon
+
+**The question: could a fourth grid dimension replace `stitch.py --out`?** The
+grid already has three — D1 chain (`refs/heads/*`), D2 node
+(`refs/grid/node/<id>`), D3 session (`refs/grid/session/...`). A D4 *release*
+dimension would take each build node's payload, `mktree` it into the engine's
+directory layout, `commit-tree` it, and move `refs/grid/release/agi`. The live
+engine becomes a ref you can move and roll back, and `agi` is published by
+pushing that ref rather than by writing 74 files and committing them.
+
+**Answer the blocking part first, because it decides everything else: there is
+no code in the graph to stitch.** A level-3 node holds `payload_ref` — a
+*pointer* into the engine repo — plus a mechanically-derived contract.
+`stitch.py`'s own docstring is honest about the consequence: `--out` is
+"near-identity: resolve 73 pointers, copy 73 files… not a compiler". That shape
+was a deliberate decision, recorded in `hyp:level3-node-anatomy` — source lives
+on disk exactly once, never inlined. So D4 has nothing to pick out. **The fork
+is not `stitch.py` vs. the grid; it is whether a node holds its payload or
+points at it**, and that is **G6.3**, which is already the gate on G6.5.
+
+**Once payloads are in nodes, D4 is the better publisher, for one reason worth
+stating plainly: a `commit-tree` cannot partially apply.** `stitch.py --out`
+writing 74 files can fail on file 35 and leave a half-written engine — the exact
+class of defect this project has paid for three times (H0, H0b, H0i). Grid
+commits are built with plumbing and never touch a working tree, so either the
+ref moves or nothing happened. G6.5's sequencing exists precisely because a cron
+that writes the engine before the version layer is trusted is a data-loss defect
+waiting to happen; an atomic publisher is what makes step 2 of that sequence
+safe rather than merely sequenced.
+
+**And it is not "yet another layer".** D4 reuses the same object store, the same
+plumbing helpers and the same push path D2 and D3 already use — the marginal
+cost is a ref namespace and a tree-builder, not a second system. A node version
+whose content is also on D1 is the same blob.
+
+**So `stitch.py` is not retired — it is re-scoped, exactly as proposed:**
+`--verify` stays the valuable half (an independent claim about what the tree
+should contain, which `cp -r` cannot make), and `--out` becomes the *test*
+materialisation — put the graph on disk, run the suite against it — while
+publishing goes through the ref.
+
+Ordering, and none of it is optional: **G6.3** (payload in the node) → this →
+**G6.5** step 2 (cron may commit the engine). Building D4 before G6.3 would
+produce a publisher with nothing to publish.
+
+Falsifier: with payloads in nodes, build `refs/grid/release/agi` from the graph
+and confirm the tree it names is byte-identical to what `stitch.py --out`
+produces. If it is not, one of the two is lying about what the graph contains.
 
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
@@ -1112,3 +1200,29 @@ byte-identical afterwards.
 persistence question, and deleting it while two loaders disagree is not
 cleanup), and the `.claude/worktrees/` worktree still registered against a
 `~/.hermes/agi-tree/` path (**S4** C5, which is gated and explicitly last).
+
+## S7 — `snapshot-goals.py` needs two passes to wire a new sub-goal — status: active
+
+Found 2026-08-23 while adding G1.3–G1.5, G6.6 and G6.7. Adding a sub-goal and
+running the script once mints the child node with a correct `parents:` list, but
+the **parent's `seeds:` list does not contain it**. A second run adds it.
+Reproduced twice: pass 1 wrote `goal:g1.5` and left `goal:g1` unchanged; pass 2
+added `- goal:g1.5` to `goal:g1`.
+
+Cause is ordering — the parent's frontmatter is composed before the children of
+that pass exist, so each run wires the sub-goals it knew about at entry.
+
+**Why it is worth a row rather than a shrug.** The edge exists in one direction
+only, so nothing looks broken: the child's `parents:` is right, traversal
+upward works, and `--verify` has no complaint. What breaks is downward
+traversal — a renderer or a kid walking `seeds:` from `goal:g1` cannot see the
+newest sub-goal, which is reliably the one being worked. `driver.sh` runs the
+script every iteration so a live loop self-heals on the next pass, which is
+exactly what makes this easy to never notice; a fresh clone plus a single run
+renders a graph whose most recent work is invisible from above.
+
+Fix: compose parent seed lists after all nodes for the pass are known, or make
+the wiring a second phase over the completed set. Assert the fixed point in a
+test — run twice, second run writes nothing. Related to **G7.1** (referential
+integrity on every parent reference), which checks the reference that exists;
+this is the reference that silently does not.
