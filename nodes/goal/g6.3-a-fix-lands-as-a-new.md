@@ -6,7 +6,8 @@ id: "goal:g6.3"
 origin: goals-doc
 parents:
   - goal:g6
-seeds: []
+seeds:
+  - hyp:payload-in-node
 status: active
 tags:
   - goal
