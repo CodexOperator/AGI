@@ -575,6 +575,33 @@ update, stitch it out, and confirm the engine file is byte-identical to what the
 direct edit produced. If it is not, the version layer is not yet a source of
 truth and should not be described as one.
 
+**Payload model decided 2026-08-23 (iter-9006 → 9008), and the falsifier is now
+known to be passable.** The chain is `hyp:payload-in-node` →
+`exp:grid-payload-roundtrip` → `verdict:payload-in-node` (proved, conf 0.75,
+evidence resolves).
+
+- **The pick: grid-ref payload.** `payload_ref` keeps its shape; only its
+  *resolution rule* changes, from "read this path off the engine tree" to "read
+  this path from `refs/grid/node/<id>`'s tree". Inline body lost — three
+  independent docstrings rule it out and a source file containing a fence breaks
+  the node's own parser. Blob-sha lost on authoring mechanics, not storage: the
+  blob must exist before the sha can be written, so the edit is never expressible
+  as one node write, and a sha-to-sha diff says *that* something changed and
+  nothing about *what*.
+- **Proved at the mechanism level, with bytes.** Git's tree format carries
+  content, exec bit and symlink-ness losslessly across real version history — 4
+  files × 3 bumps, sha256-matched against a non-git baseline.
+- **Blocked on S9, and this is the operative sentence:** "payload lives in the
+  node's grid ref" is a proved **design**, not a proved **deployment**. Wiring
+  resolution to `commit_file()` as it ships today reproduces the failing variant.
+  S9 first.
+
+This also settles that the anatomy decision was not overturned by fiat. A grid
+ref is never checked out, so it is not a second copy of the tree — it is a second
+*name* into the same object store. When bytes match, git's hashing makes them the
+same object, which is a stronger non-drift guarantee than "never inlined" was
+reaching for.
+
 ### G6.4 — Non-build work branches off a build version and returns a new one — status: horizon
 
 The full cycle, once G6.3 holds: a non-build chain — idea → hypothesis →
@@ -660,8 +687,54 @@ versions, which means this sub-goal is on their critical path, not parallel to
 it. If they land as direct engine edits, they are two more entries in the
 evidence that the arrow still points the wrong way.
 
-Falsifier: run `stitch.py --verify` after editing one word of `SKILL.md`. If it
-reports no drift, the surface is not covered.
+~~Falsifier: run `stitch.py --verify` after editing one word of `SKILL.md`. If it
+reports no drift, the surface is not covered.~~ **Retired 2026-08-23 — see below.
+It was run, it fired, and passing it would not deliver what this goal is for.**
+
+**Measured and judged 2026-08-23 (iter-9006 → 9008).** Chain:
+`exp:noncode-surface-census` → `exp:prose-surface-probe` →
+`verdict:noncode-coverage` (disproved as written, conf 0.85, evidence resolves).
+The two halves of this goal resolve in opposite directions, so they are now
+stated separately.
+
+**The coverage diagnosis holds, and is no longer an assertion.** 74 of 316
+tracked files carry level-3 nodes; against an eligible set of 189 after 127
+justified exclusions, 74/189 = **39.2%**. Zero declared-scope files are missed —
+the generator does exactly what it says, so the gap is a scope decision, not a
+bug. All nine files named above: **9/9 uncovered**, verified. One extra find:
+`extensions/agi/scripts/migrate_to_sqlite.py` is hand-written engine code that
+misses the scan only because `scripts/` is not a scanned prefix — a second,
+narrower scope bug.
+
+**The remedy as originally stated does not deliver.** The old falsifier was run
+for real and fired: a one-word edit to the live `SKILL.md` produced zero drift,
+because `ast.parse` dies unconditionally at line 4 on an em dash, so stored and
+fresh contracts are always the identical failure and the diff is always empty.
+Worse than the mechanism failing is what fixing it would buy: of four candidate
+prose-contract shapes, the best — **extracted claims** (directive clauses and
+numbered rules, with line numbers, derived mechanically the way code's `how` is)
+— *would* pass that falsifier, and would still **not** have caught the
+`agent-prompt.md` / `SKILL.md` contradiction that motivates this goal. That is
+two self-consistent nodes disagreeing, not one node going stale against its own
+file, and `stitch.py`'s only cross-node check compares `payload_ref` strings,
+never content.
+
+**What this goal now commits to, in order:**
+1. **Contract shape: extracted claims.** Decided, not left open. Same split code
+   contracts use — the harness derives the claim list mechanically, a model fills
+   the judgement fields.
+2. **A fifth drift category: cross-node claim comparison.** None of the existing
+   four compares two nodes against each other. Without it, coverage alone cannot
+   deliver the reflexive-case protection this goal argues for.
+3. **Reserve a model-judgement step.** "Commit your work" contradicting "do not
+   commit" is a semantic negation. No mechanical diff performs it, and the
+   `how`/`why` split reserves no room for it today.
+
+**Replacement falsifier, and it is the whole point:** reintroduce the
+`agent-prompt.md` / `SKILL.md` contradiction and confirm `stitch.py --verify`
+flags it. Passing the old one-word test would have produced false confidence that
+the reflexive case (G1.3/G1.4 editing `agent-prompt.md`) is protected when it is
+not.
 
 ### G6.7 — Publish the engine as a grid ref, not a written tree — status: horizon
 
@@ -711,6 +784,22 @@ produce a publisher with nothing to publish.
 Falsifier: with payloads in nodes, build `refs/grid/release/agi` from the graph
 and confirm the tree it names is byte-identical to what `stitch.py --out`
 produces. If it is not, one of the two is lying about what the graph contains.
+
+**Gained a hard precondition 2026-08-23 (`verdict:payload-in-node`): D4 inherits
+S9's defect structurally, not incidentally.** D4's whole plan is to `mktree` each
+build node's payload using the same plumbing `commit_file()` uses. Pointed at
+that code as it ships, D4 would silently mis-hash every symlinked payload and
+downgrade every exec-bit payload — **across the entire published engine tree, in
+one commit.**
+
+And atomicity does not save it. G6.7's selling point is "either the ref moves or
+nothing happened", which is worthless when the tree being atomically published is
+simply the wrong tree, moved cleanly. An atomic publisher of corrupt content is
+worse than a partial writer, because the partial writer leaves evidence.
+
+So **S9 is not a shared inconvenience, it is the same fix with two callers.**
+G6.3 and G6.7 do not each need their own mode-aware rewrite; they need the one
+rewrite to land before either attempts its falsifier.
 
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
@@ -1227,12 +1316,98 @@ test — run twice, second run writes nothing. Related to **G7.1** (referential
 integrity on every parent reference), which checks the reference that exists;
 this is the reference that silently does not.
 
-
 ## S8 — `zoom.py` bakes the pi-runtime completion contract into the kid context — status: active
 When using the script to inject context, eventually zoom.py fires and inserts the
 reference for each kid on how to mark the completion of their task. It currently
 inserts a pi-runtime reference for completion, rather than being properly runtime-
-agnostic. 
+agnostic.
 
 Fix: make zoom.py or whatever upstream file be runtime aware and offer the proper
-completion contract or have this be set during install. 
+completion contract or have this be set during install.
+
+**Corroborated 2026-08-23 by the iter-9006..9008 run, which hit it three times.**
+The generated kid context ends with a `cli.py done` block, so every CC-dispatch
+kid was handed a completion contract that `skills/agi/SKILL.md` explicitly
+forbids for its role ("do not commit, and do not call `cli.py done`"). All six
+spawn prompts had to carry an out-of-band override telling the kid to ignore its
+own context file. `exp:noncode-surface-census` independently found the same
+contradiction one layer up, between `agent-prompt.md` rules 5–6 and SKILL.md's
+kid contract.
+
+That makes this a three-way disagreement — `agent-prompt.md`, `zoom.py`'s emitted
+block, and `SKILL.md` — about one procedure, with no file deferring to another.
+Note the shape: it is the same defect **G6.6** exists to catch, and G6.6's own
+verdict says the currently-prescribed remedy would not have caught it, because
+all three are internally self-consistent and only disagree with each other.
+Patching at dispatch time, as this run did, is the workaround, not the fix.
+
+## S9 — `commit_file()` drops the exec bit and mis-hashes symlinks — status: active
+
+Found 2026-08-23 by `exp:grid-payload-roundtrip`, confirmed at the cited lines.
+`bin/grid.py`:
+
+- **`:154`** — `git hash-object -w str(path.resolve())`. `Path.resolve()`
+  dereferences a symlink *before* hashing, so the object committed is the
+  **target file's bytes**, not the link text. Not a dropped-metadata edge case: a
+  silently wrong object, no error, no warning.
+- **`:160`** — the tree line is `f"100644 blob {blob}\tnode.md\n"`. Mode is
+  hardcoded, so any `100755` payload comes back `100644` and any `120000` comes
+  back a regular file.
+
+**Benign today, and it will not stay that way.** Grid only ever commits regular
+node `.md` files under the fixed name `node.md`, and node files are not symlinks
+and not executable — so nothing is currently wrong on disk. The defect activates
+the moment a *payload* goes through the same call, which is exactly what
+**G6.3** picked and what **G6.7** is built on. This is the rare case where the
+right time to fix a latent bug is before its first caller, because both callers'
+falsifiers are byte-comparisons that it would fail.
+
+Fix: read the mode from `os.lstat()` (100644 / 100755 / 120000) and, for a
+symlink, hash the `readlink()` target text via `hash-object --stdin` rather than
+the dereferenced file — which is what `git add` does internally, built from the
+four primitives `grid.py` already calls. A matching mode/symlink-aware read path
+is needed in whatever resolves a payload back out. Estimated ~15–20 lines, and
+the experiment's mode-aware variant is a working reference implementation
+(`sessions/iter-9007/kid-c/sandbox/`, which is gitignored — port it, do not
+depend on it).
+
+Test: the experiment's own table is the regression suite — a 100755 file and a
+120000 symlink, three version bumps each, sha256 against a non-git baseline.
+
+Blocks **G6.3** and **G6.7**. One fix, two callers.
+
+## S10 — the purged gamed mass is still on disk inside agi-tree — status: active
+
+Found 2026-08-23. **G6.2 says the 28,916 gamed `-extend<N>` nodes were "removed
+from the working tree and archived outside the repo." The first half is not
+true.** `.claude/worktrees/wonderful-lamport-51c9a9/` — a git worktree registered
+against a `~/.hermes/agi-tree/` path — still holds **29,706 `.md` files, 29,062
+of them `-extend<N>` nodes**. They are gitignored, which is why nothing has
+complained, and why nothing found them for two days.
+
+**The hazard is specific and I walked into it while writing this iteration.**
+`evidence_gate.build_corpus()` takes a directory and `rglob`s it for `*.md`.
+Called on `nodes/` it returns 657 ids, correct. Called on the **project root** it
+returns **29,582** — the pre-purge corpus, resurrected. A verdict citing a
+deleted gamed node as `evidence_runs` would resolve against it and pass the gate,
+which is H4c's fix silently undone.
+
+**The engine is not currently affected, and that was checked rather than
+assumed:** all three real callers pass `root / "nodes"` — `cli.py:85`,
+`metrics.py:145`, `post_wire.py:137`. The bug was in the throwaway harness that
+found it. But "the correct argument is passed at all three current call sites" is
+a property of today's callers, not of the function, and the incorrect call took
+one line to write.
+
+Two independent fixes, and both are cheap:
+1. **Delete the worktree.** `git worktree remove` / prune. This is **S4** C5,
+   which is gated and explicitly last — this entry is the evidence for promoting
+   it, because "archived, not deleted" was the deviation G6.2 recorded and it did
+   not fully happen.
+2. **Make `build_corpus` refuse a non-`nodes/` root**, or resolve `nodes/` itself
+   from the project root rather than trusting the caller. A gate that cannot
+   verify must fail closed — the function already argues exactly this for a
+   `None` corpus, and should hold itself to it for a wrong directory.
+
+Do (2) regardless of (1). Deleting the worktree removes today's 29k; it does not
+stop the next stale tree from being swept in.
