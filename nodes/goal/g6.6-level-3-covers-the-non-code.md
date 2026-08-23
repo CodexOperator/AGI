@@ -6,7 +6,8 @@ id: "goal:g6.6"
 origin: goals-doc
 parents:
   - goal:g6
-seeds: []
+seeds:
+  - exp:noncode-surface-census
 status: active
 tags:
   - goal
