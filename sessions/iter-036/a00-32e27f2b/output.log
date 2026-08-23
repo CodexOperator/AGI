@@ -1,8 +1,0 @@
-**Iteration 36 complete.**
-
-- **Hypothesis**: Graph is chain-poor because task outputs don't generate `next` edges → new hypotheses
-- **Result**: **PROVED** (confidence 1.0)
-- **Evidence**: 100% of 91 tasks are terminal leaves; 0 experiments, 0 verdicts, 0 spawns/next edges
-- **Key insight**: Backlog shows chains were pushed to 100+ hops in prior iterations, but current graph snapshot shows longest chain = 0 hops — graph was reset, chain propagation never rebuilt
-
-Next logical step: create an experiment or idea about rebuilding chain propagation in the current graph.

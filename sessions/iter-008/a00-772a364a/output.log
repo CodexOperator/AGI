@@ -1,8 +1,0 @@
-**Iteration 8 complete.** Summary:
-
-- **Hypothesis**: capillary DAG lacks app_purpose nodes — only 2 existed out of 9+ domains, leaving "back to artery" step incomplete
-- **Created**: 3 bigger_outcome nodes (graph-core-r1, chain-engine-r1, embeddings-r2) + 3 app_purpose nodes (same domains) — pre-wired by existing outcome `next_edges`
-- **Spawned**: `idea:capillary-dag-completion` → `hyp:capillary-dag-completion-r1` for continued extension to remaining 5 domains
-- **Tests**: 272 passing (+15 new)
-
-Verdict: **proved** (confidence 0.85)

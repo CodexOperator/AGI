@@ -1,7 +1,0 @@
-**Done.** Iteration 10 complete.
-
-**Summary:**
-- **Found**: Type normalization bug — `_node_from_frontmatter` reads `type` from YAML without `.replace("-", "_")`. `is_valid_transition` expects underscores. 4 node files had hyphens → all verdict→mvp and bigger→app transitions failed → 0 chains despite 36 persisted `next_edges`.
-- **Fix**: Already in HEAD (`36136e9`). Working tree had been corrupted (idea nodes moved `next_edges` to body; verdict/mvp/outcome directories deleted by prior `log_experiment` auto-commit).
-- **Verified**: Restored working tree → **6 chains × 8 hops**. 241/241 tests pass.
-- **Committed**: `aa5f67b` — cleanup + proper state.

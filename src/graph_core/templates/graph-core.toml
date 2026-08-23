@@ -1,4 +1,0 @@
-# Default graph-core config (T-015 / R8.4)
-
-[persistence]
-backend = "filesystem"  # filesystem | in_memory

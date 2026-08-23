@@ -1,7 +1,0 @@
-**Done.** Iteration 2 complete.
-
-**Summary**: Seeded new idea domain `idea:domain-agent-onboarding` with hypothesis `hypothesis:a00-1ed4ac0e-899b6a`.
-
-**Hypothesis**: ASCII map + chain context injection via SessionStart hook reduces agent time-to-first-useful-contribution and improves chain-extension decision quality.
-
-**Why this domain**: All 7 existing domains are internal architecture (graph-core, chain-engine, renderers, etc.). No domain covers the agent-facing layer — how agents actually interact with and onboard to the capillary DAG. This gap is critical for the system to work as intended.

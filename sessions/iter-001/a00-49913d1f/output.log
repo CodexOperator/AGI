@@ -1,8 +1,0 @@
-Done. Iteration 1 complete.
-
-**Summary:**
-- **Graph before**: 157 nodes (idea=7, hypothesis=60, task=90), 0 experiment/verdict/mvp/outcome nodes
-- **Graph after**: 164 nodes (+7 chain nodes), full 8-hop capillary chain for `idea:domain-schema-registry`
-- **Experiment**: `exp-schema-registry-r1-schema-as-file.py` — 41/41 tests PASS, 5/5 R1 criteria PASS → **PROVED**
-- **Chain**: idea → hyp → exp → verdict → mvp → outcome → bigger-outcome → app-purpose
-- **Commits**: 4 (c3886c3, b219411, 6d69fcc, 2acbc10)

@@ -1,1 +1,0 @@
-**Done.** Added `hyp:environment-indexers-r10` — incremental indexing with file watchers. Extends R8 caching with live change detection. Committed and signaled completion.

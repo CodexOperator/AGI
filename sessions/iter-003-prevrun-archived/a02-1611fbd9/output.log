@@ -1,7 +1,0 @@
-Done. Agent a02-1611fbd9 completed iteration 3:
-
-**Added to `idea:domain-environment-indexers` subtree:**
-- `hyp:environment-indexers-r10` — Indexer Output Validation
-- `task:t-050` — Indexer output validation with schema enforcement
-
-**Gap filled:** The existing 9 hypotheses cover *what* indexers do (filesystem, code, python, api, container) and *how* they're invoked (r1), laid out (r7), cached (r8), documented (r9). Missing: *data integrity* — ensuring emitted nodes conform to schemas before commit. R10 adds validation as a first-class concern.

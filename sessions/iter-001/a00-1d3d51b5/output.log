@@ -1,9 +1,0 @@
-Done. Agent a00-1d3d51b5 completed.
-
-**Summary:**
-- **Hypothesis filled:** `hypothesis:a00-1d3d51b5-36990a` — "Zoom-level routing: BIG zoom agents spawn 3x more new ideas than SMALL zoom agents"
-- **Parent:** `idea:domain-autoresearch-tree-skill`
-- **Verdict:** `pending` (experiment not yet run)
-- **Confidence:** 0.5 (prior plausibility, needs empirical test)
-
-**Key finding:** The graph has 7,782 experiments, 7,797 verdicts, 14 idea domains — but zero hypotheses test the zoom-level routing signal that steers agent behavior. The SessionStart hook injects BIG vs SMALL zoom, but no experiment validates whether this routing actually produces different node-type outputs. This hypothesis fills that gap.

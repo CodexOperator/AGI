@@ -1,9 +1,0 @@
-{
-  "frontmatter": {
-    "fields": {
-      "title": {"type": "string"}
-    },
-    "name": "idea"
-  },
-  "body": "JSON-format schema example"
-}

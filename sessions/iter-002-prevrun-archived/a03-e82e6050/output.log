@@ -1,5 +1,0 @@
-Done. Extended `idea:domain-chain-engine` with:
-
-- **hyp:chain-engine-r10** — Chain State Machine (active → stalled → complete → archived lifecycle)
-- **task:t-060** — Implementation task for the state machine
-- **verdict:pending** (confidence 0.5)

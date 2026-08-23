@@ -1,6 +1,0 @@
-**Done.** Agent a00-f52b1b9f completed iteration 1.
-
-- **Verdict**: proved
-- **Confidence**: 0.95  
-- **Node**: exp:cot-steering-r1-isomorphism-test
-- **Notes**: ASCII and Mermaid renderers produce isomorphic output - same nodes, edges, hierarchy confirmed

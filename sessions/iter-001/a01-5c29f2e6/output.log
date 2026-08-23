@@ -1,7 +1,0 @@
-Done. Filled `hypothesis:a01-5c29f2e6-f5104d` as **graph-core/R11: Query and Filter API**.
-
-**What I wrote:** A typed query API covering filter-by-type, filter-by-tag, filter-by-edge-relation, structural predicates (depth range, breadth), and built-in BFS/DFS traversal — targeting sub-100ms on 500 nodes without precomputed indexes. Proven via benchmark script; disproved if any query exceeds 100ms.
-
-**Why this fills a gap:** R1-R10 cover node primitive, edge primitive, identity, persistence, recursive bodies, directory-walking, warm caching, pluggable backend, portability, bootstrap. No existing hypothesis addresses query/filter primitives for the graph. This fills that gap and is directly testable.
-
-**Status:** `pending` — experiment not yet run, confidence 0.5.

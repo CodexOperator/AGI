@@ -1,8 +1,0 @@
-Done. Iteration 3 complete.
-
-**Summary:**
-- **Node filled:** `hypothesis:a00-2c6ccbe8-d1eab7`
-- **Hypothesis:** CLI bootstrap from seed produces a valid, queryable capillary DAG
-- **Rationale:** Graph has 60 hypotheses and 90 tasks but 0 experiments/verdicts — the capillary layer (experiment→verdict→MVP→outcome) is entirely missing. This hypothesis tests the critical gate: can the CLI bootstrap a valid DAG from a seed doc, which is the prerequisite for any experiment to run and produce a verdict.
-- **Verdict:** `pending` (experiment not yet run)
-- **Confidence:** 0.6

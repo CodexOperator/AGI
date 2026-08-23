@@ -1,114 +1,86 @@
-# Autoresearch-Tree — Capillary DAG Memory for Agent Onboarding
+# CLAUDE.md — agi-tree
 
-## What This Is
+Read [GOALS.md](GOALS.md) first. It is the source of truth for what this project
+is committed to and **the only place new work is recorded**. This file covers
+what the repo contains and how to run the loop.
 
-Fresh chain of autoresearch (iter 0) replacing saturated `~/.hermes/agi/` (iter 47, build_time at 0.04ms hardware noise floor).
+## What agi-tree is
 
-**Pivot**: stop optimizing graph build time. Build a *capillary DAG* of research ideas → hypotheses → experiments(verdicts) → MVP scripts → outcomes (i/o-doc fusion) → broader outcomes → entire-stack purpose. Agents browse the DAG to onboard fast and pick where to contribute next.
+`agi-tree` is the thoughtgraph that builds `agi`; `agi` is the code that operates
+on thoughtgraphs. This repo holds **the nodes and the inputs the graph is
+derived from — nothing else.** Code lives in the engine repo.
 
-## Mental Model: Capillary System
+## What is allowed to exist here
 
-```
-Big idea (artery)
-  └── Hypothesis (vein)
-        └── Experiment → verdict ±confidence
-              └── (more hypotheses)
-                    └── MVP script (capillary)
-                          └── Outcome [i/o-doc + README fusion]
-                                └── Broader outcome
-                                      └── App purpose (back to artery)
-```
+| Path | Why it is here |
+|---|---|
+| `nodes/` | The graph. The persistent thoughts. Committed. |
+| `GOALS.md` | Human-authored goal contract. `snapshot-goals.py` derives `nodes/goal/` from it. |
+| `context/kits/`, `context/plans/build-site.md` | Generator inputs for the 159 `origin: build-site` nodes. See the warning below. |
+| `context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
+| `agi-tree.config.json` | Project marker + loop tuning. Its presence is what makes this dir a project. |
+| `agi/` | Drop-in clone of the engine. Gitignored — never commit it here. |
 
-Branchy, free-form. Same idea spawns N hypotheses. Same hypothesis spawns N experiments. Verdicts spawn new ideas/hypotheses. Eventually fine-grained nodes converge to MVPs.
+**Anything not in that table does not belong in this repo.** ~95 one-off
+experiment scripts, a vendored copy of the engine (`src/`, `tests/`), the
+cavekit-era runner and 768 session transcripts were removed on 2026-08-23; git
+history is the archive. If you find yourself adding a `.py` file here, it
+belongs in the engine.
 
-## Chain Mechanics (blockchain/DAG-style)
+## Running the loop
 
-- Each path from idea → outcome = a "chain"
-- **Longest-chain attracts** but not exclusive: short chains may be unique/strategic
-- Agents pick: extend longest, fork mid-chain, start fresh, or hop between chains
-- Multiple long chains converging on similar outcome = MVP feature signal
+The engine auto-detects the project root by walking up for `agi-tree.config.json`,
+so run from anywhere inside this repo:
 
-### Tunable Params (config)
-
-```json
-{
-  "chain_min_join_length": 3,
-  "mid_chain_join_prob": 0.3,
-  "fresh_start_prob": 0.15,
-  "big_idea_vs_small_idea_split": 0.3,
-  "attractiveness_weights": {
-    "length": 0.4,
-    "depth": 0.2,
-    "recency": 0.2,
-    "mvp_count": 0.2
-  }
-}
+```bash
+bash agi/extensions/agi/driver.sh --smoke --max-iters 1
 ```
 
-## Verdict Schema
+`--smoke` is a dry pass: snapshot + render + metrics, no agent dispatch. Drop it
+(and pass `--max-iters N`) for a live run, which dispatches paid model agents —
+models are set in `agi-tree.config.json` under `agent_dispatch` and `cc_dispatch`.
 
+The `agi` skill is already installed globally: `~/.claude/skills/agi` symlinks to
+`/home/ubuntu/work/agi/skills/agi`. There is deliberately no second copy here —
+one skill, one source.
+
+## Engine edits
+
+`agi/` here is a read-only clone for running the loop. Engine changes are made
+in `/home/ubuntu/work/agi` and pulled down (`git -C agi pull`). Do not edit
+`agi-tree/agi/` — a fix made there is invisible to the engine repo and will be
+overwritten. G6.3/G6.5 replace this arrangement with stitch-from-graph; until
+then the engine repo is the write path.
+
+## The two rules this project has already paid for
+
+- **NEVER create `bin/snapshot-build-site.py` or `bin/render-context.py` here.**
+  A project-local copy shadows the engine's safe version, and a stale copy
+  silently wipes `nodes/` (H0/H0b — confirmed 29k-node data loss). `bin/` was
+  deleted for this reason; do not recreate it (S1).
+- **`snapshot-build-site.py` deletes every `origin: build-site` node it does not
+  re-derive on that run.** So deleting or emptying `context/kits/` or
+  `context/plans/build-site.md` silently prunes 159 nodes on the next loop run.
+  Retire them by deprecating the nodes first, never by deleting the input (H0i).
+
+## Git grid
+
+Per-node version history is baked into this repo as `refs/grid/*` — never checked
+out, not in `git branch`. After each iteration commit:
+
+```bash
+python3 agi/extensions/agi/bin/grid.py commit --all
 ```
-verdict: proved | disproved | inconclusive_lean_proved:N | inconclusive_lean_disproved:N | pending
-N: 0-100 (lean strength)
-confidence: 0.0-1.0
-evidence_runs: [run_ids]
-contradicts: [verdict_ids]      # list of prior verdicts this contradicts
-supports: [verdict_ids]         # list of prior verdicts this reinforces
-```
 
-## Node Types
+Inspect with `grid.py log|diff|status`. Two crons (S2): a 5-minute auto-snapshot
+plus grid push, and an hourly push of `master`. **Verify which branch is checked
+out before trusting any push** — work once accumulated on a stale
+`iter24-extend-300hop` branch while a cron pushed `master` and published nothing.
 
-| Type | Role | Children |
-|---|---|---|
-| `idea` | big or small idea node | hypothesis(+) |
-| `hypothesis` | testable claim | experiment(+) |
-| `experiment` | run + outputs | verdict, child hypothesis(+), MVP(+) |
-| `verdict` | proved/disproved/lean | new idea(+), new hypothesis(+) |
-| `mvp` | minimum-viable code snippet | outcome(+) |
-| `outcome` | i/o doc + README fusion (input shape, output shape, behavior, edge cases) | bigger_outcome(+) |
-| `bigger_outcome` | aggregates outcomes into module purpose | app_purpose |
-| `app_purpose` | top-level mission statement | (root, terminal) |
+## Conventions
 
-Plus: `chain` (virtual: ordered list of node ids), `tag`, `agent_session`.
-
-## Renderers (multi-format, same underlying graph)
-
-- **ASCII** — primary, compact, line-bounded (≤200 lines / ≤200 cols)
-- **Mermaid** — clean DAG export (`graph TD` / `flowchart`)
-- **Git-tree** — `git log --graph` shape rendering of chain history
-- **Vector embedding** — Node2Vec + UMAP → 2D coords; project to ASCII scatter or use for similarity
-- **Git-diff** — exp run → exp run mutation diff for chain inspection
-
-**Critical**: ASCII renderer must use SAME underlying representation as vector embedding so the CoT-steering surface and visualization are isomorphic.
-
-## Big Ideas Seeded (chain 0 starters)
-
-- **A**: Capillary DAG memory for agent onboarding (this doc)
-- **B**: Multi-format CoT-steering surface (ASCII/Mermaid/git-diff/git-tree as steering inputs)
-- **C**: Graph↔vector duality via Node2Vec+UMAP — shared representation between B's surface and the embedding layer
-
-## Off-limits
-
-- Don't touch `~/.hermes/agi/` (frozen historical record at iter 47)
-- Don't modify pi internal core
-- DO modify pi-autoresearch plugin skill repo (add new `autoresearch-tree` skill, keep `autoresearch-create`/`finalize` untouched)
-
-## Run Model
-
-- 5 Claude subagents + 5 Ollama-qwen subagents = 10 concurrent
-- Each agent picks: extend chain | fork | hop mid-chain | start fresh
-- Skill `autoresearch-tree` decides big-idea-vs-small-idea per iteration
-
-## Saved For Later
-
-- sqlite3/duckdb in-mem backend (will be needed for swarm read-write at scale)
-- Multi-repo cross-ref
-- Incremental cache invalidation
-
-## Inherited Lessons (from agi/ iter 1-47)
-
-- `lru_cache` on builder object = O(1) warm load regardless of node count → reuse pattern
-- pickle/json/msgpack serialization all hit noise floor → don't re-explore
-- Tag-based `relates_to` edges bridge isolated clusters → port idea, may not fit DAG
-- Precomputed BFS paths kill query_time_ms → port pattern
-- Hub reachability matrix (32 hubs, O(1) reach) → port pattern
+- Goal ids are never renumbered. A gap beats a renumber; nodes reference goals
+  by id.
+- Retire a goal by marking it `phasing-out` and **deprecating — never deleting**
+  its seed node. Retired chains stay as prior art.
+- `nodes/goal/` is derived. Never hand-edit it; edit `GOALS.md`.

@@ -1,8 +1,0 @@
-**Iteration 5 complete (a01-bf647ec3)**
-
-**Summary:**
-- Created `hyp:graph-core-r11` (Graph Query and Traversal API) under `idea:domain-graph-core`
-- Hypothesis covers: BFS/DFS traversal, path_exists, shortest_path, ancestors, descendants
-- Fixed broken test files causing suite failure
-- **212 tests passing**
-- Signal: `verdict=pending`, `confidence=0.5`

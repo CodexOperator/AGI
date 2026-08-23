@@ -1,7 +1,0 @@
-Done. Created new **agent-spawner** domain at BIG zoom level:
-
-- **Hypothesis:** `hyp:a00-bcb013d3-2141d4` — verdict `proved` status triggers subagent dispatch
-- **Idea:** `idea:domain-agent-spawner` — automatic spawning closes research→execution loop  
-- **Task:** `task:t-093` pending implementation of auto-spawner
-
-Verdict: pending | Confidence: 0.5 | Node: hyp:a00-bcb013d3-2141d4

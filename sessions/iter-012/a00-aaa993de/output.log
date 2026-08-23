@@ -1,5 +1,0 @@
-**Iteration 12 done.** `verdict:graph-core-r12` — proved, confidence 1.0.
-
-- **What worked:** The loader already had `reconstruct_next_edges` implemented. The experiment file created 8 chain nodes (idea→hypothesis→experiment→verdict→mvp→outcome→bigger_outcome→app_purpose) with `next_edges` in frontmatter. Cold reload yields 8-hop chain.
-- **Primary metric:** longest_chain_length = 8 hops
-- **Tests:** 241 passing
