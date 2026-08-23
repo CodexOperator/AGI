@@ -61,3 +61,19 @@ produce a publisher with nothing to publish.
 Falsifier: with payloads in nodes, build `refs/grid/release/agi` from the graph
 and confirm the tree it names is byte-identical to what `stitch.py --out`
 produces. If it is not, one of the two is lying about what the graph contains.
+
+**Gained a hard precondition 2026-08-23 (`verdict:payload-in-node`): D4 inherits
+S9's defect structurally, not incidentally.** D4's whole plan is to `mktree` each
+build node's payload using the same plumbing `commit_file()` uses. Pointed at
+that code as it ships, D4 would silently mis-hash every symlinked payload and
+downgrade every exec-bit payload — **across the entire published engine tree, in
+one commit.**
+
+And atomicity does not save it. G6.7's selling point is "either the ref moves or
+nothing happened", which is worthless when the tree being atomically published is
+simply the wrong tree, moved cleanly. An atomic publisher of corrupt content is
+worse than a partial writer, because the partial writer leaves evidence.
+
+So **S9 is not a shared inconvenience, it is the same fix with two callers.**
+G6.3 and G6.7 do not each need their own mode-aware rewrite; they need the one
+rewrite to land before either attempts its falsifier.

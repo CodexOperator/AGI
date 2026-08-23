@@ -33,3 +33,30 @@ Falsifier: take one real fix from this session, apply it as a build-node version
 update, stitch it out, and confirm the engine file is byte-identical to what the
 direct edit produced. If it is not, the version layer is not yet a source of
 truth and should not be described as one.
+
+**Payload model decided 2026-08-23 (iter-9006 → 9008), and the falsifier is now
+known to be passable.** The chain is `hyp:payload-in-node` →
+`exp:grid-payload-roundtrip` → `verdict:payload-in-node` (proved, conf 0.75,
+evidence resolves).
+
+- **The pick: grid-ref payload.** `payload_ref` keeps its shape; only its
+  *resolution rule* changes, from "read this path off the engine tree" to "read
+  this path from `refs/grid/node/<id>`'s tree". Inline body lost — three
+  independent docstrings rule it out and a source file containing a fence breaks
+  the node's own parser. Blob-sha lost on authoring mechanics, not storage: the
+  blob must exist before the sha can be written, so the edit is never expressible
+  as one node write, and a sha-to-sha diff says *that* something changed and
+  nothing about *what*.
+- **Proved at the mechanism level, with bytes.** Git's tree format carries
+  content, exec bit and symlink-ness losslessly across real version history — 4
+  files × 3 bumps, sha256-matched against a non-git baseline.
+- **Blocked on S9, and this is the operative sentence:** "payload lives in the
+  node's grid ref" is a proved **design**, not a proved **deployment**. Wiring
+  resolution to `commit_file()` as it ships today reproduces the failing variant.
+  S9 first.
+
+This also settles that the anatomy decision was not overturned by fiat. A grid
+ref is never checked out, so it is not a second copy of the tree — it is a second
+*name* into the same object store. When bytes match, git's hashing makes them the
+same object, which is a stronger non-drift guarantee than "never inlined" was
+reaching for.

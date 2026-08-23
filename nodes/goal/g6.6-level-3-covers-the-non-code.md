@@ -48,5 +48,37 @@ versions, which means this sub-goal is on their critical path, not parallel to
 it. If they land as direct engine edits, they are two more entries in the
 evidence that the arrow still points the wrong way.
 
-Falsifier: run `stitch.py --verify` after editing one word of `SKILL.md`. If it
-reports no drift, the surface is not covered.
+~~Falsifier: run `stitch.py --verify` after editing one word of `SKILL.md`. If it
+reports no drift, the surface is not covered.~~ **Retired 2026-08-23 — see below.
+It was run, it fired, and passing it would not deliver what this goal is for.**
+
+**Measured and judged 2026-08-23 (iter-9006 → 9008).** Chain:
+`exp:noncode-surface-census` → `exp:prose-surface-probe` →
+`verdict:noncode-coverage` (disproved as written, conf 0.85, evidence resolves).
+The two halves of this goal resolve in opposite directions, so they are now
+stated separately.
+
+**The coverage diagnosis holds, and is no longer an assertion.** 74 of 316
+tracked files carry level-3 nodes; against an eligible set of 189 after 127
+justified exclusions, 74/189 = **39.2%**. Zero declared-scope files are missed —
+the generator does exactly what it says, so the gap is a scope decision, not a
+bug. All nine files named above: **9/9 uncovered**, verified. One extra find:
+`extensions/agi/scripts/migrate_to_sqlite.py` is hand-written engine code that
+misses the scan only because `scripts/` is not a scanned prefix — a second,
+narrower scope bug.
+
+**The remedy as originally stated does not deliver.** The old falsifier was run
+for real and fired: a one-word edit to the live `SKILL.md` produced zero drift,
+because `ast.parse` dies unconditionally at line 4 on an em dash, so stored and
+fresh contracts are always the identical failure and the diff is always empty.
+Worse than the mechanism failing is what fixing it would buy: of four candidate
+prose-contract shapes, the best — **extracted claims** (directive clauses and
+numbered rules, with line numbers, derived mechanically the way code's `how` is)
+— *would* pass that falsifier, and would still **not** have caught the
+`agent-prompt.md` / `SKILL.md` contradiction that motivates this goal. That is
+two self-consistent nodes disagreeing, not one node going stale against its own
+file, and `stitch.py`'s only cross-node check compares `payload_ref` strings,
+never content.
+
+**What this goal now commits to, in order:**
+1. **Contract shape: extracted clai
