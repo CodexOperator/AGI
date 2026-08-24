@@ -273,6 +273,26 @@ def parse_kits() -> tuple[list[dict], list[dict]]:
 
 
 def main() -> int:
+    # goal:g5 / L18 — a project is legitimate at three depths: goals only,
+    # goals + seed ideas, goals + build site. A goals-only project is a valid
+    # state, not a broken one, so a missing build site must degrade the way a
+    # missing GOALS.md already does.
+    #
+    # Two separate defects are closed by returning here, and the second is the
+    # dangerous one:
+    #   1. `sys.exit(1)` from parse_tasks aborted the whole driver, because
+    #      driver.sh runs under `set -euo pipefail` and pipes this through
+    #      `tee`. A build-site-less project could not run the loop at all.
+    #   2. Falling through with zero tasks would reach the stale-prune below,
+    #      which unlinks every `origin: build-site` node not rewritten this
+    #      run. With nothing parsed, that is the whole build-site corpus —
+    #      159 of 661 nodes in agi-tree. Returning *before* any write or
+    #      unlink is what makes this safe (H0i).
+    if not BUILD_SITE.exists():
+        print(f"no build site at {BUILD_SITE} — goals-only project, nothing to "
+              "snapshot (L18). Wrote 0 nodes, pruned 0.")
+        return 0
+
     # Load existing nodes (preserve agent-generated, track build-site-owned)
     existing = load_existing_nodes()
     written: set = set()

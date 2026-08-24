@@ -219,3 +219,105 @@ def test_cycle_in_parents_terminates(project):
     _node(project, "hypothesis", "a", parents=["hypothesis:b"])
     _node(project, "hypothesis", "b", parents=["hypothesis:a"])
     assert metrics.compute(project)["longest_chain_length"] >= 0
+
+
+# --------------------------------------------------- goal lifecycle (goal:g5)
+
+
+def _goal(root, gid, status):
+    _node(root, "goal", gid, fm_extra=f"status: {status}")
+
+
+def test_retired_goal_chains_stop_scoring_but_stay_attributable(project):
+    """goal:g5 — `complete`/`phasing-out` chains keep their nodes and lose
+    their score. Retiring a goal must not look like deleting its work."""
+    _goal(project, "g1", "active")
+    _goal(project, "g2", "complete")
+    _node(project, "hypothesis", "live", parents=["goal:g1"])
+    _node(project, "mvp", "live-m", parents=["hypothesis:live"])
+    _node(project, "hypothesis", "dead", parents=["goal:g2"])
+    _node(project, "mvp", "dead-m", parents=["hypothesis:dead"])
+
+    m = metrics.compute(project)
+    # whole-graph totals are untouched — the work is still there
+    assert m["mvp_count"] == 2
+    # ...but only the live goal's chain scores
+    assert m["scoring_mvp_count"] == 1
+    assert m["scoring_hypothesis_count"] == 1
+    assert m["retired_goal_nodes"] == 2
+    assert m["outcome_coverage"] == 1.0
+
+
+def test_horizon_goals_still_score(project):
+    """`horizon` is declared-and-committed, not retired."""
+    _goal(project, "g1", "horizon")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    m = metrics.compute(project)
+    assert m["scoring_hypothesis_count"] == 1
+    assert m["retired_goal_nodes"] == 0
+
+
+def test_unattributed_nodes_keep_scoring(project):
+    """Attribution is a reason to exclude, never the only reason to include.
+    Most of this corpus predates goal nodes; zeroing it would be a metric
+    change wearing a lifecycle rule as a disguise."""
+    _node(project, "hypothesis", "orphan")
+    _node(project, "mvp", "orphan-m", parents=["hypothesis:orphan"])
+    m = metrics.compute(project)
+    assert m["scoring_hypothesis_count"] == 1
+    assert m["scoring_mvp_count"] == 1
+    assert m["unattributed_nodes"] == 2
+    assert m["retired_goal_nodes"] == 0
+
+
+def test_node_shared_with_a_live_goal_still_scores(project):
+    """Retired only when *every* goal it answers to is retired."""
+    _goal(project, "g1", "active")
+    _goal(project, "g2", "complete")
+    _node(project, "hypothesis", "shared", parents=["goal:g1", "goal:g2"])
+    m = metrics.compute(project)
+    assert m["scoring_hypothesis_count"] == 1
+    assert m["retired_goal_nodes"] == 0
+
+
+def test_goal_status_counts_are_emitted(project):
+    _goal(project, "g1", "active")
+    _goal(project, "g2", "horizon")
+    _goal(project, "g3", "complete")
+    _goal(project, "g4", "phasing-out")
+    m = metrics.compute(project)
+    assert (m["goals_active"], m["goals_horizon"], m["goals_retired"]) == (1, 1, 2)
+    assert m["goal_count"] == 4
+
+
+def test_exceeding_max_goals_active_warns_but_does_not_refuse(project, capsys):
+    """L5 — rotation the engine enforces. A commitment about focus that
+    nothing reads is not a commitment."""
+    (project / "agi-tree.config.json").write_text(
+        json.dumps({"cc_dispatch": {"max_goals_active": 1}})
+    )
+    _goal(project, "g1", "active")
+    _goal(project, "g2", "active")
+    m = metrics.emit(project)
+    out = capsys.readouterr()
+    assert "METRIC_WARNING goal_rotation=2/1" in out.out
+    assert "max_goals_active" in out.err
+    assert m["goals_active"] == 2      # emitted, not aborted
+
+
+def test_within_max_goals_active_is_silent(project, capsys):
+    (project / "agi-tree.config.json").write_text(
+        json.dumps({"cc_dispatch": {"max_goals_active": 3}})
+    )
+    _goal(project, "g1", "active")
+    metrics.emit(project)
+    assert "goal_rotation" not in capsys.readouterr().out
+
+
+def test_goal_cycle_does_not_hang_attribution(project):
+    """Cycle-safety is structural, not incidental — assert it."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "a", parents=["hypothesis:b"])
+    _node(project, "hypothesis", "b", parents=["hypothesis:a"])
+    m = metrics.compute(project)
+    assert m["unattributed_nodes"] == 2

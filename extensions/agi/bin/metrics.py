@@ -208,6 +208,96 @@ def primary_metric_name(cfg: dict) -> str:
     return name.strip()
 
 
+#: Goal states whose chains still accrue score. `phasing-out` and `complete`
+#: are deliberately absent (goal:g5): a retired goal's chains stay in the
+#: graph and stay attributable, they just stop moving the number.
+SCORING_GOAL_STATUSES = frozenset({"active", "horizon"})
+
+
+def goal_attribution(nodes_dir: Path) -> dict:
+    """Map every node to the goals it descends from, and score accordingly.
+
+    goal:g5 — `status` is a field the engine acts on, not a human
+    convention. Two things follow from that and both are here:
+
+    1. A node under a `phasing-out` or `complete` goal is **excluded from
+       the primary metric** but **kept attributable** — it is still in the
+       graph, still reachable, still counted in the descriptive totals.
+       Retiring a goal must not look like deleting its work.
+    2. A node under no goal at all keeps scoring. That is deliberate and
+       conservative: most of this corpus predates goal nodes, and silently
+       zeroing it would be a metric change disguised as a lifecycle rule.
+       Attribution is a reason to *exclude*, never the only reason to
+       include.
+
+    Returns counts, not opinions — `compute` decides what to do with them.
+    """
+    statuses: dict[str, str] = {}
+    parents: dict[str, list] = {}
+    types: dict[str, str] = {}
+
+    for _nf, fm in _iter_frontmatter(nodes_dir):
+        nid = fm.get("id")
+        if not isinstance(nid, str) or not nid.strip():
+            continue
+        nid = nid.strip()
+        types[nid] = str(fm.get("type") or "")
+        raw = fm.get("parents")
+        parents[nid] = [p.strip() for p in raw if isinstance(p, str) and p.strip()] \
+            if isinstance(raw, (list, tuple)) else []
+        if types[nid] == "goal":
+            st = fm.get("status")
+            statuses[nid] = st.strip() if isinstance(st, str) and st.strip() else "active"
+
+    def goals_of(nid: str) -> set:
+        """Goal ids reachable upward from `nid`. Cycle-safe by construction."""
+        seen, stack, found = {nid}, list(parents.get(nid, ())), set()
+        while stack:
+            cur = stack.pop()
+            if cur in seen:
+                continue
+            seen.add(cur)
+            if cur in statuses:
+                found.add(cur)
+                continue  # a goal's own parents are goals; stop at the first
+            stack.extend(parents.get(cur, ()))
+        return found
+
+    scoring_mvp = scoring_hyp = 0
+    retired_nodes = unattributed = 0
+    for nid, ntype in types.items():
+        if ntype == "goal":
+            continue
+        gs = goals_of(nid)
+        if not gs:
+            unattributed += 1
+        # Retired only when every goal it answers to is retired. A node
+        # shared with a live goal still earns its keep.
+        scores = (not gs) or any(statuses.get(g) in SCORING_GOAL_STATUSES for g in gs)
+        if not scores:
+            retired_nodes += 1
+            continue
+        if ntype == "mvp":
+            scoring_mvp += 1
+        elif ntype == "hypothesis":
+            scoring_hyp += 1
+
+    by_status: dict[str, int] = defaultdict(int)
+    for st in statuses.values():
+        by_status[st] += 1
+
+    return {
+        "scoring_mvp_count": scoring_mvp,
+        "scoring_hypothesis_count": scoring_hyp,
+        "retired_goal_nodes": retired_nodes,
+        "unattributed_nodes": unattributed,
+        "goals_active": by_status.get("active", 0),
+        "goals_horizon": by_status.get("horizon", 0),
+        "goals_retired": by_status.get("phasing-out", 0) + by_status.get("complete", 0),
+        "goal_count": len(statuses),
+    }
+
+
 def outcome_coverage(mvp_count: int, hypothesis_count: int) -> float:
     """The default primary metric: mvps per hypothesis.
 
@@ -232,15 +322,23 @@ def compute(root: Path) -> dict:
     branching = sum(len(n.children) for n in non_leaf) / max(len(non_leaf), 1)
     avg_depth = sum(len(n.parents) for n in g.nodes) / max(len(g), 1)
 
+    # goal:g5 — score over live goals only. `mvp_count` stays whole-graph so
+    # the descriptive total and the scored total are both visible; a gap
+    # between them is exactly how much work is parked behind retired goals.
+    attr = goal_attribution(root / "nodes")
+
     m: dict[str, float | int | str] = {
         "longest_chain_length": longest_chain_length(g),
         "avg_chain_depth": round(avg_depth, 2),
         "mvp_count": mvp_count,
-        "outcome_coverage": round(outcome_coverage(mvp_count, hyp_count), 3),
+        "outcome_coverage": round(
+            outcome_coverage(attr["scoring_mvp_count"],
+                             attr["scoring_hypothesis_count"]), 3),
         "chain_branching_factor": round(branching, 2),
         "node_count": len(g),
         "edge_count": g.edge_count,
     }
+    m.update(attr)
     ev = evidence_stats(root / "nodes")
     m.update(ev)
     m["evidence_fraction"] = round(ev["evidence_fraction"], 3)
@@ -266,6 +364,26 @@ def emit(root: Path, out=None) -> dict:
             file=sys.stderr,
         )
         print(f"METRIC_WARNING gameable_primary={primary}", file=out)
+
+    # goal:g5 / L5 — rotation the engine enforces. `max_goals_active` was a
+    # number in the config that nothing read, so "active" drifted into
+    # meaning "declared" and the field stopped carrying information. This
+    # does not refuse to run: the config value is a commitment about focus,
+    # and the honest response to breaking it is to say so every iteration,
+    # not to block work that is already in flight.
+    max_active = (cfg.get("cc_dispatch") or {}).get("max_goals_active")
+    active = m.get("goals_active", 0)
+    if isinstance(max_active, int) and max_active > 0 and active > max_active:
+        print(
+            f"!! METRIC-WARNING goals_active={active} exceeds "
+            f"cc_dispatch.max_goals_active={max_active}. Every goal marked "
+            "`active` claims to be in flight; when most of them are not, the "
+            "field stops distinguishing anything and the backlog becomes "
+            "invisible. Move the ones you are not working to `horizon` — that "
+            "is what `horizon` is for (goal:g5).",
+            file=sys.stderr,
+        )
+        print(f"METRIC_WARNING goal_rotation={active}/{max_active}", file=out)
 
     for k, v in m.items():
         print(f"METRIC {k}={v}", file=out)
