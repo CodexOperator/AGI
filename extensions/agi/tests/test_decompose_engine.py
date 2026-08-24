@@ -123,13 +123,15 @@ def test_discovers_expected_units_with_kinds_and_scale(project, engine):
     assert r.returncode == 0, r.stderr
     nodes = idea_nodes(project)
     ids = set(nodes)
-    assert ids == {
+    # goal:g6.8 widened discovery past src/+bin/. The pre-widening set must
+    # still be minted exactly — nothing was traded away for the new coverage.
+    assert {
         "idea:engine-graph-core", "idea:engine-chain-engine",
         "idea:engine-cli", "idea:engine-dispatch", "idea:engine-nodoc",
         "idea:engine-driver-sh", "idea:engine-cc-session-start",
         "idea:engine-find-root", "idea:engine-migrate-to-sqlite",
         "idea:engine-agi-bridge-index",
-    }
+    } <= ids
     _path, fm = nodes["idea:engine-graph-core"]
     assert fm["unit_kind"] == "src_package"
     assert fm["unit_path"] == "extensions/agi/src/graph_core"
@@ -146,10 +148,29 @@ def test_discovers_expected_units_with_kinds_and_scale(project, engine):
     assert fm3["unit_kind"] == "entry_point"
 
 
-def test_data_file_next_to_an_entry_point_is_not_a_unit(project, engine):
+def test_co_location_alone_still_never_mints_a_unit(project, engine):
+    """The property the old agent-prompt regression actually protected.
+
+    That test asserted `agent-prompt.md` is never a unit, as the worked example
+    of "a data file sitting beside an entry point must not become a unit merely
+    by co-location". goal:g6.6/g6.8 then named agent-prompt.md and SKILL.md as
+    the two highest-leverage prose surfaces the census MUST cover, so the
+    example is superseded — but the rule is not. agent-prompt.md is a unit now
+    because it has its own deliberate NAMED_ENTRY_POINTS tuple, never because
+    discovery walks the directory it lives in. This asserts the rule directly
+    instead of via an example that changed sides.
+    """
+    engine_root = engine
+    stray = engine_root / "extensions" / "agi" / "lib" / "not-listed-anywhere.md"
+    stray.write_text("# a data file nobody declared\n", encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=engine_root, check=True)
+
     run(project, engine)
     nodes = idea_nodes(project)
-    assert not any("agent-prompt" in nid for nid in nodes)
+    assert not any("not-listed-anywhere" in nid for nid in nodes), \
+        "a file in a censused directory must not become a unit by co-location"
+    # ...and the declared sibling in that same directory still is one.
+    assert any("find-root" in nid for nid in nodes)
 
 
 def test_stray_src_init_is_not_its_own_package(project, engine):

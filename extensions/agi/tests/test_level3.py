@@ -467,3 +467,25 @@ def test_no_project_local_script_lookup_argument_exists():
     for flag in ("--project", "--engine-root", "--dry-run"):
         assert flag in r.stdout
     assert "--goal-map" not in r.stdout
+
+
+def test_entry_point_units_can_be_matched_as_parents(project, engine):
+    """Five entry_point census units existed and were correct — driver.sh,
+    find-root.sh, cc-session-start.sh, agi-bridge/index.ts,
+    migrate_to_sqlite.py — while load_census_units() silently dropped the kind
+    and find_parent()'s prefix branch could never match a single file. Those
+    files reported NO_PARENT with their unit sitting unread in the graph, and
+    it was invisible because a missing parent looks identical to a missing
+    unit. They are the exact surfaces goal:g6.6 calls highest-leverage.
+    """
+    units = [{"node_id": "idea:engine-driver-sh",
+              "unit_path": "extensions/agi/driver.sh",
+              "unit_kind": "entry_point"}]
+    assert l3.find_parent("extensions/agi/driver.sh", units) == "idea:engine-driver-sh"
+    assert l3.find_parent("extensions/agi/other.sh", units) is None
+
+    existing = {"idea:engine-driver-sh": {"fm": {
+        "type": "idea", "unit_kind": "entry_point",
+        "unit_path": "extensions/agi/driver.sh"}}}
+    assert [u["node_id"] for u in l3.load_census_units(existing)] == \
+        ["idea:engine-driver-sh"]
