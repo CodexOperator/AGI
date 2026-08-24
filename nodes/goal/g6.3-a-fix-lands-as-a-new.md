@@ -8,6 +8,7 @@ parents:
   - goal:g6
 seeds:
   - hyp:payload-in-node
+  - level3:bin-stitch@v2
 status: active
 tags:
   - goal
