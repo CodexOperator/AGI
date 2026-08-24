@@ -30,7 +30,7 @@ Corollary for anyone extending this system: **if a step is repeated and mechanic
 
 ## CLI
 
-Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point) — so it works the same whether you reach it via the `agi` symlink on PATH or via `<project>/agi/` inside a project. Run from inside a project: a directory found by walking up for `agi-tree.config.json`, or, failing that, by descending into `<start>/agi/*-tree/` (see Project layout). Scripts live in `<engine>/extensions/agi/`.
+Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point) — so it works the same whether you reach it via the `agi` symlink on PATH or via `<project>/<project>-tree/agi/` inside a project. Run from inside a project: a directory found by walking up for `agi-tree.config.json`, or, failing that, by descending into `<start>/*-tree/` (see Project layout). Scripts live in `<engine>/extensions/agi/`.
 
 | Command | Does |
 |---|---|
@@ -125,65 +125,67 @@ Metrics are computed by `bin/metrics.py` (called from `driver.sh`). It reads `me
 
 ## Project layout
 
-A project holds **data and configuration; never engine code.** The engine
-clones in at `<project>/agi/`; the graph is a *separate repo nested one level
-deeper*, `<project>/agi/<project>-tree/` — so the engine's history and the
-graph's history never mix even though the engine physically contains the
-tree. This is a refinement of shape 1 (drop-in clone) in **G8.1**, not a
-closed decision — no experiment has run against it yet. Worked example,
-`fantasia`:
+A project holds **data and configuration; never engine code.** The graph is a
+*separate repo one level inside the project*, `<project>/<project>-tree/`, and
+the engine clones in **underneath it** at `<project>/<project>-tree/agi/`. The
+tree is outside the engine, not inside it — so an engine checkout never
+contains a graph, and the two histories cannot mix in either direction. This
+is a refinement of shape 1 (drop-in clone) in **G8.1**, not a closed decision
+— no experiment has run against it yet. Worked example, `fantasia`:
 
 ```
 fantasia/
   <game source>
-  agi/                             gitignored clone of the engine
-    fantasia-tree/                 the graph, its OWN git repo
-      GOALS.md                     long-term goals: active | horizon | phasing-out | complete
-      agi-tree.config.json         metrics, dispatch, timeouts
-      nodes/<type>/*.md            the graph — frontmatter + body
-      context/INJECTION.md         generated map
-      sessions/                    per-iteration scratch (gitignore this)
+  fantasia-tree/                   the graph, its OWN git repo
+    GOALS.md                       long-term goals: active | horizon | phasing-out | complete
+    agi-tree.config.json           metrics, dispatch, timeouts
+    nodes/<type>/*.md              the graph — frontmatter + body
+    context/INJECTION.md           generated map
+    sessions/                      per-iteration scratch (gitignore this)
+    agi/                           gitignored clone of the engine
 ```
 
 **Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `phasing-out` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
 **Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `phasing-out` (retiring), `complete`. `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph.
 
-The engine is never committed into a project, and the tree is never committed into the engine. That is **two** gitignore entries, in two different repos, and both are load-bearing.
-
-In the project repo, ignore the engine clone:
+The engine is never committed into a project. **One** gitignore entry, in the tree repo, does it — because the engine now lives inside the tree rather than the other way round:
 
 ```
 # agi engine (drop-in clone — never commit here)
 agi/
 ```
 
-In the **engine** repo, ignore any tree nested inside it. The engine ships with this already:
+That is the whole story for a normal project. The engine repo needs **no** tree-related pattern at all, which is the point of putting the tree outside it: there is nothing to ignore, so there is nothing to get wrong.
 
-```
-# <project>-tree: a graph repo living inside this checkout. Never committed here.
-/*-tree
-```
+`find-root.sh` locates the tree by walking up from cwd for `agi-tree.config.json` first (classic layout, tree == project root); failing that it descends into `<start>/<basename>-tree/`, or a lone match under `<start>/*-tree/`. A `*-tree` directory with no config file is skipped rather than treated as a candidate, which is what keeps the glob from picking up unrelated directories. More than one real candidate is a hard error listing all of them, never a guess.
 
-Root-anchored and generic on purpose. A literal `agi-tree` would cover only the engine's own pair and leave every other project's tree sitting untracked-but-committable inside its engine clone — which is the vendoring failure H0/H0b already cost this project twice. And no trailing slash: in the self-referential case below the entry is a *symlink*, and `*-tree/` does not match a symlink.
-
-`find-root.sh` locates the tree by walking up from cwd for `agi-tree.config.json` first (classic layout, tree == project root); failing that it descends into `<start>/agi/<basename>-tree/`, or a lone match under `<start>/agi/*-tree/`. More than one candidate is a hard error, never a guess.
-
-**Open, deliberately not built yet:** nothing creates `<project>/agi/<project>-tree/` for you — set it up by hand (clone the engine, `git init` the tree inside it). Engine-commit pinning in `agi-tree.config.json` (G8.1's other ask) is also not implemented.
+**Open, deliberately not built yet:** nothing creates `<project>/<project>-tree/` for you — set it up by hand (`git init` the tree, clone the engine inside it). Engine-commit pinning in `agi-tree.config.json` (G8.1's other ask) is also not implemented.
 
 ### The self-referential exception: agi ↔ agi-tree
 
-One pair breaks the sketch above, on purpose: the engine's own graph.
-`agi-tree/agi` is a **symlink** to the engine checkout, and `agi/agi-tree` is
-a **symlink** back to the tree — not clones, because here the graph
-literally builds the engine, so an engine edit made from inside `agi-tree`
-must land in the real checkout, not a copy nobody ships. `agi` is the
-outermost layer of this pair, `agi-tree` sits inside it.
+One pair breaks the sketch above, on purpose: the engine's own graph. The
+shape is the same — `agi/agi-tree/agi`, tree outside, engine inside — but both
+hops are **symlinks** rather than a clone, because here the graph literally
+builds the engine, so an engine edit made from inside the tree must land in
+the real checkout and not in a copy nobody ships:
+
+```
+agi/                        the engine repo, outermost
+  agi-tree -> <graph repo>  symlink  (the one line in the engine's .gitignore)
+    agi -> <engine repo>    symlink  (already covered by the tree's `agi/`)
+```
+
+So `agi/agi-tree/agi` resolves back to the engine itself. The engine's
+`.gitignore` carries exactly one literal `agi-tree` line for the outer
+symlink — deliberately not a `*-tree` glob, since nothing else should be
+ignorable there and a generic pattern would hide a real mistake. No trailing
+slash, because that would not match a symlink.
 
 This is an organizational convenience for **one local pair**, not a mode the
 engine knows about — **G8.2**'s invariant holds: there is no
 `if project == "agi-tree"` branch anywhere, and nothing here adds one. Every
-other project — fantasia included — gets a plain clone and an
+other project — fantasia included — gets a plain clone inside an
 independently-git-initialized tree, per the layout above.
 
 New node types are **schema**, i.e. configuration — which is all the flexibility a project needs without forking the engine.
