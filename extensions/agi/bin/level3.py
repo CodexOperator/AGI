@@ -115,8 +115,21 @@ _spec.loader.exec_module(snapshot_goals)
 write_frontmatter = snapshot_goals.write_frontmatter
 
 
+# --- reuse payload_boundary.py's classify() (the G6.8 boundary predicate) ---
+# Loaded by file path for the same reason snapshot-goals.py is above: one
+# definition, never re-implemented. See `goal:g6.8` /
+# `mvp:payload-boundary-predicate` for the rule.
+_PAYLOAD_BOUNDARY_PATH = BIN_DIR / "payload_boundary.py"
+_pb_spec = importlib.util.spec_from_file_location(
+    "payload_boundary", _PAYLOAD_BOUNDARY_PATH)
+payload_boundary = importlib.util.module_from_spec(_pb_spec)
+_pb_spec.loader.exec_module(payload_boundary)
+
+
 # --- file discovery -----------------------------------------------------------
 
+# Retained for tests and for the record: the pre-G6.8 scope. Nothing reads
+# these for discovery any more.
 SRC_PREFIX = "extensions/agi/src/"
 BIN_PREFIX = "extensions/agi/bin/"
 
@@ -138,24 +151,33 @@ def git_ls_files(engine_root: Path) -> list[str] | None:
 
 
 def discover_files(engine_root: Path) -> list[str] | None:
-    """Tracked `.py` files under the two target trees, or None on a no-op.
+    """Tracked files passing the G6.8 payload-boundary predicate, or None on a
+    no-op (missing/unreadable engine root, or not a git repo).
 
-    `src/**/*.py` is unbounded depth (unlike decompose-engine.py's top-level
-    package grouping) — level 3 is per-*file*, so nesting depth is
-    irrelevant. `bin/*.py` stays direct-children-only: nested bin/ dirs are
-    not part of this scan's declared scope.
+    This scanned only `extensions/agi/src/**/*.py` and `extensions/agi/bin/*.py`
+    (~74 files). `goal:g6.6` named that scope as the thing blocking G6.1: the
+    skill doc, the kid brief, every shell surface and every non-`.py` file were
+    invisible to the graph. `payload_boundary.classify()` is the mechanical
+    boundary `goal:g6.8` drew to replace it — every tracked file is `in` unless
+    gitignore-declared transient, under a `tests/fixtures/` directory, or a
+    `.jsonl` event stream. No per-extension allowlist.
+
+    A non-Python file that passes the boundary still gets a node;
+    `analyze_file` degrades anything `ast` cannot parse to `parse_ok: false`
+    with an empty contract. That is the honest output here — see
+    `verdict:noncode-coverage` for why a real prose contract is deliberately
+    not attempted at this step.
     """
-    files = git_ls_files(engine_root)
-    if files is None:
+    if not engine_root.is_dir():
         return None
-    out = []
-    for f in files:
-        if f.startswith(SRC_PREFIX) and f.endswith(".py"):
-            out.append(f)
-        elif (f.startswith(BIN_PREFIX) and f.endswith(".py")
-              and "/" not in f[len(BIN_PREFIX):]):
-            out.append(f)
-    return sorted(out)
+    try:
+        rows = payload_boundary.classify(engine_root)
+    except Exception:
+        # Any failure inside classify() (missing repo, git erroring) collapses
+        # to the same no-op signal the old git_ls_files() gave — never a
+        # partial or guessed file list.
+        return None
+    return sorted(f for f, verdict, _reason in rows if verdict == "in")
 
 
 # --- ast-based contract derivation --------------------------------------------
@@ -369,6 +391,19 @@ def analyze_file(abs_path: Path) -> dict:
     A file that cannot be read or parsed gets `parse_ok: false` and an empty
     contract — never an invented one.
     """
+    # `ast` is a *Python* parser, so gate on the suffix before using it. JSON
+    # is a dict literal and TOML's `key = "value"` is an assignment, so both
+    # parse clean and would report `parse_ok: true` with an empty contract —
+    # a file claiming it was analysed when nothing analysed it, which
+    # `stitch.py --verify` would then read as no drift. An honest
+    # `not-python` is the correct answer for every non-`.py` payload until
+    # G6.6's extracted-claims contract exists.
+    if abs_path.suffix != ".py":
+        return {"parse_ok": False,
+                "parse_error": f"not-python: {abs_path.suffix or 'no suffix'} "
+                               "(no mechanical contract derivation for this "
+                               "file type yet — see goal:g6.6)",
+                "inputs": [], "outputs": [], "uncovered": []}
     try:
         source = abs_path.read_text(encoding="utf-8")
     except Exception as exc:
@@ -540,6 +575,20 @@ def main(argv: list[str] | None = None) -> int:
               f"(not a git repo?) — no-op, nothing written or pruned",
               file=sys.stderr)
         return 0
+
+    if not files:
+        # H0/H0i guard. An empty scope is never "prune everything". Before
+        # G6.8 this case could not arise — the two-prefix scan had no external
+        # classification step that could return "everything excluded" short of
+        # git itself failing, which already returns None above. Now it can, so
+        # a zero-length result means the predicate resolved against the wrong
+        # tree rather than a genuine empty scope. Fail loud and return before
+        # `written_paths`/`stale_generated` are touched at all; a silent exit-0
+        # here is precisely the shape that cost this project 29k nodes twice.
+        print(f"ERROR: discover_files returned zero files for engine root "
+              f"{engine_root} — refusing to treat this as authoritative "
+              f"scope; no-op, nothing written or pruned", file=sys.stderr)
+        return 1
 
     snapshot_goals._set_project_root(project_root)
     existing = snapshot_goals.load_existing_nodes()

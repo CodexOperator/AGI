@@ -161,11 +161,20 @@ def test_default_engine_root_points_at_this_repo():
 # --- 1. discovery: scope is src/**/*.py + bin/*.py (direct children only) ---
 
 
-def test_discovers_expected_files_and_excludes_out_of_scope(project, engine):
+def test_discovers_every_file_passing_the_g6_8_boundary(project, engine):
+    """goal:g6.8 — discovery is the payload boundary, not two path prefixes.
+
+    Was: only `extensions/agi/src/**/*.py` + `extensions/agi/bin/*.py`, which
+    goal:g6.6 named as the thing blocking G6.1 — the skill doc, the kid brief
+    and every shell surface were invisible to the graph. Now every tracked
+    file is in unless the boundary excludes it, so the nested bin/ script and
+    driver.sh (previously "out of scope") are nodes like anything else.
+    """
     r = run(project, engine)
     assert r.returncode == 0, r.stderr
     ids = set(level3_nodes(project))
-    assert ids == {
+    # everything the old two-prefix scan already found
+    assert {
         "level3:src-graph-core-init",
         "level3:src-graph-core-node",
         "level3:src-graph-core-persistence-filesystem",
@@ -173,15 +182,50 @@ def test_discovers_expected_files_and_excludes_out_of_scope(project, engine):
         "level3:bin-cli",
         "level3:bin-orphan",
         "level3:src-init",
-    }
-    # nested bin/ dir and driver.sh are out of scope, not merely unmatched
-    assert "level3:bin-nested-inner" not in ids
-    assert not any("driver" in nid for nid in ids)
+    } <= ids
+    # ...plus what it used to silently drop
+    assert "level3:bin-nested-inner" in ids, \
+        "a nested bin/ script is a tracked file; the boundary admits it"
+    assert any("driver" in nid for nid in ids), \
+        "driver.sh is the highest-leverage shell surface in the engine (g6.6)"
 
 
-def test_files_scanned_count_reported(project, engine):
+def test_files_scanned_count_matches_the_boundary(project, engine):
+    """The count is whatever the boundary admits — asserted against the
+    predicate itself rather than a hardcoded number, so the two cannot drift."""
     r = run(project, engine)
-    assert "files scanned: 7" in r.stdout
+    expected = len(l3.discover_files(engine))
+    assert f"files scanned: {expected}" in r.stdout
+    assert expected > 7, "the boundary must admit more than the old scope did"
+
+
+def test_non_python_payload_is_honest_about_not_being_parsed(project, engine):
+    """`ast` is a Python parser. JSON is a dict literal and TOML's
+    `key = "value"` is an assignment, so both parse clean — a non-Python file
+    would report parse_ok: true with an empty contract, i.e. claim it was
+    analysed when nothing analysed it, which stitch.py --verify then reads as
+    no drift."""
+    analysis = l3.analyze_file(engine / "extensions" / "agi" / "driver.sh")
+    assert analysis["parse_ok"] is False
+    assert "not-python" in analysis["parse_error"]
+    assert analysis["inputs"] == [] and analysis["outputs"] == []
+
+
+def test_empty_scope_is_refused_never_treated_as_prune_everything(project, engine, tmp_path):
+    """H0/H0i. Before g6.8 this case could not arise; the boundary introduces
+    an external classifier that could return "everything excluded", and a
+    silent exit-0 there would wipe every level3-scan node."""
+    run(project, engine)                     # populate
+    before = set(level3_nodes(project))
+    assert before
+
+    empty = tmp_path / "empty-engine"
+    empty.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=empty, check=True)
+    r = run(project, empty)
+    assert r.returncode == 1
+    assert "refusing to treat this as authoritative scope" in r.stderr
+    assert set(level3_nodes(project)) == before, "nothing may be pruned"
 
 
 # --- 2. frontmatter shape: no new Node-relevant keys, payload_ref/origin used
