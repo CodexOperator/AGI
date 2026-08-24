@@ -1,13 +1,14 @@
 ---
 confidence: 1.0
-evidence_runs:
-  - iter24-branching-chains-test
+evidence_runs: 0
 id: "verdict:iter24-branching-chains"
 next_edges: []
 parents:
   - hypothesis:iter24-branching-chains
 type: verdict
-verdict: proved
+verdict: inconclusive_lean_proved:50
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 ## Evidence

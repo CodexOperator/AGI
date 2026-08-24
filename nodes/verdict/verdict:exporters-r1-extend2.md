@@ -3,7 +3,7 @@ id: verdict:exporters-r1-extend2
 title: 'Verdict: Exporters R1 Second Extension'
 type: verdict
 status: proved
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.9
 parents:
 - exp:exporters-r1-extend2
@@ -16,8 +16,9 @@ tags:
 next_edges:
 - exp:exporters-r1-extend3
 synthetic: true
-evidence_runs:
-- synthetic
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 

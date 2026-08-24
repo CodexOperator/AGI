@@ -2,7 +2,7 @@
 id: verdict:verdict:a00-204c9d9e-1d958f
 type: verdict
 title: "Query API enables rational task selection in the capillary DAG"
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.82
 parents:
   - experiment:exp:a00-204c9d9e-1d958f
@@ -13,6 +13,9 @@ tags:
   - capillary-dag
   - proved
 next_edges: []
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 # verdict:verdict:a00-204c9d9e-1d958f

@@ -3,7 +3,7 @@ id: verdict:embeddings-r3-extend3
 type: verdict
 title: 'Verdict: embeddings-r3 third extension (14-hop chain)'
 status: proved
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.85
 parents:
 - exp:embeddings-r3-extend3
@@ -15,8 +15,9 @@ tags:
 - proved
 next_edges: []
 synthetic: true
-evidence_runs:
-- synthetic
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 

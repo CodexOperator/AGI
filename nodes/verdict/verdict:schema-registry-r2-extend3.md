@@ -1,7 +1,7 @@
 ---
 id: verdict:schema-registry-r2-extend3
 type: verdict
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 1.0
 parents:
 - exp:schema-registry-r2-r1
@@ -11,8 +11,9 @@ tags:
 - schema-registry-r2
 - chain-extension
 synthetic: true
-evidence_runs:
-- synthetic
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 # verdict:schema-registry-r2-extend3

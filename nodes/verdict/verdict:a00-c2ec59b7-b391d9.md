@@ -3,7 +3,7 @@ id: verdict:a00-c2ec59b7-b391d9
 type: verdict
 title: "ASCII render proximity not isomorphic to descendant overlap"
 status: disproved
-verdict: disproved
+verdict: inconclusive_lean_disproved:50
 confidence: 0.85
 parents:
   - exp:a00-c2ec59b7-b391d9
@@ -14,6 +14,9 @@ tags:
   - isomorphism
   - disproved
 next_edges: []
+evidence_runs: 0
+demoted_from: disproved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
 ---
 
 VERDICT: DISPROVED

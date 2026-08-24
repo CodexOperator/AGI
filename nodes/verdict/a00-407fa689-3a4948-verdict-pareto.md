@@ -1,10 +1,9 @@
 ---
 id: "verdict:a00-407fa689-verdict-pareto"
 type: verdict
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.95
-evidence_runs:
-  - exp-a00-407fa689-verdict-pareto
+evidence_runs: 0
 tags:
   - chain-extension
   - bias
@@ -13,6 +12,8 @@ parents:
   - hypothesis:a00-407fa689-3a4948
 contradicts: []
 supports: []
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 # verdict:a00-407fa689-verdict-pareto

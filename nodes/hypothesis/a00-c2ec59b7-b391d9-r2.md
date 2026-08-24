@@ -13,12 +13,13 @@ tags:
 spawns:
   - exp:a00-c2ec59b7-b391d9-r2
 status: completed
-evidence_runs:
-  - exp:a00-c2ec59b7-b391d9-r2
+evidence_runs: 0
 contradicts:
   - hypothesis:a00-c2ec59b7-b391d9  # Same anti-correlation (different metric)
-verdict: disproved
+verdict: inconclusive_lean_disproved:50
 confidence: 0.85
+demoted_from: disproved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
 ---
 
 

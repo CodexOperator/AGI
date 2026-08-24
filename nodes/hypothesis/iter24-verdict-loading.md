@@ -5,11 +5,14 @@ parents:
   - idea:domain-chain-engine
 next_edges: []
 type: hypothesis
-verdict: proved
+verdict: inconclusive_lean_proved:50
 tags:
   - topological-queries
   - loader
   - iter-24
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 # hypothesis:iter24-verdict-loading

@@ -3,7 +3,7 @@ id: "verdict:a00-8636e255-bf1a6c"
 title: "Verdict: Mermaid Renderer R3 — Valid and Deterministic"
 type: verdict
 status: open
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 1.0
 parents:
   - "exp:a00-8636e255-bf1a6c"
@@ -17,6 +17,9 @@ tags:
   - validity
 next_edges:
   - hypothesis:renderers-r3-renderersr3-mermaid-renderer
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 **VERDICT: PROVED**
