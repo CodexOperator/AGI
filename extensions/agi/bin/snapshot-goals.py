@@ -312,8 +312,15 @@ def collect_parent_refs(existing: dict) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Derive nodes/goal/ from GOALS.md")
+    # The help text used to say "unknown goal id" while the check below tested
+    # every unresolved parent reference — 81 of them on the live tree against 0
+    # unresolved goals. A flag whose documentation is narrower than its
+    # behaviour is worse than no flag: it reads as safe to enable and is not.
     ap.add_argument("--strict", action="store_true",
-                    help="exit 1 if a node references an unknown goal id")
+                    help="exit 1 if a node references ANY unknown parent id")
+    ap.add_argument("--strict-goals", action="store_true",
+                    help="exit 1 only if a node references an unknown goal id "
+                         "(goal:g5 — the check driver.sh can actually enable)")
     ap.add_argument("--project", default=None,
                     help="override PROJECT_ROOT (default: env or cwd)")
     args = ap.parse_args(argv)
@@ -382,6 +389,7 @@ def main(argv: list[str] | None = None) -> int:
         rest_index.setdefault(_id_rest(kid), []).append(kid)
 
     unresolved = 0
+    unresolved_goals = 0
     prefix_mismatches = 0
     genuinely_missing = 0
     for ref in sorted(refs):
@@ -392,6 +400,7 @@ def main(argv: list[str] | None = None) -> int:
             path = existing[node_id]["path"]
             if GOAL_ID_RE.match(ref):
                 # Preserve the original message verbatim for `goal:` refs.
+                unresolved_goals += 1
                 print(f"INTEGRITY: {path} references unknown goal '{ref}'",
                       file=sys.stderr)
                 continue
@@ -425,6 +434,17 @@ def main(argv: list[str] | None = None) -> int:
     if unresolved and args.strict:
         print(f"ERR: {unresolved} unresolved parent reference(s) (--strict)",
               file=sys.stderr)
+        return 1
+    # goal:g5 — "fail loudly when a seed node points at a goal id that does not
+    # exist." Narrower than --strict on purpose: the loop carries 81 unresolved
+    # *parent* references (mostly `hypothesis:`/`hyp:` prefix drift), so
+    # enabling --strict in driver.sh would abort every run on day one and be
+    # reverted within the hour. A dangling goal reference is the different,
+    # rarer failure this goal cares about, and it currently stands at 0 — which
+    # is exactly when to start enforcing it, before the first one appears.
+    if unresolved_goals and args.strict_goals:
+        print(f"ERR: {unresolved_goals} unresolved goal reference(s) "
+              "(--strict-goals)", file=sys.stderr)
         return 1
     return 0
 

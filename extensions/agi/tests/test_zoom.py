@@ -277,3 +277,71 @@ def test_legacy_and_numeric_targeting_the_same_node_differ_in_scope(project):
     lvl1_text = _ctx_path(lvl1).read_text()
     assert "idea:engine-foo" in small_text
     assert "idea engine-foo title" not in lvl1_text.split("### Goals in scope", 1)[1]
+
+
+# ------------------------------------------- runtime completion contract (s8)
+
+
+def _ctx(tmp_path, agent, runtime=None, cc_dispatch=False):
+    """Render one small-level context and return its text."""
+    cfg = '{"cc_dispatch": {"kids_per_iter": 2}}' if cc_dispatch else "{}"
+    (tmp_path / "agi-tree.config.json").write_text(cfg)
+    _node(tmp_path, "goal", "g1", fm_extra="status: active")
+    extra = ["--level", "small", "--target", "goal:g1"]
+    if runtime:
+        extra += ["--runtime", runtime]
+    r = run(tmp_path, 1, agent, *extra)
+    assert r.returncode == 0, r.stderr
+    return (tmp_path / "sessions" / "iter-001" / agent / "context.md").read_text()
+
+
+def test_cc_project_gets_the_cc_contract_not_pi_s(tmp_path):
+    """goal:s8 — the harness handed every CC kid an instruction its own
+    protocol forbids ("no git, no push, no sync, no cli.py"), so every spawn
+    prompt had to carry an out-of-band override telling the kid to ignore
+    its own context file."""
+    text = _ctx(tmp_path, "k", cc_dispatch=True)
+    assert "cli.py done" not in text
+    assert "DONE <node-id>" in text
+    assert "Do not commit" in text
+
+
+def test_pi_project_contract_is_unchanged(tmp_path):
+    text = _ctx(tmp_path, "k", cc_dispatch=False)
+    assert "cli.py done" in text
+    assert "DONE <node-id>" not in text
+
+
+def test_explicit_runtime_flag_overrides_the_config_default(tmp_path):
+    assert "cli.py done" in _ctx(tmp_path, "a", runtime="pi", cc_dispatch=True)
+    assert "cli.py done" not in _ctx(tmp_path, "b", runtime="cc", cc_dispatch=False)
+
+
+def test_default_runtime_fails_closed_to_pi(tmp_path):
+    """`default_runtime` must never guess. A missing or unreadable config
+    degrades to the historical pi contract rather than silently flipping a
+    running project onto the other runtime.
+
+    Scoped to the function on purpose: zoom.py's *other* config read is
+    unguarded, so a malformed config aborts the whole script. That crash is
+    pre-existing and fail-loud is defensible there — it is not this test's
+    subject, and asserting the script survives would document a defect as
+    intended behaviour.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("zoom_mod", ZOOM)
+    zoom_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(zoom_mod)
+
+    assert zoom_mod.default_runtime(tmp_path / "no-such-dir") == "pi"
+    (tmp_path / "agi-tree.config.json").write_text("{not json")
+    assert zoom_mod.default_runtime(tmp_path) == "pi"
+    (tmp_path / "agi-tree.config.json").write_text('{"cc_dispatch": {}}')
+    assert zoom_mod.default_runtime(tmp_path) == "cc"
+
+
+def test_one_contract_definition_serves_every_renderer():
+    """Four copies of one contract is how it stayed wrong after SKILL.md said
+    otherwise. Assert the duplication cannot return."""
+    assert SOURCE.count("bin/cli.py done") == 1, \
+        "the pi contract must be emitted from completion_contract() only"

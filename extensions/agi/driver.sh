@@ -77,7 +77,7 @@ iter_run() {
   #     on purpose — project-local bin/*.py overrides are the H0 data-loss defect)
   if [[ -f "$PLUGIN_ROOT/bin/snapshot-goals.py" ]]; then
     AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
-      python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" 2>&1 | tee -a "$LOG"
+      python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" --strict-goals 2>&1 | tee -a "$LOG"
   fi
 
   # 1. Refresh nodes/ from build-site (idempotent rebuild)
