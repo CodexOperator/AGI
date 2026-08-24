@@ -85,6 +85,49 @@ G2).
 
 ---
 
+## The design ethic — power armor, not a heavier pack
+
+The engine's job is to make an agent's work **more vigorous, not more strenuous.**
+Motion is what an LLM spends; weight is what it carries while spending it. Every
+token emitted or sensed rides along for the rest of the run, so an agent that had
+to *find* its context arrives at the actual work already loaded down. The target
+is the opposite shape: **arrive knowing where you are, hit hard, hand off, rest.**
+Power armor amplifies the wearer; it does not ask the wearer to carry it.
+
+This is a stronger claim than "the loop is convenient", and it has to be, because
+convenience is unfalsifiable and this is not:
+
+**The measurable: an agent doing real work in this graph should make more graph
+calls than filesystem calls.** Not zero file reads — some questions genuinely
+live outside the graph. But the ratio is the whole thesis. If agents keep
+grepping source to answer questions the graph claims to hold, the graph is
+decoration and the armor is a pack.
+
+**First measurement, 2026-08-23 (`exp:evidence-gate-coverage`), and it is a
+failing one: 3 graph calls against ~28 file reads and bash calls.** The kid
+reported it unprompted and diagnosed it correctly — the question turned on
+protocol documents and git history that the graph does not represent. That is
+**G6.6**'s coverage gap arriving from an independent direction, and it is the
+honest baseline this ethic gets measured against from here. Record the ratio on
+work that matters; do not tune it by asking easier questions.
+
+What the ethic forbids, stated so it can be enforced rather than admired:
+
+- **No prose-only controls where a code control is possible.** "The parent
+  reviews by hand" is not a mechanism, it is a hope with a name. **S9** exists
+  because that class of control let 104 unevidenced verdicts accumulate for three
+  and a half months, and `exp:evidence-gate-coverage` found the same class still
+  load-bearing in the CC runtime today.
+- **No mundane step without a command** (G1), and no command that has to be
+  remembered rather than installed (G1.5).
+- **No context an agent has to reassemble** that a previous agent already
+  assembled. That is what the graph is *for*; a re-derivation is a bug report
+  against it.
+
+The corollary is uncomfortable and load-bearing: **when an agent has to leave the
+graph to do its job, that is evidence against the graph, not against the agent.**
+Log it, do not scold it.
+
 ## G1 — Zero-operations loop: every mundane step is a command — status: horizon
 
 The ethic above, reduced to buildable surface. An agent should never spend
