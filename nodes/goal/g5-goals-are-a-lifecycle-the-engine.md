@@ -9,6 +9,7 @@ seeds:
   - idea:engine-schema-registry
   - idea:engine-snapshot-build-site
   - idea:engine-snapshot-goals
+  - mvp:strict-goal-refs
 status: active
 tags:
   - goal
