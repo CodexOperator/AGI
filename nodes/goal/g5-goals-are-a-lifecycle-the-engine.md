@@ -6,6 +6,7 @@ id: "goal:g5"
 origin: goals-doc
 seeds:
   - exp:g5-lifecycle-enforcement
+  - goal:g5.1
   - idea:engine-schema-registry
   - idea:engine-snapshot-build-site
   - idea:engine-snapshot-goals
@@ -33,3 +34,10 @@ prune. A missing `GOALS.md` prunes nothing.
 Owns: **L5** (rotation the engine enforces), **L18** (the ideation stage; a
 missing build site must degrade like a missing `GOALS.md` does, not abort the
 driver).
+
+**Landed 2026-08-23** (`exp:g5-lifecycle-enforcement`, `mvp:strict-goal-refs`):
+retired goals stop scoring while staying attributable; **L5** rotation warns
+every iteration (`METRIC_WARNING goal_rotation=`, currently reading 37/3);
+**L18** a goals-only project runs instead of aborting; and `--strict-goals`
+makes a dangling goal reference fail the run, wired into `driver.sh` while the
+count is still 0 — which is when to start enforcing, not after the first one.

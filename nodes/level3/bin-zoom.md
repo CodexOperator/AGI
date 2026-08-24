@@ -47,17 +47,27 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 201'
+  how: '`json.loads(cfg_path.read_text())` at line 83'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(cfg_path.read_text())` at line 255'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 201'
+  how: '`cfg_path.read_text()` at line 83'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 255'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: inject_path
-  how: '`inject_path.read_text(encoding=''utf-8'')` at line 323'
+  how: '`inject_path.read_text(encoding=''utf-8'')` at line 386'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -72,71 +82,82 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: default_runtime
+  how: 'defines public function `default_runtime` at line 70, signature: (root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: completion_contract
+  how: 'defines public function `completion_contract` at line 89, signature: (runtime:
+    str, iter_n, agent_id, target: str | None=None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: ZoomUnavailable
-  how: defines public class `ZoomUnavailable` at line 70
+  how: defines public class `ZoomUnavailable` at line 124
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _add_graph_core_to_path
-  how: 'defines private function `_add_graph_core_to_path` at line 166, signature:
+  how: 'defines private function `_add_graph_core_to_path` at line 220, signature:
     (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _load_wired_graph
-  how: 'defines private function `_load_wired_graph` at line 183, signature: (root:
+  how: 'defines private function `_load_wired_graph` at line 237, signature: (root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _bfs_neighbors
-  how: 'defines private function `_bfs_neighbors` at line 229, signature: (g, target:
+  how: 'defines private function `_bfs_neighbors` at line 283, signature: (g, target:
     str, hops: int=2)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _frontmatter_for
-  how: 'defines private function `_frontmatter_for` at line 247, signature: (root:
+  how: 'defines private function `_frontmatter_for` at line 301, signature: (root:
     Path, dir_name: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 272
+  how: defines public function `main` at line 326
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _unavailable_message
-  how: 'defines private function `_unavailable_message` at line 348, signature: (level:
+  how: 'defines private function `_unavailable_message` at line 411, signature: (level:
     int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _compose_big
-  how: 'defines private function `_compose_big` at line 359, signature: (inject_text:
+  how: 'defines private function `_compose_big` at line 422, signature: (inject_text:
     str, args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _compose_small
-  how: 'defines private function `_compose_small` at line 385, signature: (root: Path,
+  how: 'defines private function `_compose_small` at line 445, signature: (root: Path,
     args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _render_level
-  how: 'defines private function `_render_level` at line 438, signature: (root: Path,
+  how: 'defines private function `_render_level` at line 494, signature: (root: Path,
     args: argparse.Namespace, level: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text(content, encoding=''utf-8'')` at line 343'
+  how: '`out_path.write_text(content, encoding=''utf-8'')` at line 406'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 7 `print()` call(s) at line(s) [292, 298, 314, 321, 327, 333, 344]
+  how: 7 `print()` call(s) at line(s) [355, 361, 377, 384, 390, 396, 407]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

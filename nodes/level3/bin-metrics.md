@@ -125,35 +125,41 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: goal_attribution
+  how: 'defines public function `goal_attribution` at line 217, signature: (nodes_dir:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: outcome_coverage
-  how: 'defines public function `outcome_coverage` at line 211, signature: (mvp_count:
+  how: 'defines public function `outcome_coverage` at line 301, signature: (mvp_count:
     int, hypothesis_count: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: compute
-  how: 'defines public function `compute` at line 222, signature: (root: Path)'
+  how: 'defines public function `compute` at line 312, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: emit
-  how: 'defines public function `emit` at line 254, signature: (root: Path, out=None)'
+  how: 'defines public function `emit` at line 352, signature: (root: Path, out=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _find_root
-  how: 'defines private function `_find_root` at line 282, signature: (start: Path)'
+  how: 'defines private function `_find_root` at line 400, signature: (start: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 292, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 410, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 7 `print()` call(s) at line(s) [261, 268, 271, 274, 277, 278, 288]
+  how: 9 `print()` call(s) at line(s) [359, 366, 377, 386, 389, 392, 395, 396, 406]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
