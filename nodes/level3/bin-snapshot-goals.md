@@ -62,7 +62,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: GOALS_MD
-  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 328'
+  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 335'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -163,8 +163,8 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 12 `print()` call(s) at line(s) [142, 308, 325, 338, 395, 401, 406, 418, 420,
-    421, 423, 426]
+  how: 13 `print()` call(s) at line(s) [142, 308, 332, 345, 404, 410, 415, 427, 429,
+    430, 432, 435, 446]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

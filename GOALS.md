@@ -128,6 +128,38 @@ The corollary is uncomfortable and load-bearing: **when an agent has to leave th
 graph to do its job, that is evidence against the graph, not against the agent.**
 Log it, do not scold it.
 
+### It is never an agent failure, always a harness failure
+
+That corollary generalises, and the general form is the rule this project builds
+by: **at the current state of the art, every failure is a harness failure.**
+
+Not because agents are infallible — they are not, and this session logged
+several mistakes. But an agent's mistake is *information about the harness*: it
+names a place where the environment permitted, invited, or required the wrong
+move. Every defect recorded here has that shape on inspection. `zoom.py` handed
+kids an instruction their own protocol forbade (**S8**) — the kids were obeying
+their context. 104 verdicts overclaimed evidence because the gate was not in the
+path that wrote them (**S9** era) — the writers had no gate to fail. A haiku kid
+reported a flag's documented scope instead of its real one, because the help text
+lied about the code beneath it. In every case, blaming the agent would have left
+the defect in place and the next agent would have hit it.
+
+**Three consequences that change what gets built:**
+
+1. **No metric scores an agent.** Metrics score the graph, the goals and the
+   engine. **G5.1** states this specifically for goal saturation, and it holds
+   generally: the moment a number grades agents, the cheapest way to move it is
+   to select easier work.
+2. **Every failure gets a row.** A mistake that produces no goal, invariant or
+   test has been wasted — the harness is unchanged and the failure is
+   reproducible. This is the same discipline `/backprop` applies to bugs.
+3. **Prose is not a control.** "The parent reviews by hand" is a hope with a
+   name. Where a code control is possible, prose is a defect waiting for the
+   iteration where someone is tired.
+
+This is also why the honest report matters more than the clean one. An agent
+that hides a failure has destroyed the only thing that failure was good for.
+
 ## G1 — Zero-operations loop: every mundane step is a command — status: horizon
 
 The ethic above, reduced to buildable surface. An agent should never spend
@@ -617,6 +649,58 @@ prune. A missing `GOALS.md` prunes nothing.
 Owns: **L5** (rotation the engine enforces), **L18** (the ideation stage; a
 missing build site must degrade like a missing `GOALS.md` does, not abort the
 driver).
+
+**Landed 2026-08-23** (`exp:g5-lifecycle-enforcement`, `mvp:strict-goal-refs`):
+retired goals stop scoring while staying attributable; **L5** rotation warns
+every iteration (`METRIC_WARNING goal_rotation=`, currently reading 37/3);
+**L18** a goals-only project runs instead of aborting; and `--strict-goals`
+makes a dangling goal reference fail the run, wired into `driver.sh` while the
+count is still 0 — which is when to start enforcing, not after the first one.
+
+### G5.1 — A goal too saturated with intent gets broken up — status: horizon
+
+**The failure this exists to catch is visible right now in this file.** Goals
+accumulate intent: each session adds a clause, a falsifier, a dependency, a
+recorded result, until a "goal" is really five goals sharing a heading. A
+saturated goal cannot be finished, so it stays `active` forever, which is half
+of why the rotation count reads 37 against a declared limit of 3. **G6.6 is the
+worked example** — its verdict came back `disproved` specifically because it
+bundled a coverage claim and a remedy claim that resolved in opposite
+directions, and nobody noticed until an experiment forced the split.
+
+What has to exist: **an error metric the engine computes per goal**, and a
+mechanical decomposition when a goal fails it. Candidate signals, all cheap and
+already derivable from the corpus:
+
+- **Falsifier count.** More than one falsifier in a goal means more than one
+  claim. This is the strongest signal and the easiest to compute.
+- **Verdict split.** A goal whose descendant verdicts disagree — some
+  supporting, some contradicting — is answering more than one question. G6.6
+  exactly.
+- **Age at `active`** with no descendant reaching an mvp. Intent accumulating
+  without ever closing.
+- **Length**, as a weak proxy for the others. Weak on purpose: a long goal that
+  passes the first three signals is fine, and length alone would flag the good
+  ones.
+
+Decomposition should be **generated and then reviewed**, never automatic —
+`snapshot-goals.py` already derives `nodes/goal/` from this file, so a proposed
+split is a diff against `GOALS.md` a human accepts or rejects. Splitting a goal
+by machine without review would break the one rule this file has that cannot
+bend: **ids are permanent**, so a bad split is unrecoverable in the way a bad
+node never is.
+
+**The framing that decides how this is built:** with agents at their current
+capability, *it is never an agent failure, always a harness failure*. An agent
+that cannot finish a saturated goal is behaving correctly — the goal is
+unfinishable. So this metric measures the goal, never the agent that worked it,
+and its output is a proposed split rather than a performance signal. Any
+version of this that scores agents is the wrong build.
+
+Falsifier: run the metric over this file as it stands. It must flag **G6.6**
+(known bundled, proved so by verdict) and must not flag **G3.1** or **S9**
+(single claim, single falsifier, closed cleanly). If it cannot separate those,
+the signal is length in disguise.
 
 ## G6 — The closed loop: engine work starts in the graph — status: active
 
@@ -1320,6 +1404,67 @@ thought verbatim, as it occurred, and lets a later agent connect to it directly.
 That is why this system has no memory layer and should never grow one. Nothing
 here needs to *recall*; it needs to *reach*.
 
+### G10.1 — Chats are thoughts, so chats are nodes — status: horizon
+
+**The third dimension, and the one that makes the other two worth having.**
+The graph is lateral. Each node carries a linear stack of versions. **Each
+version carries the agentic chats that produced it.**
+
+A future agent picking up a version does not read a summary of how it got
+there — it opens the actual conversation, verbatim, and continues from inside
+it. In principle it inherits the pre-computed key-values wholesale, arriving
+with the reasoning already in context rather than reconstructed. The one thing
+it must carry that its predecessor did not: **awareness that it is a later
+agent making modifications**, not the original mid-thought. Without that flag it
+will mistake inherited context for its own conclusions.
+
+This is [the memory argument](#g10) at its sharpest. A chat summary is a memory.
+The chat is the thought. Keep the thought.
+
+**So chats render as graphs too**, at every level: viewable, expandable to full
+LOD, forkable. A chat is not an attachment hanging off a node — it is a region
+of the same hypergraph, unfolded from the node it produced. Whether that
+rendering is dynamic (a mechanical model compacting on demand — the job
+**G4.4** reserves for local inference) or pre-baked and auto-updated is an
+implementation choice, not a design one. Measure both.
+
+**The attachment problem, named because it is the hard part.** A chat usually
+*starts* with context drawn from several existing nodes and *ends* by producing
+a new one. So which node owns it? The answer that works: **attach a chat to its
+end result** — the node or version it produced — and record its inputs as
+references, not as ownership. That keeps every chat reachable from exactly one
+place while preserving what it drew on.
+
+It has to be controlled for, though, and here is the specific failure: a chat
+that produces *nothing* has no owner and vanishes, which is exactly the
+abandoned-attempt case **G9.5** wants preserved as prior art. Such chats need a
+home — plausibly the session dimension `refs/grid/session/*` already provides —
+before this is safe to build.
+
+Falsifier: hand an agent a version and its chat instead of a briefing, and
+measure tool calls to first useful action against an agent given the briefing.
+If the chat does not reduce it, chats are archive, not context, and should be
+stored more cheaply.
+
+### G10.2 — The graph describes its own geometry — status: horizon
+
+**A `nodes/.geometry/` directory holding a handful of nodes that describe the
+shape of the graph itself** — what the axes are, what a version is, what a chat
+attaches to, how zoom and LOD compose. Not documentation *about* the system in
+prose somewhere: nodes, in the graph, subject to every rule other nodes obey.
+
+The point is the loop closing on itself. Today those rules live in engine code
+and in this file. Put them in `.geometry/` and **the rules become modifiable
+through the graph**, which is the same arrow **G6.1** draws for engine code,
+applied to the engine's own model of itself. The init script (**G1.5**) ships
+the starting geometry; a project that needs a different shape edits nodes rather
+than forking the engine.
+
+Constraint that keeps this honest: a geometry node must be *read by something*.
+A `.geometry/` directory the engine does not consult is prose with a
+directory name — the exact failure **G6.6** found in `agent-prompt.md`. Ship a
+geometry node only when a real code path reads it.
+
 ### The two axes are orthogonal, and conflating them is the current defect
 
 - **Zoom** — which region of the graph, and at what structural grain. Already
@@ -1378,6 +1523,32 @@ environment is a document with better formatting.
 
 Depends on: **G2** (zoom axis), **G1.3** (addressing), **G9.4** (the viewport is
 the same query with a human front-end), **G6.8** (what is in it at all).
+
+### G10.3 — The legendary map: a minimap that is itself the territory — status: horizon
+
+**The widest possible view — what exists, and what can be done to it.** The old
+`.openclaw`/`.hermes` supermap, taken further and made legible: not just an
+overview of the graph but **a legend of the actions available in it**, rendered
+as part of the same surface an agent already reads.
+
+The property that makes it worth building rather than writing as a help page:
+**the legendary map is itself a map, with the same zoom and LOD axes as the
+hypergraph.** It demonstrates the moves by being a thing you make the moves on.
+An agent learning to navigate does so by navigating the legend — and it carries,
+in itself, the statement that it is navigable the same ways. Self-describing in
+the strict sense, not the decorative one.
+
+This is what makes **G1.6**'s one-word commands discoverable without a manual.
+The legend shows the command; the map you are looking at is where you practise
+it; the graph you then move to responds identically.
+
+Falsifier, and it is a behavioural one: give an agent the legendary map and no
+other instruction on how to navigate, and see whether it moves. If it needs the
+prose brief anyway, the legend has not replaced the manual — it has become a
+second one, which is **G1.2**'s failure mode.
+
+Depends on **G1.3** (the supermap convention it extends), **G10.2** (the actions
+it lists should be read from the geometry, not hardcoded a second time).
 
 ## S1 — Retire `bin/` as a directory name — status: active
 

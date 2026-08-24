@@ -150,7 +150,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 5 `print()` call(s) at line(s) [98, 182, 394, 396, 398]
+  how: 6 `print()` call(s) at line(s) [98, 182, 292, 414, 416, 418]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
