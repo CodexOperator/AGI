@@ -7,6 +7,7 @@ origin: goals-doc
 parents:
   - goal:g6
 seeds:
+  - mvp:census-boundary-scope
   - mvp:level3-boundary-scope
   - mvp:payload-boundary-predicate
 status: active
