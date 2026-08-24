@@ -6,7 +6,8 @@ id: "goal:g6.8"
 origin: goals-doc
 parents:
   - goal:g6
-seeds: []
+seeds:
+  - mvp:payload-boundary-predicate
 status: active
 tags:
   - goal

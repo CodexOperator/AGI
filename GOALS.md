@@ -600,7 +600,7 @@ the full input cost of the draft anyway. The saving comes from work the local mo
 Depends on **G4.2** (the dial), **G4.1** (parallel kids must stop colliding before
 there are many more of them), and **G10** for stable territory.
 
-## G5 — Goals are a lifecycle the engine reads, not a human convention — status: horizon
+## G5 — Goals are a lifecycle the engine reads, not a human convention — status: active
 
 `status:` should be a field the engine acts on: stop accruing score to
 `phasing-out` and `complete` goals while keeping their chains attributable, and
