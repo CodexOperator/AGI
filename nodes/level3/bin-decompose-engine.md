@@ -67,17 +67,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text(encoding=''utf-8'')` at line 243'
+  how: '`p.read_text(encoding=''utf-8'')` at line 337'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(path.read_text(encoding=''utf-8''))` at line 262'
+  how: '`json.loads(path.read_text(encoding=''utf-8''))` at line 356'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 262'
+  how: '`path.read_text(encoding=''utf-8'')` at line 356'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -94,78 +94,78 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: git_ls_files
-  how: 'defines public function `git_ls_files` at line 117, signature: (engine_root:
+  how: 'defines public function `git_ls_files` at line 164, signature: (engine_root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: discover_units
-  how: 'defines public function `discover_units` at line 133, signature: (engine_root:
+  how: 'defines public function `discover_units` at line 180, signature: (engine_root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _extract_py_docstring
-  how: 'defines private function `_extract_py_docstring` at line 199, signature: (text:
+  how: 'defines private function `_extract_py_docstring` at line 293, signature: (text:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _extract_sh_header
-  how: 'defines private function `_extract_sh_header` at line 209, signature: (text:
+  how: 'defines private function `_extract_sh_header` at line 303, signature: (text:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _extract_block_comment
-  how: 'defines private function `_extract_block_comment` at line 229, signature:
+  how: 'defines private function `_extract_block_comment` at line 323, signature:
     (text: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: extract_doc
-  how: 'defines public function `extract_doc` at line 238, signature: (engine_root:
+  how: 'defines public function `extract_doc` at line 332, signature: (engine_root:
     Path, doc_source: str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: load_goal_map
-  how: 'defines public function `load_goal_map` at line 258, signature: (path: Path)'
+  how: 'defines public function `load_goal_map` at line 352, signature: (path: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: build_node
-  how: 'defines public function `build_node` at line 278, signature: (unit: dict,
+  how: 'defines public function `build_node` at line 372, signature: (unit: dict,
     doc: str | None, goal_id: str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _tokens
-  how: 'defines private function `_tokens` at line 318, signature: (s: str)'
+  how: 'defines private function `_tokens` at line 412, signature: (s: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _overlaps
-  how: 'defines private function `_overlaps` at line 323, signature: (a_tokens: list[str],
+  how: 'defines private function `_overlaps` at line 417, signature: (a_tokens: list[str],
     b_tokens: list[str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: report_stale_domain_nodes
-  how: 'defines public function `report_stale_domain_nodes` at line 327, signature:
+  how: 'defines public function `report_stale_domain_nodes` at line 421, signature:
     (existing: dict, units: list[dict])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 353, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 447, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 18 `print()` call(s) at line(s) [264, 269, 344, 376, 402, 413, 424, 441, 444,
-    448, 449, 451, 453, 454, 455, 457, 458, 459]
+  how: 19 `print()` call(s) at line(s) [358, 363, 438, 470, 481, 507, 518, 529, 546,
+    549, 553, 554, 556, 558, 559, 560, 562, 563, 564]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

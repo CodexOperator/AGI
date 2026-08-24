@@ -2,6 +2,8 @@
 confidence: 1.0
 id: "level3:tests-chain-engine-test-chain-definition"
 origin: level3-scan
+parents:
+  - idea:engine-tests-chain-engine
 payload_ref: extensions/agi/tests/chain_engine/test_chain_definition.py
 tags:
   - level3
@@ -12,7 +14,7 @@ type: level3
 
 `extensions/agi/tests/chain_engine/test_chain_definition.py` — level-3 code node (one file, one canonical node).
 
-Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.
+Census parent: `idea:engine-tests-chain-engine`.
 
 <!-- LEVEL3-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
