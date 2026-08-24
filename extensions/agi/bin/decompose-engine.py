@@ -93,10 +93,40 @@ write_frontmatter = snapshot_goals.write_frontmatter
 SRC_PREFIX = "extensions/agi/src/"
 BIN_PREFIX = "extensions/agi/bin/"
 
-# Single-file entry points named explicitly rather than discovered by a
-# generic "every file in this dir" walk, because some of those directories
-# also hold data files that are deliberately not units (e.g.
-# extensions/agi/lib/agent-prompt.md — see engine-self-decomposition §1).
+# Non-code subsystem directories (goal:g6.8 census widening). level3.py's scan
+# widened to the G6.8 payload boundary; this script's discovery did not move
+# with it, so every file below was left parentless. Each directory here is ONE
+# unit — unlike SRC_PREFIX, which groups by the next path segment — because
+# each holds a handful of files that are one coherent body of material.
+# Subdividing further would be one-unit-per-file for a directory this small.
+DIR_SUBSYSTEM_PREFIXES = [
+    ("context/impl/", "context-impl"),
+    ("context/kits/", "context-kits"),
+    ("context/plans/", "context-plans"),
+    ("context/refs/", "context-refs"),
+]
+
+# tests/ gets the src/ treatment, not the DIR_SUBSYSTEM treatment: one unit per
+# immediate subdirectory (a tests/<pkg>/ dir is that package's suite), plus one
+# catch-all for what sits directly under tests/. The catch-all is deliberate:
+# those flat test_*.py files each test a bin_script unit, and find_parent()
+# exact-matches a bin_script rather than matching by directory, so they cannot
+# nest under the script they test the way tests/graph_core/ nests under
+# src/graph_core. Twelve near-empty units would be the "too fine" failure.
+TESTS_PREFIX = "extensions/agi/tests/"
+
+# Single-file entry points named explicitly rather than discovered by a generic
+# "every file in this dir" walk, because most directories holding one also hold
+# files that should not become units merely by co-location.
+#
+# agent-prompt.md was the original worked example of exactly that — a file that
+# must never become a unit by co-location (engine-self-decomposition §1, pinned
+# by a regression test). That call predates goal:g6.6/g6.8, which later named
+# agent-prompt.md and SKILL.md as the two highest-leverage prose surfaces the
+# census must cover. It is listed below as its own deliberate entry, which does
+# not loosen the rule: every entry here is still an individually-decided tuple,
+# never a directory listing.
+#
 # Each entry is (rel_path from engine root, slug, kind). Presence is still
 # checked against git ls-files: a removed entry point silently drops out.
 NAMED_ENTRY_POINTS = [
@@ -105,6 +135,23 @@ NAMED_ENTRY_POINTS = [
     ("extensions/agi/lib/find-root.sh", "find-root", "entry_point"),
     ("extensions/agi/scripts/migrate_to_sqlite.py", "migrate-to-sqlite", "entry_point"),
     ("extensions/agi-bridge/index.ts", "agi-bridge-index", "entry_point"),
+    ("extensions/agi-bridge/README.md", "agi-bridge-readme", "entry_point"),
+    ("extensions/agi/lib/agent-prompt.md", "agent-prompt", "entry_point"),
+    ("extensions/agi/bin/decompose-engine.goalmap.json", "decompose-engine-goalmap", "entry_point"),
+    ("extensions/agi/conftest.py", "conftest", "entry_point"),
+    ("skills/agi/SKILL.md", "skill-doc", "entry_point"),
+    ("README.md", "readme", "entry_point"),
+    ("TODO.md", "todo", "entry_point"),
+    ("HANDOFF.md", "handoff", "entry_point"),
+    (".gitignore", "gitignore", "entry_point"),
+    ("package.json", "package-json", "entry_point"),
+    ("schema.sql", "schema-sql", "entry_point"),
+    ("run-loop.sh", "run-loop-sh", "entry_point"),
+    ("start.sh", "start-sh", "entry_point"),
+    ("autoresearch.sh", "autoresearch-sh", "entry_point"),
+    ("autoresearch.md", "autoresearch-md", "entry_point"),
+    ("autoresearch.ideas.md", "autoresearch-ideas", "entry_point"),
+    ("autoresearch.config.json", "autoresearch-config", "entry_point"),
 ]
 
 KIND_LABEL = {
@@ -163,6 +210,53 @@ def discover_units(engine_root: Path) -> list[dict] | None:
             "slug": pkg.replace("_", "-"),
             "kind": "src_package",
             "doc_source": doc_source if doc_source in files_set else None,
+        })
+
+    # Directory-subsystem units (goal:g6.8 widening): everything under each
+    # prefix is one unit. Discovery only mints it; level3.py's existing
+    # longest-prefix-wins find_parent() is what lets a more specific prefix
+    # (a tests/ subdirectory below) beat a broader one, so this script does
+    # not need to know about that resolution.
+    for prefix, slug in DIR_SUBSYSTEM_PREFIXES:
+        if any(f.startswith(prefix) for f in files):
+            units.append({
+                "rel_path": prefix.rstrip("/"),
+                "slug": slug,
+                "kind": "src_package",
+                "doc_source": None,
+            })
+
+    # tests/: one unit per immediate subdirectory, plus one catch-all for what
+    # sits directly under tests/ itself.
+    test_subdirs: set[str] = set()
+    has_flat_test_file = False
+    for f in files:
+        if not f.startswith(TESTS_PREFIX):
+            continue
+        rest = f[len(TESTS_PREFIX):]
+        if "/" in rest:
+            test_subdirs.add(rest.split("/", 1)[0])
+        else:
+            has_flat_test_file = True
+    for sub in sorted(test_subdirs):
+        if sub == "fixtures":
+            # Mirrors payload_boundary.is_test_fixture(): every file under
+            # tests/fixtures/ is *out* of the G6.8 boundary, so level3.py
+            # never emits a node for one. A unit here would have zero
+            # possible children forever. Not minted, on purpose.
+            continue
+        units.append({
+            "rel_path": f"{TESTS_PREFIX}{sub}",
+            "slug": f"tests-{sub.replace('_', '-')}",
+            "kind": "src_package",
+            "doc_source": None,
+        })
+    if test_subdirs or has_flat_test_file:
+        units.append({
+            "rel_path": TESTS_PREFIX.rstrip("/"),
+            "slug": "tests",
+            "kind": "src_package",
+            "doc_source": None,
         })
 
     # bin/*.py: direct children of bin/ only, not nested, not __pycache__.
@@ -377,6 +471,17 @@ def main(argv: list[str] | None = None) -> int:
               f"(not a git repo?) — no-op, nothing written or pruned",
               file=sys.stderr)
         return 0
+
+    if not units:
+        # H0/H0i guard, matching the one in level3.py. A readable engine repo
+        # always yields units, so an empty list means discovery resolved
+        # against the wrong tree rather than a genuine empty scope. Fail loud
+        # and return before the origin-scoped prune can run; a silent exit-0
+        # here would unlink every `idea:engine-*` node in the project.
+        print(f"ERROR: discover_units returned zero units for engine root "
+              f"{engine_root} — refusing to treat this as authoritative "
+              f"scope; no-op, nothing written or pruned", file=sys.stderr)
+        return 1
 
     goal_map = load_goal_map(goal_map_path)
 

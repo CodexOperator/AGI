@@ -441,7 +441,14 @@ def load_census_units(existing: dict) -> list[dict]:
         if fm.get("type") != "idea":
             continue
         kind = fm.get("unit_kind")
-        if kind not in ("src_package", "bin_script"):
+        # `entry_point` was silently dropped here. Five such units already
+        # existed and were correct — driver.sh, find-root.sh,
+        # cc-session-start.sh, agi-bridge/index.ts, migrate_to_sqlite.py —
+        # so those files reported NO_PARENT while their census unit sat in
+        # the graph unread. They are exactly the highest-leverage surfaces
+        # goal:g6.6 names, and the filter that hid them was invisible
+        # because a missing parent looks identical to a missing unit.
+        if kind not in ("src_package", "bin_script", "entry_point"):
             continue
         unit_path = fm.get("unit_path")
         if not unit_path:
@@ -455,7 +462,11 @@ def find_parent(rel_path: str, units: list[dict]) -> str | None:
     best_id = None
     best_len = -1
     for u in units:
-        if u["unit_kind"] == "bin_script":
+        # `entry_point` needs the same exact-match semantics as `bin_script`:
+        # it names one file, and the prefix branch below can never match a
+        # single path. Admitting the kind above without this is a silent
+        # no-op, which is the shape that hid it in the first place.
+        if u["unit_kind"] in ("bin_script", "entry_point"):
             if rel_path == u["unit_path"] and len(u["unit_path"]) > best_len:
                 best_id, best_len = u["node_id"], len(u["unit_path"])
         else:  # src_package
