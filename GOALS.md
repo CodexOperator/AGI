@@ -307,6 +307,45 @@ Falsifier: clone the repo to an empty machine, run the one command, and check
 that `git fetch` brings the grid down and `crontab -l` shows both cadences. If
 either needs a second command, this is not done.
 
+### G1.6 — Every action is a one-word command, inside the project — status: active
+
+**No more reaching for a file whose path you have to know.** Today an agent runs
+`python3 agi/extensions/agi/bin/zoom.py "$PWD" 9006 kid-a --level small --target
+goal:g6.3`. Every element of that except `goal:g6.3` is ceremony — an interpreter,
+a four-segment path, a redundant cwd, an iteration number and an agent id the
+harness already knows. The agent spends motion on the invocation instead of the
+question, and gets the path wrong sometimes, which is worse.
+
+**Target: one or two words, options optional, discoverable from inside the
+project.** `agi zoom goal:g6.3`. `agi node new hypothesis --parent goal:g6.3`.
+`agi resume <grid-ref>`. `agi audit`. Installed as part of adding agi to any
+project (**G1.5**), so the command surface exists the moment the project does and
+is identical in every project.
+
+The list worth having, drawn from what actually cost tool calls in the 2026-08-23
+run:
+- **navigate** — zoom to a node, widen, step to a neighbour, raise LOD (**G10**)
+- **write** — create or edit a node without hand-assembling frontmatter, which is
+  where kids currently spend their first three tool calls and where they get
+  `evidence_runs` shapes wrong
+- **resume** — pick up from any point in the grid, which is the crash-recovery
+  story the two-cadence cron already half-implements
+- **audit** — what is unevidenced, what is orphaned, what fails to parse. Every
+  one of those was a bespoke Python one-liner this session
+
+**The measurable is the point, not the ergonomics:** fewer tool calls and fewer
+tokens burned on recon *and* on acting. This is the Design Ethic's ratio attacked
+from the second side — G1.3 and G10 reduce the recon a task needs, this reduces
+what each action costs once you know what to do.
+
+Note the reflexive risk and avoid it: these commands are engine surface, so under
+**G6.8** they arrive from nodes rather than being written directly. Absorbs
+**S1**'s rename (`bin/` is invisible to GitNexus) — do them together, since both
+touch every entry point.
+
+Falsifier: take the transcript of any completed iteration and count invocations
+that needed an absolute path or an interpreter prefix. Not done until that is zero.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -523,6 +562,43 @@ arguments under `|| true`, so it may never have run. That matters beyond the
 bug — `benchmark.py` is what reaches `ranking.py` and the weighted attractiveness
 path, which means the ranking this loop supposedly selects targets with has
 never been confirmed to execute at all.
+
+### G4.4 — A web of specialists, each owning a region — status: horizon
+
+**Where the model-tiering goes once the dial exists.** G4.2 gives per-tier effort;
+this is what to do with it. The target shape: many small, hyper-specialised models
+each owning a **region of a zoom level** of the hypergraph, a smaller number of
+capable parents reviewing across regions, and a very small number of directors
+holding intent. Specialisation is by *territory*, not by task type — an agent that
+only ever works one region accumulates a sharper prior about it than a generalist
+re-reading it cold every time.
+
+**The objective function, stated plainly because it is the actual constraint:
+functional output per token spent.** Not quality alone and not cost alone — the
+ratio. A director on the largest model is worth its cost only if it multiplies
+what the tiers below produce.
+
+**Fine-tuning is the horizon, and it has a dependency the rest of this list
+doesn't:** a specialist tuned on a region needs that region to be stable enough to
+be worth learning. That argues for doing **G10** and **G6.8** first — you cannot
+tune a model on a territory whose shape and contents are still being decided.
+
+**Honest near-term constraint, recorded so the plan is not built on it.** Local
+inference on a 16 GB machine does not produce a peer to the parents; it produces a
+*mechanical* worker. That is not a disappointment, it is the split this system
+already believes in — the harness derives mechanically, the model fills judgement
+(**G2.2**). The jobs a local model can genuinely take off the paid tiers are the
+mechanical half: frontmatter assembly and validation, census and counting, LOD
+compaction (**G10**), draft node scaffolding for a parent to review. Every one of
+those is currently done by a paid model or a bespoke script.
+
+What it cannot do is act as an autocomplete in front of a larger model — there is
+no cross-provider speculative decoding, and any "check my draft" arrangement pays
+the full input cost of the draft anyway. The saving comes from work the local model
+**completes**, never from work it merely starts.
+
+Depends on **G4.2** (the dial), **G4.1** (parallel kids must stop colliding before
+there are many more of them), and **G10** for stable territory.
 
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: horizon
 
@@ -843,6 +919,66 @@ worse than a partial writer, because the partial writer leaves evidence.
 So **S9 is not a shared inconvenience, it is the same fix with two callers.**
 G6.3 and G6.7 do not each need their own mode-aware rewrite; they need the one
 rewrite to land before either attempts its falsifier.
+
+### G6.8 — The payload boundary: what is allowed to be a node — status: active
+
+**G6.6 said "cover the non-code surfaces" without saying where coverage stops.
+This draws the line, so the answer is a rule rather than a judgement call each
+time.**
+
+**In — anything that exists as a file in the repo.** That is the whole test, and
+it is deliberately mechanical:
+
+- **Code.** Already in. A code node ties cleanly to thought: it can spawn a
+  hypothesis about itself, an experiment against itself, or just an idea. That
+  bidirectionality is what makes it worth being a node rather than a record.
+- **Docs and prose, including the skill docs.** In, for exactly the same reason —
+  they spawn the same children, and most of what they assert is measurable
+  against the metrics already collected. `SKILL.md` and `agent-prompt.md` are the
+  highest-leverage files in the engine and are the reason **G6.6** exists.
+- **Philosophy and instruction prose specifically.** In, and with a direction
+  attached: **it belongs in the `agi` repo, arriving there from a node in
+  `agi-tree`.** Not written into the engine and described afterwards. This is
+  **G6.1**'s arrow applied to the documents that steer every agent — the class of
+  file where a change made without a node behind it does the most damage, as
+  **S8**'s three-way contradiction demonstrates.
+
+**Out — anything with no file behind it.** Today that means, concretely:
+
+- **Git refs are not nodes.** A node per grid ref is tedious to no purpose:
+  `refs/grid/node/<id>` is already *about* a node that exists. Making it its own
+  node inverts the relationship and doubles the corpus for zero new thought.
+- Sessions, run logs, and ephemeral output likewise. They are evidence a node can
+  *cite*; they are not thoughts.
+
+### The shape this implies, and it is worth stating because it is the whole model
+
+Two dimensions, not one. **The graph is the lateral dimension** — nodes and their
+edges, which can be flattened for reading or left as a 3-D structure of filaments.
+**Each node then carries its own linear stack of versions** as it is updated, and
+that stack is the grid. Refs are the *geometry* of that second dimension, not
+content within the first. That is precisely why they do not need nodes: they are
+the axis, not points on it.
+
+**The immediate payoff, and it is concrete: the 104 demoted verdicts can be
+resurrected.** They were demoted rather than deleted, so each still holds its
+original body at `v1`. Under this model, bringing one back to a decisive verdict
+is not an edit and not a rewrite — it is **minting a `v2` that meets the current
+standard**, with `v1` preserved as what was actually claimed at the time. The
+overclaim stays visible as history; the honest version is what the graph serves.
+That is the version dimension doing real work on real content for the first time,
+which is exactly what **G6.3** says has never been tested.
+
+**Scope note, so this does not read as permanent:** this boundary is *today's*
+line and it is drawn at the filesystem for tractability, not principle. **G10**
+holds the horizon where git refs, sessions and history all become addressable
+regions of the same hypergraph. When that lands, this goal narrows rather than
+being contradicted — the rule becomes "everything is in, materialised on demand"
+and the filesystem test retires.
+
+Falsifier: name any file in the engine repo and get a yes/no from this rule
+without argument. If a case needs a human to adjudicate, the boundary is not yet
+a boundary.
 
 ## G7 — Nothing the loop produces is ever silently lost — status: active
 
@@ -1167,6 +1303,81 @@ Gap to close: nothing currently links a node version back to the *session* that
 produced it. That link is what turns the grid from storage into history.
 
 ---
+
+## G10 — The hypergraph: an environment, not a document — status: horizon
+
+**The end state this whole system is walking toward.** Not "a graph the agent can
+query" — a *place the agent is in*. There are no blocks of prose anywhere in the
+working context; everything an agent sees is graph, rendered. The agent receives
+an injection of the hypergraph at the resolution its director chose, moves through
+it, and asks for more of it. Every other goal here is a component of this one.
+
+**The reason, and it is the load-bearing claim of the project:** memories are weak
+things. A memory is a lossy re-encoding made after the fact, and every layer of
+memory machinery bolted onto an LLM harness is an attempt to compensate for having
+thrown the original away. The graph does not remember — **it keeps the original
+thought verbatim, as it occurred, and lets a later agent connect to it directly.**
+That is why this system has no memory layer and should never grow one. Nothing
+here needs to *recall*; it needs to *reach*.
+
+### The two axes are orthogonal, and conflating them is the current defect
+
+- **Zoom** — which region of the graph, and at what structural grain. Already
+  numeric 1–5 (**G2**). This is *where you are*.
+- **Level of detail (LOD)** — how much of each node is printed at that grain. Does
+  not exist yet. This is *how hard you are looking*.
+
+Today they are fused: a node's grain is baked into its type (`level3:`) and there
+is one rendering per node. The target is that any node at any zoom can be pulled
+to full LOD — its complete contents, expanded — while its neighbours stay compact.
+Pick a node or a small set, raise their LOD, read; pick another set, push it a zoom
+level in or out. **Like slides you click through, with one-word commands, orienting
+in seconds rather than in tool calls** (see **G1.6**).
+
+The rendered artefact is a long tapestry of expanded ASCII nodes, sized so the
+whole selection lands cleanly in token space. Compaction is an LOD setting, not a
+separate renderer.
+
+### Zoom must not name itself
+
+**A node must not be titled `level3`.** The zoom level is a property of the *view*,
+never of the node. The environment injection says "you are at zoom 3"; the nodes
+say what they are.
+
+The reasoning is specific and it is the sharpest thing in this goal: zoom exists,
+for a human, to produce **tunnel vision** — block out everything but the relevant.
+An LLM has no tunnel vision. It only has peripheral vision; it sees the whole
+context at once. So for an agent, zooming is **not** occlusion — it is a slight
+reduction in dimensionality. Designing the zoom axis as though the agent needs
+blinders imports a constraint from the wrong nervous system. Naming the level on
+the node is that mistake made concrete: it tells the agent to identify with a
+grain instead of simply working at one.
+
+Consequence for **G2.1**/**G6.6**: `level3:` as an id prefix is a migration
+artefact, and the type should become a *facet* the renderer reads, not a name the
+node wears. Do not rename anything yet — ids are permanent (that rule holds) — but
+stop minting the grain into new ids.
+
+### Eventually: everything loads in
+
+**G6.8** draws today's payload boundary at the filesystem, and git refs sit outside
+it on purpose. That is the *current* line, not the final one. The horizon is that
+git refs, sessions, and run history all become addressable regions of the same
+hypergraph, materialised on demand as an agent asks for more touch of its
+environment — not pre-loaded, not a second system, just further out in the same
+space. **The supermap convention (G1.3) is the addressing scheme that makes this
+possible**, which is why G1.3 is worth building before the thing it will address
+exists.
+
+Falsifier, and it has to be behavioural rather than aesthetic: give an agent a task
+that today requires leaving the graph, and measure the graph-call to file-read
+ratio (the Design Ethic's measurable). The hypergraph is real when that ratio
+inverts on work that currently fails it — the standing baseline is 3:28 from
+`exp:evidence-gate-coverage`. If agents still reach for the filesystem, the
+environment is a document with better formatting.
+
+Depends on: **G2** (zoom axis), **G1.3** (addressing), **G9.4** (the viewport is
+the same query with a human front-end), **G6.8** (what is in it at all).
 
 ## S1 — Retire `bin/` as a directory name — status: active
 

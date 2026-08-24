@@ -12,6 +12,7 @@ seeds:
   - goal:g6.5
   - goal:g6.6
   - goal:g6.7
+  - goal:g6.8
   - idea:deprecate-the-gamed-mass
   - idea:engine-self-decomposition
 status: active
