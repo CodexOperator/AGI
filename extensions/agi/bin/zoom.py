@@ -67,6 +67,60 @@ def config_path(root: Path) -> Path | None:
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
 
+def default_runtime(root: Path) -> str:
+    """`cc` when the project configures Claude-Code dispatch, else `pi`.
+
+    goal:s8 — the completion contract is runtime-specific and was hardcoded
+    to pi's. A project carrying `cc_dispatch` is dispatching through Claude
+    Code, whose kids are told the opposite (`SKILL.md`: "no git, no push,
+    no sync, no cli.py"). Defaulting off a key the project already sets
+    means no existing pi project changes behaviour.
+    """
+    cfg_path = config_path(root)
+    if cfg_path is None:
+        return "pi"
+    try:
+        cfg = json.loads(cfg_path.read_text())
+    except Exception:
+        return "pi"
+    return "cc" if isinstance(cfg.get("cc_dispatch"), dict) else "pi"
+
+
+def completion_contract(runtime: str, iter_n, agent_id, target: str | None = None) -> list:
+    """The lines telling a kid how to finish. One definition, three callers.
+
+    It was copied into three renderers (big, legacy-small, numeric-level) and
+    into the module docstring, all emitting pi's `cli.py done`. A CC kid then
+    received, from the harness itself, an instruction its own protocol
+    forbids — so every spawn prompt had to carry an out-of-band override
+    telling the kid to ignore its own context file. Four copies of one
+    contract is how that stayed true after SKILL.md said otherwise (goal:s8).
+    """
+    if runtime == "cc":
+        return [
+            "When done, report exactly:",
+            "```",
+            "DONE <node-id>",
+            "caveats: <optional, one line>",
+            "struggles: <optional, one line>",
+            "```",
+            "Do not commit. Do not push. Do not call cli.py. The parent reviews",
+            "your node and owns all git.",
+        ]
+    node_id_line = "  --node-id <new_node_id>"
+    if target:
+        node_id_line += f" --parent {target}"
+    return [
+        "When done, signal completion:",
+        "```",
+        f"python3 <plugin>/bin/cli.py done {iter_n} {agent_id} \\",
+        "  --verdict <verdict_state> --confidence <0.0-1.0> \\",
+        node_id_line + " \\",
+        '  --notes "<one-line>"',
+        "```",
+    ]
+
+
 class ZoomUnavailable(RuntimeError):
     """A bounded view could not be computed for the requested level/target.
 
@@ -285,9 +339,18 @@ def main() -> int:
         help="node id. Bounds the subtree at levels 1-3 (optional there); "
              "required for legacy --level small; ignored by big/4/5.",
     )
+    ap.add_argument(
+        "--runtime",
+        choices=["pi", "cc"],
+        default=None,
+        help="which completion contract to hand the kid. Default: 'cc' when "
+             "the project config has a cc_dispatch block, else 'pi' (goal:s8).",
+    )
     args = ap.parse_args()
 
     root = Path(args.project_root).resolve()
+    if args.runtime is None:
+        args.runtime = default_runtime(root)
     if config_path(root) is None:
         print(f"ERR: not a project root: {root}", file=sys.stderr)
         return 1
@@ -357,6 +420,10 @@ def _unavailable_message(level: int) -> str:
 
 
 def _compose_big(inject_text: str, args: argparse.Namespace) -> str:
+    contract = "\n".join(
+        "   " + ln for ln in
+        completion_contract(args.runtime, args.iter_n, args.agent_id)
+    )
     return f"""# autoresearch-tree iteration {args.iter_n} — agent {args.agent_id}
 
 ## Zoom Level: BIG (legacy alias for numeric level {LEGACY_LEVEL_MAP['big']} — {LEVEL_INFO[LEGACY_LEVEL_MAP['big']]['name']})
@@ -369,14 +436,7 @@ Bias: introduce a fresh idea, fork an under-explored chain, or seed a new domain
 1. Decide: extend longest chain, fork mid-chain, or start fresh idea.
 2. Pick or create one node id (idea/hypothesis/experiment/mvp/outcome).
 3. Run the experiment / implement the MVP / write the outcome.
-4. When done, signal completion:
-   ```
-   python3 <plugin>/bin/cli.py done {args.iter_n} {args.agent_id} \\
-     --verdict <proved|disproved|inconclusive_lean_proved:N|inconclusive_lean_disproved:N|pending> \\
-     --confidence <0.0-1.0> \\
-     --node-id <new_or_extended_node_id> \\
-     --notes "<one-line>"
-   ```
+4. {contract.lstrip()}
 
 If stuck >2 attempts on same approach → write a `pending` verdict and stop.
 """
@@ -422,13 +482,9 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         "## Your Task",
         f"Extend or fork from `{target}`. Stay tight — don't wander to other chains.",
         "Acceptable: spawn one child node (hyp from idea, exp from hyp, mvp from exp, outcome from mvp).",
-        "When done, signal completion:",
-        "```",
-        f"python3 <plugin>/bin/cli.py done {args.iter_n} {args.agent_id} \\",
-        "  --verdict <verdict_state> --confidence <0.0-1.0> \\",
-        f"  --node-id <new_node_id> --parent {target} \\",
-        '  --notes "<one-line>"',
-        "```",
+    ])
+    lines.extend(completion_contract(args.runtime, args.iter_n, args.agent_id, target))
+    lines.extend([
         "",
         "If stuck >2 attempts → write `pending` verdict and stop.",
     ])
@@ -523,19 +579,9 @@ def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
         )
     lines.extend([
         "Acceptable: spawn one child node (hyp from idea, exp from hyp, mvp from exp, outcome from mvp).",
-        "When done, signal completion:",
-        "```",
-        f"python3 <plugin>/bin/cli.py done {args.iter_n} {args.agent_id} \\",
-        "  --verdict <verdict_state> --confidence <0.0-1.0> \\",
     ])
-    node_id_line = "  --node-id <new_node_id>"
-    if target:
-        node_id_line += f" --parent {target}"
-    node_id_line += " \\"
-    lines.append(node_id_line)
+    lines.extend(completion_contract(args.runtime, args.iter_n, args.agent_id, target))
     lines.extend([
-        '  --notes "<one-line>"',
-        "```",
         "",
         "If stuck >2 attempts → write `pending` verdict and stop.",
     ])

@@ -438,3 +438,59 @@ def test_long_term_goals_are_unchanged_by_the_new_kinds(nested):
     assert g2["goal_kind"] == "long-term"
     assert g2["tags"] == ["goal", "root"]
     assert "parents" not in g2
+
+
+# ------------------------------------------------ --strict-goals (goal:g5)
+
+
+def _sg_run(project, *extra):
+    import subprocess, sys
+    return subprocess.run(
+        [sys.executable, str(Path(__file__).resolve().parents[1] / "bin" / "snapshot-goals.py"),
+         "--project", str(project), *extra],
+        capture_output=True, text=True,
+    )
+
+
+def _sg_project(tmp_path, goals_md, seed_parent):
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    (tmp_path / "GOALS.md").write_text(goals_md)
+    d = tmp_path / "nodes" / "idea"
+    d.mkdir(parents=True)
+    (d / "seed.md").write_text(
+        f'---\nid: "idea:seed"\ntype: idea\nparents:\n  - {seed_parent}\n---\n\nbody\n')
+    return tmp_path
+
+
+GOALS = "# GOALS\n\n## G1 — Real goal — status: active\n\nbody\n"
+
+
+def test_strict_goals_fails_on_a_dangling_goal_reference(tmp_path):
+    """goal:g5 — 'fail loudly when a seed node points at a goal id that does
+    not exist.' Loudly means non-zero, not a line in a log with 81 others."""
+    p = _sg_project(tmp_path, GOALS, "goal:g99")
+    r = _sg_run(p, "--strict-goals")
+    assert r.returncode == 1
+    assert "unresolved goal reference" in r.stderr
+
+
+def test_strict_goals_ignores_non_goal_dangling_parents(tmp_path):
+    """Narrower than --strict on purpose. The live tree carries 81 unresolved
+    *parent* refs and 0 unresolved goal refs, so a flag that failed on both
+    could never be enabled in driver.sh."""
+    p = _sg_project(tmp_path, GOALS, "hypothesis:does-not-exist")
+    assert _sg_run(p, "--strict-goals").returncode == 0
+    assert _sg_run(p, "--strict").returncode == 1
+
+
+def test_strict_goals_passes_when_every_goal_ref_resolves(tmp_path):
+    p = _sg_project(tmp_path, GOALS, "goal:g1")
+    assert _sg_run(p, "--strict-goals").returncode == 0
+
+
+def test_default_still_only_warns(tmp_path):
+    """Enforcement is opt-in; the bare invocation must not start failing."""
+    p = _sg_project(tmp_path, GOALS, "goal:g99")
+    r = _sg_run(p)
+    assert r.returncode == 0
+    assert "unknown goal" in r.stderr
