@@ -51,22 +51,35 @@ Everything is reachable globally, by symlink, with no second copy anywhere:
 One skill, one source. The hook is a silent no-op outside a project, which is
 what makes registering it globally safe.
 
-## Layout: agi and agi-tree are symlinked into each other
+## Layout: the tree is outside the engine
 
-This pair is a special case, and the symlinks are what make it legible:
+**General shape, every project: `<project>/<project>-tree/agi`.** The graph is a
+separate repo one level inside the project, and the engine clone lives
+*underneath it*. Dropped into `fantasia`, that is:
 
-- `agi-tree/agi` → `/home/ubuntu/work/agi` (the engine repo)
+```
+fantasia/
+  fantasia-tree/        the graph repo (GOALS.md, config, nodes/)
+    agi/                gitignored clone of the engine
+```
+
+The tree is outside the engine, never inside it, so an engine checkout never
+contains a graph. That makes the gitignore story one line in one repo — `agi/`
+in the tree — and nothing at all in the engine.
+
+**This pair is the exception, and only in that both hops are symlinks:**
+
 - `agi/agi-tree` → `/home/ubuntu/work/agi-tree` (this repo)
+- `agi-tree/agi` → `/home/ubuntu/work/agi` (the engine repo)
 
-`agi` is the outermost layer, because `agi-tree` is literally the graph that
-builds it. Both symlinks are gitignored on their own side, so neither repo ever
-carries the other in its history.
-
-**For every other project this is a plain clone, not a symlink.** Dropped into
-`fantasia`, the engine is a normal clone at `fantasia/agi/`, and it initializes
-and maintains a separate graph repo at `fantasia/agi/fantasia-tree/` — the
-general shape is `<project>/agi/<project>-tree`. That project needs no symlinks;
-it needs its own tree, which is why the clone there stays a clone.
+So `agi/agi-tree/agi` resolves back to the engine — same
+`<project>/<project>-tree/agi` shape, with `agi` as the outermost layer because
+`agi-tree` is literally the graph that builds it. Symlinks rather than a clone
+because an engine edit made from inside the tree has to land in the real
+checkout, not a copy nobody ships. The engine's `.gitignore` carries exactly one
+literal `agi-tree` line for the outer symlink — not a `*-tree` glob, since
+nothing else should be ignorable there, and no trailing slash, since that would
+not match a symlink.
 
 This is an organizational convenience for one local pair, **never a mode the
 engine knows about** — G8.2's invariant is that no `if project == "agi-tree"`
