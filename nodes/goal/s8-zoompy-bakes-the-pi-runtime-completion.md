@@ -4,7 +4,8 @@ goal_id: S8
 goal_kind: short-term
 id: "goal:s8"
 origin: goals-doc
-seeds: []
+seeds:
+  - mvp:zoom-runtime-contract
 status: active
 tags:
   - goal
