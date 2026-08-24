@@ -77,3 +77,31 @@ def test_preserve_does_not_mutate_the_callers_dict(node):
                           preserve=carried)
     assert owned == {"id": "idea:x", "type": "idea"}
     assert carried == {"next_edges": ["hyp:x"]}
+
+
+# ------------------------------------------- goals-only projects (goal:g5/L18)
+
+
+def test_missing_build_site_returns_zero_and_prunes_nothing(tmp_path, monkeypatch, capsys):
+    """A goals-only project is a valid state, not a broken one.
+
+    Two defects in one assertion. `parse_tasks` used to `sys.exit(1)`, which
+    under driver.sh's `set -euo pipefail` aborted the entire loop — a project
+    without a build site could not run at all. And falling through with zero
+    parsed tasks would reach the stale-prune, which unlinks every
+    `origin: build-site` node not rewritten this run; with nothing parsed that
+    is the whole build-site corpus (H0i, 159 of 661 nodes on the live tree).
+    """
+    nodes = tmp_path / "nodes" / "task"
+    nodes.mkdir(parents=True)
+    survivor = nodes / "t-001.md"
+    survivor.write_text(
+        '---\nid: "task:t-001"\ntype: task\norigin: build-site\n---\n\nbody\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sbs, "BUILD_SITE", tmp_path / "context" / "plans" / "build-site.md")
+    monkeypatch.setattr(sbs, "NODES_DIR", tmp_path / "nodes")
+
+    assert sbs.main() == 0
+    assert survivor.exists(), "a missing build site must never prune existing nodes"
+    assert "goals-only" in capsys.readouterr().out
