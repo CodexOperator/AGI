@@ -37,16 +37,41 @@ literally cannot perform because it has nothing to compare against:
                           bin/*.py`) with no level-3 node claiming it (the
                           code outran the graph).
   3. duplicate_payload_ref — two or more nodes claim the same `payload_ref`
+                          with no provable version order between them
                           (ambiguous materialization; the anatomy node says
                           reject this at mint time — level3.py does not
                           currently enforce that, so this is also a level3.py
                           gap this script surfaces, not just a stitch-time
-                          check).
+                          check). **Exemption (`goal:g6.3`):** a well-formed
+                          version chain — distinct, contiguous `version`
+                          integers where every node but the lowest-versioned
+                          one names its immediate predecessor (the group
+                          member exactly one version below it) in
+                          `supersedes` — is not drift. It is reported
+                          separately under `version_chains` instead. Anything
+                          not provably a chain (a version collision, a
+                          `supersedes` pointing at the wrong id or an id
+                          absent from the group, a version gap) stays here;
+                          ambiguity is a defect, only a provable order is
+                          exempt.
   4. stale_contracts    — a node's contract block (the mechanically-derived
                           `how` half: imports, top-level defs, read/write
                           call sites) no longer matches what re-running the
                           *same* derivation against the *current* file would
-                          produce.
+                          produce. A node with no contract block at all is
+                          reported under `unreadable_contracts` (drift) —
+                          *except* a node stamped `origin: build-version`
+                          with an *absent* block (no LEVEL3-CONTRACT markers
+                          at all), which is not-yet-derived by design
+                          (`level3.py` owns the contract shape and has not
+                          been pointed at build-version nodes) and is
+                          reported separately under `contracts_not_derived`
+                          instead — informational, not drift. A block that
+                          *is present but malformed* (bad YAML, truncated,
+                          wrong shape) is never exempted by this, on any
+                          node: that stays `unreadable_contracts` regardless
+                          of origin, because a broken block is a real defect,
+                          not an absent one.
 
 On (4): the obvious design is a content hash of the source recorded in the
 contract block at mint time, compared against a hash of the current file.
@@ -156,12 +181,21 @@ _MARKER_SPAN_RE = re.compile(r"LEVEL3-CONTRACT:BEGIN(.*?)LEVEL3-CONTRACT:END", r
 _YAML_FENCE_OPEN = "```yaml"
 _FENCE = "```"
 
+# The exact `_extract_contract` reason string for "no markers at all" — the
+# one contract_error that means *absent*, as opposed to *present but broken*
+# (bad YAML, truncated, wrong shape). Only this exact reason, on a node
+# stamped `origin: build-version`, is eligible for the `contracts_not_derived`
+# exemption below; every other reason (and every other origin) stays drift.
+_NO_CONTRACT_BLOCK = "no LEVEL3-CONTRACT block found in body"
+_BUILD_VERSION_ORIGIN = "build-version"
+
 
 class Level3Node:
     __slots__ = ("node_id", "path", "fm", "body", "payload_ref", "contract",
-                 "contract_error")
+                 "contract_error", "version", "supersedes", "origin")
 
-    def __init__(self, node_id, path, fm, body, payload_ref, contract, contract_error):
+    def __init__(self, node_id, path, fm, body, payload_ref, contract, contract_error,
+                 version=1, supersedes=None, origin=None):
         self.node_id = node_id
         self.path = path
         self.fm = fm
@@ -169,6 +203,9 @@ class Level3Node:
         self.payload_ref = payload_ref
         self.contract = contract          # parsed dict, or None
         self.contract_error = contract_error  # str reason contract is None, or None
+        self.version = version            # int; frontmatter `version`, default 1
+        self.supersedes = supersedes      # str node_id, or None (frontmatter `supersedes`)
+        self.origin = origin              # str frontmatter `origin`, or None
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str] | None:
@@ -264,9 +301,26 @@ def load_level3_nodes(project_root: Path) -> tuple[list[Level3Node], list[str]]:
         node_id = fm.get("id") or f"<unknown:{md_path.name}>"
         payload_ref = fm.get("payload_ref")
         payload_ref = payload_ref if isinstance(payload_ref, str) and payload_ref else None
+        # `version` (G6.3, origin: build-version): defaults to 1 when absent —
+        # that is the normal, unremarkable shape of every node minted before
+        # this iteration. A *present but non-integer* value is different: it
+        # means the frontmatter is malformed, and a malformed version must not
+        # crash the load (same "degrade, report, never abort" discipline as
+        # the rest of this loader) — coerce to 1 and warn instead.
+        version_raw = fm.get("version", 1)
+        try:
+            version = int(version_raw)
+        except (TypeError, ValueError):
+            warnings.append(f"{md_path}: version={version_raw!r} is not an integer "
+                             f"— treated as 1")
+            version = 1
+        supersedes = fm.get("supersedes")
+        supersedes = supersedes if isinstance(supersedes, str) and supersedes else None
+        origin = fm.get("origin")
+        origin = origin if isinstance(origin, str) and origin else None
         contract, contract_error = _extract_contract(body)
         nodes.append(Level3Node(node_id, md_path, fm, body, payload_ref,
-                                 contract, contract_error))
+                                 contract, contract_error, version, supersedes, origin))
     return nodes, warnings
 
 
@@ -306,6 +360,56 @@ def diff_contract(stored: dict, fresh: dict) -> dict | None:
     return diffs or None
 
 
+def _group_by_payload_ref(nodes: list[Level3Node]) -> dict[str, list[Level3Node]]:
+    """Group nodes with a `payload_ref` by that ref, preserving `nodes`' own
+    order within each group (i.e. `nodes/level3/*.md` filename-sorted order,
+    per `load_level3_nodes`). Nodes with no `payload_ref` are excluded, same
+    as every other check in this file."""
+    groups: dict[str, list[Level3Node]] = {}
+    for n in nodes:
+        if n.payload_ref:
+            groups.setdefault(n.payload_ref, []).append(n)
+    return groups
+
+
+def _is_well_formed_chain(group: list[Level3Node]) -> bool:
+    """True iff `group` (all nodes sharing one `payload_ref`, size > 1) is a
+    provably ordered version chain, per `goal:g6.3`'s convention:
+
+      - every node has a distinct integer `version`;
+      - sorted ascending, those versions form a contiguous run with no gaps
+        (`max - min + 1 == len(group)` — a missing version would leave an
+        orphan with no defined predecessor, so it is not a chain);
+      - every node except the one with the lowest version has `supersedes`
+        equal to the `node_id` of the group member exactly one version below
+        it (its immediate predecessor).
+
+    Any other shape — a version collision, `supersedes` naming the wrong
+    predecessor or an id that is not in the group at all, a version gap —
+    returns False. This function does not try to salvage a partial order out
+    of that; ambiguity is a defect, and the caller reports the whole group as
+    `duplicate_payload_ref`, exactly as it did before chains existed.
+    """
+    if len(group) < 2:
+        return False
+    versions = [n.version for n in group]
+    if len(set(versions)) != len(versions):
+        return False  # two (or more) nodes claim the same version
+    by_version = {n.version: n for n in group}
+    lo, hi = min(versions), max(versions)
+    if hi - lo + 1 != len(group):
+        return False  # a gap: some version in [lo, hi] has no node at all
+    for v in range(lo + 1, hi + 1):
+        if by_version[v].supersedes != by_version[v - 1].node_id:
+            return False  # wrong predecessor, or supersedes points outside the group
+    return True
+
+
+def _chain_order(group: list[Level3Node]) -> list[str]:
+    """Node ids of a well-formed chain, ascending by version (v1 -> v2 -> ...)."""
+    return [n.node_id for n in sorted(group, key=lambda n: n.version)]
+
+
 def verify_tree(project_root: Path, engine_root: Path) -> dict:
     """Report drift between the graph (`nodes/level3/`) and the live engine tree.
 
@@ -327,12 +431,17 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
         warnings.append(f"engine root {engine_root} is not a git repo — "
                          f"orphan-file check skipped")
 
-    # --- category 3: duplicate payload_ref -----------------------------------
-    by_ref: dict[str, list[str]] = {}
-    for n in nodes:
-        if n.payload_ref:
-            by_ref.setdefault(n.payload_ref, []).append(n.node_id)
-    duplicate_payload_ref = {ref: ids for ref, ids in by_ref.items() if len(ids) > 1}
+    # --- category 3: duplicate payload_ref (+ informational version_chains) --
+    ref_groups = _group_by_payload_ref(nodes)
+    duplicate_payload_ref: dict[str, list[str]] = {}
+    version_chains: dict[str, list[str]] = {}
+    for ref, group in ref_groups.items():
+        if len(group) < 2:
+            continue
+        if _is_well_formed_chain(group):
+            version_chains[ref] = _chain_order(group)
+        else:
+            duplicate_payload_ref[ref] = [n.node_id for n in group]
 
     # --- category 1: missing payload ------------------------------------------
     missing_payload = []
@@ -349,9 +458,21 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
         claimed = {n.payload_ref for n in nodes if n.payload_ref}
         orphan_files = sorted(set(scope_files) - claimed)
 
-    # --- category 4: stale contracts --------------------------------------------
+    # --- category 4: stale / unreadable / not-yet-derived contracts -----------
+    # A node with `contract is None` splits two different facts that used to
+    # be conflated under one `unreadable_contracts` bucket:
+    #   - *absent*: no LEVEL3-CONTRACT block at all, on a node stamped
+    #     `origin: build-version`. Those nodes are hand-authored prose by
+    #     design (`level3.py` owns the contract shape and has not derived one
+    #     for them yet) — informational, not drift.
+    #   - everything else (a block that is present but malformed, truncated,
+    #     wrong shape; or an absent block on a node NOT stamped
+    #     `origin: build-version`, e.g. a `level3-scan` node that lost its
+    #     block — a genuine generator failure): stays `unreadable_contracts`,
+    #     stays drift, exactly as before this split existed.
     stale_contracts = []
     unreadable_contracts = []
+    contracts_not_derived = []
     for n in nodes:
         if not n.payload_ref or not engine_readable:
             continue
@@ -359,8 +480,12 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
         if not abs_path.is_file():
             continue  # already reported under missing_payload
         if n.contract is None:
-            unreadable_contracts.append({"node_id": n.node_id,
-                                          "reason": n.contract_error})
+            if n.origin == _BUILD_VERSION_ORIGIN and n.contract_error == _NO_CONTRACT_BLOCK:
+                contracts_not_derived.append({"node_id": n.node_id,
+                                               "reason": n.contract_error})
+            else:
+                unreadable_contracts.append({"node_id": n.node_id,
+                                              "reason": n.contract_error})
             continue
         fresh = level3.analyze_file(abs_path)
         diff = diff_contract(n.contract, fresh)
@@ -379,8 +504,10 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
         "missing_payload": missing_payload,
         "orphan_files": orphan_files,
         "duplicate_payload_ref": duplicate_payload_ref,
+        "version_chains": version_chains,
         "stale_contracts": stale_contracts,
         "unreadable_contracts": unreadable_contracts,
+        "contracts_not_derived": contracts_not_derived,
         "warnings": warnings,
         "runtime_seconds": runtime,
     }
@@ -414,13 +541,33 @@ def _guard_out_dir(out_dir: Path, project_root: Path, engine_root: Path) -> None
 
 
 def materialize(project_root: Path, engine_root: Path, out_dir: Path,
-                 force: bool = False) -> dict:
+                 force: bool = False, version: int | None = None) -> dict:
     """Copy every level-3 node's `payload_ref` from the engine tree into `out_dir`.
 
     Preserves the repo-relative path. Refuses to write into a non-empty
     `out_dir` unless `force=True`, and refuses unconditionally to write
     into `project_root` or `engine_root` (no force override for that — it
     is not a policy choice, it is data-loss prevention).
+
+    Exactly one node is materialized per `payload_ref`:
+
+      - A lone node for that ref: materialized as-is (unless `version` is
+        given and does not match, see below).
+      - A well-formed version chain (`_is_well_formed_chain`): materializes
+        the **chain head** — the highest-versioned member — deterministically.
+        This replaces the old "first writer wins" behavior for chains, which
+        depended on filename sort order rather than on anything meaningful.
+      - A genuine duplicate (anything not a provable chain): today's
+        behavior, unchanged — first writer (by `nodes/level3/*.md` filename
+        order) wins, the rest are reported under `skipped_duplicate`. This
+        function does not start guessing at an order that the graph itself
+        does not establish.
+
+    `version`, when given, overrides "head wins" for chains: it materializes
+    whichever chain member carries that exact version, and reports (never
+    raises) any `payload_ref` whose chain has no such member under
+    `skipped_no_version`. It does not attempt to resolve genuine duplicates —
+    an ambiguous group stays ambiguous regardless of `version`.
     """
     t0 = time.perf_counter()
     _guard_out_dir(out_dir, project_root, engine_root)
@@ -434,25 +581,53 @@ def materialize(project_root: Path, engine_root: Path, out_dir: Path,
         warnings.append(f"engine root {engine_root} is missing or unreadable — nothing written")
         return {
             "nodes_total": len(nodes), "written": 0, "bytes_written": 0,
-            "skipped_missing": [], "skipped_duplicate": [], "warnings": warnings,
+            "skipped_missing": [], "skipped_duplicate": [], "skipped_no_version": [],
+            "chains_materialized": {}, "warnings": warnings,
             "runtime_seconds": time.perf_counter() - t0,
         }
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    ref_groups = _group_by_payload_ref(nodes)
+
+    # --- decide exactly one target node (or none) per payload_ref ------------
+    targets: list[Level3Node] = []
+    skipped_duplicate: list[str] = []
+    skipped_no_version: list[str] = []
+    chains_materialized: dict[str, str] = {}
+
+    for ref in sorted(ref_groups.keys()):
+        group = ref_groups[ref]
+        if len(group) == 1:
+            node = group[0]
+            if version is not None and node.version != version:
+                skipped_no_version.append(ref)
+                continue
+            targets.append(node)
+            continue
+
+        if _is_well_formed_chain(group):
+            if version is not None:
+                node = next((n for n in group if n.version == version), None)
+                if node is None:
+                    skipped_no_version.append(ref)
+                    continue
+            else:
+                node = max(group, key=lambda n: n.version)  # chain head
+            targets.append(node)
+            chains_materialized[ref] = node.node_id
+        else:
+            # genuine duplicate: unchanged from before chains existed —
+            # first writer (original nodes list order) wins, rest reported.
+            winner, *rest = group
+            targets.append(winner)
+            skipped_duplicate.extend(n.node_id for n in rest)
+
     written = 0
     bytes_written = 0
     skipped_missing: list[str] = []
-    skipped_duplicate: list[str] = []
-    seen_refs: set[str] = set()
 
-    for n in sorted(nodes, key=lambda n: n.payload_ref or ""):
-        if not n.payload_ref:
-            continue
-        if n.payload_ref in seen_refs:
-            skipped_duplicate.append(n.node_id)
-            continue
-        seen_refs.add(n.payload_ref)
+    for n in targets:
         src = engine_root / n.payload_ref
         if not src.is_file():
             skipped_missing.append(n.node_id)
@@ -469,6 +644,8 @@ def materialize(project_root: Path, engine_root: Path, out_dir: Path,
         "bytes_written": bytes_written,
         "skipped_missing": skipped_missing,
         "skipped_duplicate": skipped_duplicate,
+        "skipped_no_version": skipped_no_version,
+        "chains_materialized": chains_materialized,
         "warnings": warnings,
         "runtime_seconds": time.perf_counter() - t0,
     }
@@ -498,6 +675,10 @@ def print_verify_report(report: dict) -> None:
     print(f"  [3] duplicate_payload_ref: {len(report['duplicate_payload_ref'])}")
     for ref, ids in report["duplicate_payload_ref"].items():
         print(f"      {ref} <- {', '.join(ids)}")
+    print(f"      version_chains (informational, not drift): "
+          f"{len(report['version_chains'])}")
+    for ref, ids in report["version_chains"].items():
+        print(f"      {ref}: {' -> '.join(ids)}")
 
     print(f"  [4] stale_contracts: {len(report['stale_contracts'])} "
           f"(+ {len(report['unreadable_contracts'])} unreadable)")
@@ -506,6 +687,10 @@ def print_verify_report(report: dict) -> None:
         print(f"      {s['node_id']} ({s['payload_ref']}): drift in {buckets}")
     for u in report["unreadable_contracts"]:
         print(f"      {u['node_id']}: {u['reason']}")
+    print(f"      contracts_not_derived (informational, not drift): "
+          f"{len(report['contracts_not_derived'])}")
+    for c in report["contracts_not_derived"]:
+        print(f"      {c['node_id']}: {c['reason']}")
 
     print(f"\n  runtime: {report['runtime_seconds']:.3f}s")
 
@@ -513,6 +698,11 @@ def print_verify_report(report: dict) -> None:
 def print_materialize_report(stats: dict) -> None:
     print(f"stitch materialize: {stats['nodes_total']} level-3 node(s) considered")
     print(f"  written: {stats['written']} file(s), {stats['bytes_written']} byte(s)")
+    if stats.get("chains_materialized"):
+        print(f"  version chains resolved (head wins unless --version): "
+              f"{len(stats['chains_materialized'])}")
+        for ref, node_id in stats["chains_materialized"].items():
+            print(f"    {ref} -> {node_id}")
     if stats["skipped_missing"]:
         print(f"  skipped (payload_ref missing on disk): {len(stats['skipped_missing'])}")
         for nid in stats["skipped_missing"]:
@@ -522,6 +712,11 @@ def print_materialize_report(stats: dict) -> None:
               f"{len(stats['skipped_duplicate'])}")
         for nid in stats["skipped_duplicate"]:
             print(f"    {nid}")
+    if stats.get("skipped_no_version"):
+        print(f"  skipped (no chain member at the requested --version): "
+              f"{len(stats['skipped_no_version'])}")
+        for ref in stats["skipped_no_version"]:
+            print(f"    {ref}")
     for w in stats["warnings"]:
         print(f"  WARN: {w}")
     print(f"  runtime: {stats['runtime_seconds']:.3f}s")
@@ -542,6 +737,12 @@ def main(argv: list[str] | None = None) -> int:
                      help="override the engine repo root (default: this script's own repo)")
     ap.add_argument("--force", action="store_true",
                      help="allow writing into a non-empty --out directory")
+    ap.add_argument("--version", type=int, default=None,
+                     help="with --out, materialize this version of every version "
+                          "chain that has it, instead of the chain head "
+                          "(default: highest version). A payload_ref with no "
+                          "member at this version is skipped and reported, "
+                          "never guessed.")
     ap.add_argument("--verify", action="store_true",
                      help="report drift only; write nothing")
     ap.add_argument("--strict", action="store_true",
@@ -563,7 +764,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     out_dir = Path(args.out).resolve()
     try:
-        stats = materialize(project_root, engine_root, out_dir, force=args.force)
+        stats = materialize(project_root, engine_root, out_dir, force=args.force,
+                             version=args.version)
     except StitchSafetyError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

@@ -82,6 +82,32 @@ def mint_node(engine_root: Path, project_root: Path, rel_path: str,
     return node_id
 
 
+def mint_version_node(engine_root: Path, project_root: Path, rel_path: str,
+                       version: int, supersedes: str | None = None,
+                       base_node_id: str | None = None) -> str:
+    """Mint a level-3 node stamped with an explicit `version`/`supersedes`,
+    mirroring the real `origin: build-version` G6.3 convention: v1 keeps the
+    plain `level3:<slug>` id, v2+ gets `level3:<slug>@vN`, and `supersedes`
+    (never `parents`) names the previous version. `base_node_id` lets a test
+    mint a second, unrelated node at the same payload_ref+version without
+    colliding on the same output filename as an existing mint."""
+    abs_path = engine_root / rel_path
+    node_id, fm, body, _analysis = l3.build_node(rel_path, abs_path, None)
+    if base_node_id is None:
+        base_node_id = node_id
+    versioned_id = base_node_id if version == 1 else f"{base_node_id}@v{version}"
+    fm = dict(fm)
+    fm["id"] = versioned_id
+    fm["version"] = version
+    if supersedes is not None:
+        fm["supersedes"] = supersedes
+    slug = versioned_id.split(":", 1)[-1].replace("@", "-")
+    out_path = project_root / "nodes" / "level3" / f"{slug}.md"
+    origin = "build-version" if version > 1 else "level3-scan"
+    l3.write_frontmatter(out_path, fm, body, origin=origin)
+    return versioned_id
+
+
 def run(project: Path, engine: Path | None, *args):
     cmd = [sys.executable, str(STITCH_BIN), "--project", str(project)]
     if engine is not None:
@@ -269,6 +295,131 @@ def test_verify_finds_duplicate_payload_ref(tmp_path, engine, project):
     assert set(dup["extensions/agi/bin/foo.py"]) == {id_a, id_b}
 
 
+# --- verify/materialize: version chains (goal:g6.3) ---------------------------
+# A v2 of a build node is a NEW node sharing the v1 node's `payload_ref`, with
+# the previous version referenced via `supersedes` (never `parents`). A v1+v2
+# pair therefore lands in the same `payload_ref` group the duplicate check
+# above scans — these tests cover that a *provably ordered* chain is exempted
+# from `duplicate_payload_ref`/drift, while every other shape in that group
+# (a version collision, a broken `supersedes` link, a version gap) is not.
+
+
+def test_verify_well_formed_chain_is_not_drift(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                            supersedes=v1, base_node_id=v1)
+    # cover the rest of the fixture engine tree too, so orphan_files (an
+    # unrelated drift category) doesn't confound the has_drift() assertion.
+    for rel in ENGINE_FILES:
+        if rel != "extensions/agi/bin/foo.py":
+            mint_node(engine, project, rel)
+
+    report = st.verify_tree(project, engine)
+    assert report["duplicate_payload_ref"] == {}
+    assert report["version_chains"]["extensions/agi/bin/foo.py"] == [v1, v2]
+    assert report["orphan_files"] == []
+    assert not st.has_drift(report)
+
+
+def test_verify_same_version_collision_is_still_drift(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v1b = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1,
+                             base_node_id="level3:bin-foo-other")
+
+    report = st.verify_tree(project, engine)
+    dup = report["duplicate_payload_ref"]
+    assert "extensions/agi/bin/foo.py" in dup
+    assert set(dup["extensions/agi/bin/foo.py"]) == {v1, v1b}
+    assert "extensions/agi/bin/foo.py" not in report["version_chains"]
+    assert st.has_drift(report)
+
+
+def test_verify_supersedes_missing_id_is_still_drift(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                            supersedes="level3:does-not-exist-anywhere", base_node_id=v1)
+
+    report = st.verify_tree(project, engine)
+    dup = report["duplicate_payload_ref"]
+    assert "extensions/agi/bin/foo.py" in dup
+    assert set(dup["extensions/agi/bin/foo.py"]) == {v1, v2}
+    assert "extensions/agi/bin/foo.py" not in report["version_chains"]
+    assert st.has_drift(report)
+
+
+def test_verify_version_gap_is_still_drift(tmp_path, engine, project):
+    """v1 -> v3 with no v2 anywhere in the group: v3's predecessor within the
+    group is undefined (a gap leaves an orphan), so even a correct-looking
+    supersedes link cannot make this a provable chain."""
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v3 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=3,
+                            supersedes=v1, base_node_id=v1)
+
+    report = st.verify_tree(project, engine)
+    assert "extensions/agi/bin/foo.py" in report["duplicate_payload_ref"]
+    assert "extensions/agi/bin/foo.py" not in report["version_chains"]
+
+
+def test_materialize_chain_writes_head_version(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                            supersedes=v1, base_node_id=v1)
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out)
+    assert stats["written"] == 1
+    assert stats["skipped_duplicate"] == []
+    assert stats["chains_materialized"]["extensions/agi/bin/foo.py"] == v2
+    assert (out / "extensions/agi/bin/foo.py").is_file()
+
+
+def test_materialize_version_flag_selects_requested_version(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                            supersedes=v1, base_node_id=v1)
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out, version=1)
+    assert stats["written"] == 1
+    assert stats["chains_materialized"]["extensions/agi/bin/foo.py"] == v1
+    assert stats["skipped_no_version"] == []
+
+
+def test_materialize_version_flag_reports_missing_version(tmp_path, engine, project):
+    mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    out = tmp_path / "out"
+
+    stats = st.materialize(project, engine, out, version=5)
+    assert stats["written"] == 0
+    assert stats["skipped_no_version"] == ["extensions/agi/bin/foo.py"]
+
+
+def test_cli_materialize_version_flag(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                       supersedes=v1, base_node_id=v1)
+    out = tmp_path / "out"
+
+    result = run(project, engine, "--out", str(out), "--version", "1")
+    assert result.returncode == 0
+    assert "written: 1 file" in result.stdout
+
+
+def test_load_level3_nodes_coerces_non_integer_version(tmp_path, engine, project):
+    node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
+    slug = node_id.split(":", 1)[-1]
+    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    text = node_path.read_text(encoding="utf-8")
+    assert "\nconfidence: 1.0\n" in text  # sanity: no version key present yet
+    text = text.replace("confidence: 1.0\n", 'confidence: 1.0\nversion: "not-a-number"\n')
+    node_path.write_text(text, encoding="utf-8")
+
+    nodes, warnings = st.load_level3_nodes(project)
+    assert len(nodes) == 1
+    assert nodes[0].version == 1
+    assert any("version" in w and "not-a-number" in w for w in warnings)
+
+
 # --- verify: [4] stale_contracts -----------------------------------------------
 
 
@@ -319,6 +470,65 @@ def test_verify_unreadable_contract_reported_not_crashed(tmp_path, engine, proje
     report = st.verify_tree(project, engine)
     unreadable_ids = [u["node_id"] for u in report["unreadable_contracts"]]
     assert node_id in unreadable_ids
+    # this is a level3-scan node (mint_node's stamp) with an absent block —
+    # a genuine generator failure, never eligible for the build-version
+    # exemption below, regardless of the fact that the block is simply gone.
+    not_derived_ids = [c["node_id"] for c in report["contracts_not_derived"]]
+    assert node_id not in not_derived_ids
+    assert st.has_drift(report)
+
+
+# --- verify: [4] contracts_not_derived (build-version nodes, goal:g6.3) -------
+# A `build-version` node (v2+ of a build node) is hand-authored prose per
+# G6.3's convention — it never carries a LEVEL3-CONTRACT block, because
+# level3.py owns that shape and has not been pointed at these nodes. Before
+# this split, that absence read identically to a level3-scan node that lost
+# its contract to a real bug: both landed in `unreadable_contracts`, which is
+# drift. That made every build-version node a *permanent* false positive —
+# concretely, this iteration's own v2 nodes would have kept `--strict`
+# failing forever, for a reason that was never a defect in the first place.
+
+
+def test_verify_build_version_node_missing_contract_is_not_drift(tmp_path, engine, project):
+    v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
+                            supersedes=v1, base_node_id=v1)
+    # strip v2's contract block entirely, matching the real build-version
+    # convention: hand-authored nodes carry no LEVEL3-CONTRACT block at all.
+    slug = v2.split(":", 1)[-1].replace("@", "-")
+    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    text = node_path.read_text(encoding="utf-8")
+    text = text.split("<!-- LEVEL3-CONTRACT:BEGIN")[0]
+    node_path.write_text(text, encoding="utf-8")
+    for rel in ENGINE_FILES:
+        if rel != "extensions/agi/bin/foo.py":
+            mint_node(engine, project, rel)
+
+    report = st.verify_tree(project, engine)
+    unreadable_ids = [u["node_id"] for u in report["unreadable_contracts"]]
+    assert v2 not in unreadable_ids
+    not_derived_ids = [c["node_id"] for c in report["contracts_not_derived"]]
+    assert v2 in not_derived_ids
+    assert not st.has_drift(report)
+
+
+def test_verify_build_version_node_malformed_contract_is_still_drift(tmp_path, engine, project):
+    v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2)
+    slug = v2.split(":", 1)[-1].replace("@", "-")
+    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    text = node_path.read_text(encoding="utf-8")
+    # markers and fence both present, but the YAML inside is corrupt — this
+    # is "malformed", not "absent", and must not be swept into the exemption
+    # just because the node happens to be origin: build-version.
+    assert "parse_ok: true" in text
+    text = text.replace("parse_ok: true", "parse_ok: [unterminated")
+    node_path.write_text(text, encoding="utf-8")
+
+    report = st.verify_tree(project, engine)
+    unreadable_ids = [u["node_id"] for u in report["unreadable_contracts"]]
+    assert v2 in unreadable_ids
+    not_derived_ids = [c["node_id"] for c in report["contracts_not_derived"]]
+    assert v2 not in not_derived_ids
     assert st.has_drift(report)
 
 
