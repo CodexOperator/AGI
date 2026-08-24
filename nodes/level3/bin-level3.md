@@ -152,43 +152,43 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: find_parent
-  how: 'defines public function `find_parent` at line 453, signature: (rel_path: str,
+  how: 'defines public function `find_parent` at line 460, signature: (rel_path: str,
     units: list[dict])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: slug_for
-  how: 'defines public function `slug_for` at line 471, signature: (rel_path: str)'
+  how: 'defines public function `slug_for` at line 482, signature: (rel_path: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _fill_entries
-  how: 'defines private function `_fill_entries` at line 491, signature: (entries:
+  how: 'defines private function `_fill_entries` at line 502, signature: (entries:
     list[dict])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: build_node
-  how: 'defines public function `build_node` at line 499, signature: (rel_path: str,
+  how: 'defines public function `build_node` at line 510, signature: (rel_path: str,
     abs_path: Path, parent_id: str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 555, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 566, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_dump
   how: '`yaml.safe_dump(contract, sort_keys=False, default_flow_style=False, allow_unicode=True)`
-    at line 523'
+    at line 534'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 15 `print()` call(s) at line(s) [574, 588, 614, 624, 640, 658, 661, 663, 664,
-    666, 667, 668, 669, 672, 673]
+  how: 15 `print()` call(s) at line(s) [585, 599, 625, 635, 651, 669, 672, 674, 675,
+    677, 678, 679, 680, 683, 684]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

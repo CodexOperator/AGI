@@ -2,6 +2,8 @@
 confidence: 1.0
 id: "level3:lib-agent-prompt.md"
 origin: level3-scan
+parents:
+  - idea:engine-agent-prompt
 payload_ref: extensions/agi/lib/agent-prompt.md
 tags:
   - level3
@@ -12,7 +14,7 @@ type: level3
 
 `extensions/agi/lib/agent-prompt.md` — level-3 code node (one file, one canonical node).
 
-Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.
+Census parent: `idea:engine-agent-prompt`.
 
 <!-- LEVEL3-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
