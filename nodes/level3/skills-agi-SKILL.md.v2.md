@@ -13,7 +13,7 @@ tags:
   - build-version
   - g8.1
   - g8.2
-title: "Level-3 v2: skills/agi/SKILL.md — global skill install and the <project>/agi/<project>-tree layout"
+title: "Level-3 v2: skills/agi/SKILL.md — global skill install and the <project>/<project>-tree/agi layout"
 type: level3
 ---
 
@@ -26,12 +26,30 @@ root).
 (`~/.claude/skills/agi` → `<engine>/skills/agi`, `~/.local/bin/agi` →
 `<engine>/extensions/agi/driver.sh`) plus a `SessionStart` hook registered
 once in `~/.claude/settings.json`. Per project, the engine still clones in —
-unchanged — but the graph now lives one level deeper as its **own nested git
-repo**, `<project>/agi/<project>-tree/`, instead of at the project root. This
-is a **refinement of shape 1** (drop-in clone) from G8.1's three candidates,
-not shape 2 or 3, and not a closed decision — no experiment has run to falsify
-or confirm it. I documented the layout as the committed convention per the
-brief's instruction; I did not mark goal:g8.1 decided.
+unchanged — but the graph now lives one level inside the project as its **own
+git repo**, `<project>/<project>-tree/`, with the engine clone nested *inside
+that tree* at `<project>/<project>-tree/agi/`, instead of the graph sitting at
+the project root. This is a **refinement of shape 1** (drop-in clone) from
+G8.1's three candidates, not shape 2 or 3, and not a closed decision — no
+experiment has run to falsify or confirm it. I documented the layout as the
+committed convention per the brief's instruction; I did not mark goal:g8.1
+decided.
+
+**Layout inverted mid-review; this node was edited, not superseded.** The
+first pass of this version documented the opposite nesting —
+`<project>/agi/<project>-tree`, the tree *inside* the engine clone. The owner
+then inverted it. The inversion is not cosmetic: with the tree inside the
+engine, every clone of the engine could contain a graph, so the engine needed
+a generic `/*-tree` gitignore pattern to stop a project's tree from being
+committable into it — an entry whose only job was to prevent a mistake the
+layout itself created. With the tree outside, an engine checkout never
+contains a graph, so that pattern disappears and the gitignore story collapses
+to one line (`agi/`) in one repo (the tree). The single literal `agi-tree`
+line remaining in the engine exists solely for the self-referential symlink.
+Fewer entries, and each surviving one has a reason that is not "undo the
+layout". Since v2 had not been accepted yet, the correction landed in this
+same version rather than as a v3 — a version boundary should record an
+accepted change, not an in-flight revision.
 
 **The symlink exception.** `agi-tree/agi` → the engine checkout and
 `agi/agi-tree` → the tree are symlinks, not clones, because here the graph
@@ -40,7 +58,7 @@ engine edits invisible to what's actually shipped. This does not violate
 G8.2's invariant because it stays a **naming/filesystem convenience for one
 specific local pair** — the engine still contains no `if project ==
 "agi-tree"` branch, and `find-root.sh`'s discovery logic (walk up, then
-descend into `<start>/agi/*-tree/`) treats a symlinked tree and a cloned tree
+descend into `<start>/*-tree/`) treats a symlinked tree and a cloned tree
 identically; it never checks which one it found.
 
 **Verified on disk (`ls -la`), all under `/home/ubuntu`):**
@@ -56,7 +74,7 @@ identically; it never checks which one it found.
   repo shows `.gitignore` and `extensions/agi/lib/find-root.sh` both modified,
   not yet committed)
 - `extensions/agi/lib/find-root.sh` already implements the two-phase
-  walk-up/descend-into-`agi/*-tree` discovery described in the brief
+  walk-up/descend-into-`<start>/*-tree` discovery described in the brief
   (confirmed by reading the file; also uncommitted — this is kid-a's parallel
   work, not mine, and I did not touch it)
 - `extensions/agi/bin/level3.py` does stamp `origin: level3-scan` and prune
@@ -77,7 +95,7 @@ identically; it never checks which one it found.
 implemented by me or claimed done):
 - Engine-commit pinning in `agi-tree.config.json`, G8.1's other explicit ask —
   not implemented anywhere in the engine.
-- No `init` command or any other mechanism creates `<project>/agi/<project>-tree/`
+- No `init` command or any other mechanism creates `<project>/<project>-tree/`
   automatically; today it's manual (clone the engine, `git init` the tree
   inside it). I did not find an `init` subcommand for this and did not invent
   one in the doc.

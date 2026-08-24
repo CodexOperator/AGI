@@ -115,42 +115,101 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: test_cron_lines_are_cwd_proof
-  how: 'defines public function `test_cron_lines_are_cwd_proof` at line 94, signature:
+  how: 'defines public function `test_cron_lines_are_cwd_proof` at line 96, signature:
     (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_sync_pushes_grid_refs_and_sets_fetch_spec
   how: 'defines public function `test_sync_pushes_grid_refs_and_sets_fetch_spec` at
-    line 105, signature: (project, tmp_path)'
+    line 107, signature: (project, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_find_project_root_accepts_canonical_and_legacy_config
   how: 'defines public function `test_find_project_root_accepts_canonical_and_legacy_config`
-    at line 121, signature: (tmp_path)'
+    at line 123, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_only_the_first_colon_separates
-  how: defines public function `test_only_the_first_colon_separates` at line 138
+  how: defines public function `test_only_the_first_colon_separates` at line 140
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_no_node_ref_is_a_path_prefix_of_another
   how: defines public function `test_no_node_ref_is_a_path_prefix_of_another` at line
-    151
+    153
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_sanitize_is_injective_across_colon_and_dash
   how: defines public function `test_sanitize_is_injective_across_colon_and_dash`
-    at line 161
+    at line 163
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_escape_alphabet_cannot_be_forged
-  how: defines public function `test_escape_alphabet_cannot_be_forged` at line 166
+  how: defines public function `test_escape_alphabet_cannot_be_forged` at line 168
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_sanitize_is_injective_over_adversarial_corpus
+  how: defines public function `test_sanitize_is_injective_over_adversarial_corpus`
+    at line 198
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_sanitize_output_is_a_valid_git_refname
+  how: defines public function `test_sanitize_output_is_a_valid_git_refname` at line
+    207
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_sanitize_real_agi_tree_corpus_round_trips_distinctly
+  how: defines public function `test_sanitize_real_agi_tree_corpus_round_trips_distinctly`
+    at line 222
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: migrate_project
+  how: 'defines public function `migrate_project` at line 254, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _write_node
+  how: 'defines private function `_write_node` at line 262, signature: (root, rel,
+    node_id, body=''body\n'')'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_migrate_refs_dry_run_changes_nothing
+  how: 'defines public function `test_migrate_refs_dry_run_changes_nothing` at line
+    268, signature: (migrate_project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_migrate_refs_write_moves_ref_and_preserves_history
+  how: 'defines public function `test_migrate_refs_write_moves_ref_and_preserves_history`
+    at line 281, signature: (migrate_project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_migrate_refs_is_idempotent
+  how: 'defines public function `test_migrate_refs_is_idempotent` at line 298, signature:
+    (migrate_project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_migrate_refs_refuses_to_overwrite_conflicting_destination
+  how: 'defines public function `test_migrate_refs_refuses_to_overwrite_conflicting_destination`
+    at line 313, signature: (migrate_project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_migrate_refs_reports_collision_and_touches_neither_id
+  how: 'defines public function `test_migrate_refs_reports_collision_and_touches_neither_id`
+    at line 334, signature: (migrate_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -188,13 +247,24 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: canonical / 'agi-tree.config.json'
-  how: '`(canonical / ''agi-tree.config.json'').write_text(''{}'')` at line 129'
+  how: '`(canonical / ''agi-tree.config.json'').write_text(''{}'')` at line 131'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: legacy / 'autoresearch-tree.config.json'
   how: '`(legacy / ''autoresearch-tree.config.json'').write_text(''{}'')` at line
-    130'
+    132'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / 'agi-tree.config.json'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 256'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.write_text(f''---\nid: "{node_id}"\ntype: level3\n---\n\n{body}'')` at
+    line 264'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
