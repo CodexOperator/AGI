@@ -6,7 +6,8 @@ id: "goal:g8.1"
 origin: goals-doc
 parents:
   - goal:g8
-seeds: []
+seeds:
+  - level3:skills-agi-SKILL.md@v2
 status: active
 tags:
   - goal

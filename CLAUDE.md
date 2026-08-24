@@ -19,7 +19,7 @@ derived from — nothing else.** Code lives in the engine repo.
 | `context/kits/`, `context/plans/build-site.md` | Generator inputs for the 159 `origin: build-site` nodes. See the warning below. |
 | `context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
 | `agi-tree.config.json` | Project marker + loop tuning. Its presence is what makes this dir a project. |
-| `agi/` | Drop-in clone of the engine. Gitignored — never commit it here. |
+| `agi/` | Symlink to `/home/ubuntu/work/agi`, the engine repo. Gitignored — never commit it here. |
 
 **Anything not in that table does not belong in this repo.** ~95 one-off
 experiment scripts, a vendored copy of the engine (`src/`, `tests/`), the
@@ -40,17 +40,45 @@ bash agi/extensions/agi/driver.sh --smoke --max-iters 1
 (and pass `--max-iters N`) for a live run, which dispatches paid model agents —
 models are set in `agi-tree.config.json` under `agent_dispatch` and `cc_dispatch`.
 
-The `agi` skill is already installed globally: `~/.claude/skills/agi` symlinks to
-`/home/ubuntu/work/agi/skills/agi`. There is deliberately no second copy here —
-one skill, one source.
+Everything is reachable globally, by symlink, with no second copy anywhere:
+
+| Handle | Symlink |
+|---|---|
+| `agi` skill (any session, any dir) | `~/.claude/skills/agi` → `/home/ubuntu/work/agi/skills/agi` |
+| `agi` command (on `PATH`) | `~/.local/bin/agi` → `/home/ubuntu/work/agi/extensions/agi/driver.sh` |
+| SessionStart map injection | `~/.claude/settings.json` → `/home/ubuntu/work/agi/extensions/agi/hooks/cc-session-start.sh` |
+
+One skill, one source. The hook is a silent no-op outside a project, which is
+what makes registering it globally safe.
+
+## Layout: agi and agi-tree are symlinked into each other
+
+This pair is a special case, and the symlinks are what make it legible:
+
+- `agi-tree/agi` → `/home/ubuntu/work/agi` (the engine repo)
+- `agi/agi-tree` → `/home/ubuntu/work/agi-tree` (this repo)
+
+`agi` is the outermost layer, because `agi-tree` is literally the graph that
+builds it. Both symlinks are gitignored on their own side, so neither repo ever
+carries the other in its history.
+
+**For every other project this is a plain clone, not a symlink.** Dropped into
+`fantasia`, the engine is a normal clone at `fantasia/agi/`, and it initializes
+and maintains a separate graph repo at `fantasia/agi/fantasia-tree/` — the
+general shape is `<project>/agi/<project>-tree`. That project needs no symlinks;
+it needs its own tree, which is why the clone there stays a clone.
+
+This is an organizational convenience for one local pair, **never a mode the
+engine knows about** — G8.2's invariant is that no `if project == "agi-tree"`
+branch exists anywhere, and the symlinks add none.
 
 ## Engine edits
 
-`agi/` here is a read-only clone for running the loop. Engine changes are made
-in `/home/ubuntu/work/agi` and pulled down (`git -C agi pull`). Do not edit
-`agi-tree/agi/` — a fix made there is invisible to the engine repo and will be
-overwritten. G6.3/G6.5 replace this arrangement with stitch-from-graph; until
-then the engine repo is the write path.
+Engine changes are made in `/home/ubuntu/work/agi`. Because `agi/` here is now a
+symlink rather than a clone, editing `agi-tree/agi/...` edits that same file —
+the old "a fix made there is invisible and will be overwritten" hazard is gone.
+The engine repo is still where the change *lands*; there is just no second copy
+to drift. G6.3/G6.5 replace hand-editing entirely with stitch-from-graph.
 
 ## The two rules this project has already paid for
 
