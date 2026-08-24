@@ -268,6 +268,12 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_entry_point_units_can_be_matched_as_parents
+  how: 'defines public function `test_entry_point_units_can_be_matched_as_parents`
+    at line 472, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: node_path
   how: '`node_path.write_text(f''---{head}next_edges:\n  - hyp:graph-core-r1\nembedding_coords:
     [0.1, 0.2]\n---{body}'', encoding=''utf-8'')` at line 417'
