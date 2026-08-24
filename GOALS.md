@@ -1118,6 +1118,27 @@ a live id is an error, not a silent preference for whichever sorts first.
 **Do not resolve the existing 17 by deleting either side** — merge or re-id
 them deliberately, the G7 rule.
 
+**Second consequence, found 2026-08-23, and it breaks the backup rather than
+the render: a duplicated id forks its grid ref and the fork cannot be pushed.**
+`grid.py commit --all` walks node *files*, so both claimants get committed to
+the single ref `refs/grid/node/<id>` — each run picking whichever it reaches
+first as the new tip. The ref's history therefore alternates between two
+divergent lines, and `git push` correctly refuses it as non-fast-forward.
+
+Observed on `verdict:schema-registry-r2` and `verdict:session-management-r1`:
+both rejected on push while the other 29 refs in the same run went through.
+**Those two nodes' version history has stopped syncing to the remote** and has
+been doing so silently — the push prints a rejection among a wall of successful
+ref updates, and nothing else reports it.
+
+This raises the priority. G7.2 was previously "17 files are invisible to
+readers", which is bad but static. It is now also **an ongoing backup hole in
+the one mechanism G7 exists to guarantee** — the grid is what makes it safe to
+stop mid-sprint, and for these ids it is not running. Note the resolution
+order this forces: the ref cannot be repaired by force-pushing either side
+(that destroys one history, which is the G7 rule again), so **the duplicate ids
+must be resolved first and the refs rebuilt afterwards.**
+
 ### G7.3 — `evidence_runs` as a bare integer is still unverifiable — status: horizon
 
 Residual left open by G3.1 and named here so it is not forgotten. After the
