@@ -7,11 +7,14 @@
 #      This is the classic layout, where the tree IS the project root
 #      (e.g. this repo: agi-tree.config.json + nodes/ at the top).
 #   2. DOWN: only if phase 1 finds nothing, descend from the starting
-#      directory looking for a tree checked out under <start>/agi/*-tree/.
-#      This is the layout for a generic project that embeds its graph as
-#      a subdirectory repo: <project>/agi/<project>-tree/{config,GOALS.md,nodes/}.
-#        a. Preferred, unambiguous: <start>/agi/<basename of start>-tree/<config>.
-#        b. Otherwise glob <start>/agi/*-tree/<config>. Exactly one match wins;
+#      directory looking for a tree at <start>/*-tree/.
+#      This is the layout for a generic project that keeps its graph as a
+#      sibling-level repo: <project>/<project>-tree/{config,GOALS.md,nodes/},
+#      with the engine clone living INSIDE that tree at
+#      <project>/<project>-tree/agi. The tree is outside the engine, not
+#      inside it, so an engine checkout never contains a tree.
+#        a. Preferred, unambiguous: <start>/<basename of start>-tree/<config>.
+#        b. Otherwise glob <start>/*-tree/<config>. Exactly one match wins;
 #           more than one is a hard error (candidates listed on stderr) —
 #           never guess which tree belongs to the project.
 #   3. Otherwise, return 1.
@@ -41,7 +44,7 @@ agi_tree_config_path() {
   return 1
 }
 
-# Phase-2 helper: descend into <start>/agi/*-tree/ looking for a project dir
+# Phase-2 helper: descend into <start>/*-tree/ looking for a project dir
 # (one that agi_tree_config_path accepts). Never guesses: more than one
 # candidate is a hard error, with every candidate listed on stderr.
 # Safe under `set -euo pipefail` callers — a failed glob or zero matches
@@ -50,21 +53,26 @@ agi_tree_config_path() {
 _agi_find_root_descend() {
   local start="$1" base preferred
 
-  # (a) Preferred, unambiguous match: <start>/agi/<basename of start>-tree/
+  # (a) Preferred, unambiguous match: <start>/<basename of start>-tree/
   base="$(basename "$start")"
-  preferred="$start/agi/$base-tree"
+  preferred="$start/$base-tree"
   if [[ -d "$preferred" ]] && agi_tree_config_path "$preferred" >/dev/null 2>&1; then
     echo "$preferred"
     return 0
   fi
 
-  # (b) Otherwise glob <start>/agi/*-tree/ and collect every dir that is
+  # (b) Otherwise glob <start>/*-tree/ and collect every dir that is
   # actually a project (has a config file). nullglob so a no-match glob
   # expands to nothing instead of the literal pattern; always restored.
+  # Note this globs one level below $start rather than inside an `agi/`
+  # subdir: the tree is outside the engine now, so <project>/<name>-tree
+  # is where it lives. A dir matching *-tree that has no config file is
+  # skipped, not treated as a candidate — that is what keeps the wider
+  # glob from picking up unrelated directories.
   local -a candidates=()
   local d
   shopt -s nullglob
-  for d in "$start"/agi/*-tree/; do
+  for d in "$start"/*-tree/; do
     d="${d%/}"
     if agi_tree_config_path "$d" >/dev/null 2>&1; then
       candidates+=("$d")
@@ -79,7 +87,7 @@ _agi_find_root_descend() {
       return 0
       ;;
     *)
-      echo "ERR: ambiguous tree under $start/agi/ — refusing to guess. Candidates:" >&2
+      echo "ERR: ambiguous tree under $start/ — refusing to guess. Candidates:" >&2
       printf '  %s\n' "${candidates[@]}" >&2
       return 1
       ;;
@@ -98,7 +106,7 @@ find_project_root() {
     d="$(dirname "$d")"
   done
 
-  # Phase 2: descend into <start>/agi/*-tree/. Only reached when phase 1
+  # Phase 2: descend into <start>/*-tree/. Only reached when phase 1
   # found nothing above $start.
   local descended
   if descended=$(_agi_find_root_descend "$start"); then
@@ -116,7 +124,7 @@ find_project_root() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   AGI_FIND_ROOT_START="${1:-$PWD}"
   PROJECT_ROOT=$(find_project_root "$AGI_FIND_ROOT_START") || {
-    echo "ERR: no project found walking up from, or descending into agi/*-tree/ under, $AGI_FIND_ROOT_START" >&2
+    echo "ERR: no project found walking up from, or descending into <dir>/*-tree/ under, $AGI_FIND_ROOT_START" >&2
     exit 1
   }
   echo "$PROJECT_ROOT"

@@ -87,7 +87,9 @@ def test_commit_prefix_marks_auto_snapshots(project):
 
 
 def test_sanitize_refuses_ref_hostile_chars():
-    assert grid.sanitize("hyp:weird id~^?.") == "hyp/weird-id---"
+    # Hostile chars are percent-encoded (injective), not collapsed to `-`
+    # (lossy -- see the injectivity tests below for why that mattered).
+    assert grid.sanitize("hyp:weird id~^?.") == "hyp/weird%20id%7E%5E%3F%2E"
     assert ".." not in grid.sanitize("a:..b")
 
 
@@ -166,3 +168,186 @@ def test_sanitize_is_injective_across_colon_and_dash():
 def test_escape_alphabet_cannot_be_forged():
     """A literal `%` in an id must not be able to imitate an escape."""
     assert grid.sanitize("exp:a%3Ab") != grid.sanitize("exp:a:b")
+
+
+# ------------------------- sanitize(): injective by construction (G2.5) ----
+# level3:bin-grid@v2 -- the escaping layer only, not the zoom-encoded id
+# scheme G2.5 ultimately wants. Confirmed live on 2026-08-24: the ref for
+# level3:bin-stitch@v2 was already the collapsed `level3/bin-stitch-v2`,
+# indistinguishable from a hypothetical `level3:bin-stitch-v2`.
+
+ADVERSARIAL_IDS = [
+    "level3:bin-stitch@v2", "level3:bin-stitch-v2",
+    "exp:x-r1:extend8", "exp:x-r1-extend8",
+    "a:b:c", "a:b-c",
+    "hyp:weird id~^?.",
+    "idea:a..b", "idea:a.b", "idea:a...b",
+    "idea:.leading", "idea:trailing.", "idea:.both.",
+    "idea:foo.lock", "idea:foo.locked", "idea:.lock",
+    "idea:@", "idea:@{HEAD}", "idea:x@{y",
+    "idea:café", "idea:cafe", "idea:éclair",
+    "idea:100%done", "idea:100%25done", "idea:%",
+    "exp:a%3Ab", "exp:a:b", "exp:a%25%3Ab",
+    "idea:...", "idea:....", "idea:.",
+    "idea:foo/bar", "idea:foo\\bar", "idea:foo\tbar",
+    "goal:g2.5", "level3:autoresearch.config.json",
+    "level3:skills-agi-SKILL.md@v2", "level3:skills-agi-SKILL.md-v2",
+]
+
+
+def test_sanitize_is_injective_over_adversarial_corpus():
+    """The actual point of this change: no two distinct ids may share a ref."""
+    seen: dict[str, str] = {}
+    for nid in ADVERSARIAL_IDS:
+        ref = grid.sanitize(nid)
+        assert ref not in seen, f"{nid!r} and {seen.get(ref)!r} both -> {ref!r}"
+        seen[ref] = nid
+
+
+def test_sanitize_output_is_a_valid_git_refname():
+    """Don't trust the reasoning about `%XX` being ref-safe -- check it."""
+    for nid in ADVERSARIAL_IDS:
+        ref = grid.node_ref(nid)
+        for component in ref.split("/"):
+            res = subprocess.run(
+                ["git", "check-ref-format", "--allow-onelevel", component],
+                capture_output=True, text=True,
+            )
+            assert res.returncode == 0, f"{nid!r} -> {component!r}: {res.stderr}"
+        res = subprocess.run(["git", "check-ref-format", ref],
+                             capture_output=True, text=True)
+        assert res.returncode == 0, f"{nid!r} -> full ref {ref!r}: {res.stderr}"
+
+
+def test_sanitize_real_agi_tree_corpus_round_trips_distinctly():
+    """Not just adversarial cases -- every id actually on disk today."""
+    agi_tree = Path(__file__).resolve().parents[4] / "agi-tree"
+    nodes_dir = agi_tree / "nodes"
+    if not nodes_dir.is_dir():
+        pytest.skip("agi-tree checkout not found beside the engine repo")
+    ids = []
+    for p in sorted(nodes_dir.rglob("*.md")):
+        nid = grid.parse_node_id(p)
+        if nid:
+            ids.append(nid)
+    assert len(ids) > 500, "expected the full live corpus, not a subset"
+    seen: dict[str, str] = {}
+    collisions = []
+    for nid in ids:
+        ref = grid.sanitize(nid)
+        if ref in seen and seen[ref] != nid:
+            collisions.append((seen[ref], nid, ref))
+        seen[ref] = nid
+    assert not collisions, f"non-injective on live corpus: {collisions[:5]}"
+    for ref in seen:
+        for component in ref.split("/"):
+            res = subprocess.run(
+                ["git", "check-ref-format", "--allow-onelevel", component],
+                capture_output=True, text=True,
+            )
+            assert res.returncode == 0, f"{component!r} invalid: {res.stderr}"
+
+
+# ------------------------- migrate-refs: move old-scheme refs safely -------
+
+@pytest.fixture()
+def migrate_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    (tmp_path / "nodes" / "level3").mkdir(parents=True)
+    grid.cmd_init(tmp_path)
+    return tmp_path
+
+
+def _write_node(root, rel, node_id, body="body\n"):
+    p = root / "nodes" / "level3" / rel
+    p.write_text(f'---\nid: "{node_id}"\ntype: level3\n---\n\n{body}')
+    return p
+
+
+def test_migrate_refs_dry_run_changes_nothing(migrate_project):
+    root = migrate_project
+    p = _write_node(root, "a.md", "level3:bin-stitch@v2")
+    old_ref = grid._node_ref_legacy("level3:bin-stitch@v2")
+    grid.commit_file(root, p, old_ref, "")
+    old_tip_before = grid.ref_tip(root, old_ref)
+
+    grid.cmd_migrate_refs(root, write=False)
+
+    assert grid.ref_tip(root, old_ref) == old_tip_before  # untouched
+    assert grid.ref_tip(root, grid.node_ref("level3:bin-stitch@v2")) is None
+
+
+def test_migrate_refs_write_moves_ref_and_preserves_history(migrate_project):
+    root = migrate_project
+    p = _write_node(root, "a.md", "level3:bin-stitch@v2")
+    old_ref = grid._node_ref_legacy("level3:bin-stitch@v2")
+    grid.commit_file(root, p, old_ref, "")
+    old_tip = grid.ref_tip(root, old_ref)
+    new_ref = grid.node_ref("level3:bin-stitch@v2")
+    assert old_ref != new_ref
+
+    grid.cmd_migrate_refs(root, write=True)
+
+    assert grid.ref_tip(root, old_ref) is None      # old ref gone
+    assert grid.ref_tip(root, new_ref) == old_tip    # same commit, new name
+    msg = grid.git(root, "log", "-1", "--format=%s", new_ref)
+    assert msg.endswith("level3:bin-stitch@v2")
+
+
+def test_migrate_refs_is_idempotent(migrate_project):
+    root = migrate_project
+    p = _write_node(root, "a.md", "level3:bin-stitch@v2")
+    old_ref = grid._node_ref_legacy("level3:bin-stitch@v2")
+    grid.commit_file(root, p, old_ref, "")
+    new_ref = grid.node_ref("level3:bin-stitch@v2")
+
+    grid.cmd_migrate_refs(root, write=True)
+    tip_after_first = grid.ref_tip(root, new_ref)
+    grid.cmd_migrate_refs(root, write=True)  # second run must be a no-op
+
+    assert grid.ref_tip(root, new_ref) == tip_after_first
+    assert grid.ref_tip(root, old_ref) is None
+
+
+def test_migrate_refs_refuses_to_overwrite_conflicting_destination(migrate_project):
+    root = migrate_project
+    p = _write_node(root, "a.md", "level3:bin-stitch@v2")
+    old_ref = grid._node_ref_legacy("level3:bin-stitch@v2")
+    grid.commit_file(root, p, old_ref, "")
+    old_tip = grid.ref_tip(root, old_ref)
+
+    # Pre-seed the destination with unrelated history -- migrate-refs must
+    # never clobber it, only report and skip.
+    other = _write_node(root, "other.md", "level3:unrelated")
+    new_ref = grid.node_ref("level3:bin-stitch@v2")
+    grid.commit_file(root, other, new_ref, "")
+    other_tip = grid.ref_tip(root, new_ref)
+    assert other_tip != old_tip
+
+    grid.cmd_migrate_refs(root, write=True)
+
+    assert grid.ref_tip(root, old_ref) == old_tip     # untouched
+    assert grid.ref_tip(root, new_ref) == other_tip   # untouched
+
+
+def test_migrate_refs_reports_collision_and_touches_neither_id(migrate_project):
+    root = migrate_project
+    # Two distinct ids that shared ONE ref under the old (buggy) scheme.
+    _write_node(root, "a.md", "level3:bin-stitch@v2")
+    p2 = _write_node(root, "b.md", "level3:bin-stitch-v2")
+    assert (grid._node_ref_legacy("level3:bin-stitch@v2")
+            == grid._node_ref_legacy("level3:bin-stitch-v2"))
+    shared_old_ref = grid._node_ref_legacy("level3:bin-stitch@v2")
+    grid.commit_file(root, p2, shared_old_ref, "")  # whichever "won" the ref
+    old_tip = grid.ref_tip(root, shared_old_ref)
+
+    grid.cmd_migrate_refs(root, write=True)
+
+    # Untouched: no guessing whose history the shared ref actually holds.
+    # ("level3:bin-stitch-v2" has no hostile chars, so its own new-scheme ref
+    # IS `shared_old_ref` -- already asserted unchanged above. The other id,
+    # "level3:bin-stitch@v2", has a genuinely different new-scheme ref, which
+    # migrate-refs must not have created -- it cannot tell which id the
+    # shared ref's history actually belongs to.)
+    assert grid.ref_tip(root, grid.node_ref("level3:bin-stitch@v2")) is None

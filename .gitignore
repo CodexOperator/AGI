@@ -19,15 +19,11 @@ experiments/
 AGENTS.md
 CLAUDE.md
 
-# A graph repo living inside this checkout: `<project>-tree`. Every project
-# that clones the engine in at <project>/agi/ nests its tree one level deeper
-# as its OWN repo (<project>/agi/<project>-tree), so a clone of this engine
-# will contain fantasia-tree, agi-tree, whatever-tree. None of them are ever
-# committed here — that is the vendoring failure H0/H0b already cost us twice.
-#
-# Root-anchored and generic on purpose:
-#   - `agi-tree` alone would ignore only this one pair and leave every other
-#     project's tree untracked-but-committable inside its engine clone.
-#   - no trailing slash: in the self-referential agi <-> agi-tree case the
-#     entry is a SYMLINK, and `*-tree/` does not match a symlink.
-/*-tree
+# The graph this engine is built from. The tree lives OUTSIDE the engine —
+# <project>/<project>-tree/agi — so a normal clone of this repo never contains
+# a tree and needs no pattern here. This single line exists only for the
+# self-referential pair, where agi/agi-tree is a symlink back to the graph repo
+# so that agi/agi-tree/agi resolves. No trailing slash: that would not match a
+# symlink. Deliberately literal, not a `*-tree` glob — nothing else should be
+# ignorable here, and a generic pattern would hide a real mistake.
+agi-tree

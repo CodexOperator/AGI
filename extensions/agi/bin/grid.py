@@ -70,6 +70,60 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
     return res.stdout.strip()
 
 
+def _encode_component(s: str) -> str:
+    """Percent-encode `s` into a single git-ref-safe, injective path component.
+
+    `%` is escaped first (`%25`) so the escape alphabet cannot be forged by
+    the input, then every character outside `[A-Za-z0-9_-]` is percent-encoded
+    from its UTF-8 bytes (uppercase hex, e.g. `:` -> `%3A`, ` ` -> `%20`).
+    Unlike collapsing to `-`, percent-encoding never maps two different
+    characters to the same output byte, so the whole function stays
+    injective: `@` and `-` can no longer collide, because `@` always becomes
+    `%40` and a literal `-` is left alone.
+
+    `.` is the one character kept literal outside the safe alphabet, for
+    readability (`autoresearch.config.json` should not become an opaque
+    string of `%2E`s) — but only where git allows it structurally. `.` is
+    escaped instead of kept literal when it would otherwise violate a
+    git-ref-format rule that has nothing to do with collisions: leading or
+    trailing position in the component, a run of two or more (git forbids
+    `..` in a refname), or a trailing `.lock` (git reserves that suffix for
+    lock files). Each of those is a fixed function of `.`'s position in the
+    input, so the same input always encodes the same way — encoding, not
+    stripping, is what keeps it injective (the old `.strip(".")` made `"a"`
+    and `"a."` collide; a component can never be produced two different ways
+    here because `%` is escaped before anything else, so a literal `%2E`
+    typed by a user is unreachable — it would first become `%252E`).
+    """
+    out = []
+    dot_run = 0
+    n = len(s)
+    for i, ch in enumerate(s):
+        if ch == "%":
+            out.append("%25")
+            dot_run = 0
+        elif ch == ".":
+            dot_run += 1
+            if i == 0 or i == n - 1 or dot_run > 1:
+                out.append("%2E")
+            else:
+                out.append(".")
+        elif ("A" <= ch <= "Z") or ("a" <= ch <= "z") or ("0" <= ch <= "9") or ch in "_-":
+            out.append(ch)
+            dot_run = 0
+        else:
+            out.append("".join(f"%{b:02X}" for b in ch.encode("utf-8")))
+            dot_run = 0
+    component = "".join(out)
+    if component.endswith(".lock"):
+        # Every char above is 1:1 on the input, and escape sequences are
+        # always uppercase-hex after `%`, so a literal trailing ".lock" here
+        # can only come from a literal trailing ".lock" in `s` -- never from
+        # an escape that happens to spell those letters. Safe to rewrite.
+        component = component[:-5] + "%2Elock"
+    return component
+
+
 def sanitize(node_id: str) -> str:
     """Map a node id to `<type>/<rest>` — exactly two ref path segments.
 
@@ -83,14 +137,33 @@ def sanitize(node_id: str) -> str:
     `exp:x-r1` and abort the whole `commit --all` run, losing versioning for
     every node after it (found live, 3 such ids in the agi-tree corpus).
 
-    Escaping keeps the map injective: collapsing `:` to `-` instead would let
-    `exp:x-r1:extend8` and `exp:x-r1-extend8` share one ref and silently
-    overwrite each other, which is a worse failure than the crash.
+    Every character outside the safe alphabet is percent-encoded (see
+    `_encode_component`), so the map is injective by construction: no two
+    distinct ids can ever produce the same ref path. This replaces an earlier
+    version that collapsed everything outside `[A-Za-z0-9._%-]` to `-`, which
+    let `level3:bin-stitch@v2` and a hypothetical `level3:bin-stitch-v2`
+    collide on `level3/bin-stitch-v2` — confirmed live on 2026-08-24 by three
+    `@v2` nodes minted that day (see `_sanitize_legacy` / `migrate-refs`,
+    which move their refs onto the fixed scheme).
+    """
+    head, sep, tail = node_id.partition(":")
+    parts = [_encode_component(head)] + (
+        [_encode_component(tail)] if sep and tail else []
+    )
+    return "/".join(p for p in parts if p)
+
+
+def _sanitize_legacy(node_id: str) -> str:
+    """Frozen, byte-for-byte copy of the pre-fix `sanitize()`.
+
+    Kept ONLY so `migrate-refs` can compute what a node's ref path used to be,
+    to find and move it. Never "fix" this function: fixing it would make the
+    migration blind to the very collisions it exists to repair, since the
+    whole point is to compute the OLD (buggy) ref path, not a corrected one.
     """
     head, sep, tail = node_id.partition(":")
 
     def clean(s: str) -> str:
-        # `%` first, so the escape alphabet cannot be forged by the input.
         s = s.replace("%", "%25").replace(":", "%3A")
         return re.sub(r"[^A-Za-z0-9._%-]", "-", s).strip(".")
 
@@ -100,6 +173,10 @@ def sanitize(node_id: str) -> str:
 
 def node_ref(node_id: str) -> str:
     return f"{REF_NS}/node/{sanitize(node_id)}"
+
+
+def _node_ref_legacy(node_id: str) -> str:
+    return f"{REF_NS}/node/{_sanitize_legacy(node_id)}"
 
 
 def session_ref(iter_n: str, agent: str, node_id: str) -> str:
@@ -245,6 +322,75 @@ def cmd_status(root: Path) -> None:
     print(f"grid status: {new} new, {changed} changed, {clean} clean")
 
 
+def cmd_migrate_refs(root: Path, write: bool) -> None:
+    """Move `refs/grid/node/*` from the pre-fix sanitize() scheme to the
+    injective one, driven entirely by node ids found on disk today.
+
+    Dry-run by default (`write=False`): prints what would happen, touches
+    nothing. Idempotent: a ref only moves if its OLD-scheme ref still exists,
+    so a second run (write or dry) sees nothing left to move and reports
+    those ids as unchanged. Refuses to overwrite: if the destination already
+    holds different history, that node is reported and skipped, never
+    clobbered. Ids whose OLD ref is shared by more than one distinct id
+    (a real pre-existing collision, not a rename) are reported separately
+    and never touched -- there is no way to know which id's history the
+    shared ref actually holds.
+    """
+    ensure_repo(root)
+    ids = sorted({nid for p in iter_node_files(root)
+                  if (nid := parse_node_id(p)) is not None})
+
+    old_ref_to_ids: dict[str, list[str]] = {}
+    for nid in ids:
+        old_ref_to_ids.setdefault(_node_ref_legacy(nid), []).append(nid)
+    collided = {r: v for r, v in old_ref_to_ids.items() if len(v) > 1}
+
+    renamed = unchanged = conflicts = in_collision = 0
+    for nid in ids:
+        old_ref = _node_ref_legacy(nid)
+        if old_ref in collided:
+            in_collision += 1
+            continue
+
+        new_ref = node_ref(nid)
+        if old_ref == new_ref:
+            unchanged += 1
+            continue
+
+        old_tip = ref_tip(root, old_ref)
+        if old_tip is None:
+            unchanged += 1  # no history under the old scheme -- nothing to move
+            continue
+
+        new_tip = ref_tip(root, new_ref)
+        if new_tip is not None:
+            if new_tip == old_tip:
+                unchanged += 1  # already migrated -- idempotent no-op
+            else:
+                conflicts += 1
+                print(f"CONFLICT  {nid}: {new_ref} already exists with "
+                      f"different history than {old_ref} -- not touched",
+                      file=sys.stderr)
+            continue
+
+        action = "RENAME" if write else "WOULD-RENAME"
+        print(f"{action}  {old_ref} -> {new_ref}  ({nid})")
+        if write:
+            git(root, "update-ref", new_ref, old_tip)
+            git(root, "update-ref", "-d", old_ref, old_tip)
+        renamed += 1
+
+    for r, v in sorted(collided.items()):
+        print(f"COLLISION  {r} shared by {len(v)} ids (pre-existing under "
+              f"the old scheme, needs human triage -- cannot tell whose "
+              f"history it holds): {', '.join(v)}", file=sys.stderr)
+
+    mode = "write" if write else "dry-run"
+    print(f"grid migrate-refs ({mode}): {renamed} renamed, {unchanged} "
+          f"unchanged, {conflicts} conflict(s), {len(collided)} collided "
+          f"old ref(s) covering {in_collision} id(s)")
+
+
 def cmd_sync(root: Path, remote: str | None) -> None:
     ensure_repo(root)
     remotes = git(root, "remote").splitlines()
@@ -331,6 +477,10 @@ def main() -> None:
     v = sub.add_parser("versions")
     v.add_argument("node_id")
     sub.add_parser("status")
+    m = sub.add_parser("migrate-refs",
+                       help="move refs/grid/node/* onto the injective "
+                            "sanitize() scheme; dry-run unless --write")
+    m.add_argument("--write", action="store_true")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
     cr = sub.add_parser("cron")
@@ -352,6 +502,8 @@ def main() -> None:
         cmd_versions(root, args.node_id)
     elif args.cmd == "status":
         cmd_status(root)
+    elif args.cmd == "migrate-refs":
+        cmd_migrate_refs(root, args.write)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "cron":
