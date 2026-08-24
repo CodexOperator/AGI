@@ -3,7 +3,7 @@ id: verdict:environment-indexers-r1-extend3
 type: verdict
 title: 'Verdict: environment-indexers-r1 third extension (14-hop chain)'
 status: proved
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.85
 parents:
 - exp:environment-indexers-r1-extend3
@@ -15,8 +15,9 @@ tags:
 - proved
 next_edges: []
 synthetic: true
-evidence_runs:
-- synthetic
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 

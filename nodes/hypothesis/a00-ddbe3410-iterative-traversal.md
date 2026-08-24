@@ -15,8 +15,11 @@ tags:
   - iteration-1
 title: "Hypothesis: recursive DFS in find_chains() hits Python stack limit at 700+ hops"
 type: hypothesis
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.95
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 

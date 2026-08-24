@@ -13,8 +13,11 @@ tags:
 spawns:
   - task:t-093
 status: pending
-verdict: disproved
+verdict: inconclusive_lean_disproved:50
 confidence: 0.18
+evidence_runs: 0
+demoted_from: disproved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
 ---
 
 ## Hypothesis

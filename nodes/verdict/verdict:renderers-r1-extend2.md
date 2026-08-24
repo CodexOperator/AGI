@@ -3,7 +3,7 @@ id: verdict:renderers-r1-extend2
 type: verdict
 title: 'Verdict: renderers-r1 second extension (12-hop chain)'
 status: proved
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.9
 parents:
 - exp:renderers-r1-extend2
@@ -16,8 +16,9 @@ tags:
 next_edges:
 - exp:renderers-r1-extend3
 synthetic: true
-evidence_runs:
-- synthetic
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 

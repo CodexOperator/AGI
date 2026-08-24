@@ -14,8 +14,11 @@ spawns:
 status: proved
 next_edges:
   - exp:cli-invocation-r1
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.80
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 ## Hypothesis

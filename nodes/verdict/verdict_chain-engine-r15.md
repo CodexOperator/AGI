@@ -1,7 +1,7 @@
 ---
 id: "verdict:chain-engine-r15"
 type: verdict
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.95
 status: proved
 tags:
@@ -13,6 +13,9 @@ title: "chain-engine/R15: verdict→experiment→verdict cycles are stackable (1
 parents:
   - "exp:chain-engine-r15"
 next_edges: []
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 **Verdict:** PROVED (confidence: 0.95)

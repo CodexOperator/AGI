@@ -8,7 +8,10 @@ tags:
   - branching-chains
   - chain-engine
 type: hypothesis
-verdict: proved
+verdict: inconclusive_lean_proved:50
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 # hypothesis:iter24-branching-chains

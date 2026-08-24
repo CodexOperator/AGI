@@ -3,7 +3,7 @@ id: verdict:schema-registry-r2-extend
 type: verdict
 title: 'Verdict: schema-registry-r2 extended (10-hop chain)'
 status: proved
-verdict: proved
+verdict: inconclusive_lean_proved:50
 confidence: 0.85
 parents:
 - exp:schema-registry-r2-extend
@@ -14,8 +14,9 @@ tags:
 next_edges:
 - exp:schema-registry-r2-extend2
 synthetic: true
-evidence_runs:
-- synthetic
+evidence_runs: 0
+demoted_from: proved
+demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 
