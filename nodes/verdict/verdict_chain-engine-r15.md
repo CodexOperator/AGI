@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:chain-engine-r15"
 mint_id: 86bb3d48cb66456695228dd933a7405c
 next_edges: []
-parents:
-  - exp:chain-engine-r15
+parents: []
 status: proved
 tags:
   - chain-engine

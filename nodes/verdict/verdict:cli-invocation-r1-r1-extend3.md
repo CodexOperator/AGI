@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:cli-invocation-r1-r1-extend3"
 mint_id: d62b6c50f0b4498eb9bf9ccc253f7d70
 next_edges: []
-parents:
-  - hypothesis:cli-invocation-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

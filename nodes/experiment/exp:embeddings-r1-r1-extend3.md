@@ -3,8 +3,7 @@ id: "exp:embeddings-r1-r1-extend3"
 mint_id: ffaa9994b3514bbcb4ca0972825a2abb
 next_edges:
   - verdict:embeddings-r1-r1-extend3
-parents:
-  - hypothesis:embeddings-r1-r1
+parents: []
 type: experiment
 ---
 

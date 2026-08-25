@@ -7,7 +7,6 @@ id: "verdict:a00-c2ec59b7-b391d9-r2"
 mint_id: f0cb84faaa8a4893a02148a532428796
 next_edges: []
 parents:
-  - exp:a00-c2ec59b7-b391d9-r2
   - hypothesis:a00-c2ec59b7-b391d9-r2
 status: disproved
 tags:

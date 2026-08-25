@@ -3,8 +3,7 @@ id: "exp:schema-registry-r2-bracket-convention-extend3"
 mint_id: 838a6964da0043ceaa7dd5bf31d51493
 next_edges:
   - verdict:schema-registry-r2-bracket-convention-extend3
-parents:
-  - verdict:schema-registry-r2-bracket-convention-extend2
+parents: []
 tags:
   - chain-extension
   - r17

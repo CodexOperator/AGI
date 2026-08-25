@@ -7,8 +7,7 @@ id: "verdict:schema-registry-r2-extend3"
 mint_id: 870e22ca337240c99fd9008801f99d2a
 next_edges:
   - exp:schema-registry-r2-extend3
-parents:
-  - exp:schema-registry-r2-r1
+parents: []
 synthetic: true
 tags:
   - schema-registry-r2

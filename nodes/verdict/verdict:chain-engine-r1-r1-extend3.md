@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:chain-engine-r1-r1-extend3"
 mint_id: f16d2b71c85d4b48a4c0502056941450
 next_edges: []
-parents:
-  - hypothesis:chain-engine-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

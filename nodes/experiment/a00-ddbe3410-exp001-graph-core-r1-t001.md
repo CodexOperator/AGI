@@ -4,7 +4,7 @@ mint_id: 8b32da74cb5b4c3c9554131fcbffcfbb
 next_edges:
   - verdict:a00-ddbe3410-verdict001-graph-core-r1-t001
 parents:
-  - hypothesis:graph-core-r1
+  - hyp:graph-core-r1
   - task:t-001
 status: complete
 tags:

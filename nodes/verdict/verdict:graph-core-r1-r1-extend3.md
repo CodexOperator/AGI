@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:graph-core-r1-r1-extend3"
 mint_id: 3636588f7698421bbf86cae1c7f30112
 next_edges: []
-parents:
-  - hypothesis:graph-core-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

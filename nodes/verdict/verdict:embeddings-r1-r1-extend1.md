@@ -7,8 +7,7 @@ id: "verdict:embeddings-r1-r1-extend1"
 mint_id: fb1dfa7ed46e4042b22c7c50470aff5b
 next_edges:
   - exp:embeddings-r1-r1-extend2
-parents:
-  - hypothesis:embeddings-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

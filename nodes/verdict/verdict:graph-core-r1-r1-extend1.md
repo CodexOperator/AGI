@@ -7,8 +7,7 @@ id: "verdict:graph-core-r1-r1-extend1"
 mint_id: 98fd09185a6445228f045aa5f2ffc841
 next_edges:
   - exp:graph-core-r1-r1-extend2
-parents:
-  - hypothesis:graph-core-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

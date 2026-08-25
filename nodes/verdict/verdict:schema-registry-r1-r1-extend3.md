@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:schema-registry-r1-r1-extend3"
 mint_id: 396bd82892514682be64ffee1f80a0c6
 next_edges: []
-parents:
-  - hypothesis:schema-registry-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

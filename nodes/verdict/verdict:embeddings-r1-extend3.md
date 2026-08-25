@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:embeddings-r1-extend3"
 mint_id: 8c1b415944f64540941d4df78318653a
 next_edges: []
-parents:
-  - hypothesis:embeddings-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---
