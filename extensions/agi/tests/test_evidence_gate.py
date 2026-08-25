@@ -249,6 +249,57 @@ def test_stamp_records_demotion():
     assert fm["evidence_runs"] == 0
 
 
+# ------------------------------------------- shadow fields (`status:`)
+
+
+@pytest.mark.parametrize("decisive", ["proved", "disproved"])
+def test_stamp_demotes_status_shadow_in_lockstep(decisive):
+    """A demoted node must not read 'proved' anywhere in its frontmatter.
+
+    Rewriting only `verdict:` left `status: proved` standing next to
+    `verdict: inconclusive_lean_proved:50` on 42 agi-tree nodes.
+    """
+    fm = eg.stamp({"status": decisive}, eg.apply_gate(decisive, 0))
+    assert fm["status"] == fm["verdict"] == eg.DEMOTION[decisive]
+    assert decisive not in (fm["status"], fm["verdict"])
+
+
+@pytest.mark.parametrize("lifecycle", ["pending", "in_progress", "done", "open",
+                                       "extended", "abandoned", "active",
+                                       "horizon", "phasing-out", "complete"])
+def test_stamp_never_touches_a_lifecycle_status(lifecycle):
+    """`status:` means different things per node type. None of those domains
+    contains 'proved'/'disproved', so the verdict gate can never clobber a
+    task's, idea's or goal's lifecycle."""
+    fm = eg.stamp({"status": lifecycle}, eg.apply_gate("proved", 0))
+    assert fm["status"] == lifecycle
+
+
+def test_stamp_leaves_status_alone_when_nothing_was_demoted():
+    fm = eg.stamp({"status": "proved"}, eg.apply_gate("proved", 1))
+    assert fm["status"] == "proved"
+    fm = eg.stamp({"status": "proved"}, eg.apply_gate("proved", 0, bypass=True))
+    assert fm["status"] == "proved"
+    assert fm["evidence_gate"] == "bypassed"
+
+
+def test_stamp_leaves_tags_alone():
+    """Tags are kept as a historical record of the original claim; demotion
+    already keeps such nodes out of the standard graph views."""
+    fm = eg.stamp({"tags": ["proved", "R2"]}, eg.apply_gate("proved", 0))
+    assert fm["tags"] == ["proved", "R2"]
+
+
+def test_shadow_verdict_fields_matches_what_stamp_rewrites():
+    assert eg.shadow_verdict_fields({"status": "proved"}) == ["status"]
+    assert eg.shadow_verdict_fields({"status": "disproved"}) == ["status"]
+    assert eg.shadow_verdict_fields({"status": "pending"}) == []
+    assert eg.shadow_verdict_fields({"status": "inconclusive_lean_proved"}) == []
+    assert eg.shadow_verdict_fields({"tags": ["proved"]}) == []
+    assert eg.shadow_verdict_fields({}) == []
+    assert eg.shadow_verdict_fields(None) == []
+
+
 # ------------------------------------------------------------ cli.py done
 
 
@@ -287,6 +338,36 @@ def test_cli_done_demotes_unevidenced_proved(project):
     node = project / "nodes" / "verdict" / "experiment_e1.md"
     assert "verdict: inconclusive_lean_proved:50" in node.read_text()
     assert "demoted_from: proved" in node.read_text()
+
+
+def test_cli_done_demotes_status_shadow_on_an_existing_node(project):
+    """`cli.py done` updates an existing node through `_append_verdict_to_node`,
+    which rewrites raw frontmatter lines and so cannot call `stamp()`. It must
+    still enforce the same invariant: nothing left reading 'proved'."""
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\nstatus: proved\n"
+        "tags:\n  - proved\n---\n\nbody\n"
+    )
+    r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
+                                  "--node-id", "experiment:e1", "--evidence-runs", "0"])
+    assert r.returncode == 0, r.stderr
+    text = nf.read_text()
+    assert "status: inconclusive_lean_proved:50" in text
+    assert "verdict: inconclusive_lean_proved:50" in text
+    assert "status: proved" not in text
+    assert "  - proved" in text            # tags kept as historical record
+
+
+def test_cli_done_keeps_a_lifecycle_status_on_an_existing_node(project):
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\nstatus: pending\n---\n\nbody\n"
+    )
+    r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
+                                  "--node-id", "experiment:e1", "--evidence-runs", "0"])
+    assert r.returncode == 0, r.stderr
+    assert "status: pending" in nf.read_text()
 
 
 def test_cli_done_accepts_evidenced_proved(project):

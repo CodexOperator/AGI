@@ -88,6 +88,24 @@ DEMOTION = {
     "disproved": "inconclusive_lean_disproved:50",
 }
 
+#: Frontmatter fields that shadow `verdict:` — a second place the same claim
+#: can be written, which the gate must demote in lockstep or the node keeps
+#: advertising the overclaim it just lost.
+#:
+#: `status` is the only one. It is a **legacy shadow**, not a declared field:
+#: no chain-node schema declares it (`context/schemas/[verdict].md` does not
+#: exist, and t-031 — the task that would ship it — names `state`, not
+#: `status`), no engine writer path produces it (`cli.py done` writes
+#: `status` into the *agent record* under `sessions/`, never into node
+#: frontmatter), and no engine reader interprets it as a verdict. It was
+#: hand-written by kids alongside `verdict:` and then left behind when the
+#: gate rewrote only `verdict:`.
+#:
+#: `tags` is deliberately NOT in this list. A `proved` tag on a demoted node
+#: is kept as a historical record of what was originally claimed; demotion
+#: already keeps such nodes out of the standard graph views.
+SHADOW_VERDICT_FIELDS = ("status",)
+
 
 def is_valid_verdict(verdict: str | None) -> bool:
     return bool(verdict) and bool(VERDICT_RE.match(verdict))
@@ -96,6 +114,34 @@ def is_valid_verdict(verdict: str | None) -> bool:
 def requires_evidence(verdict: str | None) -> bool:
     """True iff this verdict asserts a decided outcome."""
     return verdict in DECISIVE_VERDICTS
+
+
+def is_decisive_shadow(value) -> bool:
+    """True iff `value` is a shadow field asserting a decided outcome.
+
+    Deliberately narrow: **only the two decisive words**, never the
+    `inconclusive_lean_*` or `pending` forms. That is what keeps this safe to
+    run against a `status:` field whose meaning is per-type — `task` uses
+    `pending|in_progress|done`, `idea` uses `open|extended|abandoned`, `goal`
+    uses the four-state lifecycle, and *none* of those domains contains
+    `proved` or `disproved`. So a shadow rewrite can only ever land on a node
+    that really was making a verdict claim, and a task's lifecycle `status`
+    can never be clobbered by the verdict gate.
+    """
+    return isinstance(value, str) and value.strip() in DECISIVE_VERDICTS
+
+
+def shadow_verdict_fields(fm: dict) -> list[str]:
+    """Names of shadow fields in `fm` that assert a decided outcome.
+
+    The read-only counterpart of the rewrite in `stamp` — `metrics.py` uses
+    it to count nodes whose `verdict:` is honest but whose shadow still
+    advertises `proved`, so the gate and the defect metric share one
+    definition of "shadow" (G3, same reason `build_corpus` is shared).
+    """
+    if not isinstance(fm, dict):
+        return []
+    return [f for f in SHADOW_VERDICT_FIELDS if is_decisive_shadow(fm.get(f))]
 
 
 def is_node_id_shaped(value) -> bool:
@@ -323,9 +369,20 @@ def stamp(fm: dict, res: GateResult) -> dict:
     Never call this with a `rejected` result — rejection means nothing
     should be written at all (the caller must stop before this point,
     same as it does for a malformed verdict).
+
+    On a demotion, every shadow field (`SHADOW_VERDICT_FIELDS`) that still
+    reads `proved`/`disproved` is rewritten to the demoted verdict verbatim.
+    The invariant this buys: **after a demotion no frontmatter field of the
+    node reads `proved` or `disproved`.** Rewriting only the `verdict:` field
+    left `status: proved` standing beside `verdict: inconclusive_lean_proved:50`
+    on 42 nodes, a contradiction `benchmark.py` then fed to the LLM judge as
+    two adjacent lines.
     """
     if res.demoted:
         fm["verdict"] = res.verdict
+        for fld in SHADOW_VERDICT_FIELDS:
+            if is_decisive_shadow(fm.get(fld)):
+                fm[fld] = res.verdict
         fm["demoted_from"] = res.original
         fm["demote_reason"] = res.reason
     elif res.bypassed:
