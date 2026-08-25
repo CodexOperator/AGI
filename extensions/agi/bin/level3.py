@@ -69,6 +69,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import importlib.util
 import os
 import re
@@ -384,6 +385,19 @@ def _scan_stdout(tree: ast.Module) -> list[dict]:
              "how": f"{len(lines)} `print()` call(s) at line(s) {sorted(set(lines))}"}]
 
 
+def _content_sha256(abs_path: Path) -> str:
+    """sha256 of the payload's raw bytes, or `unreadable` if it cannot be read.
+
+    Bytes, not decoded text: a fingerprint that depends on an encoding guess is
+    not a fingerprint. Returns a string either way so the contract's shape stays
+    fixed — a missing key would read as drift on every subsequent scan.
+    """
+    try:
+        return hashlib.sha256(abs_path.read_bytes()).hexdigest()
+    except Exception:
+        return "unreadable"
+
+
 def analyze_file(abs_path: Path) -> dict:
     """Mechanically derive the contract's `how` half from a Python file via `ast`.
 
@@ -399,10 +413,20 @@ def analyze_file(abs_path: Path) -> dict:
     # `not-python` is the correct answer for every non-`.py` payload until
     # G6.6's extracted-claims contract exists.
     if abs_path.suffix != ".py":
+        # Still record a content fingerprint. Without it a non-`.py` node's body
+        # is byte-identical no matter what its payload says, so editing a doc
+        # produces no node change and therefore no grid version — the payload's
+        # history exists only in ordinary git and is invisible to
+        # `refs/grid/node/*`. Measured 2026-08-25: editing README.md and
+        # agent-prompt.md left both nodes at their prior version counts and
+        # `commit --all` reported 0 new versions. The hash is not a contract and
+        # is not claimed to be one; it is the minimum that makes a prose change
+        # *visible* to node history until G6.6's extracted-claims contract lands.
         return {"parse_ok": False,
                 "parse_error": f"not-python: {abs_path.suffix or 'no suffix'} "
                                "(no mechanical contract derivation for this "
                                "file type yet — see goal:g6.6)",
+                "content_sha256": _content_sha256(abs_path),
                 "inputs": [], "outputs": [], "uncovered": []}
     try:
         source = abs_path.read_text(encoding="utf-8")
@@ -526,6 +550,12 @@ def build_node(rel_path: str, abs_path: Path, parent_id: str | None) -> tuple[st
     contract: dict = {"payload_ref": rel_path, "parse_ok": analysis["parse_ok"]}
     if not analysis["parse_ok"]:
         contract["parse_error"] = analysis["parse_error"]
+    # Emitted only when `analyze_file` produced one (today: non-`.py` payloads).
+    # Without it a prose node's body never changes when its payload does, so the
+    # doc's history is invisible to `refs/grid/node/*` — see the comment in
+    # `analyze_file` for the measurement that established this.
+    if analysis.get("content_sha256"):
+        contract["content_sha256"] = analysis["content_sha256"]
     contract["inputs"] = _fill_entries(analysis["inputs"])
     contract["outputs"] = _fill_entries(analysis["outputs"])
     if analysis["uncovered"]:

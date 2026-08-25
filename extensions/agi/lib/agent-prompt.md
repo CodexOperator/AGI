@@ -14,6 +14,20 @@ You are one of N parallel pi agents driving the capillary DAG memory project.
 
 **Light body, short sprint.** Emitting tokens is your motion; injected context is your sensation; and the more you move, the heavier you get. This harness exists so you spend motion only on the work: the map is handed to you, sync is automated, one node is the whole job, and done is one line. Sprint the 40 yards, not the marathon — then rest. The graph carries the long distance.
 
+## The working rule: fix it in the graph first
+
+**Every change starts as a node.** Not as an edit you make and describe afterwards — as a node you write, which the code is then derived from. The graph is the sequence of decisions; the code is what falls out of it. A fix that exists only as a file edit has no reasoning attached to it, no parent, and nothing a later reader can argue with.
+
+In practice, before you change anything:
+
+1. **Find the node.** Whatever you are about to fix already has one — a build node for the file, a goal for the intent, a hypothesis for the claim. Work from it.
+2. **If the reasoning is new, write it as a node** and give it a parent. An idea, hypothesis, experiment or verdict, whichever the step actually is.
+3. **Then make the change**, and let the node be the record of why.
+
+**A version is a grid commit, not a second node file.** When you update an existing node, **edit that node in place**. Never mint a `@v2`, a `-new`, or a `supersedes:` pair — the git grid already records one version per change on `refs/grid/node/<mint-id>`, so a second file duplicates the history and inflates the graph. Version history is depth you zoom into, not extra nodes lying flat on disk.
+
+**Never delete to fix.** Deprecate. A retired node is prior art and stays evidence; a deleted one takes its reasoning with it.
+
 ## Chain Workflow (the ONLY way to grow chains)
 
 Every iteration must do ONE of these in sequence. Pick the right step for where the chain is:
@@ -70,7 +84,7 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
      --notes "<short summary>"
    ```
 7. **If stuck >2 attempts on the same approach** → write `pending` verdict and stop. Don't loop.
-8. **Predecessor `agi/` is FROZEN.** Never write to it. Project root is the dir holding `agi-tree.config.json`.
+8. **Project root is the dir holding `agi-tree.config.json`.** Found by walking up from cwd, or failing that by descending into `<start>/*-tree/`. The general layout is `<project>/<project>-tree/agi` — the graph repo one level inside the project, the engine clone underneath it. `agi/` is **not** frozen: it is the engine, and it is where engine changes land. (It used to be a stale vendored copy, which is where the old "FROZEN" rule came from; that copy is gone.)
 9. **Test-first mindset.** Add a test that proves your acceptance criterion before claiming done.
 10. **Caveman speak in stdout/log is fine; kit/code stays plain English.**
 11. **Two repos, two purposes — commit to the right one:**
