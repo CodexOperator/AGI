@@ -1290,6 +1290,24 @@ push, so a publish never races the push of the graph commit it cites. **Off by
 default** — `cron install` runs on projects whose version layer is not yet
 trusted, and deciding that is the project's call, not the installer's.
 
+**Installed on this project 2026-08-25**, which is the first time the sequence
+above has been allowed to complete:
+
+```
+37 * * * * cd <tree> && bash <engine>/extensions/agi/bin/publish-engine.sh
+```
+
+`--dry-run` passed every gate before it went in. What that buys, concretely:
+`agi` stops being a repo anyone edits and becomes a published build of
+`agi-tree`, hourly, with each commit naming the graph commit it derives from.
+What it deliberately does not buy: a push. If an hour's publish is wrong it is
+wrong on one machine, and `git reset` is the whole remedy.
+
+This goal stays `active` for step 3 — the engine commit message should carry
+the node -> verdict -> version chain that produced it (**G6.4**), not just the
+graph commit sha. Today it cites `published from the graph @ <sha>`, which is
+attribution without argument.
+
 ### G6.6 — Level 3 covers the non-code surfaces too — status: active
 
 **A projection that omits half the engine cannot rebuild it.** `level3.py`'s
