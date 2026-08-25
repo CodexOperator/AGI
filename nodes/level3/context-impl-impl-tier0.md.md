@@ -23,6 +23,7 @@ payload_ref: context/impl/impl-tier0.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: ae5fe6db6085176f311266ed8badfcc85c18434df6608f2a5eb783f762570b65
 inputs: []
 outputs: []
 ```

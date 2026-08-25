@@ -23,6 +23,7 @@ payload_ref: run-loop.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 208b553d39daa140de212cc623d4944bb3fcddcd5c7750837ebffb44faadb517
 inputs: []
 outputs: []
 ```

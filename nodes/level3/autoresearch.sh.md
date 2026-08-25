@@ -23,6 +23,7 @@ payload_ref: autoresearch.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 42c7d6669e6500ffdd2898c83f48798f7bd975ce65768c69d1c93607f7e65e27
 inputs: []
 outputs: []
 ```

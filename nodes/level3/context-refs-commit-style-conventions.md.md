@@ -23,6 +23,7 @@ payload_ref: context/refs/commit-style-conventions.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: cbeeca3a804fa5ce4eb8530db31b85e2dcc8589debffd75a7114dc2b04bc438d
 inputs: []
 outputs: []
 ```

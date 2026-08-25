@@ -23,6 +23,7 @@ payload_ref: context/refs/legacy-prestate.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 36edb454aaef82562a832b447c70922e098f64fb98537d8b4685060ead8ed23c
 inputs: []
 outputs: []
 ```

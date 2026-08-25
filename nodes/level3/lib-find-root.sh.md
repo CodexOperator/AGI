@@ -23,6 +23,7 @@ payload_ref: extensions/agi/lib/find-root.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 07a7a3add1a8cfbed7832c9a14e48f54321c8adb751d920b1ceb30d137219c1e
 inputs: []
 outputs: []
 ```

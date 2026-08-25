@@ -23,6 +23,7 @@ payload_ref: context/kits/cavekit-git-remote.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 8e20cb7eaa1578946d10037233eb83dec5979d848ee2bbeb1b43d1f091db51e9
 inputs: []
 outputs: []
 ```

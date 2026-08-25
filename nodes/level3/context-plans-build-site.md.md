@@ -23,6 +23,7 @@ payload_ref: context/plans/build-site.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 32fd96f86f910bf0dffb7214945f49b1a52645b9a44d39b70ebcb31f9976365f
 inputs: []
 outputs: []
 ```

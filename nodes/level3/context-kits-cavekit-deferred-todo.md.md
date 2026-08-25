@@ -23,6 +23,7 @@ payload_ref: context/kits/cavekit-deferred-todo.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 680db04b9a3c6ade0e13d1fa2ed4fd33ed06e0c9297fadfda12e7a1f392fa06f
 inputs: []
 outputs: []
 ```

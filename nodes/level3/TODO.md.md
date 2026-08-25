@@ -23,6 +23,7 @@ payload_ref: TODO.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: cf6388e3ce24faea9d9a66e18683087363a88d655c0dc74fdd0c304a36336522
 inputs: []
 outputs: []
 ```

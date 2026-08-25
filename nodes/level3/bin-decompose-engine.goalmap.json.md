@@ -23,6 +23,7 @@ payload_ref: extensions/agi/bin/decompose-engine.goalmap.json
 parse_ok: false
 parse_error: 'not-python: .json (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: a1a8aa631aa4cc0a01c2ded13788eaf7c34a35144641300e0860c229f6a9af73
 inputs: []
 outputs: []
 ```

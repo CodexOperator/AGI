@@ -23,6 +23,7 @@ payload_ref: autoresearch.config.json
 parse_ok: false
 parse_error: 'not-python: .json (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 4d770f89a67202513fbe1643ce8b8ff32c7d06dfd6a56a594410b7cf46138866
 inputs: []
 outputs: []
 ```

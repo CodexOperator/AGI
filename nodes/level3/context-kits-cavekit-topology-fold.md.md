@@ -23,6 +23,7 @@ payload_ref: context/kits/cavekit-topology-fold.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: eb1d9b6272f52b9f697e21dc01093b455591bbab57be0e02c7f389bce9ef1df4
 inputs: []
 outputs: []
 ```
