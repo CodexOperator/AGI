@@ -81,7 +81,7 @@ One iteration = one node per kid, reviewed and committed by the parent.
 1. **Snapshot + render.** `driver.sh --smoke --max-iters 1`. Records the metric baseline, refreshes `context/INJECTION.md`. **Verify the node count did not drop.**
 2. **Pick targets** from `INJECTION.md`. Slot 0 → big zoom (fresh idea or top-level fork). Slots 1..N → small zoom on the top attractor, 2-hop subtree. N = `cc_dispatch.kids_per_iter`.
 3. **Spawn kids.** Generate each kid's context with `bin/zoom.py`, then **embed the rendered map in the spawn prompt** — don't merely reference it. Each prompt must be self-contained: zoom scope, target parent node id, chain step, node file format, verdict taxonomy, project paths (`INJECTION.md`, `GOALS.md`, spec).
-   Kid deltas from the normal rules: **do not commit**, and do not call `cli.py done` — write the node file, report, stop. The parent owns commits and record-keeping.
+   Kid deltas from the normal rules: **do not commit**, and do not call `cli.py done` — write the node file, report, stop. The parent owns commits and record-keeping. When the job is a fix or update to an existing node rather than a new chain step, **edit that node's file in place** — never mint a second file for the new version (no `@v2` node, no `supersedes:` pair). The grid, not the filesystem, carries version history; it records the change at the parent's next `grid.py commit --all`.
 4. **Review — this is the gate.** For each node: parent link resolves, taxonomy valid, and **`proved`/`disproved` REQUIRE experiment evidence (`evidence_runs >= 1`)**. Demote unevidenced verdicts to `pending` or `inconclusive_lean_*`. Reject orphans.
    The evidence half is now enforced in code — `bin/evidence_gate.py`, applied by both writer paths (`bin/cli.py done` and `bin/post_wire.py`). An unevidenced `proved`/`disproved` is auto-demoted to `inconclusive_lean_*:50` and stamped `demoted_from` / `demote_reason`; the node is kept, only the overclaim is dropped. `--no-evidence-gate` bypasses it loudly and stamps `evidence_gate: bypassed` — treat any such node as unreviewed. Still yours by hand: parent-link resolution and orphan rejection.
 5. **Commit** accepted nodes in one commit: `iter-N: <kid-a summary>; <kid-b summary>`. Then `bin/grid.py commit --all`.
@@ -200,13 +200,30 @@ Fields: `confidence` (0..1), `evidence_runs`, `supports`, `contradicts`.
 
 **Judge the chain's core claim.** When a mechanism prescribed inside a hypothesis fails but the core claim survives, return the verdict on the core claim and name the failed prescription as explicitly unendorsed. State the proved invariant at the level it actually holds — overclaiming poisons every downstream reader.
 
+## Zoom
+
+Zoom is a **view into the graph, not a node's type** — `--level big`/`--level small` above are context-injection scope, unrelated to any node's `type` field. Coarse grains are meant to come from **tags and addresses** (a tag names a supernode; an address is that supernode's short id prefix) — **designed, not yet built.** Fine grains come from a node's **mint id and its grid version history**, below. The finest zoom — the chat that produced a version — is also unbuilt: grid commits and the sessions that made them are not yet cross-linked.
+
 ## The git grid
 
-`bin/grid.py` adds two version dimensions beside the project's own history, baked into the repo as `refs/grid/node/*` and `refs/grid/session/*` — never checked out, invisible to `git branch`, blobs deduped, one remote syncs everything.
+`bin/grid.py` adds two version dimensions beside the project's own history, baked into the repo as `refs/grid/node/*` and `refs/grid/session/*` — never checked out, invisible to `git branch`, blobs deduped, one remote syncs everything. **A version is a grid commit, not a second node file** — a fix edits the target node in place, and the grid is what accumulates the history. Version history is depth to zoom into, never flat structure on disk.
 
 - **After every iteration commit:** `grid.py commit --all`. Changed nodes gain a version; unchanged nodes get nothing. **Versions record change, not time.**
 - **Kid drafts:** `grid.py commit <file> --session <iter> <agent>` before review. Rejected drafts survive there; accepted content lands on the node branch at the next `commit --all`. Nothing is lost either way.
 - **Sync is automated.** `grid.py cron install` sets both cadences: every 5 min, snapshot + push `refs/grid/*` (crash window ≤ 5 min); hourly, push the main branch. **Nobody syncs by hand.** A parent's only git surface is the local iteration commit; a kid's is nothing at all.
+
+### Identifiers: mint id vs address
+
+Decided 2026-08-25: a node carries **two** identifiers, and they are never the same field.
+
+| | mint id | address |
+|---|---|---|
+| assigned | once, at creation | derived; re-derived freely |
+| changes | never | on every retag/regroup |
+| shape | opaque, uuid-like | short, hierarchical, alphanumeric |
+| keys | grid refs, provenance | zoom, lookup, prefixes |
+
+Grid refs are **designed** to key on the mint id rather than the address, so retagging or re-addressing a node never renames a ref — an address is cheap to change precisely because nothing durable hangs off it. **Not yet deployed:** today's refs still key on the node's current id; the mint-id migration is landing now, in parallel.
 
 ## Configuration
 

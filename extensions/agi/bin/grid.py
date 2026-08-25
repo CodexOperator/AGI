@@ -46,6 +46,13 @@ CONFIG_MARKER = "agi-tree.config.json"
 # Compatibility window: legacy-named projects still resolve. Canonical name first.
 CONFIG_MARKERS = (CONFIG_MARKER, "autoresearch-tree.config.json")
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
+# goal:g2.5 "Tension resolved 2026-08-25" — the permanent identifier grid.py
+# now keys writes on. Same line shape as ID_RE, parsed the same stdlib-regex
+# way (this file stays yaml-free by design — see module docstring).
+MINT_ID_RE = re.compile(r'^mint_id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
+PARENTS_RE = re.compile(r'^parents:[ \t]*$', re.MULTILINE)
+PARENTS_INLINE_RE = re.compile(r'^parents:\s*\[([^\]]*)\]\s*$', re.MULTILINE)
+PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
 REF_NS = "refs/grid"
 FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
@@ -188,6 +195,132 @@ def parse_node_id(path: Path) -> str | None:
     return m.group(1) if m else None
 
 
+def parse_mint_id(path: Path) -> str | None:
+    """The node's permanent id, or None if it has not been backfilled yet
+    (see `bin/backfill-mint-ids.py`). Never guessed, never derived — a
+    missing mint_id here means exactly that: absent."""
+    m = MINT_ID_RE.search(path.read_text(encoding="utf-8"))
+    return m.group(1) if m else None
+
+
+def parse_parents(path: Path) -> list[str]:
+    """Best-effort, stdlib-only parse of a node's `parents:` field, covering
+    the shapes `write_frontmatter` actually produces (a multi-line `- item`
+    list) plus two shapes seen on hand-written nodes (an inline `[a, b]`
+    list, a bare single scalar). Anything else yields `[]` rather than a
+    guess — this only feeds the commit-message trailer (goal:g2.7), which is
+    additive provenance, never a value a caller should treat as load-bearing
+    for correctness.
+    """
+    text = path.read_text(encoding="utf-8")
+    fm_end = text.find("\n---", 3)
+    fm_text = text[:fm_end] if fm_end != -1 else text
+
+    m = PARENTS_RE.search(fm_text)
+    if m:
+        items = []
+        for line in fm_text[m.end():].splitlines():
+            if not line.strip():
+                continue
+            item_m = re.match(r'^\s*-\s*(.+?)\s*$', line)
+            if item_m:
+                items.append(item_m.group(1).strip("\"'"))
+            else:
+                break  # end of this list block
+        if items:
+            return items
+
+    m = PARENTS_INLINE_RE.search(fm_text)
+    if m:
+        return [x.strip().strip("\"'") for x in m.group(1).split(",") if x.strip()]
+
+    m = PARENTS_SCALAR_RE.search(fm_text)
+    if m:
+        val = m.group(1).strip().strip("\"'")
+        if val and val not in ("[]", "null", "~"):
+            return [val]
+
+    return []
+
+
+def mint_node_ref(mint_id: str) -> str:
+    """The permanent ref a node's history lives under from here forward.
+
+    Runs `mint_id` through `sanitize()` anyway even though the format
+    (32 lowercase hex chars — see `graph_core.identity.mint_permanent_id`)
+    already needs no escaping: defense in depth if the mint id format ever
+    changes, at zero behavioural cost today (`sanitize()` is the identity
+    function on this alphabet).
+    """
+    return f"{REF_NS}/node/{sanitize(mint_id)}"
+
+
+class MissingMintIdError(RuntimeError):
+    """Raised by `write_ref_for` when a node has no `mint_id`. Never used to
+    select a fallback ref -- writes must not go to the id-keyed ref just
+    because the permanent key is absent (goal:g2.5); see `cmd_commit`, which
+    catches this per-node so one un-migrated node cannot block `--all` from
+    committing and pushing every other node -- the exact failure class the
+    pre-fix `sanitize()` colon bug produced (see module docstring / `commit
+    --all` history)."""
+
+
+def write_ref_for(path: Path, node_id: str) -> str:
+    """The ref a version of `path` (known to carry `node_id`) must be
+    committed to. Always the mint-id ref -- writes never fall back to the
+    legacy node-id ref, because that ref is keyed on the mutable address and
+    would fork history the moment the node is retagged (goal:g2.5).
+
+    Raises `MissingMintIdError`, naming both the node id and the file, if
+    `path` has no `mint_id` yet. Run `bin/backfill-mint-ids.py --write` to
+    fix that once, corpus-wide.
+    """
+    mint_id = parse_mint_id(path)
+    if not mint_id:
+        raise MissingMintIdError(
+            f"{node_id} ({path}) has no mint_id -- refusing to write a "
+            "node-id-keyed ref for it. Run backfill-mint-ids.py --write first."
+        )
+    return mint_node_ref(mint_id)
+
+
+def build_id_index(root: Path) -> dict[str, Path]:
+    """`node_id -> path` for every node file, built once per command
+    invocation so per-node lookups (parent mint-id resolution, read
+    fallback) do not rescan the whole corpus per call."""
+    index: dict[str, Path] = {}
+    for p in iter_node_files(root):
+        nid = parse_node_id(p)
+        if nid is not None:
+            index[nid] = p
+    return index
+
+
+def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | None:
+    """Commit-message body for goal:g2.7: one `Parent-Mint-Id: <mint-id> <parent-node-id>`
+    line per entry in `path`'s `parents:`, so a renderer can traverse disk
+    nodes and grid commits as one hypergraph without a separate edge store —
+    the edge is already written into the history. Documented format:
+
+        Parent-Mint-Id: <32-hex-char mint id, or the literal UNRESOLVED> <parent node id>
+
+    `UNRESOLVED` (never a fabricated id) means the parent could not be found
+    on disk, or was found but has no `mint_id` of its own yet.
+
+    Returns None (no body to add) if the node has no parents at all.
+    """
+    parents = parse_parents(path)
+    if not parents:
+        return None
+    lines = []
+    for parent_id in parents:
+        parent_path = id_index.get(parent_id)
+        parent_mint = parse_mint_id(parent_path) if parent_path is not None else None
+        token = parent_mint if parent_mint else "UNRESOLVED"
+        lines.append(f"Parent-Mint-Id: {token} {parent_id}")
+    return "\n".join(lines)
+
+
 def ref_tip(root: Path, ref: str) -> str | None:
     res = subprocess.run(
         ["git", "-C", str(root), "rev-parse", "-q", "--verify", ref],
@@ -222,8 +355,18 @@ def cmd_init(root: Path) -> None:
     print(f"grid ready: {count} existing version ref(s) under {REF_NS}/")
 
 
-def commit_file(root: Path, path: Path, ref: str, msg_prefix: str) -> str | None:
-    """Snapshot one node file onto `ref`. Returns new version tag or None."""
+def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
+                *, trailer: str | None = None) -> str | None:
+    """Snapshot one node file onto `ref`. Returns new version tag or None.
+
+    `trailer` (goal:g2.7, `build_parent_mint_trailer`), if given, becomes
+    the commit message BODY: a blank line, then the trailer lines. The
+    SUBJECT line stays exactly `f"{msg_prefix}v{n} {node_id}"`, unchanged
+    from before this existed — every existing reader uses `--format=%s`,
+    which only ever sees the subject, so adding a body is additive and
+    `trailer=None` (the default) reproduces the old single-line message
+    byte-for-byte.
+    """
     node_id = parse_node_id(path)
     if node_id is None:
         print(f"skip (no id frontmatter): {path}", file=sys.stderr)
@@ -237,8 +380,9 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str) -> str | None
     tree = git(root, "mktree", input_text=f"100644 blob {blob}\tnode.md\n")
     n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
-    commit = git(root, "commit-tree", tree, *parent, "-m",
-                 f"{msg_prefix}v{n} {node_id}")
+    subject = f"{msg_prefix}v{n} {node_id}"
+    message = f"{subject}\n\n{trailer}\n" if trailer else subject
+    commit = git(root, "commit-tree", tree, *parent, "-m", message)
     git(root, "update-ref", ref, commit)
     return f"v{n}"
 
@@ -249,11 +393,30 @@ def iter_node_files(root: Path):
 
 def cmd_commit(root: Path, files: list[str], do_all: bool,
                session: tuple[str, str] | None, prefix: str = "") -> None:
+    """Snapshot node files.
+
+    Non-session writes go to the mint-id ref (goal:g2.5) and, unless the
+    node has no `mint_id`, the commit body carries a `Parent-Mint-Id:`
+    trailer per parent (goal:g2.7, `build_parent_mint_trailer`). A node
+    missing `mint_id` is reported loudly (`ERROR:`, naming the node and
+    file — see `write_ref_for`/`MissingMintIdError`) and skipped, never
+    silently written under a node-id-keyed ref.
+
+    **This must stay a per-node try/except, never a batch-aborting one.**
+    `--all` runs unattended every 5 minutes via cron; a node without a
+    mint_id (e.g. created between a backfill and its next run) must not
+    stop every OTHER node in the corpus from committing and being pushed —
+    that is the exact failure class the pre-fix `sanitize()` colon bug
+    produced (see module docstring), and this file does not get to
+    reintroduce it under a different cause.
+    """
     ensure_repo(root)
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
+    id_index = None if session else build_id_index(root)
     written = 0
+    errors = 0
     for p in paths:
         if not p.exists():
             print(f"skip (missing): {p}", file=sys.stderr)
@@ -265,20 +428,57 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         if session:
             ref = session_ref(session[0], session[1], node_id)
             msg_prefix = prefix + f"session {session[0]}/{session[1]}: "
+            trailer = None
         else:
-            ref = node_ref(node_id)
+            try:
+                ref = write_ref_for(p, node_id)
+            except MissingMintIdError as exc:
+                print(f"ERROR: {exc}", file=sys.stderr)
+                errors += 1
+                continue
             msg_prefix = prefix
-        v = commit_file(root, p, ref, msg_prefix)
+            trailer = build_parent_mint_trailer(p, id_index)
+        v = commit_file(root, p, ref, msg_prefix, trailer=trailer)
         if v:
             written += 1
             print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
-    print(f"grid: {written} new version(s)")
+    print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id)")
+
+
+def _resolve_read_ref(root: Path, path: Path, node_id: str) -> str | None:
+    """The ref to READ `node_id`'s history from, given its current file
+    `path`: the mint-id ref if it exists, else the legacy node-id-keyed ref
+    if IT exists, else None. This is the read-side fallback goal:g2.5
+    requires -- a previous change shipped the write-side switch without it,
+    which made every pre-migration version silently unreachable; caught in
+    review, not shipped again here."""
+    mint_id = parse_mint_id(path)
+    if mint_id:
+        mint_ref = mint_node_ref(mint_id)
+        if ref_tip(root, mint_ref) is not None:
+            return mint_ref
+    legacy_ref = node_ref(node_id)
+    if ref_tip(root, legacy_ref) is not None:
+        return legacy_ref
+    return None
 
 
 def resolve_ref(root: Path, node_id: str) -> str:
-    ref = node_ref(node_id)
-    if ref_tip(root, ref) is None:
-        sys.exit(f"ERR: no grid history for {node_id} ({ref})")
+    """Resolve the grid ref to read `node_id`'s history from -- mint-id ref
+    preferred, legacy node-id ref as fallback (see `_resolve_read_ref`). The
+    node's *current* file on disk (if any) supplies its mint_id; a node with
+    no file on disk today (deprecated, renamed) still resolves via the
+    legacy ref if that ref has history, so a rename never strands old
+    versions."""
+    node_file = build_id_index(root).get(node_id)
+    if node_file is not None:
+        ref = _resolve_read_ref(root, node_file, node_id)
+    else:
+        legacy_ref = node_ref(node_id)
+        ref = legacy_ref if ref_tip(root, legacy_ref) is not None else None
+    if ref is None:
+        sys.exit(f"ERR: no grid history for {node_id} "
+                 f"(checked mint-id ref and {node_ref(node_id)})")
     return ref
 
 
@@ -296,30 +496,94 @@ def cmd_diff(root: Path, node_id: str, back: int) -> None:
 
 
 def cmd_versions(root: Path, node_id: str) -> None:
-    tip = ref_tip(root, node_ref(node_id))
+    """Version count -- reads fall back the same way `resolve_ref` does
+    (goal:g2.5), so a node whose mint-id ref has no history yet still
+    reports its legacy-ref count instead of a misleading 0."""
+    node_file = build_id_index(root).get(node_id)
+    if node_file is not None:
+        ref = _resolve_read_ref(root, node_file, node_id)
+    else:
+        legacy_ref = node_ref(node_id)
+        ref = legacy_ref if ref_tip(root, legacy_ref) is not None else None
+    tip = ref_tip(root, ref) if ref else None
     print(int(git(root, "rev-list", "--count", tip)) if tip else 0)
 
 
 def cmd_status(root: Path) -> None:
+    """Per-node drift vs ref tip -- one of the "Reads" goal:g2.5 requires to
+    fall back to the legacy node-id ref when no mint-id ref exists yet, so a
+    node mid-transition (mint_id backfilled, not yet committed under it)
+    reports drift against its real last version instead of reading as NEW.
+    """
     ensure_repo(root)
     new = changed = clean = 0
     for p in iter_node_files(root):
         node_id = parse_node_id(p)
         if node_id is None:
             continue
-        tip = ref_tip(root, node_ref(node_id))
-        if tip is None:
+        ref = _resolve_read_ref(root, p, node_id)
+        if ref is None:
             new += 1
             print(f"NEW      {node_id}")
             continue
         blob = git(root, "hash-object", str(p.resolve()))
-        old = git(root, "rev-parse", f"{tip}:node.md", check=False)
+        old = git(root, "rev-parse", f"{ref}:node.md", check=False)
         if blob == old:
             clean += 1
         else:
             changed += 1
             print(f"CHANGED  {node_id}")
     print(f"grid status: {new} new, {changed} changed, {clean} clean")
+
+
+def _rename_ref(root: Path, old_ref: str, new_ref: str, write: bool) -> str:
+    """Shared compare-and-swap ref-rename core for every grid ref migration
+    this file has needed: the pre-fix-sanitize() -> injective-sanitize()
+    cleanup (`cmd_migrate_refs`) and the node-id-ref -> mint-id-ref
+    migration (`cmd_migrate_mint_refs`, goal:g2.5). One implementation, so
+    the safety-critical part -- the actual git mutation -- is never
+    duplicated, only the surrounding collision-detection and reporting
+    differ per caller.
+
+    Returns one of:
+      "no-history"  -- `old_ref` has nothing to move.
+      "unchanged"   -- `new_ref` already exists and matches `old_ref`'s tip
+                       exactly (already migrated -- idempotent no-op).
+      "conflict"    -- `new_ref` exists with DIFFERENT history. Neither side
+                       is touched; the caller decides how to report it.
+      "moved"       -- `old_ref` had history and `new_ref` did not. If
+                       `write` is true, the move already happened by the
+                       time this returns (see below); if `write` is false,
+                       nothing was touched and this is what "WOULD-MOVE"
+                       means.
+
+    The mutation, when `write=True` and the result is "moved":
+      1. `git update-ref <new_ref> <old_tip>` -- point the NEW ref at the
+         SAME commit object `old_ref` already pointed at. This is what
+         preserves the full multi-version chain: the new ref's `git log`
+         traverses every commit `old_ref` ever accumulated, because it is
+         literally the same commit, not a fresh one. Skipping this step and
+         letting the next ordinary `commit --all` create the new ref instead
+         is exactly the fork this function exists to prevent -- that path
+         starts a brand-new v1 ROOT commit with no parent, stranding the
+         real history on the ref about to be deleted.
+      2. `git update-ref -d <old_ref> <old_tip>` -- a **compare-and-swap
+         delete**: passing the observed sha as the second argument makes git
+         verify `old_ref` still points at exactly that commit before
+         deleting it. A concurrent writer that moved `old_ref` between step 0
+         (the read) and this delete makes the delete FAIL instead of
+         silently discarding whatever that writer just committed.
+    """
+    old_tip = ref_tip(root, old_ref)
+    if old_tip is None:
+        return "no-history"
+    new_tip = ref_tip(root, new_ref)
+    if new_tip is not None:
+        return "unchanged" if new_tip == old_tip else "conflict"
+    if write:
+        git(root, "update-ref", new_ref, old_tip)
+        git(root, "update-ref", "-d", old_ref, old_tip)
+    return "moved"
 
 
 def cmd_migrate_refs(root: Path, write: bool) -> None:
@@ -357,28 +621,20 @@ def cmd_migrate_refs(root: Path, write: bool) -> None:
             unchanged += 1
             continue
 
-        old_tip = ref_tip(root, old_ref)
-        if old_tip is None:
+        status = _rename_ref(root, old_ref, new_ref, write)
+        if status == "no-history":
             unchanged += 1  # no history under the old scheme -- nothing to move
-            continue
-
-        new_tip = ref_tip(root, new_ref)
-        if new_tip is not None:
-            if new_tip == old_tip:
-                unchanged += 1  # already migrated -- idempotent no-op
-            else:
-                conflicts += 1
-                print(f"CONFLICT  {nid}: {new_ref} already exists with "
-                      f"different history than {old_ref} -- not touched",
-                      file=sys.stderr)
-            continue
-
-        action = "RENAME" if write else "WOULD-RENAME"
-        print(f"{action}  {old_ref} -> {new_ref}  ({nid})")
-        if write:
-            git(root, "update-ref", new_ref, old_tip)
-            git(root, "update-ref", "-d", old_ref, old_tip)
-        renamed += 1
+        elif status == "unchanged":
+            unchanged += 1  # already migrated -- idempotent no-op
+        elif status == "conflict":
+            conflicts += 1
+            print(f"CONFLICT  {nid}: {new_ref} already exists with "
+                  f"different history than {old_ref} -- not touched",
+                  file=sys.stderr)
+        else:  # "moved"
+            action = "RENAME" if write else "WOULD-RENAME"
+            print(f"{action}  {old_ref} -> {new_ref}  ({nid})")
+            renamed += 1
 
     for r, v in sorted(collided.items()):
         print(f"COLLISION  {r} shared by {len(v)} ids (pre-existing under "
@@ -389,6 +645,101 @@ def cmd_migrate_refs(root: Path, write: bool) -> None:
     print(f"grid migrate-refs ({mode}): {renamed} renamed, {unchanged} "
           f"unchanged, {conflicts} conflict(s), {len(collided)} collided "
           f"old ref(s) covering {in_collision} id(s)")
+
+
+def cmd_migrate_mint_refs(root: Path, write: bool) -> None:
+    """Move `refs/grid/node/<node-id>` onto `refs/grid/node/<mint-id>`
+    (goal:g2.5). Dry-run by default; `--write` applies. Reuses `_rename_ref`
+    -- the identical compare-and-swap safety `cmd_migrate_refs` already has,
+    not a parallel implementation.
+
+    **This step MUST run before any `commit --all` under the new mint-id
+    keying, and that ordering is the entire reason this command exists.**
+    `commit_file` decides "is this node new (v1, no parent commit)" purely
+    from whether its WRITE-TARGET ref already has a tip. Before this
+    migration runs, none of the mint-id refs exist yet, so the very next
+    `commit --all` would create a fresh v1 ROOT commit on every mint-id ref
+    while the real, multi-version history stays stranded on the node-id ref
+    nobody is looking at any more -- forking every migrated node at once,
+    the same failure class that cost four refs and a manual reconciliation
+    on 2026-08-24, at roughly 200x the scale (824 nodes here). Running this
+    first makes each mint-id ref's tip BE the node-id ref's tip -- the same
+    commit object, not a copy -- so the next `commit --all`, if there is any
+    real drift, lands as v(n+1) with the correct parent and continues the
+    history instead of forking it.
+
+    Safety properties, all shared with `cmd_migrate_refs` via `_rename_ref`:
+    dry-run by default, idempotent (a second `--write` run reports 0 moved),
+    refuse-never-clobber (a destination with different history is a
+    conflict, reported, untouched), compare-and-swap delete.
+
+    Two things this migration additionally has to guard that the legacy one
+    did not:
+      - **A node with no `mint_id` is skipped and reported, never
+        invented.** There is exactly one such node in the live corpus today
+        (a pre-existing malformed frontmatter file, unrelated to this
+        change -- see `level3:bin-grid`'s node body).
+      - **A duplicate `mint_id` across two distinct nodes** would make two
+        different node-id refs want to move to the SAME destination ref.
+        `mint_permanent_id()` (122 bits of random entropy) makes this
+        astronomically unlikely in practice, but it is checked anyway, the
+        same way `cmd_migrate_refs` checks for a shared OLD ref: reported as
+        a collision, neither side touched, since there is no way to know
+        which node's history the shared destination should hold.
+    """
+    ensure_repo(root)
+    entries: list[tuple[str, str | None, Path]] = []  # (node_id, mint_id, path)
+    for p in iter_node_files(root):
+        nid = parse_node_id(p)
+        if nid is None:
+            continue
+        entries.append((nid, parse_mint_id(p), p))
+
+    old_ref_to_ids: dict[str, list[str]] = {}
+    new_ref_to_ids: dict[str, list[str]] = {}
+    for nid, mint_id, _ in entries:
+        old_ref_to_ids.setdefault(node_ref(nid), []).append(nid)
+        if mint_id:
+            new_ref_to_ids.setdefault(mint_node_ref(mint_id), []).append(nid)
+    old_collided = {r: v for r, v in old_ref_to_ids.items() if len(v) > 1}
+    new_collided = {r: v for r, v in new_ref_to_ids.items() if len(v) > 1}
+
+    moved = already_correct = conflicts = skipped = in_collision = 0
+    for nid, mint_id, path in entries:
+        old_ref = node_ref(nid)
+        if old_ref in old_collided:
+            in_collision += 1
+            continue
+        if not mint_id:
+            skipped += 1
+            print(f"SKIP-NO-MINT-ID  {nid}  ({path})", file=sys.stderr)
+            continue
+        new_ref = mint_node_ref(mint_id)
+        if new_ref in new_collided:
+            in_collision += 1
+            continue
+
+        status = _rename_ref(root, old_ref, new_ref, write)
+        if status in ("no-history", "unchanged"):
+            already_correct += 1
+        elif status == "conflict":
+            conflicts += 1
+            print(f"CONFLICT  {nid}: {new_ref} already has different "
+                  f"history than {old_ref} -- not touched", file=sys.stderr)
+        else:  # "moved"
+            action = "MOVE" if write else "WOULD-MOVE"
+            print(f"{action}  {old_ref} -> {new_ref}  ({nid})")
+            moved += 1
+
+    for r, v in sorted(new_collided.items()):
+        print(f"COLLISION  {r} shared by {len(v)} ids (duplicate mint_id "
+              f"-- needs human triage, cannot tell whose history it should "
+              f"hold): {', '.join(v)}", file=sys.stderr)
+
+    mode = "write" if write else "dry-run"
+    print(f"grid migrate-mint-refs ({mode}): {moved} moved, {already_correct} "
+          f"already correct, {conflicts} conflict(s), {skipped} skipped "
+          f"(no mint_id), {in_collision} id(s) in a ref collision")
 
 
 def cmd_sync(root: Path, remote: str | None) -> None:
@@ -481,6 +832,11 @@ def main() -> None:
                        help="move refs/grid/node/* onto the injective "
                             "sanitize() scheme; dry-run unless --write")
     m.add_argument("--write", action="store_true")
+    mm = sub.add_parser("migrate-mint-refs",
+                        help="goal:g2.5 -- move refs/grid/node/<node-id> onto "
+                             "refs/grid/node/<mint-id>; dry-run unless --write. "
+                             "MUST run before commit --all under the new keying.")
+    mm.add_argument("--write", action="store_true")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
     cr = sub.add_parser("cron")
@@ -504,6 +860,8 @@ def main() -> None:
         cmd_status(root)
     elif args.cmd == "migrate-refs":
         cmd_migrate_refs(root, args.write)
+    elif args.cmd == "migrate-mint-refs":
+        cmd_migrate_mint_refs(root, args.write)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "cron":
