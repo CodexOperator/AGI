@@ -387,6 +387,13 @@ treat the others as projections around it.
 
 **Invariant:** one node at level N ⇔ a collection at level N+1, and back.
 
+**Two axes, not one — and conflating them is the mistake this goal keeps
+making.** *Zoom* is **where you are standing**: far out shows supernode
+groupings, base level shows build nodes, closer shows a node's version history,
+closest shows the chat that produced a version. *LOD* is **how much detail is
+drawn at wherever you stand**, dialled up or down independently. Every zoom
+position has its own LOD range. Zoom is **G2.5**–**G2.7**; LOD is **G2.8**–**G2.9**.
+
 ⚠️ **`level3` as a node type is legacy stale wording, and the graph should carry
 no zoom-level names at all.** A zoom level is a *view*, and baking a view's name
 into the data was a category error: it froze one grain into the type system and
@@ -650,6 +657,65 @@ Depends on G2.5 for the mint id (an address would break the link the moment a
 node is retagged) and on **G10.1**, which already argues chats are nodes.
 Unbuilt; recorded so the id and grid work is designed to make it possible rather
 than to need undoing.
+
+### G2.8 — LOD is a second axis: detail dials independently of position — status: horizon
+
+**Zoom says where you are; LOD says how much is drawn there.** They are
+orthogonal, and every zoom position carries its own detail range. Standing far
+out, low LOD is a supernode's name and high LOD is its members' titles and
+counts. Standing on a build node, low LOD is a one-line summary and high LOD is
+the raw file — and past that, **G2.9**.
+
+**Summaries are stored, not generated on demand.** Each node carries *several*
+summary-level bodies baked in, one per LOD step, so dialling detail is a read
+rather than a model call. That is the whole reason this is worth building: a
+summary computed live costs motion on every view and varies between views; a
+summary written once is stable, citable and free to render. For code build
+nodes the summary can live in the file's own comments, so the payload and its
+summaries travel together and `stitch` keeps carrying exactly one artifact.
+
+What has to be true:
+- A node declares its LOD bodies explicitly; a missing level renders as the
+  next-coarser one rather than as nothing.
+- Summaries are **written**, never fabricated at render time — the same rule
+  G2.2 already applies to `why`/`perf`/`security`, for the same reason.
+- The renderer picks an LOD; the graph does not decide for it.
+
+Open: whether LOD bodies are frontmatter fields, body sections under known
+headings, or comment blocks in the payload. Decide it against the injected-map
+budget — LOD exists to *control* context weight, so a scheme that ships every
+level on every read defeats it.
+
+### G2.9 — Below the file: sub-nodes from in-file markers, then language primitives — status: horizon
+
+**Below base level you are inside one node, never traversing the graph.** That
+is the structural invariant: supernode groupings above base level span many
+nodes, but everything below it — versions, chats, and the decomposition here —
+is scoped to a single node. Zoom out to relate things; zoom in to resolve one
+thing.
+
+Turning LOD up past the raw file decomposes it further, in two steps:
+
+1. **Sub-nodes from in-file markers.** Regions of a file are marked by comments
+   carrying short alphanumeric ids — single or double digit. Those ids extend
+   the address scheme downward: a 7-character node address plus a sub-node id
+   addresses a region of a file as unambiguously as the node itself, still by
+   truncation (**G2.5**). Author-placed rather than inferred, so the
+   decomposition is a claim the author made, not a guess a parser produced.
+2. **The primitive graph.** Past that, resolve what the code *actually does* in
+   base-level logic: arithmetic, filesystem operations, memory reads and writes
+   including variable creation and mutation. Imported functions resolve through
+   to the primitives they bottom out in, so a call stops being an opaque name
+   and becomes the operations it performs.
+
+**Chats decompose too, one step: turn by turn.** A chat at high LOD is its
+individual turns. Nothing finer is specified yet, and inventing a deeper
+decomposition before there is a use for it would be speculative — say so rather
+than leaving a blank that reads as an oversight.
+
+Depends on **G2.8** for the dial and **G2.5** for addresses that extend below a
+node. The primitive graph is the ambitious half and should not block the marker
+half, which is cheap and immediately useful.
 
 ## G3 — Scoring that added motion cannot move — status: active
 
@@ -1832,6 +1898,57 @@ Two separable questions, and only the second is policy:
 Until fixed, treat `GOALS.md` as the only complete copy of any goal over ~4k
 characters, and do not infer from a goal node's absence of text that a goal
 does not say something.
+
+## S13 — `write_frontmatter` serialized YAML null as the string "None" — status: complete
+
+Fixed 2026-08-25. `write_frontmatter` in `bin/snapshot-goals.py` — the **shared**
+serializer that `level3.py` and `decompose-engine.py` import by file path
+specifically so there is one writer and no field erasure — turned a real YAML
+`null` into the four-character string `None` on re-serialize.
+
+Silent, and invisible at small scale: it only surfaced when the mint-id backfill
+wrote every node in the corpus at once. **10 nodes were already damaged.** In at
+least one, an empty `parents:` entry became a dangling reference to a node
+literally named `None` — a fabricated edge, which is the G7.1 referential-
+integrity failure produced by the writer rather than by an author.
+
+Fixed additively with 3 regression tests; the 10 damaged files were repaired in
+the same pass and the corpus verified clean (`grep` for the pattern returns
+nothing).
+
+Recorded because the *class* matters more than the instance: the one function
+guaranteed to touch every node on every generator run is the one place a silent
+serialization bug scales to the whole corpus before anyone notices. It was found
+only because an unrelated task happened to write all 832 files at once. **Any
+future change to a shared writer deserves a corpus-wide round-trip test, not a
+unit test on one node.**
+
+Open, deliberately not claimed as done: nodes damaged and committed *before*
+2026-08-25 were repaired in the working tree, but no audit was run over git
+history to find earlier instances that may have been overwritten since.
+
+## S14 — No generator mints a `mint_id`; the backfill is the only assigner — status: active
+
+Every node a generator creates arrives without a `mint_id`, so `grid.py commit
+--all` skips it with a loud per-node error until `bin/backfill-mint-ids.py` runs.
+Affects `level3.py`, `snapshot-goals.py`, `decompose-engine.py` and the
+`cli.py scaffold` path — i.e. every writer except the backfill itself.
+
+Hit twice in one session on 2026-08-25: two new `level3` nodes and one new goal
+node each needed a follow-up backfill pass before their history could be
+recorded.
+
+A mint id should be assigned **at node creation**, by whatever writes the file,
+with the backfill retained only for repair of pre-existing nodes. Until then
+"run the backfill after any generator" is an unscripted manual step — precisely
+the class this project's design ethic exists to eliminate, and precisely the
+kind of step that gets forgotten and silently costs a node its version history.
+
+Note this is also recorded in **G2.5**, where it is currently **invisible to the
+graph**: G2.5's body exceeds `snapshot-goals.py`'s 4000-character cap, so the
+paragraph is truncated out of `nodes/goal/g2.5`. That is **S12** demonstrating
+itself, and it is why this has its own short goal rather than living only as a
+paragraph inside a long one.
 
 ## S1 — Retire `bin/` as a directory name — status: active
 
