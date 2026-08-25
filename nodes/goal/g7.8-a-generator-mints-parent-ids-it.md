@@ -76,12 +76,4 @@ R11 was always a real, documented requirement with a title and eight criteria.
 
 Two things worth carrying forward from the fix:
 
-- **It took two `--smoke` passes.** The first run minted the hypothesis *after*
-  the integrity check had already read the corpus, so the check still reported
-  both references as unresolved against a node that existed on disk by the time
-  it printed. This is **S7**'s two-pass wiring defect, and S7 describes it only
-  for `snapshot-goals.py` — it applies to `snapshot-build-site.py` identically.
-  Anyone reading a single post-edit run will believe a fix failed when it
-  succeeded.
-- **Editing the kit is safe here specifically because cavekit is frozen.** No
-  cavekit updates are being pu
+> **[truncated: 2256 of 5660 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G7.8` is the complete text; raise `goal_body_cap` in the project config to keep more.]**

@@ -988,6 +988,37 @@ Ordering that follows from it: a decomposition census (which surfaces exist) →
 level-3 nodes with contracts attached (what each promises) → stitch-to-directory
 (the projection runs) → the engine's own changes originating as nodes.
 
+**The arrow reversed 2026-08-25, and it is measured rather than declared.** The
+last step above ran for the first time: **S12's fix reached `agi` without a
+single file in that repo being opened by hand.** The path is
+`payloads/<payload_ref>` (edit) → `grid.py commit --all` (the graph records it
+as the node's next version) → `stitch.py --out <engine> --from-grid --publish`
+(the engine tree is written from the graph). `--grid-version` landed the same
+way, immediately after, as the second instance rather than a one-off.
+
+What makes that a projection and not a copy: `resolve_payload` prefers the
+graph's own staged bytes over the engine tree, so once a payload is checked out
+the engine is **never consulted** — `stitch --from-grid` reproduces a file the
+engine no longer has on disk, which is a regression test, not a thought
+experiment. The four preconditions all cleared in one pass: **S9** (the grid
+can carry a mode losslessly), **G6.3** (the payload is in the node's ref),
+**S14** (a generator-made node is never skipped by the grid), and **G6.6**'s
+coverage half (180 of 180 in-boundary engine files carry a node — 0 uncovered,
+0 stale claims, measured against `payload_boundary.classify`).
+
+**Bootstrap deviation, recorded on purpose.** The change that made this possible
+was itself made as a direct engine edit, because it is the change that makes
+graph-first edits possible and nothing else could have carried it. That is the
+one legitimate instance; every engine change after it originates here.
+
+**Still open, and the reason this stays `active` — the *reverse* direction is
+still engine-first.** `level3.py` derives every contract by scanning the engine
+tree, and `stitch.py --verify` compares stored contracts against files on disk
+there. So the graph now *writes* the engine but still *learns* about it by
+reading the engine, which means a payload edited only in the graph has a stale
+contract until a publish + rescan. The loop closes when derivation reads the
+payload out of the node's ref the same way materialisation now does.
+
 ### G6.2 — Retire the padding and keep it recoverable — status: complete
 
 Done 2026-08-21. 28,916 gamed `-extend<N>` experiment/verdict nodes were
@@ -1004,7 +1035,7 @@ Result: 29,432 → 516 nodes; `outcome_coverage` unchanged at 0.202 (the
 pre-registered must-not-move check); `find_chains` stopped truncating, so
 H0c's "the loop cannot be run against this corpus" is now false.
 
-### G6.3 — A fix lands as a new version of a build node — status: active
+### G6.3 — A fix lands as a new version of a build node — status: complete
 
 **The mechanism to test, and the reason to test it on real work.** Today an
 engine fix is edited in the engine repo, and `level3.py` re-derives the build
@@ -1069,6 +1100,39 @@ them touches `stitch.py`'s chain logic and the grid refs that already carry thei
 history. `stitch.py`'s version-chain support is not wasted either way: it is what
 keeps a transitional corpus from reading as drift.
 
+**Built and falsified 2026-08-25. Both halves of the untested case now run.**
+
+The payload lives in the node's own ref: `refs/grid/node/<mint-id>` holds a
+two-entry tree, `node.md` plus `payload`, with the payload's **real** mode read
+from `os.lstat()`. `payload_ref` kept its shape exactly as the hypothesis
+predicted; only its resolution rule changed. The unchanged-check compares the
+whole tree rather than `node.md` alone, which is what makes a payload-only edit
+a real version — comparing the node file alone would have made every payload
+edit invisible to the history this goal exists to accumulate.
+
+**Falsifier, run on the live corpus, not a sandbox:** materialise all 185 build
+nodes twice — once from the engine tree, once from the grid — and compare.
+**180/180 files byte-identical** (5 nodes are `@v2` chain members resolving to
+the same 180 payloads). Modes checked against the engine's own git index:
+**180/180 match, including all 16 executables.** The pre-S9 code would have
+published every one of those 16 as `100644`. The engine has no symlinks, so
+`120000` is covered by the regression tests rather than by the corpus — stated
+plainly rather than counted as live evidence.
+
+**The other half — "materialising a chosen version rather than whichever is
+current" — is `--grid-version N`**, which reads version N out of the ref's
+history instead of its tip and *reports* a node with no such version rather
+than quietly serving the tip.
+
+**And it was exercised on content that matters, which is what this goal
+actually asked for.** S12's fix and `--grid-version` itself both landed as
+payload versions and were published to the engine; the engine repo was never
+edited by hand for either. See **G6.1**.
+
+Residual, deliberately not claimed as done: the `@v2` collapse above, and
+`stitch.py --verify`, which still compares contracts against the engine tree
+rather than against the payload in the ref. Both are named in **G6.1**.
+
 This also settles that the anatomy decision was not overturned by fiat. A grid
 ref is never checked out, so it is not a second copy of the tree — it is a second
 *name* into the same object store. When bytes match, git's hashing makes them the
@@ -1118,6 +1182,24 @@ node and verdict that caused it.
 A cron that writes the engine from the graph before the version layer is
 trusted is a data-loss defect waiting to happen, and this project has already
 paid for that class twice (H0, H0b). Report drift; never silently reconcile it.
+
+**Step 2 is unblocked as of 2026-08-25 and the writer exists, un-croned on
+purpose.** G6.3 is complete, so `stitch.py --out <engine> --from-grid
+--publish` is now a legitimate operation and has been run twice on real
+changes. It is gated on three things at once, because this project has paid
+three times for a script that wrote a tree it had no independent record of:
+`--publish` explicitly (never a side effect of `--force`), `--from-grid`
+(publishing the engine from itself cannot add information), and **a clean
+engine working tree** — which is the gate that makes the write *recoverable*
+rather than merely intended, since every overwritten byte is then already in
+the engine's own history and `git checkout .` undoes the entire publish.
+
+What is deliberately **not** done: putting it in the cron. Step 2 says cron
+*may* stitch and commit; it does not say it should do so the same day the
+mechanism first ran. The honest sequence is to publish by hand until the
+reverse direction closes (**G6.1**'s residual — `--verify` still reads the
+engine tree, so an unattended cron could publish a payload whose contract had
+never been re-derived), then automate.
 
 **The generality worth preserving:** `agi` already has the tooling to run
 against *any* project, including itself. Pointing it at itself is what makes
@@ -1273,6 +1355,15 @@ worse than a partial writer, because the partial writer leaves evidence.
 So **S9 is not a shared inconvenience, it is the same fix with two callers.**
 G6.3 and G6.7 do not each need their own mode-aware rewrite; they need the one
 rewrite to land before either attempts its falsifier.
+
+**Both preconditions cleared 2026-08-25.** S9 is fixed, so the mis-hashing
+hazard above is gone — and G6.3's blocking finding is answered too: **there is
+now code in the graph to stitch.** Every build node's ref holds its payload as
+a real blob with a real mode, which is precisely the input this goal said it
+wanted and could not have. D4 is now a tree-builder over `refs/grid/node/*`
+plus each node's `payload_ref` for placement — no markdown to parse, no sha
+lookups. Its falsifier (build `refs/grid/release/agi` and compare against
+`stitch.py --out`) is newly runnable and unrun.
 
 ### G6.8 — The payload boundary: what is allowed to be a node — status: active
 
@@ -2090,7 +2181,7 @@ Sequence it: teach the reader both names first, migrate the data, then retire th
 old name from the writer. Never the reverse. Pairs with **G7.5** — a rename that
 silently drops nodes must fail loudly, not return exit 0.
 
-## S12 — `snapshot-goals.py` silently truncates goal bodies at 4000 chars — status: active
+## S12 — `snapshot-goals.py` silently truncates goal bodies at 4000 chars — status: complete
 
 `BODY_CAP = 4000` in `bin/snapshot-goals.py` line 290:
 `g["body"] = "\n".join(g["body"]).strip()[:BODY_CAP]`. A goal longer than that
@@ -2122,9 +2213,34 @@ Two separable questions, and only the second is policy:
    context, so unbounded growth has a cost. Raising it, removing it, or storing
    the full body while injecting a summary are all defensible; the owner picks.
 
-Until fixed, treat `GOALS.md` as the only complete copy of any goal over ~4k
+~~Until fixed, treat `GOALS.md` as the only complete copy of any goal over ~4k
 characters, and do not infer from a goal node's absence of text that a goal
-does not say something.
+does not say something.~~ **Fixed 2026-08-25 — a clipped goal now says so, in
+the node, in the sentence above's own words.**
+
+Both questions are answered, and separately, as the split above demanded:
+
+1. **Silent truncation is gone.** `cap_body()` cuts at a blank-line block
+   boundary, so a table, list or fenced block is wholly present or wholly
+   absent — never severed mid-cell. It appends an explicit marker naming how
+   many characters were dropped and where the complete text lives, and it warns
+   on stderr naming the goal. A single block bigger than the cap is **kept
+   whole and over-cap**, because an honest overrun beats a malformed fragment
+   and there is no boundary inside it to cut at.
+2. **The cap is the owner's, so the engine stopped picking.** `goal_body_cap`
+   in `agi-tree.config.json` overrides the 4000 default; `0` disables capping
+   entirely. That is the project's own customization surface, which is where a
+   policy knob belongs rather than in an engine constant invisible from inside
+   the project. **The default is unchanged at 4000 — nobody has picked yet.**
+
+Live on the next `--smoke`: 7 goals now report their own truncation
+(G2.5 −2365, G7.8 −2256, S16 −1658, G6.6 −983, G10.2 −600, G7.5 −538,
+G6.3 −336). `goal:g2.5`'s body no longer ends `| Assigned | once, at node
+creation | derived,` — it ends on a complete sentence followed by the marker.
+
+**Recorded because of how it was fixed, not only that it was:** this is the
+first engine change to originate in `agi-tree` and reach `agi` without anyone
+opening a file in the engine repo. See **G6.1**.
 
 ## S13 — `write_frontmatter` serialized YAML null as the string "None" — status: complete
 
@@ -2154,7 +2270,7 @@ Open, deliberately not claimed as done: nodes damaged and committed *before*
 2026-08-25 were repaired in the working tree, but no audit was run over git
 history to find earlier instances that may have been overwritten since.
 
-## S14 — No generator mints a `mint_id`; the backfill is the only assigner — status: active
+## S14 — No generator mints a `mint_id`; the backfill is the only assigner — status: complete
 
 Every node a generator creates arrives without a `mint_id`, so `grid.py commit
 --all` skips it with a loud per-node error until `bin/backfill-mint-ids.py` runs.
@@ -2176,6 +2292,27 @@ graph**: G2.5's body exceeds `snapshot-goals.py`'s 4000-character cap, so the
 paragraph is truncated out of `nodes/goal/g2.5`. That is **S12** demonstrating
 itself, and it is why this has its own short goal rather than living only as a
 paragraph inside a long one.
+
+**Fixed 2026-08-25.** `ensure_mint_id()` lives in `snapshot-goals.py` beside
+`write_frontmatter` and is called from inside it, so **one hook covers every
+generator that writes through the shared serializer** — `level3.py`,
+`decompose-engine.py`, `backfill-mint-ids.py` and `snapshot-goals.py` itself.
+`snapshot-build-site.py` carries its own copy of the serializer for historical
+reasons and now imports the *hook* by file path rather than duplicating it, and
+`cli.py scaffold` mints inline. It never overwrites: an existing valid mint id
+is left exactly as found, and an *invalid* one is left alone **and warned
+about**, because rewriting it would silently fork the node's grid history.
+
+Verified on the live corpus: `grid.py commit --all` reports `0 error(s)
+(missing mint_id)` across 765 nodes, and it did so on the first run after two
+generators had minted new nodes — the case that needed a second backfill pass
+twice in one session before this.
+
+Still open, and it is why this fix is a hook rather than a consolidation:
+**there are two `write_frontmatter` definitions.** S13's finding — that the one
+function touching every node on every run is where a silent serialization bug
+scales to the whole corpus — applies with double force to a function that
+exists twice.
 
 ## S15 — 75 hop-padding nodes deleted; node count dropped on purpose — status: complete
 
@@ -2548,7 +2685,7 @@ verdict says the currently-prescribed remedy would not have caught it, because
 all three are internally self-consistent and only disagree with each other.
 Patching at dispatch time, as this run did, is the workaround, not the fix.
 
-## S9 — `commit_file()` drops the exec bit and mis-hashes symlinks — status: active
+## S9 — `commit_file()` drops the exec bit and mis-hashes symlinks — status: complete
 
 Found 2026-08-23 by `exp:grid-payload-roundtrip`, confirmed at the cited lines.
 `bin/grid.py`:
@@ -2582,6 +2719,25 @@ Test: the experiment's own table is the regression suite — a 100755 file and a
 120000 symlink, three version bumps each, sha256 against a non-git baseline.
 
 Blocks **G6.3** and **G6.7**. One fix, two callers.
+
+**Fixed 2026-08-25, and the "rare case" call was the right one.** Three
+functions replace the two defective lines: `git_mode()` reads `os.lstat()`
+(100644 / 100755 / 120000), `hash_path()` hashes a symlink's `readlink()` text
+via `hash-object --stdin` instead of the dereferenced file, and
+`materialize_entry()` is their exact inverse on the read side — which S9 asked
+for by name and which nothing had. `os.path.abspath` replaced `Path.resolve()`:
+it normalises `..` lexically without dereferencing the final component, which
+is the whole bug.
+
+The experiment's table is the regression suite, as prescribed: three modes ×
+round trip, symlink-blob-is-link-text, three version bumps with non-ASCII
+content, plus a `status`-writes-no-objects check the fix newly needed.
+
+Both callers landed on top of it the same day, and the live measurement is
+G6.3's: **16 executables across the engine survived a full grid round trip at
+100755**, every one of which the old code would have published as 100644 —
+silently, and into the published engine tree, which is exactly the blast radius
+G6.7 predicted.
 
 ## S10 — the purged gamed mass is still on disk inside agi-tree — status: active
 

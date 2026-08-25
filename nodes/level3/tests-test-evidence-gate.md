@@ -54,63 +54,7 @@ inputs:
   security: TODO(model)
 - name: json.loads
   how: '`json.loads((project / ''sessions'' / ''iter-001'' / ''a1'' / ''agent.json'').read_text())`
-    at line 274'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 410'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 419'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 429'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'verdict' / 'ghost.md'
-  how: '`(root / ''nodes'' / ''verdict'' / ''ghost.md'').read_text()` at line 454'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 464'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 467'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 477'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: project / 'sessions' / 'iter-001' / 'a1' / 'agent.json'
-  how: '`(project / ''sessions'' / ''iter-001'' / ''a1'' / ''agent.json'').read_text()`
-    at line 275'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: node
-  how: '`node.read_text()` at line 288'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: node
-  how: '`node.read_text()` at line 289'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: nf
-  how: '`nf.read_text()` at line 339'
+    at line 325'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -119,19 +63,85 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: root / 'nodes' / 'experiment' / 'e1.md'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 491'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / 'nodes' / 'experiment' / 'e1.md'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 500'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / 'nodes' / 'experiment' / 'e1.md'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 510'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / 'nodes' / 'verdict' / 'ghost.md'
+  how: '`(root / ''nodes'' / ''verdict'' / ''ghost.md'').read_text()` at line 535'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / 'nodes' / 'experiment' / 'e1.md'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 545'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / 'nodes' / 'experiment' / 'e1.md'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 548'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / 'nodes' / 'experiment' / 'e1.md'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 558'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / 'sessions' / 'iter-001' / 'a1' / 'agent.json'
+  how: '`(project / ''sessions'' / ''iter-001'' / ''a1'' / ''agent.json'').read_text()`
+    at line 326'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: node
+  how: '`node.read_text()` at line 339'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: node
+  how: '`node.read_text()` at line 340'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: nf
-  how: '`nf.read_text()` at line 369'
+  how: '`nf.read_text()` at line 370'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: nf
+  how: '`nf.read_text()` at line 420'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: nf
+  how: '`nf.read_text()` at line 436'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: nf
+  how: '`nf.read_text()` at line 450'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'verdict' / 'experiment_e1.md'
   how: '`(project / ''nodes'' / ''verdict'' / ''experiment_e1.md'').read_text()` at
-    line 379'
+    line 460'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text()` at line 447'
+  how: '`nf.read_text()` at line 528'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -279,120 +289,161 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_stamp_demotes_status_shadow_in_lockstep
+  how: 'defines public function `test_stamp_demotes_status_shadow_in_lockstep` at
+    line 256, signature: (decisive)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_stamp_never_touches_a_lifecycle_status
+  how: 'defines public function `test_stamp_never_touches_a_lifecycle_status` at line
+    270, signature: (lifecycle)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_stamp_leaves_status_alone_when_nothing_was_demoted
+  how: defines public function `test_stamp_leaves_status_alone_when_nothing_was_demoted`
+    at line 278
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_stamp_leaves_tags_alone
+  how: defines public function `test_stamp_leaves_tags_alone` at line 286
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_shadow_verdict_fields_matches_what_stamp_rewrites
+  how: defines public function `test_shadow_verdict_fields_matches_what_stamp_rewrites`
+    at line 293
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: project
-  how: 'defines public function `project` at line 256, signature: (tmp_path, monkeypatch)'
+  how: 'defines public function `project` at line 307, signature: (tmp_path, monkeypatch)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _via_subprocess
-  how: 'defines private function `_via_subprocess` at line 266, signature: (project,
+  how: 'defines private function `_via_subprocess` at line 317, signature: (project,
     argv)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _agent_rec
-  how: 'defines private function `_agent_rec` at line 273, signature: (project)'
+  how: 'defines private function `_agent_rec` at line 324, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_demotes_unevidenced_proved
   how: 'defines public function `test_cli_done_demotes_unevidenced_proved` at line
-    279, signature: (project)'
+    330, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_cli_done_demotes_status_shadow_on_an_existing_node
+  how: 'defines public function `test_cli_done_demotes_status_shadow_on_an_existing_node`
+    at line 343, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_cli_done_keeps_a_lifecycle_status_on_an_existing_node
+  how: 'defines public function `test_cli_done_keeps_a_lifecycle_status_on_an_existing_node`
+    at line 362, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_accepts_evidenced_proved
-  how: 'defines public function `test_cli_done_accepts_evidenced_proved` at line 292,
+  how: 'defines public function `test_cli_done_accepts_evidenced_proved` at line 373,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_permits_pending_and_leans_without_evidence
   how: 'defines public function `test_cli_done_permits_pending_and_leans_without_evidence`
-    at line 300, signature: (project)'
+    at line 381, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_rejects_invalid_verdict
-  how: 'defines public function `test_cli_done_rejects_invalid_verdict` at line 310,
+  how: 'defines public function `test_cli_done_rejects_invalid_verdict` at line 391,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_infers_evidence_from_node_frontmatter
   how: 'defines public function `test_cli_done_infers_evidence_from_node_frontmatter`
-    at line 316, signature: (project)'
+    at line 397, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_rejects_sentinel_evidence_runs
   how: 'defines public function `test_cli_done_rejects_sentinel_evidence_runs` at
-    line 342, signature: (project)'
+    line 423, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_no_evidence_gate_bypasses_sentinel_rejection
   how: 'defines public function `test_cli_done_no_evidence_gate_bypasses_sentinel_rejection`
-    at line 359, signature: (project)'
+    at line 440, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_done_escape_hatch_is_loud
-  how: 'defines public function `test_cli_done_escape_hatch_is_loud` at line 372,
+  how: 'defines public function `test_cli_done_escape_hatch_is_loud` at line 453,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: wired_project
-  how: 'defines public function `wired_project` at line 387, signature: (tmp_path,
+  how: 'defines public function `wired_project` at line 468, signature: (tmp_path,
     monkeypatch)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _wire
-  how: 'defines private function `_wire` at line 400, signature: (iter_dir, agent)'
+  how: 'defines private function `_wire` at line 481, signature: (iter_dir, agent)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_demotes_unevidenced_proved
   how: 'defines public function `test_post_wire_demotes_unevidenced_proved` at line
-    406, signature: (wired_project)'
+    487, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_keeps_evidenced_proved
-  how: 'defines public function `test_post_wire_keeps_evidenced_proved` at line 415,
+  how: 'defines public function `test_post_wire_keeps_evidenced_proved` at line 496,
     signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_permits_lean_without_evidence
   how: 'defines public function `test_post_wire_permits_lean_without_evidence` at
-    line 424, signature: (wired_project)'
+    line 505, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_falls_back_to_node_frontmatter_evidence
   how: 'defines public function `test_post_wire_falls_back_to_node_frontmatter_evidence`
-    at line 434, signature: (wired_project)'
+    at line 515, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_creates_demoted_verdict_node_when_file_missing
   how: 'defines public function `test_post_wire_creates_demoted_verdict_node_when_file_missing`
-    at line 450, signature: (wired_project)'
+    at line 531, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_rejects_sentinel_evidence_runs
   how: 'defines public function `test_post_wire_rejects_sentinel_evidence_runs` at
-    line 459, signature: (wired_project)'
+    line 540, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_sentinel_does_not_reject_uncertain_verdicts
   how: 'defines public function `test_post_wire_sentinel_does_not_reject_uncertain_verdicts`
-    at line 472, signature: (wired_project)'
+    at line 553, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -409,82 +460,94 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 257'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 308'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sess / 'agent.json'
   how: '`(sess / ''agent.json'').write_text(json.dumps({''id'': ''a1'', ''status'':
-    ''running''}))` at line 261'
+    ''running''}))` at line 312'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: nf
+  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nstatus: proved\ntags:\n  -
+    proved\n---\n\nbody\n'')` at line 348'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: nf
+  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nstatus: pending\n---\n\nbody\n'')`
+    at line 364'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'experiment' / 'run-a.md'
   how: '`(project / ''nodes'' / ''experiment'' / ''run-a.md'').write_text(''---\nid:
-    "experiment:run-a"\ntype: experiment\n---\n\nrun a\n'')` at line 324'
+    "experiment:run-a"\ntype: experiment\n---\n\nrun a\n'')` at line 405'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'experiment' / 'run-b.md'
   how: '`(project / ''nodes'' / ''experiment'' / ''run-b.md'').write_text(''---\nid:
-    "experiment:run-b"\ntype: experiment\n---\n\nrun b\n'')` at line 327'
+    "experiment:run-b"\ntype: experiment\n---\n\nrun b\n'')` at line 408'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
   how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nevidence_runs:\n  -
-    experiment:run-a\n  - experiment:run-b\n---\n\nran it twice\n'')` at line 331'
+    experiment:run-a\n  - experiment:run-b\n---\n\nran it twice\n'')` at line 412'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
   how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nevidence_runs:\n  -
-    synthetic\n---\n\nbody\n'')` at line 347'
+    synthetic\n---\n\nbody\n'')` at line 428'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
   how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nevidence_runs:\n  -
-    synthetic\n---\n\nbody\n'')` at line 361'
+    synthetic\n---\n\nbody\n'')` at line 442'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 388'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 469'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: exp / 'e1.md'
   how: '`(exp / ''e1.md'').write_text(''---\nid: "experiment:e1"\ntype: experiment\n---\n\nbody\n'')`
-    at line 391'
+    at line 472'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: iter_dir / 'manifest.json'
   how: '`(iter_dir / ''manifest.json'').write_text(json.dumps({''agents'': [agent]}))`
-    at line 401'
+    at line 482'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: root / 'nodes' / 'experiment' / 'r1.md'
   how: '`(root / ''nodes'' / ''experiment'' / ''r1.md'').write_text(''---\nid: "experiment:r1"\ntype:
-    experiment\n---\n\nbody\n'')` at line 439'
+    experiment\n---\n\nbody\n'')` at line 520'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
   how: '`nf.write_text(''---\nid: "experiment:e1"\ntype: experiment\nevidence_runs:\n  -
-    experiment:r1\n---\n\nbody\n'')` at line 443'
+    experiment:r1\n---\n\nbody\n'')` at line 524'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''id'': ''a1'', ''status'': ''running''})` at line 261'
+  how: '`json.dumps({''id'': ''a1'', ''status'': ''running''})` at line 312'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''agents'': [agent]})` at line 401'
+  how: '`json.dumps({''agents'': [agent]})` at line 482'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

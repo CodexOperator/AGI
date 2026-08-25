@@ -53,13 +53,13 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node
-  how: '`node.read_text(encoding=''utf-8'')` at line 341'
+  how: '`node.read_text(encoding=''utf-8'')` at line 356'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: next((nested / 'nodes' / 'goal').glob('g1-*.md'))
   how: '`next((nested / ''nodes'' / ''goal'').glob(''g1-*.md'')).read_text()` at line
-    430'
+    445'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -244,108 +244,162 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_parse_goals_truncates_visibly_at_a_block_boundary
+  how: defines public function `test_parse_goals_truncates_visibly_at_a_block_boundary`
+    at line 334
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_resnapshot_preserves_fields_the_snapshot_does_not_own
   how: 'defines public function `test_resnapshot_preserves_fields_the_snapshot_does_not_own`
-    at line 332, signature: (project)'
+    at line 347, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nested
-  how: 'defines public function `nested` at line 385, signature: (tmp_path)'
+  how: 'defines public function `nested` at line 400, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _by_id
-  how: 'defines private function `_by_id` at line 391, signature: (project: Path)'
+  how: 'defines private function `_by_id` at line 406, signature: (project: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_subgoals_and_short_term_goals_become_nodes
   how: 'defines public function `test_subgoals_and_short_term_goals_become_nodes`
-    at line 396, signature: (nested)'
+    at line 411, signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_subgoal_parent_points_at_its_long_term_goal
   how: 'defines public function `test_subgoal_parent_points_at_its_long_term_goal`
-    at line 403, signature: (nested)'
+    at line 418, signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_short_term_goal_is_a_root_with_no_parent
   how: 'defines public function `test_short_term_goal_is_a_root_with_no_parent` at
-    line 413, signature: (nested)'
+    line 428, signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_subgoal_carries_its_own_status
-  how: 'defines public function `test_subgoal_carries_its_own_status` at line 421,
+  how: 'defines public function `test_subgoal_carries_its_own_status` at line 436,
     signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_subgoal_body_is_not_absorbed_into_its_parent
   how: 'defines public function `test_subgoal_body_is_not_absorbed_into_its_parent`
-    at line 428, signature: (nested)'
+    at line 443, signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_long_term_goals_are_unchanged_by_the_new_kinds
   how: 'defines public function `test_long_term_goals_are_unchanged_by_the_new_kinds`
-    at line 435, signature: (nested)'
+    at line 450, signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _sg_run
-  how: 'defines private function `_sg_run` at line 446, signature: (project, *extra)'
+  how: 'defines private function `_sg_run` at line 461, signature: (project, *extra)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _sg_project
-  how: 'defines private function `_sg_project` at line 455, signature: (tmp_path,
+  how: 'defines private function `_sg_project` at line 470, signature: (tmp_path,
     goals_md, seed_parent)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_strict_goals_fails_on_a_dangling_goal_reference
   how: 'defines public function `test_strict_goals_fails_on_a_dangling_goal_reference`
-    at line 468, signature: (tmp_path)'
+    at line 483, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_strict_goals_ignores_non_goal_dangling_parents
   how: 'defines public function `test_strict_goals_ignores_non_goal_dangling_parents`
-    at line 477, signature: (tmp_path)'
+    at line 492, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_strict_goals_passes_when_every_goal_ref_resolves
   how: 'defines public function `test_strict_goals_passes_when_every_goal_ref_resolves`
-    at line 486, signature: (tmp_path)'
+    at line 501, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_default_still_only_warns
-  how: 'defines public function `test_default_still_only_warns` at line 491, signature:
+  how: 'defines public function `test_default_still_only_warns` at line 506, signature:
     (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_preserves_none_scalar
   how: 'defines public function `test_write_frontmatter_preserves_none_scalar` at
-    line 514, signature: (tmp_path)'
+    line 529, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_preserves_none_list_entry
   how: 'defines public function `test_write_frontmatter_preserves_none_list_entry`
-    at line 519, signature: (tmp_path)'
+    at line 534, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_none_survives_a_second_round_trip
   how: 'defines public function `test_write_frontmatter_none_survives_a_second_round_trip`
-    at line 524, signature: (tmp_path)'
+    at line 539, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: capped_project
+  how: 'defines public function `capped_project` at line 555, signature: (tmp_path,
+    monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_body_cap_reads_the_project_config
+  how: 'defines public function `test_body_cap_reads_the_project_config` at line 563,
+    signature: (capped_project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_body_cap_falls_back_on_a_broken_config
+  how: 'defines public function `test_body_cap_falls_back_on_a_broken_config` at line
+    567, signature: (tmp_path, monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_body_under_the_cap_is_untouched
+  how: 'defines public function `test_body_under_the_cap_is_untouched` at line 573,
+    signature: (capped_project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_truncation_cuts_at_a_block_boundary_and_says_so
+  how: 'defines public function `test_truncation_cuts_at_a_block_boundary_and_says_so`
+    at line 578, signature: (capped_project, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_an_unsplittable_first_block_is_kept_whole_not_severed
+  how: 'defines public function `test_an_unsplittable_first_block_is_kept_whole_not_severed`
+    at line 594, signature: (capped_project, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_zero_cap_disables_capping
+  how: 'defines public function `test_zero_cap_disables_capping` at line 603, signature:
+    (tmp_path, monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_truncation_is_never_silent
+  how: 'defines public function `test_truncation_is_never_silent` at line 610, signature:
+    (capped_project, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -357,29 +411,47 @@ outputs:
   security: TODO(model)
 - name: node
   how: '`node.write_text(f''---{head}next_edges:\n  - idea:seeded\nembedding_coords:
-    [0.1, 0.2]\n---{body}'', encoding=''utf-8'')` at line 343'
+    [0.1, 0.2]\n---{body}'', encoding=''utf-8'')` at line 358'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / 'GOALS.md'
   how: '`(tmp_path / ''GOALS.md'').write_text(NESTED_DOC, encoding=''utf-8'')` at
-    line 386'
+    line 401'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 456'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 471'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').write_text(goals_md)` at line 457'
+  how: '`(tmp_path / ''GOALS.md'').write_text(goals_md)` at line 472'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: d / 'seed.md'
   how: '`(d / ''seed.md'').write_text(f''---\nid: "idea:seed"\ntype: idea\nparents:\n  -
-    {seed_parent}\n---\n\nbody\n'')` at line 460'
+    {seed_parent}\n---\n\nbody\n'')` at line 475'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / 'agi-tree.config.json'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"goal_body_cap": 120}'')`
+    at line 558'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / 'agi-tree.config.json'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{not json'')` at line
+    568'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / 'agi-tree.config.json'
+  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"goal_body_cap": 0}'')`
+    at line 604'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

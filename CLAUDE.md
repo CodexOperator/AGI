@@ -20,6 +20,7 @@ derived from — nothing else.** Code lives in the engine repo.
 | `context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
 | `agi-tree.config.json` | Project marker + loop tuning. Its presence is what makes this dir a project. |
 | `agi/` | Symlink to `/home/ubuntu/work/agi`, the engine repo. Gitignored — never commit it here. |
+| `payloads/` | Staged checkout of build-node payloads (`grid.py checkout`). Gitignored — the committed home of these bytes is each node's grid ref. This is where you edit engine code. |
 
 **Anything not in that table does not belong in this repo.** ~95 one-off
 experiment scripts, a vendored copy of the engine (`src/`, `tests/`), the
@@ -85,13 +86,45 @@ This is an organizational convenience for one local pair, **never a mode the
 engine knows about** — G8.2's invariant is that no `if project == "agi-tree"`
 branch exists anywhere, and the symlinks add none.
 
-## Engine edits
+## Engine edits — do not open a file in `agi/`
 
-Engine changes are made in `/home/ubuntu/work/agi`. Because `agi/` here is now a
-symlink rather than a clone, editing `agi-tree/agi/...` edits that same file —
-the old "a fix made there is invisible and will be overwritten" hazard is gone.
-The engine repo is still where the change *lands*; there is just no second copy
-to drift. G6.3/G6.5 replace hand-editing entirely with stitch-from-graph.
+**As of 2026-08-25 an engine change originates here and is published to `agi`.**
+G6.3 is complete: every build node's payload lives in its own grid ref, so the
+graph holds the bytes and the engine tree is what falls out. The four steps:
+
+```bash
+python3 agi/extensions/agi/bin/grid.py checkout --all
+```
+
+Edit under `payloads/<payload_ref>` — e.g. `payloads/extensions/agi/bin/grid.py`.
+Run the tests against that copy (`python3 -m pytest payloads/extensions/agi/tests/`),
+then record and publish:
+
+```bash
+python3 agi/extensions/agi/bin/grid.py commit --all
+```
+
+```bash
+python3 agi/extensions/agi/bin/stitch.py --project "$PWD" --out /home/ubuntu/work/agi --from-grid --publish
+```
+
+`--publish` refuses unless `--from-grid` is set **and** the engine working tree
+is clean, so every byte it overwrites is already in the engine's own history and
+`git checkout .` undoes the whole publish. After publishing, re-run `level3.py`
+so contracts re-derive, then `grid.py commit --all` again.
+
+Read a payload back without checking out: `grid.py payload <node-id> [--version N]`.
+Materialise a chosen historical version of the whole tree:
+`stitch.py --from-grid --grid-version N --out DIR`.
+
+**The one legitimate exception is a change that the pipeline itself cannot
+carry** — the bootstrap that built this pipeline was made directly in `agi` and
+recorded as a deviation in G6.1. If you think you have another one, say so in
+the node rather than quietly editing the engine.
+
+**Still engine-first:** contract derivation. `level3.py` and `stitch.py --verify`
+read the engine tree, so a payload edited only here has a stale contract until
+you publish and rescan. That residual is G6.1's.
 
 ## The two rules this project has already paid for
 

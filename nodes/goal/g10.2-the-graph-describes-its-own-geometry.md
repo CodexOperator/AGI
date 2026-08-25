@@ -82,7 +82,4 @@ space. **The supermap convention (G1.3) is the addressing scheme that makes this
 possible**, which is why G1.3 is worth building before the thing it will address
 exists.
 
-Falsifier, and it has to be behavioural rather than aesthetic: give an agent a task
-that today requires leaving the graph, and measure the graph-call to file-read
-ratio (the Design Ethic's measurable). The hypergraph is real when that ratio
-inverts on work that currently fails it — the stan
+> **[truncated: 600 of 4307 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G10.2` is the complete text; raise `goal_body_cap` in the project config to keep more.]**

@@ -62,28 +62,48 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: graph_core.identity.mint_permanent_id
+  how: '`from graph_core.identity import mint_permanent_id` at line 61'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: graph_core.identity.is_valid_mint_id
+  how: '`from graph_core.identity import is_valid_mint_id` at line 61'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: GOALS_MD
-  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 349'
+  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 470'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 129'
+  how: '`json.loads(cfg_path.read_text())` at line 172'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 217'
+  how: '`md_path.read_text(encoding=''utf-8'')` at line 261'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 129'
+  how: '`cfg_path.read_text()` at line 172'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(cfg_path.read_text())` at line 299'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 299'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 221'
+  how: '`yaml.safe_load(parts[1])` at line 265'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -93,79 +113,95 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 outputs:
+- name: ensure_mint_id
+  how: 'defines public function `ensure_mint_id` at line 64, signature: (fm: dict)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: config_path
-  how: 'defines public function `config_path` at line 51, signature: (root: Path)'
+  how: 'defines public function `config_path` at line 94, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _id_rest
-  how: 'defines private function `_id_rest` at line 77, signature: (node_id: str)'
+  how: 'defines private function `_id_rest` at line 120, signature: (node_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _set_project_root
-  how: 'defines private function `_set_project_root` at line 88, signature: (path:
+  how: 'defines private function `_set_project_root` at line 131, signature: (path:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: slugify
-  how: 'defines public function `slugify` at line 100, signature: (s: str)'
+  how: 'defines public function `slugify` at line 143, signature: (s: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _add_graph_core_to_path
-  how: defines private function `_add_graph_core_to_path` at line 107
+  how: defines private function `_add_graph_core_to_path` at line 150
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _upsert_node_to_db
-  how: 'defines private function `_upsert_node_to_db` at line 123, signature: (node_id:
+  how: 'defines private function `_upsert_node_to_db` at line 166, signature: (node_id:
     str, fm: dict, body: str, origin: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_frontmatter
-  how: 'defines public function `write_frontmatter` at line 154, signature: (path:
+  how: 'defines public function `write_frontmatter` at line 197, signature: (path:
     Path, fm: dict, body: str, origin: str='''', preserve: dict | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: load_existing_nodes
-  how: defines public function `load_existing_nodes` at line 208
+  how: defines public function `load_existing_nodes` at line 252
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _strip_separators
-  how: 'defines private function `_strip_separators` at line 237, signature: (s: str)'
+  how: 'defines private function `_strip_separators` at line 281, signature: (s: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: body_cap
+  how: defines public function `body_cap` at line 285
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cap_body
+  how: 'defines public function `cap_body` at line 305, signature: (body: str, gid:
+    str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_goals
-  how: 'defines public function `parse_goals` at line 241, signature: (text: str)'
+  how: 'defines public function `parse_goals` at line 362, signature: (text: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: collect_parent_refs
-  how: 'defines public function `collect_parent_refs` at line 294, signature: (existing:
+  how: 'defines public function `collect_parent_refs` at line 415, signature: (existing:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 327, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 448, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 205'
+  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 249'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 13 `print()` call(s) at line(s) [142, 322, 346, 359, 418, 424, 429, 441, 443,
-    444, 446, 449, 460]
+  how: 16 `print()` call(s) at line(s) [87, 185, 346, 352, 443, 467, 480, 539, 545,
+    550, 562, 564, 565, 567, 570, 581]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

@@ -86,4 +86,4 @@ Every `commit --all` since the mint-id migration has reported it as an error
 line among successful ref writes, which is the same shape of silence G7.2 was
 escalated for.
 
-T
+> **[truncated: 538 of 4535 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G7.5` is the complete text; raise `goal_body_cap` in the project config to keep more.]**

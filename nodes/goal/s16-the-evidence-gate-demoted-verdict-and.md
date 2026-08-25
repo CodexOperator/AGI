@@ -86,7 +86,4 @@ could not see them at all. They were in no numerator and no denominator.
 Five of them were unevidenced decisive verdicts that
 `unevidenced_decisive_verdicts: 0` had never once counted.
 
-**`evidence_runs` was not touched on any node.** Not written, not
-overwritten, not zeroed. Four of the five demotions cite an experiment id that
-no longer resolves; those dangling refs are kept because they are the
-diagnostic G7.1 works from, and rep
+> **[truncated: 1658 of 5406 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `S16` is the complete text; raise `goal_body_cap` in the project config to keep more.]**

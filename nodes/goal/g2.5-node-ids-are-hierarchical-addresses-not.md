@@ -87,6 +87,4 @@ changes. Keying grid history on that would make every regroup a ref migration,
 and four of those on 2026-08-24 were enough to price it. So the graph carries
 **two** identifiers and they are never the same field:
 
-| | **mint id** | **address** |
-|---|---|---|
-| Assigned | once, at node creation | derived,
+> **[truncated: 2365 of 6271 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G2.5` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
