@@ -13,6 +13,7 @@ seeds:
   - goal:g7.5
   - goal:g7.6
   - goal:g7.7
+  - goal:g7.8
   - idea:engine-graph-core
   - idea:engine-grid
   - idea:engine-migrate-to-sqlite

@@ -1540,6 +1540,24 @@ afterwards to confirm the reference resolves rather than disappears. Until then
 the count of genuinely unresolvable references is **2**, not 3: this one is a
 G7.5 symptom wearing a G7.1 costume.
 
+**Third consequence, found 2026-08-25, and like G7.2's it breaks the backup
+rather than the render: this node has no grid ref and is therefore not backed
+up at all.** `grid.py commit --all` refuses to write a node-id-keyed ref for a
+file with no `mint_id`, and `backfill-mint-ids.py` — the only assigner (S14) —
+skips it with `SKIP (unparseable frontmatter)`. The parse failure that hides the
+node from the renderer also denies it the one mechanism G7 exists to guarantee.
+Every `commit --all` since the mint-id migration has reported it as an error
+line among successful ref writes, which is the same shape of silence G7.2 was
+escalated for.
+
+That raises this goal's priority the same way. G7.5 was "one file is invisible
+to readers", which is bad but static. It is also **an ongoing hole in the
+backup**, and unlike G7.2's forked ref it cannot be repaired by resolving an id
+collision — the file has to parse before anything else can key on it. Note the
+resolution order this forces: **repair the frontmatter, then backfill the
+mint_id, then grid-commit** — and take a copy of the malformed file into the
+goal's own record first, since repairing it is what destroys the fixture.
+
 ### G7.6 — One persistence model: frontmatter, JSON, or a database — status: horizon
 
 Three representations exist and none is authoritative. Markdown frontmatter is
