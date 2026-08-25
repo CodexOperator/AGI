@@ -15,6 +15,7 @@ tags:
   - R1
 next_edges:
   - mvp:cli-invocation-r1
+  - exp:cli-invocation-r1-extend1
 ---
 
 **Verdict:** PROVED

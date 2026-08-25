@@ -4,6 +4,9 @@ title: "schema-registry R2 chain: exp:schema-registry-r2"
 type: experiment
 parents:
   - hyp:schema-registry-r2
+tags:
+  - schema-registry
+  - R2
 next_edges:
   - verdict:schema-registry-r2
 ---

@@ -1,7 +1,7 @@
 ---
-id: verdict:schema-registry-r2
+id: verdict:schema-registry-r2-bracket-convention-demoted
 type: verdict
-title: "Verdict: schema-registry R2"
+title: "Verdict: schema-registry R2 Bracket Convention (demoted, no evidence runs)"
 status: proved
 verdict: inconclusive_lean_proved:50
 confidence: 0.85
@@ -20,3 +20,5 @@ demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
 ---
 
 VERDICT: proved. Bracket Convention for active schemas works.
+
+> Disambiguated 2026-08-25 from an id collision on `verdict:schema-registry-r2` (G7.2); the other file at `nodes/verdict/verdict-schema-registry-r2.md` retains that id.
