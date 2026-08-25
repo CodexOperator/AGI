@@ -2,13 +2,14 @@
 confidence: 0.95
 evidence_runs: []
 id: "mvp:strict-goal-refs"
+mint_id: 62c0d6be59164db5917a13974abb465b
 parents:
   - goal:g5
 subgraph: false
 tags:
   - g5
   - integrity
-title: "Add --strict-goals flag to make goal refs fail loudly"
+title: Add --strict-goals flag to make goal refs fail loudly
 type: mvp
 ---
 
@@ -81,4 +82,3 @@ Replace with:
 
 **What this does not fix:** 
 The 81 existing unresolved parent references (non-goal) remain and continue to print to the log as warnings. These are mostly prefix typos (`hypothesis:` vs `hyp:`) and broken node chains in the experiment → verdict flow. They should be fixed separately. This change makes only goal-reference failures hard-stop the loop per G5's wording.
-

@@ -387,6 +387,15 @@ treat the others as projections around it.
 
 **Invariant:** one node at level N ⇔ a collection at level N+1, and back.
 
+⚠️ **`level3` as a node type is legacy stale wording, and the graph should carry
+no zoom-level names at all.** A zoom level is a *view*, and baking a view's name
+into the data was a category error: it froze one grain into the type system and
+made the other grains unnameable. Zoom is now organised on two axes and neither
+of them is a level number — coarser grains come from **tags and addresses**
+(G2.5, G2.6), finer grains from **mint ids and the grid** (G2.7). A node is a
+node. Retiring the name is **S11**; it is mechanical and touches ~180 files, so
+it is sequenced deliberately rather than done in passing.
+
 🔴 **Already falsified for the free-form implementation, and the number is
 known:** 0.441 overall claim recall against a 0.90 bar, 12 agents over 6
 complete round trips. Loss is category-structured, not uniform — prose survives
@@ -471,99 +480,165 @@ rearranging itself under the reader.
 Note `.gitnexus/meta.json` reports `embeddings: 0` — nothing is generated today,
 and `npx gitnexus analyze` without `--embeddings` deletes any that exist.
 
-### G2.5 — Node ids encode zoom level, so a collision is structurally impossible — status: active
+### G2.5 — Node ids are hierarchical addresses, not lineage — status: active
 
-**Ids are the one piece of a node that must survive every transform, and today
-they survive none of them.** The current scheme is `<type>:<kebab-slug>` minted
-from source text, with collisions resolved by appending `:2`. It fails in three
-independent ways, all observed in this corpus:
+**An id should answer "where is this node" in one string, with no lookup and no
+ambiguity.** Today's scheme is `<type>:<kebab-slug>` minted from title text,
+collisions resolved by appending `:2`. It fails three ways, all observed here:
 
-- **The loader hides files.** Every load of agi-tree prints ~18
-  `WARN: duplicate node id ... kept X, hidden Y` lines. A node that exists on
-  disk is silently absent from the graph (G7.2), and the two loaders disagree
-  about what to do about it (G7.4).
-- **The grid ref is not injective.** `grid.py sanitize()` rewrites any character
-  outside `[A-Za-z0-9._%-]` to `-`, so `level3:bin-stitch@v2` and a hypothetical
-  `level3:bin-stitch-v2` both become `refs/grid/node/level3/bin-stitch-v2` and
-  silently share one version history. Confirmed live on 2026-08-24 by the three
-  `@v2` build nodes minted that day. The function's own docstring already argues
-  that collapsing to `-` "would let two ids share one ref and silently overwrite
-  each other, which is a worse failure than the crash" — it then does exactly
-  that for every other punctuation character.
-- **Slugs are not stable under editing.** The id is derived from title text, so
-  retitling a node either changes its identity or requires the slug to stop
-  matching the title. Both are bad; the graph currently gets both.
+- **The loader hides files.** Duplicate ids meant a node present on disk was
+  silently absent from the graph (G7.2), and the two loaders disagreed about
+  what to do (G7.4). 17 such pairs existed on 2026-08-24; the generator that
+  produced them was fixed the same day.
+- **The grid ref was not injective.** `sanitize()` collapsed every unsafe
+  character to `-`, so `level3:bin-stitch@v2` and `level3:bin-stitch-v2` mapped
+  to one ref and would have shared a version history. Fixed 2026-08-24 by
+  percent-encoding (`level3:bin-grid@v2`) — but that is an escaping patch. It
+  makes collisions impossible *to cause by encoding*; it does not make ids
+  addresses.
+- **Slugs are not stable under editing.** The id derives from title text, so
+  retitling either changes identity or desynchronises slug from title. The
+  graph currently gets both.
 
-**The scheme to build.** Ids are hierarchical and positional, like a phone
-number: a node's id is its parent's id plus **one** additional alphanumeric
-character identifying it among its siblings. The coarsest level is **5
-characters**; each finer level adds one. Level 3 — the code level, G2.1's base —
-is therefore 7 characters, which pins the two levels above it at 5 and 6.
+**The scheme, and the correction that matters: ids are addresses, not
+ancestry.** Every real node is a code-level node and carries a **fixed 7-character
+id**. The entire current graph is 7 characters wide — ids do not grow as the
+graph gains nodes or versions.
 
-Three properties follow, and they are the whole point:
-- **Uniqueness is by construction, not by check.** Enforce sibling-local
-  uniqueness at each level and global uniqueness only at the root; global
-  uniqueness of every id below falls out. There is nothing left for a collision
-  resolver to do, so there is no `:2` suffix and no "kept X, hidden Y".
-- **An id is a path.** Truncating an id to N characters yields the id of its
-  ancestor at that zoom level, so a coarse view can be computed from a fine one
-  by string slicing — no lookup, no join. That is what makes it *related between
-  zoom levels* rather than merely unique.
-- **Ids are ref-safe by construction.** Alphanumerics only, so `sanitize()`
-  becomes the identity function and the grid's injectivity problem disappears
-  rather than being escaped around.
+Zoom levels are **not different nodes.** A zoomed-out view shows the *same*
+nodes, grouped by the renderer into supernodes, and a supernode's id is simply a
+**prefix** of its members' ids:
 
-**The open decision, stated honestly: this or UUIDs.** UUIDs are off-the-shelf,
-collision-free without any hierarchy discipline, and the storage cost is
-irrelevant at this scale (810 nodes × 36 chars is noise). The argument against
-them is not storage or CPU — it is that **this project's entire delivery
-mechanism is an embedded ASCII map a model reads**, and a map of UUIDs is
-unreadable by the reader it exists for. G9 is a goal about legibility; a
-36-character opaque id is a direct tax on it, paid on every injected map, every
-iteration, forever. Decide on that axis, not on bytes.
+```
+j8ids9    supernode        (6 chars — a renderer grouping, not a stored node)
+j8ids93   the build node   (7 chars — a real file on disk)
+j8ids9    <- truncate(j8ids93, 6) yields its parent group, by string slicing
+```
 
-**Falsifier — run 2026-08-24, and it did not fire.** One alphanumeric character
-is 36 values case-insensitively, 62 case-sensitively, so **no node may have more
-than 36 (or 62) children**. Measured over all 831 node files: max fan-out is
-**20**, on `idea:engine-graph-core`. Zero parents exceed 36; zero exceed 62. The
-level-3 layer — the one this goal pins at 7 characters and flagged as the
-known-large-fan-out risk — has the same worst offender at the same 20. Chain:
-`hyp:zoom-encoded-node-ids` → `exp:id-fanout-budget` →
-`verdict:zoom-encoded-node-ids` (proved, conf 0.9, evidence resolves,
-independently recomputed by the reviewing parent).
+So the coarsest view is 5 characters, the next 6, and real nodes 7. Truncating
+an id to N characters *is* the lookup — no join, no index, no traversal.
 
-So the fixed one-char-per-level rule survives this corpus with 1.8× headroom,
-and no variable-width or escape-hatch design is needed today. **Watch
-`idea:engine-graph-core`:** it is the corpus's own outlier, not merely the
-current maximum — next is 19, then a drop to 16 — so it is where the budget
-would be spent first.
+Properties that follow:
+- **Addressing is O(1) and unambiguous.** Any node, any supernode, named by one
+  short string. An id can also *direct* placement: give a build node the 6-char
+  id of a different supernode and that is the instruction to move it there.
+- **Grouping is renderer-side and live.** Supernodes are computed, never stored.
+  Nothing has to be re-parented to change a view.
+- **Ids are ref-safe by construction.** Alphanumeric only, so `sanitize()`
+  collapses to the identity function and the escaping layer stops mattering.
 
-**What that verdict does not license.** It proves a *precondition*, not the
-scheme. Still unproved: that migration preserves `refs/grid/node/*` history
-under a wholesale id rewrite; that truncate-to-ancestor holds once ids are
-actually renumbered (the experiment measured the *old* ids' parent/child
-relation); and that sibling-local uniqueness is race-free when two kids mint a
-child under one parent at once.
+**Capacity, and this is the real constraint.** One alphanumeric character is 36
+values case-insensitively, 62 case-sensitively, so **a supernode holds at most
+36 (or 62) members** — and that budget applies to *renderer groupings*, not to
+parent/child links. At 814 nodes the corpus needs at least 23 six-character
+groups under the 36-alphabet (14 under 62). That is a statement about how the
+tag taxonomy must partition, not about the graph's shape.
 
-**Two corpus symptoms found by the same measurement, both independent evidence
-for this goal's motivation:** 17 node ids are duplicated across two files each,
-and 20 ids named in some `parents:` field resolve to no file at all. That is
-G7.2 and G7.1 showing up in the data rather than in a warning stream.
+⚠️ **The falsifier run on 2026-08-24 measured the wrong quantity and does not
+carry over.** `exp:id-fanout-budget` counted children per parent by the
+`parents:` field (max 20, on `idea:engine-graph-core`) and
+`verdict:zoom-encoded-node-ids` proved the budget on *that* reading. Under the
+address model the binding number is **members per shared prefix**, which is
+determined by tags (G2.6), not by lineage. The old measurement stands as a fact
+about lineage fan-out and is retained as prior art; it is **not** evidence for
+this goal's capacity claim. Re-running it against tag-derived groupings is
+pre-registered and unrun.
 
-**Sequencing note:** this changes every id in the corpus, so it needs a
-migration that preserves grid history (`refs/grid/node/*` is keyed by the old
-sanitized id) and an old→new mapping kept as prior art. Do not begin the
-migration before the falsifier above has a number attached to it.
+**Tension resolved 2026-08-25: two identifiers, two jobs.** A re-derived address
+is a moving address — retag a node, its group changes, its prefix changes, its id
+changes. Keying grid history on that would make every regroup a ref migration,
+and four of those on 2026-08-24 were enough to price it. So the graph carries
+**two** identifiers and they are never the same field:
 
-**Numbering direction to confirm before building:** G2's invariant is "one node
-at level N ⇔ a collection at level N+1", which makes level 5 the *finest* grain
-and level 1 the coarsest. The scheme as first described numbered the other way
-(level 4 coarser than level 3). The character-count rule above is written in
-terms of coarse→fine and is unaffected, but the level *numbers* must be pinned
-to one convention before anything reads them.
+| | **mint id** | **address** |
+|---|---|---|
+| Assigned | once, at node creation | derived, re-derived freely |
+| Ever changes | **never** | on every regroup/retag |
+| Shape | uuid or equivalent, opaque | 7 chars, alphanumeric, hierarchical |
+| Keys | `refs/grid/node/<mint-id>` | addressing, zoom, prefixes |
+| Read by | the grid, cross-links, provenance | humans, renderers, agents |
 
-Closes the identity half of **G7.2** and **G7.4**, and removes `sanitize()`'s
-non-injectivity as a class rather than as a bug.
+The address stays mutable and cheap precisely *because* nothing durable hangs
+off it. History follows the mint id, so a node can be regrouped, retagged and
+re-addressed without touching a single ref.
+
+**Grouping stays hash-derived for now, deliberately.** Addresses mint from a
+hash of the node, which means today every 6-char prefix holds exactly one member
+— the hierarchy is present in the format but not yet exercised. That is accepted
+rather than patched: the grouping that will populate prefixes comes from tags
+(**G2.6**), and inventing a placeholder taxonomy first would be throwaway work
+built on `type` values that are themselves being retired (see G2's note on
+`level3`). The ≤36-members-per-prefix budget binds when tags land, not before.
+
+**Sequencing.** Minting 7-char ids rewrites every id in the corpus, so it needs
+a migration that preserves grid history plus an old→new mapping kept as prior
+art. Assignment must be **deterministic and stable under insertion** — an id
+derived from sort position renumbers everything after an inserted node, which is
+the failure mode to design out first.
+
+Closes the identity half of **G7.2** and **G7.4**. Depends on **G2.6** for the
+grouping the prefixes encode.
+
+### G2.6 — Tags name the supernode; the renderer groups on them live — status: horizon
+
+**Tags are the human-readable half of G2.5's addressing.** An id is short,
+unambiguous and machine-facing; a tag is long, descriptive and person-facing.
+Each node carries the tag of the supernode it belongs to, and the renderer
+applies that grouping at render time rather than baking it into the graph.
+
+Why they are separate from ids, and why both are wanted:
+- **A tag is as long as it needs to be — and may be as short as 5 characters.**
+  Nothing about it is padded, truncated or budgeted, so it stays readable to a
+  human *and* to a model reading an injected map — which is the readability G9 depends on and the
+  reason opaque identifiers were rejected for the visible layer.
+- **Retagging is how a node moves.** Change the tag, the renderer places the
+  node in a different supernode, and its id re-derives to the new prefix. No
+  re-parenting, no edge rewriting.
+- **Ids may be derived from tags.** Padding, truncating or selecting characters
+  from a tag to fit the 7-character format keeps the two layers legibly related
+  instead of arbitrarily paired. Overlapping names are a feature here, not a
+  collision.
+
+**What this goal owes G2.5:** the tag taxonomy is what decides supernode
+membership, so it is what must satisfy the ≤36 (or ≤62) members-per-prefix
+budget. A flat tag applied to hundreds of nodes — `level3` currently spans 181 —
+cannot be a supernode. The taxonomy has to be hierarchical enough that no single
+group exceeds one character's worth of slots, and **measuring that against a
+real proposed tag set is G2.5's re-registered falsifier.**
+
+Unbuilt on purpose: recorded now so the id work can be designed against it, to
+be implemented after G2.5's addressing lands.
+
+### G2.7 — The finest zoom is the chat that produced the version — status: horizon
+
+**Zoom does not stop at the node.** Coarse levels are organised by tags and
+addresses (**G2.5**, **G2.6**); the finer levels are organised by **mint id and
+the grid**. Zooming into a node reveals its version history; zooming into a
+version reveals **the chat that produced it**.
+
+That last hop is the one nothing currently supports. Each grid commit for a node
+is a version, and each version was produced by some session — but the two are
+not linked, so the reasoning behind a change is only recoverable by memory or by
+luck. The engine must cross-link them **automatically and seamlessly**: every
+node version's grid commit carries the identity of the chat that produced it,
+and every chat resolves to the commits it caused.
+
+What follows from doing it properly:
+- **Grid commit messages carry the parent nodes by mint id.** A renderer can
+  then draw the hypergraph across *both* substrates — disk nodes and grid
+  commits — without a separate edge store, because the edges are already written
+  into the history.
+- **The base graph gets flatter.** Version history stops being modelled as extra
+  nodes on disk and becomes depth you zoom into. That is the direct reason the
+  separate-node-per-version convention is retired (**G6.3**).
+- **Provenance answers the question that matters:** not "what changed in this
+  file" but "which conversation produced this line, and what was true when it
+  was said".
+
+Depends on G2.5 for the mint id (an address would break the link the moment a
+node is retagged) and on **G10.1**, which already argues chats are nodes.
+Unbuilt; recorded so the id and grid work is designed to make it possible rather
+than to need undoing.
 
 ## G3 — Scoring that added motion cannot move — status: active
 
@@ -892,6 +967,30 @@ evidence resolves).
   node's grid ref" is a proved **design**, not a proved **deployment**. Wiring
   resolution to `commit_file()` as it ships today reproduces the failing variant.
   S9 first.
+
+**Correction 2026-08-25: a version is a grid commit, not a second file.** On
+2026-08-24 this was implemented as separate `@v2` node *files* — `level3:x` plus
+`level3:x@v2`, both pointing at one `payload_ref`, with `supersedes:` linking
+them. That was a misreading of this goal. "A fix lands as a new version of a
+build node" means the node is **updated in place** and the grid records the
+version; it does not mean a new file per version. The file convention duplicated
+what `refs/grid/node/<id>` already does, inflated the on-disk graph with one node
+per revision, and forced `stitch.py` to grow a whole version-chain concept
+(`level3:bin-stitch@v2`) to tell a legitimate pair apart from a genuine
+duplicate `payload_ref`.
+
+**The convention going forward:** edit the node, let the grid be the history.
+Version history is not flat structure on disk — it is depth you zoom into
+(**G2.7**). Grid commit messages should name the parent nodes by **mint id**
+(**G2.5**) so a renderer can traverse disk nodes and grid commits as one
+hypergraph.
+
+The four `@v2` nodes already minted (`bin-stitch`, `lib-find-root.sh`,
+`skills-agi-SKILL.md`, `bin-grid`, plus `src-graph-core-identity`) stay for now
+and are folded back in a later pass — deliberately not rushed, since collapsing
+them touches `stitch.py`'s chain logic and the grid refs that already carry their
+history. `stitch.py`'s version-chain support is not wasted either way: it is what
+keeps a transitional corpus from reading as drift.
 
 This also settles that the anatomy decision was not overturned by fiat. A grid
 ref is never checked out, so it is not a second copy of the tree — it is a second
@@ -1664,6 +1763,28 @@ second one, which is **G1.2**'s failure mode.
 
 Depends on **G1.3** (the supermap convention it extends), **G10.2** (the actions
 it lists should be read from the geometry, not hardcoded a second time).
+
+## S11 — Retire `level3` as a type name — status: active
+
+`level3` names a zoom level in the data — the category error G2 now records.
+~180 nodes carry `type: level3`, they live in `nodes/level3/`, and the name is
+load-bearing in `bin/level3.py`, `bin/stitch.py` (which filters on it), the
+`level3-scan` origin stamp, and the `LEVEL3-CONTRACT` block markers.
+
+Rename to something that describes what the node *is* rather than which view it
+came from — these are code nodes: a file plus the thought attached to it. `code`
+is the obvious candidate.
+
+**Why it is not a five-minute `sed`:** the string appears as a node type, a
+directory name, a file-name prefix, an `origin` value, an HTML comment marker
+inside every node body, and a Python module name. Changing the `origin` stamp is
+the sharp edge — `level3.py` prunes exactly the nodes whose origin it recognises,
+so a half-applied rename means a scan that no longer recognises its own output
+and prunes ~180 real nodes. That is the H0/H0i failure mode with a new spelling.
+
+Sequence it: teach the reader both names first, migrate the data, then retire the
+old name from the writer. Never the reverse. Pairs with **G7.5** — a rename that
+silently drops nodes must fail loudly, not return exit 0.
 
 ## S1 — Retire `bin/` as a directory name — status: active
 

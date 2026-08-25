@@ -1,10 +1,11 @@
 ---
-id: experiment:exp:a00-204c9d9e-1d958f
-type: experiment
-parents:
-  - hypothesis:a00-204c9d9e-1d958f
+id: "experiment:exp:a00-204c9d9e-1d958f"
+mint_id: 046c80b309264adf83950e4470413c23
 next_edges:
   - verdict:verdict:a00-204c9d9e-1d958f
+parents:
+  - hypothesis:a00-204c9d9e-1d958f
+type: experiment
 ---
 
 # experiment:exp:a00-204c9d9e-1d958f

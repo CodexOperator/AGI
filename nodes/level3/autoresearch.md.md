@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:autoresearch.md"
+mint_id: ebf70abcb1574926988b2df9d9a9b238
 origin: level3-scan
 parents:
   - idea:engine-autoresearch-md

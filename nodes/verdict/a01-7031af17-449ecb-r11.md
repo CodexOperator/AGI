@@ -2,12 +2,13 @@
 confidence: 0.95
 contradicts: []
 evidence_runs:
-  - "exp-a01-7031af17-449ecb-r11-path-safety"
+  - exp-a01-7031af17-449ecb-r11-path-safety
 id: "verdict:a01-7031af17-449ecb-r11"
+mint_id: 4dbf150c06ce4e89ba769d39d1e59e51
 next_edges:
-  - "mvp:a01-7031af17-449ecb-r11"
+  - mvp:a01-7031af17-449ecb-r11
 parents:
-  - "hyp:a01-7031af17-449ecb"
+  - hyp:a01-7031af17-449ecb
 status: pending
 supports: []
 tags:
@@ -16,7 +17,7 @@ tags:
   - path-safety
   - sandboxing
 title: "graph-core/R11: PathValidator Not Wired Into Loader"
-verdict: inconclusive_lean_disproved:35
+verdict: "inconclusive_lean_disproved:35"
 ---
 
 # verdict:a01-7031af17-449ecb-r11

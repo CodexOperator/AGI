@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:engine-census-generated"
+mint_id: c76a008cb4d7427b82df98d979ae03f2
 parents:
   - idea:engine-self-decomposition
 subgraph: false
@@ -8,7 +9,7 @@ tags:
   - engine
   - l19
 testable_claim: "A script-generated, git-ls-files-seeded census of the engine's changeable surfaces (23 units - 6 src/ packages, 12 bin/*.py, 5 named entry points) stays accurate across re-runs and engine changes, where the 14 hand-written domain-* idea nodes did not."
-title: "A generated engine census stays current where a hand-written one rotted"
+title: A generated engine census stays current where a hand-written one rotted
 type: hypothesis
 ---
 

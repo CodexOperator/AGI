@@ -1,7 +1,8 @@
 ---
 id: "exp:embeddings-r2"
+mint_id: 5b9d32fccd8a44dd87f4f05e8d9fa237
 next_edges:
-  - "verdict:embeddings-r2"
+  - verdict:embeddings-r2
 parents:
   - hyp:embeddings-r2
 subgraph: false

@@ -1,14 +1,15 @@
 ---
 id: "bigger-outcome:session-management-r1-committed-state"
-type: bigger_outcome
-title: "Session Management Module Purpose: Committed-State Fidelity"
+mint_id: 567f769cfadf41f1b6721ddd7e528979
+next_edges:
+  - app-purpose:session-management-r1
 parents:
-  - "outcome:session-management-r1-r1"
+  - outcome:session-management-r1-r1
 tags:
   - session-management-r1
   - bigger-outcome
-next_edges:
-  - "app-purpose:session-management-r1"
+title: "Session Management Module Purpose: Committed-State Fidelity"
+type: bigger_outcome
 ---
 
 # Session Management Module Purpose

@@ -11,6 +11,7 @@ blocked_by:
 cavekit_req: environment-indexers/R6
 effort: M
 id: "task:t-041"
+mint_id: 0007e3f6a4664f5fbd5d0b6b978628bd
 origin: build-site
 parents:
   - hyp:environment-indexers-r6

@@ -10,6 +10,7 @@ blocked_by:
 cavekit_req: schema-registry/R4
 effort: M
 id: "task:t-024"
+mint_id: 0a763c835bc94c57819ea50c8e5d6522
 origin: build-site
 parents:
   - hyp:schema-registry-r4

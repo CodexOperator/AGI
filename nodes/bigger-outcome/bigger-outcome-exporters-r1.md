@@ -1,15 +1,16 @@
 ---
-id: bigger-outcome:exporters-r1
-title: "Bigger Outcome: Exporters"
-type: bigger_outcome
-status: open
+id: "bigger-outcome:exporters-r1"
+mint_id: a9d2270825de45418871f3d3cdd53673
+next_edges:
+  - app-purpose:exporters
 parents:
   - outcome:exporters-r1
+status: open
 tags:
   - exporters
   - bigger_outcome
-next_edges:
-  - app-purpose:exporters
+title: "Bigger Outcome: Exporters"
+type: bigger_outcome
 ---
 
 # Bigger Outcome: Exporter Domain

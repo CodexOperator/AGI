@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-metrics"
+mint_id: 2f7402938a954f18b115d44b1a632e6e
 origin: level3-scan
 parents:
   - idea:engine-metrics

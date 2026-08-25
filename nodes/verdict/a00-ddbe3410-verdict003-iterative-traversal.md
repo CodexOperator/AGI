@@ -1,19 +1,20 @@
 ---
-id: "verdict:a00-ddbe3410-verdict003-iterative-traversal"
-parent_hypothesis: "hypothesis:a00-ddbe3410-iterative-traversal"
-parents:
-  - "experiment:a00-ddbe3410-exp003-iterative-traversal"
-status: proved
 confidence: 0.95
 evidence_runs:
-  - "experiment:a00-ddbe3410-exp003-iterative-traversal"
+  - experiment:a00-ddbe3410-exp003-iterative-traversal
+id: "verdict:a00-ddbe3410-verdict003-iterative-traversal"
+mint_id: b273d901747d43daa23cbb29c843015b
+next_edges:
+  - mvp:a00-ddbe3410-mvp003-iterative-traversal
+parent_hypothesis: "hypothesis:a00-ddbe3410-iterative-traversal"
+parents:
+  - experiment:a00-ddbe3410-exp003-iterative-traversal
+status: proved
 synthetic: false
 tags:
   - chain-engine
   - recursion-bug
   - iterative
-next_edges:
-  - "mvp:a00-ddbe3410-mvp003-iterative-traversal"
 title: "V003: iterative traversal PROVED — 9 chains at 708 hops"
 type: verdict
 ---

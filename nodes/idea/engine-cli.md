@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-cli"
+mint_id: c93918a0494b460ca4d6cc8d65188bc0
 origin: engine-decomp
 parents:
   - goal:g1

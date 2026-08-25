@@ -1,17 +1,18 @@
 ---
-id: hyp:test-coverage-r1
-title: "R1: Test coverage analysis of node types, edge relations, and graph operations"
-type: hypothesis
-parent_idea: idea:domain-test-coverage
 domain: test-coverage
+id: "hyp:test-coverage-r1"
+mint_id: c0f0f8c2f2444f50b190152c11c9d8cb
+parent_idea: "idea:domain-test-coverage"
+spawns:
+  - task:t-094
+status: pending
 tags:
   - tests
   - pytest
   - coverage
   - R1
-spawns:
-  - task:t-094
-status: pending
+title: "R1: Test coverage analysis of node types, edge relations, and graph operations"
+type: hypothesis
 verdict: pending
 ---
 

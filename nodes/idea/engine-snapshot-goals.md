@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-snapshot-goals"
+mint_id: 4214cb27979f47cdb09bfe7fe6922847
 origin: engine-decomp
 parents:
   - goal:g5

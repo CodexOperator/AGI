@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:embeddings-r4"
+mint_id: 93c6b5bf11a846bd8de85eccda012042
 origin: build-site
 parents:
   - idea:domain-embeddings

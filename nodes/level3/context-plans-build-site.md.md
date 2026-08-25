@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-plans-build-site.md"
+mint_id: b1d99342037346b5a50b1cacb3c914fd
 origin: level3-scan
 parents:
   - idea:engine-context-plans

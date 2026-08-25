@@ -1,15 +1,16 @@
 ---
-id: outcome:environment-indexers-r1
-type: outcome
-title: "Outcome: environment-indexers R1"
+id: "outcome:environment-indexers-r1"
+mint_id: 5c464e2b5448400ba53a43c8311138e4
+next_edges:
+  - bigger-outcome:environment-indexers-r1
 parents:
   - mvp:environment-indexers-r1
   - verdict:environment-indexers-r1
 tags:
   - environment-indexers
   - R1
-next_edges:
-  - bigger-outcome:environment-indexers-r1
+title: "Outcome: environment-indexers R1"
+type: outcome
 ---
 
 **Outcome:** Indexer invocation command available and working.

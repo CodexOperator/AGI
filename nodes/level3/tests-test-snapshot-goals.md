@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-test-snapshot-goals"
+mint_id: 6822341f98a441c5af4da675e6d7dd90
 origin: level3-scan
 parents:
   - idea:engine-tests
@@ -327,6 +328,24 @@ outputs:
 - name: test_default_still_only_warns
   how: 'defines public function `test_default_still_only_warns` at line 491, signature:
     (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_write_frontmatter_preserves_none_scalar
+  how: 'defines public function `test_write_frontmatter_preserves_none_scalar` at
+    line 514, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_write_frontmatter_preserves_none_list_entry
+  how: 'defines public function `test_write_frontmatter_preserves_none_list_entry`
+    at line 519, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_write_frontmatter_none_survives_a_second_round_trip
+  how: 'defines public function `test_write_frontmatter_none_survives_a_second_round_trip`
+    at line 524, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

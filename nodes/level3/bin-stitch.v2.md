@@ -1,18 +1,19 @@
 ---
 confidence: 0.85
 id: "level3:bin-stitch@v2"
+mint_id: 63c202d0c91a4ec4ade6734ec08af01f
 origin: build-version
-version: 2
-supersedes: "level3:bin-stitch"
 parents:
   - goal:g6.3
 payload_ref: extensions/agi/bin/stitch.py
+supersedes: "level3:bin-stitch"
 tags:
   - level3
   - build-version
   - g6.3
 title: "Level-3 v2: extensions/agi/bin/stitch.py — a version chain is not a duplicate payload_ref"
 type: level3
+version: 2
 ---
 
 `extensions/agi/bin/stitch.py` v2 — teaches `stitch.py` the version dimension `goal:g6.3` introduces this iteration, so a v1→v2 build-node pair sharing a `payload_ref` reads as a version chain instead of drift.

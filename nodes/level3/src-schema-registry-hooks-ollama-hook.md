@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-hooks-ollama-hook"
+mint_id: 9fb8c6c2e67d4094980188cd73275c98
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

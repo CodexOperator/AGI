@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-renderers-test-ascii-summary"
+mint_id: 8cd6fd181ca84367bb41be20fc35c1f6
 origin: level3-scan
 parents:
   - idea:engine-tests-renderers

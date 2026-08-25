@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-stitch"
+mint_id: db49423d700447349931cf1632f092e2
 origin: engine-decomp
 parents:
   - goal:g6.1

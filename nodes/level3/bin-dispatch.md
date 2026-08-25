@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-dispatch"
+mint_id: b3cae0bec6424ea4ab04beeb44ca70aa
 origin: level3-scan
 parents:
   - idea:engine-dispatch

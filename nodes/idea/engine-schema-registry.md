@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-schema-registry"
+mint_id: 76120a4f22eb413886a99e6a4780c315
 origin: engine-decomp
 parents:
   - goal:g5

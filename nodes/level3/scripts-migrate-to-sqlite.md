@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:scripts-migrate-to-sqlite"
+mint_id: 57b0106ec4f54f81bdf6b68555b8ed0c
 origin: level3-scan
 parents:
   - idea:engine-migrate-to-sqlite

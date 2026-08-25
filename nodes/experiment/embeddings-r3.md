@@ -1,7 +1,8 @@
 ---
 id: "exp:embeddings-r3"
+mint_id: 08db4a9a7b3b45d7bfe75c4bb7aba768
 next_edges:
-  - "verdict:embeddings-r3"
+  - verdict:embeddings-r3
 parents:
   - hyp:embeddings-r3
 subgraph: false

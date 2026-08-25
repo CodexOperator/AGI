@@ -3,7 +3,8 @@ confidence: 0.65
 contradicts: []
 evidence_runs:
   - exp:topological-queries-r1
-id: verdict:topological-queries-r1
+id: "verdict:topological-queries-r1"
+mint_id: f79fce513f4d4502be270f0b600333ed
 next_edges:
   - hypothesis:topology-hybrid-ranking-r1
 parents:

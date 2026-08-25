@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:deprecate-the-gamed-mass"
+mint_id: de4f70aaff7c4b7db9b81520fddb408d
 parents:
   - goal:g6
 scale: big
@@ -9,7 +10,7 @@ tags:
   - engine
   - seed
   - l19
-title: "Deprecate the gamed mass without deleting it"
+title: Deprecate the gamed mass without deleting it
 type: idea
 ---
 

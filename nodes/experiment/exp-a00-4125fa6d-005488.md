@@ -1,16 +1,17 @@
 ---
-id: experiment:exp-a00-4125fa6d-005488
-type: experiment
-title: "Agent Spawning via Verdict Nodes"
-parents:
-  - hypothesis:a00-4125fa6d-005488
-next_edges:
-  - verdict:verdict-a00-4125fa6d-005488
-verdict: pending
 confidence: 0.75
 evidence_runs:
   - run:1
   - run:2
+id: "experiment:exp-a00-4125fa6d-005488"
+mint_id: 16232b9405c34cd7b052086e985f6dcd
+next_edges:
+  - verdict:verdict-a00-4125fa6d-005488
+parents:
+  - hypothesis:a00-4125fa6d-005488
+title: Agent Spawning via Verdict Nodes
+type: experiment
+verdict: pending
 ---
 
 # experiment:exp-a00-4125fa6d-005488

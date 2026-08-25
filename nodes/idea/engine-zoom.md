@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-zoom"
+mint_id: 5fee111f3e6745bda385ae86c44d68f7
 origin: engine-decomp
 parents:
   - goal:g2

@@ -1,19 +1,20 @@
 ---
-id: verdict:verdict-a00-4125fa6d-005488
-type: verdict
-title: "Agent Spawning via Verdict Nodes — Architecturally Feasible"
-verdict: inconclusive_lean_proved
 confidence: 0.75
-lean_strength: 75
+contradicts: []
 evidence_runs:
   - exp:exp-a00-4125fa6d-005488
-contradicts: []
-supports:
-  - verdict:chain-engine-r8
-parents:
-  - experiment:exp-a00-4125fa6d-005488
+id: "verdict:verdict-a00-4125fa6d-005488"
+lean_strength: 75
+mint_id: ed29e1f7eb8a42c09b57eb7e05ef3d60
 next_edges:
   - mvp:mvp-a00-4125fa6d-005488
+parents:
+  - experiment:exp-a00-4125fa6d-005488
+supports:
+  - verdict:chain-engine-r8
+title: Agent Spawning via Verdict Nodes — Architecturally Feasible
+type: verdict
+verdict: inconclusive_lean_proved
 ---
 
 # verdict:verdict-a00-4125fa6d-005488

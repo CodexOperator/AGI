@@ -1,16 +1,18 @@
 ---
-id: "verdict:renderers-r1-r1-extend1"
-type: verdict
-verdict: inconclusive_lean_proved:50
 confidence: 1.0
-parents:
-  - "hypothesis:renderers-r1-r1"
-next_edges:
-  - "exp:renderers-r1-r1-extend2"
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:renderers-r1-r1-extend1"
+mint_id: ed3c6affda67498fbb1cd8d7800825a3
+next_edges:
+  - exp:renderers-r1-r1-extend2
+parents:
+  - hypothesis:renderers-r1-r1
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
+
 # verdict:renderers-r1-r1-extend1
 
 Chain extension cycle 1 (hops = 2*1+8 = 10).

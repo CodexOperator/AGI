@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-kits-cavekit-overview.md"
+mint_id: d52665ba334043e9ad36254ffb3ac7dc
 origin: level3-scan
 parents:
   - idea:engine-context-kits

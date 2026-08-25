@@ -1,17 +1,18 @@
 ---
 confidence: 1.0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
 id: "hypothesis:iter24-branching-chains"
+mint_id: 82bd0610a3f74a6b80a870e2c350ab40
+next_edges: []
 parents:
   - idea:domain-chain-engine
-next_edges: []
 tags:
   - branching-chains
   - chain-engine
 type: hypothesis
-verdict: inconclusive_lean_proved:50
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # hypothesis:iter24-branching-chains

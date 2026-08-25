@@ -2,6 +2,7 @@
 confidence: 0.65
 evidence_runs: []
 id: "exp:g5-lifecycle-enforcement"
+mint_id: 866e3a477f4840429fabb6ae38aed316
 parents:
   - goal:g5
 provenance: direct-engine-edit

@@ -1,18 +1,19 @@
 ---
 confidence: 0.82
 id: "level3:bin-grid@v2"
+mint_id: 9faf50074bcc46dea5bad1bf3b981557
 origin: build-version
-version: 2
-supersedes: "level3:bin-grid"
 parents:
   - goal:g2.5
 payload_ref: extensions/agi/bin/grid.py
+supersedes: "level3:bin-grid"
 tags:
   - level3
   - build-version
   - g2.5
 title: "Level-3 v2: extensions/agi/bin/grid.py — sanitize() becomes injective"
 type: level3
+version: 2
 ---
 
 `extensions/agi/bin/grid.py` v2 — `sanitize()` becomes injective, plus a `migrate-refs` subcommand to move the 810+ refs already minted under the old, non-injective scheme.

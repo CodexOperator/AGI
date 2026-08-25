@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:lib-agent-prompt.md"
+mint_id: 5658a94ea860424ea31fdc1b353e9ebf
 origin: level3-scan
 parents:
   - idea:engine-agent-prompt

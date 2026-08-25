@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: S8
 goal_kind: short-term
 id: "goal:s8"
+mint_id: d3ded88fb3b34d52beb8eb38ec6bf973
 origin: goals-doc
 seeds:
   - mvp:zoom-runtime-contract

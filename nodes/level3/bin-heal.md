@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-heal"
+mint_id: 2405ecff7d3a4584af5cd7ec815bc679
 origin: level3-scan
 parents:
   - idea:engine-heal

@@ -1,18 +1,19 @@
 ---
-id: mvp:a00-324837df-2546ce
-title: "MVP: Gensim Skip-Gram Node2Vec Wrapper"
-type: mvp
-status: open
 confidence: 0.95
-parents:
-  - verdict:a00-324837df-2546ce
+id: "mvp:a00-324837df-2546ce"
+mint_id: 9766d3c1c2c44ecab1f46c5b4639c97e
 next_edges:
   - outcome:a00-324837df-2546ce
+parents:
+  - verdict:a00-324837df-2546ce
+status: open
 tags:
   - embeddings
   - node2vec
   - gensim
   - MVP
+title: "MVP: Gensim Skip-Gram Node2Vec Wrapper"
+type: mvp
 ---
 
 **Script**: `exp-a00-324837df-vector-embedding-isomorphism-r2.py`

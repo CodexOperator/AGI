@@ -1,23 +1,24 @@
 ---
-id: hyp:vector-embedding-isomorphism-r1
-title: "R1: Node2Vec 2D coordinates isomorphic to ASCII render token positions"
-type: hypothesis
-parent_idea: idea:domain-vector-embedding-isomorphism
+confidence: 0.18
+demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
+demoted_from: disproved
 domain: vector-embedding-isomorphism
+evidence_runs: 0
+id: "hyp:vector-embedding-isomorphism-r1"
+mint_id: fb05c39e9d4a4a3f9400d13eb649372e
+parent_idea: "idea:domain-vector-embedding-isomorphism"
+spawns:
+  - task:t-093
+status: pending
 tags:
   - embeddings
   - node2vec
   - umap
   - isomorphism
   - render
-spawns:
-  - task:t-093
-status: pending
-verdict: inconclusive_lean_disproved:50
-confidence: 0.18
-evidence_runs: 0
-demoted_from: disproved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
+title: "R1: Node2Vec 2D coordinates isomorphic to ASCII render token positions"
+type: hypothesis
+verdict: "inconclusive_lean_disproved:50"
 ---
 
 ## Hypothesis

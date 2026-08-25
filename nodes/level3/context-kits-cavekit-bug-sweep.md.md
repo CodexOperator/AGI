@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-kits-cavekit-bug-sweep.md"
+mint_id: b67a1652b02c444e8fded2743f12dff5
 origin: level3-scan
 parents:
   - idea:engine-context-kits

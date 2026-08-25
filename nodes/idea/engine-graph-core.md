@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-graph-core"
+mint_id: f21fd8eb1d29439f9ba187f7e586b98d
 origin: engine-decomp
 parents:
   - goal:g7

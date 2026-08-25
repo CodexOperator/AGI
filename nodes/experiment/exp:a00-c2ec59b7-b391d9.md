@@ -1,7 +1,8 @@
 ---
-id: exp:a00-c2ec59b7-b391d9
-type: experiment
-title: "ASCII render proximity vs graph descendant overlap"
+id: "exp:a00-c2ec59b7-b391d9"
+mint_id: 1092eeaa56b844eaaeaace762617cd4c
+next_edges:
+  - verdict:a00-c2ec59b7-b391d9
 parents:
   - hypothesis:a00-c2ec59b7-b391d9
 tags:
@@ -9,8 +10,8 @@ tags:
   - ascii
   - isomorphism
   - spearman
-next_edges:
-  - verdict:a00-c2ec59b7-b391d9
+title: ASCII render proximity vs graph descendant overlap
+type: experiment
 ---
 
 ## Method

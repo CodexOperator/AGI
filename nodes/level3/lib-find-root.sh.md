@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:lib-find-root.sh"
+mint_id: 7749f4c9fed748b8ac80f98ddf1a922e
 origin: level3-scan
 parents:
   - idea:engine-find-root

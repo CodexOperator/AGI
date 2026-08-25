@@ -1,10 +1,11 @@
 ---
 id: "exp:schema-registry-r1-extend1"
-type: experiment
-parents:
-  - "hypothesis:schema-registry-r1"
+mint_id: 98ecd5ea27374c549f468d7b97e8c00f
 next_edges:
-  - "verdict:schema-registry-r1-extend1"
+  - verdict:schema-registry-r1-extend1
+parents:
+  - hypothesis:schema-registry-r1
+type: experiment
 ---
 
 # exp:schema-registry-r1-extend1

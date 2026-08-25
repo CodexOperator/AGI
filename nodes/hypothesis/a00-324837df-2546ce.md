@@ -1,19 +1,20 @@
 ---
-id: hypothesis:a00-324837df-2546ce
-title: "R2: Gensim Skip-Gram Node2Vec Preserves Graph Topology"
-type: hypothesis
-parent_idea: idea:domain-vector-embedding-isomorphism
 domain: vector-embedding-isomorphism
+id: "hypothesis:a00-324837df-2546ce"
+mint_id: cbe5102fffee43f9a2947c26ff776f63
+next_edges:
+  - exp:a00-324837df-2546ce
+parent_idea: "idea:domain-vector-embedding-isomorphism"
+spawns: []
+status: complete
 tags:
   - embeddings
   - node2vec
   - gensim
   - isomorphism
   - skip-gram
-spawns: []
-status: complete
-next_edges:
-  - exp:a00-324837df-2546ce
+title: "R2: Gensim Skip-Gram Node2Vec Preserves Graph Topology"
+type: hypothesis
 ---
 
 ## Hypothesis

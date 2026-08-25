@@ -1,8 +1,9 @@
 ---
 confidence: 0.97
 id: "mvp:a00-1467544f-aaaa25"
+mint_id: d1682de4be33400ea53225e83d90d25a
 next_edges:
-  - "outcome:a00-1467544f-aaaa25"
+  - outcome:a00-1467544f-aaaa25
 parents:
   - verdict:a00-1467544f-aaaa25
 subgraph: false

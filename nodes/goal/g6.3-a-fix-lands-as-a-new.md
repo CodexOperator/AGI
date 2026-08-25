@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: G6.3
 goal_kind: subgoal
 id: "goal:g6.3"
+mint_id: 6634587e21fc4173911d4024abb7d858
 origin: goals-doc
 parents:
   - goal:g6
@@ -56,8 +57,30 @@ evidence resolves).
   resolution to `commit_file()` as it ships today reproduces the failing variant.
   S9 first.
 
+**Correction 2026-08-25: a version is a grid commit, not a second file.** On
+2026-08-24 this was implemented as separate `@v2` node *files* — `level3:x` plus
+`level3:x@v2`, both pointing at one `payload_ref`, with `supersedes:` linking
+them. That was a misreading of this goal. "A fix lands as a new version of a
+build node" means the node is **updated in place** and the grid records the
+version; it does not mean a new file per version. The file convention duplicated
+what `refs/grid/node/<id>` already does, inflated the on-disk graph with one node
+per revision, and forced `stitch.py` to grow a whole version-chain concept
+(`level3:bin-stitch@v2`) to tell a legitimate pair apart from a genuine
+duplicate `payload_ref`.
+
+**The convention going forward:** edit the node, let the grid be the history.
+Version history is not flat structure on disk — it is depth you zoom into
+(**G2.7**). Grid commit messages should name the parent nodes by **mint id**
+(**G2.5**) so a renderer can traverse disk nodes and grid commits as one
+hypergraph.
+
+The four `@v2` nodes already minted (`bin-stitch`, `lib-find-root.sh`,
+`skills-agi-SKILL.md`, `bin-grid`, plus `src-graph-core-identity`) stay for now
+and are folded back in a later pass — deliberately not rushed, since collapsing
+them touches `stitch.py`'s chain logic and the grid refs that already carry their
+history. `stitch.py`'s version-chain support is not wasted either way: it is what
+keeps a transitional corpus from reading as drift.
+
 This also settles that the anatomy decision was not overturned by fiat. A grid
 ref is never checked out, so it is not a second copy of the tree — it is a second
-*name* into the same object store. When bytes match, git's hashing makes them the
-same object, which is a stronger non-drift guarantee than "never inlined" was
-reaching for.
+*name* into the same object stor

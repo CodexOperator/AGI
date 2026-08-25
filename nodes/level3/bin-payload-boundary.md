@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-payload-boundary"
+mint_id: b8e5e23113f9468bbaec8c61de67774c
 origin: level3-scan
 parents:
   - idea:engine-payload-boundary

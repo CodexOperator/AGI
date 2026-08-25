@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-schema-registry-test-hooks"
+mint_id: a416b37d95224f3fa8caa18aa661413a
 origin: level3-scan
 parents:
   - idea:engine-tests-schema-registry

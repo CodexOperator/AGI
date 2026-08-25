@@ -3,6 +3,7 @@ confidence: 0.75
 evidence_runs:
   - exp:grid-payload-roundtrip
 id: "verdict:payload-in-node"
+mint_id: f0dc116e9820405cb2b7fbe6bdc6bcd9
 parents:
   - exp:grid-payload-roundtrip
 status: open
@@ -10,7 +11,7 @@ subgraph: false
 tags:
   - g6.3
   - grid
-title: "Grid-ref payload roundtrip proves the core claim; reusing commit_file() as-is is unendorsed"
+title: Grid-ref payload roundtrip proves the core claim; reusing commit_file() as-is is unendorsed
 type: verdict
 verdict: proved
 ---

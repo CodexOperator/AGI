@@ -1,8 +1,9 @@
 ---
 id: "app-purpose:embeddings"
+mint_id: e406dfa681f94db182e7fc514d018ffc
 next_edges: []
 parents:
-  - "bigger-outcome:embeddings-r2"
+  - bigger-outcome:embeddings-r2
 subgraph: false
 tags:
   - embeddings

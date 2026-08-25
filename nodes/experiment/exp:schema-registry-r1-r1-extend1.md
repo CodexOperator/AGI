@@ -1,11 +1,13 @@
 ---
 id: "exp:schema-registry-r1-r1-extend1"
-type: experiment
-parents:
-  - "hypothesis:schema-registry-r1-r1"
+mint_id: d5f27ef053c04cb5a322e618c95981be
 next_edges:
-  - "verdict:schema-registry-r1-r1-extend1"
+  - verdict:schema-registry-r1-r1-extend1
+parents:
+  - hypothesis:schema-registry-r1-r1
+type: experiment
 ---
+
 # exp:schema-registry-r1-r1-extend1
 
 Chain extension experiment cycle 1 (hops = 2*0+8 = 8).

@@ -1,19 +1,20 @@
 ---
-id: "verdict:a00-407fa689-verdict-pareto"
-type: verdict
-verdict: inconclusive_lean_proved:50
 confidence: 0.95
+contradicts: []
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
 evidence_runs: 0
+id: "verdict:a00-407fa689-verdict-pareto"
+mint_id: edf9509a3d8d4853bd20a57aa2b5e0e4
+parents:
+  - hypothesis:a00-407fa689-3a4948
+supports: []
 tags:
   - chain-extension
   - bias
   - orphaned
-parents:
-  - hypothesis:a00-407fa689-3a4948
-contradicts: []
-supports: []
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # verdict:a00-407fa689-verdict-pareto

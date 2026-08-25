@@ -1,14 +1,15 @@
 ---
-id: bigger-outcome:environment-indexers-r1
-type: bigger_outcome
-title: "Bigger Outcome: environment-indexers"
+id: "bigger-outcome:environment-indexers-r1"
+mint_id: ed98072e7f934ab3b420706331532788
+next_edges:
+  - app-purpose:environment-indexers
 parents:
   - outcome:environment-indexers-r1
   - mvp:environment-indexers-r1
 tags:
   - environment-indexers
-next_edges:
-  - app-purpose:environment-indexers
+title: "Bigger Outcome: environment-indexers"
+type: bigger_outcome
 ---
 
 **Bigger Outcome:** Pluggable indexer system for multiple external sources.

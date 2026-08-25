@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-active-set"
+mint_id: a9668d4b83194a8a830403b9c846c3f0
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

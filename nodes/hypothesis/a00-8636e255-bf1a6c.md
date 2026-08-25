@@ -1,16 +1,17 @@
 ---
-id: hypothesis:a00-8636e255-bf1a6c
-type: hypothesis
-parent_idea: idea:domain-renderers
 domain: renderers
+id: "hypothesis:a00-8636e255-bf1a6c"
+mint_id: c813570f32c14b84b87929de8ba67e4f
+parent_idea: "idea:domain-renderers"
+spawns: []
+status: open
 tags:
   - renderers
   - mermaid
   - r3
   - deterministic
   - validity
-spawns: []
-status: open
+type: hypothesis
 ---
 
 # hypothesis:a00-8636e255-bf1a6c

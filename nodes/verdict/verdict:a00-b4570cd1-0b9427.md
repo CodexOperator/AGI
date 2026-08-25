@@ -2,21 +2,22 @@
 confidence: 0.98
 contrasts: []
 evidence_runs:
-  - "exp-render-context-fix-chain-length.py"
+  - exp-render-context-fix-chain-length.py
 id: "verdict:a00-b4570cd1-0b9427"
+mint_id: 0775b843e55b45d3b74f656d1de9b46e
 next_edges:
-  - "mvp:a00-b4570cd1-context-injection-fix"
+  - mvp:a00-b4570cd1-context-injection-fix
 parents:
-  - "exp:a00-b4570cd1-context-injection-fix"
-status: "proved"
+  - exp:a00-b4570cd1-context-injection-fix
+status: proved
 subgraph: false
 supports:
-  - "verdict:graph-core-r1"
-  - "verdict:embeddings-r2"
-  - "verdict:embeddings-r3"
-  - "verdict:chain-engine-r1"
+  - verdict:graph-core-r1
+  - verdict:embeddings-r2
+  - verdict:embeddings-r3
+  - verdict:chain-engine-r1
 title: "iter30: context longest_chain 0→199 hops via next_edges fix"
-type: "verdict"
+type: verdict
 ---
 
 **Verdict:** PROVED (confidence 0.98)

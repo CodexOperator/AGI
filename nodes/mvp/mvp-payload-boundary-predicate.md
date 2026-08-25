@@ -2,13 +2,14 @@
 confidence: 0.75
 evidence_runs: []
 id: "mvp:payload-boundary-predicate"
+mint_id: 9e9f859800d94ce587e10836f05eaf1c
 parents:
   - goal:g6.8
 subgraph: false
 tags:
   - g6.8
   - level3
-title: "A three-rule predicate for the G6.8 payload boundary, run against all 316 tracked files in agi"
+title: A three-rule predicate for the G6.8 payload boundary, run against all 316 tracked files in agi
 type: mvp
 ---
 

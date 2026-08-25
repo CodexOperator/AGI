@@ -1,16 +1,34 @@
 ---
 confidence: 0.9
+contradicts: []
+evidence_runs: 1
 id: "verdict:zoom-encoded-node-ids"
+mint_id: 57859600bb8d41c1b17f0af9f976fb0b
 parents:
   - exp:id-fanout-budget
+supports:
+  - hyp:zoom-encoded-node-ids
+tags:
+  - g2.5
+title: "Verdict: fan-out budget for zoom-encoded ids"
 type: verdict
 verdict: proved
-evidence_runs: 1
-supports: [hyp:zoom-encoded-node-ids]
-contradicts: []
-tags: [g2.5]
-title: "Verdict: fan-out budget for zoom-encoded ids"
 ---
+
+> ⚠️ **Superseding note added on review, 2026-08-24 — read this before citing
+> this verdict.** G2.5 was rewritten after this measurement to the *address*
+> model: ids are fixed-width 7-character hierarchical addresses, and a
+> supernode is a renderer-side grouping named by a shared **prefix**, not a
+> parent node. Under that model the binding capacity number is **members per
+> shared prefix**, which is determined by the tag taxonomy (G2.6). This
+> experiment measured **children per parent by the `parents:` field**, which is
+> a different quantity. Everything below remains true *as a statement about
+> lineage fan-out* and is kept as prior art, but it is **not** evidence for
+> G2.5's capacity claim as that goal now reads. The re-registered falsifier —
+> max members per tag-derived group — is unrun. Do not let the `proved` in this
+> node's frontmatter carry weight it did not earn: the claim it proves is the
+> one stated in the next paragraph, and that claim is now a side fact rather
+> than a precondition of the live design.
 
 **Scope of this verdict: the fan-out-budget precondition only, not G2.5 as
 a whole.** `exp:id-fanout-budget` measured one falsifiable claim: does any

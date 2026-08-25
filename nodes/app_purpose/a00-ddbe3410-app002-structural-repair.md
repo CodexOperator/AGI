@@ -1,7 +1,8 @@
 ---
 id: "app_purpose:a00-ddbe3410-app002-structural-repair"
+mint_id: d4e1c90db92347e6abe1e306aaf36615
 parents:
-  - "bigger_outcome:a00-ddbe3410-bo002-structural-repair"
+  - bigger_outcome:a00-ddbe3410-bo002-structural-repair
 tags:
   - structural-bias
   - purpose

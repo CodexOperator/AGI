@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: S9
 goal_kind: short-term
 id: "goal:s9"
+mint_id: 2513e14e53704aaab53d51318542bb1f
 origin: goals-doc
 seeds: []
 status: active

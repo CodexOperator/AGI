@@ -1,13 +1,16 @@
 ---
-id: "verdict:a00-8636e255-bf1a6c"
-title: "Verdict: Mermaid Renderer R3 — Valid and Deterministic"
-type: verdict
-status: open
-verdict: inconclusive_lean_proved:50
 confidence: 1.0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
+id: "verdict:a00-8636e255-bf1a6c"
+mint_id: aefe5460cf0f4741b86e5b59ab34ffb1
+next_edges:
+  - hypothesis:renderers-r3-renderersr3-mermaid-renderer
 parents:
-  - "exp:a00-8636e255-bf1a6c"
+  - exp:a00-8636e255-bf1a6c
   - hypothesis:a00-8636e255-bf1a6c
+status: open
 tags:
   - renderers
   - mermaid
@@ -15,11 +18,9 @@ tags:
   - proved
   - determinism
   - validity
-next_edges:
-  - hypothesis:renderers-r3-renderersr3-mermaid-renderer
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+title: "Verdict: Mermaid Renderer R3 — Valid and Deterministic"
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 **VERDICT: PROVED**

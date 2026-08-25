@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-cascade"
+mint_id: e650f0c610854c968cafa207678a56a9
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

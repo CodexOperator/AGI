@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-renderers-ascii"
+mint_id: fc77db73444844d5a84c604a7d71d12a
 origin: level3-scan
 parents:
   - idea:engine-renderers

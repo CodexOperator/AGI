@@ -1,19 +1,20 @@
 ---
-id: hypothesis:a00-695d830c-499a8b
-title: "UMAP 2D projection enables graph↔render coordinate isomorphism"
-type: hypothesis
-parent_idea: idea:domain-vector-embedding-isomorphism
+confidence: 0.5
 domain: vector-embedding-isomorphism
+id: "hypothesis:a00-695d830c-499a8b"
+mint_id: 5684c3c736b5416db9565cbdd7eb90be
+parent_idea: "idea:domain-vector-embedding-isomorphism"
+spawns: []
+status: pending
 tags:
   - embeddings
   - umap
   - isomorphism
   - neighborhood
   - render
-spawns: []
-status: pending
+title: UMAP 2D projection enables graph↔render coordinate isomorphism
+type: hypothesis
 verdict: pending
-confidence: 0.5
 ---
 
 # hypothesis:a00-695d830c-499a8b

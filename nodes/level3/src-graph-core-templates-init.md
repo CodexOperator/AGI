@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-graph-core-templates-init"
+mint_id: 8b560f5228f0434b9bf396a034e16538
 origin: level3-scan
 parents:
   - idea:engine-graph-core

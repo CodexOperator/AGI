@@ -2,12 +2,13 @@
 confidence: 0.8
 evidence_runs: 1
 id: "exp:dashboard-cli-r1"
+mint_id: 01809e8e8f774c65ab2e570214a1a5c8
 parents:
   - goal:g9.1
 tags:
   - legibility
   - g9.1
-title: "CLI dashboard, first build"
+title: CLI dashboard, first build
 type: experiment
 ---
 

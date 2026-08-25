@@ -1,11 +1,12 @@
 ---
 id: "exp:a00-b4570cd1-context-injection-fix"
-type: experiment
-title: "iter30: Fix render-context longest_chain (spawns→next_edges)"
-parents:
-  - "hypothesis:a00-b4570cd1-0b9427"
+mint_id: 9049d8c0826344539c58f4c2bcfc8f1c
 next_edges:
-  - "verdict:a00-b4570cd1-0b9427"
+  - verdict:a00-b4570cd1-0b9427
+parents:
+  - hypothesis:a00-b4570cd1-0b9427
+title: "iter30: Fix render-context longest_chain (spawns→next_edges)"
+type: experiment
 ---
 
 **Experiment:** Fix `_longest_chain_length()` in `render-context.py`

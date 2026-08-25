@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-self-decomposition"
+mint_id: 404c121212fa40ed99e1dc5e4eefa3e6
 parents:
   - goal:g6
 scale: big

@@ -4,8 +4,9 @@ contradicts: []
 evidence_runs:
   - exp:a00-1467544f-aaaa25
 id: "verdict:a00-1467544f-aaaa25"
+mint_id: 9f467422284d4fc7a214305898bb29c6
 next_edges:
-  - "mvp:a00-1467544f-aaaa25"
+  - mvp:a00-1467544f-aaaa25
 parents:
   - exp:a00-1467544f-aaaa25
 status: proved

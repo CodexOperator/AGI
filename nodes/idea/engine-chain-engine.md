@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-chain-engine"
+mint_id: e2e61c701167497d9d09a229e26ff7c7
 origin: engine-decomp
 parents:
   - goal:g3

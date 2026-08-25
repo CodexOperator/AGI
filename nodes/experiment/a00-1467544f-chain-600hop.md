@@ -1,8 +1,9 @@
 ---
 confidence: 1.0
 id: "exp:a00-1467544f-chain-600hop"
+mint_id: d724424a24e54a369cebe5401ec060f4
 next_edges:
-  - "verdict:a00-1467544f-chain-600hop"
+  - verdict:a00-1467544f-chain-600hop
 parents:
   - hyp:a00-1467544f-chain-600hop
 subgraph: false

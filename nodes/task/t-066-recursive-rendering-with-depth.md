@@ -14,6 +14,7 @@ blocked_by:
 cavekit_req: renderers/R6
 effort: M
 id: "task:t-066"
+mint_id: a3be09e096fa47f6ad13654a35f0d31a
 origin: build-site
 parents:
   - hyp:renderers-r6

@@ -1,22 +1,23 @@
 ---
-id: exp:exporters-r1-extend
-title: "Experiment: Exporters R1 Extended"
-type: experiment
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 1.0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
+id: "exp:exporters-r1-extend"
+mint_id: 29edd06bcba74972839b9fe29592aa1c
+next_edges:
+  - verdict:exporters-r1-extend
 parents:
   - hyp:exporters-r1
   - verdict:exporters-r1
+status: proved
 tags:
   - exporters
   - chain-extension
   - r1-extend
-next_edges:
-  - verdict:exporters-r1-extend
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+title: "Experiment: Exporters R1 Extended"
+type: experiment
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # Experiment: Exporters R1 Extended

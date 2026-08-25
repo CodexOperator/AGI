@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:skills-agi-SKILL.md"
+mint_id: 953405ff83b54fadbf6a761593968783
 origin: level3-scan
 parents:
   - idea:engine-skill-doc

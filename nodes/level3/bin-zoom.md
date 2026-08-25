@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-zoom"
+mint_id: 748058ed9c1e41a7acc8c44672c6088e
 origin: level3-scan
 parents:
   - idea:engine-zoom

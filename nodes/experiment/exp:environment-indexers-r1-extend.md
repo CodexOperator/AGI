@@ -1,7 +1,8 @@
 ---
-id: exp:environment-indexers-r1-extend
-type: experiment
-title: "Extend environment-indexers-r1 chain to 10 hops via verdict→experiment→verdict pattern"
+id: "exp:environment-indexers-r1-extend"
+mint_id: bffbfcd90060440f8bee6c70c581896f
+next_edges:
+  - verdict:environment-indexers-r1-extend
 parents:
   - verdict:environment-indexers-r1
   - hyp:environment-indexers-r1
@@ -9,8 +10,8 @@ tags:
   - environment-indexers
   - chain-extension
   - verdict-experiment-transition
-next_edges:
-  - verdict:environment-indexers-r1-extend
+title: Extend environment-indexers-r1 chain to 10 hops via verdict→experiment→verdict pattern
+type: experiment
 ---
 
 Extend chain via verdict→experiment→verdict pattern.

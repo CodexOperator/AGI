@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-hooks-claude-hook"
+mint_id: ff234368695a4c998804209fc7ffaf22
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

@@ -1,8 +1,10 @@
 ---
 branched_from_version: 1
 confidence: 0.85
-evidence_runs: [exp:evidence-gate-resolution-r1]
+evidence_runs:
+  - exp:evidence-gate-resolution-r1
 id: "exp:evidence-gate-coverage"
+mint_id: b30e4bc049e74c288ae49b24a09f6573
 parents:
   - level3:bin-evidence-gate
 subgraph: false

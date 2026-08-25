@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-post-wire"
+mint_id: e4df40631893457884e98fbde686fadb
 origin: engine-decomp
 parents:
   - goal:g3.1

@@ -1,14 +1,15 @@
 ---
-id: idea:domain-exporters
-title: "Domain: Exporters"
-type: idea
-status: open
+id: "idea:domain-exporters"
+mint_id: 1feed57b3b594ce6a108f4926e46f2a0
 next_edges:
   - hyp:exporters-r1
+status: open
 tags:
   - domain
   - fresh-idea
   - iter13
+title: "Domain: Exporters"
+type: idea
 ---
 
 # Big Idea: Exporters — Capillary DAG to External Formats

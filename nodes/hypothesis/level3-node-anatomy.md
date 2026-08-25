@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:level3-node-anatomy"
+mint_id: f4733a9e9c1f4bf5a779fbda714cfef7
 parents:
   - goal:g2.1
 subgraph: false
@@ -8,7 +9,7 @@ tags:
   - zoom
   - level3
   - g2.1
-testable_claim: A level-3 node's harness-attached slots (payload_ref, origin, contract block) reach 1.000 recall by construction while its model-authored prose stays >=0.792 (the measured DESC-prose baseline) across >=3 trials on >=2 real files, one of which is under bin/.
+testable_claim: "A level-3 node's harness-attached slots (payload_ref, origin, contract block) reach 1.000 recall by construction while its model-authored prose stays >=0.792 (the measured DESC-prose baseline) across >=3 trials on >=2 real files, one of which is under bin/."
 title: "Level-3 node anatomy: harness-attached structure, model-authored prose"
 type: hypothesis
 ---

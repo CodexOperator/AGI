@@ -12,6 +12,7 @@ blocked_by:
 cavekit_req: schema-registry/R8
 effort: L
 id: "task:t-031"
+mint_id: e6d3ab06ca844b14a73088bc623aa40c
 origin: build-site
 parents:
   - hyp:schema-registry-r8

@@ -1,7 +1,8 @@
 ---
 id: "outcome:graph-core-r1"
+mint_id: 2cda138a563241bd850f03a56178653d
 next_edges:
-  - "bigger-outcome:graph-core-r1"
+  - bigger-outcome:graph-core-r1
 parents:
   - mvp:graph-core-r1
 subgraph: false

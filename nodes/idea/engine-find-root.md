@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-find-root"
+mint_id: 3abbff5a81b34041bc547f732c0a6510
 origin: engine-decomp
 parents:
   - goal:g1

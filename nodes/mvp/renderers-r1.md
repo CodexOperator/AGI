@@ -1,7 +1,8 @@
 ---
 id: "mvp:renderers-r1"
+mint_id: c4c4999ffaa34ae5ab3a29db5a265273
 next_edges:
-  - "outcome:renderers-r1"
+  - outcome:renderers-r1
 parents:
   - verdict:renderers-r1
 subgraph: false

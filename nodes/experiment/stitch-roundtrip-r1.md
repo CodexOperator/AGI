@@ -2,13 +2,14 @@
 confidence: 0.8
 evidence_runs: 1
 id: "exp:stitch-roundtrip-r1"
+mint_id: 6aa5e46bb8864417a93adec72a6a897f
 parents:
   - goal:g6.1
 tags:
   - level3
   - stitch
   - g6.1
-title: "Stitch level-3 nodes back into a runnable tree"
+title: Stitch level-3 nodes back into a runnable tree
 type: experiment
 ---
 

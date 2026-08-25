@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: S3
 goal_kind: short-term
 id: "goal:s3"
+mint_id: 99dbc70857fd4bccb9fa9ddb8014f4d0
 origin: goals-doc
 seeds: []
 status: active

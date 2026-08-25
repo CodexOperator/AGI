@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:autoresearch.sh"
+mint_id: 845b8e738bd44b3e8c139278223b6088
 origin: level3-scan
 parents:
   - idea:engine-autoresearch-sh

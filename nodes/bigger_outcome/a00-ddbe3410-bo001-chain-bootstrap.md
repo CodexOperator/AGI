@@ -1,9 +1,10 @@
 ---
 id: "bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap"
-parents:
-  - "outcome:a00-ddbe3410-outcome001-chain-bootstrap"
+mint_id: 1d680aae096e46be830779231268273f
 next_edges:
-  - "app_purpose:a00-ddbe3410-app001-chain-bootstrap"
+  - app_purpose:a00-ddbe3410-app001-chain-bootstrap
+parents:
+  - outcome:a00-ddbe3410-outcome001-chain-bootstrap
 tags:
   - bootstrap
 title: "BIGGER_OUTCOME001: chain-bootstrap domain enables capillary DAG execution"

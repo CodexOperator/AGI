@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-embeddings-init"
+mint_id: 23735f09b6804e29a4d230109e15aed7
 origin: level3-scan
 parents:
   - idea:engine-tests-embeddings

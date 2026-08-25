@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:domain-chain-engine"
+mint_id: 60dfa5469cb1476cbc740e5957f16f7f
 next_edges:
   - hyp:chain-engine-r1
 origin: build-site

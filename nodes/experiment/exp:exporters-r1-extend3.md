@@ -1,15 +1,16 @@
 ---
 id: "exp:exporters-r1-extend3"
-type: experiment
-title: "Extend exporters chain to 14 hops"
+mint_id: 01ce5f566dd14151b13db776671c5d69
+next_edges:
+  - verdict:exporters-r1-extend3
 parents:
-  - "verdict:exporters-r1-extend2"
+  - verdict:exporters-r1-extend2
 tags:
   - exporters
   - chain-extension
   - third-cycle
-next_edges:
-  - "verdict:exporters-r1-extend3"
+title: Extend exporters chain to 14 hops
+type: experiment
 ---
 
 Third verdict→experiment→verdict cycle to extend chain from 12 to 14 hops.

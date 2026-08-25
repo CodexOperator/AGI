@@ -1,26 +1,26 @@
 ---
-id: verdict:environment-indexers-r1-extend
-type: verdict
-title: 'Verdict: environment-indexers-r1 extended (10-hop chain)'
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 0.85
-parents:
-- exp:environment-indexers-r1-extend
-- verdict:environment-indexers-r1
-tags:
-- environment-indexers
-- chain-extension
-- verdict-experiment-transition
-- proved
-next_edges:
-- exp:environment-indexers-r1-extend2
-synthetic: true
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:environment-indexers-r1-extend"
+mint_id: 8b7a2c41731542f8b9aeb8ca6f62382a
+next_edges:
+  - exp:environment-indexers-r1-extend2
+parents:
+  - exp:environment-indexers-r1-extend
+  - verdict:environment-indexers-r1
+status: proved
+synthetic: true
+tags:
+  - environment-indexers
+  - chain-extension
+  - verdict-experiment-transition
+  - proved
+title: "Verdict: environment-indexers-r1 extended (10-hop chain)"
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
-
 
 VERDICT: proved. Chain extended from 8 to 10 hops via verdict→experiment→verdict pattern.
 

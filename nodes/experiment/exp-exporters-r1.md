@@ -1,23 +1,24 @@
 ---
-id: exp:exporters-r1
-title: "Experiment: Exporters R1 — Markdown Exporter"
-type: experiment
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 1.0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
+id: "exp:exporters-r1"
+mint_id: 6c9279ff57e24184a228b3f53147fb9f
+next_edges:
+  - verdict:exporters-r1
 parents:
   - hyp:exporters-r1
   - idea:domain-exporters
+status: proved
 tags:
   - exporters
   - R1
   - experiment
   - proved
-next_edges:
-  - verdict:exporters-r1
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+title: "Experiment: Exporters R1 — Markdown Exporter"
+type: experiment
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # Experiment: Exporters R1 — Markdown Exporter

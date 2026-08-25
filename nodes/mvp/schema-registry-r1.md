@@ -1,7 +1,8 @@
 ---
 id: "mvp:schema-registry-r1"
+mint_id: 264d718d0a234bdbb71a6239f91e7bce
 next_edges:
-  - "outcome:schema-registry-r1"
+  - outcome:schema-registry-r1
 parents:
   - verdict:schema-registry-r1
 subgraph: false

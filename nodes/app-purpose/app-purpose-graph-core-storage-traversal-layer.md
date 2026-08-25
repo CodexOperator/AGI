@@ -1,8 +1,9 @@
 ---
 id: "app-purpose:graph-core-storage-traversal-layer"
+mint_id: c00f7c79da1a4e7b88d51ec53e496a6b
 next_edges: []
 parents:
-  - "bigger-outcome:graph-core-r1"
+  - bigger-outcome:graph-core-r1
 subgraph: false
 tags:
   - graph-core

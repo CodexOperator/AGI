@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-hooks-init"
+mint_id: 09ab19dff7a34efeb649aea4137255b1
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

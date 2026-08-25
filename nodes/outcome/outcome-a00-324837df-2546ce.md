@@ -1,17 +1,18 @@
 ---
-id: outcome:a00-324837df-2546ce
-title: "Outcome: Gensim Skip-Gram Embeddings"
-type: outcome
-status: open
 confidence: 0.95
-parents:
-  - mvp:a00-324837df-2546ce
+id: "outcome:a00-324837df-2546ce"
+mint_id: 5541a39537bc4518b06bdeb78b75a0f5
 next_edges:
   - bigger_outcome:a00-324837df-2546ce
+parents:
+  - mvp:a00-324837df-2546ce
+status: open
 tags:
   - embeddings
   - node2vec
   - isomorphism
+title: "Outcome: Gensim Skip-Gram Embeddings"
+type: outcome
 ---
 
 **Input**: Graph with 2968 nodes, 2440 edges (autoresearch-tree capillary DAG)

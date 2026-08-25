@@ -1,7 +1,8 @@
 ---
 id: "bigger-outcome:graph-core-primitives-r1-r10"
+mint_id: d4682171bf004e9f807055b13cf77b76
 next_edges:
-  - "app-purpose:graph-core"
+  - app-purpose:graph-core
 parents:
   - outcome:graph-core-r1
 subgraph: false

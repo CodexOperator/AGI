@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-agi-algos-asciirender"
+mint_id: 9c2a57d633aa4e009c15cdf9b440511c
 origin: level3-scan
 parents:
   - idea:engine-agi-algos

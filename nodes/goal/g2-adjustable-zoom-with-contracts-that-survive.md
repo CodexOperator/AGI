@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: G2
 goal_kind: long-term
 id: "goal:g2"
+mint_id: bcbb7e64bb824b74876ad5db95c89969
 origin: goals-doc
 seeds:
   - exp:zoom-numeric-axis-r1
@@ -11,6 +12,8 @@ seeds:
   - goal:g2.3
   - goal:g2.4
   - goal:g2.5
+  - goal:g2.6
+  - goal:g2.7
   - idea:engine-embeddings
   - idea:engine-zoom
 status: active
@@ -27,6 +30,15 @@ executable artifact rather than a description of one. Build level 3 first and
 treat the others as projections around it.
 
 **Invariant:** one node at level N ⇔ a collection at level N+1, and back.
+
+⚠️ **`level3` as a node type is legacy stale wording, and the graph should carry
+no zoom-level names at all.** A zoom level is a *view*, and baking a view's name
+into the data was a category error: it froze one grain into the type system and
+made the other grains unnameable. Zoom is now organised on two axes and neither
+of them is a level number — coarser grains come from **tags and addresses**
+(G2.5, G2.6), finer grains from **mint ids and the grid** (G2.7). A node is a
+node. Retiring the name is **S11**; it is mechanical and touches ~180 files, so
+it is sequenced deliberately rather than done in passing.
 
 🔴 **Already falsified for the free-form implementation, and the number is
 known:** 0.441 overall claim recall against a 0.90 bar, 12 agents over 6

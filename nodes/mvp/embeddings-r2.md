@@ -1,7 +1,8 @@
 ---
 id: "mvp:embeddings-r2"
+mint_id: 9fffa74147e04d6794845012390f544e
 next_edges:
-  - "outcome:embeddings-r2"
+  - outcome:embeddings-r2
 parents:
   - verdict:embeddings-r2
 subgraph: false

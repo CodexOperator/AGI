@@ -1,17 +1,18 @@
 ---
-id: "verdict:vector-embedding-isomorphism-r1"
-title: "R1: Node2Vec 2D coordinates isomorphic to graph topology"
-type: verdict
-parent_hypothesis: hyp:vector-embedding-isomorphism-r1
-domain: vector-embedding-isomorphism
-status: disproved
 confidence: 0.18
+domain: vector-embedding-isomorphism
 evidence_runs:
   - exp:vector-embedding-isomorphism-r1
+id: "verdict:vector-embedding-isomorphism-r1"
+mint_id: 4f36d24048da48f69f88c7cbb2b1e0e9
+parent_hypothesis: "hyp:vector-embedding-isomorphism-r1"
+status: disproved
 tags:
   - embeddings
   - isomorphism
   - R1
+title: "R1: Node2Vec 2D coordinates isomorphic to graph topology"
+type: verdict
 ---
 
 **Verdict:** DISPROVED

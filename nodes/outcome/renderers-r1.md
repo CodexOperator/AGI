@@ -1,7 +1,8 @@
 ---
 id: "outcome:renderers-r1"
+mint_id: ebf4d73f723a4b4fa5204be534cd3ce2
 next_edges:
-  - "bigger-outcome:renderers-r1"
+  - bigger-outcome:renderers-r1
 parents:
   - mvp:renderers-r1
 subgraph: false

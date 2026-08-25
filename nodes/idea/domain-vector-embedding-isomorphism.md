@@ -1,8 +1,10 @@
 ---
-id: idea:domain-vector-embedding-isomorphism
-title: "Vector Embedding Isomorphism: Graph↔Render Duality"
-type: idea
 domain: vector-embedding-isomorphism
+id: "idea:domain-vector-embedding-isomorphism"
+mint_id: 3b8e843c721c41d2b3d5b7304bcf37c2
+spawns:
+  - hyp:vector-embedding-isomorphism-r1
+  - hypothesis:a00-324837df-2546ce
 tags:
   - embeddings
   - renderers
@@ -10,9 +12,8 @@ tags:
   - node2vec
   - umap
   - duality
-spawns:
-  - hyp:vector-embedding-isomorphism-r1
-  - hypothesis:a00-324837df-2546ce
+title: "Vector Embedding Isomorphism: Graph↔Render Duality"
+type: idea
 ---
 
 # Domain: Vector Embedding Isomorphism

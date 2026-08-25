@@ -1,16 +1,17 @@
 ---
-id: hypothesis:a00-b43be286-f3ca7b
-type: hypothesis
-title: "Topology attractor regions predict chain completion"
 domain: graph-topology
+id: "hypothesis:a00-b43be286-f3ca7b"
+mint_id: 0c46891cf89e4183a3fa7802d9fbb160
+next_edges: []
+parents: []
 tags:
   - topology
   - chain-completion
   - attractor-regions
   - density
   - statistical-test
-parents: []
-next_edges: []
+title: Topology attractor regions predict chain completion
+type: hypothesis
 ---
 
 # hypothesis:a00-b43be286-f3ca7b
@@ -43,4 +44,3 @@ No significant difference in completion rates across density bins (p ≥ 0.05), 
 - Script: `python3 - <<'EOF'` computing BFS-based fan-in/fan-out per task node, density binning, Fisher exact test.
 - Input: graph built from existing nodes on disk.
 - Output: table of density-bins vs completed/pending counts, p-value.
-

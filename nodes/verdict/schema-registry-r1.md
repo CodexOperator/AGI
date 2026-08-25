@@ -4,6 +4,7 @@ contrasts: []
 evidence_runs:
   - exp:schema-registry-r1
 id: "verdict:schema-registry-r1"
+mint_id: 4a2f29d1b2394e9ca86f2f545d131210
 next_edges:
   - exp:schema-registry-r1-extend
   - mvp:schema-registry-r1

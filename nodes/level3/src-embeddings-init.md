@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-embeddings-init"
+mint_id: b2f49a2bf40145d0b3c23a71f0e40650
 origin: level3-scan
 parents:
   - idea:engine-embeddings

@@ -1,19 +1,20 @@
 ---
-id: exp:a00-324837df-2546ce
-title: "R2: Gensim Skip-Gram Node2Vec Topology Preservation"
-type: experiment
-parent_hypothesis: hypothesis:a00-324837df-2546ce
 domain: vector-embedding-isomorphism
+id: "exp:a00-324837df-2546ce"
+mint_id: 7bad2164b95746689a109773f8839469
+next_edges:
+  - verdict:a00-324837df-2546ce
+parent_hypothesis: "hypothesis:a00-324837df-2546ce"
+spawns: []
+status: complete
 tags:
   - embeddings
   - node2vec
   - gensim
   - skip-gram
   - spearman
-spawns: []
-status: complete
-next_edges:
-  - verdict:a00-324837df-2546ce
+title: "R2: Gensim Skip-Gram Node2Vec Topology Preservation"
+type: experiment
 ---
 
 ## Experiment: Gensim Skip-Gram Node2Vec (R2)

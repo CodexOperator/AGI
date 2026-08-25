@@ -2,13 +2,14 @@
 confidence: 0.8
 evidence_runs: 1
 id: "exp:integrity-detection-r1"
+mint_id: 98be4becff9543fd886605b5da0e85a2
 parents:
   - goal:g7.1
 tags:
   - integrity
   - g7.1
   - g7.2
-title: "Duplicate-id and dangling-parent detection"
+title: Duplicate-id and dangling-parent detection
 type: experiment
 ---
 

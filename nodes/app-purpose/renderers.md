@@ -1,8 +1,9 @@
 ---
 id: "app-purpose:renderers"
+mint_id: d6dc4cb497374032a8f7c19414219244
 next_edges: []
 parents:
-  - "bigger-outcome:renderers-r1"
+  - bigger-outcome:renderers-r1
 subgraph: false
 tags:
   - renderers

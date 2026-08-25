@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-autoresearch-sh"
+mint_id: c48b5901ddc347e4815151c4dc4640c5
 origin: engine-decomp
 scale: small
 status: open

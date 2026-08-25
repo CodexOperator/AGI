@@ -1,5 +1,7 @@
 ---
-id: hypothesis:a01-cdbb8442-4e5a2e
+confidence: 0.5
+id: "hypothesis:a01-cdbb8442-4e5a2e"
+mint_id: 44500109434e4468bc36836b6c9c0ebc
 parents:
   - idea:domain-graph-core
 tags:
@@ -7,9 +9,7 @@ tags:
   - R11
 type: hypothesis
 verdict: pending
-confidence: 0.5
 ---
-
 
 # graph-core/R11: Graph Change Event Bus
 

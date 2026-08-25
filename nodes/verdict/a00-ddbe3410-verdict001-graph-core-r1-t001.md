@@ -1,18 +1,19 @@
 ---
-id: "verdict:a00-ddbe3410-verdict001-graph-core-r1-t001"
-parent_hypothesis: "hypothesis:a00-ddbe3410-3cc776"
-parents:
-  - "experiment:a00-ddbe3410-exp001-graph-core-r1-t001"
-status: proved
 confidence: 0.95
 evidence_runs:
-  - "experiment:a00-ddbe3410-exp001-graph-core-r1-t001"
+  - experiment:a00-ddbe3410-exp001-graph-core-r1-t001
+id: "verdict:a00-ddbe3410-verdict001-graph-core-r1-t001"
+mint_id: f96c884ef5674ded95d053568e875268
+next_edges:
+  - mvp:a00-ddbe3410-mvp001-chain-bootstrap
+parent_hypothesis: "hypothesis:a00-ddbe3410-3cc776"
+parents:
+  - experiment:a00-ddbe3410-exp001-graph-core-r1-t001
+status: proved
 tags:
   - bootstrap
   - chain-block
   - task-to-experiment
-next_edges:
-  - "mvp:a00-ddbe3410-mvp001-chain-bootstrap"
 title: "V001: task-to-experiment bootstrap unblocks chain formation"
 type: verdict
 ---

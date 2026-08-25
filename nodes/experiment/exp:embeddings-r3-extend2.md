@@ -1,9 +1,10 @@
 ---
 id: "exp:embeddings-r3-extend2"
+mint_id: dbb3716860d14581ae93a8fec833b9cd
 next_edges:
-  - "verdict:embeddings-r3-extend2"
+  - verdict:embeddings-r3-extend2
 parents:
-  - "verdict:embeddings-r3-extend"
+  - verdict:embeddings-r3-extend
 subgraph: false
 tags:
   - chain-extension

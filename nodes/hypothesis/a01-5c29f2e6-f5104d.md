@@ -1,18 +1,18 @@
 ---
-id: hypothesis:a01-5c29f2e6-f5104d
-type: hypothesis
-title: "graph-core/R11: Query and Filter API"
+confidence: 0.5
+id: "hypothesis:a01-5c29f2e6-f5104d"
+mint_id: 50d67ef9b05844faa5cc6d188f4bc5ef
 parents:
   - idea:domain-graph-core
 subgraph: false
 tags:
   - graph-core
   - R11
-testable_claim: "Query and Filter API"
+testable_claim: Query and Filter API
+title: "graph-core/R11: Query and Filter API"
+type: hypothesis
 verdict: pending
-confidence: 0.5
 ---
-
 
 # hypothesis:a01-5c29f2e6-f5104d
 ## Hypothesis

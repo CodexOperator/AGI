@@ -4,6 +4,7 @@ evidence_runs:
   - exp:noncode-surface-census
   - exp:prose-surface-probe
 id: "verdict:noncode-coverage"
+mint_id: ed2ffc1b49db43f0a648120aa973e0fa
 parents:
   - exp:prose-surface-probe
 status: open
@@ -11,7 +12,7 @@ subgraph: false
 tags:
   - g6.6
   - level3
-title: "Coverage diagnosis holds, prescribed remedy does not deliver what G6.6 promises"
+title: Coverage diagnosis holds, prescribed remedy does not deliver what G6.6 promises
 type: verdict
 verdict: disproved
 ---

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-kits-cavekit-loop-continuity.md"
+mint_id: 08caaf7ba4dd401fa491bb0faeebf78d
 origin: level3-scan
 parents:
   - idea:engine-context-kits

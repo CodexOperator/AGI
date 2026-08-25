@@ -1,9 +1,10 @@
 ---
 id: "exp:schema-registry-r2-extend2"
+mint_id: c5889a9acf664ab186404db7278a7314
 next_edges:
-  - "verdict:schema-registry-r2-extend2"
+  - verdict:schema-registry-r2-extend2
 parents:
-  - "verdict:schema-registry-r2-extend"
+  - verdict:schema-registry-r2-extend
 subgraph: false
 tags:
   - chain-extension

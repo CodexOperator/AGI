@@ -1,26 +1,26 @@
 ---
-id: verdict:embeddings-r2-extend2
-type: verdict
-title: 'Verdict: embeddings-r2 second extension (12-hop chain)'
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 0.9
-parents:
-- exp:embeddings-r2-extend2
-- verdict:embeddings-r2-extend
-tags:
-- chain-extension
-- r15
-- second-cycle
-- proved
-next_edges:
-- exp:embeddings-r2-extend3
-synthetic: true
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:embeddings-r2-extend2"
+mint_id: cbce970bdd884981a3181adcb261cdd1
+next_edges:
+  - exp:embeddings-r2-extend3
+parents:
+  - exp:embeddings-r2-extend2
+  - verdict:embeddings-r2-extend
+status: proved
+synthetic: true
+tags:
+  - chain-extension
+  - r15
+  - second-cycle
+  - proved
+title: "Verdict: embeddings-r2 second extension (12-hop chain)"
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
-
 
 VERDICT: proved. Chain extended from 10 to 12 hops via second verdict→experiment→verdict cycle.
 

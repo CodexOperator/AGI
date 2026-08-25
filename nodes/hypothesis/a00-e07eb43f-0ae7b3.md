@@ -1,9 +1,10 @@
 ---
-id: hypothesis:a00-e07eb43f-0ae7b3
-type: hypothesis
-parents:
-  - 
+id: "hypothesis:a00-e07eb43f-0ae7b3"
+mint_id: 67fb39923f7144ccb382b9ae6506eae0
 next_edges: []
+parents:
+  -
+type: hypothesis
 ---
 
 # hypothesis:a00-e07eb43f-0ae7b3
@@ -27,4 +28,3 @@ next_edges: []
 **Test:** Add `task→experiment` to `_VALID_TRANSITIONS`, write one experiment from a pending task (e.g., t-001), verify chain grows by 1 hop and verdict is recorded.
 
 **Why this matters:** 92 tasks are stuck at `status: pending`. Every task that never becomes an experiment is a dead end in the DAG. If tasks can feed directly into experiments, the capillary chain grows organically from the work backlog instead of requiring manual hypothesis→experiment authoring for every new idea.
-

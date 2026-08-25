@@ -1,9 +1,11 @@
 ---
-id: verdict:verdict:a00-204c9d9e-1d958f
-type: verdict
-title: "Query API enables rational task selection in the capillary DAG"
-verdict: inconclusive_lean_proved:50
 confidence: 0.82
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
+id: "verdict:verdict:a00-204c9d9e-1d958f"
+mint_id: f10f1ab354a04d59aad7bb56f6fe9c2c
+next_edges: []
 parents:
   - experiment:exp:a00-204c9d9e-1d958f
   - hypothesis:a00-204c9d9e-1d958f
@@ -12,10 +14,9 @@ tags:
   - query-api
   - capillary-dag
   - proved
-next_edges: []
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+title: Query API enables rational task selection in the capillary DAG
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # verdict:verdict:a00-204c9d9e-1d958f

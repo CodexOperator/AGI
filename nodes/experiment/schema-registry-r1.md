@@ -1,7 +1,8 @@
 ---
 id: "exp:schema-registry-r1"
+mint_id: 66a2e5da1e5d4bcfb2d712754a2c5a8b
 next_edges:
-  - "verdict:schema-registry-r1"
+  - verdict:schema-registry-r1
 parents:
   - hyp:schema-registry-r1
 subgraph: false

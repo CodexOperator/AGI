@@ -6,6 +6,7 @@ blocked_by:
 cavekit_req: schema-registry/R1
 effort: S
 id: "task:t-091"
+mint_id: f982fb4971014102b9e715cc24ffb2c8
 origin: build-site
 parents:
   - hyp:schema-registry-r1
