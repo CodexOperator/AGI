@@ -30,6 +30,12 @@ Usage:
   grid.py diff NODE_ID [--back N]   # default: latest vs previous
   grid.py status                    # per-node drift vs ref tip
   grid.py versions NODE_ID          # version count (the vN marker)
+  grid.py payload NODE_ID [--version N] [--out PATH]
+                                    # read a build node's payload back out of
+                                    # its ref (goal:g6.3); bytes to stdout, or
+                                    # written to PATH with its recorded mode
+  grid.py checkout --all [--dir D]  # materialize payloads into <project>/payloads/
+                                    # — the staged copy an author edits (goal:g6.1)
   grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
   grid.py cron install|show|remove  # manage the two-cadence sync cron entries
                                     #   */N: snapshot + push grid refs
@@ -37,7 +43,9 @@ Usage:
 """
 
 import argparse
+import os
 import re
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -50,11 +58,29 @@ ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 # now keys writes on. Same line shape as ID_RE, parsed the same stdlib-regex
 # way (this file stays yaml-free by design — see module docstring).
 MINT_ID_RE = re.compile(r'^mint_id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
+PAYLOAD_REF_RE = re.compile(r'^payload_ref:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 PARENTS_RE = re.compile(r'^parents:[ \t]*$', re.MULTILINE)
 PARENTS_INLINE_RE = re.compile(r'^parents:\s*\[([^\]]*)\]\s*$', re.MULTILINE)
 PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
 REF_NS = "refs/grid"
+# Tree entry names inside a node's D2 commit. `node.md` predates payloads and
+# keeps its name so every existing reader (`rev-parse <tip>:node.md`) still
+# works. `payload` is goal:g6.3's addition: one node owns exactly one
+# `payload_ref`, so a flat entry name is unambiguous and keeps `mktree` to the
+# single tree level it already builds. The path the payload belongs at in the
+# engine tree stays where it always was — the node's own `payload_ref` field —
+# rather than being duplicated in the ref layout.
+NODE_ENTRY = "node.md"
+PAYLOAD_ENTRY = "payload"
+# The graph repo's staged payload checkout (`grid.py checkout`). Gitignored:
+# the committed home of these bytes is the node's grid ref, and this directory
+# is a working copy of it in exactly the sense git's worktree is a working copy
+# of the index. Losing it costs nothing.
+PAYLOAD_DIR = "payloads"
+GIT_MODE_REGULAR = "100644"
+GIT_MODE_EXEC = "100755"
+GIT_MODE_SYMLINK = "120000"
 FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
 PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
 
@@ -203,6 +229,52 @@ def parse_mint_id(path: Path) -> str | None:
     return m.group(1) if m else None
 
 
+def parse_payload_ref(path: Path) -> str | None:
+    """The engine-repo-relative path this node's payload belongs at, or None
+    for a node that carries no payload (every non-build node). Never guessed
+    from the filename — absent means absent."""
+    m = PAYLOAD_REF_RE.search(path.read_text(encoding="utf-8"))
+    if not m:
+        return None
+    ref = m.group(1).strip()
+    return ref or None
+
+
+def default_engine_root() -> Path:
+    """The engine tree a payload is read from when the graph repo has no
+    staged copy: this script's own repo, `<engine>/extensions/agi/bin/grid.py`
+    -> `<engine>`. Same derivation `level3.py` uses for `DEFAULT_ENGINE_ROOT`.
+    """
+    return Path(__file__).resolve().parents[3]
+
+
+def resolve_payload(root: Path, payload_ref: str,
+                    engine_root: Path) -> tuple[Path, str] | None:
+    """Where a node's payload bytes are read from, and which source won.
+
+    Priority, and the order *is* goal:g6.1's arrow:
+
+      1. `<project>/payloads/<payload_ref>` — the graph repo's own staged
+         checkout (`grid.py checkout`). This is the copy an author edits, and
+         its presence is what makes the graph the source: the engine tree is
+         never consulted for a node that has one.
+      2. `<engine>/<payload_ref>` — the live engine tree. The bootstrap path,
+         and what a node still uses until it has been checked out. Committing
+         from here is how a node's payload history starts without anyone
+         having to stage all 180 files first.
+
+    Returns `(path, "staged" | "engine")`, or None when neither exists — the
+    caller reports that rather than committing a node whose payload vanished.
+    """
+    staged = root / PAYLOAD_DIR / payload_ref
+    if staged.is_symlink() or staged.exists():
+        return staged, "staged"
+    live = engine_root / payload_ref
+    if live.is_symlink() or live.exists():
+        return live, "engine"
+    return None
+
+
 def parse_parents(path: Path) -> list[str]:
     """Best-effort, stdlib-only parse of a node's `parents:` field, covering
     the shapes `write_frontmatter` actually produces (a multi-line `- item`
@@ -329,6 +401,121 @@ def ref_tip(root: Path, ref: str) -> str | None:
     return res.stdout.strip() or None
 
 
+# --- git object <-> filesystem, mode- and symlink-correct (goal:s9) ----------
+#
+# Every one of these is what `git add` does internally, built from the four
+# plumbing primitives this file already calls. The pre-S9 code hashed
+# `path.resolve()` and hardcoded `100644`, which silently substituted a
+# symlink's *target bytes* for its link text and downgraded every executable
+# payload — measured, both directions, by `exp:grid-payload-roundtrip`.
+
+
+def git_mode(path: Path) -> str:
+    """The git tree mode for `path`, read from `os.lstat()`.
+
+    `lstat`, never `stat`: the mode of a symlink is the property being
+    recorded, so dereferencing first would report the target's mode and lose
+    the only bit that matters.
+    """
+    st = os.lstat(path)
+    if stat.S_ISLNK(st.st_mode):
+        return GIT_MODE_SYMLINK
+    if st.st_mode & 0o111:
+        return GIT_MODE_EXEC
+    return GIT_MODE_REGULAR
+
+
+def hash_path(root: Path, path: Path, *, write: bool = True) -> tuple[str, str]:
+    """`(mode, blob_sha)` for one path, the way `git add` computes them.
+
+    For a symlink the blob content is the **link text** (`os.readlink`), fed
+    through `hash-object --stdin` — not the file it points at. `os.path.abspath`
+    normalises `..` lexically without resolving symlinks, so the final component
+    survives; `Path.resolve()` would not, and that is exactly the pre-S9 bug.
+    """
+    mode = git_mode(path)
+    args = ["hash-object"] + (["-w"] if write else [])
+    if mode == GIT_MODE_SYMLINK:
+        return mode, git(root, *args, "--stdin", input_text=os.readlink(path))
+    return mode, git(root, *args, "--", os.path.abspath(path))
+
+
+def read_tree_entry(root: Path, rev: str, name: str) -> tuple[str, bytes] | None:
+    """`(mode, raw bytes)` for `name` in `rev`'s tree, or None if absent.
+
+    Bytes, not text: a payload may be any file in the engine repo, and
+    decoding one to hand it back would make the round trip encoding-dependent.
+    """
+    line = git(root, "ls-tree", rev, "--", name, check=False)
+    if not line:
+        return None
+    mode = line.split(maxsplit=1)[0]
+    res = subprocess.run(
+        ["git", "-C", str(root), "cat-file", "blob", f"{rev}:{name}"],
+        capture_output=True,
+    )
+    if res.returncode != 0:
+        return None
+    return mode, res.stdout
+
+
+def materialize_entry(dst: Path, mode: str, data: bytes) -> None:
+    """Write one grid tree entry back to disk — the exact inverse of
+    `hash_path`, including the mode. A `120000` entry becomes a real symlink
+    whose target is the blob's text.
+
+    Unlinks an existing `dst` first rather than opening it for write, because
+    writing *through* a symlink would clobber whatever it points at.
+    """
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    if dst.is_symlink() or dst.exists():
+        dst.unlink()
+    if mode == GIT_MODE_SYMLINK:
+        os.symlink(data.decode("utf-8"), dst)
+        return
+    dst.write_bytes(data)
+    os.chmod(dst, 0o755 if mode == GIT_MODE_EXEC else 0o644)
+
+
+def tree_entries(root: Path, path: Path, payload: Path | None,
+                 *, write: bool) -> list[tuple[str, str, str]]:
+    """`(name, mode, blob)` for one node version, sorted by name.
+
+    One entry (`node.md`) when the node has no payload, two when it does. The
+    node file's own mode is read rather than asserted: node files are neither
+    symlinks nor executable today, and if one ever is, recording what is
+    actually there beats writing down what we assumed.
+
+    `write=False` computes the same shas without adding objects to the store,
+    which is what lets `status` compare a would-be version against the ref tip
+    without the side effect of writing one.
+    """
+    entries = [(NODE_ENTRY, *hash_path(root, path, write=write))]
+    if payload is not None:
+        entries.append((PAYLOAD_ENTRY, *hash_path(root, payload, write=write)))
+    return sorted(entries)
+
+
+def build_tree(root: Path, path: Path, payload: Path | None) -> str:
+    """Write the tree object for one node version and return its sha."""
+    lines = "".join(f"{mode} blob {blob}\t{name}\n"
+                    for name, mode, blob in tree_entries(root, path, payload, write=True))
+    return git(root, "mktree", input_text=lines)
+
+
+def read_tree(root: Path, rev: str) -> list[tuple[str, str, str]]:
+    """`(name, mode, blob)` for every entry in `rev`'s tree, sorted by name —
+    the read-side counterpart of `tree_entries`, so the two are directly
+    comparable without materialising anything."""
+    out = git(root, "ls-tree", rev, check=False)
+    rows = []
+    for line in out.splitlines():
+        meta, _, name = line.partition("\t")
+        mode, _kind, blob = meta.split()
+        rows.append((name, mode, blob))
+    return sorted(rows)
+
+
 def ensure_repo(root: Path) -> None:
     if subprocess.run(["git", "-C", str(root), "rev-parse", "--git-dir"],
                       capture_output=True).returncode != 0:
@@ -356,8 +543,10 @@ def cmd_init(root: Path) -> None:
 
 
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
-                *, trailer: str | None = None) -> str | None:
-    """Snapshot one node file onto `ref`. Returns new version tag or None.
+                *, trailer: str | None = None,
+                payload: Path | None = None) -> str | None:
+    """Snapshot one node file — and, under goal:g6.3, its payload — onto `ref`.
+    Returns the new version tag or None if nothing changed.
 
     `trailer` (goal:g2.7, `build_parent_mint_trailer`), if given, becomes
     the commit message BODY: a blank line, then the trailer lines. The
@@ -366,18 +555,24 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     which only ever sees the subject, so adding a body is additive and
     `trailer=None` (the default) reproduces the old single-line message
     byte-for-byte.
+
+    `payload`, if given, is committed alongside the node file as the
+    `payload` tree entry with its real mode (goal:g6.3, `build_tree`). The
+    unchanged-check compares the **whole tree**, not just `node.md`, so a
+    payload-only edit is a real version — comparing `node.md` alone would
+    have made every payload edit invisible to history, which is the whole
+    thing this goal exists to record.
     """
     node_id = parse_node_id(path)
     if node_id is None:
         print(f"skip (no id frontmatter): {path}", file=sys.stderr)
         return None
-    blob = git(root, "hash-object", "-w", str(path.resolve()))
+    tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
     if tip:
-        old_blob = git(root, "rev-parse", f"{tip}:node.md", check=False)
-        if old_blob == blob:
+        old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
+        if old_tree == tree:
             return None  # unchanged — versions record change, not time
-    tree = git(root, "mktree", input_text=f"100644 blob {blob}\tnode.md\n")
     n = int(git(root, "rev-list", "--count", tip)) + 1 if tip else 1
     parent = ["-p", tip] if tip else []
     subject = f"{msg_prefix}v{n} {node_id}"
@@ -392,7 +587,8 @@ def iter_node_files(root: Path):
 
 
 def cmd_commit(root: Path, files: list[str], do_all: bool,
-               session: tuple[str, str] | None, prefix: str = "") -> None:
+               session: tuple[str, str] | None, prefix: str = "",
+               engine_root: Path | None = None) -> None:
     """Snapshot node files.
 
     Non-session writes go to the mint-id ref (goal:g2.5) and, unless the
@@ -401,6 +597,17 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     missing `mint_id` is reported loudly (`ERROR:`, naming the node and
     file — see `write_ref_for`/`MissingMintIdError`) and skipped, never
     silently written under a node-id-keyed ref.
+
+    A node carrying `payload_ref` also commits its payload into the same
+    tree (goal:g6.3, `resolve_payload` / `build_tree`), so `refs/grid/node/
+    <mint-id>` accumulates v1 -> v2 -> v3 of the *file*, not just of the
+    node's prose. A `payload_ref` that resolves nowhere is reported and the
+    node is committed **without** a payload entry rather than skipped: the
+    node is still real and its history still matters, and dropping it would
+    breach G7's node-count invariant to report a payload problem.
+
+    Session (D3) writes deliberately carry no payload. A draft is a node
+    file under review; the payload dimension belongs to the accepted node.
 
     **This must stay a per-node try/except, never a batch-aborting one.**
     `--all` runs unattended every 5 minutes via cron; a node without a
@@ -415,8 +622,11 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     if not paths:
         sys.exit("ERR: give node files or --all")
     id_index = None if session else build_id_index(root)
+    engine_root = engine_root or default_engine_root()
     written = 0
     errors = 0
+    payloads = 0
+    payload_missing = 0
     for p in paths:
         if not p.exists():
             print(f"skip (missing): {p}", file=sys.stderr)
@@ -425,6 +635,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         if node_id is None:
             print(f"skip (no id): {p}", file=sys.stderr)
             continue
+        payload = None
         if session:
             ref = session_ref(session[0], session[1], node_id)
             msg_prefix = prefix + f"session {session[0]}/{session[1]}: "
@@ -438,11 +649,24 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 continue
             msg_prefix = prefix
             trailer = build_parent_mint_trailer(p, id_index)
-        v = commit_file(root, p, ref, msg_prefix, trailer=trailer)
+            payload_ref = parse_payload_ref(p)
+            if payload_ref:
+                found = resolve_payload(root, payload_ref, engine_root)
+                if found is None:
+                    print(f"WARN: {node_id} payload_ref {payload_ref!r} resolves "
+                          f"neither under {PAYLOAD_DIR}/ nor in {engine_root} — "
+                          "committing the node without a payload entry",
+                          file=sys.stderr)
+                    payload_missing += 1
+                else:
+                    payload = found[0]
+                    payloads += 1
+        v = commit_file(root, p, ref, msg_prefix, trailer=trailer, payload=payload)
         if v:
             written += 1
             print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
-    print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id)")
+    print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
+          f"{payloads} with payload, {payload_missing} payload(s) unresolved")
 
 
 def _resolve_read_ref(root: Path, path: Path, node_id: str) -> str | None:
@@ -509,13 +733,104 @@ def cmd_versions(root: Path, node_id: str) -> None:
     print(int(git(root, "rev-list", "--count", tip)) if tip else 0)
 
 
-def cmd_status(root: Path) -> None:
+# --- payload read side (goal:g6.3 / goal:g6.1) -------------------------------
+
+
+def version_rev(root: Path, ref: str, node_id: str, version: int | None) -> str:
+    """The revision holding version `v<version>` of `node_id`, or the tip.
+
+    Versions count forward from 1 (`commit_file`'s `rev-list --count` + 1), so
+    v(count) is the tip and v1 is `tip~(count-1)`. An out-of-range version is a
+    hard error naming the range: silently serving the tip for a version that
+    does not exist is the "partial answer served as a complete one" failure G7
+    names in its invariants.
+    """
+    if version is None:
+        return ref
+    count = int(git(root, "rev-list", "--count", ref))
+    if not 1 <= version <= count:
+        sys.exit(f"ERR: {node_id} has {count} version(s); v{version} does not exist")
+    return f"{ref}~{count - version}"
+
+
+def cmd_payload(root: Path, node_id: str, version: int | None,
+                out: str | None) -> None:
+    """Read a node's payload back out of its grid ref.
+
+    With no `--out`, raw bytes go to stdout (so `grid.py payload X | diff - f`
+    works). With `--out`, the file is written with its recorded mode, symlinks
+    included — `materialize_entry` is the exact inverse of what `commit_file`
+    stored.
+    """
+    ref = resolve_ref(root, node_id)
+    rev = version_rev(root, ref, node_id, version)
+    entry = read_tree_entry(root, rev, PAYLOAD_ENTRY)
+    if entry is None:
+        sys.exit(f"ERR: no payload recorded for {node_id} at "
+                 f"{'v' + str(version) if version else 'the tip'} — the node "
+                 "either carries no payload_ref or has not been committed "
+                 "since payloads began being recorded (run `grid.py commit --all`)")
+    mode, data = entry
+    if out is None:
+        sys.stdout.buffer.write(data)
+        return
+    materialize_entry(Path(out), mode, data)
+    print(f"{mode}  {out}  ({len(data)} bytes)")
+
+
+def cmd_checkout(root: Path, node_ids: list[str], do_all: bool,
+                 dest: str | None, engine_root: Path | None = None) -> None:
+    """Materialise payloads out of the grid into the graph repo's own
+    `payloads/` tree — the staged copy an author edits (goal:g6.1).
+
+    This is the step that reverses the arrow in practice: after a checkout,
+    `resolve_payload` prefers `payloads/<payload_ref>` over the engine tree,
+    so the next `grid.py commit --all` records **your edit in the graph** as
+    the node's next version, and `stitch.py --out --from-grid` writes it into
+    the engine. Nothing is checked out from the engine repo: a node with no
+    payload in its grid ref yet is reported, never silently filled from disk,
+    because doing that would let a stale engine file masquerade as graph
+    content.
+    """
+    ensure_repo(root)
+    out_root = Path(dest).resolve() if dest else root / PAYLOAD_DIR
+    wanted = set(node_ids)
+    written = no_payload = 0
+    for p in iter_node_files(root):
+        node_id = parse_node_id(p)
+        if node_id is None or (not do_all and node_id not in wanted):
+            continue
+        payload_ref = parse_payload_ref(p)
+        if not payload_ref:
+            if not do_all:
+                print(f"skip (no payload_ref): {node_id}", file=sys.stderr)
+            continue
+        ref = _resolve_read_ref(root, p, node_id)
+        entry = read_tree_entry(root, ref, PAYLOAD_ENTRY) if ref else None
+        if entry is None:
+            print(f"WARN: {node_id} has no payload in the grid yet "
+                  f"(run `grid.py commit --all` first)", file=sys.stderr)
+            no_payload += 1
+            continue
+        materialize_entry(out_root / payload_ref, *entry)
+        written += 1
+    print(f"grid checkout: {written} payload(s) -> {out_root}, "
+          f"{no_payload} not yet in the grid")
+
+
+def cmd_status(root: Path, engine_root: Path | None = None) -> None:
     """Per-node drift vs ref tip -- one of the "Reads" goal:g2.5 requires to
     fall back to the legacy node-id ref when no mint-id ref exists yet, so a
     node mid-transition (mint_id backfilled, not yet committed under it)
     reports drift against its real last version instead of reading as NEW.
+
+    Compares the same tree `commit_file` would build, payload included
+    (goal:g6.3). Comparing `node.md` alone would report `clean` for a node
+    whose payload had been edited — the status command quietly disagreeing
+    with the commit command about what "changed" means.
     """
     ensure_repo(root)
+    engine_root = engine_root or default_engine_root()
     new = changed = clean = 0
     for p in iter_node_files(root):
         node_id = parse_node_id(p)
@@ -526,9 +841,10 @@ def cmd_status(root: Path) -> None:
             new += 1
             print(f"NEW      {node_id}")
             continue
-        blob = git(root, "hash-object", str(p.resolve()))
-        old = git(root, "rev-parse", f"{ref}:node.md", check=False)
-        if blob == old:
+        payload_ref = parse_payload_ref(p)
+        found = resolve_payload(root, payload_ref, engine_root) if payload_ref else None
+        fresh = tree_entries(root, p, found[0] if found else None, write=False)
+        if fresh == read_tree(root, ref):
             clean += 1
         else:
             changed += 1
@@ -827,6 +1143,22 @@ def main() -> None:
     d.add_argument("--back", type=int, default=1)
     v = sub.add_parser("versions")
     v.add_argument("node_id")
+    pl = sub.add_parser("payload",
+                        help="goal:g6.3 -- read a build node's payload out of "
+                             "its grid ref")
+    pl.add_argument("node_id")
+    pl.add_argument("--version", type=int, default=None,
+                    help="v1..vN; default is the tip")
+    pl.add_argument("--out", default=None,
+                    help="write to this path with the recorded mode "
+                         "(default: raw bytes to stdout)")
+    co = sub.add_parser("checkout",
+                        help="goal:g6.1 -- materialize payloads into "
+                             "<project>/payloads/ for editing")
+    co.add_argument("node_ids", nargs="*")
+    co.add_argument("--all", action="store_true")
+    co.add_argument("--dir", default=None,
+                    help=f"destination (default: <project>/{PAYLOAD_DIR})")
     sub.add_parser("status")
     m = sub.add_parser("migrate-refs",
                        help="move refs/grid/node/* onto the injective "
@@ -856,6 +1188,12 @@ def main() -> None:
         cmd_diff(root, args.node_id, args.back)
     elif args.cmd == "versions":
         cmd_versions(root, args.node_id)
+    elif args.cmd == "payload":
+        cmd_payload(root, args.node_id, args.version, args.out)
+    elif args.cmd == "checkout":
+        if not args.all and not args.node_ids:
+            sys.exit("ERR: give node ids or --all")
+        cmd_checkout(root, args.node_ids, args.all, args.dir)
     elif args.cmd == "status":
         cmd_status(root)
     elif args.cmd == "migrate-refs":

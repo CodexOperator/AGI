@@ -31,6 +31,19 @@ PROJECT_ROOT = Path(
 # Canonical name first; the legacy name stays accepted during the rename window.
 CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
 
+# `ensure_mint_id` from snapshot-goals.py, by file path (hyphenated filename,
+# not importable) — the same convention level3.py, decompose-engine.py and
+# backfill-mint-ids.py already use, and for the same reason: one definition of
+# how a mint id is assigned, never a second one free to disagree (goal:s14).
+# This file's `write_frontmatter` is a separate copy of snapshot-goals.py's for
+# historical reasons; the mint hook is shared even though the serializer is not.
+import importlib.util  # noqa: E402
+_sg_spec = importlib.util.spec_from_file_location(
+    "snapshot_goals_for_build_site", PLUGIN_ROOT / "bin" / "snapshot-goals.py")
+_sg = importlib.util.module_from_spec(_sg_spec)
+_sg_spec.loader.exec_module(_sg)
+ensure_mint_id = _sg.ensure_mint_id
+
 
 def config_path(root: Path) -> Path | None:
     """First existing config file in `root`, or None if it is not a project."""
@@ -126,6 +139,7 @@ def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
     if origin:
         fm = dict(fm)  # copy so we don't mutate caller's dict
         fm["origin"] = origin
+    fm = ensure_mint_id(fm)
     lines = ["---"]
     for k in sorted(fm.keys()):
         v = fm[k]

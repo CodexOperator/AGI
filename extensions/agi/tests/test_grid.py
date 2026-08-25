@@ -1,6 +1,7 @@
 """Tests for bin/grid.py — the per-node git grid, in-repo ref-namespace mode."""
 
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -714,3 +715,171 @@ def test_versions_and_log_report_full_history_after_migration(migmint_project):
     assert ref_after == grid.mint_node_ref(MINT_A)
     grid.commit_file(migmint_project, p, ref_after, "")
     assert int(grid.git(migmint_project, "rev-list", "--count", ref_after)) == 4
+
+
+# --- goal:s9 + goal:g6.3 — mode/symlink-correct payloads in the node's ref ----
+#
+# `exp:grid-payload-roundtrip`'s own table is the regression suite here, per
+# goal:s9's "Test:" line: a 100755 file and a 120000 symlink, three version
+# bumps each, compared against a non-git baseline. The pre-S9 `commit_file`
+# fails every one of these — it hashed `path.resolve()` (substituting a
+# symlink's target bytes for its link text) and hardcoded `100644`.
+
+MINT_P = "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+
+
+@pytest.fixture()
+def engine(tmp_path):
+    """A stand-in engine tree with one regular, one executable and one symlink
+    payload — the three modes git's tree format distinguishes."""
+    root = tmp_path / "engine"
+    (root / "bin").mkdir(parents=True)
+    (root / "bin" / "plain.py").write_text("print('v1')\n")
+    exe = root / "bin" / "run.sh"
+    exe.write_text("#!/bin/sh\necho v1\n")
+    exe.chmod(0o755)
+    (root / "bin" / "link.sh").symlink_to("run.sh")
+    return root
+
+
+def _payload_node(project, name, node_id, payload_ref, mint_id=MINT_P):
+    p = project / "nodes" / "level3" / f"{name}.md"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        f'---\nid: "{node_id}"\nmint_id: {mint_id}\ntype: level3\n'
+        f"payload_ref: {payload_ref}\n---\n\nbuild node\n"
+    )
+    return p
+
+
+def test_git_mode_reads_lstat_not_stat(engine):
+    assert grid.git_mode(engine / "bin" / "plain.py") == grid.GIT_MODE_REGULAR
+    assert grid.git_mode(engine / "bin" / "run.sh") == grid.GIT_MODE_EXEC
+    # `stat` would follow the link and report the target's 100755; `lstat` is
+    # the whole point of this function.
+    assert grid.git_mode(engine / "bin" / "link.sh") == grid.GIT_MODE_SYMLINK
+
+
+def test_symlink_blob_is_link_text_not_target_bytes(project, engine):
+    """The pre-S9 defect at its sharpest: not a dropped mode, a wrong object."""
+    mode, blob = grid.hash_path(project, engine / "bin" / "link.sh")
+    assert mode == grid.GIT_MODE_SYMLINK
+    assert grid.git(project, "cat-file", "blob", blob) == "run.sh"
+
+
+@pytest.mark.parametrize("name,ref,expect_mode", [
+    ("plain", "bin/plain.py", grid.GIT_MODE_REGULAR),
+    ("exe", "bin/run.sh", grid.GIT_MODE_EXEC),
+    ("link", "bin/link.sh", grid.GIT_MODE_SYMLINK),
+])
+def test_payload_round_trips_with_mode(project, engine, tmp_path,
+                                       name, ref, expect_mode):
+    node_id = f"level3:{name}"
+    _payload_node(project, name, node_id, ref, mint_id=MINT_P + name[0])
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+
+    out = tmp_path / "out" / ref
+    grid.cmd_payload(project, node_id, None, str(out))
+
+    src = engine / ref
+    assert grid.git_mode(out) == expect_mode
+    if expect_mode == grid.GIT_MODE_SYMLINK:
+        # A symlink must come back a symlink pointing at the same target —
+        # the naive path materialised a regular file with the wrong bytes.
+        assert out.is_symlink()
+        assert os.readlink(out) == os.readlink(src)
+    else:
+        assert out.read_bytes() == src.read_bytes()
+
+
+def test_three_version_bumps_of_a_payload_are_three_versions(project, engine):
+    """G6.3's untested case: a build node accumulating *meaningful* versions.
+    The node file never changes — only the payload does — so this also proves
+    the unchanged-check compares the whole tree and not just `node.md`."""
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    node_before = (project / "nodes" / "level3" / "plain.md").read_text()
+
+    src = engine / "bin" / "plain.py"
+    expected = []
+    for n in (1, 2, 3):
+        src.write_text(f"print('v{n}')\n# éà中文 {n}\n")   # non-ASCII on purpose
+        expected.append(src.read_bytes())
+        grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+
+    assert versions(project, "level3:plain") == 3
+    assert (project / "nodes" / "level3" / "plain.md").read_text() == node_before
+
+    ref = grid.resolve_ref(project, "level3:plain")
+    for i, want in enumerate(expected, start=1):
+        rev = grid.version_rev(project, ref, "level3:plain", i)
+        assert grid.read_tree_entry(project, rev, grid.PAYLOAD_ENTRY)[1] == want
+
+
+def test_payload_version_out_of_range_is_a_hard_error(project, engine):
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    ref = grid.resolve_ref(project, "level3:plain")
+    with pytest.raises(SystemExit):
+        grid.version_rev(project, ref, "level3:plain", 2)
+
+
+def test_staged_payload_beats_the_engine_tree(project, engine):
+    """goal:g6.1's arrow, as a preference order. Once `payloads/` holds the
+    file, the engine tree is never consulted — that is what makes the graph
+    the source rather than the description."""
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    staged = project / grid.PAYLOAD_DIR / "bin" / "plain.py"
+    staged.parent.mkdir(parents=True)
+    staged.write_text("print('edited in the graph')\n")
+
+    found = grid.resolve_payload(project, "bin/plain.py", engine)
+    assert found == (staged, "staged")
+
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    ref = grid.resolve_ref(project, "level3:plain")
+    _, data = grid.read_tree_entry(project, ref, grid.PAYLOAD_ENTRY)
+    assert data == staged.read_bytes()
+
+
+def test_checkout_materializes_payloads_for_editing(project, engine):
+    _payload_node(project, "exe", "level3:exe", "bin/run.sh")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    grid.cmd_checkout(project, [], do_all=True, dest=None)
+    staged = project / grid.PAYLOAD_DIR / "bin" / "run.sh"
+    assert staged.read_bytes() == (engine / "bin" / "run.sh").read_bytes()
+    assert grid.git_mode(staged) == grid.GIT_MODE_EXEC
+
+
+def test_unresolvable_payload_ref_warns_and_still_commits_the_node(
+        project, engine, capsys):
+    """G7's first invariant is that node count never drops. A payload problem
+    is reported; it never costs the node its version history."""
+    _payload_node(project, "gone", "level3:gone", "bin/does-not-exist.py")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    assert "resolves neither" in capsys.readouterr().err
+    assert versions(project, "level3:gone") == 1
+    ref = grid.resolve_ref(project, "level3:gone")
+    assert grid.read_tree_entry(project, ref, grid.PAYLOAD_ENTRY) is None
+
+
+def test_status_sees_a_payload_only_edit(project, engine, capsys):
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    capsys.readouterr()
+    grid.cmd_status(project, engine_root=engine)
+    assert "CHANGED  level3:plain" not in capsys.readouterr().out
+
+    (engine / "bin" / "plain.py").write_text("print('moved')\n")
+    grid.cmd_status(project, engine_root=engine)
+    assert "CHANGED  level3:plain" in capsys.readouterr().out
+
+
+def test_status_writes_no_objects(project, engine):
+    """`status` is a read. Computing the comparison must not leave loose
+    objects behind — `tree_entries(write=False)` is what keeps that true."""
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    (engine / "bin" / "plain.py").write_text("print('moved')\n")
+    before = grid.git(project, "count-objects", "-v")
+    grid.cmd_status(project, engine_root=engine)
+    assert grid.git(project, "count-objects", "-v") == before

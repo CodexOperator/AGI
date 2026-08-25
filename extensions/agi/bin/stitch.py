@@ -136,6 +136,8 @@ walked together (as this script already notes it must) prevents it.
 Run:
     python3 bin/stitch.py --project PATH --verify [--engine-root PATH] [--strict]
     python3 bin/stitch.py --project PATH --out DIR [--engine-root PATH] [--force]
+    python3 bin/stitch.py --project PATH --out DIR --from-grid [--force]
+    python3 bin/stitch.py --project PATH --out ENGINE --from-grid --publish
 """
 from __future__ import annotations
 
@@ -143,6 +145,7 @@ import argparse
 import importlib.util
 import re
 import shutil
+import subprocess
 import sys
 import time
 from collections import Counter
@@ -173,6 +176,15 @@ _LEVEL3_PATH = BIN_DIR / "level3.py"
 _spec = importlib.util.spec_from_file_location("level3_for_stitch", _LEVEL3_PATH)
 level3 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(level3)
+
+# Same rule, same reason (`goal:g6.3`): `--from-grid` resolves payloads out of
+# `refs/grid/node/<mint-id>`, and grid.py is the one definition of how those
+# refs are named, read, and materialised back with their modes. A second
+# implementation here would be free to disagree with the one that wrote them.
+_GRID_PATH = BIN_DIR / "grid.py"
+_grid_spec = importlib.util.spec_from_file_location("grid_for_stitch", _GRID_PATH)
+grid = importlib.util.module_from_spec(_grid_spec)
+_grid_spec.loader.exec_module(grid)
 
 
 # --- level-3 node loading (read-only; never touches nodes/level3/) -----------
@@ -530,19 +542,104 @@ def _is_within(path: Path, root: Path) -> bool:
         return False
 
 
-def _guard_out_dir(out_dir: Path, project_root: Path, engine_root: Path) -> None:
-    """Refuse to write into the graph repo or the engine repo, ever."""
+def _git_is_clean(repo: Path) -> bool | None:
+    """True/False if `repo` is a git repo with a clean working tree; None if it
+    is not a git repo at all (which is not the same answer and must not be
+    collapsed into False)."""
+    res = subprocess.run(["git", "-C", str(repo), "status", "--porcelain"],
+                         capture_output=True, text=True)
+    if res.returncode != 0:
+        return None
+    return not res.stdout.strip()
+
+
+def _guard_out_dir(out_dir: Path, project_root: Path, engine_root: Path,
+                   publish: bool = False, from_grid: bool = False) -> None:
+    """Refuse to write into the graph repo, ever; and into the engine repo
+    unless this is an explicit, grid-sourced, recoverable publish.
+
+    The graph repo is never a legal target: nothing the engine tree contains
+    belongs in `nodes/`.
+
+    The engine repo is the target `goal:g6.5` step 2 exists for — "after G6.3,
+    cron may stitch and commit the engine" — so it stops being permanently
+    forbidden once G6.3 holds. It stays gated on three things at once, because
+    this project has paid three times (H0, H0b, H0i) for a script that wrote a
+    tree it had no independent record of:
+
+      1. `--publish`, explicitly. Never a side effect of `--force`.
+      2. `--from-grid`. Publishing from the engine tree *into* the engine tree
+         is a no-op that can only lose information, and publishing from disk
+         would mean the graph never had to hold the bytes at all.
+      3. A **clean** engine working tree. This is the one that makes the write
+         recoverable rather than merely intended: every byte it overwrites is
+         already in the engine's own git history, so `git checkout .` undoes
+         the whole publish. An uncommitted engine edit is exactly the work a
+         publish would destroy silently, so its presence is a hard stop.
+    """
     out_r = out_dir.resolve()
-    for forbidden, label in ((project_root, "graph repo"), (engine_root, "engine repo")):
-        forbidden_r = forbidden.resolve()
-        if _is_within(out_r, forbidden_r):
-            raise StitchSafetyError(
-                f"--out {out_dir} resolves inside the {label} ({forbidden_r}); refusing to write")
+    if _is_within(out_r, project_root.resolve()):
+        raise StitchSafetyError(
+            f"--out {out_dir} resolves inside the graph repo "
+            f"({project_root.resolve()}); refusing to write")
+    engine_r = engine_root.resolve()
+    if not _is_within(out_r, engine_r):
+        return
+    if not publish:
+        raise StitchSafetyError(
+            f"--out {out_dir} resolves inside the engine repo ({engine_r}); "
+            "refusing to write. Publishing the engine from the graph is "
+            "`--publish --from-grid` (goal:g6.5 step 2), never a plain --out.")
+    if not from_grid:
+        raise StitchSafetyError(
+            "--publish requires --from-grid: publishing the engine tree from "
+            "itself cannot add information, and publishing from disk would mean "
+            "the graph never held the bytes (goal:g6.1)")
+    clean = _git_is_clean(engine_r)
+    if clean is None:
+        raise StitchSafetyError(
+            f"--publish target {engine_r} is not a git repo; refusing to "
+            "overwrite files whose previous contents nothing is holding")
+    if not clean:
+        raise StitchSafetyError(
+            f"--publish target {engine_r} has uncommitted changes; refusing. "
+            "Commit or stash them first — they are the one thing a publish "
+            "would destroy that git could not give back.")
+
+
+def _grid_payload(project_root: Path, node: Level3Node) -> tuple[str, bytes] | None:
+    """`(mode, bytes)` for one node's payload as recorded in its grid ref, or
+    None if the node has no history or no payload entry there yet.
+
+    This is the resolution rule `goal:g6.3` picked: `payload_ref` keeps its
+    shape and only its *source* changes, from "read this path off the engine
+    tree" to "read it out of `refs/grid/node/<mint-id>`". Nothing falls back to
+    disk — a node that has never been grid-committed is reported, because
+    silently serving the engine file would make `--from-grid` a no-op that
+    looks like a success.
+    """
+    node_id = grid.parse_node_id(node.path)
+    if node_id is None:
+        return None
+    ref = grid._resolve_read_ref(project_root, node.path, node_id)
+    if ref is None:
+        return None
+    return grid.read_tree_entry(project_root, ref, grid.PAYLOAD_ENTRY)
 
 
 def materialize(project_root: Path, engine_root: Path, out_dir: Path,
-                 force: bool = False, version: int | None = None) -> dict:
-    """Copy every level-3 node's `payload_ref` from the engine tree into `out_dir`.
+                 force: bool = False, version: int | None = None,
+                 from_grid: bool = False, publish: bool = False) -> dict:
+    """Copy every level-3 node's `payload_ref` into `out_dir`.
+
+    Source of the bytes, and this is the whole of `goal:g6.1`'s arrow:
+
+      - default — the **engine tree** (`engine_root / payload_ref`). The graph
+        describes the code; the code is authoritative.
+      - `from_grid=True` — the node's **own grid ref**. The graph *is* the
+        code; the engine tree is what falls out of it, and modes and symlinks
+        come back from the tree entry rather than from a `copy2` of a file
+        that may not exist any more.
 
     Preserves the repo-relative path. Refuses to write into a non-empty
     `out_dir` unless `force=True`, and refuses unconditionally to write
@@ -570,19 +667,25 @@ def materialize(project_root: Path, engine_root: Path, out_dir: Path,
     an ambiguous group stays ambiguous regardless of `version`.
     """
     t0 = time.perf_counter()
-    _guard_out_dir(out_dir, project_root, engine_root)
+    _guard_out_dir(out_dir, project_root, engine_root, publish=publish,
+                   from_grid=from_grid)
 
-    if out_dir.exists() and any(out_dir.iterdir()) and not force:
+    # A publish writes over an existing tree by definition, so --force is
+    # implied there; the recoverability check in _guard_out_dir is what makes
+    # that safe, not an empty directory.
+    if out_dir.exists() and any(out_dir.iterdir()) and not (force or publish):
         raise StitchSafetyError(
             f"{out_dir} is non-empty; refusing to write without --force")
 
     nodes, warnings = load_level3_nodes(project_root)
-    if not engine_root.is_dir():
+    # Under --from-grid the engine tree is not a source, so its absence is not
+    # a reason to write nothing: that is the point of the mode.
+    if not from_grid and not engine_root.is_dir():
         warnings.append(f"engine root {engine_root} is missing or unreadable — nothing written")
         return {
             "nodes_total": len(nodes), "written": 0, "bytes_written": 0,
             "skipped_missing": [], "skipped_duplicate": [], "skipped_no_version": [],
-            "chains_materialized": {}, "warnings": warnings,
+            "chains_materialized": {}, "warnings": warnings, "source": "engine",
             "runtime_seconds": time.perf_counter() - t0,
         }
 
@@ -628,11 +731,24 @@ def materialize(project_root: Path, engine_root: Path, out_dir: Path,
     skipped_missing: list[str] = []
 
     for n in targets:
+        dst = out_dir / n.payload_ref
+        if from_grid:
+            entry = _grid_payload(project_root, n)
+            if entry is None:
+                skipped_missing.append(n.node_id)
+                continue
+            mode, data = entry
+            grid.materialize_entry(dst, mode, data)
+            written += 1
+            bytes_written += len(data)
+            continue
         src = engine_root / n.payload_ref
+        # `is_file()` follows a symlink, so a dangling one reads as missing.
+        # That is the right answer for the engine-tree source: the payload it
+        # names genuinely is not readable there.
         if not src.is_file():
             skipped_missing.append(n.node_id)
             continue
-        dst = out_dir / n.payload_ref
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         written += 1
@@ -647,6 +763,7 @@ def materialize(project_root: Path, engine_root: Path, out_dir: Path,
         "skipped_no_version": skipped_no_version,
         "chains_materialized": chains_materialized,
         "warnings": warnings,
+        "source": "grid" if from_grid else "engine",
         "runtime_seconds": time.perf_counter() - t0,
     }
 
@@ -703,8 +820,12 @@ def print_materialize_report(stats: dict) -> None:
               f"{len(stats['chains_materialized'])}")
         for ref, node_id in stats["chains_materialized"].items():
             print(f"    {ref} -> {node_id}")
+    if stats.get("source") == "grid":
+        print("  payload source: grid refs (goal:g6.3 — the graph is the source)")
     if stats["skipped_missing"]:
-        print(f"  skipped (payload_ref missing on disk): {len(stats['skipped_missing'])}")
+        label = ("no payload in the node's grid ref" if stats.get("source") == "grid"
+                 else "payload_ref missing on disk")
+        print(f"  skipped ({label}): {len(stats['skipped_missing'])}")
         for nid in stats["skipped_missing"]:
             print(f"    {nid}")
     if stats["skipped_duplicate"]:
@@ -743,6 +864,18 @@ def main(argv: list[str] | None = None) -> int:
                           "(default: highest version). A payload_ref with no "
                           "member at this version is skipped and reported, "
                           "never guessed.")
+    ap.add_argument("--from-grid", action="store_true",
+                     help="goal:g6.3 — resolve each payload out of the node's "
+                          "own grid ref (refs/grid/node/<mint-id>) instead of "
+                          "off the engine tree. Modes and symlinks come back "
+                          "from the tree entry. This is the direction goal:g6.1 "
+                          "commits to: the engine is assembled from the graph.")
+    ap.add_argument("--publish", action="store_true",
+                     help="goal:g6.5 step 2 — allow --out to write INTO the "
+                          "engine repo. Requires --from-grid and a clean engine "
+                          "working tree, so every overwritten byte is already in "
+                          "the engine's own git history and `git checkout .` "
+                          "undoes the whole publish.")
     ap.add_argument("--verify", action="store_true",
                      help="report drift only; write nothing")
     ap.add_argument("--strict", action="store_true",
@@ -765,7 +898,8 @@ def main(argv: list[str] | None = None) -> int:
     out_dir = Path(args.out).resolve()
     try:
         stats = materialize(project_root, engine_root, out_dir, force=args.force,
-                             version=args.version)
+                             version=args.version, from_grid=args.from_grid,
+                             publish=args.publish)
     except StitchSafetyError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
