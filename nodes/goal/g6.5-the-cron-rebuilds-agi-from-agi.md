@@ -43,6 +43,24 @@ A cron that writes the engine from the graph before the version layer is
 trusted is a data-loss defect waiting to happen, and this project has already
 paid for that class twice (H0, H0b). Report drift; never silently reconcile it.
 
+**Step 2 is unblocked as of 2026-08-25 and the writer exists, un-croned on
+purpose.** G6.3 is complete, so `stitch.py --out <engine> --from-grid
+--publish` is now a legitimate operation and has been run twice on real
+changes. It is gated on three things at once, because this project has paid
+three times for a script that wrote a tree it had no independent record of:
+`--publish` explicitly (never a side effect of `--force`), `--from-grid`
+(publishing the engine from itself cannot add information), and **a clean
+engine working tree** — which is the gate that makes the write *recoverable*
+rather than merely intended, since every overwritten byte is then already in
+the engine's own history and `git checkout .` undoes the entire publish.
+
+What is deliberately **not** done: putting it in the cron. Step 2 says cron
+*may* stitch and commit; it does not say it should do so the same day the
+mechanism first ran. The honest sequence is to publish by hand until the
+reverse direction closes (**G6.1**'s residual — `--verify` still reads the
+engine tree, so an unattended cron could publish a payload whose contract had
+never been re-derived), then automate.
+
 **The generality worth preserving:** `agi` already has the tooling to run
 against *any* project, including itself. Pointing it at itself is what makes
 this loop closed; pointing it at fantasia is what makes it a product. Neither

@@ -53,74 +53,85 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 146'
+  how: '`nf.read_text(encoding=''utf-8'')` at line 192'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 155'
+  how: '`yaml.safe_load(parts[1])` at line 201'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 outputs:
 - name: is_valid_verdict
-  how: 'defines public function `is_valid_verdict` at line 92, signature: (verdict:
+  how: 'defines public function `is_valid_verdict` at line 110, signature: (verdict:
     str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: requires_evidence
-  how: 'defines public function `requires_evidence` at line 96, signature: (verdict:
+  how: 'defines public function `requires_evidence` at line 114, signature: (verdict:
     str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: is_decisive_shadow
+  how: 'defines public function `is_decisive_shadow` at line 119, signature: (value)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: shadow_verdict_fields
+  how: 'defines public function `shadow_verdict_fields` at line 134, signature: (fm:
+    dict)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: is_node_id_shaped
-  how: 'defines public function `is_node_id_shaped` at line 101, signature: (value)'
+  how: 'defines public function `is_node_id_shaped` at line 147, signature: (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_runs_violations
-  how: 'defines public function `evidence_runs_violations` at line 111, signature:
+  how: 'defines public function `evidence_runs_violations` at line 157, signature:
     (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: build_corpus
-  how: 'defines public function `build_corpus` at line 129, signature: (nodes_dir)'
+  how: 'defines public function `build_corpus` at line 175, signature: (nodes_dir)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: normalize_evidence_runs
-  how: 'defines public function `normalize_evidence_runs` at line 166, signature:
+  how: 'defines public function `normalize_evidence_runs` at line 212, signature:
     (value, corpus=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: GateResult
-  how: defines public class `GateResult` at line 206
+  how: defines public class `GateResult` at line 252
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: apply_gate
-  how: 'defines public function `apply_gate` at line 223, signature: (verdict: str,
+  how: 'defines public function `apply_gate` at line 269, signature: (verdict: str,
     evidence_runs, *, bypass: bool=False, corpus=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: announce
-  how: 'defines public function `announce` at line 301, signature: (res: GateResult,
+  how: 'defines public function `announce` at line 347, signature: (res: GateResult,
     stream=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stamp
-  how: 'defines public function `stamp` at line 320, signature: (fm: dict, res: GateResult)'
+  how: 'defines public function `stamp` at line 366, signature: (fm: dict, res: GateResult)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 4 `print()` call(s) at line(s) [309, 311, 314, 317]
+  how: 4 `print()` call(s) at line(s) [355, 357, 360, 363]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

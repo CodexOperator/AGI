@@ -27,76 +27,87 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: re
+  how: '`import re` at line 11'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: pathlib.Path
-  how: '`from pathlib import Path` at line 11'
+  how: '`from pathlib import Path` at line 12'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: pytest
-  how: '`import pytest` at line 13'
+  how: '`import pytest` at line 14'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml
-  how: '`import yaml` at line 14'
+  how: '`import yaml` at line 15'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
   how: '`yaml.safe_load(path.read_text(encoding=''utf-8'').split(''---'', 2)[1])`
-    at line 23'
+    at line 24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 23'
+  how: '`path.read_text(encoding=''utf-8'')` at line 24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 outputs:
 - name: fm_of
-  how: 'defines public function `fm_of` at line 22, signature: (path: Path)'
+  how: 'defines public function `fm_of` at line 23, signature: (path: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node
-  how: 'defines public function `node` at line 27, signature: (tmp_path)'
+  how: 'defines public function `node` at line 28, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_unowned_fields_survive_a_rewrite
-  how: 'defines public function `test_unowned_fields_survive_a_rewrite` at line 31,
+  how: 'defines public function `test_unowned_fields_survive_a_rewrite` at line 32,
     signature: (node)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_snapshot_owned_fields_always_win
-  how: 'defines public function `test_snapshot_owned_fields_always_win` at line 55,
+  how: 'defines public function `test_snapshot_owned_fields_always_win` at line 56,
     signature: (node)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preserve_absent_is_the_old_behaviour
   how: 'defines public function `test_preserve_absent_is_the_old_behaviour` at line
-    68, signature: (node)'
+    69, signature: (node)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_generated_node_gets_a_mint_id_at_creation
+  how: 'defines public function `test_generated_node_gets_a_mint_id_at_creation` at
+    line 77, signature: (node)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preserve_does_not_mutate_the_callers_dict
   how: 'defines public function `test_preserve_does_not_mutate_the_callers_dict` at
-    line 73, signature: (node)'
+    line 93, signature: (node)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_missing_build_site_returns_zero_and_prunes_nothing
   how: 'defines public function `test_missing_build_site_returns_zero_and_prunes_nothing`
-    at line 85, signature: (tmp_path, monkeypatch, capsys)'
+    at line 105, signature: (tmp_path, monkeypatch, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: survivor
   how: '`survivor.write_text(''---\nid: "task:t-001"\ntype: task\norigin: build-site\n---\n\nbody\n'',
-    encoding=''utf-8'')` at line 98'
+    encoding=''utf-8'')` at line 118'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

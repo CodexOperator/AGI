@@ -67,91 +67,96 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: importlib.util
+  how: '`import importlib.util` at line 40'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: BUILD_SITE
-  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 184'
+  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 198'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: kit_path
-  how: '`kit_path.read_text(encoding=''utf-8'')` at line 248'
+  how: '`kit_path.read_text(encoding=''utf-8'')` at line 262'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 85'
+  how: '`json.loads(cfg_path.read_text())` at line 98'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 162'
+  how: '`md_path.read_text(encoding=''utf-8'')` at line 176'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 85'
+  how: '`cfg_path.read_text()` at line 98'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 166'
+  how: '`yaml.safe_load(parts[1])` at line 180'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 outputs:
 - name: config_path
-  how: 'defines public function `config_path` at line 35, signature: (root: Path)'
+  how: 'defines public function `config_path` at line 48, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: slugify
-  how: 'defines public function `slugify` at line 52, signature: (s: str)'
+  how: 'defines public function `slugify` at line 65, signature: (s: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _add_graph_core_to_path
-  how: defines private function `_add_graph_core_to_path` at line 59
+  how: defines private function `_add_graph_core_to_path` at line 72
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _upsert_node_to_db
-  how: 'defines private function `_upsert_node_to_db` at line 75, signature: (node_id:
+  how: 'defines private function `_upsert_node_to_db` at line 88, signature: (node_id:
     str, fm: dict, body: str, origin: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_frontmatter
-  how: 'defines public function `write_frontmatter` at line 110, signature: (path:
+  how: 'defines public function `write_frontmatter` at line 123, signature: (path:
     Path, fm: dict, body: str, origin: str='''', preserve: dict | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: load_existing_nodes
-  how: defines public function `load_existing_nodes` at line 153
+  how: defines public function `load_existing_nodes` at line 167
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_tasks
-  how: defines public function `parse_tasks` at line 179
+  how: defines public function `parse_tasks` at line 193
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_kits
-  how: defines public function `parse_kits` at line 240
+  how: defines public function `parse_kits` at line 254
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 275
+  how: defines public function `main` at line 289
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 150'
+  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 164'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 6 `print()` call(s) at line(s) [98, 182, 292, 414, 416, 418]
+  how: 6 `print()` call(s) at line(s) [111, 196, 306, 428, 430, 432]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

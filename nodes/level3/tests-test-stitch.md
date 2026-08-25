@@ -77,6 +77,11 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: engine / rel
+  how: '`(engine / rel).read_bytes()` at line 732'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: out / 'stray.txt'
   how: '`(out / ''stray.txt'').read_text()` at line 175'
   why: TODO(model)
@@ -93,12 +98,47 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: out / rel
+  how: '`(out / rel).read_bytes()` at line 738'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / rel
+  how: '`(engine / rel).read_text()` at line 804'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / rel
+  how: '`(engine / rel).read_text()` at line 807'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tip / rel
+  how: '`(tip / rel).read_text()` at line 833'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: out / rel
   how: '`(out / rel).read_bytes()` at line 135'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
   how: '`(engine / rel).read_bytes()` at line 135'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: a / rel
+  how: '`(a / rel).read_bytes()` at line 709'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: b / rel
+  how: '`(b / rel).read_bytes()` at line 709'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: out / rel
+  how: '`(out / rel).read_text()` at line 829'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -390,6 +430,84 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _grid_project
+  how: 'defines private function `_grid_project` at line 686, signature: (project:
+    Path, engine: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_from_grid_matches_the_engine_tree_byte_for_byte
+  how: 'defines public function `test_from_grid_matches_the_engine_tree_byte_for_byte`
+    at line 695, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_from_grid_preserves_the_exec_bit
+  how: 'defines public function `test_from_grid_preserves_the_exec_bit` at line 712,
+    signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_from_grid_reads_the_graph_not_the_engine
+  how: 'defines public function `test_from_grid_reads_the_graph_not_the_engine` at
+    line 726, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_from_grid_reports_a_node_with_no_grid_history
+  how: 'defines public function `test_from_grid_reports_a_node_with_no_grid_history`
+    at line 741, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_publish_refuses_without_from_grid
+  how: 'defines public function `test_publish_refuses_without_from_grid` at line 754,
+    signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_plain_out_still_refuses_the_engine_repo
+  how: 'defines public function `test_plain_out_still_refuses_the_engine_repo` at
+    line 759, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_out_never_writes_into_the_graph_repo_even_with_publish
+  how: 'defines public function `test_out_never_writes_into_the_graph_repo_even_with_publish`
+    at line 764, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_publish_refuses_a_dirty_engine_tree
+  how: 'defines public function `test_publish_refuses_a_dirty_engine_tree` at line
+    769, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_publish_refuses_a_non_git_target
+  how: 'defines public function `test_publish_refuses_a_non_git_target` at line 780,
+    signature: (project, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_publish_writes_the_graphs_bytes_into_the_engine
+  how: 'defines public function `test_publish_writes_the_graphs_bytes_into_the_engine`
+    at line 787, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_grid_version_materializes_a_chosen_version_not_the_tip
+  how: 'defines public function `test_grid_version_materializes_a_chosen_version_not_the_tip`
+    at line 810, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_grid_version_beyond_history_is_reported_not_silently_the_tip
+  how: 'defines public function `test_grid_version_beyond_history_is_reported_not_silently_the_tip`
+    at line 836, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: out / 'stray.txt'
   how: '`(out / ''stray.txt'').write_text(''pre-existing'')` at line 159'
   why: TODO(model)
@@ -449,6 +567,32 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: project / 'agi-tree.config.json'
+  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 690'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / rel
+  how: '`(engine / rel).write_text(''#!/bin/sh\necho hi\n'')` at line 716'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / 'agi-tree.config.json'
+  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 747'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / 'extensions/agi/bin/foo.py'
+  how: '`(engine / ''extensions/agi/bin/foo.py'').write_text(''import os\n# edited\n'')`
+    at line 775'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: staged
+  how: '`staged.write_text(edited)` at line 800'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: p
   how: '`p.write_text(content, encoding=''utf-8'')` at line 49'
   why: TODO(model)
@@ -456,6 +600,11 @@ outputs:
   security: TODO(model)
 - name: p
   how: '`p.write_text(content, encoding=''utf-8'')` at line 276'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: staged
+  how: '`staged.write_text(text)` at line 823'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

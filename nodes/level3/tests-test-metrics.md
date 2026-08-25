@@ -123,98 +123,128 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_shadow_counter_catches_a_status_that_contradicts_its_verdict
+  how: 'defines public function `test_shadow_counter_catches_a_status_that_contradicts_its_verdict`
+    at line 149, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_shadow_counter_catches_a_verdict_expressed_only_as_status
+  how: 'defines public function `test_shadow_counter_catches_a_verdict_expressed_only_as_status`
+    at line 161, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_shadow_counter_ignores_a_status_its_verdict_agrees_with
+  how: 'defines public function `test_shadow_counter_ignores_a_status_its_verdict_agrees_with`
+    at line 172, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_shadow_counter_ignores_lifecycle_statuses
+  how: 'defines public function `test_shadow_counter_ignores_lifecycle_statuses` at
+    line 178, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_shadow_counter_ignores_tags
+  how: 'defines public function `test_shadow_counter_ignores_tags` at line 186, signature:
+    (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_metrics_shares_evidence_gates_normalize_function
   how: defines public function `test_metrics_shares_evidence_gates_normalize_function`
-    at line 148
+    at line 193
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_gate_and_metrics_agree_on_the_same_input
   how: 'defines public function `test_gate_and_metrics_agree_on_the_same_input` at
-    line 156, signature: (project)'
+    line 201, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_adding_hops_cannot_inflate_evidence_fraction
   how: 'defines public function `test_adding_hops_cannot_inflate_evidence_fraction`
-    at line 167, signature: (project)'
+    at line 212, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_compute_emits_the_full_metric_set
-  how: 'defines public function `test_compute_emits_the_full_metric_set` at line 182,
+  how: 'defines public function `test_compute_emits_the_full_metric_set` at line 227,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_evidence_weighted_depth_is_zero_without_evidence
   how: 'defines public function `test_evidence_weighted_depth_is_zero_without_evidence`
-    at line 194, signature: (project)'
+    at line 239, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_deep_chain_does_not_blow_the_stack
   how: 'defines public function `test_deep_chain_does_not_blow_the_stack` at line
-    203, signature: (project)'
+    248, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cycle_in_parents_terminates
-  how: 'defines public function `test_cycle_in_parents_terminates` at line 217, signature:
+  how: 'defines public function `test_cycle_in_parents_terminates` at line 262, signature:
     (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _goal
-  how: 'defines private function `_goal` at line 227, signature: (root, gid, status)'
+  how: 'defines private function `_goal` at line 272, signature: (root, gid, status)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_retired_goal_chains_stop_scoring_but_stay_attributable
   how: 'defines public function `test_retired_goal_chains_stop_scoring_but_stay_attributable`
-    at line 231, signature: (project)'
+    at line 276, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_horizon_goals_still_score
-  how: 'defines public function `test_horizon_goals_still_score` at line 251, signature:
+  how: 'defines public function `test_horizon_goals_still_score` at line 296, signature:
     (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_unattributed_nodes_keep_scoring
-  how: 'defines public function `test_unattributed_nodes_keep_scoring` at line 260,
+  how: 'defines public function `test_unattributed_nodes_keep_scoring` at line 305,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_node_shared_with_a_live_goal_still_scores
   how: 'defines public function `test_node_shared_with_a_live_goal_still_scores` at
-    line 273, signature: (project)'
+    line 318, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goal_status_counts_are_emitted
-  how: 'defines public function `test_goal_status_counts_are_emitted` at line 283,
+  how: 'defines public function `test_goal_status_counts_are_emitted` at line 328,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_exceeding_max_goals_active_warns_but_does_not_refuse
   how: 'defines public function `test_exceeding_max_goals_active_warns_but_does_not_refuse`
-    at line 293, signature: (project, capsys)'
+    at line 338, signature: (project, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_within_max_goals_active_is_silent
-  how: 'defines public function `test_within_max_goals_active_is_silent` at line 308,
+  how: 'defines public function `test_within_max_goals_active_is_silent` at line 353,
     signature: (project, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goal_cycle_does_not_hang_attribution
   how: 'defines public function `test_goal_cycle_does_not_hang_attribution` at line
-    317, signature: (project)'
+    362, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -242,13 +272,13 @@ outputs:
   security: TODO(model)
 - name: project / 'agi-tree.config.json'
   how: '`(project / ''agi-tree.config.json'').write_text(json.dumps({''cc_dispatch'':
-    {''max_goals_active'': 1}}))` at line 296'
+    {''max_goals_active'': 1}}))` at line 341'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'agi-tree.config.json'
   how: '`(project / ''agi-tree.config.json'').write_text(json.dumps({''cc_dispatch'':
-    {''max_goals_active'': 3}}))` at line 309'
+    {''max_goals_active'': 3}}))` at line 354'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -263,12 +293,12 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''cc_dispatch'': {''max_goals_active'': 1}})` at line 297'
+  how: '`json.dumps({''cc_dispatch'': {''max_goals_active'': 1}})` at line 342'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''cc_dispatch'': {''max_goals_active'': 3}})` at line 310'
+  how: '`json.dumps({''cc_dispatch'': {''max_goals_active'': 3}})` at line 355'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

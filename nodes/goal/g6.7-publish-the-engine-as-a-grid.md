@@ -78,3 +78,5 @@ worse than a partial writer, because the partial writer leaves evidence.
 So **S9 is not a shared inconvenience, it is the same fix with two callers.**
 G6.3 and G6.7 do not each need their own mode-aware rewrite; they need the one
 rewrite to land before either attempts its falsifier.
+
+> **[truncated: 585 of 4448 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G6.7` is the complete text; raise `goal_body_cap` in the project config to keep more.]**

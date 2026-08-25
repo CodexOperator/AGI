@@ -81,5 +81,4 @@ two self-consistent nodes disagreeing, not one node going stale against its own
 file, and `stitch.py`'s only cross-node check compares `payload_ref` strings,
 never content.
 
-**What this goal now commits to, in order:**
-1. **Contract shape: extracted clai
+> **[truncated: 983 of 4901 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G6.6` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
