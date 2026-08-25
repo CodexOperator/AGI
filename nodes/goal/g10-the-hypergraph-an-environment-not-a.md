@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G10
 goal_kind: long-term
+heading_level: 2
 id: "goal:g10"
 mint_id: 61522510d1ad4359aed7fa04555065dd
+order: 54
 origin: goals-doc
 seeds:
   - goal:g10.1

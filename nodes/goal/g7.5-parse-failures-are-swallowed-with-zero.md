@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G7.5
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g7.5"
 mint_id: 116872160ca44aafadd6c8d1eab645a2
+order: 41
 origin: goals-doc
 parents:
   - goal:g7
@@ -86,4 +88,10 @@ Every `commit --all` since the mint-id migration has reported it as an error
 line among successful ref writes, which is the same shape of silence G7.2 was
 escalated for.
 
-> **[truncated: 538 of 4535 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G7.5` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+That raises this goal's priority the same way. G7.5 was "one file is invisible
+to readers", which is bad but static. It is also **an ongoing hole in the
+backup**, and unlike G7.2's forked ref it cannot be repaired by resolving an id
+collision — the file has to parse before anything else can key on it. Note the
+resolution order this forces: **repair the frontmatter, then backfill the
+mint_id, then grid-commit** — and take a copy of the malformed file into the
+goal's own record first, since repairing it is what destroys the fixture.

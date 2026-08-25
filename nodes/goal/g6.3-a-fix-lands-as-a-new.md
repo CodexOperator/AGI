@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G6.3
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g6.3"
 mint_id: 6634587e21fc4173911d4024abb7d858
+order: 29
 origin: goals-doc
 parents:
   - goal:g6
@@ -83,4 +85,39 @@ keeps a transitional corpus from reading as drift.
 
 **Built and falsified 2026-08-25. Both halves of the untested case now run.**
 
-> **[truncated: 2198 of 6082 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G6.3` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+The payload lives in the node's own ref: `refs/grid/node/<mint-id>` holds a
+two-entry tree, `node.md` plus `payload`, with the payload's **real** mode read
+from `os.lstat()`. `payload_ref` kept its shape exactly as the hypothesis
+predicted; only its resolution rule changed. The unchanged-check compares the
+whole tree rather than `node.md` alone, which is what makes a payload-only edit
+a real version — comparing the node file alone would have made every payload
+edit invisible to the history this goal exists to accumulate.
+
+**Falsifier, run on the live corpus, not a sandbox:** materialise all 185 build
+nodes twice — once from the engine tree, once from the grid — and compare.
+**180/180 files byte-identical** (5 nodes are `@v2` chain members resolving to
+the same 180 payloads). Modes checked against the engine's own git index:
+**180/180 match, including all 16 executables.** The pre-S9 code would have
+published every one of those 16 as `100644`. The engine has no symlinks, so
+`120000` is covered by the regression tests rather than by the corpus — stated
+plainly rather than counted as live evidence.
+
+**The other half — "materialising a chosen version rather than whichever is
+current" — is `--grid-version N`**, which reads version N out of the ref's
+history instead of its tip and *reports* a node with no such version rather
+than quietly serving the tip.
+
+**And it was exercised on content that matters, which is what this goal
+actually asked for.** S12's fix and `--grid-version` itself both landed as
+payload versions and were published to the engine; the engine repo was never
+edited by hand for either. See **G6.1**.
+
+Residual, deliberately not claimed as done: the `@v2` collapse above, and
+`stitch.py --verify`, which still compares contracts against the engine tree
+rather than against the payload in the ref. Both are named in **G6.1**.
+
+This also settles that the anatomy decision was not overturned by fiat. A grid
+ref is never checked out, so it is not a second copy of the tree — it is a second
+*name* into the same object store. When bytes match, git's hashing makes them the
+same object, which is a stronger non-drift guarantee than "never inlined" was
+reaching for.

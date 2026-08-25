@@ -113,6 +113,18 @@ is clean, so every byte it overwrites is already in the engine's own history and
 `git checkout .` undoes the whole publish. After publishing, re-run `level3.py`
 so contracts re-derive, then `grid.py commit --all` again.
 
+**A new file is created the same way — write it under `payloads/`.** `level3.py`
+discovers it there, mints its node and its `payload_ref`, and from then on it is
+ordinary graph content. Before 2026-08-25 discovery only read `git ls-files` on
+the engine, so a script authored in `payloads/` had no node, was never committed
+to the grid, and lived in exactly one gitignored directory — two were found in
+that state within an hour of the workflow existing.
+
+**`checkout` will not overwrite a payload you have edited but not committed.**
+It reports `SKIP (locally modified)` and leaves it; `--force` discards. Two
+agents sharing this worktree is the normal case (G4.1), and `checkout --all` is
+`git checkout .` on the payload tree.
+
 Read a payload back without checking out: `grid.py payload <node-id> [--version N]`.
 Materialise a chosen historical version of the whole tree:
 `stitch.py --from-grid --grid-version N --out DIR`.

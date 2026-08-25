@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G6.7
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g6.7"
 mint_id: 79319444e14942368e38c41156800830
+order: 33
 origin: goals-doc
 parents:
   - goal:g6
@@ -79,4 +81,11 @@ So **S9 is not a shared inconvenience, it is the same fix with two callers.**
 G6.3 and G6.7 do not each need their own mode-aware rewrite; they need the one
 rewrite to land before either attempts its falsifier.
 
-> **[truncated: 585 of 4448 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G6.7` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+**Both preconditions cleared 2026-08-25.** S9 is fixed, so the mis-hashing
+hazard above is gone — and G6.3's blocking finding is answered too: **there is
+now code in the graph to stitch.** Every build node's ref holds its payload as
+a real blob with a real mode, which is precisely the input this goal said it
+wanted and could not have. D4 is now a tree-builder over `refs/grid/node/*`
+plus each node's `payload_ref` for placement — no markdown to parse, no sha
+lookups. Its falsifier (build `refs/grid/release/agi` and compare against
+`stitch.py --out`) is newly runnable and unrun.

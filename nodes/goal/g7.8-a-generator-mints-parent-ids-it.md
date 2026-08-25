@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G7.8
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g7.8"
 mint_id: 742ccf8373584908912f0350b6b8366a
+order: 44
 origin: goals-doc
 parents:
   - goal:g7
@@ -76,4 +78,37 @@ R11 was always a real, documented requirement with a title and eight criteria.
 
 Two things worth carrying forward from the fix:
 
-> **[truncated: 2256 of 5660 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G7.8` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+- **It took two `--smoke` passes.** The first run minted the hypothesis *after*
+  the integrity check had already read the corpus, so the check still reported
+  both references as unresolved against a node that existed on disk by the time
+  it printed. This is **S7**'s two-pass wiring defect, and S7 describes it only
+  for `snapshot-goals.py` — it applies to `snapshot-build-site.py` identically.
+  Anyone reading a single post-edit run will believe a fix failed when it
+  succeeded.
+- **Editing the kit is safe here specifically because cavekit is frozen.** No
+  cavekit updates are being pulled pending its phase-out (below), so there is no
+  upstream to clobber the edit. **This would be the wrong fix on a live
+  dependency** — there it would have to go upstream or the generator would have
+  to tolerate the gap.
+
+**What remains open, and it is the part that matters:** the generator still
+builds `f"hyp:{domain}-{rnum.lower()}"` and writes it as a parent **without ever
+checking the id resolves.** The kit is consistent again, so nothing dangles
+today — but the next task citing a requirement with no `### Rn:` block
+reintroduces this silently, and the fixture is gone. Resolve `parent_hyp`
+against the loaded corpus before writing; on a miss emit `parents: []` plus a
+`WARN:` naming the task, the `cavekit_req` and the unresolved id —
+warn-by-default, matching G7.1/G7.2/G7.5. **Do not mint the missing hypothesis
+and do not drop the task**: an unattributed task is a real state, and a
+fabricated ancestor is worse than a visible gap.
+
+**Phase-out context (stated 2026-08-25, not yet a goal of its own).** The
+intent is that this graph replaces `context/kits/` outright — the kits are a
+smaller, weaker graph living inside a directory, which is the thing `agi-tree`
+exists to be. Until that lands, `context/kits/` and
+`context/plans/build-site.md` remain load-bearing generator inputs for 163
+`origin: build-site` nodes, and **H0i still applies with full force: deleting or
+emptying either one prunes every one of those nodes on the next run.** Retire
+them by deprecating the nodes first. When the phase-out is committed to, it
+wants its own goal — it subsumes this one, since a generator that no longer
+exists cannot mint an unvalidated parent.

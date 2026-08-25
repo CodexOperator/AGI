@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: S10
 goal_kind: short-term
+heading_level: 2
 id: "goal:s10"
 mint_id: 32ab6af9735040b6bc3242f903cc5ba8
+order: 74
 origin: goals-doc
 seeds: []
 status: active

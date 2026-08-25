@@ -156,67 +156,67 @@ outputs:
   security: TODO(model)
 - name: verify_tree
   how: 'defines public function `verify_tree` at line 425, signature: (project_root:
-    Path, engine_root: Path)'
+    Path, engine_root: Path, from_grid: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: has_drift
-  how: 'defines public function `has_drift` at line 528, signature: (report: dict)'
+  how: 'defines public function `has_drift` at line 547, signature: (report: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _is_within
-  how: 'defines private function `_is_within` at line 537, signature: (path: Path,
+  how: 'defines private function `_is_within` at line 556, signature: (path: Path,
     root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _git_is_clean
-  how: 'defines private function `_git_is_clean` at line 545, signature: (repo: Path)'
+  how: 'defines private function `_git_is_clean` at line 564, signature: (repo: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _guard_out_dir
-  how: 'defines private function `_guard_out_dir` at line 556, signature: (out_dir:
+  how: 'defines private function `_guard_out_dir` at line 575, signature: (out_dir:
     Path, project_root: Path, engine_root: Path, publish: bool=False, from_grid: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _grid_payload
-  how: 'defines private function `_grid_payload` at line 610, signature: (project_root:
+  how: 'defines private function `_grid_payload` at line 629, signature: (project_root:
     Path, node: Level3Node, grid_version: int | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: materialize
-  how: 'defines public function `materialize` at line 644, signature: (project_root:
+  how: 'defines public function `materialize` at line 663, signature: (project_root:
     Path, engine_root: Path, out_dir: Path, force: bool=False, version: int | None=None,
     from_grid: bool=False, publish: bool=False, grid_version: int | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: print_verify_report
-  how: 'defines public function `print_verify_report` at line 789, signature: (report:
+  how: 'defines public function `print_verify_report` at line 808, signature: (report:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: print_materialize_report
-  how: 'defines public function `print_materialize_report` at line 830, signature:
+  how: 'defines public function `print_materialize_report` at line 853, signature:
     (stats: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 864, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 887, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 35 `print()` call(s) at line(s) [790, 791, 793, 795, 797, 799, 801, 803, 805,
-    807, 809, 810, 813, 815, 819, 821, 822, 825, 827, 831, 832, 834, 837, 839, 843,
-    845, 847, 850, 852, 855, 857, 858, 909, 920, 928]
+  how: 36 `print()` call(s) at line(s) [809, 810, 812, 814, 816, 818, 820, 822, 824,
+    826, 828, 829, 832, 835, 838, 842, 844, 845, 848, 850, 854, 855, 857, 860, 862,
+    866, 868, 870, 873, 875, 878, 880, 881, 932, 943, 951]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

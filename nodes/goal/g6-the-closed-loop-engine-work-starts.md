@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G6
 goal_kind: long-term
+heading_level: 2
 id: "goal:g6"
 mint_id: ee284312e59e4ee6bccb0a994ae0bc6b
+order: 26
 origin: goals-doc
 seeds:
   - goal:g6.1
@@ -14,6 +16,7 @@ seeds:
   - goal:g6.6
   - goal:g6.7
   - goal:g6.8
+  - goal:g6.9
   - idea:deprecate-the-gamed-mass
   - idea:engine-self-decomposition
 status: active

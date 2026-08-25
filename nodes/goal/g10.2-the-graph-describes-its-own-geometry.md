@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G10.2
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g10.2"
 mint_id: 4b27be7298144a7e801b6e63ce5a5ae0
+order: 56
 origin: goals-doc
 parents:
   - goal:g10
@@ -82,4 +84,12 @@ space. **The supermap convention (G1.3) is the addressing scheme that makes this
 possible**, which is why G1.3 is worth building before the thing it will address
 exists.
 
-> **[truncated: 600 of 4307 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G10.2` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+Falsifier, and it has to be behavioural rather than aesthetic: give an agent a task
+that today requires leaving the graph, and measure the graph-call to file-read
+ratio (the Design Ethic's measurable). The hypergraph is real when that ratio
+inverts on work that currently fails it — the standing baseline is 3:28 from
+`exp:evidence-gate-coverage`. If agents still reach for the filesystem, the
+environment is a document with better formatting.
+
+Depends on: **G2** (zoom axis), **G1.3** (addressing), **G9.4** (the viewport is
+the same query with a human front-end), **G6.8** (what is in it at all).

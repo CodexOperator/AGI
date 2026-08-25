@@ -1,6 +1,26 @@
-# [agent_session].md — agent_session node schema
+---
+name: agent_session
+active: false
+derived_from: not-derived -- zero agent_session nodes exist in the corpus
+---
 
-> Bracketed filename = active schema in this directory tree.
+# agent_session — INACTIVE
+
+> Bracketed filename = active schema in this directory tree. **This filename
+> is not bracketed, so this schema is inactive** and is never auto-discovered
+> (`schema_registry/active_set.py`, R2.2).
+
+**Repair, 2026-08-25:** this file had no YAML frontmatter at all, so it did
+not merely load as inactive — `load_schemas_from_dir` raised
+`FrontmatterError: md file missing opening '---'` and recorded it in
+`SchemaRegistry.errors` on every single load. It was a permanent parse error
+sitting in the schemas directory, not a dormant schema. The frontmatter above
+is the minimum that makes it load; the `fields:`/`validation:`/`spawn:` blocks
+are deliberately absent because there are **zero `agent_session` nodes in the
+corpus** and deriving a shape from a design document rather than from nodes is
+exactly what produced `run_id`, `source_files` and `input_shape` — three
+required fields no node has ever carried. The prose below is preserved
+verbatim as the original design intent.
 
 ## Schema
 
