@@ -44,8 +44,10 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/cli.py status <iter>` | Iteration status |
 | `bin/cli.py claim --node-id id --session s` / `reclaim` / `detect-stale` | Node locking |
 | `bin/grid.py init` | Configure the grid refspec (once per project) |
-| `bin/grid.py commit --all [--prefix P]` | Version every changed node |
+| `bin/grid.py commit --all [--prefix P]` | Version every changed node — and its payload, if it has one |
 | `bin/grid.py commit <file> --session <iter> <agent>` | Snapshot a kid draft |
+| `bin/grid.py checkout --all [--dir D]` | Materialize build-node payloads into `<project>/payloads/` for editing |
+| `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
 | `bin/grid.py cron install` / `show` / `remove` | Install automated sync (both cadences) |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
@@ -207,6 +209,21 @@ Zoom is a **view into the graph, not a node's type** — `--level big`/`--level 
 ## The git grid
 
 `bin/grid.py` adds two version dimensions beside the project's own history, baked into the repo as `refs/grid/node/*` and `refs/grid/session/*` — never checked out, invisible to `git branch`, blobs deduped, one remote syncs everything. **A version is a grid commit, not a second node file** — a fix edits the target node in place, and the grid is what accumulates the history. Version history is depth to zoom into, never flat structure on disk.
+
+**A build node's ref holds its payload, not just its prose.** As of 2026-08-25 (G6.3) `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — and the payload carries its **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. So `payload_ref` still names where the file belongs in the engine tree, but the bytes come from the ref. A payload-only edit is a real version, because the unchanged-check compares the whole tree.
+
+That is what reverses G6.1's arrow, and it is the workflow for engine work:
+
+```
+grid.py checkout --all                  # payloads/<payload_ref>, editable
+<edit, and run the tests against that copy>
+grid.py commit --all                    # the graph records your edit as vN+1
+stitch.py --out <engine> --from-grid --publish
+```
+
+`--publish` refuses unless `--from-grid` is set **and** the target's working tree is clean, so every overwritten byte is already in the target's own git history and `git checkout .` undoes the publish whole. `--grid-version N` materializes a chosen version of the whole tree instead of each node's tip.
+
+**Do not hand-edit the engine.** A change made there has no node behind it, which is the open loop G6 exists to close — and the graph will overwrite it on the next publish.
 
 - **After every iteration commit:** `grid.py commit --all`. Changed nodes gain a version; unchanged nodes get nothing. **Versions record change, not time.**
 - **Kid drafts:** `grid.py commit <file> --session <iter> <agent>` before review. Rejected drafts survive there; accepted content lands on the node branch at the next `commit --all`. Nothing is lost either way.
