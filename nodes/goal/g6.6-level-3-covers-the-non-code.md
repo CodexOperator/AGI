@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G6.6
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g6.6"
 mint_id: 26e39066f7bb494581c7b494d409d4fa
+order: 32
 origin: goals-doc
 parents:
   - goal:g6
@@ -81,4 +83,19 @@ two self-consistent nodes disagreeing, not one node going stale against its own
 file, and `stitch.py`'s only cross-node check compares `payload_ref` strings,
 never content.
 
-> **[truncated: 983 of 4901 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G6.6` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+**What this goal now commits to, in order:**
+1. **Contract shape: extracted claims.** Decided, not left open. Same split code
+   contracts use — the harness derives the claim list mechanically, a model fills
+   the judgement fields.
+2. **A fifth drift category: cross-node claim comparison.** None of the existing
+   four compares two nodes against each other. Without it, coverage alone cannot
+   deliver the reflexive-case protection this goal argues for.
+3. **Reserve a model-judgement step.** "Commit your work" contradicting "do not
+   commit" is a semantic negation. No mechanical diff performs it, and the
+   `how`/`why` split reserves no room for it today.
+
+**Replacement falsifier, and it is the whole point:** reintroduce the
+`agent-prompt.md` / `SKILL.md` contradiction and confirm `stitch.py --verify`
+flags it. Passing the old one-word test would have produced false confidence that
+the reflexive case (G1.3/G1.4 editing `agent-prompt.md`) is protected when it is
+not.

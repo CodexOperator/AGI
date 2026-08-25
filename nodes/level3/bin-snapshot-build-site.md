@@ -73,12 +73,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: BUILD_SITE
-  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 198'
+  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 206'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: kit_path
-  how: '`kit_path.read_text(encoding=''utf-8'')` at line 262'
+  how: '`kit_path.read_text(encoding=''utf-8'')` at line 270'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -88,7 +88,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 176'
+  how: '`md_path.read_text(encoding=''utf-8'')` at line 184'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -98,7 +98,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 180'
+  how: '`yaml.safe_load(parts[1])` at line 188'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -131,32 +131,32 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: load_existing_nodes
-  how: defines public function `load_existing_nodes` at line 167
+  how: defines public function `load_existing_nodes` at line 175
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_tasks
-  how: defines public function `parse_tasks` at line 193
+  how: defines public function `parse_tasks` at line 201
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_kits
-  how: defines public function `parse_kits` at line 254
+  how: defines public function `parse_kits` at line 262
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 289
+  how: defines public function `main` at line 297
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 164'
+  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 172'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 6 `print()` call(s) at line(s) [111, 196, 306, 428, 430, 432]
+  how: 6 `print()` call(s) at line(s) [111, 204, 314, 436, 438, 440]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

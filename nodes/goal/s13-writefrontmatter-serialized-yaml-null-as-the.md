@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: S13
 goal_kind: short-term
+heading_level: 2
 id: "goal:s13"
 mint_id: 199d522645cc4f84957fd23fda49dfc7
+order: 60
 origin: goals-doc
 seeds: []
 status: complete
@@ -11,7 +13,7 @@ tags:
   - goal
   - root
   - short-term
-title: "S13: `write_frontmatter` serialized YAML null as the string 'None'"
+title: "S13: `write_frontmatter` serialized YAML null as the string \"None\""
 type: goal
 ---
 

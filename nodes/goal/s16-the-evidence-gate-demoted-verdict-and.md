@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: S16
 goal_kind: short-term
+heading_level: 2
 id: "goal:s16"
 mint_id: f52e9f204e264a91b64f9e7e7aecef15
+order: 63
 origin: goals-doc
 seeds: []
 status: complete
@@ -86,4 +88,31 @@ could not see them at all. They were in no numerator and no denominator.
 Five of them were unevidenced decisive verdicts that
 `unevidenced_decisive_verdicts: 0` had never once counted.
 
-> **[truncated: 1658 of 5406 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `S16` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+**`evidence_runs` was not touched on any node.** Not written, not
+overwritten, not zeroed. Four of the five demotions cite an experiment id that
+no longer resolves; those dangling refs are kept because they are the
+diagnostic G7.1 works from, and replacing them with `0` would have destroyed
+the only record of what was claimed.
+
+**Left standing, deliberately:**
+
+- **`tags:` still carry `proved`.** 41 demoted nodes keep the tag as a
+  historical record of the original claim; demotion already keeps them out of
+  the standard graph views. `tags` is explicitly excluded from
+  `SHADOW_VERDICT_FIELDS` and from the shadow counter.
+- **`verdict:a00-b4570cd1-0b9427`** cites
+  `evidence_runs: ['exp-render-context-fix-chain-length.py']` — a filename,
+  not a node id, so H4c rejects rather than demotes it and the sweep wrote
+  nothing. It is the residual `shadow_decisive_verdicts=1`. Resolving it means
+  finding what that script actually was, which is a G7.1 job.
+- **`hyp:a00-1467544f-chain-600hop`** carries `verdict: proved` with no
+  `evidence_runs` — a plain H4 violation with no shadow involved, and the
+  residual `unevidenced_decisive_verdicts=1`. Pre-existing, out of this
+  sweep's scope, not repaired here.
+
+**`evidence_fraction` moved 0.087 → 0.179 and this is not the metric being
+gamed.** Nothing was upgraded and no evidence was invented; 15 verdicts that
+had always existed became legible to the metric, 10 of them already citing
+runs that resolve. The number was previously wrong in the flattering
+direction *and* the unflattering one at once — it hid 10 backed verdicts and 5
+unbacked ones. `decisive_verdicts` 7 → 17 is the same effect.

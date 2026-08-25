@@ -69,13 +69,19 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: classify_paths
+  how: 'defines public function `classify_paths` at line 98, signature: (repo: Path,
+    rel_paths: list[str])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: main
-  how: defines public function `main` at line 98
+  how: defines public function `main` at line 124
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 3 `print()` call(s) at line(s) [103, 110, 112]
+  how: 3 `print()` call(s) at line(s) [129, 136, 138]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

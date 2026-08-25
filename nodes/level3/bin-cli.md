@@ -57,113 +57,118 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: spawn_gate
+  how: '`import spawn_gate` at line 22'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: evidence_gate.VERDICT_HELP
-  how: '`from evidence_gate import VERDICT_HELP` at line 22'
+  how: '`from evidence_gate import VERDICT_HELP` at line 23'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_gate.VERDICT_RE
-  how: '`from evidence_gate import VERDICT_RE` at line 22'
+  how: '`from evidence_gate import VERDICT_RE` at line 23'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_core.identity.mint_permanent_id
-  how: '`from graph_core.identity import mint_permanent_id` at line 28'
+  how: '`from graph_core.identity import mint_permanent_id` at line 29'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(ap.read_text())` at line 110'
+  how: '`json.loads(ap.read_text())` at line 136'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(ap.read_text())` at line 170'
+  how: '`json.loads(ap.read_text())` at line 225'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.read_text()` at line 395'
+  how: '`node_file.read_text()` at line 486'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(manifest.read_text())` at line 446'
+  how: '`json.loads(manifest.read_text())` at line 537'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text()` at line 65'
+  how: '`nf.read_text()` at line 91'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.read_text()` at line 110'
+  how: '`ap.read_text()` at line 136'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.read_text()` at line 170'
+  how: '`ap.read_text()` at line 225'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(ap.read_text())` at line 235'
+  how: '`json.loads(ap.read_text())` at line 326'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest
-  how: '`manifest.read_text()` at line 446'
+  how: '`manifest.read_text()` at line 537'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 68'
+  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 94'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.read_text()` at line 235'
+  how: '`ap.read_text()` at line 326'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.read_text()` at line 293'
+  how: '`node_file.read_text()` at line 384'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text()` at line 345'
+  how: '`nf.read_text()` at line 436'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(ap.read_text())` at line 450'
+  how: '`json.loads(ap.read_text())` at line 541'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text()` at line 265'
+  how: '`nf.read_text()` at line 356'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 351'
+  how: '`yaml.safe_load(parts[1])` at line 442'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.read_text()` at line 450'
+  how: '`ap.read_text()` at line 541'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(fm_text)` at line 303'
+  how: '`yaml.safe_load(fm_text)` at line 394'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(fm_text)` at line 268'
+  how: '`yaml.safe_load(fm_text)` at line 359'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -174,151 +179,151 @@ inputs:
   security: TODO(model)
 outputs:
 - name: _find_root
-  how: defines private function `_find_root` at line 37
+  how: defines private function `_find_root` at line 63
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _agent_path
-  how: 'defines private function `_agent_path` at line 48, signature: (root: Path,
+  how: 'defines private function `_agent_path` at line 74, signature: (root: Path,
     iter_n: int, agent_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _node_evidence_runs_raw
-  how: 'defines private function `_node_evidence_runs_raw` at line 52, signature:
+  how: 'defines private function `_node_evidence_runs_raw` at line 78, signature:
     (root: Path, node_id: str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_done
-  how: 'defines public function `cmd_done` at line 74, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_done` at line 100, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_pending
-  how: 'defines public function `cmd_pending` at line 164, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_pending` at line 219, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_scaffold
-  how: 'defines public function `cmd_scaffold` at line 179, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_scaffold` at line 234, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _find_node_file
-  how: 'defines private function `_find_node_file` at line 243, signature: (root:
+  how: 'defines private function `_find_node_file` at line 334, signature: (root:
     Path, node_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _claim_node
-  how: 'defines private function `_claim_node` at line 276, signature: (root: Path,
+  how: 'defines private function `_claim_node` at line 367, signature: (root: Path,
     node_id: str, session_id: str, force: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _detect_stale
-  how: 'defines private function `_detect_stale` at line 337, signature: (root: Path,
+  how: 'defines private function `_detect_stale` at line 428, signature: (root: Path,
     threshold_seconds: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_claim
-  how: 'defines public function `cmd_claim` at line 367, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_claim` at line 458, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_detect_stale
-  how: 'defines public function `cmd_detect_stale` at line 374, signature: (args:
+  how: 'defines public function `cmd_detect_stale` at line 465, signature: (args:
     argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_reclaim
-  how: 'defines public function `cmd_reclaim` at line 385, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_reclaim` at line 476, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _append_verdict_to_node
-  how: 'defines private function `_append_verdict_to_node` at line 392, signature:
+  how: 'defines private function `_append_verdict_to_node` at line 483, signature:
     (node_file: Path, verdict: str, confidence: float, notes: str, next_edge: str
     | None=None, gate=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_status
-  how: 'defines public function `cmd_status` at line 439, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_status` at line 530, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 455
+  how: defines public function `main` at line 546
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.write_text(json.dumps(rec, indent=2))` at line 124'
+  how: '`ap.write_text(json.dumps(rec, indent=2))` at line 150'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.write_text(json.dumps(rec, indent=2))` at line 174'
+  how: '`ap.write_text(json.dumps(rec, indent=2))` at line 229'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.write_text(''\n''.join(fm_lines) + body)` at line 229'
+  how: '`node_file.write_text(''\n''.join(fm_lines) + body)` at line 320'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.write_text(new_fm + ''\n'' + body)` at line 432'
+  how: '`node_file.write_text(new_fm + ''\n'' + body)` at line 523'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(rec, indent=2)` at line 124'
+  how: '`json.dumps(rec, indent=2)` at line 150'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(rec, indent=2)` at line 174'
+  how: '`json.dumps(rec, indent=2)` at line 229'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap
-  how: '`ap.write_text(json.dumps(rec, indent=2))` at line 238'
+  how: '`ap.write_text(json.dumps(rec, indent=2))` at line 329'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: lock_file
-  how: '`open(lock_file, ''a'')` at line 290 (mode=''a'')'
+  how: '`open(lock_file, ''a'')` at line 381 (mode=''a'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: vfile
-  how: '`vfile.write_text(''\n''.join(fm_lines) + f''\n\n{body}\n'')` at line 157'
+  how: '`vfile.write_text(''\n''.join(fm_lines) + f''\n\n{body}\n'')` at line 212'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(rec, indent=2)` at line 238'
+  how: '`json.dumps(rec, indent=2)` at line 329'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp
-  how: '`tmp.write_text(new_content)` at line 330'
+  how: '`tmp.write_text(new_content)` at line 421'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`open(node_file, ''a'')` at line 435 (mode=''a'')'
+  how: '`open(node_file, ''a'')` at line 526 (mode=''a'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 18 `print()` call(s) at line(s) [44, 76, 82, 100, 132, 158, 160, 168, 175,
-    197, 230, 370, 378, 381, 388, 444, 447, 451]
+  how: 20 `print()` call(s) at line(s) [70, 102, 108, 126, 158, 177, 213, 215, 223,
+    230, 269, 281, 321, 461, 469, 472, 479, 535, 538, 542]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

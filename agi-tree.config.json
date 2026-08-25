@@ -36,5 +36,6 @@
     "kids_per_iter": 2,
     "kid_model": "claude-sonnet-5",
     "parent_model": "claude-opus-5"
-  }
+  },
+  "goal_body_cap": 0
 }

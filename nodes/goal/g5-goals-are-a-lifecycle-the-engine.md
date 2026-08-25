@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G5
 goal_kind: long-term
+heading_level: 2
 id: "goal:g5"
 mint_id: 71c02192f832480f85cb075ad649a451
+order: 24
 origin: goals-doc
 seeds:
   - exp:g5-lifecycle-enforcement

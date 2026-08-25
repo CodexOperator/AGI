@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G5.1
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g5.1"
 mint_id: 7cd59a29cd2442c7b28c38c9da0f95cd
+order: 25
 origin: goals-doc
 parents:
   - goal:g5

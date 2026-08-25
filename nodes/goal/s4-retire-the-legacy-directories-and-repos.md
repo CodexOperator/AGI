@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: S4
 goal_kind: short-term
+heading_level: 2
 id: "goal:s4"
 mint_id: 351125dd5d3942a2aa032920cb12771c
+order: 68
 origin: goals-doc
 seeds: []
 status: horizon

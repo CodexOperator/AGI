@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: S2
 goal_kind: short-term
+heading_level: 2
 id: "goal:s2"
 mint_id: 8411f48082324bed9607e200adca84cc
+order: 66
 origin: goals-doc
 seeds: []
 status: complete

@@ -2,8 +2,10 @@
 confidence: 1.0
 goal_id: G2.5
 goal_kind: subgoal
+heading_level: 3
 id: "goal:g2.5"
 mint_id: 1400b89c012d4ee08f666ad61b471bc0
+order: 12
 origin: goals-doc
 parents:
   - goal:g2
@@ -87,4 +89,42 @@ changes. Keying grid history on that would make every regroup a ref migration,
 and four of those on 2026-08-24 were enough to price it. So the graph carries
 **two** identifiers and they are never the same field:
 
-> **[truncated: 2365 of 6271 characters dropped at a block boundary to fit the 4000-character cap. `GOALS.md` section `G2.5` is the complete text; raise `goal_body_cap` in the project config to keep more.]**
+| | **mint id** | **address** |
+|---|---|---|
+| Assigned | once, at node creation | derived, re-derived freely |
+| Ever changes | **never** | on every regroup/retag |
+| Shape | uuid or equivalent, opaque | 7 chars, alphanumeric, hierarchical |
+| Keys | `refs/grid/node/<mint-id>` | addressing, zoom, prefixes |
+| Read by | the grid, cross-links, provenance | humans, renderers, agents |
+
+The address stays mutable and cheap precisely *because* nothing durable hangs
+off it. History follows the mint id, so a node can be regrouped, retagged and
+re-addressed without touching a single ref.
+
+**Known gap, found landing this: no generator mints a `mint_id`.** The backfill
+(`bin/backfill-mint-ids.py`) is the only thing that assigns one, so every node a
+generator creates — `level3.py`, `snapshot-goals.py`, `decompose-engine.py`, and
+the `cli.py scaffold` path — arrives without one and is skipped by
+`grid.py commit --all` with a loud per-node error until a backfill runs. Observed
+immediately: two new `level3` nodes from the same session needed a second
+backfill pass. A mint id should be assigned **at node creation**, by whatever
+writes the file, with the backfill retained only for repair. Until then, "run
+the backfill after any generator" is an unscripted manual step, which is exactly
+the class this project's design ethic says to eliminate.
+
+**Grouping stays hash-derived for now, deliberately.** Addresses mint from a
+hash of the node, which means today every 6-char prefix holds exactly one member
+— the hierarchy is present in the format but not yet exercised. That is accepted
+rather than patched: the grouping that will populate prefixes comes from tags
+(**G2.6**), and inventing a placeholder taxonomy first would be throwaway work
+built on `type` values that are themselves being retired (see G2's note on
+`level3`). The ≤36-members-per-prefix budget binds when tags land, not before.
+
+**Sequencing.** Minting 7-char ids rewrites every id in the corpus, so it needs
+a migration that preserves grid history plus an old→new mapping kept as prior
+art. Assignment must be **deterministic and stable under insertion** — an id
+derived from sort position renumbers everything after an inserted node, which is
+the failure mode to design out first.
+
+Closes the identity half of **G7.2** and **G7.4**. Depends on **G2.6** for the
+grouping the prefixes encode.

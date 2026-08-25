@@ -77,6 +77,16 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: src
+  how: '`src.read_bytes()` at line 876'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: dst
+  how: '`dst.read_bytes()` at line 835'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: cli-args
   how: builds an `argparse.ArgumentParser` (module-wide, no single call site)
   why: TODO(model)
@@ -306,71 +316,78 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: engine_tracked_files
+  how: 'defines public function `engine_tracked_files` at line 781, signature: (engine_root:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: cmd_checkout
-  how: 'defines public function `cmd_checkout` at line 781, signature: (root: Path,
-    node_ids: list[str], do_all: bool, dest: str | None, engine_root: Path | None=None)'
+  how: 'defines public function `cmd_checkout` at line 788, signature: (root: Path,
+    node_ids: list[str], do_all: bool, dest: str | None, engine_root: Path | None=None,
+    unmanaged: bool=True, force: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_status
-  how: 'defines public function `cmd_status` at line 821, signature: (root: Path,
+  how: 'defines public function `cmd_status` at line 894, signature: (root: Path,
     engine_root: Path | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _rename_ref
-  how: 'defines private function `_rename_ref` at line 855, signature: (root: Path,
+  how: 'defines private function `_rename_ref` at line 928, signature: (root: Path,
     old_ref: str, new_ref: str, write: bool)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_migrate_refs
-  how: 'defines public function `cmd_migrate_refs` at line 905, signature: (root:
+  how: 'defines public function `cmd_migrate_refs` at line 978, signature: (root:
     Path, write: bool)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_migrate_mint_refs
-  how: 'defines public function `cmd_migrate_mint_refs` at line 966, signature: (root:
+  how: 'defines public function `cmd_migrate_mint_refs` at line 1039, signature: (root:
     Path, write: bool)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_sync
-  how: 'defines public function `cmd_sync` at line 1061, signature: (root: Path, remote:
+  how: 'defines public function `cmd_sync` at line 1134, signature: (root: Path, remote:
     str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cron_log
-  how: 'defines public function `cron_log` at line 1075, signature: (root: Path)'
+  how: 'defines public function `cron_log` at line 1148, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cron_lines
-  how: 'defines public function `cron_lines` at line 1079, signature: (root: Path,
+  how: 'defines public function `cron_lines` at line 1152, signature: (root: Path,
     branch: str, mins: int, log: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: read_crontab
-  how: defines public function `read_crontab` at line 1090
+  how: defines public function `read_crontab` at line 1163
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_crontab
-  how: 'defines public function `write_crontab` at line 1095, signature: (lines: list[str])'
+  how: 'defines public function `write_crontab` at line 1168, signature: (lines: list[str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_cron
-  how: 'defines public function `cmd_cron` at line 1103, signature: (root: Path, action:
+  how: 'defines public function `cmd_cron` at line 1176, signature: (root: Path, action:
     str, mins: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 1128
+  how: defines public function `main` at line 1201
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -380,9 +397,9 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 35 `print()` call(s) at line(s) [534, 536, 538, 542, 568, 632, 636, 647, 656,
-    667, 668, 711, 719, 733, 778, 806, 811, 817, 842, 851, 852, 947, 952, 956, 961,
-    1031, 1043, 1047, 1051, 1056, 1072, 1111, 1115, 1124, 1125]
+  how: 37 `print()` call(s) at line(s) [534, 536, 538, 542, 568, 632, 636, 647, 656,
+    667, 668, 711, 719, 733, 778, 846, 852, 858, 884, 889, 915, 924, 925, 1020, 1025,
+    1029, 1034, 1104, 1116, 1120, 1124, 1129, 1145, 1184, 1188, 1197, 1198]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
