@@ -11,7 +11,7 @@ next_edges:
 parents:
   - exp:autoresearch-tree-skill-r1
   - hyp:autoresearch-tree-skill-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - autoresearch-tree-skill
   - R1

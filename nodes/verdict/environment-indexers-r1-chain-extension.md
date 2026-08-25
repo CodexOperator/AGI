@@ -1,6 +1,8 @@
 ---
 confidence: 1.0
 contrasts: []
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
 evidence_runs:
   - exp:environment-indexers-r1-chain-extension
 id: "verdict:environment-indexers-r1-chain-extension"
@@ -10,7 +12,7 @@ next_edges:
 parents:
   - verdict:environment-indexers-r1-extend2
   - exp:environment-indexers-r1-extend2
-status: proved
+status: "inconclusive_lean_proved:50"
 subgraph: false
 supports: []
 tags:
@@ -19,6 +21,7 @@ tags:
   - verdict-experiment-transition
   - proved
 title: "environment-indexers/R1: Chain Extension — PROVED"
+verdict: "inconclusive_lean_proved:50"
 ---
 
 **Verdict:** PROVED

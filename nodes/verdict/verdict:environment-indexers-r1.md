@@ -11,7 +11,7 @@ next_edges:
 parents:
   - exp:environment-indexers-r1
   - hyp:environment-indexers-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - environment-indexers
   - R1

@@ -16,6 +16,7 @@ tags:
   - task-to-experiment
 title: "V001: task-to-experiment bootstrap unblocks chain formation"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict**: PROVED (confidence: 0.95)

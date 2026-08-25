@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:session-management-r1-extend1
   - verdict:session-management-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - session-management-r1
   - chain-extension

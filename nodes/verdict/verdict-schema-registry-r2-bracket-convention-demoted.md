@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:schema-registry-r2
   - hyp:schema-registry-r2
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - schema-registry
   - R2

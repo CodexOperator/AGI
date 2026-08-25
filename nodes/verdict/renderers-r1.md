@@ -18,6 +18,7 @@ tags:
   - R1
 title: "renderers/R1: Verdict"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict:** PROVED

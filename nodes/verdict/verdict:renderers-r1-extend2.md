@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:renderers-r1-extend2
   - verdict:renderers-r1-extend
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - chain-extension

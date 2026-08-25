@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:environment-indexers-r1-extend2
   - verdict:environment-indexers-r1-extend
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - environment-indexers

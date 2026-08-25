@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:autoresearch-tree-skill-r1-extend2
   - verdict:autoresearch-tree-skill-r1-extend
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - autoresearch-tree-skill

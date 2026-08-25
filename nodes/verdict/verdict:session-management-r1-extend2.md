@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:session-management-r1-extend2
   - verdict:session-management-r1-extend1
-status: proved
+status: "inconclusive_lean_proved:50"
 title: session-management-r1 extend cycle 2
 type: verdict
 verdict: "inconclusive_lean_proved:50"

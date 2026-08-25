@@ -1,16 +1,19 @@
 ---
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
 id: "exp:session-management-r1"
 mint_id: 549c8e771f3945279c70586c596a6256
 next_edges:
   - verdict:session-management-r1
 parents:
   - hyp:session-management-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - session-management
   - r1
 title: "session-management-r1: Session state capture and restore fidelity test"
 type: experiment
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # experiment:exp:session-management-r1

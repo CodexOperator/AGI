@@ -9,7 +9,7 @@ next_edges: []
 parents:
   - exp:schema-registry-r2-extend2
   - verdict:schema-registry-r2-extend
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - chain-extension

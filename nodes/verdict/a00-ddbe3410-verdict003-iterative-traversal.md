@@ -17,6 +17,7 @@ tags:
   - iterative
 title: "V003: iterative traversal PROVED — 9 chains at 708 hops"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict**: PROVED (confidence: 0.95)

@@ -17,6 +17,7 @@ tags:
   - synthetic-flag
 title: "V002: synthetic flag + evidence_runs added to 3235 verdict nodes"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict**: PROVED (confidence: 0.9)

@@ -15,6 +15,7 @@ tags:
   - isomorphism
 title: "R2: Gensim Skip-Gram Node2Vec Preserves Graph Topology"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict**: PROVED (confidence: 0.95)
