@@ -36,3 +36,20 @@ Fix: one duplicate-id policy, in one place, reported the same way by both
 readers. First-wins plus a warning is the established behaviour; make
 `load_existing_nodes` conform rather than inventing a third rule. The 88-vs-89
 gap is the regression test.
+
+**The regression test has stopped being able to fail, which is not the same as
+the goal being met.** With the duplicate ids resolved (0 across the corpus as of
+2026-08-25), `t-090` has one claimant, so `snapshot-goals.py` now reports its
+`hyp:graph-core-r11` reference and the two counts agree. **The gap closed
+because the input stopped containing duplicates, not because the two readers
+stopped disagreeing.** The divergent policies are still in the code — first-wins
+plus `DuplicateIdError` in `load_directory`, silent last-wins overwrite in
+`load_existing_nodes` — and will diverge again the moment a duplicate is
+reintroduced, with no test left to catch it. Keep `active`, and note that the
+fix now needs its own fixture rather than borrowing one from the live corpus.
+
+**On unresolvable references specifically, the two readers must agree on this:**
+warn, keep the node, drop nothing. A reference that does not resolve is a
+reporting event, never a load-time deletion — the node is still real, and G7's
+first invariant is that node count never drops. G7.1's sweep applied that same
+rule by hand: 79 references were removed and 0 nodes were.

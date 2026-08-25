@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:exporters-r1-r1-extend3"
 mint_id: 3883d8b65ac24ce79ea2cee702853bb8
 next_edges: []
-parents:
-  - hypothesis:exporters-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

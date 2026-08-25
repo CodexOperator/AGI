@@ -1370,6 +1370,48 @@ read as authoritative for months.
 Extend the existing check to all parent references: warn by default, `--strict`
 to fail. The mechanism exists; only its scope is wrong. Owns TODO **H4d**.
 
+**Corpus swept 2026-08-25, and the policy is now decided rather than implied.**
+The check was extended and then run to ground: 82 unresolvable parent references
+across 20 distinct strings, on a corpus with 0 duplicate ids (G7.2's blocker had
+to clear first). 79 were resolved; 3 were deliberately left standing and are
+owned elsewhere (G7.8 and G7.5 below). Node count did not move — no node was
+created or deleted to make a reference resolve, which is the rule this sweep was
+run under.
+
+**The decided policy, in the order it is applied:**
+
+1. **Unambiguous prefix typo on a node that carries real content → repoint.**
+   Exactly one qualified: `a00-ddbe3410-exp001-graph-core-r1-t001` →
+   `hyp:graph-core-r1`. It has a title, tags, `status: complete` and a second
+   parent (`task:t-001`) that already resolved.
+2. **Dangling parent on a hop-padding node → drop the link, leave it
+   parentless.** 72 of the 82. These are the `X-r1-extendN` / `X-r1-r1-extendN`
+   families: contentless nodes whose entire body is hop arithmetic
+   (*"Chain extension experiment cycle 1 (hops = 2*0+8 = 8)"*), byte-identical
+   across domains. **Repointing them was available and was rejected on
+   purpose** — `hyp:X-r1` exists for all ten domains, so the typo was fixable,
+   but fixing it would reconnect 60+ synthetic hops and inflate
+   `longest_chain_length` and `avg_chain_depth` with exactly the gamed structure
+   the metrics rule exists to refuse. **A resolvable reference is not a reason
+   to restore a chain that carries no signal.** Dropping is the honest record:
+   they were never really attached.
+3. **Genuinely absent ancestor → drop the link.** 6 refs, incl.
+   `exp:chain-engine-r15`, `exp:a00-c2ec59b7-b391d9-r2` (whose hypothesis still
+   lists it under `spawns:` — a forward dangle no check reads yet) and
+   `verdict:autoresearch-tree-skill-r1:extend7`. Where a sibling pattern
+   suggested a plausible substitute it was **not** taken; inferring an edge is
+   inventing one.
+
+Note what this leaves: **76 nodes are now parentless.** That is the intended
+outcome, not a regression — it makes the disconnection visible where it was
+previously disguised as a broken pointer. Orphan count is the honest successor
+metric to dangling-reference count.
+
+**Still unbuilt, and the reason this stays `active`:** the sweep was manual. The
+check reports, it does not enforce — nothing stops the next generator run from
+minting the same class of reference, which is precisely what G7.8 records.
+`spawns:` and `next_edges:` are still unchecked in both directions.
+
 ### G7.2 — Duplicate node ids silently hide files on disk — status: active
 
 Found 2026-08-22 by the G9.1 dashboard on its first run, which is the argument
@@ -1445,6 +1487,23 @@ readers. First-wins plus a warning is the established behaviour; make
 `load_existing_nodes` conform rather than inventing a third rule. The 88-vs-89
 gap is the regression test.
 
+**The regression test has stopped being able to fail, which is not the same as
+the goal being met.** With the duplicate ids resolved (0 across the corpus as of
+2026-08-25), `t-090` has one claimant, so `snapshot-goals.py` now reports its
+`hyp:graph-core-r11` reference and the two counts agree. **The gap closed
+because the input stopped containing duplicates, not because the two readers
+stopped disagreeing.** The divergent policies are still in the code — first-wins
+plus `DuplicateIdError` in `load_directory`, silent last-wins overwrite in
+`load_existing_nodes` — and will diverge again the moment a duplicate is
+reintroduced, with no test left to catch it. Keep `active`, and note that the
+fix now needs its own fixture rather than borrowing one from the live corpus.
+
+**On unresolvable references specifically, the two readers must agree on this:**
+warn, keep the node, drop nothing. A reference that does not resolve is a
+reporting event, never a load-time deletion — the node is still real, and G7's
+first invariant is that node count never drops. G7.1's sweep applied that same
+rule by hand: 79 references were removed and 0 nodes were.
+
 ### G7.5 — Parse failures are swallowed with zero signal — status: active
 
 `load_directory`'s `except Exception: continue` and `load_existing_nodes`'s
@@ -1464,6 +1523,22 @@ warn-by-default / strict-to-fail pattern G7.1 and G7.2 already established.
 **Do not repair the malformed node.** Fixing the corpus is a separate,
 deliberate decision — the G7.2 rule. This goal is about making the failure
 visible, not about making it go away.
+
+**This goal also owns one of G7.1's "dangling" references, which is not
+dangling.** `nodes/experiment/a00-1467544f-chain-600hop.md` references
+`hyp:a00-1467544f-chain-600hop`, and the integrity check reports it as an
+unknown parent. **The target exists on disk, with exactly that id** — it is the
+malformed file above, and it is absent from the loader's index only because
+parsing it raised. So the reference is sound and the *index* is incomplete;
+the reported defect is in the wrong place.
+
+Left unfixed on 2026-08-25 for that reason. Repairing the stray list line would
+clear the INTEGRITY line and simultaneously destroy the only live evidence this
+goal has — the corpus stops demonstrating the defect the moment it is tidied.
+**Repair it as part of landing the warn, never before**, and re-run G7.1's sweep
+afterwards to confirm the reference resolves rather than disappears. Until then
+the count of genuinely unresolvable references is **2**, not 3: this one is a
+G7.5 symptom wearing a G7.1 costume.
 
 ### G7.6 — One persistence model: frontmatter, JSON, or a database — status: horizon
 
@@ -1505,6 +1580,56 @@ the rule it breaks: **the engine must never be vendored.** Retire the directory
 deliberately — the historical `exp-*.py` scripts import from it, so verify
 before deleting. Absorbs **H0h** and **H5** (the R11 loader path-safety bug,
 which lives in the same code).
+
+### G7.8 — A generator mints parent ids it never checks exist — status: active
+
+Found 2026-08-25 while sweeping G7.1, and it is the last unresolvable-reference
+class left standing on the corpus — the only one that **cannot be fixed by
+editing a node.**
+
+`snapshot-build-site.py:371` derives a task's parent from its cavekit
+requirement by string construction:
+
+```python
+domain, rnum = t["cavekit_req"].split("/", 1)
+rnum = rnum.split(".")[0]          # R1.2 → R1
+parent_hyp = f"hyp:{domain}-{rnum.lower()}"
+```
+
+**Nothing checks that the id it just built names a real node.** `build-site.md`
+declares `graph-core/R11` for T-090 and T-092, so both get
+`parents: [hyp:graph-core-r11]` — and the graph-core hypothesis family stops at
+`hyp:graph-core-r10`. Two references that never resolved and never will.
+
+**Why this is a generator defect and not a corpus defect, stated precisely:**
+`parents` is a snapshot-owned key. `write_frontmatter`'s `preserve` merge
+carries forward only fields the snapshot does *not* own (`{k: v for k, v in
+preserve.items() if k not in fm}`), so a hand-corrected `parents:` on T-090 is
+overwritten on the very next `--smoke` run. **The node is downstream of the
+bug; the only durable edit is upstream of it.** This is 1ead9c965's rule —
+fix the duplicate at its generator, not its output — arriving a second time
+through a different door, which is the argument for treating it as structural
+rather than incidental.
+
+Fix, when it is coded: resolve `parent_hyp` against the loaded corpus before
+writing it. On a miss, emit `parents: []` plus a `WARN:` naming the task, the
+`cavekit_req` and the id that failed to resolve — warn-by-default, matching
+G7.1/G7.2/G7.5. **Do not mint the missing hypothesis**, and do not drop the
+task: an unattributed task is a real state, and a fabricated ancestor is worse
+than a visible gap. The R11 requirement genuinely has no hypothesis behind it —
+that absence is signal about the kit, and silently papering over it is how
+`unattributed_nodes` came to sit at 626 without anyone reading it as a number
+about the graph.
+
+Deliberately **not coded on 2026-08-25**: the sweep that found it was scoped to
+the graph, and an engine change belongs in its own reviewed step. The two
+references stay dangling until then — which is the correct visible state, since
+the check is now reporting a real defect at its real location.
+
+Held open by the same logic as G7.5: the live corpus is currently this bug's
+only fixture. Landing the fix without a standing test means the next
+`build-site.md` edit that names a requirement with no hypothesis reintroduces
+it silently.
 
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 

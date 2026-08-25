@@ -7,8 +7,7 @@ id: "verdict:session-management-r1-r1-extend1"
 mint_id: b9dff30a85d14dab94c2f94a445e9340
 next_edges:
   - exp:session-management-r1-r1-extend2
-parents:
-  - hypothesis:session-management-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

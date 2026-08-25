@@ -7,8 +7,7 @@ id: "verdict:exporters-r1-r1-extend2"
 mint_id: 9ac203760ca7467fa60bc65148627372
 next_edges:
   - exp:exporters-r1-r1-extend3
-parents:
-  - hypothesis:exporters-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

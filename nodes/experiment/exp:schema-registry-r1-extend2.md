@@ -3,8 +3,7 @@ id: "exp:schema-registry-r1-extend2"
 mint_id: dfa3fd0ca8aa434dae0651aaebcd00ba
 next_edges:
   - verdict:schema-registry-r1-extend2
-parents:
-  - hypothesis:schema-registry-r1
+parents: []
 type: experiment
 ---
 

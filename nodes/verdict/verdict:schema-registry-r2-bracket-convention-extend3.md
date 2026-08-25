@@ -8,7 +8,6 @@ mint_id: ef04fccebe614c9888ce65469c550d2a
 next_edges: []
 parents:
   - exp:schema-registry-r2-bracket-convention-extend3
-  - verdict:schema-registry-r2-bracket-convention-extend2
 status: proved
 synthetic: true
 tags:

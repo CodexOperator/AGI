@@ -14,6 +14,8 @@ seeds:
   - goal:g2.5
   - goal:g2.6
   - goal:g2.7
+  - goal:g2.8
+  - goal:g2.9
   - idea:engine-embeddings
   - idea:engine-zoom
 status: active

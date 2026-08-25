@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:environment-indexers-r1-r1-extend3"
 mint_id: cee3d3f745f94466b74b0514c7e3da05
 next_edges: []
-parents:
-  - hypothesis:environment-indexers-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

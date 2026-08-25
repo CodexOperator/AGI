@@ -7,8 +7,7 @@ id: "verdict:chain-engine-r1-r1-extend1"
 mint_id: f5823144c7ed462d9f47a7f387a08730
 next_edges:
   - exp:chain-engine-r1-r1-extend2
-parents:
-  - hypothesis:chain-engine-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

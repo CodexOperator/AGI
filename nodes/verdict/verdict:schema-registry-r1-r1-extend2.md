@@ -7,8 +7,7 @@ id: "verdict:schema-registry-r1-r1-extend2"
 mint_id: cd7b9b2adda749c2b83beec72d5556f6
 next_edges:
   - exp:schema-registry-r1-r1-extend3
-parents:
-  - hypothesis:schema-registry-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:session-management-r1-r1-extend3"
 mint_id: 64332013f7d14b1fab41f3ce74e76f3d
 next_edges: []
-parents:
-  - hypothesis:session-management-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

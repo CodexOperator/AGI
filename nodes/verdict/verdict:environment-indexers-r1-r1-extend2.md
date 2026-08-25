@@ -7,8 +7,7 @@ id: "verdict:environment-indexers-r1-r1-extend2"
 mint_id: 329d18d292d541e2ab15bf9278107f4e
 next_edges:
   - exp:environment-indexers-r1-r1-extend3
-parents:
-  - hypothesis:environment-indexers-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

@@ -7,8 +7,7 @@ id: "verdict:cli-invocation-r1-r1-extend1"
 mint_id: a56cab3087d946809a88f96afe86ca13
 next_edges:
   - exp:cli-invocation-r1-r1-extend2
-parents:
-  - hypothesis:cli-invocation-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

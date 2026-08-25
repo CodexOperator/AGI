@@ -7,8 +7,7 @@ id: "verdict:autoresearch-tree-skill-r1-r1-extend1"
 mint_id: 175589034b9c442faaae9193c583e499
 next_edges:
   - exp:autoresearch-tree-skill-r1-r1-extend2
-parents:
-  - hypothesis:autoresearch-tree-skill-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

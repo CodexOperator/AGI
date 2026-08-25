@@ -7,8 +7,7 @@ id: "verdict:renderers-r1-r1-extend2"
 mint_id: 7e453356028c45bd9a07f588a0cfa39e
 next_edges:
   - exp:renderers-r1-r1-extend3
-parents:
-  - hypothesis:renderers-r1-r1
+parents: []
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---
