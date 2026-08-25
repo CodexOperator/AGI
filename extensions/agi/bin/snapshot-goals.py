@@ -34,6 +34,10 @@ ORIGIN = "goals-doc"
 # It is what lets L5 goal rotation distinguish queued goals from active ones
 # when `cc_dispatch.max_goals_active` is below the number of declared goals.
 KNOWN_STATUSES = {"active", "horizon", "phasing-out", "complete"}
+# Default only. `goal_body_cap` in the project config overrides it and `0`
+# disables capping entirely — see `body_cap()` / `cap_body()` and goal:s12,
+# which separates "silent truncation is always wrong" (a bug, fixed
+# unconditionally) from "what the cap should be" (policy, the owner's).
 BODY_CAP = 4000
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
@@ -278,6 +282,83 @@ def _strip_separators(s: str) -> str:
     return s.strip().strip("—-").strip()
 
 
+def body_cap() -> int:
+    """The per-goal body cap in characters; `0` means no cap at all.
+
+    **goal:s12, question 2 — "what the cap should be is a real trade-off; the
+    owner picks".** So the engine stops picking. `BODY_CAP` is the default and
+    `goal_body_cap` in the project's own config overrides it, which is the
+    surface a project is supposed to change behaviour through (`SKILL.md`,
+    "The config file is the project's whole customization surface") rather
+    than by editing an engine constant nobody can see from inside the project.
+    """
+    cfg_path = config_path(PROJECT_ROOT)
+    if cfg_path is None:
+        return BODY_CAP
+    try:
+        value = json.loads(cfg_path.read_text()).get("goal_body_cap", BODY_CAP)
+    except Exception:
+        return BODY_CAP
+    return value if isinstance(value, int) and value >= 0 else BODY_CAP
+
+
+def cap_body(body: str, gid: str) -> str:
+    """Truncate `body` to the configured cap **visibly**, or return it whole.
+
+    **goal:s12, question 1 — "silent truncation is always wrong".** The old
+    `[:BODY_CAP]` cut mid-character-stream: `goal:g2.5`'s node body ended
+    `| Assigned | once, at node creation | derived,` — a markdown table severed
+    mid-cell, which is not merely missing content but *syntactically malformed*
+    content, so a naive reader mis-parses what remains rather than noticing it
+    is short. Three things change and all three are required:
+
+      1. **Cut at a block boundary.** Blank-line-separated blocks, so a table,
+         a list or a fenced block is either wholly present or wholly absent.
+         A single block larger than the cap has no boundary to cut at, so it
+         is kept whole and over-cap rather than severed — an honest overrun
+         beats a malformed fragment.
+      2. **Say so in the body.** An explicit marker naming how much was
+         dropped and where the complete text lives. A reader of the *graph*
+         must be able to tell a complete goal from a clipped one; that was
+         precisely what was impossible before.
+      3. **Warn on stderr, naming the goal.** So the run reports it, rather
+         than the loss being discoverable only by reading a node and noticing
+         a sentence stops.
+    """
+    cap = body_cap()
+    if cap <= 0 or len(body) <= cap:
+        return body
+
+    blocks = body.split("\n\n")
+    kept: list[str] = []
+    used = 0
+    for block in blocks:
+        cost = len(block) + (2 if kept else 0)
+        if used + cost > cap:
+            break
+        kept.append(block)
+        used += cost
+
+    if not kept:
+        # The first block alone exceeds the cap. Keeping it whole is
+        # deliberate: there is no boundary inside it, and cutting anyway is
+        # the exact defect this function exists to remove.
+        print(f"WARN: goal {gid} — first block is {len(blocks[0])} chars, over "
+              f"the {cap}-char cap and unsplittable; kept whole rather than "
+              "severed mid-block", file=sys.stderr)
+        return body
+
+    dropped = len(body) - used
+    print(f"WARN: goal {gid} — body is {len(body)} chars, over the {cap}-char "
+          f"cap; {dropped} chars dropped at a block boundary. GOALS.md is the "
+          "only complete copy (goal:s12).", file=sys.stderr)
+    marker = (f"> **[truncated: {dropped} of {len(body)} characters dropped at "
+              f"a block boundary to fit the {cap}-character cap. `GOALS.md` "
+              f"section `{gid}` is the complete text; raise `goal_body_cap` in "
+              "the project config to keep more.]**")
+    return "\n\n".join(kept) + "\n\n" + marker
+
+
 def parse_goals(text: str) -> list[dict]:
     """Parse GOALS.md text into an ordered list of goal dicts.
 
@@ -327,7 +408,7 @@ def parse_goals(text: str) -> list[dict]:
     if current is not None:
         goals.append(current)
     for g in goals:
-        g["body"] = "\n".join(g["body"]).strip()[:BODY_CAP]
+        g["body"] = cap_body("\n".join(g["body"]).strip(), g["gid"])
     return goals
 
 
