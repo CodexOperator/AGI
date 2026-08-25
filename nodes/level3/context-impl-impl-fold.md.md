@@ -23,6 +23,7 @@ payload_ref: context/impl/impl-fold.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: a1f727f0f0e7c914f19f2becd51f8bcf16ef8af30d2d14b57a4c0bc71b6f81fd
 inputs: []
 outputs: []
 ```

@@ -23,6 +23,7 @@ payload_ref: context/impl/loop-log.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 2ec4448dc013ca2e874a49e8963781172ae5c81fcbbf28f057718e0d7cdd387c
 inputs: []
 outputs: []
 ```

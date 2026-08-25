@@ -23,6 +23,7 @@ payload_ref: context/kits/cavekit-bug-sweep.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: b89f3cbc74cc3d28f815597e480198c433599fedd6362a3b149d63448fc2bcdf
 inputs: []
 outputs: []
 ```

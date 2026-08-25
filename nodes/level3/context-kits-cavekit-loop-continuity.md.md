@@ -23,6 +23,7 @@ payload_ref: context/kits/cavekit-loop-continuity.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: ce488a5016070c76f0bdf0854c71cbe91c676c7c62ba342cec7b9c660eee7f6b
 inputs: []
 outputs: []
 ```

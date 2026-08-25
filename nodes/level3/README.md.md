@@ -23,6 +23,7 @@ payload_ref: README.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 95950d718bee61c5a97be2a11cb3da88a4003df5ea96c048bf4209d0f22e2cd5
 inputs: []
 outputs: []
 ```

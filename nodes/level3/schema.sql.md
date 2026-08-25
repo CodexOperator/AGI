@@ -23,6 +23,7 @@ payload_ref: schema.sql
 parse_ok: false
 parse_error: 'not-python: .sql (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: c6eea537ac7549812553b08eb7b6a40608050746e3e47c8f7d6b55fd8a0f881e
 inputs: []
 outputs: []
 ```

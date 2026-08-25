@@ -37,43 +37,53 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: hashlib
+  how: '`import hashlib` at line 72'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: importlib.util
-  how: '`import importlib.util` at line 72'
+  how: '`import importlib.util` at line 73'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: os
-  how: '`import os` at line 73'
+  how: '`import os` at line 74'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: re
-  how: '`import re` at line 74'
+  how: '`import re` at line 75'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: subprocess
-  how: '`import subprocess` at line 75'
+  how: '`import subprocess` at line 76'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sys
-  how: '`import sys` at line 76'
+  how: '`import sys` at line 77'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: pathlib.Path
-  how: '`from pathlib import Path` at line 77'
+  how: '`from pathlib import Path` at line 78'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml
-  how: '`import yaml` at line 79'
+  how: '`import yaml` at line 80'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: abs_path
-  how: '`abs_path.read_text(encoding=''utf-8'')` at line 408'
+  how: '`abs_path.read_text(encoding=''utf-8'')` at line 432'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: abs_path
+  how: '`abs_path.read_bytes()` at line 396'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -84,112 +94,118 @@ inputs:
   security: TODO(model)
 outputs:
 - name: _set_project_root
-  how: 'defines private function `_set_project_root` at line 101, signature: (path:
+  how: 'defines private function `_set_project_root` at line 102, signature: (path:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: git_ls_files
-  how: 'defines public function `git_ls_files` at line 137, signature: (engine_root:
+  how: 'defines public function `git_ls_files` at line 138, signature: (engine_root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: discover_files
-  how: 'defines public function `discover_files` at line 153, signature: (engine_root:
+  how: 'defines public function `discover_files` at line 154, signature: (engine_root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _cap
-  how: 'defines private function `_cap` at line 202, signature: (s: str | None, limit:
+  how: 'defines private function `_cap` at line 203, signature: (s: str | None, limit:
     int=_CAP_LEN)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _unparse_safe
-  how: 'defines private function `_unparse_safe` at line 217, signature: (node: ast.AST
+  how: 'defines private function `_unparse_safe` at line 218, signature: (node: ast.AST
     | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _scan_imports
-  how: 'defines private function `_scan_imports` at line 226, signature: (tree: ast.Module)'
+  how: 'defines private function `_scan_imports` at line 227, signature: (tree: ast.Module)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _scan_top_level_defs
-  how: 'defines private function `_scan_top_level_defs` at line 247, signature: (tree:
+  how: 'defines private function `_scan_top_level_defs` at line 248, signature: (tree:
     ast.Module)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _scan_io_calls
-  how: 'defines private function `_scan_io_calls` at line 268, signature: (tree: ast.Module)'
+  how: 'defines private function `_scan_io_calls` at line 269, signature: (tree: ast.Module)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _scan_cli_and_env
-  how: 'defines private function `_scan_cli_and_env` at line 332, signature: (tree:
+  how: 'defines private function `_scan_cli_and_env` at line 333, signature: (tree:
     ast.Module)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _scan_stdout
-  how: 'defines private function `_scan_stdout` at line 376, signature: (tree: ast.Module)'
+  how: 'defines private function `_scan_stdout` at line 377, signature: (tree: ast.Module)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _content_sha256
+  how: 'defines private function `_content_sha256` at line 388, signature: (abs_path:
+    Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: analyze_file
-  how: 'defines public function `analyze_file` at line 387, signature: (abs_path:
+  how: 'defines public function `analyze_file` at line 401, signature: (abs_path:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: load_census_units
-  how: 'defines public function `load_census_units` at line 430, signature: (existing:
+  how: 'defines public function `load_census_units` at line 454, signature: (existing:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: find_parent
-  how: 'defines public function `find_parent` at line 460, signature: (rel_path: str,
+  how: 'defines public function `find_parent` at line 484, signature: (rel_path: str,
     units: list[dict])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: slug_for
-  how: 'defines public function `slug_for` at line 482, signature: (rel_path: str)'
+  how: 'defines public function `slug_for` at line 506, signature: (rel_path: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _fill_entries
-  how: 'defines private function `_fill_entries` at line 502, signature: (entries:
+  how: 'defines private function `_fill_entries` at line 526, signature: (entries:
     list[dict])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: build_node
-  how: 'defines public function `build_node` at line 510, signature: (rel_path: str,
+  how: 'defines public function `build_node` at line 534, signature: (rel_path: str,
     abs_path: Path, parent_id: str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 566, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 596, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_dump
   how: '`yaml.safe_dump(contract, sort_keys=False, default_flow_style=False, allow_unicode=True)`
-    at line 534'
+    at line 564'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 15 `print()` call(s) at line(s) [585, 599, 625, 635, 651, 669, 672, 674, 675,
-    677, 678, 679, 680, 683, 684]
+  how: 15 `print()` call(s) at line(s) [615, 629, 655, 665, 681, 699, 702, 704, 705,
+    707, 708, 709, 710, 713, 714]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

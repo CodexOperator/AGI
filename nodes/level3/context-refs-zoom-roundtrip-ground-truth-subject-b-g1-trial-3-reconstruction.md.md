@@ -23,6 +23,7 @@ payload_ref: context/refs/zoom-roundtrip-ground-truth/subject-b-g1/trial-3/recon
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: b8d1bd3e028fb93171a3d8bb82e9452fd7f3d78e35bbb23c20688f0231be1f0d
 inputs: []
 outputs: []
 ```

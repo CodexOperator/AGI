@@ -23,6 +23,7 @@ payload_ref: .gitignore
 parse_ok: false
 parse_error: 'not-python: no suffix (no mechanical contract derivation for this file
   type yet — see goal:g6.6)'
+content_sha256: fd66eb56cb3cf87f44854e494cbbcc0a3eb297cafad380fed7d79cafc1b062e3
 inputs: []
 outputs: []
 ```

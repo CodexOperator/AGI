@@ -23,6 +23,7 @@ payload_ref: context/kits/cavekit-overview.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 824f2134ad2400a77af97dbd5efd2b8a1a616d69dc5643ee3c2e2cdc1da3fb30
 inputs: []
 outputs: []
 ```

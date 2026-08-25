@@ -23,6 +23,7 @@ payload_ref: context/refs/pytest-baseline-prefold.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 515e369539d2c497acd89edf464209a3ba1fb6f2260db880b0e78d026822c1f2
 inputs: []
 outputs: []
 ```

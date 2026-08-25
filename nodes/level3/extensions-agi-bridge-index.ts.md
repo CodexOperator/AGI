@@ -23,6 +23,7 @@ payload_ref: extensions/agi-bridge/index.ts
 parse_ok: false
 parse_error: 'not-python: .ts (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 479a2a203865468c07923c4874a40f60473b8331034d50478e19b78ad1d19461
 inputs: []
 outputs: []
 ```

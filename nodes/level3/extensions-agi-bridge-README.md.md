@@ -23,6 +23,7 @@ payload_ref: extensions/agi-bridge/README.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: fce3e7d1780b0331867005f466fdf986c08a47d4307757bb52b5dba519c06995
 inputs: []
 outputs: []
 ```

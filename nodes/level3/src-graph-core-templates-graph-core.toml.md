@@ -23,6 +23,7 @@ payload_ref: extensions/agi/src/graph_core/templates/graph-core.toml
 parse_ok: false
 parse_error: 'not-python: .toml (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 8fd1baf14cde62149d016b239ede7350173513fa33eab7f3557b0170cae4179a
 inputs: []
 outputs: []
 ```

@@ -23,6 +23,7 @@ payload_ref: package.json
 parse_ok: false
 parse_error: 'not-python: .json (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: b5ce3c6bb36e1e9283c878d9e45049bd954855f6d1f7d6259a375f966b61c083
 inputs: []
 outputs: []
 ```

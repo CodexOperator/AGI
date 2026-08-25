@@ -23,6 +23,7 @@ payload_ref: extensions/agi/lib/agent-prompt.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: eb52cb7c30c1f20f8e832b1cd8e80cf55845870c9cc147a3a378f70fa5853016
 inputs: []
 outputs: []
 ```

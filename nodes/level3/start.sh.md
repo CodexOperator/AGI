@@ -23,6 +23,7 @@ payload_ref: start.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
+content_sha256: 95a3ed0d570024c1210bea039252d7de86ace3437354d39969e392c597815bdb
 inputs: []
 outputs: []
 ```
