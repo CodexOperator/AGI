@@ -6,8 +6,7 @@ evidence_runs: 0
 id: "verdict:schema-registry-r2-bracket-convention-extend3"
 mint_id: ef04fccebe614c9888ce65469c550d2a
 next_edges: []
-parents:
-  - exp:schema-registry-r2-bracket-convention-extend3
+parents: []
 status: proved
 synthetic: true
 tags:

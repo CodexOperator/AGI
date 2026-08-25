@@ -115,6 +115,20 @@ Generic, domain-agnostic graph primitives: nodes, edges, identity, persistence, 
 - [ ] The skeleton includes a minimal example node and a minimal example schema sufficient to load a one-node graph
 - [ ] The bootstrap reports the created paths to the user in a single summary
 
+### R11: Traversal and Query API
+
+**Description:** The graph exposes traversal primitives and a query API over the loaded node set, returning lazy iterators so a caller never pays for a full materialization it does not use.
+
+**Acceptance Criteria:**
+- [ ] R11.1 — `traverse_bfs(start_id)` yields node ids in breadth-first order as a lazy generator
+- [ ] R11.2 — `traverse_dfs(start_id)` yields node ids in depth-first order as a lazy generator
+- [ ] R11.3 — `find_paths(source_id, target_id)` returns all simple paths via DFS backtracking
+- [ ] R11.4 — `find_ancestors(node_id)` returns the transitive parent closure via BFS
+- [ ] R11.5 — `find_descendants(node_id)` returns the transitive child closure via BFS
+- [ ] R11.6 — `query(type=None, tags=None, has_parent=None, has_child=None)` filters nodes without loading bodies
+- [ ] R11.7 — every traversal and query entry point returns a lazy iterator, not a materialized list
+- [ ] R11.8 — `detect_cycle(node_id)` runs DFS from that node and reports any cycle path it finds
+
 ## Out of Scope
 
 - Autoresearch-specific node types such as `idea`, `hypothesis`, `experiment`, `verdict`, `mvp`, `outcome`, `bigger_outcome`, `app_purpose` — these are schema definitions, not graph-core concerns

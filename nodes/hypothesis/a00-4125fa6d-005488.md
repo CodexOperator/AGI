@@ -2,8 +2,7 @@
 id: "hypothesis:a00-4125fa6d-005488"
 mint_id: 5b0fa6527c794eb9ab599d0b70475925
 next_edges: []
-parents:
-  -
+parents: []
 spawns:
   - task:t-094
 type: hypothesis
