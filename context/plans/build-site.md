@@ -175,7 +175,7 @@ Decomposition of 7 cavekits, 59 requirements, and 236 acceptance criteria into e
 
 ### Domain: schema-registry (8 R, 32 criteria, T-019..T-031)
 
-#### T-090: Schema as file with naming convention
+#### T-019: Schema as file with naming convention
 - **Cavekit Requirement:** schema-registry/R1
 - **Acceptance Criteria Mapped:** R1.1 (schema lives at known context path with documented naming), R1.2 (adding new schema file makes node type available without code changes/restart), R1.4 (Markdown-with-frontmatter or structured-data file accepted)
 - **blockedBy:** T-006
