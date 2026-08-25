@@ -1,11 +1,14 @@
 ---
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
 id: "hypothesis:a00-72d9d3ef-3fdc1e"
 mint_id: 6a645007dfbf4a048e8c0fcb21e0dfd9
 next_edges:
   - verdict:verdict:hyp:a00-72d9d3ef-3fdc1e
 parents: []
-status: proved
+status: "inconclusive_lean_proved:50"
 type: hypothesis
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # hypothesis:a00-72d9d3ef-3fdc1e

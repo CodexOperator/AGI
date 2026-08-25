@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:exporters-r1-extend
   - verdict:exporters-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - exporters

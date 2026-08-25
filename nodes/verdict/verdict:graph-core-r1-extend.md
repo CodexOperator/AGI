@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:graph-core-r1-extend
   - verdict:graph-core-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - chain-extension

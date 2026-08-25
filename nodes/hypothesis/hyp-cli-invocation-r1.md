@@ -11,7 +11,7 @@ next_edges:
 parent_idea: "idea:domain-cli-invocation"
 spawns:
   - task:t-096
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - cli
   - shell

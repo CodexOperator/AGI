@@ -10,7 +10,7 @@ next_edges:
 parents:
   - exp:embeddings-r3-extend2
   - verdict:embeddings-r3-extend
-status: proved
+status: "inconclusive_lean_proved:50"
 synthetic: true
 tags:
   - chain-extension

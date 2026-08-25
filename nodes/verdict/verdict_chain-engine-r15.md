@@ -7,7 +7,7 @@ id: "verdict:chain-engine-r15"
 mint_id: 86bb3d48cb66456695228dd933a7405c
 next_edges: []
 parents: []
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - chain-engine
   - R15

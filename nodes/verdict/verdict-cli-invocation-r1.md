@@ -17,6 +17,7 @@ tags:
   - R1
 title: "R1: Shell type detection accuracy"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict:** PROVED

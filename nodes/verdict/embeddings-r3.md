@@ -19,6 +19,7 @@ tags:
   - R3
 title: "embeddings/R3: Verdict"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict:** PROVED

@@ -10,7 +10,7 @@ next_edges:
 parents:
   - verdict:exporters-r1-extend
   - hyp:exporters-r1
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - exporters
   - chain-extension

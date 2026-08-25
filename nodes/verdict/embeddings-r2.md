@@ -18,6 +18,7 @@ tags:
   - R2
 title: "embeddings/R2: Verdict"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict:** PROVED

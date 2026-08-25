@@ -10,7 +10,7 @@ next_edges:
 parents:
   - hyp:exporters-r1
   - idea:domain-exporters
-status: proved
+status: "inconclusive_lean_proved:50"
 tags:
   - exporters
   - R1

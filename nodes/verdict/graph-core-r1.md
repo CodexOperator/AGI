@@ -17,6 +17,7 @@ tags:
   - R1
 title: "graph-core/R1: Verdict"
 type: verdict
+verdict: "proved"
 ---
 
 **Verdict:** PROVED

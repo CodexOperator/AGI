@@ -9,7 +9,7 @@ next_edges: []
 parents:
   - exp:a00-c2ec59b7-b391d9
   - hypothesis:a00-c2ec59b7-b391d9
-status: disproved
+status: "inconclusive_lean_disproved:50"
 tags:
   - renderers
   - ascii
