@@ -95,6 +95,32 @@ def classify(repo: Path) -> list[tuple[str, str, str]]:
     return rows
 
 
+def classify_paths(repo: Path, rel_paths: list[str]) -> list[tuple[str, str, str]]:
+    """Same verdict as `classify`, for paths that are NOT tracked in `repo`.
+
+    `classify` asks git what exists; this asks the boundary about paths the
+    caller already has — specifically files that exist only in the graph's
+    payload checkout because they were **authored in the graph** and have never
+    been in the engine tree (goal:g6.1). The gitignore question is still put to
+    the engine repo, with `--no-index`, so one repo's declared-transient rules
+    decide for both sources rather than the boundary meaning two things.
+    """
+    if not rel_paths:
+        return []
+    ignored = gitignore_matched(repo, rel_paths)
+    rows = []
+    for f in sorted(rel_paths):
+        if f in ignored:
+            rows.append((f, "out", "gitignore-declared-transient"))
+        elif is_log_stream(f):
+            rows.append((f, "out", "jsonl-event-stream"))
+        elif is_test_fixture(f):
+            rows.append((f, "out", "test-fixture-directory"))
+        else:
+            rows.append((f, "in", "file-in-payload-checkout"))
+    return rows
+
+
 def main():
     repo = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
     rows = classify(repo)

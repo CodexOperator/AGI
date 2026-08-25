@@ -26,6 +26,7 @@ SRC_GRAPH = PLUGIN_ROOT / "src" / "graph_core"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import spawn_gate  # noqa: E402
 
 
 # Canonical name first; the legacy name stays accepted during the rename window.
@@ -136,6 +137,12 @@ def cmd_wire(args: argparse.Namespace) -> int:
     # verdict's own evidence_runs can name a node this same pass creates).
     corpus = evidence_gate.build_corpus(root / "nodes")
 
+    # goal:s17 -- the spawn gate, on post_wire's own node-creating path. Loaded
+    # once per pass for the same reason as `corpus`: the schemas do not change
+    # mid-loop, and neither does the type of any node this pass reads.
+    spawn_rules, type_index = spawn_gate.gate_for_root(root)
+    spawn_gate.announce_schema_errors(spawn_rules)
+
     # Build current graph
     g, loaded = load_directory(root / "nodes")
     for ln in loaded:
@@ -209,8 +216,24 @@ def cmd_wire(args: argparse.Namespace) -> int:
             verdict = gate.verdict
             if gate.demoted:
                 demoted.append(f"verdict:{agent['id']}: {gate.original} -> {gate.verdict}")
+            # goal:s17 spawn gate -- the only place post_wire *creates* a node
+            # rather than updating one, so it is the only place a spawn rule can
+            # be broken here. `node_id` is the parent; it is the id whose file
+            # was not found above, so it very often resolves to nothing, which
+            # the gate reports as `unverified` (write, warn) rather than
+            # rejecting -- inferring a parent is inventing one (G7.1).
+            vid = f"verdict:{agent['id']}"
+            sgate = spawn_gate.check_spawn(
+                "verdict", [node_id] if node_id else [],
+                rules=spawn_rules, type_index=type_index, node_id=vid,
+                bypass=str(agent.get("spawn_gate", "")) == "bypassed",
+            )
+            spawn_gate.announce(sgate)
+            if not sgate.ok:
+                rejected.append(f"{vid}: {sgate.reason}")
+                continue
             fm = {
-                "id": f"verdict:{agent['id']}",
+                "id": vid,
                 "type": "verdict",
                 "verdict": verdict,
                 "confidence": confidence,
@@ -220,6 +243,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
                 "wired_at": int(time.time()),
             }
             evidence_gate.stamp(fm, gate)
+            spawn_gate.stamp(fm, sgate)
             vpath.write_text(
                 "---\n"
                 + yaml.dump(fm, default_flow_style=False)
@@ -290,7 +314,11 @@ def cmd_wire(args: argparse.Namespace) -> int:
         for d in demoted:
             print(f"    - {d}")
     if rejected:
-        print(f"  evidence-gate rejections (H4c taxonomy violation): {len(rejected)}")
+        # Two gates feed this list now: the evidence gate (H4c taxonomy
+        # violation) and the spawn gate (goal:s17). Each entry carries its own
+        # reason string naming which rule and which schema file, so the label
+        # stays generic rather than claiming a cause it cannot know.
+        print(f"  gate rejections (nothing written): {len(rejected)}")
         for r in rejected:
             print(f"    - {r}")
     if skipped:

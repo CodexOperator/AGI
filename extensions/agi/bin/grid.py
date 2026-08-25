@@ -778,8 +778,16 @@ def cmd_payload(root: Path, node_id: str, version: int | None,
     print(f"{mode}  {out}  ({len(data)} bytes)")
 
 
+def engine_tracked_files(engine_root: Path) -> list[str]:
+    """Every file git tracks in the engine repo, or [] if it is not one."""
+    res = subprocess.run(["git", "-C", str(engine_root), "ls-files"],
+                         capture_output=True, text=True)
+    return [l for l in res.stdout.splitlines() if l] if res.returncode == 0 else []
+
+
 def cmd_checkout(root: Path, node_ids: list[str], do_all: bool,
-                 dest: str | None, engine_root: Path | None = None) -> None:
+                 dest: str | None, engine_root: Path | None = None,
+                 unmanaged: bool = True, force: bool = False) -> None:
     """Materialise payloads out of the grid into the graph repo's own
     `payloads/` tree — the staged copy an author edits (goal:g6.1).
 
@@ -787,15 +795,47 @@ def cmd_checkout(root: Path, node_ids: list[str], do_all: bool,
     `resolve_payload` prefers `payloads/<payload_ref>` over the engine tree,
     so the next `grid.py commit --all` records **your edit in the graph** as
     the node's next version, and `stitch.py --out --from-grid` writes it into
-    the engine. Nothing is checked out from the engine repo: a node with no
-    payload in its grid ref yet is reported, never silently filled from disk,
-    because doing that would let a stale engine file masquerade as graph
-    content.
+    the engine. **Graph content is never filled in from disk**: a node with no
+    payload in its grid ref yet is reported, never silently backfilled from the
+    engine tree, because that would let a stale engine file masquerade as
+    something the graph holds.
+
+    **Uncommitted payload edits are never overwritten without `force`.** This
+    command is `git checkout .` on the payload tree, and it shipped without the
+    dirty check `git checkout` itself has. That cost real work within the hour:
+    two agents were editing `payloads/` in one worktree (goal:g4.1), one ran
+    `checkout --all`, and the other's uncommitted edits to `grid.py` — this
+    function — were silently reverted to the grid tip. A file whose bytes
+    differ from what the grid holds is *unrecorded work*; reverting it is the
+    one thing goal:g7 says must never happen quietly.
+
+    `unmanaged` (default on) additionally copies engine files that are tracked
+    by git but carry **no node** — under `goal:g6.8`'s boundary that is
+    `tests/fixtures/**` and `.jsonl` streams. They are not graph content and
+    are never read back by `commit --all` (no node names them), but without
+    them `payloads/` is not a *runnable* tree: 19 tests fail on missing
+    fixtures, which is a trap for the workflow CLAUDE.md tells authors to use.
+    The counts are reported separately so the distinction stays visible.
     """
     ensure_repo(root)
+    engine_root = engine_root or default_engine_root()
     out_root = Path(dest).resolve() if dest else root / PAYLOAD_DIR
     wanted = set(node_ids)
-    written = no_payload = 0
+    written = no_payload = skipped_dirty = 0
+    managed: set[str] = set()
+
+    def would_clobber(dst: Path, mode: str, data: bytes) -> bool:
+        """True if `dst` exists and holds something other than what we are
+        about to write. Compares link text for symlinks, bytes otherwise."""
+        if not (dst.is_symlink() or dst.exists()):
+            return False
+        try:
+            if dst.is_symlink():
+                return os.readlink(dst).encode("utf-8") != data
+            return dst.read_bytes() != data or git_mode(dst) != mode
+        except Exception:
+            return True
+
     for p in iter_node_files(root):
         node_id = parse_node_id(p)
         if node_id is None or (not do_all and node_id not in wanted):
@@ -805,6 +845,7 @@ def cmd_checkout(root: Path, node_ids: list[str], do_all: bool,
             if not do_all:
                 print(f"skip (no payload_ref): {node_id}", file=sys.stderr)
             continue
+        managed.add(payload_ref)
         ref = _resolve_read_ref(root, p, node_id)
         entry = read_tree_entry(root, ref, PAYLOAD_ENTRY) if ref else None
         if entry is None:
@@ -812,10 +853,42 @@ def cmd_checkout(root: Path, node_ids: list[str], do_all: bool,
                   f"(run `grid.py commit --all` first)", file=sys.stderr)
             no_payload += 1
             continue
-        materialize_entry(out_root / payload_ref, *entry)
+        dst = out_root / payload_ref
+        if not force and would_clobber(dst, *entry):
+            print(f"SKIP (locally modified): {payload_ref} — differs from the "
+                  f"grid tip. Run `grid.py commit --all` to record your edit, "
+                  f"or `checkout --force` to discard it.", file=sys.stderr)
+            skipped_dirty += 1
+            continue
+        materialize_entry(dst, *entry)
         written += 1
-    print(f"grid checkout: {written} payload(s) -> {out_root}, "
-          f"{no_payload} not yet in the grid")
+
+    copied = skipped_unmanaged = 0
+    if unmanaged and do_all:
+        for rel in engine_tracked_files(engine_root):
+            if rel in managed:
+                continue
+            src = engine_root / rel
+            if not (src.is_symlink() or src.exists()):
+                continue
+            mode = git_mode(src)
+            data = (os.readlink(src).encode("utf-8") if mode == GIT_MODE_SYMLINK
+                    else src.read_bytes())
+            dst = out_root / rel
+            if not force and would_clobber(dst, mode, data):
+                skipped_unmanaged += 1
+                continue
+            materialize_entry(dst, mode, data)
+            copied += 1
+
+    print(f"grid checkout: {written} payload(s) from the grid -> {out_root}; "
+          f"{no_payload} not yet in the grid; "
+          f"{copied} unmanaged file(s) copied from {engine_root} "
+          f"(no node — not graph content, never committed back)")
+    if skipped_dirty or skipped_unmanaged:
+        print(f"grid checkout: {skipped_dirty + skipped_unmanaged} file(s) left "
+              "alone because they are locally modified (see SKIP lines above)",
+              file=sys.stderr)
 
 
 def cmd_status(root: Path, engine_root: Path | None = None) -> None:
@@ -1159,6 +1232,16 @@ def main() -> None:
     co.add_argument("--all", action="store_true")
     co.add_argument("--dir", default=None,
                     help=f"destination (default: <project>/{PAYLOAD_DIR})")
+    co.add_argument("--engine-root", default=None,
+                    help="engine repo to copy unmanaged files from "
+                         "(default: this script's own repo)")
+    co.add_argument("--force", action="store_true",
+                    help="overwrite payloads that differ from the grid tip, "
+                         "discarding unrecorded edits")
+    co.add_argument("--no-unmanaged", action="store_true",
+                    help="do not copy engine files that carry no node "
+                         "(tests/fixtures, .jsonl). Leaves a graph-only tree "
+                         "that is NOT runnable — 19 tests need those fixtures.")
     sub.add_parser("status")
     m = sub.add_parser("migrate-refs",
                        help="move refs/grid/node/* onto the injective "
@@ -1193,7 +1276,10 @@ def main() -> None:
     elif args.cmd == "checkout":
         if not args.all and not args.node_ids:
             sys.exit("ERR: give node ids or --all")
-        cmd_checkout(root, args.node_ids, args.all, args.dir)
+        cmd_checkout(root, args.node_ids, args.all, args.dir,
+                     engine_root=Path(args.engine_root).resolve()
+                     if args.engine_root else None,
+                     unmanaged=not args.no_unmanaged, force=args.force)
     elif args.cmd == "status":
         cmd_status(root)
     elif args.cmd == "migrate-refs":
