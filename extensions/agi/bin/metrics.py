@@ -33,6 +33,7 @@ from evidence_gate import (  # noqa: E402
     DECISIVE_VERDICTS,
     build_corpus,
     normalize_evidence_runs,
+    shadow_verdict_fields,
 )
 
 #: Fallback when a project's config omits `metric_primary`. Deliberately not
@@ -141,6 +142,17 @@ def evidence_stats(nodes_dir: Path) -> dict:
     `evidence_gate.py` uses to gate a write. One definition, shared by
     import, not reimplemented here — so this metric and the gate cannot
     read the same field and disagree (that drift was the H4c root cause).
+
+    `unevidenced_decisive_verdicts` reads `verdict:` and nothing else, on
+    purpose — its definition has to stay stable to be comparable across
+    runs. The blind spot that leaves is counted separately as
+    `shadow_decisive_verdicts`: a node can assert `proved` in the legacy
+    `status:` shadow (`evidence_gate.SHADOW_VERDICT_FIELDS`) either
+    *contradicting* an honest demoted `verdict:`, or with no `verdict:`
+    field at all — in which case the whole verdict was invisible to every
+    number here. Both were true of this corpus before the gate demoted
+    shadows in lockstep; the counter is the regression alarm that they do
+    not come back.
     """
     corpus = build_corpus(nodes_dir)
     asserting = 0
@@ -148,11 +160,21 @@ def evidence_stats(nodes_dir: Path) -> dict:
     decisive = 0
     decisive_backed = 0
     pending = 0
+    shadow = 0
+    shadow_orphaned = 0
     for _nf, fm in _iter_frontmatter(nodes_dir):
         v = fm.get("verdict")
-        if not isinstance(v, str) or not v.strip():
+        has_verdict = isinstance(v, str) and bool(v.strip())
+        v = v.strip() if has_verdict else None
+        # Shadow defect: a `status: proved` that `verdict:` does not back up.
+        # A shadow that *agrees* with a decisive `verdict:` is not a defect —
+        # it is redundant, and the gate will demote both together.
+        if shadow_verdict_fields(fm) and v not in DECISIVE_VERDICTS:
+            shadow += 1
+            if not has_verdict:
+                shadow_orphaned += 1
+        if not has_verdict:
             continue
-        v = v.strip()
         runs = normalize_evidence_runs(fm.get("evidence_runs"), corpus=corpus)
         if v == "pending":
             pending += 1
@@ -174,6 +196,13 @@ def evidence_stats(nodes_dir: Path) -> dict:
         # Gate-violation counter: should be 0 once H4 holds in both writer
         # paths. Nonzero = a bypass or a hand-edited node.
         "unevidenced_decisive_verdicts": decisive - decisive_backed,
+        # Shadow-channel counter: should be 0. Nonzero = a node advertises
+        # 'proved'/'disproved' in `status:` that its `verdict:` does not
+        # support — the contradiction the lockstep demotion exists to stop.
+        "shadow_decisive_verdicts": shadow,
+        # Subset of the above with no `verdict:` field at all: a decisive
+        # claim that every other number in this dict is blind to.
+        "shadow_decisive_no_verdict": shadow_orphaned,
     }
 
 

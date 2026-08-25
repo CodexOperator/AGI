@@ -143,6 +143,51 @@ def test_empty_corpus_is_zero_not_a_crash(project):
     s = metrics.evidence_stats(project / "nodes")
     assert s["evidence_fraction"] == 0.0
     assert s["unevidenced_decisive_verdicts"] == 0
+    assert s["shadow_decisive_verdicts"] == 0
+
+
+def test_shadow_counter_catches_a_status_that_contradicts_its_verdict(project):
+    """`unevidenced_decisive_verdicts` reads `verdict:` only, so a demoted
+    node whose `status:` still says 'proved' looks honest to it. That blind
+    spot is what `shadow_decisive_verdicts` counts."""
+    _node(project, "verdict", "v1",
+          "status: proved\nverdict: inconclusive_lean_proved:50\nevidence_runs: 0")
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["unevidenced_decisive_verdicts"] == 0      # verdict: is honest
+    assert s["shadow_decisive_verdicts"] == 1           # status: is not
+    assert s["shadow_decisive_no_verdict"] == 0
+
+
+def test_shadow_counter_catches_a_verdict_expressed_only_as_status(project):
+    """The worse case: no `verdict:` field at all, so the decisive claim is
+    invisible to every other number in evidence_stats."""
+    _node(project, "verdict", "v1", "status: proved")
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["decisive_verdicts"] == 0                  # invisible, as designed
+    assert s["verdicts_asserting"] == 0
+    assert s["shadow_decisive_verdicts"] == 1
+    assert s["shadow_decisive_no_verdict"] == 1
+
+
+def test_shadow_counter_ignores_a_status_its_verdict_agrees_with(project):
+    """Redundant, not contradictory — the gate demotes both together."""
+    _node(project, "verdict", "v1", "status: proved\nverdict: proved\nevidence_runs: 3")
+    assert metrics.evidence_stats(project / "nodes")["shadow_decisive_verdicts"] == 0
+
+
+def test_shadow_counter_ignores_lifecycle_statuses(project):
+    _node(project, "task", "t1", "status: pending")
+    _node(project, "idea", "i1", "status: open")
+    _node(project, "goal", "g1", "status: active")
+    _node(project, "verdict", "v1", "status: open\nverdict: disproved\nevidence_runs: 3")
+    assert metrics.evidence_stats(project / "nodes")["shadow_decisive_verdicts"] == 0
+
+
+def test_shadow_counter_ignores_tags(project):
+    """Tags keep 'proved' as a historical record of the original claim."""
+    _node(project, "verdict", "v1",
+          "verdict: inconclusive_lean_proved:50\ntags:\n  - proved")
+    assert metrics.evidence_stats(project / "nodes")["shadow_decisive_verdicts"] == 0
 
 
 def test_metrics_shares_evidence_gates_normalize_function():

@@ -395,6 +395,19 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
     fm_lines = [l for l in fm_lines
                 if not l.startswith(("verdict:", "confidence:", "next_edges:",
                                      "demoted_from:", "demote_reason:", "evidence_gate:"))]
+    # Demote the `status:` shadow in lockstep. This path rewrites raw lines
+    # rather than a dict, so it cannot call evidence_gate.stamp() — but it
+    # must enforce the same invariant: after a demotion nothing in the
+    # frontmatter still reads 'proved'/'disproved'. Only a decisive value is
+    # touched, so a task's `status: pending` is never clobbered.
+    if gate is not None and gate.demoted:
+        fm_lines = [
+            f"status: {verdict}"
+            if l.startswith("status:")
+            and evidence_gate.is_decisive_shadow(l.split(":", 1)[1].strip().strip("\"'"))
+            else l
+            for l in fm_lines
+        ]
     fm_lines.append(f"verdict: {verdict}")
     fm_lines.append(f"confidence: {confidence}")
     if gate is not None:
