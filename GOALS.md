@@ -562,6 +562,17 @@ The address stays mutable and cheap precisely *because* nothing durable hangs
 off it. History follows the mint id, so a node can be regrouped, retagged and
 re-addressed without touching a single ref.
 
+**Known gap, found landing this: no generator mints a `mint_id`.** The backfill
+(`bin/backfill-mint-ids.py`) is the only thing that assigns one, so every node a
+generator creates — `level3.py`, `snapshot-goals.py`, `decompose-engine.py`, and
+the `cli.py scaffold` path — arrives without one and is skipped by
+`grid.py commit --all` with a loud per-node error until a backfill runs. Observed
+immediately: two new `level3` nodes from the same session needed a second
+backfill pass. A mint id should be assigned **at node creation**, by whatever
+writes the file, with the backfill retained only for repair. Until then, "run
+the backfill after any generator" is an unscripted manual step, which is exactly
+the class this project's design ethic says to eliminate.
+
 **Grouping stays hash-derived for now, deliberately.** Addresses mint from a
 hash of the node, which means today every 6-char prefix holds exactly one member
 — the hierarchy is present in the format but not yet exercised. That is accepted
