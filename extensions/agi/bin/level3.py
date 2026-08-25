@@ -127,6 +127,34 @@ payload_boundary = importlib.util.module_from_spec(_pb_spec)
 _pb_spec.loader.exec_module(payload_boundary)
 
 
+# grid.py, by file path — same rule, same reason: `--from-grid` resolves
+# payloads out of `refs/grid/node/<mint-id>`, and grid.py is the one definition
+# of how those refs are named and read (goal:g6.1).
+_GRID_PATH = BIN_DIR / "grid.py"
+_grid_spec = importlib.util.spec_from_file_location("grid_for_level3", _GRID_PATH)
+grid = importlib.util.module_from_spec(_grid_spec)
+_grid_spec.loader.exec_module(grid)
+
+
+def grid_payload_for(project_root: Path, node_path: Path) -> bytes | None:
+    """The payload bytes recorded in `node_path`'s grid ref, or None.
+
+    None is returned — never a fallback to disk — for a node with no mint id,
+    no ref, or no payload entry yet. The caller reports it and derives from the
+    engine tree instead, saying which source it used. A silent fallback would
+    make `--from-grid` a no-op that reads like a success, which is the failure
+    `stitch.py --from-grid` was already written to avoid.
+    """
+    node_id = grid.parse_node_id(node_path)
+    if node_id is None:
+        return None
+    ref = grid._resolve_read_ref(project_root, node_path, node_id)
+    if ref is None:
+        return None
+    entry = grid.read_tree_entry(project_root, ref, grid.PAYLOAD_ENTRY)
+    return entry[1] if entry else None
+
+
 # --- file discovery -----------------------------------------------------------
 
 # Retained for tests and for the record: the pre-G6.8 scope. Nothing reads
@@ -151,7 +179,8 @@ def git_ls_files(engine_root: Path) -> list[str] | None:
     return [line for line in result.stdout.splitlines() if line]
 
 
-def discover_files(engine_root: Path) -> list[str] | None:
+def discover_files(engine_root: Path,
+                   payload_root: Path | None = None) -> list[str] | None:
     """Tracked files passing the G6.8 payload-boundary predicate, or None on a
     no-op (missing/unreadable engine root, or not a git repo).
 
@@ -178,7 +207,46 @@ def discover_files(engine_root: Path) -> list[str] | None:
         # to the same no-op signal the old git_ls_files() gave — never a
         # partial or guessed file list.
         return None
-    return sorted(f for f, verdict, _reason in rows if verdict == "in")
+    found = {f for f, verdict, _reason in rows if verdict == "in"}
+    found |= discover_payload_only_files(engine_root, payload_root, found)
+    return sorted(found)
+
+
+def discover_payload_only_files(engine_root: Path, payload_root: Path | None,
+                                already: set[str]) -> set[str]:
+    """Files that exist in the graph's payload checkout and nowhere else.
+
+    **This is how a NEW file enters the graph graph-first (goal:g6.1).** Before
+    it existed, discovery asked `git ls-files` on the engine and nothing else,
+    so a script authored in `payloads/` was invisible to `level3.py`, never got
+    a node, never got a `payload_ref`, and was therefore never committed to the
+    grid or published — it lived in exactly one gitignored directory. Writing a
+    new engine file still meant touching the engine repo first, which is the
+    one thing the closed loop is supposed to remove.
+
+    Same boundary predicate as the engine side (`classify_paths`), so a fixture
+    or a `.jsonl` stream authored here is excluded for the same reason it is
+    excluded there.
+    """
+    if payload_root is None or not payload_root.is_dir():
+        return set()
+    candidates = []
+    for p in payload_root.rglob("*"):
+        if p.is_dir() and not p.is_symlink():
+            continue
+        rel = str(p.relative_to(payload_root))
+        if rel in already:
+            continue
+        candidates.append(rel)
+    try:
+        rows = payload_boundary.classify_paths(engine_root, candidates)
+    except Exception:
+        return set()
+    new = {f for f, verdict, _reason in rows if verdict == "in"}
+    for f in sorted(new):
+        print(f"NEW: {f} exists only in the payload checkout — minting its node "
+              f"(goal:g6.1)")
+    return new
 
 
 # --- ast-based contract derivation --------------------------------------------
@@ -399,10 +467,37 @@ def _content_sha256(abs_path: Path) -> str:
 
 
 def analyze_file(abs_path: Path) -> dict:
-    """Mechanically derive the contract's `how` half from a Python file via `ast`.
+    """Mechanically derive the contract's `how` half from a file **on disk**.
+
+    Thin wrapper over `analyze_source`, which is the real derivation. Kept as
+    the disk-facing entry point because that is what every caller has used
+    since this script existed, and because a file that cannot be *read* is a
+    distinguishable failure from one that cannot be *parsed*.
+    """
+    try:
+        data = abs_path.read_bytes()
+    except Exception as exc:
+        return {"parse_ok": False, "parse_error": f"unreadable: {exc}",
+                "inputs": [], "outputs": [], "uncovered": []}
+    return analyze_source(data, abs_path.suffix, str(abs_path))
+
+
+def analyze_source(data: bytes, suffix: str, name: str = "<payload>") -> dict:
+    """Mechanically derive the contract's `how` half from bytes.
+
+    **goal:g6.1** — the derivation takes *bytes*, not a path, so it can run
+    against a payload read out of a node's grid ref exactly as it runs against
+    a file on disk. That is the read direction the write direction already has:
+    until this existed, the graph could write the engine but could only learn
+    about it by reading the engine, so a payload edited only in the graph
+    carried a stale contract until it was published and rescanned.
+
+    One derivation, two sources. Re-implementing it per source is the drift
+    `stitch.py` exists to catch in the nodes, so it is not allowed to happen
+    between these two entry points either.
 
     Returns {"parse_ok", "parse_error", "inputs", "outputs", "uncovered"}.
-    A file that cannot be read or parsed gets `parse_ok: false` and an empty
+    Anything that cannot be read or parsed gets `parse_ok: false` and an empty
     contract — never an invented one.
     """
     # `ast` is a *Python* parser, so gate on the suffix before using it. JSON
@@ -412,7 +507,7 @@ def analyze_file(abs_path: Path) -> dict:
     # `stitch.py --verify` would then read as no drift. An honest
     # `not-python` is the correct answer for every non-`.py` payload until
     # G6.6's extracted-claims contract exists.
-    if abs_path.suffix != ".py":
+    if suffix != ".py":
         # Still record a content fingerprint. Without it a non-`.py` node's body
         # is byte-identical no matter what its payload says, so editing a doc
         # produces no node change and therefore no grid version — the payload's
@@ -423,18 +518,18 @@ def analyze_file(abs_path: Path) -> dict:
         # is not claimed to be one; it is the minimum that makes a prose change
         # *visible* to node history until G6.6's extracted-claims contract lands.
         return {"parse_ok": False,
-                "parse_error": f"not-python: {abs_path.suffix or 'no suffix'} "
+                "parse_error": f"not-python: {suffix or 'no suffix'} "
                                "(no mechanical contract derivation for this "
                                "file type yet — see goal:g6.6)",
-                "content_sha256": _content_sha256(abs_path),
+                "content_sha256": hashlib.sha256(data).hexdigest(),
                 "inputs": [], "outputs": [], "uncovered": []}
     try:
-        source = abs_path.read_text(encoding="utf-8")
+        source = data.decode("utf-8")
     except Exception as exc:
         return {"parse_ok": False, "parse_error": f"unreadable: {exc}",
                 "inputs": [], "outputs": [], "uncovered": []}
     try:
-        tree = ast.parse(source, filename=str(abs_path))
+        tree = ast.parse(source, filename=name)
     except SyntaxError as exc:
         return {"parse_ok": False, "parse_error": f"SyntaxError: {exc}",
                 "inputs": [], "outputs": [], "uncovered": []}
@@ -531,10 +626,19 @@ def _fill_entries(entries: list[dict]) -> list[dict]:
     ]
 
 
-def build_node(rel_path: str, abs_path: Path, parent_id: str | None) -> tuple[str, dict, str, dict]:
-    """Returns (node_id, frontmatter, body, analysis) for one file."""
+def build_node(rel_path: str, abs_path: Path, parent_id: str | None,
+               payload: bytes | None = None) -> tuple[str, dict, str, dict]:
+    """Returns (node_id, frontmatter, body, analysis) for one file.
+
+    `payload`, when given, is the file's bytes read from somewhere other than
+    `abs_path` — in practice the node's own grid ref under `--from-grid`
+    (goal:g6.1). `abs_path` is still used for nothing but its suffix in that
+    case, so a node whose payload exists only in the graph derives correctly
+    even if the engine tree no longer has the file.
+    """
     node_id = f"level3:{slug_for(rel_path)}"
-    analysis = analyze_file(abs_path)
+    analysis = (analyze_source(payload, Path(rel_path).suffix, rel_path)
+                if payload is not None else analyze_file(abs_path))
 
     fm = {
         "id": node_id,
@@ -602,6 +706,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="override the engine repo root (default: this script's own repo)")
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would happen; write nothing")
+    ap.add_argument("--from-grid", action="store_true",
+                    help="goal:g6.1 — derive each existing node's contract from "
+                         "the payload in its own grid ref instead of from the "
+                         "engine tree. Discovery still reads the engine tree "
+                         "(a file with no node yet can only be found there); "
+                         "derivation stops depending on it.")
     args = ap.parse_args(argv)
 
     if args.project:
@@ -609,7 +719,8 @@ def main(argv: list[str] | None = None) -> int:
     project_root = PROJECT_ROOT
     engine_root = Path(args.engine_root).resolve() if args.engine_root else DEFAULT_ENGINE_ROOT
 
-    files = discover_files(engine_root)
+    payload_root = project_root / grid.PAYLOAD_DIR
+    files = discover_files(engine_root, payload_root)
     if files is None:
         # A missing/unreadable engine tree is a no-op: nothing written, nothing pruned.
         print(f"WARN: engine root {engine_root} is missing or unreadable "
@@ -645,10 +756,27 @@ def main(argv: list[str] | None = None) -> int:
     n_uncovered = 0
     n_parse_fail = 0
 
+    n_from_grid = 0
+    n_from_engine = 0
+
     for rel_path in files:
         abs_path = engine_root / rel_path
+        if not (abs_path.is_symlink() or abs_path.exists()):
+            # A file authored in the graph and not yet published has no engine
+            # copy. The payload checkout is its only source; that is not a
+            # policy choice about which source wins, it is the only one there is.
+            abs_path = payload_root / rel_path
         parent_id = find_parent(rel_path, units)
-        node_id, fm, body, analysis = build_node(rel_path, abs_path, parent_id)
+        payload = None
+        if args.from_grid:
+            probe_id = f"level3:{slug_for(rel_path)}"
+            node_path = existing.get(probe_id, {}).get("path")
+            payload = grid_payload_for(project_root, node_path) if node_path else None
+            if payload is None:
+                n_from_engine += 1
+            else:
+                n_from_grid += 1
+        node_id, fm, body, analysis = build_node(rel_path, abs_path, parent_id, payload)
 
         if node_id in used_ids:
             disambiguated = f"{node_id}-{len(used_ids)}"
@@ -689,11 +817,25 @@ def main(argv: list[str] | None = None) -> int:
     # Prune only nodes stamped with our own origin that we did not write this
     # run. Never touches unstamped or other-origin nodes (build-site,
     # goals-doc, engine-decomp, ...).
-    stale_generated = [
-        node["path"]
-        for node_id, node in existing.items()
-        if node["origin"] == ORIGIN and node["path"].resolve() not in written_paths
-    ]
+    stale_generated = []
+    kept_by_grid = 0
+    for node_id, node in existing.items():
+        if node["origin"] != ORIGIN or node["path"].resolve() in written_paths:
+            continue
+        # H0-class guard, added with payload-only discovery (goal:g6.1). A node
+        # whose payload is in its own grid ref is backed by the graph, so
+        # "discovery did not find it this run" is a statement about the two
+        # source trees, not about whether the node is real. Deleting it would
+        # be the H0i shape with a new door: run `level3.py` on a machine where
+        # `payloads/` was never checked out and every graph-authored file's
+        # node disappears. The grid is what makes that recoverable, so the grid
+        # is what gets asked.
+        if grid_payload_for(project_root, node["path"]) is not None:
+            kept_by_grid += 1
+            print(f"KEEP: {node_id} was not discovered this run but its payload "
+                  f"is in the grid — not pruning (goal:g6.1)", file=sys.stderr)
+            continue
+        stale_generated.append(node["path"])
     for path in sorted(stale_generated):
         if args.dry_run:
             print(f"DRY-RUN: would prune stale {path}")
@@ -707,6 +849,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"level-3 nodes {verb}: {len(files)}")
     print(f"  with census parent: {n_with_parent}")
     print(f"  flagged NO_PARENT (parentless): {n_no_parent}")
+    if args.from_grid:
+        print(f"payload source: {n_from_grid} from the grid, {n_from_engine} "
+              "from the engine tree (no node or no payload in its ref yet)")
     print(f"contract entries: {n_derivable} derivable, {n_uncovered} uncovered, "
           f"{n_parse_fail} file(s) failed to parse")
     prune_verb = "would prune" if args.dry_run else "pruned"

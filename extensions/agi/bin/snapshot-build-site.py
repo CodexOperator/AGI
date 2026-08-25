@@ -155,7 +155,15 @@ def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
         else:
             sval = str(v).replace("\n", " ").strip()
             if any(c in sval for c in ":#'\""):
-                sval = '"' + sval.replace('"', "'") + '"'
+                # Escape into a YAML double-quoted scalar rather than
+                # substituting the character. The old line did
+                # `sval.replace('"', "'")`, which is silent data loss in the
+                # one function that touches every node on every run -- S13's
+                # exact finding, one line further down the same function.
+                # Caught by goal:g6.9's round-trip check: `## S13 - ... the
+                # string "None" ...` came back out of its node as `'None'`.
+                esc = sval.replace("\\", "\\\\").replace('"', '\\"')
+                sval = f'"{esc}"'
             lines.append(f"{k}: {sval}")
     lines.append("---")
     lines.append("")

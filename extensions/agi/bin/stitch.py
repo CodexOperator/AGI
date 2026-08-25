@@ -422,7 +422,8 @@ def _chain_order(group: list[Level3Node]) -> list[str]:
     return [n.node_id for n in sorted(group, key=lambda n: n.version)]
 
 
-def verify_tree(project_root: Path, engine_root: Path) -> dict:
+def verify_tree(project_root: Path, engine_root: Path,
+                from_grid: bool = False) -> dict:
     """Report drift between the graph (`nodes/level3/`) and the live engine tree.
 
     Writes nothing. Degrades instead of raising: a missing/unreadable engine
@@ -482,15 +483,29 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
     #     `origin: build-version`, e.g. a `level3-scan` node that lost its
     #     block — a genuine generator failure): stays `unreadable_contracts`,
     #     stays drift, exactly as before this split existed.
+    #
+    # `from_grid` (goal:g6.1) changes only where the "current" bytes come from:
+    # the node's own grid ref instead of the engine tree. That is what makes
+    # this check an independent claim about the *graph* rather than a claim
+    # about the tree the graph is supposed to be producing — with the engine as
+    # the source, a payload edited only in the graph reads as stale until it is
+    # published, which is backwards.
     stale_contracts = []
     unreadable_contracts = []
     contracts_not_derived = []
+    contracts_from_grid = 0
     for n in nodes:
-        if not n.payload_ref or not engine_readable:
+        if not n.payload_ref:
             continue
-        abs_path = engine_root / n.payload_ref
-        if not abs_path.is_file():
-            continue  # already reported under missing_payload
+        payload = _grid_payload(project_root, n) if from_grid else None
+        if payload is None:
+            if not engine_readable:
+                continue
+            abs_path = engine_root / n.payload_ref
+            if not abs_path.is_file():
+                continue  # already reported under missing_payload
+        else:
+            contracts_from_grid += 1
         if n.contract is None:
             if n.origin == _BUILD_VERSION_ORIGIN and n.contract_error == _NO_CONTRACT_BLOCK:
                 contracts_not_derived.append({"node_id": n.node_id,
@@ -499,7 +514,9 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
                 unreadable_contracts.append({"node_id": n.node_id,
                                               "reason": n.contract_error})
             continue
-        fresh = level3.analyze_file(abs_path)
+        fresh = (level3.analyze_source(payload[1], Path(n.payload_ref).suffix,
+                                       n.payload_ref)
+                 if payload is not None else level3.analyze_file(engine_root / n.payload_ref))
         diff = diff_contract(n.contract, fresh)
         if diff is not None:
             stale_contracts.append({"node_id": n.node_id,
@@ -520,6 +537,8 @@ def verify_tree(project_root: Path, engine_root: Path) -> dict:
         "stale_contracts": stale_contracts,
         "unreadable_contracts": unreadable_contracts,
         "contracts_not_derived": contracts_not_derived,
+        "contracts_from_grid": contracts_from_grid,
+        "contract_source": "grid" if from_grid else "engine",
         "warnings": warnings,
         "runtime_seconds": runtime,
     }
@@ -812,6 +831,10 @@ def print_verify_report(report: dict) -> None:
     for ref, ids in report["version_chains"].items():
         print(f"      {ref}: {' -> '.join(ids)}")
 
+    if report.get("contract_source") == "grid":
+        print(f"  contract source: grid refs "
+              f"({report.get('contracts_from_grid', 0)} node(s) derived from "
+              "their own payload; the rest fell back to the engine tree)")
     print(f"  [4] stale_contracts: {len(report['stale_contracts'])} "
           f"(+ {len(report['unreadable_contracts'])} unreadable)")
     for s in report["stale_contracts"]:
@@ -910,7 +933,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.verify:
-        report = verify_tree(project_root, engine_root)
+        report = verify_tree(project_root, engine_root, from_grid=args.from_grid)
         print_verify_report(report)
         if args.strict and has_drift(report):
             return 1

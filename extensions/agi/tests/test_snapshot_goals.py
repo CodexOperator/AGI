@@ -43,7 +43,17 @@ No status clause here.
 
 
 def run(project: Path, *args):
-    """Run the script in-process-ish via subprocess for isolation."""
+    """Run the script in-process-ish via subprocess for isolation.
+
+    Defaults to `--from-doc`, the GOALS.md -> nodes import. That was the only
+    direction until goal:g6.9 made the nodes authoritative and the bare
+    invocation ambiguous; every test below this helper predates the flip and
+    is about the import, so the helper supplies it rather than 40 call sites
+    growing a flag. Render-direction tests pass `--render` explicitly and the
+    helper stays out of their way.
+    """
+    if "--render" not in args and "--from-doc" not in args:
+        args = ("--from-doc", *args)
     return subprocess.run(
         [sys.executable, str(BIN), "--project", str(project), *args],
         capture_output=True, text=True,
@@ -331,9 +341,15 @@ def test_parse_goals_body_cap():
     assert len(goals[0]["body"]) == 6000
 
 
-def test_parse_goals_truncates_visibly_at_a_block_boundary():
+def test_parse_goals_truncates_visibly_at_a_block_boundary(monkeypatch):
     """The cap still binds when the body *has* boundaries — and when it binds,
-    it says so in the body rather than stopping mid-sentence."""
+    it says so in the body rather than stopping mid-sentence.
+
+    The cap is pinned here rather than read from a config: agi-tree's own
+    config sets `goal_body_cap: 0` (goal:g6.9 — a source of truth cannot be
+    capped), so without this the test silently stops testing anything.
+    """
+    monkeypatch.setattr(sg, "body_cap", lambda: 4000)
     blocks = "\n\n".join(f"para {i} " + "y" * 300 for i in range(30))
     goals = sg.parse_goals(f"## G1 — Big — status: active\n\n{blocks}")
     body = goals[0]["body"]
@@ -460,6 +476,10 @@ def test_long_term_goals_are_unchanged_by_the_new_kinds(nested):
 
 def _sg_run(project, *extra):
     import subprocess, sys
+    # Same default as `run()` above: these tests are about the import
+    # direction, which goal:g6.9 moved behind `--from-doc`.
+    if "--render" not in extra and "--from-doc" not in extra:
+        extra = ("--from-doc", *extra)
     return subprocess.run(
         [sys.executable, str(Path(__file__).resolve().parents[1] / "bin" / "snapshot-goals.py"),
          "--project", str(project), *extra],
@@ -616,3 +636,178 @@ def test_truncation_is_never_silent(capped_project, capsys):
     assert len(out) < len(body)
     assert "truncated:" in out
     assert "WARN: goal G7" in capsys.readouterr().err
+
+
+# --- goal:g6.9 — the nodes are the source; GOALS.md is rendered from them ----
+
+
+def test_bare_invocation_refuses_to_guess_a_direction(project):
+    """Two directions exist and they are not interchangeable: one writes nodes
+    and prunes, the other writes a document and cannot. Defaulting to either
+    silently would be the H0i shape (a generator input deciding what survives)."""
+    r = subprocess.run([sys.executable, str(BIN), "--project", str(project)],
+                       capture_output=True, text=True)
+    assert r.returncode == 2
+    assert "--render" in r.stderr and "--from-doc" in r.stderr
+
+
+def test_round_trip_is_byte_identical(project):
+    """`render(parse(t)) == t` — the migration's own falsifier. A renderer that
+    is merely close produces a diff on every run and nobody reads it after the
+    third time."""
+    run(project)                                  # import: doc -> nodes
+    assert run(project, "--render").returncode == 0   # render: nodes -> doc
+    assert run(project, "--render", "--check").returncode == 0
+
+
+def test_heading_level_and_order_are_stored_not_inferred(nested):
+    """Heading depth and document position are recorded on the node. Neither is
+    derivable: depth would have to be guessed from the id shape, and this
+    document's ordering is deliberately unsorted."""
+    run(nested)
+    nodes = goal_nodes(nested)
+    assert nodes["goal:g1"][1]["heading_level"] == 2
+    assert nodes["goal:g1.2"][1]["heading_level"] == 3
+    assert nodes["goal:s1"][1]["heading_level"] == 2
+    orders = [fm["order"] for _p, fm in nodes.values()]
+    assert len(set(orders)) == len(orders)        # positions are unique
+
+
+def test_unsorted_document_order_survives_the_round_trip(tmp_path):
+    """S11..S17 sit before S1..S10 in the real document because ids are never
+    renumbered and the file grew that way. A renderer that sorts would silently
+    reshuffle 2,800 lines."""
+    doc = ("# T\n\npre\n\n## S11 — Later — status: active\n\nb11\n\n"
+           "## S1 — Earlier — status: active\n\nb1\n")
+    (tmp_path / "GOALS.md").write_text(doc)
+    (tmp_path / "nodes").mkdir()
+    run(tmp_path)
+    run(tmp_path, "--render")
+    out = (tmp_path / "GOALS.md").read_text()
+    assert out.index("## S11") < out.index("## S1 —")
+
+
+def test_preamble_becomes_a_doc_node_not_a_goal(project):
+    """160 lines of design contract that the parser used to discard. `type: doc`
+    so it does not become a phantom entry in every count that reads
+    `type == goal`."""
+    run(project)
+    node = project / "nodes" / "doc" / "goals-preamble.md"
+    assert node.exists()
+    fm = fm_of(node)
+    assert fm["id"] == "doc:goals-preamble" and fm["type"] == "doc"
+    assert "Preamble prose" in node.read_text()
+    assert "goal:" not in str(sorted(goal_nodes(project))).replace("goal:g", "")
+
+
+def test_the_banner_does_not_accrete_across_round_trips(project):
+    run(project)
+    for _ in range(3):
+        run(project, "--render")
+        run(project)
+    assert (project / "GOALS.md").read_text().count("<!-- GENERATED") == 1
+
+
+def test_deleting_a_heading_does_not_delete_the_node(project):
+    """goal:g6.9's pre-registered falsifier. The whole hazard of inverting this
+    direction is that `--from-doc` prunes; `--render` must not be able to."""
+    run(project)
+    doc = project / "GOALS.md"
+    before = doc.read_text()
+    doc.write_text(before.replace(
+        "## G2 — Persistent ideation system — status: active\n\nAdapt the research loop.\n", ""))
+    assert "## G2 " not in doc.read_text()
+
+    assert run(project, "--render").returncode == 0
+    assert "goal:g2" in goal_nodes(project)                 # node survived
+    assert "## G2 " in doc.read_text()                      # heading restored
+
+
+def test_render_refuses_to_write_an_empty_document(tmp_path):
+    """A missing/empty nodes/goal/ must never be read as 'the project has no
+    goals' — that is H0's shape with the arrow reversed."""
+    (tmp_path / "nodes").mkdir()
+    (tmp_path / "GOALS.md").write_text("# real content\n")
+    r = run(tmp_path, "--render")
+    assert r.returncode == 1
+    assert (tmp_path / "GOALS.md").read_text() == "# real content\n"
+
+
+def test_a_goal_node_missing_order_is_a_hard_error(project):
+    run(project)
+    path, fm = goal_nodes(project)["goal:g1"]
+    del fm["order"]
+    sg.write_frontmatter(path, fm, "body", origin="goals-doc")
+    r = run(project, "--render")
+    assert r.returncode != 0
+    assert "order/heading_level" in r.stderr
+
+
+def test_duplicate_order_across_nodes_is_a_hard_error(project):
+    run(project)
+    nodes = goal_nodes(project)
+    p1, fm1 = nodes["goal:g1"]
+    p2, fm2 = nodes["goal:g2"]
+    fm2["order"] = fm1["order"]
+    sg.write_frontmatter(p2, fm2, "body", origin="goals-doc")
+    r = run(project, "--render")
+    assert r.returncode != 0
+    assert "duplicate `order`" in r.stderr
+
+
+def test_integrity_check_runs_in_the_render_direction_too(project):
+    """G7.1's sweep has run every iteration since it was built. Making the
+    render the default must not retire a live check as a side effect."""
+    run(project)
+    write_node(project, "idea/orphan.md",
+               {"id": "idea:orphan", "type": "idea", "parents": ["goal:g99"]})
+    r = run(project, "--render")
+    assert "unknown goal 'goal:g99'" in r.stderr
+    assert run(project, "--render", "--strict-goals").returncode == 1
+
+
+def test_write_frontmatter_preserves_embedded_double_quotes(tmp_path):
+    """Found by g6.9's round-trip check: S13's own title — `... the string
+    "None"` — came back out of its node as `'None'`, because the serializer
+    substituted the character instead of escaping it. Silent data loss in the
+    one function that touches every node on every run, which is S13's finding
+    about a line three below where it was fixed."""
+    title = 'S13 — serialized YAML null as the string "None"'
+    p = write_node(tmp_path, "goal/x.md", {"id": "goal:x", "title": title})
+    assert fm_of(p)["title"] == title
+
+
+def test_write_frontmatter_preserves_backslashes(tmp_path):
+    value = 'a \\ b " c'
+    p = write_node(tmp_path, "goal/y.md", {"id": "goal:y", "title": value})
+    assert fm_of(p)["title"] == value
+
+
+def test_prune_only_touches_nodes_this_script_can_produce(project):
+    """A generator may delete only what it can produce.
+
+    `origin: goals-doc` alone was the prune predicate, and `doc:goals-preamble`
+    carries that origin without being a goal heading. The published engine —
+    still running the origin-only rule — deleted it within an hour of it
+    existing (loop.log, 2026-08-25T23:04:50Z). Recovered from the grid; the
+    rule is narrowed here so the class cannot recur.
+    """
+    run(project)
+    other = write_node(project, "doc/notes.md",
+                       {"id": "doc:notes", "type": "doc", "origin": "goals-doc"})
+    assert other.exists()
+    run(project)                       # a second import must not sweep it
+    assert other.exists()
+    assert (project / "nodes" / "doc" / "goals-preamble.md").exists()
+
+
+def test_prune_still_removes_a_goal_the_document_dropped(project):
+    """The narrowing must not disable the prune it narrows: a goal heading that
+    leaves GOALS.md still takes its node with it under `--from-doc`."""
+    run(project)
+    assert "goal:g2" in goal_nodes(project)
+    doc = project / "GOALS.md"
+    doc.write_text(doc.read_text().replace(
+        "## G2 — Persistent ideation system — status: active\n\nAdapt the research loop.\n", ""))
+    run(project)
+    assert "goal:g2" not in goal_nodes(project)

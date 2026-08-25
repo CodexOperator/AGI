@@ -73,11 +73,16 @@ iter_run() {
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
   echo "=== iter $n @ $ts ===" | tee -a "$LOG"
 
-  # 1a. Derive nodes/goal/ from GOALS.md (plugin-only; no project-local override
-  #     on purpose — project-local bin/*.py overrides are the H0 data-loss defect)
+  # 1a. Render GOALS.md FROM nodes/goal/ (goal:g6.9 — the nodes are the source;
+  #     the document is a flat reading convenience). This direction cannot
+  #     prune: it only ever writes the document. The legacy GOALS.md -> nodes
+  #     import is `--from-doc` and is NOT run by the loop, because it deletes
+  #     every goal node the document fails to mention (H0i's shape).
+  #     Plugin-only, no project-local override on purpose — project-local
+  #     bin/*.py overrides are the H0 data-loss defect.
   if [[ -f "$PLUGIN_ROOT/bin/snapshot-goals.py" ]]; then
     AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
-      python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" --strict-goals 2>&1 | tee -a "$LOG"
+      python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" --render --strict-goals 2>&1 | tee -a "$LOG"
   fi
 
   # 1. Refresh nodes/ from build-site (idempotent rebuild)
