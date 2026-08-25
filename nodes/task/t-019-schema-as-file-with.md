@@ -7,7 +7,7 @@ blocked_by:
   - task:t-006
 cavekit_req: schema-registry/R1
 effort: M
-id: "task:t-090"
+id: "task:t-019"
 origin: build-site
 parents:
   - hyp:schema-registry-r1
@@ -16,7 +16,7 @@ tags:
   - M
   - tier--1
 tier: -1
-title: "T-090: Schema as file with naming convention"
+title: "T-019: Schema as file with naming convention"
 type: task
 ---
 
