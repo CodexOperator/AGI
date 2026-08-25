@@ -31,6 +31,13 @@ treat the others as projections around it.
 
 **Invariant:** one node at level N ⇔ a collection at level N+1, and back.
 
+**Two axes, not one — and conflating them is the mistake this goal keeps
+making.** *Zoom* is **where you are standing**: far out shows supernode
+groupings, base level shows build nodes, closer shows a node's version history,
+closest shows the chat that produced a version. *LOD* is **how much detail is
+drawn at wherever you stand**, dialled up or down independently. Every zoom
+position has its own LOD range. Zoom is **G2.5**–**G2.7**; LOD is **G2.8**–**G2.9**.
+
 ⚠️ **`level3` as a node type is legacy stale wording, and the graph should carry
 no zoom-level names at all.** A zoom level is a *view*, and baking a view's name
 into the data was a category error: it froze one grain into the type system and
