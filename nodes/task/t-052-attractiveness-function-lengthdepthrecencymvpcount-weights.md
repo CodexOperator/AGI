@@ -10,6 +10,7 @@ blocked_by:
 cavekit_req: chain-engine/R6
 effort: M
 id: "task:t-052"
+mint_id: 15539a698cf740048eb2614e319dc24c
 origin: build-site
 parents:
   - hyp:chain-engine-r6

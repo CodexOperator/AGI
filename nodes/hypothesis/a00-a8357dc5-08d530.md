@@ -1,9 +1,10 @@
 ---
-id: hypothesis:a00-a8357dc5-08d530
-type: hypothesis
-parents:
-  - 
+id: "hypothesis:a00-a8357dc5-08d530"
+mint_id: 8a53ff0914ff4ddb97f08c02a0716ec5
 next_edges: []
+parents:
+  -
+type: hypothesis
 ---
 
 # hypothesis:a00-a8357dc5-08d530
@@ -15,4 +16,3 @@ next_edges: []
 
 **Proves**: A manual verdict-closure step works; a systematic automatic version is architecturally possible.
 **Disproves**: No verdict node created even after explicit close attempt — graph builder is broken.
-

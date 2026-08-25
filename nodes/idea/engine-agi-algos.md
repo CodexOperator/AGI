@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-agi-algos"
+mint_id: 1ff5c536ab2547a89c48489690a15134
 origin: engine-decomp
 parents:
   - goal:g2.1

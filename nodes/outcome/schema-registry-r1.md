@@ -1,7 +1,8 @@
 ---
 id: "outcome:schema-registry-r1"
+mint_id: 031e7c79958f4f8abf8e95146b557109
 next_edges:
-  - "bigger-outcome:schema-registry-r1"
+  - bigger-outcome:schema-registry-r1
 parents:
   - mvp:schema-registry-r1
 subgraph: false

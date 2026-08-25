@@ -1,17 +1,18 @@
 ---
-id: mvp:exporters-r1
-title: "MVP: Exporters R1 — Markdown Exporter"
-type: mvp
-status: open
 confidence: 1.0
+id: "mvp:exporters-r1"
+mint_id: 0108a4dfb3f74530b278afb92d3749f8
+next_edges:
+  - outcome:exporters-r1
 parents:
   - verdict:exporters-r1
+status: open
 tags:
   - exporters
   - R1
   - mvp
-next_edges:
-  - outcome:exporters-r1
+title: "MVP: Exporters R1 — Markdown Exporter"
+type: mvp
 ---
 
 # MVP: Markdown Chain Exporter

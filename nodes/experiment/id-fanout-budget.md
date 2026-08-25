@@ -1,11 +1,13 @@
 ---
 confidence: 0.92
 id: "exp:id-fanout-budget"
+mint_id: 15df46d4b87f40d3b5b40080e19c3546
 parents:
   - hyp:zoom-encoded-node-ids
-type: experiment
+tags:
+  - g2.5
 title: "Fan-out budget: does any node in the corpus exceed 36/62 children?"
-tags: [g2.5]
+type: experiment
 ---
 
 **Method.** Walked `/home/ubuntu/work/agi-tree/nodes/**/*.md` (a plain

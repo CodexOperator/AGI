@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:hooks-cc-session-start.sh"
+mint_id: 7e4ef9b1452d4650a848e25be0a35404
 origin: level3-scan
 parents:
   - idea:engine-cc-session-start

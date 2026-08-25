@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-benchmark"
+mint_id: 58187e5dc9dc424fab23a018b8037a9c
 origin: engine-decomp
 parents:
   - goal:g3

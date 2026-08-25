@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:domain-chain-bootstrap"
+mint_id: 5234fa87bf34464eb99e7a526de24df9
 scale: big
 status: open
 tags:

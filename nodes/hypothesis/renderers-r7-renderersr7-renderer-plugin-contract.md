@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:renderers-r7"
+mint_id: ebbe1f1f33ef451c868a9be4154936d1
 origin: build-site
 parents:
   - idea:domain-renderers

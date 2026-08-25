@@ -1,25 +1,25 @@
 ---
-id: verdict:exporters-r1-extend
-title: 'Verdict: Exporters R1 Extended'
-type: verdict
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 0.9
-parents:
-- exp:exporters-r1-extend
-- verdict:exporters-r1
-tags:
-- exporters
-- chain-extension
-- proved
-next_edges:
-- exp:exporters-r1-extend2
-synthetic: true
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:exporters-r1-extend"
+mint_id: 1fd2abd536254630ba0f2bd73ce4360c
+next_edges:
+  - exp:exporters-r1-extend2
+parents:
+  - exp:exporters-r1-extend
+  - verdict:exporters-r1
+status: proved
+synthetic: true
+tags:
+  - exporters
+  - chain-extension
+  - proved
+title: "Verdict: Exporters R1 Extended"
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
-
 
 VERDICT: proved. Exporters chain extended from 8 to 10 hops via verdict→experiment→verdict pattern.
 

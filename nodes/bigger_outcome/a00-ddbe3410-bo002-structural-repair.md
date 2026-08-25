@@ -1,9 +1,10 @@
 ---
 id: "bigger_outcome:a00-ddbe3410-bo002-structural-repair"
-parents:
-  - "outcome:a00-ddbe3410-outcome002-structural-repair"
+mint_id: d9b864c760bf4376b3f32015f3d3645b
 next_edges:
-  - "app_purpose:a00-ddbe3410-app002-structural-repair"
+  - app_purpose:a00-ddbe3410-app002-structural-repair
+parents:
+  - outcome:a00-ddbe3410-outcome002-structural-repair
 tags:
   - structural-bias
 title: "BIGGER_OUTCOME002: capillary DAG with quality-filterable verdict nodes"

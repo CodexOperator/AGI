@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-decompose-engine"
+mint_id: b3dfc46702914abbbb76d99151b4cdf3
 origin: engine-decomp
 parents:
   - goal:g6.1

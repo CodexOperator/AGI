@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:autoresearch-tree-skill-r3"
+mint_id: 5f7a4fa4354a46609cb192129280f9df
 origin: build-site
 parents:
   - idea:domain-autoresearch-tree-skill

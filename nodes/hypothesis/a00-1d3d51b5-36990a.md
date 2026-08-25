@@ -1,21 +1,19 @@
 ---
 confidence: 0.5
-id: hypothesis:a00-1d3d51b5-36990a
+id: "hypothesis:a00-1d3d51b5-36990a"
+mint_id: 9294b410bf484b67986806c56ff50c3c
 parents:
-- idea:domain-autoresearch-tree-skill
+  - idea:domain-autoresearch-tree-skill
 tags:
-- zoom-level
-- agent-routing
-- A00
-title: 'Zoom-level routing: BIG zoom agents spawn 3x more new ideas than SMALL zoom
-  agents'
+  - zoom-level
+  - agent-routing
+  - A00
+title: "Zoom-level routing: BIG zoom agents spawn 3x more new ideas than SMALL zoom agents"
 type: hypothesis
-verdict: null
+verdict:
 wired_at: 1777664395
 wired_from: a00-1d3d51b5
 ---
-
-
 
 # hypothesis:a00-1d3d51b5-36990a
 

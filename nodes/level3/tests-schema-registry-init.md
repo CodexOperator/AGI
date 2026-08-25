@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-schema-registry-init"
+mint_id: 113736da02624ffd8c084aa405b14c9d
 origin: level3-scan
 parents:
   - idea:engine-tests-schema-registry

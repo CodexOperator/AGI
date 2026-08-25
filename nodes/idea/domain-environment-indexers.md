@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:domain-environment-indexers"
+mint_id: 9fcdef758ca7454ab44442eca8695996
 next_edges:
   - hyp:environment-indexers-r1
 origin: build-site

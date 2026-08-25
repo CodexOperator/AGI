@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-level3"
+mint_id: 59ccbfe63daf4e1bbccbe88d4e3e73b3
 origin: level3-scan
 parents:
   - idea:engine-level3

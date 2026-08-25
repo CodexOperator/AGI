@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-evidence-gate"
+mint_id: 81cbe054b3e64aa5927135f5372ce1c4
 origin: level3-scan
 parents:
   - idea:engine-evidence-gate

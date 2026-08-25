@@ -1,16 +1,17 @@
 ---
-id: idea:domain-test-coverage
-title: "Test Coverage: Meta-Analysis of the 257 Pytest Tests"
-type: idea
 domain: test-coverage
+id: "idea:domain-test-coverage"
+mint_id: c299a41ead33404c9d2d0c5f74e84ee4
+spawns:
+  - hyp:test-coverage-r1
 tags:
   - tests
   - pytest
   - coverage
   - meta
   - quality
-spawns:
-  - hyp:test-coverage-r1
+title: "Test Coverage: Meta-Analysis of the 257 Pytest Tests"
+type: idea
 ---
 
 # Domain: Test Coverage Analysis

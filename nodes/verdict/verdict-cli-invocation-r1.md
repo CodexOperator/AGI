@@ -1,21 +1,22 @@
 ---
-id: "verdict:cli-invocation-r1"
-title: "R1: Shell type detection accuracy"
-type: verdict
-parent_hypothesis: hyp:cli-invocation-r1
+confidence: 0.8
 domain: cli-invocation
-status: proved
-confidence: 0.80
 evidence_runs:
   - exp:cli-invocation-r1
+id: "verdict:cli-invocation-r1"
+mint_id: 38ccedb9f9684f47af3e56be1a415b51
+next_edges:
+  - mvp:cli-invocation-r1
+  - exp:cli-invocation-r1-extend1
+parent_hypothesis: "hyp:cli-invocation-r1"
+status: proved
 tags:
   - cli
   - shell
   - detection
   - R1
-next_edges:
-  - mvp:cli-invocation-r1
-  - exp:cli-invocation-r1-extend1
+title: "R1: Shell type detection accuracy"
+type: verdict
 ---
 
 **Verdict:** PROVED

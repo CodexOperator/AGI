@@ -9,6 +9,7 @@ blocked_by:
 cavekit_req: renderers/R5
 effort: M
 id: "task:t-065"
+mint_id: 1c106b0b8962438b9ddece71191717c5
 origin: build-site
 parents:
   - hyp:renderers-r5

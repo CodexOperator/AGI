@@ -3,7 +3,8 @@ confidence: 1.0
 contrasts: []
 evidence_runs:
   - exp:environment-indexers-r1-chain-extension
-id: verdict:environment-indexers-r1-chain-extension
+id: "verdict:environment-indexers-r1-chain-extension"
+mint_id: 6309ddbdc48342cabf6481b0be1b7129
 next_edges:
   - mvp:environment-indexers-r1
 parents:

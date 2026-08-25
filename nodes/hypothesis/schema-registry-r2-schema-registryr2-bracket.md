@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:schema-registry-r2"
+mint_id: f4fe8309d4234e0cb9ead0d658186cca
 next_edges:
   - exp:schema-registry-r2
 origin: build-site

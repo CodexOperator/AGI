@@ -1,9 +1,10 @@
 ---
 id: "outcome:a00-ddbe3410-outcome001-chain-bootstrap"
-parents:
-  - "mvp:a00-ddbe3410-mvp001-chain-bootstrap"
+mint_id: 99987248ee034aebb077e7ed5e1b26c5
 next_edges:
-  - "bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap"
+  - bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap
+parents:
+  - mvp:a00-ddbe3410-mvp001-chain-bootstrap
 tags:
   - bootstrap
   - chain-block

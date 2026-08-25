@@ -13,6 +13,7 @@ blocked_by:
 cavekit_req: renderers/R7
 effort: M
 id: "task:t-067"
+mint_id: c708abb7508a4c6e8bdc487a5cf7c015
 origin: build-site
 parents:
   - hyp:renderers-r7

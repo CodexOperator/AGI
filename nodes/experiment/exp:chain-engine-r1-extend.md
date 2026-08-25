@@ -1,15 +1,16 @@
 ---
-id: exp:chain-engine-r1-extend
-type: experiment
-title: "Extend chain-engine-r1 chain to 10 hops via verdict→experiment→verdict pattern"
+id: "exp:chain-engine-r1-extend"
+mint_id: 374f20bb8f23452a853aa8c212c0a00c
+next_edges:
+  - verdict:chain-engine-r1-extend
 parents:
   - verdict:chain-engine-r1
   - hyp:chain-engine-r1
 tags:
   - chain-extension
   - verdict-experiment-transition
-next_edges:
-  - verdict:chain-engine-r1-extend
+title: Extend chain-engine-r1 chain to 10 hops via verdict→experiment→verdict pattern
+type: experiment
 ---
 
 **Description:** Extend the chain-engine chain from 8 to 10 hops by adding verdict→experiment→verdict pattern.

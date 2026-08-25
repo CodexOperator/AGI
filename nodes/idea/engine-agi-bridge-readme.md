@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-agi-bridge-readme"
+mint_id: c960b1a6073a48dfbcfe620524b24959
 origin: engine-decomp
 scale: small
 status: open

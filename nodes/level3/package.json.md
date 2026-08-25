@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:package.json"
+mint_id: c5fe65595edd462ea1cf89b9a8978953
 origin: level3-scan
 parents:
   - idea:engine-package-json

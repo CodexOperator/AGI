@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-skill-doc"
+mint_id: 94b463ebaa5b47f592daad9e10430670
 origin: engine-decomp
 scale: small
 status: open

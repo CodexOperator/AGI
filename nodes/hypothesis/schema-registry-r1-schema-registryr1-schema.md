@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:schema-registry-r1"
+mint_id: adea558d09a24134a14a27d4cd234d9b
 origin: build-site
 parents:
   - idea:domain-schema-registry

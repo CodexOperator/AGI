@@ -7,6 +7,7 @@ blocked_by: []
 cavekit_req: graph-core/R1
 effort: M
 id: "task:t-001"
+mint_id: da86da1592964ca0b15a894814e47fcf
 origin: build-site
 parents:
   - hyp:graph-core-r1

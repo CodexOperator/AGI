@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-heal"
+mint_id: 427cfeb1a231431c97907b137194ca7a
 origin: engine-decomp
 parents:
   - goal:g4

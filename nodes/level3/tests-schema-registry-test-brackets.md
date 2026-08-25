@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-schema-registry-test-brackets"
+mint_id: 8012c3a3bff04f68a0d34ae1aabe39f7
 origin: level3-scan
 parents:
   - idea:engine-tests-schema-registry

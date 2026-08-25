@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-hooks-cascade-step"
+mint_id: 064ea2454a5f4eee8a04321d48b5188d
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

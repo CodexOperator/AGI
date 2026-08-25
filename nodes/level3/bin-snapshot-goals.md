@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-snapshot-goals"
+mint_id: aa00705c2b644965a9cba7e91c411188
 origin: level3-scan
 parents:
   - idea:engine-snapshot-goals
@@ -62,7 +63,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: GOALS_MD
-  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 335'
+  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 349'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -72,7 +73,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 203'
+  how: '`md_path.read_text(encoding=''utf-8'')` at line 217'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -82,7 +83,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 207'
+  how: '`yaml.safe_load(parts[1])` at line 221'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -131,40 +132,40 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: load_existing_nodes
-  how: defines public function `load_existing_nodes` at line 194
+  how: defines public function `load_existing_nodes` at line 208
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _strip_separators
-  how: 'defines private function `_strip_separators` at line 223, signature: (s: str)'
+  how: 'defines private function `_strip_separators` at line 237, signature: (s: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_goals
-  how: 'defines public function `parse_goals` at line 227, signature: (text: str)'
+  how: 'defines public function `parse_goals` at line 241, signature: (text: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: collect_parent_refs
-  how: 'defines public function `collect_parent_refs` at line 280, signature: (existing:
+  how: 'defines public function `collect_parent_refs` at line 294, signature: (existing:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 313, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 327, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 191'
+  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 205'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 13 `print()` call(s) at line(s) [142, 308, 332, 345, 404, 410, 415, 427, 429,
-    430, 432, 435, 446]
+  how: 13 `print()` call(s) at line(s) [142, 322, 346, 359, 418, 424, 429, 441, 443,
+    444, 446, 449, 460]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

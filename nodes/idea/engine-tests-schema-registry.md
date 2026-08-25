@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-tests-schema-registry"
+mint_id: 8077702f6e764a328e76d102bc9101b9
 origin: engine-decomp
 scale: big
 status: open

@@ -1,23 +1,24 @@
 ---
-id: verdict:exporters-r1
-title: "Verdict: Exporters R1"
-type: verdict
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 1.0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
+id: "verdict:exporters-r1"
+mint_id: 69c42b75ff4e495aa64b2d5c79d5b277
+next_edges:
+  - exp:exporters-r1-extend
+  - mvp:exporters-r1
 parents:
   - exp:exporters-r1
   - hyp:exporters-r1
+status: proved
 tags:
   - exporters
   - R1
   - proved
-next_edges:
-  - exp:exporters-r1-extend
-  - mvp:exporters-r1
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+title: "Verdict: Exporters R1"
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 VERDICT: proved. Markdown exporter passes all 5 criteria:

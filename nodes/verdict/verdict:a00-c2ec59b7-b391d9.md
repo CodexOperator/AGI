@@ -1,22 +1,23 @@
 ---
-id: verdict:a00-c2ec59b7-b391d9
-type: verdict
-title: "ASCII render proximity not isomorphic to descendant overlap"
-status: disproved
-verdict: inconclusive_lean_disproved:50
 confidence: 0.85
+demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
+demoted_from: disproved
+evidence_runs: 0
+id: "verdict:a00-c2ec59b7-b391d9"
+mint_id: 632f60af2e3a4910871a02eba4f73c74
+next_edges: []
 parents:
   - exp:a00-c2ec59b7-b391d9
   - hypothesis:a00-c2ec59b7-b391d9
+status: disproved
 tags:
   - renderers
   - ascii
   - isomorphism
   - disproved
-next_edges: []
-evidence_runs: 0
-demoted_from: disproved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
+title: ASCII render proximity not isomorphic to descendant overlap
+type: verdict
+verdict: "inconclusive_lean_disproved:50"
 ---
 
 VERDICT: DISPROVED

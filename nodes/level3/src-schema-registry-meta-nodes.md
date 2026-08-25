@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-meta-nodes"
+mint_id: f3c52c4bc3114b32864eabd28b3c8ac8
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

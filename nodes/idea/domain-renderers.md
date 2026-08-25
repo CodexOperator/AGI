@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:domain-renderers"
+mint_id: 49fc7f1d1f56476f8c28178f1322a3ab
 next_edges:
   - hyp:renderers-r1
 origin: build-site

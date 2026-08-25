@@ -2,22 +2,22 @@
 confidence: 1.0
 contrasts:
 evidence_runs:
-  - "exp:graph-core-r1"
+  - exp:graph-core-r1
 id: "verdict:graph-core-r1"
+mint_id: 490712112f6d494b8fa146158470ba6b
 next_edges:
-  - "exp:graph-core-r1-extend"
+  - exp:graph-core-r1-extend
 parents:
-  - "exp:graph-core-r1"
-status: "proved"
-subgraph: False
+  - exp:graph-core-r1
+status: proved
+subgraph: false
 supports:
 tags:
-  - "graph-core"
-  - "R1"
+  - graph-core
+  - R1
 title: "graph-core/R1: Verdict"
-type: "verdict"
+type: verdict
 ---
-
 
 **Verdict:** PROVED
 

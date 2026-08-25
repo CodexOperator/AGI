@@ -1,13 +1,13 @@
 ---
 confidence: 0.6
 id: "level3:skills-agi-SKILL.md@v2"
+mint_id: fedb7870a33046b1ae0b4828ac642abf
 origin: build-version
-version: 2
-supersedes: "level3:skills-agi-SKILL.md"
 parents:
   - goal:g8.1
   - goal:g8.2
 payload_ref: skills/agi/SKILL.md
+supersedes: "level3:skills-agi-SKILL.md"
 tags:
   - level3
   - build-version
@@ -15,6 +15,7 @@ tags:
   - g8.2
 title: "Level-3 v2: skills/agi/SKILL.md — global skill install and the <project>/<project>-tree/agi layout"
 type: level3
+version: 2
 ---
 
 `skills/agi/SKILL.md` updated to describe the distribution shape the parent

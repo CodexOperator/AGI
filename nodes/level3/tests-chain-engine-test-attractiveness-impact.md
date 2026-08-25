@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-chain-engine-test-attractiveness-impact"
+mint_id: e8b8874a5aca42de9262014a9b95f947
 origin: level3-scan
 parents:
   - idea:engine-tests-chain-engine

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-refs-commit-style-conventions.md"
+mint_id: 671897f7f79844bc91d0dbb7c5ccece5
 origin: level3-scan
 parents:
   - idea:engine-context-refs

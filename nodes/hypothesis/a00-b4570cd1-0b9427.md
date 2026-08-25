@@ -1,10 +1,11 @@
 ---
-id: hypothesis:a00-b4570cd1-0b9427
-title: "Context injection longest_chain reports 0 hops because _longest_chain_length walks spawns not next_edges"
-type: hypothesis
-parents: []
+id: "hypothesis:a00-b4570cd1-0b9427"
+mint_id: 04fb5b18c5ff4b1d9d6c9bf822e9e01d
 next_edges:
-  - "exp:a00-b4570cd1-context-injection-fix"
+  - exp:a00-b4570cd1-context-injection-fix
+parents: []
+title: Context injection longest_chain reports 0 hops because _longest_chain_length walks spawns not next_edges
+type: hypothesis
 ---
 
 # hypothesis:a00-b4570cd1-0b9427

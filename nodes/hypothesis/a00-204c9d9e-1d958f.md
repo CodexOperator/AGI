@@ -1,17 +1,18 @@
 ---
-id: hypothesis:a00-204c9d9e-1d958f
-type: hypothesis
-parents: []
+domain: domain-query-api
+id: "hypothesis:a00-204c9d9e-1d958f"
+mint_id: af73b11909574cecb20fb332b76f3688
 next_edges:
   - experiment:exp:a00-204c9d9e-1d958f
-domain: domain-query-api
-title: "Query API enables rational task selection in the capillary DAG"
+parents: []
 status: pending
 tags:
   - architecture
   - query-api
   - capillary-dag
   - task-prioritization
+title: Query API enables rational task selection in the capillary DAG
+type: hypothesis
 ---
 
 # hypothesis:a00-204c9d9e-1d958f
@@ -34,4 +35,3 @@ tags:
 **Disproves it**: Any query returns empty results for a domain that has known non-empty state, OR the API crashes on the 157-node graph.
 
 **Why this matters**: The capillary DAG needs an agent-facing "brain interface." Without strategic task selection, parallel agents will duplicate work or leave domain gaps. The Query API closes the loop between graph state and agent decision-making.
-

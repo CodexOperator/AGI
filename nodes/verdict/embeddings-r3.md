@@ -4,6 +4,7 @@ contrasts: []
 evidence_runs:
   - exp:embeddings-r3
 id: "verdict:embeddings-r3"
+mint_id: 44c5461f749c41ba9551e38d9785eb97
 next_edges:
   - exp:embeddings-r3-extend
   - mvp:embeddings-r3

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-embeddings"
+mint_id: 7be5301066614d86a49a5469f4bb7293
 origin: engine-decomp
 parents:
   - goal:g2

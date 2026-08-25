@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-dsl"
+mint_id: fa29186c60304b32bc3a9f59414ff772
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

@@ -1,17 +1,18 @@
 ---
-id: "verdict:test-coverage-r1"
-title: "R1: Test coverage analysis of node types, edge relations, and graph operations"
-type: verdict
-parent_hypothesis: hyp:test-coverage-r1
-domain: test-coverage
-status: disproved
 confidence: 0.41
+domain: test-coverage
 evidence_runs:
   - exp:test-coverage-r1
+id: "verdict:test-coverage-r1"
+mint_id: 2505427d31594df6a4880dcf44c78043
+parent_hypothesis: "hyp:test-coverage-r1"
+status: disproved
 tags:
   - tests
   - coverage
   - R1
+title: "R1: Test coverage analysis of node types, edge relations, and graph operations"
+type: verdict
 ---
 
 **Verdict:** DISPROVED

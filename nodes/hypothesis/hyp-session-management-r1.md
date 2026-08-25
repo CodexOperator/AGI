@@ -1,20 +1,21 @@
 ---
-id: hyp:session-management-r1
-title: "R1: Session state can be captured and restored with >95% fidelity"
-type: hypothesis
-parent_idea: idea:domain-session-management
 domain: session-management
+id: "hyp:session-management-r1"
+mint_id: 1fd4588f495c4f9ab568709fa3e13a17
+next_edges:
+  - exp:session-management-r1
+parent_idea: "idea:domain-session-management"
+spawns:
+  - task:t-095
+status: pending
 tags:
   - sessions
   - memory
   - persistence
   - R1
-spawns:
-  - task:t-095
-status: pending
+title: "R1: Session state can be captured and restored with >95% fidelity"
+type: hypothesis
 verdict: pending
-next_edges:
-  - exp:session-management-r1
 ---
 
 ## Hypothesis

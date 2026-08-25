@@ -11,6 +11,7 @@ blocked_by:
 cavekit_req: embeddings/R1
 effort: M
 id: "task:t-069"
+mint_id: b93de7dd278345b4b388b08160de29bb
 origin: build-site
 parents:
   - hyp:embeddings-r1

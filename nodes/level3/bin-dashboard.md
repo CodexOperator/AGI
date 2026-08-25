@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-dashboard"
+mint_id: 5c4a3bad7e7445b6879446a105bc0165
 origin: level3-scan
 parents:
   - idea:engine-dashboard

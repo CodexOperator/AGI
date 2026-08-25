@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:.gitignore"
+mint_id: aae1893604ff4ef0888dd954909d1b1c
 origin: level3-scan
 parents:
   - idea:engine-gitignore

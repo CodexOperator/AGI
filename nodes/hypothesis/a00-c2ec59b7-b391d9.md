@@ -1,22 +1,23 @@
 ---
-id: hypothesis:a00-c2ec59b7-b391d9
-type: hypothesis
-parent_idea: idea:domain-renderers
+confidence: 0.85
+contradicts:
+  - hypothesis:domain-renderers-ordering
 domain: renderers
+evidence_runs:
+  - exp:a00-c2ec59b7-b391d9
+id: "hypothesis:a00-c2ec59b7-b391d9"
+mint_id: c66c4a7edb9547e781a591912666ba3e
+parent_idea: "idea:domain-renderers"
+spawns: []
+status: completed
 tags:
   - renderers
   - ascii
   - isomorphism
   - topology
   - descendant-overlap
-spawns: []
-status: completed
+type: hypothesis
 verdict: disproved
-confidence: 0.85
-evidence_runs:
-  - exp:a00-c2ec59b7-b391d9
-contradicts:
-  - hypothesis:domain-renderers-ordering
 ---
 
 # hypothesis:a00-c2ec59b7-b391d9

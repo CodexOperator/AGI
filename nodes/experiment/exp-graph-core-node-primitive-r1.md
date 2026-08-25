@@ -1,7 +1,8 @@
 ---
 id: "exp:graph-core-node-primitive-r1"
+mint_id: 304b0d19a10945d4af12689a549b4887
 next_edges:
-  - "verdict:graph-core-r1"
+  - verdict:graph-core-r1
 parents:
   - hyp:graph-core-r1
 subgraph: false

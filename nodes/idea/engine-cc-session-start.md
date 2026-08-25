@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-cc-session-start"
+mint_id: cf5b8ecd58994b5ab67b9a042b045a47
 origin: engine-decomp
 parents:
   - goal:g9

@@ -1,7 +1,8 @@
 ---
 id: "exp:renderers-r1"
+mint_id: 976fa4109bb44ba99bd34b65e285c932
 next_edges:
-  - "verdict:renderers-r1"
+  - verdict:renderers-r1
 parents:
   - hyp:renderers-r1
 subgraph: false

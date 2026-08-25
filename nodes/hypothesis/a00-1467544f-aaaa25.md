@@ -1,8 +1,9 @@
 ---
 confidence: 0.7
 id: "hyp:a00-1467544f-aaaa25"
+mint_id: 9409e1c309b04e569a20f3cfb7f76181
 next_edges:
-  - "exp:a00-1467544f-aaaa25"
+  - exp:a00-1467544f-aaaa25
 parents:
   - idea:domain-bootstrap-discovery
 subgraph: false
@@ -10,7 +11,7 @@ tags:
   - bootstrap
   - chain-engine
   - graph-core
-title: "Hypothesis task-spawns chain bootstrapping"
+title: Hypothesis task-spawns chain bootstrapping
 type: hypothesis
 ---
 

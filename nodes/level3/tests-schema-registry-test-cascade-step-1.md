@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-schema-registry-test-cascade-step-1"
+mint_id: 8da5eb44885c418d81dfc76e15bd432d
 origin: level3-scan
 parents:
   - idea:engine-tests-schema-registry

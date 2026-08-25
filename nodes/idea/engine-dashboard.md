@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-dashboard"
+mint_id: 0e7b83e64b004d5d8af6201982cbd0a3
 origin: engine-decomp
 parents:
   - goal:g9.1

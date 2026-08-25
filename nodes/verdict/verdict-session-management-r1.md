@@ -1,20 +1,21 @@
 ---
-id: "verdict:session-management-r1"
-title: "R1: Session state capture and restore fidelity"
-type: verdict
-parent_hypothesis: hyp:session-management-r1
-domain: session-management
-status: inconclusive_lean_proved
 confidence: 0.81
+domain: session-management
 evidence_runs:
   - exp:session-management-r1
+id: "verdict:session-management-r1"
+mint_id: 83ced03194954e41962c2da092e84c2e
 next_edges:
-  - "exp:session-management-r1-extend1"
+  - exp:session-management-r1-extend1
+parent_hypothesis: "hyp:session-management-r1"
+status: inconclusive_lean_proved
 tags:
   - sessions
   - memory
   - persistence
   - R1
+title: "R1: Session state capture and restore fidelity"
+type: verdict
 ---
 
 **Verdict:** INCONCLUSIVE_LEAN_PROVED:60

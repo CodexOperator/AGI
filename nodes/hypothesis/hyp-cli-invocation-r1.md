@@ -1,24 +1,25 @@
 ---
-id: hyp:cli-invocation-r1
-title: "R1: Can reliably detect current shell type from environment"
-type: hypothesis
-parent_idea: idea:domain-cli-invocation
+confidence: 0.8
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
 domain: cli-invocation
+evidence_runs: 0
+id: "hyp:cli-invocation-r1"
+mint_id: 62b5a7ef160b4266b4414819f168f2df
+next_edges:
+  - exp:cli-invocation-r1
+parent_idea: "idea:domain-cli-invocation"
+spawns:
+  - task:t-096
+status: proved
 tags:
   - cli
   - shell
   - detection
   - R1
-spawns:
-  - task:t-096
-status: proved
-next_edges:
-  - exp:cli-invocation-r1
-verdict: inconclusive_lean_proved:50
-confidence: 0.80
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+title: "R1: Can reliably detect current shell type from environment"
+type: hypothesis
+verdict: "inconclusive_lean_proved:50"
 ---
 
 ## Hypothesis

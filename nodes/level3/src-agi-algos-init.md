@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-agi-algos-init"
+mint_id: aaed6dc7894d4e369f07990af48f895c
 origin: level3-scan
 parents:
   - idea:engine-agi-algos

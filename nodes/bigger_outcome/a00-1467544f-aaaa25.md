@@ -1,8 +1,9 @@
 ---
 confidence: 0.97
 id: "bigger_outcome:a00-1467544f-aaaa25"
+mint_id: 48db1e25e58f43c5a70c00d5478967a7
 next_edges:
-  - "app_purpose:a00-1467544f-aaaa25"
+  - app_purpose:a00-1467544f-aaaa25
 parents:
   - outcome:a00-1467544f-aaaa25
 subgraph: false

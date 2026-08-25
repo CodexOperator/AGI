@@ -1,10 +1,11 @@
 ---
 confidence: 0.95
 id: "hyp:a01-7031af17-449ecb"
+mint_id: a2f2765bcca64ff3b993d3f4ae29d4aa
 next_edges:
-  - "exp:a01-7031af17-449ecb-r11-path-safety"
-  - "verdict:a01-7031af17-449ecb-r11"
-  - "mvp:a01-7031af17-449ecb-r11"
+  - exp:a01-7031af17-449ecb-r11-path-safety
+  - verdict:a01-7031af17-449ecb-r11
+  - mvp:a01-7031af17-449ecb-r11
 parents:
   - idea:domain-graph-core
 subgraph: false
@@ -46,5 +47,3 @@ PathValidator class is correct (5/7 criteria pass). Criteria 6-7 fail: loader do
 
 - `graph-core/R4` (frontmatter file persistence must work for `payload_ref` to be readable)
 - `graph-core/R6` (directory walking must be implemented for loader to use the validator)
-
-

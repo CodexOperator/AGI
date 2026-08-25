@@ -1,10 +1,12 @@
 ---
 id: "exp:autoresearch-tree-skill-r1:extend8"
-type: experiment
-status: completed
-parents:
-  - "verdict:autoresearch-tree-skill-r1:extend7"
+mint_id: 65c3a02fafc649c59e95b181b0382519
 next_edges:
-  - "verdict:autoresearch-tree-skill-r1:extend8"
+  - verdict:autoresearch-tree-skill-r1:extend8
+parents:
+  - verdict:autoresearch-tree-skill-r1:extend7
+status: completed
+type: experiment
 ---
+
 autores-tree-skill extend8 cycle.

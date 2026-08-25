@@ -1,15 +1,16 @@
 ---
 id: "mvp:session-management-r1-r1"
-type: mvp
-title: "Session state capture/restore MVP"
+mint_id: 56cf1a31b51840c8b2140815cb3eb43d
+next_edges:
+  - outcome:session-management-r1-r1
 parents:
-  - "verdict:session-management-r1-extend1"
+  - verdict:session-management-r1-extend1
 tags:
   - session-management-r1
   - session
   - mvp
-next_edges:
-  - "outcome:session-management-r1-r1"
+title: Session state capture/restore MVP
+type: mvp
 ---
 
 # Session Management MVP

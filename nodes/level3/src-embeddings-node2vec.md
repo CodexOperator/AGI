@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-embeddings-node2vec"
+mint_id: 6b917e04c44447e387eea835281d19ef
 origin: level3-scan
 parents:
   - idea:engine-embeddings

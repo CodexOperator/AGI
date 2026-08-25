@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-agent-prompt"
+mint_id: bf63f1c8f1884ff99d6f0fc2914d3f2a
 origin: engine-decomp
 scale: small
 status: open

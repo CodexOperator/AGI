@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-renderers-test-git-diff"
+mint_id: 5dbca11ad52a4b1fa1cf16f3f280eb1f
 origin: level3-scan
 parents:
   - idea:engine-tests-renderers

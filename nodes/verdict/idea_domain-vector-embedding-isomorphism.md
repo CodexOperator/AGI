@@ -1,11 +1,12 @@
 ---
-id: verdict:idea_domain-vector-embedding-isomorphism
-type: verdict
-verdict: inconclusive_lean_disproved:50
 confidence: 0.18
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
 demoted_from: disproved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
+evidence_runs: 0
+id: "verdict:idea_domain-vector-embedding-isomorphism"
+mint_id: 7495a12beaec4ea1b8bd31269268d6dc
+type: verdict
+verdict: "inconclusive_lean_disproved:50"
 ---
 
 New domain seeded. R1 disproved: hash-based Node2Vec has no topology isomorphism (corr=-0.18). 17 chains, 32-hop max.

@@ -1,9 +1,10 @@
 ---
 id: "outcome:a00-ddbe3410-outcome002-structural-repair"
-parents:
-  - "mvp:a00-ddbe3410-mvp002-structural-repair"
+mint_id: fae435ae1b9d4cbd9ba71c4da164d246
 next_edges:
-  - "bigger_outcome:a00-ddbe3410-bo002-structural-repair"
+  - bigger_outcome:a00-ddbe3410-bo002-structural-repair
+parents:
+  - mvp:a00-ddbe3410-mvp002-structural-repair
 tags:
   - structural-bias
   - repair

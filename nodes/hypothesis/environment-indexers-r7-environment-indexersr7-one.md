@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:environment-indexers-r7"
+mint_id: e77e9c58204d409aa004a835a536a31f
 origin: build-site
 parents:
   - idea:domain-environment-indexers

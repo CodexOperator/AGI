@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:autoresearch.config.json"
+mint_id: a0aec69fa0ba446a8611bd2a8e4938ca
 origin: level3-scan
 parents:
   - idea:engine-autoresearch-config

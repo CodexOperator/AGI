@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:extensions-agi-bridge-README.md"
+mint_id: e0804372654b47db9a1409ddb9f82358
 origin: level3-scan
 parents:
   - idea:engine-agi-bridge-readme

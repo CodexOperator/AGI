@@ -1,7 +1,8 @@
 ---
-id: exp:autoresearch-tree-skill-r1-extend2
-type: experiment
-title: "Extend autoresearch-tree-skill-r1 chain to 12 hops via second verdict→experiment→verdict cycle"
+id: "exp:autoresearch-tree-skill-r1-extend2"
+mint_id: 81228acd205c4d20a83026c5dcb21500
+next_edges:
+  - verdict:autoresearch-tree-skill-r1-extend2
 parents:
   - verdict:autoresearch-tree-skill-r1-extend
 tags:
@@ -9,8 +10,8 @@ tags:
   - chain-extension
   - verdict-experiment-transition
   - second-cycle
-next_edges:
-  - verdict:autoresearch-tree-skill-r1-extend2
+title: Extend autoresearch-tree-skill-r1 chain to 12 hops via second verdict→experiment→verdict cycle
+type: experiment
 ---
 
 Second verdict→experiment→verdict cycle to extend chain to 12 hops.

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-renderers-git-diff"
+mint_id: 513d7cfa874546d48d845e670d500177
 origin: level3-scan
 parents:
   - idea:engine-renderers

@@ -1,6 +1,7 @@
 ---
 confidence: 0.65
 id: "hyp:payload-in-node"
+mint_id: f2b6e00657e94e01814df19b704d1f5e
 parents:
   - goal:g6.3
 subgraph: false

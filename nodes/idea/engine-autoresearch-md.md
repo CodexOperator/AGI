@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-autoresearch-md"
+mint_id: 9373c6a61fce474ab743e4d441a04484
 origin: engine-decomp
 scale: small
 status: open

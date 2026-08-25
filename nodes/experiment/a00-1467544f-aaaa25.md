@@ -1,8 +1,9 @@
 ---
 confidence: 0.97
 id: "exp:a00-1467544f-aaaa25"
+mint_id: 46368f67a19840a3897e852f55b1c59b
 next_edges:
-  - "verdict:a00-1467544f-aaaa25"
+  - verdict:a00-1467544f-aaaa25
 parents:
   - hyp:a00-1467544f-aaaa25
 subgraph: false

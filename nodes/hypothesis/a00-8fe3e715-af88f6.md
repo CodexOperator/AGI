@@ -1,8 +1,9 @@
 ---
-id: hypothesis:a00-8fe3e715-af88f6
-type: hypothesis
-parents: []
+id: "hypothesis:a00-8fe3e715-af88f6"
+mint_id: 9c2450d2b9ca4bc0bf106b0061376dd6
 next_edges: []
+parents: []
+type: hypothesis
 ---
 
 # hypothesis:a00-8fe3e715-af88f6

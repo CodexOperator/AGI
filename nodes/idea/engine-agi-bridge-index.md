@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-agi-bridge-index"
+mint_id: 625b5d5dfb744d24a19f9019d10e76ed
 origin: engine-decomp
 parents:
   - goal:g4

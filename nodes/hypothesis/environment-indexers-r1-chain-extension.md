@@ -1,5 +1,6 @@
 ---
-id: hyp:environment-indexers-r1-chain-extension
+id: "hyp:environment-indexers-r1-chain-extension"
+mint_id: abb147d3311c454499bca1b087fe383a
 parents:
   - idea:domain-environment-indexers
 subgraph: false

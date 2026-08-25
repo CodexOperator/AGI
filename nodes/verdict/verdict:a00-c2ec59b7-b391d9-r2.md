@@ -1,22 +1,23 @@
 ---
-id: verdict:a00-c2ec59b7-b391d9-r2
-type: verdict
-title: "Graph proximity not isomorphic to ancestor overlap (spearman=-0.903)"
-status: disproved
-verdict: inconclusive_lean_disproved:50
 confidence: 0.85
+demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
+demoted_from: disproved
+evidence_runs: 0
+id: "verdict:a00-c2ec59b7-b391d9-r2"
+mint_id: f0cb84faaa8a4893a02148a532428796
+next_edges: []
 parents:
   - exp:a00-c2ec59b7-b391d9-r2
   - hypothesis:a00-c2ec59b7-b391d9-r2
+status: disproved
 tags:
   - renderers
   - mermaid
   - isomorphism
   - disproved
-next_edges: []
-evidence_runs: 0
-demoted_from: disproved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
+title: Graph proximity not isomorphic to ancestor overlap (spearman=-0.903)
+type: verdict
+verdict: "inconclusive_lean_disproved:50"
 ---
 
 VERDICT: DISPROVED

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-schema-registry-test-schema-removal"
+mint_id: 93ef24513a4249c9a32e80004c3b23a7
 origin: level3-scan
 parents:
   - idea:engine-tests-schema-registry

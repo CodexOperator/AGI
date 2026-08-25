@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-embeddings-projection"
+mint_id: 4a6049b0fd674aba9dc551fa5f0c1600
 origin: level3-scan
 parents:
   - idea:engine-embeddings

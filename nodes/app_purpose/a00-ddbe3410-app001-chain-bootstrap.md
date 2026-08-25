@@ -1,7 +1,8 @@
 ---
 id: "app_purpose:a00-ddbe3410-app001-chain-bootstrap"
+mint_id: b67260a12a794c99b9a018a50e7968a7
 parents:
-  - "bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap"
+  - bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap
 tags:
   - bootstrap
   - purpose

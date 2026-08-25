@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-agi-algos-graph-builder"
+mint_id: 9b1e22fad0aa4c888713201d491da489
 origin: level3-scan
 parents:
   - idea:engine-agi-algos

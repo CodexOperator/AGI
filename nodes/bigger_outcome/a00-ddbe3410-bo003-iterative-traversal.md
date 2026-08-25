@@ -1,9 +1,10 @@
 ---
 id: "bigger_outcome:a00-ddbe3410-bo003-iterative-traversal"
-parents:
-  - "outcome:a00-ddbe3410-outcome003-iterative-traversal"
+mint_id: 4fd5243f064d4471a5972c17984d0aa0
 next_edges:
-  - "app_purpose:a00-ddbe3410-app003-iterative-traversal"
+  - app_purpose:a00-ddbe3410-app003-iterative-traversal
+parents:
+  - outcome:a00-ddbe3410-outcome003-iterative-traversal
 tags:
   - chain-engine
 title: "BIGGER_OUTCOME003: capillary DAG traversal scales to any chain depth"

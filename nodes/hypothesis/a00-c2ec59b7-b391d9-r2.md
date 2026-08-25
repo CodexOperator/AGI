@@ -1,27 +1,27 @@
 ---
-id: hypothesis:a00-c2ec59b7-b391d9-r2
-title: "R2: Mermaid/graph proximity isomorphic to ancestor overlap"
-type: hypothesis
-parent_idea: idea:domain-renderers
+confidence: 0.85
+contradicts:
+  - hypothesis:a00-c2ec59b7-b391d9
+demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
+demoted_from: disproved
 domain: renderers
-parent_hypothesis: hypothesis:a00-c2ec59b7-b391d9
+evidence_runs: 0
+id: "hypothesis:a00-c2ec59b7-b391d9-r2"
+mint_id: 873bbda1ad4044a484c59b2789defdd4
+parent_hypothesis: "hypothesis:a00-c2ec59b7-b391d9"
+parent_idea: "idea:domain-renderers"
+spawns:
+  - exp:a00-c2ec59b7-b391d9-r2
+status: completed
 tags:
   - renderers
   - mermaid
   - isomorphism
   - semantic-proximity
-spawns:
-  - exp:a00-c2ec59b7-b391d9-r2
-status: completed
-evidence_runs: 0
-contradicts:
-  - hypothesis:a00-c2ec59b7-b391d9  # Same anti-correlation (different metric)
-verdict: inconclusive_lean_disproved:50
-confidence: 0.85
-demoted_from: disproved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''disproved'''
+title: "R2: Mermaid/graph proximity isomorphic to ancestor overlap"
+type: hypothesis
+verdict: "inconclusive_lean_disproved:50"
 ---
-
 
 # hypothesis:a00-c2ec59b7-b391d9-r2
 

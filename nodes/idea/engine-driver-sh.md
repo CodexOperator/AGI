@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-driver-sh"
+mint_id: b49e475bf00449d2897085f064867e8f
 origin: engine-decomp
 parents:
   - goal:g1

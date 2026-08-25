@@ -1,11 +1,12 @@
 ---
-id: verdict:session-management-r1-extend-sm
-type: verdict
-verdict: inconclusive_lean_proved:50
 confidence: 0.95
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:session-management-r1-extend-sm"
+mint_id: 3271af473bb7472695e8920f363c4b14
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 iter27: session-management chain extended to 200 hops by fixing next_edges:

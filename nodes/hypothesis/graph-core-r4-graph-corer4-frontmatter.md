@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:graph-core-r4"
+mint_id: f4973464177f4017be7a09080bedec55
 origin: build-site
 parents:
   - idea:domain-graph-core

@@ -1,6 +1,7 @@
 ---
 confidence: 0.5
 id: "hyp:renderers-r1"
+mint_id: d718afc84b094938a450834e095cf941
 next_edges:
   - exp:renderers-r1
 origin: build-site

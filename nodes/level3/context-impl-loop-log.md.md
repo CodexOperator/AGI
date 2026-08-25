@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-impl-loop-log.md"
+mint_id: eed0231b81724829bc69cbfc56ac53b8
 origin: level3-scan
 parents:
   - idea:engine-context-impl

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-renderers"
+mint_id: 0be9bfcb6d0d472f854ffde25b2446e5
 origin: engine-decomp
 parents:
   - goal:g9

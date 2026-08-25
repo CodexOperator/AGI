@@ -1,12 +1,15 @@
 ---
 id: "exp:session-management-r1-extend1"
-type: experiment
-title: "session-management-r1 chain extension"
+mint_id: 3eeddefa2dca4db4904fdc188144405f
+next_edges:
+  - verdict:session-management-r1-extend1
 parents:
-  - "verdict:session-management-r1"
+  - verdict:session-management-r1
 tags:
   - chain-extension
   - r21g
-next_edges:
-  - "verdict:session-management-r1-extend1"
+title: session-management-r1 chain extension
+type: experiment
 ---
+
+

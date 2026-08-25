@@ -1,10 +1,11 @@
 ---
 confidence: 1.0
 id: "mvp:a01-7031af17-449ecb-r11"
+mint_id: 15f0620d29e14073bd4466037413dfa4
 next_edges:
-  - "verdict:a01-7031af17-449ecb-r11"
+  - verdict:a01-7031af17-449ecb-r11
 parents:
-  - "hyp:a01-7031af17-449ecb"
+  - hyp:a01-7031af17-449ecb
 tags:
   - graph-core
   - R11

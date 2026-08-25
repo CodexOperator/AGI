@@ -1,8 +1,13 @@
 ---
-id: "verdict:chain-engine-r15"
-type: verdict
-verdict: inconclusive_lean_proved:50
 confidence: 0.95
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
+evidence_runs: 0
+id: "verdict:chain-engine-r15"
+mint_id: 86bb3d48cb66456695228dd933a7405c
+next_edges: []
+parents:
+  - exp:chain-engine-r15
 status: proved
 tags:
   - chain-engine
@@ -10,12 +15,8 @@ tags:
   - second-cycle
   - proved
 title: "chain-engine/R15: verdict→experiment→verdict cycles are stackable (12-hop chains)"
-parents:
-  - "exp:chain-engine-r15"
-next_edges: []
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 **Verdict:** PROVED (confidence: 0.95)

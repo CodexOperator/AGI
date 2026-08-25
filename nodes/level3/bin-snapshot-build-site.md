@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-snapshot-build-site"
+mint_id: 773ae6c1d7244da484c33037c47ea4c0
 origin: level3-scan
 parents:
   - idea:engine-snapshot-build-site

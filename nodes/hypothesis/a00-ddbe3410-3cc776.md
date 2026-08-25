@@ -4,11 +4,12 @@ blocked_by: []
 cavekit_req: bootstrap/chain-block
 effort: L
 id: "hypothesis:a00-ddbe3410-3cc776"
-parents:
-  - "idea:domain-chain-bootstrap"
-status: open
+mint_id: f202f3472d954d3f9c7ee2931f19e5df
 next_edges:
-  - "experiment:a00-ddbe3410-exp001-graph-core-r1-t001"
+  - experiment:a00-ddbe3410-exp001-graph-core-r1-t001
+parents:
+  - idea:domain-chain-bootstrap
+status: open
 tags:
   - bootstrap
   - chain-block

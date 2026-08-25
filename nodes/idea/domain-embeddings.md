@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:domain-embeddings"
+mint_id: aad5f8aac1df43f8858a453d2c321662
 next_edges:
   - hyp:embeddings-r2
   - hyp:embeddings-r3

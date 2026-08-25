@@ -1,6 +1,7 @@
 ---
 confidence: 0.97
 id: "app_purpose:a00-1467544f-aaaa25"
+mint_id: 95d51c06a4784693ba6f62751e2a3683
 parents:
   - bigger_outcome:a00-1467544f-aaaa25
 status: active

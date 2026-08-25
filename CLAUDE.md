@@ -125,3 +125,10 @@ out before trusting any push** — work once accumulated on a stale
 - Retire a goal by marking it `phasing-out` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
 - `nodes/goal/` is derived. Never hand-edit it; edit `GOALS.md`.
+- **A version is a grid commit, not a second node file.** A fix or update edits
+  the target node **in place**; no `@v2` file, no `supersedes:` pair. Run
+  `grid.py commit --all` afterward and the grid carries the history (G6.3).
+- **Two identifiers, two jobs.** A node's **mint id** is assigned once and never
+  changes — it is what grid refs and provenance key on. Its **address** is
+  derived from tags and is expected to change on every retag or regroup — it is
+  what humans, renderers and lookups use. Never conflate the two (G2.5).

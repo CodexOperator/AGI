@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:schema.sql"
+mint_id: eab3f5e49a9f4c838eb6971f097be0d1
 origin: level3-scan
 parents:
   - idea:engine-schema-sql

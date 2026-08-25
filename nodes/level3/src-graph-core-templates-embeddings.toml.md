@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-graph-core-templates-embeddings.toml"
+mint_id: 0850371f7c08417a9e87381d8927c70e
 origin: level3-scan
 parents:
   - idea:engine-graph-core

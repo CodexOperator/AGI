@@ -1,16 +1,17 @@
 ---
-id: idea:domain-cli-invocation
-title: "CLI Invocation: Shell Command Detection and Execution"
-type: idea
 domain: cli-invocation
+id: "idea:domain-cli-invocation"
+mint_id: cc5844ad16d64542b158c7236ef378c5
+next_edges:
+  - hyp:cli-invocation-r1
 tags:
   - cli
   - shell
   - command
   - execution
   - environment
-next_edges:
-  - hyp:cli-invocation-r1
+title: "CLI Invocation: Shell Command Detection and Execution"
+type: idea
 ---
 
 # Domain: CLI Invocation

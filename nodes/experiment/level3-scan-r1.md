@@ -2,13 +2,14 @@
 confidence: 0.8
 evidence_runs: 1
 id: "exp:level3-scan-r1"
+mint_id: 4ed92dffa50c468fb3f4e01e43733acf
 parents:
   - hyp:level3-node-anatomy
 tags:
   - zoom
   - level3
   - g2.1
-title: "Level-3 scan, first generated pass"
+title: Level-3 scan, first generated pass
 type: experiment
 ---
 

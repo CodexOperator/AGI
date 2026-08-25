@@ -2,11 +2,16 @@
 acceptance_criteria: []
 blocked_by: []
 cavekit_req: chain-engine/iterative-fix
+confidence: 0.95
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demoted_from: proved
 effort: S
+evidence_runs: 0
 id: "hypothesis:a00-ddbe3410-iterative-traversal"
+mint_id: bc11344a96544f3bb83a07a9851ae18c
 parents:
-  - "idea:domain-chain-bootstrap"
-  - "experiment:a00-ddbe3410-exp003-iterative-traversal"
+  - idea:domain-chain-bootstrap
+  - experiment:a00-ddbe3410-exp003-iterative-traversal
 status: open
 tags:
   - chain-engine
@@ -15,13 +20,8 @@ tags:
   - iteration-1
 title: "Hypothesis: recursive DFS in find_chains() hits Python stack limit at 700+ hops"
 type: hypothesis
-verdict: inconclusive_lean_proved:50
-confidence: 0.95
-evidence_runs: 0
-demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+verdict: "inconclusive_lean_proved:50"
 ---
-
 
 ## Hypothesis
 

@@ -1,19 +1,20 @@
 ---
-id: "exp:a00-8636e255-bf1a6c"
-title: "Experiment: Mermaid Renderer R3 — validity and determinism"
-type: experiment
-status: completed
 confidence: 1.0
+id: "exp:a00-8636e255-bf1a6c"
+mint_id: 8e1d2230bb70489f9d1abc1f7817ff72
+next_edges:
+  - verdict:a00-8636e255-bf1a6c
 parents:
   - hypothesis:a00-8636e255-bf1a6c
+status: completed
 tags:
   - renderers
   - mermaid
   - r3
   - determinism
   - validity
-next_edges:
-  - "verdict:a00-8636e255-bf1a6c"
+title: "Experiment: Mermaid Renderer R3 — validity and determinism"
+type: experiment
 ---
 
 **Experiment:** Test Mermaid renderer (R3) against 5 acceptance criteria:

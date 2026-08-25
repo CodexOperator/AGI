@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: G1.2
 goal_kind: subgoal
 id: "goal:g1.2"
+mint_id: e4f95f4dffe74c939d08cfbae7351937
 origin: goals-doc
 parents:
   - goal:g1

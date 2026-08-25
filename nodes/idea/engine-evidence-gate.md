@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-evidence-gate"
+mint_id: a9ed518fab064646a9d5aed61a2544d3
 origin: engine-decomp
 parents:
   - goal:g3.1

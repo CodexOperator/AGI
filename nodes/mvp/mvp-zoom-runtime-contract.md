@@ -2,13 +2,14 @@
 confidence: 0.95
 evidence_runs: []
 id: "mvp:zoom-runtime-contract"
+mint_id: 77a49bc9337f4f5cb4f46c0429621db5
 parents:
   - goal:s8
 subgraph: false
 tags:
   - s8
   - zoom
-title: "Runtime-aware completion contract in zoom.py"
+title: Runtime-aware completion contract in zoom.py
 type: mvp
 ---
 

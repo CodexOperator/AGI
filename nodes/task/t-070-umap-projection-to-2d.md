@@ -10,6 +10,7 @@ blocked_by:
 cavekit_req: embeddings/R2
 effort: M
 id: "task:t-070"
+mint_id: 28a6c6ab26ab46969030a837d7f34e8c
 origin: build-site
 parents:
   - hyp:embeddings-r2

@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-decompose-engine-goalmap"
+mint_id: afb15ae9e4bf408a9027f4457c3e58ae
 origin: engine-decomp
 scale: small
 status: open

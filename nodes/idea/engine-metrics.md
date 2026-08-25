@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-metrics"
+mint_id: 9e0a302064574883bdd1467c1ab5a5a9
 origin: engine-decomp
 parents:
   - goal:g3

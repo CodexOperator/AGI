@@ -1,18 +1,19 @@
 ---
-id: bigger_outcome:a00-324837df-2546ce
-title: "Bigger-Outcome: Graph↔Vector Duality Proven"
-type: bigger_outcome
-status: open
 confidence: 0.95
-parents:
-  - outcome:a00-324837df-2546ce
+id: "bigger_outcome:a00-324837df-2546ce"
+mint_id: 925362bd9f7748d6b38260a7ffcc93b4
 next_edges:
   - app_purpose:vector-embedding-isomorphism
+parents:
+  - outcome:a00-324837df-2546ce
+status: open
 tags:
   - embeddings
   - node2vec
   - isomorphism
   - duality
+title: "Bigger-Outcome: Graph↔Vector Duality Proven"
+type: bigger_outcome
 ---
 
 **Module purpose**: The capillary DAG's graph↔vector duality is now proven.

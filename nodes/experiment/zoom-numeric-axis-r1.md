@@ -2,12 +2,13 @@
 confidence: 0.8
 evidence_runs: 1
 id: "exp:zoom-numeric-axis-r1"
+mint_id: e8c3b74bbe4c46e385670d1f3ab9f92c
 parents:
   - goal:g2
 tags:
   - zoom
   - g2
-title: "Numeric zoom axis, first implementation"
+title: Numeric zoom axis, first implementation
 type: experiment
 ---
 

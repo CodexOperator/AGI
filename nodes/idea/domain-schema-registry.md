@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:domain-schema-registry"
+mint_id: 8d9dbe32b28646c5861fb3c6b828ea69
 next_edges:
   - hyp:schema-registry-r2
 origin: build-site

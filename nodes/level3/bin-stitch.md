@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-stitch"
+mint_id: ad6809b5d43b4983827231158b779f69
 origin: level3-scan
 parents:
   - idea:engine-stitch

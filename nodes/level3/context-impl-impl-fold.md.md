@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-impl-impl-fold.md"
+mint_id: 4a3b9d2c79fd42f790c8928a4eae0073
 origin: level3-scan
 parents:
   - idea:engine-context-impl

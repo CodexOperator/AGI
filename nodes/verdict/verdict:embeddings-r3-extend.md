@@ -1,23 +1,23 @@
 ---
-id: verdict:embeddings-r3-extend
-type: verdict
-title: 'Verdict: embeddings-r3 extended (10-hop chain)'
-status: proved
-verdict: inconclusive_lean_proved:50
 confidence: 0.85
-parents:
-- exp:embeddings-r3-extend
-- verdict:embeddings-r3
-tags:
-- chain-extension
-- proved
-next_edges:
-- exp:embeddings-r3-extend2
-synthetic: true
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:embeddings-r3-extend"
+mint_id: 3febf6d7b02140c5bee6e018cd137748
+next_edges:
+  - exp:embeddings-r3-extend2
+parents:
+  - exp:embeddings-r3-extend
+  - verdict:embeddings-r3
+status: proved
+synthetic: true
+tags:
+  - chain-extension
+  - proved
+title: "Verdict: embeddings-r3 extended (10-hop chain)"
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
-
 
 VERDICT: proved. Chain extended from 8 to 10 hops.

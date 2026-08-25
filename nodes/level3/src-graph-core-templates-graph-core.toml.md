@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-graph-core-templates-graph-core.toml"
+mint_id: 6e737a344ea54bbeab22cf5ddd81f0a0
 origin: level3-scan
 parents:
   - idea:engine-graph-core

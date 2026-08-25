@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "idea:engine-gitignore"
+mint_id: 3782c584026441a2857d263cd6e3ffad
 origin: engine-decomp
 scale: small
 status: open

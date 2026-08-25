@@ -1,11 +1,12 @@
 ---
 id: "mvp:schema-registry-r2-bracket-convention"
-title: "schema-registry R2 chain: mvp:schema-registry-r2-bracket-convention"
-type: mvp
-parents:
-  - verdict:schema-registry-r2
+mint_id: 6fe6618f1bd343abbb00add10e9d8f31
 next_edges:
   - outcome:schema-registry-r2-bracket-convention
+parents:
+  - verdict:schema-registry-r2
+title: "schema-registry R2 chain: mvp:schema-registry-r2-bracket-convention"
+type: mvp
 ---
 
 **mvp** node for schema-registry R2: Bracket Convention.

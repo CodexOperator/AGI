@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:context-kits-cavekit-git-remote.md"
+mint_id: c31a6190f3b448289e70425d17be2805
 origin: level3-scan
 parents:
   - idea:engine-context-kits

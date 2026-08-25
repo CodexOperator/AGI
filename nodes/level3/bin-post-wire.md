@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-post-wire"
+mint_id: 7cdc45cecea04eef914b2972700963e1
 origin: level3-scan
 parents:
   - idea:engine-post-wire

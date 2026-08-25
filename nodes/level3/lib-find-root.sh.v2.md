@@ -1,18 +1,19 @@
 ---
 confidence: 0.85
 id: "level3:lib-find-root.sh@v2"
+mint_id: 7d1096b9e7bb412dbeb37ab51860570a
 origin: build-version
-version: 2
-supersedes: "level3:lib-find-root.sh"
 parents:
   - goal:g8.2
 payload_ref: extensions/agi/lib/find-root.sh
+supersedes: "level3:lib-find-root.sh"
 tags:
   - level3
   - build-version
   - g8.2
 title: "Level-3 v2: extensions/agi/lib/find-root.sh — descend into <project>/<name>-tree"
 type: level3
+version: 2
 ---
 
 `extensions/agi/lib/find-root.sh` v2 — adds a descend fallback to `find_project_root` so the engine also works when a generic project embeds its graph as a subdirectory repo instead of being the graph repo itself.

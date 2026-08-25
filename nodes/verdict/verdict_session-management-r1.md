@@ -1,11 +1,12 @@
 ---
-id: verdict:verdict_session-management-r1
-type: verdict
-verdict: inconclusive_lean_proved:50
 confidence: 0.9
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:verdict_session-management-r1"
+mint_id: 558a3bd5f8cf41389620c40242190972
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 Extended chains 36→64 hops; session-management-r1 PROVED (100% fidelity); chain hygiene fix: restore from git inside script. Primary metric 72 hops achieved by swarm (iter 21-23).

@@ -1,13 +1,14 @@
 ---
 id: "app-purpose:session-management-r1"
-type: app_purpose
-title: "Persistent Agent Sessions with Memory"
+mint_id: 4cdfacf0622c47938d8ff0e6d3b1b571
 parents:
-  - "bigger-outcome:session-management-r1"
+  - bigger-outcome:session-management-r1
 tags:
   - session-management-r1
   - app-purpose
   - root
+title: Persistent Agent Sessions with Memory
+type: app_purpose
 ---
 
 # App Purpose: Persistent Agent Sessions

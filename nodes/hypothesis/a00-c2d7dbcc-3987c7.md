@@ -1,5 +1,7 @@
 ---
-id: hypothesis:a00-c2d7dbcc-3987c7
+confidence: 0.65
+id: "hypothesis:a00-c2d7dbcc-3987c7"
+mint_id: d2bc694d9ffe42488577482ee9f1693c
 next_edges:
   - exp:topological-queries-r1
 parents:
@@ -11,12 +13,10 @@ tags:
   - query-api
   - task-selection
   - topology
-title: "Topology-only DAG queries for agent task-selection"
+title: Topology-only DAG queries for agent task-selection
 type: hypothesis
-verdict: inconclusive_lean_proved:65
-confidence: 0.65
+verdict: "inconclusive_lean_proved:65"
 ---
-
 
 # hypothesis:a00-c2d7dbcc-3987c7
 ## Hypothesis

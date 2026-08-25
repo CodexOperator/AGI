@@ -10,6 +10,7 @@ blocked_by:
 cavekit_req: autoresearch-tree-skill/R4
 effort: M
 id: "task:t-079"
+mint_id: 8c083a1b8c1e4995b480c4244b6107e1
 origin: build-site
 parents:
   - hyp:autoresearch-tree-skill-r4

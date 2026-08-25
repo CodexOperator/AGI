@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:src-schema-registry-fingerprint"
+mint_id: 066ac81f465e4f308d5790c7f5b3b5e0
 origin: level3-scan
 parents:
   - idea:engine-schema-registry

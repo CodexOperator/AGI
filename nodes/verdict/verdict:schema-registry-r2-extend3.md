@@ -1,19 +1,20 @@
 ---
-id: verdict:schema-registry-r2-extend3
-type: verdict
-verdict: inconclusive_lean_proved:50
 confidence: 1.0
-parents:
-- exp:schema-registry-r2-r1
-next_edges:
-- exp:schema-registry-r2-extend3
-tags:
-- schema-registry-r2
-- chain-extension
-synthetic: true
-evidence_runs: 0
+demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-demote_reason: 'no experiment evidence (evidence_runs=0) for ''proved'''
+evidence_runs: 0
+id: "verdict:schema-registry-r2-extend3"
+mint_id: 870e22ca337240c99fd9008801f99d2a
+next_edges:
+  - exp:schema-registry-r2-extend3
+parents:
+  - exp:schema-registry-r2-r1
+synthetic: true
+tags:
+  - schema-registry-r2
+  - chain-extension
+type: verdict
+verdict: "inconclusive_lean_proved:50"
 ---
 
 # verdict:schema-registry-r2-extend3

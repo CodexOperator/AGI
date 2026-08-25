@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:tests-schema-registry-test-meta-nodes"
+mint_id: eda200f128bb41e1b45cf7ced8582691
 origin: level3-scan
 parents:
   - idea:engine-tests-schema-registry

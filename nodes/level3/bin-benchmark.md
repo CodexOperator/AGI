@@ -1,6 +1,7 @@
 ---
 confidence: 1.0
 id: "level3:bin-benchmark"
+mint_id: c4b12b3e87bd4beaa040e22cbf533358
 origin: level3-scan
 parents:
   - idea:engine-benchmark
