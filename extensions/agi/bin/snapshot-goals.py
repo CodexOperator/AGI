@@ -48,6 +48,45 @@ PROJECT_ROOT = Path(
 CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
 
 
+# graph_core.identity — the ENGINE's own copy, for the same reason
+# backfill-mint-ids.py insists on it: a project's vendored src/ predates
+# `mint_permanent_id` and cannot have a compatible one.
+_graph_core_src = str(PLUGIN_ROOT / "src")
+if _graph_core_src not in sys.path:
+    sys.path.insert(0, _graph_core_src)
+from graph_core.identity import mint_permanent_id, is_valid_mint_id  # noqa: E402
+
+
+def ensure_mint_id(fm: dict) -> dict:
+    """Give `fm` a `mint_id` if it does not already carry a valid one.
+
+    **goal:s14.** Until this existed, `bin/backfill-mint-ids.py` was the only
+    thing in the system that assigned a mint id, so every node a generator
+    created arrived without one and was skipped — loudly, but skipped — by
+    `grid.py commit --all` until someone remembered to run the backfill. A
+    forgotten backfill silently cost a node its version history, which is the
+    one thing goal:g7 exists to make impossible. "Run the backfill after any
+    generator" was an unscripted manual step; this is the script.
+
+    Minting here rather than in each caller is deliberate: this is the one
+    serializer `level3.py`, `decompose-engine.py`, `backfill-mint-ids.py` and
+    this file all write through, so one hook covers every generator at once.
+
+    **Never overwrites.** A mint id is assigned once and never changes
+    (goal:g2.5), so an existing valid value is left exactly as found. An
+    *invalid* value is also left alone and reported — rewriting it would
+    silently fork the node's grid history, and a human needs to see it.
+    """
+    existing = fm.get("mint_id")
+    if isinstance(existing, str) and existing.strip():
+        if not is_valid_mint_id(existing.strip()):
+            print(f"WARN: mint_id {existing!r} is not 32 lowercase hex chars; "
+                  "leaving it as found (rewriting it would fork the node's "
+                  "grid history)", file=sys.stderr)
+        return fm
+    return {**fm, "mint_id": mint_permanent_id()}
+
+
 def config_path(root: Path) -> Path | None:
     """First existing config file in `root`, or None if it is not a project."""
     for name in CONFIG_NAMES:
@@ -167,6 +206,7 @@ def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
     if origin:
         fm = dict(fm)  # copy so we don't mutate caller's dict
         fm["origin"] = origin
+    fm = ensure_mint_id(fm)
     lines = ["---"]
     for k in sorted(fm.keys()):
         v = fm[k]

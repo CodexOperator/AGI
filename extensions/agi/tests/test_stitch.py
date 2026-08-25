@@ -674,3 +674,134 @@ def test_cli_materialize_refuses_engine_root_as_out(tmp_path, engine, project):
     result = run(project, engine, "--out", str(engine))
     assert result.returncode == 2
     assert "refusing to write" in result.stderr
+
+
+# --- goal:g6.3 / goal:g6.1 — --from-grid and the guarded --publish -----------
+
+_grid_spec = importlib.util.spec_from_file_location("grid_test", BIN / "grid.py")
+grid = importlib.util.module_from_spec(_grid_spec)
+_grid_spec.loader.exec_module(grid)
+
+
+def _grid_project(project: Path, engine: Path) -> Path:
+    """Turn the plain `project` fixture into a real grid-bearing graph repo and
+    commit every node's payload into its ref, the way `commit --all` does."""
+    subprocess.run(["git", "init", "-q"], cwd=project, check=True)
+    (project / "agi-tree.config.json").write_text("{}")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    return project
+
+
+def test_from_grid_matches_the_engine_tree_byte_for_byte(project, engine, tmp_path):
+    """G6.3's falsifier in miniature: the two sources must agree exactly, or
+    the version layer is not a source of truth and must not be called one."""
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    mint_node(engine, project, "extensions/agi/src/pkg/bar.py")
+    _grid_project(project, engine)
+
+    a, b = tmp_path / "from-engine", tmp_path / "from-grid"
+    st.materialize(project, engine, a)
+    stats = st.materialize(project, engine, b, from_grid=True)
+
+    assert stats["source"] == "grid"
+    assert stats["written"] == 2 and not stats["skipped_missing"]
+    for rel in ("extensions/agi/bin/foo.py", "extensions/agi/src/pkg/bar.py"):
+        assert (a / rel).read_bytes() == (b / rel).read_bytes()
+
+
+def test_from_grid_preserves_the_exec_bit(project, engine, tmp_path):
+    """The half of S9 the live corpus exercises: 16 engine files are 100755,
+    and the pre-S9 commit_file would have published every one of them 100644."""
+    rel = "extensions/agi/bin/run.sh"
+    (engine / rel).write_text("#!/bin/sh\necho hi\n")
+    (engine / rel).chmod(0o755)
+    mint_node(engine, project, rel)
+    _grid_project(project, engine)
+
+    out = tmp_path / "out"
+    st.materialize(project, engine, out, from_grid=True)
+    assert grid.git_mode(out / rel) == grid.GIT_MODE_EXEC
+
+
+def test_from_grid_reads_the_graph_not_the_engine(project, engine, tmp_path):
+    """goal:g6.1's arrow, stated as a test: once the payload is in the grid,
+    deleting it from the engine tree changes nothing about what stitch writes."""
+    rel = "extensions/agi/bin/foo.py"
+    mint_node(engine, project, rel)
+    _grid_project(project, engine)
+    original = (engine / rel).read_bytes()
+    (engine / rel).unlink()
+
+    out = tmp_path / "out"
+    stats = st.materialize(project, engine, out, from_grid=True)
+    assert stats["written"] == 1
+    assert (out / rel).read_bytes() == original
+
+
+def test_from_grid_reports_a_node_with_no_grid_history(project, engine, tmp_path):
+    """Never a silent fallback to disk: a node the grid does not hold is
+    reported, because serving the engine file would make --from-grid a no-op
+    that looks like a success."""
+    mint_node(engine, project, "extensions/agi/bin/foo.py")
+    subprocess.run(["git", "init", "-q"], cwd=project, check=True)
+    (project / "agi-tree.config.json").write_text("{}")
+    # deliberately no grid commit
+    stats = st.materialize(project, engine, tmp_path / "out", from_grid=True)
+    assert stats["written"] == 0
+    assert stats["skipped_missing"] == ["level3:bin-foo"]
+
+
+def test_publish_refuses_without_from_grid(project, engine):
+    with pytest.raises(st.StitchSafetyError, match="requires --from-grid"):
+        st._guard_out_dir(engine, project, engine, publish=True, from_grid=False)
+
+
+def test_plain_out_still_refuses_the_engine_repo(project, engine):
+    with pytest.raises(st.StitchSafetyError, match="refusing to write"):
+        st._guard_out_dir(engine, project, engine)
+
+
+def test_out_never_writes_into_the_graph_repo_even_with_publish(project, engine):
+    with pytest.raises(st.StitchSafetyError, match="graph repo"):
+        st._guard_out_dir(project, project, engine, publish=True, from_grid=True)
+
+
+def test_publish_refuses_a_dirty_engine_tree(project, engine):
+    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                    "commit", "-qm", "init"], cwd=engine, check=True)
+    assert st._git_is_clean(engine) is True
+    st._guard_out_dir(engine, project, engine, publish=True, from_grid=True)  # ok
+
+    (engine / "extensions/agi/bin/foo.py").write_text("import os\n# edited\n")
+    with pytest.raises(st.StitchSafetyError, match="uncommitted changes"):
+        st._guard_out_dir(engine, project, engine, publish=True, from_grid=True)
+
+
+def test_publish_refuses_a_non_git_target(project, tmp_path):
+    plain = tmp_path / "not-a-repo"
+    plain.mkdir()
+    with pytest.raises(st.StitchSafetyError, match="not a git repo"):
+        st._guard_out_dir(plain, project, plain, publish=True, from_grid=True)
+
+
+def test_publish_writes_the_graphs_bytes_into_the_engine(project, engine, tmp_path):
+    """The full G6.1 loop end to end: edit in the graph, publish, and the
+    engine file is what the graph said — with the edit never having been made
+    in the engine repo at all."""
+    rel = "extensions/agi/bin/foo.py"
+    mint_node(engine, project, rel)
+    _grid_project(project, engine)
+    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                    "commit", "-qm", "init"], cwd=engine, check=True)
+
+    edited = "import os\n\n\ndef foo():\n    return 'from the graph'\n"
+    staged = project / grid.PAYLOAD_DIR / rel
+    staged.parent.mkdir(parents=True, exist_ok=True)
+    staged.write_text(edited)
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+
+    st.materialize(project, engine, engine, from_grid=True, publish=True)
+    assert (engine / rel).read_text() == edited
+    # ...and it is recoverable, which is the property the guard buys.
+    subprocess.run(["git", "checkout", "--", "."], cwd=engine, check=True)
+    assert (engine / rel).read_text() == ENGINE_FILES[rel]

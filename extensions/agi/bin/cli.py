@@ -21,6 +21,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
 from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
+# goal:s14 — a node gets its permanent id from whatever writes the file, not
+# from a backfill run afterwards. The ENGINE's graph_core, never a project's
+# vendored src/ (which predates `mint_permanent_id` entirely).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from graph_core.identity import mint_permanent_id  # noqa: E402
+
 NODE_TYPES = ("hypothesis", "experiment", "verdict", "mvp", "outcome", "bigger-outcome", "app-purpose")
 
 
@@ -191,10 +197,14 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         print(f"SKIP: {node_file} already exists", file=sys.stderr)
         return 0
 
-    # Build frontmatter
+    # Build frontmatter. `mint_id` is assigned here, at creation, per goal:s14 —
+    # a scaffolded node that reaches `grid.py commit --all` without one is
+    # skipped and silently loses its version history until someone remembers
+    # to run the backfill.
     fm_lines = [
         "---",
         f"id: {node_id}",
+        f"mint_id: {mint_permanent_id()}",
         f"type: {node_type}",
         f"parents:\n  - {parent}",
         "next_edges: []",

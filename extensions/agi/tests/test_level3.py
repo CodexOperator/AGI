@@ -19,6 +19,9 @@ spec = importlib.util.spec_from_file_location("level3", BIN)
 l3 = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(l3)
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from graph_core import identity  # noqa: E402
+
 
 # --- fixtures ----------------------------------------------------------------
 
@@ -238,10 +241,15 @@ def test_frontmatter_uses_payload_ref_and_origin_only(project, engine):
     assert fm["origin"] == "level3-scan"
     assert fm["payload_ref"] == "extensions/agi/src/graph_core/node.py"
     assert fm["parents"] == ["idea:engine-graph-core"]
-    # no invented top-level keys beyond the standard generated-node set
+    # no invented top-level keys beyond the standard generated-node set.
+    # `mint_id` joined that set under goal:s14 — it is assigned by the shared
+    # `write_frontmatter`, at creation, for every generator alike, which is
+    # exactly the "not a level3-specific invention" property this test guards.
     assert set(fm) <= {
-        "id", "type", "title", "payload_ref", "tags", "confidence", "parents", "origin",
+        "id", "mint_id", "type", "title", "payload_ref", "tags", "confidence",
+        "parents", "origin",
     }
+    assert identity.is_valid_mint_id(fm["mint_id"])
 
 
 # --- 3. contract block: mechanical `how`, honest `uncovered`, TODO(model) ----

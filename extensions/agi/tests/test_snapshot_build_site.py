@@ -8,6 +8,7 @@ render pass that reports itself as successful.
 """
 
 import importlib.util
+import re
 from pathlib import Path
 
 import pytest
@@ -67,7 +68,26 @@ def test_snapshot_owned_fields_always_win(node):
 
 def test_preserve_absent_is_the_old_behaviour(node):
     sbs.write_frontmatter(node, {"id": "idea:x", "type": "idea"}, "body")
-    assert set(fm_of(node)) == {"id", "type"}
+    # `mint_id` is added by the shared `ensure_mint_id` hook (goal:s14), not by
+    # `preserve` — the point of this test is that nothing is carried forward
+    # when there is nothing to carry.
+    assert set(fm_of(node)) == {"id", "type", "mint_id"}
+
+
+def test_generated_node_gets_a_mint_id_at_creation(node):
+    """goal:s14 — the backfill stops being the only assigner. Without this, a
+    generator-created node is skipped by `grid.py commit --all` and silently
+    has no version history until someone remembers to run the backfill."""
+    sbs.write_frontmatter(node, {"id": "idea:x", "type": "idea"}, "body")
+    minted = fm_of(node)["mint_id"]
+    assert re.fullmatch(r"[0-9a-f]{32}", minted)
+
+    # Assigned once and never changed: a re-snapshot that carries the node
+    # forward must reuse it, not mint a second one (goal:g2.5 — a new mint id
+    # would fork the node's grid history).
+    sbs.write_frontmatter(node, {"id": "idea:x", "type": "idea"}, "body v2",
+                          preserve={"mint_id": minted})
+    assert fm_of(node)["mint_id"] == minted
 
 
 def test_preserve_does_not_mutate_the_callers_dict(node):
