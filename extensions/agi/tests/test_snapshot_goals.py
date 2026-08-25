@@ -494,3 +494,40 @@ def test_default_still_only_warns(tmp_path):
     r = _sg_run(p)
     assert r.returncode == 0
     assert "unknown goal" in r.stderr
+
+
+# --- write_frontmatter: None must round-trip as null, not the string "None" -
+#
+# Found live 2026-08-25 backfilling `mint_id` across the agi-tree corpus
+# (goal:g2.5): any node carrying a real YAML null (`contrasts:` with nothing
+# after it, or a malformed empty `parents:` list entry -- already a known,
+# tolerated shape; see `collect_parent_refs`'s empty-entry handling above)
+# came back from ONE write_frontmatter round trip as the literal 4-character
+# string "None" -- `str(None)` falling through the plain scalar branch. That
+# turns a null field into a truthy value, and for `parents: [None]`
+# specifically it defeats `collect_parent_refs`'s own empty-entry filter,
+# which only special-cases `p is None`, not the string `"None"` -- so a
+# malformed-but-recognized entry becomes a phantom dangling reference to a
+# node literally named "None".
+
+
+def test_write_frontmatter_preserves_none_scalar(tmp_path):
+    p = write_node(tmp_path, "verdict/x.md", {"id": "verdict:x", "contrasts": None})
+    assert fm_of(p)["contrasts"] is None
+
+
+def test_write_frontmatter_preserves_none_list_entry(tmp_path):
+    p = write_node(tmp_path, "hypothesis/x.md", {"id": "hyp:x", "parents": [None]})
+    assert fm_of(p)["parents"] == [None]
+
+
+def test_write_frontmatter_none_survives_a_second_round_trip(tmp_path):
+    """The regression was specifically a round-trip: write, re-load, write
+    again -- exactly what a generator with `preserve=` does on every run."""
+    p = write_node(tmp_path, "verdict/x.md", {"id": "verdict:x", "contrasts": None,
+                                              "parents": [None]})
+    fm = fm_of(p)
+    sg.write_frontmatter(p, fm, "body")
+    fm2 = fm_of(p)
+    assert fm2["contrasts"] is None
+    assert fm2["parents"] == [None]

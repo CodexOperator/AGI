@@ -176,9 +176,23 @@ def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
             else:
                 lines.append(f"{k}:")
                 for item in v:
-                    lines.append(f"  - {item}")
+                    # None round-trips as a null list entry (`-` with nothing
+                    # after it), not the literal 3-char string "None" --
+                    # `str(None)` below would silently turn a null entry into
+                    # a real value on the next parse (found live, 2026-08-25,
+                    # backfilling mint_id across the corpus: 7 nodes carrying
+                    # a malformed empty `parents:` item -- itself already a
+                    # known, tolerated shape, see collect_parent_refs' empty-
+                    # entry handling above -- came back as `parents: [None]`
+                    # after one write_frontmatter round trip).
+                    lines.append("  -" if item is None else f"  - {item}")
         elif isinstance(v, bool):
             lines.append(f"{k}: {str(v).lower()}")
+        elif v is None:
+            # Same round-trip hazard as above, one level up: `contrasts:`
+            # (a real YAML null, e.g. a verdict field nothing ever filled
+            # in) must stay null, not become the 4-char string "None".
+            lines.append(f"{k}:")
         else:
             sval = str(v).replace("\n", " ").strip()
             if any(c in sval for c in ":#'\""):

@@ -12,6 +12,12 @@ spec = importlib.util.spec_from_file_location("grid", BIN)
 grid = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(grid)
 
+# goal:g2.5 — grid.py now keys writes on `mint_id`, not on the node id. Every
+# fixture node below carries one so the ordinary commit/log/diff/status path
+# is exercised under the NEW scheme; the missing-mint_id and legacy-ref
+# fallback behaviours get their own dedicated tests further down.
+MINT_X = "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+
 
 @pytest.fixture()
 def project(tmp_path):
@@ -20,14 +26,19 @@ def project(tmp_path):
     d = tmp_path / "nodes" / "idea"
     d.mkdir(parents=True)
     (d / "x.md").write_text(
-        '---\nid: "idea:x"\ntype: idea\n---\n\nfirst thought\n'
+        f'---\nid: "idea:x"\nmint_id: {MINT_X}\ntype: idea\n---\n\nfirst thought\n'
     )
     grid.cmd_init(tmp_path)
     return tmp_path
 
 
 def versions(root, node_id):
-    tip = grid.ref_tip(root, grid.node_ref(node_id))
+    """Version count via the SAME read-fallback path production code uses
+    (`_resolve_read_ref`) — mint-id ref preferred, legacy ref as fallback —
+    rather than hardcoding either ref scheme into the test helper."""
+    node_file = grid.build_id_index(root).get(node_id)
+    ref = grid._resolve_read_ref(root, node_file, node_id) if node_file else None
+    tip = grid.ref_tip(root, ref) if ref else None
     return int(grid.git(root, "rev-list", "--count", tip)) if tip else 0
 
 
@@ -57,7 +68,7 @@ def test_edit_makes_v2_and_diff_shows_it(project):
     f.write_text(f.read_text().replace("first thought", "second thought"))
     grid.cmd_commit(project, [], do_all=True, session=None)
     assert versions(project, "idea:x") == 2
-    ref = grid.node_ref("idea:x")
+    ref = grid.mint_node_ref(MINT_X)  # writes go to the mint-id ref (goal:g2.5)
     diff = grid.git(project, "diff", f"{ref}~1", ref, "--", "node.md")
     assert "-first thought" in diff and "+second thought" in diff
 
@@ -82,7 +93,8 @@ def test_commit_prefix_marks_auto_snapshots(project):
     f = project / "nodes" / "idea" / "x.md"
     grid.cmd_commit(project, [str(f)], do_all=False, session=None,
                     prefix="cron: ")
-    msg = grid.git(project, "log", "-1", "--format=%s", grid.node_ref("idea:x"))
+    msg = grid.git(project, "log", "-1", "--format=%s",
+                   grid.mint_node_ref(MINT_X))
     assert msg == "cron: v1 idea:x"
 
 
@@ -114,7 +126,7 @@ def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
          "--format=%(refname)"],
         capture_output=True, text=True, check=True,
     ).stdout
-    assert "refs/grid/node/idea/x" in out
+    assert f"refs/grid/node/{MINT_X}" in out
     # a fresh clone must be able to fetch the grid: refspec configured
     specs = grid.git(project, "config", "--get-all", "remote.origin.fetch")
     assert grid.FETCH_SPEC in specs.splitlines()
@@ -351,3 +363,354 @@ def test_migrate_refs_reports_collision_and_touches_neither_id(migrate_project):
     # migrate-refs must not have created -- it cannot tell which id the
     # shared ref's history actually belongs to.)
     assert grid.ref_tip(root, grid.node_ref("level3:bin-stitch@v2")) is None
+
+
+# --------------------- goal:g2.5 — mint-id keying, with read fallback ------
+# grid.py now keys WRITES on `mint_id`, never on the node id (which is an
+# address that moves on retag/regroup — see GOALS.md "Tension resolved
+# 2026-08-25"). READS (log/diff/versions/status) fall back to the legacy
+# node-id-keyed ref when no mint-id ref exists, so history committed before
+# a node had a mint_id stays reachable.
+
+MINT_A = "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+MINT_B = "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+
+
+@pytest.fixture()
+def mint_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    (tmp_path / "nodes" / "idea").mkdir(parents=True)
+    grid.cmd_init(tmp_path)
+    return tmp_path
+
+
+def _write_mint_node(root, rel, node_id, mint_id=None, parents=None, body="body\n"):
+    fm = [f'id: "{node_id}"']
+    if mint_id:
+        fm.append(f"mint_id: {mint_id}")
+    if parents:
+        fm.append("parents:")
+        fm.extend(f"  - {p}" for p in parents)
+    fm.append("type: idea")
+    p = root / "nodes" / "idea" / rel
+    p.write_text("---\n" + "\n".join(fm) + f"\n---\n\n{body}")
+    return p
+
+
+def test_write_ref_for_raises_on_missing_mint_id(mint_project):
+    p = _write_mint_node(mint_project, "x.md", "idea:x")  # no mint_id
+    with pytest.raises(grid.MissingMintIdError, match="idea:x"):
+        grid.write_ref_for(p, "idea:x")
+
+
+def test_write_ref_for_returns_mint_ref_when_present(mint_project):
+    p = _write_mint_node(mint_project, "x.md", "idea:x", mint_id=MINT_A)
+    assert grid.write_ref_for(p, "idea:x") == grid.mint_node_ref(MINT_A)
+
+
+def test_commit_all_skips_missing_mint_id_but_keeps_going(mint_project):
+    """The load-bearing operational property: one un-migrated node must not
+    block --all from committing every other node (the sanitize()-colon-bug
+    failure class this file already paid for once)."""
+    _write_mint_node(mint_project, "no-mint.md", "idea:no-mint")  # no mint_id
+    _write_mint_node(mint_project, "has-mint.md", "idea:has-mint", mint_id=MINT_A)
+
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+
+    assert grid.ref_tip(mint_project, grid.mint_node_ref(MINT_A)) is not None
+    assert grid.ref_tip(mint_project, grid.node_ref("idea:no-mint")) is None
+    assert grid.ref_tip(mint_project, grid.node_ref("idea:has-mint")) is None
+
+
+def test_commit_never_falls_back_to_node_id_ref_for_missing_mint_id(mint_project, capsys):
+    p = _write_mint_node(mint_project, "no-mint.md", "idea:no-mint")
+
+    grid.cmd_commit(mint_project, [str(p)], do_all=False, session=None)
+
+    assert grid.ref_tip(mint_project, grid.node_ref("idea:no-mint")) is None
+    err = capsys.readouterr().err
+    assert "ERROR" in err and "idea:no-mint" in err and "no mint_id" in err
+
+
+def test_read_falls_back_to_legacy_ref_when_no_mint_ref_exists(mint_project):
+    """A version committed BEFORE the node had a mint_id (or before the
+    mint-id ref existed) must stay reachable by log/diff/versions/status."""
+    p = _write_mint_node(mint_project, "x.md", "idea:x")  # no mint_id yet
+    legacy_ref = grid.node_ref("idea:x")
+    grid.commit_file(mint_project, p, legacy_ref, "")  # simulate pre-migration history
+
+    # Now the node picks up a mint_id but has never been committed under it.
+    p.write_text(p.read_text().replace(
+        'id: "idea:x"', f'id: "idea:x"\nmint_id: {MINT_A}'))
+
+    assert grid.ref_tip(mint_project, grid.mint_node_ref(MINT_A)) is None  # nothing here yet
+    assert grid.resolve_ref(mint_project, "idea:x") == legacy_ref
+    grid.cmd_log(mint_project, "idea:x", 5)  # must not raise / SystemExit
+
+
+def test_versions_falls_back_to_legacy_ref(mint_project, capsys):
+    p = _write_mint_node(mint_project, "x.md", "idea:x")
+    legacy_ref = grid.node_ref("idea:x")
+    grid.commit_file(mint_project, p, legacy_ref, "")
+    p.write_text(p.read_text().replace(
+        'id: "idea:x"', f'id: "idea:x"\nmint_id: {MINT_A}'))
+
+    capsys.readouterr()
+    grid.cmd_versions(mint_project, "idea:x")
+    out = capsys.readouterr().out.strip()
+    assert out == "1"
+
+
+def test_status_clean_via_legacy_ref_for_node_without_mint_id_yet(mint_project, capsys):
+    """The common transition-window case: a node with no mint_id at all yet
+    still has real legacy-ref history, and status must report it clean
+    (unchanged) via the fallback rather than as drift or as NEW."""
+    p = _write_mint_node(mint_project, "x.md", "idea:x")  # no mint_id
+    legacy_ref = grid.node_ref("idea:x")
+    grid.commit_file(mint_project, p, legacy_ref, "")
+
+    capsys.readouterr()
+    grid.cmd_status(mint_project)
+    out = capsys.readouterr().out
+    assert "grid status: 0 new, 0 changed, 1 clean" in out
+
+
+def test_status_falls_back_to_legacy_ref_instead_of_reporting_new(mint_project, capsys):
+    """Without the fallback this would misreport NEW (the mint-id ref has no
+    history yet) even though the node has one real version under the legacy
+    ref. With the fallback, status finds that history and reports drift
+    against it (the mint_id field itself is new content) instead of
+    treating the node as having no history at all."""
+    p = _write_mint_node(mint_project, "x.md", "idea:x")
+    legacy_ref = grid.node_ref("idea:x")
+    grid.commit_file(mint_project, p, legacy_ref, "")  # pre-migration history
+    p.write_text(p.read_text().replace(
+        'id: "idea:x"', f'id: "idea:x"\nmint_id: {MINT_A}'))
+
+    capsys.readouterr()
+    grid.cmd_status(mint_project)
+    out = capsys.readouterr().out
+    assert "CHANGED  idea:x" in out
+    assert "grid status: 0 new, 1 changed, 0 clean" in out
+
+
+def test_status_reports_new_when_neither_ref_exists(mint_project, capsys):
+    _write_mint_node(mint_project, "x.md", "idea:x", mint_id=MINT_A)
+    capsys.readouterr()
+    grid.cmd_status(mint_project)
+    out = capsys.readouterr().out
+    assert "grid status: 1 new, 0 changed, 0 clean" in out
+
+
+def test_parent_mint_trailer_in_commit_body(mint_project):
+    parent = _write_mint_node(mint_project, "parent.md", "idea:parent", mint_id=MINT_A)
+    child = _write_mint_node(mint_project, "child.md", "idea:child", mint_id=MINT_B,
+                             parents=["idea:parent"])
+
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+
+    body = grid.git(mint_project, "log", "-1", "--format=%B",
+                    grid.mint_node_ref(MINT_B))
+    assert f"Parent-Mint-Id: {MINT_A} idea:parent" in body
+    # subject line is unaffected by the added body
+    subject = grid.git(mint_project, "log", "-1", "--format=%s",
+                       grid.mint_node_ref(MINT_B))
+    assert subject == "v1 idea:child"
+
+
+def test_parent_mint_trailer_marks_unresolved_parent(mint_project):
+    child = _write_mint_node(mint_project, "child.md", "idea:child", mint_id=MINT_B,
+                             parents=["idea:ghost"])
+
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+
+    body = grid.git(mint_project, "log", "-1", "--format=%B",
+                    grid.mint_node_ref(MINT_B))
+    assert "Parent-Mint-Id: UNRESOLVED idea:ghost" in body
+
+
+def test_no_parents_means_no_trailer_body(mint_project):
+    _write_mint_node(mint_project, "x.md", "idea:x", mint_id=MINT_A)
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+    body = grid.git(mint_project, "log", "-1", "--format=%B",
+                    grid.mint_node_ref(MINT_A))
+    assert body.strip() == "v1 idea:x"
+
+
+def test_mint_node_ref_is_a_valid_git_ref():
+    ref = grid.mint_node_ref(MINT_A)
+    res = subprocess.run(["git", "check-ref-format", ref], capture_output=True)
+    assert res.returncode == 0
+
+
+def test_mint_node_ref_is_identity_under_sanitize():
+    # The whole point of the mint id format (32 lowercase hex chars): no
+    # escaping needed, so sanitize() is a no-op on it.
+    assert grid.sanitize(MINT_A) == MINT_A
+
+
+# --------------------------- migrate-mint-refs: the write path (goal:g2.5) -
+#
+# Landmine this guards against: before this migration runs, no mint-id ref
+# exists yet, so an ordinary `commit --all` under the new keying would give
+# every migrated node a fresh v1 ROOT commit on its mint-id ref while the
+# real history stays stranded on the node-id ref -- forking every node at
+# once. `test_versions_and_log_report_full_history_after_migration` below
+# is the direct regression guard for exactly that failure mode.
+
+@pytest.fixture()
+def migmint_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    (tmp_path / "nodes" / "idea").mkdir(parents=True)
+    grid.cmd_init(tmp_path)
+    return tmp_path
+
+
+def test_migrate_mint_refs_dry_run_changes_nothing(migmint_project):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    old_ref = grid.node_ref("idea:x")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    old_tip_before = grid.ref_tip(migmint_project, old_ref)
+
+    grid.cmd_migrate_mint_refs(migmint_project, write=False)
+
+    assert grid.ref_tip(migmint_project, old_ref) == old_tip_before  # untouched
+    assert grid.ref_tip(migmint_project, grid.mint_node_ref(MINT_A)) is None
+
+
+def test_migrate_mint_refs_write_moves_ref_and_preserves_full_history(migmint_project):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    old_ref = grid.node_ref("idea:x")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    p.write_text(p.read_text() + "\nedit 2\n")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    p.write_text(p.read_text() + "\nedit 3\n")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    old_tip = grid.ref_tip(migmint_project, old_ref)
+    new_ref = grid.mint_node_ref(MINT_A)
+
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+
+    assert grid.ref_tip(migmint_project, old_ref) is None       # old ref gone
+    assert grid.ref_tip(migmint_project, new_ref) == old_tip    # SAME commit object, new name
+    # Not just "a ref exists" -- the full 3-version chain moved with it:
+    assert int(grid.git(migmint_project, "rev-list", "--count", new_ref)) == 3
+
+
+def test_migrate_mint_refs_is_idempotent(migmint_project):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    old_ref = grid.node_ref("idea:x")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    new_ref = grid.mint_node_ref(MINT_A)
+
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+    tip_after_first = grid.ref_tip(migmint_project, new_ref)
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)  # second run: must be a no-op
+
+    assert grid.ref_tip(migmint_project, new_ref) == tip_after_first
+    assert grid.ref_tip(migmint_project, old_ref) is None
+
+
+def test_migrate_mint_refs_second_run_reports_zero_moved(migmint_project, capsys):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    grid.commit_file(migmint_project, p, grid.node_ref("idea:x"), "")
+
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+    capsys.readouterr()
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+    out = capsys.readouterr().out
+    assert "0 moved, 1 already correct, 0 conflict(s), 0 skipped" in out
+
+
+def test_migrate_mint_refs_refuses_to_overwrite_conflicting_destination(migmint_project):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    old_ref = grid.node_ref("idea:x")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    old_tip = grid.ref_tip(migmint_project, old_ref)
+
+    # Pre-seed the destination with unrelated history -- must never be clobbered.
+    other = _write_mint_node(migmint_project, "other.md", "idea:other")
+    new_ref = grid.mint_node_ref(MINT_A)
+    grid.commit_file(migmint_project, other, new_ref, "")
+    other_tip = grid.ref_tip(migmint_project, new_ref)
+    assert other_tip != old_tip
+
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+
+    assert grid.ref_tip(migmint_project, old_ref) == old_tip     # untouched
+    assert grid.ref_tip(migmint_project, new_ref) == other_tip   # untouched
+
+
+def test_migrate_mint_refs_conflict_is_reported(migmint_project, capsys):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    grid.commit_file(migmint_project, p, grid.node_ref("idea:x"), "")
+    other = _write_mint_node(migmint_project, "other.md", "idea:other")
+    grid.commit_file(migmint_project, other, grid.mint_node_ref(MINT_A), "")  # pre-seed conflict
+
+    capsys.readouterr()
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+    out = capsys.readouterr().out
+    # "other" itself has no mint_id (irrelevant to what it pre-seeded) -- 1 skipped is it.
+    assert "0 moved, 0 already correct, 1 conflict(s), 1 skipped" in out
+
+
+def test_migrate_mint_refs_skips_node_without_mint_id_not_guessed(migmint_project, capsys):
+    p = _write_mint_node(migmint_project, "x.md", "idea:x")  # no mint_id
+    old_ref = grid.node_ref("idea:x")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    old_tip = grid.ref_tip(migmint_project, old_ref)
+
+    capsys.readouterr()
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+    out, err = capsys.readouterr()
+
+    assert "SKIP-NO-MINT-ID  idea:x" in err
+    assert "0 moved, 0 already correct, 0 conflict(s), 1 skipped" in out
+    assert grid.ref_tip(migmint_project, old_ref) == old_tip  # left exactly alone
+
+
+def test_migrate_mint_refs_reports_duplicate_mint_id_collision(migmint_project, capsys):
+    p1 = _write_mint_node(migmint_project, "a.md", "idea:a", mint_id=MINT_A)
+    p2 = _write_mint_node(migmint_project, "b.md", "idea:b", mint_id=MINT_A)  # duplicate!
+    grid.commit_file(migmint_project, p1, grid.node_ref("idea:a"), "")
+    grid.commit_file(migmint_project, p2, grid.node_ref("idea:b"), "")
+
+    capsys.readouterr()
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+    out, err = capsys.readouterr()
+
+    assert "COLLISION" in err and "duplicate mint_id" in err
+    assert "0 moved, 0 already correct, 0 conflict(s)" in out
+    assert grid.ref_tip(migmint_project, grid.node_ref("idea:a")) is not None  # untouched
+    assert grid.ref_tip(migmint_project, grid.node_ref("idea:b")) is not None  # untouched
+    assert grid.ref_tip(migmint_project, grid.mint_node_ref(MINT_A)) is None   # never created
+
+
+def test_versions_and_log_report_full_history_after_migration(migmint_project):
+    """The direct regression guard for the fork failure mode this command
+    exists to prevent: after migration, a node's version count and log must
+    show its FULL pre-migration history, not 1 (a fresh-root-commit fork)."""
+    p = _write_mint_node(migmint_project, "x.md", "idea:x", mint_id=MINT_A)
+    old_ref = grid.node_ref("idea:x")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    p.write_text(p.read_text() + "\nedit 2\n")
+    grid.commit_file(migmint_project, p, old_ref, "")
+    p.write_text(p.read_text() + "\nedit 3\n")
+    grid.commit_file(migmint_project, p, old_ref, "")
+
+    grid.cmd_migrate_mint_refs(migmint_project, write=True)
+
+    node_file = grid.build_id_index(migmint_project)["idea:x"]
+    ref = grid._resolve_read_ref(migmint_project, node_file, "idea:x")
+    assert ref == grid.mint_node_ref(MINT_A)  # reads now prefer the migrated ref
+    assert int(grid.git(migmint_project, "rev-list", "--count", ref)) == 3
+
+    # Simulate the very next ordinary commit under the new keying: it must
+    # land as v4 (a real child of the migrated history), never a fresh v1.
+    p.write_text(p.read_text() + "\nedit 4\n")
+    ref_after = grid.write_ref_for(p, "idea:x")
+    assert ref_after == grid.mint_node_ref(MINT_A)
+    grid.commit_file(migmint_project, p, ref_after, "")
+    assert int(grid.git(migmint_project, "rev-list", "--count", ref_after)) == 4
