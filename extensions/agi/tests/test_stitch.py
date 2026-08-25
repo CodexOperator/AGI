@@ -805,3 +805,40 @@ def test_publish_writes_the_graphs_bytes_into_the_engine(project, engine, tmp_pa
     # ...and it is recoverable, which is the property the guard buys.
     subprocess.run(["git", "checkout", "--", "."], cwd=engine, check=True)
     assert (engine / rel).read_text() == ENGINE_FILES[rel]
+
+
+def test_grid_version_materializes_a_chosen_version_not_the_tip(
+        project, engine, tmp_path):
+    """goal:g6.3's other untested case, in its own words: `stitch.py`
+    materialising a chosen version rather than whichever is current."""
+    rel = "extensions/agi/bin/foo.py"
+    mint_node(engine, project, rel)
+    _grid_project(project, engine)
+
+    staged = project / grid.PAYLOAD_DIR / rel
+    staged.parent.mkdir(parents=True, exist_ok=True)
+    bodies = ["import os\n# v1\n", "import os\n# v2\n", "import os\n# v3\n"]
+    # v1 was committed from the engine tree above; v2 and v3 come from the graph.
+    for text in bodies[1:]:
+        staged.write_text(text)
+        grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+
+    for n, want in ((2, bodies[1]), (3, bodies[2])):
+        out = tmp_path / f"v{n}"
+        st.materialize(project, engine, out, from_grid=True, grid_version=n)
+        assert (out / rel).read_text() == want
+
+    tip = tmp_path / "tip"
+    st.materialize(project, engine, tip, from_grid=True)
+    assert (tip / rel).read_text() == bodies[2]
+
+
+def test_grid_version_beyond_history_is_reported_not_silently_the_tip(
+        project, engine, tmp_path):
+    rel = "extensions/agi/bin/foo.py"
+    node_id = mint_node(engine, project, rel)
+    _grid_project(project, engine)
+    stats = st.materialize(project, engine, tmp_path / "out",
+                           from_grid=True, grid_version=9)
+    assert stats["written"] == 0
+    assert stats["skipped_missing"] == [node_id]
