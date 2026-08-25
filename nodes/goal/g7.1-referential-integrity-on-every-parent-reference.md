@@ -26,13 +26,14 @@ read as authoritative for months.
 Extend the existing check to all parent references: warn by default, `--strict`
 to fail. The mechanism exists; only its scope is wrong. Owns TODO **H4d**.
 
-**Corpus swept 2026-08-25, and the policy is now decided rather than implied.**
-The check was extended and then run to ground: 82 unresolvable parent references
-across 20 distinct strings, on a corpus with 0 duplicate ids (G7.2's blocker had
-to clear first). 79 were resolved; 3 were deliberately left standing and are
-owned elsewhere (G7.8 and G7.5 below). Node count did not move — no node was
-created or deleted to make a reference resolve, which is the rule this sweep was
-run under.
+**Corpus swept 2026-08-25. `INTEGRITY` is 0 — every parent reference in the
+corpus resolves.** The check was extended and then run to ground: 82
+unresolvable parent references across 20 distinct strings, on a corpus with 0
+duplicate ids (G7.2's blocker had to clear first), plus 7 blank `parents:`
+entries that named nothing. All are gone. **No node was created or deleted to
+make a reference resolve** — the two that could not be fixed by editing a node
+were fixed at their sources instead (G7.5 by repairing the file that would not
+parse, G7.8 by repairing the kit that was missing a requirement).
 
 **The decided policy, in the order it is applied:**
 
@@ -63,7 +64,17 @@ outcome, not a regression — it makes the disconnection visible where it was
 previously disguised as a broken pointer. Orphan count is the honest successor
 metric to dangling-reference count.
 
+Note what this leaves: 76 nodes were made parentless by step 2, and **75 of them
+were then deleted outright** as the noise they were — recorded separately in
+**S15**, which owns the node-count drop that purge caused. The one survivor,
+`verdict:chain-engine-r15`, was kept because it carries a real measurement
+(*"7 domains achieve 12-hop chains on cold reload … 241 tests pass"*) even though
+what it measures is the padding technique itself.
+
 **Still unbuilt, and the reason this stays `active`:** the sweep was manual. The
 check reports, it does not enforce — nothing stops the next generator run from
-minting the same class of reference, which is precisely what G7.8 records.
-`spawns:` and `next_edges:` are still unchecked in both directions.
+minting the same class of reference. `spawns:` and `next_edges:` are still
+unchecked in both directions, which this sweep proved matters: the repaired
+G7.5 node's stray line was a `spawns:` entry, and three `next_edges:` pointed at
+nodes S15 deleted. A reference is a reference; checking only one field name is
+the same scope mistake L15 made with `goal:`.

@@ -5,8 +5,7 @@ demoted_from: proved
 evidence_runs: 0
 id: "verdict:schema-registry-r2-extend2"
 mint_id: 972c98a3485749c890eeb262ef932668
-next_edges:
-  - exp:schema-registry-r2-bracket-convention-extend3
+next_edges: []
 parents:
   - exp:schema-registry-r2-extend2
   - verdict:schema-registry-r2-extend

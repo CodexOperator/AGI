@@ -16,6 +16,31 @@ title: "G7.5: Parse failures are swallowed with zero signal"
 type: goal
 ---
 
+> **Corpus repaired 2026-08-25; the code fix is still open, which is why this
+> stays `active`.** The malformed file below now parses, carries a `mint_id`,
+> and has a grid ref. **The loaders still swallow parse failures silently** —
+> that is the actual goal and nothing about it has changed. What has changed is
+> that the corpus no longer supplies a free fixture, so the fix needs the
+> synthetic one preserved here. Verbatim, the frontmatter as it stood:
+>
+> ```yaml
+> ---
+> id: "hyp:a00-1467544f-chain-600hop"
+>   - "exp:a00-1467544f-chain-600hop"     # <- stray: `spawns:` key was missing
+> parents:
+>   - idea:domain-bootstrap-discovery
+> subgraph: false
+> ...
+> ```
+>
+> A list item at indent level 1 directly after a scalar mapping entry, with no
+> key introducing it. PyYAML raises; both loaders catch and drop the file. The
+> repair was to restore the one missing line — `spawns:` — which is what the
+> orphaned item plainly belonged to. **Nothing else in the file was touched, and
+> no node was created or deleted.** Regression test: feed the block above to
+> `load_directory` and `load_existing_nodes` and require both to warn with the
+> path and the exception rather than continue.
+
 `load_directory`'s `except Exception: continue` and `load_existing_nodes`'s
 `except Exception: pass` both silently drop any file that raises while its
 frontmatter is parsed. **No caller learns anything.**
@@ -51,8 +76,9 @@ the count of genuinely unresolvable references is **2**, not 3: this one is a
 G7.5 symptom wearing a G7.1 costume.
 
 **Third consequence, found 2026-08-25, and like G7.2's it breaks the backup
-rather than the render: this node has no grid ref and is therefore not backed
-up at all.** `grid.py commit --all` refuses to write a node-id-keyed ref for a
+rather than the render: this node had no grid ref and was therefore not backed
+up at all.** *(Closed by the repair above — it now has a `mint_id` and a ref.
+Kept here because it is the argument for why a parse failure is never cosmetic.)* `grid.py commit --all` refuses to write a node-id-keyed ref for a
 file with no `mint_id`, and `backfill-mint-ids.py` — the only assigner (S14) —
 skips it with `SKIP (unparseable frontmatter)`. The parse failure that hides the
 node from the renderer also denies it the one mechanism G7 exists to guarantee.
@@ -60,10 +86,4 @@ Every `commit --all` since the mint-id migration has reported it as an error
 line among successful ref writes, which is the same shape of silence G7.2 was
 escalated for.
 
-That raises this goal's priority the same way. G7.5 was "one file is invisible
-to readers", which is bad but static. It is also **an ongoing hole in the
-backup**, and unlike G7.2's forked ref it cannot be repaired by resolving an id
-collision — the file has to parse before anything else can key on it. Note the
-resolution order this forces: **repair the frontmatter, then backfill the
-mint_id, then grid-commit** — and take a copy of the malformed file into the
-goal's own record first, since repairing it is what destroys the fixture.
+T

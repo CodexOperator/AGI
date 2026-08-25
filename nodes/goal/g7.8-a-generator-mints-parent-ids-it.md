@@ -16,9 +16,18 @@ title: "G7.8: A generator mints parent ids it never checks exist"
 type: goal
 ---
 
-Found 2026-08-25 while sweeping G7.1, and it is the last unresolvable-reference
-class left standing on the corpus — the only one that **cannot be fixed by
-editing a node.**
+Found 2026-08-25 while sweeping G7.1. **Corpus side resolved the same day; the
+missing validation is what keeps this `active`.**
+
+**First, a correction worth keeping, because the wrong framing nearly bought an
+engine change that was not needed.** This was initially written up as "cannot be
+fixed by editing a node", as though the graph had a region the normal rules did
+not reach. That is backwards. `task:t-090` and `task:t-092` carry
+`origin: build-site` — they are **derived nodes, exactly like `nodes/goal/` is
+derived from this file.** "Edit the source, not the output" is not an exception
+to how this system works, it *is* how it works; the only real question was which
+source. Nothing here contradicts the philosophy, and the rule that already
+covers it is the one at the top of this document.
 
 `snapshot-build-site.py:371` derives a task's parent from its cavekit
 requirement by string construction:
@@ -44,22 +53,35 @@ fix the duplicate at its generator, not its output — arriving a second time
 through a different door, which is the argument for treating it as structural
 rather than incidental.
 
-Fix, when it is coded: resolve `parent_hyp` against the loaded corpus before
-writing it. On a miss, emit `parents: []` plus a `WARN:` naming the task, the
-`cavekit_req` and the id that failed to resolve — warn-by-default, matching
-G7.1/G7.2/G7.5. **Do not mint the missing hypothesis**, and do not drop the
-task: an unattributed task is a real state, and a fabricated ancestor is worse
-than a visible gap. The R11 requirement genuinely has no hypothesis behind it —
-that absence is signal about the kit, and silently papering over it is how
-`unattributed_nodes` came to sit at 626 without anyone reading it as a number
-about the graph.
+**The real root cause was in the kit, and the generator was reporting it
+honestly.** `parse_kits()` mints one hypothesis per `### Rn:` block found in
+`context/kits/cavekit-<domain>.md`. `cavekit-graph-core.md` contained
+**R1 through R10 and stopped there.** Meanwhile `build-site.md` opens the same
+domain with `### Domain: graph-core (11 R, 47 criteria, T-001..T-018, T-090,
+T-092)` and gives both tasks `Cavekit Requirement: graph-core/R11` with eight
+acceptance criteria named individually (R11.1 `traverse_bfs` … R11.8
+`detect_cycle`). **The plan declared eleven requirements; the kit defined ten.**
+`hyp:graph-core-r11` was never minted because there was nothing to mint it from.
 
-Deliberately **not coded on 2026-08-25**: the sweep that found it was scoped to
-the graph, and an engine change belongs in its own reviewed step. The two
-references stay dangling until then — which is the correct visible state, since
-the check is now reporting a real defect at its real location.
+So the dangling reference was not noise — it was the only symptom of a
+**genuine inconsistency between two cavekit inputs**, and it pointed straight at
+it. That is the integrity check doing precisely its job.
 
-Held open by the same logic as G7.5: the live corpus is currently this bug's
-only fixture. Landing the fix without a standing test means the next
-`build-site.md` edit that names a requirement with no hypothesis reintroduces
-it silently.
+**Fixed 2026-08-25 at the input**: added the missing `### R11: Traversal and
+Query API` block to `cavekit-graph-core.md`, transcribing the eight criteria
+`build-site.md` already spelled out. The generator minted `hyp:graph-core-r11`
+on the next run and both task references resolve. **Node count went up, not
+down; nothing was hand-written into `nodes/`, and no reference was invented** —
+R11 was always a real, documented requirement with a title and eight criteria.
+
+Two things worth carrying forward from the fix:
+
+- **It took two `--smoke` passes.** The first run minted the hypothesis *after*
+  the integrity check had already read the corpus, so the check still reported
+  both references as unresolved against a node that existed on disk by the time
+  it printed. This is **S7**'s two-pass wiring defect, and S7 describes it only
+  for `snapshot-goals.py` — it applies to `snapshot-build-site.py` identically.
+  Anyone reading a single post-edit run will believe a fix failed when it
+  succeeded.
+- **Editing the kit is safe here specifically because cavekit is frozen.** No
+  cavekit updates are being pu

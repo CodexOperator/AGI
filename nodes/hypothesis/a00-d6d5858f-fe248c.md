@@ -2,8 +2,7 @@
 id: "hypothesis:a00-d6d5858f-fe248c"
 mint_id: 734632b8a421464baf1e4bf9bed81a98
 next_edges: []
-parents:
-  -
+parents: []
 type: hypothesis
 ---
 

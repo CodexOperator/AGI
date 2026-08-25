@@ -1370,13 +1370,14 @@ read as authoritative for months.
 Extend the existing check to all parent references: warn by default, `--strict`
 to fail. The mechanism exists; only its scope is wrong. Owns TODO **H4d**.
 
-**Corpus swept 2026-08-25, and the policy is now decided rather than implied.**
-The check was extended and then run to ground: 82 unresolvable parent references
-across 20 distinct strings, on a corpus with 0 duplicate ids (G7.2's blocker had
-to clear first). 79 were resolved; 3 were deliberately left standing and are
-owned elsewhere (G7.8 and G7.5 below). Node count did not move — no node was
-created or deleted to make a reference resolve, which is the rule this sweep was
-run under.
+**Corpus swept 2026-08-25. `INTEGRITY` is 0 — every parent reference in the
+corpus resolves.** The check was extended and then run to ground: 82
+unresolvable parent references across 20 distinct strings, on a corpus with 0
+duplicate ids (G7.2's blocker had to clear first), plus 7 blank `parents:`
+entries that named nothing. All are gone. **No node was created or deleted to
+make a reference resolve** — the two that could not be fixed by editing a node
+were fixed at their sources instead (G7.5 by repairing the file that would not
+parse, G7.8 by repairing the kit that was missing a requirement).
 
 **The decided policy, in the order it is applied:**
 
@@ -1407,10 +1408,20 @@ outcome, not a regression — it makes the disconnection visible where it was
 previously disguised as a broken pointer. Orphan count is the honest successor
 metric to dangling-reference count.
 
+Note what this leaves: 76 nodes were made parentless by step 2, and **75 of them
+were then deleted outright** as the noise they were — recorded separately in
+**S15**, which owns the node-count drop that purge caused. The one survivor,
+`verdict:chain-engine-r15`, was kept because it carries a real measurement
+(*"7 domains achieve 12-hop chains on cold reload … 241 tests pass"*) even though
+what it measures is the padding technique itself.
+
 **Still unbuilt, and the reason this stays `active`:** the sweep was manual. The
 check reports, it does not enforce — nothing stops the next generator run from
-minting the same class of reference, which is precisely what G7.8 records.
-`spawns:` and `next_edges:` are still unchecked in both directions.
+minting the same class of reference. `spawns:` and `next_edges:` are still
+unchecked in both directions, which this sweep proved matters: the repaired
+G7.5 node's stray line was a `spawns:` entry, and three `next_edges:` pointed at
+nodes S15 deleted. A reference is a reference; checking only one field name is
+the same scope mistake L15 made with `goal:`.
 
 ### G7.2 — Duplicate node ids silently hide files on disk — status: active
 
@@ -1506,6 +1517,31 @@ rule by hand: 79 references were removed and 0 nodes were.
 
 ### G7.5 — Parse failures are swallowed with zero signal — status: active
 
+> **Corpus repaired 2026-08-25; the code fix is still open, which is why this
+> stays `active`.** The malformed file below now parses, carries a `mint_id`,
+> and has a grid ref. **The loaders still swallow parse failures silently** —
+> that is the actual goal and nothing about it has changed. What has changed is
+> that the corpus no longer supplies a free fixture, so the fix needs the
+> synthetic one preserved here. Verbatim, the frontmatter as it stood:
+>
+> ```yaml
+> ---
+> id: "hyp:a00-1467544f-chain-600hop"
+>   - "exp:a00-1467544f-chain-600hop"     # <- stray: `spawns:` key was missing
+> parents:
+>   - idea:domain-bootstrap-discovery
+> subgraph: false
+> ...
+> ```
+>
+> A list item at indent level 1 directly after a scalar mapping entry, with no
+> key introducing it. PyYAML raises; both loaders catch and drop the file. The
+> repair was to restore the one missing line — `spawns:` — which is what the
+> orphaned item plainly belonged to. **Nothing else in the file was touched, and
+> no node was created or deleted.** Regression test: feed the block above to
+> `load_directory` and `load_existing_nodes` and require both to warn with the
+> path and the exception rather than continue.
+
 `load_directory`'s `except Exception: continue` and `load_existing_nodes`'s
 `except Exception: pass` both silently drop any file that raises while its
 frontmatter is parsed. **No caller learns anything.**
@@ -1541,8 +1577,9 @@ the count of genuinely unresolvable references is **2**, not 3: this one is a
 G7.5 symptom wearing a G7.1 costume.
 
 **Third consequence, found 2026-08-25, and like G7.2's it breaks the backup
-rather than the render: this node has no grid ref and is therefore not backed
-up at all.** `grid.py commit --all` refuses to write a node-id-keyed ref for a
+rather than the render: this node had no grid ref and was therefore not backed
+up at all.** *(Closed by the repair above — it now has a `mint_id` and a ref.
+Kept here because it is the argument for why a parse failure is never cosmetic.)* `grid.py commit --all` refuses to write a node-id-keyed ref for a
 file with no `mint_id`, and `backfill-mint-ids.py` — the only assigner (S14) —
 skips it with `SKIP (unparseable frontmatter)`. The parse failure that hides the
 node from the renderer also denies it the one mechanism G7 exists to guarantee.
@@ -1601,9 +1638,18 @@ which lives in the same code).
 
 ### G7.8 — A generator mints parent ids it never checks exist — status: active
 
-Found 2026-08-25 while sweeping G7.1, and it is the last unresolvable-reference
-class left standing on the corpus — the only one that **cannot be fixed by
-editing a node.**
+Found 2026-08-25 while sweeping G7.1. **Corpus side resolved the same day; the
+missing validation is what keeps this `active`.**
+
+**First, a correction worth keeping, because the wrong framing nearly bought an
+engine change that was not needed.** This was initially written up as "cannot be
+fixed by editing a node", as though the graph had a region the normal rules did
+not reach. That is backwards. `task:t-090` and `task:t-092` carry
+`origin: build-site` — they are **derived nodes, exactly like `nodes/goal/` is
+derived from this file.** "Edit the source, not the output" is not an exception
+to how this system works, it *is* how it works; the only real question was which
+source. Nothing here contradicts the philosophy, and the rule that already
+covers it is the one at the top of this document.
 
 `snapshot-build-site.py:371` derives a task's parent from its cavekit
 requirement by string construction:
@@ -1629,25 +1675,63 @@ fix the duplicate at its generator, not its output — arriving a second time
 through a different door, which is the argument for treating it as structural
 rather than incidental.
 
-Fix, when it is coded: resolve `parent_hyp` against the loaded corpus before
-writing it. On a miss, emit `parents: []` plus a `WARN:` naming the task, the
-`cavekit_req` and the id that failed to resolve — warn-by-default, matching
-G7.1/G7.2/G7.5. **Do not mint the missing hypothesis**, and do not drop the
-task: an unattributed task is a real state, and a fabricated ancestor is worse
-than a visible gap. The R11 requirement genuinely has no hypothesis behind it —
-that absence is signal about the kit, and silently papering over it is how
-`unattributed_nodes` came to sit at 626 without anyone reading it as a number
-about the graph.
+**The real root cause was in the kit, and the generator was reporting it
+honestly.** `parse_kits()` mints one hypothesis per `### Rn:` block found in
+`context/kits/cavekit-<domain>.md`. `cavekit-graph-core.md` contained
+**R1 through R10 and stopped there.** Meanwhile `build-site.md` opens the same
+domain with `### Domain: graph-core (11 R, 47 criteria, T-001..T-018, T-090,
+T-092)` and gives both tasks `Cavekit Requirement: graph-core/R11` with eight
+acceptance criteria named individually (R11.1 `traverse_bfs` … R11.8
+`detect_cycle`). **The plan declared eleven requirements; the kit defined ten.**
+`hyp:graph-core-r11` was never minted because there was nothing to mint it from.
 
-Deliberately **not coded on 2026-08-25**: the sweep that found it was scoped to
-the graph, and an engine change belongs in its own reviewed step. The two
-references stay dangling until then — which is the correct visible state, since
-the check is now reporting a real defect at its real location.
+So the dangling reference was not noise — it was the only symptom of a
+**genuine inconsistency between two cavekit inputs**, and it pointed straight at
+it. That is the integrity check doing precisely its job.
 
-Held open by the same logic as G7.5: the live corpus is currently this bug's
-only fixture. Landing the fix without a standing test means the next
-`build-site.md` edit that names a requirement with no hypothesis reintroduces
-it silently.
+**Fixed 2026-08-25 at the input**: added the missing `### R11: Traversal and
+Query API` block to `cavekit-graph-core.md`, transcribing the eight criteria
+`build-site.md` already spelled out. The generator minted `hyp:graph-core-r11`
+on the next run and both task references resolve. **Node count went up, not
+down; nothing was hand-written into `nodes/`, and no reference was invented** —
+R11 was always a real, documented requirement with a title and eight criteria.
+
+Two things worth carrying forward from the fix:
+
+- **It took two `--smoke` passes.** The first run minted the hypothesis *after*
+  the integrity check had already read the corpus, so the check still reported
+  both references as unresolved against a node that existed on disk by the time
+  it printed. This is **S7**'s two-pass wiring defect, and S7 describes it only
+  for `snapshot-goals.py` — it applies to `snapshot-build-site.py` identically.
+  Anyone reading a single post-edit run will believe a fix failed when it
+  succeeded.
+- **Editing the kit is safe here specifically because cavekit is frozen.** No
+  cavekit updates are being pulled pending its phase-out (below), so there is no
+  upstream to clobber the edit. **This would be the wrong fix on a live
+  dependency** — there it would have to go upstream or the generator would have
+  to tolerate the gap.
+
+**What remains open, and it is the part that matters:** the generator still
+builds `f"hyp:{domain}-{rnum.lower()}"` and writes it as a parent **without ever
+checking the id resolves.** The kit is consistent again, so nothing dangles
+today — but the next task citing a requirement with no `### Rn:` block
+reintroduces this silently, and the fixture is gone. Resolve `parent_hyp`
+against the loaded corpus before writing; on a miss emit `parents: []` plus a
+`WARN:` naming the task, the `cavekit_req` and the unresolved id —
+warn-by-default, matching G7.1/G7.2/G7.5. **Do not mint the missing hypothesis
+and do not drop the task**: an unattributed task is a real state, and a
+fabricated ancestor is worse than a visible gap.
+
+**Phase-out context (stated 2026-08-25, not yet a goal of its own).** The
+intent is that this graph replaces `context/kits/` outright — the kits are a
+smaller, weaker graph living inside a directory, which is the thing `agi-tree`
+exists to be. Until that lands, `context/kits/` and
+`context/plans/build-site.md` remain load-bearing generator inputs for 163
+`origin: build-site` nodes, and **H0i still applies with full force: deleting or
+emptying either one prunes every one of those nodes on the next run.** Retire
+them by deprecating the nodes first. When the phase-out is committed to, it
+wants its own goal — it subsumes this one, since a generator that no longer
+exists cannot mint an unvalidated parent.
 
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 
@@ -2092,6 +2176,59 @@ graph**: G2.5's body exceeds `snapshot-goals.py`'s 4000-character cap, so the
 paragraph is truncated out of `nodes/goal/g2.5`. That is **S12** demonstrating
 itself, and it is why this has its own short goal rather than living only as a
 paragraph inside a long one.
+
+## S15 — 75 hop-padding nodes deleted; node count dropped on purpose — status: complete
+
+Done 2026-08-25, immediately after G7.1's sweep. **This is the one place in this
+document where `node_count` goes down, so it is recorded rather than merely
+done.**
+
+G7.1 step 2 left 76 nodes parentless. 75 of them were **deleted from the working
+tree and from git**, not deprecated: `nodes/` went 837 → 762 files, `node_count`
+836 → 763 (the +2 is `goal:g7.8` and the newly-minted `hyp:graph-core-r11`).
+
+**What was deleted, stated precisely enough to audit.** Nodes whose entire body,
+heading stripped, is chain-extension bookkeeping under 200 characters — three
+templates, byte-identical across ten domains:
+
+- `Chain extension experiment cycle N (hops = 2*N+8 = M).`
+- `<domain> extendN cycle.`
+- `**R17:** Add third verdict→experiment→verdict cycle to extend chain to 14 hops.`
+
+These are the `X-r1-extendN` and `X-r1-r1-extendN` families: nodes that exist to
+make `longest_chain_length` larger and carry no claim, no method, no result.
+
+**Why deletion rather than deprecation, which is this project's normal answer.**
+The standing rule — deprecate, never delete — protects *prior art*: a retired
+line of reasoning someone may need to read. **These nodes are not prior art.**
+They record no reasoning; the finding *about* them (that stacked cycles inflate
+hop counts) is already held by `verdict:chain-engine-r15`, which was deliberately
+kept for exactly that reason and is now this graph's only witness to the
+technique. Deprecating 75 contentless nodes would leave the noise in every
+`rglob`, every corpus scan, and every external tool pointed at `nodes/` while
+adding nothing readable. **Nothing was lost that deprecation would have kept.**
+
+**And nothing was lost at all, which is what made this safe.** Every deleted node
+had a `mint_id` and a live `refs/grid/node/<mint_id>` ref. The grid is not
+touched by a working-tree delete, so each one's full version history remains
+fetchable by mint id. **This is the first time the grid has been relied on as
+the thing that makes a deletion reversible** — which is precisely the guarantee
+G7 was built to provide, used deliberately instead of defensively.
+
+Three `next_edges:` entries elsewhere pointed into the deleted set and were
+stripped in the same pass, so the purge created no new dangling references.
+`INTEGRITY` is 0 afterwards.
+
+**Deliberately left behind, and someone should decide about it:** 12 hop-padding
+nodes survive because they are still *parented* into live chains
+(`exp:chain-engine-r1-extend2`, `exp:embeddings-r2-extend3`, and similar), plus
+**30 nodes carrying `synthetic: true`** whose frontmatter is richer but whose
+titles are still *"…second extension (12-hop chain)"*. Removing those means
+unpicking chains rather than deleting leaves, which is a larger and more
+reversible-looking change than it sounds. **It was not attempted here.** See
+also **S10**, which is the same gamed mass surviving in a different place — a
+gitignored worktree — and **G6.2**, whose claim that this material was "removed
+from the working tree" is now true of these 75 and still not true of the rest.
 
 ## S1 — Retire `bin/` as a directory name — status: active
 
