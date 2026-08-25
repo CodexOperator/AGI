@@ -1,5 +1,5 @@
 ---
-id: "verdict:session-management-r1"
+id: "verdict:session-management-r1-crash-restore"
 type: verdict
 verdict: inconclusive_lean_proved:50
 confidence: 0.9
@@ -35,3 +35,5 @@ Results:
 
 Architecture: YAML files + git commits + graph loader = deterministic reconstruction.
 257 tests pass consistently. PROVEN.
+
+> Disambiguated 2026-08-25 from an id collision on `verdict:session-management-r1` (G7.2); the other file at `nodes/verdict/verdict-session-management-r1.md` retains that id.

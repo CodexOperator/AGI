@@ -1,5 +1,5 @@
 ---
-id: "bigger-outcome:graph-core-r1"
+id: "bigger-outcome:graph-core-primitives-r1-r10"
 next_edges:
   - "app-purpose:graph-core"
 parents:
@@ -25,3 +25,5 @@ type: bigger_outcome
 - Pluggable Persistence Layer (R8): abstracted backend contract
 - Portability Contract (R9): relative paths for repo portability
 - Bootstrap Command (R10): CLI to initialize new graph context
+
+> Disambiguated 2026-08-25 from an id collision on `bigger-outcome:graph-core-r1` (G7.2); the other file at `nodes/bigger-outcome/bigger-outcome-graph-core-r1.md` retains that id.
