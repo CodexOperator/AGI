@@ -322,9 +322,24 @@ def test_idempotent_byte_identical(project):
 
 
 def test_parse_goals_body_cap():
+    """goal:s12 changed this contract deliberately. It used to assert a hard
+    `[:4000]` cut; a single 6000-char block has no boundary inside it, so the
+    new rule keeps it whole and warns rather than severing it mid-stream. The
+    old assertion was encoding the defect."""
     text = "## G1 — Big — status: active\n\n" + ("x" * 6000)
     goals = sg.parse_goals(text)
-    assert len(goals[0]["body"]) == 4000
+    assert len(goals[0]["body"]) == 6000
+
+
+def test_parse_goals_truncates_visibly_at_a_block_boundary():
+    """The cap still binds when the body *has* boundaries — and when it binds,
+    it says so in the body rather than stopping mid-sentence."""
+    blocks = "\n\n".join(f"para {i} " + "y" * 300 for i in range(30))
+    goals = sg.parse_goals(f"## G1 — Big — status: active\n\n{blocks}")
+    body = goals[0]["body"]
+    assert len(body) < len(blocks)
+    assert body.rstrip().endswith("]**")     # the marker, not a severed word
+    assert "truncated:" in body
 
 
 # --------------------------------------------- H0i: re-snapshot must not strip
@@ -531,3 +546,73 @@ def test_write_frontmatter_none_survives_a_second_round_trip(tmp_path):
     fm2 = fm_of(p)
     assert fm2["contrasts"] is None
     assert fm2["parents"] == [None]
+
+
+# --- goal:s12 — a truncated goal body must be visibly truncated --------------
+
+
+@pytest.fixture()
+def capped_project(tmp_path, monkeypatch):
+    """A project whose config sets a small `goal_body_cap`, so the cap path is
+    exercised without needing a 4000-character fixture."""
+    (tmp_path / "agi-tree.config.json").write_text('{"goal_body_cap": 120}')
+    monkeypatch.setattr(sg, "PROJECT_ROOT", tmp_path)
+    return tmp_path
+
+
+def test_body_cap_reads_the_project_config(capped_project):
+    assert sg.body_cap() == 120
+
+
+def test_body_cap_falls_back_on_a_broken_config(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text("{not json")
+    monkeypatch.setattr(sg, "PROJECT_ROOT", tmp_path)
+    assert sg.body_cap() == sg.BODY_CAP
+
+
+def test_body_under_the_cap_is_untouched(capped_project):
+    body = "short enough\n\nto keep whole"
+    assert sg.cap_body(body, "G1") == body
+
+
+def test_truncation_cuts_at_a_block_boundary_and_says_so(capped_project, capsys):
+    """The exact defect goal:s12 records: `goal:g2.5`'s node body ended
+    `| Assigned | once, at node creation | derived,` — a markdown table severed
+    mid-cell. A block boundary makes that impossible; the marker makes the loss
+    legible to a reader who only ever sees the node."""
+    table = ("| a | b |\n|---|---|\n| once, at node creation | derived, freely |")
+    body = "first paragraph\n\n" + table + "\n\n" + ("tail " * 40).strip()
+    out = sg.cap_body(body, "G2.5")
+
+    assert out.startswith("first paragraph")
+    assert table in out                      # whole, or not at all
+    assert "characters dropped at a block boundary" in out
+    assert "GOALS.md" in out and "G2.5" in out
+    assert "WARN: goal G2.5" in capsys.readouterr().err
+
+
+def test_an_unsplittable_first_block_is_kept_whole_not_severed(capped_project, capsys):
+    """An honest overrun beats a malformed fragment: there is no boundary
+    inside a single over-cap block, so cutting anyway would reintroduce the
+    bug in the one case it is least recoverable."""
+    body = "x" * 500
+    assert sg.cap_body(body, "G9") == body
+    assert "unsplittable" in capsys.readouterr().err
+
+
+def test_zero_cap_disables_capping(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text('{"goal_body_cap": 0}')
+    monkeypatch.setattr(sg, "PROJECT_ROOT", tmp_path)
+    body = "para\n\n" + "y" * 10000
+    assert sg.cap_body(body, "G1") == body
+
+
+def test_truncation_is_never_silent(capped_project, capsys):
+    """The whole of question 1: whatever the cap is, a reader of the graph can
+    always tell a complete goal from a clipped one — in the body AND on
+    stderr."""
+    body = "\n\n".join(["block %d" % i + " " + "z" * 40 for i in range(10)])
+    out = sg.cap_body(body, "G7")
+    assert len(out) < len(body)
+    assert "truncated:" in out
+    assert "WARN: goal G7" in capsys.readouterr().err
