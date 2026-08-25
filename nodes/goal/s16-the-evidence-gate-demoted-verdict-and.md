@@ -3,6 +3,7 @@ confidence: 1.0
 goal_id: S16
 goal_kind: short-term
 id: "goal:s16"
+mint_id: f52e9f204e264a91b64f9e7e7aecef15
 origin: goals-doc
 seeds: []
 status: complete
