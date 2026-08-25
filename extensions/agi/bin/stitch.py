@@ -607,7 +607,8 @@ def _guard_out_dir(out_dir: Path, project_root: Path, engine_root: Path,
             "would destroy that git could not give back.")
 
 
-def _grid_payload(project_root: Path, node: Level3Node) -> tuple[str, bytes] | None:
+def _grid_payload(project_root: Path, node: Level3Node,
+                  grid_version: int | None = None) -> tuple[str, bytes] | None:
     """`(mode, bytes)` for one node's payload as recorded in its grid ref, or
     None if the node has no history or no payload entry there yet.
 
@@ -617,6 +618,13 @@ def _grid_payload(project_root: Path, node: Level3Node) -> tuple[str, bytes] | N
     disk — a node that has never been grid-committed is reported, because
     silently serving the engine file would make `--from-grid` a no-op that
     looks like a success.
+
+    `grid_version` selects a specific version out of that ref's history rather
+    than its tip — the second half of `goal:g6.3`'s untested case, which asks
+    for "`stitch.py` materialising a chosen version rather than whichever is
+    current". A node with fewer versions than asked for is reported, never
+    silently served at its tip: that is the "partial answer served as a
+    complete one" failure `goal:g7` names by name.
     """
     node_id = grid.parse_node_id(node.path)
     if node_id is None:
@@ -624,12 +632,19 @@ def _grid_payload(project_root: Path, node: Level3Node) -> tuple[str, bytes] | N
     ref = grid._resolve_read_ref(project_root, node.path, node_id)
     if ref is None:
         return None
-    return grid.read_tree_entry(project_root, ref, grid.PAYLOAD_ENTRY)
+    rev = ref
+    if grid_version is not None:
+        count = int(grid.git(project_root, "rev-list", "--count", ref))
+        if not 1 <= grid_version <= count:
+            return None
+        rev = f"{ref}~{count - grid_version}"
+    return grid.read_tree_entry(project_root, rev, grid.PAYLOAD_ENTRY)
 
 
 def materialize(project_root: Path, engine_root: Path, out_dir: Path,
                  force: bool = False, version: int | None = None,
-                 from_grid: bool = False, publish: bool = False) -> dict:
+                 from_grid: bool = False, publish: bool = False,
+                 grid_version: int | None = None) -> dict:
     """Copy every level-3 node's `payload_ref` into `out_dir`.
 
     Source of the bytes, and this is the whole of `goal:g6.1`'s arrow:
@@ -733,7 +748,7 @@ def materialize(project_root: Path, engine_root: Path, out_dir: Path,
     for n in targets:
         dst = out_dir / n.payload_ref
         if from_grid:
-            entry = _grid_payload(project_root, n)
+            entry = _grid_payload(project_root, n, grid_version)
             if entry is None:
                 skipped_missing.append(n.node_id)
                 continue
@@ -870,6 +885,11 @@ def main(argv: list[str] | None = None) -> int:
                           "off the engine tree. Modes and symlinks come back "
                           "from the tree entry. This is the direction goal:g6.1 "
                           "commits to: the engine is assembled from the graph.")
+    ap.add_argument("--grid-version", type=int, default=None,
+                     help="with --from-grid, materialize this version out of "
+                          "each node's grid history instead of its tip "
+                          "(goal:g6.3). A node with no such version is skipped "
+                          "and reported, never served at its tip instead.")
     ap.add_argument("--publish", action="store_true",
                      help="goal:g6.5 step 2 — allow --out to write INTO the "
                           "engine repo. Requires --from-grid and a clean engine "
@@ -885,6 +905,10 @@ def main(argv: list[str] | None = None) -> int:
     project_root = Path(args.project).resolve()
     engine_root = Path(args.engine_root).resolve() if args.engine_root else DEFAULT_ENGINE_ROOT
 
+    if args.grid_version is not None and not args.from_grid:
+        print("ERROR: --grid-version requires --from-grid", file=sys.stderr)
+        return 2
+
     if args.verify:
         report = verify_tree(project_root, engine_root)
         print_verify_report(report)
@@ -899,7 +923,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         stats = materialize(project_root, engine_root, out_dir, force=args.force,
                              version=args.version, from_grid=args.from_grid,
-                             publish=args.publish)
+                             publish=args.publish, grid_version=args.grid_version)
     except StitchSafetyError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
