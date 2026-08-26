@@ -57,33 +57,38 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: node_writer
+  how: '`import node_writer` at line 29'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: spawn_gate
-  how: '`import spawn_gate` at line 29'
+  how: '`import spawn_gate` at line 30'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(manifest_path.read_text())` at line 132'
+  how: '`json.loads(manifest_path.read_text())` at line 133'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 90'
+  how: '`yaml.safe_load(parts[1])` at line 91'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest_path
-  how: '`manifest_path.read_text()` at line 132'
+  how: '`manifest_path.read_text()` at line 133'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 182'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 183'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parent_path
-  how: '`parent_path.read_text(encoding=''utf-8'')` at line 260'
+  how: '`parent_path.read_text(encoding=''utf-8'')` at line 253'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -94,91 +99,80 @@ inputs:
   security: TODO(model)
 outputs:
 - name: _find_root
-  how: 'defines private function `_find_root` at line 36, signature: (cwd: Path |
+  how: 'defines private function `_find_root` at line 37, signature: (cwd: Path |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _load_graph_core
-  how: defines private function `_load_graph_core` at line 45
+  how: defines private function `_load_graph_core` at line 46
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _slug_from_node_id
-  how: 'defines private function `_slug_from_node_id` at line 59, signature: (node_id:
+  how: 'defines private function `_slug_from_node_id` at line 60, signature: (node_id:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _node_file_path
-  how: 'defines private function `_node_file_path` at line 66, signature: (root: Path,
+  how: 'defines private function `_node_file_path` at line 67, signature: (root: Path,
     node_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _read_frontmatter
-  how: 'defines private function `_read_frontmatter` at line 82, signature: (body:
+  how: 'defines private function `_read_frontmatter` at line 83, signature: (body:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _write_node
-  how: 'defines private function `_write_node` at line 94, signature: (path: Path,
+  how: 'defines private function `_write_node` at line 95, signature: (path: Path,
     fm: dict, body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _gate
-  how: 'defines private function `_gate` at line 102, signature: (agent: dict, fm:
+  how: 'defines private function `_gate` at line 103, signature: (agent: dict, fm:
     dict, corpus)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_wire
-  how: 'defines public function `cmd_wire` at line 123, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_wire` at line 124, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 332
+  how: defines public function `main` at line 325
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(content, encoding=''utf-8'')` at line 99'
+  how: '`path.write_text(content, encoding=''utf-8'')` at line 100'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_path
   how: '`graph_path.write_text(json.dumps(graph_data, indent=2), encoding=''utf-8'')`
-    at line 302'
+    at line 295'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(graph_data, indent=2)` at line 302'
+  how: '`json.dumps(graph_data, indent=2)` at line 295'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.dump
-  how: '`yaml.dump(dict(fm), default_flow_style=False)` at line 97'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: vpath
-  how: '`vpath.write_text(''---\n'' + yaml.dump(fm, default_flow_style=False) + ''---\n\n''
-    + (notes or ''''), encoding=''utf-8'')` at line 247'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: yaml.dump
-  how: '`yaml.dump(fm, default_flow_style=False)` at line 249'
+  how: '`yaml.dump(dict(fm), default_flow_style=False)` at line 98'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 13 `print()` call(s) at line(s) [129, 305, 306, 308, 309, 311, 313, 315, 321,
-    323, 325, 327, 328]
+  how: 13 `print()` call(s) at line(s) [130, 298, 299, 301, 302, 304, 306, 308, 314,
+    316, 318, 320, 321]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

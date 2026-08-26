@@ -2734,6 +2734,34 @@ parents. Both must be rejected with a message naming the rule and the schema
 file. Attempt a legal spawn and get an explicit approval line. If any of the
 three is silent, this is not done.
 
+**Writer coverage closed 2026-08-26. Still active for the corpus half.**
+`verdict:spawn-gate-lands-on-writer-path` recorded the gate reaching 2 of ~6
+writers, with `dispatch.py` carrying a *duplicated, un-gated copy* of the whole
+scaffold routine — its own type tuple, its own body prompts, its own
+`write_text()`. It was deleted rather than gated: `bin/node_writer.py` is now
+the only routine that creates a node file, and all four spawn writers
+(`cli.py scaffold`, `cli.py done`, `post_wire.py`, `dispatch.py`) reach it the
+same way. Gating the copy would have left two gated routines to drift apart,
+which is the one-fact-many-definitions defect this goal names rather than the
+fix for it.
+
+Four defects fell out of the merge that the duplication had been hiding: every
+big-zoom scaffold was an illegal parentless `hypothesis` (now an `idea`, one of
+the three parentless-legal shapes); `post_wire.py`'s fallback verdict minted no
+`mint_id` and named its file after the *parent's* slug while its `id:` used the
+agent id; and dispatch.py's re-scaffold branch compared bodies against a string
+it never equalled, so it was dead code. The hyphen generator is gone with it —
+the 2 `bigger-outcome` and 2 `app-purpose` nodes were renamed the same day
+(file, `id:` and `type:`, mint ids preserved, 5 inbound edges rewritten), so the
+corpus is now underscore-only.
+
+**What keeps this goal active:** the corpus half is untouched by design — 53
+nodes violate `min_parents` and 3 carry no `type:` at all. The three
+*generators* (`snapshot-goals.py`, `snapshot-build-site.py`, `level3.py`) are
+still un-gated, still deliberately: they re-derive a whole node population from
+an input file rather than spawning, and a generator that trips the gate is a
+generator bug that H0i says should be reported, not failed on.
+
 ## S1 — Retire `bin/` as a directory name — status: active
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`

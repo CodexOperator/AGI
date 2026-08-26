@@ -1,6 +1,6 @@
 ---
 name: app_purpose
-derived_from: corpus-survey-2026-08-25 (n=15 as app_purpose, +2 as app-purpose)
+derived_from: corpus-survey-2026-08-25 (n=15 as app_purpose, +2 as app-purpose; both renamed 2026-08-26, n=17)
 fields:
   title: {type: str}
   parents: {type: list}      # bigger_outcome | outcome ids
@@ -30,18 +30,17 @@ ID prefix: `app_purpose:<short-slug>`.
 ## Spawn rule
 
 `allowed_parents: [bigger_outcome, outcome]`, `max_parents: 2`. Observed over
-15 nodes: `bigger_outcome` 14, `outcome` 2, `bigger-outcome` 1. **Zero
-parentless.**
+17 nodes: `bigger_outcome` 15, `outcome` 2. **Zero parentless.**
 
-That third figure is the spelling split showing up in an *edge*, not just a
-filename: one `app_purpose` node names a parent whose type is spelled
-`bigger-outcome`. The gate canonicalises `-` → `_` on both sides, so the edge
-validates against `allowed_parents: [bigger_outcome, outcome]` without
-anything being renamed. Had it matched literally, a correct edge would have
-been rejected for punctuation.
+The 2026-08-25 survey read that as 14 + 2 + one parent typed `bigger-outcome`,
+which was the spelling split showing up in an *edge* rather than just a
+filename. The gate canonicalises `-` → `_` on both sides, so that edge
+validated against `allowed_parents: [bigger_outcome, outcome]` while the split
+was still there; had it matched literally, a correct edge would have been
+rejected for punctuation.
 
-## Two spellings, one type
+## One spelling, as of 2026-08-26
 
-`app_purpose` (15) is canonical; `app-purpose` (2) resolves to this same
-schema. See `[bigger_outcome].md` for the identical story and the generator
-that produced it.
+`app_purpose` (17 nodes) is the only spelling in the corpus — the two
+`app-purpose` nodes were renamed on 2026-08-26. See `[bigger_outcome].md` for
+the identical story and the generator that produced it.

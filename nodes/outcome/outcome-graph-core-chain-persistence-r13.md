@@ -3,7 +3,7 @@ confidence: 1.0
 id: "outcome:graph-core-chain-persistence-r13"
 mint_id: 6e9fc3be531e4f74a646bfa4ac5007a0
 next_edges:
-  - bigger-outcome:graph-core-r1
+  - bigger_outcome:graph-core-r1
 parents:
   - mvp:graph-core-r1
 status: open
