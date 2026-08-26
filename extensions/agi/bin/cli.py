@@ -245,36 +245,16 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
 
 
 def _find_node_file(root: Path, node_id: str) -> Path | None:
-    """Find a node file by its canonical id. Tries path heuristic then frontmatter scan."""
-    parts = node_id.split(":", 1)
-    if len(parts) == 2:
-        ntype, slug = parts
-    else:
-        return None
-    type_dir = ntype.replace("-", "_")
+    """Find a node file by its canonical id.
 
-    # Try direct path first (simple slug case)
-    for ndir in [root / "nodes" / type_dir, root / "nodes" / ntype]:
-        f = ndir / f"{slug}.md"
-        if f.exists():
-            return f
-
-    # Scan directory for frontmatter id match (handles t-XXX-description.md pattern)
-    import yaml
-    for ndir in [root / "nodes" / type_dir, root / "nodes" / ntype]:
-        if not ndir.is_dir():
-            continue
-        for nf in ndir.glob("*.md"):
-            try:
-                text = nf.read_text()
-                if text.startswith("---"):
-                    fm_text = text.split("---", 2)[1]
-                    fm = yaml.safe_load(fm_text) or {}
-                    if fm.get("id") == node_id:
-                        return nf
-            except Exception:
-                continue
-    return None
+    goal:s17 -- the one lookup, in `node_writer`, beside the one write. This
+    copy assumed the id prefix names the directory, so it could not resolve the
+    147 corpus ids on an abbreviated prefix (`exp:`/`hyp:` for nodes under
+    `nodes/experiment/` and `nodes/hypothesis/`). `post_wire.py`'s separate
+    copy missed 417. Kept as a thin alias because it is called from six places
+    here and the name is the more readable one at each of them.
+    """
+    return node_writer.find_node_file(root, node_id)
 
 
 def _claim_node(root: Path, node_id: str, session_id: str, force: bool = False) -> tuple[bool, str]:

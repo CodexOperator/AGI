@@ -126,6 +126,103 @@ def node_dir(root, node_type) -> Path:
     return Path(root) / "nodes" / canonical_node_type(node_type)
 
 
+#: `find_node_file`'s whole-corpus index, keyed by resolved root. Built once,
+#: dropped whenever `write_node` adds a file, so it can never go stale within a
+#: process.
+_ID_INDEX: dict = {}
+
+
+def _build_id_index(root: Path) -> dict:
+    """id -> path, over the whole node tree. The last-resort lookup."""
+    index: dict = {}
+    nd = Path(root) / "nodes"
+    if not nd.is_dir():
+        return index
+    for nf in sorted(nd.rglob("*.md")):
+        try:
+            text = nf.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if not text.startswith("---"):
+            continue
+        parts = text.split("---", 2)
+        if len(parts) < 3:
+            continue
+        try:
+            import yaml
+            fm = yaml.safe_load(parts[1]) or {}
+        except Exception:
+            continue
+        if isinstance(fm, dict):
+            nid = fm.get("id")
+            if isinstance(nid, str) and nid.strip():
+                index.setdefault(nid.strip(), nf)
+    return index
+
+
+def find_node_file(root, node_id) -> Path | None:
+    """id -> the file that holds it. The one lookup, mirroring the one write.
+
+    `cli.py` and `post_wire.py` each carried their own version of this and
+    they did not agree, which is the read-side of the defect S17 names.
+    Measured over the 781-node corpus on 2026-08-26:
+
+      post_wire's copy could not resolve 417 ids -- 53% of the graph, 270 of
+      which cli.py's copy resolved fine. That is not cosmetic: post_wire's
+      "no file found" branch *creates a verdict node*, so every unresolved id
+      minted a duplicate instead of updating the node it meant to update. 56
+      of the 270 were verdicts, which is the type post_wire exists to wire.
+
+      cli.py's copy missed 147, all of them ids on an abbreviated prefix --
+      `exp:` and `hyp:` for nodes under `nodes/experiment/` and
+      `nodes/hypothesis/`. Neither copy had a fallback that did not assume the
+      id prefix names the directory.
+
+    Three steps, cheapest first, so the common case still costs one `stat`:
+
+    1. `nodes/<canonical-type>/<slug>.md`, then the raw prefix as written.
+    2. a frontmatter scan of those same two directories -- catches a
+       descriptive filename like `t-001-thing.md`.
+    3. a frontmatter index over the whole tree -- catches an id whose prefix
+       is not its directory at all. Built once per root and dropped by
+       `write_node`, so it cannot go stale under its own writer.
+    """
+    if not isinstance(node_id, str) or ":" not in node_id:
+        return None
+    root = Path(root)
+    prefix, slug = node_id.split(":", 1)
+    dirs = []
+    for name in (canonical_node_type(prefix), prefix.strip()):
+        d = root / "nodes" / name
+        if d not in dirs:
+            dirs.append(d)
+
+    for d in dirs:
+        f = d / f"{slug}.md"
+        if f.exists():
+            return f
+
+    for d in dirs:
+        if not d.is_dir():
+            continue
+        for nf in sorted(d.glob("*.md")):
+            try:
+                text = nf.read_text(encoding="utf-8")
+                if not text.startswith("---"):
+                    continue
+                import yaml
+                fm = yaml.safe_load(text.split("---", 2)[1]) or {}
+            except Exception:
+                continue
+            if isinstance(fm, dict) and fm.get("id") == node_id:
+                return nf
+
+    key = str(root.resolve())
+    if key not in _ID_INDEX:
+        _ID_INDEX[key] = _build_id_index(root)
+    return _ID_INDEX[key].get(node_id)
+
+
 def _needs_quoting(sval: str) -> bool:
     """True when a scalar would not survive the cheap frontmatter parsers.
 
@@ -306,5 +403,9 @@ def write_node(
 
     node_file.parent.mkdir(parents=True, exist_ok=True)
     node_file.write_text(text, encoding="utf-8")
+    # A new file invalidates `find_node_file`'s whole-corpus index. Dropping it
+    # here is what makes caching safe at all: the only routine that adds a node
+    # is the only routine that has to remember.
+    _ID_INDEX.pop(str(root.resolve()), None)
     res.status = WRITTEN
     return res

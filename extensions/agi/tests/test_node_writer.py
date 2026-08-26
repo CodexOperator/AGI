@@ -262,6 +262,68 @@ def test_reuse_scaffold_preserves_filled_in_work(project):
 
 
 # --------------------------------------------------------------------------
+# find_node_file — the one lookup, beside the one write
+# --------------------------------------------------------------------------
+
+def test_direct_path_is_found(project):
+    assert nw.find_node_file(project, "hypothesis:h1") == \
+        project / "nodes" / "hypothesis" / "h1.md"
+
+
+def test_descriptive_filename_is_found_by_frontmatter(project):
+    """`t-001-some-description.md` holding `id: task:thing`.
+
+    Both old copies handled this in `nodes/task/` only, and only `cli.py`'s
+    even tried.
+    """
+    d = project / "nodes" / "task"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "t-001-some-description.md").write_text(
+        "---\nid: task:thing\ntype: task\n---\n\nbody\n")
+    assert nw.find_node_file(project, "task:thing") == d / "t-001-some-description.md"
+
+
+def test_abbreviated_prefix_is_found(project):
+    """`exp:` and `hyp:` ids live under `experiment/` and `hypothesis/`.
+
+    147 corpus ids are shaped like this, and `cli.py`'s copy resolved none of
+    them: every step it had assumed the id prefix names the directory.
+    """
+    d = project / "nodes" / "experiment"
+    (d / "abbrev.md").write_text("---\nid: exp:abbrev\ntype: experiment\n---\n\nb\n")
+    assert nw.find_node_file(project, "exp:abbrev") == d / "abbrev.md"
+
+
+def test_unknown_id_is_none_not_a_guess(project):
+    # G7.1: a reference that resolves to nothing is reported, never inferred.
+    assert nw.find_node_file(project, "verdict:no-such-node") is None
+    assert nw.find_node_file(project, "not-an-id") is None
+
+
+def test_the_index_cannot_go_stale_under_its_own_writer(project):
+    """Prime the cache with a miss, then write the node and look again."""
+    assert nw.find_node_file(project, "verdict:later") is None      # builds index
+    res = nw.write_node(project, "verdict", "later", ["experiment:e1"])
+    assert res.written
+    assert nw.find_node_file(project, "verdict:later") == res.path
+
+
+def test_both_readers_are_the_same_function():
+    cli = _load("cli")
+    post_wire = _load("post_wire")
+    for name in ("cli.py", "post_wire.py"):
+        assert "node_writer.find_node_file" in (BIN / name).read_text(), name
+    # And they agree on a case each old copy got differently.
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        r = Path(td)
+        d = r / "nodes" / "experiment"
+        d.mkdir(parents=True)
+        (d / "x.md").write_text("---\nid: exp:x\ntype: experiment\n---\n\nb\n")
+        assert cli._find_node_file(r, "exp:x") == post_wire._node_file_path(r, "exp:x") == d / "x.md"
+
+
+# --------------------------------------------------------------------------
 # dispatch.py — the writer this whole change is about
 # --------------------------------------------------------------------------
 
