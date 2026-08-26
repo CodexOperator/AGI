@@ -65,19 +65,17 @@ def _slug_from_node_id(node_id: str) -> str:
 
 
 def _node_file_path(root: Path, node_id: str) -> Path | None:
-    """Find the .md file for a node_id."""
-    if ":" not in node_id:
-        return None
-    ntype, slug = node_id.split(":", 1)
-    type_dir = ntype.replace("-", "_")
-    candidates = [
-        root / "nodes" / type_dir / f"{slug}.md",
-        root / "nodes" / ntype / f"{slug}.md",
-    ]
-    for p in candidates:
-        if p.exists():
-            return p
-    return None
+    """Find the .md file for a node_id.
+
+    goal:s17 -- the one lookup, in `node_writer`, beside the one write. This
+    copy tried two exact paths and gave up, so it could not resolve **417 of
+    the 781 corpus ids** -- 270 of which `cli.py`'s separate copy resolved
+    fine. That mattered more here than anywhere: the branch this feeds treats
+    "not found" as "no verdict node exists yet" and **creates one**, so every
+    unresolved id minted a duplicate instead of updating the node it meant to
+    update. 56 of the 270 were verdicts.
+    """
+    return node_writer.find_node_file(root, node_id)
 
 
 def _read_frontmatter(body: str) -> tuple[dict, str]:
