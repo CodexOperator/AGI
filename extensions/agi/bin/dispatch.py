@@ -34,6 +34,11 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent  # extensions/agi
 ZOOM_PY = PLUGIN_ROOT / "bin" / "zoom.py"
 CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 
+# goal:s17 -- the one node-writing routine, reached the same way `cli.py` and
+# `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import node_writer  # noqa: E402
+
 # Canonical name first; the legacy name stays accepted during the rename window.
 CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
 
@@ -441,92 +446,71 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
     return out
 
 
+def _node_type_for(level: str, target: str | None, role: str | None) -> str:
+    """Which chain step this agent is being asked to write.
+
+    Type names are the canonical underscore spellings
+    (`context/schemas/[shape].md`); this function used to hold a private
+    `NODE_TYPES` tuple that still said `bigger-outcome` / `app-purpose`, which
+    is how the corpus ended up with 2 nodes of each hyphenated spelling beside
+    17 and 15 of the underscore one. The table now lives in
+    `node_writer.CANONICAL_NODE_TYPES` and nowhere else.
+
+    Big zoom writes an `idea`, not a `hypothesis`. `_pick_targets` returns
+    `("big", None, ...)` -- a big-zoom agent has no target and therefore no
+    parent, and `[hypothesis].md` says `min_parents: 1`, so every big-zoom
+    scaffold was an illegal spawn the old un-gated copy wrote anyway. `idea` is
+    one of the exactly three parentless-legal shapes in `[shape].md`, and it is
+    what the skill already calls slot 0: "a fresh idea or top-level fork".
+    """
+    if role == "research":
+        return "experiment"
+    if role == "implementation":
+        return "mvp"
+    if not target:
+        return "idea" if level == "big" else "hypothesis"
+    if level == "big":
+        return "hypothesis"
+    # small zoom: extend from target — the step follows the target's type.
+    step = {
+        "hypothesis": "experiment",
+        "experiment": "verdict",
+        "verdict": "mvp",
+        "mvp": "outcome",
+        "outcome": "bigger_outcome",
+    }
+    return step.get(target.split(":", 1)[0], "hypothesis")
+
+
 def _scaffold_node_for_agent(
     root: Path, iter_n: int, agent_id: str, level: str, target: str | None, role: str | None = None
 ) -> dict | None:
     """Decide what node type to scaffold and pre-create the file skeleton.
 
-    Returns a dict with node_type, node_id, parent, slug or None if nothing to scaffold.
+    Returns `node_writer.NodeWrite.as_info()`, or None when nothing was
+    written — a rejected spawn, or a file that already holds real content.
+
+    goal:s17 -- this function used to carry a duplicated copy of `cli.py
+    scaffold`: its own type tuple, its own body prompts and its own
+    `write_text()`. That copy was never gated, so a pi-runtime run
+    (`driver.sh --max-iters N`) wrote nodes the spawn gate never saw. It now
+    calls the one node-writing routine like every other writer. A rejection is
+    NOT fatal: the agent is dispatched without a scaffold and writes its own
+    node through `cli.py done`, which is gated too.
     """
     import uuid
 
-    NODE_TYPES = ("hypothesis", "experiment", "verdict", "mvp", "outcome", "bigger-outcome", "app-purpose")
-
-    # Pick node type based on target type, or override via role
-    if role == "research":
-        node_type = "experiment"
-    elif role == "implementation":
-        node_type = "mvp"
-    elif level == "big":
-        node_type = "hypothesis"
-    else:
-        # small zoom: extend from target — decide step based on target type
-        if target:
-            if target.startswith("hypothesis:"):
-                node_type = "experiment"
-            elif target.startswith("experiment:"):
-                node_type = "verdict"
-            elif target.startswith("verdict:"):
-                node_type = "mvp"
-            elif target.startswith("mvp:"):
-                node_type = "outcome"
-            elif target.startswith("outcome:"):
-                node_type = "bigger-outcome"
-            else:
-                node_type = "hypothesis"
-        else:
-            node_type = "hypothesis"
-
-    # Generate slug
+    node_type = _node_type_for(level, target, role)
     slug = f"{agent_id}-{(uuid.uuid4().hex[:6])}"
-    node_id = f"{node_type}:{slug}"
-    parent = target or ""
-
-    # Write the scaffold file
-    type_dir = node_type.replace("-", "_")
-    node_dir = root / "nodes" / type_dir
-    node_dir.mkdir(parents=True, exist_ok=True)
-    node_file = node_dir / f"{slug}.md"
-
-    prompts = {
-        "hypothesis": "## Hypothesis\n\nWhat is the testable claim?\nWhat would prove it? What would disprove it?\n\n",
-        "experiment": "## Experiment\n\nWhat did you do? What happened?\nInclude command/inputs and actual outputs.\n\n## Evidence\n\nRaw output, logs.\n\n",
-        "verdict": "## Verdict\n\nproved | disproved | inconclusive_lean_proved:N | inconclusive_lean_disproved:N\n\n## Evidence\n\nWhat supports this?\n\n## Confidence\n\n0.0 – 1.0\n\n",
-        "mvp": "## MVP\n\nWhat does this do?\n\n## Inputs\n\nWhat does it take?\n\n## Outputs\n\nWhat does it produce?\n\n",
-        "outcome": "## Outcome\n\nInput shape:\n\nOutput shape:\n\nBehavior:\n\nEdge cases:\n\n",
-        "bigger-outcome": "## Bigger Outcome\n\nWhat purpose does this serve?\n\n",
-        "app-purpose": "## App Purpose\n\nTop-level mission?\n\n",
-    }
-
-    # Check if file exists and has real content (not just scaffold prompts)
-    if node_file.exists():
-        existing = node_file.read_text()
-        # Split on second --- to get body content
-        parts = existing.split("---", 2)
-        if len(parts) >= 3:
-            body = parts[2].strip()
-            # If body is just the scaffold prompt (empty/minimal), overwrite it
-            # Otherwise content exists → return None to preserve it
-            if body not in prompts.get(node_type, ""):
-                return None
-        else:
-            # Malformed file, overwrite with fresh scaffold
-            pass
-
-    body = prompts.get(node_type, "")
-    fm = [
-        "---",
-        f"id: {node_id}",
-        f"type: {node_type}",
-        f"parents:\n  - {parent}",
-        "next_edges: []",
-        "---",
-        "",
-        f"# {node_id}",
-        "",
-    ]
-    node_file.write_text("\n".join(fm) + body)
-    return {"node_type": node_type, "node_id": node_id, "parent": parent, "slug": slug, "path": str(node_file)}
+    res = node_writer.write_node(
+        root, node_type, slug, [target] if target else [],
+        on_exists=node_writer.REUSE_SCAFFOLD,
+    )
+    if not res.written:
+        print(f"no scaffold for {agent_id}: {res.status} — {res.reason}",
+              file=sys.stderr)
+        return None
+    return res.as_info()
 
 
 def _build_pi_args(

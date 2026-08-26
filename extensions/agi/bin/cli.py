@@ -19,41 +19,25 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
-import spawn_gate  # noqa: E402
+import node_writer  # noqa: E402
 from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
-# goal:s14 — a node gets its permanent id from whatever writes the file, not
-# from a backfill run afterwards. The ENGINE's graph_core, never a project's
-# vendored src/ (which predates `mint_permanent_id` entirely).
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from graph_core.identity import mint_permanent_id  # noqa: E402
-
-# goal:s17 -- underscore is canonical (`context/schemas/[shape].md`). The
-# hyphenated spellings stay ACCEPTED as input aliases, because scripts and
-# habits pass them, but `scaffold` now *writes* the underscore form. This is
-# the generator fix for the split that put 2 `app-purpose` nodes beside 15
-# `app_purpose` ones; no existing node file is renamed, and 17 renames are
-# explicitly not the remedy. `bin/dispatch.py` carries its own copy of this
-# tuple and still mints hyphens -- reported, not owned by this change.
+# goal:s17 -- the type table and the scaffold routine both live in
+# `bin/node_writer.py` now, and every writer imports them from there. They used
+# to live here AND in `bin/dispatch.py`, whose copy was never gated and still
+# minted the hyphenated spellings `[shape].md` calls non-canonical. Re-exported
+# under the old names because `argparse` reads `NODE_TYPES` a few lines below
+# and the `scaffold`/`done` help text is a documented surface.
 #
-# `idea` and `task` were added at the same time. Both are heavily used -- 71
-# and 91 nodes -- and neither could be created by the tool whose job is
-# creating nodes, which is why the S17 falsifier "write a task with three
-# parents" could not even be attempted through this path until now. `idea`
-# also matters as the only non-goal parentless-legal type, so it is the shape
-# that proves `min_parents: 0` is honoured rather than merely declared.
-#
-# `goal` and `level3` are deliberately NOT here. Both are *derived*:
-# `snapshot-goals.py` regenerates `nodes/goal/` from GOALS.md and deletes
-# every `origin: goals-doc` node it does not re-derive, and `level3.py`
-# regenerates the census. A hand-scaffolded node of either type is a stray the
-# next loop run silently removes -- offering the option would be offering a trap.
-CANONICAL_NODE_TYPES = (
-    "idea", "hypothesis", "task", "experiment", "verdict", "mvp", "outcome",
-    "bigger_outcome", "app_purpose",
-)
-TYPE_ALIASES = {"bigger-outcome": "bigger_outcome", "app-purpose": "app_purpose"}
-NODE_TYPES = CANONICAL_NODE_TYPES + tuple(TYPE_ALIASES)
+# `idea` and `task` are in the table for a reason worth keeping written down:
+# both are heavily used -- 71 and 91 nodes -- and neither could be created by
+# the tool whose job is creating nodes, which is why the S17 falsifier "write a
+# task with three parents" could not even be attempted through this path until
+# S17. `idea` also matters as the only non-goal parentless-legal type, so it is
+# the shape that proves `min_parents: 0` is honoured rather than merely declared.
+CANONICAL_NODE_TYPES = node_writer.CANONICAL_NODE_TYPES
+TYPE_ALIASES = node_writer.TYPE_ALIASES
+NODE_TYPES = node_writer.NODE_TYPES
 
 
 # Canonical name first; the legacy name stays accepted during the rename window.
@@ -158,59 +142,43 @@ def cmd_done(args: argparse.Namespace) -> int:
             print(f"updated verdict in: {node_file}")
         else:
             # Fallback: write verdict node. goal:s17 -- this is cli.py's second
-            # node-creating path, so it gets the same spawn check as
-            # `scaffold`. A verdict is `min_parents: 1`
+            # node-creating path, and it goes through `node_writer.write_node`
+            # like every other one, so it gets the spawn check for free rather
+            # than by remembering to call it. A verdict is `min_parents: 1`
             # (`context/schemas/[verdict].md`), and this path has historically
             # emitted one with `parents` omitted whenever `--parent` was not
             # passed -- exactly the shape that put 21 parentless verdicts in
             # the corpus.
-            srules, stype_index = spawn_gate.gate_for_root(root)
-            spawn_gate.announce_schema_errors(srules)
-            vid = f"verdict:{args.node_id.replace(':', '_')}"
-            sgate = spawn_gate.check_spawn(
-                "verdict", [args.parent] if args.parent else [],
-                rules=srules, type_index=stype_index, node_id=vid,
+            extra = {
+                "verdict": verdict,
+                "confidence": args.confidence,
+                "evidence_runs": gate.evidence_runs,
+            }
+            if args.next_edge:
+                extra["next_edges"] = [args.next_edge]
+            if gate.demoted:
+                extra["demoted_from"] = gate.original
+                extra["demote_reason"] = gate.reason
+            if gate.bypassed:
+                extra["evidence_gate"] = "bypassed"
+            # goal:s14 -- `mint_id` comes from the writer, not a later backfill:
+            # before it did, every verdict this path wrote was skipped by
+            # `grid.py commit --all` and silently had no version history.
+            res = node_writer.write_node(
+                root, "verdict", args.node_id.replace(":", "_"),
+                [args.parent] if args.parent else [],
+                extra_fm=extra, body=args.notes or "",
                 bypass=args.no_spawn_gate,
             )
-            spawn_gate.announce(sgate)
-            if not sgate.ok:
+            if res.rejected:
                 print(
-                    f"ERR: spawn rejected for {vid}: {sgate.reason}. "
-                    f"Fix: {sgate.fix} (--no-spawn-gate bypasses this, loudly.)",
+                    f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
+                    f"Fix: {res.gate.fix} "
+                    "(--no-spawn-gate bypasses this, loudly.)",
                     file=sys.stderr,
                 )
                 return 2
-            verdict_dir = root / "nodes" / "verdict"
-            verdict_dir.mkdir(parents=True, exist_ok=True)
-            slug = args.node_id.replace(":", "_")
-            vfile = verdict_dir / f"{slug}.md"
-            fm_lines = [
-                "---",
-                f"id: verdict:{slug}",
-                # goal:s14 -- this path minted no mint_id, so every verdict it
-                # wrote was skipped by `grid.py commit --all` and silently had
-                # no version history. `context/schemas/[verdict].md` now lists
-                # mint_id as required, which is what surfaced it.
-                f"mint_id: {mint_permanent_id()}",
-                "type: verdict",
-                f"verdict: {verdict}",
-                f"confidence: {args.confidence}",
-                f"evidence_runs: {gate.evidence_runs}",
-                f"next_edges: [{args.next_edge}]" if args.next_edge else "next_edges: []",
-            ]
-            for k, v in spawn_gate.stamp({}, sgate).items():
-                fm_lines.append(f"{k}: {v}")
-            if gate.demoted:
-                fm_lines.append(f"demoted_from: {gate.original}")
-                fm_lines.append(f"demote_reason: {gate.reason}")
-            if gate.bypassed:
-                fm_lines.append("evidence_gate: bypassed")
-            if args.parent:
-                fm_lines.append(f"parents:\n  - {args.parent}")
-            fm_lines.append("---")
-            body = args.notes or ""
-            vfile.write_text("\n".join(fm_lines) + f"\n\n{body}\n")
-            print(f"wrote verdict: {vfile}")
+            print(f"wrote verdict: {res.path}")
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     return 0
@@ -234,8 +202,6 @@ def cmd_pending(args: argparse.Namespace) -> int:
 def cmd_scaffold(args: argparse.Namespace) -> int:
     """Pre-create a node file skeleton so the agent just fills in the body."""
     root = _find_root()
-    # goal:s17 -- canonicalise the type before it is minted into an id.
-    node_type = TYPE_ALIASES.get(args.node_type, args.node_type)
     # `--parent` repeats. Before goal:s17 it was a single REQUIRED flag, which
     # meant argparse -- not the schema -- decided how many parents a node may
     # have, and it decided "exactly one" for every type. That is the rule the
@@ -243,89 +209,36 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
     # parentless), and an argparse error names no rule and no schema file, so a
     # rejection taught nothing. The flag now collects; the gate is the authority.
     parents = [p for p in (args.parents or []) if p]
-    parent = parents[0] if parents else None
-    slug = args.slug
-    agent_id = args.agent_id
-    iter_n = args.iter_n
 
-    # node_id in canonical form: type:slug
-    node_id = f"{node_type}:{slug}"
-    # Convert type to directory name
-    type_dir = node_type.replace("-", "_")
-
-    # goal:s17 spawn gate. THIS is the spawn: a type and a parent, decided here
-    # and baked into a file. Checked before anything is written, so a rejection
-    # leaves no node behind -- the same convention `done` uses for an
-    # evidence_runs taxonomy violation. Approvals are announced too: an agent
-    # must be able to tell "checked and fine" from "nothing looked".
-    rules, type_index = spawn_gate.gate_for_root(root)
-    spawn_gate.announce_schema_errors(rules)
-    gate = spawn_gate.check_spawn(
-        node_type, parents, rules=rules, type_index=type_index,
-        node_id=node_id, bypass=args.no_spawn_gate,
+    # goal:s17 -- THIS is the spawn: a type and a parent, decided here and baked
+    # into a file. `node_writer.write_node` canonicalises the type, runs the
+    # spawn gate before touching the filesystem (so a rejection leaves no node
+    # behind, the same convention `done` uses for an evidence_runs taxonomy
+    # violation), mints the `mint_id` goal:s14 requires, and writes the file.
+    # Approvals are announced too: an agent must be able to tell "checked and
+    # fine" from "nothing looked".
+    res = node_writer.write_node(
+        root, args.node_type, args.slug, parents,
+        bypass=args.no_spawn_gate,
     )
-    spawn_gate.announce(gate)
-    if not gate.ok:
+    if res.rejected:
         print(
-            f"ERR: spawn rejected for {node_id}: {gate.reason}. "
-            f"Fix: {gate.fix} (--no-spawn-gate bypasses this, loudly.)",
+            f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
+            f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",
             file=sys.stderr,
         )
         return 2
-
-    node_dir = root / "nodes" / type_dir
-    node_dir.mkdir(parents=True, exist_ok=True)
-    node_file = node_dir / f"{slug}.md"
-
-    if node_file.exists():
-        print(f"SKIP: {node_file} already exists", file=sys.stderr)
+    if not res.written:
+        print(f"SKIP: {res.path} already exists", file=sys.stderr)
         return 0
-
-    # Build frontmatter. `mint_id` is assigned here, at creation, per goal:s14 —
-    # a scaffolded node that reaches `grid.py commit --all` without one is
-    # skipped and silently loses its version history until someone remembers
-    # to run the backfill.
-    fm_lines = [
-        "---",
-        f"id: {node_id}",
-        f"mint_id: {mint_permanent_id()}",
-        f"type: {node_type}",
-        ("parents:\n" + "\n".join(f"  - {p}" for p in parents)) if parents
-        else "parents: []",
-        "next_edges: []",
-    ]
-    for k, v in spawn_gate.stamp({}, gate).items():
-        fm_lines.append(f"{k}: {v}")
-    fm_lines += [
-        "---",
-        "",
-        f"# {node_type}:{slug}",
-        "",
-    ]
-
-    # Type-specific body prompts
-    prompts = {
-        "idea": "## Idea\n\nWhat is the concept? `scale:` big (new chain) or small (extension)?\n\n",
-        "task": "## Task\n\nWhich cavekit requirement (`cavekit_req`)? What are the acceptance criteria?\n\n",
-        "hypothesis": "## Hypothesis\n\nWhat is the testable claim? What would prove it? What would disprove it?\n\n",
-        "experiment": "## Experiment\n\nWhat did you do? What happened? Include command/inputs and actual outputs.\n\n## Evidence\n\nRaw output, screenshots, logs.\n\n",
-        "verdict": "## Verdict\n\nproved | disproved | inconclusive_lean_proved:N | inconclusive_lean_disproved:N\n\n## Evidence\n\nWhat evidence supports this verdict?\n\n## Confidence\n\n0.0 – 1.0\n\n",
-        "mvp": "## MVP\n\nWhat does this script/module do? Show the code or describe the implementation.\n\n## Inputs\n\nWhat does it take?\n\n## Outputs\n\nWhat does it produce?\n\n",
-        "outcome": "## Outcome\n\nInput shape (what enters):\n\nOutput shape (what exits):\n\nBehavior (what it does):\n\nEdge cases:\n\n## i/o doc\n\n```\ninputs:\noutputs:\n```\n\n",
-        "bigger_outcome": "## Bigger Outcome\n\nWhat module or purpose does this outcome serve?\n\nHow do the child outcomes compose into this?\n\n",
-        "app_purpose": "## App Purpose\n\nWhat is the top-level mission this chain serves?\n\n",
-    }
-
-    body = prompts.get(node_type, "")
-    node_file.write_text("\n".join(fm_lines) + body)
-    print(f"scaffolded: {node_file}")
+    print(f"scaffolded: {res.path}")
 
     # Record scaffold in agent.json so cli.py done knows what to update
-    ap = _agent_path(root, iter_n, agent_id)
+    ap = _agent_path(root, args.iter_n, args.agent_id)
     if ap.exists():
         rec = json.loads(ap.read_text())
-        rec["scaffolded_node"] = node_id
-        rec["scaffolded_file"] = str(node_file)
+        rec["scaffolded_node"] = res.node_id
+        rec["scaffolded_file"] = str(res.path)
         ap.write_text(json.dumps(rec, indent=2))
 
     return 0

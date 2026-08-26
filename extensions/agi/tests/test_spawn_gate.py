@@ -552,14 +552,19 @@ def test_cli_done_fallback_writes_mint_id_when_approved(wired_project):
     assert "mint_id:" in text
 
 
-def test_post_wire_imports_the_gate():
-    # Cheap structural check: the second writer path must reference the gate,
-    # or the rule is enforced on one path and not the other — which is the
-    # exact defect H4 had before evidence_gate landed on both.
+def test_post_wire_reaches_the_gate_through_the_one_writer():
+    # Cheap structural check, updated for goal:s17's consolidation: post_wire
+    # no longer calls `check_spawn` itself, it calls the one routine that
+    # does. Asserting the direct call here would now push a writer BACK to
+    # having its own copy — which is the defect, not the fix. The full
+    # "every writer routes through node_writer" check lives in
+    # tests/test_node_writer.py.
     text = (BIN / "post_wire.py").read_text()
-    assert "import spawn_gate" in text
-    assert "spawn_gate.check_spawn" in text
-    assert "spawn_gate.stamp" in text
+    assert "import node_writer" in text
+    assert "node_writer.write_node" in text
+    # It still loads the rules once per pass and reports broken schemas.
+    assert "spawn_gate.gate_for_root" in text
+    assert "spawn_gate.announce_schema_errors" in text
 
 
 # --------------------------------------------------------------------------

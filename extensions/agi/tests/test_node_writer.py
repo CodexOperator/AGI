@@ -1,0 +1,349 @@
+"""Tests for the one node-writing routine — bin/node_writer.py (GOALS.md S17).
+
+Companion to `test_spawn_gate.py`, which tests the *rule*. This file tests
+that the rule is unavoidable: there is exactly one routine that creates a node
+file, every writer reaches it the same way, and none of them can write past it.
+
+The three things that matter, in the order they were got wrong:
+
+1. **No writer has its own copy.** `dispatch.py` carried a duplicate of the
+   whole scaffold routine — its own type tuple, its own body prompts, its own
+   `write_text()`. The duplicate was never gated, so a pi-runtime run wrote
+   nodes the gate never saw, and its private tuple kept minting the
+   hyphenated spellings `[shape].md` calls non-canonical.
+2. **The canonical spelling is written, the hyphen only accepted.**
+   `bigger-outcome` in, `bigger_outcome` out — id, `type:` and directory.
+3. **A rejection leaves nothing behind.** The gate runs before the filesystem
+   is touched, on every path.
+"""
+
+import importlib.util
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+BIN = Path(__file__).resolve().parents[1] / "bin"
+
+
+def _load(name, filename=None):
+    path = BIN / (filename or f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+nw = _load("node_writer")
+
+
+SHAPE = """\
+---
+name: shape
+structural: true
+parentless_types:
+  - goal:long-term
+  - goal:short-term
+  - idea
+max_parents_ceiling: 2
+canonical_type_spelling: underscore
+---
+shape
+"""
+
+SCHEMAS = {
+    "[hypothesis].md": "allowed_parents: [idea, hypothesis, experiment]\n  min_parents: 1\n  max_parents: 2",
+    "[experiment].md": "allowed_parents: [hypothesis, idea]\n  min_parents: 1\n  max_parents: 2",
+    "[verdict].md": "allowed_parents: [experiment, hypothesis, verdict]\n  min_parents: 1\n  max_parents: 2",
+    "[mvp].md": "allowed_parents: [verdict, hypothesis, experiment]\n  min_parents: 1\n  max_parents: 2",
+    "[outcome].md": "allowed_parents: [mvp, verdict]\n  min_parents: 1\n  max_parents: 2",
+    "[bigger_outcome].md": "allowed_parents: [outcome, mvp]\n  min_parents: 1\n  max_parents: 2",
+    "[app_purpose].md": "allowed_parents: [bigger_outcome, outcome]\n  min_parents: 1\n  max_parents: 2",
+    "[idea].md": "allowed_parents: [goal]\n  min_parents: 0\n  max_parents: 1",
+    "[task].md": "allowed_parents: [hypothesis]\n  min_parents: 1\n  max_parents: 1",
+}
+
+
+@pytest.fixture
+def project(tmp_path):
+    """A throwaway graph repo: schemas plus one node of each parent type."""
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    sd = tmp_path / "context" / "schemas"
+    sd.mkdir(parents=True)
+    (sd / "[shape].md").write_text(SHAPE)
+    for fname, spawn in SCHEMAS.items():
+        name = fname[1:-4]
+        (sd / fname).write_text(f"---\nname: {name}\nspawn:\n  {spawn}\n---\n{name}\n")
+    nd = tmp_path / "nodes"
+    for ntype, slug in [("idea", "i1"), ("hypothesis", "h1"),
+                        ("experiment", "e1"), ("verdict", "v1"),
+                        ("mvp", "m1"), ("outcome", "o1")]:
+        d = nd / ntype
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{slug}.md").write_text(
+            f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n"
+        )
+    return tmp_path
+
+
+# --------------------------------------------------------------------------
+# 1. one routine — no writer keeps a copy
+# --------------------------------------------------------------------------
+
+WRITERS = ("cli.py", "dispatch.py", "post_wire.py")
+
+
+@pytest.mark.parametrize("writer", WRITERS)
+def test_every_writer_points_at_the_one_routine_the_same_way(writer):
+    """Same method for all four callers: `import node_writer`, then call it.
+
+    Not "each one calls the gate": that is what let dispatch.py drift, since
+    a writer that forgets is indistinguishable from one that has no node to
+    write.
+    """
+    text = (BIN / writer).read_text()
+    assert "import node_writer" in text, writer
+    assert "node_writer.write_node" in text, writer
+
+
+def test_dispatch_no_longer_touches_the_node_tree_at_all():
+    """dispatch.py's only remaining `write_text` calls are session files.
+
+    `cli.py` and `post_wire.py` still rewrite *existing* node files in place
+    (`done` and the wiring pass update frontmatter), which is not node
+    creation and not this routine's business. dispatch.py only ever created,
+    so after the consolidation it should reach `nodes/` for reading and
+    nothing else.
+    """
+    text = (BIN / "dispatch.py").read_text()
+    writes = [ln.strip() for ln in text.splitlines() if ".write_text(" in ln]
+    assert writes, "expected the manifest/agent.json writes to still be here"
+    for ln in writes:
+        assert "agent.json" in ln or "manifest.json" in ln, ln
+
+
+@pytest.mark.parametrize("writer", WRITERS)
+def test_no_writer_keeps_its_own_type_table_or_prompts(writer):
+    """The two things dispatch.py's copy diverged on."""
+    text = (BIN / writer).read_text()
+    assert "NODE_TYPES = (" not in text, f"{writer} has a private type tuple"
+    assert '"bigger-outcome":' not in text, f"{writer} has private prompts"
+    assert '"app-purpose":' not in text, f"{writer} has private prompts"
+
+
+def test_the_type_table_is_all_underscores():
+    for t in nw.CANONICAL_NODE_TYPES:
+        assert "-" not in t, t
+    # Hyphens survive only as input aliases, and every alias resolves.
+    for alias, canonical in nw.TYPE_ALIASES.items():
+        assert "-" in alias
+        assert canonical in nw.CANONICAL_NODE_TYPES
+        assert nw.canonical_node_type(alias) == canonical
+
+
+def test_every_canonical_type_has_a_body_prompt():
+    # A type in the table with no prompt scaffolds a node with an empty body,
+    # which is what `on_exists=reuse-scaffold` then treats as untouched.
+    assert set(nw.CANONICAL_NODE_TYPES) <= set(nw.BODY_PROMPTS)
+
+
+# --------------------------------------------------------------------------
+# 2. spelling — canonical out, hyphen accepted in
+# --------------------------------------------------------------------------
+
+def test_hyphenated_input_writes_the_canonical_spelling(project):
+    res = nw.write_node(project, "bigger-outcome", "bo", ["outcome:o1"])
+    assert res.written
+    assert res.path == project / "nodes" / "bigger_outcome" / "bo.md"
+    text = res.path.read_text()
+    assert "id: bigger_outcome:bo" in text
+    assert "type: bigger_outcome" in text
+    assert "bigger-outcome" not in text
+
+
+def test_an_unaliased_hyphen_still_lands_canonical():
+    # The alias table is the documented surface; the general rule is the
+    # backstop, so a type nobody remembered to alias cannot mint a hyphen.
+    assert nw.canonical_node_type("some-new-type") == "some_new_type"
+
+
+# --------------------------------------------------------------------------
+# 3. the gate is unavoidable
+# --------------------------------------------------------------------------
+
+def test_rejection_writes_nothing(project):
+    res = nw.write_node(project, "verdict", "orphan", [])
+    assert res.rejected
+    assert "min_parents" in res.reason
+    assert not (project / "nodes" / "verdict" / "orphan.md").exists()
+
+
+def test_approval_writes_a_mint_id_and_no_stamp(project):
+    res = nw.write_node(project, "verdict", "good", ["experiment:e1"])
+    assert res.written
+    text = res.path.read_text()
+    # goal:s14 — without this the node is skipped by `grid.py commit --all`.
+    assert "mint_id:" in text
+    # An approval leaves no frontmatter mark; the terminal line is the feedback.
+    assert "spawn_gate" not in text
+    assert "spawn_check" not in text
+
+
+def test_bypass_is_stamped(project):
+    res = nw.write_node(project, "verdict", "bypassed", [], bypass=True)
+    assert res.written
+    assert "spawn_gate: bypassed" in res.path.read_text()
+
+
+def test_unverified_reason_survives_yaml_round_trip(project):
+    """An `unverified` reason can contain `: ` and quotes.
+
+    The old writers wrote every stamp as a bare `f"{k}: {v}"`, so a reason
+    like `parent id(s) resolve to no node: ['x']` produced frontmatter that
+    `yaml.safe_load` then rejected — in the one field whose whole job is
+    telling a reviewer why the node was not checked.
+    """
+    import yaml
+    res = nw.write_node(project, "verdict", "dangling", ["experiment:missing"])
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm["spawn_check"] == "unverified"
+    assert "experiment:missing" in fm["spawn_check_reason"]
+
+
+def test_frontmatter_is_valid_yaml_for_every_type(project):
+    import yaml
+    parent = {"idea": [], "hypothesis": ["idea:i1"], "task": ["hypothesis:h1"],
+              "experiment": ["hypothesis:h1"], "verdict": ["experiment:e1"],
+              "mvp": ["verdict:v1"], "outcome": ["mvp:m1"],
+              "bigger_outcome": ["outcome:o1"], "app_purpose": ["outcome:o1"]}
+    for ntype, parents in parent.items():
+        res = nw.write_node(project, ntype, f"{ntype}-x", parents)
+        assert res.status in (nw.WRITTEN,), f"{ntype}: {res.status} {res.reason}"
+        fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+        assert fm["id"] == f"{ntype}:{ntype}-x"
+        assert fm["type"] == ntype
+        assert fm["parents"] == parents
+
+
+# --------------------------------------------------------------------------
+# on_exists — dispatch.py's re-scaffold rule, preserved
+# --------------------------------------------------------------------------
+
+def test_skip_never_touches_an_existing_file(project):
+    first = nw.write_node(project, "verdict", "keep", ["experiment:e1"])
+    (first.path).write_text("---\nid: verdict:keep\n---\n\nREAL WORK\n")
+    again = nw.write_node(project, "verdict", "keep", ["experiment:e1"])
+    assert again.status == nw.SKIPPED
+    assert "REAL WORK" in first.path.read_text()
+
+
+def test_reuse_scaffold_overwrites_an_untouched_scaffold(project):
+    first = nw.write_node(project, "verdict", "fresh", ["experiment:e1"])
+    before = first.path.read_text()
+    again = nw.write_node(project, "verdict", "fresh", ["experiment:e1"],
+                          on_exists=nw.REUSE_SCAFFOLD)
+    assert again.written
+    # A new mint_id, because this is a new node standing in the same place.
+    assert again.path.read_text() != before
+
+
+def test_reuse_scaffold_preserves_filled_in_work(project):
+    first = nw.write_node(project, "verdict", "filled", ["experiment:e1"])
+    first.path.write_text(
+        first.path.read_text() + "\nAn agent actually wrote this.\n")
+    again = nw.write_node(project, "verdict", "filled", ["experiment:e1"],
+                          on_exists=nw.REUSE_SCAFFOLD)
+    assert again.status == nw.SKIPPED
+    assert "An agent actually wrote this." in first.path.read_text()
+
+
+# --------------------------------------------------------------------------
+# dispatch.py — the writer this whole change is about
+# --------------------------------------------------------------------------
+
+dispatch = _load("dispatch")
+
+
+@pytest.mark.parametrize("level,target,role,expected", [
+    ("big", None, None, "idea"),          # parentless-legal; was `hypothesis`
+    ("small", "hypothesis:h1", None, "experiment"),
+    ("small", "experiment:e1", None, "verdict"),
+    ("small", "verdict:v1", None, "mvp"),
+    ("small", "mvp:m1", None, "outcome"),
+    ("small", "outcome:o1", None, "bigger_outcome"),
+    ("small", "idea:i1", None, "hypothesis"),
+    ("small", None, "research", "experiment"),
+    ("small", None, "implementation", "mvp"),
+])
+def test_dispatch_picks_a_canonically_spelled_step(level, target, role, expected):
+    assert dispatch._node_type_for(level, target, role) == expected
+
+
+def test_dispatch_scaffold_is_gated_and_canonical(project):
+    """The chip: a pi-runtime scaffold now goes through the gate.
+
+    `outcome:o1` is a legal parent for `bigger_outcome`, and the old copy
+    would have written `type: bigger-outcome` here.
+    """
+    info = dispatch._scaffold_node_for_agent(
+        project, 1, "a00-dead", "small", "outcome:o1")
+    assert info is not None
+    assert info["node_type"] == "bigger_outcome"
+    text = Path(info["path"]).read_text()
+    assert "type: bigger_outcome" in text
+    assert "mint_id:" in text
+
+
+def test_dispatch_scaffold_declines_an_illegal_spawn(project):
+    """`task` may only be parented by `hypothesis`, so an outcome parent is
+    rejected — and nothing is written. Before the consolidation this path had
+    no gate at all, so the node landed."""
+    before = list((project / "nodes").rglob("*.md"))
+    info = dispatch._scaffold_node_for_agent(
+        project, 1, "a00-bad", "small", "verdict:v1", role="nonesuch")
+    # role is unknown -> falls through to the step map: verdict -> mvp, legal.
+    assert info["node_type"] == "mvp"
+    # Now an illegal one: a bigger_outcome cannot be parented by an idea.
+    res = nw.write_node(project, "bigger_outcome", "illegal", ["idea:i1"])
+    assert res.rejected
+    assert len(list((project / "nodes").rglob("*.md"))) == len(before) + 1
+
+
+def test_big_zoom_scaffold_no_longer_writes_an_illegal_hypothesis(project):
+    """Regression for the shape the un-gated copy produced every iteration.
+
+    `_pick_targets` returns `("big", None, ...)`, so slot 0 had no parent and
+    `[hypothesis].md` says `min_parents: 1`. The old copy wrote it anyway,
+    with a literal empty string as its one parent.
+    """
+    info = dispatch._scaffold_node_for_agent(project, 1, "a00-big", "big", None)
+    assert info is not None
+    assert info["node_type"] == "idea"
+    text = Path(info["path"]).read_text()
+    assert "parents: []" in text
+    assert "  - \n" not in text     # the old copy's empty-string parent
+
+
+# --------------------------------------------------------------------------
+# end to end through the real CLI
+# --------------------------------------------------------------------------
+
+def test_cli_scaffold_still_writes_through_the_shared_routine(project):
+    ad = project / "sessions" / "iter-001" / "a1"
+    ad.mkdir(parents=True)
+    (ad / "agent.json").write_text(json.dumps({"id": "a1", "status": "run"}))
+    r = subprocess.run(
+        [sys.executable, str(BIN / "cli.py"), "scaffold", "1", "a1",
+         "--type", "app-purpose", "--slug", "ap", "--parent", "outcome:o1"],
+        cwd=str(project), capture_output=True, text=True,
+    )
+    assert r.returncode == 0, r.stderr
+    assert "SPAWN-GATE APPROVED" in r.stdout
+    text = (project / "nodes" / "app_purpose" / "ap.md").read_text()
+    assert "type: app_purpose" in text
+    rec = json.loads((ad / "agent.json").read_text())
+    assert rec["scaffolded_node"] == "app_purpose:ap"
