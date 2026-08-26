@@ -88,23 +88,23 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: Path(info['path'])
-  how: '`Path(info[''path'']).read_text()` at line 296'
+  how: '`Path(info[''path'']).read_text()` at line 358'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: Path(info['path'])
-  how: '`Path(info[''path'']).read_text()` at line 326'
+  how: '`Path(info[''path'']).read_text()` at line 388'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'app_purpose' / 'ap.md'
   how: '`(project / ''nodes'' / ''app_purpose'' / ''ap.md'').read_text()` at line
-    346'
+    408'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads((ad / ''agent.json'').read_text())` at line 348'
+  how: '`json.loads((ad / ''agent.json'').read_text())` at line 410'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -134,12 +134,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: ad / 'agent.json'
-  how: '`(ad / ''agent.json'').read_text()` at line 348'
+  how: '`(ad / ''agent.json'').read_text()` at line 410'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: first.path
   how: '`first.path.read_text()` at line 257'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: BIN / name
+  how: '`(BIN / name).read_text()` at line 315'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -252,33 +257,68 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_direct_path_is_found
+  how: 'defines public function `test_direct_path_is_found` at line 268, signature:
+    (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_descriptive_filename_is_found_by_frontmatter
+  how: 'defines public function `test_descriptive_filename_is_found_by_frontmatter`
+    at line 273, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_abbreviated_prefix_is_found
+  how: 'defines public function `test_abbreviated_prefix_is_found` at line 286, signature:
+    (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_unknown_id_is_none_not_a_guess
+  how: 'defines public function `test_unknown_id_is_none_not_a_guess` at line 297,
+    signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_the_index_cannot_go_stale_under_its_own_writer
+  how: 'defines public function `test_the_index_cannot_go_stale_under_its_own_writer`
+    at line 303, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_both_readers_are_the_same_function
+  how: defines public function `test_both_readers_are_the_same_function` at line 311
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_dispatch_picks_a_canonically_spelled_step
   how: 'defines public function `test_dispatch_picks_a_canonically_spelled_step` at
-    line 282, signature: (level, target, role, expected)'
+    line 344, signature: (level, target, role, expected)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dispatch_scaffold_is_gated_and_canonical
   how: 'defines public function `test_dispatch_scaffold_is_gated_and_canonical` at
-    line 286, signature: (project)'
+    line 348, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dispatch_scaffold_declines_an_illegal_spawn
   how: 'defines public function `test_dispatch_scaffold_declines_an_illegal_spawn`
-    at line 301, signature: (project)'
+    at line 363, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_big_zoom_scaffold_no_longer_writes_an_illegal_hypothesis
   how: 'defines public function `test_big_zoom_scaffold_no_longer_writes_an_illegal_hypothesis`
-    at line 316, signature: (project)'
+    at line 378, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_scaffold_still_writes_through_the_shared_routine
   how: 'defines public function `test_cli_scaffold_still_writes_through_the_shared_routine`
-    at line 335, signature: (project)'
+    at line 397, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -304,9 +344,21 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: d / 't-001-some-description.md'
+  how: '`(d / ''t-001-some-description.md'').write_text(''---\nid: task:thing\ntype:
+    task\n---\n\nbody\n'')` at line 281'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: d / 'abbrev.md'
+  how: '`(d / ''abbrev.md'').write_text(''---\nid: exp:abbrev\ntype: experiment\n---\n\nb\n'')`
+    at line 293'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: ad / 'agent.json'
   how: '`(ad / ''agent.json'').write_text(json.dumps({''id'': ''a1'', ''status'':
-    ''run''}))` at line 338'
+    ''run''}))` at line 400'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -322,8 +374,14 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: d / 'x.md'
+  how: '`(d / ''x.md'').write_text(''---\nid: exp:x\ntype: experiment\n---\n\nb\n'')`
+    at line 322'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 338'
+  how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 400'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

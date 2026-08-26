@@ -2755,6 +2755,20 @@ the 2 `bigger-outcome` and 2 `app-purpose` nodes were renamed the same day
 (file, `id:` and `type:`, mint ids preserved, 5 inbound edges rewritten), so the
 corpus is now underscore-only.
 
+**Surveyed against all 781 nodes afterwards: three of those four had written
+nothing.** Zero nodes with a null parent entry, zero without a `mint_id`, zero
+with unparseable frontmatter. They were latent — reachable but not yet reached.
+
+**The fourth was live, and it was the read side of the same defect.** The
+fallback verdict's filename bug was the visible edge of `cli.py`'s and
+`post_wire.py`'s two disagreeing copies of "id → file". `post_wire`'s could not
+resolve **417 of 781 ids**; `cli`'s missed 147 (every id on an abbreviated
+`exp:`/`hyp:` prefix); 270 were resolvable by one and not the other. That one
+mattered because post_wire's "not found" branch does not report — it *creates a
+verdict node*, so an unresolved id minted a duplicate instead of updating its
+target, on the writer whose job is updating verdicts. `node_writer` now holds
+the one lookup beside the one write; both readers resolve all 781 and agree.
+
 **What keeps this goal active:** the corpus half is untouched by design — 53
 nodes violate `min_parents` and 3 carry no `type:` at all. The three
 *generators* (`snapshot-goals.py`, `snapshot-build-site.py`, `level3.py`) are

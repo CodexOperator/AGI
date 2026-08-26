@@ -15,7 +15,7 @@ derived from — nothing else.** Code lives in the engine repo.
 | Path | Why it is here |
 |---|---|
 | `nodes/` | The graph. The persistent thoughts. Committed. |
-| `GOALS.md` | Human-authored goal contract. `snapshot-goals.py` derives `nodes/goal/` from it. |
+| `GOALS.md` | **Derived** — `snapshot-goals.py --render` writes it from `nodes/goal/`. Read it first; author in the goal node. |
 | `context/kits/`, `context/plans/build-site.md` | Generator inputs for the 159 `origin: build-site` nodes. See the warning below. |
 | `context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
 | `agi-tree.config.json` | Project marker + loop tuning. Its presence is what makes this dir a project. |
@@ -169,7 +169,14 @@ out before trusting any push** — work once accumulated on a stale
   by id.
 - Retire a goal by marking it `phasing-out` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
-- `nodes/goal/` is derived. Never hand-edit it; edit `GOALS.md`.
+- **`GOALS.md` is derived, not the goal nodes.** The arrow reversed on
+  2026-08-25 (G6.9, commit `2b204a5d4`) and this line said the opposite until
+  2026-08-26. `driver.sh` runs `snapshot-goals.py --render` and nothing else,
+  which writes `GOALS.md` from `nodes/goal/*.md`. **Edit the goal node.** A
+  hand-edit to `GOALS.md` survives until the next `--smoke` and then vanishes
+  with no warning — confirmed by losing one. Check the two directions are still
+  inverses with `snapshot-goals.py --render --check`, which exits 0 only on a
+  byte-identical round trip.
 - **A version is a grid commit, not a second node file.** A fix or update edits
   the target node **in place**; no `@v2` file, no `supersedes:` pair. Run
   `grid.py commit --all` afterward and the grid carries the history (G6.3).
