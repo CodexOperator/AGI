@@ -68,27 +68,27 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(manifest_path.read_text())` at line 133'
+  how: '`json.loads(manifest_path.read_text())` at line 131'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 91'
+  how: '`yaml.safe_load(parts[1])` at line 89'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest_path
-  how: '`manifest_path.read_text()` at line 133'
+  how: '`manifest_path.read_text()` at line 131'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 183'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 181'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parent_path
-  how: '`parent_path.read_text(encoding=''utf-8'')` at line 253'
+  how: '`parent_path.read_text(encoding=''utf-8'')` at line 251'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -122,57 +122,57 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: _read_frontmatter
-  how: 'defines private function `_read_frontmatter` at line 83, signature: (body:
+  how: 'defines private function `_read_frontmatter` at line 81, signature: (body:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _write_node
-  how: 'defines private function `_write_node` at line 95, signature: (path: Path,
+  how: 'defines private function `_write_node` at line 93, signature: (path: Path,
     fm: dict, body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _gate
-  how: 'defines private function `_gate` at line 103, signature: (agent: dict, fm:
+  how: 'defines private function `_gate` at line 101, signature: (agent: dict, fm:
     dict, corpus)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_wire
-  how: 'defines public function `cmd_wire` at line 124, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_wire` at line 122, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 325
+  how: defines public function `main` at line 323
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(content, encoding=''utf-8'')` at line 100'
+  how: '`path.write_text(content, encoding=''utf-8'')` at line 98'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_path
   how: '`graph_path.write_text(json.dumps(graph_data, indent=2), encoding=''utf-8'')`
-    at line 295'
+    at line 293'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(graph_data, indent=2)` at line 295'
+  how: '`json.dumps(graph_data, indent=2)` at line 293'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.dump
-  how: '`yaml.dump(dict(fm), default_flow_style=False)` at line 98'
+  how: '`yaml.dump(dict(fm), default_flow_style=False)` at line 96'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 13 `print()` call(s) at line(s) [130, 298, 299, 301, 302, 304, 306, 308, 314,
-    316, 318, 320, 321]
+  how: 13 `print()` call(s) at line(s) [128, 296, 297, 299, 300, 302, 304, 306, 312,
+    314, 316, 318, 319]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

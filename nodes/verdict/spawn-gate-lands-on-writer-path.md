@@ -110,6 +110,52 @@ problem, and H0i is what a generator run going wrong looks like.
 
 Tests: `payloads/extensions/agi/tests/test_node_writer.py`.
 
+### The four, surveyed against the corpus — all four have zero residue
+
+Each was fixed in code; the question left was what each had already written.
+Measured over all 781 nodes, 2026-08-26:
+
+| defect | corpus residue | how it was counted |
+|---|---|---|
+| big-zoom parentless `hypothesis` | **0** | nodes with a null or empty-string entry in `parents` |
+| fallback verdict with no `mint_id` | **0** | nodes with no `mint_id` (the goal:s14 backfill had covered them) |
+| unparseable stamp frontmatter | **0** | nodes whose frontmatter fails `yaml.safe_load`; also **0** nodes carry a spawn-gate stamp at all, the gate being one day old |
+| dead re-scaffold branch | **n/a** | code-only; it preserved when it should have preserved, just never for the stated reason |
+
+So three of the four were latent — real, reachable, and not yet reached.
+Recorded rather than repaired, because there was nothing to repair.
+
+### The fourth was not latent, and it was much larger than its symptom
+
+The fallback verdict naming its file after the *parent's* slug looked like a
+one-line path bug. It was the visible edge of the **read** side of this same
+defect: `cli.py._find_node_file` and `post_wire.py._node_file_path` were two
+copies of "id → file" that did not agree.
+
+| | ids it could not resolve, of 781 |
+|---|---|
+| `post_wire.py._node_file_path` | **417** (53%) |
+| `cli.py._find_node_file` | **147** |
+| resolvable by `cli.py`, not by `post_wire.py` | **270**, incl. 56 verdicts |
+
+Both copies assumed the id prefix names the directory. `post_wire`'s stopped
+at two exact paths; `cli`'s added a frontmatter scan of those same two
+directories, which is why it did better but still missed every id on an
+abbreviated prefix — the 147 are all `exp:` and `hyp:` ids under
+`nodes/experiment/` and `nodes/hypothesis/`.
+
+**This one was live.** `post_wire`'s "file not found" branch does not report —
+it treats the miss as "no verdict node exists yet" and **creates one**. So an
+unresolved id minted a duplicate verdict instead of updating the node it meant
+to update, on the writer whose entire job is updating verdicts.
+
+`node_writer.find_node_file` is now the one lookup, beside the one write:
+direct path, then a scan of the two candidate directories, then a
+whole-corpus frontmatter index — built once per root and dropped by
+`write_node`, so the only routine that adds a node is the only one that has to
+remember. Both readers are thin aliases over it. After: **0 unresolved on both,
+0 resolving to the wrong file, and the two agree on every id in the corpus.**
+
 **The rule table is a description, not a justification.** It is transcribed
 from 778 nodes. If the corpus embodies a bad habit, the table now blesses it.
 The one place corpus and rule disagree is `min_parents`, and 53 nodes lose
