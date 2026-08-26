@@ -3,7 +3,7 @@ confidence: 1.0
 id: "outcome:chain-engine-r1"
 mint_id: 6debebf537af41ef8641080c848863f7
 next_edges:
-  - bigger-outcome:chain-engine-r1
+  - bigger_outcome:chain-engine-r1
 parents:
   - mvp:chain-engine-r1
 status: open

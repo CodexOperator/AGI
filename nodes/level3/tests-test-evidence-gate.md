@@ -78,23 +78,23 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'verdict' / 'ghost.md'
-  how: '`(root / ''nodes'' / ''verdict'' / ''ghost.md'').read_text()` at line 535'
+- name: root / 'nodes' / 'verdict' / 'a1.md'
+  how: '`(root / ''nodes'' / ''verdict'' / ''a1.md'').read_text()` at line 540'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 545'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 551'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 548'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 554'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 558'
+  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 564'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -437,13 +437,13 @@ outputs:
   security: TODO(model)
 - name: test_post_wire_rejects_sentinel_evidence_runs
   how: 'defines public function `test_post_wire_rejects_sentinel_evidence_runs` at
-    line 540, signature: (wired_project)'
+    line 546, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_post_wire_sentinel_does_not_reject_uncertain_verdicts
   how: 'defines public function `test_post_wire_sentinel_does_not_reject_uncertain_verdicts`
-    at line 553, signature: (wired_project)'
+    at line 559, signature: (wired_project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

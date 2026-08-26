@@ -75,6 +75,41 @@ The three sub-claims of the hypothesis each resolve:
   is a generator bug and failing the loop over it is worse than reporting it.
   Undecided, deliberately.
 
+### Update 2026-08-26 — the dispatch.py half is closed
+
+The duplication was deleted, not gated: `bin/node_writer.py` is now the only
+routine that creates a node file, and all four spawn writers reach it the same
+way (`import node_writer` → `write_node`). Wiring the gate into dispatch.py's
+copy would have left two gated routines to drift apart, which is the defect
+S17 names rather than the fix for it.
+
+What that closed, beyond the gate:
+
+- **The hyphen generator is gone.** One type table, underscore-only, hyphens
+  accepted as input aliases and never written. The 2 + 2 historical nodes were
+  renamed the same day; `[bigger_outcome].md` and `[app_purpose].md` record it.
+- **Every big-zoom scaffold was an illegal spawn.** `_pick_targets` returns
+  `("big", None, …)`, so slot 0 had no parent, and `[hypothesis].md` says
+  `min_parents: 1`. The un-gated copy wrote it anyway, with a literal empty
+  string as its one parent. Big zoom now scaffolds an `idea` — one of the three
+  parentless-legal shapes, and what the skill already calls slot 0.
+- **`post_wire.py`'s fallback verdict had no `mint_id`** (so `grid.py commit
+  --all` skipped it, goal:s14) **and named its file after the parent's slug**
+  while its `id:` used the agent id, so path and id disagreed and two agents
+  wiring one parent overwrote each other. Both fall out of deriving the path
+  from the id in one place.
+- **dispatch.py's re-scaffold branch was dead.** It compared an existing body
+  against the type's *prompt*, but the body it writes is the `# <node-id>`
+  heading followed by the prompt, so the comparison never matched.
+
+Coverage is now **4 of 4 spawn writers**. The three generators are still
+un-gated, still deliberately: they re-derive a whole node population from an
+input file rather than spawning, own their own frontmatter keys, and already
+share one `write_frontmatter` between them — so they are not a duplication
+problem, and H0i is what a generator run going wrong looks like.
+
+Tests: `payloads/extensions/agi/tests/test_node_writer.py`.
+
 **The rule table is a description, not a justification.** It is transcribed
 from 778 nodes. If the corpus embodies a bad habit, the table now blesses it.
 The one place corpus and rule disagree is `min_parents`, and 53 nodes lose

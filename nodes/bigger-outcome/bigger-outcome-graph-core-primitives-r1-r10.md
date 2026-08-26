@@ -2,7 +2,7 @@
 id: "bigger-outcome:graph-core-primitives-r1-r10"
 mint_id: d4682171bf004e9f807055b13cf77b76
 next_edges:
-  - app-purpose:graph-core
+  - app_purpose:graph-core
 parents:
   - outcome:graph-core-r1
 subgraph: false
@@ -27,4 +27,4 @@ type: bigger_outcome
 - Portability Contract (R9): relative paths for repo portability
 - Bootstrap Command (R10): CLI to initialize new graph context
 
-> Disambiguated 2026-08-25 from an id collision on `bigger-outcome:graph-core-r1` (G7.2); the other file at `nodes/bigger-outcome/bigger-outcome-graph-core-r1.md` retains that id.
+> Disambiguated 2026-08-25 from an id collision on `bigger-outcome:graph-core-r1` (G7.2); the other file kept that id. Renamed 2026-08-26 (S17): it is now `bigger_outcome:graph-core-r1` at `nodes/bigger_outcome/graph-core-r1.md`, on the canonical underscore spelling.

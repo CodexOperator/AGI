@@ -76,7 +76,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: BIN / 'post_wire.py'
-  how: '`(BIN / ''post_wire.py'').read_text()` at line 559'
+  how: '`(BIN / ''post_wire.py'').read_text()` at line 562'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -320,13 +320,14 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: test_post_wire_imports_the_gate
-  how: defines public function `test_post_wire_imports_the_gate` at line 555
+- name: test_post_wire_reaches_the_gate_through_the_one_writer
+  how: defines public function `test_post_wire_reaches_the_gate_through_the_one_writer`
+    at line 555
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_shipped_schemas_load_without_error
-  how: defines public function `test_shipped_schemas_load_without_error` at line 569
+  how: defines public function `test_shipped_schemas_load_without_error` at line 574
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

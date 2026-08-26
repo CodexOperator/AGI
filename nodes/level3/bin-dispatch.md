@@ -77,48 +77,48 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 92'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: cfg_path
-  how: '`cfg_path.read_text()` at line 92'
+- name: node_writer
+  how: '`import node_writer` at line 40'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 221'
+  how: '`json.loads(cfg_path.read_text())` at line 97'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 97'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 322'
+  how: '`json.loads(cfg_path.read_text())` at line 226'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: node_file
-  how: '`node_file.read_text()` at line 503'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: cfg_path
-  how: '`cfg_path.read_text()` at line 221'
+- name: json.loads
+  how: '`json.loads(cfg_path.read_text())` at line 327'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 322'
+  how: '`cfg_path.read_text()` at line 226'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 327'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ccf
-  how: '`ccf.read_text()` at line 213'
+  how: '`ccf.read_text()` at line 218'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: closed_chains_file
-  how: '`closed_chains_file.read_text()` at line 314'
+  how: '`closed_chains_file.read_text()` at line 319'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -129,41 +129,47 @@ inputs:
   security: TODO(model)
 outputs:
 - name: config_path
-  how: 'defines public function `config_path` at line 41, signature: (root: Path)'
+  how: 'defines public function `config_path` at line 46, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _scrubbed_env
-  how: defines private function `_scrubbed_env` at line 70
+  how: defines private function `_scrubbed_env` at line 75
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 76
+  how: defines public function `main` at line 81
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _research_pipeline_targets
-  how: 'defines private function `_research_pipeline_targets` at line 187, signature:
+  how: 'defines private function `_research_pipeline_targets` at line 192, signature:
     (root: Path, n: int, iter_dir: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _pick_targets
-  how: 'defines private function `_pick_targets` at line 286, signature: (root: Path,
+  how: 'defines private function `_pick_targets` at line 291, signature: (root: Path,
     n: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _node_type_for
+  how: 'defines private function `_node_type_for` at line 449, signature: (level:
+    str, target: str | None, role: str | None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: _scaffold_node_for_agent
-  how: 'defines private function `_scaffold_node_for_agent` at line 444, signature:
+  how: 'defines private function `_scaffold_node_for_agent` at line 485, signature:
     (root: Path, iter_n: int, agent_id: str, level: str, target: str | None, role:
     str | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _build_pi_args
-  how: 'defines private function `_build_pi_args` at line 532, signature: (cfg: dict,
+  how: 'defines private function `_build_pi_args` at line 516, signature: (cfg: dict,
     context_file: str, agent_id: str, iter_n: int, sess_dir: Path, scaffold_info:
     dict | None=None)'
   why: TODO(model)
@@ -171,38 +177,33 @@ outputs:
   security: TODO(model)
 - name: iter_dir / 'manifest.json'
   how: '`(iter_dir / ''manifest.json'').write_text(json.dumps(manifest, indent=2))`
-    at line 182'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: node_file
-  how: '`node_file.write_text(''\n''.join(fm) + body)` at line 528'
+    at line 187'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sess_dir / 'agent.json'
   how: '`(sess_dir / ''agent.json'').write_text(json.dumps(agent_record, indent=2))`
-    at line 178'
+    at line 183'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(manifest, indent=2)` at line 182'
+  how: '`json.dumps(manifest, indent=2)` at line 187'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: log_file
-  how: '`open(log_file, ''wb'')` at line 151 (mode=''wb'')'
+  how: '`open(log_file, ''wb'')` at line 156 (mode=''wb'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(agent_record, indent=2)` at line 178'
+  how: '`json.dumps(agent_record, indent=2)` at line 183'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 5 `print()` call(s) at line(s) [90, 105, 146, 180, 183]
+  how: 6 `print()` call(s) at line(s) [95, 110, 151, 185, 188, 510]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
