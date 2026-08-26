@@ -29,6 +29,11 @@ transcripts. 1,026 files, −281k lines; git history is the archive.
 `context/plans/build-site.md`, `context/schemas/`), and `agi-tree.config.json`.
 A `.py` file added here belongs in the engine.
 
+> `GOALS.md` moved out of that list on 2026-08-25 (goal:g6.9): it is now
+> **derived from** `nodes/goal/`, not an input to it. The table in `CLAUDE.md`
+> is the live version, as this sentence already says — the list above is what
+> it read when this goal closed.
+
 The engine arrives as a gitignored clone at `agi/`, the way `fantasia` takes it,
 so `driver.sh --smoke` runs from this repo with no install step. That is an
 interim shape and **G8.1** still owns the real answer — it is a second working

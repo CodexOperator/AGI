@@ -42,9 +42,14 @@ already derivable from the corpus:
   passes the first three signals is fine, and length alone would flag the good
   ones.
 
-Decomposition should be **generated and then reviewed**, never automatic —
-`snapshot-goals.py` already derives `nodes/goal/` from this file, so a proposed
-split is a diff against `GOALS.md` a human accepts or rejects. Splitting a goal
+Decomposition should be **generated and then reviewed**, never automatic — the
+goal nodes and `GOALS.md` round-trip through `snapshot-goals.py`, so a proposed
+split is a diff a human accepts or rejects. (This sentence used to say
+`snapshot-goals.py` derives `nodes/goal/` *from* `GOALS.md`; the arrow reversed
+on 2026-08-25, goal:g6.9. The argument is unaffected — what makes review
+possible is that the two representations are inverses, not which one is
+authored — but the split now lands as a diff to the **nodes**, and `--render`
+produces the `GOALS.md` a human reads it in.) Splitting a goal
 by machine without review would break the one rule this file has that cannot
 bend: **ids are permanent**, so a bad split is unrecoverable in the way a bad
 node never is.
