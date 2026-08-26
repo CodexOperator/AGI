@@ -40,8 +40,18 @@ spawn:
 
 # goal
 
-The long-term contract. **Derived — never hand-edit `nodes/goal/`; edit
-`GOALS.md` and let `snapshot-goals.py` re-derive** (`origin: goals-doc`).
+The long-term contract. **These nodes are the source; `GOALS.md` is derived
+from them** — `driver.sh` runs `snapshot-goals.py --render`, which writes
+`GOALS.md` out of `nodes/goal/*.md`. Edit the node. A hand-edit to `GOALS.md`
+survives until the next `--smoke` run and then vanishes with no warning.
+`--render --check` exits 0 only on a byte-identical round trip.
+
+The arrow reversed on 2026-08-25 (goal:g6.9, commit `2b204a5d4`); this file,
+and `CLAUDE.md` in two places, still said the opposite until 2026-08-26. The
+`origin: goals-doc` marker is left over from when `GOALS.md` *was* the source —
+it now means "participates in the GOALS.md round trip", and `snapshot-goals.py`
+still keys its prune on it, so it is load-bearing under a name that no longer
+describes it.
 
 ID prefix: `goal:<lowercased goal_id>` — `## G7` → `goal:g7`,
 `### G7.2` → `goal:g7.2`, `## S4` → `goal:s4`.
