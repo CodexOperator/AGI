@@ -532,7 +532,13 @@ def test_post_wire_creates_demoted_verdict_node_when_file_missing(wired_project)
     root, iter_dir = wired_project
     _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "proved",
                      "node_id": "hypothesis:ghost", "evidence_runs": 0})
-    text = (root / "nodes" / "verdict" / "ghost.md").read_text()
+    # goal:s17 -- `a1.md`, not `ghost.md`. The node's id has always been
+    # `verdict:<agent-id>`, but the file used to be named after the PARENT's
+    # slug, so path and id disagreed: `_node_file_path` could never find the
+    # node again, and two agents wiring verdicts for one parent overwrote each
+    # other. Routing through `node_writer` derives both from one slug.
+    text = (root / "nodes" / "verdict" / "a1.md").read_text()
+    assert "id: verdict:a1" in text
     assert "verdict: inconclusive_lean_proved:50" in text
     assert "demoted_from: proved" in text
 

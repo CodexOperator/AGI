@@ -26,6 +26,7 @@ SRC_GRAPH = PLUGIN_ROOT / "src" / "graph_core"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import node_writer  # noqa: E402
 import spawn_gate  # noqa: E402
 
 
@@ -203,12 +204,13 @@ def cmd_wire(args: argparse.Namespace) -> int:
             _write_node(node_path, fm, body)
             updated_nodes.append(node_id)
         else:
-            # No file yet — create a minimal verdict node
-            verdict_dir = root / "nodes" / "verdict"
-            verdict_dir.mkdir(parents=True, exist_ok=True)
-            slug = _slug_from_node_id(node_id)
-            vpath = verdict_dir / f"{slug}.md"
-            import yaml
+            # No file yet — create a minimal verdict node. Its slug is the
+            # agent id, which is what its `id:` has always been built from; the
+            # old code named the FILE after the parent's slug instead, so the
+            # path and the id disagreed and two agents wiring verdicts for one
+            # parent in the same pass overwrote each other's file while
+            # carrying different ids. Deriving both from one slug is what
+            # routing through `node_writer` buys.
             gate = _gate(agent, {}, corpus)
             if gate.rejected:
                 rejected.append(f"verdict:{agent['id']}: {gate.reason}")
@@ -216,42 +218,33 @@ def cmd_wire(args: argparse.Namespace) -> int:
             verdict = gate.verdict
             if gate.demoted:
                 demoted.append(f"verdict:{agent['id']}: {gate.original} -> {gate.verdict}")
-            # goal:s17 spawn gate -- the only place post_wire *creates* a node
-            # rather than updating one, so it is the only place a spawn rule can
-            # be broken here. `node_id` is the parent; it is the id whose file
-            # was not found above, so it very often resolves to nothing, which
-            # the gate reports as `unverified` (write, warn) rather than
-            # rejecting -- inferring a parent is inventing one (G7.1).
-            vid = f"verdict:{agent['id']}"
-            sgate = spawn_gate.check_spawn(
-                "verdict", [node_id] if node_id else [],
-                rules=spawn_rules, type_index=type_index, node_id=vid,
-                bypass=str(agent.get("spawn_gate", "")) == "bypassed",
-            )
-            spawn_gate.announce(sgate)
-            if not sgate.ok:
-                rejected.append(f"{vid}: {sgate.reason}")
-                continue
-            fm = {
-                "id": vid,
-                "type": "verdict",
+            # goal:s17 -- the only place post_wire *creates* a node rather than
+            # updating one, so it is the only place a spawn rule can be broken
+            # here. It goes through `node_writer.write_node` like every other
+            # writer, which runs the gate before touching the filesystem and
+            # mints the `mint_id` goal:s14 requires (this path minted none, so
+            # every verdict it wrote was skipped by `grid.py commit --all`).
+            # `node_id` is the parent; it is the id whose file was not found
+            # above, so it very often resolves to nothing, which the gate
+            # reports as `unverified` (write, warn) rather than rejecting --
+            # inferring a parent is inventing one (G7.1).
+            extra = {
                 "verdict": verdict,
                 "confidence": confidence,
-                "parents": [node_id],
-                "next_edges": [],
                 "wired_from": agent["id"],
                 "wired_at": int(time.time()),
             }
-            evidence_gate.stamp(fm, gate)
-            spawn_gate.stamp(fm, sgate)
-            vpath.write_text(
-                "---\n"
-                + yaml.dump(fm, default_flow_style=False)
-                + "---\n\n"
-                + (notes or ""),
-                encoding="utf-8",
+            evidence_gate.stamp(extra, gate)
+            res = node_writer.write_node(
+                root, "verdict", agent["id"], [node_id] if node_id else [],
+                extra_fm=extra, body=notes or "",
+                rules=spawn_rules, type_index=type_index,
+                bypass=str(agent.get("spawn_gate", "")) == "bypassed",
             )
-            updated_nodes.append(f"verdict:{agent['id']}")
+            if res.rejected:
+                rejected.append(f"{res.node_id}: {res.reason}")
+                continue
+            updated_nodes.append(res.node_id)
 
         # 2. Update parent's next_edges if parent exists
         if parent:
