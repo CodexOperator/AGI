@@ -1,10 +1,10 @@
 ---
-id: "experiment:a00-ddbe3410-exp002-structural-repair"
+id: "exp:a00-ddbe3410-exp002-structural-repair"
 mint_id: eba7d0c465214ccca238a5dbfa8b5aee
 next_edges:
   - verdict:a00-ddbe3410-verdict002-structural-repair
 parents:
-  - hypothesis:a00-ddbe3410-structural-repair
+  - hyp:a00-ddbe3410-structural-repair
 status: complete
 tags:
   - structural-bias

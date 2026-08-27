@@ -5,7 +5,7 @@ contradicts:
 domain: renderers
 evidence_runs:
   - exp:a00-c2ec59b7-b391d9
-id: "hypothesis:a00-c2ec59b7-b391d9"
+id: "hyp:a00-c2ec59b7-b391d9"
 mint_id: c66c4a7edb9547e781a591912666ba3e
 parents:
   - idea:domain-renderers
@@ -20,7 +20,7 @@ tags:
 type: hypothesis
 ---
 
-# hypothesis:a00-c2ec59b7-b391d9
+# hyp:a00-c2ec59b7-b391d9
 ## Hypothesis: ASCII Render Proximity Isomorphic to Descendant Overlap
 
 ## Testable Claim

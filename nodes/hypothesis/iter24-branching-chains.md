@@ -3,7 +3,7 @@ confidence: 1.0
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
 evidence_runs: []
-id: "hypothesis:iter24-branching-chains"
+id: "hyp:iter24-branching-chains"
 mint_id: 82bd0610a3f74a6b80a870e2c350ab40
 next_edges: []
 parents:
@@ -15,7 +15,7 @@ type: hypothesis
 verdict: "inconclusive_lean_proved:50"
 ---
 
-# hypothesis:iter24-branching-chains
+# hyp:iter24-branching-chains
 ## Verdict: PROVED
 
 The capillary DAG already supports branching chains. `idea:domain-embeddings` has `next_edges: [hyp:embeddings-r2, hyp:embeddings-r3]` — two independent hypothesis chains that diverge from the same idea. `find_chains` discovers all 4 resulting chains (r2 via r3, r2 via r3's mvp, etc.) and correctly reports 18 total chains.

@@ -1,6 +1,6 @@
 ---
 confidence: 0.5
-id: "hypothesis:a01-5c29f2e6-f5104d"
+id: "hyp:a01-5c29f2e6-f5104d"
 mint_id: 50d67ef9b05844faa5cc6d188f4bc5ef
 parents:
   - idea:domain-graph-core
@@ -14,7 +14,7 @@ type: hypothesis
 verdict: pending
 ---
 
-# hypothesis:a01-5c29f2e6-f5104d
+# hyp:a01-5c29f2e6-f5104d
 ## Hypothesis
 
 **testable_claim:** graph-core/R11: Query and Filter API

@@ -8,7 +8,7 @@ mint_id: aefe5460cf0f4741b86e5b59ab34ffb1
 next_edges: []
 parents:
   - exp:a00-8636e255-bf1a6c
-  - hypothesis:a00-8636e255-bf1a6c
+  - hyp:a00-8636e255-bf1a6c
 status: open
 tags:
   - renderers

@@ -1,12 +1,12 @@
 ---
-id: "hypothesis:a00-8fe3e715-af88f6"
+id: "hyp:a00-8fe3e715-af88f6"
 mint_id: 9c2450d2b9ca4bc0bf106b0061376dd6
 next_edges: []
 parents: []
 type: hypothesis
 ---
 
-# hypothesis:a00-8fe3e715-af88f6
+# hyp:a00-8fe3e715-af88f6
 ## Hypothesis
 
 The double directory walk in `load_directory` via `_reconstruct_next_edges` is the primary bottleneck (adds ~1.8s on 1785 nodes). Extracting `next_edges` from frontmatter during the initial file read (single pass) and storing it on the Node would eliminate the redundant walk and YAML re-parsing, reducing `render-context.py` total time from ~3.1s to ~1.0s.

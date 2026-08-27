@@ -1,7 +1,7 @@
 ---
 confidence: 0.5
 domain: vector-embedding-isomorphism
-id: "hypothesis:a00-695d830c-499a8b"
+id: "hyp:a00-695d830c-499a8b"
 mint_id: 5684c3c736b5416db9565cbdd7eb90be
 parents:
   - idea:domain-vector-embedding-isomorphism
@@ -18,7 +18,7 @@ type: hypothesis
 verdict: pending
 ---
 
-# hypothesis:a00-695d830c-499a8b
+# hyp:a00-695d830c-499a8b
 
 ## Hypothesis
 

@@ -34,8 +34,8 @@ verdict 121, hypothesis 103 (+1 file with no readable `type:` field, 3
 total), goal 62, idea 71, task 91, mvp 26, outcome 20, level3 181,
 app-purpose/app_purpose 17, bigger-outcome/bigger_outcome 20. 811 distinct
 ids among 828 files — 17 ids each appear on two separate files on disk
-(`app-purpose:graph-core`, `bigger-outcome:cli-invocation-r1`,
-`bigger-outcome:graph-core-r1`, `bigger-outcome:session-management-r1`,
+(`app-purpose:graph-core`, `bigger_outcome:cli-invocation-r1`,
+`bigger-outcome:graph-core-r1`, `bigger_outcome:session-management-r1`,
 `exp:cli-invocation-r1`, `exp:graph-core-r1`, `exp:schema-registry-r2`,
 `mvp:graph-core-r1`, `outcome:cli-invocation-r1`, `outcome:graph-core-r1`,
 `task:t-090`, `verdict:cli-invocation-r1`, `verdict:graph-core-r1`,

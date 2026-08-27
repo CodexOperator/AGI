@@ -1,11 +1,11 @@
 ---
 confidence: 0.5
-id: "hypothesis:a00-407fa689-verdict-repair"
+id: "hyp:a00-407fa689-verdict-repair"
 mint_id: c98782837134412b96939215180f5d48
 next_edges:
   - exp:exp-a00-407fa689-verdict-repair
 parents:
-  - hypothesis:a00-407fa689-3a4948
+  - hyp:a00-407fa689-3a4948
 tags:
   - chain-extension
   - repair
@@ -14,7 +14,7 @@ title: Synthetic Verdict Parent Repair
 type: hypothesis
 ---
 
-# hypothesis:a00-407fa689-verdict-repair
+# hyp:a00-407fa689-verdict-repair
 ## Hypothesis
 
 **Testable Claim:** The 99.7% orphaned verdict rate can be reduced to < 80% by implementing an automated repair strategy that traces verdict IDs back to parent hypotheses via domain name matching.

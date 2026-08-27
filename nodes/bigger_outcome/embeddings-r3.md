@@ -1,8 +1,8 @@
 ---
-id: "bigger-outcome:embeddings-r3"
+id: "bigger_outcome:embeddings-r3"
 mint_id: 3d0773adfa4d422fbf6325a66984c5e0
 next_edges:
-  - app-purpose:embeddings
+  - app_purpose:embeddings
 parents:
   - outcome:embeddings-r3
 subgraph: false

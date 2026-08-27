@@ -1,17 +1,17 @@
 ---
 confidence: 0.85
 contradicts:
-  - hypothesis:a00-c2ec59b7-b391d9
+  - hyp:a00-c2ec59b7-b391d9
 demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
 demoted_from: disproved
 domain: renderers
 evidence_runs: []
-id: "hypothesis:a00-c2ec59b7-b391d9-r2"
+id: "hyp:a00-c2ec59b7-b391d9-r2"
 mint_id: 873bbda1ad4044a484c59b2789defdd4
 next_edges: []
 parents:
   - idea:domain-renderers
-  - hypothesis:a00-c2ec59b7-b391d9
+  - hyp:a00-c2ec59b7-b391d9
 status: completed
 tags:
   - renderers
@@ -23,7 +23,7 @@ type: hypothesis
 verdict: "inconclusive_lean_disproved:50"
 ---
 
-# hypothesis:a00-c2ec59b7-b391d9-r2
+# hyp:a00-c2ec59b7-b391d9-r2
 
 ## Hypothesis: Mermaid Render Proximity Isomorphic to Descendant Overlap
 

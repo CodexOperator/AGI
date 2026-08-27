@@ -6,7 +6,7 @@ evidence_runs:
 id: "verdict:a00-407fa689-verdict-repair"
 mint_id: 2d78d95e879f43188ee27c83e514c5d4
 parents:
-  - hypothesis:a00-407fa689-verdict-repair
+  - hyp:a00-407fa689-verdict-repair
 supports:
   - verdict:a00-407fa689-verdict-pareto
 tags:

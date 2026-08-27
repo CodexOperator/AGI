@@ -2,7 +2,7 @@
 id: "outcome:embeddings-r3"
 mint_id: 403d44e63ac847a7ab0cf8c682c31059
 next_edges:
-  - bigger-outcome:embeddings-r3
+  - bigger_outcome:embeddings-r3
 parents:
   - mvp:embeddings-r3
 subgraph: false

@@ -1,12 +1,12 @@
 ---
-id: "hypothesis:a00-4125fa6d-005488"
+id: "hyp:a00-4125fa6d-005488"
 mint_id: 5b0fa6527c794eb9ab599d0b70475925
 next_edges: []
 parents: []
 type: hypothesis
 ---
 
-# hypothesis:a00-4125fa6d-005488
+# hyp:a00-4125fa6d-005488
 ## Hypothesis
 
 **Domain**: architecture — agent-spawning via verdict nodes

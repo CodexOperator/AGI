@@ -10,7 +10,7 @@ parents:
   - exp:topological-queries-r1
 status: inconclusive_lean_proved
 supports:
-  - hypothesis:a00-c2d7dbcc-3987c7
+  - hyp:a00-c2d7dbcc-3987c7
 tags:
   - verdict
   - topology
@@ -23,7 +23,7 @@ verdict: inconclusive_lean_proved
 # verdict:topological-queries-r1
 
 **Experiment:** `exp:topological-queries-r1`
-**Hypothesis:** `hypothesis:a00-c2d7dbcc-3987c7`
+**Hypothesis:** `hyp:a00-c2d7dbcc-3987c7`
 **Verdict:** `inconclusive_lean_proved:65`
 **Confidence:** 0.65
 

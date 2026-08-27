@@ -3,7 +3,7 @@ confidence: 0.9
 id: "outcome:session-management-r1"
 mint_id: c78afe5d01b44185b3d32cac7ccc8952
 next_edges:
-  - bigger-outcome:session-management-r1
+  - bigger_outcome:session-management-r1
 parents:
   - mvp:session-management-r1
 status: open

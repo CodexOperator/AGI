@@ -1,6 +1,6 @@
 ---
 confidence: 0.5
-id: "hypothesis:a00-407fa689-3a4948"
+id: "hyp:a00-407fa689-3a4948"
 mint_id: 94ee6481b5b245f6b21498e231b34152
 next_edges:
   - exp:exp-a00-407fa689-verdict-pareto
@@ -13,7 +13,7 @@ title: Verdict-count Pareto skew reveals chain-extension bias
 type: hypothesis
 ---
 
-# hypothesis:a00-407fa689-3a4948
+# hyp:a00-407fa689-3a4948
 
 ## Hypothesis
 

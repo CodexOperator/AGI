@@ -1,12 +1,12 @@
 ---
-id: "hypothesis:a00-1ed4ac0e-899b6a"
+id: "hyp:a00-1ed4ac0e-899b6a"
 mint_id: eaadf0347c004e678325fefa28d8a1bd
 next_edges: []
 parents: []
 type: hypothesis
 ---
 
-# hypothesis:a00-1ed4ac0e-899b6a
+# hyp:a00-1ed4ac0e-899b6a
 
 ## Domain: idea:domain-agent-onboarding
 

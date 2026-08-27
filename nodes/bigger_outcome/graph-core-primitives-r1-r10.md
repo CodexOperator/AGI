@@ -1,5 +1,5 @@
 ---
-id: "bigger-outcome:graph-core-primitives-r1-r10"
+id: "bigger_outcome:graph-core-primitives-r1-r10"
 mint_id: d4682171bf004e9f807055b13cf77b76
 next_edges:
   - app_purpose:graph-core

@@ -1,6 +1,6 @@
 ---
 confidence: 0.5
-id: "hypothesis:a01-8444c4b6-92d465"
+id: "hyp:a01-8444c4b6-92d465"
 mint_id: 4e232163194e490cb7313c54ccf0145c
 parents:
   - idea:domain-graph-core

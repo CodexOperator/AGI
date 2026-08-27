@@ -4,7 +4,7 @@ mint_id: 1092eeaa56b844eaaeaace762617cd4c
 next_edges:
   - verdict:a00-c2ec59b7-b391d9
 parents:
-  - hypothesis:a00-c2ec59b7-b391d9
+  - hyp:a00-c2ec59b7-b391d9
 tags:
   - renderers
   - ascii

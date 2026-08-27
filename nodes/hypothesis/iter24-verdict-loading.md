@@ -3,7 +3,7 @@ confidence: 1.0
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
 evidence_runs: []
-id: "hypothesis:iter24-verdict-loading"
+id: "hyp:iter24-verdict-loading"
 mint_id: c073cc094eee4c06a9b28e1fcfdb4b2d
 next_edges: []
 parents:
@@ -16,7 +16,7 @@ type: hypothesis
 verdict: "inconclusive_lean_proved:50"
 ---
 
-# hypothesis:iter24-verdict-loading
+# hyp:iter24-verdict-loading
 ## Verdict: PROVED
 
 Topological queries now reflect actual chain completion state. Rankings show meaningful variation.

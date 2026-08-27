@@ -2,7 +2,7 @@
 id: "exp:exp-a00-407fa689-verdict-repair"
 mint_id: 6790ca32192049f7bbfd5db2151b3e70
 parents:
-  - hypothesis:a00-407fa689-verdict-repair
+  - hyp:a00-407fa689-verdict-repair
 tags:
   - chain-extension
   - repair

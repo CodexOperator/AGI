@@ -5,7 +5,7 @@ mint_id: 7b86e35c43104608adf670651ea92ba6
 next_edges:
   - verdict:topological-queries-r1
 parents:
-  - hypothesis:a00-c2d7dbcc-3987c7
+  - hyp:a00-c2d7dbcc-3987c7
 spawns: []
 status: completed
 tags:
@@ -18,7 +18,7 @@ type: experiment
 
 # exp:topological-queries-r1
 
-**Hypothesis:** `hypothesis:a00-c2d7dbcc-3987c7`
+**Hypothesis:** `hyp:a00-c2d7dbcc-3987c7`
 **Status:** completed
 **Date:** 2026-05-01
 

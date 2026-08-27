@@ -1,9 +1,9 @@
 ---
 domain: domain-query-api
-id: "hypothesis:a00-204c9d9e-1d958f"
+id: "hyp:a00-204c9d9e-1d958f"
 mint_id: af73b11909574cecb20fb332b76f3688
 next_edges:
-  - experiment:exp:a00-204c9d9e-1d958f
+  - exp:exp:a00-204c9d9e-1d958f
 parents: []
 status: pending
 tags:
@@ -15,7 +15,7 @@ title: Query API enables rational task selection in the capillary DAG
 type: hypothesis
 ---
 
-# hypothesis:a00-204c9d9e-1d958f
+# hyp:a00-204c9d9e-1d958f
 
 ## Hypothesis
 

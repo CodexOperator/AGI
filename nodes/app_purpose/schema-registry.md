@@ -1,9 +1,9 @@
 ---
-id: "app-purpose:schema-registry"
+id: "app_purpose:schema-registry"
 mint_id: 59709ef186e34a1ca1eafb5c355fd4b9
 next_edges: []
 parents:
-  - bigger-outcome:schema-registry-r1
+  - bigger_outcome:schema-registry-r1
 subgraph: false
 tags:
   - schema-registry

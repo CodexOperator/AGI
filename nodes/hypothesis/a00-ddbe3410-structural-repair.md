@@ -3,10 +3,10 @@ acceptance_criteria: []
 blocked_by: []
 cavekit_req: structural-bias/synthetic-repair
 effort: L
-id: "hypothesis:a00-ddbe3410-structural-repair"
+id: "hyp:a00-ddbe3410-structural-repair"
 mint_id: feaf4a2e88d34e27ac192074295a68ea
 next_edges:
-  - experiment:a00-ddbe3410-exp002-structural-repair
+  - exp:a00-ddbe3410-exp002-structural-repair
 parents:
   - idea:domain-chain-bootstrap
 status: open

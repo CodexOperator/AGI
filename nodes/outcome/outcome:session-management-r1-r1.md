@@ -2,7 +2,7 @@
 id: "outcome:session-management-r1-r1"
 mint_id: ebab71c32fb3403a8a56b88811a2e40a
 next_edges:
-  - bigger-outcome:session-management-r1
+  - bigger_outcome:session-management-r1
 parents:
   - mvp:session-management-r1-r1
 tags:

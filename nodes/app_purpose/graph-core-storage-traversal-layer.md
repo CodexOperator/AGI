@@ -1,5 +1,5 @@
 ---
-id: "app-purpose:graph-core-storage-traversal-layer"
+id: "app_purpose:graph-core-storage-traversal-layer"
 mint_id: c00f7c79da1a4e7b88d51ec53e496a6b
 next_edges: []
 parents:

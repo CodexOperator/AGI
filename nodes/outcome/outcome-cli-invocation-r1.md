@@ -2,7 +2,7 @@
 id: "outcome:cli-invocation-r1"
 mint_id: e11f7aa08a694ee48e6a3b0f8b6274f6
 next_edges:
-  - bigger-outcome:cli-invocation-r1
+  - bigger_outcome:cli-invocation-r1
 parents:
   - mvp:cli-invocation-r1
 status: closed

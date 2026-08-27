@@ -5,7 +5,7 @@ mint_id: 8e1d2230bb70489f9d1abc1f7817ff72
 next_edges:
   - verdict:a00-8636e255-bf1a6c
 parents:
-  - hypothesis:a00-8636e255-bf1a6c
+  - hyp:a00-8636e255-bf1a6c
 status: completed
 tags:
   - renderers
