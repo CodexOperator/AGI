@@ -9,6 +9,7 @@ order: 40
 origin: goals-doc
 seeds:
   - goal:g7.1
+  - goal:g7.10
   - goal:g7.2
   - goal:g7.3
   - goal:g7.4

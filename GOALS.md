@@ -871,7 +871,7 @@ migrate the five bodies into their v1 nodes' `THOUGHT` regions, then retire the
 convention — is one step in. Retiring it deletes 5 nodes and drops the node
 count, so it wants explicit sign-off rather than a quiet cleanup.
 
-### G2.11 — Every node version carries the thought that produced it — status: active
+### G2.11 — Every node version carries the thought that produced it — status: complete
 
 **`body` is state; `thought` is delta.** The body says what a node asserts
 *now*. The thought says why *this version* differs from the last one. They
@@ -959,6 +959,20 @@ Falsifier: fill one `why:` and one `THOUGHT` block on a build node, run
 `driver.sh --smoke` and a full `level3.py` scan, and read them back. Run twice.
 Both must survive both passes. (Run 2026-08-27 on `nodes/build/bin-grid.md`:
 both survived; before the fix, both were wiped by the first scan.)
+
+## Complete 2026-08-27
+
+The mechanism ships and is verified end to end: the block survives every
+regenerating writer, readers strip it, the grid versions it per node version,
+`thought_coverage` reports it, and it is declared in all 14 active schemas plus
+`CLAUDE.md` and `SKILL.md`.
+
+**Coverage is 2 of 788 and that is not an incomplete goal — it is the design.**
+Absent means empty by construction; the alternative is fabricating reasoning
+for 786 nodes after the fact, which this goal explicitly forbids because a
+made-up thought reads as evidence. Nodes acquire a thought when someone next
+has one. Recovering real reasoning from stored sessions is **G10.1**'s
+problem, not a residual of this one.
 
 ## G3 — Scoring that added motion cannot move — status: active
 
@@ -2581,6 +2595,86 @@ Asks, in addition to the prune guard above:
 - **Or make the mutation reversible** — a scan that writes to a directory it
   did not previously own should say so, loudly, and that is the same warning
   the prune needs.
+
+### G7.10 — The publish cron must never fail silently, and a refusal must not strand work — status: active
+
+🔴 **The hourly publish cron can refuse, every hour, forever, and emit no
+signal anywhere a human or an agent will look.** It has already done exactly
+that: **40 consecutive refusals with 0 successful publishes ever**, from
+installation on 2026-08-25 until it was noticed by hand on 2026-08-27.
+
+This is **G7**'s own commitment — nothing the loop produces is silently lost —
+violated by the loop's own automation. It is the highest-severity shape the
+goal has, because the thing being lost is *every engine change the graph
+makes*, and the loop keeps reporting success while it happens.
+
+## Why it is not a one-off
+
+Gate 1 of `publish-engine.sh` refuses when the graph has any uncommitted change
+under `nodes/` or `GOALS.md`. That gate is **correct** — a published engine
+must cite a graph commit that exists. The defect is everything around it:
+
+- **The refusal goes to a log nobody reads.** `driver.sh --smoke` does not
+  report it. `INJECTION.md` does not carry it. No metric moves. The only way to
+  learn about it is to run `level3.py` and read `git status` on a hunch.
+- **Any single self-inflicted dirty node arms it permanently.** One character
+  of YAML quoting did it for weeks (**G6.5**). Then **S19** made it
+  *intermittent* instead of permanent — a contract that re-derives differently
+  under 3.11 and 3.12, so the gate passes or fails depending on which
+  interpreter ran last. Intermittent is worse: it looks healthy half the time,
+  which is precisely when nobody investigates.
+- **A refusal is not a no-op.** `publish-engine.sh` mutates the graph at step 1
+  (re-deriving contracts) before refusing at step 3. A refused run left **184
+  junk nodes** behind during the last rename. So "it refused" does not mean
+  "nothing happened", which is the assumption every reader makes.
+
+## What this asks for, in the order it should be built
+
+1. **An alarm that moves a number.** The project has proved this idiom works
+   exactly once already: `shadow_decisive_verdicts` went 0 -> 1 and caught a
+   defect that would otherwise have shipped. Emit
+   `hours_since_successful_publish` (and `publish_blocked_reason`) from
+   `metrics.py`, so a stalled cron shows up in every `--smoke` run and in the
+   injected map. **A failure that does not move a metric is a failure this
+   project cannot see.**
+2. **A non-zero exit and a durable marker.** The cron should leave a
+   machine-readable marker the `SessionStart` hook surfaces, so the *next
+   agent to open a session anywhere* is told, rather than the information
+   waiting in a log for someone to guess.
+3. **A fallback that keeps working instead of stopping.** The bytes must land
+   somewhere even when the main path is blocked. Two candidates, and they are
+   not exclusive:
+   - **Branch and continue.** Publish to `cron/pending-<graph-sha>` in the
+     engine rather than to the default branch. Work is never stranded, the
+     default branch is never published from a graph commit that does not exist,
+     and a human fast-forwards when the block clears. This is the option that
+     preserves both invariants at once and is the recommended default.
+   - **Force-record.** Note that `grid.py commit --all` runs on its own 5-minute
+     cadence and is *not* gated, so **payload bytes are already never lost** —
+     what stalls is only the engine publish. Say so explicitly in the failure
+     message, because the reasonable fear when a publish stalls is that work is
+     evaporating, and it is not.
+4. **Make the refusal atomic.** Either step 1 does not mutate, or a refusal
+   rolls back what it wrote. Today it does neither, and the 184 junk nodes are
+   the proof.
+
+## The design principle underneath
+
+**A gate that blocks is fine. A gate that blocks quietly is not.** The engine's
+whole design ethic is that mundane operations, and the small errors they breed,
+are the system's job to absorb and never the agent's — an agent should never
+have to *suspect* that automation stopped working. Silence converts a healthy
+refusal into an invisible outage, and invisible outages are what this project
+is least able to afford while it is this experimental.
+
+Pairs with **G6.5** (which owns the cron itself), **S19** (the live cause of
+the current flap), **S7** (a different silent-edge defect found the same day),
+and **G1** (every mundane step is a command, not a thing to remember).
+
+Falsifier: dirty the graph deliberately with one node, wait for the `:37` cron,
+and open a fresh Claude Code session in any directory. If nothing in that
+session's injected context mentions that the engine is unpublished, this goal
+is not met.
 
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 

@@ -10,7 +10,7 @@ origin: goals-doc
 parents:
   - goal:g2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - subgoal
@@ -133,3 +133,17 @@ contact with agents who will be tempted to append instead. If thoughts start
 accumulating, this becomes a second body and the distinction collapses. Worth
 measuring later — average thought length over versions is the tell.
 <!-- THOUGHT:END -->
+
+## Complete 2026-08-27
+
+The mechanism ships and is verified end to end: the block survives every
+regenerating writer, readers strip it, the grid versions it per node version,
+`thought_coverage` reports it, and it is declared in all 14 active schemas plus
+`CLAUDE.md` and `SKILL.md`.
+
+**Coverage is 2 of 788 and that is not an incomplete goal — it is the design.**
+Absent means empty by construction; the alternative is fabricating reasoning
+for 786 nodes after the fact, which this goal explicitly forbids because a
+made-up thought reads as evidence. Nodes acquire a thought when someone next
+has one. Recovering real reasoning from stored sessions is **G10.1**'s
+problem, not a residual of this one.
