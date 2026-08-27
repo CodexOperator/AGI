@@ -23,7 +23,15 @@ The system is generalizing **from a research loop into a general-task loop**: ga
 
 `TODO.md` L0 has a status table separating what is **built** from what is only **described**. Read it before planning — several capabilities exist as prose only.
 
-**Goals live project-side.** `~/work/fantasia/GOALS.md` is the reference implementation — root goals `G1..G7` with `status: active | phasing-out | complete`, seed nodes referencing them by id, and a goal-attributable `metric_primary`. The engine stays domain-free. What is *not* built is engine support: attribution-based scoring, status enforcement, and goal nodes in `nodes/goal/`. See `TODO.md` L0a, L4, L5, L15.
+**Goals live project-side, as nodes.** ⚠️ *This paragraph said the opposite until 2026-08-27 — it claimed goal nodes in `nodes/goal/` were **not** built. They are, and they are the source of truth.*
+
+`nodes/goal/*.md` is authoritative and **`GOALS.md` is rendered from it** by `snapshot-goals.py --render`, which `driver.sh` runs on every smoke pass. **Edit the node, never `GOALS.md`** — a hand-edit there survives until the next `--smoke` and then vanishes with no warning. `--render --check` exits 0 only on a byte-identical round trip.
+
+The lifecycle is **four** states, not three: `active` (being worked) | `horizon` (declared and committed to, not yet being worked) | `phasing-out` (retiring) | `complete`. `horizon` is what makes goal rotation expressible without lying about which goals are in flight. Unknown values are preserved verbatim with a warning, never dropped.
+
+Ids are `G<n>` (long-term), `G<n>.<m>` (subgoal, exactly one goal parent) and `S<n>` (short-term / bugfix), discriminated on `goal_kind`. **Ids are never renumbered — a gap beats a renumber.** Retire by marking `phasing-out` and deprecating the seed node; never delete.
+
+Still not built: attribution-based scoring and status enforcement. (`TODO.md` is an archive as of 2026-08-22 — its L-entries are absorbed into goals and nothing new is added there.)
 
 ---
 
