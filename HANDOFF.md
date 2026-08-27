@@ -550,10 +550,20 @@ payload is the real file and is durable:
 ```bash
 python3 agi/extensions/agi/bin/grid.py checkout --all   # payloads/HANDOFF.md
 $EDITOR payloads/HANDOFF.md
-python3 agi/extensions/agi/bin/grid.py commit --all
-git add -A && git commit                                 # gate 1 needs a clean graph
-bash agi/extensions/agi/bin/publish-engine.sh
+python3 agi/extensions/agi/bin/grid.py commit --all     # the payload's real home
+bash agi/extensions/agi/bin/publish-engine.sh           # re-derives, publishes, commits engine
+git add -A && git commit                                 # NOW the node contract has changed
 ```
+
+**The order matters and is not the obvious one.** `payloads/` is **gitignored** —
+the committed home of those bytes is the node's grid ref, not the working tree.
+So `git add -A` finds *nothing* right after a payload-only edit, and a commit
+attempted there silently does nothing ("nothing to commit, working tree clean")
+while you believe your reasoning was recorded. The node file only changes once
+`publish-engine.sh` re-derives its contract block from the published payload.
+**Commit last, and put the reasoning for the payload edit in that commit** —
+otherwise it exists solely as a grid version with no message in git history.
+Walked into on 2026-08-27, twice.
 
 ## 6. Known-good verification sequence
 
