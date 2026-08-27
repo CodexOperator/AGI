@@ -2,7 +2,7 @@
 domain: test-coverage
 id: "idea:domain-test-coverage"
 mint_id: c299a41ead33404c9d2d0c5f74e84ee4
-spawns:
+next_edges:
   - hyp:test-coverage-r1
 tags:
   - tests

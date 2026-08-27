@@ -2,7 +2,7 @@
 confidence: 1.0
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:graph-core-chain-persistence-r13"
 mint_id: 7da3582b492b4a80b0e78c1a0d2813e3
 next_edges:

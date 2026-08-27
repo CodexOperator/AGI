@@ -21,6 +21,7 @@ tags:
   - verdict-experiment-transition
   - proved
 title: "environment-indexers/R1: Chain Extension — PROVED"
+type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---
 

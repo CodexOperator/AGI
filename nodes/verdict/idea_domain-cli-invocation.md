@@ -2,7 +2,7 @@
 confidence: 0.5
 demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
 demoted_from: disproved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:idea_domain-cli-invocation"
 mint_id: 46230bfdfe7847cb8eb871f5f485e9ab
 type: verdict

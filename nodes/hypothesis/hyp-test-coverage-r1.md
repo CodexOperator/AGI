@@ -2,9 +2,9 @@
 domain: test-coverage
 id: "hyp:test-coverage-r1"
 mint_id: c0f0f8c2f2444f50b190152c11c9d8cb
-parent_idea: "idea:domain-test-coverage"
-spawns:
-  - task:t-094
+next_edges: []
+parents:
+  - idea:domain-test-coverage
 status: pending
 tags:
   - tests

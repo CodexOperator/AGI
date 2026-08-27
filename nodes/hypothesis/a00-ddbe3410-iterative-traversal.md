@@ -6,7 +6,7 @@ confidence: 0.95
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
 effort: S
-evidence_runs: 0
+evidence_runs: []
 id: "hypothesis:a00-ddbe3410-iterative-traversal"
 mint_id: bc11344a96544f3bb83a07a9851ae18c
 parents:

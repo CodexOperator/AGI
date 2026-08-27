@@ -3,7 +3,7 @@ confidence: 0.95
 contradicts: []
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:a00-407fa689-verdict-pareto"
 mint_id: edf9509a3d8d4853bd20a57aa2b5e0e4
 parents:

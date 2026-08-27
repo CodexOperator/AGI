@@ -2,7 +2,7 @@
 confidence: 0.85
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:embeddings-r2-extend"
 mint_id: 82b24aca15754d6d886dd883a39874c6
 next_edges:

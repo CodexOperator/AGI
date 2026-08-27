@@ -2,7 +2,7 @@
 confidence: 0.95
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:session-management-r1-extend-sm"
 mint_id: 3271af473bb7472695e8920f363c4b14
 type: verdict

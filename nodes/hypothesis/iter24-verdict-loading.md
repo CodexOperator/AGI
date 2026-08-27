@@ -2,7 +2,7 @@
 confidence: 1.0
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "hypothesis:iter24-verdict-loading"
 mint_id: c073cc094eee4c06a9b28e1fcfdb4b2d
 next_edges: []

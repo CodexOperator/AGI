@@ -2,7 +2,7 @@
 confidence: 1.0
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:iter24-branching-chains"
 mint_id: 0ad88873d82f4cbabffc455762d29e5f
 next_edges: []

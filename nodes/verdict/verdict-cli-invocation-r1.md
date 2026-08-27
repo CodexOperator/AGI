@@ -8,7 +8,8 @@ mint_id: 38ccedb9f9684f47af3e56be1a415b51
 next_edges:
   - mvp:cli-invocation-r1
   - exp:cli-invocation-r1-extend1
-parent_hypothesis: "hyp:cli-invocation-r1"
+parents:
+  - hyp:cli-invocation-r1
 status: proved
 tags:
   - cli

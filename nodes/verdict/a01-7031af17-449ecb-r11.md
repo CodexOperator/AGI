@@ -17,6 +17,7 @@ tags:
   - path-safety
   - sandboxing
 title: "graph-core/R11: PathValidator Not Wired Into Loader"
+type: verdict
 verdict: "inconclusive_lean_disproved:35"
 ---
 

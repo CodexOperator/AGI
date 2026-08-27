@@ -7,7 +7,8 @@ id: "verdict:session-management-r1"
 mint_id: 83ced03194954e41962c2da092e84c2e
 next_edges:
   - exp:session-management-r1-extend1
-parent_hypothesis: "hyp:session-management-r1"
+parents:
+  - hyp:session-management-r1
 status: inconclusive_lean_proved
 tags:
   - sessions
@@ -16,6 +17,7 @@ tags:
   - R1
 title: "R1: Session state capture and restore fidelity"
 type: verdict
+verdict: inconclusive_lean_proved:50
 ---
 
 **Verdict:** INCONCLUSIVE_LEAN_PROVED:60
