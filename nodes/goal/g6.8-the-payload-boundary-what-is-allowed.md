@@ -116,3 +116,34 @@ Two things worth recording for whoever closes this:
 Suggested resolution, not yet taken: sharpen the test from "exists as a file"
 to "exists as a file **and** is authored rather than emitted". That keeps
 every prose doc in and puts trial output out, without a judgement call.
+
+## 🔴 The premise this goal rests on is currently false — see G2.10
+
+The argument above for admitting code and prose is **bidirectionality**:
+
+> A code node ties cleanly to thought: it can spawn a hypothesis about itself,
+> an experiment against itself, or just an idea. That bidirectionality is what
+> makes it worth being a node rather than a record.
+
+Measured 2026-08-27: **half of that does not hold.** `bin/level3.py`
+regenerates a build node's entire body on every run, so a build node can be
+*cited* by a thought and cannot *contain* one. Probed both ways — prose added
+to a body is wiped by the next scan, and a filled-in `why: TODO(model)` is
+wiped too. The corpus confirms it: **8,034 `why`/`perf`/`security` fields
+across 190 build nodes, 8,034 still `TODO(model)`, 0 ever filled.**
+
+So today a build node **is** the "record" this goal says it is more than. The
+boundary drawn here is still the right boundary; what is missing is the
+property that justified drawing it there. **G2.10 owns the fix**, and until it
+lands, every argument on this page about build nodes holding thought should be
+read as intent rather than description.
+
+This also settles the `@v2` question in the other direction from the obvious
+one. The five `origin: build-version` nodes look like exactly the redundancy
+CLAUDE.md forbids ("a version is a grid commit, not a second node file"). They
+are not: they carry 7k-13k characters of real reasoning each and survive
+**only** because `level3.py` does not own their origin. Their payloads are
+byte-identical to the engine, so collapsing them loses no bytes — and ~47,000
+characters of prose, with nowhere to put it. Fix G2.10 first, migrate the
+bodies, then retire the convention.
+
