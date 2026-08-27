@@ -79,7 +79,26 @@ from pathlib import Path
 
 import yaml
 
-ORIGIN = "level3-scan"
+ORIGIN = "build-scan"
+
+#: The pre-2026-08-27 origin stamp. Read for recognition, NEVER for pruning.
+#: The asymmetry is the whole safety property: a straggler still stamped
+#: `level3-scan` is left alone rather than deleted, because "this scan does
+#: not recognise it" and "this node is stale" are different statements and
+#: only the second licenses removal. Pruning on the legacy stamp is exactly
+#: how a half-applied rename becomes H0i (S11).
+LEGACY_ORIGIN = "level3-scan"
+
+#: Payload suffixes that make a build node `build_kind: code`. Everything
+#: else is `prose`. Mechanical on purpose -- G6.8's boundary is only a
+#: boundary if it answers without a human adjudicating.
+CODE_SUFFIXES = frozenset({".py", ".sh", ".ts", ".js"})
+
+
+def build_kind_for(rel_path: str) -> str:
+    """`code` or `prose`, from the payload suffix alone."""
+    from pathlib import Path as _P
+    return "code" if _P(rel_path).suffix.lower() in CODE_SUFFIXES else "prose"
 
 BIN_DIR = Path(__file__).resolve().parent
 PLUGIN_ROOT = BIN_DIR.parent  # .../extensions/agi
@@ -612,10 +631,10 @@ def slug_for(rel_path: str) -> str:
 
 # --- node construction ---------------------------------------------------
 
-_CONTRACT_BEGIN = ("<!-- LEVEL3-CONTRACT:BEGIN — harness-owned shape; a model "
+_CONTRACT_BEGIN = ("<!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model "
                     "may only fill why/perf/security, never add/remove/reorder "
                     "fields or entries -->")
-_CONTRACT_END = "<!-- LEVEL3-CONTRACT:END -->"
+_CONTRACT_END = "<!-- BUILD-CONTRACT:END -->"
 
 
 def _fill_entries(entries: list[dict]) -> list[dict]:
@@ -636,16 +655,17 @@ def build_node(rel_path: str, abs_path: Path, parent_id: str | None,
     case, so a node whose payload exists only in the graph derives correctly
     even if the engine tree no longer has the file.
     """
-    node_id = f"level3:{slug_for(rel_path)}"
+    node_id = f"build:{slug_for(rel_path)}"
     analysis = (analyze_source(payload, Path(rel_path).suffix, rel_path)
                 if payload is not None else analyze_file(abs_path))
 
     fm = {
         "id": node_id,
-        "type": "level3",
-        "title": f"Level-3: {rel_path}",
+        "type": "build",
+        "build_kind": build_kind_for(rel_path),
+        "title": f"Build: {rel_path}",
         "payload_ref": rel_path,
-        "tags": ["level3", "g2.1"],
+        "tags": ["build", build_kind_for(rel_path), "g2.1"],
         "confidence": 1.0,
     }
     if parent_id:
@@ -746,7 +766,7 @@ def main(argv: list[str] | None = None) -> int:
     existing = snapshot_goals.load_existing_nodes()
     units = load_census_units(existing)
 
-    level3_dir = project_root / "nodes" / "level3"
+    level3_dir = project_root / "nodes" / "build"
 
     written_paths: set[Path] = set()
     used_ids: dict[str, str] = {}
@@ -769,7 +789,7 @@ def main(argv: list[str] | None = None) -> int:
         parent_id = find_parent(rel_path, units)
         payload = None
         if args.from_grid:
-            probe_id = f"level3:{slug_for(rel_path)}"
+            probe_id = f"build:{slug_for(rel_path)}"
             node_path = existing.get(probe_id, {}).get("path")
             payload = grid_payload_for(project_root, node_path) if node_path else None
             if payload is None:
@@ -855,7 +875,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"contract entries: {n_derivable} derivable, {n_uncovered} uncovered, "
           f"{n_parse_fail} file(s) failed to parse")
     prune_verb = "would prune" if args.dry_run else "pruned"
-    print(f"stale level3-scan nodes {prune_verb}: {len(stale_generated)}")
+    print(f"stale {ORIGIN} nodes {prune_verb}: {len(stale_generated)}")
     print(f"target dir: {level3_dir}")
 
     return 0

@@ -111,7 +111,7 @@ def engine(tmp_path) -> Path:
 def project(tmp_path) -> Path:
     p = tmp_path / "project"
     (p / "nodes" / "idea").mkdir(parents=True)
-    (p / "nodes" / "level3").mkdir(parents=True)
+    (p / "nodes" / "build").mkdir(parents=True)
     for node_id, fm in IDEA_NODES.items():
         slug = node_id.split(":", 1)[-1]
         l3.write_frontmatter(p / "nodes" / "idea" / f"{slug}.md", dict(fm), "body")
@@ -142,7 +142,7 @@ def contract_of(path: Path) -> dict:
 
 def level3_nodes(project: Path) -> dict:
     return {fm_of(p)["id"]: (p, fm_of(p))
-            for p in sorted((project / "nodes" / "level3").glob("*.md"))}
+            for p in sorted((project / "nodes" / "build").glob("*.md"))}
 
 
 def write_node(project: Path, rel: str, fm: dict, body: str = "body", origin: str = ""):
@@ -178,16 +178,16 @@ def test_discovers_every_file_passing_the_g6_8_boundary(project, engine):
     ids = set(level3_nodes(project))
     # everything the old two-prefix scan already found
     assert {
-        "level3:src-graph-core-init",
-        "level3:src-graph-core-node",
-        "level3:src-graph-core-persistence-filesystem",
-        "level3:src-graph-core-broken",
-        "level3:bin-cli",
-        "level3:bin-orphan",
-        "level3:src-init",
+        "build:src-graph-core-init",
+        "build:src-graph-core-node",
+        "build:src-graph-core-persistence-filesystem",
+        "build:src-graph-core-broken",
+        "build:bin-cli",
+        "build:bin-orphan",
+        "build:src-init",
     } <= ids
     # ...plus what it used to silently drop
-    assert "level3:bin-nested-inner" in ids, \
+    assert "build:bin-nested-inner" in ids, \
         "a nested bin/ script is a tracked file; the boundary admits it"
     assert any("driver" in nid for nid in ids), \
         "driver.sh is the highest-leverage shell surface in the engine (g6.6)"
@@ -236,9 +236,9 @@ def test_empty_scope_is_refused_never_treated_as_prune_everything(project, engin
 
 def test_frontmatter_uses_payload_ref_and_origin_only(project, engine):
     run(project, engine)
-    _path, fm = level3_nodes(project)["level3:src-graph-core-node"]
-    assert fm["type"] == "level3"
-    assert fm["origin"] == "level3-scan"
+    _path, fm = level3_nodes(project)["build:src-graph-core-node"]
+    assert fm["type"] == "build"
+    assert fm["origin"] == "build-scan"
     assert fm["payload_ref"] == "extensions/agi/src/graph_core/node.py"
     assert fm["parents"] == ["idea:engine-graph-core"]
     # no invented top-level keys beyond the standard generated-node set.
@@ -246,8 +246,8 @@ def test_frontmatter_uses_payload_ref_and_origin_only(project, engine):
     # `write_frontmatter`, at creation, for every generator alike, which is
     # exactly the "not a level3-specific invention" property this test guards.
     assert set(fm) <= {
-        "id", "mint_id", "type", "title", "payload_ref", "tags", "confidence",
-        "parents", "origin",
+        "id", "mint_id", "type", "build_kind", "title", "payload_ref", "tags",
+        "confidence", "parents", "origin",
     }
     assert identity.is_valid_mint_id(fm["mint_id"])
 
@@ -257,7 +257,7 @@ def test_frontmatter_uses_payload_ref_and_origin_only(project, engine):
 
 def test_imports_and_top_level_defs_are_derived(project, engine):
     run(project, engine)
-    path, _ = level3_nodes(project)["level3:src-graph-core-node"]
+    path, _ = level3_nodes(project)["build:src-graph-core-node"]
     contract = contract_of(path)
     assert contract["parse_ok"] is True
     input_names = {e["name"] for e in contract["inputs"]}
@@ -279,7 +279,7 @@ def test_imports_and_top_level_defs_are_derived(project, engine):
 
 def test_read_write_calls_argv_env_stdout_are_derived(project, engine):
     run(project, engine)
-    path, _ = level3_nodes(project)["level3:src-graph-core-persistence-filesystem"]
+    path, _ = level3_nodes(project)["build:src-graph-core-persistence-filesystem"]
     contract = contract_of(path)
     input_hows = " ".join(e["how"] for e in contract["inputs"])
     output_hows = " ".join(e["how"] for e in contract["outputs"])
@@ -298,7 +298,7 @@ def test_read_write_calls_argv_env_stdout_are_derived(project, engine):
 
 def test_non_literal_open_mode_is_uncovered_not_guessed(project, engine):
     run(project, engine)
-    path, _ = level3_nodes(project)["level3:src-graph-core-persistence-filesystem"]
+    path, _ = level3_nodes(project)["build:src-graph-core-persistence-filesystem"]
     contract = contract_of(path)
     assert "uncovered" in contract
     uncovered_hows = " ".join(e["how"] for e in contract["uncovered"])
@@ -316,7 +316,7 @@ def test_non_literal_open_mode_is_uncovered_not_guessed(project, engine):
 
 def test_syntax_error_file_gets_parse_ok_false_and_empty_contract(project, engine):
     run(project, engine)
-    path, _ = level3_nodes(project)["level3:src-graph-core-broken"]
+    path, _ = level3_nodes(project)["build:src-graph-core-broken"]
     contract = contract_of(path)
     assert contract["parse_ok"] is False
     assert "parse_error" in contract
@@ -326,7 +326,7 @@ def test_syntax_error_file_gets_parse_ok_false_and_empty_contract(project, engin
 
 def test_empty_file_gets_empty_but_present_contract_lists(project, engine):
     run(project, engine)
-    path, _ = level3_nodes(project)["level3:src-graph-core-init"]
+    path, _ = level3_nodes(project)["build:src-graph-core-init"]
     contract = contract_of(path)
     assert contract["parse_ok"] is True
     assert contract["inputs"] == []
@@ -338,21 +338,21 @@ def test_empty_file_gets_empty_but_present_contract_lists(project, engine):
 
 def test_bin_script_matches_exact_unit_path(project, engine):
     run(project, engine)
-    _path, fm = level3_nodes(project)["level3:bin-cli"]
+    _path, fm = level3_nodes(project)["build:bin-cli"]
     assert fm["parents"] == ["idea:engine-cli"]
 
 
 def test_src_package_matches_directory_prefix(project, engine):
     run(project, engine)
-    _path, fm = level3_nodes(project)["level3:src-graph-core-persistence-filesystem"]
+    _path, fm = level3_nodes(project)["build:src-graph-core-persistence-filesystem"]
     assert fm["parents"] == ["idea:engine-graph-core"]
 
 
 def test_no_matching_unit_is_parentless_and_flagged(project, engine):
     r = run(project, engine)
-    _path, fm = level3_nodes(project)["level3:bin-orphan"]
+    _path, fm = level3_nodes(project)["build:bin-orphan"]
     assert "parents" not in fm
-    _path2, fm2 = level3_nodes(project)["level3:src-init"]
+    _path2, fm2 = level3_nodes(project)["build:src-init"]
     assert "parents" not in fm2
     assert "NO_PARENT: extensions/agi/bin/orphan.py" in r.stdout
     assert "NO_PARENT: extensions/agi/src/__init__.py" in r.stdout
@@ -405,10 +405,10 @@ def test_dry_run_writes_nothing(project, engine):
 def test_idempotent_byte_identical(project, engine):
     assert run(project, engine).returncode == 0
     first = {p.name: p.read_bytes()
-             for p in sorted((project / "nodes" / "level3").glob("*.md"))}
+             for p in sorted((project / "nodes" / "build").glob("*.md"))}
     assert run(project, engine).returncode == 0
     second = {p.name: p.read_bytes()
-              for p in sorted((project / "nodes" / "level3").glob("*.md"))}
+              for p in sorted((project / "nodes" / "build").glob("*.md"))}
     assert first == second
     assert first
 
@@ -418,7 +418,7 @@ def test_idempotent_byte_identical(project, engine):
 
 def test_write_twice_round_trip_preserves_foreign_field(project, engine):
     assert run(project, engine).returncode == 0
-    node_path, _fm = level3_nodes(project)["level3:src-graph-core-node"]
+    node_path, _fm = level3_nodes(project)["build:src-graph-core-node"]
 
     text = node_path.read_text(encoding="utf-8")
     head, body = text.split("---", 2)[1], text.split("---", 2)[2]
@@ -434,7 +434,7 @@ def test_write_twice_round_trip_preserves_foreign_field(project, engine):
     assert "embedding_coords" in fm2
     # owned fields are still regenerated fresh, not frozen by preserve
     assert fm2["payload_ref"] == "extensions/agi/src/graph_core/node.py"
-    assert fm2["title"] == "Level-3: extensions/agi/src/graph_core/node.py"
+    assert fm2["title"] == "Build: extensions/agi/src/graph_core/node.py"
 
 
 # --- 9. prune reach: only our own stamp, never build-site / unstamped -------
@@ -442,12 +442,12 @@ def test_write_twice_round_trip_preserves_foreign_field(project, engine):
 
 def test_prune_removes_stale_level3_scan_but_spares_others(project, engine):
     run(project, engine)
-    stale = project / "nodes" / "level3" / "level3-vanished-file.md"
+    stale = project / "nodes" / "build" / "level3-vanished-file.md"
     l3.write_frontmatter(
         stale,
-        {"id": "level3:vanished-file", "type": "level3",
+        {"id": "build:vanished-file", "type": "build",
          "payload_ref": "extensions/agi/src/vanished.py"},
-        "body", origin="level3-scan",
+        "body", origin="build-scan",
     )
     build_site_node = write_node(
         project, "level3/domain-untouched.md",
@@ -463,6 +463,46 @@ def test_prune_removes_stale_level3_scan_but_spares_others(project, engine):
     assert build_site_node.exists()
     assert unstamped_node.exists()
     assert "removed stale" in r.stdout
+
+
+def test_a_node_stamped_with_the_LEGACY_origin_is_never_pruned(project, engine):
+    """The asymmetry that makes the level3 -> build rename survivable.
+
+    Readers accept both names; the pruner recognises only the current
+    `ORIGIN`. A straggler still stamped `level3-scan` is therefore *left
+    alone* — "this scan does not recognise it" and "this node is stale" are
+    different statements, and only the second licenses deletion.
+
+    Pruning on the legacy stamp is precisely how a half-applied rename turns
+    into H0i: `level3.py` would stop recognising ~185 nodes as its own output
+    and delete every one of them on the next run. This test is the guard on
+    that, so the two rules can never quietly converge again.
+    """
+    run(project, engine)
+    legacy = project / "nodes" / "build" / "legacy-stamped-file.md"
+    l3.write_frontmatter(
+        legacy,
+        {"id": "level3:legacy-file", "type": "level3",
+         "payload_ref": "extensions/agi/src/legacy.py"},
+        "body", origin="level3-scan",
+    )
+    r = run(project, engine)
+    assert r.returncode == 0
+    assert legacy.exists(), (
+        "a node stamped with the pre-rename origin was pruned; the pruner must "
+        "only ever remove nodes carrying its own current ORIGIN"
+    )
+    assert l3.ORIGIN == "build-scan"
+    assert l3.LEGACY_ORIGIN == "level3-scan"
+    assert l3.ORIGIN != l3.LEGACY_ORIGIN
+
+
+def test_build_kind_is_derived_from_the_payload_suffix():
+    """`code` vs `prose` answers without a human adjudicating (G6.8)."""
+    for path in ("bin/x.py", "lib/y.sh", "src/z.ts", "a/b.js"):
+        assert l3.build_kind_for(path) == "code", path
+    for path in ("README.md", "c.json", "d.toml", "e.sql", "Makefile"):
+        assert l3.build_kind_for(path) == "prose", path
 
 
 # --- 10. no project-local override door --------------------------------------

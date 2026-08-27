@@ -189,7 +189,13 @@ _grid_spec.loader.exec_module(grid)
 
 # --- level-3 node loading (read-only; never touches nodes/level3/) -----------
 
-_MARKER_SPAN_RE = re.compile(r"LEVEL3-CONTRACT:BEGIN(.*?)LEVEL3-CONTRACT:END", re.DOTALL)
+# Both spellings. `LEVEL3-CONTRACT` was renamed to `BUILD-CONTRACT` on
+# 2026-08-27; a reader that recognised only the new one would report every
+# unmigrated node as having no contract at all, which `--strict` turns into
+# drift and `publish-engine.sh` turns into a refusal. Accepting both is what
+# makes the rename survivable in either direction.
+_MARKER_SPAN_RE = re.compile(
+    r"(?:LEVEL3|BUILD)-CONTRACT:BEGIN(.*?)(?:LEVEL3|BUILD)-CONTRACT:END", re.DOTALL)
 _YAML_FENCE_OPEN = "```yaml"
 _FENCE = "```"
 
@@ -198,7 +204,7 @@ _FENCE = "```"
 # (bad YAML, truncated, wrong shape). Only this exact reason, on a node
 # stamped `origin: build-version`, is eligible for the `contracts_not_derived`
 # exemption below; every other reason (and every other origin) stays drift.
-_NO_CONTRACT_BLOCK = "no LEVEL3-CONTRACT block found in body"
+_NO_CONTRACT_BLOCK = "no BUILD-CONTRACT block found in body"
 _BUILD_VERSION_ORIGIN = "build-version"
 
 
@@ -260,17 +266,17 @@ def _extract_contract(body: str) -> tuple[dict | None, str | None]:
     """
     span_m = _MARKER_SPAN_RE.search(body)
     if not span_m:
-        return None, "no LEVEL3-CONTRACT block found in body"
+        return None, "no BUILD-CONTRACT block found in body"
     span = span_m.group(1)
     open_idx = span.find(_YAML_FENCE_OPEN)
     if open_idx == -1:
-        return None, "no ```yaml fence found inside LEVEL3-CONTRACT block"
+        return None, "no ```yaml fence found inside BUILD-CONTRACT block"
     after_open = span[open_idx + len(_YAML_FENCE_OPEN):]
     if after_open.startswith("\n"):
         after_open = after_open[1:]
     close_idx = after_open.rfind(_FENCE)
     if close_idx == -1:
-        return None, "no closing ``` fence found inside LEVEL3-CONTRACT block"
+        return None, "no closing ``` fence found inside BUILD-CONTRACT block"
     yaml_text = after_open[:close_idx]
     try:
         contract = yaml.safe_load(yaml_text)
@@ -290,9 +296,17 @@ def load_level3_nodes(project_root: Path) -> tuple[list[Level3Node], list[str]]:
     a crash.
     """
     warnings: list[str] = []
-    level3_dir = project_root / "nodes" / "level3"
+    # `nodes/build/`, renamed from `nodes/level3/` on 2026-08-27. Both are
+    # read: a project mid-migration (or one that never migrates) still
+    # materialises, and a stitch that silently found 0 nodes would publish an
+    # empty engine tree — the H0 shape with a new door.
+    level3_dir = project_root / "nodes" / "build"
     if not level3_dir.is_dir():
-        warnings.append(f"no nodes/level3/ directory under {project_root} — 0 nodes")
+        legacy = project_root / "nodes" / "level3"
+        if legacy.is_dir():
+            level3_dir = legacy
+    if not level3_dir.is_dir():
+        warnings.append(f"no nodes/build/ directory under {project_root} — 0 nodes")
         return [], warnings
 
     nodes: list[Level3Node] = []
@@ -307,7 +321,7 @@ def load_level3_nodes(project_root: Path) -> tuple[list[Level3Node], list[str]]:
             warnings.append(f"{md_path}: malformed frontmatter — skipped")
             continue
         fm, body = parsed
-        if fm.get("type") != "level3":
+        if fm.get("type") not in ("build", "level3"):
             warnings.append(f"{md_path}: type={fm.get('type')!r}, not 'level3' — skipped")
             continue
         node_id = fm.get("id") or f"<unknown:{md_path.name}>"

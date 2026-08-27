@@ -171,11 +171,11 @@ LEVEL_INFO = {
     ),
     3: dict(
         name="Code nodes",
-        node_type="level3",
-        dir_name="level3",
+        node_type="build",
+        dir_name="build",
         blurb=(
-            "Level 3 is actual code: one level3 node per source file "
-            "(nodes/level3/*.md), each with a payload_ref to the real file "
+            "Level 3 is actual code: one build node per source file "
+            "(nodes/build/*.md), each with a payload_ref to the real file "
             "and a mechanically-generated IO contract (inputs/outputs — "
             "harness-owned, never authored by a summarising model). "
             "goal:g2.1 calls this the level that makes the graph an "

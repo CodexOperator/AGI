@@ -60,7 +60,7 @@ def engine(tmp_path) -> Path:
 @pytest.fixture()
 def project(tmp_path) -> Path:
     p = tmp_path / "project"
-    (p / "nodes" / "level3").mkdir(parents=True)
+    (p / "nodes" / "build").mkdir(parents=True)
     return p
 
 
@@ -77,8 +77,8 @@ def mint_node(engine_root: Path, project_root: Path, rel_path: str,
         fm = dict(fm)
         fm["id"] = node_id
     slug = node_id.split(":", 1)[-1]
-    out_path = project_root / "nodes" / "level3" / f"{slug}.md"
-    l3.write_frontmatter(out_path, fm, body, origin="level3-scan")
+    out_path = project_root / "nodes" / "build" / f"{slug}.md"
+    l3.write_frontmatter(out_path, fm, body, origin="build-scan")
     return node_id
 
 
@@ -87,7 +87,7 @@ def mint_version_node(engine_root: Path, project_root: Path, rel_path: str,
                        base_node_id: str | None = None) -> str:
     """Mint a level-3 node stamped with an explicit `version`/`supersedes`,
     mirroring the real `origin: build-version` G6.3 convention: v1 keeps the
-    plain `level3:<slug>` id, v2+ gets `level3:<slug>@vN`, and `supersedes`
+    plain `build:<slug>` id, v2+ gets `build:<slug>@vN`, and `supersedes`
     (never `parents`) names the previous version. `base_node_id` lets a test
     mint a second, unrelated node at the same payload_ref+version without
     colliding on the same output filename as an existing mint."""
@@ -102,8 +102,8 @@ def mint_version_node(engine_root: Path, project_root: Path, rel_path: str,
     if supersedes is not None:
         fm["supersedes"] = supersedes
     slug = versioned_id.split(":", 1)[-1].replace("@", "-")
-    out_path = project_root / "nodes" / "level3" / f"{slug}.md"
-    origin = "build-version" if version > 1 else "level3-scan"
+    out_path = project_root / "nodes" / "build" / f"{slug}.md"
+    origin = "build-version" if version > 1 else "build-scan"
     l3.write_frontmatter(out_path, fm, body, origin=origin)
     return versioned_id
 
@@ -324,7 +324,7 @@ def test_verify_well_formed_chain_is_not_drift(tmp_path, engine, project):
 def test_verify_same_version_collision_is_still_drift(tmp_path, engine, project):
     v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
     v1b = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1,
-                             base_node_id="level3:bin-foo-other")
+                             base_node_id="build:bin-foo-other")
 
     report = st.verify_tree(project, engine)
     dup = report["duplicate_payload_ref"]
@@ -337,7 +337,7 @@ def test_verify_same_version_collision_is_still_drift(tmp_path, engine, project)
 def test_verify_supersedes_missing_id_is_still_drift(tmp_path, engine, project):
     v1 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=1)
     v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
-                            supersedes="level3:does-not-exist-anywhere", base_node_id=v1)
+                            supersedes="build:does-not-exist-anywhere", base_node_id=v1)
 
     report = st.verify_tree(project, engine)
     dup = report["duplicate_payload_ref"]
@@ -408,7 +408,7 @@ def test_cli_materialize_version_flag(tmp_path, engine, project):
 def test_load_level3_nodes_coerces_non_integer_version(tmp_path, engine, project):
     node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
     slug = node_id.split(":", 1)[-1]
-    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    node_path = project / "nodes" / "build" / f"{slug}.md"
     text = node_path.read_text(encoding="utf-8")
     assert "\nconfidence: 1.0\n" in text  # sanity: no version key present yet
     text = text.replace("confidence: 1.0\n", 'confidence: 1.0\nversion: "not-a-number"\n')
@@ -449,7 +449,7 @@ def test_verify_ignores_model_authored_prose_drift(tmp_path, engine, project):
     reproducible by design."""
     node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
     slug = node_id.split(":", 1)[-1]
-    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    node_path = project / "nodes" / "build" / f"{slug}.md"
     text = node_path.read_text(encoding="utf-8")
     text = text.replace("why: TODO(model)", "why: some model-authored rationale")
     node_path.write_text(text, encoding="utf-8")
@@ -461,10 +461,10 @@ def test_verify_ignores_model_authored_prose_drift(tmp_path, engine, project):
 def test_verify_unreadable_contract_reported_not_crashed(tmp_path, engine, project):
     node_id = mint_node(engine, project, "extensions/agi/bin/foo.py")
     slug = node_id.split(":", 1)[-1]
-    node_path = project / "nodes" / "level3" / f"{slug}.md"
-    # strip the contract markers entirely -> no LEVEL3-CONTRACT block found
+    node_path = project / "nodes" / "build" / f"{slug}.md"
+    # strip the contract markers entirely -> no BUILD-CONTRACT block found
     text = node_path.read_text(encoding="utf-8")
-    text = text.split("<!-- LEVEL3-CONTRACT:BEGIN")[0]
+    text = text.split("<!-- BUILD-CONTRACT:BEGIN")[0]
     node_path.write_text(text, encoding="utf-8")
 
     report = st.verify_tree(project, engine)
@@ -480,7 +480,7 @@ def test_verify_unreadable_contract_reported_not_crashed(tmp_path, engine, proje
 
 # --- verify: [4] contracts_not_derived (build-version nodes, goal:g6.3) -------
 # A `build-version` node (v2+ of a build node) is hand-authored prose per
-# G6.3's convention — it never carries a LEVEL3-CONTRACT block, because
+# G6.3's convention — it never carries a BUILD-CONTRACT block, because
 # level3.py owns that shape and has not been pointed at these nodes. Before
 # this split, that absence read identically to a level3-scan node that lost
 # its contract to a real bug: both landed in `unreadable_contracts`, which is
@@ -494,11 +494,11 @@ def test_verify_build_version_node_missing_contract_is_not_drift(tmp_path, engin
     v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2,
                             supersedes=v1, base_node_id=v1)
     # strip v2's contract block entirely, matching the real build-version
-    # convention: hand-authored nodes carry no LEVEL3-CONTRACT block at all.
+    # convention: hand-authored nodes carry no BUILD-CONTRACT block at all.
     slug = v2.split(":", 1)[-1].replace("@", "-")
-    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    node_path = project / "nodes" / "build" / f"{slug}.md"
     text = node_path.read_text(encoding="utf-8")
-    text = text.split("<!-- LEVEL3-CONTRACT:BEGIN")[0]
+    text = text.split("<!-- BUILD-CONTRACT:BEGIN")[0]
     node_path.write_text(text, encoding="utf-8")
     for rel in ENGINE_FILES:
         if rel != "extensions/agi/bin/foo.py":
@@ -515,7 +515,7 @@ def test_verify_build_version_node_missing_contract_is_not_drift(tmp_path, engin
 def test_verify_build_version_node_malformed_contract_is_still_drift(tmp_path, engine, project):
     v2 = mint_version_node(engine, project, "extensions/agi/bin/foo.py", version=2)
     slug = v2.split(":", 1)[-1].replace("@", "-")
-    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    node_path = project / "nodes" / "build" / f"{slug}.md"
     text = node_path.read_text(encoding="utf-8")
     # markers and fence both present, but the YAML inside is corrupt — this
     # is "malformed", not "absent", and must not be swept into the exemption
@@ -537,8 +537,8 @@ def test_verify_reads_contract_with_embedded_backtick_fence(tmp_path, engine, pr
     write_text(f\"\"\"...```json...```...\"\"\") call site, truncated mid-string
     by level3.py's `_cap`). A naive "first ``` after ```yaml" scan stops at
     that embedded fence and truncates the contract mid-YAML. Real case:
-    `level3:bin-heal` in the actual agi-tree corpus. Extraction must bound on
-    the LEVEL3-CONTRACT markers and take the *last* ``` inside that span."""
+    `build:bin-heal` in the actual agi-tree corpus. Extraction must bound on
+    the BUILD-CONTRACT markers and take the *last* ``` inside that span."""
     rel = "extensions/agi/bin/tricky.py"
     src = engine / rel
     src.parent.mkdir(parents=True, exist_ok=True)
@@ -552,7 +552,7 @@ def test_verify_reads_contract_with_embedded_backtick_fence(tmp_path, engine, pr
 
     node_id = mint_node(engine, project, rel)
     slug = node_id.split(":", 1)[-1]
-    node_path = project / "nodes" / "level3" / f"{slug}.md"
+    node_path = project / "nodes" / "build" / f"{slug}.md"
     text = node_path.read_text(encoding="utf-8")
     # confirm the fixture actually reproduces the embedded-fence shape
     assert "```json" in text
@@ -616,9 +616,9 @@ def test_verify_project_with_no_level3_dir_degrades(tmp_path, engine):
 
 def test_load_level3_nodes_skips_wrong_type_and_malformed(tmp_path, engine, project):
     mint_node(engine, project, "extensions/agi/bin/foo.py")
-    (project / "nodes" / "level3" / "not-level3.md").write_text(
+    (project / "nodes" / "build" / "not-level3.md").write_text(
         "---\nid: idea:stray\ntype: idea\n---\nbody\n", encoding="utf-8")
-    (project / "nodes" / "level3" / "garbage.md").write_text(
+    (project / "nodes" / "build" / "garbage.md").write_text(
         "not frontmatter at all\n", encoding="utf-8")
 
     nodes, warnings = st.load_level3_nodes(project)
@@ -748,7 +748,7 @@ def test_from_grid_reports_a_node_with_no_grid_history(project, engine, tmp_path
     # deliberately no grid commit
     stats = st.materialize(project, engine, tmp_path / "out", from_grid=True)
     assert stats["written"] == 0
-    assert stats["skipped_missing"] == ["level3:bin-foo"]
+    assert stats["skipped_missing"] == ["build:bin-foo"]
 
 
 def test_publish_refuses_without_from_grid(project, engine):

@@ -72,7 +72,7 @@ def project(tmp_path: Path) -> Path:
 
     # Level 3: one code node, child of the census idea.
     _node(
-        tmp_path, "level3", "bin-foo", parents=["idea:engine-foo"],
+        tmp_path, "build", "bin-foo", parents=["idea:engine-foo"],
         fm_extra="payload_ref: bin/foo.py",
     )
     return tmp_path
@@ -150,7 +150,7 @@ def test_level3_shows_payload_ref_and_states_its_meaning(project):
     assert proc.returncode == 0, proc.stderr
     text = _ctx_path(proc).read_text()
     assert "Zoom Level: 3 — Code nodes" in text
-    assert "level3:bin-foo" in text
+    assert "build:bin-foo" in text
     assert "bin/foo.py" in text
     assert "payload_ref" in text or "IO contract" in text  # explains what level 3 is
 
@@ -159,7 +159,7 @@ def test_level3_no_target_shows_whole_level3_census(project):
     proc = run(project, 1, "a00", "--level", "3")
     assert proc.returncode == 0, proc.stderr
     text = _ctx_path(proc).read_text()
-    assert "level3:bin-foo" in text
+    assert "build:bin-foo" in text
 
 
 # --------------------------------------------------------------------------
