@@ -110,3 +110,38 @@ the node -> verdict -> version chain that produced it (**G6.4**), not just the
 graph commit sha. Today it cites `published from the graph @ <sha>`, which is
 attribution without argument.
 
+## The cron was refusing silently, every hour — found 2026-08-27
+
+Gate 1 ("the graph has uncommitted changes under `nodes/` or `GOALS.md`") is
+the right gate and it was doing its job. What it was refusing on is the
+problem: **one node held a contract value that `level3.py` does not emit.**
+
+`nodes/level3/tests-schema-registry-test-brackets.md` stored a `how:` field
+quoted `f''---\n...''` where the derivation produces `f"---\n..."` — which is
+what the source actually says. So every scan re-derived the correct value,
+left the file modified, and the graph was never clean at `:37`. The cron
+refused, correctly, for a reason no one was reading.
+
+**The failure mode is worth naming because the gate cannot distinguish it.**
+"The graph has uncommitted work" and "the graph has a node that can never be
+clean" produce identical output and opposite required actions. The first says
+*commit and retry*; the second says *nothing you commit will help until the
+derivation and the stored value agree*. A cron that refuses every hour for
+weeks looks exactly like a cron that has nothing to do.
+
+Two consequences already acted on:
+
+- Fixed the value; two consecutive `level3.py` runs now leave the graph clean,
+  and `publish-engine.sh` published and committed on the next attempt
+  (`agi @ 0ebd5fa`, "published from the graph @ 3b580e5cc").
+- `CLAUDE.md` documented `stitch.py --publish` as the final step of an engine
+  edit. That is the layer *underneath* this script: it writes the bytes and
+  never commits, so following the documented path leaves the engine dirty and
+  the next publish refuses. Rewritten to point here, with the failure and its
+  recovery recorded.
+
+What this goal should still grow: **a refusal that distinguishes the two
+cases.** Gate 1 could re-run the derivation and say "the graph is dirty *and*
+re-deriving does not clean it — node X disagrees with its own contract",
+which is a different sentence demanding different work. Pairs with **G7.9**
+(a scan must not be quiet about what it changes) and **G7.5**.

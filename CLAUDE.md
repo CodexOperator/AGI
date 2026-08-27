@@ -104,14 +104,34 @@ then record and publish:
 python3 agi/extensions/agi/bin/grid.py commit --all
 ```
 
+Then **commit the graph**, and publish with the one command that owns the whole
+sequence:
+
 ```bash
-python3 agi/extensions/agi/bin/stitch.py --project "$PWD" --out /home/ubuntu/work/agi --from-grid --publish
+bash agi/extensions/agi/bin/publish-engine.sh
 ```
 
-`--publish` refuses unless `--from-grid` is set **and** the engine working tree
-is clean, so every byte it overwrites is already in the engine's own history and
-`git checkout .` undoes the whole publish. After publishing, re-run `level3.py`
-so contracts re-derive, then `grid.py commit --all` again.
+It re-derives contracts from the grid, `grid commit`s them, runs
+`stitch --verify --from-grid --strict`, publishes, **and commits the engine
+citing the graph commit it derives from**. It is also the hourly `:37` cron, so
+in the normal case you do not run it at all. `--dry-run` reports every gate
+without writing.
+
+**Do not call `stitch.py --publish` by hand.** It is the layer underneath and
+it stops one step short: it writes the bytes into the engine tree and never
+commits them, which leaves the engine dirty — and a dirty engine is exactly
+what `--publish` refuses on next time. That was walked into on 2026-08-27; the
+recovery is `git -C <engine> checkout .` (the bytes are in the grid) followed
+by `publish-engine.sh`.
+
+**Its first gate is the one that will stop you: the graph must have no
+uncommitted changes under `nodes/` or `GOALS.md`.** A published engine must
+cite a graph commit that exists. This bites in a non-obvious way — a *single*
+node whose stored contract differs from what `level3.py` re-derives leaves the
+graph permanently dirty after every scan, and the cron then refuses silently,
+every hour, forever. One character of YAML quoting in
+`tests-schema-registry-test-brackets.md` did exactly that. If the cron seems
+not to be publishing, run `level3.py` and check `git status` first.
 
 **A new file is created the same way — write it under `payloads/`.** `level3.py`
 discovers it there, mints its node and its `payload_ref`, and from then on it is
