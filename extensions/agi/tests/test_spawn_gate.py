@@ -595,3 +595,164 @@ def test_shipped_schemas_load_without_error():
     assert rules.geometry.source.endswith("[shape].md")
     assert rules.geometry.max_parents_ceiling >= 1
     assert "verdict" in rules.schemas
+
+
+# --------------------------------------------------------------------------
+# min_parents_by_type — per-kind parent floors
+#
+# `min_parents` counts parents; this counts parents *of a kind*. The type it
+# exists for is `bigger_outcome`, where "two outcomes" and "one verdict plus
+# one outcome" are the same arity and different shapes — the second is the
+# convergence the graph is supposed to force, and arity alone cannot say so.
+# --------------------------------------------------------------------------
+
+BIGGER_OUTCOME = """\
+---
+name: bigger_outcome
+spawn:
+  allowed_parents: [outcome, verdict]
+  min_parents: 2
+  max_parents: 2
+  min_parents_by_type: {verdict: 1, outcome: 1}
+---
+bigger_outcome
+"""
+
+
+@pytest.fixture
+def converging(project):
+    """`project`, plus a bigger_outcome schema and one node of each parent kind."""
+    (project / "context" / "schemas" / "[bigger_outcome].md").write_text(BIGGER_OUTCOME)
+    for ntype, slug in [("outcome", "o1"), ("outcome", "o2"), ("verdict", "v1")]:
+        d = project / "nodes" / ntype
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{slug}.md").write_text(
+            f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n"
+        )
+    return project
+
+
+def _check(project, ntype, parents, **kw):
+    rules, index = sg.gate_for_root(project)
+    return sg.check_spawn(ntype, parents, rules=rules, type_index=index, **kw)
+
+
+def test_min_by_type_approves_one_of_each(converging):
+    res = _check(converging, "bigger_outcome", ["outcome:o1", "verdict:v1"])
+    assert res.status == sg.APPROVED
+    assert any("min_parents_by_type" in a for a in res.applied)
+
+
+def test_min_by_type_rejects_right_arity_wrong_mix(converging):
+    """Two outcomes satisfies min_parents: 2 and still misses the point."""
+    res = _check(converging, "bigger_outcome", ["outcome:o1", "outcome:o2"])
+    assert res.status == sg.REJECTED
+    assert "min_parents_by_type" in res.reason
+    assert "verdict" in res.reason
+    # The rejection has to name the schema file and how to fix it (test #1).
+    assert "[bigger_outcome].md" in res.reason
+    assert "1 more 'verdict'" in res.fix
+
+
+def test_min_by_type_shortfall_names_every_missing_kind(converging):
+    """One outcome alone is short on verdict; min_parents catches arity first."""
+    res = _check(converging, "bigger_outcome", ["outcome:o1"])
+    assert res.status == sg.REJECTED
+    assert "min_parents" in res.reason
+
+
+def test_min_by_type_unresolvable_parent_is_unverified_not_rejected(converging):
+    """A dangling parent cannot be typed, so the floor cannot be decided."""
+    res = _check(converging, "bigger_outcome", ["outcome:o1", "verdict:ghost"])
+    assert res.status == sg.UNVERIFIED
+    assert "verdict:ghost" in res.reason
+
+
+def _schema_err(project, body, fname="[bigger_outcome].md"):
+    (project / "context" / "schemas" / fname).write_text(body)
+    rules = sg.load_spawn_rules(project / "context" / "schemas", root=project)
+    return rules, rules.schemas.get("bigger_outcome")
+
+
+def test_min_by_type_requiring_a_forbidden_type_is_a_schema_error(project):
+    """A floor on a type `allowed_parents` forbids can never be satisfied."""
+    rules, schema = _schema_err(project, BIGGER_OUTCOME.replace(
+        "allowed_parents: [outcome, verdict]", "allowed_parents: [outcome]"))
+    assert schema.error
+    assert "allowed_parents does not permit" in schema.error
+    assert rules.schema_errors
+
+
+def test_min_by_type_exceeding_max_parents_is_a_schema_error(project):
+    """Floors summing above max_parents reject the type forever."""
+    rules, schema = _schema_err(project, BIGGER_OUTCOME.replace(
+        "min_parents_by_type: {verdict: 1, outcome: 1}",
+        "min_parents_by_type: {verdict: 2, outcome: 2}"))
+    assert schema.error
+    assert "no node could satisfy this" in schema.error
+
+
+def test_min_by_type_zero_is_a_schema_error_not_a_silent_noop(project):
+    """`0` reads as a rule but enforces nothing — the exact prose-control trap."""
+    rules, schema = _schema_err(project, BIGGER_OUTCOME.replace(
+        "{verdict: 1, outcome: 1}", "{verdict: 0, outcome: 1}"))
+    assert schema.error
+    assert ">= 1" in schema.error
+
+
+def test_a_broken_min_by_type_schema_is_not_enforced(converging):
+    """A schema error makes the type unverified — never half-enforced."""
+    (converging / "context" / "schemas" / "[bigger_outcome].md").write_text(
+        BIGGER_OUTCOME.replace("min_parents_by_type: {verdict: 1, outcome: 1}",
+                               "min_parents_by_type: [verdict, outcome]"))
+    res = _check(converging, "bigger_outcome", ["outcome:o1", "outcome:o2"])
+    assert res.status == sg.UNVERIFIED
+
+
+def test_absent_min_by_type_changes_nothing(gate):
+    """Every existing schema omits the field; none of them gain a floor."""
+    rules, index = gate
+    assert rules.schemas["verdict"].flat.min_parents_by_type == ()
+    res = sg.check_spawn("verdict", ["experiment:e1"], rules=rules, type_index=index)
+    assert res.status == sg.APPROVED
+
+
+# --------------------------------------------------------------------------
+# edge_fields — lineage vs scheduling
+#
+# `depends_on` orders the build; `parents` is descent. Only the second may be
+# walked. The classification lives in `[shape].md` so the guard can be
+# mechanical rather than remembered — an undeclared field stays traversable,
+# because silently dropping an edge from a walk is the failure mode this is
+# meant to prevent, not cause.
+# --------------------------------------------------------------------------
+
+SHAPE_WITH_EDGES = SHAPE.replace("max_parents_ceiling: 2", """\
+max_parents_ceiling: 2
+edge_fields:
+  parents:    {role: lineage, traversable: true}
+  depends_on: {role: scheduling, traversable: false}\
+""")
+
+
+def test_scheduling_edges_are_not_traversable(project):
+    (project / "context" / "schemas" / "[shape].md").write_text(SHAPE_WITH_EDGES)
+    geo = sg.load_spawn_rules(project / "context" / "schemas", root=project).geometry
+    assert geo.is_traversable("parents") is True
+    assert geo.is_traversable("depends_on") is False
+    assert geo.scheduling_edges() == frozenset({"depends_on"})
+
+
+def test_undeclared_edge_field_stays_traversable(project):
+    """Fail OPEN: an unclassified edge keeps its behaviour, never loses it."""
+    (project / "context" / "schemas" / "[shape].md").write_text(SHAPE_WITH_EDGES)
+    geo = sg.load_spawn_rules(project / "context" / "schemas", root=project).geometry
+    assert geo.is_traversable("next_edges") is True
+
+
+def test_absent_edge_fields_leaves_every_edge_traversable(gate):
+    """A project with no `edge_fields:` walks exactly what it walked before."""
+    rules, _ = gate
+    assert rules.geometry.edge_fields == {}
+    assert rules.geometry.scheduling_edges() == frozenset()
+    assert rules.geometry.is_traversable("depends_on") is True

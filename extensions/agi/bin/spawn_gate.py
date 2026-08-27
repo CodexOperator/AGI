@@ -118,6 +118,12 @@ class Rule:
     min_parents: int
     max_parents: int
     variant: str = ""  # non-empty when the schema is discriminated
+    #: Per-parent-type floors, as sorted (type, count) pairs so `Rule` stays
+    #: hashable. `min_parents` says "how many parents"; this says "how many
+    #: of *which kind*" — the distinction `bigger_outcome` needs, where one
+    #: verdict plus one outcome is a different shape from two outcomes.
+    #: Empty tuple means the type declares no per-type floor.
+    min_parents_by_type: tuple = ()
 
 
 @dataclass
@@ -162,6 +168,30 @@ class Geometry:
     parentless_types: frozenset = frozenset(FALLBACK_PARENTLESS)
     max_parents_ceiling: int = FALLBACK_CEILING
     source: str = "<default>"
+    #: `edge_fields` from `[shape].md`: field name -> {role, traversable}.
+    #: Empty when the project does not declare it, which is why
+    #: `is_traversable` fails OPEN — an undeclared field keeps whatever
+    #: behaviour it had rather than silently dropping out of a walk.
+    edge_fields: dict = field(default_factory=dict)
+
+    def is_traversable(self, field_name) -> bool:
+        """May a chain/metric walk follow this edge field?
+
+        False only for a field explicitly declared `traversable: false`.
+        `depends_on` is the case this exists for: it orders the build, it is
+        not descent, and counting it would make build order inflate depth.
+        """
+        entry = self.edge_fields.get(str(field_name).strip())
+        if isinstance(entry, dict) and "traversable" in entry:
+            return bool(entry["traversable"])
+        return True
+
+    def scheduling_edges(self) -> frozenset:
+        """Edge fields declared non-traversable — the walk's deny-list."""
+        return frozenset(
+            k for k, v in self.edge_fields.items()
+            if isinstance(v, dict) and v.get("traversable") is False
+        )
 
 
 @dataclass
@@ -197,6 +227,50 @@ def _read_frontmatter(path: Path) -> dict | None:
     return fm if isinstance(fm, dict) else None
 
 
+def _parse_min_by_type(raw, allowed: frozenset, max_p: int) -> tuple[tuple, str]:
+    """Parse `spawn.min_parents_by_type`, refusing any rule nobody can satisfy.
+
+    Four ways a per-type floor is unsatisfiable, and all four are schema
+    errors rather than runtime rejections — a rule that no node could ever
+    pass would reject the whole type forever, which is a louder failure than
+    the missing rule it replaced. Same instinct as the geometry checks: a
+    broken rule is not enforced, it is reported.
+    """
+    if raw is None:
+        return (), ""
+    if not isinstance(raw, dict) or not raw:
+        return (), "spawn.min_parents_by_type must be a non-empty mapping of type -> count"
+    out: dict[str, int] = {}
+    for k, v in raw.items():
+        t = canonical_type(k)
+        if not t:
+            return (), f"spawn.min_parents_by_type has an unusable type key {k!r}"
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            return (), f"spawn.min_parents_by_type['{t}'] must be an integer, got {v!r}"
+        if isinstance(v, bool) or n < 1:
+            return (), (
+                f"spawn.min_parents_by_type['{t}'] must be >= 1; drop the key "
+                "instead of writing 0"
+            )
+        if t not in allowed:
+            return (), (
+                f"spawn.min_parents_by_type requires {n} parent(s) of type "
+                f"'{t}', which spawn.allowed_parents does not permit "
+                f"({sorted(allowed) or 'none'}). Add it there or drop the floor."
+            )
+        out[t] = n
+    total = sum(out.values())
+    if total > max_p:
+        return (), (
+            f"spawn.min_parents_by_type requires {total} parent(s) in total "
+            f"but max_parents is {max_p}: no node could satisfy this. Raise "
+            "max_parents (and the ceiling in [shape].md) or lower the floors."
+        )
+    return tuple(sorted(out.items())), ""
+
+
 def _parse_rule(block, variant: str = "") -> tuple[Rule | None, str]:
     if not isinstance(block, dict):
         return None, "spawn block is not a mapping"
@@ -210,10 +284,17 @@ def _parse_rule(block, variant: str = "") -> tuple[Rule | None, str]:
         return None, "spawn.min_parents/max_parents must be integers"
     if min_p < 0 or max_p < min_p:
         return None, f"spawn bounds are incoherent (min={min_p}, max={max_p})"
+    allowed_set = frozenset(canonical_type(a) for a in allowed)
+
+    by_type, err = _parse_min_by_type(block.get("min_parents_by_type"), allowed_set, max_p)
+    if err:
+        return None, err
+
     return Rule(
-        allowed_parents=frozenset(canonical_type(a) for a in allowed),
+        allowed_parents=allowed_set,
         min_parents=min_p,
         max_parents=max_p,
+        min_parents_by_type=by_type,
         variant=variant,
     ), ""
 
@@ -320,6 +401,11 @@ def _parse_geometry(fm: dict, src: str, rules: SpawnRules) -> Geometry:
         )
     else:
         rules.schema_errors.append((src, "parentless_types missing or empty"))
+    ef = fm.get("edge_fields")
+    if isinstance(ef, dict):
+        geo.edge_fields = {
+            str(k): v for k, v in ef.items() if isinstance(v, dict)
+        }
     ceiling = fm.get("max_parents_ceiling")
     if isinstance(ceiling, int) and not isinstance(ceiling, bool) and ceiling >= 0:
         geo.max_parents_ceiling = ceiling
@@ -592,6 +678,45 @@ def check_spawn(
         res.applied.append(
             f"allowed_parents={{{', '.join(sorted(rule.allowed_parents))}}}"
         )
+
+        # 4. min_parents_by_type — per-kind floors. Only reachable once every
+        #    parent id resolved to a type above, which is what makes a
+        #    shortfall decidable rather than a guess.
+        if rule.min_parents_by_type:
+            have: dict[str, int] = {}
+            for pid in plist:
+                ptype = type_index.get(pid, "")
+                have[ptype] = have.get(ptype, 0) + 1
+            short = [
+                (t, n, have.get(t, 0))
+                for t, n in rule.min_parents_by_type
+                if have.get(t, 0) < n
+            ]
+            if short:
+                res.status = REJECTED
+                res.reason = (
+                    f"rule 'min_parents_by_type' from {schema.source}: {shape} "
+                    + "; ".join(
+                        f"needs {n} parent(s) of type '{t}', has {got}"
+                        for t, n, got in short
+                    )
+                )
+                res.fix = (
+                    f"give {res.node_id} "
+                    + ", ".join(f"{n - got} more '{t}'" for t, n, got in short)
+                    + " parent(s). This type converges several kinds of "
+                    "evidence on purpose: the floor is what stops an "
+                    "aggregate from resting on one kind. Do not invent a "
+                    "parent to satisfy it (G7.1) — if the node is not ready "
+                    "to aggregate, it is not ready to be written."
+                )
+                _reject_message(res, shape, schema)
+                return res
+            res.applied.append(
+                "min_parents_by_type={"
+                + ", ".join(f"{t}>={n}" for t, n in rule.min_parents_by_type)
+                + "}"
+            )
 
     res.status = APPROVED
     res.messages.append(
