@@ -5,7 +5,7 @@ goal_kind: short-term
 heading_level: 2
 id: "goal:s8"
 mint_id: d3ded88fb3b34d52beb8eb38ec6bf973
-order: 72
+order: 73
 origin: goals-doc
 seeds:
   - mvp:zoom-runtime-contract
