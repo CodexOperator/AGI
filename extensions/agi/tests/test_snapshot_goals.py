@@ -811,3 +811,105 @@ def test_prune_still_removes_a_goal_the_document_dropped(project):
         "## G2 — Persistent ideation system — status: active\n\nAdapt the research loop.\n", ""))
     run(project)
     assert "goal:g2" not in goal_nodes(project)
+
+
+# --- THOUGHT: the authored region of a body (goal:g2.10, goal:g2.11) -------
+
+
+def test_extract_thought_absent_is_none():
+    """Absence is legal and means empty -- that is what made adding the field
+    cost zero churn across 786 existing nodes."""
+    assert sg.extract_thought("just a body") is None
+    assert sg.extract_thought("") is None
+    assert sg.extract_thought(None) is None
+
+
+def test_extract_thought_returns_block_with_markers():
+    body = f"derived prose\n\n{sg.THOUGHT_BEGIN}\nwhy I did it\n{sg.THOUGHT_END}"
+    got = sg.extract_thought(body)
+    assert got is not None
+    assert "why I did it" in got
+    assert got.startswith("<!--") and got.endswith("-->")
+
+
+def test_extract_thought_is_multiline_and_non_greedy():
+    body = (f"{sg.THOUGHT_BEGIN}\nline one\n\nline two\n{sg.THOUGHT_END}\n"
+            f"trailing derived prose")
+    got = sg.extract_thought(body)
+    assert "line one" in got and "line two" in got
+    assert "trailing derived prose" not in got
+
+
+def test_splice_carries_thought_across_a_regenerating_write():
+    """The whole point of g2.10: a scan rewrites the body, the thought lives."""
+    old = f"OLD derived\n\n{sg.THOUGHT_BEGIN}\nthe reasoning\n{sg.THOUGHT_END}"
+    new = "NEW derived, freshly generated"
+    out = sg.splice_thought(new, old)
+    assert "NEW derived" in out
+    assert "the reasoning" in out
+    assert "OLD derived" not in out
+
+
+def test_splice_prefers_a_thought_authored_this_pass():
+    """Clobbering a fresh thought with a stale one is the same defect
+    reversed."""
+    old = f"x\n{sg.THOUGHT_BEGIN}\nSTALE\n{sg.THOUGHT_END}"
+    new = f"y\n{sg.THOUGHT_BEGIN}\nFRESH\n{sg.THOUGHT_END}"
+    out = sg.splice_thought(new, old)
+    assert "FRESH" in out and "STALE" not in out
+
+
+def test_splice_is_a_noop_without_a_stored_thought():
+    assert sg.splice_thought("body", "no thought here") == "body"
+    assert sg.splice_thought("body", None) == "body"
+
+
+def test_write_frontmatter_preserves_thought_block(tmp_path):
+    """End-to-end: the falsifier goal:g2.10 names -- write a thought, let the
+    generator rewrite the body, read it back."""
+    p = tmp_path / "n.md"
+    fm = {"id": "build:x", "type": "build", "title": "x"}
+    sg.write_frontmatter(
+        p, fm,
+        f"v1 derived\n\n{sg.THOUGHT_BEGIN}\nchose X over Y\n{sg.THOUGHT_END}")
+    stored = p.read_text()
+    assert "chose X over Y" in stored
+
+    old_body = stored.split("---", 2)[2]
+    sg.write_frontmatter(p, fm, "v2 derived, wholly regenerated",
+                         preserve_body=old_body)
+    after = p.read_text()
+    assert "v2 derived" in after
+    assert "chose X over Y" in after, "the scan wiped the thought (g2.10)"
+    assert "v1 derived" not in after
+
+
+def test_write_frontmatter_without_preserve_body_still_wipes(tmp_path):
+    """Opt-in, not automatic: a caller that does not pass the old body gets the
+    old behaviour, so this change cannot silently resurrect prose elsewhere."""
+    p = tmp_path / "n.md"
+    fm = {"id": "build:x", "type": "build", "title": "x"}
+    sg.write_frontmatter(
+        p, fm, f"{sg.THOUGHT_BEGIN}\nSENTINEL_THOUGHT\n{sg.THOUGHT_END}")
+    sg.write_frontmatter(p, fm, "regenerated")
+    assert "SENTINEL_THOUGHT" not in p.read_text().split("---", 2)[2]
+
+
+def test_one_serializer_not_two():
+    """goal:s14's residual. The two copies had already drifted apart on both
+    null round-trip fixes; a third copy must not appear.
+
+    Identity (`is`) is the wrong assertion and was tried first: each file-path
+    import builds its own module object, so two `exec_module` calls on the same
+    source yield equal-but-distinct functions. The invariant that actually
+    matters is where the function is *defined*.
+    """
+    bsb = Path(__file__).resolve().parents[1] / "bin" / "snapshot-build-site.py"
+    assert "def write_frontmatter" not in bsb.read_text(), (
+        "snapshot-build-site.py has re-grown its own serializer (goal:s14)")
+
+    bspec = importlib.util.spec_from_file_location("snapshot_build_site", bsb)
+    bs = importlib.util.module_from_spec(bspec)
+    bspec.loader.exec_module(bs)
+    defined_in = Path(bs.write_frontmatter.__code__.co_filename).name
+    assert defined_in == "snapshot-goals.py", defined_in

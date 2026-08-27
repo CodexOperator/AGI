@@ -194,19 +194,81 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
     _upsert_node_to_db._backend.save(node_id, nf)
 
 
+# --- the authored region of a body (goal:g2.10, goal:g2.11) ---------------
+# A generator owns the *derived* half of a node body and rewrites it on every
+# run.  Everything a model authored used to be destroyed by that rewrite: 8,034
+# `why`/`perf`/`security` fields across 190 build nodes, 0 ever filled, because
+# filling one lasted until the next scan.  `THOUGHT` is the authored region --
+# marked, so preserving it is mechanical rather than a guess about which prose
+# was hand-written.
+#
+# Deliberately a body block and not a frontmatter field: `write_frontmatter`
+# flattens newlines (`str(v).replace("\n", " ")` below), so prose in
+# frontmatter is silently destroyed.  Deliberately marked rather than
+# position-based, because "any prose after the contract block" is not
+# something a regenerating writer can identify without guessing.
+#
+# Per-version storage is free and needs no new plumbing: the grid already
+# snapshots `node.md` once per version, so every grid commit carries the
+# thought current at that time and `grid.py diff` reads as a reasoning
+# changelog.
+THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+                 "regenerating scans. The reasoning behind THIS version. -->")
+THOUGHT_END = "<!-- THOUGHT:END -->"
+_THOUGHT_RE = re.compile(
+    r"<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+
+
+def extract_thought(body: str | None) -> str | None:
+    """The whole THOUGHT block including its markers, or None if absent.
+
+    Absent is the normal state and means empty -- adding the field cost zero
+    node churn across all 786 existing nodes precisely because absence is
+    legal rather than an empty block being mandatory.
+    """
+    if not body:
+        return None
+    m = _THOUGHT_RE.search(body)
+    return m.group(0) if m else None
+
+
+def splice_thought(new_body: str, old_body: str | None) -> str:
+    """Carry the previous body's THOUGHT block into a regenerated body.
+
+    A thought authored *in this pass* wins over the stored one: a generator
+    that clobbered a fresh thought with a stale one would be the same defect
+    in the other direction.
+    """
+    if extract_thought(new_body) is not None:
+        return new_body
+    carried = extract_thought(old_body)
+    if carried is None:
+        return new_body
+    return f"{new_body.rstrip()}\n\n{carried}"
+
+
 def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
-                      preserve: dict | None = None) -> None:
+                      preserve: dict | None = None,
+                      preserve_body: str | None = None) -> None:
     """Write a node file.  `preserve` carries forward fields we do not own.
 
     Kept in sync with snapshot-build-site.py, where rebuilding frontmatter from
     scratch silently severed `next_edges` on every re-snapshot.  Snapshot-owned
     keys win; anything a later writer added survives.
+
+    `preserve_body` is the same contract one level down, for the body: pass the
+    node's previous body and its authored THOUGHT region survives the rewrite
+    (goal:g2.10).  Frontmatter has had this since `next_edges` was being
+    severed; the body did not, which is why no `why:` field in the corpus has
+    ever been filled in.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     if preserve:
         merged = {k: v for k, v in preserve.items() if k not in fm}
         if merged:
             fm = {**merged, **fm}
+    if preserve_body is not None:
+        body = splice_thought(body, preserve_body)
     if origin:
         fm = dict(fm)  # copy so we don't mutate caller's dict
         fm["origin"] = origin

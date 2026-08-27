@@ -134,6 +134,67 @@ snapshot_goals = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(snapshot_goals)
 write_frontmatter = snapshot_goals.write_frontmatter
 
+# --- the contract reader (goal:g2.10) --------------------------------------
+# Moved here from stitch.py on 2026-08-27, because this file "owns the
+# contract shape" (stitch.py's own module docstring) and, from g2.10 onward,
+# has to read a stored contract back before it can rewrite one. It could not
+# import stitch.py to get it: stitch.py already imports *this* file for
+# `analyze_file` and `discover_files`, so the borrow was an import cycle and
+# died with RecursionError on the first run. Ownership decides direction —
+# stitch.py now aliases these instead.
+#
+# Both marker spellings. `LEVEL3-CONTRACT` was renamed to `BUILD-CONTRACT` on
+# 2026-08-27; a reader that recognised only the new one would report every
+# unmigrated node as having no contract at all, which `--strict` turns into
+# drift and `publish-engine.sh` turns into a refusal.
+_MARKER_SPAN_RE = re.compile(
+    r"(?:LEVEL3|BUILD)-CONTRACT:BEGIN(.*?)(?:LEVEL3|BUILD)-CONTRACT:END", re.DOTALL)
+_YAML_FENCE_OPEN = "```yaml"
+_FENCE = "```"
+NO_CONTRACT_BLOCK = "no BUILD-CONTRACT block found in body"
+
+
+def extract_contract(body: str) -> tuple[dict | None, str | None]:
+    """Pull the fenced YAML contract block out of a node body.
+
+    Returns (contract_dict, None) on success, (None, reason) on failure. A
+    node with no contract markers, or an unparsable contract, is reported —
+    never silently treated as fresh (that would hide exactly the kind of
+    drift this tool exists to find).
+
+    Bounding matters more than it looks: a `how` field can (and, on the real
+    corpus, does — `build:bin-heal`) contain a mechanically-unparsed call
+    site whose literal text itself embeds a ``` fence, e.g. an f-string
+    template being written to disk that contains a markdown code block. A
+    naive "first ``` after ```yaml" search stops at that embedded fence, not
+    the real closing one, and truncates the block mid-string — invalid YAML,
+    not because the file is malformed but because the *parser* guessed
+    wrong. So: bound first by the harness markers (which model-authored prose
+    can only ever appear outside of), then take the *last* ``` inside that
+    bounded span as the closing fence, not the first.
+    """
+    span_m = _MARKER_SPAN_RE.search(body)
+    if not span_m:
+        return None, NO_CONTRACT_BLOCK
+    span = span_m.group(1)
+    open_idx = span.find(_YAML_FENCE_OPEN)
+    if open_idx == -1:
+        return None, "no ```yaml fence found inside BUILD-CONTRACT block"
+    after_open = span[open_idx + len(_YAML_FENCE_OPEN):]
+    if after_open.startswith("\n"):
+        after_open = after_open[1:]
+    close_idx = after_open.rfind(_FENCE)
+    if close_idx == -1:
+        return None, "no closing ``` fence found inside BUILD-CONTRACT block"
+    yaml_text = after_open[:close_idx]
+    try:
+        contract = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as exc:
+        return None, f"contract block is not valid YAML: {exc}"
+    if not isinstance(contract, dict):
+        return None, "contract block did not parse to a mapping"
+    return contract, None
+
 
 # --- reuse payload_boundary.py's classify() (the G6.8 boundary predicate) ---
 # Loaded by file path for the same reason snapshot-goals.py is above: one
@@ -637,16 +698,61 @@ _CONTRACT_BEGIN = ("<!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model "
 _CONTRACT_END = "<!-- BUILD-CONTRACT:END -->"
 
 
-def _fill_entries(entries: list[dict]) -> list[dict]:
-    return [
-        {"name": e["name"], "how": e["how"],
-         "why": "TODO(model)", "perf": "TODO(model)", "security": "TODO(model)"}
-        for e in entries
-    ]
+_AUTHORED_FIELDS = ("why", "perf", "security")
+_TODO = "TODO(model)"
+
+
+def _prior_index(prior_contract: dict | None, section: str) -> dict[str, list[dict]]:
+    """`name` -> the stored entries under `section`, in file order.
+
+    Keyed on `name` and *not* on `how`, deliberately. `how` embeds the line
+    number ("... at line 18"), so keying on it would drop a model's `why` the
+    first time anything above that call site shifted by a line — the rationale
+    for a call is not invalidated by the call moving. Duplicate names within a
+    section are matched positionally, which is why the value is a list.
+    """
+    out: dict[str, list[dict]] = {}
+    if not prior_contract:
+        return out
+    for e in prior_contract.get(section) or []:
+        if isinstance(e, dict) and e.get("name") is not None:
+            out.setdefault(str(e["name"]), []).append(e)
+    return out
+
+
+def _fill_entries(entries: list[dict], prior: dict[str, list[dict]] | None = None) -> list[dict]:
+    """Derive `how` afresh; carry `why`/`perf`/`security` over (goal:g2.10).
+
+    `how` is mechanical and must be re-derived every run — that is what makes
+    it trustworthy and what `stale_contracts` polices. The other three are
+    authored, and until 2026-08-27 this function overwrote them with
+    `TODO(model)` on every scan. The corpus read exactly as that predicts:
+    8,034 such fields across 190 build nodes, 8,034 still `TODO(model)`, zero
+    ever filled — not neglect, but a permission the schema granted and the
+    code revoked on the next run.
+
+    Idempotent by construction: with nothing filled in, every lookup returns
+    `TODO(model)` and the output is byte-identical to the old behaviour. That
+    matters more than it sounds — a derivation that does not reproduce its own
+    stored value leaves the graph permanently dirty and shuts the publish
+    cron's first gate silently (goal:g6.5).
+    """
+    pending = {k: list(v) for k, v in (prior or {}).items()}
+    filled = []
+    for e in entries:
+        stored = pending.get(str(e["name"]))
+        carried = stored.pop(0) if stored else {}
+        entry = {"name": e["name"], "how": e["how"]}
+        for field in _AUTHORED_FIELDS:
+            value = carried.get(field)
+            entry[field] = _TODO if value in (None, "") else value
+        filled.append(entry)
+    return filled
 
 
 def build_node(rel_path: str, abs_path: Path, parent_id: str | None,
-               payload: bytes | None = None) -> tuple[str, dict, str, dict]:
+               payload: bytes | None = None,
+               prior_body: str | None = None) -> tuple[str, dict, str, dict]:
     """Returns (node_id, frontmatter, body, analysis) for one file.
 
     `payload`, when given, is the file's bytes read from somewhere other than
@@ -680,10 +786,19 @@ def build_node(rel_path: str, abs_path: Path, parent_id: str | None,
     # `analyze_file` for the measurement that established this.
     if analysis.get("content_sha256"):
         contract["content_sha256"] = analysis["content_sha256"]
-    contract["inputs"] = _fill_entries(analysis["inputs"])
-    contract["outputs"] = _fill_entries(analysis["outputs"])
+    # The node's own stored contract, so authored fields survive this rewrite.
+    # A body that cannot be parsed is treated as "nothing to carry" rather than
+    # as an error: this writer's job is to emit a correct contract, and
+    # refusing to write one because the *previous* one was malformed would
+    # strand the node in exactly the broken state it is trying to leave.
+    prior_contract, _ = extract_contract(prior_body) if prior_body else (None, None)
+    contract["inputs"] = _fill_entries(
+        analysis["inputs"], _prior_index(prior_contract, "inputs"))
+    contract["outputs"] = _fill_entries(
+        analysis["outputs"], _prior_index(prior_contract, "outputs"))
     if analysis["uncovered"]:
-        contract["uncovered"] = _fill_entries(analysis["uncovered"])
+        contract["uncovered"] = _fill_entries(
+            analysis["uncovered"], _prior_index(prior_contract, "uncovered"))
 
     yaml_text = yaml.safe_dump(contract, sort_keys=False, default_flow_style=False,
                                 allow_unicode=True).rstrip("\n")
@@ -796,7 +911,9 @@ def main(argv: list[str] | None = None) -> int:
                 n_from_engine += 1
             else:
                 n_from_grid += 1
-        node_id, fm, body, analysis = build_node(rel_path, abs_path, parent_id, payload)
+        prior_body = existing.get(f"build:{slug_for(rel_path)}", {}).get("body")
+        node_id, fm, body, analysis = build_node(
+            rel_path, abs_path, parent_id, payload, prior_body=prior_body)
 
         if node_id in used_ids:
             disambiguated = f"{node_id}-{len(used_ids)}"
@@ -832,6 +949,12 @@ def main(argv: list[str] | None = None) -> int:
         write_frontmatter(
             out_path, fm, body, origin=ORIGIN,
             preserve=existing.get(node_id, {}).get("fm"),
+            # The body half of the same contract (goal:g2.10). Frontmatter has
+            # been carried forward since `next_edges` was being severed; the
+            # body was not, so a build node could be *cited* by a thought but
+            # never *contain* one — which is half of goal:g6.8's argument for
+            # admitting build nodes at all, and it was false.
+            preserve_body=existing.get(node_id, {}).get("body"),
         )
 
     # Prune only nodes stamped with our own origin that we did not write this
