@@ -1,6 +1,6 @@
 ---
 confidence: 0.95
-id: "app_purpose:vector-embedding-isomorphism"
+id: "vision:vector-embedding-isomorphism"
 mint_id: 02b2716cc98e42bb93792dd5f34092ff
 parents:
   - bigger_outcome:a00-324837df-2546ce
@@ -11,7 +11,7 @@ tags:
   - duality
   - capillary-dag
 title: "App-Purpose: Graph↔Vector Duality for Capillary DAG"
-type: app_purpose
+type: vision
 ---
 
 **Purpose**: Enables semantic zoom and cross-domain queries on the capillary DAG.

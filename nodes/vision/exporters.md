@@ -1,5 +1,5 @@
 ---
-id: "app_purpose:exporters"
+id: "vision:exporters"
 mint_id: 03558d7608d34dd486827f08807f2248
 parents:
   - bigger_outcome:exporters-r1
@@ -8,7 +8,7 @@ tags:
   - exporters
   - app_purpose
 title: "App Purpose: Exporters"
-type: app_purpose
+type: vision
 ---
 
 # App Purpose: Exporters

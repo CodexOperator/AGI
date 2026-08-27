@@ -2,7 +2,7 @@
 id: "bigger_outcome:autoresearch-tree-skill-r1"
 mint_id: 59c62d1d635a48cbbbbb64fb6880d92c
 next_edges:
-  - app_purpose:autoresearch-tree-skill
+  - vision:autoresearch-tree-skill
 parents:
   - outcome:autoresearch-tree-skill-r1
   - mvp:autoresearch-tree-skill-r1

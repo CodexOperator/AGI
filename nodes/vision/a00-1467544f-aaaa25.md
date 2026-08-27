@@ -1,6 +1,6 @@
 ---
 confidence: 0.97
-id: "app_purpose:a00-1467544f-aaaa25"
+id: "vision:a00-1467544f-aaaa25"
 mint_id: 95d51c06a4784693ba6f62751e2a3683
 parents:
   - bigger_outcome:a00-1467544f-aaaa25
@@ -10,7 +10,7 @@ tags:
   - bootstrap
   - app_purpose
 title: "App purpose: Chain bootstrapping via graph density validation"
-type: app_purpose
+type: vision
 ---
 
 **Mission:** Confirm the capillary DAG has sufficient structural density for chain bootstrapping, then seed `next_edges` + experiment/verdict/app_purpose chains for each domain.

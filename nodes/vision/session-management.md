@@ -1,6 +1,6 @@
 ---
 confidence: 0.9
-id: "app_purpose:session-management"
+id: "vision:session-management"
 mint_id: 25b7dafae2a046d589984252c9ef9ede
 next_edges: []
 parents:
@@ -10,7 +10,7 @@ tags:
   - session-management
   - purpose
 title: "App Purpose: Session Memory"
-type: app_purpose
+type: vision
 ---
 
 MISSION: Persistent memory for AI agents — capture, restore, and extend session state with 100% fidelity. Enables autonomous research loops that survive restarts and agent swaps.

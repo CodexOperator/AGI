@@ -2,7 +2,7 @@
 id: "bigger_outcome:session-management-r1-committed-state"
 mint_id: 567f769cfadf41f1b6721ddd7e528979
 next_edges:
-  - app_purpose:session-management-r1
+  - vision:session-management-r1
 parents:
   - outcome:session-management-r1-r1
 tags:

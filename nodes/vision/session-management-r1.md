@@ -1,5 +1,5 @@
 ---
-id: "app_purpose:session-management-r1"
+id: "vision:session-management-r1"
 mint_id: 4cdfacf0622c47938d8ff0e6d3b1b571
 parents:
   - bigger_outcome:session-management-r1
@@ -8,7 +8,7 @@ tags:
   - app-purpose
   - root
 title: Persistent Agent Sessions with Memory
-type: app_purpose
+type: vision
 ---
 
 # App Purpose: Persistent Agent Sessions
