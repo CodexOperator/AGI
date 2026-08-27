@@ -80,17 +80,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(yaml_text)` at line 282'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 237'
+  how: '`yaml.safe_load(parts[1])` at line 239'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 315'
+  how: '`md_path.read_text(encoding=''utf-8'')` at line 275'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -106,119 +101,113 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: Level3Node
-  how: defines public class `Level3Node` at line 211
+  how: defines public class `Level3Node` at line 213
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _parse_frontmatter
-  how: 'defines private function `_parse_frontmatter` at line 229, signature: (text:
-    str)'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: _extract_contract
-  how: 'defines private function `_extract_contract` at line 245, signature: (body:
+  how: 'defines private function `_parse_frontmatter` at line 231, signature: (text:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: load_level3_nodes
-  how: 'defines public function `load_level3_nodes` at line 290, signature: (project_root:
+  how: 'defines public function `load_level3_nodes` at line 250, signature: (project_root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _entry_pairs
-  how: 'defines private function `_entry_pairs` at line 356, signature: (entries)'
+  how: 'defines private function `_entry_pairs` at line 316, signature: (entries)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: diff_contract
-  how: 'defines public function `diff_contract` at line 362, signature: (stored: dict,
+  how: 'defines public function `diff_contract` at line 322, signature: (stored: dict,
     fresh: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _group_by_payload_ref
-  how: 'defines private function `_group_by_payload_ref` at line 389, signature: (nodes:
+  how: 'defines private function `_group_by_payload_ref` at line 349, signature: (nodes:
     list[Level3Node])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _is_well_formed_chain
-  how: 'defines private function `_is_well_formed_chain` at line 401, signature: (group:
+  how: 'defines private function `_is_well_formed_chain` at line 361, signature: (group:
     list[Level3Node])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _chain_order
-  how: 'defines private function `_chain_order` at line 434, signature: (group: list[Level3Node])'
+  how: 'defines private function `_chain_order` at line 394, signature: (group: list[Level3Node])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: verify_tree
-  how: 'defines public function `verify_tree` at line 439, signature: (project_root:
+  how: 'defines public function `verify_tree` at line 399, signature: (project_root:
     Path, engine_root: Path, from_grid: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: has_drift
-  how: 'defines public function `has_drift` at line 561, signature: (report: dict)'
+  how: 'defines public function `has_drift` at line 521, signature: (report: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _is_within
-  how: 'defines private function `_is_within` at line 570, signature: (path: Path,
+  how: 'defines private function `_is_within` at line 530, signature: (path: Path,
     root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _git_is_clean
-  how: 'defines private function `_git_is_clean` at line 578, signature: (repo: Path)'
+  how: 'defines private function `_git_is_clean` at line 538, signature: (repo: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _guard_out_dir
-  how: 'defines private function `_guard_out_dir` at line 589, signature: (out_dir:
+  how: 'defines private function `_guard_out_dir` at line 549, signature: (out_dir:
     Path, project_root: Path, engine_root: Path, publish: bool=False, from_grid: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _grid_payload
-  how: 'defines private function `_grid_payload` at line 643, signature: (project_root:
+  how: 'defines private function `_grid_payload` at line 603, signature: (project_root:
     Path, node: Level3Node, grid_version: int | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: materialize
-  how: 'defines public function `materialize` at line 677, signature: (project_root:
+  how: 'defines public function `materialize` at line 637, signature: (project_root:
     Path, engine_root: Path, out_dir: Path, force: bool=False, version: int | None=None,
     from_grid: bool=False, publish: bool=False, grid_version: int | None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: print_verify_report
-  how: 'defines public function `print_verify_report` at line 822, signature: (report:
+  how: 'defines public function `print_verify_report` at line 782, signature: (report:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: print_materialize_report
-  how: 'defines public function `print_materialize_report` at line 867, signature:
+  how: 'defines public function `print_materialize_report` at line 827, signature:
     (stats: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 901, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 861, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 36 `print()` call(s) at line(s) [823, 824, 826, 828, 830, 832, 834, 836, 838,
-    840, 842, 843, 846, 849, 852, 856, 858, 859, 862, 864, 868, 869, 871, 874, 876,
-    880, 882, 884, 887, 889, 892, 894, 895, 946, 957, 965]
+  how: 36 `print()` call(s) at line(s) [783, 784, 786, 788, 790, 792, 794, 796, 798,
+    800, 802, 803, 806, 809, 812, 816, 818, 819, 822, 824, 828, 829, 831, 834, 836,
+    840, 842, 844, 847, 849, 852, 854, 855, 906, 917, 925]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

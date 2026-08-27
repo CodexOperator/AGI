@@ -69,6 +69,12 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: Path(__file__).resolve().parents[1] / 'bin' / 'stitch.py'
+  how: '`(Path(__file__).resolve().parents[1] / ''bin'' / ''stitch.py'').read_text()`
+    at line 611'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: yaml.safe_load
   how: '`yaml.safe_load(path.read_text(encoding=''utf-8'').split(''---'', 2)[1])`
     at line 130'
@@ -291,6 +297,63 @@ outputs:
 - name: test_entry_point_units_can_be_matched_as_parents
   how: 'defines public function `test_entry_point_units_can_be_matched_as_parents`
     at line 520, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _contract_of
+  how: 'defines private function `_contract_of` at line 545, signature: (body)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_unfilled_entries_are_todo
+  how: defines public function `test_unfilled_entries_are_todo` at line 551
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_authored_fields_carry_over
+  how: defines public function `test_authored_fields_carry_over` at line 558
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_how_is_always_re_derived_never_carried
+  how: defines public function `test_how_is_always_re_derived_never_carried` at line
+    569
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_carry_over_survives_a_line_number_change
+  how: defines public function `test_carry_over_survives_a_line_number_change` at
+    line 578
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_duplicate_names_are_matched_positionally
+  how: defines public function `test_duplicate_names_are_matched_positionally` at
+    line 589
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_prior_index_tolerates_a_missing_or_broken_contract
+  how: defines public function `test_prior_index_tolerates_a_missing_or_broken_contract`
+    at line 597
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_extract_contract_is_owned_here_not_in_stitch
+  how: defines public function `test_extract_contract_is_owned_here_not_in_stitch`
+    at line 606
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_both_contract_marker_spellings_still_parse
+  how: defines public function `test_both_contract_marker_spellings_still_parse` at
+    line 616
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_contract_reader_bounds_on_an_embedded_fence
+  how: defines public function `test_contract_reader_bounds_on_an_embedded_fence`
+    at line 626
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
