@@ -2,7 +2,7 @@
 id: "bigger_outcome:exporters-r1"
 mint_id: a9d2270825de45418871f3d3cdd53673
 next_edges:
-  - app_purpose:exporters
+  - vision:exporters
 parents:
   - outcome:exporters-r1
 status: open

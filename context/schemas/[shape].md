@@ -54,11 +54,19 @@ max_parents_ceiling: 4
 # paid for once (9 chains x 2000 hops of shortcut cycles, which then broke
 # the render path outright). Declaring the classification is what lets the
 # guard be mechanical instead of remembered.
+#
+# `proposes_goals` is the graph's only backward edge -- vision -> goal, which
+# closes the loop the whole design is built around. It is NOT lineage and must
+# never be moved into `parents`: at the type level `goal -> ... -> vision ->
+# goal` is a directed cycle, and `parents` is what every chain walk follows.
+# The loop stays acyclic at the instance level because the vision that
+# proposes a goal is an earlier season than the vision that goal later feeds.
 edge_fields:
-  parents:     {role: lineage,    traversable: true}
-  next_edges:  {role: lineage,    traversable: true}
-  depends_on:  {role: scheduling, traversable: false}
-  seeds:       {role: provenance, traversable: false}
+  parents:         {role: lineage,    traversable: true}
+  next_edges:      {role: lineage,    traversable: true}
+  depends_on:      {role: scheduling, traversable: false}
+  seeds:           {role: provenance, traversable: false}
+  proposes_goals:  {role: proposal,   traversable: false}
 
 # The per-type table lives in each [<type>].md `spawn:` block and NOWHERE
 # else. Copying it here would recreate the exact defect S17 names -- one fact

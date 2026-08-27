@@ -2,7 +2,7 @@
 id: "bigger_outcome:schema-registry-r1"
 mint_id: f695c4be5cec4aa8aad40dcda01b3ea2
 next_edges:
-  - app_purpose:schema-registry
+  - vision:schema-registry
 parents:
   - outcome:schema-registry-r1
 subgraph: false

@@ -3,7 +3,7 @@ confidence: 1.0
 id: "bigger_outcome:graph-core-r1"
 mint_id: 33b2dba2235e4c16bb37249a583162fc
 next_edges:
-  - app_purpose:graph-core
+  - vision:graph-core
 parents:
   - outcome:graph-core-r1
 status: open

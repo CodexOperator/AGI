@@ -3,7 +3,7 @@ confidence: 0.95
 id: "bigger_outcome:a00-324837df-2546ce"
 mint_id: 925362bd9f7748d6b38260a7ffcc93b4
 next_edges:
-  - app_purpose:vector-embedding-isomorphism
+  - vision:vector-embedding-isomorphism
 parents:
   - outcome:a00-324837df-2546ce
 status: open

@@ -2,7 +2,7 @@
 id: "bigger_outcome:schema-registry-r2"
 mint_id: 8e87962417424ff5896bdc57af94a50e
 next_edges:
-  - app_purpose:schema-registry
+  - vision:schema-registry
 parents:
   - outcome:schema-registry-r2-bracket-convention
 subgraph: false

@@ -2,7 +2,7 @@
 id: "bigger_outcome:renderers-r1"
 mint_id: 8e1e5288a7364a4f871d9e773a26b1a7
 next_edges:
-  - app_purpose:renderers
+  - vision:renderers
 parents:
   - outcome:renderers-r1
 subgraph: false

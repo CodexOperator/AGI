@@ -1,5 +1,5 @@
 ---
-id: "app_purpose:environment-indexers"
+id: "vision:environment-indexers"
 mint_id: 8f1151332b7845f09d06c136c0f65515
 parents:
   - bigger_outcome:environment-indexers-r1
@@ -7,7 +7,7 @@ parents:
 tags:
   - environment-indexers
 title: "App Purpose: environment-indexers"
-type: app_purpose
+type: vision
 ---
 
 **Purpose:** Enable agents to index and understand external environments through pluggable, documented indexers.

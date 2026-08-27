@@ -2,7 +2,7 @@
 id: "bigger_outcome:embeddings-r2"
 mint_id: bc59d23570a94cdb8fb99c7e659b806a
 next_edges:
-  - app_purpose:embeddings
+  - vision:embeddings
 parents:
   - outcome:embeddings-r2
 subgraph: false
