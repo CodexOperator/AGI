@@ -2,7 +2,8 @@
 domain: renderers
 id: "hypothesis:a00-8636e255-bf1a6c"
 mint_id: c813570f32c14b84b87929de8ba67e4f
-parent_idea: "idea:domain-renderers"
+parents:
+  - idea:domain-renderers
 spawns: []
 status: open
 tags:

@@ -8,6 +8,7 @@ parents:
   - exp:schema-registry-r2
 title: "schema-registry R2 chain: verdict:schema-registry-r2"
 type: verdict
+verdict: pending
 ---
 
 **verdict** node for schema-registry R2: Bracket Convention.

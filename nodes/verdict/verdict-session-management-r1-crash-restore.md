@@ -2,7 +2,7 @@
 confidence: 0.9
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:session-management-r1-crash-restore"
 mint_id: 805c22a959e1469992385a3fcdff332e
 next_edges:

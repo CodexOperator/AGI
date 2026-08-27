@@ -7,7 +7,8 @@ evidence_runs:
   - exp:vector-embedding-isomorphism-r1
 id: "verdict:vector-embedding-isomorphism-r1"
 mint_id: 4f36d24048da48f69f88c7cbb2b1e0e9
-parent_hypothesis: "hyp:vector-embedding-isomorphism-r1"
+parents:
+  - hyp:vector-embedding-isomorphism-r1
 status: "inconclusive_lean_disproved:50"
 tags:
   - embeddings

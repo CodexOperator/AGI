@@ -5,8 +5,7 @@ evidence_runs:
   - exp:a00-1467544f-chain-600hop
 id: "verdict:a00-1467544f-chain-600hop"
 mint_id: 402c04aa22214623911b0d1551584a40
-next_edges:
-  - mvp:a00-1467544f-chain-600hop
+next_edges: []
 parents:
   - exp:a00-1467544f-chain-600hop
 status: proved

@@ -2,7 +2,7 @@
 confidence: 0.85
 demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
 demoted_from: disproved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:a00-c2ec59b7-b391d9"
 mint_id: 632f60af2e3a4910871a02eba4f73c74
 next_edges: []

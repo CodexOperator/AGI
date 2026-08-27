@@ -6,7 +6,8 @@ evidence_runs:
 id: "verdict:a00-324837df-2546ce"
 mint_id: 2024ad628dfa4ca1a0aca31111f28f3b
 next_edges: []
-parent_hypothesis: "hypothesis:a00-324837df-2546ce"
+parents:
+  - hypothesis:a00-324837df-2546ce
 status: proved
 tags:
   - embeddings

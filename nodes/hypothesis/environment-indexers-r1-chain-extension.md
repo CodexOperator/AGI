@@ -9,6 +9,7 @@ tags:
   - chain-extension
   - verdict-experiment-transition
 title: "environment-indexers/R1: Extend chain to 12 hops via verdict→experiment→verdict cycles"
+type: hypothesis
 ---
 
 **Description:** The environment-indexers domain has 9 hypotheses but no complete 10 or 12-hop chain. Extend the r1 chain by adding verdict→experiment→verdict→mvp→outcome→bigger→app_purpose nodes.

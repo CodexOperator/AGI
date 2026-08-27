@@ -2,7 +2,7 @@
 confidence: 0.85
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:autoresearch-tree-skill-r1-extend2"
 mint_id: 37c048f857724b1988838b355e7012c0
 next_edges:

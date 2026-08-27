@@ -4,7 +4,7 @@ id: "hypothesis:a00-407fa689-3a4948"
 mint_id: 94ee6481b5b245f6b21498e231b34152
 next_edges:
   - exp:exp-a00-407fa689-verdict-pareto
-  - verdict:verdict:a00-407fa689-verdict-pareto
+  - verdict:a00-407fa689-verdict-pareto
 parents: []
 tags:
   - chain-extension

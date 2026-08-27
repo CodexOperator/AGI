@@ -2,7 +2,7 @@
 confidence: 0.9
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-evidence_runs: 0
+evidence_runs: []
 id: "verdict:renderers-r1-extend2"
 mint_id: 54bc2da6ae1a4483ba1a5840dfd84587
 next_edges:

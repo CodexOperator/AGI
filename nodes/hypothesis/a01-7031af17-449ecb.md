@@ -3,7 +3,6 @@ confidence: 0.95
 id: "hyp:a01-7031af17-449ecb"
 mint_id: a2f2765bcca64ff3b993d3f4ae29d4aa
 next_edges:
-  - exp:a01-7031af17-449ecb-r11-path-safety
   - verdict:a01-7031af17-449ecb-r11
   - mvp:a01-7031af17-449ecb-r11
 parents:

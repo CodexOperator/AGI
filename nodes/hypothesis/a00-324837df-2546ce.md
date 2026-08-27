@@ -4,7 +4,8 @@ id: "hypothesis:a00-324837df-2546ce"
 mint_id: cbe5102fffee43f9a2947c26ff776f63
 next_edges:
   - exp:a00-324837df-2546ce
-parent_idea: "idea:domain-vector-embedding-isomorphism"
+parents:
+  - idea:domain-vector-embedding-isomorphism
 spawns: []
 status: complete
 tags:

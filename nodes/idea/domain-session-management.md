@@ -4,8 +4,6 @@ id: "idea:domain-session-management"
 mint_id: b5677befbad54dd3a25b13b03a283f20
 next_edges:
   - hyp:session-management-r1
-spawns:
-  - hyp:session-management-r1
 tags:
   - sessions
   - memory

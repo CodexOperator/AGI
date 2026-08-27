@@ -6,9 +6,9 @@ id: "verdict:a00-ddbe3410-verdict003-iterative-traversal"
 mint_id: b273d901747d43daa23cbb29c843015b
 next_edges:
   - mvp:a00-ddbe3410-mvp003-iterative-traversal
-parent_hypothesis: "hypothesis:a00-ddbe3410-iterative-traversal"
 parents:
   - experiment:a00-ddbe3410-exp003-iterative-traversal
+  - hypothesis:a00-ddbe3410-iterative-traversal
 status: proved
 synthetic: false
 tags:

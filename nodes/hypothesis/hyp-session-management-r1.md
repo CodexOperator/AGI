@@ -4,9 +4,8 @@ id: "hyp:session-management-r1"
 mint_id: 1fd4588f495c4f9ab568709fa3e13a17
 next_edges:
   - exp:session-management-r1
-parent_idea: "idea:domain-session-management"
-spawns:
-  - task:t-095
+parents:
+  - idea:domain-session-management
 status: pending
 tags:
   - sessions

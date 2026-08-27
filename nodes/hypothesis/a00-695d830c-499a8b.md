@@ -3,7 +3,8 @@ confidence: 0.5
 domain: vector-embedding-isomorphism
 id: "hypothesis:a00-695d830c-499a8b"
 mint_id: 5684c3c736b5416db9565cbdd7eb90be
-parent_idea: "idea:domain-vector-embedding-isomorphism"
+parents:
+  - idea:domain-vector-embedding-isomorphism
 spawns: []
 status: pending
 tags:
