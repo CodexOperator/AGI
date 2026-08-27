@@ -607,6 +607,29 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_strip_thought_removes_the_block
+  how: defines public function `test_strip_thought_removes_the_block` at line 918
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_strip_thought_is_a_noop_without_one
+  how: defines public function `test_strip_thought_is_a_noop_without_one` at line
+    925
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_render_strips_thought_but_the_node_keeps_it
+  how: defines public function `test_render_strips_thought_but_the_node_keeps_it`
+    at line 930
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_render_check_round_trip_survives_a_thought
+  how: defines public function `test_render_check_round_trip_survives_a_thought` at
+    line 941
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: tmp_path / 'GOALS.md'
   how: '`(tmp_path / ''GOALS.md'').write_text(GOALS_DOC, encoding=''utf-8'')` at line
     65'
