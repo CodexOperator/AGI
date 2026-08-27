@@ -395,3 +395,169 @@ agi --help | head -2
 ```
 
 All five green ⇒ the install is sound. Then read `TODO.md` and pick a P0.
+
+---
+
+# SESSION HANDOFF — 2026-08-27: graph standardization pass
+
+> **Read this section first if you are the next session.** Everything above is
+> the 2026-08-18 install/orientation guide and is still broadly correct; a few
+> details in it are stale (the pytest baseline is now **723 passed, 1 skipped**,
+> not 176, and `TODO.md` is an archive — `GOALS.md` is the only place new work
+> is recorded). This section is the current state and the work queue.
+
+## 0. State as of commit `4f06e3a4f`
+
+```
+node_count            786          goal_count             80
+evidence_fraction     0.206        primary (outcome_cov)  0.255
+dangling references   0            unevidenced_decisive   0
+duplicate ids         0            shadow_decisive        0
+engine tests          723 passed, 1 skipped
+```
+
+Graph and engine are both clean and in sync. `publish-engine.sh` reports
+"engine already matches the graph". Verified stable across 3 consecutive runs.
+
+## 1. What changed this session
+
+**Renames, all atomic, all verified with node counts at each step.**
+
+| was | now | n |
+|---|---|---|
+| `level3` (type, dir, id prefix, `origin`, contract marker) | `build` + `build_kind: code\|prose` | 190 |
+| `app_purpose` | `vision` | 17 |
+| `hypothesis:` / `experiment:` id prefixes | `hyp:` / `exp:` | 37 |
+| `nodes/app-purpose/`, `nodes/bigger-outcome/` | merged into underscore dirs | 19 files |
+| — | new type `overview` | 0 nodes yet |
+
+**Integrity repairs.** 21 hidden parent edges recovered from legacy keys
+(`parent_hypothesis`, `parent_idea`, `parent`) that no gate read; 8 dangling
+`next_edges` (2 repaired, 6 dropped); `spawns` folded into `next_edges`;
+`evidence_runs: 0` normalized to `[]` on 65 nodes; 3 nodes had no `type:`.
+
+**Spawn DSL.** `min_parents_by_type` added (per-kind parent floors),
+`max_parents_ceiling` 2 -> 4, `edge_fields` classifying edges as lineage /
+scheduling / provenance / proposal.
+
+**Convergence tier.** `outcome -> bigger_outcome -> overview -> vision`, floors
+2v+2o -> 3bo -> 2ov. `vision --proposes_goals--> goal` closes the loop across
+**seasons** and is declared non-traversable, so the type graph stays acyclic.
+
+## 2. 🔴 Start here: G2.10 — a build node cannot hold a thought
+
+**The most important finding of the session, and the one that gates several
+others.** `bin/level3.py` regenerates a build node's *entire body* on every
+run. Probed both directions on 2026-08-27:
+
+- prose added to a build node body -> **wiped** by the next scan
+- a filled-in `why: TODO(model)` -> **wiped** by the next scan
+
+The corpus reads exactly as that predicts:
+
+```
+why/perf/security fields across 190 build nodes:  8,034
+still reading TODO(model):                        8,034
+ever filled:                                          0
+```
+
+`[build].md` states a permission ("a model may fill why/perf/security") that
+the code revokes on the next run. Frontmatter *is* preserved (`write_frontmatter`
+merges with `preserve=`); the body is not. **The fix is to give the body the
+same treatment: regenerate the mechanical `how`, carry over `why`/`perf`/
+`security` and any prose outside the markers.**
+
+Falsifier: fill one `why:` on one build node, run `driver.sh --smoke`, read it
+back.
+
+**This is coupled to G6.8**, whose whole argument for admitting build nodes is
+that they hold thought bidirectionally — half of which is currently false. Read
+G2.10 and G6.8 together; both carry the cross-reference.
+
+**It also reverses the `@v2` cleanup.** The five `origin: build-version` nodes
+(`build:bin-grid@v2` + 4) look like the redundancy CLAUDE.md forbids. They are
+not: they hold 7k–13k characters of reasoning each and survive *only* because
+`level3.py` does not own their origin. Their payloads are byte-identical to the
+engine, so collapsing loses no bytes — and ~47,000 characters of prose, with
+nowhere to put it. **Sequence: fix G2.10, migrate the five bodies into their v1
+nodes, then retire the convention.**
+
+## 3. Next most valuable, in order
+
+1. **G2.10** — above. Unblocks the `@v2` collapse and makes build nodes real.
+2. **G7.3** — `evidence_runs` as a bare integer. 77 of 112 values are bare ints
+   against a schema declaring a list. 65 zeros were normalized to `[]`; **the
+   12 remaining `1`s are listed by id in the goal node.** The severe one is
+   `verdict:zoom-encoded-node-ids` — `proved`, decisive only because
+   `normalize_evidence_runs` returns an unchecked int. Fixing it is a payload
+   change to `bin/evidence_gate.py`, not a node edit.
+3. **G7.9** — `level3.py` should not prune quietly, and should be renamed
+   (`view.py`/`main.py` — it is the code-level view you load into). *You said
+   you have more pieces of this update in mind.* Also carries: a refused
+   `publish-engine.sh` is not a no-op — it mutated the graph at step 1 before
+   refusing at step 3, creating 184 junk nodes during the rename.
+4. **G1.7** — the demotion path is four fields and the gate owns one. Reproduced
+   live: demoting a verdict left `status: proved` underneath, which is S16's
+   defect re-created by S16's own repair.
+5. **S18** — absorb cavekit references before cavekit retires. 91 of 94
+   `cavekit_req` values resolve fine; the hazard is *ordering* — deleting
+   `context/kits/` prunes 159 `origin: build-site` nodes (H0i).
+6. **G4.5** — generalize `blocked_by` -> `depends_on` beyond `task`. Already
+   89 populated nodes, 0 cycles, max depth 15. Must stay out of every metric
+   traversal or it becomes a fresh gaming surface.
+
+## 4. Traps this session actually hit — do not re-learn these
+
+- **`publish-engine.sh`, not `stitch.py --publish`.** The latter writes the
+  bytes and never commits, leaving the engine dirty — which is exactly what the
+  next `--publish` refuses on. Recovery: `git -C <engine> checkout .` (the bytes
+  are in the grid), then `publish-engine.sh`. CLAUDE.md documented the wrong one
+  until 2026-08-27.
+- **Gate 1 refuses on *any* uncommitted change under `nodes/` or `GOALS.md`.**
+  A single node whose stored contract differs from what `level3.py` re-derives
+  makes the graph permanently dirty, and the cron then refuses **silently, every
+  hour**. It had done so **40 consecutive times, with 0 successful publishes
+  ever**, since it was installed 2026-08-25. If the publish cron seems idle, run
+  `level3.py` and check `git status` before anything else.
+- **Hand edits to `origin: build-site` nodes are reverted on the next smoke
+  run.** Observed: a dangling `blocked_by` was removed by hand and was back
+  after `driver.sh --smoke`. Fix those in `context/plans/build-site.md`.
+- **A bare type name in a schema is invisible to an id-rename pass.**
+  `[experiment].md` still listed `level3` in `allowed_parents` after the rename,
+  because it has no `:` in it. **Run the spawn gate over the whole corpus as the
+  last step of any type rename.**
+- **Contract derivation still reads the engine tree (G6.1's residual).** A
+  payload edited only in the graph has a stale contract until published and
+  rescanned. During a *rename* this is a bootstrap problem: the engine's own
+  `stitch.py` could not publish the change that teaches it to read
+  `nodes/build/`. Published once with the payload copy to break the cycle.
+
+## 5. How to write into this file
+
+`HANDOFF.md` is `build:HANDOFF.md`, `build_kind: prose`. **Edit the payload,
+never the node body** — the body is regenerated on every scan (G2.10), the
+payload is the real file and is durable:
+
+```bash
+python3 agi/extensions/agi/bin/grid.py checkout --all   # payloads/HANDOFF.md
+$EDITOR payloads/HANDOFF.md
+python3 agi/extensions/agi/bin/grid.py commit --all
+git add -A && git commit                                 # gate 1 needs a clean graph
+bash agi/extensions/agi/bin/publish-engine.sh
+```
+
+## 6. Known-good verification sequence
+
+```bash
+bash agi/extensions/agi/driver.sh --smoke --max-iters 1   # node_count must not drop
+cd payloads && python3 -m pytest extensions/agi/tests/ -q # 723 passed, 1 skipped
+python3 agi/extensions/agi/bin/snapshot-goals.py --render --check   # byte-identical
+bash agi/extensions/agi/bin/publish-engine.sh            # "already matches" when clean
+```
+
+Spawn-gate state over the whole corpus: **712 approved, 72 rejected, 1
+unverified**. Of the 72, 70 are pre-existing `min_parents` violations (down from
+91) and 36 overlap the three deliberately PRESCRIPTIVE schemas
+(`[bigger_outcome].md`, `[overview].md`, `[vision].md`) which state what *should*
+be and which the corpus is expected to fail until written up to. The 1
+unverified is `doc:goals-preamble` — there is still no `[doc].md`.
