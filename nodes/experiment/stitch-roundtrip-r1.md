@@ -111,7 +111,7 @@ would be the wrong choice the day that stops being true.
 **A real bug, found and fixed in this task, not left in.** The first version
 of `_extract_contract` located the contract's closing fence with a naive
 "first ``` after ```yaml" regex. Run against the real corpus, it broke on
-`level3:bin-heal`: that node's `healer_ctx` entry has a truncated `how`
+`build:bin-heal`: that node's `healer_ctx` entry has a truncated `how`
 field whose text is a `write_text(f"""...```json...```...""")` call site —
 the literal string itself contains a ``` sequence, so the naive scan stopped
 there and fed a truncated, invalid fragment to `yaml.safe_load`, reporting a
@@ -121,7 +121,7 @@ named and fixed on the *writer* side ("bounded extraction to the harness
 markers instead of naively splitting on ` ``` `, which the embedded
 template's own markdown fences defeated") — I independently re-derived the
 same bug on the *reader* side before catching it against real data, fixed it
-the same way (bound on the `LEVEL3-CONTRACT` markers first, then take the
+the same way (bound on the `BUILD-CONTRACT` markers first, then take the
 **last** ``` in that span, not the first), and added
 `test_verify_reads_contract_with_embedded_backtick_fence` as a regression
 test that reproduces the exact bin-heal shape. Flagged the underlying

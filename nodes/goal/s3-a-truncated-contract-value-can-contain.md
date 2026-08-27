@@ -27,7 +27,7 @@ is on the reading side: any consumer that locates the contract's closing fence
 by scanning for the first ` ``` ` after ` ```yaml ` stops at the embedded one and
 gets a truncated, broken parse. This was hit for real while writing
 `stitch.py`, and fixed there by bounding extraction on the
-`LEVEL3-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
+`BUILD-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
 there is a regression test reproducing the exact `bin-heal.md` shape.
 
 Fix it at the source, cheaply: either neutralise fence-lookalike sequences in

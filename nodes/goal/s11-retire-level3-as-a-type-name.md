@@ -20,7 +20,7 @@ type: goal
 `level3` names a zoom level in the data — the category error G2 now records.
 ~180 nodes carry `type: level3`, they live in `nodes/level3/`, and the name is
 load-bearing in `bin/level3.py`, `bin/stitch.py` (which filters on it), the
-`level3-scan` origin stamp, and the `LEVEL3-CONTRACT` block markers.
+`level3-scan` origin stamp, and the `BUILD-CONTRACT` block markers.
 
 Rename to something that describes what the node *is* rather than which view it
 came from — these are code nodes: a file plus the thought attached to it. `code`

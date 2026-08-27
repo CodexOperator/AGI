@@ -29,9 +29,9 @@ payload bytes to its grid ref. Stitching a chosen version then means: point
 — which is the exact language G6.3 uses (`GOALS.md:569-571`) to describe the
 untested case.
 
-**What would prove it:** Take one real level-3 node (e.g. `level3:bin-grid`,
+**What would prove it:** Take one real level-3 node (e.g. `build:bin-grid`,
 `payload_ref: extensions/agi/bin/grid.py`). Change only its payload content,
-`grid.py commit` that change against `refs/grid/node/level3:bin-grid` (minting
+`grid.py commit` that change against `refs/grid/node/build:bin-grid` (minting
 v(n+1) the normal D2 way — no new command). Run a grid-resolving `stitch.py
 --out DIR` that reads the payload from that ref's tip instead of the engine
 repo path, then `sha256sum DIR/extensions/agi/bin/grid.py` and compare against
@@ -66,7 +66,7 @@ into the node" (`level3.py:12-13`, `stitch.py:18-19`). Inlining isn't a
 refinement of that design, it's the thing it was written to rule out. Concrete
 costs beyond re-litigating the anatomy node: a `bin/*.py` file's content sitting
 inside a markdown fence needs escaping (a source file that itself contains a
-` ``` ` fence, or the harness-owned `LEVEL3-CONTRACT` markers, breaks the
+` ``` ` fence, or the harness-owned `BUILD-CONTRACT` markers, breaks the
 node's own parser); every code edit now diffs twice — once as the real file
 change, once as an unrelated-looking prose diff in a `.md` file — which is
 worse for review than the status quo, not better, and directly works against

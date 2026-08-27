@@ -408,13 +408,13 @@ def test_discovers_expected_files_and_excludes_out_of_scope(project, engine):
     assert r.returncode == 0, r.stderr
     ids = set(level3_nodes(project))
     assert ids == {
-        "level3:src-graph-core-init",
-        "level3:src-graph-core-node",
-        "level3:src-graph-core-persistence-filesystem",
+        "build:src-graph-core-init",
+        "build:src-graph-core-node",
+        "build:src-graph-core-persistence-filesystem",
         "level3:src-graph-core-broken",
-        "level3:bin-cli",
+        "build:bin-cli",
         "level3:bin-orphan",
-        "level3:src-init",
+        "build:src-init",
     }
     # nested bin/ dir and driver.sh are out of scope, not merely unmatched
     assert "level3:bin-nested-inner" not in ids
@@ -432,20 +432,20 @@ def test_discovers_expected_files_and_matches_g6_8_boundary(project, engine):
     assert r.returncode == 0, r.stderr
     ids = set(level3_nodes(project))
     assert ids == {
-        "level3:src-graph-core-init",
-        "level3:src-graph-core-node",
-        "level3:src-graph-core-persistence-filesystem",
+        "build:src-graph-core-init",
+        "build:src-graph-core-node",
+        "build:src-graph-core-persistence-filesystem",
         "level3:src-graph-core-broken",
-        "level3:bin-cli",
+        "build:bin-cli",
         "level3:bin-orphan",
-        "level3:src-init",
+        "build:src-init",
         # G6.8 broadened the boundary past src/**/*.py + bin/*.py (direct
         # children only): a nested bin/ dir file and a non-.py file are now
         # in scope too, since neither is gitignored, under tests/fixtures/,
         # nor a .jsonl stream -- exactly the two ENGINE_FILES cases the old
         # test asserted OUT, inverted here on purpose.
         "level3:bin-nested-inner",
-        "level3:driver.sh",
+        "build:driver.sh",
     }
 
 
@@ -612,6 +612,6 @@ its own, since it never re-implements `discover_files`.
   the same by-file-path way `snapshot-goals.py` already is. It is itself a
   direct child of `extensions/agi/bin/`, so it is in scope under both the old
   *and* new predicate — the very next `level3.py` run mints
-  `level3:bin-payload-boundary` for it automatically, no special-casing
+  `build:bin-payload-boundary` for it automatically, no special-casing
   needed. It will land parentless (no `idea:engine-*` census unit named it
   yet), same as the other 101.

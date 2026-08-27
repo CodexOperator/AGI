@@ -101,14 +101,14 @@ directly. It reports:
 
 ```
 [4] stale_contracts: 2 (+ 0 unreadable)
-    level3:bin-metrics (extensions/agi/bin/metrics.py): drift in outputs
-    level3:bin-snapshot-build-site (extensions/agi/bin/snapshot-build-site.py): drift in outputs
+    build:bin-metrics (extensions/agi/bin/metrics.py): drift in outputs
+    build:bin-snapshot-build-site (extensions/agi/bin/snapshot-build-site.py): drift in outputs
 ```
 
 `[1] missing_payload`, `[2] orphan_files`, `[3] duplicate_payload_ref` all
 came back 0. So: yes, `--verify` detects this drift, precisely on the two
-files this diff touched and on no others — `level3:bin-metrics` and
-`level3:bin-snapshot-build-site` now point at files whose derived
+files this diff touched and on no others — `build:bin-metrics` and
+`build:bin-snapshot-build-site` now point at files whose derived
 input/output contract no longer matches what is stored in the level-3 node.
 `--strict` turns that into exit 1 (confirmed). Nothing in this session ran
 `--strict` as part of any automated gate — it was invoked here manually, for

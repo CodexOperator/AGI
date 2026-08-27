@@ -11,8 +11,8 @@ parents:
   - goal:g2
 seeds:
   - hyp:zoom-encoded-node-ids
-  - level3:bin-grid@v2
-  - level3:src-graph-core-identity@v2
+  - build:bin-grid@v2
+  - build:src-graph-core-identity@v2
 status: active
 tags:
   - goal
@@ -30,9 +30,9 @@ collisions resolved by appending `:2`. It fails three ways, all observed here:
   what to do (G7.4). 17 such pairs existed on 2026-08-24; the generator that
   produced them was fixed the same day.
 - **The grid ref was not injective.** `sanitize()` collapsed every unsafe
-  character to `-`, so `level3:bin-stitch@v2` and `level3:bin-stitch-v2` mapped
+  character to `-`, so `build:bin-stitch@v2` and `level3:bin-stitch-v2` mapped
   to one ref and would have shared a version history. Fixed 2026-08-24 by
-  percent-encoding (`level3:bin-grid@v2`) — but that is an escaping patch. It
+  percent-encoding (`build:bin-grid@v2`) — but that is an escaping patch. It
   makes collisions impossible *to cause by encoding*; it does not make ids
   addresses.
 - **Slugs are not stable under editing.** The id derives from title text, so

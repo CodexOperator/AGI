@@ -3,7 +3,7 @@ name: experiment
 derived_from: corpus-survey-2026-08-25 (n=75)
 fields:
   title: {type: str}
-  parents: {type: list}        # hypothesis | verdict | goal | task | idea | experiment | level3
+  parents: {type: list}        # hypothesis | verdict | goal | task | idea | experiment | build
   next_edges: {type: list}
   verdict: {type: str}         # optional pre-judgement; the real one is a verdict node
   confidence: {type: float}
@@ -21,7 +21,7 @@ validation:
   regex:
     verdict: '^(proved|disproved|inconclusive_lean_proved:\d{1,3}|inconclusive_lean_disproved:\d{1,3}|pending)$'
 spawn:
-  allowed_parents: [hypothesis, verdict, goal, task, idea, experiment, level3]
+  allowed_parents: [hypothesis, verdict, goal, task, idea, experiment, build]
   min_parents: 1
   max_parents: 2
 ---
@@ -38,7 +38,8 @@ ID prefix: `exp:<short-slug>`.
 
 `max_parents: 2`, and this is the widest `allowed_parents` list in the graph —
 7 observed parent types over 75 nodes: `hypothesis` 40, `verdict` 31, `goal`
-7, `task` 1, `level3` 1, `idea` 1, `experiment` 1. The list is transcribed
+7, `task` 1, `build` 1 (recorded as `level3` before the 2026-08-27
+rename), `idea` 1, `experiment` 1. The list is transcribed
 from the corpus, not designed; nothing was added "just in case".
 
 `min_parents: 1`. 4 of 75 are parentless today — a report, not a purge.

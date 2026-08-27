@@ -11,7 +11,7 @@ parents:
   - goal:g6
 seeds:
   - hyp:payload-in-node
-  - level3:bin-stitch@v2
+  - build:bin-stitch@v2
 status: complete
 tags:
   - goal
@@ -67,7 +67,7 @@ build node" means the node is **updated in place** and the grid records the
 version; it does not mean a new file per version. The file convention duplicated
 what `refs/grid/node/<id>` already does, inflated the on-disk graph with one node
 per revision, and forced `stitch.py` to grow a whole version-chain concept
-(`level3:bin-stitch@v2`) to tell a legitimate pair apart from a genuine
+(`build:bin-stitch@v2`) to tell a legitimate pair apart from a genuine
 duplicate `payload_ref`.
 
 **The convention going forward:** edit the node, let the grid be the history.
