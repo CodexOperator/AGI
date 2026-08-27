@@ -232,6 +232,25 @@ def extract_thought(body: str | None) -> str | None:
     return m.group(0) if m else None
 
 
+def strip_thought(body: str) -> str:
+    """`body` with its THOUGHT region removed, for readers (goal:g2.11).
+
+    Thought is provenance to zoom into, not weight every reader carries. A
+    thought written once would otherwise ride in every rendered document and
+    every injected context for the rest of the project's life -- the "heavier
+    pack" the design ethic exists to refuse.
+
+    Renderers strip; the node keeps it. That asymmetry is the whole point, and
+    it is also the one hazard: anything parsing a *rendered* document back into
+    nodes would silently drop every thought. `GOALS.md` is generated and that
+    direction is not run (goal:g6.9 reversed the arrow), but `parse_goals`
+    still exists, so this is stated rather than assumed.
+    """
+    if not body:
+        return body
+    return re.sub(r"\n*" + _THOUGHT_RE.pattern, "", body, flags=re.DOTALL).rstrip()
+
+
 def splice_thought(new_body: str, old_body: str | None) -> str:
     """Carry the previous body's THOUGHT block into a regenerated body.
 
@@ -556,7 +575,11 @@ def render_goals(preamble: str, goals: list[dict]) -> str:
         hashes = "#" * int(g["heading_level"])
         out.append(f"{hashes} {g['gid']} — {g['title']} — status: {g['status']}")
         out.append("")
-        out.append(g["body"])
+        # goal:g2.11 — the authored THOUGHT region stays on the node and never
+        # reaches the rendered document. `--check` is unaffected: it compares
+        # this output against a GOALS.md that this same function wrote, so both
+        # sides are stripped and the round trip stays byte-identical.
+        out.append(strip_thought(g["body"]))
         out.append("")
     # One trailing newline, no trailing blank line — matches the hand-written
     # document byte for byte, which is what `--check` compares.

@@ -22,6 +22,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -128,6 +129,43 @@ def _iter_frontmatter(nodes_dir: Path):
             continue
         if isinstance(fm, dict):
             yield nf, fm
+
+
+_THOUGHT_RE = re.compile(
+    r"<!--\s*THOUGHT:BEGIN(.*?)<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+
+
+def thought_stats(nodes_dir: Path) -> dict:
+    """How much of the graph records why it changed (goal:g2.11).
+
+    **Descriptive only, and it must stay out of `metric_primary`.** It is
+    trivially gamed -- an agent told to raise it writes 786 empty
+    justifications, and the project has already been burned once by scoring a
+    quantity that motion alone could move (9 chains x 2000 hops carrying no
+    signal). This counts a slot being filled; it cannot judge whether what
+    fills it is true. Read it as coverage, never as quality.
+
+    A block whose content is only whitespace counts as empty, so the marker
+    alone cannot lift the number.
+    """
+    total = filled = 0
+    if not nodes_dir.is_dir():
+        return {"thought_coverage": 0.0, "nodes_with_thought": 0}
+    for nf in sorted(nodes_dir.rglob("*.md")):
+        try:
+            text = nf.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if not text.startswith("---"):
+            continue
+        total += 1
+        m = _THOUGHT_RE.search(text)
+        if m and m.group(1).replace("-->", "").strip():
+            filled += 1
+    return {
+        "thought_coverage": round(filled / total, 3) if total else 0.0,
+        "nodes_with_thought": filled,
+    }
 
 
 def evidence_stats(nodes_dir: Path) -> dict:
@@ -370,6 +408,10 @@ def compute(root: Path) -> dict:
     m.update(attr)
     ev = evidence_stats(root / "nodes")
     m.update(ev)
+    # goal:g2.11 — descriptive coverage of the authored THOUGHT region.
+    # Secondary by construction: see thought_stats' docstring for why it must
+    # never be `metric_primary`.
+    m.update(thought_stats(root / "nodes"))
     m["evidence_fraction"] = round(ev["evidence_fraction"], 3)
     m["decisive_evidence_fraction"] = round(ev["decisive_evidence_fraction"], 3)
     # Composite suggested by H3: depth is only worth what the evidence

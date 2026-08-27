@@ -214,9 +214,9 @@ def normalize_evidence_runs(value, corpus=None) -> int:
     that actually resolve to a real node (goal:g3.1 / TODO.md H4c).
 
     - `None` -> 0
-    - `bool` -> `int(value)`               (direct attestation, not a ref)
-    - `int` -> `max(value, 0)`             (direct attestation, not a ref)
-    - numeric string -> `int(s)`           (direct attestation, not a ref)
+    - `bool` -> 0                          (goal:g7.3 — unverifiable)
+    - `int` -> 0                           (goal:g7.3 — unverifiable)
+    - numeric string -> 0                  (goal:g7.3 — unverifiable)
     - `list`/`tuple`/`set` -> count of entries that are node-id-shaped
       *and* present in `corpus`. A sentinel like `"synthetic"` counts 0
       (it isn't even id-shaped); a dangling `"exp:deleted-thing"` counts 0
@@ -229,23 +229,52 @@ def normalize_evidence_runs(value, corpus=None) -> int:
     silently trust a length again. This is a deliberate fail-closed
     default, not an oversight: callers that want list entries to count
     must supply a corpus.
+
+    **goal:g7.3, closed 2026-08-27: a bare integer no longer counts.**
+    H4c removed the `"synthetic"` sentinel because a value nothing could
+    check was worth nothing; `evidence_runs: 3` was left accepted as
+    "direct attestation" and is *exactly as cheap to write*. It is the same
+    hole with a different literal, and it was populated rather than
+    theoretical: 77 of 112 nodes carrying the field held a bare int against
+    a schema declaring a list, and `verdict:zoom-encoded-node-ids` was
+    `proved` — decisive — solely because this function returned an
+    unchecked `1`.
+
+    The honest-count path G7.3 worried about breaking is preserved, just not
+    here: an unverifiable count is still *reported* (see
+    `is_unverifiable_attestation`), it simply no longer buys a decisive
+    verdict. "I ran it three times" stays sayable; it stops being
+    self-certifying.
     """
     if value is None:
         return 0
-    if isinstance(value, bool):
-        return int(value)
-    if isinstance(value, int):
-        return max(value, 0)
+    if isinstance(value, (bool, int)):
+        return 0
     if isinstance(value, (list, tuple, set)):
         if corpus is None:
             return 0
         return sum(1 for v in value if is_node_id_shaped(v) and v.strip() in corpus)
     if isinstance(value, str):
-        s = value.strip()
-        if s.isdigit():
-            return int(s)
         return 0
     return 0
+
+
+def is_unverifiable_attestation(value) -> bool:
+    """True when `evidence_runs` claims a count nothing can resolve.
+
+    Split out from `normalize_evidence_runs` so the information is not simply
+    destroyed by goal:g7.3's fix. The count stops *certifying* a verdict; it
+    stays *visible*, which is what lets `metrics.py` report how much of the
+    corpus still needs converting to real references instead of the number
+    silently reading as zero evidence.
+    """
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, int):
+        return value > 0
+    if isinstance(value, str):
+        return value.strip().isdigit() and int(value.strip()) > 0
+    return False
 
 
 @dataclass
