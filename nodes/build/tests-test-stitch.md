@@ -557,14 +557,14 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'level3' / 'not-level3.md'
-  how: '`(project / ''nodes'' / ''level3'' / ''not-level3.md'').write_text(''---\nid:
+- name: project / 'nodes' / 'build' / 'not-level3.md'
+  how: '`(project / ''nodes'' / ''build'' / ''not-level3.md'').write_text(''---\nid:
     idea:stray\ntype: idea\n---\nbody\n'', encoding=''utf-8'')` at line 619'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'level3' / 'garbage.md'
-  how: '`(project / ''nodes'' / ''level3'' / ''garbage.md'').write_text(''not frontmatter
+- name: project / 'nodes' / 'build' / 'garbage.md'
+  how: '`(project / ''nodes'' / ''build'' / ''garbage.md'').write_text(''not frontmatter
     at all\n'', encoding=''utf-8'')` at line 621'
   why: TODO(model)
   perf: TODO(model)

@@ -270,15 +270,27 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_a_node_stamped_with_the_LEGACY_origin_is_never_pruned
+  how: 'defines public function `test_a_node_stamped_with_the_LEGACY_origin_is_never_pruned`
+    at line 468, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_build_kind_is_derived_from_the_payload_suffix
+  how: defines public function `test_build_kind_is_derived_from_the_payload_suffix`
+    at line 500
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_no_project_local_script_lookup_argument_exists
   how: defines public function `test_no_project_local_script_lookup_argument_exists`
-    at line 471
+    at line 511
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_entry_point_units_can_be_matched_as_parents
   how: 'defines public function `test_entry_point_units_can_be_matched_as_parents`
-    at line 480, signature: (project, engine)'
+    at line 520, signature: (project, engine)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
