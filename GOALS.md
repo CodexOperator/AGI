@@ -1987,7 +1987,7 @@ order this forces: the ref cannot be repaired by force-pushing either side
 (that destroys one history, which is the G7 rule again), so **the duplicate ids
 must be resolved first and the refs rebuilt afterwards.**
 
-### G7.3 — `evidence_runs` as a bare integer is still unverifiable — status: horizon
+### G7.3 — `evidence_runs` as a bare integer is still unverifiable — status: active
 
 Residual left open by G3.1 and named here so it is not forgotten. After the
 H4c fix a list entry must resolve to a real node, but an integer
