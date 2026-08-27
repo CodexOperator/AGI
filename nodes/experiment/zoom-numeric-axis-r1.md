@@ -106,7 +106,7 @@ So the axis property is real at the corpus-wide grain but not guaranteed at
 a single narrow target with a fixed 2-hop BFS — worth knowing before anyone
 wires kid dispatch to expect it locally. A second, related asymmetry found
 while measuring: depth-2 BFS reaches level-3 nodes hanging off a 1-hop idea
-(`goal:g2` -> `idea:engine-zoom` -> `level3:bin-zoom`, 2 hops, included) but
+(`goal:g2` -> `idea:engine-zoom` -> `build:bin-zoom`, 2 hops, included) but
 NOT level-3 nodes hanging off a 2-hop idea reached via a subgoal
 (`goal:g2` -> `goal:g2.1` -> `idea:engine-agi-algos` -> `level3:src-agi-
 algos-*`, 3 hops, excluded) — confirmed in the real L2 output above, which

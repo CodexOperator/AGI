@@ -24,15 +24,16 @@ spawn:
 # bigger_outcome
 
 A module-level purpose composed from several `outcome` nodes. Aggregates
-upward into `app_purpose`.
+upward into `vision`, via `overview`.
 
 ID prefix: `bigger_outcome:<short-slug>`.
 
-## Spawn rule — the one PRESCRIPTIVE schema in this directory
+## Spawn rule — PRESCRIPTIVE, not derived
 
-Every other schema here is derived: it describes what the corpus does, and
-where corpus and rule disagreed the rule was widened to the corpus. **This
-one is deliberately the other way round**, as of 2026-08-27. It states what
+Most schemas here are derived: they describe what the corpus does, and where
+corpus and rule disagreed the rule was widened to the corpus. **This one is
+deliberately the other way round**, as of 2026-08-27 — as are `[overview].md`
+and `[vision].md`, the other two tiers of the convergence end. It states what
 an aggregate is *supposed* to rest on, and the corpus does not satisfy it
 yet. That inversion is the point, so it is written at the top rather than
 buried: a reader who assumes "derived" here will misread every number below.

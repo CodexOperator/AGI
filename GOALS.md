@@ -542,9 +542,9 @@ collisions resolved by appending `:2`. It fails three ways, all observed here:
   what to do (G7.4). 17 such pairs existed on 2026-08-24; the generator that
   produced them was fixed the same day.
 - **The grid ref was not injective.** `sanitize()` collapsed every unsafe
-  character to `-`, so `level3:bin-stitch@v2` and `level3:bin-stitch-v2` mapped
+  character to `-`, so `build:bin-stitch@v2` and `level3:bin-stitch-v2` mapped
   to one ref and would have shared a version history. Fixed 2026-08-24 by
-  percent-encoding (`level3:bin-grid@v2`) — but that is an escaping patch. It
+  percent-encoding (`build:bin-grid@v2`) — but that is an escaping patch. It
   makes collisions impossible *to cause by encoding*; it does not make ids
   addresses.
 - **Slugs are not stable under editing.** The id derives from title text, so
@@ -1215,7 +1215,7 @@ build node" means the node is **updated in place** and the grid records the
 version; it does not mean a new file per version. The file convention duplicated
 what `refs/grid/node/<id>` already does, inflated the on-disk graph with one node
 per revision, and forced `stitch.py` to grow a whole version-chain concept
-(`level3:bin-stitch@v2`) to tell a legitimate pair apart from a genuine
+(`build:bin-stitch@v2`) to tell a legitimate pair apart from a genuine
 duplicate `payload_ref`.
 
 **The convention going forward:** edit the node, let the grid be the history.
@@ -2613,7 +2613,7 @@ it lists should be read from the geometry, not hardcoded a second time).
 `level3` names a zoom level in the data — the category error G2 now records.
 ~180 nodes carry `type: level3`, they live in `nodes/level3/`, and the name is
 load-bearing in `bin/level3.py`, `bin/stitch.py` (which filters on it), the
-`level3-scan` origin stamp, and the `LEVEL3-CONTRACT` block markers.
+`level3-scan` origin stamp, and the `BUILD-CONTRACT` block markers.
 
 Rename to something that describes what the node *is* rather than which view it
 came from — these are code nodes: a file plus the thought attached to it. `code`
@@ -3095,7 +3095,7 @@ is on the reading side: any consumer that locates the contract's closing fence
 by scanning for the first ` ``` ` after ` ```yaml ` stops at the embedded one and
 gets a truncated, broken parse. This was hit for real while writing
 `stitch.py`, and fixed there by bounding extraction on the
-`LEVEL3-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
+`BUILD-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
 there is a regression test reproducing the exact `bin-heal.md` shape.
 
 Fix it at the source, cheaply: either neutralise fence-lookalike sequences in

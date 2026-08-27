@@ -83,7 +83,7 @@ included `.md` files; I used it verbatim for the probe node rather than
 inventing a shape.
 
 **Probe node** (`nodes/level3/skills-agi-SKILL.md.md`, `id:
-level3:skills-agi-SKILL.md`) is stamped `origin: iter-9007-probe`, not
+build:skills-agi-SKILL.md`) is stamped `origin: iter-9007-probe`, not
 `origin: level3-scan`. Reason, stated plainly: `level3.py:599-612` prunes
 every `origin: level3-scan` node it did not write on its own run, and
 `skills/agi/SKILL.md` is outside `discover_files`'s scope (`extensions/agi/
@@ -108,7 +108,7 @@ stitch --verify: project=/home/ubuntu/work/agi-tree
 ```
 
 `nodes` ticks 74 -> 75; every other number is identical, and nothing in the
-report names `SKILL.md` or `level3:skills-agi-SKILL.md` at all. `--verify`
+report names `SKILL.md` or `build:skills-agi-SKILL.md` at all. `--verify`
 is silent about the file's presence in the graph — not flagged wrong, not
 flagged right, just invisible unless you already knew to grep the node
 count.

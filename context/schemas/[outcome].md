@@ -29,7 +29,7 @@ spawn:
 
 Fusion of in-code documentation + README. Records what an MVP does in
 input → output terms. Aggregates upward into `bigger_outcome` and eventually
-`app_purpose`.
+`vision`.
 
 ID prefix: `outcome:<short-slug>`.
 

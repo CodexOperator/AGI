@@ -29,7 +29,7 @@ scoped to `origin: level3-scan` only; a missing/non-git engine root returns
 before touching the filesystem (verified by test).
 
 The contract block lives in the body between harness-owned HTML-comment
-markers (`LEVEL3-CONTRACT:BEGIN`/`:END`), as a fenced `yaml` block:
+markers (`BUILD-CONTRACT:BEGIN`/`:END`), as a fenced `yaml` block:
 `payload_ref`, `parse_ok` (+ `parse_error` when false), `inputs`, `outputs`,
 and (when present) `uncovered` — each entry `{name, how, why, perf,
 security}`. `how` is derived purely with the standard library `ast` module:

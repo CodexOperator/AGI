@@ -1,0 +1,145 @@
+---
+build_kind: code
+confidence: 1.0
+id: "build:tests-schema-registry-test-cascade-step-2"
+mint_id: e4fc09ca38be4b138908d60f9ee39da0
+origin: build-scan
+parents:
+  - idea:engine-tests-schema-registry
+payload_ref: extensions/agi/tests/schema_registry/test_cascade_step_2.py
+tags:
+  - build
+  - code
+  - g2.1
+title: "Build: extensions/agi/tests/schema_registry/test_cascade_step_2.py"
+type: build
+---
+
+`extensions/agi/tests/schema_registry/test_cascade_step_2.py` — level-3 code node (one file, one canonical node).
+
+Census parent: `idea:engine-tests-schema-registry`.
+
+<!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
+```yaml
+payload_ref: extensions/agi/tests/schema_registry/test_cascade_step_2.py
+parse_ok: true
+inputs:
+- name: pathlib.Path
+  how: '`from pathlib import Path` at line 3'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schema_registry.cascade_step_2
+  how: '`from schema_registry import cascade_step_2` at line 5'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schema_registry.collect_fingerprint
+  how: '`from schema_registry import collect_fingerprint` at line 5'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schema_registry.discover_schema
+  how: '`from schema_registry import discover_schema` at line 5'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schema_registry.jaccard
+  how: '`from schema_registry import jaccard` at line 5'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schema_registry.load_schemas_from_dir
+  how: '`from schema_registry import load_schemas_from_dir` at line 5'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+outputs:
+- name: test_jaccard_basics
+  how: defines public function `test_jaccard_basics` at line 14
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_collect_fingerprint
+  how: 'defines public function `test_collect_fingerprint` at line 20, signature:
+    (tmp_path: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_step_2_high_similarity_match
+  how: 'defines public function `test_step_2_high_similarity_match` at line 27, signature:
+    (tmp_path: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_step_2_below_threshold_no_match
+  how: 'defines public function `test_step_2_below_threshold_no_match` at line 46,
+    signature: (tmp_path: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_discover_schema_uses_step_2_after_step_1
+  how: 'defines public function `test_discover_schema_uses_step_2_after_step_1` at
+    line 61, signature: (tmp_path: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / 'n1.md'
+  how: '`(tmp_path / ''n1.md'').write_text(''---\nid: a\ntitle: x\n---\n'')` at line
+    21'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / 'n2.md'
+  how: '`(tmp_path / ''n2.md'').write_text(''---\nid: b\nverdict: pending\n---\n'')`
+    at line 22'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schemas_dir / '[experiment].md'
+  how: '`(schemas_dir / ''[experiment].md'').write_text(''---\nname: experiment\nfields:\n  id:
+    {type: string}\n  verdict: {type: string}\n  evidence_runs: {type: list}\n---\n'')`
+    at line 31'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: target / 'node1.md'
+  how: '`(target / ''node1.md'').write_text(''---\nid: e1\nverdict: proved\nevidence_runs:
+    []\n---\n'')` at line 38'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: target / 'node2.md'
+  how: '`(target / ''node2.md'').write_text(''---\nid: e2\nverdict: pending\nevidence_runs:
+    []\n---\n'')` at line 39'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schemas_dir / '[experiment].md'
+  how: '`(schemas_dir / ''[experiment].md'').write_text(''---\nname: experiment\nfields:\n  verdict:
+    {type: string}\n  evidence_runs: {type: list}\n---\n'')` at line 50'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: target / 'totally_unrelated.md'
+  how: '`(target / ''totally_unrelated.md'').write_text(''---\nrandom_field: 1\nother:
+    2\n---\n'')` at line 56'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: schemas_dir / '[experiment].md'
+  how: '`(schemas_dir / ''[experiment].md'').write_text(''---\nname: experiment\nfields:\n  id:
+    {type: string}\n  verdict: {type: string}\n---\n'')` at line 65'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: target / 'x.md'
+  how: '`(target / ''x.md'').write_text(''---\nid: e1\nverdict: proved\n---\n'')`
+    at line 72'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+```
+<!-- BUILD-CONTRACT:END -->
+
+Generated by `level3.py` (see `hyp:level3-node-anatomy` in the graph repo for the design). `how` fields above are derived mechanically via the standard library `ast` module; `why`/`perf`/`security` are placeholders for a later model pass — never fabricated by this generator.

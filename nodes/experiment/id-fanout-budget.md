@@ -52,7 +52,7 @@ inflate any real node's fan-out count since they only exist as references,
 not as counted children of an "in-corpus" id. 106 nodes declare zero
 parents (root goals `goal:g1`..`goal:g10`, `goal:s1`..`goal:s10`; census
 roots under `idea:domain-*`/`idea:engine-*`; and a handful of orphan
-fossils including `level3:src-init`).
+fossils including `build:src-init`).
 
 **Full fan-out distribution, all node types.**
 - Distinct ids with >=1 child: 333
@@ -84,7 +84,7 @@ idea:domain-autoresearch-tree-skill     10   (tied: idea:domain-environment-inde
 **Level-3 specific, restricted to `type: level3` children grouped by their
 census parent.** 181 level3 nodes on disk (GOALS.md's own text cites 178 —
 the corpus grew by 3 since that count was written; not a discrepancy in
-method). 1 level3 node (`level3:src-init`) declares no parent and is
+method). 1 level3 node (`build:src-init`) declares no parent and is
 excluded from the census-parent tally.
 - Distinct census parents: 58
 - Max fan-out: **20** — `idea:engine-graph-core` (same node as the

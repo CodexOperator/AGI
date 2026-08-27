@@ -152,6 +152,6 @@ minted this session with no schema yet.
 +9 nodes (769 → 778): 6 are this chain, and the rest are the parent agent's
 concurrent work in the same checkout (`level3` +2, `verdict` +1, `experiment`
 +2, `mvp` +1, `idea` +1, `hypothesis` +1, `doc` +1). Parentless `level3` went
-2 → 4; the two new ones are `level3:bin-spawn-gate` and
-`level3:bin-publish-engine.sh`, both minted parentless by the census scan.
+2 → 4; the two new ones are `build:bin-spawn-gate` and
+`build:bin-publish-engine.sh`, both minted parentless by the census scan.
 **Node count only ever rose.** Nothing was deleted.
