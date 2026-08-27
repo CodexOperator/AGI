@@ -7,7 +7,7 @@ hypothesis: "hyp:graph-core-r1"
 id: "verdict:a00a8357dc5-08d530-closure-test"
 mint_id: cdbf3fefbc9047a58cd8641267854c3a
 parents:
-  - hypothesis:a00-a8357dc5-08d530
+  - hyp:a00-a8357dc5-08d530
 supports: []
 type: verdict
 verdict: "inconclusive_lean_proved:65"

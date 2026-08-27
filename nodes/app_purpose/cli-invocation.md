@@ -1,8 +1,8 @@
 ---
-id: "app-purpose:cli-invocation"
+id: "app_purpose:cli-invocation"
 mint_id: 5da374d286e04abda8e42e104801c524
 parents:
-  - bigger-outcome:cli-invocation-r1
+  - bigger_outcome:cli-invocation-r1
 status: closed
 tags:
   - cli

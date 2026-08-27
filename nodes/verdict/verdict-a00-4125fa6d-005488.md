@@ -2,13 +2,13 @@
 confidence: 0.75
 contradicts: []
 evidence_runs:
-  - experiment:exp-a00-4125fa6d-005488
+  - exp:exp-a00-4125fa6d-005488
 id: "verdict:verdict-a00-4125fa6d-005488"
 lean_strength: 75
 mint_id: ed29e1f7eb8a42c09b57eb7e05ef3d60
 next_edges: []
 parents:
-  - experiment:exp-a00-4125fa6d-005488
+  - exp:exp-a00-4125fa6d-005488
 supports:
   - verdict:chain-engine-r8
 title: Agent Spawning via Verdict Nodes — Architecturally Feasible

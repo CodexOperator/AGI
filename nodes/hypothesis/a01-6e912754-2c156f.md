@@ -1,5 +1,5 @@
 ---
-id: "hypothesis:a01-6e912754-2c156f"
+id: "hyp:a01-6e912754-2c156f"
 mint_id: 95465b15ac6f47e8a806d3a13c8ef750
 next_edges: []
 parents:
@@ -7,7 +7,7 @@ parents:
 type: hypothesis
 ---
 
-# hypothesis:a01-6e912754-2c156f
+# hyp:a01-6e912754-2c156f
 ## Hypothesis
 
 What is the testable claim?

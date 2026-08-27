@@ -1,8 +1,8 @@
 ---
-id: "app-purpose:session-management-r1"
+id: "app_purpose:session-management-r1"
 mint_id: 4cdfacf0622c47938d8ff0e6d3b1b571
 parents:
-  - bigger-outcome:session-management-r1
+  - bigger_outcome:session-management-r1
 tags:
   - session-management-r1
   - app-purpose

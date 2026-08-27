@@ -1,8 +1,8 @@
 ---
-id: "bigger-outcome:renderers-r1"
+id: "bigger_outcome:renderers-r1"
 mint_id: 8e1e5288a7364a4f871d9e773a26b1a7
 next_edges:
-  - app-purpose:renderers
+  - app_purpose:renderers
 parents:
   - outcome:renderers-r1
 subgraph: false

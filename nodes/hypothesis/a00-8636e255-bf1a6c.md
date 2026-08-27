@@ -1,6 +1,6 @@
 ---
 domain: renderers
-id: "hypothesis:a00-8636e255-bf1a6c"
+id: "hyp:a00-8636e255-bf1a6c"
 mint_id: c813570f32c14b84b87929de8ba67e4f
 parents:
   - idea:domain-renderers
@@ -15,7 +15,7 @@ tags:
 type: hypothesis
 ---
 
-# hypothesis:a00-8636e255-bf1a6c
+# hyp:a00-8636e255-bf1a6c
 ## Hypothesis: Mermaid Renderer (R3) — Valid, Deterministic Mermaid Output
 
 ## Testable Claim

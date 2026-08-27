@@ -1,10 +1,10 @@
 ---
-id: "experiment:a00-ddbe3410-exp003-iterative-traversal"
+id: "exp:a00-ddbe3410-exp003-iterative-traversal"
 mint_id: 67b573e87e8f4a05adfda4aecf4a7b7f
 next_edges:
   - verdict:a00-ddbe3410-verdict003-iterative-traversal
 parents:
-  - hypothesis:a00-ddbe3410-iterative-traversal
+  - hyp:a00-ddbe3410-iterative-traversal
 status: complete
 tags:
   - chain-engine

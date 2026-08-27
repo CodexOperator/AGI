@@ -112,3 +112,38 @@ emptying either one prunes every one of those nodes on the next run.** Retire
 them by deprecating the nodes first. When the phase-out is committed to, it
 wants its own goal — it subsumes this one, since a generator that no longer
 exists cannot mint an unvalidated parent.
+
+## A concrete instance, found 2026-08-27 — and it survives hand-repair
+
+`context/plans/build-site.md` declares `T-020: Schema removal handling` in
+three places — the per-tier summary (line 857), the T3 tier table (line 972)
+and the mermaid dependency graph (`T-019 --> T-020`, `T-020 --> T-012`) — but
+gives it **no `#### T-020:` definition block**. `snapshot-build-site.py`
+mints nodes only from definition blocks, so `task:t-020` is never created,
+while `task:t-012` is minted carrying `blocked_by: [task:t-011, task:t-019,
+task:t-020]`. The generator writes a reference to a node it does not create
+and checks nothing.
+
+**The instructive part is what happened next.** The dangling ref was removed
+by hand from `task:t-012` during the 2026-08-27 integrity pass, verified
+gone, and was **back after the next `driver.sh --smoke`** — because `task`
+nodes are `origin: build-site` and the generator re-derived the node from the
+unchanged input. That is H0i's mechanism observed from the other side: not
+data loss this time, but a hand-repair silently reverted.
+
+So this class of defect has a property worth stating: **it cannot be fixed in
+the graph at all.** The only durable fix is in the generator or its input.
+Which of the two is a real decision, and neither branch is free:
+
+- **Define T-020** in `build-site.md` and it mints. But the input supplies
+  only a title and one blocker — `cavekit_req`, `acceptance_criteria` and
+  `effort` would have to be invented, and inventing acceptance criteria for a
+  task nobody wrote is worse than a dangling edge.
+- **Drop T-020** from T-012's `blockedBy` and the reference resolves. But the
+  dependency is stated three times and is plainly intended; deleting it
+  discards a real design statement to satisfy a checker.
+
+Left dangling on purpose, pending that decision. What this goal actually
+asks for is upstream of both: the generator should **refuse to mint a
+reference it cannot resolve**, or emit it and fail loudly, rather than
+writing a broken edge and exiting 0. Pairs with **G7.5** and **G7.9**.

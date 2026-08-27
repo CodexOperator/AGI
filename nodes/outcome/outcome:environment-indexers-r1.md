@@ -2,7 +2,7 @@
 id: "outcome:environment-indexers-r1"
 mint_id: 5c464e2b5448400ba53a43c8311138e4
 next_edges:
-  - bigger-outcome:environment-indexers-r1
+  - bigger_outcome:environment-indexers-r1
 parents:
   - mvp:environment-indexers-r1
   - verdict:environment-indexers-r1

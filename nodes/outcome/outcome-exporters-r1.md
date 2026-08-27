@@ -3,7 +3,7 @@ confidence: 1.0
 id: "outcome:exporters-r1"
 mint_id: 5432bd58a77d4f71aea9114ed111735d
 next_edges:
-  - bigger-outcome:exporters-r1
+  - bigger_outcome:exporters-r1
 parents:
   - mvp:exporters-r1
 status: open

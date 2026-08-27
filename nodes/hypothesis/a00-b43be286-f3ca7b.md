@@ -1,6 +1,6 @@
 ---
 domain: graph-topology
-id: "hypothesis:a00-b43be286-f3ca7b"
+id: "hyp:a00-b43be286-f3ca7b"
 mint_id: 0c46891cf89e4183a3fa7802d9fbb160
 next_edges: []
 parents: []
@@ -14,12 +14,12 @@ title: Topology attractor regions predict chain completion
 type: hypothesis
 ---
 
-# hypothesis:a00-b43be286-f3ca7b
+# hyp:a00-b43be286-f3ca7b
 
 **Domain:** graph-topology
 **Type:** hypothesis
 
-# hypothesis:a00-b43be286-f3ca7b
+# hyp:a00-b43be286-f3ca7b
 ## Hypothesis
 
 The autoresearch DAG's topological structure (branching density, convergence zones, attractor regions) is a statistically significant predictor of chain completion — chains that fall within high-density attractor regions (many incoming edges, high fan-in) are disproportionately likely to reach verdict status, while isolated or sparse-region chains are disproportionately likely to remain as pending tasks.

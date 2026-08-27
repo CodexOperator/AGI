@@ -1,6 +1,6 @@
 ---
 confidence: 0.5
-id: "hypothesis:a00-1d3d51b5-36990a"
+id: "hyp:a00-1d3d51b5-36990a"
 mint_id: 9294b410bf484b67986806c56ff50c3c
 parents:
   - idea:domain-autoresearch-tree-skill
@@ -15,7 +15,7 @@ wired_at: 1777664395
 wired_from: a00-1d3d51b5
 ---
 
-# hypothesis:a00-1d3d51b5-36990a
+# hyp:a00-1d3d51b5-36990a
 
 ## Testable Claim
 

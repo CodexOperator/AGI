@@ -7,11 +7,11 @@ demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
 effort: S
 evidence_runs: []
-id: "hypothesis:a00-ddbe3410-iterative-traversal"
+id: "hyp:a00-ddbe3410-iterative-traversal"
 mint_id: bc11344a96544f3bb83a07a9851ae18c
 parents:
   - idea:domain-chain-bootstrap
-  - experiment:a00-ddbe3410-exp003-iterative-traversal
+  - exp:a00-ddbe3410-exp003-iterative-traversal
 status: open
 tags:
   - chain-engine

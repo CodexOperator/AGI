@@ -1,6 +1,6 @@
 ---
 confidence: 0.65
-id: "hypothesis:a00-c2d7dbcc-3987c7"
+id: "hyp:a00-c2d7dbcc-3987c7"
 mint_id: d2bc694d9ffe42488577482ee9f1693c
 next_edges:
   - exp:topological-queries-r1
@@ -18,7 +18,7 @@ type: hypothesis
 verdict: "inconclusive_lean_proved:65"
 ---
 
-# hypothesis:a00-c2d7dbcc-3987c7
+# hyp:a00-c2d7dbcc-3987c7
 ## Hypothesis
 
 **Testable Claim:** Agent task-selection (where to work next) can be driven entirely by graph topology — node type, edge count, chain length, cycle depth — without inspecting node bodies or content.

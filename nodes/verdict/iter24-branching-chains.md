@@ -7,7 +7,7 @@ id: "verdict:iter24-branching-chains"
 mint_id: 0ad88873d82f4cbabffc455762d29e5f
 next_edges: []
 parents:
-  - hypothesis:iter24-branching-chains
+  - hyp:iter24-branching-chains
 type: verdict
 verdict: "inconclusive_lean_proved:50"
 ---

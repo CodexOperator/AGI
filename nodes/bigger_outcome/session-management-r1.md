@@ -1,9 +1,9 @@
 ---
 confidence: 0.9
-id: "bigger-outcome:session-management-r1"
+id: "bigger_outcome:session-management-r1"
 mint_id: c7651c6ec8c4442cbcb6dd788c0533b6
 next_edges:
-  - app-purpose:session-management
+  - app_purpose:session-management
 parents:
   - outcome:session-management-r1
 status: open

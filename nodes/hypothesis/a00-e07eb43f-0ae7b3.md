@@ -1,12 +1,12 @@
 ---
-id: "hypothesis:a00-e07eb43f-0ae7b3"
+id: "hyp:a00-e07eb43f-0ae7b3"
 mint_id: 67fb39923f7144ccb382b9ae6506eae0
 next_edges: []
 parents: []
 type: hypothesis
 ---
 
-# hypothesis:a00-e07eb43f-0ae7b3
+# hyp:a00-e07eb43f-0ae7b3
 ## Hypothesis
 
 **Claim:** Adding a `task→experiment` transition to the chain-engine enables the dispatcher to auto-spawn experiments from pending tasks, closing the 92-task backlog gap.

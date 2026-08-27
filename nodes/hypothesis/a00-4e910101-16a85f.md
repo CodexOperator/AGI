@@ -1,13 +1,13 @@
 ---
 confidence: 0.5
-id: "hypothesis:a00-4e910101-16a85f"
+id: "hyp:a00-4e910101-16a85f"
 mint_id: 9b9b537ad15e4da98afc0fb5b6ecd135
 parents: []
 type: hypothesis
 verdict: pending
 ---
 
-# hypothesis:a00-4e910101-16a85f
+# hyp:a00-4e910101-16a85f
 ## Hypothesis
 
 **Claim**: A dedicated experiment-runner that polls pending hypotheses, executes their spawned tasks as bounded experiments, and writes structured verdict nodes will bootstrap the capillary DAG from zero-chain-length into productive chains faster than manual agent-driven chaining.

@@ -5,7 +5,7 @@ mint_id: 7bad2164b95746689a109773f8839469
 next_edges:
   - verdict:a00-324837df-2546ce
 parents:
-  - hypothesis:a00-324837df-2546ce
+  - hyp:a00-324837df-2546ce
 spawns: []
 status: complete
 tags:

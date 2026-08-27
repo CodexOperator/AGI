@@ -4,7 +4,7 @@ id: "idea:domain-vector-embedding-isomorphism"
 mint_id: 3b8e843c721c41d2b3d5b7304bcf37c2
 next_edges:
   - hyp:vector-embedding-isomorphism-r1
-  - hypothesis:a00-324837df-2546ce
+  - hyp:a00-324837df-2546ce
 tags:
   - embeddings
   - renderers

@@ -1,7 +1,7 @@
 ---
 demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
 demoted_from: proved
-id: "hypothesis:a00-72d9d3ef-3fdc1e"
+id: "hyp:a00-72d9d3ef-3fdc1e"
 mint_id: 6a645007dfbf4a048e8c0fcb21e0dfd9
 next_edges:
   - verdict:hypothesis_a00-72d9d3ef-3fdc1e
@@ -11,7 +11,7 @@ type: hypothesis
 verdict: "inconclusive_lean_proved:50"
 ---
 
-# hypothesis:a00-72d9d3ef-3fdc1e
+# hyp:a00-72d9d3ef-3fdc1e
 
 ## Hypothesis
 
@@ -100,5 +100,5 @@ print(f"\n{'PROVED' if PROVED else 'DISPROVED'}")
 - Parent: none (fresh idea at BIG zoom level)
 - Zoom: BIG (whole-graph exploration)
 - Domain: chain-engine (task selection policy)
-- Relates to: idea:domain-chain-engine, hypothesis:a00-213340cc-61bbbb (cross-domain synthesis)
+- Relates to: idea:domain-chain-engine, hyp:a00-213340cc-61bbbb (cross-domain synthesis)
 - Why this matters: 10 parallel agents with random or longest-chain selection will duplicate work and leave domain gaps. A calibrated attractiveness function is the missing "agent brain interface" layer.

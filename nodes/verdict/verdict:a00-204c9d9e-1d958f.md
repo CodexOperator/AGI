@@ -7,8 +7,8 @@ id: "verdict:verdict:a00-204c9d9e-1d958f"
 mint_id: f10f1ab354a04d59aad7bb56f6fe9c2c
 next_edges: []
 parents:
-  - experiment:exp:a00-204c9d9e-1d958f
-  - hypothesis:a00-204c9d9e-1d958f
+  - exp:exp:a00-204c9d9e-1d958f
+  - hyp:a00-204c9d9e-1d958f
 tags:
   - architecture
   - query-api

@@ -7,7 +7,7 @@ evidence_runs: []
 id: "verdict:a00-407fa689-verdict-pareto"
 mint_id: edf9509a3d8d4853bd20a57aa2b5e0e4
 parents:
-  - hypothesis:a00-407fa689-3a4948
+  - hyp:a00-407fa689-3a4948
 supports: []
 tags:
   - chain-extension

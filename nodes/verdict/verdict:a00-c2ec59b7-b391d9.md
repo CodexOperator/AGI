@@ -8,7 +8,7 @@ mint_id: 632f60af2e3a4910871a02eba4f73c74
 next_edges: []
 parents:
   - exp:a00-c2ec59b7-b391d9
-  - hypothesis:a00-c2ec59b7-b391d9
+  - hyp:a00-c2ec59b7-b391d9
 status: "inconclusive_lean_disproved:50"
 tags:
   - renderers

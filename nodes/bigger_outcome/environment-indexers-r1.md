@@ -1,8 +1,8 @@
 ---
-id: "bigger-outcome:environment-indexers-r1"
+id: "bigger_outcome:environment-indexers-r1"
 mint_id: ed98072e7f934ab3b420706331532788
 next_edges:
-  - app-purpose:environment-indexers
+  - app_purpose:environment-indexers
 parents:
   - outcome:environment-indexers-r1
   - mvp:environment-indexers-r1
