@@ -1734,6 +1734,36 @@ Suggested resolution, not yet taken: sharpen the test from "exists as a file"
 to "exists as a file **and** is authored rather than emitted". That keeps
 every prose doc in and puts trial output out, without a judgement call.
 
+## 🔴 The premise this goal rests on is currently false — see G2.10
+
+The argument above for admitting code and prose is **bidirectionality**:
+
+> A code node ties cleanly to thought: it can spawn a hypothesis about itself,
+> an experiment against itself, or just an idea. That bidirectionality is what
+> makes it worth being a node rather than a record.
+
+Measured 2026-08-27: **half of that does not hold.** `bin/level3.py`
+regenerates a build node's entire body on every run, so a build node can be
+*cited* by a thought and cannot *contain* one. Probed both ways — prose added
+to a body is wiped by the next scan, and a filled-in `why: TODO(model)` is
+wiped too. The corpus confirms it: **8,034 `why`/`perf`/`security` fields
+across 190 build nodes, 8,034 still `TODO(model)`, 0 ever filled.**
+
+So today a build node **is** the "record" this goal says it is more than. The
+boundary drawn here is still the right boundary; what is missing is the
+property that justified drawing it there. **G2.10 owns the fix**, and until it
+lands, every argument on this page about build nodes holding thought should be
+read as intent rather than description.
+
+This also settles the `@v2` question in the other direction from the obvious
+one. The five `origin: build-version` nodes look like exactly the redundancy
+CLAUDE.md forbids ("a version is a grid commit, not a second node file"). They
+are not: they carry 7k-13k characters of real reasoning each and survive
+**only** because `level3.py` does not own their origin. Their payloads are
+byte-identical to the engine, so collapsing them loses no bytes — and ~47,000
+characters of prose, with nowhere to put it. Fix G2.10 first, migrate the
+bodies, then retire the convention.
+
 ### G6.9 — `GOALS.md` is rendered from the nodes, not the other way round — status: complete
 
 **The last hand-authored source in this repo becomes derived, like everything
@@ -2705,7 +2735,7 @@ second one, which is **G1.2**'s failure mode.
 Depends on **G1.3** (the supermap convention it extends), **G10.2** (the actions
 it lists should be read from the geometry, not hardcoded a second time).
 
-## S11 — Retire `level3` as a type name — status: active
+## S11 — Retire `level3` as a type name — status: complete
 
 `level3` names a zoom level in the data — the category error G2 now records.
 ~180 nodes carry `type: level3`, they live in `nodes/level3/`, and the name is
@@ -2726,6 +2756,43 @@ and prunes ~180 real nodes. That is the H0/H0i failure mode with a new spelling.
 Sequence it: teach the reader both names first, migrate the data, then retire the
 old name from the writer. Never the reverse. Pairs with **G7.5** — a rename that
 silently drops nodes must fail loudly, not return exit 0.
+
+## Complete 2026-08-27 — all six surfaces, one commit
+
+Done in commit `de08acaff`, atomically, because a half-applied rename is H0i
+with a new spelling. What moved: node `type:`, `id:` prefix, directory
+(`nodes/level3/` -> `nodes/build/`), the `origin` stamp
+(`level3-scan` -> `build-scan`), the body markers
+(`LEVEL3-CONTRACT` -> `BUILD-CONTRACT`), and the writer in `bin/level3.py`.
+
+190 ids renamed, 0 collisions, 253 occurrences across 209 files. Verified at
+each step: dry run reported 185 `would update` and **0 prunes**, the real run
+wrote 185 and pruned 0, node count 785 -> 785.
+
+**The sharp edge this goal warned about was disarmed by an asymmetry**, not by
+care: readers accept both names (`stitch.py` reads `nodes/build/` and falls
+back to `nodes/level3/`, and matches either contract marker), while the
+**pruner recognises only the new one**. `LEGACY_ORIGIN` exists to be
+recognised, never pruned on — a straggler still stamped `level3-scan` is left
+alone. `test_a_node_stamped_with_the_LEGACY_origin_is_never_pruned` holds that
+open so the two rules cannot quietly converge.
+
+`build_kind: code | prose` was added as a discriminator, derived mechanically
+from the payload suffix: 145 code, 45 prose.
+
+**Two things this goal did NOT do, both deliberate:**
+
+- **`bin/level3.py` keeps its filename.** Renaming the module is **G7.9**, held
+  back so a bisect stays possible if either half went wrong.
+- **The `@v2` convention survives.** See **G2.10**: those five nodes are
+  currently the only durable place a build artifact's reasoning can live,
+  because the scan wipes build-node bodies. Collapsing them now would delete
+  prior art to satisfy a naming rule.
+
+One miss worth remembering for the next rename: `[experiment].md` still listed
+`level3` in `allowed_parents`, which an id-rename pass cannot see because a
+bare type name has no `:` in it. Caught afterwards by running the spawn gate
+over the whole corpus. **Do that as the last step of any type rename.**
 
 ## S12 — `snapshot-goals.py` silently truncates goal bodies at 4000 chars — status: complete
 
@@ -3126,6 +3193,40 @@ nodes violate `min_parents` and 3 carry no `type:` at all. The three
 still un-gated, still deliberately: they re-derive a whole node population from
 an input file rather than spawning, and a generator that trips the gate is a
 generator bug that H0i says should be reported, not failed on.
+
+## 2026-08-27: the grammar grew a per-kind floor, and the corpus half shrank
+
+`spawn:` gained **`min_parents_by_type`** — a mapping of parent type to a
+minimum count of parents *of that kind*. `min_parents` counts parents; this
+counts what they are. Two outcomes and "one verdict plus one outcome" are the
+same arity and different shapes, and only the second is convergence; arity
+alone cannot say so. Four unsatisfiable forms are **schema errors that leave
+the type unverified**, not runtime rejections — a rule no node could ever pass
+would reject its whole type forever, which is louder than the missing rule it
+replaced.
+
+`[shape].md` also gained `edge_fields`, classifying each edge as lineage,
+scheduling, provenance or proposal. **Parsed, not yet enforced** — recorded as
+a residual in that file rather than claimed.
+
+**The corpus half moved for the first time, and not by editing the corpus.**
+21 nodes that looked parentless to the gate were in fact naming a real parent
+under a key no gate reads (`parent_hypothesis` 10, `parent_idea` 9, `parent`
+4). Those edges were *written down*, so moving them into `parents:` was repair
+rather than the edge-invention G7.1 forbids:
+
+    min_parents violations   91 -> 70
+    nodes with no `type:`     3 -> 0
+    dangling references      15 -> 0
+
+**What still keeps this goal active:** 70 `min_parents` violations remain and
+are untouched by design, plus 36 nodes that violate the three new PRESCRIPTIVE
+schemas (`[bigger_outcome].md`, `[overview].md`, `[vision].md`) — those state
+what should be rather than what is, and the corpus is expected to fail them
+until it is written up to them. The three generators remain un-gated for the
+reason above. One type is still **unverified**: `doc`, which has no
+`[doc].md` at all — one node, `doc:goals-preamble`, and it is the file that
+renders GOALS.md's preamble.
 
 ## S1 — Retire `bin/` as a directory name — status: active
 

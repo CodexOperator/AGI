@@ -127,3 +127,38 @@ nodes violate `min_parents` and 3 carry no `type:` at all. The three
 still un-gated, still deliberately: they re-derive a whole node population from
 an input file rather than spawning, and a generator that trips the gate is a
 generator bug that H0i says should be reported, not failed on.
+
+## 2026-08-27: the grammar grew a per-kind floor, and the corpus half shrank
+
+`spawn:` gained **`min_parents_by_type`** — a mapping of parent type to a
+minimum count of parents *of that kind*. `min_parents` counts parents; this
+counts what they are. Two outcomes and "one verdict plus one outcome" are the
+same arity and different shapes, and only the second is convergence; arity
+alone cannot say so. Four unsatisfiable forms are **schema errors that leave
+the type unverified**, not runtime rejections — a rule no node could ever pass
+would reject its whole type forever, which is louder than the missing rule it
+replaced.
+
+`[shape].md` also gained `edge_fields`, classifying each edge as lineage,
+scheduling, provenance or proposal. **Parsed, not yet enforced** — recorded as
+a residual in that file rather than claimed.
+
+**The corpus half moved for the first time, and not by editing the corpus.**
+21 nodes that looked parentless to the gate were in fact naming a real parent
+under a key no gate reads (`parent_hypothesis` 10, `parent_idea` 9, `parent`
+4). Those edges were *written down*, so moving them into `parents:` was repair
+rather than the edge-invention G7.1 forbids:
+
+    min_parents violations   91 -> 70
+    nodes with no `type:`     3 -> 0
+    dangling references      15 -> 0
+
+**What still keeps this goal active:** 70 `min_parents` violations remain and
+are untouched by design, plus 36 nodes that violate the three new PRESCRIPTIVE
+schemas (`[bigger_outcome].md`, `[overview].md`, `[vision].md`) — those state
+what should be rather than what is, and the corpus is expected to fail them
+until it is written up to them. The three generators remain un-gated for the
+reason above. One type is still **unverified**: `doc`, which has no
+`[doc].md` at all — one node, `doc:goals-preamble`, and it is the file that
+renders GOALS.md's preamble.
+
