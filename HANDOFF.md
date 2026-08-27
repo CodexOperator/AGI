@@ -138,177 +138,181 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
-# SESSION HANDOFF — 2026-08-27: graph standardization pass
+# SESSION HANDOFF — 2026-08-27 (evening): thought, and evidence that resolves
 
 > **Read this section first if you are the next session.** Everything above is
-> the 2026-08-18 install/orientation guide and is still broadly correct; a few
-> details in it are stale (the pytest baseline is now **723 passed, 1 skipped**,
-> not 176, and `TODO.md` is an archive — `GOALS.md` is the only place new work
-> is recorded). This section is the current state and the work queue.
+> the install/orientation guide and is still broadly correct. This section is
+> the current state and the work queue.
 
-## 0. State as of commit `4f06e3a4f`
+## 0. State as of commit `1be62bbbb` (engine `7aaf917`)
 
 ```
-node_count            786          goal_count             80
+node_count            788          goal_count             82
 evidence_fraction     0.206        primary (outcome_cov)  0.255
-dangling references   0            unevidenced_decisive   0
-duplicate ids         0            shadow_decisive        0
-engine tests          723 passed, 1 skipped
+unevidenced_decisive  0            shadow_decisive        0
+thought_coverage      0.003        nodes_with_thought     2
+engine tests          755 passed, 1 skipped
 ```
 
-Graph and engine are both clean and in sync. `publish-engine.sh` reports
-"engine already matches the graph". Verified stable across 3 consecutive runs.
+Graph clean, engine clean, `publish-engine.sh --dry-run` reports all gates
+passed. `--render --check` round-trips byte-identical.
 
-## 1. What changed this session
+## 1. 🔴 Use the same interpreter as the cron. This bit twice today.
 
-**Renames, all atomic, all verified with node counts at each step.**
+**`python3` on an interactive shell here is 3.11 (a hermes venv early on
+`PATH`). The `:37` publish cron uses `/usr/bin/python3`, which is 3.12.**
+`ast.unparse` renders f-strings differently across the two (PEP 701), so
+`level3.py` derives a different contract depending on who ran it, and the graph
+flaps dirty between them — burning a real grid version each way on a file
+nobody edited.
 
-| was | now | n |
-|---|---|---|
-| `level3` (type, dir, id prefix, `origin`, contract marker) | `build` + `build_kind: code\|prose` | 190 |
-| `app_purpose` | `vision` | 17 |
-| `hypothesis:` / `experiment:` id prefixes | `hyp:` / `exp:` | 37 |
-| `nodes/app-purpose/`, `nodes/bigger-outcome/` | merged into underscore dirs | 19 files |
-| — | new type `overview` | 0 nodes yet |
-
-**Integrity repairs.** 21 hidden parent edges recovered from legacy keys
-(`parent_hypothesis`, `parent_idea`, `parent`) that no gate read; 8 dangling
-`next_edges` (2 repaired, 6 dropped); `spawns` folded into `next_edges`;
-`evidence_runs: 0` normalized to `[]` on 65 nodes; 3 nodes had no `type:`.
-
-**Spawn DSL.** `min_parents_by_type` added (per-kind parent floors),
-`max_parents_ceiling` 2 -> 4, `edge_fields` classifying edges as lineage /
-scheduling / provenance / proposal.
-
-**Convergence tier.** `outcome -> bigger_outcome -> overview -> vision`, floors
-2v+2o -> 3bo -> 2ov. `vision --proposes_goals--> goal` closes the loop across
-**seasons** and is declared non-traversable, so the type graph stays acyclic.
-
-## 2. 🔴 Start here: G2.10 — a build node cannot hold a thought
-
-**The most important finding of the session, and the one that gates several
-others.** `bin/level3.py` regenerates a build node's *entire body* on every
-run. Probed both directions on 2026-08-27:
-
-- prose added to a build node body -> **wiped** by the next scan
-- a filled-in `why: TODO(model)` -> **wiped** by the next scan
-
-The corpus reads exactly as that predicts:
-
-```
-why/perf/security fields across 190 build nodes:  8,034
-still reading TODO(model):                        8,034
-ever filled:                                          0
+```bash
+export PATH=/usr/bin:$PATH      # do this first, every session
 ```
 
-`[build].md` states a permission ("a model may fill why/perf/security") that
-the code revokes on the next run. Frontmatter *is* preserved (`write_frontmatter`
-merges with `preserve=`); the body is not. **The fix is to give the body the
-same treatment: regenerate the mechanical `how`, carry over `why`/`perf`/
-`security` and any prose outside the markers.**
+Written up as **S19**, with the durable fix specified (derive `how` from
+`ast.get_source_segment` — source bytes are interpreter-independent by
+construction) and deliberately not done, because it rewrites a large share of
+2,692 contract entries and wants its own commit and its own before/after count.
+Blast radius today is exactly 1 node, so it is annoying rather than urgent.
 
-Falsifier: fill one `why:` on one build node, run `driver.sh --smoke`, read it
-back.
+## 2. What changed this session
 
-**This is coupled to G6.8**, whose whole argument for admitting build nodes is
-that they hold thought bidirectionally — half of which is currently false. Read
-G2.10 and G6.8 together; both carry the cross-reference.
+**G2.10 fixed — a build node can hold a thought.** `write_frontmatter` gained
+`preserve_body=`; the body now has two named regions, `BUILD-CONTRACT`
+(derived, rewritten every scan) and `THOUGHT` (authored, carried across).
+`why`/`perf`/`security` carry over too, keyed on entry `name` rather than on
+`how` — `how` embeds a line number, so keying on it would drop a rationale the
+first time anything above the call site moved. Falsifier run on the live
+corpus, twice: both survived.
 
-**It also reverses the `@v2` cleanup.** The five `origin: build-version` nodes
-(`build:bin-grid@v2` + 4) look like the redundancy CLAUDE.md forbids. They are
-not: they hold 7k–13k characters of reasoning each and survive *only* because
-`level3.py` does not own their origin. Their payloads are byte-identical to the
-engine, so collapsing loses no bytes — and ~47,000 characters of prose, with
-nowhere to put it. **Sequence: fix G2.10, migrate the five bodies into their v1
-nodes, then retire the convention.**
+**G2.11 minted — the general form.** `body` is state, `thought` is delta.
+Declared in all 14 active schemas, `CLAUDE.md` and `SKILL.md`. Absent means
+empty, so it churned 0 of 788 nodes. Readers strip it, so it never reaches
+`GOALS.md` or injected context.
 
-## 3. Next most valuable, in order
+**G7.3 closed — a bare integer is no longer evidence.** Only a reference that
+resolves to a real node counts. All 12 live instances handled without
+inventing a citation; see the goal node for why 11 were correctly left alone
+and why the 12th was *not* demoted.
 
-1. **G2.10** — above. Unblocks the `@v2` collapse and makes build nodes real.
-2. **G7.3** — `evidence_runs` as a bare integer. 77 of 112 values are bare ints
-   against a schema declaring a list. 65 zeros were normalized to `[]`; **the
-   12 remaining `1`s are listed by id in the goal node.** The severe one is
-   `verdict:zoom-encoded-node-ids` — `proved`, decisive only because
-   `normalize_evidence_runs` returns an unchecked int. Fixing it is a payload
-   change to `bin/evidence_gate.py`, not a node edit.
-3. **G7.9** — `level3.py` should not prune quietly, and should be renamed
-   (`view.py`/`main.py` — it is the code-level view you load into). *You said
-   you have more pieces of this update in mind.* Also carries: a refused
-   `publish-engine.sh` is not a no-op — it mutated the graph at step 1 before
-   refusing at step 3, creating 184 junk nodes during the rename.
+**S14's residual closed.** The two `write_frontmatter` copies had already
+drifted: `snapshot-build-site.py`'s was missing both null round-trip fixes, so
+a `None` list entry and a YAML-null scalar each came back as the string
+`"None"` — silent corruption in the writer touching all 159 build-site nodes
+every iteration. Collapsed to one definition.
+
+**S7 amended — it is worse than recorded.** See §3.
+
+## 3. 🔴 Start here: S7 is now unfixable-by-rerun
+
+Seed wiring lived in the `GOALS.md -> nodes` direction. **G6.9 reversed the
+arrow and `driver.sh` now runs only `--render`, so S7's "a second run adds it"
+became "no run ever adds it."** A sub-goal added after 2026-08-25 gets a
+correct `parents:` and its parent is *never* told.
+
+Five edges were missing, and every one was a recently-added sub-goal — three of
+them the previous handoff's own next items (`g1.7`, `g4.5`, `g7.9`). The newest
+work is reliably the work invisible from above. **Data repaired by hand; the
+defect is open.** The fix has to be re-homed into the render direction, and
+S7's original ask still stands: assert the fixed point in a test.
+
+Check it in one line:
+
+```bash
+python3 - <<'EOF'
+import pathlib, yaml
+n={}
+for p in pathlib.Path("nodes").rglob("*.md"):
+    t=p.read_text()
+    if t.startswith("---"):
+        try: fm=yaml.safe_load(t.split("---",2)[1]) or {}
+        except Exception: continue
+        if fm.get("id"): n[fm["id"]]=fm
+print([(a,b) for b,fm in n.items() for a in (fm.get("parents") or [])
+       if a in n and b not in (n[a].get("seeds") or [])
+       and a.startswith("goal:") and b.startswith("goal:")])
+EOF
+```
+
+## 4. Next most valuable, in order
+
+1. **G2.10's open half — the `@v2` collapse.** The five `origin: build-version`
+   nodes hold ~47,000 characters of reasoning that now *has* somewhere to go.
+   Sequence: migrate each body into its v1 node's `THOUGHT` region, verify,
+   then retire the convention. **Retiring deletes 5 nodes and drops the node
+   count, so get explicit sign-off first.** Also note `SKILL.md` and four
+   others resolve `@v2` as head on publish — check which ref a payload edit
+   actually lands in before trusting it.
+2. **S7** — above. Cheap to detect, and it silently hides current work.
+3. **G7.9** — `level3.py` should not prune quietly, and is misnamed
+   (`view.py`/`main.py`). *The user has said they have more pieces of this in
+   mind — ask before starting.* A refused `publish-engine.sh` is not a no-op:
+   it mutated the graph at step 1 before refusing at step 3, creating 184 junk
+   nodes during the last rename.
 4. **G1.7** — the demotion path is four fields (`verdict`, `status`,
    `demoted_from`, `demote_reason`) and `evidence_gate` owns one. Reproduced
-   live: a correctly-gated demotion rewrote `verdict:` and left the legacy
-   `status: proved` contradicting it underneath. Caught only because
-   `metrics.py` emits `shadow_decisive_verdicts`, which went 0 -> 1.
-5. **S18** — absorb cavekit references before cavekit retires. 91 of 94
-   `cavekit_req` values resolve fine; the hazard is *ordering* — deleting
-   `context/kits/` prunes 159 `origin: build-site` nodes (H0i).
-6. **G4.5** — generalize `blocked_by` -> `depends_on` beyond `task`. Already
-   89 populated nodes, 0 cycles, max depth 15. Must stay out of every metric
-   traversal or it becomes a fresh gaming surface.
+   live: a correctly-gated demotion left `status: proved` contradicting the
+   demoted `verdict:` underneath.
+5. **S19** — the interpreter fix in §1.
+6. **S18** — absorb cavekit references before cavekit retires. The hazard is
+   *ordering*: deleting `context/kits/` prunes 159 `origin: build-site` nodes
+   (H0i).
+7. **G4.5** — generalize `blocked_by` -> `depends_on`. 89 populated nodes, 0
+   cycles, max depth 15. Must stay out of every metric traversal or it becomes
+   a fresh gaming surface.
 
-## 4. Traps this session actually hit — do not re-learn these
+## 5. Traps hit this session — do not re-learn these
 
-- **`publish-engine.sh`, not `stitch.py --publish`.** The latter writes the
-  bytes and never commits, leaving the engine dirty — which is exactly what the
-  next `--publish` refuses on. Recovery: `git -C <engine> checkout .` (the bytes
-  are in the grid), then `publish-engine.sh`. CLAUDE.md documented the wrong one
-  until 2026-08-27.
-- **Gate 1 refuses on *any* uncommitted change under `nodes/` or `GOALS.md`.**
-  A single node whose stored contract differs from what `level3.py` re-derives
-  makes the graph permanently dirty, and the cron then refuses **silently, every
-  hour**. It had done so **40 consecutive times, with 0 successful publishes
-  ever**, since it was installed 2026-08-25. If the publish cron seems idle, run
-  `level3.py` and check `git status` before anything else.
-- **Hand edits to `origin: build-site` nodes are reverted on the next smoke
-  run.** Observed: a dangling `blocked_by` was removed by hand and was back
-  after `driver.sh --smoke`. Fix those in `context/plans/build-site.md`.
-- **A bare type name in a schema is invisible to an id-rename pass.**
-  `[experiment].md` still listed `level3` in `allowed_parents` after the rename,
-  because it has no `:` in it. **Run the spawn gate over the whole corpus as the
-  last step of any type rename.**
-- **Contract derivation still reads the engine tree.** A payload edited only
-  in the graph has a stale contract until published and rescanned. During a *rename* this is a bootstrap problem: the engine's own
-  `stitch.py` could not publish the change that teaches it to read
-  `nodes/build/`. Published once with the payload copy to break the cycle.
+- **The interpreter, twice.** §1.
+- **`level3.py` run from `payloads/` makes `payloads/` the engine root** and
+  correctly refuses with "discover_files returned zero files". Use
+  `--engine-root /home/ubuntu/work/agi --project /home/ubuntu/work/agi-tree`
+  to exercise an unpublished change against the real graph.
+- **`stitch.py` already imports `level3.py`,** so level3 borrowing the contract
+  reader back was an import cycle and died with `RecursionError`. Ownership
+  decides direction: level3.py owns the contract shape, stitch aliases it.
+- **Inserting one sub-goal renumbers every goal after it.** `order` is unique
+  and positional (`int`, duplicates are a hard error), so G2.11 at order 19
+  meant bumping 61 nodes. Mechanical and safe, but budget for the diff.
+- **A test asserting a hole will fail when you close it.** 10 did. Six asserted
+  `evidence_runs: 3` counted; one asserted `metrics.py` and `dashboard.py`
+  *disagreed* and called the gap "the contamination the dashboard exists to
+  name". Read each failure before fixing it — they were documentation of the
+  defect, not regressions.
+- **Widening a CLI flag can turn a soft demotion into a hard rejection.**
+  `--evidence-runs` taking ids made `--evidence-runs 0` arrive as `["0"]`,
+  which the taxonomy check treated like the `synthetic` sentinel: exit 2,
+  nothing written, work discarded. Rejection is for claims that are actively
+  false.
 
-## 5. How to write into this file
+## 6. How to write into this file
 
-`HANDOFF.md` is `build:HANDOFF.md`, `build_kind: prose`. **Edit the payload,
-never the node body** — the body is regenerated on every scan (G2.10), the
-payload is the real file and is durable:
+`HANDOFF.md` is `build:HANDOFF.md`, `build_kind: prose`. **Edit the payload.**
+The `BUILD-CONTRACT` block and the derived prose around it are regenerated on
+every scan; only a `THOUGHT` region would survive there now (G2.10).
 
 ```bash
+export PATH=/usr/bin:$PATH                              # 1. match the cron
 python3 agi/extensions/agi/bin/grid.py checkout --all   # payloads/HANDOFF.md
 $EDITOR payloads/HANDOFF.md
-python3 agi/extensions/agi/bin/grid.py commit --all     # the payload's real home
-bash agi/extensions/agi/bin/publish-engine.sh           # re-derives, publishes, commits engine
-git add -A && git commit                                 # NOW the node contract has changed
+python3 agi/extensions/agi/bin/grid.py commit --all
+bash agi/extensions/agi/bin/publish-engine.sh
+git add -A && git commit                                 # LAST
 ```
 
-**The order matters and is not the obvious one.** `payloads/` is **gitignored** —
-the committed home of those bytes is the node's grid ref, not the working tree.
-So `git add -A` finds *nothing* right after a payload-only edit, and a commit
-attempted there silently does nothing ("nothing to commit, working tree clean")
-while you believe your reasoning was recorded. The node file only changes once
-`publish-engine.sh` re-derives its contract block from the published payload.
-**Commit last, and put the reasoning for the payload edit in that commit** —
-otherwise it exists solely as a grid version with no message in git history.
-Walked into on 2026-08-27, twice.
+**The order matters and is not the obvious one.** `payloads/` is gitignored, so
+`git add -A` finds *nothing* right after a payload-only edit, and a commit
+attempted there silently does nothing while you believe your reasoning was
+recorded. The node file only changes once `publish-engine.sh` re-derives its
+contract from the published payload.
 
-## 6. Known-good verification sequence
+## 7. Known-good verification sequence
 
 ```bash
-bash agi/extensions/agi/driver.sh --smoke --max-iters 1   # node_count must not drop
-cd payloads && python3 -m pytest extensions/agi/tests/ -q # 723 passed, 1 skipped
-python3 agi/extensions/agi/bin/snapshot-goals.py --render --check   # byte-identical
-bash agi/extensions/agi/bin/publish-engine.sh            # "already matches" when clean
+export PATH=/usr/bin:$PATH
+bash agi/extensions/agi/driver.sh --smoke --max-iters 1        # count must not drop
+cd payloads && python3 -m pytest extensions/agi/tests/ -q      # 755 passed, 1 skipped
+python3 agi/extensions/agi/bin/snapshot-goals.py --render --check
+bash agi/extensions/agi/bin/publish-engine.sh --dry-run        # every gate, no writes
 ```
-
-Spawn-gate state over the whole corpus: **712 approved, 72 rejected, 1
-unverified**. Of the 72, 70 are pre-existing `min_parents` violations (down from
-91) and 36 overlap the three deliberately PRESCRIPTIVE schemas
-(`[bigger_outcome].md`, `[overview].md`, `[vision].md`) which state what *should*
-be and which the corpus is expected to fail until written up to. The 1
-unverified is `doc:goals-preamble` — there is still no `[doc].md`.
