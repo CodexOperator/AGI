@@ -39,9 +39,26 @@ parentless_types:
   - idea
 
 # No type may declare max_parents above this without also raising the ceiling.
-# Two deliberate edits, which is the point: 2 is what the corpus uses, and
-# raising it is an act, not a default.
-max_parents_ceiling: 2
+# Two deliberate edits, which is the point, and this is the second one:
+# raised 2 -> 4 on 2026-08-27 so `bigger_outcome` can carry the 2 verdict +
+# 2 outcome floor its `min_parents_by_type` now declares. Nothing else in the
+# corpus uses more than 2; raising the ceiling licenses a budget, it does not
+# hand one out.
+max_parents_ceiling: 4
+
+# Which frontmatter fields are EDGES, and which of those a traversal may
+# follow. `parents` is lineage: it is what chain depth, outcome_coverage and
+# every renderer walk. `depends_on` is scheduling -- build order, not
+# descent -- and must never enter a chain walk. A scheduling edge that gets
+# counted is a fresh metric-gaming surface, which this project has already
+# paid for once (9 chains x 2000 hops of shortcut cycles, which then broke
+# the render path outright). Declaring the classification is what lets the
+# guard be mechanical instead of remembered.
+edge_fields:
+  parents:     {role: lineage,    traversable: true}
+  next_edges:  {role: lineage,    traversable: true}
+  depends_on:  {role: scheduling, traversable: false}
+  seeds:       {role: provenance, traversable: false}
 
 # The per-type table lives in each [<type>].md `spawn:` block and NOWHERE
 # else. Copying it here would recreate the exact defect S17 names -- one fact
@@ -64,6 +81,16 @@ corpus, and this file is a schema, not a node.
 `bin/spawn_gate.py` — `parentless_types` and `max_parents_ceiling` are both
 enforced. G10.2's constraint is that a geometry declaration a code path does
 not consult is "prose with a directory name"; these two fields are consulted.
+
+`edge_fields` is **parsed but not yet enforced** (2026-08-27). `spawn_gate.py`
+reads it into `Geometry.edge_fields` and exposes `is_traversable(field)` /
+`scheduling_edges()`; no walker consults those yet, because nothing in the
+engine traverses `depends_on` today — `blocked_by`, its predecessor, is
+written by `snapshot-build-site.py` and read by nothing. So the declaration
+is currently a **guard against a regression rather than a fix for a live
+bug**, and saying otherwise would overclaim. The consumer — a traversal
+deny-list in `metrics.py` and the chain walkers — is G4.5's.
+
 `ref_namespaces` and `node_tree_entries` are **declared but not yet read** —
 `grid.py` still holds them as `REF_NS` / `NODE_ENTRY` / `PAYLOAD_ENTRY`
 constants. Recorded here as the residual, not claimed as done.
@@ -91,6 +118,33 @@ spawn:
     subgoal:   {allowed_parents: [goal], min_parents: 1, max_parents: 1}
 ```
 
+**Per-kind floors** — either form may add `min_parents_by_type`, a mapping of
+parent type to the minimum number of parents of that kind:
+
+```yaml
+spawn:
+  allowed_parents: [outcome, verdict]
+  min_parents: 4
+  max_parents: 4
+  min_parents_by_type: {verdict: 2, outcome: 2}
+```
+
+`min_parents` counts parents; this counts parents *of a kind*. Two outcomes
+and "one verdict plus one outcome" are the same arity and different shapes,
+and only the second is convergence — arity alone cannot say so. Used today by
+`[bigger_outcome].md` and nothing else.
+
+Four ways it is unsatisfiable, and all four are **schema errors** that leave
+the type unverified rather than runtime rejections — a rule no node could
+ever pass would reject its whole type forever, which is louder than the
+missing rule it replaced:
+
+- a key `allowed_parents` does not permit,
+- floors summing above `max_parents`,
+- a count below 1 (write no key rather than `0`, which reads as a rule and
+  enforces nothing — the prose-control trap this file exists to close),
+- a non-mapping value.
+
 Rules:
 
 - `allowed_parents: []` **plus** `min_parents: 0` is what makes a type
@@ -104,10 +158,27 @@ Rules:
 
 ## Type spelling
 
-`underscore` is canonical: `bigger_outcome` (17 nodes) not `bigger-outcome`
-(2), `app_purpose` (15) not `app-purpose` (2). Both spellings exist in the
-corpus and **no node file is renamed** — the gate canonicalises
-`-` to `_` before matching a rule, so both resolve to the same schema. The
-generator that minted the hyphens is `bin/cli.py` `NODE_TYPES` (fixed: it now
-accepts both and writes the underscore form) and `bin/dispatch.py`
-`NODE_TYPES` (**still mints hyphens** — not owned by this change).
+`underscore` is canonical: `bigger_outcome` not `bigger-outcome`,
+`app_purpose` not `app-purpose`. The gate canonicalises `-` to `_` before
+matching a rule, so both spellings resolve to the same schema.
+
+**Both generators are fixed.** `bin/cli.py` `NODE_TYPES` accepts both and
+writes the underscore form; `bin/dispatch.py`'s un-gated duplicate — which
+this file previously recorded as "still mints hyphens" — was **deleted** on
+2026-08-26 (commit `dccaec865`). Every writer now calls `bin/node_writer.py`,
+which holds the type table once.
+
+**The corpus is only half-migrated, measured 2026-08-27.** `type:` is
+underscore on all 781 nodes, but the split survives in two places the type
+field does not cover:
+
+| | still hyphenated |
+|---|---|
+| directories | `nodes/app-purpose/` (8), `nodes/bigger-outcome/` (11) |
+| `id:` prefixes | `app-purpose:` (10), `bigger-outcome:` (12) |
+
+and the hyphenated ids leak into **edges** — 2 `app_purpose` nodes name a
+`bigger-outcome:` parent. Those edges validate only because
+`canonical_type` folds both sides. So `canonical_type` is not vestigial
+tidiness; it is currently load-bearing. Retiring it requires finishing the
+id and directory migration first (S17, and the Phase 1 data repair).

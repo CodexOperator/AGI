@@ -15,9 +15,10 @@ validation:
     parents: list
     next_edges: list
 spawn:
-  allowed_parents: [outcome, mvp]
-  min_parents: 1
-  max_parents: 2
+  allowed_parents: [outcome, verdict]
+  min_parents: 4
+  max_parents: 4
+  min_parents_by_type: {verdict: 2, outcome: 2}
 ---
 
 # bigger_outcome
@@ -27,11 +28,38 @@ upward into `app_purpose`.
 
 ID prefix: `bigger_outcome:<short-slug>`.
 
-## Spawn rule
+## Spawn rule — the one PRESCRIPTIVE schema in this directory
 
-`allowed_parents: [outcome, mvp]`, `max_parents: 2`. Observed over 17 nodes:
-`outcome` 17, `mvp` 2. **Zero parentless** — this type has never violated the
-rule it is now held to.
+Every other schema here is derived: it describes what the corpus does, and
+where corpus and rule disagreed the rule was widened to the corpus. **This
+one is deliberately the other way round**, as of 2026-08-27. It states what
+an aggregate is *supposed* to rest on, and the corpus does not satisfy it
+yet. That inversion is the point, so it is written at the top rather than
+buried: a reader who assumes "derived" here will misread every number below.
+
+`allowed_parents: [outcome, verdict]`, `min_parents: 4`, `max_parents: 4`,
+`min_parents_by_type: {verdict: 2, outcome: 2}`.
+
+Measured over all 19 nodes before the change: `outcome` 19/19, `mvp` 2,
+**`verdict` 0**. 17 of 19 carry exactly one parent. So **19 of 19 violate the
+new rule**, and that is expected — this is a floor for what gets written from
+here on, not a claim about what is already there. Report, not purge (G7):
+the gate runs on the writer path, so all 19 keep their place.
+
+Why a per-kind floor instead of a bigger `min_parents`: two outcomes and
+"one verdict plus one outcome" are the same arity and different shapes. Only
+the second is convergence. Arity alone cannot express that, which is what
+`min_parents_by_type` was added to `spawn_gate.py` for.
+
+**`mvp` was dropped from `allowed_parents`, and this costs something.** The
+floors sum to 4 and `max_parents` is 4, so the budget is fully spoken for —
+an `mvp` parent could never fit alongside them, and leaving it listed would
+advertise a shape no node could ever write. The 2 historical `mvp`-parented
+nodes are grandfathered, not rewritten.
+
+`max_parents: 4` is why `[shape].md`'s ceiling went 2 → 4 on the same day.
+That is the second deliberate edit to the ceiling, which is the whole design
+of having one: raising a budget takes two files.
 
 ## One spelling, as of 2026-08-26
 

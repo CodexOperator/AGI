@@ -904,6 +904,36 @@ the full input cost of the draft anyway. The saving comes from work the local mo
 Depends on **G4.2** (the dial), **G4.1** (parallel kids must stop colliding before
 there are many more of them), and **G10** for stable territory.
 
+### G4.5 — `depends_on` as a first-class scheduling edge — status: active
+
+The edge already exists, under another name and confined to one type.
+`blocked_by` is carried by 94 `task` nodes, 89 of them populated, with exactly
+**one** dangling reference (`task:t-012` -> `task:t-020`, which names no node)
+and **zero cycles** at a maximum depth of 15. That is the best referential
+integrity of any edge in this graph, and it is invisible to every other type.
+
+Three moves, in order:
+
+1. **Generalize.** Rename `blocked_by` -> `depends_on` and allow it on every
+   type. Reader accepts both spellings first, then the data migrates, then the
+   writer drops the old name -- the S11 sequence, for the S11 reason: a
+   half-applied rename that a generator no longer recognises prunes real
+   nodes.
+2. **Keep it out of every walk.** `parents` is lineage; `depends_on` is build
+   order. `[shape].md :: edge_fields` now classifies both and `spawn_gate.py`
+   parses it, but **no walker consults that classification yet** -- this goal
+   owns adding the deny-list to `metrics.py` and the chain walkers. Until it
+   lands the guard is a declaration, not a control.
+3. **Dispatch reads it.** Build order should follow the dependency graph, not
+   attractiveness score alone.
+
+**Why the walk guard is not optional.** A scheduling edge that a depth metric
+counts is a new gaming surface, and this project has already paid for that
+exact mistake once: 9 chains x 2000 hops of shortcut cycles carrying no
+signal, whose pathological structure then broke the render path outright.
+`depends_on` is denser and more legitimate-looking than a shortcut cycle,
+which makes it a worse offender, not a better one. Pairs with **G3**.
+
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: active
 
 `status:` should be a field the engine acts on: stop accruing score to
@@ -3092,3 +3122,37 @@ Two independent fixes, and both are cheap:
 
 Do (2) regardless of (1). Deleting the worktree removes today's 29k; it does not
 stop the next stale tree from being swept in.
+
+## S18 — Absorb cavekit references before cavekit retires — status: active
+
+Cavekit was the bootstrap that seeded this graph and is being phased out.
+The graph still leans on it in three ways, and **the retirement order matters
+more than the retirement**.
+
+Measured 2026-08-27:
+
+- 94 nodes carry `cavekit_req`. **91 resolve** to a real requirement in
+  `context/kits/`; the premise that ids like `R11` dangle is wrong -- they
+  resolve. Only **3** are broken, and none of those is an R-ref: they are free
+  text in a `<domain>/R<n>` field (`chain-engine/iterative-fix`,
+  `structural-bias/synthetic-repair`, `bootstrap/chain-block`), and the last
+  two name domains with no kit file at all.
+- **233 titles** carry cavekit vocabulary: 142 with `R#`, 91 with `T-#`.
+  Legacy-named, not broken.
+
+**The hazard.** `context/kits/` and `context/plans/build-site.md` are
+generator inputs for 159 `origin: build-site` nodes -- all 94 tasks and 61
+hypotheses among them. `snapshot-build-site.py` deletes every `build-site`
+node it does not re-derive on that run, so deleting the kits to "retire
+cavekit" prunes 159 real nodes on the next loop. That is H0i exactly, with a
+new motive.
+
+Sequence, and it is not negotiable:
+
+1. Fix the 3 malformed `cavekit_req` values.
+2. Inline each of the 91 resolvable requirements into its own node body, so
+   the node stands without the kit.
+3. Rename `R#`/`T-#` out of the 233 titles into graph-native vocabulary.
+4. Only then deprecate the nodes -- and **never** delete the input.
+
+Pairs with **S11** (same rename hazard, same sequence) and **G7**.

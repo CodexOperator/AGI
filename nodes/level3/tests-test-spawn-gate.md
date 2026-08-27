@@ -331,6 +331,95 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: converging
+  how: 'defines public function `converging` at line 623, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _check
+  how: 'defines private function `_check` at line 635, signature: (project, ntype,
+    parents, **kw)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_approves_one_of_each
+  how: 'defines public function `test_min_by_type_approves_one_of_each` at line 640,
+    signature: (converging)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_rejects_right_arity_wrong_mix
+  how: 'defines public function `test_min_by_type_rejects_right_arity_wrong_mix` at
+    line 646, signature: (converging)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_shortfall_names_every_missing_kind
+  how: 'defines public function `test_min_by_type_shortfall_names_every_missing_kind`
+    at line 657, signature: (converging)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_unresolvable_parent_is_unverified_not_rejected
+  how: 'defines public function `test_min_by_type_unresolvable_parent_is_unverified_not_rejected`
+    at line 664, signature: (converging)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _schema_err
+  how: 'defines private function `_schema_err` at line 671, signature: (project, body,
+    fname=''[bigger_outcome].md'')'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_requiring_a_forbidden_type_is_a_schema_error
+  how: 'defines public function `test_min_by_type_requiring_a_forbidden_type_is_a_schema_error`
+    at line 677, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_exceeding_max_parents_is_a_schema_error
+  how: 'defines public function `test_min_by_type_exceeding_max_parents_is_a_schema_error`
+    at line 686, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_min_by_type_zero_is_a_schema_error_not_a_silent_noop
+  how: 'defines public function `test_min_by_type_zero_is_a_schema_error_not_a_silent_noop`
+    at line 695, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_a_broken_min_by_type_schema_is_not_enforced
+  how: 'defines public function `test_a_broken_min_by_type_schema_is_not_enforced`
+    at line 703, signature: (converging)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_absent_min_by_type_changes_nothing
+  how: 'defines public function `test_absent_min_by_type_changes_nothing` at line
+    712, signature: (gate)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_scheduling_edges_are_not_traversable
+  how: 'defines public function `test_scheduling_edges_are_not_traversable` at line
+    738, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_undeclared_edge_field_stays_traversable
+  how: 'defines public function `test_undeclared_edge_field_stays_traversable` at
+    line 746, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_absent_edge_fields_leaves_every_edge_traversable
+  how: 'defines public function `test_absent_edge_fields_leaves_every_edge_traversable`
+    at line 753, signature: (gate)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: tmp_path / 'agi-tree.config.json'
   how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 132'
   why: TODO(model)
@@ -404,6 +493,36 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: project / 'context' / 'schemas' / '[bigger_outcome].md'
+  how: '`(project / ''context'' / ''schemas'' / ''[bigger_outcome].md'').write_text(BIGGER_OUTCOME)`
+    at line 625'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / 'context' / 'schemas' / fname
+  how: '`(project / ''context'' / ''schemas'' / fname).write_text(body)` at line 672'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: converging / 'context' / 'schemas' / '[bigger_outcome].md'
+  how: '`(converging / ''context'' / ''schemas'' / ''[bigger_outcome].md'').write_text(BIGGER_OUTCOME.replace(''min_parents_by_type:
+    {verdict: 1, outcome: 1}'', ''min_parents_by_type: [verdict, outcome]''))` at
+    line 705'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / 'context' / 'schemas' / '[shape].md'
+  how: '`(project / ''context'' / ''schemas'' / ''[shape].md'').write_text(SHAPE_WITH_EDGES)`
+    at line 739'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / 'context' / 'schemas' / '[shape].md'
+  how: '`(project / ''context'' / ''schemas'' / ''[shape].md'').write_text(SHAPE_WITH_EDGES)`
+    at line 748'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: sd / fname
   how: '`(sd / fname).write_text(body)` at line 140'
   why: TODO(model)
@@ -417,6 +536,12 @@ outputs:
   security: TODO(model)
 - name: json.dumps
   how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 464'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: d / f'{slug}.md'
+  how: '`(d / f''{slug}.md'').write_text(f''---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n'')`
+    at line 629'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
