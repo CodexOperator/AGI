@@ -913,3 +913,37 @@ def test_one_serializer_not_two():
     bspec.loader.exec_module(bs)
     defined_in = Path(bs.write_frontmatter.__code__.co_filename).name
     assert defined_in == "snapshot-goals.py", defined_in
+
+
+def test_strip_thought_removes_the_block():
+    body = f"real prose\n\n{sg.THOUGHT_BEGIN}\nreasoning\n{sg.THOUGHT_END}"
+    out = sg.strip_thought(body)
+    assert out == "real prose"
+    assert "reasoning" not in out
+
+
+def test_strip_thought_is_a_noop_without_one():
+    assert sg.strip_thought("just prose") == "just prose"
+    assert sg.strip_thought("") == ""
+
+
+def test_render_strips_thought_but_the_node_keeps_it():
+    """goal:g2.11 — thought is provenance to zoom into, not weight every reader
+    carries. The asymmetry (node keeps, renderer strips) is the point."""
+    goals = [{"gid": "G1", "title": "T", "status": "active", "order": 0,
+              "heading_level": 2,
+              "body": f"argument\n\n{sg.THOUGHT_BEGIN}\nSECRET\n{sg.THOUGHT_END}"}]
+    out = sg.render_goals("preamble", goals)
+    assert "argument" in out
+    assert "SECRET" not in out
+
+
+def test_render_check_round_trip_survives_a_thought():
+    """The trap g2.11 names: --check compares render output against a GOALS.md
+    that render itself wrote, so both sides are stripped and the round trip
+    stays byte-identical. Rendering twice must be a fixed point."""
+    goals = [{"gid": "G1", "title": "T", "status": "active", "order": 0,
+              "heading_level": 2,
+              "body": f"argument\n\n{sg.THOUGHT_BEGIN}\nSECRET\n{sg.THOUGHT_END}"}]
+    first = sg.render_goals("preamble", goals)
+    assert sg.render_goals("preamble", goals) == first

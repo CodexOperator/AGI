@@ -210,6 +210,41 @@ Zoom is a **view into the graph, not a node's type** — `--level big`/`--level 
 
 `bin/grid.py` adds two version dimensions beside the project's own history, baked into the repo as `refs/grid/node/*` and `refs/grid/session/*` — never checked out, invisible to `git branch`, blobs deduped, one remote syncs everything. **A version is a grid commit, not a second node file** — a fix edits the target node in place, and the grid is what accumulates the history. Version history is depth to zoom into, never flat structure on disk.
 
+### `body` is state; `thought` is delta
+
+A node body carries two regions with different owners, and conflating them is
+what made 8,034 authored contract fields read `TODO(model)` with zero ever
+filled — a generator rewrote the whole body each run, so filling one lasted
+until the next scan (**G2.10**, fixed 2026-08-27).
+
+```
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+why this version differs from the last one
+<!-- THOUGHT:END -->
+```
+
+The **body** says what the node asserts now. The **thought** says why *this
+version* differs from the previous one — written from scratch per change, not
+accumulated. The grid already snapshots `node.md` per version, so the thought
+is versioned for free and `grid.py diff` becomes a changelog of reasoning
+rather than of prose (**G2.11**).
+
+Three rules, each with a reason that was paid for:
+
+- **Absent means empty.** Introducing the block churned 0 of 786 nodes. Never
+  invent one after the fact — a fabricated thought reads as evidence.
+- **Readers strip it.** It must not ride in `GOALS.md` or injected context.
+  Thought is provenance you zoom into, not weight every agent carries for the
+  rest of the project's life — the design ethic at the top of this file,
+  applied.
+- **Not a frontmatter field.** `write_frontmatter` flattens newlines, so prose
+  there is silently destroyed by the one function that writes every node on
+  every run.
+
+The finer grain — the *chat* that produced the version, rather than a note
+about it — is **G2.7** and **G10.1**, and is still unbuilt. `thought_session:`
+is reserved in frontmatter for it.
+
 **A build node's ref holds its payload, not just its prose.** As of 2026-08-25 (G6.3) `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — and the payload carries its **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. So `payload_ref` still names where the file belongs in the engine tree, but the bytes come from the ref. A payload-only edit is a real version, because the unchanged-check compares the whole tree.
 
 That is what reverses G6.1's arrow, and it is the workflow for engine work:

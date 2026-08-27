@@ -135,8 +135,21 @@ def test_unevidenced_decisive_counter_is_the_gate_violation_alarm(project):
     _node(project, "verdict", "v2", "verdict: disproved\nevidence_runs: 3")
     s = metrics.evidence_stats(project / "nodes")
     assert s["decisive_verdicts"] == 2
-    assert s["unevidenced_decisive_verdicts"] == 1
-    assert s["decisive_evidence_fraction"] == 0.5
+    # goal:g7.3 — BOTH are unevidenced now. `evidence_runs: 3` used to buy v2
+    # a pass here while naming nothing that could be checked; this assertion
+    # read `== 1` until 2026-08-27 and was quietly measuring the hole.
+    assert s["unevidenced_decisive_verdicts"] == 2
+    assert s["decisive_evidence_fraction"] == 0.0
+
+
+def test_a_resolvable_reference_still_counts_as_evidence(project):
+    """The other half of goal:g7.3: closing the hole must not close the honest
+    path. A verdict citing a real node is still decisive."""
+    _node(project, "experiment", "e1", "type: experiment")
+    _node(project, "verdict", "v1", 'verdict: proved\nevidence_runs: ["experiment:e1"]')
+    s = metrics.evidence_stats(project / "nodes")
+    assert s["unevidenced_decisive_verdicts"] == 0
+    assert s["decisive_evidence_fraction"] == 1.0
 
 
 def test_empty_corpus_is_zero_not_a_crash(project):

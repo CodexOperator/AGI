@@ -172,15 +172,23 @@ def test_evidence_resolution_is_general_not_a_synthetic_special_case(project):
 
 def test_bare_integer_evidence_runs_fails_closed(project):
     """No list of ids to check means nothing is verified — the general rule
-    fails closed rather than trusting an unverifiable count."""
+    fails closed rather than trusting an unverifiable count.
+
+    **The two rules now agree, and that is goal:g7.3 landing.** This test used
+    to assert the opposite: the dashboard resolved 0 while `metrics.py` still
+    counted the bare `3` as backed, and the gap between them was described here
+    as "the contamination the dashboard exists to name". `metrics.py` shares
+    `normalize_evidence_runs` with the gate, so closing the hole in one closed
+    it in both. The dashboard stops being the only honest counter.
+    """
     _node(project, "verdict", "v1", "verdict: proved\nevidence_runs: 3")
     g = dashboard.metrics._load_graph(project)
     stats = dashboard.resolved_evidence_stats(project / "nodes", g)
     assert stats["resolved_backed"] == 0
-    # But metrics.py's raw (contaminated) rule still counts it as backed —
-    # that gap IS the contamination the dashboard exists to name.
     raw = dashboard.metrics.evidence_stats(project / "nodes")
-    assert raw["verdicts_evidence_backed"] == 1
+    assert raw["verdicts_evidence_backed"] == 0, (
+        "metrics.py and the dashboard must agree now that goal:g7.3 removed "
+        "the bare-int path they used to disagree about")
 
 
 def test_pending_excluded_but_inconclusive_counts_as_asserting(project):

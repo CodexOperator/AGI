@@ -96,6 +96,15 @@ def cmd_done(args: argparse.Namespace) -> int:
     # file the agent already wrote, so a real experiment isn't punished for a
     # missing flag.
     runs = args.evidence_runs
+    # `--evidence-runs 3` still parses, and still means "a count I cannot
+    # verify" -> a soft demotion, never a hard rejection. Without this collapse
+    # the count arrives as the list `["3"]`, whose entries are not node-id
+    # shaped, and the taxonomy check treats it like the `synthetic` sentinel:
+    # exit 2, nothing written, the agent's work discarded over an argument
+    # style that was the documented one until today. Rejection is reserved for
+    # claims that are actively false; an honest unverifiable count is not that.
+    if isinstance(runs, list) and runs and all(str(r).strip().isdigit() for r in runs):
+        runs = max((int(str(r).strip()) for r in runs), default=0)
     if runs is None:
         runs = _node_evidence_runs_raw(root, args.node_id)
     corpus = evidence_gate.build_corpus(root / "nodes")
@@ -125,7 +134,12 @@ def cmd_done(args: argparse.Namespace) -> int:
     rec["node_id"] = args.node_id
     rec["parent"] = args.parent
     rec["notes"] = args.notes
-    rec["evidence_runs"] = gate.evidence_runs
+    # Record the *references*, not the resolved count. Writing the count back
+    # would be self-defeating under goal:g7.3: the node would come back out of
+    # disk as a bare int, which no longer certifies anything, so a correctly
+    # evidenced verdict would fail its own gate on the next read. The count is
+    # derived; the ids are the evidence.
+    rec["evidence_runs"] = list(runs) if isinstance(runs, (list, tuple)) else gate.evidence_runs
     if gate.demoted:
         rec["demoted_from"] = gate.original
         rec["demote_reason"] = gate.reason
@@ -450,9 +464,15 @@ def main() -> int:
     p_done.add_argument("--notes", default="")
     p_done.add_argument("--next-edge", default=None)
     p_done.add_argument(
-        "--evidence-runs", type=int, default=None,
-        help="number of backing experiment runs. proved/disproved require >= 1 "
-             "(TODO.md H4). Omitted = inferred from the node file's frontmatter.")
+        "--evidence-runs", nargs="+", default=None, metavar="NODE_ID",
+        help="node ids of the backing experiment runs, e.g. --evidence-runs "
+             "exp:foo-r1 exp:foo-r2. proved/disproved require at least one that "
+             "resolves to a real node (TODO.md H4, goal:g3.1, goal:g7.3). "
+             "Omitted = inferred from the node file's frontmatter. A bare "
+             "count is accepted on the command line but no longer certifies "
+             "anything: goal:g7.3 closed that hole, because a number nobody "
+             "can resolve is exactly as cheap to type as the `synthetic` "
+             "sentinel H4c already removed.")
     p_done.add_argument(
         "--no-evidence-gate", action="store_true",
         help="LOUDLY bypass the H4 evidence gate. For backfills/imports of "

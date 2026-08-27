@@ -69,7 +69,8 @@ def test_decisive_without_evidence_is_demoted(verdict):
 
 @pytest.mark.parametrize("verdict", ["proved", "disproved"])
 def test_decisive_with_evidence_passes(verdict):
-    res = eg.apply_gate(verdict, 1)
+    # goal:g7.3: evidence is a resolvable reference, never a bare count.
+    res = eg.apply_gate(verdict, ["exp:real"], corpus={"exp:real"})
     assert res.ok
     assert res.verdict == verdict
     assert res.messages == []
@@ -94,22 +95,37 @@ def test_bypass_is_loud_and_preserves_verdict():
 
 
 def test_bypass_is_a_noop_when_evidence_exists():
-    res = eg.apply_gate("proved", 3, bypass=True)
+    res = eg.apply_gate("proved", ["exp:real"], bypass=True, corpus={"exp:real"})
     assert not res.bypassed and res.ok
 
 
 @pytest.mark.parametrize(
-    "value,expected",
-    [
-        (None, 0), (0, 0), (2, 2), (-5, 0),
-        ("3", 3), ("many", 0), (True, 1),
-    ],
+    "value",
+    [None, 0, 2, -5, "3", "many", True, False],
 )
-def test_normalize_evidence_runs_scalars_are_corpus_independent(value, expected):
-    """int / bool / numeric-string are a direct attestation, not a node
-    reference — corpus or no corpus, these are unaffected (H4c)."""
-    assert eg.normalize_evidence_runs(value) == expected
-    assert eg.normalize_evidence_runs(value, corpus={"exp:real"}) == expected
+def test_normalize_evidence_runs_scalars_never_count(value):
+    """goal:g7.3 — a scalar is an unverifiable self-attestation and buys
+    nothing, corpus or no corpus.
+
+    Until 2026-08-27 an int counted itself: `evidence_runs: 3` returned 3 and
+    was enough to hold a `proved`. H4c had already removed the `"synthetic"`
+    sentinel for being uncheckable; a bare integer is the same hole and is
+    exactly as cheap to type. Only a reference that resolves to a real node
+    counts now."""
+    assert eg.normalize_evidence_runs(value) == 0
+    assert eg.normalize_evidence_runs(value, corpus={"exp:real"}) == 0
+
+
+@pytest.mark.parametrize(
+    "value,unverifiable",
+    [(3, True), (1, True), (True, True), ("3", True),
+     (0, False), (None, False), (["exp:real"], False), ("many", False)],
+)
+def test_unverifiable_attestation_is_reported_not_destroyed(value, unverifiable):
+    """goal:g7.3 kept the honest-count path visible. The count stops
+    certifying a verdict; it does not become indistinguishable from absence,
+    so metrics can still report how much of the corpus needs converting."""
+    assert eg.is_unverifiable_attestation(value) is unverifiable
 
 
 @pytest.mark.parametrize(
@@ -276,7 +292,8 @@ def test_stamp_never_touches_a_lifecycle_status(lifecycle):
 
 
 def test_stamp_leaves_status_alone_when_nothing_was_demoted():
-    fm = eg.stamp({"status": "proved"}, eg.apply_gate("proved", 1))
+    fm = eg.stamp({"status": "proved"},
+                  eg.apply_gate("proved", ["exp:real"], corpus={"exp:real"}))
     assert fm["status"] == "proved"
     fm = eg.stamp({"status": "proved"}, eg.apply_gate("proved", 0, bypass=True))
     assert fm["status"] == "proved"
@@ -371,8 +388,14 @@ def test_cli_done_keeps_a_lifecycle_status_on_an_existing_node(project):
 
 
 def test_cli_done_accepts_evidenced_proved(project):
+    # goal:g7.3 — the reference has to resolve, so the node it names must
+    # exist. The old form (`--evidence-runs 2`) passed with no such node
+    # anywhere in the corpus, which is precisely the hole that closed.
+    (project / "nodes" / "experiment" / "e0.md").write_text(
+        '---\nid: "experiment:e0"\ntype: experiment\n---\n\nbody\n')
     r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
-                                  "--node-id", "experiment:e1", "--evidence-runs", "2"])
+                                  "--node-id", "experiment:e1",
+                                  "--evidence-runs", "experiment:e0"])
     assert r.returncode == 0, r.stderr
     assert "DEMOTED" not in r.stdout + r.stderr
     assert _agent_rec(project)["verdict"] == "proved"
@@ -496,7 +519,8 @@ def test_post_wire_demotes_unevidenced_proved(wired_project):
 def test_post_wire_keeps_evidenced_proved(wired_project):
     root, iter_dir = wired_project
     _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "proved",
-                     "node_id": "experiment:e1", "evidence_runs": 4})
+                     "node_id": "experiment:e1",
+                     "evidence_runs": ["experiment:e1"]})
     text = (root / "nodes" / "experiment" / "e1.md").read_text()
     assert "verdict: proved" in text
     assert "demoted_from" not in text
