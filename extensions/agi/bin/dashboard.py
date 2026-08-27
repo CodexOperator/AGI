@@ -69,7 +69,7 @@ SECTIONS = ("goals", "metrics", "health", "activity")
 STAGE_ORDER = [
     "idea", "hypothesis", "experiment", "verdict", "mvp",
     "outcome", "bigger_outcome", "bigger-outcome",
-    "app_purpose", "app-purpose", "task",
+    "vision", "overview", "app_purpose", "app-purpose", "task",
 ]
 
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
