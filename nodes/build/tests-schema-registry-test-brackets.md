@@ -103,8 +103,8 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: d / name
-  how: '`(d / name).write_text(f"---\nfields:\n  {fields}:\n    type: string\nname:
-    {Path(name).stem.strip(''[]'')}\n---\n")` at line 18'
+  how: '`(d / name).write_text(f''---\nfields:\n  {fields}:\n    type: string\nname:
+    {Path(name).stem.strip(''[]'')}\n---\n'')` at line 18'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
