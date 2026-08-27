@@ -144,10 +144,10 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 > the install/orientation guide and is still broadly correct. This section is
 > the current state and the work queue.
 
-## 0. State as of commit `1be62bbbb` (engine `7aaf917`)
+## 0. State as of commit `d559a1a90` (engine `3fe6cba`)
 
 ```
-node_count            788          goal_count             82
+node_count            789          goal_count             83
 evidence_fraction     0.206        primary (outcome_cov)  0.255
 unevidenced_decisive  0            shadow_decisive        0
 thought_coverage      0.003        nodes_with_thought     2
@@ -157,7 +157,13 @@ engine tests          755 passed, 1 skipped
 Graph clean, engine clean, `publish-engine.sh --dry-run` reports all gates
 passed. `--render --check` round-trips byte-identical.
 
-## 1. 🔴 Use the same interpreter as the cron. This bit twice today.
+## 1. 🔴 PRIORITY — the interpreter flap, and the silent cron behind it
+
+**The user has named this and §4.1 as the two things to fix next, ahead of
+everything else. Do not start further feature work until both are done.**
+Owned by **S19** (the flap) and **G7.10** (the silence that let it hide).
+
+### The workaround you need immediately
 
 **`python3` on an interactive shell here is 3.11 (a hermes venv early on
 `PATH`). The `:37` publish cron uses `/usr/bin/python3`, which is 3.12.**
@@ -174,7 +180,41 @@ Written up as **S19**, with the durable fix specified (derive `how` from
 `ast.get_source_segment` — source bytes are interpreter-independent by
 construction) and deliberately not done, because it rewrites a large share of
 2,692 contract entries and wants its own commit and its own before/after count.
-Blast radius today is exactly 1 node, so it is annoying rather than urgent.
+Blast radius today is exactly 1 node, so the flap itself is annoying rather
+than dangerous. **What is dangerous is that nothing told anyone.**
+
+### The real defect: the cron can fail forever and say nothing — G7.10
+
+Gate 1 of `publish-engine.sh` refuses when the graph is dirty. That gate is
+correct. Everything around it is not:
+
+- It refused **40 consecutive times, with 0 successful publishes ever**, from
+  install on 2026-08-25 until someone checked by hand on 2026-08-27.
+- The refusal goes to a log nobody reads. No metric moves, `--smoke` says
+  nothing, `INJECTION.md` says nothing.
+- **A refusal is not a no-op.** It mutates the graph at step 1 before refusing
+  at step 3 — a refused run left 184 junk nodes behind during the last rename.
+- S19 made it *intermittent* rather than permanent, which is worse: it looks
+  healthy half the time, which is exactly when nobody investigates.
+
+**G7.10 has the full design.** Build order, and the reasoning is in the goal
+node, not repeated here:
+
+1. **An alarm that moves a number** — `hours_since_successful_publish` from
+   `metrics.py`. This idiom has already caught one defect that would otherwise
+   have shipped (`shadow_decisive_verdicts`, 0 -> 1). A failure that does not
+   move a metric is one this project cannot see.
+2. **Non-zero exit + a durable marker the `SessionStart` hook surfaces**, so
+   the next agent to open any session is told rather than having to suspect it.
+3. **Branch and continue** — publish to `cron/pending-<graph-sha>` instead of
+   stopping, so the bytes always land and a human fast-forwards later. This is
+   the recommended default: it preserves both invariants at once.
+4. **Make the refusal atomic** — today step 1 writes and step 3 refuses.
+
+Worth saying in the failure message itself, because it is the reasonable fear
+and it is wrong: **payload bytes are never lost when a publish stalls.**
+`grid.py commit --all` runs on its own ungated 5-minute cadence. Only the
+engine publish is blocked.
 
 ## 2. What changed this session
 
@@ -186,10 +226,17 @@ Blast radius today is exactly 1 node, so it is annoying rather than urgent.
 first time anything above the call site moved. Falsifier run on the live
 corpus, twice: both survived.
 
-**G2.11 minted — the general form.** `body` is state, `thought` is delta.
+**G2.11 minted and closed — the general form.** `body` is state, `thought` is
+delta.
 Declared in all 14 active schemas, `CLAUDE.md` and `SKILL.md`. Absent means
 empty, so it churned 0 of 788 nodes. Readers strip it, so it never reaches
 `GOALS.md` or injected context.
+
+`thought_coverage` sits at 2/789 and **that is the design, not a residual**:
+absent means empty, and fabricating reasoning for 786 nodes after the fact is
+explicitly forbidden because a made-up thought reads as evidence. Recovering
+real reasoning from stored sessions is **G10.1**'s job. Do not "improve" this
+number.
 
 **G7.3 closed — a bare integer is no longer evidence.** Only a reference that
 resolves to a real node counts. All 12 live instances handled without
@@ -204,7 +251,7 @@ every iteration. Collapsed to one definition.
 
 **S7 amended — it is worse than recorded.** See §3.
 
-## 3. 🔴 Start here: S7 is now unfixable-by-rerun
+## 3. S7 is now unfixable-by-rerun
 
 Seed wiring lived in the `GOALS.md -> nodes` direction. **G6.9 reversed the
 arrow and `driver.sh` now runs only `--render`, so S7's "a second run adds it"
@@ -237,27 +284,49 @@ EOF
 
 ## 4. Next most valuable, in order
 
+**The first two are set by the user, 2026-08-27, and are not to be reordered:
+`@v2` first, then the §1 pair. Everything after that is the usual judgement
+call.**
+
 1. **G2.10's open half — the `@v2` collapse.** The five `origin: build-version`
    nodes hold ~47,000 characters of reasoning that now *has* somewhere to go.
    Sequence: migrate each body into its v1 node's `THOUGHT` region, verify,
    then retire the convention. **Retiring deletes 5 nodes and drops the node
-   count, so get explicit sign-off first.** Also note `SKILL.md` and four
-   others resolve `@v2` as head on publish — check which ref a payload edit
-   actually lands in before trusting it.
-2. **S7** — above. Cheap to detect, and it silently hides current work.
-3. **G7.9** — `level3.py` should not prune quietly, and is misnamed
+   count, so get explicit sign-off before removing anything** — the migration
+   itself needs none. Also note `SKILL.md`, `grid.py`, `stitch.py`,
+   `find-root.sh` and `identity.py` all resolve `@v2` as head on publish, so
+   **check which ref a payload edit actually landed in before trusting it**;
+   two nodes share each of those `payload_ref`s.
+
+2. **S19 + G7.10 — the interpreter flap and the silent cron. See §1.** Do
+   G7.10's alarm first even if S19 takes longer: the alarm is what makes every
+   *future* stall visible, and it is a `metrics.py` addition, not a redesign.
+   S19's fix is one function (`_unparse_safe` -> `ast.get_source_segment`), but
+   it rewrites a large share of 2,692 contract entries, so it wants its own
+   commit with a before/after count and a two-interpreter diff as its
+   falsifier.
+
+3. **S7** — §3. Cheap to detect, and it silently hides exactly the work that is
+   current. The fix has to be re-homed into the render direction now that the
+   arrow is reversed; S7's original ask (assert the fixed point in a test)
+   still stands.
+
+4. **G7.9** — `level3.py` should not prune quietly, and is misnamed
    (`view.py`/`main.py`). *The user has said they have more pieces of this in
-   mind — ask before starting.* A refused `publish-engine.sh` is not a no-op:
-   it mutated the graph at step 1 before refusing at step 3, creating 184 junk
-   nodes during the last rename.
-4. **G1.7** — the demotion path is four fields (`verdict`, `status`,
+   mind — ask before starting.* Note its overlap with G7.10 item 4: a refused
+   `publish-engine.sh` mutating the graph before refusing is the same
+   non-atomicity defect seen from the other side.
+
+5. **G1.7** — the demotion path is four fields (`verdict`, `status`,
    `demoted_from`, `demote_reason`) and `evidence_gate` owns one. Reproduced
    live: a correctly-gated demotion left `status: proved` contradicting the
-   demoted `verdict:` underneath.
-5. **S19** — the interpreter fix in §1.
+   demoted `verdict:` underneath. `shadow_decisive_verdicts` is currently 0 and
+   is the regression alarm — it caught this once already, so leave it in.
+
 6. **S18** — absorb cavekit references before cavekit retires. The hazard is
    *ordering*: deleting `context/kits/` prunes 159 `origin: build-site` nodes
    (H0i).
+
 7. **G4.5** — generalize `blocked_by` -> `depends_on`. 89 populated nodes, 0
    cycles, max depth 15. Must stay out of every metric traversal or it becomes
    a fresh gaming surface.
