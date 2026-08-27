@@ -386,6 +386,42 @@ touch every entry point.
 Falsifier: take the transcript of any completed iteration and count invocations
 that needed an absolute path or an interpreter prefix. Not done until that is zero.
 
+### G1.7 — The demotion path is a command, not a careful hand — status: active
+
+Demoting a verdict is a **four-field** edit -- `verdict`, `status`,
+`demoted_from`, `demote_reason` -- and `bin/evidence_gate.py` only owns the
+first. The other three are left to whoever is holding the keyboard.
+
+**This is not hypothetical: it was reproduced on 2026-08-27, by the repair
+crew, inside the pass that was fixing S16.** One verdict was demoted through
+`apply_gate` correctly, `verdict:` was rewritten to
+`inconclusive_lean_proved:50`, and the legacy `status: proved` was left
+sitting underneath it -- **S16's exact defect, re-created by the fix for
+S16**. It was caught only because `metrics.py` emits
+`shadow_decisive_verdicts`, which went 0 -> 1 on the next run. Without that
+counter it would have shipped.
+
+That is the whole argument. A control that depends on remembering three
+follow-up edits is a prose control wearing a code control's clothes, which is
+the thing **G1** exists to abolish and **S17** named for spawn rules.
+
+What this asks for:
+
+- **One entry point that demotes a node completely.** `evidence_gate.stamp`
+  already writes `demoted_from`/`demote_reason`; it does not reconcile the
+  `status:` shadow. Fold that in, so the four fields move together or not at
+  all.
+- **Make the shadow non-authoritative or make it derived.** `status:` is
+  declared a legacy shadow of `verdict:` in `[verdict].md` and 61 nodes still
+  carry both. Either drop it or compute it -- two hand-maintained copies of
+  one fact is **S17**'s defect again.
+- **Fail loudly on divergence.** `shadow_decisive_verdicts` caught this after
+  the fact. The writer path should refuse before it.
+
+Pairs with **S16** (which closed the code path but not the data), **G3.1**,
+and **G7.6** (one persistence model). Falsifier: demote a verdict with one
+command and have `shadow_decisive_verdicts` stay 0 without anyone checking.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -1560,6 +1596,44 @@ Falsifier: name any file in the engine repo and get a yes/no from this rule
 without argument. If a case needs a human to adjudicate, the boundary is not yet
 a boundary.
 
+## Open boundary question, raised 2026-08-27: experiment output that became nodes
+
+The rule above puts **docs and prose in** and **ephemeral output out**. 38
+build nodes wrap a `.md` payload, and those two clauses disagree about 16 of
+them.
+
+`context/refs/zoom-roundtrip-ground-truth/**` is one experiment's raw output —
+`trial-1/children.md`, `trial-1/reconstruction.md` and siblings, three trials
+across two subjects, plus four summary files. By the filesystem test it is
+**in** (it is a file in the repo). By "sessions, run logs, and ephemeral
+output likewise -- they are evidence a node can *cite*; they are not
+thoughts" it is **out**. That is exactly the case this goal's falsifier says
+must not need a human to adjudicate:
+
+> Falsifier: name any file in the engine repo and get a yes/no from this rule
+> without argument. If a case needs a human to adjudicate, the boundary is not
+> yet a boundary.
+
+**So the falsifier has fired.** The remaining 22 `.md` nodes are unambiguous
+and stay: `TODO.md`, `HANDOFF.md`, `README.md`, `SKILL.md`, `agent-prompt.md`,
+the kits and the build-site plan are all prose that steers agents, which this
+goal puts in with a direction attached.
+
+Two things worth recording for whoever closes this:
+
+- **Retiring such a node is not a node operation.** `bin/level3.py` discovers
+  from `git ls-files` on the engine plus a payload rglob, so a deprecated node
+  whose file still exists is simply re-minted on the next scan. Any decision
+  here needs a scan-scope change in the engine, published through the grid.
+- **The context-bloat argument for retiring them does not hold.**
+  `context/INJECTION.md` is 15 KB / 256 lines and never enumerates build
+  nodes — it carries per-type counts and a handful of `spawns->` references.
+  Removing 38 nodes would not measurably change what an agent loads.
+
+Suggested resolution, not yet taken: sharpen the test from "exists as a file"
+to "exists as a file **and** is authored rather than emitted". That keeps
+every prose doc in and puts trial output out, without a judgement call.
+
 ### G6.9 — `GOALS.md` is rendered from the nodes, not the other way round — status: complete
 
 **The last hand-authored source in this repo becomes derived, like everything
@@ -1795,6 +1869,50 @@ count rather than ids, and forcing ids everywhere would break the honest path
 in order to close a hole nobody has yet exploited. Decide deliberately — the
 H4c lesson is that any unverifiable field eventually gets gamed, so the
 question is when, not whether.
+
+## Live examples, measured 2026-08-27 — the hole is populated, not theoretical
+
+`evidence_runs` is declared `{type: list}` by both `[verdict].md` and
+`[experiment].md`. **77 of the 112 nodes carrying the field hold a bare
+integer instead**, so two thirds of the corpus violates the declared type of
+the one field the evidence metric reads.
+
+| shape | n | disposition |
+|---|---|---|
+| bare int `0` | 65 | normalized to `[]` on 2026-08-27 — same meaning, no invention |
+| **bare int `1`** | **12** | **left as-is: converting requires knowing *which* experiment, which is inventing it** |
+| list | 35 | 32 refs, all resolving after the same pass |
+
+The 12 that remain, and they are the whole of the open hole:
+
+    verdict:zoom-encoded-node-ids        evidence_runs: 1   verdict: proved
+    exp:integrity-detection-r1           evidence_runs: 1
+    exp:zoom-numeric-axis-r1             evidence_runs: 1
+    exp:graph-first-engine-publish       evidence_runs: 1
+    exp:engine-census-r1                 evidence_runs: 1
+    exp:level3-scan-r1                   evidence_runs: 1
+    exp:stitch-roundtrip-r1              evidence_runs: 1
+    exp:prose-surface-probe              evidence_runs: 1
+    exp:grid-payload-roundtrip           evidence_runs: 1
+    exp:dashboard-cli-r1                 evidence_runs: 1
+    exp:noncode-surface-census           evidence_runs: 1
+    exp:evidence-gate-resolution-r1      evidence_runs: 1
+
+**`verdict:zoom-encoded-node-ids` is the one that matters.** It is `proved`,
+and it is decisive *only* because `normalize_evidence_runs` treats a bare int
+as direct attestation and returns it unchecked. It passes the gate today. It
+is not an overclaim anyone made in bad faith and it is not a gate bypass —
+it is this goal's hole, occupied, in the highest-severity form the taxonomy
+has. Every other entry is an `exp:` node, where a run *count* is at least a
+defensible reading of the field.
+
+**Why this was not fixed in the 2026-08-27 pass.** The `0 -> []` half is a
+pure node edit and was done. The `1 -> [id]` half is not a node edit at all:
+it needs `normalize_evidence_runs` to stop trusting integers, which is a
+payload change to `bin/evidence_gate.py`, published through the grid, plus a
+decision about the honest-count path this goal already flags. Scoped out
+deliberately, recorded here so the next session starts from the list rather
+than from the survey.
 
 ### G7.4 — Two loaders, two opposite duplicate-id policies — status: active
 
@@ -2053,6 +2171,36 @@ emptying either one prunes every one of those nodes on the next run.** Retire
 them by deprecating the nodes first. When the phase-out is committed to, it
 wants its own goal — it subsumes this one, since a generator that no longer
 exists cannot mint an unvalidated parent.
+
+### G7.9 — A scan must not prune quietly, and `level3.py` is misnamed — status: active
+
+Two changes to the same file, grouped because they touch the same lines and
+the rename is the safer half.
+
+**1. The prune must be loud and gated.** `bin/level3.py` deletes every node
+whose `origin` it recognises but does not re-derive on that run, and reports
+the count in a line that reads the same whether it pruned 0 or 185. That is
+the H0/H0i failure mode with the safety catch still missing: the two
+data-loss defects this project has already paid for were both a scan quietly
+removing what it did not recognise. A prune should require an explicit flag,
+announce every id it is about to drop, and refuse outright above a threshold
+-- a scan that would delete most of its own output is reporting a bug, not
+doing its job. **S11** flags this as the sharp edge of the `level3` rename;
+this goal owns the guard itself, independent of any rename.
+
+**2. `level3.py` is named after a zoom level, which is the category error
+G2 and G10.2 both record.** The file is the entry point for the code-level
+view of the graph -- the thing you load into at the start of a workflow --
+so it should be named for that: `view.py`, `main.py` or similar. Sequence it
+the way **S11** demands: teach the reader both names, migrate, then retire
+the old name. Never the reverse.
+
+Deliberately not over-specified -- the final name and the rest of this
+update are being decided in a parallel session. What is fixed here is the
+*property*: **no node disappears without something saying so first.**
+
+Pairs with **S11**, **G7.5** (parse failures swallowed with zero signal) and
+**G6.6**.
 
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 

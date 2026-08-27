@@ -5,7 +5,7 @@ goal_kind: long-term
 heading_level: 2
 id: "goal:g2"
 mint_id: bcbb7e64bb824b74876ad5db95c89969
-order: 7
+order: 8
 origin: goals-doc
 seeds:
   - exp:zoom-numeric-axis-r1

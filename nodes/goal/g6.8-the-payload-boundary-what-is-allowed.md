@@ -5,7 +5,7 @@ goal_kind: subgoal
 heading_level: 3
 id: "goal:g6.8"
 mint_id: c0267a5787834c2189726d34a0966993
-order: 35
+order: 36
 origin: goals-doc
 parents:
   - goal:g6
@@ -78,3 +78,41 @@ and the filesystem test retires.
 Falsifier: name any file in the engine repo and get a yes/no from this rule
 without argument. If a case needs a human to adjudicate, the boundary is not yet
 a boundary.
+
+## Open boundary question, raised 2026-08-27: experiment output that became nodes
+
+The rule above puts **docs and prose in** and **ephemeral output out**. 38
+build nodes wrap a `.md` payload, and those two clauses disagree about 16 of
+them.
+
+`context/refs/zoom-roundtrip-ground-truth/**` is one experiment's raw output —
+`trial-1/children.md`, `trial-1/reconstruction.md` and siblings, three trials
+across two subjects, plus four summary files. By the filesystem test it is
+**in** (it is a file in the repo). By "sessions, run logs, and ephemeral
+output likewise -- they are evidence a node can *cite*; they are not
+thoughts" it is **out**. That is exactly the case this goal's falsifier says
+must not need a human to adjudicate:
+
+> Falsifier: name any file in the engine repo and get a yes/no from this rule
+> without argument. If a case needs a human to adjudicate, the boundary is not
+> yet a boundary.
+
+**So the falsifier has fired.** The remaining 22 `.md` nodes are unambiguous
+and stay: `TODO.md`, `HANDOFF.md`, `README.md`, `SKILL.md`, `agent-prompt.md`,
+the kits and the build-site plan are all prose that steers agents, which this
+goal puts in with a direction attached.
+
+Two things worth recording for whoever closes this:
+
+- **Retiring such a node is not a node operation.** `bin/level3.py` discovers
+  from `git ls-files` on the engine plus a payload rglob, so a deprecated node
+  whose file still exists is simply re-minted on the next scan. Any decision
+  here needs a scan-scope change in the engine, published through the grid.
+- **The context-bloat argument for retiring them does not hold.**
+  `context/INJECTION.md` is 15 KB / 256 lines and never enumerates build
+  nodes — it carries per-type counts and a handful of `spawns->` references.
+  Removing 38 nodes would not measurably change what an agent loads.
+
+Suggested resolution, not yet taken: sharpen the test from "exists as a file"
+to "exists as a file **and** is authored rather than emitted". That keeps
+every prose doc in and puts trial output out, without a judgement call.
