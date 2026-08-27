@@ -110,30 +110,36 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: is_unverifiable_attestation
+  how: 'defines public function `is_unverifiable_attestation` at line 262, signature:
+    (value)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: GateResult
-  how: defines public class `GateResult` at line 252
+  how: defines public class `GateResult` at line 281
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: apply_gate
-  how: 'defines public function `apply_gate` at line 269, signature: (verdict: str,
+  how: 'defines public function `apply_gate` at line 298, signature: (verdict: str,
     evidence_runs, *, bypass: bool=False, corpus=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: announce
-  how: 'defines public function `announce` at line 347, signature: (res: GateResult,
+  how: 'defines public function `announce` at line 376, signature: (res: GateResult,
     stream=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stamp
-  how: 'defines public function `stamp` at line 366, signature: (fm: dict, res: GateResult)'
+  how: 'defines public function `stamp` at line 395, signature: (fm: dict, res: GateResult)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 4 `print()` call(s) at line(s) [355, 357, 360, 363]
+  how: 4 `print()` call(s) at line(s) [384, 386, 389, 392]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

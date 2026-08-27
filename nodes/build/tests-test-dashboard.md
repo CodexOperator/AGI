@@ -117,115 +117,115 @@ outputs:
   security: TODO(model)
 - name: test_pending_excluded_but_inconclusive_counts_as_asserting
   how: 'defines public function `test_pending_excluded_but_inconclusive_counts_as_asserting`
-    at line 186, signature: (project)'
+    at line 194, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dangling_parent_reference_detected
   how: 'defines public function `test_dangling_parent_reference_detected` at line
-    201, signature: (project)'
+    209, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_no_dangling_when_parent_resolves
-  how: 'defines public function `test_no_dangling_when_parent_resolves` at line 208,
+  how: 'defines public function `test_no_dangling_when_parent_resolves` at line 216,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_duplicate_ids_on_disk_detected
-  how: 'defines public function `test_duplicate_ids_on_disk_detected` at line 216,
+  how: 'defines public function `test_duplicate_ids_on_disk_detected` at line 224,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_no_duplicates_in_a_clean_corpus
-  how: 'defines public function `test_no_duplicates_in_a_clean_corpus` at line 230,
+  how: 'defines public function `test_no_duplicates_in_a_clean_corpus` at line 238,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goal_with_no_descendants_is_a_stub
   how: 'defines public function `test_goal_with_no_descendants_is_a_stub` at line
-    240, signature: (project)'
+    248, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goal_with_descendants_is_real_and_reports_furthest_stage
   how: 'defines public function `test_goal_with_descendants_is_real_and_reports_furthest_stage`
-    at line 251, signature: (project)'
+    at line 259, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_seed_that_does_not_resolve_is_counted_separately
   how: 'defines public function `test_seed_that_does_not_resolve_is_counted_separately`
-    at line 266, signature: (project)'
+    at line 274, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_metrics_section_matches_metrics_py_directly
   how: 'defines public function `test_metrics_section_matches_metrics_py_directly`
-    at line 282, signature: (project)'
+    at line 290, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_section_flag_prints_only_that_section
   how: 'defines public function `test_section_flag_prints_only_that_section` at line
-    297, signature: (project)'
+    305, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_invalid_section_name_is_rejected
-  how: 'defines public function `test_invalid_section_name_is_rejected` at line 307,
+  how: 'defines public function `test_invalid_section_name_is_rejected` at line 315,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_no_color_flag_strips_ansi
-  how: 'defines public function `test_no_color_flag_strips_ansi` at line 313, signature:
+  how: 'defines public function `test_no_color_flag_strips_ansi` at line 321, signature:
     (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_piped_output_has_no_ansi_even_without_the_flag
   how: 'defines public function `test_piped_output_has_no_ansi_even_without_the_flag`
-    at line 320, signature: (project)'
+    at line 328, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_missing_project_config_errors_cleanly
   how: 'defines public function `test_missing_project_config_errors_cleanly` at line
-    328, signature: (tmp_path)'
+    336, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_watch_exits_cleanly_on_sigint
-  how: 'defines public function `test_watch_exits_cleanly_on_sigint` at line 336,
+  how: 'defines public function `test_watch_exits_cleanly_on_sigint` at line 344,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_watch_default_interval_is_ten_seconds
   how: 'defines public function `test_watch_default_interval_is_ten_seconds` at line
-    355, signature: (project)'
+    363, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_empty_corpus_does_not_crash
-  how: 'defines public function `test_empty_corpus_does_not_crash` at line 365, signature:
+  how: 'defines public function `test_empty_corpus_does_not_crash` at line 373, signature:
     (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_narrow_terminal_does_not_crash
-  how: 'defines public function `test_narrow_terminal_does_not_crash` at line 371,
+  how: 'defines public function `test_narrow_terminal_does_not_crash` at line 379,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_project_without_git_falls_back_to_mtime
   how: 'defines public function `test_project_without_git_falls_back_to_mtime` at
-    line 384, signature: (project)'
+    line 392, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -242,7 +242,7 @@ outputs:
   security: TODO(model)
 - name: d / f'{slug}.md'
   how: '`(d / f''{slug}.md'').write_text(''---\nid: "idea:dup"\ntype: idea\n---\nbody\n'',
-    encoding=''utf-8'')` at line 220'
+    encoding=''utf-8'')` at line 228'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
