@@ -31,12 +31,12 @@ PROJECT_ROOT = Path(
 # Canonical name first; the legacy name stays accepted during the rename window.
 CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
 
-# `ensure_mint_id` from snapshot-goals.py, by file path (hyphenated filename,
-# not importable) — the same convention level3.py, decompose-engine.py and
-# backfill-mint-ids.py already use, and for the same reason: one definition of
-# how a mint id is assigned, never a second one free to disagree (goal:s14).
-# This file's `write_frontmatter` is a separate copy of snapshot-goals.py's for
-# historical reasons; the mint hook is shared even though the serializer is not.
+# `ensure_mint_id` and `write_frontmatter` from snapshot-goals.py, by file path
+# (hyphenated filename, not importable) — the same convention level3.py,
+# decompose-engine.py and backfill-mint-ids.py already use, and for the same
+# reason: one definition of how a node is written, never a second one free to
+# disagree (goal:s14).  The serializer joined the mint hook here on 2026-08-27;
+# before that this file kept its own copy and the two had already drifted.
 import importlib.util  # noqa: E402
 _sg_spec = importlib.util.spec_from_file_location(
     "snapshot_goals_for_build_site", PLUGIN_ROOT / "bin" / "snapshot-goals.py")
@@ -120,56 +120,20 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
     _upsert_node_to_db._backend.save(node_id, nf)
 
 
-def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
-                      preserve: dict | None = None) -> None:
-    """Write a node file.  `preserve` carries forward fields we do not own.
-
-    The snapshot rebuilds frontmatter from `build-site.md` and the kits, so it
-    only knows about its own fields.  Anything a later writer added — most
-    importantly `next_edges`, which post_wire.py uses to record chain structure
-    — used to be silently dropped on every re-snapshot, severing chains that
-    had already been built.  Snapshot-owned keys still win; everything else on
-    the existing node survives.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if preserve:
-        merged = {k: v for k, v in preserve.items() if k not in fm}
-        if merged:
-            fm = {**merged, **fm}
-    if origin:
-        fm = dict(fm)  # copy so we don't mutate caller's dict
-        fm["origin"] = origin
-    fm = ensure_mint_id(fm)
-    lines = ["---"]
-    for k in sorted(fm.keys()):
-        v = fm[k]
-        if isinstance(v, list):
-            if not v:
-                lines.append(f"{k}: []")
-            else:
-                lines.append(f"{k}:")
-                for item in v:
-                    lines.append(f"  - {item}")
-        elif isinstance(v, bool):
-            lines.append(f"{k}: {str(v).lower()}")
-        else:
-            sval = str(v).replace("\n", " ").strip()
-            if any(c in sval for c in ":#'\""):
-                # Escape into a YAML double-quoted scalar rather than
-                # substituting the character. The old line did
-                # `sval.replace('"', "'")`, which is silent data loss in the
-                # one function that touches every node on every run -- S13's
-                # exact finding, one line further down the same function.
-                # Caught by goal:g6.9's round-trip check: `## S13 - ... the
-                # string "None" ...` came back out of its node as `'None'`.
-                esc = sval.replace("\\", "\\\\").replace('"', '\\"')
-                sval = f'"{esc}"'
-            lines.append(f"{k}: {sval}")
-    lines.append("---")
-    lines.append("")
-    lines.append(body.strip())
-    lines.append("")
-    path.write_text("\n".join(lines), encoding="utf-8")
+# The serializer itself, from snapshot-goals.py, by the same file-path import
+# as `ensure_mint_id` above.  This file used to carry its own copy, and the two
+# drifted exactly the way goal:s14 predicted when it closed with "there are two
+# `write_frontmatter` definitions ... S13's finding applies with double force to
+# a function that exists twice."
+#
+# What the drift had already cost, measured before collapsing: the copy here
+# was missing BOTH null round-trip fixes the canonical one grew on 2026-08-25.
+# A `None` list entry came back as the literal string "None", and a YAML-null
+# scalar came back as "None" too -- silent data corruption, in the writer that
+# touches all 159 build-site nodes on every single loop iteration.  Collapsing
+# fixes that as a side effect rather than as a separate repair, which is the
+# argument for collapsing rather than re-syncing by hand a third time.
+write_frontmatter = _sg.write_frontmatter
 
 
 def load_existing_nodes() -> dict:

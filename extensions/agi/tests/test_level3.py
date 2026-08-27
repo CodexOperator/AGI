@@ -537,3 +537,98 @@ def test_entry_point_units_can_be_matched_as_parents(project, engine):
         "unit_path": "extensions/agi/driver.sh"}}}
     assert [u["node_id"] for u in l3.load_census_units(existing)] == \
         ["idea:engine-driver-sh"]
+
+
+# --- goal:g2.10 — the authored half of a body survives the scan -----------
+
+
+def _contract_of(body):
+    contract, err = l3.extract_contract(body)
+    assert err is None, err
+    return contract
+
+
+def test_unfilled_entries_are_todo():
+    """The baseline the corpus is in: nothing filled, everything TODO."""
+    out = l3._fill_entries([{"name": "f", "how": "at line 1"}], None)
+    assert out == [{"name": "f", "how": "at line 1", "why": "TODO(model)",
+                    "perf": "TODO(model)", "security": "TODO(model)"}]
+
+
+def test_authored_fields_carry_over():
+    """8,034 fields across 190 nodes read TODO(model) and 0 were ever filled,
+    because filling one lasted exactly until the next scan."""
+    prior = {"f": [{"name": "f", "how": "at line 1", "why": "because X",
+                    "perf": "O(n)", "security": "TODO(model)"}]}
+    out = l3._fill_entries([{"name": "f", "how": "at line 99"}], prior)
+    assert out[0]["why"] == "because X"
+    assert out[0]["perf"] == "O(n)"
+    assert out[0]["security"] == "TODO(model)"
+
+
+def test_how_is_always_re_derived_never_carried():
+    """The derived half must keep being derived -- that is what makes it
+    trustworthy and what `stale_contracts` polices."""
+    prior = {"f": [{"name": "f", "how": "STALE at line 1", "why": "w"}]}
+    out = l3._fill_entries([{"name": "f", "how": "FRESH at line 99"}], prior)
+    assert out[0]["how"] == "FRESH at line 99"
+    assert "STALE" not in out[0]["how"]
+
+
+def test_carry_over_survives_a_line_number_change():
+    """`how` embeds the line number, so keying the carry-over on it would drop
+    a model's `why` the first time anything above the call site shifted."""
+    prior = _contract_of(
+        "<!-- BUILD-CONTRACT:BEGIN -->\n```yaml\n"
+        "inputs:\n- name: f\n  how: 'at line 1'\n  why: kept\n"
+        "```\n<!-- BUILD-CONTRACT:END -->")
+    idx = l3._prior_index(prior, "inputs")
+    assert l3._fill_entries([{"name": "f", "how": "at line 500"}], idx)[0]["why"] == "kept"
+
+
+def test_duplicate_names_are_matched_positionally():
+    prior = {"f": [{"name": "f", "how": "h", "why": "first"},
+                   {"name": "f", "how": "h", "why": "second"}]}
+    out = l3._fill_entries(
+        [{"name": "f", "how": "h"}, {"name": "f", "how": "h"}], prior)
+    assert [e["why"] for e in out] == ["first", "second"]
+
+
+def test_prior_index_tolerates_a_missing_or_broken_contract():
+    """A body whose previous contract cannot be parsed must still get a correct
+    new one -- refusing would strand the node in the broken state."""
+    assert l3._prior_index(None, "inputs") == {}
+    assert l3._prior_index({}, "inputs") == {}
+    assert l3._prior_index({"inputs": None}, "inputs") == {}
+    assert l3._prior_index({"inputs": ["not-a-dict"]}, "inputs") == {}
+
+
+def test_extract_contract_is_owned_here_not_in_stitch():
+    """stitch.py imports level3.py for `analyze_file`, so level3.py borrowing
+    the reader back was an import cycle -- it died with RecursionError on the
+    first run. Ownership decides direction (stitch.py: "level3.py owns the
+    contract shape")."""
+    stitch_src = (Path(__file__).resolve().parents[1] / "bin" / "stitch.py").read_text()
+    assert "def _extract_contract" not in stitch_src
+    assert "_extract_contract = level3.extract_contract" in stitch_src
+
+
+def test_both_contract_marker_spellings_still_parse():
+    """A reader recognising only BUILD- would report every unmigrated node as
+    having no contract, which publish-engine.sh turns into a refusal."""
+    for marker in ("LEVEL3", "BUILD"):
+        body = (f"<!-- {marker}-CONTRACT:BEGIN -->\n```yaml\npayload_ref: x\n"
+                f"```\n<!-- {marker}-CONTRACT:END -->")
+        contract, err = l3.extract_contract(body)
+        assert err is None and contract["payload_ref"] == "x", marker
+
+
+def test_contract_reader_bounds_on_an_embedded_fence():
+    """A `how` value can itself contain a ``` fence; the closing fence is the
+    LAST one inside the markers, not the first."""
+    body = ("<!-- BUILD-CONTRACT:BEGIN -->\n```yaml\n"
+            "inputs:\n- name: f\n  how: 'writes ``` into a file'\n"
+            "```\n<!-- BUILD-CONTRACT:END -->")
+    contract, err = l3.extract_contract(body)
+    assert err is None, err
+    assert contract["inputs"][0]["name"] == "f"

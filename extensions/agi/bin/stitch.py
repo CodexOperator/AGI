@@ -189,22 +189,24 @@ _grid_spec.loader.exec_module(grid)
 
 # --- level-3 node loading (read-only; never touches nodes/level3/) -----------
 
-# Both spellings. `LEVEL3-CONTRACT` was renamed to `BUILD-CONTRACT` on
-# 2026-08-27; a reader that recognised only the new one would report every
-# unmigrated node as having no contract at all, which `--strict` turns into
-# drift and `publish-engine.sh` turns into a refusal. Accepting both is what
-# makes the rename survivable in either direction.
-_MARKER_SPAN_RE = re.compile(
-    r"(?:LEVEL3|BUILD)-CONTRACT:BEGIN(.*?)(?:LEVEL3|BUILD)-CONTRACT:END", re.DOTALL)
-_YAML_FENCE_OPEN = "```yaml"
-_FENCE = "```"
+# The contract reader lives in level3.py, which owns the contract shape and
+# (since goal:g2.10) has to read one back before rewriting it. Aliased rather
+# than duplicated: this file already imports level3.py above, and the reverse
+# borrow is an import cycle. Both marker spellings are accepted there --
+# `LEVEL3-CONTRACT` was renamed to `BUILD-CONTRACT` on 2026-08-27, and a
+# reader recognising only the new one would report every unmigrated node as
+# having no contract at all, which `--strict` turns into drift and
+# `publish-engine.sh` turns into a refusal.
+_MARKER_SPAN_RE = level3._MARKER_SPAN_RE
+_YAML_FENCE_OPEN = level3._YAML_FENCE_OPEN
+_FENCE = level3._FENCE
 
 # The exact `_extract_contract` reason string for "no markers at all" — the
 # one contract_error that means *absent*, as opposed to *present but broken*
 # (bad YAML, truncated, wrong shape). Only this exact reason, on a node
 # stamped `origin: build-version`, is eligible for the `contracts_not_derived`
 # exemption below; every other reason (and every other origin) stays drift.
-_NO_CONTRACT_BLOCK = "no BUILD-CONTRACT block found in body"
+_NO_CONTRACT_BLOCK = level3.NO_CONTRACT_BLOCK
 _BUILD_VERSION_ORIGIN = "build-version"
 
 
@@ -242,49 +244,7 @@ def _parse_frontmatter(text: str) -> tuple[dict, str] | None:
     return fm, parts[2]
 
 
-def _extract_contract(body: str) -> tuple[dict | None, str | None]:
-    """Pull the fenced YAML contract block out of a node body.
-
-    Returns (contract_dict, None) on success, (None, reason) on failure. A
-    node with no contract markers, or an unparsable contract, is reported —
-    never silently treated as fresh (that would hide exactly the kind of
-    drift this tool exists to find).
-
-    Bounding matters more than it looks: a `how` field can (and, on the real
-    corpus, does — `level3:bin-heal`) contain a mechanically-unparsed call
-    site whose literal text itself embeds a ``` fence, e.g. an f-string
-    template being written to disk that contains a markdown code block. A
-    naive "first ``` after ```yaml" search stops at that embedded fence, not
-    the real closing one, and truncates the block mid-string — invalid YAML,
-    not because the file is malformed but because the *parser* guessed
-    wrong. `level3.py`'s own writer already had to solve this for the same
-    reason (its `_cap` truncation exists downstream of the same problem);
-    this reader solves it the same way: bound first by the harness markers
-    (`LEVEL3-CONTRACT:BEGIN`/`:END`, which the model-authored prose can only
-    ever appear *outside* of), then take the *last* ``` inside that bounded
-    span as the closing fence, not the first.
-    """
-    span_m = _MARKER_SPAN_RE.search(body)
-    if not span_m:
-        return None, "no BUILD-CONTRACT block found in body"
-    span = span_m.group(1)
-    open_idx = span.find(_YAML_FENCE_OPEN)
-    if open_idx == -1:
-        return None, "no ```yaml fence found inside BUILD-CONTRACT block"
-    after_open = span[open_idx + len(_YAML_FENCE_OPEN):]
-    if after_open.startswith("\n"):
-        after_open = after_open[1:]
-    close_idx = after_open.rfind(_FENCE)
-    if close_idx == -1:
-        return None, "no closing ``` fence found inside BUILD-CONTRACT block"
-    yaml_text = after_open[:close_idx]
-    try:
-        contract = yaml.safe_load(yaml_text)
-    except yaml.YAMLError as exc:
-        return None, f"contract block is not valid YAML: {exc}"
-    if not isinstance(contract, dict):
-        return None, "contract block did not parse to a mapping"
-    return contract, None
+_extract_contract = level3.extract_contract
 
 
 def load_level3_nodes(project_root: Path) -> tuple[list[Level3Node], list[str]]:
