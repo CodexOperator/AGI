@@ -75,6 +75,16 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: p
+  how: '`p.read_text()` at line 875'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.read_text()` at line 881'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: yaml.safe_load
   how: '`yaml.safe_load(parts[1])` at line 72'
   why: TODO(model)
@@ -125,6 +135,11 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: bsb
+  how: '`bsb.read_text()` at line 908'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: path
   how: '`path.read_text(encoding=''utf-8'')` at line 71'
   why: TODO(model)
@@ -137,6 +152,11 @@ inputs:
   security: TODO(model)
 - name: doc
   how: '`doc.read_text()` at line 810'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.read_text()` at line 895'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -532,6 +552,58 @@ outputs:
 - name: test_prune_still_removes_a_goal_the_document_dropped
   how: 'defines public function `test_prune_still_removes_a_goal_the_document_dropped`
     at line 804, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_extract_thought_absent_is_none
+  how: defines public function `test_extract_thought_absent_is_none` at line 819
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_extract_thought_returns_block_with_markers
+  how: defines public function `test_extract_thought_returns_block_with_markers` at
+    line 827
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_extract_thought_is_multiline_and_non_greedy
+  how: defines public function `test_extract_thought_is_multiline_and_non_greedy`
+    at line 835
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_splice_carries_thought_across_a_regenerating_write
+  how: defines public function `test_splice_carries_thought_across_a_regenerating_write`
+    at line 843
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_splice_prefers_a_thought_authored_this_pass
+  how: defines public function `test_splice_prefers_a_thought_authored_this_pass`
+    at line 853
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_splice_is_a_noop_without_a_stored_thought
+  how: defines public function `test_splice_is_a_noop_without_a_stored_thought` at
+    line 862
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_write_frontmatter_preserves_thought_block
+  how: 'defines public function `test_write_frontmatter_preserves_thought_block` at
+    line 867, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_write_frontmatter_without_preserve_body_still_wipes
+  how: 'defines public function `test_write_frontmatter_without_preserve_body_still_wipes`
+    at line 887, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_one_serializer_not_two
+  how: defines public function `test_one_serializer_not_two` at line 898
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

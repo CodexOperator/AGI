@@ -75,12 +75,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: BUILD_SITE
-  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 206'
+  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 170'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: kit_path
-  how: '`kit_path.read_text(encoding=''utf-8'')` at line 270'
+  how: '`kit_path.read_text(encoding=''utf-8'')` at line 234'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -90,7 +90,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 184'
+  how: '`md_path.read_text(encoding=''utf-8'')` at line 148'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -100,7 +100,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 188'
+  how: '`yaml.safe_load(parts[1])` at line 152'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -126,39 +126,28 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: write_frontmatter
-  how: 'defines public function `write_frontmatter` at line 123, signature: (path:
-    Path, fm: dict, body: str, origin: str='''', preserve: dict | None=None)'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
 - name: load_existing_nodes
-  how: defines public function `load_existing_nodes` at line 175
+  how: defines public function `load_existing_nodes` at line 139
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_tasks
-  how: defines public function `parse_tasks` at line 201
+  how: defines public function `parse_tasks` at line 165
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parse_kits
-  how: defines public function `parse_kits` at line 262
+  how: defines public function `parse_kits` at line 226
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 297
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: path
-  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 172'
+  how: defines public function `main` at line 261
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 6 `print()` call(s) at line(s) [111, 204, 314, 436, 438, 440]
+  how: 6 `print()` call(s) at line(s) [111, 168, 278, 400, 402, 404]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
