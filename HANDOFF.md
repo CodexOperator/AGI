@@ -496,9 +496,11 @@ nodes, then retire the convention.**
    you have more pieces of this update in mind.* Also carries: a refused
    `publish-engine.sh` is not a no-op — it mutated the graph at step 1 before
    refusing at step 3, creating 184 junk nodes during the rename.
-4. **G1.7** — the demotion path is four fields and the gate owns one. Reproduced
-   live: demoting a verdict left `status: proved` underneath, which is S16's
-   defect re-created by S16's own repair.
+4. **G1.7** — the demotion path is four fields (`verdict`, `status`,
+   `demoted_from`, `demote_reason`) and `evidence_gate` owns one. Reproduced
+   live: a correctly-gated demotion rewrote `verdict:` and left the legacy
+   `status: proved` contradicting it underneath. Caught only because
+   `metrics.py` emits `shadow_decisive_verdicts`, which went 0 -> 1.
 5. **S18** — absorb cavekit references before cavekit retires. 91 of 94
    `cavekit_req` values resolve fine; the hazard is *ordering* — deleting
    `context/kits/` prunes 159 `origin: build-site` nodes (H0i).
@@ -526,9 +528,8 @@ nodes, then retire the convention.**
   `[experiment].md` still listed `level3` in `allowed_parents` after the rename,
   because it has no `:` in it. **Run the spawn gate over the whole corpus as the
   last step of any type rename.**
-- **Contract derivation still reads the engine tree (G6.1's residual).** A
-  payload edited only in the graph has a stale contract until published and
-  rescanned. During a *rename* this is a bootstrap problem: the engine's own
+- **Contract derivation still reads the engine tree.** A payload edited only
+  in the graph has a stale contract until published and rescanned. During a *rename* this is a bootstrap problem: the engine's own
   `stitch.py` could not publish the change that teaches it to read
   `nodes/build/`. Published once with the payload copy to break the cycle.
 
