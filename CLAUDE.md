@@ -200,6 +200,29 @@ out before trusting any push** — work once accumulated on a stale
 - **A version is a grid commit, not a second node file.** A fix or update edits
   the target node **in place**; no `@v2` file, no `supersedes:` pair. Run
   `grid.py commit --all` afterward and the grid carries the history (G6.3).
+- **Record why, in the node's `THOUGHT` block (G2.11).** A node body may carry
+  one authored region, and it now survives the regenerating scans that used to
+  destroy it:
+
+  ```
+  <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+  why this version differs from the last one
+  <!-- THOUGHT:END -->
+  ```
+
+  **`body` is state; `thought` is delta.** The body says what the node asserts
+  now; the thought says why *this version* differs from the previous one, and
+  is rewritten from scratch each time rather than appended to. The grid
+  snapshots `node.md` once per version, so the thought is versioned for free
+  and `grid.py diff` reads as a changelog of reasoning. **Absent means empty** —
+  never fabricate one after the fact, because a made-up thought reads as
+  evidence. Readers strip it (`snapshot-goals.py --render`), so it never
+  reaches `GOALS.md` or injected context: it is provenance to zoom into, not
+  weight every session carries.
+- **This is the one exception to "edit the payload, never the node body".** For
+  a build node the `BUILD-CONTRACT` block and surrounding prose are still
+  regenerated on every scan and still must not be hand-edited. The `THOUGHT`
+  region is the authored half and is durable.
 - **Two identifiers, two jobs.** A node's **mint id** is assigned once and never
   changes — it is what grid refs and provenance key on. Its **address** is
   derived from tags and is expected to change on every retag or regroup — it is

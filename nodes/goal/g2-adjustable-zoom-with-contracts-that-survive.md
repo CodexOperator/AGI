@@ -10,6 +10,8 @@ origin: goals-doc
 seeds:
   - exp:zoom-numeric-axis-r1
   - goal:g2.1
+  - goal:g2.10
+  - goal:g2.11
   - goal:g2.2
   - goal:g2.3
   - goal:g2.4

@@ -14,6 +14,7 @@ seeds:
   - goal:g1.4
   - goal:g1.5
   - goal:g1.6
+  - goal:g1.7
   - idea:engine-cli
   - idea:engine-driver-sh
   - idea:engine-find-root

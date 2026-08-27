@@ -1,7 +1,8 @@
 ---
 confidence: 0.9
 contradicts: []
-evidence_runs: 1
+evidence_runs:
+  - exp:id-fanout-budget
 id: "verdict:zoom-encoded-node-ids"
 mint_id: 57859600bb8d41c1b17f0af9f976fb0b
 parents:
@@ -90,3 +91,29 @@ this whole goal. Not fixed here; this verdict's measurement counted every
 file on disk regardless, so the fan-out numbers above are an upper bound
 relative to what any single live loader currently sees, which only
 strengthens (never weakens) the "budget holds" conclusion.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Converted `evidence_runs: 1` to name `exp:id-fanout-budget` (goal:g7.3).
+
+This node was the single most severe instance of G7.3's hole: `proved`, and
+decisive *only* because `normalize_evidence_runs` returned an unchecked `1`.
+Once bare integers stopped counting it became the corpus's one
+`unevidenced_decisive_verdict`.
+
+Demoting it would have been wrong. The evidence is real and was never missing
+— it was merely unnamed. This node's own `parents:` lists exactly one node,
+`exp:id-fanout-budget`, which exists, and a verdict's parent experiment is its
+backing run. So naming it is reading the node's own frontmatter, not inventing
+a citation.
+
+That is why the other eleven bare-int nodes were left alone: they are all
+`exp:` nodes carrying no verdict, and their parents are goals and hypotheses
+rather than experiments. For those, picking a reference genuinely would be
+invention, and G7.3 says so explicitly. They cost nothing, because with no
+verdict they cannot be decisive.
+
+Note the separate, older caveat above this line: the superseding note from
+2026-08-24 says G2.5 was rewritten to the address model and this experiment
+measured a different quantity. That remains true and untouched. This change is
+about how the evidence is cited, not about whether the claim still holds.
+<!-- THOUGHT:END -->
