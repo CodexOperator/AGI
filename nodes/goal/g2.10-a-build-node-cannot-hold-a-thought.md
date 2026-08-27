@@ -79,3 +79,37 @@ has repeatedly refused. Pairs with **G6.8**, **G6.3** and **G7**.
 
 Falsifier: fill one `why:` on one build node, run `driver.sh --smoke`, and
 read it back.
+
+## Fixed 2026-08-27 — the wipe is closed; the `@v2` migration is not
+
+`write_frontmatter` gained `preserve_body=`, and the three regenerating
+writers (`level3.py`, `snapshot-build-site.py`, `decompose-engine.py` — all
+sharing one serializer since **S14**'s residual was collapsed the same day)
+now carry the authored region across.
+
+Two named regions instead of one guess: `BUILD-CONTRACT` stays derived and
+policed, `THOUGHT` stays authored and preserved. This goal originally asked to
+"carry over any prose outside the markers", which is not something a
+regenerating writer can identify without guessing which prose was
+hand-written; the marked region made preservation mechanical and testable
+instead. The general form is **G2.11**.
+
+`why`/`perf`/`security` carry over too, keyed on entry `name` and not on `how`
+— `how` embeds the line number, so keying on it would drop a model's rationale
+the first time anything above the call site moved.
+
+Falsifier run on the live corpus, both directions, twice:
+`nodes/build/bin-grid.md` had one `why:` filled and one `THOUGHT` block
+appended, then took two full `level3.py --from-grid` scans. Both survived.
+Before the fix the first scan wiped both. Idempotence verified separately,
+because a derivation that does not reproduce its own stored value is
+**G6.5**'s silent-cron failure: a full scan moved exactly the 4 nodes whose
+source had changed and nothing else, and `stitch --verify --from-grid
+--strict` reported 0 drift in all four categories.
+
+**Still open, and the reason this stays `active`:** the five
+`origin: build-version` `@v2` nodes still hold ~47,000 characters of reasoning
+that now *has* somewhere to go. The sequence this goal set out — fix the wipe,
+migrate the five bodies into their v1 nodes' `THOUGHT` regions, then retire the
+convention — is one step in. Retiring it deletes 5 nodes and drops the node
+count, so it wants explicit sign-off rather than a quiet cleanup.

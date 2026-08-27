@@ -5,7 +5,7 @@ goal_kind: long-term
 heading_level: 2
 id: "goal:g7"
 mint_id: d020b2d79cb545edb5c23fb2d63c7d54
-order: 39
+order: 40
 origin: goals-doc
 seeds:
   - goal:g7.1
@@ -16,6 +16,7 @@ seeds:
   - goal:g7.6
   - goal:g7.7
   - goal:g7.8
+  - goal:g7.9
   - idea:engine-graph-core
   - idea:engine-grid
   - idea:engine-migrate-to-sqlite

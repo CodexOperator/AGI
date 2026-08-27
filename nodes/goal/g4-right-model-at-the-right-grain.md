@@ -5,13 +5,14 @@ goal_kind: long-term
 heading_level: 2
 id: "goal:g4"
 mint_id: 8d0f63708d94497d86da5e2eccd3ee79
-order: 21
+order: 22
 origin: goals-doc
 seeds:
   - goal:g4.1
   - goal:g4.2
   - goal:g4.3
   - goal:g4.4
+  - goal:g4.5
   - idea:engine-agi-bridge-index
   - idea:engine-dispatch
   - idea:engine-heal
