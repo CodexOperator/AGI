@@ -61,7 +61,8 @@ SCHEMAS = {
     "[mvp].md": "allowed_parents: [verdict, hypothesis, experiment]\n  min_parents: 1\n  max_parents: 2",
     "[outcome].md": "allowed_parents: [mvp, verdict]\n  min_parents: 1\n  max_parents: 2",
     "[bigger_outcome].md": "allowed_parents: [outcome, mvp]\n  min_parents: 1\n  max_parents: 2",
-    "[app_purpose].md": "allowed_parents: [bigger_outcome, outcome]\n  min_parents: 1\n  max_parents: 2",
+    "[vision].md": "allowed_parents: [overview]\n  min_parents: 1\n  max_parents: 2",
+    "[overview].md": "allowed_parents: [bigger_outcome]\n  min_parents: 1\n  max_parents: 2",
     "[idea].md": "allowed_parents: [goal]\n  min_parents: 0\n  max_parents: 1",
     "[task].md": "allowed_parents: [hypothesis]\n  min_parents: 1\n  max_parents: 1",
 }
@@ -80,7 +81,8 @@ def project(tmp_path):
     nd = tmp_path / "nodes"
     for ntype, slug in [("idea", "i1"), ("hypothesis", "h1"),
                         ("experiment", "e1"), ("verdict", "v1"),
-                        ("mvp", "m1"), ("outcome", "o1")]:
+                        ("mvp", "m1"), ("outcome", "o1"),
+                        ("bigger_outcome", "b1"), ("overview", "ov1")]:
         d = nd / ntype
         d.mkdir(parents=True, exist_ok=True)
         (d / f"{slug}.md").write_text(
@@ -137,11 +139,27 @@ def test_no_writer_keeps_its_own_type_table_or_prompts(writer):
 def test_the_type_table_is_all_underscores():
     for t in nw.CANONICAL_NODE_TYPES:
         assert "-" not in t, t
-    # Hyphens survive only as input aliases, and every alias resolves.
+    # Every alias resolves to a canonical type. Two kinds now live here and
+    # the distinction matters: a *spelling* alias (hyphen -> underscore) and a
+    # *rename* alias (`app_purpose` -> `vision`, 2026-08-27). The old assertion
+    # was `"-" in alias`, which silently encoded "aliases are only ever
+    # hyphens" — true until a type was renamed, and it would have rejected the
+    # rename rather than the mistake.
     for alias, canonical in nw.TYPE_ALIASES.items():
-        assert "-" in alias
-        assert canonical in nw.CANONICAL_NODE_TYPES
+        assert canonical in nw.CANONICAL_NODE_TYPES, alias
+        assert alias not in nw.CANONICAL_NODE_TYPES, f"{alias} is both alias and canonical"
         assert nw.canonical_node_type(alias) == canonical
+
+
+def test_the_renamed_type_still_resolves_from_its_old_name():
+    """`app_purpose` and `app-purpose` both land on `vision`.
+
+    Callers written against the old name keep working — the reader accepts
+    both spellings, which is the sequence S11 requires for every rename here.
+    """
+    for old in ("app_purpose", "app-purpose"):
+        assert nw.canonical_node_type(old) == "vision"
+    assert "app_purpose" not in nw.CANONICAL_NODE_TYPES
 
 
 def test_every_canonical_type_has_a_body_prompt():
@@ -219,7 +237,8 @@ def test_frontmatter_is_valid_yaml_for_every_type(project):
     parent = {"idea": [], "hypothesis": ["idea:i1"], "task": ["hypothesis:h1"],
               "experiment": ["hypothesis:h1"], "verdict": ["experiment:e1"],
               "mvp": ["verdict:v1"], "outcome": ["mvp:m1"],
-              "bigger_outcome": ["outcome:o1"], "app_purpose": ["outcome:o1"]}
+              "bigger_outcome": ["outcome:o1"], "overview": ["bigger_outcome:b1"],
+              "vision": ["overview:ov1"]}
     for ntype, parents in parent.items():
         res = nw.write_node(project, ntype, f"{ntype}-x", parents)
         assert res.status in (nw.WRITTEN,), f"{ntype}: {res.status} {res.reason}"
@@ -400,12 +419,13 @@ def test_cli_scaffold_still_writes_through_the_shared_routine(project):
     (ad / "agent.json").write_text(json.dumps({"id": "a1", "status": "run"}))
     r = subprocess.run(
         [sys.executable, str(BIN / "cli.py"), "scaffold", "1", "a1",
-         "--type", "app-purpose", "--slug", "ap", "--parent", "outcome:o1"],
+         "--type", "app-purpose", "--slug", "ap", "--parent", "overview:ov1"],
         cwd=str(project), capture_output=True, text=True,
     )
     assert r.returncode == 0, r.stderr
     assert "SPAWN-GATE APPROVED" in r.stdout
-    text = (project / "nodes" / "app_purpose" / "ap.md").read_text()
-    assert "type: app_purpose" in text
+    # Scaffolded under the OLD name and landed under the new one.
+    text = (project / "nodes" / "vision" / "ap.md").read_text()
+    assert "type: vision" in text
     rec = json.loads((ad / "agent.json").read_text())
-    assert rec["scaffolded_node"] == "app_purpose:ap"
+    assert rec["scaffolded_node"] == "vision:ap"

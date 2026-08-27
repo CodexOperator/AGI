@@ -149,10 +149,17 @@ def _load_next_edges_from_disk(graph_dir: str,
 # and never raises.
 
 # Real chains follow idea → hypothesis+ → experiment+ → verdict → mvp →
-# outcome → bigger_outcome → app_purpose: eight types, a few repeats, so a
+# outcome → bigger_outcome → overview → vision: nine types, a few repeats, so a
 # meaningful chain is tens of nodes.  512 leaves two orders of magnitude of
 # headroom while excluding the pathological 2000-hop shortcut chains.
 DEFAULT_MAX_PATH_LEN = 512
+
+# What counts as the end of a chain. `app_purpose` was renamed to `vision` on
+# 2026-08-27 and BOTH are terminal: the corpus is migrated, but a chain walk
+# that stopped recognising the old spelling would silently report every chain
+# in an unmigrated project as unterminated, which is a wrong answer rather
+# than an error. Cheap to keep, and removing it is a deliberate act.
+TERMINAL_TYPES = frozenset({"vision", "app_purpose"})
 
 # Consumers only need a count, the longest chain, and a ranked top-N.  10k
 # chains is far more than any renderer displays and bounds worst-case memory
@@ -199,7 +206,7 @@ def _make_can_reach_terminal(graph: RenderableGraph,
                 memo[nid] = False
                 stack.pop()
                 continue
-            if node.type == "app_purpose":
+            if node.type in TERMINAL_TYPES:
                 memo[nid] = True
                 stack.pop()
                 in_progress.discard(nid)

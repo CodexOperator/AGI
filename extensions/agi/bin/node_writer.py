@@ -74,9 +74,16 @@ from graph_core.identity import mint_permanent_id  # noqa: E402
 # run silently removes -- offering the option would be offering a trap.
 CANONICAL_NODE_TYPES = (
     "idea", "hypothesis", "task", "experiment", "verdict", "mvp", "outcome",
-    "bigger_outcome", "app_purpose",
+    "bigger_outcome", "overview", "vision",
 )
-TYPE_ALIASES = {"bigger-outcome": "bigger_outcome", "app-purpose": "app_purpose"}
+# `app_purpose` was renamed to `vision` on 2026-08-27 (the old name described
+# one kind of project; the node is about what the whole graph is for). Kept as
+# an alias, not deleted: the reader accepts both spellings so a caller written
+# against the old name keeps working, which is the same sequence S11 requires
+# for `level3` and the reason the hyphen aliases below are still here.
+TYPE_ALIASES = {"bigger-outcome": "bigger_outcome",
+                "app-purpose": "vision",
+                "app_purpose": "vision"}
 #: What an argparse `choices=` should accept: canonical + aliases.
 NODE_TYPES = CANONICAL_NODE_TYPES + tuple(TYPE_ALIASES)
 
@@ -93,7 +100,8 @@ BODY_PROMPTS = {
     "mvp": "## MVP\n\nWhat does this script/module do? Show the code or describe the implementation.\n\n## Inputs\n\nWhat does it take?\n\n## Outputs\n\nWhat does it produce?\n\n",
     "outcome": "## Outcome\n\nInput shape (what enters):\n\nOutput shape (what exits):\n\nBehavior (what it does):\n\nEdge cases:\n\n## i/o doc\n\n```\ninputs:\noutputs:\n```\n\n",
     "bigger_outcome": "## Bigger Outcome\n\nWhat module or purpose does this outcome serve?\n\nHow do the child outcomes compose into this?\n\n",
-    "app_purpose": "## App Purpose\n\nWhat is the top-level mission this chain serves?\n\n",
+    "overview": "## Overview\n\nWhich bigger outcomes does this read together (>=3)?\n\nWhat do they say jointly that none says alone?\n\n",
+    "vision": "## Vision\n\nWhat is the whole graph for?\n\nWhich overviews assemble into this (>=2)?\n\nWhat goals does it propose for the next season (`proposes_goals:`)?\n\n",
 }
 
 #: Frontmatter keys that lead, in this order. Everything else follows sorted,

@@ -341,7 +341,8 @@ def coverage_report(graph: "RenderableGraph") -> list[CoverageReport]:
             mvps=counts.get("mvp", 0),
             outcomes=counts.get("outcome", 0),
             bigger_outcomes=counts.get("bigger_outcome", 0),
-            app_purposes=counts.get("app_purpose", 0),
+            # both spellings; `app_purpose` was renamed `vision` 2026-08-27
+            app_purposes=counts.get("vision", 0) + counts.get("app_purpose", 0),
             total=total,
         ))
 
@@ -358,5 +359,7 @@ def _empty_counts() -> dict[str, int]:
         "mvp": 0,
         "outcome": 0,
         "bigger_outcome": 0,
+        "vision": 0,
+        "overview": 0,
         "app_purpose": 0,
     }
