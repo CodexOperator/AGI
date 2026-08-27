@@ -5,7 +5,7 @@ goal_kind: short-term
 heading_level: 2
 id: "goal:s4"
 mint_id: 351125dd5d3942a2aa032920cb12771c
-order: 71
+order: 72
 origin: goals-doc
 seeds: []
 status: horizon
