@@ -5,7 +5,7 @@ goal_kind: subgoal
 heading_level: 3
 id: "goal:g7.9"
 mint_id: 3c2c2f43062c4beabcf8fc694f561956
-order: 47
+order: 48
 origin: goals-doc
 parents:
   - goal:g7
@@ -45,3 +45,36 @@ update are being decided in a parallel session. What is fixed here is the
 
 Pairs with **S11**, **G7.5** (parse failures swallowed with zero signal) and
 **G6.6**.
+
+## A refused publish is not a no-op — observed 2026-08-27
+
+`publish-engine.sh` gates in order and refuses late, but **step 1 already
+mutated the graph**. During the `level3` -> `build` rename it refused at gate 3
+("the graph disagrees with its own contracts") — correctly — after gate 1 had
+run the *engine's* `level3.py`, which was still the pre-rename copy. That run
+wrote **184 nodes into a freshly recreated `nodes/level3/`**, each with a
+newly minted `mint_id`, none of them tracked, none of them wanted.
+
+The 5-minute grid cron then committed all 184 to `refs/grid/node/*` before
+anyone looked, so a refusal produced durable version history for nodes that
+should never have existed. They were removed by hand; `node_count` went
+970 -> 785, which is the correct number.
+
+Nothing was lost and no ids collided — checked before deleting, because "the
+scan recreated its own output under the old name" and "there are two nodes for
+one file" are different situations and only the first is safe to `rm`. But the
+property that failed is the one this goal is about: **a command that refuses
+should leave nothing behind.** Re-deriving contracts is idempotent in ordinary
+use, which is exactly why it was placed before the gates and exactly why the
+one time it was not idempotent — mid-rename, with the engine and graph
+disagreeing about a directory name — it went unnoticed until a node count was
+read.
+
+Asks, in addition to the prune guard above:
+
+- **Gate before mutating.** Every refusal check that can run first should run
+  first; contract re-derivation belongs after the graph and engine are known
+  to agree, not before.
+- **Or make the mutation reversible** — a scan that writes to a directory it
+  did not previously own should say so, loudly, and that is the same warning
+  the prune needs.

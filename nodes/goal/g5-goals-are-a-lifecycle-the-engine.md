@@ -5,7 +5,7 @@ goal_kind: long-term
 heading_level: 2
 id: "goal:g5"
 mint_id: 71c02192f832480f85cb075ad649a451
-order: 26
+order: 27
 origin: goals-doc
 seeds:
   - exp:g5-lifecycle-enforcement

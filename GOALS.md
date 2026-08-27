@@ -761,6 +761,70 @@ Depends on **G2.8** for the dial and **G2.5** for addresses that extend below a
 node. The primitive graph is the ambitious half and should not block the marker
 half, which is cheap and immediately useful.
 
+### G2.10 — A build node cannot hold a thought — the scan wipes its body — status: active
+
+🔴 **`level3.py` regenerates a build node's entire body on every run. Anything
+a model wrote there is destroyed on the next loop iteration.**
+
+Measured 2026-08-27, by writing a value and re-running the scan:
+
+| probe | result |
+|---|---|
+| prose added to a build node body | **wiped** |
+| `why: TODO(model)` filled in with a real value | **wiped** |
+
+And the corpus reads exactly as that predicts:
+
+    why/perf/security fields across 190 build nodes:  8,034
+    still reading TODO(model):                        8,034
+    ever filled:                                          0
+
+**Zero of 8,034.** That is not neglect. `[build].md` says the contract block
+is harness-owned and "a model may fill `why`/`perf`/`security`" — the schema
+states a permission the code revokes on the next scan. Any agent that spent a
+turn filling one did work that was deleted before it could be read.
+
+## Why this is a G2 goal and not a bug report
+
+**G6.8 argues build nodes belong in the graph precisely because they hold
+thought:** *"A code node ties cleanly to thought: it can spawn a hypothesis
+about itself, an experiment against itself, or just an idea. That
+bidirectionality is what makes it worth being a node rather than a record."*
+Half of that is currently false. A build node can be *cited* by a thought; it
+cannot *contain* one. Today it is exactly the "record" G6.8 says it is more
+than — 190 nodes of mechanically-derived shape with a permanently empty
+`why`.
+
+The derived half should keep being derived — that is what makes it trustworthy
+and what `stale_contracts` polices. The authored half has to survive. Concretely:
+`write_frontmatter` already merges frontmatter with `preserve=`; the body needs
+the same treatment — regenerate the mechanical `how`, carry over `why`/`perf`/
+`security` and any prose outside the markers.
+
+## This is also why the `@v2` nodes exist, and why they cannot be collapsed yet
+
+Five nodes carry `origin: build-version` and an `@v2` id
+(`build:bin-grid@v2` and four siblings). They hold **7,000–13,000 characters
+of real reasoning each** — why `sanitize()` became injective, what
+`migrate-refs` is for — and they survive **only because `level3.py` does not
+own their origin and therefore never rewrites them.**
+
+CLAUDE.md's rule is right in general: *a version is a grid commit, not a
+second node file.* But the `@v2` file is not redundancy here — **it is the
+only durable place a build artifact's reasoning can currently live.**
+Verified before proposing removal: v1 and v2 payloads are byte-identical to
+the engine for all five, so no bytes would be lost — but ~47,000 characters of
+prose would be, with nowhere to put it, because the v1 node's body is wiped on
+the next scan.
+
+**So the sequence is forced: fix the wipe, migrate the five bodies into their
+v1 nodes, then retire the `@v2` convention.** Collapsing them first would
+delete prior art to satisfy a naming rule, which is the trade this project
+has repeatedly refused. Pairs with **G6.8**, **G6.3** and **G7**.
+
+Falsifier: fill one `why:` on one build node, run `driver.sh --smoke`, and
+read it back.
+
 ## G3 — Scoring that added motion cannot move — status: active
 
 The graph is measured by goals reached, never by motion spent. This goal exists
@@ -2272,6 +2336,39 @@ update are being decided in a parallel session. What is fixed here is the
 
 Pairs with **S11**, **G7.5** (parse failures swallowed with zero signal) and
 **G6.6**.
+
+## A refused publish is not a no-op — observed 2026-08-27
+
+`publish-engine.sh` gates in order and refuses late, but **step 1 already
+mutated the graph**. During the `level3` -> `build` rename it refused at gate 3
+("the graph disagrees with its own contracts") — correctly — after gate 1 had
+run the *engine's* `level3.py`, which was still the pre-rename copy. That run
+wrote **184 nodes into a freshly recreated `nodes/level3/`**, each with a
+newly minted `mint_id`, none of them tracked, none of them wanted.
+
+The 5-minute grid cron then committed all 184 to `refs/grid/node/*` before
+anyone looked, so a refusal produced durable version history for nodes that
+should never have existed. They were removed by hand; `node_count` went
+970 -> 785, which is the correct number.
+
+Nothing was lost and no ids collided — checked before deleting, because "the
+scan recreated its own output under the old name" and "there are two nodes for
+one file" are different situations and only the first is safe to `rm`. But the
+property that failed is the one this goal is about: **a command that refuses
+should leave nothing behind.** Re-deriving contracts is idempotent in ordinary
+use, which is exactly why it was placed before the gates and exactly why the
+one time it was not idempotent — mid-rename, with the engine and graph
+disagreeing about a directory name — it went unnoticed until a node count was
+read.
+
+Asks, in addition to the prune guard above:
+
+- **Gate before mutating.** Every refusal check that can run first should run
+  first; contract re-derivation belongs after the graph and engine are known
+  to agree, not before.
+- **Or make the mutation reversible** — a scan that writes to a directory it
+  did not previously own should say so, loudly, and that is the same warning
+  the prune needs.
 
 ## G8 — Forkability: anyone grows their own tree — status: horizon
 
