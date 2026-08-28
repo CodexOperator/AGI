@@ -68,17 +68,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 218'
+  how: '`nf.read_text(encoding=''utf-8'')` at line 226'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 222'
+  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 230'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.read_text(encoding=''utf-8'')` at line 394'
+  how: '`node_file.read_text(encoding=''utf-8'')` at line 402'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -105,36 +105,36 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: _needs_quoting
-  how: 'defines private function `_needs_quoting` at line 234, signature: (sval: str)'
+  how: 'defines private function `_needs_quoting` at line 242, signature: (sval: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: render_frontmatter
-  how: 'defines public function `render_frontmatter` at line 251, signature: (fm:
+  how: 'defines public function `render_frontmatter` at line 259, signature: (fm:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: NodeWrite
-  how: defines public class `NodeWrite` at line 278
+  how: defines public class `NodeWrite` at line 286
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _is_untouched_scaffold
-  how: 'defines private function `_is_untouched_scaffold` at line 310, signature:
+  how: 'defines private function `_is_untouched_scaffold` at line 318, signature:
     (text: str, scaffold_body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_node
-  how: 'defines public function `write_node` at line 327, signature: (root, node_type,
+  how: 'defines public function `write_node` at line 335, signature: (root, node_type,
     slug, parents=None, *, extra_fm=None, body=None, heading=True, bypass=False, rules=None,
     type_index=None, fm_for_gate=None, on_exists=SKIP, announce=True)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.write_text(text, encoding=''utf-8'')` at line 413'
+  how: '`node_file.write_text(text, encoding=''utf-8'')` at line 421'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

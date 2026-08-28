@@ -70,7 +70,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: inject_path
-  how: '`inject_path.read_text(encoding=''utf-8'')` at line 386'
+  how: '`inject_path.read_text(encoding=''utf-8'')` at line 391'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -126,41 +126,41 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 326
+  how: defines public function `main` at line 331
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _unavailable_message
-  how: 'defines private function `_unavailable_message` at line 411, signature: (level:
+  how: 'defines private function `_unavailable_message` at line 416, signature: (level:
     int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _compose_big
-  how: 'defines private function `_compose_big` at line 422, signature: (inject_text:
+  how: 'defines private function `_compose_big` at line 427, signature: (inject_text:
     str, args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _compose_small
-  how: 'defines private function `_compose_small` at line 445, signature: (root: Path,
+  how: 'defines private function `_compose_small` at line 450, signature: (root: Path,
     args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _render_level
-  how: 'defines private function `_render_level` at line 494, signature: (root: Path,
+  how: 'defines private function `_render_level` at line 499, signature: (root: Path,
     args: argparse.Namespace, level: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text(content, encoding=''utf-8'')` at line 406'
+  how: '`out_path.write_text(content, encoding=''utf-8'')` at line 411'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 7 `print()` call(s) at line(s) [355, 361, 377, 384, 390, 396, 407]
+  how: 7 `print()` call(s) at line(s) [360, 366, 382, 389, 395, 401, 412]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
