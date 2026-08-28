@@ -6,6 +6,7 @@ round-trip. See `hyp:level3-node-anatomy` in the graph repo for the design
 this script implements.
 """
 
+import ast
 import importlib.util
 import subprocess
 import sys
@@ -696,3 +697,248 @@ def test_node_type_dirs_is_live_first_and_skips_absent(project):
         project / "nodes" / "build", retired]
 
     assert l3.node_type_dirs(project, "no-such-type") == []
+
+
+# --- goal:s19 — `how` is a function of the payload, not of the interpreter ---
+#
+# `ast.unparse` re-renders the AST, and its output depends on the CPython
+# version that ran it (PEP 701 rewrote f-string parsing in 3.12). One node in
+# the real corpus rendered two different ways under 3.11.15 and 3.12.3, so the
+# graph flapped between the `:37` publish cron (3.12) and any interactive run
+# (3.11 from a venv) — each flap burning a grid version on a file nobody
+# edited, and flipping `publish-engine.sh`'s first gate depending on who ran
+# last. The fix quotes the payload's own source bytes instead.
+#
+# These tests deliberately use DOUBLE quotes in their fixtures. The pre-S19
+# fixtures in this file all used single quotes, which is exactly why the suite
+# passed unchanged through the fix: `ast.unparse` normalises to single quotes,
+# so a single-quoted fixture cannot tell a source slice from a re-render.
+
+# The literal construct that flapped, from tests/schema_registry/test_brackets.py:
+# an f-string delimited with `"` containing a nested `'[]'`. 3.12 re-renders it
+# with `'` delimiters and no escaping — which is not even valid 3.11 syntax.
+_FSTRING_FIXTURE = r'''
+from pathlib import Path
+
+
+def write(d, name, fields):
+    (d / name).write_text(f"---\nfields:\n  {fields}:\n    type: string\nname: {Path(name).stem.strip('[]')}\n---\n")
+'''
+
+# A multi-line call, a comment inside a call, and a `#` inside a string
+# literal — the three things a source slice carries that a re-render does not.
+_MULTILINE_FIXTURE = r'''
+from pathlib import Path
+
+
+def save(p):
+    Path(p).write_text(
+        "a: 1\n"      # a comment inside the call
+        "b: #2\n",
+        encoding="utf-8",
+    )
+'''
+
+
+def _sole_how(analysis, section):
+    entries = analysis[section]
+    assert len(entries) >= 1, analysis
+    return entries
+
+
+def test_how_quotes_the_payload_source_rather_than_re_rendering_it():
+    """The S19 falsifier, as a unit test.
+
+    The assertion is the property itself: the backticked fragment in `how` is a
+    verbatim substring of the payload. Only a slice can satisfy that; a
+    re-render satisfies it at most by coincidence.
+
+    Note what is deliberately *not* asserted here — that the fragment differs
+    from `ast.unparse` of the same node. On this exact fixture 3.11 reproduces
+    the source byte-for-byte and 3.12 does not, so that assertion would itself
+    be interpreter-dependent. That asymmetry is the bug, not a test artefact;
+    the stable discriminator lives in
+    `test_re_rendering_is_lossy_in_a_version_independent_way` below.
+    """
+    analysis = l3.analyze_source(_FSTRING_FIXTURE.encode(), ".py", "brackets.py")
+    assert analysis["parse_ok"] is True
+    how = next(e["how"] for e in analysis["outputs"] if "write_text" in e["how"])
+    fragment = how.split("`")[1]
+
+    assert fragment in _FSTRING_FIXTURE, (
+        "`how` must quote the payload's own bytes, not a re-render")
+    assert 'write_text(f"---' in fragment, "source uses a double-quoted f-string"
+    # the indentation inside the template is content; it must survive verbatim
+    assert '\\nfields:\\n  {fields}:\\n    type: string' in fragment
+
+
+def test_re_rendering_is_lossy_in_a_version_independent_way():
+    """Why the substring assertion above has teeth, pinned on a stable case.
+
+    Every supported CPython normalises a double-quoted plain string to single
+    quotes when unparsing, so this fixture discriminates a slice from a
+    re-render on 3.11 and 3.12 alike — unlike the f-string, where the two
+    versions disagree with each other.
+    """
+    src = 'Path("a/b.txt").read_text()\n'
+    call = ast.parse(src).body[0].value
+    assert ast.unparse(call) == "Path('a/b.txt').read_text()"
+    assert l3._render(src, call) == 'Path("a/b.txt").read_text()'
+
+
+def test_derived_entry_names_are_source_slices_too():
+    """`name` goes through the same chokepoint, and it is load-bearing.
+
+    A derived `name` keys `_prior_index`, so an interpreter-dependent `name`
+    would not merely churn — it would drop a model's authored `why`/`perf`/
+    `security` on the scan that flipped it. (Measured 2026-08-28: 8,427
+    authored fields in the corpus, 0 filled, so nothing was actually lost. The
+    exposure is real regardless of whether it has been paid yet.)
+    """
+    src = 'from pathlib import Path\n\n\ndef f():\n    Path("a/b.txt").read_text()\n'
+    analysis = l3.analyze_source(src.encode(), ".py", "f.py")
+    names = [e["name"] for e in analysis["inputs"]]
+    assert 'Path("a/b.txt")' in names, names
+
+
+def test_how_is_always_one_line_even_when_the_call_is_not():
+    """`how` is one YAML scalar and `_cap`'s budget is for content, not indent."""
+    analysis = l3.analyze_source(_MULTILINE_FIXTURE.encode(), ".py", "save.py")
+    for entry in analysis["inputs"] + analysis["outputs"] + analysis["uncovered"]:
+        assert "\n" not in entry["how"], entry
+        assert "\r" not in entry["how"], entry
+        assert "\n" not in str(entry["name"]), entry
+    how = next(e["how"] for e in analysis["outputs"] if "write_text" in e["how"])
+    # the continuation lines' indentation is layout, and is joined away
+    assert 'Path(p).write_text( "a: 1\\n"' in how, how
+    # ...while the source's own quoting and its inline comment both survive,
+    # because nothing re-rendered them
+    assert 'encoding="utf-8"' in how
+    assert "# a comment inside the call" in how
+
+
+def test_one_line_never_touches_whitespace_inside_a_line():
+    """The regression that `\\s+` caused and this collapse must not.
+
+    Most of what this engine writes is indentation-sensitive — YAML fragments,
+    markdown, node bodies — carried in string literals whose `\\n` is two
+    characters and whose following spaces are content. Collapsing those reports
+    an indentation the payload does not have.
+    """
+    assert l3._one_line('f"a:\\n  b:\\n    c"') == 'f"a:\\n  b:\\n    c"'
+    assert l3._one_line("f(a,\n        b)") == "f(a, b)"
+    assert l3._one_line("  x  \n\n  y  ") == "x y"
+    assert l3._one_line(None) is None
+
+
+def test_signature_is_the_only_place_ast_unparse_still_runs():
+    """`ast.arguments` carries no position, so it is the one unslicable node.
+
+    Pinned rather than assumed, because the two obvious alternatives are both
+    wrong: a span built from the child nodes drops the `*` (vararg's position
+    starts at the NAME) and cannot see the `/` at all, and paren-matching the
+    header text needs a tokenizer — i.e. a second renderer, which is the class
+    of thing S19 removed.
+    """
+    src = "def f(a, /, b, *args, c=1, **kw) -> int:\n    return open('x').read()\n"
+    tree = ast.parse(src)
+    fn = tree.body[0]
+
+    assert ast.get_source_segment(src, fn.args) is None
+    assert l3._render(src, fn.args) == ast.unparse(fn.args)
+
+    # the child-span shortcut, shown to be unavailable
+    assert ast.get_source_segment(src, fn.args.vararg) == "args"
+
+    # everything the scanners actually render does have a position
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Call, ast.Attribute, ast.Name, ast.Constant)):
+            assert ast.get_source_segment(src, node) is not None, ast.dump(node)
+
+
+def test_scanners_refuse_to_default_the_source():
+    """A forgotten `source` must be a TypeError, never a silent re-render.
+
+    This is the shape of the original defect: nothing was wrong loudly. A
+    default of `None` here would restore `ast.unparse` behaviour for whichever
+    caller forgot, and it would be invisible until two interpreters disagreed.
+    """
+    tree = ast.parse("x = 1\n")
+    with pytest.raises(TypeError):
+        l3._scan_io_calls(tree)
+    with pytest.raises(TypeError):
+        l3._scan_top_level_defs(tree)
+
+
+def test_derived_how_and_name_round_trip_through_the_contract_yaml(tmp_path):
+    """Write-then-read must be byte-identical, or the graph is permanently dirty.
+
+    A source slice can carry quotes, `#`, backslash escapes and (before
+    `_one_line`) newlines, all of which go through `yaml.safe_dump` into the
+    BUILD-CONTRACT block and come back out through `extract_contract`. If any
+    value did not survive that trip, every scan would rewrite the node — which
+    is strictly worse than the intermittent flap S19 fixed, because it would
+    arm `publish-engine.sh`'s gate on every single run rather than half of them.
+    """
+    for label, fixture in (("fstring", _FSTRING_FIXTURE),
+                           ("multiline", _MULTILINE_FIXTURE)):
+        _id, _fm, body, analysis = l3.build_node(
+            "extensions/agi/bin/x.py", tmp_path / "x.py", None,
+            payload=fixture.encode())
+        contract, err = l3.extract_contract(body)
+        assert err is None, (label, err)
+        for section in ("inputs", "outputs"):
+            stored = [(e["name"], e["how"]) for e in contract.get(section) or []]
+            derived = [(e["name"], e["how"]) for e in analysis[section]]
+            assert stored == derived, (label, section)
+
+
+def test_derivation_is_a_fixed_point_over_its_own_output(tmp_path):
+    """Re-deriving from an unchanged payload reproduces the stored contract.
+
+    `_fill_entries` already had this property for the authored half; S19 is the
+    same property for the mechanical half, against a *second run* rather than a
+    second interpreter. The two are the same requirement — `how` is a function
+    of the payload alone — and this is the half a single-interpreter suite can
+    actually check.
+    """
+    payload = _MULTILINE_FIXTURE.encode()
+    _id, _fm, body1, _a = l3.build_node(
+        "extensions/agi/bin/x.py", tmp_path / "x.py", None, payload=payload)
+    _id, _fm, body2, _a = l3.build_node(
+        "extensions/agi/bin/x.py", tmp_path / "x.py", None, payload=payload,
+        prior_body=body1)
+    assert body1 == body2
+
+
+def test_no_engine_signature_contains_an_fstring():
+    """Guard the premise that licenses the `ast.arguments` fallback.
+
+    Signatures are the one place `ast.unparse` still runs, and an f-string is
+    the only construct these CPython versions are known to render differently.
+    Zero of this engine's top-level signatures contain one (measured
+    2026-08-28: 0 of 1,241), which is what makes the fallback safe — so the
+    premise is checked rather than assumed, because it is a fact about the
+    corpus and facts about the corpus change.
+
+    If this fails, do **not** relax the test: an f-string default or annotation
+    would reintroduce goal:s19's flap, silently and only across interpreters.
+    Either write the default some other way, or slice the parameter list out of
+    the source (which needs a tokenizer — see `_render`).
+    """
+    root = l3.DEFAULT_ENGINE_ROOT
+    offenders = []
+    n_sigs = 0
+    for path in sorted(root.glob("extensions/agi/**/*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeDecodeError, OSError, ValueError):
+            continue
+        for node in tree.body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            n_sigs += 1
+            if any(isinstance(s, ast.JoinedStr) for s in ast.walk(node.args)):
+                offenders.append(f"{path.name}:{node.lineno} {node.name}")
+    assert n_sigs > 100, f"scanned only {n_sigs} signatures — the glob is wrong"
+    assert offenders == [], offenders
