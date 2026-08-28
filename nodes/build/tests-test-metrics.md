@@ -256,6 +256,48 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_deprecated_nodes_are_counted
+  how: 'defines public function `test_deprecated_nodes_are_counted` at line 391, signature:
+    (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_node_count_does_not_drop_when_a_node_is_deprecated
+  how: 'defines public function `test_node_count_does_not_drop_when_a_node_is_deprecated`
+    at line 400, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_a_graph_with_no_deprecations_reads_zero_not_absent
+  how: 'defines public function `test_a_graph_with_no_deprecations_reads_zero_not_absent`
+    at line 417, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_lifecycle_count_is_not_goal_attribution
+  how: 'defines public function `test_lifecycle_count_is_not_goal_attribution` at
+    line 426, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_deprecated_status_tolerates_case_and_whitespace
+  how: 'defines public function `test_deprecated_status_tolerates_case_and_whitespace`
+    at line 440, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_other_statuses_are_not_deprecation
+  how: 'defines public function `test_other_statuses_are_not_deprecation` at line
+    446, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_lifecycle_counts_reach_the_metric_lines
+  how: 'defines public function `test_lifecycle_counts_reach_the_metric_lines` at
+    line 455, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: d / f'{slug}.md'
   how: '`(d / f''{slug}.md'').write_text(''\n''.join(lines))` at line 44'
   why: TODO(model)

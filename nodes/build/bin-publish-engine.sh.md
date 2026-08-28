@@ -23,7 +23,7 @@ payload_ref: extensions/agi/bin/publish-engine.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 774cd22350331538d22df407c2ae7b0ecb74465a03ed3d293d83e1d3630effd5
+content_sha256: eba099d351ab93ef8ff4be45dde36a8fbf2493cd1b70304d9d4e7b6853e54141
 inputs: []
 outputs: []
 ```
