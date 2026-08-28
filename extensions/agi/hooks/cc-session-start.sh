@@ -20,9 +20,108 @@ MAX_CACHE_AGE_SECONDS=3600   # 1 hour
 MAX_INJECT_LINES=80          # keep the injection compact for CC context
 
 # Find project root from CWD; if not in a project, exit silently.
+#
+# EVERYTHING below this line is inside a project. Nothing above it may print,
+# and nothing below it may run outside one: this hook is registered globally,
+# in ~/.claude/settings.json, for every session in every directory on the
+# machine, and its silence outside a project is the only reason that is safe.
 PROJECT_ROOT="$(find_project_root "$PWD" 2>/dev/null)" || exit 0
 if [[ -z "$PROJECT_ROOT" ]]; then
   exit 0
+fi
+
+# --- the publish alarm (goal:g7.10) ------------------------------------------
+# publish-engine.sh, the hourly :37 cron, records every run it makes in
+# context/publish-state.json. A refusal is otherwise invisible — it goes to a
+# log nobody reads, no metric moved, and the loop kept reporting success while
+# 40 consecutive refusals published nothing at all for two days. Surfacing it
+# here means the next agent to open ANY session in this project is told,
+# instead of the information waiting for someone to guess.
+#
+# Best-effort by construction: `|| true` plus a python that catches everything,
+# because a hook that can fail is a hook that gets uninstalled, and this one
+# has to keep working precisely when the project is in a broken state.
+#
+# No marker at all means silence HERE and an alarm in metrics.py, deliberately.
+# A project that never installed the publish cron has nothing to be told, and a
+# banner in every one of its sessions forever would be a false alarm loud
+# enough to get this whole mechanism switched off. `metrics.py` reports
+# `publish_blocked_reason=never-run` for the same state, which is read by
+# someone already looking at this project's numbers.
+PUBLISH_STATE="$PROJECT_ROOT/context/publish-state.json"
+if [[ -f "$PUBLISH_STATE" ]]; then
+  AGI_PUBLISH_STATE="$PUBLISH_STATE" AGI_PROJECT_ROOT="$PROJECT_ROOT" \
+    python3 - <<'PY' 2>/dev/null || true
+import json, os, time
+
+#: An hourly cron this many hours silent has stopped, not slowed.
+STALE_RUN_HOURS = 6.0
+
+path = os.environ["AGI_PUBLISH_STATE"]
+root = os.environ.get("AGI_PROJECT_ROOT", ".")
+try:
+    with open(path, encoding="utf-8") as fh:
+        state = json.load(fh)
+    if not isinstance(state, dict):
+        raise ValueError
+except Exception:
+    raise SystemExit(0)   # unreadable marker: say nothing rather than lie
+
+now = time.time()
+
+
+def _hours(key):
+    ts = state.get(key)
+    if isinstance(ts, bool) or not isinstance(ts, (int, float)) or ts <= 0:
+        return None
+    return max(0.0, (now - float(ts)) / 3600.0)
+
+since_success = _hours("last_success_epoch")
+since_run = _hours("last_run_epoch")
+status = state.get("last_run_status")
+reason = str(state.get("last_run_reason") or "") or "unknown"
+
+if status == "ok" and since_success is not None and \
+        (since_run is None or since_run < STALE_RUN_HOURS):
+    raise SystemExit(0)   # healthy — stay out of the way
+
+if since_success is None:
+    headline = "no successful publish has EVER been recorded"
+    if status != "ok":
+        headline += f", and the last run refused with `{reason}`"
+elif status != "ok":
+    headline = f"last refused with `{reason}`; last success {since_success:.1f}h ago"
+else:
+    headline = (f"the :37 cron has not run for {since_run:.1f}h; "
+                f"last success {since_success:.1f}h ago")
+
+print("## ⚠️  agi engine publish is STALLED")
+print()
+print(f"The hourly publish cron is not landing: {headline}.")
+print()
+print("**No payload bytes are lost.** `grid.py commit --all` runs on its own "
+      "ungated 5-minute cadence, so every byte under `payloads/` is already "
+      "recorded in its node's grid ref. Only the engine publish is blocked, "
+      "and it resumes by itself on the next `:37` once this clears.")
+print()
+print("Unblock it (the usual cause is one node whose stored contract differs "
+      "from what `level3.py` re-derives, which leaves the graph permanently "
+      "dirty and refuses the cron every hour, forever):")
+print()
+print("```bash")
+print(f"cd {root}")
+print("export PATH=/usr/bin:$PATH   # 3.12, or contracts re-derive dirty again")
+print("python3 agi/extensions/agi/bin/level3.py --project . --engine-root agi")
+print("git status                    # commit what this rewrote")
+print("bash agi/extensions/agi/bin/publish-engine.sh --dry-run")
+print("```")
+detail = str(state.get("last_run_detail") or "").strip().replace("\n", " ")
+if detail:
+    print()
+    print(f"Cron said: {detail[:300]}")
+print()
+print("---")
+PY
 fi
 
 INJECTION_FILE="$PROJECT_ROOT/context/INJECTION.md"
