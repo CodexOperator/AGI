@@ -632,3 +632,67 @@ def test_contract_reader_bounds_on_an_embedded_fence():
     contract, err = l3.extract_contract(body)
     assert err is None, err
     assert contract["inputs"][0]["name"] == "f"
+
+
+# --- retirement: nodes/deprecated/<type>/ (goal:g2.10) ------------------------
+
+
+def test_scan_rewrites_a_retired_node_in_place_not_at_its_old_address(project, engine):
+    """A node retired into `nodes/deprecated/build/` is updated where it lives.
+
+    Without this the scan writes a *second* file at the address a fresh mint
+    would choose, and the graph carries one id in two places — the duplicate
+    every id-keyed reader resolves differently, and the exact shape a
+    deprecation is supposed to avoid.
+    """
+    assert run(project, engine).returncode == 0
+    build_dir = project / "nodes" / "build"
+    live = sorted(build_dir.glob("*.md"))[0]
+    node_id = fm_of(live)["id"]
+
+    retired_dir = project / "nodes" / "deprecated" / "build"
+    retired_dir.mkdir(parents=True, exist_ok=True)
+    moved = retired_dir / live.name
+    live.rename(moved)
+
+    r = run(project, engine)
+    assert r.returncode == 0
+
+    assert moved.exists(), "retired node was not rewritten in place"
+    assert not (build_dir / moved.name).exists(), \
+        "scan re-minted the retired node at its live address — one id, two files"
+    assert fm_of(moved)["id"] == node_id
+
+    ids = [fm_of(p)["id"]
+           for p in list(build_dir.glob("*.md")) + list(retired_dir.glob("*.md"))]
+    assert len(ids) == len(set(ids)), f"duplicate node ids on disk: {ids}"
+
+
+def test_scan_does_not_prune_a_retired_node(project, engine):
+    """Pruning is origin-gated and path-aware; retirement must not look stale."""
+    assert run(project, engine).returncode == 0
+    build_dir = project / "nodes" / "build"
+    live = sorted(build_dir.glob("*.md"))[0]
+
+    retired_dir = project / "nodes" / "deprecated" / "build"
+    retired_dir.mkdir(parents=True, exist_ok=True)
+    moved = retired_dir / live.name
+    live.rename(moved)
+
+    r = run(project, engine)
+    assert r.returncode == 0
+    assert moved.exists(), "a retired node was pruned as stale"
+    assert "stale build-scan nodes pruned: 0" in r.stdout
+
+
+def test_node_type_dirs_is_live_first_and_skips_absent(project):
+    """Order is load-bearing: callers take the first hit, so live wins."""
+    dirs = l3.node_type_dirs(project, "build")
+    assert dirs == [project / "nodes" / "build"]
+
+    retired = project / "nodes" / "deprecated" / "build"
+    retired.mkdir(parents=True, exist_ok=True)
+    assert l3.node_type_dirs(project, "build") == [
+        project / "nodes" / "build", retired]
+
+    assert l3.node_type_dirs(project, "no-such-type") == []

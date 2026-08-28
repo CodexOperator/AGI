@@ -270,6 +270,39 @@ def test_verify_from_grid_does_not_call_an_unpublished_new_file_missing(project,
     assert [m["payload_ref"] for m in from_engine["missing_payload"]] == [rel]
 
 
+def test_verify_reads_retired_nodes_from_the_deprecated_dir(project, engine, tmp_path):
+    """goal:g2.10 — a build node retired into `nodes/deprecated/build/` is still
+    loaded, and still claims its `payload_ref`.
+
+    It has to be. A retired node that stopped being read would turn its engine
+    file into an `orphan_files` report — drift, and a refused publish — purely
+    because the node was regrouped. Deprecation changes an address, not what the
+    graph holds.
+    """
+    for rel in ENGINE_FILES:
+        mint_node(engine, project, rel)
+
+    target = "extensions/agi/bin/foo.py"
+    before, _ = st.load_level3_nodes(project)
+    assert target in {n.payload_ref for n in before}
+
+    # Retire whichever file claims that payload_ref, without assuming its name.
+    build_dir = project / "nodes" / "build"
+    live = next(p for p in build_dir.glob("*.md") if target in p.read_text())
+    retired_dir = project / "nodes" / "deprecated" / "build"
+    retired_dir.mkdir(parents=True, exist_ok=True)
+    live.rename(retired_dir / live.name)
+
+    after, _ = st.load_level3_nodes(project)
+    assert {n.node_id for n in after} == {n.node_id for n in before}
+    assert target in {n.payload_ref for n in after}
+
+    report = st.verify_tree(project, engine)
+    assert report["orphan_files"] == []
+    assert report["missing_payload"] == []
+    assert not st.has_drift(report)
+
+
 def test_verify_from_grid_still_reports_a_payload_neither_source_has(project, engine, tmp_path):
     """The category keeps its teeth: missing means *neither* source has the
     bytes. A node grid-committed before its payload existed is still drift."""

@@ -313,6 +313,34 @@ def test_abbreviated_prefix_is_found(project):
     assert nw.find_node_file(project, "exp:abbrev") == d / "abbrev.md"
 
 
+def test_retired_node_is_still_found(project):
+    """goal:g2.10 — a node retired into `nodes/deprecated/<type>/` still
+    resolves. Deprecation moves an address; it does not remove the node, and an
+    edge pointing at one has to keep resolving or the retirement silently
+    becomes a broken link.
+    """
+    d = project / "nodes" / "deprecated" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "old.md").write_text(
+        "---\nid: hypothesis:old\ntype: hypothesis\nstatus: deprecated\n---\n\nb\n")
+    assert nw.find_node_file(project, "hypothesis:old") == d / "old.md"
+
+
+def test_live_node_wins_over_a_retired_namesake(project):
+    """The lookup takes the first hit, so directory order is load-bearing: a
+    live node must never lose to a retired file of the same name."""
+    live = project / "nodes" / "hypothesis"
+    live.mkdir(parents=True, exist_ok=True)
+    (live / "dup.md").write_text("---\nid: hypothesis:dup\ntype: hypothesis\n---\n\nlive\n")
+
+    dead = project / "nodes" / "deprecated" / "hypothesis"
+    dead.mkdir(parents=True, exist_ok=True)
+    (dead / "dup.md").write_text(
+        "---\nid: hypothesis:dup\ntype: hypothesis\nstatus: deprecated\n---\n\ndead\n")
+
+    assert nw.find_node_file(project, "hypothesis:dup") == live / "dup.md"
+
+
 def test_unknown_id_is_none_not_a_guess(project):
     # G7.1: a reference that resolves to nothing is reported, never inferred.
     assert nw.find_node_file(project, "verdict:no-such-node") is None
