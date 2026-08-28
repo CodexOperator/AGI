@@ -7,10 +7,11 @@
 #
 # The sequence, and every step is a gate rather than a stage:
 #
-#   1. re-derive contracts FROM THE GRID       (level3.py --from-grid)
-#   2. verify the graph against ITSELF         (stitch --verify --from-grid --strict)
-#   3. publish                                  (stitch --out ENGINE --from-grid --publish)
-#   4. commit the engine, citing the graph commit that produced it
+#   1. re-derive contracts FROM THE GRID, into a SCRATCH WORKTREE of the graph
+#   2. verify THAT tree against itself         (stitch --verify --from-grid --strict)
+#   3. apply the scratch tree into nodes/, then record it in the grid
+#   4. publish                                  (stitch --out ENGINE --from-grid --publish)
+#   5. commit the engine, citing the graph commit that produced it
 #
 # Step 2 is the one that matters. Publishing a graph that disagrees with its own
 # contracts would put drift into the engine atomically and cleanly, which is
@@ -42,6 +43,16 @@
 # REFUSAL: exit is non-zero, `last_success_*` does not move, and the alarm keeps
 # climbing. A safety net that made the alarm read healthy would be a worse bug
 # than the one part 1 fixed.
+#
+# goal:g7.10 part 4 — A REFUSAL IS NOW A NO-OP. It was not: step 1 re-derived
+# every contract straight into `nodes/` and committed a grid version for each,
+# and only then did gate 2 get a say. A refused run during the last rename left
+# **184 junk nodes** and 184 burned grid versions behind, so "it refused" did
+# not mean "nothing happened" — which is the assumption every reader makes, and
+# the junk then armed gate 0 for the *next* run. Derivation now happens in a
+# throwaway `git worktree` of the graph, gate 2 reads that tree, and `nodes/`
+# and the grid are written only once the gate has passed. A `contracts-disagree`
+# refusal leaves the graph repo byte-identical. See `derive_into_scratch` below.
 #
 # Usage: publish-engine.sh [--engine-root DIR] [--dry-run]
 set -euo pipefail
@@ -479,6 +490,257 @@ run_fallback() {
   return 0
 }
 
+# --- the scratch derivation: refusing is a no-op (goal:g7.10 part 4) ----------
+#
+# "Either step 1 does not mutate, or a refusal rolls back what it wrote. Today
+# it does neither, and the 184 junk nodes are the proof." This is the first of
+# those two, chosen over rollback: a `git checkout -- nodes/` on the way out is
+# a second write that has to be correct while something has already gone wrong,
+# and it would happily discard a node another agent wrote into this shared
+# worktree in the meantime (G4.1). Never mutating has no such window.
+#
+# Four decisions:
+#
+#   1. A GIT WORKTREE, NOT A COPY. `stitch.py --verify --from-grid` resolves
+#      every payload out of `refs/grid/node/<mint-id>`, which lives in the graph
+#      repo's object store. A `cp -r` has no `.git`, so `--from-grid` cannot
+#      work there at all and the gate would silently degrade to checking
+#      nothing. `git worktree add --detach` shares the object store and every
+#      ref, so the scratch tree sees the same grid the real repo does. Created
+#      outside BOTH repos, for the same reason part 3's is: inside the graph it
+#      would be scanned by the very derivation it exists to hold, and inside the
+#      engine it would look to `stitch.py` like a publish target.
+#
+#   2. THE GRID COMMIT MOVED BELOW THE GATE, AND ITS OLD COMMENT WAS WRONG. It
+#      used to sit between step 1 and gate 2, explained as "the publish reads
+#      the new node versions back out". It does not: `stitch.py --from-grid`
+#      reads only the `payload` tree entry from each ref and reads node bodies
+#      off disk, so a node-body rewrite never reaches the published tree. The
+#      real dependency is narrower and is `missing_payload` — see (3). Measured
+#      on the live corpus (186 build nodes, 1061 grid refs): a scratch
+#      derivation followed by `stitch --verify --from-grid --strict` reports 0
+#      drift with no grid commit anywhere in front of it.
+#
+#   3. ...EXCEPT FOR A FILE THE GRAPH HAS NEVER RECORDED. A file authored under
+#      `payloads/` and not yet published is in neither the engine tree nor the
+#      grid, so the node `level3.py` mints for it this run reads as
+#      `missing_payload` — real drift, by stitch's own definition. Holding that
+#      node in the scratch would strand it there forever: it would never reach
+#      `nodes/`, so the `*/5` grid cron would never see it, so its payload would
+#      never enter the grid, so the gate would refuse again next hour. That is
+#      G6.1's deadlock with a new door. So a *newly minted* node — and only a
+#      newly minted one — is applied and grid-committed before the gate is
+#      retried. A new node is not junk: it is the correct, idempotent outcome of
+#      a real new file, its mint id is stable once on disk, and `level3.py` mints
+#      it on any ordinary scan too. Rewritten bodies, which is what the 184 junk
+#      nodes were, are never treated this way.
+#
+#   4. CLEANUP IS A TRAP, NOT A HAPPY PATH. This is the hourly `:37` cron; a
+#      worktree leaked per run is an hourly leak. `_scratch_cleanup` is
+#      idempotent and runs from a single EXIT trap that also calls part 3's
+#      `_fb_cleanup`, so it survives a crash, a kill, `refuse`'s `exit 1` and
+#      `on_unexpected_error`'s `exit $rc` alike. Bash restores `$?` across an
+#      EXIT trap, so cleaning up cannot change the code the caller sees.
+SCRATCH_TMP=""
+SCRATCH_WT=""
+SCRATCH_NEW_NODES=0
+
+_scratch_cleanup() {
+  local i
+  # A signal is delivered to this shell, not to the python child holding the
+  # scratch tree open, and bash runs the EXIT trap straight away. So the child
+  # outlives the cleanup by a moment and re-creates directories under it —
+  # observed: `level3.py` re-made `nodes/build/` a tenth of a second after
+  # `rm -rf`, leaving a temp dir behind on every killed run. Ask it to stop
+  # first; `pkill` is best-effort and the retry loop below is the real
+  # guarantee, so a box without procps is no worse off.
+  pkill -TERM -P $$ >/dev/null 2>&1 || true
+  if [[ -n "$SCRATCH_WT" ]]; then
+    git -C "$PROJECT_ROOT" worktree remove --force "$SCRATCH_WT" >/dev/null 2>&1 || true
+  fi
+  if [[ -n "$SCRATCH_TMP" ]]; then
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+      rm -rf "$SCRATCH_TMP" 2>/dev/null || true
+      [[ -d "$SCRATCH_TMP" ]] || break
+      sleep 0.2
+    done
+  fi
+  # The graph repo's own prune, not the engine's: part 3's `_fb_cleanup` prunes
+  # $ENGINE_ROOT and this worktree is a worktree of $PROJECT_ROOT. Two repos,
+  # two prunes; neither call is a substitute for the other.
+  git -C "$PROJECT_ROOT" worktree prune >/dev/null 2>&1 || true
+  SCRATCH_WT=""
+  SCRATCH_TMP=""
+  return 0
+}
+
+# One EXIT trap, both cleanups, composed rather than replacing either. Both are
+# no-ops when their state variables are empty, so the ordinary path pays
+# nothing and every abnormal path is covered exactly once.
+on_exit_cleanup() {
+  _scratch_cleanup
+  _fb_cleanup
+  return 0
+}
+
+# Where the scratch tree goes. Deliberately a second, independent copy of part
+# 3's tmp-root selection rather than a shared helper: part 3 landed 40 minutes
+# before this and is under its own tests, and refactoring a working safety
+# mechanism to save five lines is not a trade this file should make.
+_scratch_tmp_root() {
+  local pr er root
+  pr="$(readlink -f "$PROJECT_ROOT")"
+  er="$(readlink -f "$ENGINE_ROOT" 2>/dev/null || echo /nonexistent)"
+  root="$(readlink -f "${TMPDIR:-/tmp}" 2>/dev/null || echo /tmp)"
+  if [[ "$root" == "$pr" || "$root" == "$pr"/* || \
+        "$root" == "$er" || "$root" == "$er"/* ]]; then
+    root="/tmp"
+  fi
+  echo "$root"
+}
+
+# The one leak the EXIT trap cannot cover: SIGKILL, an OOM kill or a power cut,
+# where no trap runs at all. `git worktree prune` will not reclaim such a
+# worktree because its directory is still there, so without this it survives
+# until a human notices — and this is the hourly cron, so "until a human
+# notices" is the leak. Bounded by AGE, not by name alone: a run takes ~25s and
+# fires hourly, so nothing six hours old can be live and nothing live can be six
+# hours old. Skipped under --dry-run, which may not write, and removing
+# something is a write.
+_sweep_stale_scratch() {
+  local d
+  [[ "$DRY_RUN" == "1" ]] && return 0
+  while IFS= read -r d; do
+    [[ -z "$d" ]] && continue
+    say "sweeping a scratch tree an earlier run could not clean up: $d"
+    git -C "$PROJECT_ROOT" worktree remove --force "$d/graph" >/dev/null 2>&1 || true
+    rm -rf "$d" 2>/dev/null || true
+  done < <(find "$(_scratch_tmp_root)" -maxdepth 1 -type d \
+                -name 'agi-publish-derive.*' -mmin +360 2>/dev/null || true)
+  git -C "$PROJECT_ROOT" worktree prune >/dev/null 2>&1 || true
+  return 0
+}
+
+# Build the scratch tree and run level3.py into it. Any failure here is an
+# ordinary ERR — `on_unexpected_error` records it and the EXIT trap cleans up.
+derive_into_scratch() {
+  local tmproot
+  _sweep_stale_scratch
+  tmproot="$(_scratch_tmp_root)"
+  SCRATCH_TMP="$(mktemp -d "$tmproot/agi-publish-derive.XXXXXX")"
+  SCRATCH_WT="$SCRATCH_TMP/graph"
+  git -C "$PROJECT_ROOT" worktree add --detach --quiet "$SCRATCH_WT" HEAD
+
+  # `payloads/` is gitignored, so a worktree does not have one — and without it
+  # `level3.py`'s discovery loses `discover_payload_only_files`, which is the
+  # only way a graph-authored file is ever found. A symlink restores exactly the
+  # scope the real tree has, and nothing writes through it: `level3.py` reads
+  # payloads and writes only nodes.
+  #
+  # The `rm -rf` first is not paranoia. `payloads/` is gitignored HERE, but a
+  # project that tracks it would give the worktree a real `payloads/` directory
+  # from HEAD — and `ln -s TARGET DIR` then puts the link *inside* it, so
+  # discovery finds a file called `payloads/payloads` and mints `build:payloads`
+  # for it. That is not hypothetical; it is what the first run of the new
+  # success-path tests did. Scoped to the throwaway tree, which was created two
+  # lines above and holds nothing else.
+  if [[ -d "$PROJECT_ROOT/payloads" ]]; then
+    rm -rf "$SCRATCH_WT/payloads"
+    ln -s "$PROJECT_ROOT/payloads" "$SCRATCH_WT/payloads"
+  fi
+
+  say "re-deriving contracts from the grid, into a scratch worktree"
+  say "  ($SCRATCH_WT — nodes/ is not written until gate 2 passes)"
+  python3 "$BIN_DIR/level3.py" --project "$SCRATCH_WT" \
+          --engine-root "$ENGINE_ROOT" --from-grid
+}
+
+verify_scratch() {
+  python3 "$BIN_DIR/stitch.py" --project "$SCRATCH_WT" --verify --from-grid \
+          --engine-root "$ENGINE_ROOT" --strict
+}
+
+# Node files the scratch derivation minted that the graph does not have yet,
+# repo-relative, NUL-free by construction (node paths are slugs). Untracked and
+# not ignored is exactly "minted this run": the worktree was created at HEAD.
+scratch_new_nodes() {
+  git -C "$SCRATCH_WT" ls-files --others --exclude-standard -- nodes/
+}
+
+# Copy just those node files across and record them in the grid, so the retry of
+# gate 2 can resolve their payloads. See decision 3 above for why this is the
+# one thing allowed through ahead of the gate.
+adopt_new_nodes() {
+  local rel
+  local -a fresh=()
+  while IFS= read -r rel; do
+    [[ -z "$rel" ]] && continue
+    fresh+=("$rel")
+    mkdir -p "$PROJECT_ROOT/$(dirname "$rel")"
+    cp -p "$SCRATCH_WT/$rel" "$PROJECT_ROOT/$rel"
+    say "  adopted $rel"
+  done < <(scratch_new_nodes)
+  [[ ${#fresh[@]} -eq 0 ]] && return 0
+  python3 "$BIN_DIR/grid.py" commit "${fresh[@]}" --prefix "publish: "
+}
+
+# Make nodes/ match the scratch exactly. Byte-compared rather than copied
+# wholesale so the report is honest about how much actually moved, and pruning
+# is intersected with `git ls-files` so a derivation can only ever remove a file
+# git is already tracking — never an untracked or ignored one a human left here.
+apply_scratch() {
+  AGI_SCRATCH_NODES="$SCRATCH_WT/nodes" \
+  AGI_PROJECT_ROOT="$PROJECT_ROOT" \
+  python3 - <<'PY'
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+src = Path(os.environ["AGI_SCRATCH_NODES"])
+project = Path(os.environ["AGI_PROJECT_ROOT"])
+dst = project / "nodes"
+
+rels = {p.relative_to(src) for p in src.rglob("*") if p.is_file()}
+if not rels:
+    # H0/H0b/H0i guard. An empty derivation is never "prune everything" — that
+    # exact shape cost this project 29k nodes twice. level3.py refuses an empty
+    # scope upstream of here; this is the second lock on the same door.
+    sys.exit("ERROR: the scratch derivation holds zero node files — refusing "
+             "to apply it over nodes/")
+
+added = rewritten = pruned = 0
+for rel in sorted(rels):
+    data = (src / rel).read_bytes()
+    target = dst / rel
+    if target.is_file():
+        if target.read_bytes() == data:
+            continue
+        target.write_bytes(data)
+        rewritten += 1
+    else:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        added += 1
+
+tracked = subprocess.run(["git", "-C", str(project), "ls-files", "-z", "--", "nodes/"],
+                         capture_output=True).stdout.split(b"\0")
+for raw in tracked:
+    if not raw:
+        continue
+    rel = Path(raw.decode("utf-8")).relative_to("nodes")
+    if rel in rels:
+        continue
+    target = dst / rel
+    if target.is_file():
+        target.unlink()
+        pruned += 1
+
+print(f"[publish-engine] applied the scratch tree: {added} added, "
+      f"{rewritten} rewritten, {pruned} pruned")
+PY
+}
+
 # refuse <reason-token> <human explanation...>
 refuse() {
   local reason="$1"; shift
@@ -504,6 +766,9 @@ on_unexpected_error() {
   exit "$rc"
 }
 trap on_unexpected_error ERR
+# Registered here, after both cleanup functions exist. Every exit from this
+# script — gate refusal, unexpected failure, crash, kill — passes through it.
+trap on_exit_cleanup EXIT
 
 # --- gate 0: the graph must be committed --------------------------------------
 # A publish is a derivation. If nodes/ has uncommitted changes then the engine
@@ -526,21 +791,35 @@ if [[ -n "$(git -C "$PROJECT_ROOT" status --porcelain -- nodes/ GOALS.md)" ]]; t
   refuse "graph-dirty" "the graph has uncommitted changes under nodes/ or GOALS.md; commit them first — a published engine must cite a real graph commit"
 fi
 
-# --- step 1: contracts re-derive from the grid, not from the engine tree ------
-say "re-deriving contracts from the grid"
-python3 "$BIN_DIR/level3.py" --project "$PROJECT_ROOT" \
-        --engine-root "$ENGINE_ROOT" --from-grid
-
-# level3.py rewrites node bodies, so the grid needs the new versions before the
-# publish reads them back out. Without this the published tree would be one
-# derivation behind the nodes that describe it.
-python3 "$BIN_DIR/grid.py" commit --all --prefix "publish: "
+# --- step 1: contracts re-derive from the grid, into a scratch worktree -------
+# The whole of part 4 is the destination of this write. It used to land in
+# `nodes/`, before anything had checked it.
+derive_into_scratch
 
 # --- gate 2: the graph must agree with itself ---------------------------------
-say "verifying the graph against its own payloads"
-if ! python3 "$BIN_DIR/stitch.py" --project "$PROJECT_ROOT" --verify --from-grid \
-        --engine-root "$ENGINE_ROOT" --strict; then
-  refuse "contracts-disagree" "the graph disagrees with its own contracts; nothing published"
+say "verifying the scratch tree against its own payloads"
+if ! verify_scratch; then
+  SCRATCH_NEW_NODES="$(scratch_new_nodes | grep -c . || true)"
+  if [[ "$SCRATCH_NEW_NODES" == "0" ]]; then
+    refuse "contracts-disagree" "the graph disagrees with its own contracts; nothing published, and nothing written — nodes/ and the grid are exactly as this run found them"
+  fi
+  if [[ "$DRY_RUN" == "1" ]]; then
+    # A dry pass may not adopt nodes or write grid versions, so it cannot clear
+    # this the way a real run would. Say so instead of reporting a block that
+    # would not have happened.
+    say "  --dry-run: ${SCRATCH_NEW_NODES} newly minted node(s) would be applied and"
+    say "  --dry-run: grid-committed before this gate; that is not done here, so the"
+    say "  --dry-run: drift above may be nothing but their unpublished payloads."
+    refuse "contracts-disagree" "the graph disagrees with its own contracts; nothing published"
+  fi
+  say "  gate 2 failed with ${SCRATCH_NEW_NODES} newly minted node(s) in the scratch tree."
+  say "  A node minted this run for a file authored under payloads/ has its bytes in"
+  say "  neither the engine nor the grid yet, which reads as missing_payload. Adopting"
+  say "  just those nodes and retrying (goal:g6.1's deadlock, goal:g7.10 part 4)."
+  adopt_new_nodes
+  if ! verify_scratch; then
+    refuse "contracts-disagree" "the graph disagrees with its own contracts; nothing published (${SCRATCH_NEW_NODES} newly minted node(s) were adopted first and did not clear it)"
+  fi
 fi
 
 if [[ "$DRY_RUN" == "1" ]]; then
@@ -548,12 +827,20 @@ if [[ "$DRY_RUN" == "1" ]]; then
   exit 0
 fi
 
-# --- step 3: publish ----------------------------------------------------------
+# --- step 3: the gate passed, so now the graph may be written -----------------
+# Order is load-bearing. `grid.py commit --all` reads node bodies off disk, so
+# the apply has to precede it; and both have to follow gate 2, or a refusal is
+# still leaving junk nodes and burned versions behind, which is part 4's whole
+# subject.
+apply_scratch
+python3 "$BIN_DIR/grid.py" commit --all --prefix "publish: "
+
+# --- step 4: publish ----------------------------------------------------------
 say "publishing to $ENGINE_ROOT"
 python3 "$BIN_DIR/stitch.py" --project "$PROJECT_ROOT" --out "$ENGINE_ROOT" \
         --from-grid --publish --engine-root "$ENGINE_ROOT"
 
-# --- step 4: commit the engine, citing what produced it -----------------------
+# --- step 5: commit the engine, citing what produced it -----------------------
 if [[ -z "$(git -C "$ENGINE_ROOT" status --porcelain)" ]]; then
   # A successful publish that wrote no new bytes. Recorded as success, not as
   # a no-op: the engine matches the graph, which is the entire point, and

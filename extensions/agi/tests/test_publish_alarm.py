@@ -29,6 +29,14 @@ a safety net that made the alarm read healthy would be the same bug as an alarm
 that never fired, so parking is still a refusal (non-zero exit, `last_success_*`
 frozen, the clock still climbing) and the fallback is held to the same gate-2
 verification the real publish is.
+
+Part 4 adds a fifth, and it is about the *other* half of "silently": **a
+refusal has to be a no-op**. It was not. Step 1 re-derived every contract
+straight into `nodes/` and committed a grid version for each, and only then did
+gate 2 get a say — so a refused run during the last rename left **184 junk
+nodes** and 184 burned grid versions behind, which then armed gate 0 for the
+next run. "It refused" has to mean "nothing happened", because that is what
+every reader assumes it means.
 """
 
 import importlib.util
@@ -464,13 +472,23 @@ def _init_repo(root: Path):
     _git(root, "config", "user.name", "t")
 
 
-def _pair(tmp_path, engine_lags: bool = True, extra_nodes: dict | None = None):
+def _pair(tmp_path, engine_lags: bool = True, extra_nodes: dict | None = None,
+          staged: bool = False):
     """A real graph repo with grid-backed payloads beside a real engine repo —
     the smallest arrangement in which a pending branch can carry actual bytes.
 
     `engine_lags` rewrites one engine file *after* the grid recorded it, so the
     engine tree is genuinely behind the graph. Without that every path collapses
     to "already matched" and the interesting half is never exercised.
+
+    `staged` also lays down `<project>/payloads/`, the checkout `grid.py
+    checkout --all` produces and every real project has. It matters on the
+    success path and only there: `grid.py commit` takes no `--engine-root`, so
+    with no staged copy it resolves payloads against *its own* location on disk
+    — the real repo, not the fixture's engine — finds nothing, and records a
+    version with the payload entry dropped. Off by default because the part-3
+    tests deliberately move the *engine* tree under a fresh `grid.cmd_commit`,
+    which a staged copy would shadow.
     """
     engine = tmp_path / "engine"
     for rel, text in PAIR_FILES.items():
@@ -484,6 +502,11 @@ def _pair(tmp_path, engine_lags: bool = True, extra_nodes: dict | None = None):
     project = tmp_path / "proj"
     (project / "nodes" / "build").mkdir(parents=True)
     (project / "agi-tree.config.json").write_text("{}")
+    if staged:
+        for rel, text in PAIR_FILES.items():
+            p = project / "payloads" / rel
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(text, encoding="utf-8")
     for rel in PAIR_FILES:
         node_id, fm, body, _ = l3.build_node(rel, engine / rel, None)
         slug = node_id.split(":", 1)[-1]
@@ -763,3 +786,220 @@ def test_a_stale_pending_branch_is_rebuilt_rather_than_extended(tmp_path):
     assert _git_out(engine, "rev-parse", branch) != stale
     assert subprocess.run(["git", "merge-base", "--is-ancestor", "master", branch],
                           cwd=engine).returncode == 0
+
+
+# ---------------------------- 5. an atomic refusal (goal:g7.10 part 4)
+#
+# Section 4 is about a refusal that still gets the work somewhere. This one is
+# about a refusal that does not get anything ANYWHERE — the graph repo is left
+# exactly as the run found it. Derivation happens in a throwaway `git worktree`
+# of the graph (a worktree and not a `cp -r`, because `--from-grid` resolves
+# payloads out of `refs/grid/*` and a plain copy has no object store to read
+# them from), gate 2 reads that tree, and `nodes/` and the grid are written only
+# once the gate has passed.
+
+
+GHOST_NODE = ('---\nid: "build:ghost"\ntype: build\nlevel: 3\n'
+              'payload_ref: extensions/agi/bin/ghost.py\n---\n\nbody\n')
+
+NEW_PAYLOAD = "import json\n\n\ndef fresh():\n    return json.dumps({})\n"
+
+
+def _nodes_digest(root: Path) -> str:
+    """A hash of every byte under `nodes/`. `git status` is not enough here —
+    the claim is byte-identical, and a rewrite that happens to restore the same
+    text is a different fact from never having written."""
+    import hashlib
+    h = hashlib.sha256()
+    for p in sorted((root / "nodes").rglob("*")):
+        if p.is_file():
+            h.update(str(p.relative_to(root)).encode())
+            h.update(b"\0")
+            h.update(p.read_bytes())
+            h.update(b"\0")
+    return h.hexdigest()
+
+
+def _grid_tips(root: Path) -> dict[str, str]:
+    out = _git_out(root, "for-each-ref", "refs/grid", "--format=%(refname) %(objectname)")
+    return dict(line.split() for line in out.splitlines() if line)
+
+
+def _scratch_dirs() -> int:
+    return len(list(Path(os.environ.get("TMPDIR", "/tmp")).glob("agi-publish-derive.*")))
+
+
+def test_a_contracts_disagree_refusal_leaves_nodes_byte_identical(tmp_path):
+    """The 184 junk nodes, in miniature. `build:ghost` claims a payload that is
+    in neither the engine nor the grid, so gate 2 refuses — and `nodes/` must
+    come out of that run exactly as it went in."""
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE})
+    before = _nodes_digest(project)
+
+    r = _publish(project, engine)
+
+    assert r.returncode != 0, r.stdout + r.stderr
+    assert _read_state(project)["last_run_reason"] == "contracts-disagree"
+    assert _nodes_digest(project) == before
+    assert _git_out(project, "status", "--porcelain", "--", "nodes/") == ""
+
+
+def test_a_contracts_disagree_refusal_burns_no_grid_versions(tmp_path):
+    """The other half of the junk. `grid.py commit --all` used to run *before*
+    gate 2, so a refused run recorded a version for every node the derivation
+    had just rewritten — history of a state that was thrown away."""
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE})
+    before = _grid_tips(project)
+
+    _publish(project, engine)
+
+    assert _grid_tips(project) == before
+
+
+def test_a_refusal_says_that_it_wrote_nothing(tmp_path):
+    """"It refused" reads as "nothing happened" whether or not that is true, so
+    the message has to be the one that is."""
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE})
+
+    r = _publish(project, engine)
+
+    assert "nothing written" in r.stdout
+    assert _read_state(project)["last_run_detail"].endswith(
+        "nodes/ and the grid are exactly as this run found them")
+
+
+def test_the_scratch_worktree_never_survives_the_run(tmp_path):
+    """This is the `:37` cron. One leaked worktree per hour is the same class
+    of slow failure the whole goal exists to remove."""
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE})
+    worktrees = _git_out(project, "worktree", "list")
+    leaked = _scratch_dirs()
+
+    _publish(project, engine)
+
+    assert _git_out(project, "worktree", "list") == worktrees
+    # counted, not asserted absent: this tree is shared with other agents (G4.1)
+    assert _scratch_dirs() == leaked
+
+
+def test_the_derivation_never_touches_the_real_nodes_dir(tmp_path):
+    """Sharper than the digest check: the *mtime* of every node file has to be
+    untouched too, so a rewrite-with-identical-bytes cannot pass for a no-op."""
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE})
+    before = {p: p.stat().st_mtime_ns
+              for p in sorted((project / "nodes").rglob("*.md"))}
+
+    _publish(project, engine)
+
+    assert {p: p.stat().st_mtime_ns
+            for p in sorted((project / "nodes").rglob("*.md"))} == before
+
+
+def test_the_happy_path_still_applies_publishes_and_commits(tmp_path):
+    """Holding the derivation back is only correct if it still lands when the
+    gate passes. The engine lags the graph here, so there is something to
+    publish and the run cannot pass by doing nothing."""
+    project, engine = _pair(tmp_path, staged=True)
+    engine_head = _git_out(engine, "rev-parse", "HEAD")
+    graph_commit = _git_out(project, "rev-parse", "--short", "HEAD")
+
+    r = _publish(project, engine)
+
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert _git_out(engine, "rev-parse", "HEAD") != engine_head
+    assert graph_commit in _git_out(engine, "log", "-1", "--format=%B")
+    assert (engine / "extensions/agi/bin/foo.py").read_text() == \
+        PAIR_FILES["extensions/agi/bin/foo.py"]
+    assert _git_out(engine, "status", "--porcelain") == ""
+    state = _read_state(project)
+    assert state["last_run_status"] == "ok"
+    assert state["last_success_graph_commit"] == graph_commit
+
+
+def test_a_successful_run_applies_the_derivations_prunes_too(tmp_path):
+    """The apply has a delete half. A `build-scan` node whose payload exists
+    nowhere is pruned by `level3.py` — in the scratch tree, so the pruning only
+    reaches `nodes/` on the success path, and it does still reach it."""
+    stale = ('---\nid: "build:bin-gone"\ntype: build\nlevel: 3\n'
+             'origin: build-scan\npayload_ref: extensions/agi/bin/gone.py\n'
+             '---\n\nbody\n')
+    project, engine = _pair(tmp_path, extra_nodes={"bin-gone": stale}, staged=True)
+    assert (project / "nodes" / "build" / "bin-gone.md").is_file()
+
+    r = _publish(project, engine)
+
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert not (project / "nodes" / "build" / "bin-gone.md").exists()
+
+
+def test_a_file_authored_under_payloads_still_publishes(tmp_path):
+    """goal:g6.1's deadlock, which holding the derivation back would otherwise
+    reintroduce. A file written under `payloads/` is in neither the engine nor
+    the grid, so the node minted for it reads as `missing_payload` — real drift
+    by stitch's definition. If that node stayed in the scratch it would never
+    reach `nodes/`, so the `*/5` grid cron would never see it, so its payload
+    would never enter the grid, so the gate would refuse again next hour,
+    forever. A newly minted node is adopted before the gate is retried."""
+    project, engine = _pair(tmp_path, staged=True)
+    fresh = project / "payloads" / "extensions" / "agi" / "bin" / "fresh.py"
+    fresh.write_text(NEW_PAYLOAD, encoding="utf-8")
+
+    r = _publish(project, engine)
+
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert (project / "nodes" / "build" / "bin-fresh.md").is_file()
+    assert (engine / "extensions/agi/bin/fresh.py").read_text() == NEW_PAYLOAD
+    assert _read_state(project)["last_run_status"] == "ok"
+
+
+def test_a_newly_minted_node_is_all_a_refusal_may_leave(tmp_path):
+    """The one deliberate exception, held to its exact size. When a new payload
+    file and real drift arrive together the new node is adopted (see above) and
+    the run still refuses — and the adopted node, with its own first grid
+    version, is the *whole* of what is left behind. No re-derived bodies."""
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE}, staged=True)
+    fresh = project / "payloads" / "extensions" / "agi" / "bin" / "fresh.py"
+    fresh.write_text(NEW_PAYLOAD, encoding="utf-8")
+    tips = _grid_tips(project)
+
+    r = _publish(project, engine)
+
+    assert r.returncode != 0
+    assert _read_state(project)["last_run_reason"] == "contracts-disagree"
+    assert _git_out(project, "status", "--porcelain", "--", "nodes/").splitlines() == \
+        ["?? nodes/build/bin-fresh.md"]
+    new_refs = set(_grid_tips(project)) - set(tips)
+    assert len(new_refs) == 1
+    assert not {r for r in tips if tips[r] != _grid_tips(project).get(r)}
+
+
+def test_dry_run_writes_neither_nodes_nor_grid_versions(tmp_path):
+    """`--dry-run` is a report. It now builds a whole scratch tree to make one,
+    which is a new set of ways for it to stop being one."""
+    project, engine = _pair(tmp_path, staged=True)
+    nodes, tips, leaked = _nodes_digest(project), _grid_tips(project), _scratch_dirs()
+    worktrees = _git_out(project, "worktree", "list")
+
+    r = _publish(project, engine, "--dry-run")
+
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert _nodes_digest(project) == nodes
+    assert _grid_tips(project) == tips
+    assert not (project / STATE_REL).exists()
+    assert _git_out(engine, "status", "--porcelain") == ""
+    assert _git_out(project, "worktree", "list") == worktrees
+    assert _scratch_dirs() == leaked
+
+
+def test_dry_run_does_not_adopt_a_newly_minted_node(tmp_path):
+    """The adoption is a write, so a dry pass may not do it — and must say so
+    rather than report a block a real run would have cleared."""
+    project, engine = _pair(tmp_path, staged=True)
+    fresh = project / "payloads" / "extensions" / "agi" / "bin" / "fresh.py"
+    fresh.write_text(NEW_PAYLOAD, encoding="utf-8")
+
+    r = _publish(project, engine, "--dry-run")
+
+    assert r.returncode != 0
+    assert not (project / "nodes" / "build" / "bin-fresh.md").exists()
+    assert "would be applied and" in r.stdout
