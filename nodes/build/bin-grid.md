@@ -373,23 +373,23 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: read_crontab
-  how: defines public function `read_crontab` at line 1181
+  how: defines public function `read_crontab` at line 1199
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_crontab
-  how: 'defines public function `write_crontab` at line 1186, signature: (lines: list[str])'
+  how: 'defines public function `write_crontab` at line 1204, signature: (lines: list[str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_cron
-  how: 'defines public function `cmd_cron` at line 1194, signature: (root: Path, action:
+  how: 'defines public function `cmd_cron` at line 1212, signature: (root: Path, action:
     str, mins: int, publish_engine: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 1221
+  how: defines public function `main` at line 1239
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -401,7 +401,7 @@ outputs:
 - name: stdout
   how: 37 `print()` call(s) at line(s) [534, 536, 538, 542, 568, 632, 636, 647, 656,
     667, 668, 711, 719, 733, 778, 846, 852, 858, 884, 889, 915, 924, 925, 1020, 1025,
-    1029, 1034, 1104, 1116, 1120, 1124, 1129, 1145, 1203, 1207, 1217, 1218]
+    1029, 1034, 1104, 1116, 1120, 1124, 1129, 1145, 1221, 1225, 1235, 1236]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
