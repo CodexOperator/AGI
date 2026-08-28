@@ -153,7 +153,7 @@ evidence_fraction     0.206        primary (outcome_cov)  0.255
 unevidenced_decisive  0            shadow_decisive        0
 thought_coverage      0.011        nodes_with_thought     9
 hours_since_publish   0.01         publish_blocked_reason (empty)
-engine tests          795 passed
+engine tests          800 passed, 1 skipped
 ```
 
 Graph clean, engine clean, `publish-engine.sh --dry-run` reports all gates
@@ -259,6 +259,22 @@ a node, ask what stays behind without its file, not what is lost.**
 place keeps `node_count` flat by design, which would have made the retirement
 itself a silent event — the shape **G7** exists to forbid. `node_count` is
 still every node file; `active_node_count` is the one that moves on retirement.
+
+**Retirement now has an address: `nodes/deprecated/<type>/`.** Same per-type
+split, one level down; `status: deprecated` is declared in
+`context/schemas/[build].md` as optional (absent = live). Moving changes a
+node's **address**, never its **mint id**, so grid refs and provenance keep
+resolving. **This is the convention for every node type**, not just `build` —
+`nodes/deprecated/goal/` and the rest already have their shape.
+
+**If you write a reader, walk `nodes/` with `rglob`.** Everything that already
+did needed no change. The four that globbed a single type directory each had
+their own quiet failure waiting: `stitch.py` would report the retired node's
+engine file as an `orphan_file` and refuse the publish; `level3.py` would
+re-mint the node at its live address, putting one id in two files;
+`node_writer.py` would fail to resolve edges into it; `zoom.py` would render it
+untitled. All four now read live-first then retired, and **the order is
+load-bearing** wherever a reader takes the first hit.
 
 **G7.10 parts 1–2 built.** §1. The cron published successfully for the first
 time since it was installed.

@@ -199,11 +199,19 @@ def find_node_file(root, node_id) -> Path | None:
         return None
     root = Path(root)
     prefix, slug = node_id.split(":", 1)
+    # Live directories first, then the retired sibling `nodes/deprecated/<type>/`
+    # (goal:g2.10). Order is load-bearing: both loops below take the first hit,
+    # so a live node must win over a retired namesake. Retired nodes are still
+    # resolvable because they are still real — a deprecation moves an address,
+    # it does not remove the node, and an edge pointing at one must keep
+    # resolving or the retirement silently becomes a broken link.
     dirs = []
-    for name in (canonical_node_type(prefix), prefix.strip()):
-        d = root / "nodes" / name
-        if d not in dirs:
-            dirs.append(d)
+    names = (canonical_node_type(prefix), prefix.strip())
+    for parent in (root / "nodes", root / "nodes" / "deprecated"):
+        for name in names:
+            d = parent / name
+            if d not in dirs:
+                dirs.append(d)
 
     for d in dirs:
         f = d / f"{slug}.md"

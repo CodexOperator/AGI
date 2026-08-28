@@ -309,10 +309,15 @@ def _frontmatter_for(root: Path, dir_name: str) -> dict[str, dict]:
     from graph_core.persistence.frontmatter import load_node_file, FrontmatterError
 
     out: dict[str, dict] = {}
-    d = root / "nodes" / dir_name
-    if not d.is_dir():
+    # Live directory then its retired sibling `nodes/deprecated/<type>/`
+    # (goal:g2.10). Retired nodes are enriched too: this map supplies titles for
+    # display, and a node that appears in the graph with no title because it was
+    # regrouped reads as corruption rather than as retirement.
+    dirs = [d for d in (root / "nodes" / dir_name,
+                        root / "nodes" / "deprecated" / dir_name) if d.is_dir()]
+    if not dirs:
         return out
-    for p in sorted(d.glob("*.md")):
+    for p in [q for d in dirs for q in sorted(d.glob("*.md"))]:
         try:
             nf = load_node_file(p, body=False)
         except FrontmatterError:

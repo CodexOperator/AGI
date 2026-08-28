@@ -260,17 +260,19 @@ def load_level3_nodes(project_root: Path) -> tuple[list[Level3Node], list[str]]:
     # read: a project mid-migration (or one that never migrates) still
     # materialises, and a stitch that silently found 0 nodes would publish an
     # empty engine tree — the H0 shape with a new door.
-    level3_dir = project_root / "nodes" / "build"
-    if not level3_dir.is_dir():
-        legacy = project_root / "nodes" / "level3"
-        if legacy.is_dir():
-            level3_dir = legacy
-    if not level3_dir.is_dir():
+    # Retired build nodes live in `nodes/deprecated/build/` and are read here
+    # exactly like live ones (goal:g2.10). They must be: a retired node still
+    # *claims* its `payload_ref`, so dropping it from this scan would turn its
+    # engine file into an `orphan_files` report — drift, and a refused publish —
+    # purely because the node was regrouped. Deprecation changes an address, not
+    # what the graph holds.
+    node_dirs = level3.node_type_dirs(project_root, "build", legacy="level3")
+    if not node_dirs:
         warnings.append(f"no nodes/build/ directory under {project_root} — 0 nodes")
         return [], warnings
 
     nodes: list[Level3Node] = []
-    for md_path in sorted(level3_dir.glob("*.md")):
+    for md_path in level3.iter_type_nodes(project_root, "build", legacy="level3"):
         try:
             text = md_path.read_text(encoding="utf-8")
         except Exception as exc:

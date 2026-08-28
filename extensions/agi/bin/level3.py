@@ -81,6 +81,48 @@ import yaml
 
 ORIGIN = "build-scan"
 
+#: Sibling of the per-type node directories, holding retired nodes under the
+#: same per-type split: `nodes/deprecated/build/`, `nodes/deprecated/goal/`, …
+#:
+#: A retired node is kept, never deleted — deleting one would orphan its grid
+#: ref, which outlives the file, so removal decouples durable structure rather
+#: than removing it (goal:g2.10). Moving it changes only its **address**, which
+#: is derived and expected to change on regroup; its **mint id** is untouched,
+#: so every grid ref and every provenance link keeps resolving (goal:g2.5).
+#:
+#: Readers that walk `nodes/` with `rglob` need no change. The few that glob a
+#: single type directory do, and they call `node_type_dirs()` below rather than
+#: hardcoding one path — a reader that silently stops seeing retired nodes is
+#: how a deprecation becomes a deletion nobody authorised.
+DEPRECATED_DIRNAME = "deprecated"
+
+
+def node_type_dirs(project_root: Path, type_name: str,
+                   legacy: str | None = None) -> list[Path]:
+    """Every directory holding nodes of one type: live first, then retired.
+
+    Order matters and is live-first: callers that take the first hit (id
+    lookup, path resolution) must find the live node, not a retired namesake.
+    Only directories that exist are returned, so a project with no retired
+    nodes yields exactly what it did before this existed.
+    """
+    nodes_root = Path(project_root) / "nodes"
+    names = [type_name] + ([legacy] if legacy else [])
+    out: list[Path] = []
+    for name in names:
+        for d in (nodes_root / name,
+                  nodes_root / DEPRECATED_DIRNAME / name):
+            if d.is_dir() and d not in out:
+                out.append(d)
+    return out
+
+
+def iter_type_nodes(project_root: Path, type_name: str,
+                    legacy: str | None = None):
+    """`*.md` under every directory for one type, live first, sorted per dir."""
+    for d in node_type_dirs(project_root, type_name, legacy):
+        yield from sorted(d.glob("*.md"))
+
 #: The pre-2026-08-27 origin stamp. Read for recognition, NEVER for pruning.
 #: The asymmetry is the whole safety property: a straggler still stamped
 #: `level3-scan` is left alone rather than deleted, because "this scan does
@@ -936,13 +978,19 @@ def main(argv: list[str] | None = None) -> int:
             n_parse_fail += 1
 
         slug_part = node_id.split(":", 1)[-1]
-        out_path = level3_dir / f"{slug_part}.md"
+        # Rewrite a node where it actually lives, not where a fresh mint would
+        # put it. `load_existing_nodes()` rglobs, so it finds a node that has
+        # been regrouped — e.g. retired into `nodes/deprecated/build/`. Without
+        # this, a scan would write a *second* file at the default address and
+        # the graph would carry one id in two places, which is the duplicate
+        # every id-keyed reader resolves differently.
+        existing_path = existing.get(node_id, {}).get("path")
+        out_path = (Path(existing_path) if existing_path
+                    else level3_dir / f"{slug_part}.md")
         written_paths.add(out_path.resolve())
 
         if args.dry_run:
-            verb = "would create" if slug_part not in {
-                p.stem for p in level3_dir.glob("*.md")
-            } else "would update"
+            verb = "would update" if existing_path else "would create"
             print(f"DRY-RUN: {verb} {out_path} ({node_id})")
             continue
 
