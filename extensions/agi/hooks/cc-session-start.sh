@@ -124,6 +124,77 @@ print("---")
 PY
 fi
 
+# --- the stranded-push alarm (goal:s20) --------------------------------------
+# The block above ends where `publish-engine.sh` does: at the local commit. It
+# does not push, on the stated grounds that pushing is the hourly push cron's
+# job — and for the engine repo that cron did not exist. Both halves reported
+# success and the remote sat 3 days and 25 commits behind, found by looking at
+# GitHub. So this asks the only question the marker above cannot: is anything
+# committed here still only here?
+#
+# It does NOT reimplement the count. `metrics.py` is imported and its
+# `push_gap_stats` and `UNPUSHED_WARN_AT` are used as-is, so the banner and the
+# METRIC lines are the same measurement read twice — two readers of one fact
+# that could disagree is a drift bug this project has already paid for once.
+#
+# No network: `push_gap_stats` reads local remote-tracking refs and never
+# fetches, so a session start costs no round trip and works offline.
+#
+# Best-effort by the same argument as the block above, and silent on anything
+# it cannot measure: a fork with no remote configured is unconfigured, not
+# stranded, and a banner it can never clear is how this gets switched off.
+AGI_PROJECT_ROOT="$PROJECT_ROOT" AGI_METRICS_PY="$PLUGIN_ROOT/bin/metrics.py" \
+  python3 - <<'PY' 2>/dev/null || true
+import importlib.util
+import os
+from pathlib import Path
+
+try:
+    path = os.environ["AGI_METRICS_PY"]
+    root = os.environ["AGI_PROJECT_ROOT"]
+    spec = importlib.util.spec_from_file_location("agi_metrics_hook", path)
+    metrics = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(metrics)
+    stats = metrics.push_gap_stats(Path(root))
+    warn_at = metrics.UNPUSHED_WARN_AT
+except Exception:
+    raise SystemExit(0)   # cannot measure: say nothing rather than guess
+
+stranded = []
+for label in ("graph", "engine"):
+    n = stats.get(f"unpushed_{label}_commits")
+    if isinstance(n, int) and n >= warn_at:
+        stranded.append((label, n))
+if not stranded:
+    raise SystemExit(0)
+
+names = {"graph": "thoughtgraph", "engine": "engine"}
+print("## ⚠️  agi commits are STRANDED on this machine")
+print()
+for label, n in stranded:
+    print(f"- **{n} commits** in the {names[label]} repo are not on its remote.")
+print()
+print("The publish path landed them locally and stopped there. "
+      "`hours_since_successful_publish` measures the local commit, so a healthy "
+      "publish and a stale remote look identical from it — that combination "
+      "once left the remote 3 days and 25 commits behind, found only by looking "
+      "at GitHub.")
+print()
+print("**Nothing is lost.** The commits are on this disk. What is missing is "
+      "the push, so no other machine and no reader of the remote has them.")
+print()
+print("```bash")
+print("crontab -l | grep push      # is the hourly push cron there at all?")
+print(f"cd {root} && git status    # confirm the branch you are on is the one pushed")
+print("```")
+print()
+print("(Counted against local remote-tracking refs, which advance only when "
+      "this machine pushes or fetches — so this over-reports if someone else "
+      "pushed, and never under-reports.)")
+print()
+print("---")
+PY
+
 INJECTION_FILE="$PROJECT_ROOT/context/INJECTION.md"
 
 # Decide: rebuild or reuse cache.
