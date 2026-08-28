@@ -138,30 +138,42 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
-# SESSION HANDOFF — 2026-08-27 (evening): thought, and evidence that resolves
+# SESSION HANDOFF — 2026-08-28: the publish path can see itself now
 
 > **Read this section first if you are the next session.** Everything above is
 > the install/orientation guide and is still broadly correct. This section is
 > the current state and the work queue.
 
-## 0. State as of commit `d559a1a90` (engine `3fe6cba`)
+## 0. State as of commit `e4434d685` (engine `ba52e12`)
 
 ```
-node_count            789          goal_count             83
+node_count            790          goal_count             83
+active_node_count     785          deprecated_node_count  5
 evidence_fraction     0.206        primary (outcome_cov)  0.255
 unevidenced_decisive  0            shadow_decisive        0
-thought_coverage      0.003        nodes_with_thought     2
-engine tests          755 passed, 1 skipped
+thought_coverage      0.011        nodes_with_thought     9
+hours_since_publish   0.01         publish_blocked_reason (empty)
+engine tests          795 passed
 ```
 
 Graph clean, engine clean, `publish-engine.sh --dry-run` reports all gates
 passed. `--render --check` round-trips byte-identical.
 
-## 1. 🔴 PRIORITY — the interpreter flap, and the silent cron behind it
+**The publish cron published, for the first time ever.** From install on
+2026-08-25 it had refused 40+ consecutive times with 0 successes. It is
+unblocked and the two conditions that blocked it are fixed, not worked around.
 
-**The user has named this and §4.1 as the two things to fix next, ahead of
-everything else. Do not start further feature work until both are done.**
-Owned by **S19** (the flap) and **G7.10** (the silence that let it hide).
+`node_count` rose 789 → 790 because `test_publish_alarm.py` is a genuinely new
+file with a new node. Retirement is now tracked separately:
+`active_node_count` is the number to watch, since five nodes were retired in
+place rather than deleted and `node_count` deliberately does not drop.
+
+## 1. 🔴 PRIORITY — the interpreter flap (S19 — still open)
+
+**G7.10's half of this is now built; S19's is not.** The previous handoff named
+this pair and §4.1 as the three things to do first. §4.1 (`@v2`) is complete and
+G7.10 parts 1–2 shipped 2026-08-28. **S19 is what is left**, and it is now the
+only known cause that can still arm the publish gate silently.
 
 ### The workaround you need immediately
 
@@ -183,7 +195,7 @@ construction) and deliberately not done, because it rewrites a large share of
 Blast radius today is exactly 1 node, so the flap itself is annoying rather
 than dangerous. **What is dangerous is that nothing told anyone.**
 
-### The real defect: the cron can fail forever and say nothing — G7.10
+### G7.10 — built 2026-08-28, parts 1 and 2
 
 Gate 1 of `publish-engine.sh` refuses when the graph is dirty. That gate is
 correct. Everything around it is not:
@@ -197,26 +209,78 @@ correct. Everything around it is not:
 - S19 made it *intermittent* rather than permanent, which is worse: it looks
   healthy half the time, which is exactly when nobody investigates.
 
-**G7.10 has the full design.** Build order, and the reasoning is in the goal
-node, not repeated here:
+**Parts 1 and 2 are done.** `metrics.py` emits
+`hours_since_successful_publish`, `publish_blocked_reason`,
+`deprecated_node_count` and `active_node_count`; `publish-engine.sh` exits
+non-zero on refusal and writes `<project>/context/publish-state.json`
+(gitignored, atomic, deliberately **not** under `nodes/` — a marker written
+into the graph would arm the very gate it reports on, every run); and
+`hooks/cc-session-start.sh` surfaces a stall to the next session, while
+staying a **0-byte silent no-op outside a project**, which was re-measured.
 
-1. **An alarm that moves a number** — `hours_since_successful_publish` from
-   `metrics.py`. This idiom has already caught one defect that would otherwise
-   have shipped (`shadow_decisive_verdicts`, 0 -> 1). A failure that does not
-   move a metric is one this project cannot see.
-2. **Non-zero exit + a durable marker the `SessionStart` hook surfaces**, so
-   the next agent to open any session is told rather than having to suspect it.
+`hours_since_successful_publish` uses a 99999.0 sentinel rather than `0` when
+nothing has ever published — `0` would read as "just published", the exact
+inversion the goal exists to stop. `never-run` is reported as its own headline
+("has NEVER RUN") and not as STALLED: an alarm that fires when nothing is wrong
+gets ignored as completely as one that never fires.
+
+**Parts 3 and 4 remain open** and are why G7.10 stays `active`:
+
 3. **Branch and continue** — publish to `cron/pending-<graph-sha>` instead of
    stopping, so the bytes always land and a human fast-forwards later. This is
    the recommended default: it preserves both invariants at once.
-4. **Make the refusal atomic** — today step 1 writes and step 3 refuses.
+4. **Make the refusal atomic** — step 1 writes and step 3 refuses. **This was
+   hit twice on 2026-08-28**, both times benign (re-derived contracts, not junk
+   nodes), but it is why a refusal is never a no-op and why `git status` after
+   a failed publish shows work you did not do. It is the same defect G7.9 names
+   from the other side.
 
 Worth saying in the failure message itself, because it is the reasonable fear
 and it is wrong: **payload bytes are never lost when a publish stalls.**
 `grid.py commit --all` runs on its own ungated 5-minute cadence. Only the
-engine publish is blocked.
+engine publish is blocked. The shipped message says exactly this.
 
-## 2. What changed this session
+## 2. What changed — 2026-08-28 first, then the 2026-08-27 session below
+
+**G2.10 complete — the `@v2` collapse ran.** 47,356 characters moved verbatim
+from the five `origin: build-version` bodies into their v1 nodes' `THOUGHT`
+regions. `nodes_with_thought` 2 → 9 (five migrations plus two goal nodes).
+
+**The five `@v2` nodes were retired in place, not deleted**, and the reason is
+worth carrying: a deleted node's grid ref outlives the file, so deletion does
+not shrink the durable structure — it decouples it, leaving refs and
+`supersedes:` edges with nothing live behind them for **G10**'s hypergraph to
+untangle. Grid-refs-survive-a-delete had always been cited as what makes
+deletion *safe*; read against G10 the same fact argues the other way. Safety
+was never the binding constraint, coupling was. **When you next weigh deleting
+a node, ask what stays behind without its file, not what is lost.**
+
+**`active_node_count` / `deprecated_node_count` ship with it.** Retiring in
+place keeps `node_count` flat by design, which would have made the retirement
+itself a silent event — the shape **G7** exists to forbid. `node_count` is
+still every node file; `active_node_count` is the one that moves on retirement.
+
+**G7.10 parts 1–2 built.** §1. The cron published successfully for the first
+time since it was installed.
+
+**G6.1 — `stitch.py`'s `missing_payload` gate now asks the grid.** It read the
+engine tree unconditionally, even under `--from-grid`, which **deadlocked every
+new engine file**: `level3.py` mints a node for a file authored under
+`payloads/`, the bytes land in its grid ref, and the gate then refused to
+publish because the file was not in the engine tree — which publishing was the
+only thing that would fix. No flag reached it. Found by hitting it:
+`test_publish_alarm.py` deadlocked the publish it was written to protect.
+Missing now means *neither* source has the bytes; without `--from-grid` the
+engine-tree claim is unchanged. Recorded as `build:bin-stitch` v19.
+
+**Do not "improve" `thought_coverage`.** Still the design, now 9/790: absent
+means empty, and fabricating reasoning after the fact is forbidden because a
+made-up thought reads as evidence. Recovering real reasoning from stored
+sessions is **G10.1**'s job.
+
+---
+
+### The 2026-08-27 session
 
 **G2.10 fixed — a build node can hold a thought.** `write_frontmatter` gained
 `preserve_body=`; the body now has two named regions, `BUILD-CONTRACT`
@@ -284,27 +348,21 @@ EOF
 
 ## 4. Next most valuable, in order
 
-**The first two are set by the user, 2026-08-27, and are not to be reordered:
-`@v2` first, then the §1 pair. Everything after that is the usual judgement
-call.**
+**The previous handoff's top two are done (2026-08-28) and have been removed
+from this list: G2.10's `@v2` collapse, and G7.10 parts 1–2. What follows is
+the usual judgement call, S19 excepted — see §1.**
 
-1. **G2.10's open half — the `@v2` collapse.** The five `origin: build-version`
-   nodes hold ~47,000 characters of reasoning that now *has* somewhere to go.
-   Sequence: migrate each body into its v1 node's `THOUGHT` region, verify,
-   then retire the convention. **Retiring deletes 5 nodes and drops the node
-   count, so get explicit sign-off before removing anything** — the migration
-   itself needs none. Also note `SKILL.md`, `grid.py`, `stitch.py`,
-   `find-root.sh` and `identity.py` all resolve `@v2` as head on publish, so
-   **check which ref a payload edit actually landed in before trusting it**;
-   two nodes share each of those `payload_ref`s.
+1. **S19 — the interpreter flap.** See §1. Now the *only* known cause that can
+   still arm the publish gate silently, so it inherits the priority the pair
+   used to share. The fix is one function (`_unparse_safe` ->
+   `ast.get_source_segment`), but it rewrites a large share of 2,692 contract
+   entries, so it wants its own commit with a before/after count and a
+   two-interpreter diff as its falsifier. Until it lands, **`export
+   PATH=/usr/bin:$PATH` first, every session.**
 
-2. **S19 + G7.10 — the interpreter flap and the silent cron. See §1.** Do
-   G7.10's alarm first even if S19 takes longer: the alarm is what makes every
-   *future* stall visible, and it is a `metrics.py` addition, not a redesign.
-   S19's fix is one function (`_unparse_safe` -> `ast.get_source_segment`), but
-   it rewrites a large share of 2,692 contract entries, so it wants its own
-   commit with a before/after count and a two-interpreter diff as its
-   falsifier.
+2. **G7.10 parts 3 and 4** — branch-and-continue, and making the refusal
+   atomic. §1 has both. Part 4 is the one with fresh evidence: a refused
+   publish re-derived contracts before refusing, twice on 2026-08-28.
 
 3. **S7** — §3. Cheap to detect, and it silently hides exactly the work that is
    current. The fix has to be re-homed into the render direction now that the
@@ -331,8 +389,22 @@ call.**
    cycles, max depth 15. Must stay out of every metric traversal or it becomes
    a fresh gaming surface.
 
-## 5. Traps hit this session — do not re-learn these
+## 5. Traps hit — do not re-learn these
 
+- **A `@v2` node is the publish head, not the v1 node.** `grid.py commit --all`
+  writes an edited payload to *every* node sharing that `payload_ref`, so both
+  refs stay in sync and editing "the wrong one" is not actually possible that
+  way — but **verify before publishing** rather than assuming, because the head
+  is what ships: `grid.py payload 'build:<name>@v2' --out /tmp/x && diff`.
+  This applied to five payloads and is now history for none of them: the `@v2`
+  nodes are deprecated but still resolve as chain head.
+- **`publish-engine.sh` re-derives before it refuses.** Run it, get
+  `REFUSING [graph-dirty]`, and `git status` will show node files *you* did not
+  touch. They are legitimate re-derived contracts — commit them and re-run. Hit
+  twice on 2026-08-28. This is G7.10 part 4, still open.
+- **A `how:` field embeds a line number**, so adding a comment block near the
+  top of an engine file re-derives every contract entry below it. Expect a
+  large, boring diff and one extra commit; it is not drift.
 - **The interpreter, twice.** §1.
 - **`level3.py` run from `payloads/` makes `payloads/` the engine root** and
   correctly refuses with "discover_files returned zero files". Use
