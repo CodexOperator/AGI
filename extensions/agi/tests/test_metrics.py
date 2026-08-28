@@ -379,3 +379,83 @@ def test_goal_cycle_does_not_hang_attribution(project):
     _node(project, "hypothesis", "b", parents=["hypothesis:a"])
     m = metrics.compute(project)
     assert m["unattributed_nodes"] == 2
+
+
+# ------------------------------------------ node lifecycle (goal:g7.10)
+#
+# `status: deprecated` retires a node **file that is kept, never deleted**.
+# Retirement therefore has to be trackable over time as a number, or it is
+# indistinguishable from nothing having happened.
+
+
+def test_deprecated_nodes_are_counted(project):
+    _node(project, "build", "old", "status: deprecated")
+    _node(project, "build", "older", "status: deprecated")
+    _node(project, "build", "live", "status: active")
+    m = metrics.compute(project)
+    assert m["deprecated_node_count"] == 2
+    assert m["active_node_count"] == 1
+
+
+def test_node_count_does_not_drop_when_a_node_is_deprecated(project):
+    """G7's invariant: nothing the loop produces is silently lost. A total
+    that shrinks on retirement is exactly the shape of loss it forbids — you
+    could not tell a deprecation from a deletion. `active_node_count` is the
+    number that is allowed to move."""
+    _node(project, "build", "a")
+    _node(project, "build", "b")
+    before = metrics.compute(project)
+    assert (before["node_count"], before["active_node_count"]) == (2, 2)
+
+    _node(project, "build", "b", "status: deprecated")   # retire in place
+    after = metrics.compute(project)
+    assert after["node_count"] == before["node_count"] == 2
+    assert after["deprecated_node_count"] == 1
+    assert after["active_node_count"] == 1
+
+
+def test_a_graph_with_no_deprecations_reads_zero_not_absent(project):
+    """0 and "not computed" must not look the same: an alarm you cannot
+    distinguish from a missing metric is not an alarm."""
+    _node(project, "build", "a")
+    m = metrics.compute(project)
+    assert m["deprecated_node_count"] == 0
+    assert m["active_node_count"] == m["node_count"] == 1
+
+
+def test_lifecycle_count_is_not_goal_attribution(project):
+    """`retired_goal_nodes` counts nodes whose every answering goal is
+    retired — attribution, and a node is caught by it without anyone touching
+    it. `deprecated_node_count` counts the node's own declared status. Two
+    different questions; reusing one for the other makes both unreadable."""
+    _goal(project, "g1", "complete")
+    _node(project, "hypothesis", "under-dead-goal", parents=["goal:g1"])
+    _node(project, "build", "self-retired", "status: deprecated")
+    m = metrics.compute(project)
+    assert m["retired_goal_nodes"] == 1        # attribution only
+    assert m["deprecated_node_count"] == 1     # declaration only
+    assert m["active_node_count"] == m["node_count"] - 1
+
+
+def test_deprecated_status_tolerates_case_and_whitespace(project):
+    _node(project, "build", "a", "status: Deprecated")
+    _node(project, "build", "b", 'status: "  deprecated  "')
+    assert metrics.compute(project)["deprecated_node_count"] == 2
+
+
+def test_other_statuses_are_not_deprecation(project):
+    for i, st in enumerate(("active", "phasing-out", "complete", "pending",
+                            "open", "proved")):
+        _node(project, "build", f"n{i}", f"status: {st}")
+    m = metrics.compute(project)
+    assert m["deprecated_node_count"] == 0
+    assert m["active_node_count"] == m["node_count"]
+
+
+def test_lifecycle_counts_reach_the_metric_lines(project):
+    _node(project, "build", "a", "status: deprecated")
+    buf = io.StringIO()
+    metrics.emit(project, out=buf)
+    text = buf.getvalue()
+    assert "METRIC deprecated_node_count=1" in text
+    assert "METRIC active_node_count=0" in text

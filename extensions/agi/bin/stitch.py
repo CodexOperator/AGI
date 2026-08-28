@@ -431,13 +431,35 @@ def verify_tree(project_root: Path, engine_root: Path,
             duplicate_payload_ref[ref] = [n.node_id for n in group]
 
     # --- category 1: missing payload ------------------------------------------
+    #
+    # `from_grid` (goal:g6.1) changes where the "current" bytes come from here
+    # for the same reason it does for `stale_contracts` below: the graph is the
+    # source, and the engine tree is what falls out of it. A node whose bytes
+    # are in its grid ref is NOT missing just because the tree has not been
+    # published yet — it is unpublished, which is the condition `--publish`
+    # exists to resolve.
+    #
+    # Reading the tree unconditionally here deadlocked every *new* file (see
+    # goal:g6.1): `level3.py` mints a node for a file authored under
+    # `payloads/`, the node's payload lands in the grid, and then this gate
+    # refuses to publish because the file is not yet in the engine — which
+    # publishing is the only thing that would fix. No `--force` reaches it;
+    # `--publish` is deliberately never a side effect of `--force`. So the
+    # sanctioned "write a new file under payloads/" workflow could record a
+    # file forever and ship it never.
+    #
+    # Missing now means what the category name claims: neither source has the
+    # bytes. An engine-tree gap alone is not drift when the graph holds them.
     missing_payload = []
     if engine_readable:
         for n in nodes:
             if not n.payload_ref:
                 continue
-            if not (engine_root / n.payload_ref).is_file():
-                missing_payload.append({"node_id": n.node_id, "payload_ref": n.payload_ref})
+            if (engine_root / n.payload_ref).is_file():
+                continue
+            if from_grid and _grid_payload(project_root, n) is not None:
+                continue
+            missing_payload.append({"node_id": n.node_id, "payload_ref": n.payload_ref})
 
     # --- category 2: orphan files ----------------------------------------------
     orphan_files: list[str] = []

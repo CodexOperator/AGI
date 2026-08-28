@@ -238,6 +238,55 @@ def test_verify_finds_missing_payload(tmp_path, engine, project):
     assert st.has_drift(report)
 
 
+def test_verify_from_grid_does_not_call_an_unpublished_new_file_missing(project, engine, tmp_path):
+    """goal:g6.1 — a file the graph holds but the engine has not received yet is
+    unpublished, not missing, and `--publish` is the thing that resolves it.
+
+    This is the deadlock the engine-first read created: `level3.py` mints a node
+    for a file authored under `payloads/`, its bytes land in the grid, and then
+    this gate refused to publish because the file was not in the engine tree —
+    which publishing was the only way to fix. No flag reached it, so the
+    sanctioned "write a new file under payloads/" workflow could record a file
+    forever and ship it never.
+    """
+    rel = "extensions/agi/bin/brand_new.py"
+    (engine / rel).write_text("import os\n\n\ndef brand_new():\n    pass\n")
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    for other in ENGINE_FILES:
+        mint_node(engine, project, other)
+    mint_node(engine, project, rel)
+    _grid_project(project, engine)
+    (engine / rel).unlink()          # in the graph, not yet in the engine tree
+
+    # No drift at all, not merely an empty category 1: this is the assertion
+    # that the publish would actually proceed rather than refuse.
+    from_grid = st.verify_tree(project, engine, from_grid=True)
+    assert from_grid["missing_payload"] == []
+    assert not st.has_drift(from_grid)
+
+    # The engine-tree claim is unweakened: asked about the tree, it still says
+    # the file is absent. Only the grid-sourced question changed its answer.
+    from_engine = st.verify_tree(project, engine)
+    assert [m["payload_ref"] for m in from_engine["missing_payload"]] == [rel]
+
+
+def test_verify_from_grid_still_reports_a_payload_neither_source_has(project, engine, tmp_path):
+    """The category keeps its teeth: missing means *neither* source has the
+    bytes. A node grid-committed before its payload existed is still drift."""
+    rel = "extensions/agi/bin/foo.py"
+    mint_node(engine, project, rel)
+    _grid_project(project, engine)
+
+    ghost = "extensions/agi/bin/never_existed.py"
+    (engine / ghost).write_text("# transient\n")
+    mint_node(engine, project, ghost)   # node minted, never grid-committed
+    (engine / ghost).unlink()
+
+    report = st.verify_tree(project, engine, from_grid=True)
+    assert [m["payload_ref"] for m in report["missing_payload"]] == [ghost]
+    assert st.has_drift(report)
+
+
 def test_has_drift_false_when_all_categories_empty():
     clean = {"missing_payload": [], "orphan_files": [], "duplicate_payload_ref": {},
              "stale_contracts": [], "unreadable_contracts": []}

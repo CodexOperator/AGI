@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -43,6 +44,47 @@ DEFAULT_METRIC_PRIMARY = "outcome_coverage"
 
 #: Metrics that are descriptive only and must never be primary.
 GAMEABLE_METRICS = ("longest_chain_length",)
+
+#: Where `publish-engine.sh` records the outcome of every run it makes
+#: (goal:g7.10). Generated state, gitignored, sitting beside
+#: `context/INJECTION.md` because that is where this repo already keeps
+#: generated state. Deliberately **not** under `nodes/`: gate 0 of
+#: publish-engine.sh refuses on any uncommitted change under `nodes/`, so a
+#: publish marker written there would arm, on every single run, the exact gate
+#: it exists to report on.
+PUBLISH_STATE_PATH = ("context", "publish-state.json")
+
+#: Value emitted for `hours_since_successful_publish` when no successful
+#: publish has ever been recorded.
+#:
+#: Not `0`. Higher is worse for this metric, so `0` reads as "published
+#: seconds ago" — the most reassuring number in the range — for the worst state
+#: the system can be in. That inversion is the whole defect: the cron refused
+#: 40 times in a row, published nothing at all, and every number the loop
+#: printed looked healthy. A sentinel far above any real elapsed time (~11
+#: years) cannot be mistaken for a measurement and cannot be mistaken for good.
+NEVER_PUBLISHED_HOURS = 99999.0
+
+#: `publish_blocked_reason` when no publish state exists at all. Empty would
+#: mean "the last run succeeded", which is exactly the lie this metric exists
+#: to stop telling; a cron that has never written a marker has never published.
+NEVER_RUN_REASON = "never-run"
+
+#: `publish_blocked_reason` when the state records a refusal but names no
+#: reason. A refusal must never collapse to the same value as a success.
+UNKNOWN_REASON = "unknown"
+
+#: Longest reason token emitted. Truncated rather than dropped — a clipped
+#: reason still tells you which failure it was.
+MAX_REASON_LEN = 64
+
+#: Frontmatter `status:` that retires a node file without deleting it.
+DEPRECATED_STATUS = "deprecated"
+
+#: Anything outside this set is collapsed to `-` in a reason token. A
+#: `METRIC k=v` line is read whole, one per line, so a value carrying a space
+#: or a newline silently becomes two fields or two records.
+_REASON_UNSAFE_RE = re.compile(r"[^A-Za-z0-9._:-]+")
 
 
 def _load_graph(root: Path):
@@ -165,6 +207,111 @@ def thought_stats(nodes_dir: Path) -> dict:
     return {
         "thought_coverage": round(filled / total, 3) if total else 0.0,
         "nodes_with_thought": filled,
+    }
+
+
+def node_lifecycle_stats(nodes_dir: Path, node_count: int) -> dict:
+    """Retirement counted at the node, not at the goal it answers to.
+
+    `goal_attribution` already publishes `retired_goal_nodes`, and it answers a
+    different question: how many nodes descend *only* from goals that have been
+    retired. A node is caught by that without anyone ever touching it, and it
+    flips back the moment a live goal adopts it. This counts the node's own
+    declared lifecycle — `status: deprecated` in its frontmatter, the
+    convention for retiring a node file that is **kept, never deleted**.
+    Attribution versus declaration; conflating them would make both unreadable,
+    so they are computed apart and stay apart.
+
+    `node_count` keeps meaning every node file on disk. G7's invariant is that
+    nothing the loop produces is silently lost, and a total that shrinks when
+    work is retired is precisely the shape of loss it forbids — you could not
+    tell a deprecation from a deletion. `active_node_count` is the number that
+    is allowed to move.
+    """
+    deprecated = 0
+    for _nf, fm in _iter_frontmatter(nodes_dir):
+        st = fm.get("status")
+        if isinstance(st, str) and st.strip().lower() == DEPRECATED_STATUS:
+            deprecated += 1
+    return {
+        "deprecated_node_count": deprecated,
+        "active_node_count": max(node_count - deprecated, 0),
+    }
+
+
+def normalize_reason(value) -> str:
+    """Collapse a refusal reason to one `METRIC`-safe token.
+
+    `METRIC k=v` is a whitespace-delimited line format, so a reason containing
+    a space becomes a truncated value plus a stray field, and one containing a
+    newline becomes a second, malformed METRIC record. Neither fails loudly —
+    they just quietly stop meaning what they say, which is the failure mode
+    this whole metric exists to remove.
+    """
+    if not isinstance(value, str):
+        return ""
+    return _REASON_UNSAFE_RE.sub("-", value.strip()).strip("-")[:MAX_REASON_LEN]
+
+
+def read_publish_state(root: Path) -> dict:
+    """`context/publish-state.json` as a dict, or `{}` if unreadable.
+
+    Missing, truncated and corrupt all collapse to the same answer on purpose:
+    a state file this metric cannot read is indistinguishable from a cron that
+    never wrote one, and both must alarm.
+    """
+    try:
+        data = json.loads(root.joinpath(*PUBLISH_STATE_PATH).read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def publish_stats(root: Path, now: float | None = None) -> dict:
+    """The stalled-publish alarm (goal:g7.10 item 1).
+
+    The hourly `:37` publish cron refused 40 consecutive times and published
+    nothing at all between 2026-08-25 and 2026-08-27. Nothing caught it: the
+    refusal went to a log, `driver.sh --smoke` said nothing, the injected map
+    said nothing, and **no metric moved**. A failure that does not move a
+    number is a failure this project cannot see — the one time the idiom was
+    used (`shadow_decisive_verdicts`, 0 -> 1) it caught a defect that would
+    otherwise have shipped.
+
+    Two numbers, both read out of the marker `publish-engine.sh` writes:
+
+    `hours_since_successful_publish`
+        Time since the last publish that actually landed. Monotone in the bad
+        direction and unbounded, so a cron that stops running entirely — never
+        refusing, simply absent — climbs it just the same. No threshold lives
+        here; a threshold would be a second opinion to keep in sync.
+
+    `publish_blocked_reason`
+        Which refusal, as a single token. Empty means, and may only mean, that
+        the last run succeeded.
+    """
+    state = read_publish_state(root)
+    now = time.time() if now is None else now
+
+    ts = state.get("last_success_epoch")
+    if isinstance(ts, bool) or not isinstance(ts, (int, float)) or ts <= 0:
+        hours = NEVER_PUBLISHED_HOURS
+    else:
+        # Clamped at 0: a clock that moved backwards must not read as a
+        # publish from the future, which would be the reassuring answer again.
+        hours = round(max(0.0, (now - float(ts)) / 3600.0), 2)
+
+    status = state.get("last_run_status")
+    if not state:
+        reason = NEVER_RUN_REASON
+    elif status == "ok":
+        reason = ""
+    else:
+        reason = normalize_reason(state.get("last_run_reason")) or UNKNOWN_REASON
+
+    return {
+        "hours_since_successful_publish": hours,
+        "publish_blocked_reason": reason,
     }
 
 
@@ -406,6 +553,13 @@ def compute(root: Path) -> dict:
         "edge_count": g.edge_count,
     }
     m.update(attr)
+    # goal:g7.10 — node-level retirement, kept apart from `retired_goal_nodes`
+    # above (that one is goal attribution; this one is the node's own status).
+    m.update(node_lifecycle_stats(root / "nodes", m["node_count"]))
+    # goal:g7.10 — the stalled-publish alarm. Computed here rather than in the
+    # cron so it is reported by every `--smoke` run, including runs on a
+    # machine where the cron is not installed at all.
+    m.update(publish_stats(root))
     ev = evidence_stats(root / "nodes")
     m.update(ev)
     # goal:g2.11 — descriptive coverage of the authored THOUGHT region.
@@ -455,6 +609,36 @@ def emit(root: Path, out=None) -> dict:
             file=sys.stderr,
         )
         print(f"METRIC_WARNING goal_rotation={active}/{max_active}", file=out)
+
+    # goal:g7.10 — the publish cron must never fail silently. A non-empty
+    # `publish_blocked_reason` means the last publish did not land, so this
+    # needs no threshold of its own: the reason string is the trigger.
+    blocked = m.get("publish_blocked_reason")
+    if isinstance(blocked, str) and blocked:
+        stalled = m.get("hours_since_successful_publish")
+        never = stalled == NEVER_PUBLISHED_HOURS
+        # `never-run` is not a stall. A project that has never installed the
+        # publish cron is in a different state from one whose cron is refusing,
+        # and calling both STALLED is how an alarm earns a reputation for crying
+        # wolf — which for this goal is the whole failure mode, one level up.
+        never_run = blocked == NEVER_RUN_REASON
+        headline = (
+            "the engine publish has NEVER RUN" if never_run
+            else "the engine publish is STALLED"
+        )
+        print(
+            f"!! METRIC-WARNING {headline} (reason={blocked}). "
+            + ("No successful publish has EVER been recorded. "
+               if never else f"Last successful publish was {stalled}h ago. ")
+            + "Payload bytes are NOT lost — `grid.py commit --all` runs on its own "
+            "ungated 5-minute cron, so every byte under payloads/ is already in its "
+            "node's grid ref; only the engine publish is blocked. Unblock it with "
+            "`level3.py` + `git status` (one node whose contract re-derives "
+            "differently keeps the graph permanently dirty), commit the graph, then "
+            "`publish-engine.sh --dry-run` (goal:g7.10).",
+            file=sys.stderr,
+        )
+        print(f"METRIC_WARNING publish_stalled={blocked}", file=out)
 
     for k, v in m.items():
         print(f"METRIC {k}={v}", file=out)
