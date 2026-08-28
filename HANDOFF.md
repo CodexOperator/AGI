@@ -224,6 +224,30 @@ inversion the goal exists to stop. `never-run` is reported as its own headline
 ("has NEVER RUN") and not as STALLED: an alarm that fires when nothing is wrong
 gets ignored as completely as one that never fires.
 
+**The engine is now pushed as well as published.** `publish-engine.sh` commits
+the engine and deliberately does not push — "pushing is the hourly cron's job" —
+but **for the engine repo that cron did not exist**, so its commits accumulated
+locally and the remote sat **3 days and 25 commits stale** while every gate
+reported healthy. `grid.py cron_lines()` now emits a fourth entry under
+`--publish-engine`: `47 * * * * git -C <engine> push -q origin HEAD`, ten
+minutes after the :37 publish. It pushes `HEAD`, not a branch fixed at install
+time, so it cannot silently push the wrong branch the way the
+`iter24-extend-300hop` incident did.
+
+**Do not hand-add cron lines.** `cron install` deletes every line carrying its
+log marker and rewrites them, so a hand-added entry disappears at the next
+install without a word. Add it to `cron_lines()` and reinstall with
+`grid.py cron install --publish-engine` — **the flag is required**, or the
+install silently drops the publish and push entries.
+
+🔴 **Known hole, and it is the one that just bit:**
+`hours_since_successful_publish` measures the **local commit, not the push**.
+A publish that succeeds and a remote that never receives it reads as perfectly
+healthy — exactly the 3-day outage above. The alarm covers one half of the
+path. Closing it wants a `hours_since_successful_push` (or making the :47 push
+write into `publish-state.json` the way `publish-engine.sh` does), and it
+belongs with parts 3 and 4 below.
+
 **Parts 3 and 4 remain open** and are why G7.10 stays `active`:
 
 3. **Branch and continue** — publish to `cron/pending-<graph-sha>` instead of
@@ -376,9 +400,11 @@ the usual judgement call, S19 excepted — see §1.**
    two-interpreter diff as its falsifier. Until it lands, **`export
    PATH=/usr/bin:$PATH` first, every session.**
 
-2. **G7.10 parts 3 and 4** — branch-and-continue, and making the refusal
-   atomic. §1 has both. Part 4 is the one with fresh evidence: a refused
-   publish re-derived contracts before refusing, twice on 2026-08-28.
+2. **G7.10 parts 3 and 4, plus the push hole** — branch-and-continue, making
+   the refusal atomic, and making a stale *remote* move a number the way a
+   stalled publish now does. §1 has all three. Part 4 has fresh evidence: a
+   refused publish re-derived contracts before refusing, twice on 2026-08-28.
+   The push hole has fresher: it hid a 3-day outage from every gate.
 
 3. **S7** — §3. Cheap to detect, and it silently hides exactly the work that is
    current. The fix has to be re-homed into the render direction now that the
