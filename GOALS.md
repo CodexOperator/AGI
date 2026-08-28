@@ -903,11 +903,6 @@ a metric added alongside this work rather than as a count that quietly drops.
 **G7**'s invariant is about silent loss, and a shrinking total is exactly the
 shape that hides it.
 
-`status: deprecated` is new for build nodes and is **not yet in
-`context/schemas/[build].md`** — nothing rejects it (schema validation runs on
-the writer path, not over nodes on disk), but declaring it is a real residual
-and belongs to whoever next touches the build schema.
-
 Idempotence verified, because a derivation that does not reproduce its own
 stored value is **G6.5**'s silent-cron failure: a full `level3.py` scan over
 all 185 discovered engine files reproduced all five v1 files byte-for-byte and
@@ -915,6 +910,40 @@ changed nothing corpus-wide. The `THOUGHT` regions sit after the derived
 trailer, which is where `splice_thought` re-inserts a carried region — placing
 them between `BUILD-CONTRACT:END` and the trailer would have made every scan
 rewrite the file and left the graph permanently dirty.
+
+## Residual closed 2026-08-28 — retirement is declared, and has an address
+
+`status: deprecated` is now declared in `context/schemas/[build].md`, as an
+**optional** field: absent means live, and it is deliberately not in `required`,
+since adding it there would invalidate 185 nodes to express a default.
+
+**A retired node now moves to `nodes/deprecated/<type>/`** — the same per-type
+split, one level down. That changes its **address**, which is derived and
+expected to change on regroup, and never its **mint id**, so every grid ref and
+provenance link keeps resolving (**G2.5**). Git recorded all five as renames.
+
+Readers that walk `nodes/` recursively needed nothing — `metrics.py`,
+`grid.py`, `snapshot-goals.py`, `evidence_gate.py`, `snapshot-build-site.py`
+and the rest already `rglob`. **Four globbed a single type directory and would
+have silently stopped seeing retired nodes**, which is how a deprecation turns
+into a deletion nobody authorised:
+
+| reader | why it matters |
+|---|---|
+| `stitch.py` | a retired node still **claims** its `payload_ref`; dropping it turns the engine file into an `orphan_files` report — drift, refused publish |
+| `level3.py` | must rewrite a node **where it lives**, or a scan re-mints it at the live address and one id exists in two files |
+| `node_writer.py` | an edge pointing at a retired node has to keep resolving |
+| `zoom.py` | display enrichment; a node with no title reads as corruption, not retirement |
+
+All four now read live directory first, then the retired sibling. **The order
+is load-bearing** wherever a reader takes the first hit: a live node must win
+over a retired namesake, and that has its own test.
+
+Verified: `node_count` 790, `active_node_count` 785, `deprecated_node_count` 5 —
+**identical before and after the move**, which is the property that says the
+regroup is an addressing change and nothing else. `stitch --verify --from-grid`
+reports the same 191 nodes, 5 version chains, 0 orphans, 0 drift. A full scan
+reports 0 nodes created and 0 pruned. Tests 794 → 800.
 
 ### G2.11 — Every node version carries the thought that produced it — status: complete
 

@@ -189,6 +189,19 @@ out before trusting any push** — work once accumulated on a stale
   by id.
 - Retire a goal by marking it `phasing-out` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
+- **Retire a node with `status: deprecated` and move it to
+  `nodes/deprecated/<type>/`** — same per-type split, one level down. Never
+  `git rm` it. The reason is mechanical, not sentimental: a node's grid ref
+  outlives its file, so deleting the file does not shrink the durable structure,
+  it *decouples* it — leaving a ref and any `supersedes:` edges with nothing
+  live behind them for G10's hypergraph to reconcile. Moving changes the node's
+  **address** (derived, expected to change) and never its **mint id**, so every
+  ref and provenance link keeps resolving. `node_count` deliberately does not
+  drop; watch `active_node_count` / `deprecated_node_count` instead.
+  **Readers that glob one type directory must read the retired sibling too,
+  live-first** — `stitch.py`, `level3.py`, `node_writer.py` and `zoom.py` do.
+  A reader that stops seeing a retired node fails quietly and in its own way
+  (orphaned engine file, re-minted duplicate, unresolvable edge, missing title).
 - **`GOALS.md` is derived, not the goal nodes.** The arrow reversed on
   2026-08-25 (G6.9, commit `2b204a5d4`) and this line said the opposite until
   2026-08-26. `driver.sh` runs `snapshot-goals.py --render` and nothing else,

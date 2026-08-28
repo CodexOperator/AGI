@@ -11,6 +11,7 @@ fields:
   tags: {type: list}
   supersedes: {type: str}
   version: {type: int}
+  status: {type: str}         # absent = live; `deprecated` = retired in place
 validation:
   required: [id, type, mint_id, title, build_kind, payload_ref, origin, confidence, tags]
   types:
@@ -108,6 +109,43 @@ it is stated here and enforced by the writer.
 **A stored value the derivation does not reproduce makes the graph
 permanently dirty**, which silently shuts the publish cron's first gate — one
 character of YAML quoting did that for weeks before 2026-08-27. See G6.5.
+
+## `status: deprecated` — retirement, and where a retired node lives
+
+**Absent means live.** `status` is optional and unset on every live build node;
+it is not in `required` for that reason, and adding it there would invalidate
+185 nodes to express a default.
+
+`deprecated` marks a node retired in place. **A retired node is kept, never
+deleted.** The reason is not sentiment about prior art — it is that a node's
+grid ref (`refs/grid/node/<mint-id>`) *outlives its file*. Deleting the file
+does not shrink the durable structure; it decouples it, leaving a ref and any
+`supersedes:` edges with nothing live behind them. An orphaned ref is worse
+than a marked-dead file, and G10's hypergraph is what would have to reconcile
+the difference.
+
+A retired node moves to **`nodes/deprecated/<type>/`** — the same per-type
+split, one level down. That changes its **address**, which is derived and
+expected to change on regroup, and never its **mint id**, so every grid ref and
+provenance link keeps resolving (goal:g2.5).
+
+Retirement is deliberately **not** visible in `node_count`, which still counts
+every node file. It shows up in `active_node_count` and `deprecated_node_count`
+instead. A shrinking total is the shape that hides loss, which is what G7
+forbids; a flat total plus a second number that moves is what makes retiring in
+place trackable rather than silent.
+
+Readers that walk `nodes/` recursively need nothing. The four that globbed a
+single type directory — `stitch.py`, `level3.py`, `node_writer.py`, `zoom.py` —
+read both, live first. **The order is load-bearing** wherever a reader takes the
+first hit: a live node must win over a retired namesake. And `stitch.py` must
+keep reading retired nodes at all, because a retired node still *claims* its
+`payload_ref` — dropping it would turn its engine file into an `orphan_files`
+report and refuse the publish, purely because the node was regrouped.
+
+`level3.py` writes a node back to **the path it already occupies**, not the
+address a fresh mint would choose, so a scan cannot recreate a retired node at
+its live address and leave one id in two files.
 
 ## The `THOUGHT` block (goal:g2.11)
 
