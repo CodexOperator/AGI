@@ -773,7 +773,7 @@ Depends on **G2.8** for the dial and **G2.5** for addresses that extend below a
 node. The primitive graph is the ambitious half and should not block the marker
 half, which is cheap and immediately useful.
 
-### G2.10 — A build node cannot hold a thought — the scan wipes its body — status: active
+### G2.10 — A build node cannot hold a thought — the scan wipes its body — status: complete
 
 🔴 **`level3.py` regenerates a build node's entire body on every run. Anything
 a model wrote there is destroyed on the next loop iteration.**
@@ -815,6 +815,11 @@ the same treatment — regenerate the mechanical `how`, carry over `why`/`perf`/
 
 ## This is also why the `@v2` nodes exist, and why they cannot be collapsed yet
 
+> **Superseded 2026-08-27 — kept as the reasoning that set the sequence, not as
+> current state.** The migration has since run and the convention is retired;
+> see the final section. The five nodes no longer hold the prose described
+> below, and they were retired in place rather than deleted.
+
 Five nodes carry `origin: build-version` and an `@v2` id
 (`build:bin-grid@v2` and four siblings). They hold **7,000–13,000 characters
 of real reasoning each** — why `sanitize()` became injective, what
@@ -837,7 +842,7 @@ has repeatedly refused. Pairs with **G6.8**, **G6.3** and **G7**.
 Falsifier: fill one `why:` on one build node, run `driver.sh --smoke`, and
 read it back.
 
-## Fixed 2026-08-27 — the wipe is closed; the `@v2` migration is not
+## Fixed 2026-08-27 — the wipe is closed
 
 `write_frontmatter` gained `preserve_body=`, and the three regenerating
 writers (`level3.py`, `snapshot-build-site.py`, `decompose-engine.py` — all
@@ -864,12 +869,52 @@ because a derivation that does not reproduce its own stored value is
 source had changed and nothing else, and `stitch --verify --from-grid
 --strict` reported 0 drift in all four categories.
 
-**Still open, and the reason this stays `active`:** the five
-`origin: build-version` `@v2` nodes still hold ~47,000 characters of reasoning
-that now *has* somewhere to go. The sequence this goal set out — fix the wipe,
-migrate the five bodies into their v1 nodes' `THOUGHT` regions, then retire the
-convention — is one step in. Retiring it deletes 5 nodes and drops the node
-count, so it wants explicit sign-off rather than a quiet cleanup.
+## Complete 2026-08-27 — the migration ran; the `@v2` convention is retired
+
+The sequence this goal set out is finished. **47,356 characters of reasoning
+moved** from the five `origin: build-version` bodies into their v1 nodes'
+`THOUGHT` regions, verbatim, each carrying a one-line provenance note naming
+where it was authored:
+
+| v1 node | body before → after | THOUGHT |
+|---|---|---|
+| `build:bin-grid` | 13,113 → 26,399 | 13,284 |
+| `build:src-graph-core-identity` | 5,380 → 18,135 | 12,753 |
+| `build:bin-stitch` | 6,780 → 14,590 | 7,808 |
+| `build:lib-find-root.sh` | 1,161 → 8,755 | 7,592 |
+| `build:skills-agi-SKILL.md` | 1,118 → 8,525 | 7,405 |
+
+`nodes_with_thought` 2 → 7, `thought_coverage` 0.003 → 0.009.
+
+**The five `@v2` nodes were retired in place, not deleted** — `status:
+deprecated`, files kept, mint ids kept, `supersedes:` edges kept, grid refs
+kept. Deletion was offered and explicitly rejected by the owner: a deleted
+node's grid ref outlives the file, so removing the five would not shrink the
+durable structure, it would decouple it — leaving refs and edges with nothing
+live behind them for **G10**'s hypergraph to reconcile later. An orphaned ref
+is worse than a marked-dead file. Each retired body is now a tombstone naming
+the v1 node its reasoning went to; the original text stays readable through
+the node's own ref.
+
+**`node_count` deliberately does not move** (789 before and after). That is
+what makes the retirement itself trackable rather than silent: retirement is
+now visible as `active_node_count` (784) against `deprecated_node_count` (5),
+a metric added alongside this work rather than as a count that quietly drops.
+**G7**'s invariant is about silent loss, and a shrinking total is exactly the
+shape that hides it.
+
+`status: deprecated` is new for build nodes and is **not yet in
+`context/schemas/[build].md`** — nothing rejects it (schema validation runs on
+the writer path, not over nodes on disk), but declaring it is a real residual
+and belongs to whoever next touches the build schema.
+
+Idempotence verified, because a derivation that does not reproduce its own
+stored value is **G6.5**'s silent-cron failure: a full `level3.py` scan over
+all 185 discovered engine files reproduced all five v1 files byte-for-byte and
+changed nothing corpus-wide. The `THOUGHT` regions sit after the derived
+trailer, which is where `splice_thought` re-inserts a carried region — placing
+them between `BUILD-CONTRACT:END` and the trailer would have made every scan
+rewrite the file and left the graph permanently dirty.
 
 ### G2.11 — Every node version carries the thought that produced it — status: complete
 
@@ -2657,6 +2702,58 @@ must cite a graph commit that exists. The defect is everything around it:
 4. **Make the refusal atomic.** Either step 1 does not mutate, or a refusal
    rolls back what it wrote. Today it does neither, and the 184 junk nodes are
    the proof.
+
+## Parts 1 and 2 built 2026-08-27 — the failure now moves a number
+
+Scoped to the alarm and the marker; **parts 3 and 4 are deliberately not
+built** and are what keeps this goal `active`.
+
+**The alarm.** `metrics.py` emits four new lines, verified live against the
+real graph:
+
+```
+METRIC hours_since_successful_publish=99999.0
+METRIC publish_blocked_reason=never-run
+METRIC deprecated_node_count=5
+METRIC active_node_count=784
+```
+
+`hours_since_successful_publish` uses a sentinel rather than `0` when nothing
+has ever published, because higher is worse for this metric and `0` would read
+as "just published" — the precise inversion this goal exists to stop. The cron
+refused 40 times and published nothing; a metric that reported that as healthy
+would have been worse than no metric. `publish_blocked_reason` is normalised to
+a single token, since `METRIC k=v` is a whitespace-delimited line format and a
+reason containing a space would truncate or corrupt the line.
+
+**The marker.** `<project>/context/publish-state.json`, atomic write-then-rename,
+gitignored beside `context/INJECTION.md` — machine state about one checkout, not
+graph content. **It is deliberately not under `nodes/`:** gate 0 refuses on any
+uncommitted change there, so a marker written into the graph would arm, on every
+run, the exact gate it exists to report on. It carries `last_success_*` forward
+across refusals, so a two-day outage stays distinguishable from a fresh install.
+
+**The reach.** `publish-engine.sh` now exits non-zero on refusal (gate 2 and the
+unexpected-failure path joined gate 0, which already did), and
+`hooks/cc-session-start.sh` surfaces a stalled publish to the next agent to open
+any session. The hook's **silent no-op outside a project is preserved and was
+re-measured at 0 bytes** — that property is what makes global registration safe,
+and an alarm is not worth breaking it for.
+
+The failure message states the reassuring true thing, because the reasonable
+fear when a publish stalls is that work is evaporating and it is wrong:
+**payload bytes are never lost.** `grid.py commit --all` runs on its own ungated
+5-minute cadence; only the engine publish is blocked.
+
+**Also shipped here, from outside this goal's text:** `deprecated_node_count`
+and `active_node_count`, node-level lifecycle counts kept strictly separate from
+`retired_goal_nodes` (which answers a different question — goal attribution, not
+node status). They exist because **G2.10** retired five nodes in place rather
+than deleting them, which by design leaves `node_count` flat; without a second
+number the retirement would itself have been a silent event.
+
+Tests: 755 → **792 passed, 1 skipped**. 37 new, no existing test needed
+changing.
 
 ## The design principle underneath
 
