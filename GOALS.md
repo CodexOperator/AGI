@@ -2734,8 +2734,9 @@ must cite a graph commit that exists. The defect is everything around it:
 
 ## Parts 1 and 2 built 2026-08-27 — the failure now moves a number
 
-Scoped to the alarm and the marker; **parts 3 and 4 are deliberately not
-built** and are what keeps this goal `active`.
+Scoped to the alarm and the marker; parts 3 and 4 were **deliberately left out
+of that build**. Part 3 shipped on 2026-08-28 (below); **part 4 remains open and
+is what keeps this goal `active`.**
 
 **The alarm.** `metrics.py` emits four new lines, verified live against the
 real graph:
@@ -2783,6 +2784,132 @@ number the retirement would itself have been a silent event.
 
 Tests: 755 → **792 passed, 1 skipped**. 37 new, no existing test needed
 changing.
+
+## Part 3 built 2026-08-28 — a refusal that keeps working
+
+Branch-and-continue, the option this goal named as the recommended default.
+The force-record half was already shipped with parts 1–2 (`say_bytes_are_safe()`).
+**Part 4 is still open and this goal stays `active`.**
+
+**What it does.** When `publish-engine.sh` refuses for a reason that is about
+*attribution* rather than *content*, it materialises the same tree it would have
+published and commits it to `cron/pending-<graph-sha>` in the engine. **Local
+only — it is never pushed**, and no `--push-fallback` flag exists. The header's
+standing invariant, "push. Pushing is the existing hourly cron's job; this only
+commits", is unchanged. The alarm is what tells a human to look; the branch is
+what is there when they do.
+
+**A detached worktree, not a branch switch.** `git checkout -b` in the engine's
+own checkout, write, commit, switch back is racy against every other reader of
+that tree, and this project has already lost work to that exact shape — commits
+piled up on an `iter24-extend-300hop` branch while a cron pushed `master` and
+published nothing. Instead: `git worktree add --detach` into a temporary
+directory **outside both repos**, stitch into it, commit there, move the branch
+ref, remove the worktree. Outside both repos is load-bearing — `stitch.py`
+refuses to write into the graph repo at all, and treats any path inside the
+engine repo as a `--publish`, which would gate parking on the engine's own
+working tree being clean, a condition a private worktree has no business
+needing. The engine's HEAD, branch and cleanliness are **asserted** unchanged
+afterwards, not assumed; a mismatch is recorded as `parked-but-engine-moved`.
+
+**Idempotency is a diff, not a clock.** This is the `:37` cron: a graph dirty
+for three days is 72 runs, and 72 commits of identical bytes is manufactured
+junk of the same kind as the 184 junk nodes a refused run once left behind. The
+worktree is based on the pending branch's own tip when that tip already contains
+the engine's HEAD, and a commit happens **only if `git status --porcelain` in the
+worktree is non-empty**. A tip that no longer contains HEAD is stale and is
+rebuilt from HEAD rather than extended, because otherwise the `merge --ff-only`
+the commit message documents would silently stop working. The branch name is
+keyed on the graph sha, which does not move while the graph is dirty — but the
+grid does (an ungated 5-minute cron), so content genuinely changes between runs
+and must still be parked; a test pins both directions.
+
+**Gate 2 gets no fallback, and not as a special case.** The rule is *the fallback
+never parks bytes that have not passed the same verification the real publish
+requires*. Gate 2 has not run when gate 0 refuses, so the fallback runs
+`stitch --verify --from-grid --strict` itself — read-only, no `level3.py`, no
+grid commit, **nothing written into the graph repo at all**. A
+`contracts-disagree` refusal is therefore ineligible by construction: its
+precondition is precisely what failed. The eligibility list is written out
+explicitly anyway (`graph-dirty` only; `unexpected-failure` excluded because
+after an unknown failure nothing knows what state it is in), so the reasoning is
+auditable, but verify-first would hold even if that list were widened by
+mistake. The justification is the goal's own: a pending branch is one
+`git merge --ff-only` from the default branch, so parking unverified bytes there
+moves drift one command away instead of stopping it.
+
+**The marker gained five keys, all additive:** `last_fallback_epoch`,
+`last_fallback_status`, `last_fallback_branch`, `last_fallback_commit`,
+`last_fallback_detail`. `schema` stays `1` — every existing reader keys on
+presence, so bumping it would signal a break that did not happen. **Nothing
+touches `last_success_epoch` or `last_success_graph_commit`, and
+`last_run_status` stays `refused`.** A parked run is still a refusal:
+`hours_since_successful_publish` keeps climbing and `publish_blocked_reason`
+stays set. An alarm that goes quiet because the safety net caught something is
+the exact mirror of the alarm that never fired, and parts 1–2 paid for that
+lesson from the other direction when `never-run` was kept out of `STALLED`.
+
+**Falsifier, run for real.** Both repos were already shared with other agents and
+the graph was carrying 55 nodes of unrelated 3.11/3.12 quoting churn, so the run
+was done against `git clone --local` copies of both repos with the real grid refs
+fetched — real script, real 191-node corpus, real bytes. The engine was moved one
+file behind the grid, one node was dirtied, and
+`publish-engine.sh --engine-root <clone>` was run twice:
+
+```
+[publish-engine] REFUSING [graph-dirty]: the graph has uncommitted changes ...
+[publish-engine]   fallback: checking the graph against its own contracts before parking anything
+[publish-engine]   fallback: 3 file(s) parked on cron/pending-c1bd6e1ae @ ea2fff0 (local only, not pushed)
+EXIT=1
+```
+
+All six checks pass:
+
+| check | result |
+|---|---|
+| exits non-zero | `EXIT=1` |
+| `cron/pending-<sha>` exists with the published bytes | `ea2fff0`, 3 files changed, 702 insertions; the engine-only line is on `master` and absent from the branch |
+| `master` unchanged | `80fbb2f -> 80fbb2f` |
+| engine checkout on its branch, at its commit, clean | `branch=master head=80fbb2f dirty='' worktrees=1 (was 1)` |
+| marker still a refusal, `last_success_*` untouched | `last_run_status=refused`, `last_run_reason=graph-dirty`, `last_success_epoch=1000`, `last_success_graph_commit=deadbee`, `last_fallback_status=parked` |
+| second run adds no second commit | `already carries exactly these bytes; no second commit` — commits `1 -> 1`, tip unchanged |
+
+The documented `git merge --ff-only cron/pending-c1bd6e1ae` was checked to be
+actually possible, and no remote pending branch exists. Two more real runs on
+the same clones: the happy path published and committed the engine normally
+(`published from the graph @ 5873b0240`, marker `ok`), and a deliberately
+constructed gate-2 refusal produced
+`fallback: not attempted — [contracts-disagree] is not a block the fallback may
+route around`, with zero branches cut. Both clones were deleted; the real graph
+and engine were verified byte-identical before and after, including worktree
+count and branch list.
+
+**The commit message does not launder the provenance gap.** Under a
+`graph-dirty` refusal the bytes come from the grid, which runs ahead of the
+graph's git HEAD, so the parked tree is attributable to no graph commit at all —
+which is the whole reason the default branch refused. The message says
+`READ THE BRANCH NAME AS AN ANCHOR, NOT AS PROVENANCE`, names the sha as "the
+nearest COMMITTED state of the graph, not a description of what is in this
+commit", and gives both landing paths: clear the block and let `:37` republish
+with real provenance (`branch -D`), or take this commit knowingly
+(`merge --ff-only`).
+
+**One defect found and fixed mid-build.** The first implementation sent the
+fallback's verify output to `/dev/null`. A run then declined `verify-failed`
+while the ungated `*/5` grid cron was mid-flight, and there was no way afterwards
+to tell real drift from a lost race — a decline whose evidence is gone, which is
+the failure mode this goal is named after, reproduced inside its own fix. The
+fallback now keeps that output, prints a bounded 12-line tail on failure, and
+distinguishes `verify-crashed` (a `Traceback` in the log — the check never
+finished, which is *not* evidence of drift) from `verify-failed`. The very next
+falsifier run declined for a real reason and named the single drifting node in
+one line.
+
+Tests: 811 → **826 passed, 1 skipped**. 15 new, no existing test needed
+changing. One new test failed on first run and the *fixture* was wrong, not the
+code — it moved the engine's default branch by adding an unclaimed file, which
+is orphan drift, so verify-first correctly declined and the test would have
+passed for the wrong reason.
 
 ## The design principle underneath
 
