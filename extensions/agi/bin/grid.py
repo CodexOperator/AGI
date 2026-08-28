@@ -1165,6 +1165,21 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
 
     It runs at :37, after the :07 branch push, so a publish is never racing the
     push of the graph commit it cites.
+
+    A **fourth**, also gated on `publish_engine`: push the engine repo at :47,
+    ten minutes after the publish that writes it. `publish-engine.sh` commits
+    the engine and deliberately does not push — "pushing is the hourly cron's
+    job" — but for the engine repo that cron did not exist, so its commits
+    accumulated locally and the remote went 3 days and 25 commits stale before
+    anyone noticed. A design that hands a job to a cron has to install that
+    cron; the two halves shipped apart and the gap was invisible from both
+    sides.
+
+    It pushes `HEAD`, not a branch captured at install time. That is the
+    lesson of the `iter24-extend-300hop` incident from the other direction:
+    work accumulated on a feature branch while a cron pushed `master` and
+    published nothing. Pushing whatever is checked out cannot silently push
+    the wrong branch — at worst it creates a remote branch, which is visible.
     """
     script = Path(__file__).resolve()
     snap = (f"*/{mins} * * * * cd {root} && "
@@ -1174,7 +1189,10 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
     lines = [snap, d1]
     if publish_engine:
         publisher = script.parent / "publish-engine.sh"
+        engine_root = script.parents[3]
         lines.append(f"37 * * * * cd {root} && bash {publisher} >> {log} 2>&1")
+        lines.append(
+            f"47 * * * * git -C {engine_root} push -q origin HEAD >> {log} 2>&1")
     return lines
 
 

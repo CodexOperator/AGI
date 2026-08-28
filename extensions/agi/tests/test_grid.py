@@ -117,6 +117,38 @@ def test_cron_lines_are_cwd_proof(tmp_path):
         assert str(tmp_path / "g.log") in line  # log path doubles as the marker
 
 
+def test_publish_engine_cron_also_pushes_the_engine(tmp_path):
+    """goal:g7.10 — a publish that is never pushed is a publish nobody sees.
+
+    `publish-engine.sh` commits the engine and does not push, on the stated
+    grounds that pushing is the hourly cron's job. For the engine repo that
+    cron did not exist, so 25 commits sat local and the remote went 3 days
+    stale. The two halves of that design have to ship together.
+    """
+    plain = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
+    assert len(plain) == 2, "engine lines must stay opt-in, off by default"
+
+    lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log",
+                            publish_engine=True)
+    assert len(lines) == 4
+    publish, push = lines[2], lines[3]
+
+    engine_root = Path(grid.__file__).resolve().parents[3]
+    assert push.startswith(f"47 * * * * git -C {engine_root} push -q origin HEAD")
+
+    # Ordering is the property, not the literal minutes: the engine is pushed
+    # after the publish that writes it, and both after the graph push it cites.
+    minute = lambda l: int(l.split()[0])
+    assert minute(plain[1]) < minute(publish) < minute(push)
+
+    # HEAD, never a branch captured at install time — the iter24-extend-300hop
+    # shape, where a cron pushed `master` while the work was somewhere else.
+    assert " main" not in push
+
+    for line in lines:
+        assert str(tmp_path / "g.log") in line  # log path doubles as the marker
+
+
 def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
     grid.cmd_commit(project, [], do_all=True, session=None)
     remote = tmp_path / "remote.git"
