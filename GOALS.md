@@ -2670,7 +2670,7 @@ Asks, in addition to the prune guard above:
   did not previously own should say so, loudly, and that is the same warning
   the prune needs.
 
-### G7.10 — The publish cron must never fail silently, and a refusal must not strand work — status: active
+### G7.10 — The publish cron must never fail silently, and a refusal must not strand work — status: complete
 
 🔴 **The hourly publish cron can refuse, every hour, forever, and emit no
 signal anywhere a human or an agent will look.** It has already done exactly
@@ -2735,8 +2735,8 @@ must cite a graph commit that exists. The defect is everything around it:
 ## Parts 1 and 2 built 2026-08-27 — the failure now moves a number
 
 Scoped to the alarm and the marker; parts 3 and 4 were **deliberately left out
-of that build**. Part 3 shipped on 2026-08-28 (below); **part 4 remains open and
-is what keeps this goal `active`.**
+of that build**. Both shipped on 2026-08-28 (below), which is what closes this
+goal.
 
 **The alarm.** `metrics.py` emits four new lines, verified live against the
 real graph:
@@ -2789,7 +2789,7 @@ changing.
 
 Branch-and-continue, the option this goal named as the recommended default.
 The force-record half was already shipped with parts 1–2 (`say_bytes_are_safe()`).
-**Part 4 is still open and this goal stays `active`.**
+Part 4 followed the same day, below.
 
 **What it does.** When `publish-engine.sh` refuses for a reason that is about
 *attribution* rather than *content*, it materialises the same tree it would have
@@ -2910,6 +2910,145 @@ changing. One new test failed on first run and the *fixture* was wrong, not the
 code — it moved the engine's default branch by adding an unclaimed file, which
 is orphan drift, so verify-first correctly declined and the test would have
 passed for the wrong reason.
+
+## Part 4 built 2026-08-28 — a refusal that changes nothing
+
+The last part, and the one that makes "it refused" mean what every reader
+already assumes it means. Derivation now happens in a throwaway `git worktree`
+of the graph; `nodes/` and the grid are written only after gate 2 has passed.
+The owner's choice, over rollback: a `git checkout -- nodes/` on the way out is
+a second write that has to be correct while something has already gone wrong,
+and in a worktree two agents share (**G4.1**) it would discard whatever the
+other one wrote in the meantime. Never mutating has no such window.
+
+**A worktree, not a copy.** `stitch.py --verify --from-grid` resolves every
+payload out of `refs/grid/node/<mint-id>`, which lives in the graph repo's
+object store. A `cp -r` has no `.git`, so `--from-grid` cannot read a single
+payload there and the gate would degrade to checking nothing while still
+exiting 0. `git worktree add --detach` shares the object store and every ref,
+so the scratch tree sees exactly the grid the real repo does — measured: 186 of
+186 contracts derived `from the grid, 0 from the engine tree`. It is created
+outside both repos for the same reason part 3's is.
+
+**The grid commit moved below the gate, and its old comment was wrong.** It sat
+between step 1 and gate 2, explained as "the publish reads the new node versions
+back out". It does not. `stitch.py --from-grid` reads only the `payload` tree
+entry from each ref (`_grid_payload` → `grid.read_tree_entry(..., PAYLOAD_ENTRY)`)
+and reads node bodies off disk, so a node-body rewrite never reaches the
+published tree at all. Measured on the live corpus, 186 build nodes and 1061
+grid refs: a scratch derivation followed by
+`stitch --verify --from-grid --strict` reports `missing_payload: 0,
+orphan_files: 0, duplicate_payload_ref: 0, stale_contracts: 0` **with no grid
+commit anywhere in front of it**, and both the node tree hash and all 1061 ref
+tips are unchanged afterwards.
+
+**The real dependency is narrower, and it is `missing_payload`.** A file
+authored under `payloads/` and not yet published is in neither the engine tree
+nor the grid, so the node `level3.py` mints for it reads as `missing_payload` —
+drift by `stitch.py`'s own definition, which `--strict` turns into a refusal.
+Confirmed by construction: adding one `newthing.py` to `payloads/` took the same
+scratch verify from `[1] missing_payload: 0` to
+`[1] missing_payload: 1  build:bin-newthing -> extensions/agi/bin/newthing.py`.
+Holding that node in the scratch would strand it forever — it would never reach
+`nodes/`, so the ungated `*/5` grid cron would never see it, so its payload
+would never enter the grid, so the gate would refuse again next hour. That is
+**G6.1**'s deadlock with a new door. So a *newly minted* node, and only a newly
+minted one (`git ls-files --others --exclude-standard -- nodes/` in the scratch),
+is copied across and grid-committed before the gate is retried. A new node is
+not junk: it is the correct, idempotent outcome of a real new file, its mint id
+is stable once on disk, and any ordinary scan mints it too. Rewritten bodies —
+which is what the 184 junk nodes were — are never treated this way.
+
+**Cleanup composes, it does not replace.** One `trap on_exit_cleanup EXIT`
+registered beside the existing `trap on_unexpected_error ERR`, calling
+`_scratch_cleanup` and then part 3's `_fb_cleanup`; both are no-ops when their
+state variables are empty, so the ordinary path pays nothing and every abnormal
+path is covered exactly once. Part 3's fallback code is byte-identical — its
+tmp-root selection is deliberately **duplicated rather than factored out**,
+because it landed 40 minutes earlier under its own tests and refactoring a
+working safety mechanism to save five lines is not a trade this file should
+make. Bash restores `$?` across an EXIT trap (verified), so cleaning up cannot
+change the exit code the caller sees. The graph repo gets its own
+`git worktree prune`; part 3's prunes the engine, and neither substitutes for
+the other.
+
+**Two cleanup defects found by killing runs, not by reading.** First: a signal
+reaches the shell but not the `python3` child, and bash runs the EXIT trap
+immediately — so `level3.py` re-created `nodes/build/` a tenth of a second after
+`rm -rf`, leaving a temp dir behind on every killed run. Fixed with a
+`pkill -TERM -P $$` and a bounded retry loop; three SIGTERMs at 1 s, 2 s and 3 s
+now leave `worktrees=1 tmpdirs=0 nodes-dirty=0` every time. Second: `SIGKILL`
+runs no trap at all, and `git worktree prune` will not reclaim a worktree whose
+directory still exists — so a startup sweep removes `agi-publish-derive.*` trees
+older than **six hours**, bounded by age rather than by name alone because a run
+takes ~25 s and the cron is hourly, so nothing live can be six hours old.
+`SIGKILL` still orphans the python child; that is unfixable from here and is
+named rather than papered over.
+
+**Falsifier, run for real**, against `git clone --local` copies of both repos
+with the real 1061 grid refs fetched — real script, real 191-node corpus. A
+`build:ghost` node claiming a payload that exists nowhere forces
+`contracts-disagree` with the graph committed and clean:
+
+```
+[publish-engine] verifying the scratch tree against its own payloads
+  [1] missing_payload: 1
+      build:ghost -> extensions/agi/bin/ghost.py (does not exist)
+[publish-engine] REFUSING [contracts-disagree]: ... nothing published, and nothing
+  written — nodes/ and the grid are exactly as this run found them
+exit code: 1
+```
+
+| check | result |
+|---|---|
+| exits non-zero | `1` |
+| `nodes/` byte-identical | sha256 over the whole tree, `bd96b636… -> bd96b636…` |
+| no new grid versions | all 1061 ref tips identical, `git status` 0 lines |
+| marker records the refusal | `last_run_status=refused`, `last_run_reason=contracts-disagree` |
+| `last_success_*` untouched | `1000` / `deadbee`, unchanged |
+| no worktree, temp dir or branch survives | `worktrees=1`, `tmpdirs=0`, `cron/*=0`, engine clean |
+
+**Head-to-head, same refusal, identical pair.** Six payload contracts were moved
+and recorded by a simulated `*/5` grid cron, so the derivation genuinely had
+something to write, and both scripts were run on byte-identical clones:
+
+```
+OLD (part 3):  JUNK NODES LEFT IN nodes/: 6    GRID VERSIONS BURNED: 6
+NEW (part 4):  JUNK NODES LEFT IN nodes/: 0    GRID VERSIONS BURNED: 0
+```
+
+Six rather than 184 only because six contracts were moved; the shape is the one
+the rename produced. **Part 3 still parks**, on the same clones:
+`fallback: 1 file(s) parked on cron/pending-e710968ee @ 336fc94 (local only, not
+pushed)`, fast-forwardable from `master`, carrying the graph's bytes and not the
+engine's stale ones, with `last_fallback_status=parked` and the alarm still
+climbing. The happy path published and committed normally
+(`applied the scratch tree: 0 added, 2 rewritten, 0 pruned` →
+`committed 2 file(s) ... (graph @ 38450ee3e)`, marker `ok`), a file authored
+under `payloads/` was minted, adopted, grid-committed, verified and shipped into
+the engine in one run, and `--dry-run` left the node tree, all 1061 refs, the
+marker and the engine untouched. Both clones deleted; the real engine is back to
+4 worktrees and 0 `cron/*` branches, the real graph to 2 worktrees, both clean.
+
+**Two things named rather than fixed.** (1) `grid.py commit` takes no
+`--engine-root`, so `publish-engine.sh --engine-root X` does not reach it and it
+resolves payloads against *its own location on disk*. In production
+`<project>/payloads/` always exists and wins first, so this never fires — but
+where it does, the node is committed with **the payload entry dropped**, and the
+next publish then materialises nothing for it. It is a latent data-shaped hazard
+in `grid.py`, not in this file, and it is what made the first success-path test
+fail. (2) Gate 2 now certifies the tree **as derived**, not as published: if
+`payloads/` is edited in the window between the scratch derivation and
+`grid.py commit --all`, the publish ships bytes one derivation ahead of the
+contract describing them. That is strictly better than the behaviour it
+replaces — the old order turned the same race into a refusal *plus* the junk
+nodes — the drift is a stale mechanical `how` block rather than wrong code, and
+the next `:37` re-derives and converges it.
+
+Tests: 826 → **837 passed, 1 skipped**. 11 new, no existing test changed;
+`_pair` gained an opt-in `staged=` that lays down `<project>/payloads/` the way
+every real project has it, because the success path is the first thing here that
+ever needed it.
 
 ## The design principle underneath
 
