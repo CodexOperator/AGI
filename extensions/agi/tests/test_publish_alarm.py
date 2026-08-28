@@ -21,6 +21,14 @@ So three claims, and each has to hold on its own:
 3. the SessionStart hook shouts about that marker *inside* a project and stays
    a **silent no-op outside one** — that silence is the only thing that makes
    registering the hook globally, for every session on the machine, safe.
+
+Part 3 adds a fourth, and it pulls in the opposite direction from the first
+three: **the bytes must land somewhere even when the main path is blocked**, on
+`cron/pending-<graph-sha>`, locally, never pushed. The tension is the point —
+a safety net that made the alarm read healthy would be the same bug as an alarm
+that never fired, so parking is still a refusal (non-zero exit, `last_success_*`
+frozen, the clock still climbing) and the fallback is held to the same gate-2
+verification the real publish is.
 """
 
 import importlib.util
@@ -48,6 +56,14 @@ spec = importlib.util.spec_from_file_location("metrics", BIN / "metrics.py")
 metrics = importlib.util.module_from_spec(spec)
 sys.modules["metrics"] = metrics
 spec.loader.exec_module(metrics)
+
+_l3_spec = importlib.util.spec_from_file_location("level3_publish", BIN / "level3.py")
+l3 = importlib.util.module_from_spec(_l3_spec)
+_l3_spec.loader.exec_module(l3)
+
+_grid_spec = importlib.util.spec_from_file_location("grid_publish", BIN / "grid.py")
+grid = importlib.util.module_from_spec(_grid_spec)
+_grid_spec.loader.exec_module(grid)
 
 STATE_REL = Path(*metrics.PUBLISH_STATE_PATH)
 
@@ -420,3 +436,330 @@ def test_no_marker_means_no_banner(project):
     assert "STALLED" not in r.stdout
     assert metrics.publish_stats(project)["publish_blocked_reason"] == \
         metrics.NEVER_RUN_REASON
+
+
+# ------------------------------- 4. branch and continue (goal:g7.10 part 3)
+#
+# The three sections above are all about being *heard*. This one is about not
+# *stopping*: a refusal that parks its bytes on `cron/pending-<graph-sha>` keeps
+# the work reachable without ever writing the default branch from a graph commit
+# that does not exist. Both invariants at once, which is why the goal names this
+# the recommended default.
+
+
+PAIR_FILES = {
+    "extensions/agi/bin/foo.py": "import os\n\n\ndef foo():\n    pass\n",
+    "extensions/agi/src/pkg/bar.py": "import sys\n\n\ndef bar():\n    pass\n",
+}
+
+
+def _git_out(root: Path, *args) -> str:
+    return subprocess.run(["git", *args], cwd=root, capture_output=True,
+                          text=True).stdout.strip()
+
+
+def _init_repo(root: Path):
+    _git(root, "init", "-q")
+    _git(root, "config", "user.email", "t@example.com")
+    _git(root, "config", "user.name", "t")
+
+
+def _pair(tmp_path, engine_lags: bool = True, extra_nodes: dict | None = None):
+    """A real graph repo with grid-backed payloads beside a real engine repo —
+    the smallest arrangement in which a pending branch can carry actual bytes.
+
+    `engine_lags` rewrites one engine file *after* the grid recorded it, so the
+    engine tree is genuinely behind the graph. Without that every path collapses
+    to "already matched" and the interesting half is never exercised.
+    """
+    engine = tmp_path / "engine"
+    for rel, text in PAIR_FILES.items():
+        p = engine / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text, encoding="utf-8")
+    _init_repo(engine)
+    _git(engine, "add", "-A")
+    _git(engine, "commit", "-qm", "engine base")
+
+    project = tmp_path / "proj"
+    (project / "nodes" / "build").mkdir(parents=True)
+    (project / "agi-tree.config.json").write_text("{}")
+    for rel in PAIR_FILES:
+        node_id, fm, body, _ = l3.build_node(rel, engine / rel, None)
+        slug = node_id.split(":", 1)[-1]
+        l3.write_frontmatter(project / "nodes" / "build" / f"{slug}.md", fm,
+                             body, origin="build-scan")
+    for slug, text in (extra_nodes or {}).items():
+        (project / "nodes" / "build" / f"{slug}.md").write_text(text, encoding="utf-8")
+    _init_repo(project)
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    _git(project, "add", "-A")
+    _git(project, "commit", "-qm", "graph base")
+
+    if engine_lags:
+        (engine / "extensions/agi/bin/foo.py").write_text("# stale\n", encoding="utf-8")
+        _git(engine, "commit", "-qam", "engine falls behind the graph")
+    return project, engine
+
+
+def _pending(project: Path) -> str:
+    return "cron/pending-" + _git_out(project, "rev-parse", "--short", "HEAD")
+
+
+def _dirty_a_node(project: Path):
+    """Arm gate 0 the way the real thing arms it: one uncommitted node."""
+    node = sorted((project / "nodes" / "build").glob("*.md"))[0]
+    with node.open("a") as fh:
+        fh.write("\nuncommitted\n")
+
+
+def _publish(project: Path, engine: Path, *args):
+    return _run_publish(project, "--engine-root", str(engine), *args)
+
+
+def test_a_blocked_publish_parks_the_bytes_instead_of_stranding_them(tmp_path):
+    """The whole of part 3: the main path is blocked and the tree still lands
+    somewhere a human can reach it."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    r = _publish(project, engine)
+
+    assert r.returncode != 0, r.stdout + r.stderr
+    assert _git_out(engine, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}")
+    # ...and it carries the graph's bytes, not the engine's stale ones
+    parked = _git_out(engine, "show", f"{branch}:extensions/agi/bin/foo.py")
+    assert parked == PAIR_FILES["extensions/agi/bin/foo.py"].strip()
+    assert _git_out(engine, "show", "HEAD:extensions/agi/bin/foo.py") == "# stale"
+
+
+def test_the_fallback_never_writes_the_default_branch(tmp_path):
+    """The invariant gate 0 exists for survives the fallback: the default
+    branch is still only ever written from a graph commit that exists."""
+    project, engine = _pair(tmp_path)
+    before = _git_out(engine, "rev-parse", "master")
+    _dirty_a_node(project)
+
+    _publish(project, engine)
+
+    assert _git_out(engine, "rev-parse", "master") == before
+
+
+def test_the_fallback_leaves_the_engine_checkout_exactly_where_it_was(tmp_path):
+    """Why this uses a detached worktree and not `git checkout -b` in the
+    engine's own tree: work once piled up on an `iter24-extend-300hop` branch
+    while a cron pushed `master` and published nothing. A cron that moves a
+    shared checkout out from under its readers is that failure again."""
+    project, engine = _pair(tmp_path)
+    head, branch = _git_out(engine, "rev-parse", "HEAD"), _git_out(engine, "branch", "--show-current")
+    _dirty_a_node(project)
+
+    _publish(project, engine)
+
+    assert _git_out(engine, "rev-parse", "HEAD") == head
+    assert _git_out(engine, "branch", "--show-current") == branch
+    assert _git_out(engine, "status", "--porcelain") == ""
+
+
+def test_the_fallback_leaves_no_worktree_behind(tmp_path):
+    """It builds in a temporary worktree; a cron that leaks one per hour would
+    be its own slow failure."""
+    project, engine = _pair(tmp_path)
+    before = _git_out(engine, "worktree", "list")
+    tmproot = Path(os.environ.get("TMPDIR", "/tmp"))
+    leaked = len(list(tmproot.glob("agi-publish-fallback.*")))
+    _dirty_a_node(project)
+
+    _publish(project, engine)
+
+    assert _git_out(engine, "worktree", "list") == before
+    # counted, not asserted absent: this tree is shared with other agents (G4.1)
+    assert len(list(tmproot.glob("agi-publish-fallback.*"))) == leaked
+
+
+def test_parking_the_bytes_does_not_make_the_alarm_read_healthy(tmp_path):
+    """The error that would undo part 1 from the other side. A refusal that
+    successfully parked is STILL a refusal: the clock keeps climbing and the
+    block keeps naming itself, or a permanent stall looks like a healthy repo
+    with a slightly unusual branch list."""
+    project, engine = _pair(tmp_path)
+    _write_state(project, schema=1, last_run_status="ok", last_run_reason="",
+                 last_success_epoch=1000, last_success_graph_commit="deadbee")
+    _dirty_a_node(project)
+
+    _publish(project, engine)
+
+    state = _read_state(project)
+    assert state["last_run_status"] == "refused"
+    assert state["last_run_reason"] == "graph-dirty"
+    assert state["last_success_epoch"] == 1000
+    assert state["last_success_graph_commit"] == "deadbee"
+    assert metrics.publish_stats(project)["publish_blocked_reason"] == "graph-dirty"
+
+
+def test_the_marker_says_where_the_parked_bytes_went(tmp_path):
+    """Additive keys, and they have to be enough to find the branch: the alarm
+    tells you it is stalled, this tells you nothing was lost while it was."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    _publish(project, engine)
+
+    state = _read_state(project)
+    assert state["last_fallback_status"] == "parked"
+    assert state["last_fallback_branch"] == branch
+    assert state["last_fallback_commit"] == _git_out(engine, "rev-parse", "--short", branch)
+
+
+def test_a_second_run_at_the_same_dirty_state_does_not_commit_again(tmp_path):
+    """This is the `:37` cron. A graph dirty for three days is 72 runs, and 72
+    commits of identical bytes is manufactured junk — the same shape as the 184
+    junk nodes a refused run once left behind."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    _publish(project, engine)
+    first = _git_out(engine, "rev-parse", branch)
+    r2 = _publish(project, engine)
+
+    assert r2.returncode != 0
+    assert _git_out(engine, "rev-parse", branch) == first
+    assert _git_out(engine, "rev-list", "--count", f"master..{branch}") == "1"
+    assert _read_state(project)["last_fallback_status"] == "already-parked"
+
+
+def test_a_moving_grid_does_add_a_second_commit(tmp_path):
+    """The idempotency check is a diff, not a mute button. The branch name is
+    keyed on the graph sha, which does not move while the graph is dirty — but
+    `grid.py commit --all` is a separate ungated 5-minute cron, so the content
+    genuinely changes between runs and must still be parked."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+    _publish(project, engine)
+
+    (engine / "extensions/agi/bin/foo.py").write_text("import os\n\n\ndef foo():\n    return 2\n")
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    _publish(project, engine)
+
+    assert _git_out(engine, "rev-list", "--count", f"master..{branch}") == "2"
+    assert _git_out(engine, "show", f"{branch}:extensions/agi/bin/foo.py").endswith("return 2")
+
+
+def test_the_pending_branch_can_still_be_fast_forwarded(tmp_path):
+    """The commit message tells a human to `merge --ff-only`. That has to be
+    true, which means the branch must always descend from the default branch."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    _publish(project, engine)
+
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", "master", branch],
+                          cwd=engine).returncode == 0
+
+
+def test_the_parked_commit_does_not_claim_the_graph_sha_describes_it(tmp_path):
+    """Under a graph-dirty refusal the bytes come from the grid, which runs
+    ahead of the graph's git HEAD — so the tree is attributable to no graph
+    commit at all. That is the whole reason master refused, and a message that
+    read like ordinary provenance would launder it."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    _publish(project, engine)
+
+    msg = _git_out(engine, "log", "-1", "--format=%B", branch)
+    assert "NOT AS PROVENANCE" in msg
+    assert "nearest COMMITTED state of the graph" in msg
+    assert "merge --ff-only" in msg and "branch -D" in msg
+
+
+def test_the_fallback_parks_nothing_the_real_publish_would_refuse(tmp_path):
+    """Gate 2 has not run when gate 0 refuses, so the fallback runs it itself.
+    A pending branch is one fast-forward from the default branch — parking
+    unverified bytes there just moves the drift one command away instead of
+    stopping it."""
+    ghost = ('---\nid: "build:ghost"\ntype: build\nlevel: 3\n'
+             'payload_ref: extensions/agi/bin/ghost.py\n---\n\nbody\n')
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": ghost})
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    r = _publish(project, engine)
+
+    assert r.returncode != 0
+    assert _git_out(engine, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}") == ""
+    assert _read_state(project)["last_fallback_status"] == "verify-failed"
+
+
+def test_a_declined_fallback_shows_what_the_verify_actually_said(tmp_path):
+    """Sending that output to /dev/null cost a real diagnosis: a fallback
+    declined `verify-failed` while a concurrent `*/5` grid cron ran, and
+    afterwards there was no way to tell drift from a lost race. A decline whose
+    evidence is gone is the failure mode this goal is named after."""
+    ghost = ('---\nid: "build:ghost"\ntype: build\nlevel: 3\n'
+             'payload_ref: extensions/agi/bin/ghost.py\n---\n\nbody\n')
+    project, engine = _pair(tmp_path, extra_nodes={"ghost": ghost})
+    _dirty_a_node(project)
+
+    r = _publish(project, engine)
+
+    assert "missing_payload" in r.stdout
+    assert "extensions/agi/bin/ghost.py" in r.stdout
+
+
+def test_dry_run_creates_no_branch(tmp_path):
+    """`--dry-run` writes nothing, and a branch is a write."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+
+    r = _publish(project, engine, "--dry-run")
+
+    assert r.returncode != 0
+    assert _git_out(engine, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}") == ""
+    assert not (project / STATE_REL).exists()
+
+
+def test_the_fallback_never_cuts_a_branch_in_the_graph_repo(tmp_path):
+    """`ENGINE_ROOT` defaults to a path derived from the script's own location,
+    which for a copy running out of the graph's `payloads/` tree resolves to a
+    directory *inside the graph repo*. `git -C` would answer for the graph, and
+    the fallback would cut `cron/pending-*` in the thoughtgraph."""
+    project, _engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    inside = project / "payloads"
+    inside.mkdir()
+
+    r = _run_publish(project, "--engine-root", str(inside))
+
+    assert r.returncode != 0
+    assert _git_out(project, "branch", "--list", "cron/*") == ""
+    assert _read_state(project)["last_fallback_status"] == "no-engine"
+
+
+def test_a_stale_pending_branch_is_rebuilt_rather_than_extended(tmp_path):
+    """If the default branch moved on without it, a pending branch can no
+    longer be fast-forwarded. Extending it would park work onto a ref whose
+    documented landing instruction has quietly stopped working."""
+    project, engine = _pair(tmp_path)
+    _dirty_a_node(project)
+    branch = _pending(project)
+    _publish(project, engine)
+    stale = _git_out(engine, "rev-parse", branch)
+
+    # Move master by editing a file the graph already claims. A *new* engine
+    # file would be an orphan with no level-3 node, which is drift — verify
+    # would decline the fallback and this test would pass for the wrong reason.
+    (engine / "extensions/agi/src/pkg/bar.py").write_text("# master moved on\n")
+    _git(engine, "commit", "-qam", "master moves without the pending branch")
+    _publish(project, engine)
+
+    assert _git_out(engine, "rev-parse", branch) != stale
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", "master", branch],
+                          cwd=engine).returncode == 0
