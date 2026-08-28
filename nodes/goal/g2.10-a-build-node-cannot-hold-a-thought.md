@@ -146,11 +146,6 @@ a metric added alongside this work rather than as a count that quietly drops.
 **G7**'s invariant is about silent loss, and a shrinking total is exactly the
 shape that hides it.
 
-`status: deprecated` is new for build nodes and is **not yet in
-`context/schemas/[build].md`** — nothing rejects it (schema validation runs on
-the writer path, not over nodes on disk), but declaring it is a real residual
-and belongs to whoever next touches the build schema.
-
 Idempotence verified, because a derivation that does not reproduce its own
 stored value is **G6.5**'s silent-cron failure: a full `level3.py` scan over
 all 185 discovered engine files reproduced all five v1 files byte-for-byte and
@@ -159,26 +154,71 @@ trailer, which is where `splice_thought` re-inserts a carried region — placing
 them between `BUILD-CONTRACT:END` and the trailer would have made every scan
 rewrite the file and left the graph permanently dirty.
 
+## Residual closed 2026-08-28 — retirement is declared, and has an address
+
+`status: deprecated` is now declared in `context/schemas/[build].md`, as an
+**optional** field: absent means live, and it is deliberately not in `required`,
+since adding it there would invalidate 185 nodes to express a default.
+
+**A retired node now moves to `nodes/deprecated/<type>/`** — the same per-type
+split, one level down. That changes its **address**, which is derived and
+expected to change on regroup, and never its **mint id**, so every grid ref and
+provenance link keeps resolving (**G2.5**). Git recorded all five as renames.
+
+Readers that walk `nodes/` recursively needed nothing — `metrics.py`,
+`grid.py`, `snapshot-goals.py`, `evidence_gate.py`, `snapshot-build-site.py`
+and the rest already `rglob`. **Four globbed a single type directory and would
+have silently stopped seeing retired nodes**, which is how a deprecation turns
+into a deletion nobody authorised:
+
+| reader | why it matters |
+|---|---|
+| `stitch.py` | a retired node still **claims** its `payload_ref`; dropping it turns the engine file into an `orphan_files` report — drift, refused publish |
+| `level3.py` | must rewrite a node **where it lives**, or a scan re-mints it at the live address and one id exists in two files |
+| `node_writer.py` | an edge pointing at a retired node has to keep resolving |
+| `zoom.py` | display enrichment; a node with no title reads as corruption, not retirement |
+
+All four now read live directory first, then the retired sibling. **The order
+is load-bearing** wherever a reader takes the first hit: a live node must win
+over a retired namesake, and that has its own test.
+
+Verified: `node_count` 790, `active_node_count` 785, `deprecated_node_count` 5 —
+**identical before and after the move**, which is the property that says the
+regroup is an addressing change and nothing else. `stitch --verify --from-grid`
+reports the same 191 nodes, 5 version chains, 0 orphans, 0 drift. A full scan
+reports 0 nodes created and 0 pruned. Tests 794 → 800.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version closes the goal, and the previous one was wrong about the cost of
-closing it. It said retiring the `@v2` nodes "deletes 5 nodes and drops the
-node count" — that was the only removal shape considered, and it framed the
-decision as prior-art-versus-tidiness, needing sign-off because something
-would be lost.
+This version closes the residual the last one named, and the interesting part is
+that the residual was two things wearing one name.
 
-Sign-off was sought and the framing turned out to be the mistake. The
-owner initially agreed to deletion, then reversed it unprompted on a reason
-this node had not weighed: grid refs survive a working-tree delete. That fact
-was already known here — it is what earlier made deletion look *safe*,
-because nothing is truly lost. Read against G10 it argues the opposite way.
-Safety was never the binding constraint; **coupling** was. Deleting a node
-whose ref persists does not remove structure, it strands it.
+The declaration gap was the small half: a status the code honoured and the
+schema did not mention. Real, but a one-line fix.
 
-So the count never had to drop, and the sign-off that seemed necessary was for
-an operation that should not have been on the table. Recorded because the
-error is reusable: this project reasons about deletion by asking what is lost,
-and for graph nodes that is the wrong first question — ask what stays behind
-without its file. The paired lesson is the metric. Retiring in place makes
-`node_count` flat, which would have made the retirement invisible; that is why
-`active_node_count` ships with it rather than after it.
+The half that was not written down is that **`status: deprecated` had no
+address.** Five nodes sat in `nodes/build/` marked dead, indistinguishable by
+location from the 185 live ones, and every future reader would have had to know
+to check a field. Giving retirement a directory is what makes it structural
+rather than advisory — and it is the form the owner asked for, per type, so
+`nodes/deprecated/goal/` and the rest already have their shape when the first
+goal retires.
+
+What the move surfaced is worth more than the move. Four readers globbed a
+single type directory, and **each would have failed differently and quietly**:
+`stitch.py` by reporting the retired node's engine file as an orphan and
+refusing the publish; `level3.py` by re-minting the node at its old address, so
+one id lived in two files; `node_writer.py` by failing to resolve edges into it;
+`zoom.py` by rendering it untitled. Only the first is loud. The others degrade
+into something that looks like ordinary corruption later, with no link back to
+the retirement that caused it.
+
+That is the same lesson as the last version, one layer down. Deleting a node
+strands its grid ref; hiding a node from a reader strands whatever that reader
+was responsible for. In both cases the node "still exists" and the damage is in
+what stopped pointing at it. **When retiring anything here, the question is not
+whether the thing survives — it is which readers stop seeing it, and what each
+of them silently concludes from the absence.**
+
+Previous thought on this node: why deletion was offered, agreed, then reversed.
+One grid version back — `grid.py diff goal:g2.10 --back 1`.
 <!-- THOUGHT:END -->
