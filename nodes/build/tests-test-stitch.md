@@ -50,37 +50,37 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 461'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 494'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 502'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 535'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 515'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 548'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 549'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 582'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 568'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 601'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 605'
+  how: '`node_path.read_text(encoding=''utf-8'')` at line 638'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
-  how: '`(engine / rel).read_bytes()` at line 781'
+  how: '`(engine / rel).read_bytes()` at line 814'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -100,22 +100,22 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: out / rel
-  how: '`(out / rel).read_bytes()` at line 787'
+  how: '`(out / rel).read_bytes()` at line 820'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
-  how: '`(engine / rel).read_text()` at line 853'
+  how: '`(engine / rel).read_text()` at line 886'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
-  how: '`(engine / rel).read_text()` at line 856'
+  how: '`(engine / rel).read_text()` at line 889'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tip / rel
-  how: '`(tip / rel).read_text()` at line 882'
+  how: '`(tip / rel).read_text()` at line 915'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -130,17 +130,22 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: a / rel
-  how: '`(a / rel).read_bytes()` at line 758'
+  how: '`(a / rel).read_bytes()` at line 791'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: b / rel
-  how: '`(b / rel).read_bytes()` at line 758'
+  how: '`(b / rel).read_bytes()` at line 791'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: out / rel
-  how: '`(out / rel).read_text()` at line 878'
+  how: '`(out / rel).read_text()` at line 911'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.read_text()` at line 291'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -252,273 +257,279 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_verify_reads_retired_nodes_from_the_deprecated_dir
+  how: 'defines public function `test_verify_reads_retired_nodes_from_the_deprecated_dir`
+    at line 273, signature: (project, engine, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_verify_from_grid_still_reports_a_payload_neither_source_has
   how: 'defines public function `test_verify_from_grid_still_reports_a_payload_neither_source_has`
-    at line 273, signature: (project, engine, tmp_path)'
+    at line 306, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_has_drift_false_when_all_categories_empty
   how: defines public function `test_has_drift_false_when_all_categories_empty` at
-    line 290
+    line 323
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_clean_tree_has_no_drift
-  how: 'defines public function `test_verify_clean_tree_has_no_drift` at line 296,
+  how: 'defines public function `test_verify_clean_tree_has_no_drift` at line 329,
     signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_finds_orphan_file
-  how: 'defines public function `test_verify_finds_orphan_file` at line 311, signature:
+  how: 'defines public function `test_verify_finds_orphan_file` at line 344, signature:
     (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_orphan_scan_skips_when_engine_not_git_repo
   how: 'defines public function `test_verify_orphan_scan_skips_when_engine_not_git_repo`
-    at line 320, signature: (tmp_path, project)'
+    at line 353, signature: (tmp_path, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_finds_duplicate_payload_ref
   how: 'defines public function `test_verify_finds_duplicate_payload_ref` at line
-    337, signature: (tmp_path, engine, project)'
+    370, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_well_formed_chain_is_not_drift
   how: 'defines public function `test_verify_well_formed_chain_is_not_drift` at line
-    356, signature: (tmp_path, engine, project)'
+    389, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_same_version_collision_is_still_drift
   how: 'defines public function `test_verify_same_version_collision_is_still_drift`
-    at line 373, signature: (tmp_path, engine, project)'
+    at line 406, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_supersedes_missing_id_is_still_drift
   how: 'defines public function `test_verify_supersedes_missing_id_is_still_drift`
-    at line 386, signature: (tmp_path, engine, project)'
+    at line 419, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_version_gap_is_still_drift
-  how: 'defines public function `test_verify_version_gap_is_still_drift` at line 399,
+  how: 'defines public function `test_verify_version_gap_is_still_drift` at line 432,
     signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_materialize_chain_writes_head_version
   how: 'defines public function `test_materialize_chain_writes_head_version` at line
-    412, signature: (tmp_path, engine, project)'
+    445, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_materialize_version_flag_selects_requested_version
   how: 'defines public function `test_materialize_version_flag_selects_requested_version`
-    at line 425, signature: (tmp_path, engine, project)'
+    at line 458, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_materialize_version_flag_reports_missing_version
   how: 'defines public function `test_materialize_version_flag_reports_missing_version`
-    at line 437, signature: (tmp_path, engine, project)'
+    at line 470, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_materialize_version_flag
-  how: 'defines public function `test_cli_materialize_version_flag` at line 446, signature:
+  how: 'defines public function `test_cli_materialize_version_flag` at line 479, signature:
     (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_load_level3_nodes_coerces_non_integer_version
   how: 'defines public function `test_load_level3_nodes_coerces_non_integer_version`
-    at line 457, signature: (tmp_path, engine, project)'
+    at line 490, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_finds_stale_contract_after_source_edit
   how: 'defines public function `test_verify_finds_stale_contract_after_source_edit`
-    at line 475, signature: (tmp_path, engine, project)'
+    at line 508, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_ignores_model_authored_prose_drift
   how: 'defines public function `test_verify_ignores_model_authored_prose_drift` at
-    line 495, signature: (tmp_path, engine, project)'
+    line 528, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_unreadable_contract_reported_not_crashed
   how: 'defines public function `test_verify_unreadable_contract_reported_not_crashed`
-    at line 510, signature: (tmp_path, engine, project)'
+    at line 543, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_build_version_node_missing_contract_is_not_drift
   how: 'defines public function `test_verify_build_version_node_missing_contract_is_not_drift`
-    at line 541, signature: (tmp_path, engine, project)'
+    at line 574, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_build_version_node_malformed_contract_is_still_drift
   how: 'defines public function `test_verify_build_version_node_malformed_contract_is_still_drift`
-    at line 564, signature: (tmp_path, engine, project)'
+    at line 597, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_reads_contract_with_embedded_backtick_fence
   how: 'defines public function `test_verify_reads_contract_with_embedded_backtick_fence`
-    at line 584, signature: (tmp_path, engine, project)'
+    at line 617, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_diff_contract_ignores_prose_fields_directly
   how: defines public function `test_diff_contract_ignores_prose_fields_directly`
-    at line 618
+    at line 651
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_diff_contract_reports_added_and_removed
   how: defines public function `test_diff_contract_reports_added_and_removed` at line
-    628
+    661
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_engine_root_missing_degrades
   how: 'defines public function `test_verify_engine_root_missing_degrades` at line
-    642, signature: (tmp_path, engine, project)'
+    675, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_verify_project_with_no_level3_dir_degrades
   how: 'defines public function `test_verify_project_with_no_level3_dir_degrades`
-    at line 654, signature: (tmp_path, engine)'
+    at line 687, signature: (tmp_path, engine)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_load_level3_nodes_skips_wrong_type_and_malformed
   how: 'defines public function `test_load_level3_nodes_skips_wrong_type_and_malformed`
-    at line 666, signature: (tmp_path, engine, project)'
+    at line 699, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_verify_exit_0_by_default_even_with_drift
   how: 'defines public function `test_cli_verify_exit_0_by_default_even_with_drift`
-    at line 681, signature: (tmp_path, engine, project)'
+    at line 714, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_verify_strict_exit_1_with_drift
   how: 'defines public function `test_cli_verify_strict_exit_1_with_drift` at line
-    690, signature: (tmp_path, engine, project)'
+    723, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_verify_strict_exit_0_when_clean
   how: 'defines public function `test_cli_verify_strict_exit_0_when_clean` at line
-    698, signature: (tmp_path, engine, project)'
+    731, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_materialize_requires_out
-  how: 'defines public function `test_cli_materialize_requires_out` at line 705, signature:
+  how: 'defines public function `test_cli_materialize_requires_out` at line 738, signature:
     (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_materialize_end_to_end
-  how: 'defines public function `test_cli_materialize_end_to_end` at line 711, signature:
+  how: 'defines public function `test_cli_materialize_end_to_end` at line 744, signature:
     (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_materialize_refuses_engine_root_as_out
   how: 'defines public function `test_cli_materialize_refuses_engine_root_as_out`
-    at line 721, signature: (tmp_path, engine, project)'
+    at line 754, signature: (tmp_path, engine, project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _grid_project
-  how: 'defines private function `_grid_project` at line 735, signature: (project:
+  how: 'defines private function `_grid_project` at line 768, signature: (project:
     Path, engine: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_from_grid_matches_the_engine_tree_byte_for_byte
   how: 'defines public function `test_from_grid_matches_the_engine_tree_byte_for_byte`
-    at line 744, signature: (project, engine, tmp_path)'
+    at line 777, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_from_grid_preserves_the_exec_bit
-  how: 'defines public function `test_from_grid_preserves_the_exec_bit` at line 761,
+  how: 'defines public function `test_from_grid_preserves_the_exec_bit` at line 794,
     signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_from_grid_reads_the_graph_not_the_engine
   how: 'defines public function `test_from_grid_reads_the_graph_not_the_engine` at
-    line 775, signature: (project, engine, tmp_path)'
+    line 808, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_from_grid_reports_a_node_with_no_grid_history
   how: 'defines public function `test_from_grid_reports_a_node_with_no_grid_history`
-    at line 790, signature: (project, engine, tmp_path)'
+    at line 823, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_publish_refuses_without_from_grid
-  how: 'defines public function `test_publish_refuses_without_from_grid` at line 803,
+  how: 'defines public function `test_publish_refuses_without_from_grid` at line 836,
     signature: (project, engine)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_plain_out_still_refuses_the_engine_repo
   how: 'defines public function `test_plain_out_still_refuses_the_engine_repo` at
-    line 808, signature: (project, engine)'
+    line 841, signature: (project, engine)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_out_never_writes_into_the_graph_repo_even_with_publish
   how: 'defines public function `test_out_never_writes_into_the_graph_repo_even_with_publish`
-    at line 813, signature: (project, engine)'
+    at line 846, signature: (project, engine)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_publish_refuses_a_dirty_engine_tree
   how: 'defines public function `test_publish_refuses_a_dirty_engine_tree` at line
-    818, signature: (project, engine)'
+    851, signature: (project, engine)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_publish_refuses_a_non_git_target
-  how: 'defines public function `test_publish_refuses_a_non_git_target` at line 829,
+  how: 'defines public function `test_publish_refuses_a_non_git_target` at line 862,
     signature: (project, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_publish_writes_the_graphs_bytes_into_the_engine
   how: 'defines public function `test_publish_writes_the_graphs_bytes_into_the_engine`
-    at line 836, signature: (project, engine, tmp_path)'
+    at line 869, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_grid_version_materializes_a_chosen_version_not_the_tip
   how: 'defines public function `test_grid_version_materializes_a_chosen_version_not_the_tip`
-    at line 859, signature: (project, engine, tmp_path)'
+    at line 892, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_grid_version_beyond_history_is_reported_not_silently_the_tip
   how: 'defines public function `test_grid_version_beyond_history_is_reported_not_silently_the_tip`
-    at line 885, signature: (project, engine, tmp_path)'
+    at line 918, signature: (project, engine, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -539,82 +550,82 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: engine / ghost
-  how: '`(engine / ghost).write_text(''# transient\n'')` at line 281'
+  how: '`(engine / ghost).write_text(''# transient\n'')` at line 314'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 464'
+  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 497'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: bar
   how: '`bar.write_text(''import sys\nimport json\n\n\ndef bar():\n    pass\n'', encoding=''utf-8'')`
-    at line 484'
+    at line 517'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 504'
+  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 537'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 517'
+  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 550'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 551'
+  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 584'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 574'
+  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 607'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: src
   how: '`src.write_text(''def f(rec):\n    ctx.write_text(f"""## Header\\n\\n```json\\n{rec}\\n```\\n\\nmore
-    text '' + ''x'' * 200 + ''""")\n'', encoding=''utf-8'')` at line 594'
+    text '' + ''x'' * 200 + ''""")\n'', encoding=''utf-8'')` at line 627'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'build' / 'not-level3.md'
   how: '`(project / ''nodes'' / ''build'' / ''not-level3.md'').write_text(''---\nid:
-    idea:stray\ntype: idea\n---\nbody\n'', encoding=''utf-8'')` at line 668'
+    idea:stray\ntype: idea\n---\nbody\n'', encoding=''utf-8'')` at line 701'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'build' / 'garbage.md'
   how: '`(project / ''nodes'' / ''build'' / ''garbage.md'').write_text(''not frontmatter
-    at all\n'', encoding=''utf-8'')` at line 670'
+    at all\n'', encoding=''utf-8'')` at line 703'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 739'
+  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 772'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
-  how: '`(engine / rel).write_text(''#!/bin/sh\necho hi\n'')` at line 765'
+  how: '`(engine / rel).write_text(''#!/bin/sh\necho hi\n'')` at line 798'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 796'
+  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 829'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / 'extensions/agi/bin/foo.py'
   how: '`(engine / ''extensions/agi/bin/foo.py'').write_text(''import os\n# edited\n'')`
-    at line 824'
+    at line 857'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: staged
-  how: '`staged.write_text(edited)` at line 849'
+  how: '`staged.write_text(edited)` at line 882'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -624,12 +635,12 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(content, encoding=''utf-8'')` at line 325'
+  how: '`p.write_text(content, encoding=''utf-8'')` at line 358'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: staged
-  how: '`staged.write_text(text)` at line 872'
+  how: '`staged.write_text(text)` at line 905'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

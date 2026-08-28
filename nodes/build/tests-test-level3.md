@@ -357,6 +357,24 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_scan_rewrites_a_retired_node_in_place_not_at_its_old_address
+  how: 'defines public function `test_scan_rewrites_a_retired_node_in_place_not_at_its_old_address`
+    at line 640, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_scan_does_not_prune_a_retired_node
+  how: 'defines public function `test_scan_does_not_prune_a_retired_node` at line
+    671, signature: (project, engine)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_node_type_dirs_is_live_first_and_skips_absent
+  how: 'defines public function `test_node_type_dirs_is_live_first_and_skips_absent`
+    at line 688, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: node_path
   how: '`node_path.write_text(f''---{head}next_edges:\n  - hyp:graph-core-r1\nembedding_coords:
     [0.1, 0.2]\n---{body}'', encoding=''utf-8'')` at line 425'

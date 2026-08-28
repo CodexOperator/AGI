@@ -90,22 +90,22 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: Path(info['path'])
-  how: '`Path(info[''path'']).read_text()` at line 377'
+  how: '`Path(info[''path'']).read_text()` at line 405'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: Path(info['path'])
-  how: '`Path(info[''path'']).read_text()` at line 407'
+  how: '`Path(info[''path'']).read_text()` at line 435'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / 'nodes' / 'vision' / 'ap.md'
-  how: '`(project / ''nodes'' / ''vision'' / ''ap.md'').read_text()` at line 428'
+  how: '`(project / ''nodes'' / ''vision'' / ''ap.md'').read_text()` at line 456'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads((ad / ''agent.json'').read_text())` at line 430'
+  how: '`json.loads((ad / ''agent.json'').read_text())` at line 458'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -135,7 +135,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: ad / 'agent.json'
-  how: '`(ad / ''agent.json'').read_text()` at line 430'
+  how: '`(ad / ''agent.json'').read_text()` at line 458'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -145,7 +145,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: BIN / name
-  how: '`(BIN / name).read_text()` at line 334'
+  how: '`(BIN / name).read_text()` at line 362'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -282,50 +282,62 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_retired_node_is_still_found
+  how: 'defines public function `test_retired_node_is_still_found` at line 316, signature:
+    (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_live_node_wins_over_a_retired_namesake
+  how: 'defines public function `test_live_node_wins_over_a_retired_namesake` at line
+    329, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_unknown_id_is_none_not_a_guess
-  how: 'defines public function `test_unknown_id_is_none_not_a_guess` at line 316,
+  how: 'defines public function `test_unknown_id_is_none_not_a_guess` at line 344,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_the_index_cannot_go_stale_under_its_own_writer
   how: 'defines public function `test_the_index_cannot_go_stale_under_its_own_writer`
-    at line 322, signature: (project)'
+    at line 350, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_both_readers_are_the_same_function
-  how: defines public function `test_both_readers_are_the_same_function` at line 330
+  how: defines public function `test_both_readers_are_the_same_function` at line 358
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dispatch_picks_a_canonically_spelled_step
   how: 'defines public function `test_dispatch_picks_a_canonically_spelled_step` at
-    line 363, signature: (level, target, role, expected)'
+    line 391, signature: (level, target, role, expected)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dispatch_scaffold_is_gated_and_canonical
   how: 'defines public function `test_dispatch_scaffold_is_gated_and_canonical` at
-    line 367, signature: (project)'
+    line 395, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dispatch_scaffold_declines_an_illegal_spawn
   how: 'defines public function `test_dispatch_scaffold_declines_an_illegal_spawn`
-    at line 382, signature: (project)'
+    at line 410, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_big_zoom_scaffold_no_longer_writes_an_illegal_hypothesis
   how: 'defines public function `test_big_zoom_scaffold_no_longer_writes_an_illegal_hypothesis`
-    at line 397, signature: (project)'
+    at line 425, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_scaffold_still_writes_through_the_shared_routine
   how: 'defines public function `test_cli_scaffold_still_writes_through_the_shared_routine`
-    at line 416, signature: (project)'
+    at line 444, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -363,9 +375,27 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: d / 'old.md'
+  how: '`(d / ''old.md'').write_text(''---\nid: hypothesis:old\ntype: hypothesis\nstatus:
+    deprecated\n---\n\nb\n'')` at line 324'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: live / 'dup.md'
+  how: '`(live / ''dup.md'').write_text(''---\nid: hypothesis:dup\ntype: hypothesis\n---\n\nlive\n'')`
+    at line 334'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: dead / 'dup.md'
+  how: '`(dead / ''dup.md'').write_text(''---\nid: hypothesis:dup\ntype: hypothesis\nstatus:
+    deprecated\n---\n\ndead\n'')` at line 338'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: ad / 'agent.json'
   how: '`(ad / ''agent.json'').write_text(json.dumps({''id'': ''a1'', ''status'':
-    ''run''}))` at line 419'
+    ''run''}))` at line 447'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -383,12 +413,12 @@ outputs:
   security: TODO(model)
 - name: d / 'x.md'
   how: '`(d / ''x.md'').write_text(''---\nid: exp:x\ntype: experiment\n---\n\nb\n'')`
-    at line 341'
+    at line 369'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 419'
+  how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 447'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
