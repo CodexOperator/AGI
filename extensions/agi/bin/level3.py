@@ -29,6 +29,14 @@ either bucket — it goes into a third `uncovered` list with `how` explaining
 why. A file that fails to parse gets `parse_ok: false` and an empty contract,
 not an invented one.
 
+Every code fragment quoted in a `how` (and every entry `name` derived from an
+expression) is a **literal slice of the payload's own source**, taken with
+`ast.get_source_segment` and collapsed to one line — never re-rendered with
+`ast.unparse`. `ast.unparse` is a function of the payload *and* the CPython
+version that ran the scan (PEP 701 changed f-string rendering in 3.12), and a
+derivation that is not a function of the payload alone leaves the graph dirty
+for whoever scans next. See `_render` and `goal:s19`.
+
 `why`, `perf`, `security` are never mechanically derivable — they are emitted
 as explicit `TODO(model)` placeholders. The harness owns the block's shape
 (field names, ordering, which entries exist); a later model pass may only
@@ -393,25 +401,127 @@ _CAP_LEN = 240
 def _cap(s: str | None, limit: int = _CAP_LEN) -> str | None:
     """Bound a mechanically-derived text fragment to `limit` chars.
 
-    `ast.unparse` faithfully reproduces the full source of a call — including
-    a multi-line string literal argument (e.g. a template being written to
-    disk), verbatim, with embedded newlines escaped to `\\n`. Left uncapped,
-    one such call can dominate the whole contract block with hundreds of
-    characters of literal content. Truncating says so explicitly rather than
-    silently clipping, so `how` stays honest about being partial.
+    A rendered call site reproduces the full source of that call — including a
+    multi-line string literal argument (e.g. a template being written to disk),
+    verbatim. Left uncapped, one such call can dominate the whole contract
+    block with hundreds of characters of literal content. Truncating says so
+    explicitly rather than silently clipping, so `how` stays honest about being
+    partial.
+
+    Always applied *after* `_one_line`, never before: the cap is a budget for
+    content, and a source slice indented eight levels deep would otherwise
+    spend most of it on leading whitespace.
     """
     if s is None or len(s) <= limit:
         return s
     return s[:limit] + f"...[truncated, {len(s)} chars total]"
 
 
+#: A run of whitespace that **contains a line break**, plus the horizontal
+#: whitespace hugging it on either side. Deliberately not `\s+`.
+_LINE_JOIN = re.compile(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*")
+
+
+def _one_line(s: str | None) -> str | None:
+    """Join a source slice onto one line; leave whitespace *within* a line alone.
+
+    `how` is a single YAML scalar. A source slice carries the file's real
+    newlines and original indentation, and roughly 7% of the call sites on this
+    corpus span more than one line. Emitting those raw would put multi-line
+    scalars into the `BUILD-CONTRACT` block — which YAML can carry, but which
+    makes `_cap`'s budget meaningless and the block far harder to read.
+
+    **The first version of this collapsed `\\s+`, and that was wrong.** Most of
+    what this engine writes is indentation-sensitive text — YAML fragments,
+    markdown, node bodies — held in string literals whose escaped newlines
+    (`\\n`, two characters) are followed by *real* spaces that are content, not
+    layout. `\\s+` silently rewrote `f"---\\nfields:\\n  {fields}:"` to
+    `...\\n {fields}:`, i.e. it reported an indentation the payload does not
+    have. A contract that quietly alters what it quotes is worse than one that
+    quotes too much. Caught by
+    `test_how_quotes_the_payload_source_rather_than_re_rendering_it`, which
+    asserts the quoted fragment is a verbatim substring of the payload.
+
+    So: only runs containing `\\r`/`\\n` collapse, which is exactly the set that
+    would otherwise break the scalar across lines. Every remaining character
+    inside a line is the payload's own. A triple-quoted template holding *real*
+    newlines is still flattened — unavoidable if `how` is one line, and the same
+    information `ast.unparse` used to escape to `\\n`.
+
+    Collapsing is a pure function of its input, so it costs nothing against the
+    property this whole path exists to hold (goal:s19). It is not free of all
+    cost: 38 of 10,099 call sites here span lines *and* carry a `#` comment, and
+    joining those puts the comment text inline, where it reads as if it
+    swallowed the rest of the call. That is cosmetic and deterministic;
+    stripping comments would mean re-rendering from tokens, i.e. building a
+    second renderer — the interpreter-dependent thing being removed.
+    """
+    if s is None:
+        return None
+    return _LINE_JOIN.sub(" ", s).strip()
+
+
 def _unparse_safe(node: ast.AST | None) -> str | None:
+    """`ast.unparse`, or None. **The fallback, not the derivation** — see `_render`."""
     if node is None:
         return None
     try:
         return ast.unparse(node)
     except Exception:
         return None
+
+
+def _render(source: str | None, node: ast.AST | None) -> str | None:
+    """One line of literal source for `node`. The single chokepoint every
+    `how` and every derived entry `name` passes through (goal:s19).
+
+    This used to be `ast.unparse(node)`, which re-renders the AST rather than
+    quoting the file — and `ast.unparse` is **not** a function of the AST
+    alone. PEP 701 rewrote f-string parsing in 3.12, so the same node renders
+    differently under 3.11 and 3.12:
+
+        3.11.15  ->  (d / name).write_text(f"---\\nfields:\\n  {fields}: ...
+        3.12.3   ->  (d / name).write_text(f'---\\nfields:\\n  {fields}: ...
+
+    A stored contract the next scan does not reproduce leaves the graph
+    permanently dirty and shuts `publish-engine.sh`'s first gate (goal:g6.5).
+    Here it was worse than permanent — it was *intermittent*: the `:37` cron
+    runs 3.12 and an interactive shell picks up 3.11 from a venv, so the node
+    flapped back and forth, each flap burning a real grid version on a file
+    nobody edited.
+
+    `ast.get_source_segment` returns the literal slice of the file, so it is
+    interpreter-independent by construction and strictly more faithful — it
+    shows what is written rather than a normalisation of it.
+
+    **The fallback is reachable for exactly one node type: `ast.arguments`.**
+    `get_source_segment` needs `lineno`/`col_offset`, and `arguments` is
+    neither a `stmt` nor an `expr` and carries none — it returns None for all
+    1,241 top-level signatures in this engine. Slicing it out by hand is not
+    available either: `vararg`'s own position starts at the *name*, so a span
+    built from the child nodes silently drops the `*` in `*args`, and the `/`
+    in a positional-only list has no node at all. Matching parentheses in the
+    text would need a tokenizer, i.e. a second renderer.
+
+    So signatures keep `ast.unparse`, and the justification is measured, not
+    assumed: the only construct known to render differently across these
+    versions is an f-string, `ast.unparse(node.args)` is byte-identical under
+    3.11.15 and 3.12.3 for all 1,241 of them, and zero signatures in this
+    corpus contain an f-string at all (a default or an annotation would be the
+    only way in). `test_signature_fallback_is_the_only_unparse_path` pins that
+    this fallback stays a single named case rather than a quiet default.
+    """
+    if node is None:
+        return None
+    seg = None
+    if source is not None:
+        try:
+            seg = ast.get_source_segment(source, node)
+        except Exception:
+            seg = None
+    if seg is None:
+        seg = _unparse_safe(node)
+    return _one_line(seg)
 
 
 def _scan_imports(tree: ast.Module) -> list[dict]:
@@ -435,7 +545,10 @@ def _scan_imports(tree: ast.Module) -> list[dict]:
     return inputs
 
 
-def _scan_top_level_defs(tree: ast.Module) -> list[dict]:
+def _scan_top_level_defs(tree: ast.Module, source: str) -> list[dict]:
+    """`source` is required, not defaulted, on purpose: a caller that forgot it
+    would fall back to `ast.unparse` for every entry and reintroduce goal:s19
+    silently. A missing argument is a TypeError; a silent default is a flap."""
     outputs = []
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -448,7 +561,10 @@ def _scan_top_level_defs(tree: ast.Module) -> list[dict]:
             vis = "private" if node.name.startswith("_") else "public"
             sig = ""
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                sig = _cap(_unparse_safe(node.args)) or ""
+                # `node.args` is the one node with no position — `_render`
+                # falls back to `ast.unparse` here and only here. See its
+                # docstring for the measurement that licenses that.
+                sig = _cap(_render(source, node.args)) or ""
             how = f"defines {vis} {kind} `{node.name}` at line {node.lineno}"
             if sig:
                 how += f", signature: ({sig})"
@@ -456,8 +572,11 @@ def _scan_top_level_defs(tree: ast.Module) -> list[dict]:
     return outputs
 
 
-def _scan_io_calls(tree: ast.Module) -> tuple[list[dict], list[dict], list[dict]]:
+def _scan_io_calls(tree: ast.Module,
+                   source: str) -> tuple[list[dict], list[dict], list[dict]]:
     """Detected filesystem-shaped read/write call sites.
+
+    `source` is required, not defaulted — see `_scan_top_level_defs`.
 
     Scope is deliberately bounded: `open()`, `pathlib.Path`'s `.read_text` /
     `.write_text` / `.read_bytes` / `.write_bytes`, and `json`/`yaml`/`pickle`
@@ -479,21 +598,21 @@ def _scan_io_calls(tree: ast.Module) -> tuple[list[dict], list[dict], list[dict]
             for kw in node.keywords:
                 if kw.arg == "mode":
                     mode_node = kw.value
-            call_src = _cap(_unparse_safe(node)) or f"open(...) at line {node.lineno}"
+            call_src = _cap(_render(source, node)) or f"open(...) at line {node.lineno}"
             if mode_node is None:
                 mode = "r"  # open()'s documented default — not a guess
             elif isinstance(mode_node, ast.Constant) and isinstance(mode_node.value, str):
                 mode = mode_node.value
             else:
                 uncovered.append({
-                    "name": (_cap(_unparse_safe(node.args[0]), 80) if node.args
+                    "name": (_cap(_render(source, node.args[0]), 80) if node.args
                              else f"open() at line {node.lineno}"),
                     "how": (f"uncovered — `{call_src}` at line {node.lineno}: mode is a "
                             f"non-literal expression, read/write direction cannot be "
                             f"statically resolved"),
                 })
                 continue
-            target = _cap(_unparse_safe(node.args[0]), 80) if node.args else None
+            target = _cap(_render(source, node.args[0]), 80) if node.args else None
             entry_name = target or f"open() call at line {node.lineno}"
             entry = {"name": entry_name,
                       "how": f"`{call_src}` at line {node.lineno} (mode={mode!r})"}
@@ -501,8 +620,8 @@ def _scan_io_calls(tree: ast.Module) -> tuple[list[dict], list[dict], list[dict]
             continue
 
         if isinstance(func, ast.Attribute) and func.attr in (_READ_ATTR_METHODS | _WRITE_ATTR_METHODS):
-            target = _cap(_unparse_safe(func.value), 80)
-            call_src = _cap(_unparse_safe(node)) or f"{func.attr}(...) at line {node.lineno}"
+            target = _cap(_render(source, func.value), 80)
+            call_src = _cap(_render(source, node)) or f"{func.attr}(...) at line {node.lineno}"
             entry_name = target or f"{func.attr}() call at line {node.lineno}"
             entry = {"name": entry_name, "how": f"`{call_src}` at line {node.lineno}"}
             (reads if func.attr in _READ_ATTR_METHODS else writes).append(entry)
@@ -510,7 +629,7 @@ def _scan_io_calls(tree: ast.Module) -> tuple[list[dict], list[dict], list[dict]
 
         if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
             key = (func.value.id, func.attr)
-            call_src = _cap(_unparse_safe(node)) or f"{func.value.id}.{func.attr}(...) at line {node.lineno}"
+            call_src = _cap(_render(source, node)) or f"{func.value.id}.{func.attr}(...) at line {node.lineno}"
             entry = {"name": f"{func.value.id}.{func.attr}",
                       "how": f"`{call_src}` at line {node.lineno}"}
             if key in _READ_FUNCS:
@@ -656,10 +775,10 @@ def analyze_source(data: bytes, suffix: str, name: str = "<payload>") -> dict:
         return {"parse_ok": False, "parse_error": f"SyntaxError: {exc}",
                 "inputs": [], "outputs": [], "uncovered": []}
 
-    io_reads, io_writes, io_uncovered = _scan_io_calls(tree)
+    io_reads, io_writes, io_uncovered = _scan_io_calls(tree, source)
 
     inputs = _scan_imports(tree) + io_reads + _scan_cli_and_env(tree)
-    outputs = _scan_top_level_defs(tree) + io_writes + _scan_stdout(tree)
+    outputs = _scan_top_level_defs(tree, source) + io_writes + _scan_stdout(tree)
 
     return {"parse_ok": True, "parse_error": None,
             "inputs": inputs, "outputs": outputs, "uncovered": io_uncovered}
