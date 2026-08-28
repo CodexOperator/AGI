@@ -157,8 +157,8 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text(json.dumps(result, indent=2, sort_keys=True) + ''\n'',
-    encoding=''utf-8'')` at line 358'
+  how: '`out_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
+    encoding="utf-8")` at line 358'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

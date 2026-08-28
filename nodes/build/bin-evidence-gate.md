@@ -55,7 +55,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 192'
+  how: '`nf.read_text(encoding="utf-8")` at line 192'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

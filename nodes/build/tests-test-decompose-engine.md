@@ -54,34 +54,34 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes['idea:engine-graph-core'][0]
-  how: '`nodes[''idea:engine-graph-core''][0].read_text()` at line 189'
+- name: nodes["idea:engine-graph-core"][0]
+  how: '`nodes["idea:engine-graph-core"][0].read_text()` at line 189'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes['idea:engine-driver-sh'][0]
-  how: '`nodes[''idea:engine-driver-sh''][0].read_text()` at line 191'
+- name: nodes["idea:engine-driver-sh"][0]
+  how: '`nodes["idea:engine-driver-sh"][0].read_text()` at line 191'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes['idea:engine-agi-bridge-index'][0]
-  how: '`nodes[''idea:engine-agi-bridge-index''][0].read_text()` at line 193'
+- name: nodes["idea:engine-agi-bridge-index"][0]
+  how: '`nodes["idea:engine-agi-bridge-index"][0].read_text()` at line 193'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: idea_nodes(project)['idea:engine-nodoc'][0]
-  how: '`idea_nodes(project)[''idea:engine-nodoc''][0].read_text()` at line 199'
+- name: idea_nodes(project)["idea:engine-nodoc"][0]
+  how: '`idea_nodes(project)["idea:engine-nodoc"][0].read_text()` at line 199'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 310'
+  how: '`node_path.read_text(encoding="utf-8")` at line 310'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(path.read_text(encoding=''utf-8'').split(''---'', 2)[1])`
-    at line 94'
+  how: '`yaml.safe_load(path.read_text(encoding="utf-8").split("---", 2)[1])` at line
+    94'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -96,7 +96,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 94'
+  how: '`path.read_text(encoding="utf-8")` at line 94'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -248,30 +248,30 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: stray
-  how: '`stray.write_text(''# a data file nobody declared\n'', encoding=''utf-8'')`
-    at line 165'
+  how: '`stray.write_text("# a data file nobody declared\n", encoding="utf-8")` at
+    line 165'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: gm
-  how: '`gm.write_text(''{"mappings": {}}'', encoding=''utf-8'')` at line 258'
+  how: '`gm.write_text(''{"mappings": {}}'', encoding="utf-8")` at line 258'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: gm
-  how: '`gm.write_text(''{"mappings": {"extensions/agi/src/graph_core": "goal:g6.1"}}'',
-    encoding=''utf-8'')` at line 268'
+  how: '`gm.write_text( ''{"mappings": {"extensions/agi/src/graph_core": "goal:g6.1"}}'',
+    encoding="utf-8", )` at line 268'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(f''---{head}next_edges:\n  - hyp:graph-core-r1\nembedding_coords:
-    [0.1, 0.2]\n---{body}'', encoding=''utf-8'')` at line 312'
+  how: '`node_path.write_text( f"---{head}next_edges:\n  - hyp:graph-core-r1\n" f"embedding_coords:
+    [0.1, 0.2]\n---{body}", encoding="utf-8", )` at line 312'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(content, encoding=''utf-8'')` at line 65'
+  how: '`p.write_text(content, encoding="utf-8")` at line 65'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

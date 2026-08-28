@@ -60,12 +60,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 31'
+  how: '`path.read_text(encoding="utf-8")` at line 31'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 32'
+  how: '`yaml.safe_load(text.split("---", 2)[1])` at line 32'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -167,21 +167,21 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes / 'a.md'
-  how: '`(nodes / ''a.md'').write_text(''---\nconfidence: 1.0\nid: "idea:a"\norigin:
-    level3-scan\nparents:\n  - goal:g2.5\ntags:\n  - t1\n  - t2\ntitle: "A"\ntype:
-    idea\n---\n\nBody text for A, unchanged by backfill.\n'')` at line 39'
+- name: nodes / "a.md"
+  how: '`(nodes / "a.md").write_text( ''---\nconfidence: 1.0\nid: "idea:a"\norigin:
+    level3-scan\n'' ''parents:\n  - goal:g2.5\ntags:\n  - t1\n  - t2\ntitle: "A"\ntype:
+    idea\n'' ''---\n\nBody text for A, unchanged by backfill.\n'' )` at line 39'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes / 'b.md'
-  how: '`(nodes / ''b.md'').write_text(''---\nid: "idea:b"\nmint_id: deadbeefdeadbeefdeadbeefdeadbeef\ntype:
-    idea\n---\n\nAlready minted.\n'')` at line 44'
+- name: nodes / "b.md"
+  how: '`(nodes / "b.md").write_text( ''---\nid: "idea:b"\nmint_id: deadbeefdeadbeefdeadbeefdeadbeef\ntype:
+    idea\n---\n\nAlready minted.\n'' )` at line 44'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: junk
-  how: '`junk.write_text(''no frontmatter delimiter at all\n'')` at line 107'
+  how: '`junk.write_text("no frontmatter delimiter at all\n")` at line 107'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

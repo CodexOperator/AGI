@@ -114,7 +114,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: proposed_path
-  how: '`proposed_path.write_text(text, encoding=''utf-8'')` at line 97'
+  how: '`proposed_path.write_text(text, encoding="utf-8")` at line 97'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

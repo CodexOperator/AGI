@@ -88,17 +88,17 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(list(nf.frontmatter.get(''parents'', [])))` at line 91'
+  how: '`json.dumps(list(nf.frontmatter.get("parents", [])))` at line 91'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(list(nf.frontmatter.get(''children'', [])))` at line 92'
+  how: '`json.dumps(list(nf.frontmatter.get("children", [])))` at line 92'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(list(nf.frontmatter.get(''tags'', [])))` at line 93'
+  how: '`json.dumps(list(nf.frontmatter.get("tags", [])))` at line 93'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

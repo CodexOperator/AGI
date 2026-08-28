@@ -75,12 +75,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: BUILD_SITE
-  how: '`BUILD_SITE.read_text(encoding=''utf-8'')` at line 170'
+  how: '`BUILD_SITE.read_text(encoding="utf-8")` at line 170'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: kit_path
-  how: '`kit_path.read_text(encoding=''utf-8'')` at line 234'
+  how: '`kit_path.read_text(encoding="utf-8")` at line 234'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -90,7 +90,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 148'
+  how: '`md_path.read_text(encoding="utf-8")` at line 148'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

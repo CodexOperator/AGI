@@ -84,58 +84,57 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'n1.md'
-  how: '`(tmp_path / ''n1.md'').write_text(''---\nid: a\ntitle: x\n---\n'')` at line
-    21'
+- name: tmp_path / "n1.md"
+  how: '`(tmp_path / "n1.md").write_text("---\nid: a\ntitle: x\n---\n")` at line 21'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'n2.md'
-  how: '`(tmp_path / ''n2.md'').write_text(''---\nid: b\nverdict: pending\n---\n'')`
-    at line 22'
+- name: tmp_path / "n2.md"
+  how: '`(tmp_path / "n2.md").write_text("---\nid: b\nverdict: pending\n---\n")` at
+    line 22'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[experiment].md'
-  how: '`(schemas_dir / ''[experiment].md'').write_text(''---\nname: experiment\nfields:\n  id:
-    {type: string}\n  verdict: {type: string}\n  evidence_runs: {type: list}\n---\n'')`
-    at line 31'
+- name: schemas_dir / "[experiment].md"
+  how: '`(schemas_dir / "[experiment].md").write_text( "---\nname: experiment\nfields:\n  id:
+    {type: string}\n  verdict: {type: string}\n  evidence_runs: {type: list}\n---\n"
+    )` at line 31'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'node1.md'
-  how: '`(target / ''node1.md'').write_text(''---\nid: e1\nverdict: proved\nevidence_runs:
-    []\n---\n'')` at line 38'
+- name: target / "node1.md"
+  how: '`(target / "node1.md").write_text("---\nid: e1\nverdict: proved\nevidence_runs:
+    []\n---\n")` at line 38'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'node2.md'
-  how: '`(target / ''node2.md'').write_text(''---\nid: e2\nverdict: pending\nevidence_runs:
-    []\n---\n'')` at line 39'
+- name: target / "node2.md"
+  how: '`(target / "node2.md").write_text("---\nid: e2\nverdict: pending\nevidence_runs:
+    []\n---\n")` at line 39'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[experiment].md'
-  how: '`(schemas_dir / ''[experiment].md'').write_text(''---\nname: experiment\nfields:\n  verdict:
-    {type: string}\n  evidence_runs: {type: list}\n---\n'')` at line 50'
+- name: schemas_dir / "[experiment].md"
+  how: '`(schemas_dir / "[experiment].md").write_text( "---\nname: experiment\nfields:\n  verdict:
+    {type: string}\n  evidence_runs: {type: list}\n---\n" )` at line 50'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'totally_unrelated.md'
-  how: '`(target / ''totally_unrelated.md'').write_text(''---\nrandom_field: 1\nother:
-    2\n---\n'')` at line 56'
+- name: target / "totally_unrelated.md"
+  how: '`(target / "totally_unrelated.md").write_text("---\nrandom_field: 1\nother:
+    2\n---\n")` at line 56'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[experiment].md'
-  how: '`(schemas_dir / ''[experiment].md'').write_text(''---\nname: experiment\nfields:\n  id:
-    {type: string}\n  verdict: {type: string}\n---\n'')` at line 65'
+- name: schemas_dir / "[experiment].md"
+  how: '`(schemas_dir / "[experiment].md").write_text( "---\nname: experiment\nfields:\n  id:
+    {type: string}\n  verdict: {type: string}\n---\n" )` at line 65'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'x.md'
-  how: '`(target / ''x.md'').write_text(''---\nid: e1\nverdict: proved\n---\n'')`
-    at line 72'
+- name: target / "x.md"
+  how: '`(target / "x.md").write_text("---\nid: e1\nverdict: proved\n---\n")` at line
+    72'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

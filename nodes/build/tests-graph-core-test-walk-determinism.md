@@ -67,19 +67,19 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'n.md'
-  how: '`(tmp_path / ''n.md'').write_text(''---\nid: x\n---\n'')` at line 29'
+- name: tmp_path / "n.md"
+  how: '`(tmp_path / "n.md").write_text("---\nid: x\n---\n")` at line 29'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'n.txt'
-  how: '`(tmp_path / ''n.txt'').write_text(''not a node'')` at line 30'
+- name: tmp_path / "n.txt"
+  how: '`(tmp_path / "n.txt").write_text("not a node")` at line 30'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'n.json'
-  how: '`(tmp_path / ''n.json'').write_text(''{"frontmatter": {"id": "y"}, "body":
-    "z"}'')` at line 31'
+- name: tmp_path / "n.json"
+  how: '`(tmp_path / "n.json").write_text(''{"frontmatter": {"id": "y"}, "body": "z"}'')`
+    at line 31'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

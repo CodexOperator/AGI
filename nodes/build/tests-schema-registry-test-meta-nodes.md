@@ -86,15 +86,15 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'experiment.md'
-  how: '`(tmp_path / ''experiment.md'').write_text(''---\nname: experiment\n---\n'')`
+- name: tmp_path / "experiment.md"
+  how: '`(tmp_path / "experiment.md").write_text( "---\nname: experiment\n---\n" )`
     at line 65'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: d / fname
-  how: '`(d / fname).write_text(f''---\nname: {n}\nfields:\n  title:\n    type: string\n---\n'')`
-    at line 17'
+  how: '`(d / fname).write_text( f"---\nname: {n}\nfields:\n  title:\n    type: string\n---\n"
+    )` at line 17'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

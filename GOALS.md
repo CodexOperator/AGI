@@ -4006,7 +4006,7 @@ Sequence, and it is not negotiable:
 
 Pairs with **S11** (same rename hazard, same sequence) and **G7**.
 
-## S19 — Contract derivation depends on which interpreter ran it — status: active
+## S19 — Contract derivation depends on which interpreter ran it — status: complete
 
 🔴 **`level3.py`'s `how` field is not a function of the payload alone. It is a
 function of the payload *and* whichever `python3` ran the scan.**
@@ -4075,3 +4075,107 @@ to be buried inside a change about node bodies.
 
 Falsifier: run `level3.py` under two CPython versions in sequence and diff
 `nodes/`. It must be empty. Today it is one hunk.
+
+## What shipped 2026-08-28 — `how` quotes the payload, and the flap is gone
+
+`_render(source, node)` replaces `_unparse_safe(node)` as the chokepoint every
+`how` — and every derived entry `name` — passes through. It returns
+`ast.get_source_segment(source, node)`, the literal slice of the payload's own
+bytes, joined onto one line. `source` was threaded into `_scan_io_calls` and
+`_scan_top_level_defs` as a **required** parameter, not a defaulted one: a
+caller that forgot it would silently fall back to `ast.unparse` and restore
+this defect invisibly, which is the exact shape of the original bug. Eight call
+sites moved; `_unparse_safe` survives only as the fallback.
+
+**The falsifier passes.** Three runs against the live corpus, from
+`/home/ubuntu/work/agi-tree`, all with
+`--project . --engine-root /home/ubuntu/work/agi --from-grid`:
+
+    /usr/bin/python3 payloads/extensions/agi/bin/level3.py ...              (3.12.3)
+    /home/ubuntu/.hermes/hermes-agent/venv/bin/python3 ... level3.py ...    (3.11.15)
+    /usr/bin/python3 payloads/extensions/agi/bin/level3.py ...              (3.12.3)
+
+`diff -r` of `nodes/` across all three: **empty**. Before the change the same
+sequence moved `build:tests-schema-registry-test-brackets` by 1 hunk, 2 lines,
+every single time. **Fixed point:** a second run under the same interpreter
+also produced zero change, so the derivation reproduces its own stored value —
+the G6.5 property, checked against a second *run* as well as a second
+*interpreter*.
+
+**Blast radius, re-measured.** The estimate in this node was taken before the
+fix and both halves of it were wrong. Measured 2026-08-28 by deriving every
+payload from a single grid read and running the old and new code over the same
+bytes (so the 5-minute grid cron could not race the count): **186 payloads,
+2,821 contract entries before and after — the entry set is unchanged; 363
+entries (12.9%) changed value, across 55 of 186 build nodes.** 177 of the 363
+were the `name` half. On disk the churn is 56 node files, +830/-761. The
+corpus totals in the paragraph above (190 nodes, 2,692 entries) were stale:
+190 is the node-file count (185 live + 5 retired), and the entry count is now
+2,824.
+
+Almost all of the 363 are `'` becoming `"`, because this codebase writes double
+quotes and `ast.unparse` normalises to single. That is the churn predicted
+above, and it is the point: those entries were never *wrong*, they were
+rendered rather than quoted.
+
+**YAML round-trip: verified, zero drift.** The hazard was that a source slice
+carries quotes, `#`, backslash escapes and newlines into `yaml.safe_dump`, and
+a value that did not survive write-then-read would leave the graph
+**permanently** dirty — strictly worse than the intermittent flap being fixed.
+`stitch.py --verify --from-grid --strict` reports `stale_contracts: 0` across
+all 2,824 entries, with `missing_payload`, `orphan_files` and
+`duplicate_payload_ref` also 0. Exit 0.
+
+**`ast.arguments` keeps `ast.unparse`, and that is a decision.**
+`get_source_segment` returns `None` for all 1,241 top-level signatures in this
+engine — `arguments` is neither a `stmt` nor an `expr` and carries no
+`lineno`/`col_offset`. Naively swapping the implementation would have emptied
+every signature in every contract. The two obvious repairs are both wrong: a
+span built from the child nodes drops the `*`, because `vararg`'s own position
+starts at the *name* (checked: `get_source_segment` on the vararg of
+`def f(*args)` returns `args`, not `*args`), and it cannot see the `/` in a
+positional-only list at all; matching parentheses in the header text needs a
+tokenizer, i.e. a second renderer, which is the class of thing this goal
+removed. So the fallback stays, and the justification is measured rather than
+assumed: `ast.unparse(node.args)` is byte-identical under 3.11.15 and 3.12.3
+for all 1,241 signatures, and **zero** of them contain an f-string — the only
+construct these versions render differently. **0 signature entries changed** in
+the whole re-derivation, which is the same claim from the other direction.
+`test_no_engine_signature_contains_an_fstring` now guards that premise on the
+real corpus, so a future `def f(x=f"...")` fails a test instead of silently
+restoring the flap.
+
+**Whitespace is normalised, and the first attempt at it was a bug worth
+recording.** `how` is one YAML scalar; ~7% of call sites span more than one
+line, and `_cap`'s 240-char budget is meant to bound content, not indentation.
+The first version collapsed `\s+` — and that silently rewrote
+`f"---\nfields:\n  {fields}:"` to `...\n {fields}:`, because the `\n` in that
+template is two characters and the spaces after it are **content**. Most of
+what this engine writes is indentation-sensitive text, so a contract that
+quietly alters what it quotes is worse than one that quotes too much. The
+shipped `_LINE_JOIN` collapses only whitespace runs that *contain* a line
+break, leaving everything inside a line exactly as the payload has it. Caught
+by the new test asserting the quoted fragment is a verbatim substring of the
+payload — written before the bug existed, which is why it was caught at all.
+
+**Not done, deliberately:** comments are not stripped from joined multi-line
+slices. 38 of 10,099 call sites span lines *and* carry a `#` comment, and
+joining those reads as if the comment swallowed the rest of the call. It is
+cosmetic, deterministic, and honest; removing it would mean rebuilding the text
+from tokens, i.e. the second renderer this goal exists to avoid.
+
+**One exposure named but not paid.** Derived entry `name`s go through the same
+chokepoint, and `name` is what `_prior_index` keys the `why`/`perf`/`security`
+carry-over on — so 177 changed names would have dropped authored fields if any
+existed. Measured: 8,427 authored fields in the corpus, **0** filled. Nothing
+was lost. The exposure is real for any future rendering change, and this is the
+cheapest moment it will ever be paid.
+
+**Tests: 801 passed / 1 skipped → 811 passed / 1 skipped, identical under both
+interpreters.** Ten added, none deleted, none weakened. No existing test failed
+against the new code — every pre-S19 fixture in `test_level3.py` used single
+quotes, which is precisely why the suite could not tell a source slice from a
+re-render and why this defect reached the corpus. Six of the ten new tests fail
+against the pre-fix `level3.py`, checked by running them against a pristine
+copy; the other four are property guards (round-trip, fixed point) that were
+already true and are now pinned.

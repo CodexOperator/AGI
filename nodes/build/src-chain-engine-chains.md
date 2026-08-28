@@ -85,7 +85,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: cache_file
-  how: '`open(cache_file, ''rb'')` at line 69 (mode=''rb'')'
+  how: '`open(cache_file, "rb")` at line 69 (mode=''rb'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -95,7 +95,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'', errors=''replace'')` at line 106'
+  how: '`md_path.read_text(encoding="utf-8", errors="replace")` at line 106'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -168,7 +168,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: cache_file
-  how: '`open(cache_file, ''wb'')` at line 54 (mode=''wb'')'
+  how: '`open(cache_file, "wb")` at line 54 (mode=''wb'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

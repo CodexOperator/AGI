@@ -69,27 +69,26 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[idea].md'
-  how: '`(schemas_dir / ''[idea].md'').write_text(''---\nname: idea\nfields:\n  title:
-    {type: string}\n---\n'')` at line 12'
+- name: schemas_dir / "[idea].md"
+  how: '`(schemas_dir / "[idea].md").write_text("---\nname: idea\nfields:\n  title:
+    {type: string}\n---\n")` at line 12'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[hypothesis].md'
-  how: '`(schemas_dir / ''[hypothesis].md'').write_text(''---\nname: hypothesis\n---\n'')`
+- name: schemas_dir / "[hypothesis].md"
+  how: '`(schemas_dir / "[hypothesis].md").write_text("---\nname: hypothesis\n---\n")`
     at line 25'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / 'idea.md'
-  how: '`(schemas_dir / ''idea.md'').write_text(''---\nname: idea\n---\n'')` at line
-    39'
+- name: schemas_dir / "idea.md"
+  how: '`(schemas_dir / "idea.md").write_text("---\nname: idea\n---\n")` at line 39'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[idea].md'
-  how: '`(schemas_dir / ''[idea].md'').write_text(''---\nname: idea\n---\n'')` at
-    line 51'
+- name: schemas_dir / "[idea].md"
+  how: '`(schemas_dir / "[idea].md").write_text("---\nname: idea\n---\n")` at line
+    51'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

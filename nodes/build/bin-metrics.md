@@ -80,24 +80,23 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(root.joinpath(*PUBLISH_STATE_PATH).read_text(encoding=''utf-8''))`
+  how: '`json.loads(root.joinpath(*PUBLISH_STATE_PATH).read_text(encoding="utf-8"))`
     at line 264'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 160'
+  how: '`nf.read_text(encoding="utf-8")` at line 160'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 198'
+  how: '`nf.read_text(encoding="utf-8")` at line 198'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: root.joinpath(*PUBLISH_STATE_PATH)
-  how: '`root.joinpath(*PUBLISH_STATE_PATH).read_text(encoding=''utf-8'')` at line
-    264'
+  how: '`root.joinpath(*PUBLISH_STATE_PATH).read_text(encoding="utf-8")` at line 264'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

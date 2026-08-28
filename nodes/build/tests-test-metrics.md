@@ -298,57 +298,57 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(''\n''.join(lines))` at line 44'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text("\n".join(lines))` at line 44'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 49'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 49'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(json.dumps({''metric_primary'':
-    ''longest_chain_length''}))` at line 74'
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text( json.dumps({"metric_primary":
+    "longest_chain_length"}) )` at line 74'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(json.dumps({''metric_primary'':
-    ''evidence_fraction''}))` at line 85'
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text( json.dumps({"metric_primary":
+    "evidence_fraction"}) )` at line 85'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(json.dumps({''cc_dispatch'':
-    {''max_goals_active'': 1}}))` at line 354'
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text( json.dumps({"cc_dispatch":
+    {"max_goals_active": 1}}) )` at line 354'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(json.dumps({''cc_dispatch'':
-    {''max_goals_active'': 3}}))` at line 367'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: json.dumps
-  how: '`json.dumps({''metric_primary'': ''longest_chain_length''})` at line 75'
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text( json.dumps({"cc_dispatch":
+    {"max_goals_active": 3}}) )` at line 367'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''metric_primary'': ''evidence_fraction''})` at line 86'
+  how: '`json.dumps({"metric_primary": "longest_chain_length"})` at line 75'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''cc_dispatch'': {''max_goals_active'': 1}})` at line 355'
+  how: '`json.dumps({"metric_primary": "evidence_fraction"})` at line 86'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''cc_dispatch'': {''max_goals_active'': 3}})` at line 368'
+  how: '`json.dumps({"cc_dispatch": {"max_goals_active": 1}})` at line 355'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.dumps
+  how: '`json.dumps({"cc_dispatch": {"max_goals_active": 3}})` at line 368'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

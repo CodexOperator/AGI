@@ -55,18 +55,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node
-  how: '`node.read_text(encoding=''utf-8'')` at line 372'
+  how: '`node.read_text(encoding="utf-8")` at line 372'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: next((nested / 'nodes' / 'goal').glob('g1-*.md'))
-  how: '`next((nested / ''nodes'' / ''goal'').glob(''g1-*.md'')).read_text()` at line
-    461'
+- name: next((nested / "nodes" / "goal").glob("g1-*.md"))
+  how: '`next((nested / "nodes" / "goal").glob("g1-*.md")).read_text()` at line 461'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').read_text()` at line 686'
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").read_text()` at line 686'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -130,8 +129,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').read_text()` at line 733'
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").read_text()` at line 733'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -141,12 +140,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 71'
+  how: '`path.read_text(encoding="utf-8")` at line 71'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'GOALS.md'
-  how: '`(project / ''GOALS.md'').read_text()` at line 708'
+- name: project / "GOALS.md"
+  how: '`(project / "GOALS.md").read_text()` at line 708'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -630,77 +629,76 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').write_text(GOALS_DOC, encoding=''utf-8'')` at line
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").write_text(GOALS_DOC, encoding="utf-8")` at line
     65'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node
-  how: '`node.write_text(f''---{head}next_edges:\n  - idea:seeded\nembedding_coords:
-    [0.1, 0.2]\n---{body}'', encoding=''utf-8'')` at line 374'
+  how: '`node.write_text( f"---{head}next_edges:\n  - idea:seeded\nembedding_coords:
+    [0.1, 0.2]\n" f"---{body}", encoding="utf-8", )` at line 374'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').write_text(NESTED_DOC, encoding=''utf-8'')` at
-    line 417'
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").write_text(NESTED_DOC, encoding="utf-8")` at line
+    417'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 491'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 491'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').write_text(goals_md)` at line 492'
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").write_text(goals_md)` at line 492'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'seed.md'
-  how: '`(d / ''seed.md'').write_text(f''---\nid: "idea:seed"\ntype: idea\nparents:\n  -
+- name: d / "seed.md"
+  how: '`(d / "seed.md").write_text( f''---\nid: "idea:seed"\ntype: idea\nparents:\n  -
     {seed_parent}\n---\n\nbody\n'')` at line 495'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"goal_body_cap": 120}'')`
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text(''{"goal_body_cap": 120}'')`
     at line 578'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{not json'')` at line
-    588'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{not json")` at line 588'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"goal_body_cap": 0}'')`
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text(''{"goal_body_cap": 0}'')`
     at line 624'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').write_text(doc)` at line 682'
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").write_text(doc)` at line 682'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
-  how: '`doc.write_text(before.replace(''## G2 — Persistent ideation system — status:
-    active\n\nAdapt the research loop.\n'', ''''))` at line 717'
+  how: '`doc.write_text(before.replace( "## G2 — Persistent ideation system — status:
+    active\n\nAdapt the research loop.\n", ""))` at line 717'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'GOALS.md'
-  how: '`(tmp_path / ''GOALS.md'').write_text(''# real content\n'')` at line 730'
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").write_text("# real content\n")` at line 730'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
-  how: '`doc.write_text(doc.read_text().replace(''## G2 — Persistent ideation system
-    — status: active\n\nAdapt the research loop.\n'', ''''))` at line 810'
+  how: '`doc.write_text(doc.read_text().replace( "## G2 — Persistent ideation system
+    — status: active\n\nAdapt the research loop.\n", ""))` at line 810'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

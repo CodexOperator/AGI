@@ -177,14 +177,14 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: iter_dir / 'manifest.json'
-  how: '`(iter_dir / ''manifest.json'').write_text(json.dumps(manifest, indent=2))`
+- name: iter_dir / "manifest.json"
+  how: '`(iter_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))`
     at line 187'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sess_dir / 'agent.json'
-  how: '`(sess_dir / ''agent.json'').write_text(json.dumps(agent_record, indent=2))`
+- name: sess_dir / "agent.json"
+  how: '`(sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))`
     at line 183'
   why: TODO(model)
   perf: TODO(model)
@@ -195,7 +195,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: log_file
-  how: '`open(log_file, ''wb'')` at line 156 (mode=''wb'')'
+  how: '`open(log_file, "wb")` at line 156 (mode=''wb'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

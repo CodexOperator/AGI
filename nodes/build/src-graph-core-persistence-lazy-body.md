@@ -45,7 +45,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 64'
+  how: '`path.read_text(encoding="utf-8")` at line 64'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

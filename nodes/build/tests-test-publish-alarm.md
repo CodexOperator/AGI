@@ -70,7 +70,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads((root / STATE_REL).read_text(encoding=''utf-8''))` at line 75'
+  how: '`json.loads((root / STATE_REL).read_text(encoding="utf-8"))` at line 75'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -80,7 +80,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: root / STATE_REL
-  how: '`(root / STATE_REL).read_text(encoding=''utf-8'')` at line 75'
+  how: '`(root / STATE_REL).read_text(encoding="utf-8")` at line 75'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -300,70 +300,65 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 61'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 61'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(json.dumps(fields), encoding=''utf-8'')` at line 70'
+  how: '`p.write_text(json.dumps(fields), encoding="utf-8")` at line 70'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'agi-tree.config.json'
-  how: '`(root / ''agi-tree.config.json'').write_text(''{}'')` at line 87'
+- name: root / "agi-tree.config.json"
+  how: '`(root / "agi-tree.config.json").write_text("{}")` at line 87'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'n.md'
-  how: '`(root / ''nodes'' / ''n.md'').write_text(''---\nid: "goal:n"\ntype: goal\n---\n\nbody\n'')`
+- name: root / "nodes" / "n.md"
+  how: '`(root / "nodes" / "n.md").write_text(''---\nid: "goal:n"\ntype: goal\n---\n\nbody\n'')`
     at line 88'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(''{not json at all'')` at line 174'
+  how: '`p.write_text("{not json at all")` at line 174'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: outside / 'context' / 'publish-state.json'
-  how: '`(outside / ''context'' / ''publish-state.json'').write_text(json.dumps({''last_run_status'':
-    ''refused'', ''last_run_reason'': ''graph-dirty''}))` at line 344'
+- name: outside / "context" / "publish-state.json"
+  how: '`(outside / "context" / "publish-state.json").write_text( json.dumps({"last_run_status":
+    "refused", "last_run_reason": "graph-dirty"}))` at line 344'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'INJECTION.md'
-  how: '`(project / ''context'' / ''INJECTION.md'').write_text(''map\n'')` at line
-    352'
+- name: project / "context" / "INJECTION.md"
+  how: '`(project / "context" / "INJECTION.md").write_text("map\n")` at line 352'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'INJECTION.md'
-  how: '`(project / ''context'' / ''INJECTION.md'').write_text(''map\n'')` at line
-    380'
+- name: project / "context" / "INJECTION.md"
+  how: '`(project / "context" / "INJECTION.md").write_text("map\n")` at line 380'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'INJECTION.md'
-  how: '`(project / ''context'' / ''INJECTION.md'').write_text(''map\n'')` at line
-    394'
+- name: project / "context" / "INJECTION.md"
+  how: '`(project / "context" / "INJECTION.md").write_text("map\n")` at line 394'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'INJECTION.md'
-  how: '`(project / ''context'' / ''INJECTION.md'').write_text(''map\n'')` at line
-    406'
+- name: project / "context" / "INJECTION.md"
+  how: '`(project / "context" / "INJECTION.md").write_text("map\n")` at line 406'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / STATE_REL
-  how: '`(project / STATE_REL).write_text(''{ truncated'')` at line 407'
+  how: '`(project / STATE_REL).write_text("{ truncated")` at line 407'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'INJECTION.md'
-  how: '`(project / ''context'' / ''INJECTION.md'').write_text(''map\n'')` at line
-    418'
+- name: project / "context" / "INJECTION.md"
+  how: '`(project / "context" / "INJECTION.md").write_text("map\n")` at line 418'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -373,7 +368,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''last_run_status'': ''refused'', ''last_run_reason'': ''graph-dirty''})`
+  how: '`json.dumps({"last_run_status": "refused", "last_run_reason": "graph-dirty"})`
     at line 345'
   why: TODO(model)
   perf: TODO(model)

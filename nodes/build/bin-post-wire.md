@@ -85,12 +85,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 181'
+  how: '`node_path.read_text(encoding="utf-8")` at line 181'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parent_path
-  how: '`parent_path.read_text(encoding=''utf-8'')` at line 251'
+  how: '`parent_path.read_text(encoding="utf-8")` at line 251'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -152,12 +152,12 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(content, encoding=''utf-8'')` at line 98'
+  how: '`path.write_text(content, encoding="utf-8")` at line 98'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_path
-  how: '`graph_path.write_text(json.dumps(graph_data, indent=2), encoding=''utf-8'')`
+  how: '`graph_path.write_text(json.dumps(graph_data, indent=2), encoding="utf-8")`
     at line 293'
   why: TODO(model)
   perf: TODO(model)

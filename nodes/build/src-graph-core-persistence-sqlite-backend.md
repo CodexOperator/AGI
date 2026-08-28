@@ -75,22 +75,22 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(row[''parents''])` at line 120'
+  how: '`json.loads(row["parents"])` at line 120'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(row[''children''])` at line 121'
+  how: '`json.loads(row["children"])` at line 121'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(row[''tags''])` at line 122'
+  how: '`json.loads(row["tags"])` at line 122'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(r[''tags''])` at line 194'
+  how: '`json.loads(r["tags"])` at line 194'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -101,17 +101,17 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(list(fm.get(''parents'', [])))` at line 133'
+  how: '`json.dumps(list(fm.get("parents", [])))` at line 133'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(list(fm.get(''children'', [])))` at line 134'
+  how: '`json.dumps(list(fm.get("children", [])))` at line 134'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(list(fm.get(''tags'', [])))` at line 135'
+  how: '`json.dumps(list(fm.get("tags", [])))` at line 135'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

@@ -59,8 +59,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: BIN / 'dispatch.py'
-  how: '`(BIN / ''dispatch.py'').read_text()` at line 123'
+- name: BIN / "dispatch.py"
+  how: '`(BIN / "dispatch.py").read_text()` at line 123'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -80,7 +80,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(res.path.read_text().split(''---'', 2)[1])` at line 230'
+  how: '`yaml.safe_load(res.path.read_text().split("---", 2)[1])` at line 230'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -89,23 +89,23 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: Path(info['path'])
-  how: '`Path(info[''path'']).read_text()` at line 405'
+- name: Path(info["path"])
+  how: '`Path(info["path"]).read_text()` at line 405'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: Path(info['path'])
-  how: '`Path(info[''path'']).read_text()` at line 435'
+- name: Path(info["path"])
+  how: '`Path(info["path"]).read_text()` at line 435'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'vision' / 'ap.md'
-  how: '`(project / ''nodes'' / ''vision'' / ''ap.md'').read_text()` at line 456'
+- name: project / "nodes" / "vision" / "ap.md"
+  how: '`(project / "nodes" / "vision" / "ap.md").read_text()` at line 456'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads((ad / ''agent.json'').read_text())` at line 458'
+  how: '`json.loads((ad / "agent.json").read_text())` at line 458'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -115,7 +115,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(res.path.read_text().split(''---'', 2)[1])` at line 245'
+  how: '`yaml.safe_load(res.path.read_text().split("---", 2)[1])` at line 245'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -134,8 +134,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: ad / 'agent.json'
-  how: '`(ad / ''agent.json'').read_text()` at line 458'
+- name: ad / "agent.json"
+  how: '`(ad / "agent.json").read_text()` at line 458'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -341,84 +341,84 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 74'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 74'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sd / '[shape].md'
-  how: '`(sd / ''[shape].md'').write_text(SHAPE)` at line 77'
+- name: sd / "[shape].md"
+  how: '`(sd / "[shape].md").write_text(SHAPE)` at line 77'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: first.path
-  how: '`first.path.write_text(''---\nid: verdict:keep\n---\n\nREAL WORK\n'')` at
+  how: '`(first.path).write_text("---\nid: verdict:keep\n---\n\nREAL WORK\n")` at
     line 257'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: first.path
-  how: '`first.path.write_text(first.path.read_text() + ''\nAn agent actually wrote
-    this.\n'')` at line 275'
+  how: '`first.path.write_text( first.path.read_text() + "\nAn agent actually wrote
+    this.\n")` at line 275'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 't-001-some-description.md'
-  how: '`(d / ''t-001-some-description.md'').write_text(''---\nid: task:thing\ntype:
-    task\n---\n\nbody\n'')` at line 300'
+- name: d / "t-001-some-description.md"
+  how: '`(d / "t-001-some-description.md").write_text( "---\nid: task:thing\ntype:
+    task\n---\n\nbody\n")` at line 300'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'abbrev.md'
-  how: '`(d / ''abbrev.md'').write_text(''---\nid: exp:abbrev\ntype: experiment\n---\n\nb\n'')`
+- name: d / "abbrev.md"
+  how: '`(d / "abbrev.md").write_text("---\nid: exp:abbrev\ntype: experiment\n---\n\nb\n")`
     at line 312'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'old.md'
-  how: '`(d / ''old.md'').write_text(''---\nid: hypothesis:old\ntype: hypothesis\nstatus:
-    deprecated\n---\n\nb\n'')` at line 324'
+- name: d / "old.md"
+  how: '`(d / "old.md").write_text( "---\nid: hypothesis:old\ntype: hypothesis\nstatus:
+    deprecated\n---\n\nb\n")` at line 324'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: live / 'dup.md'
-  how: '`(live / ''dup.md'').write_text(''---\nid: hypothesis:dup\ntype: hypothesis\n---\n\nlive\n'')`
+- name: live / "dup.md"
+  how: '`(live / "dup.md").write_text("---\nid: hypothesis:dup\ntype: hypothesis\n---\n\nlive\n")`
     at line 334'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: dead / 'dup.md'
-  how: '`(dead / ''dup.md'').write_text(''---\nid: hypothesis:dup\ntype: hypothesis\nstatus:
-    deprecated\n---\n\ndead\n'')` at line 338'
+- name: dead / "dup.md"
+  how: '`(dead / "dup.md").write_text( "---\nid: hypothesis:dup\ntype: hypothesis\nstatus:
+    deprecated\n---\n\ndead\n")` at line 338'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: ad / 'agent.json'
-  how: '`(ad / ''agent.json'').write_text(json.dumps({''id'': ''a1'', ''status'':
-    ''run''}))` at line 447'
+- name: ad / "agent.json"
+  how: '`(ad / "agent.json").write_text(json.dumps({"id": "a1", "status": "run"}))`
+    at line 447'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sd / fname
-  how: '`(sd / fname).write_text(f''---\nname: {name}\nspawn:\n  {spawn}\n---\n{name}\n'')`
+  how: '`(sd / fname).write_text(f"---\nname: {name}\nspawn:\n  {spawn}\n---\n{name}\n")`
     at line 80'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(f''---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n'')`
-    at line 88'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text( f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n"
+    )` at line 88'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'x.md'
-  how: '`(d / ''x.md'').write_text(''---\nid: exp:x\ntype: experiment\n---\n\nb\n'')`
+- name: d / "x.md"
+  how: '`(d / "x.md").write_text("---\nid: exp:x\ntype: experiment\n---\n\nb\n")`
     at line 369'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 447'
+  how: '`json.dumps({"id": "a1", "status": "run"})` at line 447'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

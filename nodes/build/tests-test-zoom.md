@@ -50,7 +50,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: ZOOM
-  how: '`ZOOM.read_text(encoding=''utf-8'')` at line 32'
+  how: '`ZOOM.read_text(encoding="utf-8")` at line 32'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -99,8 +99,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'sessions' / 'iter-001' / agent / 'context.md'
-  how: '`(tmp_path / ''sessions'' / ''iter-001'' / agent / ''context.md'').read_text()`
+- name: tmp_path / "sessions" / "iter-001" / agent / "context.md"
+  how: '`(tmp_path / "sessions" / "iter-001" / agent / "context.md").read_text()`
     at line 295'
   why: TODO(model)
   perf: TODO(model)
@@ -272,54 +272,52 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(''\n''.join(lines), encoding=''utf-8'')`
-    at line 45'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text("\n".join(lines), encoding="utf-8")` at line
+    45'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"metric_primary": "outcome_coverage"}'')`
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text(''{"metric_primary": "outcome_coverage"}'')`
     at line 57'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'context' / 'INJECTION.md'
-  how: '`(tmp_path / ''context'' / ''INJECTION.md'').write_text(''# injection\nINJECTION-MARKER-TEXT\n'',
-    encoding=''utf-8'')` at line 59'
+- name: tmp_path / "context" / "INJECTION.md"
+  how: '`(tmp_path / "context" / "INJECTION.md").write_text( "# injection\nINJECTION-MARKER-TEXT\n",
+    encoding="utf-8" )` at line 59'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: blocker
-  how: '`blocker.write_text(''i am a file, not a directory'')` at line 216'
+  how: '`blocker.write_text("i am a file, not a directory")` at line 216'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"persistence": {"type":
-    "sqlite", "path": "blocker/db.sqlite"}}'')` at line 217'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text( ''{"persistence": {"type":
+    "sqlite", "path": "blocker/db.sqlite"}}'' )` at line 217'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'context' / 'INJECTION.md'
-  how: '`(tmp_path / ''context'' / ''INJECTION.md'').write_text(''x\n'')` at line
-    221'
+- name: tmp_path / "context" / "INJECTION.md"
+  how: '`(tmp_path / "context" / "INJECTION.md").write_text("x\n")` at line 221'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(cfg)` at line 288'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text(cfg)` at line 288'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{not json'')` at line
-    337'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{not json")` at line 337'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"cc_dispatch": {}}'')`
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text(''{"cc_dispatch": {}}'')`
     at line 339'
   why: TODO(model)
   perf: TODO(model)

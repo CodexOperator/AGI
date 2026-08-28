@@ -50,7 +50,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: agents_md
-  how: '`open(agents_md, ''r'')` at line 96 (mode=''r'')'
+  how: '`open(agents_md, "r")` at line 96 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -81,7 +81,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: output_file
-  how: '`open(output_file, ''w'')` at line 318 (mode=''w'')'
+  how: '`open(output_file, "w")` at line 318 (mode=''w'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

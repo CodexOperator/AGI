@@ -127,15 +127,15 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: healer_ctx
-  how: '`healer_ctx.write_text(f"""# HEALER for hung agent {agent_id} (iter {iter_n})\n\nThe
-    original agent timed out. Diagnose what blocked it and patch.\n\n## Original Agent
-    Record\n```json\n{json.dumps(rec, indent=2)}\n```\n\n## Last 4 KiB of Age...[truncated,
-    851 chars total]` at line 139'
+  how: '`healer_ctx.write_text( f"""# HEALER for hung agent {agent_id} (iter {iter_n})
+    The original agent timed out. Diagnose what blocked it and patch. ## Original
+    Agent Record ```json {json.dumps(rec, indent=2)} ``` ## Last 4 KiB of Agent Output
+    `...[truncated, 805 chars total]` at line 139'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sess_dir / 'agent.json'
-  how: '`(sess_dir / ''agent.json'').write_text(json.dumps(rec, indent=2))` at line
+- name: sess_dir / "agent.json"
+  how: '`(sess_dir / "agent.json").write_text(json.dumps(rec, indent=2))` at line
     196'
   why: TODO(model)
   perf: TODO(model)
@@ -146,7 +146,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: healer_log
-  how: '`open(healer_log, ''wb'')` at line 177 (mode=''wb'')'
+  how: '`open(healer_log, "wb")` at line 177 (mode=''wb'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

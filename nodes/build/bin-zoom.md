@@ -70,7 +70,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: inject_path
-  how: '`inject_path.read_text(encoding=''utf-8'')` at line 391'
+  how: '`inject_path.read_text(encoding="utf-8")` at line 391'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -155,7 +155,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text(content, encoding=''utf-8'')` at line 411'
+  how: '`out_path.write_text(content, encoding="utf-8")` at line 411'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

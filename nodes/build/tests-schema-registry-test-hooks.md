@@ -118,24 +118,24 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: schemas_dir / '[other].md'
-  how: '`(schemas_dir / ''[other].md'').write_text(''---\nname: other\n---\n'')` at
-    line 62'
+- name: schemas_dir / "[other].md"
+  how: '`(schemas_dir / "[other].md").write_text("---\nname: other\n---\n")` at line
+    62'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'n.md'
-  how: '`(target / ''n.md'').write_text(''---\nrandom: 1\n---\n'')` at line 66'
+- name: target / "n.md"
+  how: '`(target / "n.md").write_text("---\nrandom: 1\n---\n")` at line 66'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'n.md'
-  how: '`(target / ''n.md'').write_text(''---\nrandom: 1\n---\n'')` at line 87'
+- name: target / "n.md"
+  how: '`(target / "n.md").write_text("---\nrandom: 1\n---\n")` at line 87'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: target / 'n.md'
-  how: '`(target / ''n.md'').write_text(''---\nrandom: 1\n---\n'')` at line 103'
+- name: target / "n.md"
+  how: '`(target / "n.md").write_text("---\nrandom: 1\n---\n")` at line 103'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
