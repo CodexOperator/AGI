@@ -22,7 +22,9 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
 import sys
 import time
 from collections import defaultdict
@@ -77,6 +79,51 @@ UNKNOWN_REASON = "unknown"
 #: Longest reason token emitted. Truncated rather than dropped — a clipped
 #: reason still tells you which failure it was.
 MAX_REASON_LEN = 64
+
+#: Where a project keeps its engine clone, relative to the project root:
+#: `<project>/<project>-tree/agi`. Derived from the layout every project
+#: shares, not from this machine's — in `agi-tree` the same path happens to be
+#: a symlink, and nothing here can tell (goal:g8.2 forbids a branch that
+#: could). A project with no clone yet reports `missing` and alarms on nothing.
+ENGINE_CLONE_DIRNAME = "agi"
+
+#: `unpushed_*_commits` when the gap could not be measured at all.
+#:
+#: Not `0`, and the reason is `NEVER_PUBLISHED_HOURS`' reason pointed the other
+#: way: `0` is this metric's one *reassuring* value — "everything local is on
+#: the remote" — so letting an unmeasurable repo collapse to it builds an alarm
+#: that reports perfect health exactly when it is blind. `-1` is outside the
+#: range of every true measurement (a commit gap is a count; it cannot be
+#: negative), so it can be neither mistaken for one nor quietly averaged into
+#: one.
+#:
+#: Deliberately *not* a huge worst-case sentinel like `NEVER_PUBLISHED_HOURS`
+#: either. Unmeasurable here is not the worst state — a freshly forked project
+#: with no remote configured is unconfigured, not stranded — and a sentinel
+#: that shouted would be a permanent false alarm in every such project, which
+#: is how a mechanism like this gets switched off. The number says "unknown"
+#: and the paired reason says which unknown; neither says "fine".
+UNKNOWN_GAP = -1
+
+#: Unpushed commits at or above which `emit` shouts.
+#:
+#: Measured, not picked. Both push crons are hourly (`:07` graph, `:47`
+#: engine), so the normal reading is one cycle of work — and over the 14 days
+#: to 2026-08-28 the busiest single hour in this pair produced **8** commits in
+#: the graph and **9** in the engine. 20 cannot be one missed cycle even at the
+#: worst rate ever observed here, and the outage this metric exists for reached
+#: **25**.
+#:
+#: The threshold governs only the shout. The count is emitted every run
+#: whatever it is, so a reader watching the number sees a stall long before a
+#: warning does; nothing about the measurement depends on this value being
+#: right.
+UNPUSHED_WARN_AT = 20
+
+#: Seconds any single `git` call here may take. These are all local ref reads
+#: and finish in milliseconds, but `metrics.py` runs on every `driver.sh
+#: --smoke` and a smoke pass that can hang is not a cheap dry pass.
+GIT_TIMEOUT_SECONDS = 10
 
 #: Frontmatter `status:` that retires a node file without deleting it.
 DEPRECATED_STATUS = "deprecated"
@@ -312,6 +359,126 @@ def publish_stats(root: Path, now: float | None = None) -> dict:
     return {
         "hours_since_successful_publish": hours,
         "publish_blocked_reason": reason,
+    }
+
+
+def _git_out(repo: Path, *args: str) -> str | None:
+    """Stripped stdout of a local `git` command, or None if it did not succeed.
+
+    Never raises and never inherits a stream: a metrics stage that can die on a
+    missing binary, a permission error or a prompt is worse than one that
+    cannot answer, because the whole run goes with it.
+    """
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(repo), *args],
+            capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return None
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def unpushed_commits(repo: Path) -> tuple[int, str]:
+    """`(count, reason)` — commits on HEAD that the remote-tracking ref lacks.
+
+    `reason` is `""` if and only if `count` is a real measurement. Every other
+    value is a token naming *which* kind of blind, paired with
+    :data:`UNKNOWN_GAP`; a caller can therefore never read a number without
+    also being told whether it means anything.
+
+    **Local only, on purpose, and this is the honest cost.** The count comes
+    from `git rev-list --count @{upstream}..HEAD`, which reads
+    `refs/remotes/origin/<branch>` off this disk. That ref only advances when
+    this machine pushes or fetches, so the number means *commits this machine
+    has not pushed*, not *commits the remote is missing* — if someone else
+    pushed, it over-reports. Deliberate: `metrics.py` runs on every `driver.sh
+    --smoke`, `--smoke` is meant to be a cheap dry pass, and a `git fetch` here
+    would put network I/O in it. Over-reporting stranded work is also the
+    correct direction for an alarm to be wrong.
+
+    The refusals, in the order they are checked:
+
+    `missing`
+        No such directory. A project that has not cloned the engine yet is not
+        failing at anything.
+    `not-a-repo`
+        Not a git repo, or not the *root* of one. The second half is the load
+        bearing one: if `<project>/agi` were an ordinary directory inside the
+        graph repo rather than a clone, `git -C` would happily answer for the
+        **graph**, and the engine's gap would be reported as a copy of the
+        graph's — a wrong number that reads as a measurement, which is the one
+        outcome worse than no number. `publish-engine.sh` gate (a) refuses on
+        exactly this shape for exactly this reason.
+    `detached-head`
+        `@{upstream}` is a property of a branch. A detached HEAD has none, so
+        the question has no answer rather than the answer `0`.
+    `no-upstream`
+        A branch with no configured upstream. Ordinary in a fresh fork.
+    `git-failed`
+        `rev-list` ran and did not produce a number.
+    """
+    if not repo.is_dir():
+        return UNKNOWN_GAP, "missing"
+
+    top = _git_out(repo, "rev-parse", "--show-toplevel")
+    if top is None:
+        return UNKNOWN_GAP, "not-a-repo"
+    try:
+        # samefile, not string equality: `<project>/agi` is a symlink in at
+        # least one real project and `--show-toplevel` reports the resolved
+        # path, which would never compare equal to the path we were handed.
+        if not os.path.samefile(top, repo):
+            return UNKNOWN_GAP, "not-a-repo"
+    except OSError:
+        return UNKNOWN_GAP, "not-a-repo"
+
+    if _git_out(repo, "symbolic-ref", "--quiet", "HEAD") is None:
+        return UNKNOWN_GAP, "detached-head"
+    if _git_out(repo, "rev-parse", "--verify", "--quiet", "@{upstream}") is None:
+        return UNKNOWN_GAP, "no-upstream"
+
+    out = _git_out(repo, "rev-list", "--count", "@{upstream}..HEAD")
+    try:
+        return max(0, int((out or "").strip())), ""
+    except ValueError:
+        return UNKNOWN_GAP, "git-failed"
+
+
+def push_gap_stats(root: Path) -> dict:
+    """The stranded-push alarm (goal:s20) — the other half of goal:g7.10.
+
+    `hours_since_successful_publish` measures the **local commit**.
+    `publish-engine.sh` commits the engine and deliberately does not push, on
+    the stated grounds that pushing is the hourly push cron's job — and for the
+    engine repo that cron did not exist. The two halves shipped apart and the
+    gap was invisible from both sides: publish-engine reported success every
+    time, the publish alarm read healthy, the local tree was healthy, and the
+    remote sat **3 days and 25 commits** behind. It was noticed by looking at
+    GitHub, which is the failure mode goal:g7.10 exists to remove.
+
+    So: measure the **gap**, not the event. Two alternatives were considered
+    and rejected. `hours_since_successful_push` needs a wrapper around the bare
+    `git push` cron line plus a second state file; having the push cron write
+    into `context/publish-state.json` puts a second writer on a file whose
+    write is read-prior-then-rewrite-whole, where an overlap silently drops
+    keys. Both also share a deeper flaw: **a timestamp can read fresh while
+    work is stranded.** A push that succeeds with nothing to push is
+    indistinguishable from one that shipped 25 commits. A gap count is state,
+    not an event; it cannot lie that way, it needs no state file at all, and
+    the number is the severity — it would have read 25 during the outage above
+    and reads 0 when healthy.
+
+    Both repos, because the `:07` graph push has exactly the same hole as the
+    `:47` engine one; only the engine's happened to be the one that broke.
+    """
+    graph_n, graph_reason = unpushed_commits(root)
+    engine_n, engine_reason = unpushed_commits(root / ENGINE_CLONE_DIRNAME)
+    return {
+        "unpushed_graph_commits": graph_n,
+        "unpushed_graph_reason": graph_reason,
+        "unpushed_engine_commits": engine_n,
+        "unpushed_engine_reason": engine_reason,
     }
 
 
@@ -560,6 +727,11 @@ def compute(root: Path) -> dict:
     # cron so it is reported by every `--smoke` run, including runs on a
     # machine where the cron is not installed at all.
     m.update(publish_stats(root))
+    # goal:s20 — the same path's second half. `publish_stats` above ends at the
+    # local commit; these two counts are everything after it. Kept adjacent
+    # because the pair is the whole path and reading either alone is what let a
+    # 3-day outage look healthy.
+    m.update(push_gap_stats(root))
     ev = evidence_stats(root / "nodes")
     m.update(ev)
     # goal:g2.11 — descriptive coverage of the authored THOUGHT region.
@@ -639,6 +811,33 @@ def emit(root: Path, out=None) -> dict:
             file=sys.stderr,
         )
         print(f"METRIC_WARNING publish_stalled={blocked}", file=out)
+
+    # goal:s20 — a publish that landed locally and never left the machine. The
+    # threshold is here and not in the metric on purpose: the count is emitted
+    # every run whatever it is, and this only decides when to raise a voice.
+    #
+    # An UNKNOWN_GAP is deliberately silent. It is not a claim of health — the
+    # count reads -1 and `unpushed_*_reason` names the blind spot for whoever
+    # is reading the numbers — but a fork with no remote configured is
+    # unconfigured, not stranded, and a banner it can never clear is how an
+    # alarm earns the reputation that gets it ignored.
+    for label in ("graph", "engine"):
+        n = m.get(f"unpushed_{label}_commits")
+        if not isinstance(n, int) or n < UNPUSHED_WARN_AT:
+            continue
+        print(
+            f"!! METRIC-WARNING {n} commits in the {label} repo have NEVER BEEN "
+            "PUSHED. The publish path landed them locally and stopped there: "
+            "`hours_since_successful_publish` measures the local commit, so a "
+            "healthy publish and a stale remote look identical from it. That "
+            "combination once left the remote 3 days and 25 commits behind, "
+            "found only by looking at GitHub. Nothing is lost — the commits are "
+            "on this disk — but nothing off this machine has them. Check the "
+            "hourly push cron (`crontab -l`), then `git -C <repo> push origin "
+            "HEAD` (goal:s20).",
+            file=sys.stderr,
+        )
+        print(f"METRIC_WARNING unpushed_{label}_commits={n}", file=out)
 
     for k, v in m.items():
         print(f"METRIC {k}={v}", file=out)
