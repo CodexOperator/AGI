@@ -104,8 +104,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes / '.chain_cache.pkl'
-  how: '`(nodes / ''.chain_cache.pkl'').read_bytes()` at line 375'
+- name: nodes / ".chain_cache.pkl"
+  how: '`(nodes / ".chain_cache.pkl").read_bytes()` at line 375'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -269,16 +269,16 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: nodes / '.chain_cache.pkl'
-  how: '`(nodes / ''.chain_cache.pkl'').write_bytes(pickle.dumps({''chains'': [[''idea:stale'']],
-    ''node_count'': len(md), ''mtime'': max((f.stat().st_mtime for f in md)), ''saved_at'':
-    time.time()}))` at line 384'
+- name: nodes / ".chain_cache.pkl"
+  how: '`(nodes / ".chain_cache.pkl").write_bytes(pickle.dumps({ "chains": [["idea:stale"]],
+    "node_count": len(md), "mtime": max(f.stat().st_mtime for f in md), "saved_at":
+    time.time(), }))` at line 384'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{i}.md'
-  how: '`(d / f''{i}.md'').write_text(f''---\nid: "{nid}"\ntype: {ntype}\n{block}---\n\nbody\n'')`
-    at line 128'
+- name: d / f"{i}.md"
+  how: '`(d / f"{i}.md").write_text( f''---\nid: "{nid}"\ntype: {ntype}\n{block}---\n\nbody\n''
+    )` at line 128'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

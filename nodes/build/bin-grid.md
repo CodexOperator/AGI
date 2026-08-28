@@ -60,22 +60,22 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 287'
+  how: '`path.read_text(encoding="utf-8")` at line 287'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 220'
+  how: '`path.read_text(encoding="utf-8")` at line 220'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 228'
+  how: '`path.read_text(encoding="utf-8")` at line 228'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 236'
+  how: '`path.read_text(encoding="utf-8")` at line 236'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

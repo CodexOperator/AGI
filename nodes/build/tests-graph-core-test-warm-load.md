@@ -93,15 +93,14 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'a.md'
-  how: '`(tmp_path / ''a.md'').write_text(''---\nid: a\n---\nDIFFERENT body\n'')`
-    at line 43'
+- name: tmp_path / "a.md"
+  how: '`(tmp_path / "a.md").write_text("---\nid: a\n---\nDIFFERENT body\n")` at line
+    43'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'a.md'
-  how: '`(tmp_path / ''a.md'').write_text(''---\nid: a\n---\nchanged\n'')` at line
-    71'
+- name: tmp_path / "a.md"
+  how: '`(tmp_path / "a.md").write_text("---\nid: a\n---\nchanged\n")` at line 71'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

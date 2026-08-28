@@ -54,13 +54,13 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'level3' / 'plain.md'
-  how: '`(project / ''nodes'' / ''level3'' / ''plain.md'').read_text()` at line 832'
+- name: project / "nodes" / "level3" / "plain.md"
+  how: '`(project / "nodes" / "level3" / "plain.md").read_text()` at line 832'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'level3' / 'plain.md'
-  how: '`(project / ''nodes'' / ''level3'' / ''plain.md'').read_text()` at line 842'
+- name: project / "nodes" / "level3" / "plain.md"
+  how: '`(project / "nodes" / "level3" / "plain.md").read_text()` at line 842'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -74,8 +74,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: engine / 'bin' / 'run.sh'
-  how: '`(engine / ''bin'' / ''run.sh'').read_bytes()` at line 881'
+- name: engine / "bin" / "run.sh"
+  how: '`(engine / "bin" / "run.sh").read_bytes()` at line 881'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -531,52 +531,51 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 26'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 26'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'x.md'
-  how: '`(d / ''x.md'').write_text(f''---\nid: "idea:x"\nmint_id: {MINT_X}\ntype:
-    idea\n---\n\nfirst thought\n'')` at line 29'
+- name: d / "x.md"
+  how: '`(d / "x.md").write_text( f''---\nid: "idea:x"\nmint_id: {MINT_X}\ntype: idea\n---\n\nfirst
+    thought\n'' )` at line 29'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 47'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: f
-  how: '`f.write_text(f.read_text().replace(''first thought'', ''second thought''))`
-    at line 69'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 47'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: f
-  how: '`f.write_text(f.read_text() + ''\ndraft addition\n'')` at line 80'
+  how: '`f.write_text(f.read_text().replace("first thought", "second thought"))` at
+    line 69'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'idea' / 'noid.md'
-  how: '`(project / ''nodes'' / ''idea'' / ''noid.md'').write_text(''no frontmatter
-    here\n'')` at line 88'
+- name: f
+  how: '`f.write_text(f.read_text() + "\ndraft addition\n")` at line 80'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: canonical / 'agi-tree.config.json'
-  how: '`(canonical / ''agi-tree.config.json'').write_text(''{}'')` at line 176'
+- name: project / "nodes" / "idea" / "noid.md"
+  how: '`(project / "nodes" / "idea" / "noid.md").write_text("no frontmatter here\n")`
+    at line 88'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: legacy / 'autoresearch-tree.config.json'
-  how: '`(legacy / ''autoresearch-tree.config.json'').write_text(''{}'')` at line
-    177'
+- name: canonical / "agi-tree.config.json"
+  how: '`(canonical / "agi-tree.config.json").write_text("{}")` at line 176'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 301'
+- name: legacy / "autoresearch-tree.config.json"
+  how: '`(legacy / "autoresearch-tree.config.json").write_text("{}")` at line 177'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 301'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -586,78 +585,77 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 415'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 415'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(''---\n'' + ''\n''.join(fm) + f''\n---\n\n{body}'')` at line
-    430'
+  how: '`p.write_text("---\n" + "\n".join(fm) + f"\n---\n\n{body}")` at line 430'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text().replace(''id: "idea:x"'', f''id: "idea:x"\nmint_id:
+  how: '`p.write_text(p.read_text().replace( ''id: "idea:x"'', f''id: "idea:x"\nmint_id:
     {MINT_A}''))` at line 477'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text().replace(''id: "idea:x"'', f''id: "idea:x"\nmint_id:
+  how: '`p.write_text(p.read_text().replace( ''id: "idea:x"'', f''id: "idea:x"\nmint_id:
     {MINT_A}''))` at line 489'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text().replace(''id: "idea:x"'', f''id: "idea:x"\nmint_id:
+  how: '`p.write_text(p.read_text().replace( ''id: "idea:x"'', f''id: "idea:x"\nmint_id:
     {MINT_A}''))` at line 521'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 598'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 598'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text() + ''\nedit 2\n'')` at line 620'
+  how: '`p.write_text(p.read_text() + "\nedit 2\n")` at line 620'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text() + ''\nedit 3\n'')` at line 622'
+  how: '`p.write_text(p.read_text() + "\nedit 3\n")` at line 622'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text() + ''\nedit 2\n'')` at line 731'
+  how: '`p.write_text(p.read_text() + "\nedit 2\n")` at line 731'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text() + ''\nedit 3\n'')` at line 733'
+  how: '`p.write_text(p.read_text() + "\nedit 3\n")` at line 733'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(p.read_text() + ''\nedit 4\n'')` at line 745'
+  how: '`p.write_text(p.read_text() + "\nedit 4\n")` at line 745'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'bin' / 'plain.py'
-  how: '`(root / ''bin'' / ''plain.py'').write_text("print(''v1'')\n")` at line 769'
+- name: root / "bin" / "plain.py"
+  how: '`(root / "bin" / "plain.py").write_text("print(''v1'')\n")` at line 769'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: exe
-  how: '`exe.write_text(''#!/bin/sh\necho v1\n'')` at line 771'
+  how: '`exe.write_text("#!/bin/sh\necho v1\n")` at line 771'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(f''---\nid: "{node_id}"\nmint_id: {mint_id}\ntype: level3\npayload_ref:
-    {payload_ref}\n---\n\nbuild node\n'')` at line 780'
+  how: '`p.write_text( f''---\nid: "{node_id}"\nmint_id: {mint_id}\ntype: level3\n''
+    f"payload_ref: {payload_ref}\n---\n\nbuild node\n" )` at line 780'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -666,15 +664,13 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: engine / 'bin' / 'plain.py'
-  how: '`(engine / ''bin'' / ''plain.py'').write_text("print(''moved'')\n")` at line
-    904'
+- name: engine / "bin" / "plain.py"
+  how: '`(engine / "bin" / "plain.py").write_text("print(''moved'')\n")` at line 904'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: engine / 'bin' / 'plain.py'
-  how: '`(engine / ''bin'' / ''plain.py'').write_text("print(''moved'')\n")` at line
-    914'
+- name: engine / "bin" / "plain.py"
+  how: '`(engine / "bin" / "plain.py").write_text("print(''moved'')\n")` at line 914'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

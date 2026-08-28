@@ -85,7 +85,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 93 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 93 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -125,92 +125,92 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 146 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 146 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 187 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 187 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 274 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 274 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 345 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 345 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 414 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 414 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 460 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 460 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 503 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 503 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 556 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 556 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 633 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 633 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 745 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 745 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 962 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 962 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1031 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1031 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1111 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1111 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1182 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1182 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1258 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1258 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1671 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1671 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1810 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1810 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1916 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1916 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -230,37 +230,37 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: skill_md
-  how: '`open(skill_md, ''r'')` at line 830 (mode=''r'')'
+  how: '`open(skill_md, "r")` at line 830 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1308 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1308 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1339 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1339 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1388 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1388 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1419 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1419 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: filepath
-  how: '`open(filepath, ''r'')` at line 1504 (mode=''r'')'
+  how: '`open(filepath, "r")` at line 1504 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: skill_md
-  how: '`open(skill_md, ''r'')` at line 893 (mode=''r'')'
+  how: '`open(skill_md, "r")` at line 893 (mode=''r'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

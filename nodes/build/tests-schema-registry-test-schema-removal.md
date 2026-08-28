@@ -85,9 +85,9 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp / f'{n}.md'
-  how: '`(tmp / f''{n}.md'').write_text(f''---\nname: {n}\nfields:\n  title:\n    type:
-    string\n---\n\n{n}\n'')` at line 14'
+- name: tmp / f"{n}.md"
+  how: '`(tmp / f"{n}.md").write_text(f"---\nname: {n}\nfields:\n  title:\n    type:
+    string\n---\n\n{n}\n")` at line 14'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

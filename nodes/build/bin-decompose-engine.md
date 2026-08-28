@@ -70,17 +70,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text(encoding=''utf-8'')` at line 337'
+  how: '`p.read_text(encoding="utf-8")` at line 337'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(path.read_text(encoding=''utf-8''))` at line 356'
+  how: '`json.loads(path.read_text(encoding="utf-8"))` at line 356'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 356'
+  how: '`path.read_text(encoding="utf-8")` at line 356'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

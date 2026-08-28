@@ -120,7 +120,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 78'
+  how: '`yaml.safe_load(text.split("---", 2)[1])` at line 78'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -259,7 +259,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.write_text(new_fm + ''\n'' + body)` at line 430'
+  how: '`node_file.write_text(new_fm + "\n" + body)` at line 430'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -279,7 +279,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: lock_file
-  how: '`open(lock_file, ''a'')` at line 288 (mode=''a'')'
+  how: '`open(lock_file, "a")` at line 288 (mode=''a'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -294,7 +294,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`open(node_file, ''a'')` at line 433 (mode=''a'')'
+  how: '`open(node_file, "a")` at line 433 (mode=''a'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

@@ -59,26 +59,26 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: wired_project / 'nodes' / 'verdict' / 'bypassed.md'
-  how: '`(wired_project / ''nodes'' / ''verdict'' / ''bypassed.md'').read_text()`
-    at line 506'
+- name: wired_project / "nodes" / "verdict" / "bypassed.md"
+  how: '`(wired_project / "nodes" / "verdict" / "bypassed.md").read_text()` at line
+    506'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: wired_project / 'nodes' / 'bigger_outcome' / 'bo.md'
-  how: '`(wired_project / ''nodes'' / ''bigger_outcome'' / ''bo.md'').read_text()`
-    at line 521'
+- name: wired_project / "nodes" / "bigger_outcome" / "bo.md"
+  how: '`(wired_project / "nodes" / "bigger_outcome" / "bo.md").read_text()` at line
+    521'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: wired_project / 'nodes' / 'verdict' / 'exp_nonexistent.md'
-  how: '`(wired_project / ''nodes'' / ''verdict'' / ''exp_nonexistent.md'').read_text()`
+- name: wired_project / "nodes" / "verdict" / "exp_nonexistent.md"
+  how: '`(wired_project / "nodes" / "verdict" / "exp_nonexistent.md").read_text()`
     at line 549'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: BIN / 'post_wire.py'
-  how: '`(BIN / ''post_wire.py'').read_text()` at line 562'
+- name: BIN / "post_wire.py"
+  how: '`(BIN / "post_wire.py").read_text()` at line 562'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -422,105 +422,106 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 132'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 132'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sd / 'mvp.md'
-  how: '`(sd / ''mvp.md'').write_text(''---\nname: mvp\nspawn:\n  allowed_parents:
-    []\n  min_parents: 0\n  max_parents: 9\n---\ninactive\n'')` at line 142'
+- name: sd / "mvp.md"
+  how: '`(sd / "mvp.md").write_text( "---\nname: mvp\nspawn:\n  allowed_parents: []\n"
+    "  min_parents: 0\n  max_parents: 9\n---\ninactive\n" )` at line 142'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / '[config].md'
-  how: '`(project / ''context'' / ''schemas'' / ''[config].md'').write_text(CONFIG.replace(''<graph_root>/nodes'',
-    ''<graph_root>/elsewhere''))` at line 197'
+- name: project / "context" / "schemas" / "[config].md"
+  how: '`(project / "context" / "schemas" / "[config].md").write_text( CONFIG.replace("<graph_root>/nodes",
+    "<graph_root>/elsewhere") )` at line 197'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / '[task].md'
-  how: '`(project / ''context'' / ''schemas'' / ''[task].md'').write_text(TASK.replace(''min_parents:
-    1'', ''min_parents: 0''))` at line 213'
+- name: project / "context" / "schemas" / "[task].md"
+  how: '`(project / "context" / "schemas" / "[task].md").write_text( TASK.replace("min_parents:
+    1", "min_parents: 0") )` at line 213'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / '[task].md'
-  how: '`(project / ''context'' / ''schemas'' / ''[task].md'').write_text(TASK.replace(''max_parents:
-    1'', ''max_parents: 5''))` at line 225'
+- name: project / "context" / "schemas" / "[task].md"
+  how: '`(project / "context" / "schemas" / "[task].md").write_text( TASK.replace("max_parents:
+    1", "max_parents: 5") )` at line 225'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sd / '[bigger_outcome].md'
-  how: '`(sd / ''[bigger_outcome].md'').write_text(''---\nname: bigger_outcome\nspawn:\n  allowed_parents:
-    [outcome, mvp]\n  min_parents: 1\n  max_parents: 2\n---\nb\n'')` at line 393'
+- name: sd / "[bigger_outcome].md"
+  how: '`(sd / "[bigger_outcome].md").write_text( "---\nname: bigger_outcome\nspawn:\n"
+    "  allowed_parents: [outcome, mvp]\n  min_parents: 1\n" "  max_parents: 2\n---\nb\n"
+    )` at line 393'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'outcome' / 'o1.md'
-  how: '`(project / ''nodes'' / ''outcome'' / ''o1.md'').write_text(''---\nid: outcome:o1\ntype:
-    outcome\n---\n\nb\n'')` at line 399'
+- name: project / "nodes" / "outcome" / "o1.md"
+  how: '`(project / "nodes" / "outcome" / "o1.md").write_text( "---\nid: outcome:o1\ntype:
+    outcome\n---\n\nb\n")` at line 399'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sd / '[app_purpose].md'
-  how: '`(sd / ''[app_purpose].md'').write_text(''---\nname: app_purpose\nspawn:\n  allowed_parents:
-    [bigger_outcome, outcome]\n  min_parents: 1\n  max_parents: 2\n---\na\n'')` at
-    line 413'
+- name: sd / "[app_purpose].md"
+  how: '`(sd / "[app_purpose].md").write_text( "---\nname: app_purpose\nspawn:\n"
+    "  allowed_parents: [bigger_outcome, outcome]\n  min_parents: 1\n" "  max_parents:
+    2\n---\na\n" )` at line 413'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'b1.md'
-  how: '`(d / ''b1.md'').write_text(''---\nid: bigger-outcome:b1\ntype: bigger-outcome\n---\n\nb\n'')`
+- name: d / "b1.md"
+  how: '`(d / "b1.md").write_text( "---\nid: bigger-outcome:b1\ntype: bigger-outcome\n---\n\nb\n")`
     at line 420'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: ad / 'agent.json'
-  how: '`(ad / ''agent.json'').write_text(json.dumps({''id'': ''a1'', ''status'':
-    ''run''}))` at line 464'
+- name: ad / "agent.json"
+  how: '`(ad / "agent.json").write_text(json.dumps({"id": "a1", "status": "run"}))`
+    at line 464'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: wired_project / 'context' / 'schemas' / '[bigger_outcome].md'
-  how: '`(wired_project / ''context'' / ''schemas'' / ''[bigger_outcome].md'').write_text(''---\nname:
-    bigger_outcome\nspawn:\n  allowed_parents: [outcome, mvp]\n  min_parents: 1\n  max_parents:
-    2\n---\nb\n'')` at line 511'
+- name: wired_project / "context" / "schemas" / "[bigger_outcome].md"
+  how: '`(wired_project / "context" / "schemas" / "[bigger_outcome].md").write_text(
+    "---\nname: bigger_outcome\nspawn:\n  allowed_parents: [outcome, mvp]\n" "  min_parents:
+    1\n  max_parents: 2\n---\nb\n")` at line 511'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'o1.md'
-  how: '`(d / ''o1.md'').write_text(''---\nid: outcome:o1\ntype: outcome\n---\n\nb\n'')`
+- name: d / "o1.md"
+  how: '`(d / "o1.md").write_text("---\nid: outcome:o1\ntype: outcome\n---\n\nb\n")`
     at line 516'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / '[bigger_outcome].md'
-  how: '`(project / ''context'' / ''schemas'' / ''[bigger_outcome].md'').write_text(BIGGER_OUTCOME)`
+- name: project / "context" / "schemas" / "[bigger_outcome].md"
+  how: '`(project / "context" / "schemas" / "[bigger_outcome].md").write_text(BIGGER_OUTCOME)`
     at line 625'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / fname
-  how: '`(project / ''context'' / ''schemas'' / fname).write_text(body)` at line 672'
+- name: project / "context" / "schemas" / fname
+  how: '`(project / "context" / "schemas" / fname).write_text(body)` at line 672'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: converging / 'context' / 'schemas' / '[bigger_outcome].md'
-  how: '`(converging / ''context'' / ''schemas'' / ''[bigger_outcome].md'').write_text(BIGGER_OUTCOME.replace(''min_parents_by_type:
-    {verdict: 1, outcome: 1}'', ''min_parents_by_type: [verdict, outcome]''))` at
-    line 705'
+- name: converging / "context" / "schemas" / "[bigger_outcome].md"
+  how: '`(converging / "context" / "schemas" / "[bigger_outcome].md").write_text(
+    BIGGER_OUTCOME.replace("min_parents_by_type: {verdict: 1, outcome: 1}", "min_parents_by_type:
+    [verdict, outcome]"))` at line 705'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / '[shape].md'
-  how: '`(project / ''context'' / ''schemas'' / ''[shape].md'').write_text(SHAPE_WITH_EDGES)`
+- name: project / "context" / "schemas" / "[shape].md"
+  how: '`(project / "context" / "schemas" / "[shape].md").write_text(SHAPE_WITH_EDGES)`
     at line 739'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'context' / 'schemas' / '[shape].md'
-  how: '`(project / ''context'' / ''schemas'' / ''[shape].md'').write_text(SHAPE_WITH_EDGES)`
+- name: project / "context" / "schemas" / "[shape].md"
+  how: '`(project / "context" / "schemas" / "[shape].md").write_text(SHAPE_WITH_EDGES)`
     at line 748'
   why: TODO(model)
   perf: TODO(model)
@@ -530,20 +531,20 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(f''---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n'')`
-    at line 151'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text( f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n"
+    )` at line 151'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''id'': ''a1'', ''status'': ''run''})` at line 464'
+  how: '`json.dumps({"id": "a1", "status": "run"})` at line 464'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(f''---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n'')`
-    at line 629'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text( f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n"
+    )` at line 629'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

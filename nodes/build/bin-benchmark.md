@@ -106,7 +106,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: out
-  how: '`open(out, ''a'')` at line 149 (mode=''a'')'
+  how: '`open(out, "a")` at line 149 (mode=''a'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

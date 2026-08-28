@@ -44,8 +44,8 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'context' / 'INJECTION.md'
-  how: '`(root / ''context'' / ''INJECTION.md'').read_text()` at line 49'
+- name: root / "context" / "INJECTION.md"
+  how: '`(root / "context" / "INJECTION.md").read_text()` at line 49'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -102,19 +102,19 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(''\n''.join(lines))` at line 38'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text("\n".join(lines))` at line 38'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{"metric_primary": "outcome_coverage"}'')`
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text( ''{"metric_primary": "outcome_coverage"}'')`
     at line 54'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(''{"metric_primary": "longest_chain_length"}'')`
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text( ''{"metric_primary": "longest_chain_length"}'')`
     at line 92'
   why: TODO(model)
   perf: TODO(model)

@@ -58,7 +58,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 151'
+  how: '`nf.read_text(encoding="utf-8")` at line 151'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -68,17 +68,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding=''utf-8'')` at line 226'
+  how: '`nf.read_text(encoding="utf-8")` at line 226'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(text.split(''---'', 2)[1])` at line 230'
+  how: '`yaml.safe_load(text.split("---", 2)[1])` at line 230'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.read_text(encoding=''utf-8'')` at line 402'
+  how: '`node_file.read_text(encoding="utf-8")` at line 402'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -134,7 +134,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.write_text(text, encoding=''utf-8'')` at line 421'
+  how: '`node_file.write_text(text, encoding="utf-8")` at line 421'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

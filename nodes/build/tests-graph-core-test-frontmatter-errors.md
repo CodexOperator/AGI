@@ -71,65 +71,64 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: good
-  how: '`good.write_text(''---\nid: hyp:ok\ntype: hypothesis\n---\n\nbody\n'')` at
-    line 11'
+  how: '`good.write_text("---\nid: hyp:ok\ntype: hypothesis\n---\n\nbody\n")` at line
+    11'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: bad
-  how: '`bad.write_text(''---\nid: hyp:bad\n'')` at line 13'
+  how: '`bad.write_text("---\nid: hyp:bad\n")` at line 13'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'node.md'
-  how: '`(tmp_path / ''node.md'').write_text(''---\nid: a\n---\nb\n'')` at line 24'
+- name: tmp_path / "node.md"
+  how: '`(tmp_path / "node.md").write_text("---\nid: a\n---\nb\n")` at line 24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'README.txt'
-  how: '`(tmp_path / ''README.txt'').write_text(''not a node'')` at line 25'
+- name: tmp_path / "README.txt"
+  how: '`(tmp_path / "README.txt").write_text("not a node")` at line 25'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'data.csv'
-  how: '`(tmp_path / ''data.csv'').write_text(''a,b\n1,2\n'')` at line 26'
+- name: tmp_path / "data.csv"
+  how: '`(tmp_path / "data.csv").write_text("a,b\n1,2\n")` at line 26'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'a.md'
-  how: '`(tmp_path / ''a.md'').write_text(''---\nid: a\n---\nbody-a\n'')` at line
-    34'
+- name: tmp_path / "a.md"
+  how: '`(tmp_path / "a.md").write_text("---\nid: a\n---\nbody-a\n")` at line 34'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'b.json'
-  how: '`(tmp_path / ''b.json'').write_text(''{"frontmatter": {"id": "b"}, "body":
-    "body-b"}\n'')` at line 35'
+- name: tmp_path / "b.json"
+  how: '`(tmp_path / "b.json").write_text(''{"frontmatter": {"id": "b"}, "body": "body-b"}\n'')`
+    at line 35'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: f
-  how: '`f.write_text(''---\nid: x\n---\n'')` at line 44'
+  how: '`f.write_text("---\nid: x\n---\n")` at line 44'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'good1.md'
-  how: '`(tmp_path / ''good1.md'').write_text(''---\nid: a\n---\n'')` at line 53'
+- name: tmp_path / "good1.md"
+  how: '`(tmp_path / "good1.md").write_text("---\nid: a\n---\n")` at line 53'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'good2.md'
-  how: '`(tmp_path / ''good2.md'').write_text(''---\nid: b\n---\n'')` at line 54'
+- name: tmp_path / "good2.md"
+  how: '`(tmp_path / "good2.md").write_text("---\nid: b\n---\n")` at line 54'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'bad1.md'
-  how: '`(tmp_path / ''bad1.md'').write_text(''no frontmatter at all'')` at line 55'
+- name: tmp_path / "bad1.md"
+  how: '`(tmp_path / "bad1.md").write_text("no frontmatter at all")` at line 55'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'bad2.json'
-  how: '`(tmp_path / ''bad2.json'').write_text(''{not json'')` at line 56'
+- name: tmp_path / "bad2.json"
+  how: '`(tmp_path / "bad2.json").write_text("{not json")` at line 56'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

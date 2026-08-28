@@ -50,13 +50,13 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(path.read_text(encoding=''utf-8'').split(''---'', 2)[1])`
-    at line 24'
+  how: '`yaml.safe_load(path.read_text(encoding="utf-8").split("---", 2)[1])` at line
+    24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding=''utf-8'')` at line 24'
+  how: '`path.read_text(encoding="utf-8")` at line 24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -108,8 +108,8 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: survivor
-  how: '`survivor.write_text(''---\nid: "task:t-001"\ntype: task\norigin: build-site\n---\n\nbody\n'',
-    encoding=''utf-8'')` at line 118'
+  how: '`survivor.write_text( ''---\nid: "task:t-001"\ntype: task\norigin: build-site\n---\n\nbody\n'',
+    encoding="utf-8", )` at line 118'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

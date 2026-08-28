@@ -153,8 +153,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text(''\n''.join(out_lines), encoding=''utf-8'')` at line
-    257'
+  how: '`out_path.write_text("\n".join(out_lines), encoding="utf-8")` at line 257'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

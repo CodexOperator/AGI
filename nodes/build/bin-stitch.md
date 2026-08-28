@@ -85,7 +85,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 277'
+  how: '`md_path.read_text(encoding="utf-8")` at line 277'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

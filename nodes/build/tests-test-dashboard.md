@@ -229,20 +229,20 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(''\n''.join(lines), encoding=''utf-8'')`
-    at line 60'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text("\n".join(lines), encoding="utf-8")` at line
+    60'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 66'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 66'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / f'{slug}.md'
-  how: '`(d / f''{slug}.md'').write_text(''---\nid: "idea:dup"\ntype: idea\n---\nbody\n'',
-    encoding=''utf-8'')` at line 228'
+- name: d / f"{slug}.md"
+  how: '`(d / f"{slug}.md").write_text( ''---\nid: "idea:dup"\ntype: idea\n---\nbody\n'',
+    encoding="utf-8")` at line 228'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

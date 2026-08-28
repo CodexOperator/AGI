@@ -55,8 +55,8 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads((project / ''sessions'' / ''iter-001'' / ''a1'' / ''agent.json'').read_text())`
-    at line 342'
+  how: '`json.loads( (project / "sessions" / "iter-001" / "a1" / "agent.json").read_text()
+    )` at line 342'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -65,44 +65,44 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 514'
+- name: root / "nodes" / "experiment" / "e1.md"
+  how: '`(root / "nodes" / "experiment" / "e1.md").read_text()` at line 514'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 524'
+- name: root / "nodes" / "experiment" / "e1.md"
+  how: '`(root / "nodes" / "experiment" / "e1.md").read_text()` at line 524'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 534'
+- name: root / "nodes" / "experiment" / "e1.md"
+  how: '`(root / "nodes" / "experiment" / "e1.md").read_text()` at line 534'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'verdict' / 'a1.md'
-  how: '`(root / ''nodes'' / ''verdict'' / ''a1.md'').read_text()` at line 564'
+- name: root / "nodes" / "verdict" / "a1.md"
+  how: '`(root / "nodes" / "verdict" / "a1.md").read_text()` at line 564'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 575'
+- name: root / "nodes" / "experiment" / "e1.md"
+  how: '`(root / "nodes" / "experiment" / "e1.md").read_text()` at line 575'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 578'
+- name: root / "nodes" / "experiment" / "e1.md"
+  how: '`(root / "nodes" / "experiment" / "e1.md").read_text()` at line 578'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'e1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''e1.md'').read_text()` at line 588'
+- name: root / "nodes" / "experiment" / "e1.md"
+  how: '`(root / "nodes" / "experiment" / "e1.md").read_text()` at line 588'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'sessions' / 'iter-001' / 'a1' / 'agent.json'
-  how: '`(project / ''sessions'' / ''iter-001'' / ''a1'' / ''agent.json'').read_text()`
-    at line 343'
+- name: project / "sessions" / "iter-001" / "a1" / "agent.json"
+  how: '`(project / "sessions" / "iter-001" / "a1" / "agent.json").read_text()` at
+    line 343'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -136,9 +136,9 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'verdict' / 'experiment_e1.md'
-  how: '`(project / ''nodes'' / ''verdict'' / ''experiment_e1.md'').read_text()` at
-    line 483'
+- name: project / "nodes" / "verdict" / "experiment_e1.md"
+  how: '`( project / "nodes" / "verdict" / "experiment_e1.md").read_text()` at line
+    483'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -455,113 +455,113 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'e1.md'
-  how: '`(d / ''e1.md'').write_text(''---\nid: "exp:e1"\ntype: experiment\n---\n\nbody\n'')`
+- name: d / "e1.md"
+  how: '`(d / "e1.md").write_text(''---\nid: "exp:e1"\ntype: experiment\n---\n\nbody\n'')`
     at line 199'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'e2.md'
-  how: '`(d / ''e2.md'').write_text(''---\ntype: experiment\n---\n\nno id field\n'')`
+- name: d / "e2.md"
+  how: '`(d / "e2.md").write_text("---\ntype: experiment\n---\n\nno id field\n")`
     at line 200'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 325'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 325'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: sess / 'agent.json'
-  how: '`(sess / ''agent.json'').write_text(json.dumps({''id'': ''a1'', ''status'':
-    ''running''}))` at line 329'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: nf
-  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nstatus: proved\ntags:\n  -
-    proved\n---\n\nbody\n'')` at line 365'
+- name: sess / "agent.json"
+  how: '`(sess / "agent.json").write_text(json.dumps({"id": "a1", "status": "running"}))`
+    at line 329'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nstatus: pending\n---\n\nbody\n'')`
-    at line 381'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: project / 'nodes' / 'experiment' / 'e0.md'
-  how: '`(project / ''nodes'' / ''experiment'' / ''e0.md'').write_text(''---\nid:
-    "experiment:e0"\ntype: experiment\n---\n\nbody\n'')` at line 394'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: project / 'nodes' / 'experiment' / 'run-a.md'
-  how: '`(project / ''nodes'' / ''experiment'' / ''run-a.md'').write_text(''---\nid:
-    "experiment:run-a"\ntype: experiment\n---\n\nrun a\n'')` at line 428'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: project / 'nodes' / 'experiment' / 'run-b.md'
-  how: '`(project / ''nodes'' / ''experiment'' / ''run-b.md'').write_text(''---\nid:
-    "experiment:run-b"\ntype: experiment\n---\n\nrun b\n'')` at line 431'
+  how: '`nf.write_text( "---\nid: experiment:e1\ntype: experiment\nstatus: proved\n"
+    "tags:\n  - proved\n---\n\nbody\n" )` at line 365'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nevidence_runs:\n  -
-    experiment:run-a\n  - experiment:run-b\n---\n\nran it twice\n'')` at line 435'
+  how: '`nf.write_text( "---\nid: experiment:e1\ntype: experiment\nstatus: pending\n---\n\nbody\n"
+    )` at line 381'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / "nodes" / "experiment" / "e0.md"
+  how: '`(project / "nodes" / "experiment" / "e0.md").write_text( ''---\nid: "experiment:e0"\ntype:
+    experiment\n---\n\nbody\n'')` at line 394'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / "nodes" / "experiment" / "run-a.md"
+  how: '`(project / "nodes" / "experiment" / "run-a.md").write_text( ''---\nid: "experiment:run-a"\ntype:
+    experiment\n---\n\nrun a\n'' )` at line 428'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: project / "nodes" / "experiment" / "run-b.md"
+  how: '`(project / "nodes" / "experiment" / "run-b.md").write_text( ''---\nid: "experiment:run-b"\ntype:
+    experiment\n---\n\nrun b\n'' )` at line 431'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nevidence_runs:\n  -
-    synthetic\n---\n\nbody\n'')` at line 451'
+  how: '`nf.write_text( "---\nid: experiment:e1\ntype: experiment\n" "evidence_runs:\n  -
+    experiment:run-a\n  - experiment:run-b\n---\n\nran it twice\n" )` at line 435'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.write_text(''---\nid: experiment:e1\ntype: experiment\nevidence_runs:\n  -
-    synthetic\n---\n\nbody\n'')` at line 465'
+  how: '`nf.write_text( "---\nid: experiment:e1\ntype: experiment\n" "evidence_runs:\n  -
+    synthetic\n---\n\nbody\n" )` at line 451'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'agi-tree.config.json'
-  how: '`(tmp_path / ''agi-tree.config.json'').write_text(''{}'')` at line 492'
+- name: nf
+  how: '`nf.write_text( "---\nid: experiment:e1\ntype: experiment\n" "evidence_runs:\n  -
+    synthetic\n---\n\nbody\n" )` at line 465'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: exp / 'e1.md'
-  how: '`(exp / ''e1.md'').write_text(''---\nid: "experiment:e1"\ntype: experiment\n---\n\nbody\n'')`
-    at line 495'
+- name: tmp_path / "agi-tree.config.json"
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 492'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: iter_dir / 'manifest.json'
-  how: '`(iter_dir / ''manifest.json'').write_text(json.dumps({''agents'': [agent]}))`
+- name: exp / "e1.md"
+  how: '`(exp / "e1.md").write_text( ''---\nid: "experiment:e1"\ntype: experiment\n---\n\nbody\n''
+    )` at line 495'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: iter_dir / "manifest.json"
+  how: '`(iter_dir / "manifest.json").write_text(json.dumps({"agents": [agent]}))`
     at line 505'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: root / 'nodes' / 'experiment' / 'r1.md'
-  how: '`(root / ''nodes'' / ''experiment'' / ''r1.md'').write_text(''---\nid: "experiment:r1"\ntype:
-    experiment\n---\n\nbody\n'')` at line 544'
+- name: root / "nodes" / "experiment" / "r1.md"
+  how: '`(root / "nodes" / "experiment" / "r1.md").write_text( ''---\nid: "experiment:r1"\ntype:
+    experiment\n---\n\nbody\n'' )` at line 544'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.write_text(''---\nid: "experiment:e1"\ntype: experiment\nevidence_runs:\n  -
-    experiment:r1\n---\n\nbody\n'')` at line 548'
+  how: '`nf.write_text(''---\nid: "experiment:e1"\ntype: experiment\n'' "evidence_runs:\n  -
+    experiment:r1\n---\n\nbody\n")` at line 548'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''id'': ''a1'', ''status'': ''running''})` at line 329'
+  how: '`json.dumps({"id": "a1", "status": "running"})` at line 329'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({''agents'': [agent]})` at line 505'
+  how: '`json.dumps({"agents": [agent]})` at line 505'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

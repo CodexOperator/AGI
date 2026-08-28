@@ -107,17 +107,17 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(''---\nid: x\n---\n'')` at line 59'
+  how: '`p.write_text("---\nid: x\n---\n")` at line 59'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(''---\nid: x\n'')` at line 67'
+  how: '`p.write_text("---\nid: x\n")` at line 67'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(''[]'')` at line 75'
+  how: '`p.write_text("[]")` at line 75'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

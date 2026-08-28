@@ -99,15 +99,15 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'hypothesis.md'
-  how: '`(d / ''hypothesis.md'').write_text("---\nname: hypothesis\nfields:\n  title:
-    {type: string}\n  confidence: {type: float}\nvalidation:\n  required: [title]\n  types:\n    confidence:
-    float\n  regex:\n    title: ''^[A-Z]''\n---\n")` at line 13'
+- name: d / "hypothesis.md"
+  how: '`(d / "hypothesis.md").write_text( """--- name: hypothesis fields: title:
+    {type: string} confidence: {type: float} validation: required: [title] types:
+    confidence: float regex: title: ''^[A-Z]'' --- """ )` at line 13'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: d / 'idea.md'
-  how: '`(d / ''idea.md'').write_text(''---\nname: idea\n---\n'')` at line 31'
+- name: d / "idea.md"
+  how: '`(d / "idea.md").write_text("---\nname: idea\n---\n")` at line 31'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

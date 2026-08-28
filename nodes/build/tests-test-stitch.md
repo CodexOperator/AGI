@@ -50,32 +50,32 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 494'
+  how: '`node_path.read_text(encoding="utf-8")` at line 494'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 535'
+  how: '`node_path.read_text(encoding="utf-8")` at line 535'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 548'
+  how: '`node_path.read_text(encoding="utf-8")` at line 548'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 582'
+  how: '`node_path.read_text(encoding="utf-8")` at line 582'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 601'
+  how: '`node_path.read_text(encoding="utf-8")` at line 601'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding=''utf-8'')` at line 638'
+  how: '`node_path.read_text(encoding="utf-8")` at line 638'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -84,18 +84,18 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: out / 'stray.txt'
-  how: '`(out / ''stray.txt'').read_text()` at line 175'
+- name: out / "stray.txt"
+  how: '`(out / "stray.txt").read_text()` at line 175'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: out / 'extensions/agi/bin/foo.py'
-  how: '`(out / ''extensions/agi/bin/foo.py'').read_bytes()` at line 224'
+- name: out / "extensions/agi/bin/foo.py"
+  how: '`(out / "extensions/agi/bin/foo.py").read_bytes()` at line 224'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: engine / 'extensions/agi/bin/foo.py'
-  how: '`(engine / ''extensions/agi/bin/foo.py'').read_bytes()` at line 225'
+- name: engine / "extensions/agi/bin/foo.py"
+  how: '`(engine / "extensions/agi/bin/foo.py").read_bytes()` at line 225'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -533,93 +533,93 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: out / 'stray.txt'
-  how: '`(out / ''stray.txt'').write_text(''pre-existing'')` at line 159'
+- name: out / "stray.txt"
+  how: '`(out / "stray.txt").write_text("pre-existing")` at line 159'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: out / 'stray.txt'
-  how: '`(out / ''stray.txt'').write_text(''pre-existing'')` at line 171'
+- name: out / "stray.txt"
+  how: '`(out / "stray.txt").write_text("pre-existing")` at line 171'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
-  how: '`(engine / rel).write_text(''import os\n\n\ndef brand_new():\n    pass\n'')`
+  how: '`(engine / rel).write_text("import os\n\n\ndef brand_new():\n    pass\n")`
     at line 253'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / ghost
-  how: '`(engine / ghost).write_text(''# transient\n'')` at line 314'
+  how: '`(engine / ghost).write_text("# transient\n")` at line 314'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 497'
+  how: '`node_path.write_text(text, encoding="utf-8")` at line 497'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: bar
-  how: '`bar.write_text(''import sys\nimport json\n\n\ndef bar():\n    pass\n'', encoding=''utf-8'')`
+  how: '`bar.write_text("import sys\nimport json\n\n\ndef bar():\n    pass\n", encoding="utf-8")`
     at line 517'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 537'
+  how: '`node_path.write_text(text, encoding="utf-8")` at line 537'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 550'
+  how: '`node_path.write_text(text, encoding="utf-8")` at line 550'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 584'
+  how: '`node_path.write_text(text, encoding="utf-8")` at line 584'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.write_text(text, encoding=''utf-8'')` at line 607'
+  how: '`node_path.write_text(text, encoding="utf-8")` at line 607'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: src
-  how: '`src.write_text(''def f(rec):\n    ctx.write_text(f"""## Header\\n\\n```json\\n{rec}\\n```\\n\\nmore
-    text '' + ''x'' * 200 + ''""")\n'', encoding=''utf-8'')` at line 627'
+  how: '`src.write_text( "def f(rec):\n" ''    ctx.write_text(f"""## Header\\n\\n```json\\n{rec}\\n```\\n\\nmore
+    text '' + "x" * 200 + ''""")\n'', encoding="utf-8", )` at line 627'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'build' / 'not-level3.md'
-  how: '`(project / ''nodes'' / ''build'' / ''not-level3.md'').write_text(''---\nid:
-    idea:stray\ntype: idea\n---\nbody\n'', encoding=''utf-8'')` at line 701'
+- name: project / "nodes" / "build" / "not-level3.md"
+  how: '`(project / "nodes" / "build" / "not-level3.md").write_text( "---\nid: idea:stray\ntype:
+    idea\n---\nbody\n", encoding="utf-8")` at line 701'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'nodes' / 'build' / 'garbage.md'
-  how: '`(project / ''nodes'' / ''build'' / ''garbage.md'').write_text(''not frontmatter
-    at all\n'', encoding=''utf-8'')` at line 703'
+- name: project / "nodes" / "build" / "garbage.md"
+  how: '`(project / "nodes" / "build" / "garbage.md").write_text( "not frontmatter
+    at all\n", encoding="utf-8")` at line 703'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 772'
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text("{}")` at line 772'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / rel
-  how: '`(engine / rel).write_text(''#!/bin/sh\necho hi\n'')` at line 798'
+  how: '`(engine / rel).write_text("#!/bin/sh\necho hi\n")` at line 798'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: project / 'agi-tree.config.json'
-  how: '`(project / ''agi-tree.config.json'').write_text(''{}'')` at line 829'
+- name: project / "agi-tree.config.json"
+  how: '`(project / "agi-tree.config.json").write_text("{}")` at line 829'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: engine / 'extensions/agi/bin/foo.py'
-  how: '`(engine / ''extensions/agi/bin/foo.py'').write_text(''import os\n# edited\n'')`
+- name: engine / "extensions/agi/bin/foo.py"
+  how: '`(engine / "extensions/agi/bin/foo.py").write_text("import os\n# edited\n")`
     at line 857'
   why: TODO(model)
   perf: TODO(model)
@@ -630,12 +630,12 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(content, encoding=''utf-8'')` at line 49'
+  how: '`p.write_text(content, encoding="utf-8")` at line 49'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(content, encoding=''utf-8'')` at line 358'
+  how: '`p.write_text(content, encoding="utf-8")` at line 358'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

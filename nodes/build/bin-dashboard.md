@@ -95,7 +95,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: f
-  how: '`f.read_text(encoding=''utf-8'', errors=''replace'')` at line 294'
+  how: '`f.read_text(encoding="utf-8", errors="replace")` at line 294'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

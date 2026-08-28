@@ -86,13 +86,13 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: src
-  how: '`src.write_text(''---\nname: idea\nfields:\n  title:\n    type: string\n---\n'')`
+  how: '`src.write_text("---\nname: idea\nfields:\n  title:\n    type: string\n---\n")`
     at line 43'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: a
-  how: '`a.write_text(''---\nname: hypothesis\n---\n'')` at line 58'
+  how: '`a.write_text("---\nname: hypothesis\n---\n")` at line 58'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -103,8 +103,8 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: d / name
-  how: '`(d / name).write_text(f''---\nfields:\n  {fields}:\n    type: string\nname:
-    {Path(name).stem.strip(''[]'')}\n---\n'')` at line 18'
+  how: '`(d / name).write_text( f"---\nfields:\n  {fields}:\n    type: string\nname:
+    {Path(name).stem.strip(''[]'')}\n---\n" )` at line 18'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

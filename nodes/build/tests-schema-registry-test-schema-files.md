@@ -93,9 +93,9 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: tmp_path / 'newly_added.md'
-  how: '`(tmp_path / ''newly_added.md'').write_text(''---\nname: newly_added\nfields:\n  title:\n    type:
-    string\n---\nbody\n'')` at line 47'
+- name: tmp_path / "newly_added.md"
+  how: '`(tmp_path / "newly_added.md").write_text( "---\nname: newly_added\nfields:\n  title:\n    type:
+    string\n---\nbody\n" )` at line 47'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

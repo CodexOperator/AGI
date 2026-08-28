@@ -75,7 +75,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: GOALS_MD
-  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 830'
+  how: '`GOALS_MD.read_text(encoding="utf-8")` at line 830'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -85,12 +85,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: md_path
-  how: '`md_path.read_text(encoding=''utf-8'')` at line 355'
+  how: '`md_path.read_text(encoding="utf-8")` at line 355'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: GOALS_MD
-  how: '`GOALS_MD.read_text(encoding=''utf-8'')` at line 760'
+  how: '`GOALS_MD.read_text(encoding="utf-8")` at line 760'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -260,12 +260,12 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.write_text(''\n''.join(lines), encoding=''utf-8'')` at line 338'
+  how: '`path.write_text("\n".join(lines), encoding="utf-8")` at line 338'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: GOALS_MD
-  how: '`GOALS_MD.write_text(rendered, encoding=''utf-8'')` at line 774'
+  how: '`GOALS_MD.write_text(rendered, encoding="utf-8")` at line 774'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

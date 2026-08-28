@@ -60,7 +60,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text(encoding=''utf-8'')` at line 50'
+  how: '`p.read_text(encoding="utf-8")` at line 50'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -141,7 +141,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(text, encoding=''utf-8'', newline=''\n'')` at line 109'
+  how: '`p.write_text(text, encoding="utf-8", newline="\n")` at line 109'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -151,8 +151,8 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_dump
-  how: '`yaml.safe_dump(nf.frontmatter, sort_keys=True, default_flow_style=False,
-    allow_unicode=True)` at line 113'
+  how: '`yaml.safe_dump( nf.frontmatter, sort_keys=True, default_flow_style=False,
+    allow_unicode=True, )` at line 113'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
