@@ -87,19 +87,27 @@ It refuses more often than it acts, and each refusal has a named reason:
 **It does not push.** The existing hourly cron already owns remote traffic;
 this only commits, so a bad publish never leaves the machine.
 
-`grid.py cron install --publish-engine` adds it at :37, after the :07 branch
-push, so a publish never races the push of the graph commit it cites. **Off by
-default** — `cron install` runs on projects whose version layer is not yet
-trusted, and deciding that is the project's call, not the installer's.
+The publish cadence is now declared as graph content rather than installed by
+a subcommand: `nodes/.geometry/crons.md` (**G10.2**) lists `publish_engine`
+under `cadences` at `:37`, after the :07 branch push, so a publish never races
+the push of the graph commit it cites. `bin/crons.py apply` renders that
+declaration into the real crontab's managed block; the old
+`grid.py cron install --publish-engine`, which added the line directly and
+defaulted it off, is retired in practice on this project.
 
-**Installed on this project 2026-08-25**, which is the first time the sequence
-above has been allowed to complete:
+**Enabled on this project's declaration as of 2026-08-29**
+(`publish_engine: {schedule: "37 * * * *", enabled: true}`), which is the
+first time the sequence above has been allowed to complete. `crons.py apply`
+renders it as:
 
 ```
 37 * * * * cd <tree> && bash <engine>/extensions/agi/bin/publish-engine.sh
 ```
 
-`--dry-run` passed every gate before it went in. What that buys, concretely:
+inside the managed `agi-crons` block. Editing `enabled` on `publish_engine` in
+the node and letting the graph get committed reaches the real crontab within
+5 minutes, via the `grid_sync` job re-running `crons.py apply` on every tick.
+`--dry-run` passed every gate before it went live. What that buys, concretely:
 `agi` stops being a repo anyone edits and becomes a published build of
 `agi-tree`, hourly, with each commit naming the graph commit it derives from.
 What it deliberately does not buy: a push. If an hour's publish is wrong it is

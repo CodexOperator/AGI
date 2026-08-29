@@ -7,7 +7,8 @@ cadences:
 crons_live: true
 id: "cron:crons"
 mint_id: dc4da698f3f94dbc83a0c2233b2a8b94
-parents: []
+parents:
+  - goal:g10.2
 status: active
 tags:
   - geometry
@@ -66,3 +67,20 @@ everything else that changed that iteration, and revertible with the same
 `grid.py` history as any other node. That is what G10.2 asks a `.geometry`
 node to be — not documentation about the system's schedule, but the input
 the schedule is derived from.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 minted this node parentless and added `cron` to `[shape].md :: parentless_types`
+alongside `goal:long-term`, `goal:short-term` and `idea` — treating "describes the
+graph's own shape" as equivalent to "has no lineage." That conflated two different
+claims. `idea` and the two goal roots are parentless because there is genuinely
+nothing upstream of them in the content graph. This node is not like that: it
+exists *because* `goal:g10.2` ("The graph describes its own geometry") asks for
+`.geometry/` nodes to exist and says plainly that such a node is "subject to
+every rule other nodes obey." Declaring it parentless was declaring it exempt from
+the one rule (has-a-parent) that G10.2 itself insists still applies. v2 sets
+`parents: [goal:g10.2]` — the goal that made this node necessary is its parent,
+the same way any other node's parent is the thing that motivated it. This also
+means the node now participates in chain depth and `outcome_coverage` like any
+other node, which is what "subject to every rule" actually requires rather than
+a stated intention.
+<!-- THOUGHT:END -->

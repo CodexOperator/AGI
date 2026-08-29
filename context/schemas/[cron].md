@@ -13,9 +13,9 @@ validation:
     crons_live: bool
     cadences: dict
 spawn:
-  allowed_parents: []
-  min_parents: 0
-  max_parents: 0
+  allowed_parents: [goal]
+  min_parents: 1
+  max_parents: 1
 ---
 
 # cron
@@ -72,12 +72,21 @@ every other node gets is what G10.2 means by "the rules become modifiable
 through the graph" — the loop closing on itself, applied to its own
 operational schedule rather than to the code that runs it.
 
-## Spawn rule — the fourth parentless-legal shape
+## Spawn rule — parented to the goal that asked for it
 
-`min_parents: 0`, `max_parents: 0`. `cron` joins `idea`, `goal:long-term`
-and `goal:short-term` in `[shape].md :: parentless_types` — a geometry node
-describes the graph's own shape and has no content parent to follow from;
-inventing one would misrepresent what kind of fact this is (G7.1).
+`min_parents: 1`, `max_parents: 1`, `allowed_parents: [goal]`. `cron` is not
+in `[shape].md :: parentless_types`. A `.geometry` node describes the
+graph's own shape, but "describes the graph's own shape" is not the same
+claim as "has no lineage" — it has a clear parent: `goal:g10.2` ("The graph
+describes its own geometry"), the goal that asks for `nodes/.geometry/`
+nodes to exist in the first place. A geometry node is downstream of the
+goal that made it necessary, not free-floating alongside `idea` and the two
+goal roots, which are parentless because there is genuinely nothing
+upstream of them in the content graph. Parenting it here also means it
+participates in chain depth and `outcome_coverage` like any other node —
+which is what G10.2's own words, "subject to every rule other nodes obey,"
+actually require, not merely a `.geometry` label with the parent rule
+switched off.
 
 ## Deliberately absent
 

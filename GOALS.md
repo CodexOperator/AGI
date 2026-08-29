@@ -322,42 +322,52 @@ and stage 2 must not ship.
 
 ### G1.5 — `init` leaves nothing to install by hand — status: active
 
-**Setting up a project is currently three manual steps and a memory test.** The
-commands all exist and none of them are called by anything:
+**Setting up a project is currently two manual steps and a memory test.** The
+cron half of this is now largely satisfied; the other two are not:
 
 - `grid.py init` — adds the `refs/grid/*` fetch refspec to origin. Skip it and a
   fresh clone silently has no version history; nothing warns, the grid is simply
-  absent.
-- `grid.py cron install` — the two-cadence sync (5-minute snapshot + grid push,
-  hourly D1 push). Skip it and the crash-recovery window is not ≤5 minutes, it
-  is however long since someone last remembered.
+  absent. **Not done.**
+- Cron setup — was `grid.py cron install`, the two-cadence sync (5-minute
+  snapshot + grid push, hourly D1 push); that subcommand is retired in
+  practice on this project. `bin/crons.py apply` now renders a single managed
+  crontab block from `nodes/.geometry/crons.md` (**G10.2**), and the S2
+  branch-verification requirement below is implemented, not merely demanded.
+  What is still missing is the *init* half: nothing yet calls `crons.py apply`
+  as part of bringing a fresh project up, so a new clone still needs someone to
+  remember to run it once.
 - The project scaffold itself — `agi-tree.config.json`, `nodes/`, `context/` —
   is **L18 action 2** and does not exist at all. `cli.py scaffold` scaffolds a
-  node, not a project.
+  node, not a project. **Not done.**
 
-This is G1's invariant failing on G1's own setup path: three repeated mechanical
-steps, none of them a named command, none carrying a written reason for staying
-manual. The failure mode is silent in both directions — an uninitialised grid
-and an uninstalled cron both look exactly like a working project until the day
-you need the history.
+This is G1's invariant failing on G1's own setup path: repeated mechanical
+steps, most of them still not a named command, none carrying a written reason
+for staying manual. The failure mode is silent in both directions — an
+uninitialised grid and an unapplied cron declaration both look exactly like a
+working project until the day you need the history.
 
 What has to exist: one command that takes a directory to a running project —
 config written from a schema (**L17**) rather than by hand, `nodes/` and
-`context/` scaffolded, grid refspec configured, crons installed, and the whole
-thing idempotent so re-running it on a live project is safe and does nothing.
+`context/` scaffolded, grid refspec configured, `crons.py apply` run, and the
+whole thing idempotent so re-running it on a live project is safe and does
+nothing.
 
-**Verify the cron the way S2 had to be verified.** `grid.py cron install` must
-confirm which branch is actually checked out, because agi-tree's own work once
-sat on a stale `iter24-extend-300hop` branch while a cron pushed `master` and
-published nothing, silently, indefinitely. An installer that writes a crontab
-line without that check just automates the same failure faster.
+**Verify the cron the way S2 had to be verified — now actually implemented.**
+`bin/crons.py` re-resolves the branch via `git symbolic-ref` on every apply,
+rather than capturing it once at install time, because agi-tree's own work
+once sat on a stale `iter24-extend-300hop` branch while a cron pushed `master`
+and published nothing, silently, indefinitely. Because the `*/5` job re-runs
+`crons.py apply`, that check now happens every 5 minutes rather than once at
+install, and `crons_live: false` in the node is a single-edit kill switch. This
+clause of the goal is satisfied; `init` and scaffolding are not.
 
 Pairs with **G8.1** — whatever the distribution shape turns out to be
 (drop-in clone, skill package, installer), this is the command it has to end in.
 
 Falsifier: clone the repo to an empty machine, run the one command, and check
-that `git fetch` brings the grid down and `crontab -l` shows both cadences. If
-either needs a second command, this is not done.
+that `git fetch` brings the grid down and the crontab shows the managed
+`agi-crons` block with all four jobs. If either needs a second command, this
+is not done.
 
 ### G1.6 — Every action is a one-word command, inside the project — status: active
 
@@ -1643,19 +1653,27 @@ It refuses more often than it acts, and each refusal has a named reason:
 **It does not push.** The existing hourly cron already owns remote traffic;
 this only commits, so a bad publish never leaves the machine.
 
-`grid.py cron install --publish-engine` adds it at :37, after the :07 branch
-push, so a publish never races the push of the graph commit it cites. **Off by
-default** — `cron install` runs on projects whose version layer is not yet
-trusted, and deciding that is the project's call, not the installer's.
+The publish cadence is now declared as graph content rather than installed by
+a subcommand: `nodes/.geometry/crons.md` (**G10.2**) lists `publish_engine`
+under `cadences` at `:37`, after the :07 branch push, so a publish never races
+the push of the graph commit it cites. `bin/crons.py apply` renders that
+declaration into the real crontab's managed block; the old
+`grid.py cron install --publish-engine`, which added the line directly and
+defaulted it off, is retired in practice on this project.
 
-**Installed on this project 2026-08-25**, which is the first time the sequence
-above has been allowed to complete:
+**Enabled on this project's declaration as of 2026-08-29**
+(`publish_engine: {schedule: "37 * * * *", enabled: true}`), which is the
+first time the sequence above has been allowed to complete. `crons.py apply`
+renders it as:
 
 ```
 37 * * * * cd <tree> && bash <engine>/extensions/agi/bin/publish-engine.sh
 ```
 
-`--dry-run` passed every gate before it went in. What that buys, concretely:
+inside the managed `agi-crons` block. Editing `enabled` on `publish_engine` in
+the node and letting the graph get committed reaches the real crontab within
+5 minutes, via the `grid_sync` job re-running `crons.py apply` on every tick.
+`--dry-run` passed every gate before it went live. What that buys, concretely:
 `agi` stops being a repo anyone edits and becomes a published build of
 `agi-tree`, hourly, with each commit naming the graph commit it derives from.
 What it deliberately does not buy: a push. If an hour's publish is wrong it is
@@ -3405,6 +3423,8 @@ it lists should be read from the geometry, not hardcoded a second time).
 
 ## G11 — One repo: the graph lives inside what it builds — status: active
 
+
+
 **The two-repo split is the tax every other goal pays.** `agi-tree` holds the
 thoughts, `agi` holds the code, and because the bytes live in one and must
 arrive in the other, a whole pipeline exists to carry them: `payloads/` as a
@@ -3494,18 +3514,55 @@ Both collisions disappear once the tree sits in `.agi/` rather than at a repo
 root. The four crons are the live hazard: they race any surgery, which is why
 the kill-switch lands before the move and not after.
 
-## The ancestor walk existed thirteen times
+## The ancestor walk existed eleven times, not thirteen
 
-Found while starting: `bin/` carried **twelve** byte-identical copies of "walk
-up from cwd looking for `agi-tree.config.json`", and `lib/find-root.sh` a
-thirteenth in bash. That is the real reason this goal cannot begin with the
-migration. **A resolver duplicated thirteen times cannot be given a new rule —
-only thirteen new rules that drift.**
+Found while starting: `bin/` carried ten byte-identical copies of "walk up
+from cwd looking for `agi-tree.config.json`", plus `lib/find-root.sh`, the
+same rule's bash half — eleven sites, not thirteen. **This section originally
+claimed "thirteen times — twelve `_find_root` copies under `bin/`, plus
+`lib/find-root.sh` a thirteenth in bash," asserted without measuring.** It was
+wrong in two ways at once: the Python count was off by two, and
+`lib/find-root.sh` was miscounted as a residual when it is the deliberate bash
+counterpart of the same rule, not a duplicate of it — `find_project_root` in
+bash exists on purpose, and `tests/test_locations.py::test_bash_and_python_agree`
+cross-checks it against `locations.py` rather than trusting the two to agree
+on faith. The corrected count, measured against the engine at `ea65820`:
+
+```
+git grep -ln '^CONFIG_NAMES\s*=\s*(' ea65820 -- extensions/agi/bin extensions/agi/src
+```
+
+returns exactly 10 files: `benchmark.py`, `cli.py`, `dispatch.py`,
+`metrics.py`, `post_wire.py`, `render-context.py`, `snapshot-build-site.py`,
+`snapshot-goals.py`, `spawn_gate.py`, `zoom.py`.
+
+| | Before iteration 1 | After iteration 1 |
+|---|---|---|
+| Canonical implementations | 0 | 2 — `bin/locations.py`, `lib/find-root.sh` |
+| Python files with their own `CONFIG_NAMES` + walk | 10 | 10 (unchanged) |
+| Bash implementations | 1 (`lib/find-root.sh`, deliberate) | 1 (unchanged, now cross-checked) |
+| **Total sites stating the rule** | **11** | **11 canonical + 10 residual = same 10 duplicates, now with something to converge on** |
+
+**`snapshot-goals.py` is a half-case, not a clean member of either side.** It
+already calls `locations.goals_path()` — it is a consumer of the new
+resolver — but it still declares its own `CONFIG_NAMES` and `config_path()`
+alongside that call. It is simultaneously migrated and one of the ten
+residuals. That half-state is exactly the kind of thing a summary count
+flattens and gets wrong, which is what happened here.
 
 `bin/locations.py` is the single Python rule, `lib/find-root.sh` the single
 bash one, and they are checked against each other rather than trusted to agree.
 Both layouts now resolve from one binary, so the migration is a config value
-rather than a rewrite, and it is reversible.
+rather than a rewrite, and it is reversible. **The ten Python duplicates are
+untouched** — `locations.py` existing does not by itself collapse anything
+that calls it — and are now tracked separately as `goal:g11.1` rather than
+carried as a paragraph in this node.
+
+**This correction is left in rather than silently fixed**, because it is a
+live instance of exactly what this goal argues against: an unverified number,
+asserted with confidence, sitting in the node that makes the case for
+collapsing duplication. The fix was to measure and split the residual into
+its own goal — not to quietly overwrite the wrong number and move on.
 
 One concrete before/after, and it is the whole goal in miniature — resolving
 from inside the engine checkout:
@@ -3552,6 +3609,77 @@ a publish script with four gates that refuses more often than it acts.
 - **The grid refs must survive the move.** 1063 of them, and they are the only
   home of every payload byte. Verified on a scratch clone in step 3 before
   anything is moved for real.
+
+### G11.1 — Ten Python files still declare their own ancestor walk — status: active
+
+**The residual G11 left behind.** `bin/locations.py` exists as the single
+Python resolver and `lib/find-root.sh` is checked against it, but existing
+does not collapse anything by itself — ten Python files under `bin/` still
+declare their own `CONFIG_NAMES` and walk up from cwd for
+`agi-tree.config.json` independently, exactly as before `locations.py` was
+written.
+
+## The ten
+
+- `benchmark.py`
+- `cli.py`
+- `dispatch.py`
+- `metrics.py`
+- `post_wire.py`
+- `render-context.py`
+- `snapshot-build-site.py`
+- `snapshot-goals.py` — **half-migrated**, not a clean member of this list
+- `spawn_gate.py`
+- `zoom.py`
+
+**`snapshot-goals.py` needs care, not addition.** It already imports
+`locations` and calls `goals_path()` — the import this goal would otherwise
+ask for is already there. What remains is deletion: its own leftover
+`CONFIG_NAMES` constant and `config_path()` function, still declared
+alongside the call to the shared resolver. Finishing it means removing code,
+not adding an import.
+
+## The target
+
+Each of the ten imports `locations` and calls its resolver for the project
+root instead of declaring `CONFIG_NAMES` and walking ancestors itself. No
+behavior changes — `test_bash_and_python_agree` already treats agreement
+between the bash and Python halves as the contract, and `locations.py` is the
+implementation nine of these ten files should be calling and are not.
+
+## Why this is a goal, not a chore
+
+**G11's own migration is blocked on this closing first.** Steps 3 and 4 of
+G11's sequencing move the graph inside the repo it builds — a layout change:
+`graph_root`, `repo_root`, and `payload_ref` resolution all shift underneath
+it. Today that layout is expressed once, correctly, in `locations.py` — and
+separately, still, in ten other places that never call it. A layout change
+made against ten independent copies is not one edit verified once; it is one
+edit that has to be repeated ten times and can drift on any of them, which is
+the exact failure `locations.py` was built to stop. **Until this lands, the
+layout rule cannot be changed once — it has to be changed eleven times and
+trusted to agree**, and G11's migration is precisely that kind of change.
+
+## Falsifier
+
+```
+grep -c '^CONFIG_NAMES' extensions/agi/bin/*.py
+```
+
+sums to **1** across `bin/` — only `locations.py` still declares it — and the
+full test suite still passes. Both mechanical, neither requires judgment.
+
+## Out of scope
+
+**`engine_root`'s double derivation is adjacent, not included here.**
+`level3.py :: DEFAULT_ENGINE_ROOT = BIN_DIR.parents[2]` and
+`grid.py :: default_engine_root() = Path(__file__).resolve().parents[3]`
+compute the same path with two different index arithmetics, off by one
+because one counts from a directory and the other from a file.
+`context/schemas/[config].md` already names it. It stays out of this goal
+deliberately: it is a different failure shape — arithmetic divergence, not
+copy-paste duplication — and folding it in would let this goal's mechanical
+falsifier drift into something that needs judgment to check.
 
 ## S11 — Retire `level3` as a type name — status: complete
 

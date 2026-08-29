@@ -18,39 +18,49 @@ title: "G1.5: `init` leaves nothing to install by hand"
 type: goal
 ---
 
-**Setting up a project is currently three manual steps and a memory test.** The
-commands all exist and none of them are called by anything:
+**Setting up a project is currently two manual steps and a memory test.** The
+cron half of this is now largely satisfied; the other two are not:
 
 - `grid.py init` — adds the `refs/grid/*` fetch refspec to origin. Skip it and a
   fresh clone silently has no version history; nothing warns, the grid is simply
-  absent.
-- `grid.py cron install` — the two-cadence sync (5-minute snapshot + grid push,
-  hourly D1 push). Skip it and the crash-recovery window is not ≤5 minutes, it
-  is however long since someone last remembered.
+  absent. **Not done.**
+- Cron setup — was `grid.py cron install`, the two-cadence sync (5-minute
+  snapshot + grid push, hourly D1 push); that subcommand is retired in
+  practice on this project. `bin/crons.py apply` now renders a single managed
+  crontab block from `nodes/.geometry/crons.md` (**G10.2**), and the S2
+  branch-verification requirement below is implemented, not merely demanded.
+  What is still missing is the *init* half: nothing yet calls `crons.py apply`
+  as part of bringing a fresh project up, so a new clone still needs someone to
+  remember to run it once.
 - The project scaffold itself — `agi-tree.config.json`, `nodes/`, `context/` —
   is **L18 action 2** and does not exist at all. `cli.py scaffold` scaffolds a
-  node, not a project.
+  node, not a project. **Not done.**
 
-This is G1's invariant failing on G1's own setup path: three repeated mechanical
-steps, none of them a named command, none carrying a written reason for staying
-manual. The failure mode is silent in both directions — an uninitialised grid
-and an uninstalled cron both look exactly like a working project until the day
-you need the history.
+This is G1's invariant failing on G1's own setup path: repeated mechanical
+steps, most of them still not a named command, none carrying a written reason
+for staying manual. The failure mode is silent in both directions — an
+uninitialised grid and an unapplied cron declaration both look exactly like a
+working project until the day you need the history.
 
 What has to exist: one command that takes a directory to a running project —
 config written from a schema (**L17**) rather than by hand, `nodes/` and
-`context/` scaffolded, grid refspec configured, crons installed, and the whole
-thing idempotent so re-running it on a live project is safe and does nothing.
+`context/` scaffolded, grid refspec configured, `crons.py apply` run, and the
+whole thing idempotent so re-running it on a live project is safe and does
+nothing.
 
-**Verify the cron the way S2 had to be verified.** `grid.py cron install` must
-confirm which branch is actually checked out, because agi-tree's own work once
-sat on a stale `iter24-extend-300hop` branch while a cron pushed `master` and
-published nothing, silently, indefinitely. An installer that writes a crontab
-line without that check just automates the same failure faster.
+**Verify the cron the way S2 had to be verified — now actually implemented.**
+`bin/crons.py` re-resolves the branch via `git symbolic-ref` on every apply,
+rather than capturing it once at install time, because agi-tree's own work
+once sat on a stale `iter24-extend-300hop` branch while a cron pushed `master`
+and published nothing, silently, indefinitely. Because the `*/5` job re-runs
+`crons.py apply`, that check now happens every 5 minutes rather than once at
+install, and `crons_live: false` in the node is a single-edit kill switch. This
+clause of the goal is satisfied; `init` and scaffolding are not.
 
 Pairs with **G8.1** — whatever the distribution shape turns out to be
 (drop-in clone, skill package, installer), this is the command it has to end in.
 
 Falsifier: clone the repo to an empty machine, run the one command, and check
-that `git fetch` brings the grid down and `crontab -l` shows both cadences. If
-either needs a second command, this is not done.
+that `git fetch` brings the grid down and the crontab shows the managed
+`agi-crons` block with all four jobs. If either needs a second command, this
+is not done.

@@ -31,13 +31,12 @@ node_tree_entries:
   - node.md      # always
   - payload      # only when the node has a payload_ref; real mode (644/755/120000)
 
-# The parentless whitelist. Exactly four shapes, and `goal` only in two of
+# The parentless whitelist. Exactly three shapes, and `goal` only in two of
 # its three variants -- see the discriminator in [goal].md.
 parentless_types:
   - goal:long-term      # a `## G7` root
   - goal:short-term     # a `## S4` root
   - idea
-  - cron                # a .geometry node -- describes the graph's own shape (G10.2)
 
 # No type may declare max_parents above this without also raising the ceiling.
 # Two deliberate edits, which is the point, and this is the second one:

@@ -145,13 +145,23 @@ order; `tests/test_locations.py::test_bash_and_python_agree` fails if the two
 drift.
 
 **What is collapsed, and what is not.** Before G11 the ancestor walk existed
-thirteen times — twelve `_find_root` copies under `bin/`, plus the shell one.
-`snapshot-goals.py` is migrated; the other eleven still carry their own copy
-and are the residual. `engine_root` also remains defined twice in Python with
-two different index arithmetics, off by one because `level3.py` counts from a
-directory and `grid.py` counts from a file. Both are named here rather than
-fixed, because a resolver duplicated thirteen times cannot be given a new rule —
-only thirteen new rules that drift, which is the whole reason G11 starts here.
+eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
+(`benchmark.py`, `cli.py`, `dispatch.py`, `metrics.py`, `post_wire.py`,
+`render-context.py`, `snapshot-build-site.py`, `snapshot-goals.py`,
+`spawn_gate.py`, `zoom.py`), plus `lib/find-root.sh`. That shell file is not
+one of the residuals — it is the deliberate bash half of the same rule,
+cross-checked against `locations.py` by `test_bash_and_python_agree` rather
+than trusted to agree on faith. `snapshot-goals.py` is a half-case: it already
+calls `locations.goals_path()` but still declares its own `CONFIG_NAMES` and
+`config_path()`, so it counts as one of the ten residuals despite already
+being a consumer of the new resolver. The other nine still carry their own
+copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
+remains defined twice in Python with two different index arithmetics, off by
+one because `level3.py` counts from a directory and `grid.py` counts from a
+file — a second, separate duplication class, out of `goal:g11.1`'s scope.
+Both are named here rather than fixed, because a resolver duplicated eleven
+times cannot be given a new rule once — it has to be given ten new rules that
+might drift, which is the whole reason G11 starts here.
 
 ## Field meanings
 
