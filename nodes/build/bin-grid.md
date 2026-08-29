@@ -453,4 +453,26 @@ This is recorded as a same-version note rather than a v3 because it completes th
 **Scope, stated plainly.** This fixes the *escaping* layer only: `sanitize()` is now injective, so a collision can no longer happen by accident of which characters get collapsed. It does **not** implement `goal:g2.5`'s actual target — hierarchical, zoom-encoded, alphanumeric-only ids where `sanitize()` becomes the identity function and the whole injectivity question disappears rather than being escaped around. That is a separate, much larger change (new id minting, a migration of every id string in the corpus, not just its ref encoding) and is untouched here.
 
 **What I verified vs. assumed.** Verified: the live collapse via `for-each-ref` before editing anything; injectivity and git-refname-validity via `git check-ref-format` (not trusted from reasoning alone); the real 800+-id corpus round-trips distinctly (test skips gracefully if `agi-tree` isn't a sibling checkout, so the engine suite stays portable); the 4 conflict pairs have byte-identical content (`git rev-parse <ref>:node.md`); ref counts didn't drop; pytest 505->513. Assumed: that no other process besides this project's own documented cron could be writing grid refs concurrently (couldn't rule out a second concurrent kid running `grid.py commit`, though the timestamp and `cron: ` message prefix on all 4 conflicting commits matches the documented auto-snapshot exactly, not a kid).
+
+**Cron subcommand superseded, not deleted — recorded 2026-08-29.** `grid.py`'s
+`cmd_cron` (`read_crontab` / `write_crontab` / `cron_lines`, the code behind
+`grid.py cron install`) has been superseded on this project by
+`bin/crons.py`, which reads cadence and enablement from a graph node
+(`nodes/.geometry/crons.md`, G10.2) rather than from install-time CLI flags.
+Three concrete improvements drove the switch: (a) `crons.py` re-resolves the
+branch via `git symbolic-ref` on every apply instead of capturing it once at
+install time — this is exactly the S2 failure mode, where work sat on a stale
+`iter24-extend-300hop` branch while a cron pushed `master` and published
+nothing; `cmd_cron`'s installed line has no equivalent re-check. (b) the
+`*/5` job re-runs `crons.py apply`, so editing the declaration node converges
+the real crontab within 5 minutes, with no separate install step. (c)
+`crons_live: false` on that node is a single-edit kill switch for every
+managed line at once, where `cmd_cron` has no equivalent single flip.
+Honestly: `cmd_cron` itself is untouched by this — the subcommand is still
+present in this file and still fully functional if invoked. It is retired in
+*practice* on this project, not removed from the code, and nothing here
+stops someone from running `grid.py cron install` and getting a second,
+unmanaged set of lines scheduling every job alongside `crons.py`'s managed
+block. That double-scheduling risk is a real residual, not something this
+change closes.
 <!-- THOUGHT:END -->

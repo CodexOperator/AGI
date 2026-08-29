@@ -8,7 +8,8 @@ mint_id: 5fb040638ce5429e9240a07b47fb5195
 order: 64
 origin: goals-doc
 parents: []
-seeds: []
+seeds:
+  - goal:g11.1
 status: active
 tags:
   - goal
@@ -16,6 +17,19 @@ tags:
 title: "G11: One repo: the graph lives inside what it builds"
 type: goal
 ---
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 asserted the ancestor walk existed "thirteen times" without measuring it.
+It was actually eleven sites: ten Python `CONFIG_NAMES`-plus-walk copies under
+`bin/`, plus `lib/find-root.sh` — which is not a residual at all, it is the
+deliberate bash half of the same rule, cross-checked against `locations.py`
+by `test_bash_and_python_agree`. Counting it as a duplicate was itself part
+of the error. Re-measured against `ea65820` with
+`git grep -ln '^CONFIG_NAMES\s*=\s*(' -- extensions/agi/bin extensions/agi/src`,
+which returns exactly 10 files. This version corrects the count in place and
+splits the ten remaining duplicates into `goal:g11.1` so the residual is
+tracked rather than buried in a paragraph that turned out to be wrong.
+<!-- THOUGHT:END -->
 
 **The two-repo split is the tax every other goal pays.** `agi-tree` holds the
 thoughts, `agi` holds the code, and because the bytes live in one and must
@@ -106,18 +120,55 @@ Both collisions disappear once the tree sits in `.agi/` rather than at a repo
 root. The four crons are the live hazard: they race any surgery, which is why
 the kill-switch lands before the move and not after.
 
-## The ancestor walk existed thirteen times
+## The ancestor walk existed eleven times, not thirteen
 
-Found while starting: `bin/` carried **twelve** byte-identical copies of "walk
-up from cwd looking for `agi-tree.config.json`", and `lib/find-root.sh` a
-thirteenth in bash. That is the real reason this goal cannot begin with the
-migration. **A resolver duplicated thirteen times cannot be given a new rule —
-only thirteen new rules that drift.**
+Found while starting: `bin/` carried ten byte-identical copies of "walk up
+from cwd looking for `agi-tree.config.json`", plus `lib/find-root.sh`, the
+same rule's bash half — eleven sites, not thirteen. **This section originally
+claimed "thirteen times — twelve `_find_root` copies under `bin/`, plus
+`lib/find-root.sh` a thirteenth in bash," asserted without measuring.** It was
+wrong in two ways at once: the Python count was off by two, and
+`lib/find-root.sh` was miscounted as a residual when it is the deliberate bash
+counterpart of the same rule, not a duplicate of it — `find_project_root` in
+bash exists on purpose, and `tests/test_locations.py::test_bash_and_python_agree`
+cross-checks it against `locations.py` rather than trusting the two to agree
+on faith. The corrected count, measured against the engine at `ea65820`:
+
+```
+git grep -ln '^CONFIG_NAMES\s*=\s*(' ea65820 -- extensions/agi/bin extensions/agi/src
+```
+
+returns exactly 10 files: `benchmark.py`, `cli.py`, `dispatch.py`,
+`metrics.py`, `post_wire.py`, `render-context.py`, `snapshot-build-site.py`,
+`snapshot-goals.py`, `spawn_gate.py`, `zoom.py`.
+
+| | Before iteration 1 | After iteration 1 |
+|---|---|---|
+| Canonical implementations | 0 | 2 — `bin/locations.py`, `lib/find-root.sh` |
+| Python files with their own `CONFIG_NAMES` + walk | 10 | 10 (unchanged) |
+| Bash implementations | 1 (`lib/find-root.sh`, deliberate) | 1 (unchanged, now cross-checked) |
+| **Total sites stating the rule** | **11** | **11 canonical + 10 residual = same 10 duplicates, now with something to converge on** |
+
+**`snapshot-goals.py` is a half-case, not a clean member of either side.** It
+already calls `locations.goals_path()` — it is a consumer of the new
+resolver — but it still declares its own `CONFIG_NAMES` and `config_path()`
+alongside that call. It is simultaneously migrated and one of the ten
+residuals. That half-state is exactly the kind of thing a summary count
+flattens and gets wrong, which is what happened here.
 
 `bin/locations.py` is the single Python rule, `lib/find-root.sh` the single
 bash one, and they are checked against each other rather than trusted to agree.
 Both layouts now resolve from one binary, so the migration is a config value
-rather than a rewrite, and it is reversible.
+rather than a rewrite, and it is reversible. **The ten Python duplicates are
+untouched** — `locations.py` existing does not by itself collapse anything
+that calls it — and are now tracked separately as `goal:g11.1` rather than
+carried as a paragraph in this node.
+
+**This correction is left in rather than silently fixed**, because it is a
+live instance of exactly what this goal argues against: an unverified number,
+asserted with confidence, sitting in the node that makes the case for
+collapsing duplication. The fix was to measure and split the residual into
+its own goal — not to quietly overwrite the wrong number and move on.
 
 One concrete before/after, and it is the whole goal in miniature — resolving
 from inside the engine checkout:
