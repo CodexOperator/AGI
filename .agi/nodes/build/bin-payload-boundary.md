@@ -61,29 +61,35 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: is_the_graph_itself
+  how: 'defines public function `is_the_graph_itself` at line 68, signature: (path:
+    str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: is_log_stream
-  how: 'defines public function `is_log_stream` at line 68, signature: (path: str)'
+  how: 'defines public function `is_log_stream` at line 91, signature: (path: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: classify
-  how: 'defines public function `classify` at line 81, signature: (repo: Path)'
+  how: 'defines public function `classify` at line 104, signature: (repo: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: classify_paths
-  how: 'defines public function `classify_paths` at line 98, signature: (repo: Path,
+  how: 'defines public function `classify_paths` at line 123, signature: (repo: Path,
     rel_paths: list[str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 124
+  how: defines public function `main` at line 151
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 3 `print()` call(s) at line(s) [129, 136, 138]
+  how: 3 `print()` call(s) at line(s) [156, 163, 165]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

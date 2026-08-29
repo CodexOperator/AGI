@@ -1,31 +1,29 @@
 ---
 build_kind: prose
 confidence: 1.0
-id: "build:.gitignore"
-mint_id: aae1893604ff4ef0888dd954909d1b1c
+id: "build:GOALS.md"
+mint_id: 16fd4c7f953c40298fc1a486e8a2a4c8
 origin: build-scan
-parents:
-  - idea:engine-gitignore
-payload_ref: .gitignore
+payload_ref: GOALS.md
 tags:
   - build
   - prose
   - g2.1
-title: "Build: .gitignore"
+title: "Build: GOALS.md"
 type: build
 ---
 
-`.gitignore` — level-3 code node (one file, one canonical node).
+`GOALS.md` — level-3 code node (one file, one canonical node).
 
-Census parent: `idea:engine-gitignore`.
+Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: .gitignore
+payload_ref: GOALS.md
 parse_ok: false
-parse_error: 'not-python: no suffix (no mechanical contract derivation for this file
-  type yet — see goal:g6.6)'
-content_sha256: ff1c1eb451699dd8bc3734c831fe5c25a364e62ff276079b580f51c2ce5b4b50
+parse_error: 'not-python: .md (no mechanical contract derivation for this file type
+  yet — see goal:g6.6)'
+content_sha256: 57989139ddff8fb1b52b263ef7eec4c8942e3c11539211b8e5ce39fcdb2f7fd9
 inputs: []
 outputs: []
 ```

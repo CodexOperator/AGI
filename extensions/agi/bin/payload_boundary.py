@@ -65,6 +65,29 @@ def is_test_fixture(path: str) -> bool:
     return False
 
 
+def is_the_graph_itself(path: str) -> bool:
+    """Anything inside the graph directory — **goal:g11, and this one bites.**
+
+    Before G11 the graph lived in a different repository, so `git ls-files` on
+    the engine could never return a node file and no rule was needed. One repo
+    makes the graph tracked content of the repo being scanned, and without this
+    the boundary answers "in" for all 809 node files plus every schema, kit and
+    plan — because each is, literally, a file in the repo.
+
+    Observed live the hour the migration landed: `level3.py` went from 190
+    files scanned to **4131**, minting a build node for every node, then a
+    build node for *that* node's file, producing names like
+    `nodes-build-nodes-build-nodes-build-....md.md.md`. A generator whose
+    output is inside its own input set does not converge.
+
+    The boundary rule stays "anything that exists as a file in the repo"
+    (goal:g6.8); this says the graph is not a *payload* of itself. A node is
+    already a node — wrapping it in a build node inverts the relationship
+    exactly the way g6.8 rejects for grid refs, and for the same reason.
+    """
+    return Path(path).parts[:1] == (".agi",)
+
+
 def is_log_stream(path: str) -> bool:
     """
     Extension-based, category reason: `.jsonl` (newline-delimited JSON) is
@@ -86,6 +109,8 @@ def classify(repo: Path) -> list[tuple[str, str, str]]:
     for f in sorted(files):
         if f in ignored:
             rows.append((f, "out", "gitignore-declared-transient"))
+        elif is_the_graph_itself(f):
+            rows.append((f, "out", "graph-not-payload"))
         elif is_log_stream(f):
             rows.append((f, "out", "jsonl-event-stream"))
         elif is_test_fixture(f):
@@ -112,6 +137,8 @@ def classify_paths(repo: Path, rel_paths: list[str]) -> list[tuple[str, str, str
     for f in sorted(rel_paths):
         if f in ignored:
             rows.append((f, "out", "gitignore-declared-transient"))
+        elif is_the_graph_itself(f):
+            rows.append((f, "out", "graph-not-payload"))
         elif is_log_stream(f):
             rows.append((f, "out", "jsonl-event-stream"))
         elif is_test_fixture(f):
