@@ -20,14 +20,21 @@ validation:
 # ===========================================================================
 
 config_marker_names:            # canonical first; order is significant
+  - config.json                 # accepted ONLY inside .agi/ -- too generic elsewhere
   - agi-tree.config.json
   - autoresearch-tree.config.json
 
+graph_dir_name: .agi            # goal:g11 -- the graph directory inside the repo
+
 discovery:
+  phase_0: graph_dir            # walk up for <d>/.agi/ holding a config (goal:g11)
   phase_1: up                   # walk up from cwd for a config marker
   phase_2: down                 # else descend into <start>/<basename>-tree/, then <start>/*-tree/
+  interleaved: [phase_0, phase_1]  # ONE walk, phase 0 first per dir: nearest enclosing wins
   ambiguous: error              # >1 candidate is a hard error, never a guess
-  declared_in: extensions/agi/lib/find-root.sh
+  declared_in:
+    - extensions/agi/bin/locations.py :: find_project_root
+    - extensions/agi/lib/find-root.sh :: find_project_root
 
 locations:
   graph_root:
@@ -75,6 +82,46 @@ locations:
     path: "<graph_root>/context/schemas"
     declared_in:
       - "extensions/agi/src/schema_registry/loader.py :: load_schemas_from_dir"
+
+  # --- goal:g11 -------------------------------------------------------------
+  # The two roots that stop being the same directory once the graph moves
+  # inside the repo it builds. Both are CONFIGURABLE, which is the point: one
+  # binary has to express the legacy layout and the .agi layout at once, with
+  # no branch on project name anywhere (goal:g8.2).
+
+  repo_root:
+    role: "the repository enclosing the graph"
+    derivation: parent-of-graph-dir-else-identity
+    path: "<graph_root>/.. if .agi layout else <graph_root>"
+    declared_in:
+      - "extensions/agi/bin/locations.py :: repo_root"
+
+  source_root:
+    role: "the source the graph describes -- where payload_ref resolves"
+    derivation: config-else-layout-default
+    config_key: locations.source_root      # relative resolves against graph_root
+    path: "<repo_root> if .agi layout else <graph_root>/agi if it exists else <graph_root>"
+    declared_in:
+      - "extensions/agi/bin/locations.py :: source_root"
+    note: >-
+      The "run against a custom source location" dial. Under the .agi layout a
+      payload_ref names a tracked file in the same worktree, which is what
+      removes payload_root's reason to exist -- there is no second repo to
+      write the bytes into.
+
+  goals_file:
+    role: "where snapshot-goals.py --render writes the goal document"
+    derivation: config-else-layout-default
+    config_key: goals_file                 # bare name | relative path | absolute
+    path: "<repo_root>/GOALS.md if .agi layout else <graph_root>/GOALS.md"
+    declared_in:
+      - "extensions/agi/bin/locations.py :: goals_path"
+      - "extensions/agi/bin/snapshot-goals.py :: GOALS_MD"
+    note: >-
+      A bare name goes to the repo root, never inside .agi/ -- the one document
+      a human opens first must not be hidden in a dot directory. An override
+      also settles the drop-in collision: a repo that already ships its own
+      GOALS.md sets goals_file and keeps both.
 ---
 
 # config
@@ -87,12 +134,24 @@ duplicates named, rather than three constants a reader has to go find.
 
 `bin/spawn_gate.py` reads `locations.nodes_root.path` to resolve where the
 node corpus lives, falling back to `<graph_root>/nodes` when the schema is
-absent. That is one real read path, which is the bar G10.2 sets. **The
-remaining locations are declared and not read** — `engine_root` in particular
-is still defined twice in Python and once in shell, and collapsing those three
-into this file means editing `level3.py` and `grid.py`, which this change does
-not own. Recorded as the residual; the duplication is *documented* here, not
-*removed*.
+absent. That is one real read path, which is the bar G10.2 sets.
+
+**`bin/locations.py` (goal:g11) is the second, and it is the one that starts
+collapsing the duplication this file was written to document.** It reads
+`locations.source_root` and `goals_file` from the project config and owns
+`find_project_root`, `repo_root`, `source_root` and `goals_path` for the whole
+Python side. `lib/find-root.sh` is its bash half and implements the same phase
+order; `tests/test_locations.py::test_bash_and_python_agree` fails if the two
+drift.
+
+**What is collapsed, and what is not.** Before G11 the ancestor walk existed
+thirteen times — twelve `_find_root` copies under `bin/`, plus the shell one.
+`snapshot-goals.py` is migrated; the other eleven still carry their own copy
+and are the residual. `engine_root` also remains defined twice in Python with
+two different index arithmetics, off by one because `level3.py` counts from a
+directory and `grid.py` counts from a file. Both are named here rather than
+fixed, because a resolver duplicated thirteen times cannot be given a new rule —
+only thirteen new rules that drift, which is the whole reason G11 starts here.
 
 ## Field meanings
 

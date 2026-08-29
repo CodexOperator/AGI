@@ -5,7 +5,7 @@ goal_kind: short-term
 heading_level: 2
 id: "goal:s19"
 mint_id: ed6a7e053b2e4959aa04ade37256b53c
-order: 82
+order: 83
 origin: goals-doc
 parents: []
 seeds: []
