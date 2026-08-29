@@ -75,22 +75,47 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: engine / ".gitignore"
-  how: '`(engine / ".gitignore").read_text()` at line 326'
+  how: '`(engine / ".gitignore").read_text()` at line 359'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(capsys.readouterr().out)` at line 474'
+  how: '`json.loads(capsys.readouterr().out)` at line 507'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(prestate_file.read_text())` at line 657'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(capsys.readouterr().out)` at line 798'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(capsys.readouterr().out)` at line 803'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / "GOALS.md"
-  how: '`(engine / "GOALS.md").read_text()` at line 235'
+  how: '`(engine / "GOALS.md").read_text()` at line 268'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / ".agi" / "config.json"
-  how: '`(engine / ".agi" / "config.json").read_text()` at line 242'
+  how: '`(engine / ".agi" / "config.json").read_text()` at line 275'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / "CLAUDE.md"
+  how: '`(engine / "CLAUDE.md").read_text()` at line 532'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: prestate_file
+  how: '`prestate_file.read_text()` at line 657'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -134,186 +159,366 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _add_payload_node
+  how: 'defines private function `_add_payload_node` at line 175, signature: (tree:
+    Path, node_name: str, payload_ref: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _fingerprint
+  how: 'defines private function `_fingerprint` at line 193, signature: (repo: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: repos
-  how: 'defines public function `repos` at line 176, signature: (tmp_path)'
+  how: 'defines public function `repos` at line 209, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: migrated
-  how: 'defines public function `migrated` at line 183, signature: (repos)'
+  how: 'defines public function `migrated` at line 216, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_both_histories_are_ancestors_of_head
   how: 'defines public function `test_both_histories_are_ancestors_of_head` at line
-    203, signature: (migrated)'
+    236, signature: (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_grid_refs_transfer_with_count_and_target_preserved
   how: 'defines public function `test_grid_refs_transfer_with_count_and_target_preserved`
-    at line 219, signature: (migrated)'
+    at line 252, signature: (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goals_md_ends_at_repo_root_not_inside_dot_agi
   how: 'defines public function `test_goals_md_ends_at_repo_root_not_inside_dot_agi`
-    at line 231, signature: (migrated)'
+    at line 264, signature: (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_config_ends_at_dot_agi_config_json
   how: 'defines public function `test_config_ends_at_dot_agi_config_json` at line
-    238, signature: (migrated)'
+    271, signature: (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_find_project_root_resolves_to_dot_agi
   how: 'defines public function `test_find_project_root_resolves_to_dot_agi` at line
-    245, signature: (migrated)'
+    278, signature: (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_no_node_file_bytes_change
-  how: 'defines public function `test_no_node_file_bytes_change` at line 254, signature:
+  how: 'defines public function `test_no_node_file_bytes_change` at line 287, signature:
     (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_report_node_count_matches
-  how: 'defines public function `test_report_node_count_matches` at line 261, signature:
+  how: 'defines public function `test_report_node_count_matches` at line 294, signature:
     (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_merge_gitignore_drops_symlink_entries
   how: defines public function `test_merge_gitignore_drops_symlink_entries` at line
-    268
+    301
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_merge_gitignore_reroots_generated_paths
   how: defines public function `test_merge_gitignore_reroots_generated_paths` at line
-    275
+    308
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_merge_gitignore_reroot_beats_dedup_for_names_shared_with_the_engine
   how: defines public function `test_merge_gitignore_reroot_beats_dedup_for_names_shared_with_the_engine`
-    at line 289
+    at line 322
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_merge_gitignore_dedupes_generic_patterns
   how: defines public function `test_merge_gitignore_dedupes_generic_patterns` at
-    line 303
+    line 336
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_merge_gitignore_keeps_uniques_from_both_sides
   how: defines public function `test_merge_gitignore_keeps_uniques_from_both_sides`
-    at line 309
+    at line 342
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_merge_gitignore_preserves_explanatory_comments
   how: defines public function `test_merge_gitignore_preserves_explanatory_comments`
-    at line 316
+    at line 349
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_end_to_end_gitignore_is_one_file_at_root
   how: 'defines public function `test_end_to_end_gitignore_is_one_file_at_root` at
-    line 322, signature: (migrated)'
+    line 355, signature: (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_dry_run_mutates_nothing
-  how: 'defines public function `test_dry_run_mutates_nothing` at line 334, signature:
+  how: 'defines public function `test_dry_run_mutates_nothing` at line 367, signature:
     (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_explicit_dry_run_flag_overrides_yes
   how: 'defines public function `test_explicit_dry_run_flag_overrides_yes` at line
-    349, signature: (repos)'
+    382, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_refuses_dirty_target
-  how: 'defines public function `test_preflight_refuses_dirty_target` at line 362,
+  how: 'defines public function `test_preflight_refuses_dirty_target` at line 395,
     signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_refuses_target_that_already_has_dot_agi
   how: 'defines public function `test_preflight_refuses_target_that_already_has_dot_agi`
-    at line 370, signature: (repos)'
+    at line 403, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_refuses_missing_source
-  how: 'defines public function `test_preflight_refuses_missing_source` at line 378,
+  how: 'defines public function `test_preflight_refuses_missing_source` at line 411,
     signature: (tmp_path, repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_refuses_dirty_source
-  how: 'defines public function `test_preflight_refuses_dirty_source` at line 386,
+  how: 'defines public function `test_preflight_refuses_dirty_source` at line 419,
     signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_force_allows_dirty_and_existing_agi
   how: 'defines public function `test_preflight_force_allows_dirty_and_existing_agi`
-    at line 394, signature: (repos)'
+    at line 427, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_refuses_the_real_repos
-  how: 'defines public function `test_preflight_refuses_the_real_repos` at line 402,
+  how: 'defines public function `test_preflight_refuses_the_real_repos` at line 435,
     signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preflight_force_does_not_bypass_real_repo_guard
   how: 'defines public function `test_preflight_force_does_not_bypass_real_repo_guard`
-    at line 414, signature: (tmp_path)'
+    at line 447, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_second_run_refuses_cleanly
-  how: 'defines public function `test_second_run_refuses_cleanly` at line 424, signature:
+  how: 'defines public function `test_second_run_refuses_cleanly` at line 457, signature:
     (migrated)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_graft_graph_alone
-  how: 'defines public function `test_graft_graph_alone` at line 442, signature: (repos)'
+  how: 'defines public function `test_graft_graph_alone` at line 475, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_relocate_files_requires_a_prior_graft
   how: 'defines public function `test_relocate_files_requires_a_prior_graft` at line
-    450, signature: (repos)'
+    483, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_fetch_grid_refs_raises_on_a_bad_remote
   how: 'defines public function `test_fetch_grid_refs_raises_on_a_bad_remote` at line
-    457, signature: (repos)'
+    490, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_report_json_on_dry_run
-  how: 'defines public function `test_cli_report_json_on_dry_run` at line 469, signature:
+  how: 'defines public function `test_cli_report_json_on_dry_run` at line 502, signature:
     (repos, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_yes_runs_the_real_migration
-  how: 'defines public function `test_cli_yes_runs_the_real_migration` at line 478,
+  how: 'defines public function `test_cli_yes_runs_the_real_migration` at line 511,
     signature: (repos, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_claude_md_ends_at_repo_root_not_inside_dot_agi
+  how: 'defines public function `test_claude_md_ends_at_repo_root_not_inside_dot_agi`
+    at line 528, signature: (migrated)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_agents_md_ends_at_repo_root_not_inside_dot_agi
+  how: 'defines public function `test_agents_md_ends_at_repo_root_not_inside_dot_agi`
+    at line 535, signature: (migrated)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_agents_md_is_still_a_symlink_after_the_move
+  how: 'defines public function `test_agents_md_is_still_a_symlink_after_the_move`
+    at line 541, signature: (migrated)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_relocate_files_raises_when_claude_md_missing
+  how: 'defines public function `test_relocate_files_raises_when_claude_md_missing`
+    at line 549, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_relocate_files_raises_when_agents_md_is_not_a_symlink
+  how: 'defines public function `test_relocate_files_raises_when_agents_md_is_not_a_symlink`
+    at line 559, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_preflight_refuses_when_a_payload_ref_is_missing_from_the_engine
+  how: 'defines public function `test_preflight_refuses_when_a_payload_ref_is_missing_from_the_engine`
+    at line 582, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_preflight_refuses_names_up_to_ten_and_the_true_count
+  how: 'defines public function `test_preflight_refuses_names_up_to_ten_and_the_true_count`
+    at line 597, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_preflight_passes_when_every_payload_ref_resolves
+  how: 'defines public function `test_preflight_passes_when_every_payload_ref_resolves`
+    at line 610, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_force_overrides_the_publish_lag_gate
+  how: 'defines public function `test_force_overrides_the_publish_lag_gate` at line
+    620, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_publish_lag_gate_blocks_the_real_migration_without_force
+  how: 'defines public function `test_publish_lag_gate_blocks_the_real_migration_without_force`
+    at line 629, signature: (repos, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_find_missing_payloads_is_empty_when_tree_has_no_payload_refs
+  how: 'defines public function `test_find_missing_payloads_is_empty_when_tree_has_no_payload_refs`
+    at line 640, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_prestate_file_written_by_a_real_migration
+  how: 'defines public function `test_prestate_file_written_by_a_real_migration` at
+    line 648, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_restores_head_and_deletes_grid_refs_and_is_clean
+  how: 'defines public function `test_rollback_restores_head_and_deletes_grid_refs_and_is_clean`
+    at line 674, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_fingerprint_is_byte_identical_to_pre_migration
+  how: 'defines public function `test_rollback_fingerprint_is_byte_identical_to_pre_migration`
+    at line 694, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_dry_run_mutates_nothing
+  how: 'defines public function `test_rollback_dry_run_mutates_nothing` at line 710,
+    signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_refuses_with_no_prestate_file
+  how: 'defines public function `test_rollback_refuses_with_no_prestate_file` at line
+    726, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_refuses_when_already_rolled_back
+  how: 'defines public function `test_rollback_refuses_when_already_rolled_back` at
+    line 734, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_refuses_when_head_is_reachable_from_a_remote
+  how: 'defines public function `test_rollback_refuses_when_head_is_reachable_from_a_remote`
+    at line 747, signature: (repos, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_force_overrides_the_pushed_check_with_a_loud_warning
+  how: 'defines public function `test_force_overrides_the_pushed_check_with_a_loud_warning`
+    at line 772, signature: (repos, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_cli_flag_end_to_end
+  how: 'defines public function `test_rollback_cli_flag_end_to_end` at line 792, signature:
+    (repos, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_cli_rollback_requires_engine_only_not_tree
+  how: 'defines public function `test_cli_rollback_requires_engine_only_not_tree`
+    at line 809, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_main_errors_without_tree_and_without_rollback
+  how: 'defines public function `test_main_errors_without_tree_and_without_rollback`
+    at line 821, signature: (repos, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _make_build_node_with_payload
+  how: 'defines private function `_make_build_node_with_payload` at line 836, signature:
+    (tree: Path, engine: Path, *, mint: str, ref: str, grid_bytes: bytes, engine_bytes:
+    bytes)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_stale_payload_is_detected
+  how: 'defines public function `test_stale_payload_is_detected` at line 874, signature:
+    (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_published_payload_is_not_stale
+  how: 'defines public function `test_published_payload_is_not_stale` at line 885,
+    signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_preflight_refuses_on_stale_payload
+  how: 'defines public function `test_preflight_refuses_on_stale_payload` at line
+    894, signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_force_overrides_the_stale_gate
+  how: 'defines public function `test_force_overrides_the_stale_gate` at line 907,
+    signature: (repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_node_without_a_grid_ref_is_skipped_not_flagged
+  how: 'defines public function `test_node_without_a_grid_ref_is_skipped_not_flagged`
+    at line 916, signature: (repos)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -371,21 +576,56 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: engine / "extensions" / "agi" / "bin" / "hello.py"
-  how: '`(engine / "extensions" / "agi" / "bin" / "hello.py").write_text("dirty\n")`
-    at line 364'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: tree / "nodes" / "goal" / "g1.md"
-  how: '`(tree / "nodes" / "goal" / "g1.md").write_text("uncommitted edit\n")` at
-    line 388'
+- name: path
+  how: '`path.write_text( f''---\nid: "build:{node_name}"\n'' f''mint_id: cccccccccccccccccccccccccccccccc\ntype:
+    build\n'' f''payload_ref: {payload_ref}\n---\n\nBuild node.\n'' )` at line 183'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine / "extensions" / "agi" / "bin" / "hello.py"
   how: '`(engine / "extensions" / "agi" / "bin" / "hello.py").write_text("dirty\n")`
     at line 397'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tree / "nodes" / "goal" / "g1.md"
+  how: '`(tree / "nodes" / "goal" / "g1.md").write_text("uncommitted edit\n")` at
+    line 421'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / "extensions" / "agi" / "bin" / "hello.py"
+  how: '`(engine / "extensions" / "agi" / "bin" / "hello.py").write_text("dirty\n")`
+    at line 430'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: agents
+  how: '`agents.write_text("not a symlink\n")` at line 567'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: build_dir / f"{mint}.md"
+  how: '`(build_dir / f"{mint}.md").write_text( f''---\nid: "build:{mint}"\nmint_id:
+    {mint}\ntype: build\n'' f''payload_ref: {ref}\n---\n\nbuild node\n'' )` at line
+    844'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: target
+  how: '`target.write_bytes(engine_bytes)` at line 869'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: build_dir / "ungridded.md"
+  how: '`(build_dir / "ungridded.md").write_text( ''---\nid: "build:ungridded"\nmint_id:
+    '' + "9" * 32 + ''\ntype: build\n'' ''payload_ref: src/ungridded.py\n---\n\nno
+    grid ref for this one\n'' )` at line 924'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: engine / "src" / "ungridded.py"
+  how: '`(engine / "src" / "ungridded.py").write_text("whatever\n")` at line 931'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
