@@ -50,6 +50,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+# goal:g11 — one resolver for every path. Plain sibling import; every entry
+# point under `bin/` already has this directory on sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
+
 CONFIG_MARKER = "agi-tree.config.json"
 # Compatibility window: legacy-named projects still resolve. Canonical name first.
 CONFIG_MARKERS = (CONFIG_MARKER, "autoresearch-tree.config.json")
@@ -86,11 +91,28 @@ PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
 
 
 def find_project_root(start: Path | None = None) -> Path:
-    cur = (start or Path.cwd()).resolve()
-    for p in [cur, *cur.parents]:
-        if any((p / name).exists() for name in CONFIG_MARKERS):
-            return p
-    sys.exit(f"ERR: no {CONFIG_MARKER} found walking up from {cur}")
+    """Delegate to `locations.find_project_root` — **goal:g11.1**.
+
+    This was its own ancestor walk, looking only for a bare `CONFIG_MARKERS`
+    name in each parent. That has no phase 0, so it cannot see a `<d>/.agi/`
+    graph directory, and under the goal:g11 layout it walked the whole way to
+    `/` and exited. The grid is where every payload byte and every node version
+    lives, so a `grid.py` that cannot find the project is the most expensive
+    form this residual could take: `commit --all` stops recording history and
+    says so only on stderr, which in a cron is nowhere.
+
+    Kept as a wrapper rather than deleted: `grid.py` calls this in a dozen
+    places and the `sys.exit`-on-failure contract is what those callers expect.
+    """
+    root = locations.find_project_root(start)
+    if root is None:
+        cur = (start or Path.cwd()).resolve()
+        sys.exit(
+            f"ERR: no agi project found from {cur} — looked for "
+            f"{locations.GRAPH_DIR_NAME}/ or {CONFIG_MARKER} walking up, "
+            f"then <dir>/*-tree/ below"
+        )
+    return root
 
 
 def git(root: Path, *args: str, input_text: str | None = None, check: bool = True) -> str:
@@ -446,7 +468,13 @@ def read_tree_entry(root: Path, rev: str, name: str) -> tuple[str, bytes] | None
     Bytes, not text: a payload may be any file in the engine repo, and
     decoding one to hand it back would make the round trip encoding-dependent.
     """
-    line = git(root, "ls-tree", rev, "--", name, check=False)
+    # --full-tree: goal:g11. `git ls-tree` is scoped by cwd WITHIN the work
+    # tree, so from `<repo>/.agi` it looks for entries under an `.agi/` prefix
+    # — and a grid commit's tree has `node.md` at ITS root, not under one.
+    # Without this, every lookup returned empty and every node read as CHANGED
+    # while being byte-identical. Harmless before G11 only because the graph
+    # root and the repo root were the same directory.
+    line = git(root, "ls-tree", "--full-tree", rev, "--", name, check=False)
     if not line:
         return None
     mode = line.split(maxsplit=1)[0]
@@ -507,7 +535,7 @@ def read_tree(root: Path, rev: str) -> list[tuple[str, str, str]]:
     """`(name, mode, blob)` for every entry in `rev`'s tree, sorted by name —
     the read-side counterpart of `tree_entries`, so the two are directly
     comparable without materialising anything."""
-    out = git(root, "ls-tree", rev, check=False)
+    out = git(root, "ls-tree", "--full-tree", rev, check=False)  # see read_tree_entry
     rows = []
     for line in out.splitlines():
         meta, _, name = line.partition("\t")
