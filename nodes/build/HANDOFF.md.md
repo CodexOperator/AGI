@@ -25,7 +25,7 @@ payload_ref: HANDOFF.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 923e243e391edff86ad5704ef27a7bee06dc9fedb8dde6301ade6bd4e59057f0
+content_sha256: 8654ef637db2f836e4410a27efe3d1c9e3996114c1b898b23879f37d250d9a22
 inputs: []
 outputs: []
 ```
