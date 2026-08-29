@@ -144,21 +144,21 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 > the install/orientation guide and is still broadly correct. This section is
 > the current state and the work queue.
 
-## 0. State as of commit `1f236461b` (engine `1264d0b`)
+## 0. State as of commit `65b2a6dd3` (engine `11a8e62`)
 
 ```
-node_count            791          goal_count             84
-active_node_count     786          deprecated_node_count  5
+node_count            792          goal_count             85
+active_node_count     787          deprecated_node_count  5
 evidence_fraction     0.206        primary (outcome_cov)  0.255
 unevidenced_decisive  0            shadow_decisive        0
-thought_coverage      0.014        nodes_with_thought     11
+thought_coverage      0.015        nodes_with_thought     12
 hours_since_publish   0.34         publish_blocked_reason (empty)
 unpushed_graph        0            unpushed_engine        0
 engine tests          861 passed, 1 skipped
 ```
 
 Graph clean, engine clean, **both remotes current**. `--render --check`
-round-trips byte-identical across 84 goals.
+round-trips byte-identical across 85 goals.
 
 ## 1. What shipped — four iterations, 2026-08-28/29
 
@@ -280,11 +280,20 @@ armed to lose data.
    those refs, so the corruption would surface much later and far from its
    cause. Make it refuse loudly rather than write a truncated version.
 
-5. **S18** — absorb cavekit references before cavekit retires. The hazard is
-   *ordering*: deleting `context/kits/` prunes 159 `origin: build-site` nodes
-   (H0i).
+5. **S21** — the graph can add a file to the engine but can never remove one.
+   Filed 2026-08-29, not built. The publish path is one-directional for
+   existence: nothing lets the graph say "this payload is retired, stop
+   materialising it". **Deprecating a build node does NOT remove its engine
+   file** — `stitch.py` reads `nodes/deprecated/build/` precisely so it keeps
+   materialising those payloads, and that is correct. All four obvious routes
+   fail differently; the node lists each with the code that decides it. **Do
+   this before S18**, which ends in retiring files and cannot finish without it.
 
-6. **G4.5** — generalize `blocked_by` -> `depends_on`. 89 populated nodes, 0
+6. **S18** — absorb cavekit references before cavekit retires. The hazard is
+   *ordering*: deleting `context/kits/` prunes 159 `origin: build-site` nodes
+   (H0i). Gated on S21.
+
+7. **G4.5** — generalize `blocked_by` -> `depends_on`. 89 populated nodes, 0
    cycles, max depth 15. Must stay out of every metric traversal or it becomes
    a fresh gaming surface.
 
