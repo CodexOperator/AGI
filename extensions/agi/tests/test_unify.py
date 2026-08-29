@@ -933,3 +933,45 @@ def test_node_without_a_grid_ref_is_skipped_not_flagged(repos):
     _git(engine, "commit", "-q", "-m", "engine: ungridded")
 
     assert unify.find_stale_payloads(tree, engine) == []
+
+
+def test_force_does_not_unlock_the_real_repo_guard(tmp_path, monkeypatch):
+    """--force is for state, not for which repo may be written.
+
+    Parent review, iteration 4. The guard fired on the real migration, which
+    is correct — but the fix must not be to fold it into --force. --force is
+    a recovery gesture reached often (dirty tree, partial migration); if it
+    also unlocked production, every recovery would carry that permission
+    silently.
+    """
+    fake_real = tmp_path / "real"
+    fake_real.mkdir()
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", (fake_real,))
+
+    res = unify.preflight(fake_real, tmp_path / "tree", force=True)
+    assert res["ok"] is False
+    assert res["reason"] == "refuses_real_repo"
+    assert unify.REAL_MIGRATION_FLAG in res["detail"]
+
+
+def test_the_real_migration_flag_does_unlock_it(tmp_path, monkeypatch, repos):
+    """And the deliberate door opens — otherwise the tool cannot do the one
+    job goal:g11 exists for."""
+    engine, tree = repos
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", (engine,))
+
+    assert unify.preflight(engine, tree, force=False)["reason"] == "refuses_real_repo"
+    assert unify.preflight(engine, tree, force=False, allow_real=True)["ok"] is True
+
+
+def test_rollback_guard_has_the_same_door(tmp_path, monkeypatch):
+    """Rolling back the real migration is a legitimate recovery, so the
+    rollback guard needs the same override — a migration you cannot reverse
+    is worse than one you cannot start."""
+    fake_real = tmp_path / "real2"
+    fake_real.mkdir()
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", (fake_real,))
+
+    res = unify.preflight_rollback(fake_real, force=True)
+    assert res["reason"] == "refuses_real_repo"
+    assert unify.REAL_MIGRATION_FLAG in res["detail"]

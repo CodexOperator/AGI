@@ -392,6 +392,23 @@ def _touches_a_real_repo(path: Path) -> bool:
     return any(resolved == forbidden.resolve() for forbidden in _FORBIDDEN_REAL_PATHS)
 
 
+#: The one flag that lets this script touch the real repos, spelled so it
+#: cannot be typed by accident or reached by a stray `--force`.
+#:
+#: **The guard above is right and stays.** Every rehearsal must be unable to
+#: write into the real pair, and `--force` — which exists for recovery from a
+#: half-finished migration — must never widen into permission to run against
+#: production. But `goal:g11`'s whole point is that the real migration happens
+#: exactly once, so a guard with no deliberate door makes the tool unable to do
+#: the job it was written for.
+#:
+#: Separating the two is the point: `--force` relaxes *checks about state*
+#: (dirty tree, existing `.agi/`, publish lag); this relaxes *which repo may be
+#: written*. Neither implies the other, and a single flag covering both would
+#: mean every recovery gesture also unlocked production.
+REAL_MIGRATION_FLAG = "--this-is-the-real-migration"
+
+
 # --- 1. preflight ------------------------------------------------------------
 
 
@@ -399,7 +416,8 @@ def _refuse(reason: str, detail: str) -> dict:
     return {"ok": False, "reason": reason, "detail": detail}
 
 
-def preflight(engine: Path, tree: Path, *, force: bool = False) -> dict:
+def preflight(engine: Path, tree: Path, *, force: bool = False,
+              allow_real: bool = False) -> dict:
     """Both source repos exist and are clean; the target is a fresh clone;
     record tip shas and grid-ref counts. Returns `{"ok": False, "reason":
     ..., "detail": ...}` on the first failing check — never a list, because
@@ -415,11 +433,14 @@ def preflight(engine: Path, tree: Path, *, force: bool = False) -> dict:
     engine = Path(engine).resolve()
     tree = Path(tree).resolve()
 
-    if _touches_a_real_repo(engine) or _touches_a_real_repo(tree):
+    if (_touches_a_real_repo(engine) or _touches_a_real_repo(tree)) and not allow_real:
         return _refuse(
             "refuses_real_repo",
             f"{engine} or {tree} resolves to one of the real repos this "
-            f"script must never write into — clone to /tmp and point there",
+            f"script must never write into — clone to /tmp and point there. "
+            f"If this IS the one-time real migration, pass "
+            f"{REAL_MIGRATION_FLAG} (not --force; they are different "
+            f"permissions and neither implies the other)",
         )
 
     if not (engine / ".git").exists():
@@ -894,7 +915,8 @@ def _head_reachable_from_any_remote(engine: Path, head: str) -> list[str]:
     ]
 
 
-def preflight_rollback(engine: Path, *, force: bool = False) -> dict:
+def preflight_rollback(engine: Path, *, force: bool = False,
+                       allow_real: bool = False) -> dict:
     """Read-only checks before `perform_rollback` touches anything. Returns
     the same `{"ok": False, "reason": ..., "detail": ...}` shape as
     `preflight` on the first failing check, or `{"ok": True, ...}` with the
@@ -908,11 +930,12 @@ def preflight_rollback(engine: Path, *, force: bool = False) -> dict:
     """
     engine = Path(engine).resolve()
 
-    if _touches_a_real_repo(engine):
+    if _touches_a_real_repo(engine) and not allow_real:
         return _refuse(
             "refuses_real_repo",
             f"{engine} resolves to one of the real repos this script must "
-            f"never mutate",
+            f"never mutate. Rolling back the real migration is a legitimate "
+            f"recovery — pass {REAL_MIGRATION_FLAG} to do it",
         )
 
     if not (engine / ".git").exists():
@@ -1012,7 +1035,8 @@ def perform_rollback(engine: Path, pre: dict) -> dict:
     }
 
 
-def run_rollback(engine: Path, *, yes: bool = False, force: bool = False) -> dict:
+def run_rollback(engine: Path, *, yes: bool = False, force: bool = False,
+                 allow_real: bool = False) -> dict:
     """`--rollback`'s entry point, mirroring `run_unify`'s dry-run-by-default
     shape: `preflight_rollback` runs unconditionally; `yes=False` returns a
     plan built from its read-only data, `yes=True` performs the four
@@ -1020,7 +1044,7 @@ def run_rollback(engine: Path, *, yes: bool = False, force: bool = False) -> dic
     """
     engine = Path(engine).resolve()
 
-    pre = preflight_rollback(engine, force=force)
+    pre = preflight_rollback(engine, force=force, allow_real=allow_real)
     if not pre["ok"]:
         return {"ok": False, "stage": "preflight_rollback", "reason": pre["reason"],
                 "detail": pre["detail"], "preflight": pre}
@@ -1112,7 +1136,8 @@ def _summarize(engine: Path, pre: dict, stages: dict) -> dict:
     }
 
 
-def run_unify(engine: Path, tree: Path, *, yes: bool = False, force: bool = False) -> dict:
+def run_unify(engine: Path, tree: Path, *, yes: bool = False, force: bool = False,
+              allow_real: bool = False) -> dict:
     """The whole pipeline. `yes=False` (the default) never mutates `engine`
     or `tree` — it runs `preflight` and, if that passes, returns a plan built
     from `preflight`'s own read-only data. `yes=True` runs every mutating
@@ -1123,7 +1148,7 @@ def run_unify(engine: Path, tree: Path, *, yes: bool = False, force: bool = Fals
     engine = Path(engine).resolve()
     tree = Path(tree).resolve()
 
-    pre = preflight(engine, tree, force=force)
+    pre = preflight(engine, tree, force=force, allow_real=allow_real)
     if not pre["ok"]:
         return {"ok": False, "stage": "preflight", "reason": pre["reason"],
                 "detail": pre["detail"], "preflight": pre}
@@ -1222,6 +1247,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="perform the migration or rollback; omit for a dry-run report only")
     ap.add_argument("--dry-run", action="store_true",
                     help="force a dry run even if --yes is also given")
+    ap.add_argument(REAL_MIGRATION_FLAG, action="store_true",
+                    help="allow --engine/--tree to be the REAL repos. goal:g11 "
+                         "happens once; this is the door for that one run, and "
+                         "for rolling it back. Deliberately NOT implied by "
+                         "--force: that relaxes checks about state, this "
+                         "relaxes which repo may be written.")
     ap.add_argument("--force", action="store_true",
                     help="proceed against a target that already has .agi/, is "
                          "not clean, or has payload_refs missing from the engine "
@@ -1239,9 +1270,12 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.rollback:
-            report = run_rollback(Path(args.engine), yes=mutate, force=args.force)
+            report = run_rollback(Path(args.engine), yes=mutate, force=args.force,
+                                  allow_real=args.this_is_the_real_migration)
         else:
-            report = run_unify(Path(args.engine), Path(args.tree), yes=mutate, force=args.force)
+            report = run_unify(Path(args.engine), Path(args.tree), yes=mutate,
+                               force=args.force,
+                               allow_real=args.this_is_the_real_migration)
     except UnifyError as exc:
         print(f"ERR: unify.py: {exc}", file=sys.stderr)
         return 1
