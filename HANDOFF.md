@@ -303,7 +303,7 @@ bytes one derivation ahead of their contract. Strictly better than what it
 replaced — the old ordering turned the same race into a refusal *plus* junk
 nodes — and the next `:37` converges it.
 
-**Do not "improve" `thought_coverage`.** Still the design at 11/791: absent
+**Do not "improve" `thought_coverage`.** Still the design at 12/792: absent
 means empty, and fabricating reasoning after the fact is forbidden because a
 made-up thought reads as evidence. Recovering real reasoning from stored
 sessions is **G10.1**'s job.
