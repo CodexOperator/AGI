@@ -1,0 +1,569 @@
+"""Tests for bin/crons.py — the crontab as a derivation of
+`nodes/.geometry/crons.md` (goal:g1.5).
+
+The load-bearing tests here are not the happy path — they are the safety
+net: this machine's real crontab carries production lines (openclaw cleanup,
+a trading bridge watchdog, fantasia's own crons) that destroying would be a
+real incident, so every test that touches `apply`/`remove` seeds a fixture
+crontab with unrelated lines and asserts they survive byte-for-byte, in
+order, through everything this module does. No test in this file ever calls
+the real `crontab` binary in write mode — every apply/remove goes through
+`--crontab-file`.
+"""
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+
+BIN = Path(__file__).resolve().parents[1] / "bin"
+sys.path.insert(0, str(BIN))
+
+import crons  # noqa: E402
+
+
+# --- fixtures ---------------------------------------------------------
+
+
+DEFAULT_CADENCES = {
+    "grid_sync": {"every_mins": 5, "enabled": True},
+    "branch_push": {"schedule": "7 * * * *", "enabled": True},
+    "publish_engine": {"schedule": "37 * * * *", "enabled": True},
+    "engine_push": {"schedule": "47 * * * *", "enabled": True},
+}
+
+
+def _crons_frontmatter(crons_live=True, cadences=None) -> str:
+    if cadences is None:
+        cadences = DEFAULT_CADENCES
+    fm = {
+        "id": "cron:crons",
+        "type": "cron",
+        "crons_live": crons_live,
+        "cadences": cadences,
+    }
+    return "---\n" + yaml.safe_dump(fm, sort_keys=False) + "---\n\nBody.\n"
+
+
+def write_crons_node(root: Path, crons_live=True, cadences=None) -> None:
+    p = root / crons.CRONS_NODE_REL
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(_crons_frontmatter(crons_live, cadences))
+
+
+def _git(path: Path, *args: str) -> str:
+    res = subprocess.run(["git", *args], cwd=path, capture_output=True, text=True)
+    if res.returncode != 0:
+        raise RuntimeError(f"git {args}: {res.stderr}")
+    return res.stdout.strip()
+
+
+def _git_init(path: Path, branch: str = "master", detach: bool = False) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    _git(path, "init", "-q", "-b", branch)
+    _git(path, "config", "user.email", "test@example.com")
+    _git(path, "config", "user.name", "test")
+    (path / ".keep").write_text("x")
+    _git(path, "add", ".")
+    _git(path, "commit", "-q", "-m", "init")
+    if detach:
+        sha = _git(path, "rev-parse", "HEAD")
+        _git(path, "checkout", "-q", "--detach", sha)
+
+
+def make_project(tmp_path, name="proj", crons_live=True, cadences=None,
+                 repo_branch="master", engine_branch="master",
+                 detach_repo=False, detach_engine=False, engine=True) -> Path:
+    """A legacy-layout project: root IS the graph repo, `root/agi` is the
+    engine clone beside it — today's real agi-tree/fantasia shape."""
+    root = tmp_path / name
+    root.mkdir(parents=True)
+    (root / "agi-tree.config.json").write_text("{}")
+    write_crons_node(root, crons_live, cadences)
+    _git_init(root, branch=repo_branch, detach=detach_repo)
+    if engine:
+        _git_init(root / "agi", branch=engine_branch, detach=detach_engine)
+    return root
+
+
+# --- load_crons_node: parsing and validation ----------------------------
+
+
+def test_load_valid_node(tmp_path):
+    root = make_project(tmp_path)
+    node = crons.load_crons_node(root)
+    assert node["crons_live"] is True
+    assert set(node["jobs"]) == set(crons.KNOWN_JOBS)
+    assert node["jobs"]["grid_sync"]["every_mins"] == 5
+    assert node["jobs"]["branch_push"]["schedule"] == "7 * * * *"
+
+
+def test_missing_node_file_names_the_path(tmp_path):
+    root = tmp_path / "proj"
+    root.mkdir()
+    (root / "agi-tree.config.json").write_text("{}")
+    with pytest.raises(crons.CronsError, match=r"missing node file.*crons\.md"):
+        crons.load_crons_node(root)
+
+
+def test_missing_frontmatter_delimiter(tmp_path):
+    root = tmp_path / "proj"
+    p = root / crons.CRONS_NODE_REL
+    p.parent.mkdir(parents=True)
+    p.write_text("no frontmatter here\n")
+    with pytest.raises(crons.CronsError, match="no YAML frontmatter"):
+        crons.load_crons_node(root)
+
+
+def test_malformed_yaml_raises_naming_the_file(tmp_path):
+    root = tmp_path / "proj"
+    p = root / crons.CRONS_NODE_REL
+    p.parent.mkdir(parents=True)
+    p.write_text("---\ncrons_live: [oops\n---\nbody\n")
+    with pytest.raises(crons.CronsError, match="malformed YAML"):
+        crons.load_crons_node(root)
+
+
+def test_missing_crons_live_key(tmp_path):
+    root = tmp_path / "proj"
+    p = root / crons.CRONS_NODE_REL
+    p.parent.mkdir(parents=True)
+    p.write_text("---\ncadences: {}\n---\nbody\n")
+    with pytest.raises(crons.CronsError, match="crons_live"):
+        crons.load_crons_node(root)
+
+
+def test_non_bool_crons_live(tmp_path):
+    root = tmp_path / "proj"
+    write_crons_node(root, crons_live="yes")  # not a real bool
+    with pytest.raises(crons.CronsError, match="true/false"):
+        crons.load_crons_node(root)
+
+
+def test_unknown_job_name_rejected(tmp_path):
+    root = tmp_path / "proj"
+    write_crons_node(root, cadences={"totally_made_up": {"every_mins": 1}})
+    with pytest.raises(crons.CronsError, match="unknown job"):
+        crons.load_crons_node(root)
+
+
+def test_both_every_mins_and_schedule_rejected(tmp_path):
+    root = tmp_path / "proj"
+    write_crons_node(root, cadences={
+        "grid_sync": {"every_mins": 5, "schedule": "* * * * *", "enabled": True},
+    })
+    with pytest.raises(crons.CronsError, match="exactly one"):
+        crons.load_crons_node(root)
+
+
+def test_enabled_job_with_neither_field_rejected(tmp_path):
+    root = tmp_path / "proj"
+    write_crons_node(root, cadences={"grid_sync": {"enabled": True}})
+    with pytest.raises(crons.CronsError, match="neither"):
+        crons.load_crons_node(root)
+
+
+def test_disabled_job_may_omit_schedule(tmp_path):
+    root = make_project(tmp_path, cadences={"grid_sync": {"enabled": False}})
+    node = crons.load_crons_node(root)
+    assert node["jobs"]["grid_sync"]["enabled"] is False
+
+
+def test_bad_every_mins_type_rejected(tmp_path):
+    root = tmp_path / "proj"
+    write_crons_node(root, cadences={"grid_sync": {"every_mins": "five", "enabled": True}})
+    with pytest.raises(crons.CronsError, match="positive integer"):
+        crons.load_crons_node(root)
+
+
+def test_bad_schedule_field_count_rejected(tmp_path):
+    root = tmp_path / "proj"
+    write_crons_node(root, cadences={"branch_push": {"schedule": "* * *", "enabled": True}})
+    with pytest.raises(crons.CronsError, match="5-field"):
+        crons.load_crons_node(root)
+
+
+def test_job_absent_from_cadences_is_never_rendered(tmp_path):
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True},
+    })
+    node = crons.load_crons_node(root)
+    assert set(node["jobs"]) == {"grid_sync"}
+
+
+# --- the branch check (S2, non-negotiable) ------------------------------
+
+
+def test_resolve_branch_on_normal_repo(tmp_path):
+    repo = tmp_path / "r"
+    _git_init(repo, branch="master")
+    assert crons.resolve_branch(repo) == "master"
+
+
+def test_resolve_branch_non_default_name(tmp_path):
+    """Never hardcode master/main — a differently-named branch must resolve
+    to its own name, not a guess."""
+    repo = tmp_path / "r"
+    _git_init(repo, branch="iter24-extend-300hop")
+    assert crons.resolve_branch(repo) == "iter24-extend-300hop"
+
+
+def test_resolve_branch_detached_head_refuses(tmp_path):
+    repo = tmp_path / "r"
+    _git_init(repo, branch="master", detach=True)
+    with pytest.raises(crons.CronsError, match="detached"):
+        crons.resolve_branch(repo)
+
+
+def test_render_refuses_on_detached_repo(tmp_path):
+    root = make_project(tmp_path, detach_repo=True)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    with pytest.raises(crons.CronsError, match="detached"):
+        crons.render_managed_lines(root, repo_root, engine_root, node)
+
+
+def test_render_refuses_on_detached_engine(tmp_path):
+    root = make_project(tmp_path, detach_engine=True)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    with pytest.raises(crons.CronsError, match="detached"):
+        crons.render_managed_lines(root, repo_root, engine_root, node)
+
+
+def test_render_uses_the_actual_checked_out_branch(tmp_path):
+    root = make_project(tmp_path, repo_branch="iter24-extend-300hop",
+                        engine_branch="feature-x")
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    branch_push = next(l for l in lines if "push -q origin iter24-extend-300hop" in l)
+    engine_push = next(l for l in lines if "push -q origin feature-x" in l)
+    assert branch_push and engine_push
+    assert " master" not in branch_push
+    assert " master" not in engine_push
+
+
+# --- rendering shape -----------------------------------------------------
+
+
+def test_render_every_line_cds_into_root_first(tmp_path):
+    root = make_project(tmp_path)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    assert len(lines) == 4
+    for line in lines:
+        assert f"cd {root} &&" in line
+
+
+def test_render_order_matches_known_jobs(tmp_path):
+    root = make_project(tmp_path)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    # grid_sync (*/5), branch_push (min 7), publish_engine (min 37), engine_push (min 47)
+    assert lines[0].startswith("*/5 * * * *")
+    assert lines[1].startswith("7 * * * *")
+    assert lines[2].startswith("37 * * * *")
+    assert lines[3].startswith("47 * * * *")
+
+
+def test_grid_sync_line_self_reapplies(tmp_path):
+    """The self-reapply property: editing the node and letting the grid_sync
+    cadence run must, by itself, converge the real crontab — so its own line
+    must invoke `crons.py apply`."""
+    root = make_project(tmp_path)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    grid_sync_line = lines[0]
+    expected = engine_root / "extensions" / "agi" / "bin" / "crons.py"
+    assert f"python3 {expected} apply" in grid_sync_line
+    # And it must not carry --crontab-file: production self-reapply targets
+    # the real crontab, never a test fixture.
+    assert "--crontab-file" not in grid_sync_line
+
+
+def test_self_reapply_names_the_engine_copy_not_the_running_one(tmp_path):
+    """Regression: the persisted path must be the durable one.
+
+    The line this renders outlives the process that rendered it, so it has to
+    name the published engine copy rather than whichever copy called `apply`.
+    Engine work is normally done from `payloads/` (goal:g6.3) — a gitignored
+    staging tree that `grid.py checkout --force` can overwrite and that a fresh
+    clone does not have at all. Baking that path into the one job responsible
+    for re-applying every other job is the failure this guards.
+    """
+    root = make_project(tmp_path)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    grid_sync_line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
+
+    assert str(engine_root) in grid_sync_line
+    assert "payloads" not in grid_sync_line
+    # The applier that is actually executing this test lives somewhere else
+    # entirely; its own location must not appear in the rendered line.
+    assert str(Path(crons.__file__).resolve()) not in grid_sync_line
+
+
+def test_disabled_job_omitted(tmp_path):
+    cadences = dict(DEFAULT_CADENCES)
+    cadences["publish_engine"] = {"schedule": "37 * * * *", "enabled": False}
+    root = make_project(tmp_path, cadences=cadences)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    assert len(lines) == 3
+    assert not any("publish-engine.sh" in l for l in lines)
+
+
+def test_crons_live_false_renders_nothing(tmp_path):
+    root = make_project(tmp_path, crons_live=False)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    assert lines == []
+
+
+# --- markers: two projects never collide ---------------------------------
+
+
+def test_project_hash_distinct_per_project(tmp_path):
+    a = make_project(tmp_path, name="proj-a")
+    b = make_project(tmp_path, name="proj-b")
+    assert crons.project_hash(a) != crons.project_hash(b)
+
+
+def test_block_markers_are_deterministic(tmp_path):
+    root = make_project(tmp_path)
+    b1 = crons.block_markers(root)
+    b2 = crons.block_markers(root)
+    assert b1 == b2
+
+
+# --- split_managed_block: the safety net ----------------------------------
+
+
+UNRELATED_LINES = [
+    "# openclaw session cleanup",
+    "*/10 * * * * /usr/local/bin/openclaw-cleanup.sh",
+    "0 3 * * * /opt/relmap/run.sh >> /var/log/relmap.log 2>&1",
+    "*/2 * * * * /opt/trading/watchdog.sh --quiet",
+    "15 4 * * * /opt/regime/refresh.sh",
+    "* * * * * /opt/autocommit/run.sh",
+]
+
+
+def test_split_no_match_returns_everything_as_before(tmp_path):
+    before, managed, after = crons.split_managed_block(
+        UNRELATED_LINES, "# >>> agi-crons deadbeef >>>", "# <<< agi-crons deadbeef <<<")
+    assert before == UNRELATED_LINES
+    assert managed == []
+    assert after == []
+
+
+def test_split_unterminated_block_raises(tmp_path):
+    begin = "# >>> agi-crons deadbeef >>>"
+    end = "# <<< agi-crons deadbeef <<<"
+    lines = ["a", begin, "1 2 3 4 5 foo"]
+    with pytest.raises(crons.CronsError, match="no matching"):
+        crons.split_managed_block(lines, begin, end)
+
+
+# --- apply / show / remove: the real behavioural contract -----------------
+
+
+def _read(path: Path) -> list[str]:
+    return path.read_text().splitlines() if path.exists() else []
+
+
+def test_apply_writes_managed_block_preserving_unrelated_lines(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+
+    result = crons.cmd_apply(root, crontab_file=fixture)
+    assert result["changed"] is True
+
+    out = _read(fixture)
+    # every unrelated line survives, byte for byte, in order
+    assert out[:len(UNRELATED_LINES)] == UNRELATED_LINES
+    begin, end = crons.block_markers(result["repo_root"])
+    assert begin in out
+    assert end in out
+    assert out.index(begin) < out.index(end)
+    for line in result["managed_lines"]:
+        assert line in out
+
+
+def test_apply_twice_is_byte_identical(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+
+    crons.cmd_apply(root, crontab_file=fixture)
+    first = fixture.read_text()
+
+    result2 = crons.cmd_apply(root, crontab_file=fixture)
+    second = fixture.read_text()
+
+    assert first == second, "running apply twice must be a no-op on the bytes"
+    assert result2["changed"] is False
+
+
+def test_apply_dry_run_writes_nothing(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+    original = fixture.read_text()
+
+    result = crons.cmd_apply(root, crontab_file=fixture, dry_run=True)
+    assert fixture.read_text() == original, "--dry-run must not touch the file"
+    assert len(result["managed_lines"]) == 4
+
+
+def test_two_projects_coexist_in_one_crontab(tmp_path):
+    """The other non-negotiable safety property: a second project's block
+    must be untouched by this project's apply/remove."""
+    proj_a = make_project(tmp_path, name="proj-a")
+    proj_b = make_project(tmp_path, name="proj-b")
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+
+    crons.cmd_apply(proj_a, crontab_file=fixture)
+    crons.cmd_apply(proj_b, crontab_file=fixture)
+
+    begin_a, end_a = crons.block_markers(crons.locations.repo_root(proj_a))
+    begin_b, end_b = crons.block_markers(crons.locations.repo_root(proj_b))
+    lines = _read(fixture)
+    assert begin_a in lines and end_a in lines
+    assert begin_b in lines and end_b in lines
+
+    # removing project A must not disturb project B's block or the unrelated lines
+    crons.cmd_remove(proj_a, crontab_file=fixture)
+    lines_after = _read(fixture)
+    assert begin_a not in lines_after and end_a not in lines_after
+    assert begin_b in lines_after and end_b in lines_after
+    assert lines_after[:len(UNRELATED_LINES)] == UNRELATED_LINES
+
+
+def test_kill_switch_removes_all_managed_lines(tmp_path):
+    """`crons_live: false` -> apply removes every line for this project in
+    one shot, the single edit the goal:g11 migration relies on."""
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+    crons.cmd_apply(root, crontab_file=fixture)
+    assert len(_read(fixture)) > len(UNRELATED_LINES)
+
+    write_crons_node(root, crons_live=False)
+    result = crons.cmd_apply(root, crontab_file=fixture)
+    assert result["managed_lines"] == []
+    out = _read(fixture)
+    assert out == UNRELATED_LINES
+    begin, _end = crons.block_markers(result["repo_root"])
+    assert begin not in out
+
+
+def test_remove_only_this_projects_block(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+    crons.cmd_apply(root, crontab_file=fixture)
+
+    result = crons.cmd_remove(root, crontab_file=fixture)
+    assert len(result["removed_lines"]) == 4
+    out = _read(fixture)
+    assert out == UNRELATED_LINES
+
+
+def test_remove_when_nothing_installed_is_a_clean_noop(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+
+    result = crons.cmd_remove(root, crontab_file=fixture)
+    assert result["removed_lines"] == []
+    assert _read(fixture) == UNRELATED_LINES
+
+
+def test_show_reports_up_to_date_after_apply(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("")
+    crons.cmd_apply(root, crontab_file=fixture)
+    report = crons.cmd_show(root, crontab_file=fixture)
+    assert "status: up to date" in report
+
+
+def test_show_reports_drift_before_apply(tmp_path):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("")
+    report = crons.cmd_show(root, crontab_file=fixture)
+    assert "DRIFT" in report
+    assert "desired:" in report
+
+
+def test_disabled_engine_push_job_needs_no_engine_git(tmp_path):
+    """A job that is off does not gate on the repo it would have used."""
+    cadences = dict(DEFAULT_CADENCES)
+    cadences["engine_push"] = {"schedule": "47 * * * *", "enabled": False}
+    root = make_project(tmp_path, cadences=cadences, detach_engine=True)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    lines = crons.render_managed_lines(root, repo_root, engine_root, node)
+    assert len(lines) == 3
+    # The engine_push template is specifically `git -C <engine_root> push`;
+    # its absence (not a fuzzy substring match, which collides with the test's
+    # own name) is what proves the disabled job never triggered the branch
+    # check against the detached engine repo.
+    assert not any(f"git -C {engine_root} push" in l for l in lines)
+
+
+# --- CLI (main) ------------------------------------------------------------
+
+
+def test_cli_apply_show_remove_round_trip(tmp_path, capsys):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+
+    rc = crons.main(["apply", "--root", str(root), "--crontab-file", str(fixture)])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "installed 4 line(s)" in out
+
+    rc = crons.main(["show", "--root", str(root), "--crontab-file", str(fixture)])
+    assert rc == 0
+    assert "status: up to date" in capsys.readouterr().out
+
+    rc = crons.main(["remove", "--root", str(root), "--crontab-file", str(fixture)])
+    assert rc == 0
+    assert "removed 4 line(s)" in capsys.readouterr().out
+    assert _read(fixture) == UNRELATED_LINES
+
+
+def test_cli_missing_project_exits_nonzero(tmp_path, capsys):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    rc = crons.main(["show", "--root", str(empty)])
+    assert rc == 1
+    assert "no agi project found" in capsys.readouterr().err
+
+
+def test_cli_missing_node_exits_nonzero_naming_the_file(tmp_path, capsys):
+    root = tmp_path / "proj"
+    root.mkdir()
+    (root / "agi-tree.config.json").write_text("{}")
+    rc = crons.main(["show", "--root", str(root)])
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "crons.md" in err
+
+
+def test_cli_dry_run_reports_without_writing(tmp_path, capsys):
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+    original = fixture.read_text()
+
+    rc = crons.main(["apply", "--root", str(root), "--crontab-file", str(fixture),
+                     "--dry-run"])
+    assert rc == 0
+    assert fixture.read_text() == original
+    assert "would install 4 line(s)" in capsys.readouterr().out
