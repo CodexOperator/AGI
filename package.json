@@ -1,7 +1,7 @@
 {
   "name": "agi",
   "version": "0.1.0",
-  "description": "agi — Artificial Graph Intelligence. Unified repository housing graph algorithms (graph_builder, query_engine, asciirender, pi_tree_adapter, benchmark) and the research loop harness (engine, bridge, skill) that operates on them. The loop dogfoods by treating the agi codebase itself as graph nodes.",
+  "description": "agi — Advanced Graph Interface. Unified repository housing graph algorithms (graph_builder, query_engine, asciirender, pi_tree_adapter, benchmark) and the research loop harness (engine, bridge, skill) that operates on them. The loop dogfoods by treating the agi codebase itself as graph nodes.",
   "license": "MIT",
   "repository": {
     "type": "git",
