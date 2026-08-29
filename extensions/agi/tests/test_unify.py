@@ -341,15 +341,30 @@ def test_merge_gitignore_dedupes_generic_patterns():
 
 def test_merge_gitignore_keeps_uniques_from_both_sides():
     merged = unify.merge_gitignore(TREE_GITIGNORE, ENGINE_GITIGNORE)
-    assert "AGENTS.md" in merged        # engine-only, unrelated to the merge
     assert ".coverage" in merged        # tree-only generic pattern, not graph-specific
     assert ".DS_Store" in merged
+
+
+def test_merge_gitignore_drops_the_engines_claude_md_block():
+    """Updated by parent review, iteration 4 — this test previously asserted
+    the OPPOSITE (`"AGENTS.md" in merged`), encoding the behaviour that broke
+    the real migration.
+
+    The engine ignores CLAUDE.md/AGENTS.md because GitNexus regenerates them
+    at the engine root. After G11 those names belong to the GRAPH's copies,
+    relocated to the repo root and tracked. Carrying the engine's block
+    through would land them at the root and then ignore them — present,
+    authoritative-looking, and invisible to git.
+    """
+    merged = unify.merge_gitignore(TREE_GITIGNORE, ENGINE_GITIGNORE)
+    assert "AGENTS.md" not in merged
+    assert "CLAUDE.md" not in merged
+    assert "GitNexus-generated" not in merged   # the block's comment goes with it
 
 
 def test_merge_gitignore_preserves_explanatory_comments():
     merged = unify.merge_gitignore(TREE_GITIGNORE, ENGINE_GITIGNORE)
     assert "goal:g6.3" in merged
-    assert "GitNexus-generated" in merged
 
 
 def test_end_to_end_gitignore_is_one_file_at_root(migrated):
@@ -975,3 +990,61 @@ def test_rollback_guard_has_the_same_door(tmp_path, monkeypatch):
     res = unify.preflight_rollback(fake_real, force=True)
     assert res["reason"] == "refuses_real_repo"
     assert unify.REAL_MIGRATION_FLAG in res["detail"]
+
+
+def test_ignored_file_at_the_destination_is_displaced_not_fatal(repos):
+    """The defect that stopped the real migration mid-flight.
+
+    The engine root carries CLAUDE.md and AGENTS.md as IGNORED, untracked
+    files (GitNexus regenerates them there). Ignored files do not appear in
+    `git status --porcelain`, so preflight's cleanliness check passes — and
+    `git clone` does not copy ignored files, so no clone-based rehearsal could
+    ever reproduce this. The real run failed at `git mv` with "destination
+    exists", after the graft had already committed.
+    """
+    engine, tree = repos
+    (engine / ".gitignore").write_text(
+        (engine / ".gitignore").read_text() + "\nCLAUDE.md\nAGENTS.md\n")
+    _git(engine, "commit", "-aqm", "engine: ignore CLAUDE.md/AGENTS.md")
+    (engine / "CLAUDE.md").write_text("engine's own generated copy\n")
+    (engine / "AGENTS.md").write_text("engine's own generated copy\n")
+    assert _git(engine, "status", "--porcelain").strip() == ""  # invisible
+
+    unify.graft_graph(engine, tree)
+    res = unify.relocate_files(engine)
+
+    assert sorted(res["displaced_ignored"]) == ["AGENTS.md", "CLAUDE.md"]
+    # The graph's copies are now at the root AND tracked.
+    assert (engine / "CLAUDE.md").read_text() == "# CLAUDE.md\n\nProject instructions.\n"
+    assert _git(engine, "ls-files", "CLAUDE.md").strip() == "CLAUDE.md"
+    # The displaced originals are preserved, not deleted.
+    parked = engine / ".git" / unify.DISPLACED_DIRNAME
+    assert (parked / "CLAUDE.md").read_text() == "engine's own generated copy\n"
+
+
+def test_tracked_file_at_the_destination_is_never_displaced(repos):
+    """A TRACKED file at the destination is a real conflict. Displacing it
+    would silently discard versioned content, so it must fail loudly."""
+    engine, tree = repos
+    (engine / "GOALS.md").write_text("the engine's own tracked GOALS\n")
+    _git(engine, "add", "GOALS.md")
+    _git(engine, "commit", "-qm", "engine: tracked GOALS.md")
+
+    unify.graft_graph(engine, tree)
+    with pytest.raises(unify.UnifyError):
+        unify.relocate_files(engine)
+
+
+def test_merged_gitignore_stops_ignoring_claude_md(repos):
+    """Second half of the same defect: even with git mv fixed, the merged
+    .gitignore would have kept the engine's CLAUDE.md/AGENTS.md block — so the
+    graph's copies would land at the root and be ignored. Present,
+    authoritative-looking, invisible to git."""
+    engine, _tree = repos
+    merged = unify.merge_gitignore(
+        tree_text="sessions/\n",
+        engine_text="# GitNexus-generated\nAGENTS.md\nCLAUDE.md\n\n*.pyc\n",
+    )
+    assert "CLAUDE.md" not in merged
+    assert "AGENTS.md" not in merged
+    assert "*.pyc" in merged
