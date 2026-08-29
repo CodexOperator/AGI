@@ -94,32 +94,32 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: tree_gitignore
-  how: '`tree_gitignore.read_text(encoding="utf-8")` at line 803'
+  how: '`tree_gitignore.read_text(encoding="utf-8")` at line 864'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine_gitignore
-  how: '`engine_gitignore.read_text(encoding="utf-8")` at line 804'
+  how: '`engine_gitignore.read_text(encoding="utf-8")` at line 865'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(path.read_text(encoding="utf-8"))` at line 896'
+  how: '`json.loads(path.read_text(encoding="utf-8"))` at line 957'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tree_gitignore
-  how: '`tree_gitignore.read_text(encoding="utf-8")` at line 1100'
+  how: '`tree_gitignore.read_text(encoding="utf-8")` at line 1161'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine_gitignore
-  how: '`engine_gitignore.read_text(encoding="utf-8")` at line 1101'
+  how: '`engine_gitignore.read_text(encoding="utf-8")` at line 1162'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text(encoding="utf-8")` at line 896'
+  how: '`path.read_text(encoding="utf-8")` at line 957'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -233,161 +233,167 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _displace_ignored_destination
+  how: 'defines private function `_displace_ignored_destination` at line 607, signature:
+    (engine: Path, dst: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: relocate_files
-  how: 'defines public function `relocate_files` at line 602, signature: (engine:
+  how: 'defines public function `relocate_files` at line 642, signature: (engine:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _gitignore_blocks
-  how: 'defines private function `_gitignore_blocks` at line 712, signature: (text:
+  how: 'defines private function `_gitignore_blocks` at line 773, signature: (text:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _block_patterns
-  how: 'defines private function `_block_patterns` at line 733, signature: (block:
+  how: 'defines private function `_block_patterns` at line 794, signature: (block:
     list[str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _filter_graph_block
-  how: 'defines private function `_filter_graph_block` at line 737, signature: (block:
+  how: 'defines private function `_filter_graph_block` at line 798, signature: (block:
     list[str], *, dedupe_against: set[str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: merge_gitignore
-  how: 'defines public function `merge_gitignore` at line 766, signature: (tree_text:
+  how: 'defines public function `merge_gitignore` at line 827, signature: (tree_text:
     str, engine_text: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_merged_gitignore
-  how: 'defines public function `write_merged_gitignore` at line 795, signature: (engine:
+  how: 'defines public function `write_merged_gitignore` at line 856, signature: (engine:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: fetch_grid_refs
-  how: 'defines public function `fetch_grid_refs` at line 825, signature: (engine:
+  how: 'defines public function `fetch_grid_refs` at line 886, signature: (engine:
     Path, tree: Path, *, remote_name: str=REMOTE_NAME)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: remove_temp_remote
-  how: 'defines public function `remove_temp_remote` at line 848, signature: (engine:
+  how: 'defines public function `remove_temp_remote` at line 909, signature: (engine:
     Path, remote_name: str=REMOTE_NAME)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: prestate_path
-  how: 'defines public function `prestate_path` at line 858, signature: (engine: Path)'
+  how: 'defines public function `prestate_path` at line 919, signature: (engine: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_prestate
-  how: 'defines public function `write_prestate` at line 867, signature: (engine:
+  how: 'defines public function `write_prestate` at line 928, signature: (engine:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: read_prestate
-  how: 'defines public function `read_prestate` at line 884, signature: (engine: Path)'
+  how: 'defines public function `read_prestate` at line 945, signature: (engine: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _head_reachable_from_any_remote
-  how: 'defines private function `_head_reachable_from_any_remote` at line 904, signature:
+  how: 'defines private function `_head_reachable_from_any_remote` at line 965, signature:
     (engine: Path, head: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: preflight_rollback
-  how: 'defines public function `preflight_rollback` at line 918, signature: (engine:
+  how: 'defines public function `preflight_rollback` at line 979, signature: (engine:
     Path, *, force: bool=False, allow_real: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: perform_rollback
-  how: 'defines public function `perform_rollback` at line 993, signature: (engine:
+  how: 'defines public function `perform_rollback` at line 1054, signature: (engine:
     Path, pre: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: run_rollback
-  how: 'defines public function `run_rollback` at line 1038, signature: (engine: Path,
+  how: 'defines public function `run_rollback` at line 1099, signature: (engine: Path,
     *, yes: bool=False, force: bool=False, allow_real: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _would_relocate
-  how: 'defines private function `_would_relocate` at line 1072, signature: (tree:
+  how: 'defines private function `_would_relocate` at line 1133, signature: (tree:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _plan
-  how: 'defines private function `_plan` at line 1092, signature: (engine: Path, tree:
+  how: 'defines private function `_plan` at line 1153, signature: (engine: Path, tree:
     Path, pre: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _summarize
-  how: 'defines private function `_summarize` at line 1116, signature: (engine: Path,
+  how: 'defines private function `_summarize` at line 1177, signature: (engine: Path,
     pre: dict, stages: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: run_unify
-  how: 'defines public function `run_unify` at line 1139, signature: (engine: Path,
+  how: 'defines public function `run_unify` at line 1200, signature: (engine: Path,
     tree: Path, *, yes: bool=False, force: bool=False, allow_real: bool=False)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _print_human
-  how: 'defines private function `_print_human` at line 1180, signature: (report:
+  how: 'defines private function `_print_human` at line 1241, signature: (report:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _print_human_rollback
-  how: 'defines private function `_print_human_rollback` at line 1209, signature:
+  how: 'defines private function `_print_human_rollback` at line 1270, signature:
     (report: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 1233, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 1294, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: engine_gitignore
-  how: '`engine_gitignore.write_text(merged, encoding="utf-8")` at line 807'
+  how: '`engine_gitignore.write_text(merged, encoding="utf-8")` at line 868'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: prestate_path(engine)
   how: '`prestate_path(engine).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")`
-    at line 880'
+    at line 941'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(data, indent=2)` at line 880'
+  how: '`json.dumps(data, indent=2)` at line 941'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(report, indent=2, default=str)` at line 1284'
+  how: '`json.dumps(report, indent=2, default=str)` at line 1345'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 27 `print()` call(s) at line(s) [1182, 1184, 1188, 1189, 1192, 1193, 1194,
-    1196, 1197, 1199, 1200, 1202, 1203, 1205, 1211, 1213, 1216, 1217, 1218, 1220,
-    1223, 1224, 1225, 1226, 1228, 1280, 1284]
+  how: 27 `print()` call(s) at line(s) [1243, 1245, 1249, 1250, 1253, 1254, 1255,
+    1257, 1258, 1260, 1261, 1263, 1264, 1266, 1272, 1274, 1277, 1278, 1279, 1281,
+    1284, 1285, 1286, 1287, 1289, 1341, 1345]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
