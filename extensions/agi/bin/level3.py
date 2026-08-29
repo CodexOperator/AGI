@@ -85,6 +85,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
+
 import yaml
 
 ORIGIN = "build-scan"
@@ -160,12 +163,14 @@ PLUGIN_ROOT = BIN_DIR.parent  # .../extensions/agi
 # dedicated test here too.)
 DEFAULT_ENGINE_ROOT = BIN_DIR.parents[2]
 
-PROJECT_ROOT = Path(
-    os.environ.get("AGI_TREE_PROJECT_ROOT")
-    or os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")  # legacy, rename window
-    or os.environ.get("PROJECT_ROOT")
-    or os.getcwd()
-).resolve()
+#: goal:g11.1, third instance of the same residual (after snapshot-goals.py and
+#: grid.py). The `os.getcwd()` fallback resolved to the REPO root under the
+#: `.agi` layout, so `level3.py` wrote its build nodes to `<repo>/nodes/build`
+#: instead of `<repo>/.agi/nodes/build` — creating a second, stray node tree
+#: beside the real one. Combined with the boundary bug fixed in
+#: `payload_boundary.is_the_graph_itself`, that stray tree then became input to
+#: the next scan.
+PROJECT_ROOT = locations.project_root_from_env() or Path(os.getcwd()).resolve()
 
 
 def _set_project_root(path: Path) -> None:
