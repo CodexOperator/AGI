@@ -5,7 +5,7 @@ goal_kind: long-term
 heading_level: 3
 id: "goal:g11.1"
 mint_id: 34c17df8db994d3ea8c6f2a63fae8c62
-order: 65
+order: 66
 origin: goals-doc
 parents:
   - goal:g11
