@@ -13,9 +13,18 @@ seeds: []
 status: active
 tags:
   - goal
-title: "G11.1: Ten Python files still declare their own ancestor walk"
+title: "G11.1: Nine Python files still declare their own ancestor walk, and it has cost three outages"
 type: goal
 ---
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 recorded this as tidiness: ten duplicated resolvers, worth collapsing.
+Within an hour of goal:g11 landing, three of them broke in production, each
+differently, and one of the three was a silent wrong answer rather than a
+crash. This version reclassifies the goal from cleanup to defect and records
+the three as evidence, because "ten copies of a rule" is an abstraction and
+"level3.py minted nodes for its own output" is not.
+<!-- THOUGHT:END -->
 
 **The residual G11 left behind.** `bin/locations.py` exists as the single
 Python resolver and `lib/find-root.sh` is checked against it, but existing
@@ -85,3 +94,42 @@ because one counts from a directory and the other from a file.
 deliberately: it is a different failure shape — arithmetic divergence, not
 copy-paste duplication — and folding it in would let this goal's mechanical
 falsifier drift into something that needs judgment to check.
+
+
+## What it cost, measured 2026-08-29 — the hour goal:g11 landed
+
+Three of the copies broke immediately, in production, each in a different way.
+This section exists because a count of duplicates is an abstraction and these
+are not.
+
+| file | failure | how it presented |
+|---|---|---|
+| `snapshot-goals.py` | `os.getcwd()` is the repo root, not the graph root | **refused** to write an empty `GOALS.md` — loud, safe |
+| `grid.py` | own ancestor walk, no phase 0, could not see `.agi/` | exited; `commit --all` would have stopped recording history, on stderr, in a cron |
+| `level3.py` | same `os.getcwd()` fallback | wrote build nodes to `<repo>/nodes/build` instead of `<repo>/.agi/nodes/build` — **a stray node tree that then became input to the next scan** |
+
+**The third is the shape that matters.** Combined with a separate boundary bug
+it produced a generator whose output was inside its own input set: 190 files
+scanned became 4131, minting nodes named
+`nodes-build-nodes-build-nodes-build-....md.md.md`. Nothing crashed. 3,098
+generated files were committed before anyone noticed.
+
+**Only the first failed safely, and by luck of a different goal.**
+`goal:s12`'s "never write an empty GOALS.md" guard is the sole reason that one
+was a bug report rather than a data-loss incident. The other two had no such
+guard, and the difference was not by design.
+
+### Current count: nine residuals
+
+`grid.py` and `snapshot-goals.py` now delegate to `locations`. `level3.py`
+delegates for `PROJECT_ROOT` but still declares its own `CONFIG_NAMES`, so it
+is a half-case of the same kind `snapshot-goals.py` was. Still carrying their
+own walk: `cli.py`, `benchmark.py`, `dispatch.py`, `snapshot-build-site.py`,
+`post_wire.py`, `spawn_gate.py`, `zoom.py`, `metrics.py`, `render-context.py`.
+
+**`snapshot-build-site.py` is the one to fix first, and not because it is
+worst — because of what it does when wrong.** It deletes every
+`origin: build-site` node it does not re-derive on that run. A resolver that
+points it at the wrong directory is the H0i pruning hazard with the safety
+catch removed. It has not fired only because nothing has run it from a cwd
+where the old rule resolves differently.

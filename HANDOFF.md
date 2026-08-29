@@ -138,6 +138,227 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
+# SESSION HANDOFF — 2026-08-29b: one repo. G11 landed.
+
+> **Read this first.** Everything above is install/orientation and is now
+> PARTLY WRONG — it describes the two-repo layout. §2 (bootstrap) and §6 (how
+> to write into this file) are superseded by this section. `CLAUDE.md` and
+> `SKILL.md` are correct and rewritten.
+
+## 0. State
+
+```
+repo         /home/ubuntu/work/agi   ONE repo: source + .agi/ graph + refs/grid/*
+HEAD         1c14c46a2               710+ commits, 1080 grid refs
+node_count   812                     goal_count 91      tests 1029 pass, in place
+metric       outcome_coverage 0.255  evidence_fraction 0.214
+crons        2 lines, graph-driven, pointing at /home/ubuntu/work/agi/.agi
+PUSHED       NO — 500+ unpushed commits. Deliberate. See §1.
+```
+
+`/home/ubuntu/work/agi-tree` and the `agi-tree` remote are the **archive and
+fallback**, untouched: 809 nodes, 1080 refs, own history intact. S4's rule —
+archive, never delete.
+
+**The workflow is now: edit the file, run its tests, commit.** No `payloads/`,
+no `grid.py checkout`, no `stitch --publish`, no `publish-engine.sh`. Those are
+retired; the payload *is* the source file. `grid.py commit --all` **stays** —
+it versions `node.md` and its payload together as one atomic version, which
+plain git does not.
+
+## 1. 🔴 BLOCKED ON A DECISION: where to push
+
+Nothing is pushed. Two reasons, one hard and one procedural:
+
+- **Rollback after a push needs a force push** against published history
+  (`verdict:g11-migration-rehearsal` makes this a condition of the verdict).
+- **The intended new remote name does not exist.** The owner asked for a fresh
+  repo called `AGI`, keeping `agi` and `agi-tree` as archives. **GitHub repo
+  names are case-insensitive for uniqueness — `CodexOperator/AGI` resolves to
+  the existing `CodexOperator/agi`.** Verified with `gh repo view`. So "AGI" is
+  not a new name; it is the old one.
+
+Options, undecided, and the choice is the owner's:
+1. A distinct name (`agi-mono`, `agi-one`, `agi2`) — no collision, no rename.
+2. Rename `CodexOperator/agi` → `agi-engine-archive`, then create `agi` fresh.
+   GitHub leaves a redirect, so the archive's old URL keeps resolving — which
+   is either convenient or confusing.
+3. Push to the existing `agi` remote. The unified repo *is* that repo's
+   history plus the graph's; nothing is lost and no new remote is needed. What
+   it costs is the clean separation between "archive" and "live" the owner
+   asked for.
+
+Whatever is chosen: **verify `verify_unified.py` reports 8/8 before pushing**,
+and keep both existing remotes untouched until it does.
+
+## 2. What landed, 2026-08-29
+
+- **G11 — one repo.** `unify.py` migrated in place; the independently-written
+  `verify_unified.py` reported 8/8 (809 nodes in/out, zero bytes changed, 1080
+  refs preserved, 494 graph commits as real ancestors, 199/199 `payload_ref`
+  resolving unchanged).
+- **The first attempt FAILED and `--rollback` restored the repo exactly** —
+  209 commits, no `.agi/`, 0 refs, clean. On the real repo, first try.
+- **`bin/locations.py`** — the single path resolver. **`bin/crons.py`** —
+  cadence read from `.agi/nodes/.geometry/crons.md`, `crons_live` kill switch,
+  self-reapplying every 5 minutes. G10.2's first geometry node read by real
+  code.
+- Four goals recorded for the parentage spine: **G12**, G12.1, G12.2 (moral →
+  vision → goal, only morals parentless) and **G9.6** (build-node
+  `description:`, body as rendered payload).
+
+## 3. 🔴 Next tasks — iterations 5 and 6, batched
+
+### 3a. Finish G11.1. This is the top item and it is a defect, not tidiness.
+
+**Nine `bin/` entry points still declare their own ancestor walk.** Three broke
+within an hour of the migration; see `goal:g11.1` for the table. Fix the rest
+by delegating to `locations.project_root_from_env()`.
+
+**Do `snapshot-build-site.py` first** — not because it is worst, but because it
+**deletes every `origin: build-site` node it does not re-derive on that run**.
+A wrong resolver there is the H0i pruning hazard with the safety catch off. It
+has not fired only because nothing has run it from a cwd where the old rule
+resolves differently.
+
+Falsifier: `grep -c '^CONFIG_NAMES' extensions/agi/bin/*.py` returns 1.
+
+### 3b. `git ls-tree --full-tree` — the owner asked whether it is a workaround. It is.
+
+`--full-tree` is the *correct flag* for what that call does, so it is not
+wrong. But it treats a symptom. **The real defect is that `grid.py` runs git
+commands with the GRAPH root as cwd, when grid refs live in the GIT repo.**
+Those were the same directory before G11 and are not now.
+
+Proper fix: `grid.py` should take `repo_root` (which `locations.repo_root()`
+already returns) for every git invocation, and `graph_root` only for finding
+node files. Two roots, two jobs — the same split `locations.py` already makes
+and `grid.py` has not adopted. Then `--full-tree` becomes belt-and-braces
+rather than the thing holding it up.
+
+Worth doing because the failure mode was **a silent wrong answer**: every one
+of 809 nodes read as `CHANGED` while byte-identical. `ref_tip` worked
+throughout, which is exactly what made it look fine.
+
+### 3c. Config influence, and folding crons into the graph properly
+
+Manual path editing in cron lines is clunky and the owner is right. Current
+state: cadence is graph-declared, but the *commands* are built in `crons.py`
+and the paths resolved at apply time.
+
+The owner asked: **can the crons themselves be symlinked into the graph, the
+way the skill and hook are?** Short answer, and it needs verifying next
+session rather than trusting this note: **not for crontab.** `cron` reads
+`/var/spool/cron/crontabs/<user>`, which is root-owned, mode-checked, and
+installed only via `crontab -`; a symlink there is refused or ignored by most
+`cron` implementations. **`systemd --user` timers CAN be symlinked** from a
+repo into `~/.config/systemd/user/`, which would make the schedule literally a
+tracked file. That is the shape worth costing.
+
+Interim improvement available without any of that: reduce to **one** bootstrap
+cron line that runs `crons.py apply`, and let everything else be graph state —
+the `*/5` job already re-applies, so the second line is nearly redundant
+already.
+
+Also expand what `.agi/config.json` governs. `locations.source_root` and
+`goals_file` exist; log paths, remote names and the branch to push are still
+computed or hardcoded.
+
+### 3d. Strip the `order:` field — the owner's call, and the analysis agrees
+
+91 goals carry `order: 0..90`, dense. It is read in exactly one place that
+matters: `snapshot-goals.py` sorts the render by it. Every insertion renumbers
+every later goal — inserting G9.6 and G12/.1/.2 churned 21 nodes for no
+semantic change, twice in one session.
+
+**A queue of 91 is not a priority list.** Sort the render by `goal_id` instead
+(natural sort: G1, G1.1, … G12.2, then S1…S21). Derivable from the id, needs
+no stored field, never renumbers on insert.
+
+One real consequence to accept: the S-goals are currently in *historical*
+order (S11 renders before S1), and `goal_id` sort would reshuffle them once.
+That is a one-time document change, and arguably a correction.
+
+Priority/queue then lives in this handoff's §3, which is what the owner wants
+and what a human actually reads.
+
+### 3e. CLAUDE.md / AGENTS.md prose nodes — half done automatically
+
+`build:CLAUDE.md`, `build:AGENTS.md` and `build:GOALS.md` now exist: they were
+minted the moment the boundary and resolver were fixed, because for the first
+time those files are tracked in the repo being scanned. The old layout could
+not express them at all.
+
+Remaining: they carry `parse_ok: false` and an empty contract like every
+non-Python payload. Giving them real prose contracts is **G6.6**, and spawning
+them from `verdict:g11-migration-rehearsal` (or a new verdict on the docs
+themselves) is the chain work the owner asked for.
+
+### 3f. Carried from the original iteration 5
+
+- **Worktree-per-kid isolation (G4.1).** Now actually possible: one repo means
+  a `git worktree` isolates source, graph and tests together. It never did
+  before.
+- **`init` (G1.5)** — one command from empty directory to running project.
+- **G8.2 falsifier** — a third project, neither `agi` nor `fantasia`, reaching
+  a rendered map with no engine change.
+- **Sweep `status: active`.** 43 active goals against
+  `cc_dispatch.max_goals_active: 3`. The metric warns every run. Move all but
+  ~3 to `horizon`; that is what `horizon` is for.
+
+## 4. 🔴 Traps from this session — do not re-learn these
+
+- **`git ls-tree` is scoped by cwd within the work tree.** From `<repo>/.agi`
+  it looks for entries under an `.agi/` prefix. Grid trees have `node.md` at
+  their own root. Silent wrong answer, not an error.
+- **A generator whose output lands inside its own input set does not
+  converge.** `level3.py` scanned the graph, wrote to the wrong directory, and
+  minted nodes for its own output —
+  `nodes-build-nodes-build-nodes-build-….md.md.md`, 3,098 files committed
+  before anyone noticed. Fixed by `payload_boundary.is_the_graph_itself` and
+  the resolver, but the *class* is what to remember.
+- **`git clone` does not copy ignored files.** The real migration failed on an
+  ignored `CLAUDE.md` at the engine root that no cloned rehearsal could ever
+  have. Four rehearsals could not find it.
+- **Ignored files do not appear in `git status --porcelain`.** A "clean"
+  cleanliness check is not the same as an empty directory.
+- **Existence is not currency.** The publish gate checked whether a
+  `payload_ref` existed, not whether it matched, and passed on live data with
+  two stale files. Testing a gate against real data rather than fixtures is
+  what found it.
+- **Three wrong numbers were asserted confidently this session** —
+  "thirteen" resolver sites (eleven), "375 payload_refs to rewrite" (zero),
+  "166 build-site nodes" (159). All in documents arguing for rigor. **Record
+  the command that produced a number next to the number.**
+
+## 5. How to write into this file — SUPERSEDED
+
+The `payloads/` dance in §6 above is retired. It is now:
+
+```bash
+$EDITOR HANDOFF.md
+python3 extensions/agi/bin/level3.py
+python3 extensions/agi/bin/grid.py commit --all
+git add -A && git commit
+```
+
+## 6. Known-good verification sequence
+
+```bash
+cd /home/ubuntu/work/agi
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must not drop
+python3 -m pytest extensions/agi/tests/ -q              # 1029 passed
+python3 extensions/agi/bin/snapshot-goals.py --render --check
+python3 extensions/agi/bin/locations.py . --json        # layout must be graph_dir
+python3 extensions/agi/bin/crons.py show                # must say: up to date
+python3 extensions/agi/bin/grid.py status | grep -c CHANGED   # small, not 809
+```
+
+If the last one prints a number near the node count, §4's `ls-tree` trap has
+come back.
+
+---
+
 # SESSION HANDOFF — 2026-08-29: the publish path is closed, end to end
 
 > **Read this section first if you are the next session.** Everything above is
