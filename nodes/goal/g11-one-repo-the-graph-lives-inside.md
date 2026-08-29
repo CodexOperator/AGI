@@ -19,16 +19,19 @@ type: goal
 ---
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 asserted the ancestor walk existed "thirteen times" without measuring it.
-It was actually eleven sites: ten Python `CONFIG_NAMES`-plus-walk copies under
-`bin/`, plus `lib/find-root.sh` — which is not a residual at all, it is the
-deliberate bash half of the same rule, cross-checked against `locations.py`
-by `test_bash_and_python_agree`. Counting it as a duplicate was itself part
-of the error. Re-measured against `ea65820` with
-`git grep -ln '^CONFIG_NAMES\s*=\s*(' -- extensions/agi/bin extensions/agi/src`,
-which returns exactly 10 files. This version corrects the count in place and
-splits the ten remaining duplicates into `goal:g11.1` so the residual is
-tracked rather than buried in a paragraph that turned out to be wrong.
+Second unverified number found and corrected: this node claimed 375
+`payload_ref` values would need rewriting. Measured, the answer is zero — a
+payload_ref is stored relative to the engine root, and under the `.agi` layout
+`source_root` resolves to that same directory, so every value resolves
+unchanged across the move. The migration touches history, refs and two file
+locations, and no node content at all.
+
+That is the second confidently-asserted figure in this node to be wrong (v2
+corrected "thirteen" ancestor-walk sites to eleven). Both were estimates
+written in the voice of measurements. The correction is kept visible in the
+body rather than edited away, because the recurring pattern is more useful to
+a later reader than either individual number — and because this node argues
+for collapsing duplication on the strength of counts.
 <!-- THOUGHT:END -->
 
 **The two-repo split is the tax every other goal pays.** `agi-tree` holds the
@@ -111,7 +114,7 @@ isolate the engine the tests run against, so the isolation is not real.
 |---|---|
 | tree repo | 14.8 MiB, 483 commits, 1063 grid refs |
 | engine repo | 154 KiB, 203 commits |
-| `payload_ref` values to rewrite | 375 |
+| `payload_ref` values to rewrite | **0** — see below; the first estimate of 375 was wrong |
 | top-level name collisions between the two repos | 2 — `.gitignore`, `context/` |
 | crons hard-coding `/home/ubuntu/work/agi-tree` | 4 (`*/5`, `:07`, `:37`, `:47`) |
 | baseline corpus | 792 nodes, `outcome_coverage` 0.255 |
@@ -119,6 +122,33 @@ isolate the engine the tests run against, so the isolation is not real.
 Both collisions disappear once the tree sits in `.agi/` rather than at a repo
 root. The four crons are the live hazard: they race any surgery, which is why
 the kill-switch lands before the move and not after.
+
+### No `payload_ref` needs rewriting, and the reason is the whole design
+
+The first version of this table said **375 values to rewrite**. That was an
+estimate, not a measurement, and it was wrong — the correct number is **zero**.
+
+A `payload_ref` is already stored relative to the *engine root*
+(`extensions/agi/bin/grid.py`, not an absolute path and not tree-relative).
+Under the `.agi` layout `source_root` resolves to the enclosing repo, which
+*is* the engine root. So every stored value resolves unchanged, before and
+after the move:
+
+```
+today:      source_root = <tree>/agi   -> <tree>/agi/extensions/agi/bin/grid.py
+unified:    source_root = <repo>       -> <repo>/extensions/agi/bin/grid.py
+```
+
+That is not luck. `payload_ref` was always a path *into the source tree*, and
+G11 does not move the source tree — it moves the graph to sit beside it. The
+migration therefore touches history, refs and two file locations, and does not
+touch node content at all. **A migration that rewrites no node is a much
+smaller and much safer operation than one that rewrites 375**, and it removes
+the largest single risk this goal carried.
+
+Recorded rather than quietly corrected, for the same reason as the count above:
+this is the second unverified number in this node, and both were asserted
+confidently. The pattern is the finding.
 
 ## The ancestor walk existed eleven times, not thirteen
 
