@@ -13,6 +13,8 @@ twice over.
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -99,6 +101,12 @@ def make_tree_repo(tmp_path: Path) -> Path:
     (d / "agi-tree.config.json").write_text('{"metric_primary": "outcome_coverage"}\n')
     (d / "GOALS.md").write_text("# GOALS\n\n## G1: something\n")
     (d / ".gitignore").write_text(TREE_GITIGNORE)
+    # CLAUDE.md + AGENTS.md, modeled on the real tree: AGENTS.md is a relative
+    # symlink to CLAUDE.md, same directory, same as `/home/ubuntu/work/agi-tree`.
+    # Both are required by relocate_files, so every fixture built with this
+    # helper carries them, same as the real tree always does.
+    (d / "CLAUDE.md").write_text("# CLAUDE.md\n\nProject instructions.\n")
+    (d / "AGENTS.md").symlink_to("CLAUDE.md")
     goal_dir = d / "nodes" / "goal"
     goal_dir.mkdir(parents=True)
     (goal_dir / "g1.md").write_text(

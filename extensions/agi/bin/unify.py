@@ -11,9 +11,13 @@ the code it produced together.
 
 This script performs that merge, once, on two already-cloned repos:
 
-    1. preflight            both source repos clean; target is a fresh clone
+    0. pre-state            snapshot HEAD + every ref, for --rollback
+    1. preflight            both source repos clean; target is a fresh clone;
+                             every payload_ref the graph knows about resolves
+                             under the engine (the publish-lag gate)
     2. graft                subtree-merge the tree's history under `.agi/`
-    3. relocate             `.agi/GOALS.md` -> `GOALS.md`, config -> `.agi/config.json`
+    3. relocate             `.agi/GOALS.md` -> `GOALS.md`, likewise CLAUDE.md
+                             and AGENTS.md; config -> `.agi/config.json`
     4. gitignore            one merged `.gitignore` at the repo root
     5. grid refs            fetch `refs/grid/*` across, verify the count
     6. report               a dict describing exactly what happened
@@ -64,6 +68,25 @@ checkout refuses with `reason: engine_has_agi_already` rather than silently
 doing nothing or (worse) partially re-applying. Recovering from a partial
 failure means a fresh clone, or `--force` (which bypasses the fresh-clone
 checks for deliberate recovery and does not undo any partial state itself).
+
+## `--rollback`: four operations, not one
+
+Rehearsal run 4 found that reversing a migration is not `git reset --hard`
+alone: `reset` does nothing to `refs/grid/*` — those arrive by fetch and
+survive a branch reset — so a rollback that skipped the explicit ref deletion
+would leave the repo holding every grid ref from a migration that supposedly
+did not happen. `write_prestate` records HEAD and every ref to
+`<engine>/.git/agi-unify-prestate.json` (inside `.git/`, so `reset --hard`
+and `clean -fd` cannot touch it) before the first mutating stage runs;
+`--rollback` reads it back and performs `reset --hard` + delete every
+`refs/grid/*` + `clean -fd` + drop the temporary remote if still present.
+
+It refuses if the pre-state file is missing, if HEAD is not a descendant of
+the recorded pre-migration HEAD (this is not the migrated repo, or someone
+already rolled back), or if the migrated HEAD is reachable from any
+`refs/remotes/*` (the pushed case — reversing published history needs a
+force-push, a materially worse operation that must not happen by accident).
+`--force` overrides only the last of these.
 """
 from __future__ import annotations
 
@@ -71,16 +94,30 @@ import argparse
 import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+
+# The ENGINE's graph_core, never a project's vendored src/ — same precedent as
+# node_writer.py's `mint_permanent_id` import (goal:s14): unify.py always runs
+# from `<engine clone>/extensions/agi/bin/`, so its own sibling `src/` is the
+# one frontmatter parser the publish-lag gate below must agree with.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from graph_core.persistence.frontmatter import load_node_file, FrontmatterError  # noqa: E402
 
 # Every git invocation below carries its own identity rather than relying on
 # the ambient `user.name`/`user.email` — a throwaway clone made purely for a
 # rehearsal has no reason to have either configured, and `grid.py` sets the
 # same precedent (`GIT_IDENT`) for exactly that reason.
 GIT_IDENT = ["-c", "user.name=agi-unify", "-c", "user.email=agi-unify@agi"]
+
+#: Git's index mode for a symlink. `AGENTS.md` must keep this mode through the
+#: relocate step (goal:s9 — `grid.py`'s `commit_file()` once mis-hashed a
+#: symlink as a regular file in this exact area), so it is checked explicitly
+#: rather than trusted to `git mv`.
+SYMLINK_MODE = "120000"
 
 #: Name for the temporary remote added in the target during the graft. Cheap
 #: enough to hardcode: exactly one graft ever runs against a given target
@@ -97,12 +134,27 @@ GRAFT_COMMIT_MESSAGE = (
     "are parents of this commit, preserved rather than squashed."
 )
 RELOCATE_COMMIT_MESSAGE = (
-    "goal:g11 — relocate GOALS.md to the repo root, config into .agi/\n\n"
-    "git mv, so history follows both files."
+    "goal:g11 — relocate GOALS.md, CLAUDE.md and AGENTS.md to the repo root, "
+    "config into .agi/\n\n"
+    "git mv, so history follows all four files. AGENTS.md is a symlink to "
+    "CLAUDE.md (goal:s9) and its 120000 mode is verified, not assumed."
 )
 GITIGNORE_COMMIT_MESSAGE = (
     "goal:g11 — merge the two .gitignore files into one at the repo root"
 )
+
+#: Name of the pre-migration snapshot `write_prestate` writes under `<engine
+#: clone>/.git/` — deliberately inside `.git/`, not the working tree: a
+#: rollback's own first two operations (`reset --hard`, `clean -fd`) touch
+#: everything the working tree holds, and the one thing recovery cannot
+#: survive losing is the file that describes how to recover.
+PRESTATE_FILENAME = "agi-unify-prestate.json"
+
+#: Where `--rollback` looks for the pushed case: a remote-tracking ref that
+#: already has the migrated HEAD as an ancestor means the migration has left
+#: this clone, and reversing it now needs a force-push against shared
+#: history rather than a private `git reset`.
+REMOTE_REF_NAMESPACE = "refs/remotes"
 
 
 class UnifyError(Exception):
@@ -126,6 +178,48 @@ def _git(repo: Path, *args: str, check: bool = True) -> str:
             f"{res.stderr.strip()}"
         )
     return res.stdout
+
+
+def _git_stdin(repo: Path, args: list[str], stdin_text: str) -> str:
+    """Like `_git`, but feeds `stdin_text` to the command — the one shape
+    `git update-ref --stdin` needs and plain `_git` cannot express."""
+    res = subprocess.run(
+        ["git", *GIT_IDENT, "-C", str(repo), *args],
+        input=stdin_text, capture_output=True, text=True,
+    )
+    if res.returncode != 0:
+        raise UnifyError(
+            f"git -C {repo} {' '.join(args)} (stdin) failed (exit "
+            f"{res.returncode}): {res.stderr.strip()}"
+        )
+    return res.stdout
+
+
+def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
+    """`ancestor` is `descendant` itself or reachable from it. Shared by the
+    graft's own history-preserved check and the rollback safety checks below
+    — one definition of "is this sha still in the line of descent" rather
+    than two copies that could drift on the reflexive case (a commit is its
+    own ancestor)."""
+    return subprocess.run(
+        ["git", "-C", str(repo), "merge-base", "--is-ancestor", ancestor, descendant],
+    ).returncode == 0
+
+
+def _all_refs(repo: Path) -> dict[str, str]:
+    """Every ref in `repo` (branches, tags, `refs/grid/*`, anything else) as
+    `{refname: sha}` — the pre-migration snapshot's other half beyond HEAD,
+    and the read `--rollback` uses to know exactly which `refs/grid/*` names
+    to delete."""
+    out = _git(repo, "for-each-ref", "--format=%(refname) %(objectname)")
+    refs: dict[str, str] = {}
+    for line in out.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        name, _, sha = line.partition(" ")
+        refs[name] = sha
+    return refs
 
 
 def _resolve_branch(repo: Path) -> str:
@@ -156,6 +250,52 @@ def count_grid_refs(repo: Path) -> int:
 
 def _node_count(nodes_dir: Path) -> int:
     return len(list(nodes_dir.rglob("*.md"))) if nodes_dir.is_dir() else 0
+
+
+# --- publish-lag gate (rehearsal run 2) --------------------------------------
+
+
+def iter_payload_refs(tree: Path) -> list[tuple[Path, str]]:
+    """`(node_path, payload_ref)` for every `.md` node under `<tree>/nodes`
+    that declares one. Walks the retired sibling too (`nodes/deprecated/...`
+    is nested under `nodes/`, so `rglob` finds it for free) — a deprecated
+    node's grid ref outlives its file (CLAUDE.md's deprecation convention),
+    and its `payload_ref` is exactly as real as a live node's.
+
+    A file whose frontmatter fails to parse is skipped, not raised on: this
+    gate exists to catch the engine being behind the graph's last publish, not
+    to become a second frontmatter linter.
+    """
+    nodes_dir = Path(tree) / "nodes"
+    out: list[tuple[Path, str]] = []
+    if not nodes_dir.is_dir():
+        return out
+    for p in sorted(nodes_dir.rglob("*.md")):
+        try:
+            nf = load_node_file(p, body=False)
+        except FrontmatterError:
+            continue
+        ref = nf.frontmatter.get("payload_ref")
+        if isinstance(ref, str) and ref.strip():
+            out.append((p, ref.strip()))
+    return out
+
+
+def find_missing_payloads(tree: Path, engine: Path) -> list[str]:
+    """`payload_ref` values from `tree`'s nodes that do not exist under
+    `engine` — the check rehearsal run 2 found missing. A `payload_ref` is
+    stored relative to the engine root (`locations.source_root`'s contract),
+    so this is that same resolution rule, checked *before* the graft that
+    would otherwise carry the graph's description of a file the engine does
+    not have onto disk.
+
+    Sorted and de-duplicated: two nodes can (in principle) name the same
+    path, and the caller reports a count of distinct missing files, not a
+    count of nodes.
+    """
+    engine = Path(engine).resolve()
+    missing = {ref for _node_path, ref in iter_payload_refs(tree) if not (engine / ref).exists()}
+    return sorted(missing)
 
 
 # --- safety: never the real repos -------------------------------------------
@@ -191,8 +331,8 @@ def preflight(engine: Path, tree: Path, *, force: bool = False) -> dict:
     the caller (`main`) reports exactly one thing to fix at a time, same as
     `CronsError` in `crons.py`.
 
-    `force` only bypasses the two "is this a fresh clone" checks on the
-    target (`engine`): an existing `.agi/` and a dirty working tree. It never
+    `force` bypasses three checks on the target (`engine`): an existing
+    `.agi/`, a dirty working tree, and the publish-lag gate below. It never
     bypasses the real-repo guard, and never relaxes the requirement that the
     *source* (`tree`) be clean — there is no recovery scenario where reading
     from a dirty source is the right call.
@@ -229,6 +369,30 @@ def preflight(engine: Path, tree: Path, *, force: bool = False) -> dict:
             f"{engine}/{locations.GRAPH_DIR_NAME} already exists — target is "
             f"not a fresh clone; pass --force only for recovery",
         )
+
+    # goal:g11, rehearsal run 2: unify.py builds the unified repo from the
+    # ENGINE, and the engine is only as current as its last publish. Four
+    # payload_refs did not resolve there because the graph was three commits
+    # ahead of the last publish — nothing was lost (the bytes were in the
+    # grid), but the migrated *working tree* was missing files the graph
+    # correctly described, which is the worst state to debug later. Refuse
+    # by default; --force is for deliberate recovery only.
+    missing_payloads = find_missing_payloads(tree, engine)
+    if missing_payloads and not force:
+        sample = missing_payloads[:10]
+        return {
+            "ok": False,
+            "reason": "engine_missing_payloads",
+            "detail": (
+                f"{len(missing_payloads)} payload_ref path(s) under "
+                f"{tree}/nodes do not exist under {engine} — the engine is "
+                f"behind the graph's last publish. Run publish-engine.sh "
+                f"against the real engine checkout, then re-clone --engine "
+                f"and retry. First {len(sample)}: {sample}"
+            ),
+            "missing_payload_count": len(missing_payloads),
+            "missing_payload_sample": sample,
+        }
 
     engine_tip = _git(engine, "rev-parse", "HEAD").strip()
     tree_tip = _git(tree, "rev-parse", "HEAD").strip()
@@ -282,9 +446,7 @@ def graft_graph(engine: Path, tree: Path, *, remote_name: str = REMOTE_NAME) -> 
 
     engine_tip_after = _git(engine, "rev-parse", "HEAD").strip()
 
-    is_ancestor = subprocess.run(
-        ["git", "-C", str(engine), "merge-base", "--is-ancestor", tree_tip, "HEAD"],
-    ).returncode == 0
+    is_ancestor = _is_ancestor(engine, tree_tip, "HEAD")
     if not is_ancestor:
         raise UnifyError(
             f"graft_graph: {tree_tip} (tree's tip) is not an ancestor of HEAD "
@@ -305,13 +467,39 @@ def graft_graph(engine: Path, tree: Path, *, remote_name: str = REMOTE_NAME) -> 
 # --- 3. relocate --------------------------------------------------------------
 
 
+def _git_file_mode(repo: Path, relpath: str) -> str:
+    """The git index mode of a tracked path, e.g. `120000` for a symlink,
+    `100644` for a regular file. `git ls-files -s` is the source of truth
+    for what git actually recorded — reading it back, rather than trusting
+    `Path.is_symlink()` on disk, is the point: `commit_file()` in `grid.py`
+    once mis-hashed a symlink as a regular file in this exact area (goal:s9),
+    so this asks git directly instead of assuming a `git mv` preserved it.
+    """
+    out = _git(repo, "ls-files", "-s", relpath).strip()
+    if not out:
+        raise UnifyError(f"_git_file_mode: {relpath!r} is not a tracked file in {repo}")
+    return out.split()[0]
+
+
 def relocate_files(engine: Path) -> dict:
-    """`.agi/GOALS.md` -> `GOALS.md` (`goals_path()` under this layout is a
-    bare `goals_file` name at the repo root, never inside the dot directory),
-    `.agi/<config name>` -> `.agi/config.json`. Both via `git mv`, one commit,
-    so history follows. Accepts either config filename `locations.py` still
-    reads (`CONFIG_NAMES`) rather than hardcoding the canonical one, since a
-    project mid-rename-window could carry the legacy name.
+    """`.agi/GOALS.md` -> `GOALS.md`, `.agi/CLAUDE.md` -> `CLAUDE.md`,
+    `.agi/AGENTS.md` -> `AGENTS.md` (`goals_path()` under this layout is a
+    bare `goals_file` name at the repo root, never inside the dot directory,
+    and CLAUDE.md/AGENTS.md belong beside it for the same reason: the
+    documents a human or an agent opens first must not be hidden in a dot
+    directory), `.agi/<config name>` -> `.agi/config.json`. All via `git mv`,
+    one commit, so history follows every file. Accepts either config
+    filename `locations.py` still reads (`CONFIG_NAMES`) rather than
+    hardcoding the canonical one, since a project mid-rename-window could
+    carry the legacy name.
+
+    CLAUDE.md and AGENTS.md are required, not optional: this is the fix for
+    a regression the migration used to introduce silently (the unified repo
+    root ending up with no CLAUDE.md at all), so a tree missing either one
+    fails loudly here rather than producing that same regression again.
+    AGENTS.md is a symlink to CLAUDE.md (goal:s9) — its mode is checked
+    before and after the move so the migration is never the thing that turns
+    it into a plain-file copy.
     """
     engine = Path(engine).resolve()
     graph_dir = engine / locations.GRAPH_DIR_NAME
@@ -319,6 +507,22 @@ def relocate_files(engine: Path) -> dict:
     goals_src = graph_dir / "GOALS.md"
     if not goals_src.exists():
         raise UnifyError(f"relocate_files: expected {goals_src} after the graft, not found")
+
+    claude_src = graph_dir / "CLAUDE.md"
+    if not claude_src.exists():
+        raise UnifyError(f"relocate_files: expected {claude_src} after the graft, not found")
+
+    agents_src = graph_dir / "AGENTS.md"
+    if not (agents_src.exists() or agents_src.is_symlink()):
+        raise UnifyError(f"relocate_files: expected {agents_src} after the graft, not found")
+    agents_src_rel = str(agents_src.relative_to(engine))
+    agents_src_mode = _git_file_mode(engine, agents_src_rel)
+    if agents_src_mode != SYMLINK_MODE:
+        raise UnifyError(
+            f"relocate_files: {agents_src_rel} is tracked with mode "
+            f"{agents_src_mode}, not a symlink ({SYMLINK_MODE}) — refusing "
+            f"to relocate it as one"
+        )
 
     config_src = None
     for name in locations.CONFIG_NAMES:
@@ -333,17 +537,32 @@ def relocate_files(engine: Path) -> dict:
         )
 
     goals_dst = engine / "GOALS.md"
+    claude_dst = engine / "CLAUDE.md"
+    agents_dst = engine / "AGENTS.md"
     config_dst = graph_dir / "config.json"
 
     _git(engine, "mv", str(goals_src.relative_to(engine)), str(goals_dst.relative_to(engine)))
+    _git(engine, "mv", str(claude_src.relative_to(engine)), str(claude_dst.relative_to(engine)))
+    _git(engine, "mv", agents_src_rel, str(agents_dst.relative_to(engine)))
     _git(engine, "mv", str(config_src.relative_to(engine)), str(config_dst.relative_to(engine)))
+
+    agents_dst_mode = _git_file_mode(engine, str(agents_dst.relative_to(engine)))
+    if agents_dst_mode != SYMLINK_MODE:
+        raise UnifyError(
+            f"relocate_files: AGENTS.md lost its symlink mode during the "
+            f"move ({agents_src_mode} -> {agents_dst_mode})"
+        )
+
     _git(engine, "commit", "-m", RELOCATE_COMMIT_MESSAGE)
 
     return {
         "moved": [
             {"from": str(goals_src.relative_to(engine)), "to": str(goals_dst.relative_to(engine))},
+            {"from": str(claude_src.relative_to(engine)), "to": str(claude_dst.relative_to(engine))},
+            {"from": agents_src_rel, "to": str(agents_dst.relative_to(engine))},
             {"from": str(config_src.relative_to(engine)), "to": str(config_dst.relative_to(engine))},
         ],
+        "agents_md_mode": agents_dst_mode,
     }
 
 
@@ -515,7 +734,238 @@ def remove_temp_remote(engine: Path, remote_name: str = REMOTE_NAME) -> dict:
     return {"remote_removed": remote_name}
 
 
+# --- 0. pre-state, for --rollback (rehearsal run 4) --------------------------
+
+
+def prestate_path(engine: Path) -> Path:
+    """Where the pre-migration snapshot lives — inside `.git/`, never the
+    working tree. A rollback's own first two operations (`reset --hard`,
+    `clean -fd`) rewrite everything the working tree holds; the one thing
+    recovery cannot survive losing is the file that describes how to
+    recover, so it goes where neither operation reaches."""
+    return Path(engine).resolve() / ".git" / PRESTATE_FILENAME
+
+
+def write_prestate(engine: Path) -> dict:
+    """Snapshot `engine`'s state before any mutating stage runs: HEAD, every
+    ref with its sha, and a timestamp. **This is the load-bearing step for
+    `--rollback`** — the pre-migration HEAD stops being reachable from any
+    branch the instant the migration commits, so it must be written down
+    here, not re-derived later from a memory nothing will have.
+    """
+    engine = Path(engine).resolve()
+    data = {
+        "head": _git(engine, "rev-parse", "HEAD").strip(),
+        "refs": _all_refs(engine),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    prestate_path(engine).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return data
+
+
+def read_prestate(engine: Path) -> dict:
+    """The snapshot `write_prestate` recorded, or `UnifyError` if it is
+    missing or unreadable — `--rollback`'s first refusal: no snapshot means
+    this repo was never migrated by this script, or the snapshot has already
+    been consumed by a previous rollback and the caller is retrying."""
+    path = prestate_path(engine)
+    if not path.exists():
+        raise UnifyError(
+            f"read_prestate: no {path} — this repo was not migrated by "
+            f"unify.py, or its pre-state snapshot is gone"
+        )
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise UnifyError(f"read_prestate: {path} is not valid JSON: {exc}") from exc
+    if not isinstance(data, dict) or "head" not in data or "refs" not in data:
+        raise UnifyError(f"read_prestate: {path} is missing required keys (head, refs)")
+    return data
+
+
+def _head_reachable_from_any_remote(engine: Path, head: str) -> list[str]:
+    """Remote-tracking refs (`refs/remotes/*`) that already have `head` as an
+    ancestor — the pushed case. Non-empty means the migration has left this
+    clone for a shared remote, so reversing it now needs a force-push against
+    published history rather than a private `git reset` (goal:g11's stated
+    condition: do not push until verified)."""
+    engine = Path(engine).resolve()
+    out = _git(engine, "for-each-ref", "--format=%(refname)", REMOTE_REF_NAMESPACE)
+    return [
+        ref for ref in (line.strip() for line in out.splitlines())
+        if ref and _is_ancestor(engine, head, ref)
+    ]
+
+
+def preflight_rollback(engine: Path, *, force: bool = False) -> dict:
+    """Read-only checks before `perform_rollback` touches anything. Returns
+    the same `{"ok": False, "reason": ..., "detail": ...}` shape as
+    `preflight` on the first failing check, or `{"ok": True, ...}` with the
+    prestate and what would be undone.
+
+    `force` overrides exactly one of these: the pushed-history check. It
+    never overrides "no pre-state file" or "HEAD is not a descendant of the
+    recorded pre-migration HEAD" — there is no recovery gesture for either;
+    the first means this was never migrated (or already rolled back) and the
+    second means this is not the repo unify.py touched.
+    """
+    engine = Path(engine).resolve()
+
+    if _touches_a_real_repo(engine):
+        return _refuse(
+            "refuses_real_repo",
+            f"{engine} resolves to one of the real repos this script must "
+            f"never mutate",
+        )
+
+    if not (engine / ".git").exists():
+        return _refuse("engine_not_git_repo", f"{engine}: no .git — not a git repository")
+
+    try:
+        prestate = read_prestate(engine)
+    except UnifyError as exc:
+        return _refuse("rollback_no_prestate", str(exc))
+
+    pre_head = prestate["head"]
+    current_head = _git(engine, "rev-parse", "HEAD").strip()
+
+    if current_head == pre_head:
+        return _refuse(
+            "rollback_nothing_to_undo",
+            f"{engine}: HEAD already equals the recorded pre-migration HEAD "
+            f"{pre_head[:12]} — already rolled back, or never migrated",
+        )
+
+    if not _is_ancestor(engine, pre_head, current_head):
+        return _refuse(
+            "rollback_not_descendant",
+            f"{engine}: HEAD ({current_head[:12]}) is not a descendant of "
+            f"the recorded pre-migration HEAD ({pre_head[:12]}) — this is "
+            f"not the repo unify.py migrated, or its history has since been "
+            f"rewritten",
+        )
+
+    pushed_to = _head_reachable_from_any_remote(engine, current_head)
+    if pushed_to and not force:
+        return _refuse(
+            "rollback_pushed",
+            f"{engine}: the migrated HEAD {current_head[:12]} is already "
+            f"reachable from {len(pushed_to)} remote-tracking ref(s) "
+            f"({pushed_to[:5]}) — rolling back now needs a force-push "
+            f"against published history, a materially worse operation; "
+            f"pass --force only if that is exactly what is intended",
+        )
+
+    return {
+        "ok": True,
+        "reason": None,
+        "engine": str(engine),
+        "prestate": prestate,
+        "current_head": current_head,
+        "grid_refs_to_delete": sorted(
+            r for r in _all_refs(engine) if r.startswith(GRID_REF_NAMESPACE + "/")
+        ),
+        "pushed_to": pushed_to,
+        "force": force,
+    }
+
+
+def perform_rollback(engine: Path, pre: dict) -> dict:
+    """The four operations rehearsal run 4 found necessary, given an already
+    -validated `preflight_rollback` report:
+
+        git reset --hard <pre-migration HEAD>
+        git for-each-ref --format='delete %(refname)' refs/grid/ |
+            git update-ref --stdin
+        git clean -fd
+        <remove the temporary remote, if the migrator did not>
+
+    The second line is the one reasoning about `git reset` missed: it does
+    nothing to `refs/grid/*`. Those arrive by fetch and survive a branch
+    reset, so a rollback that omitted this line would leave the repo holding
+    every grid ref from a migration that supposedly did not happen — neither
+    the old state nor the new one.
+    """
+    engine = Path(engine).resolve()
+    pre_head = pre["prestate"]["head"]
+
+    _git(engine, "reset", "--hard", pre_head)
+
+    delete_cmds = _git(engine, "for-each-ref", "--format=delete %(refname)", GRID_REF_NAMESPACE)
+    if delete_cmds.strip():
+        _git_stdin(engine, ["update-ref", "--stdin"], delete_cmds)
+
+    _git(engine, "clean", "-fd")
+
+    remote_removed = False
+    if REMOTE_NAME in _git(engine, "remote").split():
+        _git(engine, "remote", "remove", REMOTE_NAME)
+        remote_removed = True
+
+    return {
+        "ok": True,
+        "dry_run": False,
+        "mutated": True,
+        "engine": str(engine),
+        "reset_to": pre_head,
+        "grid_refs_deleted": len([ln for ln in delete_cmds.splitlines() if ln.strip()]),
+        "remote_removed": remote_removed,
+        "pushed_to": pre["pushed_to"],
+        "forced_past_push": bool(pre["pushed_to"]),
+    }
+
+
+def run_rollback(engine: Path, *, yes: bool = False, force: bool = False) -> dict:
+    """`--rollback`'s entry point, mirroring `run_unify`'s dry-run-by-default
+    shape: `preflight_rollback` runs unconditionally; `yes=False` returns a
+    plan built from its read-only data, `yes=True` performs the four
+    operations and returns their result.
+    """
+    engine = Path(engine).resolve()
+
+    pre = preflight_rollback(engine, force=force)
+    if not pre["ok"]:
+        return {"ok": False, "stage": "preflight_rollback", "reason": pre["reason"],
+                "detail": pre["detail"], "preflight": pre}
+
+    if not yes:
+        return {
+            "ok": True,
+            "dry_run": True,
+            "mutated": False,
+            "preflight": pre,
+            "would_reset_to": pre["prestate"]["head"],
+            "would_delete_grid_refs": len(pre["grid_refs_to_delete"]),
+            "pushed_to": pre["pushed_to"],
+        }
+
+    try:
+        return perform_rollback(engine, pre)
+    except UnifyError as exc:
+        return {"ok": False, "stage": "rollback", "reason": str(exc), "preflight": pre}
+
+
 # --- orchestration ------------------------------------------------------------
+
+
+def _would_relocate(tree: Path) -> list[dict]:
+    """Preview of `relocate_files`'s moves, read straight off the tree's own
+    root before the graft (where these files sit pre-migration). CLAUDE.md
+    and AGENTS.md are previewed conditionally — `relocate_files` itself
+    requires them, but a dry-run report should describe what a given tree
+    actually has rather than assert on it, so a plan never raises."""
+    tree = Path(tree)
+    moves = [
+        {"from": f"{locations.GRAPH_DIR_NAME}/GOALS.md", "to": "GOALS.md"},
+    ]
+    if (tree / "CLAUDE.md").exists():
+        moves.append({"from": f"{locations.GRAPH_DIR_NAME}/CLAUDE.md", "to": "CLAUDE.md"})
+    agents = tree / "AGENTS.md"
+    if agents.exists() or agents.is_symlink():
+        moves.append({"from": f"{locations.GRAPH_DIR_NAME}/AGENTS.md", "to": "AGENTS.md"})
+    moves.append({"from": f"{locations.GRAPH_DIR_NAME}/agi-tree.config.json",
+                  "to": f"{locations.GRAPH_DIR_NAME}/config.json"})
+    return moves
 
 
 def _plan(engine: Path, tree: Path, pre: dict) -> dict:
@@ -535,11 +985,7 @@ def _plan(engine: Path, tree: Path, pre: dict) -> dict:
         "mutated": False,
         "preflight": pre,
         "would_graft": {"tree_tip": pre["tree_tip"], "onto_engine_tip": pre["engine_tip"]},
-        "would_relocate": [
-            {"from": f"{locations.GRAPH_DIR_NAME}/GOALS.md", "to": "GOALS.md"},
-            {"from": f"{locations.GRAPH_DIR_NAME}/agi-tree.config.json",
-             "to": f"{locations.GRAPH_DIR_NAME}/config.json"},
-        ],
+        "would_relocate": _would_relocate(tree),
         "would_fetch_grid_refs": pre["tree_grid_ref_count"],
         "gitignore_preview": merge_gitignore(tree_text, engine_text),
         "node_count": pre["tree_node_count"],
@@ -564,6 +1010,8 @@ def _summarize(engine: Path, pre: dict, stages: dict) -> dict:
         "project_root_correct": root == (engine / locations.GRAPH_DIR_NAME),
         "graft": stages["graft"],
         "gitignore": stages["gitignore"],
+        "prestate_file": str(prestate_path(engine)),
+        "prestate_head": stages["prestate"]["head"],
     }
 
 
@@ -588,6 +1036,10 @@ def run_unify(engine: Path, tree: Path, *, yes: bool = False, force: bool = Fals
 
     stages: dict = {}
     try:
+        # Written first, and outside any stage that could partially fail: the
+        # whole point is a snapshot of `engine` before anything below touches
+        # it, so --rollback has ground truth even if a later stage errors.
+        stages["prestate"] = write_prestate(engine)
         stages["graft"] = graft_graph(engine, tree)
         stages["relocate"] = relocate_files(engine)
         stages["gitignore"] = write_merged_gitignore(engine)
@@ -628,6 +1080,32 @@ def _print_human(report: dict) -> None:
         print(f"  moved {m['from']} -> {m['to']}")
     print(f"  project root resolves to: {report['project_root_resolved']} "
           f"({'correct' if report['project_root_correct'] else 'WRONG'})")
+    print(f"  pre-migration state recorded at {report['prestate_file']} "
+          f"(HEAD {report['prestate_head'][:12]}) — needed by --rollback")
+
+
+def _print_human_rollback(report: dict) -> None:
+    if not report.get("ok"):
+        print(f"unify --rollback: REFUSED at stage {report.get('stage')}: {report.get('reason')}")
+        if report.get("detail"):
+            print(f"  {report['detail']}")
+        return
+    if report.get("dry_run"):
+        print("unify --rollback: DRY RUN (pass --yes to mutate)")
+        print(f"  would reset HEAD to {report['would_reset_to'][:12]}")
+        print(f"  would delete {report['would_delete_grid_refs']} refs/grid/* ref(s)")
+        if report["pushed_to"]:
+            print(f"  WARNING: migrated HEAD is reachable from {report['pushed_to']} "
+                  f"— rollback needs --force and a force-push afterward")
+        return
+    print("unify --rollback: DONE")
+    print(f"  reset to {report['reset_to'][:12]}")
+    print(f"  deleted {report['grid_refs_deleted']} refs/grid/* ref(s)")
+    print(f"  temporary remote removed: {report['remote_removed']}")
+    if report["forced_past_push"]:
+        print(f"  WARNING: this rollback overrode the pushed-history check "
+              f"for {report['pushed_to']} — a force-push is now needed to "
+              f"make the remote agree with local history")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -635,30 +1113,46 @@ def main(argv: list[str] | None = None) -> int:
         description="Merge the two-repo layout into one (goal:g11). Dry-run "
                      "by default; pass --yes to mutate --engine.")
     ap.add_argument("--engine", required=True,
-                    help="path to a throwaway clone of the engine repo — the migration target")
-    ap.add_argument("--tree", required=True,
-                    help="path to a throwaway clone of the graph repo — source only, never mutated")
+                    help="path to a throwaway clone of the engine repo — the "
+                         "migration target, or the repo to reverse under --rollback")
+    ap.add_argument("--tree",
+                    help="path to a throwaway clone of the graph repo — source "
+                         "only, never mutated. Required unless --rollback")
+    ap.add_argument("--rollback", action="store_true",
+                    help="reverse a previous migration on --engine instead of "
+                         "performing one; reads the pre-state file unify.py wrote")
     ap.add_argument("--yes", action="store_true",
-                    help="perform the migration; omit for a dry-run report only")
+                    help="perform the migration or rollback; omit for a dry-run report only")
     ap.add_argument("--dry-run", action="store_true",
                     help="force a dry run even if --yes is also given")
     ap.add_argument("--force", action="store_true",
-                    help="proceed against a target that already has .agi/ or is "
-                         "not clean — recovery only, never bypasses the real-repo guard")
+                    help="proceed against a target that already has .agi/, is "
+                         "not clean, or has payload_refs missing from the engine "
+                         "(migration mode); or override the pushed-history check "
+                         "(--rollback mode). Recovery only, never bypasses the "
+                         "real-repo guard")
     ap.add_argument("--report-json", action="store_true",
                     help="print the result as JSON instead of a human-readable summary")
     args = ap.parse_args(argv)
 
+    if not args.rollback and not args.tree:
+        ap.error("--tree is required unless --rollback is given")
+
     mutate = args.yes and not args.dry_run
 
     try:
-        report = run_unify(Path(args.engine), Path(args.tree), yes=mutate, force=args.force)
+        if args.rollback:
+            report = run_rollback(Path(args.engine), yes=mutate, force=args.force)
+        else:
+            report = run_unify(Path(args.engine), Path(args.tree), yes=mutate, force=args.force)
     except UnifyError as exc:
         print(f"ERR: unify.py: {exc}", file=sys.stderr)
         return 1
 
     if args.report_json:
         print(json.dumps(report, indent=2, default=str))
+    elif args.rollback:
+        _print_human_rollback(report)
     else:
         _print_human(report)
 
