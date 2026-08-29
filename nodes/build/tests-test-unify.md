@@ -522,6 +522,24 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_force_does_not_unlock_the_real_repo_guard
+  how: 'defines public function `test_force_does_not_unlock_the_real_repo_guard` at
+    line 938, signature: (tmp_path, monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_the_real_migration_flag_does_unlock_it
+  how: 'defines public function `test_the_real_migration_flag_does_unlock_it` at line
+    957, signature: (tmp_path, monkeypatch, repos)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_rollback_guard_has_the_same_door
+  how: 'defines public function `test_rollback_guard_has_the_same_door` at line 967,
+    signature: (tmp_path, monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: d / "agi-tree.config.json"
   how: '`(d / "agi-tree.config.json").write_text(''{"metric_primary": "outcome_coverage"}\n'')`
     at line 101'
