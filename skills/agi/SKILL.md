@@ -30,7 +30,7 @@ Corollary for anyone extending this system: **if a step is repeated and mechanic
 
 ## CLI
 
-Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point) — so it works the same whether you reach it via the `agi` symlink on PATH or via `<project>/<project>-tree/agi/` inside a project. Run from inside a project: a directory found by walking up for `agi-tree.config.json`, or, failing that, by descending into `<start>/*-tree/` (see Project layout). Scripts live in `<engine>/extensions/agi/`.
+Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point). Run from inside a project: `bin/locations.py` (bash half: `lib/find-root.sh`) walks up from cwd for a `.agi/` holding a config — **nearest enclosing wins**, so a command run from `fantasia/` resolves fantasia's own graph and the same command run from `fantasia/agi/` resolves the engine's, with no flag and nothing naming either project (`goal:g11`, `goal:g8.2`). A bare `agi-tree.config.json` at a project root, or a lone `<start>/*-tree/` below it, still resolves for a project that predates this layout (see Project layout). Scripts live in `<engine>/extensions/agi/`.
 
 | Command | Does |
 |---|---|
@@ -44,14 +44,19 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/cli.py status <iter>` | Iteration status |
 | `bin/cli.py claim --node-id id --session s` / `reclaim` / `detect-stale` | Node locking |
 | `bin/grid.py init` | Configure the grid refspec (once per project) |
-| `bin/grid.py commit --all [--prefix P]` | Version every changed node — and its payload, if it has one |
+| `bin/grid.py commit --all [--prefix P]` | Version every changed node — and its payload, read straight from the tracked source tree, if it has one |
 | `bin/grid.py commit <file> --session <iter> <agent>` | Snapshot a kid draft |
-| `bin/grid.py checkout --all [--dir D]` | Materialize build-node payloads into `<project>/payloads/` for editing |
 | `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
-| `bin/grid.py cron install` / `show` / `remove` | Install automated sync (both cadences) |
+| `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
+| `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (`goal:g11`). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
+
+**`grid.py checkout` is gone.** There is no staged copy to materialize — a
+`payload_ref` now names a file already tracked in this same repo. Never run
+it; it was a whole-tree command that silently reverted another agent's
+uncommitted work twice in one session even before `goal:g11` (`goal:g4.1`).
 
 ## Choosing a runtime
 
