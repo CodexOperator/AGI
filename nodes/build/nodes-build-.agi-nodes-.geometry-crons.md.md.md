@@ -23,7 +23,7 @@ payload_ref: nodes/build/.agi-nodes-.geometry-crons.md.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 46306094fb119cfe5cac933eb14cee53f2b14eb771a9add274863d49dd66dd5c
+content_sha256: e9db455bfa440e772f2312795f8e9c0f357b8d16aeab2b9c3847903bb78a8f15
 inputs: []
 outputs: []
 ```
