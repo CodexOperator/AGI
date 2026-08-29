@@ -1,45 +1,91 @@
-# CLAUDE.md — agi-tree
+# CLAUDE.md — agi
 
 Read [GOALS.md](GOALS.md) first. It is the source of truth for what this project
 is committed to and **the only place new work is recorded**. This file covers
 what the repo contains and how to run the loop.
 
-## What agi-tree is
+## What agi is
 
-`agi-tree` is the thoughtgraph that builds `agi`; `agi` is the code that operates
-on thoughtgraphs. This repo holds **the nodes and the inputs the graph is
-derived from — nothing else.** Code lives in the engine repo.
+`agi` is the code that operates on thoughtgraphs, and the thoughtgraph that
+built it, in one repo. Before `goal:g11` these were two — `agi-tree` held the
+nodes, `agi` held the code — and a whole pipeline existed for no reason but to
+carry bytes across that boundary: `payloads/` as a staged checkout, `grid.py
+checkout`, `stitch.py --publish`, `publish-engine.sh` with four gates in front
+of it. The boundary was never load-bearing; it was inherited. **It is gone.**
+One repo holds the source, the graph, and the grid refs that version both.
+
+## Layout
+
+```
+agi/                        ONE repo — the engine, which absorbed the graph
+  GOALS.md                  rendered here, at the root
+  CLAUDE.md  AGENTS.md      at the root (AGENTS.md is a symlink to CLAUDE.md)
+  extensions/ skills/ src/  the live source — edited directly
+  .agi/
+    config.json             was agi-tree.config.json
+    nodes/                  the graph
+    context/                schemas, kits, plans
+  refs/grid/*               same repo, same namespace
+
+fantasia/                   any other project
+  GOALS.md   <game source>
+  .agi/                     that project's graph        (committed)
+  agi/                      engine clone                (gitignored, one line)
+    GOALS.md .agi/          the engine's own graph, live in place
+```
+
+**`.agi` is a dot directory on purpose** — it files the graph with `.git`,
+`.github` and `.claude`, rather than in the middle of the source tree.
+**`GOALS.md` is the deliberate exception** and renders to the repo root, not
+into `.agi/`, because the one document a human opens first must not be hidden
+in a dot directory.
+
+`bin/locations.py` is the single resolver every entry point calls: **nearest
+enclosing `.agi/` wins**, no flag, no project name anywhere (`goal:g8.2`). Run
+a command from `agi/` and it resolves this repo's own graph at `agi/.agi`; run
+the same command from inside a project that has cloned `agi` in, and it
+resolves whichever `.agi/` is nearer — the project's own from the project
+root, the engine's from inside the clone. That is also why the old
+`agi ↔ agi-tree` symlink pair is gone rather than replaced: `agi` doesn't need
+a special case to describe itself, only the same layout every project gets,
+minus the clone step it doesn't need to take against itself.
 
 ## What is allowed to exist here
 
 | Path | Why it is here |
 |---|---|
-| `nodes/` | The graph. The persistent thoughts. Committed. |
-| `GOALS.md` | **Derived** — `snapshot-goals.py --render` writes it from `nodes/goal/`. Read it first; author in the goal node. |
-| `context/kits/`, `context/plans/build-site.md` | Generator inputs for the 159 `origin: build-site` nodes. See the warning below. |
-| `context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
-| `agi-tree.config.json` | Project marker + loop tuning. Its presence is what makes this dir a project. |
-| `agi/` | Symlink to `/home/ubuntu/work/agi`, the engine repo. Gitignored — never commit it here. |
-| `payloads/` | Staged checkout of build-node payloads (`grid.py checkout`). Gitignored — the committed home of these bytes is each node's grid ref. This is where you edit engine code. |
+| `extensions/`, `skills/`, `src/` | The live source. Edited directly — there is no staged copy to check out. |
+| `.agi/nodes/` | The graph. The persistent thoughts. Committed. |
+| `GOALS.md` | **Derived** — `snapshot-goals.py --render` writes it from `.agi/nodes/goal/`, to the repo root. Read it first; author in the goal node. |
+| `.agi/context/kits/`, `.agi/context/plans/build-site.md` | Generator inputs for the 159 `origin: build-site` nodes. See the warning below. |
+| `.agi/context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
+| `.agi/config.json` | Project marker + loop tuning. Its presence is what makes the enclosing repo a project. (The legacy name, `agi-tree.config.json` at the repo root instead of inside `.agi/`, still resolves.) |
+| `refs/grid/*` | Per-node version history, in this repo's own ref namespace. See Git grid below. |
+| `CLAUDE.md`, `AGENTS.md` | This file, read by every agent. `AGENTS.md` is a symlink to it — one document, two names agents look for it under. |
 
-**Anything not in that table does not belong in this repo.** ~95 one-off
-experiment scripts, a vendored copy of the engine (`src/`, `tests/`), the
-cavekit-era runner and 768 session transcripts were removed on 2026-08-23; git
-history is the archive. If you find yourself adding a `.py` file here, it
-belongs in the engine.
+**The table above is the graph's footprint, not the whole repo** — `agi` also
+carries whatever the engine itself needs outside `.agi/` (docs, tests,
+packaging). What the table guards against is graph content leaking to the
+wrong place: a second `nodes/` outside `.agi/`, a hand-maintained `GOALS.md`,
+or scratch scripts that belong in neither half. This repo has cleaned house
+on the graph side before — ~95 one-off experiment scripts, a vendored copy of
+the engine, the cavekit-era runner and 768 session transcripts were removed on
+2026-08-23; git history is the archive, not a to-do list to keep re-adding to.
 
 ## Running the loop
 
-The engine auto-detects the project root by walking up for `agi-tree.config.json`,
-so run from anywhere inside this repo:
+`bin/locations.py` / `lib/find-root.sh` resolve the project root by walking up
+for a `.agi/` holding a config (nearest enclosing wins); a bare
+`agi-tree.config.json` still resolves for a project that has not moved to this
+layout. Run from anywhere inside this repo:
 
 ```bash
-bash agi/extensions/agi/driver.sh --smoke --max-iters 1
+bash extensions/agi/driver.sh --smoke --max-iters 1
 ```
 
 `--smoke` is a dry pass: snapshot + render + metrics, no agent dispatch. Drop it
 (and pass `--max-iters N`) for a live run, which dispatches paid model agents —
-models are set in `agi-tree.config.json` under `agent_dispatch` and `cc_dispatch`.
+models are set in `.agi/config.json` under `agent_dispatch` and `cc_dispatch`.
 
 Everything is reachable globally, by symlink, with no second copy anywhere:
 
@@ -52,136 +98,110 @@ Everything is reachable globally, by symlink, with no second copy anywhere:
 One skill, one source. The hook is a silent no-op outside a project, which is
 what makes registering it globally safe.
 
-## Layout: the tree is outside the engine
+## Editing the engine — one commit
 
-**General shape, every project: `<project>/<project>-tree/agi`.** The graph is a
-separate repo one level inside the project, and the engine clone lives
-*underneath it*. Dropped into `fantasia`, that is:
+**Before `goal:g11`:** an engine change was `grid.py checkout --all`, edit
+under `payloads/`, run the tests against that staged copy, `grid.py commit
+--all`, commit the graph, then `publish-engine.sh` and its four gates. That
+whole pipeline computed nothing — it existed only because the bytes lived in
+one repo and had to arrive in another.
 
-```
-fantasia/
-  fantasia-tree/        the graph repo (GOALS.md, config, nodes/)
-    agi/                gitignored clone of the engine
-```
-
-The tree is outside the engine, never inside it, so an engine checkout never
-contains a graph. That makes the gitignore story one line in one repo — `agi/`
-in the tree — and nothing at all in the engine.
-
-**This pair is the exception, and only in that both hops are symlinks:**
-
-- `agi/agi-tree` → `/home/ubuntu/work/agi-tree` (this repo)
-- `agi-tree/agi` → `/home/ubuntu/work/agi` (the engine repo)
-
-So `agi/agi-tree/agi` resolves back to the engine — same
-`<project>/<project>-tree/agi` shape, with `agi` as the outermost layer because
-`agi-tree` is literally the graph that builds it. Symlinks rather than a clone
-because an engine edit made from inside the tree has to land in the real
-checkout, not a copy nobody ships. The engine's `.gitignore` carries exactly one
-literal `agi-tree` line for the outer symlink — not a `*-tree` glob, since
-nothing else should be ignorable there, and no trailing slash, since that would
-not match a symlink.
-
-This is an organizational convenience for one local pair, **never a mode the
-engine knows about** — G8.2's invariant is that no `if project == "agi-tree"`
-branch exists anywhere, and the symlinks add none.
-
-## Engine edits — do not open a file in `agi/`
-
-**As of 2026-08-25 an engine change originates here and is published to `agi`.**
-G6.3 is complete: every build node's payload lives in its own grid ref, so the
-graph holds the bytes and the engine tree is what falls out. The four steps:
+**Now:** you edit the file. You run its tests. You commit.
 
 ```bash
-python3 agi/extensions/agi/bin/grid.py checkout --all
+<edit the file, in place, wherever it already lives in the tree>
+<run its tests>
+git commit
+python3 extensions/agi/bin/grid.py commit --all
 ```
 
-Edit under `payloads/<payload_ref>` — e.g. `payloads/extensions/agi/bin/grid.py`.
-Run the tests against that copy (`python3 -m pytest payloads/extensions/agi/tests/`),
-then record and publish:
+One commit carries the thought and the code it produced — what `goal:g6.5`
+step 3 wanted and never got.
 
-```bash
-python3 agi/extensions/agi/bin/grid.py commit --all
-```
+**Retired, because each existed only to move bytes across a boundary that no
+longer exists:**
 
-Then **commit the graph**, and publish with the one command that owns the whole
-sequence:
+- **`payloads/`** — the staged checkout. Gone; the payload *is* the source file.
+- **`grid.py checkout`** — nothing to check out. **Never run it.** Even before
+  `goal:g11` it was a whole-tree command scoped by no statement of file
+  ownership, and it silently reverted another agent's uncommitted work twice
+  in one session (`goal:g4.1`). Under this layout the hazard is gone by
+  construction — there is no second copy for a checkout to overwrite, only the
+  one file you and git already know about.
+- **`stitch.py --publish`** — nothing to publish *into*; the engine tree and
+  the source tree are the same tree.
+- **`publish-engine.sh`** — its four gates existed to make a cross-repo write
+  recoverable. A commit in one repo is already recoverable with `git revert`;
+  the gates have nothing left to guard.
 
-```bash
-bash agi/extensions/agi/bin/publish-engine.sh
-```
+**`grid.py commit --all` stays.** It is not the publish pipeline — it is the
+grid, and the grid is not what `goal:g11` removes. It versions `node.md` and
+its payload *together* as one atomic version, which plain git does not do:
+git versions the whole repo per commit, and the grid versions one node's
+history independently of whatever else that commit touched. `refs/grid/*`
+remains exactly what it was, `grid.py log|diff|versions|payload` all still
+work unchanged, and the 5-minute cron still runs `commit --all`. Worth saying
+plainly, because "one repo" invites the wrong inference — the grid was never
+the thing with the boundary problem.
 
-It re-derives contracts from the grid, `grid commit`s them, runs
-`stitch --verify --from-grid --strict`, publishes, **and commits the engine
-citing the graph commit it derives from**. It is also the hourly `:37` cron, so
-in the normal case you do not run it at all. `--dry-run` reports every gate
-without writing.
+**One real use survives beyond the grid itself:** `stitch.py --from-grid
+--grid-version N --out DIR` still materializes a chosen historical version of
+the whole tree into a fresh directory. That writes *out*, not back into this
+repo — a genuinely different operation from `--publish`, and it is not retired.
 
-**Do not call `stitch.py --publish` by hand.** It is the layer underneath and
-it stops one step short: it writes the bytes into the engine tree and never
-commits them, which leaves the engine dirty — and a dirty engine is exactly
-what `--publish` refuses on next time. That was walked into on 2026-08-27; the
-recovery is `git -C <engine> checkout .` (the bytes are in the grid) followed
-by `publish-engine.sh`.
+**A new file is created the same way — write it directly under `extensions/`,
+`skills/` or `src/`.** `level3.py` discovers it via `git ls-files` on this same
+repo, mints its node and its `payload_ref`, and from then on it is ordinary
+graph content, from the first commit — no gitignored staging window where a
+file can exist with no node behind it.
 
-**Its first gate is the one that will stop you: the graph must have no
-uncommitted changes under `nodes/` or `GOALS.md`.** A published engine must
-cite a graph commit that exists. This bites in a non-obvious way — a *single*
-node whose stored contract differs from what `level3.py` re-derives leaves the
-graph permanently dirty after every scan, and the cron then refuses silently,
-every hour, forever. One character of YAML quoting in
-`tests-schema-registry-test-brackets.md` did exactly that. If the cron seems
-not to be publishing, run `level3.py` and check `git status` first.
-
-**A new file is created the same way — write it under `payloads/`.** `level3.py`
-discovers it there, mints its node and its `payload_ref`, and from then on it is
-ordinary graph content. Before 2026-08-25 discovery only read `git ls-files` on
-the engine, so a script authored in `payloads/` had no node, was never committed
-to the grid, and lived in exactly one gitignored directory — two were found in
-that state within an hour of the workflow existing.
-
-**`checkout` will not overwrite a payload you have edited but not committed.**
-It reports `SKIP (locally modified)` and leaves it; `--force` discards. Two
-agents sharing this worktree is the normal case (G4.1), and `checkout --all` is
-`git checkout .` on the payload tree.
-
-Read a payload back without checking out: `grid.py payload <node-id> [--version N]`.
-Materialise a chosen historical version of the whole tree:
-`stitch.py --from-grid --grid-version N --out DIR`.
-
-**The one legitimate exception is a change that the pipeline itself cannot
-carry** — the bootstrap that built this pipeline was made directly in `agi` and
-recorded as a deviation in G6.1. If you think you have another one, say so in
-the node rather than quietly editing the engine.
-
-**Still engine-first:** contract derivation. `level3.py` and `stitch.py --verify`
-read the engine tree, so a payload edited only here has a stale contract until
-you publish and rescan. That residual is G6.1's.
+**Contract derivation is no longer stale by construction.** `level3.py` and
+`stitch.py --verify` read the source tree directly, and the source tree is
+now the thing you just edited — no publish step sits between an edit and a
+fresh contract, and no residual window where the two can disagree. That
+closes `goal:g6.1`'s open loop; it isn't narrowed, it no longer applies.
 
 ## The two rules this project has already paid for
 
-- **NEVER create `bin/snapshot-build-site.py` or `bin/render-context.py` here.**
-  A project-local copy shadows the engine's safe version, and a stale copy
-  silently wipes `nodes/` (H0/H0b — confirmed 29k-node data loss). `bin/` was
-  deleted for this reason; do not recreate it (S1).
-- **`snapshot-build-site.py` deletes every `origin: build-site` node it does not
-  re-derive on that run.** So deleting or emptying `context/kits/` or
-  `context/plans/build-site.md` silently prunes 159 nodes on the next loop run.
-  Retire them by deprecating the nodes first, never by deleting the input (H0i).
+- **NEVER create `.agi/bin/snapshot-build-site.py` or
+  `.agi/bin/render-context.py`.** `driver.sh` resolves the project root
+  (`.agi/` under this layout) and prefers a script at `<project-root>/bin/*.py`
+  over the engine's own, so a stray copy under `.agi/bin/` silently shadows the
+  safe version. A stale one has already wiped `nodes/` once (H0/H0b — confirmed
+  29k-node data loss). Don't recreate a `bin/` directory there (S1).
+- **`snapshot-build-site.py` deletes every `origin: build-site` node it does
+  not re-derive on that run.** So deleting or emptying `.agi/context/kits/` or
+  `.agi/context/plans/build-site.md` silently prunes the 159 nodes derived
+  from them on the next loop run. Retire them by deprecating the nodes first,
+  never by deleting the input (H0i).
 
 ## Git grid
 
-Per-node version history is baked into this repo as `refs/grid/*` — never checked
-out, not in `git branch`. After each iteration commit:
+Per-node version history is baked into this repo as `refs/grid/*` — never
+checked out, not in `git branch`. After each iteration commit:
 
 ```bash
-python3 agi/extensions/agi/bin/grid.py commit --all
+python3 extensions/agi/bin/grid.py commit --all
 ```
 
-Inspect with `grid.py log|diff|status`. Two crons (S2): a 5-minute auto-snapshot
-plus grid push, and an hourly push of `master`. **Verify which branch is checked
-out before trusting any push** — work once accumulated on a stale
-`iter24-extend-300hop` branch while a cron pushed `master` and published nothing.
+Inspect with `grid.py log|diff|status`. Cadence and enablement are graph
+content, not memory: `.agi/nodes/.geometry/crons.md` declares `crons_live`
+plus per-job schedules, and `bin/crons.py apply` is the one command that makes
+the real crontab agree with it — editing the node and letting it get committed
+*is* the change, since `grid_sync` re-applies the declaration every 5 minutes.
+`crons_live: false` is a one-edit kill switch for all managed lines at once
+(used to freeze the four crons during the `goal:g11` migration itself); turning
+it back on takes one manual `crons.py apply`, since the job that would have
+re-applied it is itself one of the lines removed. Of the four jobs the node can
+declare, two are now vestigial under one repo — `publish_engine` has nothing
+left to run, and `engine_push` duplicates `branch_push` against the same
+remote — and are expected to stay disabled rather than deleted from the
+schema.
+
+**Verify which branch is checked out before trusting any push** — work once
+accumulated on a stale `iter24-extend-300hop` branch while a cron pushed
+`master` and published nothing. `crons.py` re-resolves the checked-out branch
+at every `apply`, never caching it, for exactly this reason.
 
 ## Conventions
 
@@ -190,24 +210,24 @@ out before trusting any push** — work once accumulated on a stale
 - Retire a goal by marking it `phasing-out` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
 - **Retire a node with `status: deprecated` and move it to
-  `nodes/deprecated/<type>/`** — same per-type split, one level down. Never
-  `git rm` it. The reason is mechanical, not sentimental: a node's grid ref
-  outlives its file, so deleting the file does not shrink the durable structure,
-  it *decouples* it — leaving a ref and any `supersedes:` edges with nothing
-  live behind them for G10's hypergraph to reconcile. Moving changes the node's
-  **address** (derived, expected to change) and never its **mint id**, so every
-  ref and provenance link keeps resolving. `node_count` deliberately does not
-  drop; watch `active_node_count` / `deprecated_node_count` instead.
-  **Readers that glob one type directory must read the retired sibling too,
-  live-first** — `stitch.py`, `level3.py`, `node_writer.py` and `zoom.py` do.
-  A reader that stops seeing a retired node fails quietly and in its own way
-  (orphaned engine file, re-minted duplicate, unresolvable edge, missing title).
-- **`GOALS.md` is derived, not the goal nodes.** The arrow reversed on
-  2026-08-25 (G6.9, commit `2b204a5d4`) and this line said the opposite until
-  2026-08-26. `driver.sh` runs `snapshot-goals.py --render` and nothing else,
-  which writes `GOALS.md` from `nodes/goal/*.md`. **Edit the goal node.** A
-  hand-edit to `GOALS.md` survives until the next `--smoke` and then vanishes
-  with no warning — confirmed by losing one. Check the two directions are still
+  `.agi/nodes/deprecated/<type>/`** — same per-type split, one level down.
+  Never `git rm` it. The reason is mechanical, not sentimental: a node's grid
+  ref outlives its file, so deleting the file does not shrink the durable
+  structure, it *decouples* it — leaving a ref and any `supersedes:` edges with
+  nothing live behind them for G10's hypergraph to reconcile. Moving changes
+  the node's **address** (derived, expected to change) and never its **mint
+  id**, so every ref and provenance link keeps resolving. `node_count`
+  deliberately does not drop; watch `active_node_count` / `deprecated_node_count`
+  instead. **Readers that glob one type directory must read the retired
+  sibling too, live-first** — `stitch.py`, `level3.py`, `node_writer.py` and
+  `zoom.py` do. A reader that stops seeing a retired node fails quietly and in
+  its own way (orphaned engine file, re-minted duplicate, unresolvable edge,
+  missing title).
+- **`GOALS.md` is derived, not the goal nodes.** `driver.sh` runs
+  `snapshot-goals.py --render` and nothing else, which writes `GOALS.md` (repo
+  root) from `.agi/nodes/goal/*.md`. **Edit the goal node.** A hand-edit to
+  `GOALS.md` survives until the next `--smoke` and then vanishes with no
+  warning — confirmed by losing one. Check the two directions are still
   inverses with `snapshot-goals.py --render --check`, which exits 0 only on a
   byte-identical round trip.
 - **A version is a grid commit, not a second node file.** A fix or update edits
@@ -234,9 +254,16 @@ out before trusting any push** — work once accumulated on a stale
   weight every session carries.
 - **This is the one exception to "edit the payload, never the node body".** For
   a build node the `BUILD-CONTRACT` block and surrounding prose are still
-  regenerated on every scan and still must not be hand-edited. The `THOUGHT`
-  region is the authored half and is durable.
+  regenerated on every scan and still must not be hand-edited — that hasn't
+  changed just because the payload now lives directly in the tracked source
+  tree instead of a staged copy. The `THOUGHT` region is the authored half and
+  is durable.
 - **Two identifiers, two jobs.** A node's **mint id** is assigned once and never
   changes — it is what grid refs and provenance key on. Its **address** is
   derived from tags and is expected to change on every retag or regroup — it is
   what humans, renderers and lookups use. Never conflate the two (G2.5).
+- **Verify the node count never drops.** A snapshot, a retag, or a migration
+  should only ever grow or hold `active_node_count` + `deprecated_node_count`
+  steady, never quietly shrink it. `goal:g11`'s own migration was rehearsed
+  four times to check exactly this before the real cut ran: 807 nodes in, 807
+  out, zero bytes changed, every time.
