@@ -90,7 +90,7 @@ safe to register globally.
 ### 2d. Verify
 
 ```bash
-cd ~/work/agi && python3 -m pytest extensions/agi/tests/ -q   # 723 passed, 1 skipped
+cd ~/work/agi && python3 -m pytest extensions/agi/tests/ -q   # 861 passed, 1 skipped
 which agi && readlink -f "$(which agi)"                        # -> extensions/agi/driver.sh
 agi --help | head -2
 ```
@@ -138,235 +138,100 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
-# SESSION HANDOFF — 2026-08-28: the publish path can see itself now
+# SESSION HANDOFF — 2026-08-29: the publish path is closed, end to end
 
 > **Read this section first if you are the next session.** Everything above is
 > the install/orientation guide and is still broadly correct. This section is
 > the current state and the work queue.
 
-## 0. State as of commit `e4434d685` (engine `ba52e12`)
+## 0. State as of commit `1f236461b` (engine `1264d0b`)
 
 ```
-node_count            790          goal_count             83
-active_node_count     785          deprecated_node_count  5
+node_count            791          goal_count             84
+active_node_count     786          deprecated_node_count  5
 evidence_fraction     0.206        primary (outcome_cov)  0.255
 unevidenced_decisive  0            shadow_decisive        0
-thought_coverage      0.011        nodes_with_thought     9
-hours_since_publish   0.01         publish_blocked_reason (empty)
-engine tests          800 passed, 1 skipped
+thought_coverage      0.014        nodes_with_thought     11
+hours_since_publish   0.34         publish_blocked_reason (empty)
+unpushed_graph        0            unpushed_engine        0
+engine tests          861 passed, 1 skipped
 ```
 
-Graph clean, engine clean, `publish-engine.sh --dry-run` reports all gates
-passed. `--render --check` round-trips byte-identical.
+Graph clean, engine clean, **both remotes current**. `--render --check`
+round-trips byte-identical across 84 goals.
 
-**The publish cron published, for the first time ever.** From install on
-2026-08-25 it had refused 40+ consecutive times with 0 successes. It is
-unblocked and the two conditions that blocked it are fixed, not worked around.
+## 1. What shipped — four iterations, 2026-08-28/29
 
-`node_count` rose 789 → 790 because `test_publish_alarm.py` is a genuinely new
-file with a new node. Retirement is now tracked separately:
-`active_node_count` is the number to watch, since five nodes were retired in
-place rather than deleted and `node_count` deliberately does not drop.
+The previous handoff's whole queue above S7 is done. **S19, G7.10 and S20 are
+all closed**; do not re-open them looking for work.
 
-## 1. 🔴 PRIORITY — the interpreter flap (S19 — still open)
+**S19 — `how` quotes the payload instead of re-rendering the AST.** `_render(source, node)`
+returns `ast.get_source_segment`, the literal slice of the payload's own bytes,
+joined onto one line. Source bytes are interpreter-independent by construction.
+`3.12 → 3.11 → 3.12` against the live corpus now leaves `nodes/` byte-identical
+at every step; before, it moved a hunk every time. The node's own blast-radius
+estimate was wrong in both halves and is corrected in place: 363 entries
+(12.9%) across 55 of 186 build nodes changed value, not "exactly 1 node".
+`ast.arguments` deliberately keeps `ast.unparse` — `get_source_segment` returns
+`None` for all 1,241 signatures — licensed by measurement and guarded by
+`test_no_engine_signature_contains_an_fstring`.
 
-**G7.10's half of this is now built; S19's is not.** The previous handoff named
-this pair and §4.1 as the three things to do first. §4.1 (`@v2`) is complete and
-G7.10 parts 1–2 shipped 2026-08-28. **S19 is what is left**, and it is now the
-only known cause that can still arm the publish gate silently.
+**G7.10 — all four parts, goal closed.** Part 3: a `graph-dirty` refusal parks
+the publishable tree on `cron/pending-<graph-sha>` in the engine, **local, never
+pushed**, via a `git worktree` outside both repos. Part 4: `level3.py` derives
+into a throwaway worktree of the graph and `nodes/` is not written until gate 2
+passes. Head-to-head on identical clones with 6 genuinely-moved contracts —
+**old path: 6 junk nodes, 6 grid versions burned; new path: 0 and 0.**
 
-### The workaround you need immediately
+**S20 — the alarm reaches the remote.** `hours_since_successful_publish` stopped
+at the local commit, so an engine remote 3 days and 25 commits behind moved no
+number and was found by looking at GitHub. `metrics.py` now emits
+`unpushed_{graph,engine}_commits` from `git rev-list --count @{upstream}..HEAD`
+— a **gap**, not an event, because a timestamp can read fresh while work is
+stranded. `-1` with a reason token (`no-upstream`, `detached-head`,
+`not-a-repo`, `missing`) for every blind spot; `0` never means "could not tell".
+No network I/O — the only two occurrences of "fetch" in `metrics.py` are the
+comments explaining why one is not called.
 
-**`python3` on an interactive shell here is 3.11 (a hermes venv early on
-`PATH`). The `:37` publish cron uses `/usr/bin/python3`, which is 3.12.**
-`ast.unparse` renders f-strings differently across the two (PEP 701), so
-`level3.py` derives a different contract depending on who ran it, and the graph
-flaps dirty between them — burning a real grid version each way on a file
-nobody edited.
+**The `export PATH=/usr/bin:$PATH` workaround is no longer load-bearing.** S19
+removed the interpreter dependency, so 3.11 and 3.12 now derive identical
+contracts. Still worth doing to match the cron exactly, but a session that
+forgets it no longer dirties the graph.
+
+## 2. 🔴 The one live trap: a derivation change takes two publishes
+
+**`publish-engine.sh` runs `level3.py` from the ENGINE at step 1, then installs
+the new engine at step 3.** So a change to *derivation logic itself* cannot
+converge in a single publish.
+
+Publishing S19 re-derived all 55 affected nodes with the **pre-change** renderer,
+then shipped the **post-change** renderer over the top — leaving the graph dirty
+with a clean revert of the commit that had just landed. It looks alarming and it
+is not: one more re-derivation with the now-published engine converges it to
+zero.
 
 ```bash
-export PATH=/usr/bin:$PATH      # do this first, every session
+python3 /home/ubuntu/work/agi/extensions/agi/bin/level3.py \
+  --project . --engine-root /home/ubuntu/work/agi --from-grid
 ```
 
-Written up as **S19**, with the durable fix specified (derive `how` from
-`ast.get_source_segment` — source bytes are interpreter-independent by
-construction) and deliberately not done, because it rewrites a large share of
-2,692 contract entries and wants its own commit and its own before/after count.
-Blast radius today is exactly 1 node, so the flap itself is annoying rather
-than dangerous. **What is dangerous is that nothing told anyone.**
+Benign and self-correcting, but it arms gate 0 in the window, so **expect it and
+do not go hunting for a bug.** Only matters when you change `level3.py`'s own
+derivation; every other payload publishes in one pass. Not fixed, not yet
+written up as a goal.
 
-### G7.10 — built 2026-08-28, parts 1 and 2
-
-Gate 1 of `publish-engine.sh` refuses when the graph is dirty. That gate is
-correct. Everything around it is not:
-
-- It refused **40 consecutive times, with 0 successful publishes ever**, from
-  install on 2026-08-25 until someone checked by hand on 2026-08-27.
-- The refusal goes to a log nobody reads. No metric moves, `--smoke` says
-  nothing, `INJECTION.md` says nothing.
-- **A refusal is not a no-op.** It mutates the graph at step 1 before refusing
-  at step 3 — a refused run left 184 junk nodes behind during the last rename.
-- S19 made it *intermittent* rather than permanent, which is worse: it looks
-  healthy half the time, which is exactly when nobody investigates.
-
-**Parts 1 and 2 are done.** `metrics.py` emits
-`hours_since_successful_publish`, `publish_blocked_reason`,
-`deprecated_node_count` and `active_node_count`; `publish-engine.sh` exits
-non-zero on refusal and writes `<project>/context/publish-state.json`
-(gitignored, atomic, deliberately **not** under `nodes/` — a marker written
-into the graph would arm the very gate it reports on, every run); and
-`hooks/cc-session-start.sh` surfaces a stall to the next session, while
-staying a **0-byte silent no-op outside a project**, which was re-measured.
-
-`hours_since_successful_publish` uses a 99999.0 sentinel rather than `0` when
-nothing has ever published — `0` would read as "just published", the exact
-inversion the goal exists to stop. `never-run` is reported as its own headline
-("has NEVER RUN") and not as STALLED: an alarm that fires when nothing is wrong
-gets ignored as completely as one that never fires.
-
-**The engine is now pushed as well as published.** `publish-engine.sh` commits
-the engine and deliberately does not push — "pushing is the hourly cron's job" —
-but **for the engine repo that cron did not exist**, so its commits accumulated
-locally and the remote sat **3 days and 25 commits stale** while every gate
-reported healthy. `grid.py cron_lines()` now emits a fourth entry under
-`--publish-engine`: `47 * * * * git -C <engine> push -q origin HEAD`, ten
-minutes after the :37 publish. It pushes `HEAD`, not a branch fixed at install
-time, so it cannot silently push the wrong branch the way the
-`iter24-extend-300hop` incident did.
-
-**Do not hand-add cron lines.** `cron install` deletes every line carrying its
-log marker and rewrites them, so a hand-added entry disappears at the next
-install without a word. Add it to `cron_lines()` and reinstall with
-`grid.py cron install --publish-engine` — **the flag is required**, or the
-install silently drops the publish and push entries.
-
-🔴 **Known hole, and it is the one that just bit:**
-`hours_since_successful_publish` measures the **local commit, not the push**.
-A publish that succeeds and a remote that never receives it reads as perfectly
-healthy — exactly the 3-day outage above. The alarm covers one half of the
-path. Closing it wants a `hours_since_successful_push` (or making the :47 push
-write into `publish-state.json` the way `publish-engine.sh` does), and it
-belongs with parts 3 and 4 below.
-
-**Parts 3 and 4 remain open** and are why G7.10 stays `active`:
-
-3. **Branch and continue** — publish to `cron/pending-<graph-sha>` instead of
-   stopping, so the bytes always land and a human fast-forwards later. This is
-   the recommended default: it preserves both invariants at once.
-4. **Make the refusal atomic** — step 1 writes and step 3 refuses. **This was
-   hit twice on 2026-08-28**, both times benign (re-derived contracts, not junk
-   nodes), but it is why a refusal is never a no-op and why `git status` after
-   a failed publish shows work you did not do. It is the same defect G7.9 names
-   from the other side.
-
-Worth saying in the failure message itself, because it is the reasonable fear
-and it is wrong: **payload bytes are never lost when a publish stalls.**
-`grid.py commit --all` runs on its own ungated 5-minute cadence. Only the
-engine publish is blocked. The shipped message says exactly this.
-
-## 2. What changed — 2026-08-28 first, then the 2026-08-27 session below
-
-**G2.10 complete — the `@v2` collapse ran.** 47,356 characters moved verbatim
-from the five `origin: build-version` bodies into their v1 nodes' `THOUGHT`
-regions. `nodes_with_thought` 2 → 9 (five migrations plus two goal nodes).
-
-**The five `@v2` nodes were retired in place, not deleted**, and the reason is
-worth carrying: a deleted node's grid ref outlives the file, so deletion does
-not shrink the durable structure — it decouples it, leaving refs and
-`supersedes:` edges with nothing live behind them for **G10**'s hypergraph to
-untangle. Grid-refs-survive-a-delete had always been cited as what makes
-deletion *safe*; read against G10 the same fact argues the other way. Safety
-was never the binding constraint, coupling was. **When you next weigh deleting
-a node, ask what stays behind without its file, not what is lost.**
-
-**`active_node_count` / `deprecated_node_count` ship with it.** Retiring in
-place keeps `node_count` flat by design, which would have made the retirement
-itself a silent event — the shape **G7** exists to forbid. `node_count` is
-still every node file; `active_node_count` is the one that moves on retirement.
-
-**Retirement now has an address: `nodes/deprecated/<type>/`.** Same per-type
-split, one level down; `status: deprecated` is declared in
-`context/schemas/[build].md` as optional (absent = live). Moving changes a
-node's **address**, never its **mint id**, so grid refs and provenance keep
-resolving. **This is the convention for every node type**, not just `build` —
-`nodes/deprecated/goal/` and the rest already have their shape.
-
-**If you write a reader, walk `nodes/` with `rglob`.** Everything that already
-did needed no change. The four that globbed a single type directory each had
-their own quiet failure waiting: `stitch.py` would report the retired node's
-engine file as an `orphan_file` and refuse the publish; `level3.py` would
-re-mint the node at its live address, putting one id in two files;
-`node_writer.py` would fail to resolve edges into it; `zoom.py` would render it
-untitled. All four now read live-first then retired, and **the order is
-load-bearing** wherever a reader takes the first hit.
-
-**G7.10 parts 1–2 built.** §1. The cron published successfully for the first
-time since it was installed.
-
-**G6.1 — `stitch.py`'s `missing_payload` gate now asks the grid.** It read the
-engine tree unconditionally, even under `--from-grid`, which **deadlocked every
-new engine file**: `level3.py` mints a node for a file authored under
-`payloads/`, the bytes land in its grid ref, and the gate then refused to
-publish because the file was not in the engine tree — which publishing was the
-only thing that would fix. No flag reached it. Found by hitting it:
-`test_publish_alarm.py` deadlocked the publish it was written to protect.
-Missing now means *neither* source has the bytes; without `--from-grid` the
-engine-tree claim is unchanged. Recorded as `build:bin-stitch` v19.
-
-**Do not "improve" `thought_coverage`.** Still the design, now 9/790: absent
-means empty, and fabricating reasoning after the fact is forbidden because a
-made-up thought reads as evidence. Recovering real reasoning from stored
-sessions is **G10.1**'s job.
-
----
-
-### The 2026-08-27 session
-
-**G2.10 fixed — a build node can hold a thought.** `write_frontmatter` gained
-`preserve_body=`; the body now has two named regions, `BUILD-CONTRACT`
-(derived, rewritten every scan) and `THOUGHT` (authored, carried across).
-`why`/`perf`/`security` carry over too, keyed on entry `name` rather than on
-`how` — `how` embeds a line number, so keying on it would drop a rationale the
-first time anything above the call site moved. Falsifier run on the live
-corpus, twice: both survived.
-
-**G2.11 minted and closed — the general form.** `body` is state, `thought` is
-delta.
-Declared in all 14 active schemas, `CLAUDE.md` and `SKILL.md`. Absent means
-empty, so it churned 0 of 788 nodes. Readers strip it, so it never reaches
-`GOALS.md` or injected context.
-
-`thought_coverage` sits at 2/789 and **that is the design, not a residual**:
-absent means empty, and fabricating reasoning for 786 nodes after the fact is
-explicitly forbidden because a made-up thought reads as evidence. Recovering
-real reasoning from stored sessions is **G10.1**'s job. Do not "improve" this
-number.
-
-**G7.3 closed — a bare integer is no longer evidence.** Only a reference that
-resolves to a real node counts. All 12 live instances handled without
-inventing a citation; see the goal node for why 11 were correctly left alone
-and why the 12th was *not* demoted.
-
-**S14's residual closed.** The two `write_frontmatter` copies had already
-drifted: `snapshot-build-site.py`'s was missing both null round-trip fixes, so
-a `None` list entry and a YAML-null scalar each came back as the string
-`"None"` — silent corruption in the writer touching all 159 build-site nodes
-every iteration. Collapsed to one definition.
-
-**S7 amended — it is worse than recorded.** See §3.
-
-## 3. S7 is now unfixable-by-rerun
+## 3. S7 — open, but currently repaired
 
 Seed wiring lived in the `GOALS.md -> nodes` direction. **G6.9 reversed the
 arrow and `driver.sh` now runs only `--render`, so S7's "a second run adds it"
-became "no run ever adds it."** A sub-goal added after 2026-08-25 gets a
-correct `parents:` and its parent is *never* told.
+became "no run ever adds it."** A sub-goal added after 2026-08-25 gets a correct
+`parents:` and its parent is never told.
 
-Five edges were missing, and every one was a recently-added sub-goal — three of
-them the previous handoff's own next items (`g1.7`, `g4.5`, `g7.9`). The newest
-work is reliably the work invisible from above. **Data repaired by hand; the
-defect is open.** The fix has to be re-homed into the render direction, and
-S7's original ask still stands: assert the fixed point in a test.
+**The detector currently reports 0 missing edges** — the five that were missing
+were repaired by hand, and S20 was minted with `parents: []`, which sidesteps
+it entirely. So there is no live damage today; the defect is that nothing
+prevents recurrence. The fix has to be re-homed into the render direction, and
+S7's original ask — assert the fixed point in a test — still stands.
 
 Check it in one line:
 
@@ -388,66 +253,67 @@ EOF
 
 ## 4. Next most valuable, in order
 
-**The previous handoff's top two are done (2026-08-28) and have been removed
-from this list: G2.10's `@v2` collapse, and G7.10 parts 1–2. What follows is
-the usual judgement call, S19 excepted — see §1.**
+**Judgement call, not a ranking handed down.** Nothing on this list is currently
+armed to lose data.
 
-1. **S19 — the interpreter flap.** See §1. Now the *only* known cause that can
-   still arm the publish gate silently, so it inherits the priority the pair
-   used to share. The fix is one function (`_unparse_safe` ->
-   `ast.get_source_segment`), but it rewrites a large share of 2,692 contract
-   entries, so it wants its own commit with a before/after count and a
-   two-interpreter diff as its falsifier. Until it lands, **`export
-   PATH=/usr/bin:$PATH` first, every session.**
+1. **S7** — §3. Cheap to detect, and it silently hides exactly the work that is
+   current: the newest sub-goals are the ones that go missing from above. Zero
+   damage right now, which makes this the calm moment to close it.
 
-2. **G7.10 parts 3 and 4, plus the push hole** — branch-and-continue, making
-   the refusal atomic, and making a stale *remote* move a number the way a
-   stalled publish now does. §1 has all three. Part 4 has fresh evidence: a
-   refused publish re-derived contracts before refusing, twice on 2026-08-28.
-   The push hole has fresher: it hid a 3-day outage from every gate.
-
-3. **S7** — §3. Cheap to detect, and it silently hides exactly the work that is
-   current. The fix has to be re-homed into the render direction now that the
-   arrow is reversed; S7's original ask (assert the fixed point in a test)
-   still stands.
-
-4. **G7.9** — `level3.py` should not prune quietly, and is misnamed
+2. **G7.9** — `level3.py` should not prune quietly, and is misnamed
    (`view.py`/`main.py`). *The user has said they have more pieces of this in
-   mind — ask before starting.* Note its overlap with G7.10 item 4: a refused
-   `publish-engine.sh` mutating the graph before refusing is the same
-   non-atomicity defect seen from the other side.
+   mind — **ask before starting**.* Its overlap with the old G7.10 part 4 is now
+   resolved from that side: a refused publish no longer mutates first.
 
-5. **G1.7** — the demotion path is four fields (`verdict`, `status`,
+3. **G1.7** — the demotion path is four fields (`verdict`, `status`,
    `demoted_from`, `demote_reason`) and `evidence_gate` owns one. Reproduced
    live: a correctly-gated demotion left `status: proved` contradicting the
-   demoted `verdict:` underneath. `shadow_decisive_verdicts` is currently 0 and
-   is the regression alarm — it caught this once already, so leave it in.
+   demoted `verdict:` underneath. `shadow_decisive_verdicts` is 0 and is the
+   regression alarm — it caught this once already, so leave it in.
 
-6. **S18** — absorb cavekit references before cavekit retires. The hazard is
+4. **`grid.py commit` can drop a payload entry, silently.** Named during G7.10
+   part 4 and deliberately left: it takes no `--engine-root`, so it resolves
+   payloads against its own on-disk location and, finding nothing, records a
+   version with the `payload` tree entry **missing**. Latent — `<project>/payloads/`
+   wins resolution first, so it never fires in production — but
+   `stitch.py --from-grid --grid-version N` materialises history out of exactly
+   those refs, so the corruption would surface much later and far from its
+   cause. Make it refuse loudly rather than write a truncated version.
+
+5. **S18** — absorb cavekit references before cavekit retires. The hazard is
    *ordering*: deleting `context/kits/` prunes 159 `origin: build-site` nodes
    (H0i).
 
-7. **G4.5** — generalize `blocked_by` -> `depends_on`. 89 populated nodes, 0
+6. **G4.5** — generalize `blocked_by` -> `depends_on`. 89 populated nodes, 0
    cycles, max depth 15. Must stay out of every metric traversal or it becomes
    a fresh gaming surface.
 
+Also named and deliberately unfixed: **gate 2 now certifies the tree as
+*derived*, not as *published***, so a `payloads/` edit landing mid-run ships
+bytes one derivation ahead of their contract. Strictly better than what it
+replaced — the old ordering turned the same race into a refusal *plus* junk
+nodes — and the next `:37` converges it.
+
+**Do not "improve" `thought_coverage`.** Still the design at 11/791: absent
+means empty, and fabricating reasoning after the fact is forbidden because a
+made-up thought reads as evidence. Recovering real reasoning from stored
+sessions is **G10.1**'s job.
+
 ## 5. Traps hit — do not re-learn these
 
+- **A derivation change takes two publishes.** §2. The only one of these that
+  will make you think you broke something.
+- **`publish-engine.sh` no longer re-derives before it refuses** — that was
+  G7.10 part 4 and it is fixed. If `git status` shows node files you did not
+  touch after a *refused* publish, that is a regression, not the old normal.
 - **A `@v2` node is the publish head, not the v1 node.** `grid.py commit --all`
   writes an edited payload to *every* node sharing that `payload_ref`, so both
-  refs stay in sync and editing "the wrong one" is not actually possible that
-  way — but **verify before publishing** rather than assuming, because the head
-  is what ships: `grid.py payload 'build:<name>@v2' --out /tmp/x && diff`.
-  This applied to five payloads and is now history for none of them: the `@v2`
-  nodes are deprecated but still resolve as chain head.
-- **`publish-engine.sh` re-derives before it refuses.** Run it, get
-  `REFUSING [graph-dirty]`, and `git status` will show node files *you* did not
-  touch. They are legitimate re-derived contracts — commit them and re-run. Hit
-  twice on 2026-08-28. This is G7.10 part 4, still open.
+  refs stay in sync — but **verify before publishing**, because the head is what
+  ships: `grid.py payload 'build:<name>@v2' --out /tmp/x && diff`. The five
+  `@v2` nodes are deprecated and still resolve as chain head.
 - **A `how:` field embeds a line number**, so adding a comment block near the
   top of an engine file re-derives every contract entry below it. Expect a
   large, boring diff and one extra commit; it is not drift.
-- **The interpreter, twice.** §1.
 - **`level3.py` run from `payloads/` makes `payloads/` the engine root** and
   correctly refuses with "discover_files returned zero files". Use
   `--engine-root /home/ubuntu/work/agi --project /home/ubuntu/work/agi-tree`
@@ -456,27 +322,24 @@ the usual judgement call, S19 excepted — see §1.**
   reader back was an import cycle and died with `RecursionError`. Ownership
   decides direction: level3.py owns the contract shape, stitch aliases it.
 - **Inserting one sub-goal renumbers every goal after it.** `order` is unique
-  and positional (`int`, duplicates are a hard error), so G2.11 at order 19
-  meant bumping 61 nodes. Mechanical and safe, but budget for the diff.
-- **A test asserting a hole will fail when you close it.** 10 did. Six asserted
-  `evidence_runs: 3` counted; one asserted `metrics.py` and `dashboard.py`
-  *disagreed* and called the gap "the contamination the dashboard exists to
-  name". Read each failure before fixing it — they were documentation of the
-  defect, not regressions.
-- **Widening a CLI flag can turn a soft demotion into a hard rejection.**
-  `--evidence-runs` taking ids made `--evidence-runs 0` arrive as `["0"]`,
-  which the taxonomy check treated like the `synthetic` sentinel: exit 2,
-  nothing written, work discarded. Rejection is for claims that are actively
-  false.
+  and positional (`int`, duplicates are a hard error). Appending at the end
+  costs nothing — S20 took order 83 after S19's 82 and renumbered zero nodes.
+- **A test asserting a hole will fail when you close it.** Read each failure
+  before fixing it — several were documentation of a defect, not regressions.
+- **Whitespace normalisation is not `\s+`.** In `f"a:\n  b"` the `\n` is two
+  source characters and the spaces after it are *content*. Collapsing `\s+`
+  silently rewrites indentation inside string literals, in an engine whose main
+  output is YAML and markdown. Collapse only runs that *contain* a real line
+  break, and assert the quoted fragment is a verbatim substring of the payload
+  rather than that it merely looks right.
 
 ## 6. How to write into this file
 
 `HANDOFF.md` is `build:HANDOFF.md`, `build_kind: prose`. **Edit the payload.**
 The `BUILD-CONTRACT` block and the derived prose around it are regenerated on
-every scan; only a `THOUGHT` region would survive there now (G2.10).
+every scan; only a `THOUGHT` region would survive there (G2.10).
 
 ```bash
-export PATH=/usr/bin:$PATH                              # 1. match the cron
 python3 agi/extensions/agi/bin/grid.py checkout --all   # payloads/HANDOFF.md
 $EDITOR payloads/HANDOFF.md
 python3 agi/extensions/agi/bin/grid.py commit --all
@@ -493,9 +356,8 @@ contract from the published payload.
 ## 7. Known-good verification sequence
 
 ```bash
-export PATH=/usr/bin:$PATH
 bash agi/extensions/agi/driver.sh --smoke --max-iters 1        # count must not drop
-cd payloads && python3 -m pytest extensions/agi/tests/ -q      # 755 passed, 1 skipped
+cd payloads && python3 -m pytest extensions/agi/tests/ -q      # 861 passed, 1 skipped
 python3 agi/extensions/agi/bin/snapshot-goals.py --render --check
 bash agi/extensions/agi/bin/publish-engine.sh --dry-run        # every gate, no writes
 ```
