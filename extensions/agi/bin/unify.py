@@ -91,6 +91,7 @@ force-push, a materially worse operation that must not happen by accident).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -298,6 +299,80 @@ def find_missing_payloads(tree: Path, engine: Path) -> list[str]:
     return sorted(missing)
 
 
+def find_stale_payloads(tree: Path, engine: Path) -> list[str]:
+    """`payload_ref` paths that EXIST under `engine` but whose bytes disagree
+    with the grid.
+
+    **Existence is not the invariant, and testing the gate on live data is what
+    showed it.** `find_missing_payloads` catches a file the graph knows about
+    that the engine has never seen — rehearsal run 2's case, four brand-new
+    files. It does not catch the far more ordinary case: a file that was
+    published once and then *edited*, so the engine still has a copy and that
+    copy is stale. Measured on the real repos before the migration: 0 missing,
+    **2 stale**. The gate passed, and a migration at that moment would have
+    produced a repo whose working tree silently disagreed with its own grid
+    refs — the same failure run 2 found, arriving through a door the run-2 fix
+    left open.
+
+    The grid is the authority (**goal:g6.3** — the graph holds the bytes and
+    the engine tree is what falls out), so the comparison is against
+    `refs/grid/node/<mint-id>:payload` read straight out of the tree clone with
+    plumbing. No import of `grid.py`: this check must keep working even if that
+    module is mid-edit, which during an engine migration it plausibly is.
+
+    A node with no grid ref yet is skipped rather than reported — it has no
+    recorded bytes to disagree with, and `find_missing_payloads` already covers
+    the case where its file is absent entirely.
+    """
+    engine = Path(engine).resolve()
+    stale: set[str] = set()
+
+    for node_path, ref in iter_payload_refs(tree):
+        target = engine / ref
+        if not target.is_file():
+            continue  # find_missing_payloads owns this case
+        mint_id = _read_mint_id(node_path)
+        if not mint_id:
+            continue
+        res = subprocess.run(
+            ["git", "-C", str(tree), "cat-file", "blob",
+             f"refs/grid/node/{mint_id}:payload"],
+            capture_output=True,
+        )
+        if res.returncode != 0:
+            continue  # no grid ref yet — nothing recorded to disagree with
+        if hashlib.sha256(res.stdout).hexdigest() != _sha256_file(target):
+            stale.add(ref)
+
+    return sorted(stale)
+
+
+def _read_mint_id(node_path: Path) -> str | None:
+    """`mint_id` from a node's frontmatter, or None. Grid refs key on the mint
+    id rather than the address precisely so that a retag never renames a ref
+    (**goal:g2.5**), so this is the only correct key to look a payload up by."""
+    try:
+        text = node_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    for line in text.split("\n", 200)[:200]:
+        if line.startswith("mint_id:"):
+            return line.split(":", 1)[1].strip() or None
+        if line.strip() == "---" and not line.startswith("mint_id"):
+            continue
+    return None
+
+
+def _sha256_file(path: Path) -> str:
+    """sha256 of a file's bytes. Reads bytes, never text: a payload may be a
+    binary or a symlink target and must not go through decoding."""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 # --- safety: never the real repos -------------------------------------------
 
 #: Defense in depth beyond operator discipline (see module docstring): these
@@ -392,6 +467,28 @@ def preflight(engine: Path, tree: Path, *, force: bool = False) -> dict:
             ),
             "missing_payload_count": len(missing_payloads),
             "missing_payload_sample": sample,
+        }
+
+    # The other half of the same gate, and the half a synthetic fixture will
+    # not produce: a payload the engine HAS but at stale bytes. Same remedy,
+    # same refusal, different question — "is it there" vs "is it current".
+    stale_payloads = find_stale_payloads(tree, engine)
+    if stale_payloads and not force:
+        sample = stale_payloads[:10]
+        return {
+            "ok": False,
+            "reason": "engine_stale_payloads",
+            "detail": (
+                f"{len(stale_payloads)} payload_ref path(s) exist under "
+                f"{engine} but disagree with the grid — the engine holds an "
+                f"older copy than the graph recorded. Migrating now would "
+                f"carry those stale bytes onto disk while the grid refs "
+                f"carry the current ones. Run publish-engine.sh against the "
+                f"real engine checkout, then re-clone --engine and retry. "
+                f"First {len(sample)}: {sample}"
+            ),
+            "stale_payload_count": len(stale_payloads),
+            "stale_payload_sample": sample,
         }
 
     engine_tip = _git(engine, "rev-parse", "HEAD").strip()

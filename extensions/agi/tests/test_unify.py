@@ -172,6 +172,39 @@ def _hash_tree(root: Path) -> dict[str, str]:
     return out
 
 
+def _add_payload_node(tree: Path, node_name: str, payload_ref: str) -> Path:
+    """Commit one more node under `<tree>/nodes/build/` carrying
+    `payload_ref` — the shape `find_missing_payloads` (the publish-lag gate)
+    reads, modeled on a real `build:` node in agi-tree
+    (`payload_ref: extensions/agi/bin/...`, relative to the engine root)."""
+    build_dir = tree / "nodes" / "build"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    path = build_dir / f"{node_name}.md"
+    path.write_text(
+        f'---\nid: "build:{node_name}"\n'
+        f'mint_id: cccccccccccccccccccccccccccccccc\ntype: build\n'
+        f'payload_ref: {payload_ref}\n---\n\nBuild node.\n'
+    )
+    _git(tree, "add", "-A")
+    _git(tree, "commit", "-q", "-m", f"tree: add {node_name}")
+    return path
+
+
+def _fingerprint(repo: Path) -> str:
+    """Enough of `repo`'s state that "identical before and after a rollback"
+    is one string comparison rather than eyeballing several: every ref with
+    its sha, `ls-tree -r` (which carries file modes, so a lost symlink mode
+    would show up here), and the on-disk working-tree file list. Modeled on
+    rehearsal run 4's 682-line manual comparison, collapsed to one assertion.
+    """
+    refs = _git(repo, "for-each-ref", "--format=%(refname) %(objectname)")
+    ls_tree = _git(repo, "ls-tree", "-r", "HEAD")
+    working_files = sorted(
+        str(p.relative_to(repo)) for p in repo.rglob("*") if ".git" not in p.parts
+    )
+    return "\n===\n".join([refs, ls_tree, "\n".join(working_files)])
+
+
 @pytest.fixture()
 def repos(tmp_path):
     engine = make_engine_repo(tmp_path)
@@ -480,3 +513,423 @@ def test_cli_yes_runs_the_real_migration(repos, capsys):
     rc = unify.main(["--engine", str(engine), "--tree", str(tree), "--yes", "--report-json"])
     assert rc == 0
     assert (engine / "GOALS.md").is_file()
+
+
+# --- CLAUDE.md / AGENTS.md land at the repo root, not inside .agi/ ------------
+#
+# The regression this guards: putting everything from the tree under .agi/
+# would leave the unified repo root with no CLAUDE.md at all, which Claude
+# Code needs to find by walking up from cwd. AGENTS.md is a symlink to
+# CLAUDE.md and must survive the move as one (goal:s9 -- grid.py's
+# commit_file() once mis-hashed a symlink as a regular file in this exact
+# area), so its mode is checked explicitly rather than assumed.
+
+
+def test_claude_md_ends_at_repo_root_not_inside_dot_agi(migrated):
+    engine = migrated["engine"]
+    assert (engine / "CLAUDE.md").is_file()
+    assert not (engine / ".agi" / "CLAUDE.md").exists()
+    assert "Project instructions" in (engine / "CLAUDE.md").read_text()
+
+
+def test_agents_md_ends_at_repo_root_not_inside_dot_agi(migrated):
+    engine = migrated["engine"]
+    assert (engine / "AGENTS.md").exists() or (engine / "AGENTS.md").is_symlink()
+    assert not (engine / ".agi" / "AGENTS.md").exists()
+
+
+def test_agents_md_is_still_a_symlink_after_the_move(migrated):
+    engine = migrated["engine"]
+    mode = _git(engine, "ls-files", "-s", "AGENTS.md").split()[0]
+    assert mode == "120000", f"AGENTS.md lost its symlink mode: {mode}"
+    assert os.readlink(engine / "AGENTS.md") == "CLAUDE.md"
+    assert (engine / "AGENTS.md").resolve() == (engine / "CLAUDE.md").resolve()
+
+
+def test_relocate_files_raises_when_claude_md_missing(repos):
+    engine, tree = repos
+    unify.graft_graph(engine, tree)
+    (engine / ".agi" / "CLAUDE.md").unlink()
+    _git(engine, "add", "-A")
+    _git(engine, "commit", "-q", "-m", "sabotage: remove CLAUDE.md")
+    with pytest.raises(unify.UnifyError, match="CLAUDE.md"):
+        unify.relocate_files(engine)
+
+
+def test_relocate_files_raises_when_agents_md_is_not_a_symlink(repos):
+    """If AGENTS.md were ever a plain-file copy instead of a symlink, this
+    must refuse rather than relocate a dereferenced copy under the real
+    AGENTS.md's name."""
+    engine, tree = repos
+    unify.graft_graph(engine, tree)
+    agents = engine / ".agi" / "AGENTS.md"
+    agents.unlink()
+    agents.write_text("not a symlink\n")
+    _git(engine, "add", "-A")
+    _git(engine, "commit", "-q", "-m", "sabotage: AGENTS.md as a plain file")
+    with pytest.raises(unify.UnifyError, match="not a symlink"):
+        unify.relocate_files(engine)
+
+
+# --- publish-lag gate (rehearsal run 2) ---------------------------------------
+#
+# unify.py builds the unified repo from a clone of the ENGINE, and the engine
+# is only as current as its last publish. If a node's payload_ref names a
+# file the engine doesn't have, the migrated working tree ends up complete in
+# its node descriptions and incomplete on disk -- refuse before that happens.
+
+
+def test_preflight_refuses_when_a_payload_ref_is_missing_from_the_engine(repos):
+    engine, tree = repos
+    _add_payload_node(tree, "ghost", "extensions/agi/bin/does-not-exist.py")
+
+    result = unify.preflight(engine, tree)
+
+    assert result["ok"] is False
+    assert result["reason"] == "engine_missing_payloads"
+    assert result["missing_payload_count"] == 1
+    assert "extensions/agi/bin/does-not-exist.py" in result["missing_payload_sample"]
+    # the message names the count and the remedy
+    assert "1 payload_ref" in result["detail"]
+    assert "publish-engine.sh" in result["detail"]
+
+
+def test_preflight_refuses_names_up_to_ten_and_the_true_count(repos):
+    engine, tree = repos
+    for i in range(12):
+        _add_payload_node(tree, f"ghost{i}", f"extensions/agi/bin/does-not-exist-{i}.py")
+
+    result = unify.preflight(engine, tree)
+
+    assert result["ok"] is False
+    assert result["missing_payload_count"] == 12
+    assert len(result["missing_payload_sample"]) == 10
+    assert "12" in result["detail"]
+
+
+def test_preflight_passes_when_every_payload_ref_resolves(repos):
+    engine, tree = repos
+    # extensions/agi/bin/hello.py is real in make_engine_repo's fixture.
+    _add_payload_node(tree, "hello", "extensions/agi/bin/hello.py")
+
+    result = unify.preflight(engine, tree)
+
+    assert result["ok"] is True
+
+
+def test_force_overrides_the_publish_lag_gate(repos):
+    engine, tree = repos
+    _add_payload_node(tree, "ghost", "extensions/agi/bin/does-not-exist.py")
+
+    result = unify.preflight(engine, tree, force=True)
+
+    assert result["ok"] is True
+
+
+def test_publish_lag_gate_blocks_the_real_migration_without_force(repos, capsys):
+    engine, tree = repos
+    _add_payload_node(tree, "ghost", "extensions/agi/bin/does-not-exist.py")
+
+    report = unify.run_unify(engine, tree, yes=True)
+
+    assert report["ok"] is False
+    assert report["reason"] == "engine_missing_payloads"
+    assert not (engine / ".agi").exists()  # refused before any mutation
+
+
+def test_find_missing_payloads_is_empty_when_tree_has_no_payload_refs(repos):
+    engine, tree = repos
+    assert unify.find_missing_payloads(tree, engine) == []
+
+
+# --- pre-state file, written before any mutation (for --rollback) ------------
+
+
+def test_prestate_file_written_by_a_real_migration(repos):
+    engine, tree = repos
+    pre_head = _rev_parse(engine)
+
+    report = unify.run_unify(engine, tree, yes=True)
+
+    assert report["ok"] is True
+    prestate_file = engine / ".git" / "agi-unify-prestate.json"
+    assert prestate_file.is_file()
+    data = json.loads(prestate_file.read_text())
+    assert data["head"] == pre_head
+    assert data["refs"]["refs/heads/master"] == pre_head
+    assert "timestamp" in data
+    assert report["prestate_file"] == str(prestate_file)
+    assert report["prestate_head"] == pre_head
+
+
+# --- --rollback ----------------------------------------------------------------
+#
+# The prestate file's one required property -- that it survives `reset --hard`
+# and `clean -fd` -- is exercised for real by every test below: each one
+# performs a real migration, a real rollback (which runs both operations
+# against `.git/agi-unify-prestate.json` sitting right there), and then reads
+# state back through the very file that had to survive them.
+
+
+def test_rollback_restores_head_and_deletes_grid_refs_and_is_clean(repos):
+    engine, tree = repos
+    pre_head = _rev_parse(engine)
+
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+    assert unify.count_grid_refs(engine) == 2
+    assert _rev_parse(engine) != pre_head
+
+    result = unify.run_rollback(engine, yes=True)
+
+    assert result["ok"] is True, result
+    assert result["reset_to"] == pre_head
+    assert result["grid_refs_deleted"] == 2
+    assert _rev_parse(engine) == pre_head
+    assert unify.count_grid_refs(engine) == 0
+    assert _git(engine, "status", "--porcelain") == ""
+    assert not (engine / ".agi").exists()
+
+
+def test_rollback_fingerprint_is_byte_identical_to_pre_migration(repos):
+    engine, tree = repos
+    pre_fingerprint = _fingerprint(engine)
+
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+    # sanity: the migration actually changed something, or this test would
+    # pass vacuously.
+    assert _fingerprint(engine) != pre_fingerprint
+
+    rollback = unify.run_rollback(engine, yes=True)
+    assert rollback["ok"] is True, rollback
+
+    assert _fingerprint(engine) == pre_fingerprint
+
+
+def test_rollback_dry_run_mutates_nothing(repos):
+    engine, tree = repos
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+    head_before = _rev_parse(engine)
+    refs_before = _git(engine, "show-ref")
+
+    result = unify.run_rollback(engine, yes=False)
+
+    assert result["ok"] is True
+    assert result["dry_run"] is True
+    assert result["would_delete_grid_refs"] == 2
+    assert _rev_parse(engine) == head_before
+    assert _git(engine, "show-ref") == refs_before
+
+
+def test_rollback_refuses_with_no_prestate_file(repos):
+    engine, _tree = repos
+    # never migrated -- no .git/agi-unify-prestate.json exists yet
+    result = unify.run_rollback(engine, yes=True)
+    assert result["ok"] is False
+    assert result["reason"] == "rollback_no_prestate"
+
+
+def test_rollback_refuses_when_already_rolled_back(repos):
+    engine, tree = repos
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+    first = unify.run_rollback(engine, yes=True)
+    assert first["ok"] is True
+
+    second = unify.run_rollback(engine, yes=True)
+
+    assert second["ok"] is False
+    assert second["reason"] == "rollback_nothing_to_undo"
+
+
+def test_rollback_refuses_when_head_is_reachable_from_a_remote(repos, tmp_path):
+    """The pushed case: once the migrated HEAD exists on a remote-tracking
+    ref, reversing it locally would leave the remote ahead of a rewritten
+    local history -- a force-push against published history, not a private
+    `git reset`. That must not happen by accident."""
+    engine, tree = repos
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+    migrated_head = _rev_parse(engine)
+
+    remote_bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(remote_bare)], check=True)
+    _git(engine, "push", "-q", str(remote_bare), "HEAD:refs/heads/master")
+    # what a real `git fetch` would leave behind after that push round-trips
+    # through a remote -- simulated directly since no real remote is involved.
+    _git(engine, "update-ref", "refs/remotes/origin/master", migrated_head)
+
+    result = unify.run_rollback(engine, yes=True)
+
+    assert result["ok"] is False
+    assert result["reason"] == "rollback_pushed"
+    # HEAD is untouched -- the refusal happened before any mutation
+    assert _rev_parse(engine) == migrated_head
+
+
+def test_force_overrides_the_pushed_check_with_a_loud_warning(repos, tmp_path):
+    engine, tree = repos
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+    migrated_head = _rev_parse(engine)
+    pre_head = migration["prestate_head"]
+
+    remote_bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(remote_bare)], check=True)
+    _git(engine, "push", "-q", str(remote_bare), "HEAD:refs/heads/master")
+    _git(engine, "update-ref", "refs/remotes/origin/master", migrated_head)
+
+    result = unify.run_rollback(engine, yes=True, force=True)
+
+    assert result["ok"] is True, result
+    assert result["forced_past_push"] is True
+    assert result["pushed_to"] == ["refs/remotes/origin/master"]
+    assert _rev_parse(engine) == pre_head
+
+
+def test_rollback_cli_flag_end_to_end(repos, capsys):
+    engine, tree = repos
+    pre_head = _rev_parse(engine)
+
+    rc = unify.main(["--engine", str(engine), "--tree", str(tree), "--yes", "--report-json"])
+    assert rc == 0
+    migrate_data = json.loads(capsys.readouterr().out)
+    assert migrate_data["ok"] is True
+
+    rc = unify.main(["--engine", str(engine), "--rollback", "--yes", "--report-json"])
+    assert rc == 0
+    rollback_data = json.loads(capsys.readouterr().out)
+    assert rollback_data["ok"] is True
+    assert rollback_data["reset_to"] == pre_head
+    assert _rev_parse(engine) == pre_head
+
+
+def test_cli_rollback_requires_engine_only_not_tree(repos):
+    """--tree is required for a migration but must not be required under
+    --rollback -- there is no tree to point at when only reversing."""
+    engine, tree = repos
+    migration = unify.run_unify(engine, tree, yes=True)
+    assert migration["ok"] is True
+
+    rc = unify.main(["--engine", str(engine), "--rollback", "--yes"])
+
+    assert rc == 0
+
+
+def test_main_errors_without_tree_and_without_rollback(repos, capsys):
+    engine, _tree = repos
+    with pytest.raises(SystemExit):
+        unify.main(["--engine", str(engine)])
+
+
+# --- the stale-payload half of the publish gate -----------------------------
+#
+# Parent review, iteration 4. find_missing_payloads answers "is the file
+# there"; these answer "is it current". The distinction was invisible until
+# the gate was run against the real repos, where 0 were missing and 2 were
+# stale -- so the gate passed on data that would have produced a unified repo
+# whose working tree disagreed with its own grid refs.
+
+
+def _make_build_node_with_payload(tree: Path, engine: Path, *, mint: str,
+                                  ref: str, grid_bytes: bytes,
+                                  engine_bytes: bytes) -> None:
+    """Wire up one build node whose payload lives in the grid at `grid_bytes`
+    and in the engine tree at `engine_bytes`. Equal bytes model a published
+    file; different bytes model one edited since the last publish."""
+    build_dir = tree / "nodes" / "build"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    (build_dir / f"{mint}.md").write_text(
+        f'---\nid: "build:{mint}"\nmint_id: {mint}\ntype: build\n'
+        f'payload_ref: {ref}\n---\n\nbuild node\n'
+    )
+    _git(tree, "add", "-A")
+    _git(tree, "commit", "-q", "-m", f"tree: add build node {mint}")
+
+    # A real two-entry grid tree: node.md + payload, same shape grid.py writes.
+    blob = subprocess.run(["git", "-C", str(tree), "hash-object", "-w", "--stdin"],
+                          input=grid_bytes, capture_output=True,
+                          check=True).stdout.decode().strip()
+    idx = tree / ".git" / "gridindex"
+    subprocess.run(["git", "update-index", "--add", "--cacheinfo",
+                    f"100644,{blob},payload"],
+                   cwd=tree, env={**os.environ, "GIT_INDEX_FILE": str(idx)},
+                   check=True, capture_output=True)
+    gtree = subprocess.run(["git", "write-tree"], cwd=tree,
+                           env={**os.environ, "GIT_INDEX_FILE": str(idx)},
+                           check=True, capture_output=True, text=True).stdout.strip()
+    gcommit = _git(tree, "commit-tree", gtree, "-m", f"grid: {mint}")
+    _git(tree, "update-ref", f"refs/grid/node/{mint}", gcommit)
+    idx.unlink(missing_ok=True)
+
+    target = engine / ref
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(engine_bytes)
+    _git(engine, "add", "-A")
+    _git(engine, "commit", "-q", "-m", f"engine: add {ref}")
+
+
+def test_stale_payload_is_detected(repos):
+    engine, tree = repos
+    _make_build_node_with_payload(
+        tree, engine, mint="c" * 32, ref="src/thing.py",
+        grid_bytes=b"current bytes\n", engine_bytes=b"OLD bytes\n")
+
+    assert unify.find_stale_payloads(tree, engine) == ["src/thing.py"]
+    # And it is NOT reported as missing -- the file is right there.
+    assert unify.find_missing_payloads(tree, engine) == []
+
+
+def test_published_payload_is_not_stale(repos):
+    engine, tree = repos
+    _make_build_node_with_payload(
+        tree, engine, mint="d" * 32, ref="src/same.py",
+        grid_bytes=b"identical\n", engine_bytes=b"identical\n")
+
+    assert unify.find_stale_payloads(tree, engine) == []
+
+
+def test_preflight_refuses_on_stale_payload(repos):
+    engine, tree = repos
+    _make_build_node_with_payload(
+        tree, engine, mint="e" * 32, ref="src/drift.py",
+        grid_bytes=b"new\n", engine_bytes=b"old\n")
+
+    res = unify.preflight(engine, tree, force=False)
+    assert res["ok"] is False
+    assert res["reason"] == "engine_stale_payloads"
+    assert res["stale_payload_count"] == 1
+    assert "publish-engine.sh" in res["detail"]
+
+
+def test_force_overrides_the_stale_gate(repos):
+    engine, tree = repos
+    _make_build_node_with_payload(
+        tree, engine, mint="f" * 32, ref="src/drift2.py",
+        grid_bytes=b"new\n", engine_bytes=b"old\n")
+
+    assert unify.preflight(engine, tree, force=True)["ok"] is True
+
+
+def test_node_without_a_grid_ref_is_skipped_not_flagged(repos):
+    """A node whose payload was never gridded has no recorded bytes to
+    disagree with. Flagging it would make the gate refuse on every
+    newly-authored file, which is find_missing_payloads' job and only when
+    the file is genuinely absent."""
+    engine, tree = repos
+    build_dir = tree / "nodes" / "build"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    (build_dir / "ungridded.md").write_text(
+        '---\nid: "build:ungridded"\nmint_id: ' + "9" * 32 + '\ntype: build\n'
+        'payload_ref: src/ungridded.py\n---\n\nno grid ref for this one\n'
+    )
+    _git(tree, "add", "-A")
+    _git(tree, "commit", "-q", "-m", "tree: ungridded build node")
+    (engine / "src").mkdir(parents=True, exist_ok=True)
+    (engine / "src" / "ungridded.py").write_text("whatever\n")
+    _git(engine, "add", "-A")
+    _git(engine, "commit", "-q", "-m", "engine: ungridded")
+
+    assert unify.find_stale_payloads(tree, engine) == []
