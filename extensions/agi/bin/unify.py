@@ -599,6 +599,46 @@ def _git_file_mode(repo: Path, relpath: str) -> str:
     return out.split()[0]
 
 
+#: Where a displaced ignored file is parked. Inside `.git/`, so `clean -fd`
+#: cannot reach it and `--rollback` can put it back.
+DISPLACED_DIRNAME = "agi-unify-displaced"
+
+
+def _displace_ignored_destination(engine: Path, dst: Path) -> str | None:
+    """Move an untracked, git-ignored file out of a relocate destination.
+
+    **The defect the clone rehearsals could not reproduce.** The engine root
+    carries `CLAUDE.md` and `AGENTS.md` as ignored, untracked working files —
+    `.gitignore` ignores them because GitNexus regenerates them there. Ignored
+    files do not show in `git status --porcelain`, so `preflight`'s cleanliness
+    check passed; and **`git clone` does not copy ignored files**, so no
+    rehearsal engine ever had them. The real migration hit
+    `git mv .agi/CLAUDE.md CLAUDE.md` -> "fatal: destination exists" at the
+    mutate stage, after the graft had already committed.
+
+    Only ever displaces a file git does not track. A tracked file at the
+    destination is a genuine conflict this must not paper over, and is left to
+    fail loudly. The displaced copy is preserved rather than deleted: it is
+    regenerable, but "regenerable" is a claim about the future and this
+    project's two data-loss incidents both began with a routine deletion.
+    """
+    if not (dst.exists() or dst.is_symlink()):
+        return None
+
+    rel = str(dst.relative_to(engine))
+    tracked = subprocess.run(
+        ["git", "-C", str(engine), "ls-files", "--error-unmatch", rel],
+        capture_output=True,
+    ).returncode == 0
+    if tracked:
+        return None  # a real conflict — let git mv fail and say so
+
+    parked = engine / ".git" / DISPLACED_DIRNAME
+    parked.mkdir(parents=True, exist_ok=True)
+    dst.rename(parked / dst.name)
+    return rel
+
+
 def relocate_files(engine: Path) -> dict:
     """`.agi/GOALS.md` -> `GOALS.md`, `.agi/CLAUDE.md` -> `CLAUDE.md`,
     `.agi/AGENTS.md` -> `AGENTS.md` (`goals_path()` under this layout is a
@@ -659,6 +699,15 @@ def relocate_files(engine: Path) -> dict:
     agents_dst = engine / "AGENTS.md"
     config_dst = graph_dir / "config.json"
 
+    # Clear ignored, untracked squatters at the destinations before git mv.
+    displaced = [
+        rel for rel in (
+            _displace_ignored_destination(engine, goals_dst),
+            _displace_ignored_destination(engine, claude_dst),
+            _displace_ignored_destination(engine, agents_dst),
+        ) if rel
+    ]
+
     _git(engine, "mv", str(goals_src.relative_to(engine)), str(goals_dst.relative_to(engine)))
     _git(engine, "mv", str(claude_src.relative_to(engine)), str(claude_dst.relative_to(engine)))
     _git(engine, "mv", agents_src_rel, str(agents_dst.relative_to(engine)))
@@ -681,6 +730,7 @@ def relocate_files(engine: Path) -> dict:
             {"from": str(config_src.relative_to(engine)), "to": str(config_dst.relative_to(engine))},
         ],
         "agents_md_mode": agents_dst_mode,
+        "displaced_ignored": displaced,
     }
 
 
@@ -689,7 +739,18 @@ def relocate_files(engine: Path) -> dict:
 #: Any block whose only pattern is one of these is dropped in its entirety —
 #: comment included — because the block's sole reason to exist was that
 #: symlink, and goal:g11 removes both (`agi-tree/agi` and `agi/agi-tree`).
-_DROP_WHOLE_BLOCK = {"agi", "agi-tree"}
+_DROP_WHOLE_BLOCK = {
+    # The two symlinks this merge deletes.
+    "agi", "agi-tree",
+    # The engine ignores CLAUDE.md and AGENTS.md because GitNexus regenerates
+    # them there. After the move they are the GRAPH's copies, relocated to the
+    # repo root and tracked — the whole point of relocating them. Leaving the
+    # engine's block in place would land them at the root and then ignore them,
+    # which is worse than not moving them at all: present, authoritative-looking
+    # and invisible to git. Found on the real migration, not in any rehearsal
+    # (see _displace_ignored_destination).
+    "CLAUDE.md", "AGENTS.md",
+}
 
 #: The graph's own generated-file paths. Checked (and rewritten) *before* the
 #: duplicate check below, deliberately: some of these names are also bare
