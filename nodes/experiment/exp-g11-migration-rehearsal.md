@@ -1,6 +1,6 @@
 ---
 confidence: 1.0
-evidence_runs: 3
+evidence_runs: 4
 id: "exp:g11-migration-rehearsal"
 mint_id: 58b01e6669b249ff83fb439a4c2bd6b3
 parents:
@@ -11,9 +11,19 @@ tags:
   - g11
   - migration
   - grid
-title: "Three rehearsals of the two-repo merge on throwaway clones, checked by a tool that did not write it"
+title: "Four rehearsals of the two-repo merge on throwaway clones, including one reversed"
 type: experiment
 ---
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Adds run 4, the rollback rehearsal, which v1 listed under "what this does not
+test". The owner asked for it before authorising the irreversible step, and it
+was the right thing to ask for: it turned up a step that reasoning about
+`git reset` had missed entirely — `reset --hard` does nothing to `refs/grid/*`,
+so a rollback that omits an explicit ref deletion leaves the repo in a state
+that is neither the old one nor the new one. That is now a named step rather
+than something to remember.
+<!-- THOUGHT:END -->
 
 **Question.** Does merging `agi-tree` into `agi` under `.agi/` lose anything —
 a node, a grid ref, a history, or a payload?
@@ -39,6 +49,7 @@ HEADs were checked before and after every run.
 | 1 (`/tmp/u3`) | `2ff2ef7ec` | 7/8 — `no_node_bytes_changed` failed, 1 path |
 | 2 (`/tmp/u4`) | `f8ccb14e5` | 7/8 — `payload_refs_resolve` failed, 4 unresolved |
 | 3 (`/tmp/u5`) | `f8ccb14e5` + publish | **8/8 — "OK — nothing lost"** |
+| 4 (`/tmp/rb`) | `daf4f287d` | **migrate, then reverse — byte-identical** |
 
 Both failures were real and neither was a defect in the migration.
 
@@ -91,11 +102,45 @@ root; under the `.agi` layout `source_root` resolves to that same directory.
 The migration touches history, refs and two file locations, and rewrites no
 node.
 
+## Run 4 — the rollback rehearsal
+
+The gap run 3 left open. A full state fingerprint of the target was taken
+before migrating — HEAD, every ref with its sha, the complete tracked tree
+*with file modes*, the working-tree file list, remotes, and `status` — 682
+lines. Then: migrate, then reverse.
+
+```
+git reset --hard <pre-migration HEAD>
+git for-each-ref --format='delete %(refname)' refs/grid/ | git update-ref --stdin
+git clean -fd
+<remove any remote the migration added>
+```
+
+Refs went 7 -> 1087 -> 7. Commits 206 -> 698 -> 206. **The post-rollback
+fingerprint is byte-identical to the pre-migration one**, all 682 lines.
+
+Two things this establishes that reasoning about `git reset` did not:
+
+- **The grid refs must be deleted explicitly.** `reset --hard` moves a branch
+  tip; it does nothing to `refs/grid/*`, which arrive by fetch and would
+  otherwise survive a rollback and leave the repo in a state that is neither
+  the old one nor the new one. That is a real step, not a formality, and it is
+  the step most likely to be forgotten under pressure.
+- **`unify.py` leaves no stray remote.** The cleanup loop found nothing to
+  remove, confirming the migrator removes its own temporary remote rather than
+  relying on the rollback to do it.
+
+Known residue, and it is benign: `reset --hard` plus ref deletion leaves the
+migration's objects unreferenced in the object store until `git gc` collects
+them. Disk only; nothing reachable, nothing that changes a fingerprint.
+
 ## What this does not test
 
 - **A second project.** Only the `agi`/`agi-tree` pair was rehearsed. `fantasia`
   has its own clone and its own grid refs and is untouched by any of this.
-- **Rollback.** No run was reversed. The clones were discarded instead, which is
-  not the same as proving the real migration can be undone.
+- **Rollback of the *real* repo.** Run 4 reversed a clone. The real target has
+  a remote with published history; a rollback after a push would need a force
+  push, which is a different and worse operation. **Do not push the migrated
+  engine until the result has been verified.**
 - **The crons.** Every run happened with the live crontab untouched. Run 3's
   `publish-engine.sh` was invoked by hand, not observed firing at `:37`.
