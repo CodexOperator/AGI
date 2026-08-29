@@ -41,20 +41,31 @@ KNOWN_STATUSES = {"active", "horizon", "phasing-out", "complete"}
 BODY_CAP = 4000
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = Path(
-    os.environ.get("AGI_TREE_PROJECT_ROOT")
-    or os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")  # legacy, rename window
-    or os.environ.get("PROJECT_ROOT")
-    or os.getcwd()
-).resolve()
-
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
 
 # goal:g11 — one resolver for every path. `bin/` is already on sys.path for
 # every entry point here, so this is a plain sibling import.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+
+# Canonical name first; the legacy name stays accepted during the rename window.
+CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+
+#: **goal:g11.1's first casualty, found the hour the layout changed.** This was
+#: `... or os.getcwd()`: an env var, else whatever directory you happened to be
+#: standing in. Under the old layout that was harmless, because cwd *was* the
+#: graph root. Under `.agi/` it is not — the graph root is `<repo>/.agi` and cwd
+#: is `<repo>` — so `snapshot-goals.py --render` looked for `<repo>/nodes/goal`,
+#: found nothing, and refused.
+#:
+#: **It refused rather than writing an empty `GOALS.md`, which is the only
+#: reason this is a bug report and not a data-loss incident** (goal:s12 added
+#: that guard). The failure was loud and safe; the resolver was simply wrong.
+#:
+#: `project_root_from_env` keeps the same env-var precedence and replaces the
+#: cwd fallback with the real ancestor walk. Nine `bin/` entry points still
+#: carry their own copy of the old rule — that is exactly `goal:g11.1`, and
+#: this is the evidence that it is a live defect rather than tidiness.
+PROJECT_ROOT = locations.project_root_from_env() or Path(os.getcwd()).resolve()
 
 
 # graph_core.identity — the ENGINE's own copy, for the same reason
