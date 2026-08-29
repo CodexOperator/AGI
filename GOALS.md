@@ -3597,7 +3597,7 @@ isolate the engine the tests run against, so the isolation is not real.
 |---|---|
 | tree repo | 14.8 MiB, 483 commits, 1063 grid refs |
 | engine repo | 154 KiB, 203 commits |
-| `payload_ref` values to rewrite | 375 |
+| `payload_ref` values to rewrite | **0** — see below; the first estimate of 375 was wrong |
 | top-level name collisions between the two repos | 2 — `.gitignore`, `context/` |
 | crons hard-coding `/home/ubuntu/work/agi-tree` | 4 (`*/5`, `:07`, `:37`, `:47`) |
 | baseline corpus | 792 nodes, `outcome_coverage` 0.255 |
@@ -3605,6 +3605,33 @@ isolate the engine the tests run against, so the isolation is not real.
 Both collisions disappear once the tree sits in `.agi/` rather than at a repo
 root. The four crons are the live hazard: they race any surgery, which is why
 the kill-switch lands before the move and not after.
+
+### No `payload_ref` needs rewriting, and the reason is the whole design
+
+The first version of this table said **375 values to rewrite**. That was an
+estimate, not a measurement, and it was wrong — the correct number is **zero**.
+
+A `payload_ref` is already stored relative to the *engine root*
+(`extensions/agi/bin/grid.py`, not an absolute path and not tree-relative).
+Under the `.agi` layout `source_root` resolves to the enclosing repo, which
+*is* the engine root. So every stored value resolves unchanged, before and
+after the move:
+
+```
+today:      source_root = <tree>/agi   -> <tree>/agi/extensions/agi/bin/grid.py
+unified:    source_root = <repo>       -> <repo>/extensions/agi/bin/grid.py
+```
+
+That is not luck. `payload_ref` was always a path *into the source tree*, and
+G11 does not move the source tree — it moves the graph to sit beside it. The
+migration therefore touches history, refs and two file locations, and does not
+touch node content at all. **A migration that rewrites no node is a much
+smaller and much safer operation than one that rewrites 375**, and it removes
+the largest single risk this goal carried.
+
+Recorded rather than quietly corrected, for the same reason as the count above:
+this is the second unverified number in this node, and both were asserted
+confidently. The pattern is the finding.
 
 ## The ancestor walk existed eleven times, not thirteen
 
