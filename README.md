@@ -1,8 +1,6 @@
-# agi — Artificial Graph Intelligence
+# agi — Advanced Graph Interface
 
 A unified repository housing **graph algorithms** and the **research loop harness** that operates on them. The loop dogfoods by treating the agi codebase itself as graph nodes — researching, mapping, and incrementally evolving its own algorithms and harness.
-
-This repo is the result of folding [`CodexOperator/autoresearch-tree`](https://github.com/CodexOperator/autoresearch-tree) (research loop harness — engine, bridge, skill) into the canonical AGI graph code at `~/.hermes/agi/`. Both git histories are preserved via subtree merge.
 
 ## What's inside
 
@@ -52,13 +50,4 @@ This repo declares pi extensions and skills in the top-level `package.json` (`pi
 
 ## CLI
 
-Both `agi` and `autoresearch-tree` resolve to the same `extensions/agi/driver.sh` during the transition. Both invocations are equivalent.
-
-## History
-
-This repo carries two preserved histories merged via `git subtree`:
-
-1. **Origin: `~/.hermes/agi/`** — graph algorithm research (lru-cached graph builder, ASCII renderer, query engine, BFS reachability, schema parsing, hook/script/pipeline node ingestion).
-2. **Origin: `CodexOperator/autoresearch-tree`** — research loop harness (engine, bridge ext, skill, embeddings, schema registry, sqlite migration scaffolding).
-
-`git log` over this repo surfaces commits from both origins. The fold itself is captured in commits prefixed `fold:` for locatability.
+`agi` on `PATH` is a symlink to `extensions/agi/driver.sh`. Run it from anywhere inside a project — it walks up for `agi-tree.config.json` to find the graph repo.

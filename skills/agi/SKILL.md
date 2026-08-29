@@ -1,7 +1,7 @@
 ---
 name: agi
 description: >
-  agi — Artificial Graph Intelligence. A persistent thoughtgraph plus a loop
+  agi — Advanced Graph Interface. A persistent thoughtgraph plus a loop
   that grows it one node per iteration. Nodes are long-lived thoughts
   (extended, forked, deprecated) chained goal → idea → hypothesis →
   experiment → verdict → mvp → outcome. A parent agent spawns kid agents,
@@ -12,7 +12,7 @@ description: >
 category: software-development
 ---
 
-# agi — Artificial Graph Intelligence
+# agi — Advanced Graph Interface
 
 A project's thinking, stored as a graph and grown one node at a time.
 
