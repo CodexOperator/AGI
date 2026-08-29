@@ -53,10 +53,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
 
-**`grid.py checkout` is gone.** There is no staged copy to materialize — a
-`payload_ref` now names a file already tracked in this same repo. Never run
-it; it was a whole-tree command that silently reverted another agent's
-uncommitted work twice in one session even before `goal:g11` (`goal:g4.1`).
+**`grid.py checkout` is gone — never run it.** There is no staged copy to materialize; see "The git grid" below for what replaced the whole pipeline it belonged to.
 
 ## Choosing a runtime
 
@@ -132,68 +129,76 @@ Metrics are computed by `bin/metrics.py` (called from `driver.sh`). It reads `me
 
 ## Project layout
 
-A project holds **data and configuration; never engine code.** The graph is a
-*separate repo one level inside the project*, `<project>/<project>-tree/`, and
-the engine clones in **underneath it** at `<project>/<project>-tree/agi/`. The
-tree is outside the engine, not inside it — so an engine checkout never
-contains a graph, and the two histories cannot mix in either direction. This
-is a refinement of shape 1 (drop-in clone) in **G8.1**, not a closed decision
-— no experiment has run against it yet. Worked example, `fantasia`:
+**As of `goal:g11`, the graph sits inside the project it describes**, in a
+`.agi/` directory beside the source rather than in a separate repo one level
+out. If the project needs an engine clone, that clone sits gitignored beside
+`.agi/`, and carries its *own* `.agi/` for its own graph. Worked example,
+`fantasia`:
 
 ```
 fantasia/
   <game source>
-  fantasia-tree/                   the graph, its OWN git repo
-    GOALS.md                       long-term goals: active | horizon | phasing-out | complete
-    agi-tree.config.json           metrics, dispatch, timeouts
-    nodes/<type>/*.md              the graph — frontmatter + body
-    context/INJECTION.md           generated map
-    sessions/                      per-iteration scratch (gitignore this)
-    agi/                           gitignored clone of the engine
+  GOALS.md                        long-term goals: active | horizon | phasing-out | complete — repo root, deliberately
+  .agi/
+    config.json                   metrics, dispatch, timeouts
+    nodes/<type>/*.md             the graph — frontmatter + body
+    context/INJECTION.md          generated map
+    sessions/                     per-iteration scratch (gitignore this)
+  agi/                            gitignored clone of the engine, its OWN .agi/ inside it
 ```
+
+**`.agi` is a dot directory on purpose** — it files the graph with `.git`,
+`.github` and `.claude` rather than in the middle of the source tree.
+`GOALS.md` is the deliberate exception: it renders to the repo root, not into
+`.agi/`, because it's the one document a human is likely to open first.
+
+**Two graphs, no flag.** A project with the engine cloned in holds two:
+`fantasia/.agi` and `fantasia/agi/.agi`. `bin/locations.py`'s
+`find_project_root` (bash half: `lib/find-root.sh`, cross-checked against it
+in `test_bash_and_python_agree`) resolves whichever is nearer to cwd — run
+from `fantasia/` and you get fantasia's graph, run from `fantasia/agi/` and
+you get the engine's own. That is what lets the engine improve itself from
+inside a project that is using it, and nothing branches on a project's name to
+make it true (**goal:g8.2**) — it falls out of the filesystem.
 
 **Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `phasing-out` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
 **Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `phasing-out` (retiring), `complete`. `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph.
 
-The engine is never committed into a project. **One** gitignore entry, in the tree repo, does it — because the engine now lives inside the tree rather than the other way round:
+The engine clone is never committed into the project it sits beside. **One** gitignore entry does it:
 
 ```
 # agi engine (drop-in clone — never commit here)
 agi/
 ```
 
-That is the whole story for a normal project. The engine repo needs **no** tree-related pattern at all, which is the point of putting the tree outside it: there is nothing to ignore, so there is nothing to get wrong.
+**Resolution order**, phase 0 winning outright and phases 1–2 kept so a
+project from before `goal:g11` keeps resolving unchanged:
 
-`find-root.sh` locates the tree by walking up from cwd for `agi-tree.config.json` first (classic layout, tree == project root); failing that it descends into `<start>/<basename>-tree/`, or a lone match under `<start>/*-tree/`. A `*-tree` directory with no config file is skipped rather than treated as a candidate, which is what keeps the glob from picking up unrelated directories. More than one real candidate is a hard error listing all of them, never a guess.
+0. `<d>/.agi/` holding a config — nearest enclosing directory wins.
+1. `<d>/agi-tree.config.json` — legacy: the graph root is the project root.
+2. `<start>/*-tree/` holding a config — legacy: the tree-beside-project shape.
+   A `*-tree` directory with no config file is skipped rather than treated as
+   a candidate. More than one real candidate is a hard error listing all of
+   them, never a guess.
 
-**Open, deliberately not built yet:** nothing creates `<project>/<project>-tree/` for you — set it up by hand (`git init` the tree, clone the engine inside it). Engine-commit pinning in `agi-tree.config.json` (G8.1's other ask) is also not implemented.
+**Open, deliberately not built yet:** `agi init` — scaffolding a fresh `.agi/`
+(config, `nodes/`, a `GOALS.md` template) so this layout is reproducible
+without copying a project by hand. Today: clone the engine in, `git init` if
+needed, create `.agi/` yourself. Engine-commit pinning in the project config
+(G8.1's other ask) is also not implemented.
 
-### The self-referential exception: agi ↔ agi-tree
-
-One pair breaks the sketch above, on purpose: the engine's own graph. The
-shape is the same — `agi/agi-tree/agi`, tree outside, engine inside — but both
-hops are **symlinks** rather than a clone, because here the graph literally
-builds the engine, so an engine edit made from inside the tree must land in
-the real checkout and not in a copy nobody ships:
-
-```
-agi/                        the engine repo, outermost
-  agi-tree -> <graph repo>  symlink  (the one line in the engine's .gitignore)
-    agi -> <engine repo>    symlink  (already covered by the tree's `agi/`)
-```
-
-So `agi/agi-tree/agi` resolves back to the engine itself. The engine's
-`.gitignore` carries exactly one literal `agi-tree` line for the outer
-symlink — deliberately not a `*-tree` glob, since nothing else should be
-ignorable there and a generic pattern would hide a real mistake. No trailing
-slash, because that would not match a symlink.
-
-This is an organizational convenience for **one local pair**, not a mode the
-engine knows about — **G8.2**'s invariant holds: there is no
-`if project == "agi-tree"` branch anywhere, and nothing here adds one. Every
-other project — fantasia included — gets a plain clone inside an
-independently-git-initialized tree, per the layout above.
+**`agi` is not a special case.** Before `goal:g11` the engine's own graph
+needed its own symlink trick — `agi/agi-tree -> <graph repo>`,
+`agi-tree/agi -> <engine repo>` — because the graph lived in a separate repo
+that had to reach back into the checkout it built. That pair is retired
+outright rather than replaced: `agi`'s own graph is just `.agi/` at the root
+of the engine repo, the same shape every other project gets, minus the clone
+step it doesn't need against itself. Running any command from inside `agi`
+resolves `.agi/` by the same phase-0 rule as `fantasia/.agi` — no branch, no
+flag. **`goal:g8.2`'s invariant — no `if project == "agi-tree"` branch
+anywhere — gets easier to hold, not harder**: there is exactly one code path
+for "where is the graph," and `agi` walks it like everyone else.
 
 New node types are **schema**, i.e. configuration — which is all the flexibility a project needs without forking the engine.
 
@@ -250,24 +255,31 @@ The finer grain — the *chat* that produced the version, rather than a note
 about it — is **G2.7** and **G10.1**, and is still unbuilt. `thought_session:`
 is reserved in frontmatter for it.
 
-**A build node's ref holds its payload, not just its prose.** As of 2026-08-25 (G6.3) `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — and the payload carries its **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. So `payload_ref` still names where the file belongs in the engine tree, but the bytes come from the ref. A payload-only edit is a real version, because the unchanged-check compares the whole tree.
+**A build node's ref holds its payload, not just its prose.** Since G6.3, `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — with the payload's **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. `payload_ref` names a path; under `goal:g11` that path is simply where the file already lives in this same repo, not a staged copy of it. A payload-only edit is still a real version, because the unchanged-check compares the whole tree.
 
-That is what reverses G6.1's arrow, and it is the workflow for engine work:
+The workflow this makes possible, in full:
 
 ```
-grid.py checkout --all                  # payloads/<payload_ref>, editable
-<edit, and run the tests against that copy>
+<edit the file, in place, wherever it lives in the tree>
+<run its tests>
+git commit                              # the thought and the code, together
 grid.py commit --all                    # the graph records your edit as vN+1
-stitch.py --out <engine> --from-grid --publish
 ```
 
-`--publish` refuses unless `--from-grid` is set **and** the target's working tree is clean, so every overwritten byte is already in the target's own git history and `git checkout .` undoes the publish whole. `--grid-version N` materializes a chosen version of the whole tree instead of each node's tip.
+**Retired, because each existed only to carry bytes across a boundary that no longer exists:**
 
-**Do not hand-edit the engine.** A change made there has no node behind it, which is the open loop G6 exists to close — and the graph will overwrite it on the next publish.
+- `payloads/` — the staged checkout. Gone; the payload *is* the source file.
+- `grid.py checkout` — nothing to check out. **Never run it** — even before `goal:g11` it was a whole-tree command that silently reverted another agent's uncommitted work twice in one session (**goal:g4.1**); under one repo there is no second copy left for it to overwrite.
+- `stitch.py --publish` — nothing to publish *into*; the engine tree and the source tree are the same tree.
+- `publish-engine.sh` — its four gates existed to make a cross-repo write recoverable. A commit in one repo is already recoverable with `git revert`.
+
+**`grid.py commit --all` stays — this is worth stating plainly, because "one repo" invites the wrong inference.** The grid was never the thing with the boundary problem; it is not the publish pipeline. It versions `node.md` and its payload *together* as one atomic version, which plain git does not do — git versions the whole repo per commit, the grid versions one node's history independent of whatever else that commit touched. `refs/grid/*` is unchanged, `grid.py log|diff|versions|payload` all still work, and the 5-minute cron still runs `commit --all`.
+
+**One real use survives beyond the grid itself:** `stitch.py --from-grid --grid-version N --out DIR` still materializes a chosen historical version of the whole tree into a fresh directory — it writes *out*, not back into this repo, which is a genuinely different operation from `--publish` and is not retired.
 
 - **After every iteration commit:** `grid.py commit --all`. Changed nodes gain a version; unchanged nodes get nothing. **Versions record change, not time.**
 - **Kid drafts:** `grid.py commit <file> --session <iter> <agent>` before review. Rejected drafts survive there; accepted content lands on the node branch at the next `commit --all`. Nothing is lost either way.
-- **Sync is automated.** `grid.py cron install` sets both cadences: every 5 min, snapshot + push `refs/grid/*` (crash window ≤ 5 min); hourly, push the main branch. **Nobody syncs by hand.** A parent's only git surface is the local iteration commit; a kid's is nothing at all.
+- **Sync is automated, and cadence is graph content.** `.agi/nodes/.geometry/crons.md` declares `crons_live` plus per-job schedules; `bin/crons.py apply` reconciles the real crontab against it, and `grid_sync` (every 5 min) re-runs `apply` itself, so editing the node and committing it *is* the change. `crons_live: false` is a one-edit kill switch for every managed line at once. **Nobody syncs by hand.** A parent's only git surface is the local iteration commit; a kid's is nothing at all.
 
 ### Identifiers: mint id vs address
 
@@ -284,7 +296,7 @@ Grid refs are **designed** to key on the mint id rather than the address, so ret
 
 ## Configuration
 
-`<project>/agi-tree.config.json`:
+`<project>/.agi/config.json` — bare `config.json` is canonical inside a `.agi/` directory; a project not yet on `goal:g11`'s layout still resolves its top-level `agi-tree.config.json` the same as always:
 
 ```jsonc
 {
@@ -310,7 +322,9 @@ One namespace per runtime — `agent_dispatch.*` for pi, `cc_dispatch.*` for Cla
 
 **The config file is the project's whole customization surface.** It is per-project, owned by the project repo, and meant to be edited programmatically — the engine reads it, never writes engine behavior back into it. A project changes metrics, dispatch, and schema here; it never forks engine code to change behavior.
 
-**Legacy name.** Projects created before the rename carry `autoresearch-tree.config.json`. Every engine entry point still resolves it, canonical name first, so old projects keep running unchanged. New projects use `agi-tree.config.json`. Same for `$AGI_TREE_PROJECT_ROOT`, whose legacy spelling `$AUTORESEARCH_TREE_PROJECT_ROOT` is still read and still set.
+**Two more keys exist only to override `goal:g11`'s defaults, both usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`) and `goals_file` (where the rendered `GOALS.md` lands — defaults to that repo's root). A project that already ships its own `GOALS.md` sets `goals_file` and keeps both documents rather than colliding.
+
+**Legacy name.** Projects created before the rename carry `autoresearch-tree.config.json`. Every engine entry point still resolves it, canonical name first, so old projects keep running unchanged. Same for `$AGI_TREE_PROJECT_ROOT`, whose legacy spelling `$AUTORESEARCH_TREE_PROJECT_ROOT` is still read and still set.
 
 ## Install
 
@@ -326,7 +340,7 @@ One skill, one source — no project ever carries its own copy of either symlink
 
 ## Auto-injection
 
-`hooks/cc-session-start.sh`, registered as a Claude Code `SessionStart` hook, injects the project's map into every new session. It walks up from cwd for `agi-tree.config.json`, re-renders if stale, and emits the head of `INJECTION.md`. **Silent no-op outside projects**, so it's safe to register globally.
+`hooks/cc-session-start.sh`, registered as a Claude Code `SessionStart` hook, injects the project's map into every new session. It resolves the project root the same way every other entry point does (`bin/locations.py` / `lib/find-root.sh`), re-renders if stale, and emits the head of `INJECTION.md`. **Silent no-op outside projects**, so it's safe to register globally.
 
 ## Long runs
 
@@ -347,7 +361,7 @@ tmux attach -t agi          # Ctrl-B D to detach
 
 ## Safety rails (non-negotiable)
 
-- **Never create a project-local `bin/snapshot-build-site.py` or `bin/render-context.py`.** Stale copies have silently wiped an entire node corpus (29,264 files) and separately broken the render path. The driver prefers project-local scripts, so a stale copy shadows the safe engine version. Treat any project-local `bin/*.py` as stale until proven otherwise.
-- **Engine improvements → engine repo. Graph and domain output → project repo.**
+- **Never create `<project-root>/bin/snapshot-build-site.py` or `bin/render-context.py`** — that's `.agi/bin/*.py` under this layout, since `driver.sh` resolves the project root to `.agi/` and prefers a script there over the engine's own. Stale copies have silently wiped an entire node corpus (29,264 files) and separately broken the render path. Treat any such file as stale until proven otherwise.
+- **Engine improvements go in the engine's own source** (`extensions/`, `skills/`, `src/`). **Graph and domain output go in `.agi/`.** A downstream project never forks engine code to get project-specific behavior — see Configuration.
 - **Kids that stall or wander out of zoom scope:** kill, log, respawn narrower.
 - **Verify the node count never drops** after a snapshot.
