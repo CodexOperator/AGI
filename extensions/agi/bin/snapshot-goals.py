@@ -51,6 +51,11 @@ PROJECT_ROOT = Path(
 # Canonical name first; the legacy name stays accepted during the rename window.
 CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
 
+# goal:g11 — one resolver for every path. `bin/` is already on sys.path for
+# every entry point here, so this is a plain sibling import.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
+
 
 # graph_core.identity — the ENGINE's own copy, for the same reason
 # backfill-mint-ids.py insists on it: a project's vendored src/ predates
@@ -99,7 +104,12 @@ def config_path(root: Path) -> Path | None:
             return p
     return None
 
-GOALS_MD = PROJECT_ROOT / "GOALS.md"
+# goal:g11 — not `PROJECT_ROOT / "GOALS.md"`. Under the `.agi/` layout the graph
+# root is `<repo>/.agi`, and rendering the goal document there would hide the
+# one file a human is most likely to open first. `goals_path` puts a bare
+# `goals_file` name at the repo root instead, and honours an explicit override
+# for a project that already ships a GOALS.md of its own.
+GOALS_MD = locations.goals_path(PROJECT_ROOT)
 NODES_DIR = PROJECT_ROOT / "nodes"
 
 # `## G1 — Title — status: active`             long-term goal
@@ -132,7 +142,7 @@ def _set_project_root(path: Path) -> None:
     """Re-point the module-level path globals (used by --project in tests)."""
     global PROJECT_ROOT, GOALS_MD, NODES_DIR
     PROJECT_ROOT = Path(path).resolve()
-    GOALS_MD = PROJECT_ROOT / "GOALS.md"
+    GOALS_MD = locations.goals_path(PROJECT_ROOT)
     NODES_DIR = PROJECT_ROOT / "nodes"
 
 

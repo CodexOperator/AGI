@@ -1,7 +1,20 @@
 #!/bin/bash
 # find-root.sh — locate the project root.
 #
-# Two-phase rule, phase 1 always tried first and wins if it succeeds:
+# The bash half of the one resolution rule; bin/locations.py is the Python half
+# and implements the SAME phase order deliberately. The two are verified against
+# each other in tests/test_locations.py::test_bash_and_python_agree — if you
+# change a phase here, change it there, or that test fails and says so.
+#
+# Three-phase rule, tried in order, first success wins:
+#   0. GRAPH DIR: walk up looking for <d>/.agi/ holding a config. This is the
+#      goal:g11 layout, where the graph lives inside the repo it builds:
+#        <repo>/.agi/{config.json,nodes/,context/}  +  <repo>/GOALS.md
+#      Checked BEFORE phase 1 within each directory, because a half-migrated
+#      repo carries both markers and the new layout is the one that should win.
+#      Nearest enclosing wins, which is what lets an engine clone carry its own
+#      graph without a flag: run from fantasia/ and you get fantasia's graph,
+#      run from fantasia/agi/ and you get the engine's.
 #   1. UP: walk up from the starting directory looking for a config file
 #      (agi-tree.config.json, or legacy autoresearch-tree.config.json).
 #      This is the classic layout, where the tree IS the project root
@@ -32,15 +45,40 @@
 # first that exists, so a project carrying both resolves to the canonical one.
 AGI_TREE_CONFIG_NAMES=("agi-tree.config.json" "autoresearch-tree.config.json")
 
+# The graph directory goal:g11 moves the tree into. A dot name on purpose: it
+# files the graph with .git/.github/.claude — the tooling a repo carries but
+# does not itself run — rather than in the middle of the source tree.
+AGI_GRAPH_DIR_NAME=".agi"
+
 # Print the config file path inside $1, or return 1 if the dir is not a project.
+#
+# Inside a .agi/ directory the bare name config.json is also accepted: the
+# directory already says what it is, so the project prefix is redundant there.
+# It is accepted ONLY there — outside a .agi/, config.json is far too generic
+# to be a project marker, and treating it as one would make any repo with a
+# stray config.json in its root look like a graph.
 agi_tree_config_path() {
   local d="$1" name
-  for name in "${AGI_TREE_CONFIG_NAMES[@]}"; do
+  local -a names=("${AGI_TREE_CONFIG_NAMES[@]}")
+  if [[ "$(basename "$d")" == "$AGI_GRAPH_DIR_NAME" ]]; then
+    names=("config.json" "${names[@]}")
+  fi
+  for name in "${names[@]}"; do
     if [[ -f "$d/$name" ]]; then
       echo "$d/$name"
       return 0
     fi
   done
+  return 1
+}
+
+# Phase-0 helper: print <d>/.agi if it exists and holds a config, else return 1.
+agi_graph_dir_in() {
+  local cand="$1/$AGI_GRAPH_DIR_NAME"
+  if [[ -d "$cand" ]] && agi_tree_config_path "$cand" >/dev/null 2>&1; then
+    echo "$cand"
+    return 0
+  fi
   return 1
 }
 
@@ -95,16 +133,34 @@ _agi_find_root_descend() {
 }
 
 find_project_root() {
-  local start="${1:-$PWD}" d="${1:-$PWD}"
+  local start="${1:-$PWD}" d="${1:-$PWD}" graph_dir
 
-  # Phase 1: walk up.
+  # Phases 0 and 1, interleaved in ONE upward walk rather than run as two
+  # separate walks. That matters: two walks would let a distant .agi/ outrank a
+  # legacy config sitting right next to you, which inverts "nearest enclosing
+  # wins" at exactly the moment a repo is half migrated.
   while [[ "$d" != "/" ]]; do
+    if graph_dir=$(agi_graph_dir_in "$d"); then
+      echo "$graph_dir"
+      return 0
+    fi
     if agi_tree_config_path "$d" >/dev/null 2>&1; then
       echo "$d"
       return 0
     fi
     d="$(dirname "$d")"
   done
+
+  # The loop stops before testing "/" itself; test it explicitly so a project
+  # at the filesystem root is not silently unreachable.
+  if graph_dir=$(agi_graph_dir_in "/"); then
+    echo "$graph_dir"
+    return 0
+  fi
+  if agi_tree_config_path "/" >/dev/null 2>&1; then
+    echo "/"
+    return 0
+  fi
 
   # Phase 2: descend into <start>/*-tree/. Only reached when phase 1
   # found nothing above $start.
