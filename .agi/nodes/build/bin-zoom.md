@@ -1,0 +1,170 @@
+---
+build_kind: code
+confidence: 1.0
+id: "build:bin-zoom"
+mint_id: 748058ed9c1e41a7acc8c44672c6088e
+origin: build-scan
+parents:
+  - idea:engine-zoom
+payload_ref: extensions/agi/bin/zoom.py
+tags:
+  - build
+  - code
+  - g2.1
+title: "Build: extensions/agi/bin/zoom.py"
+type: build
+---
+
+`extensions/agi/bin/zoom.py` — level-3 code node (one file, one canonical node).
+
+Census parent: `idea:engine-zoom`.
+
+<!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
+```yaml
+payload_ref: extensions/agi/bin/zoom.py
+parse_ok: true
+inputs:
+- name: __future__.annotations
+  how: '`from __future__ import annotations` at line 48'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: argparse
+  how: '`import argparse` at line 50'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json
+  how: '`import json` at line 51'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: sys
+  how: '`import sys` at line 52'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: pathlib.Path
+  how: '`from pathlib import Path` at line 53'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(cfg_path.read_text())` at line 83'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(cfg_path.read_text())` at line 255'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 83'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 255'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: inject_path
+  how: '`inject_path.read_text(encoding="utf-8")` at line 391'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cli-args
+  how: builds an `argparse.ArgumentParser` (module-wide, no single call site)
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+outputs:
+- name: config_path
+  how: 'defines public function `config_path` at line 59, signature: (root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: default_runtime
+  how: 'defines public function `default_runtime` at line 70, signature: (root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: completion_contract
+  how: 'defines public function `completion_contract` at line 89, signature: (runtime:
+    str, iter_n, agent_id, target: str | None=None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: ZoomUnavailable
+  how: defines public class `ZoomUnavailable` at line 124
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _add_graph_core_to_path
+  how: 'defines private function `_add_graph_core_to_path` at line 220, signature:
+    (root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _load_wired_graph
+  how: 'defines private function `_load_wired_graph` at line 237, signature: (root:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _bfs_neighbors
+  how: 'defines private function `_bfs_neighbors` at line 283, signature: (g, target:
+    str, hops: int=2)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _frontmatter_for
+  how: 'defines private function `_frontmatter_for` at line 301, signature: (root:
+    Path, dir_name: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: main
+  how: defines public function `main` at line 331
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _unavailable_message
+  how: 'defines private function `_unavailable_message` at line 416, signature: (level:
+    int)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _compose_big
+  how: 'defines private function `_compose_big` at line 427, signature: (inject_text:
+    str, args: argparse.Namespace)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _compose_small
+  how: 'defines private function `_compose_small` at line 450, signature: (root: Path,
+    args: argparse.Namespace)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _render_level
+  how: 'defines private function `_render_level` at line 499, signature: (root: Path,
+    args: argparse.Namespace, level: int)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: out_path
+  how: '`out_path.write_text(content, encoding="utf-8")` at line 411'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: stdout
+  how: 7 `print()` call(s) at line(s) [360, 366, 382, 389, 395, 401, 412]
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+```
+<!-- BUILD-CONTRACT:END -->
+
+Generated by `level3.py` (see `hyp:level3-node-anatomy` in the graph repo for the design). `how` fields above are derived mechanically via the standard library `ast` module; `why`/`perf`/`security` are placeholders for a later model pass — never fabricated by this generator.
