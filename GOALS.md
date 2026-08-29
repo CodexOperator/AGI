@@ -3259,6 +3259,98 @@ produced it. That link is what turns the grid from storage into history.
 
 ---
 
+### G9.6 — A build node's description survives the scan; its body becomes the rendered payload — status: horizon
+
+**Under G9 — legibility: a human can see what the loop is doing — because
+today the only readme a build node offers is a mechanically-derived contract,
+and that is not what a human reads to learn what a file is for.**
+
+## Two changes
+
+- **`description:`** — a short authored field in a build node's frontmatter:
+  a small, built-in readme that rides with the node. What it is for: a reader
+  — human or agent — should be able to learn what a file is *for* without
+  opening the file and without parsing a `BUILD-CONTRACT` block that states
+  `how`, not why.
+- **Body becomes a rendered view of the payload** — the actual content of the
+  file the node owns, rendered rather than authored. Not a contract *about*
+  the file; the file itself, as the node's body.
+
+## Why this resolves a live contradiction
+
+`bin/level3.py` regenerates a build node's entire body on every scan.
+`goal:g2.10` measured the consequence directly: **8,034 `why`/`perf`/
+`security` contract fields across 190 build nodes, all still `TODO(model)`,
+0 ever filled** — because anything authored into a body is wiped by the next
+scan. `goal:g2.11` responded by adding the `THOUGHT` block as the one
+authored region that survives regeneration, keyed on the general rule
+**`body` is state; `thought` is delta.**
+
+That fix is now absorbing a second job it was not built for. This session
+found `build:bin-grid`'s `THOUGHT` block has grown to roughly 2,000 words —
+not because 2,000 words of per-version delta accumulated, but because
+`goal:g6.8` records that it absorbed a migrated `@v2` node body: the five
+`origin: build-version` nodes carried 7,000–13,000 characters of real
+reasoning each, "with nowhere to put it," and `goal:g2.10`'s own record of
+that migration shows exactly this — `build:bin-grid`'s body went from 13,113
+to 26,399 characters and its `THOUGHT` region absorbed 13,284 characters in
+the same move. That prose is durable reference material — what the file is
+and why it exists — not a delta explaining how this version differs from the
+last one. `THOUGHT`'s own convention says it is "rewritten from scratch each
+time rather than appended to," and on build nodes practice has diverged from
+that: the region is doing two incompatible jobs at once, permanent readme
+prose and per-version delta, because it is the only authored region that
+survives a scan.
+
+**`description:` gives the durable readme its own home, so `THOUGHT` can go
+back to being a delta.** That is this goal's real payoff, with the ~2,000-word
+block on `build:bin-grid` and the 8,034/0 figure as the evidence that the
+gap is not hypothetical — it is already being papered over by a region that
+was designed for something else.
+
+## The three regions, made explicit
+
+| region | owner | lifetime |
+|---|---|---|
+| `description` | whoever authors the node | durable, short, survives every scan unless deliberately rewritten |
+| body | `bin/level3.py` (harness) | derived, regenerated every scan — the payload, rendered |
+| `THOUGHT` | whoever authored the version | per-version delta, rewritten from scratch each time (`goal:g2.11`) |
+
+Same split as today's `BUILD-CONTRACT` / `THOUGHT` pair, with one region
+added and one redefined: `description` takes over the durable-readme job
+`THOUGHT` was never meant to hold, and body stops being a derived *contract
+about* the payload and becomes the payload itself, rendered. `why`/`perf`/
+`security` — the fields `goal:g2.10` fixed the carry-over for — need a new
+home once `BUILD-CONTRACT` is no longer the body's organizing structure;
+this goal does not resolve where they land, only that `description` is not
+it, since those are per-field annotations, not a whole-node readme.
+
+## Falsifier
+
+A build node's `description` survives two consecutive `level3.py` runs, AND
+its body matches the payload byte-for-byte after rendering. Today the first
+half fails for any authored body content — `level3.py` overwrites the whole
+body region unconditionally except for the marked `THOUGHT` block — and the
+second half is not yet a defined operation at all: body currently holds a
+derived contract, not a rendering of the payload.
+
+## Measured facts (2026-08-29, do not re-measure without cause)
+
+- 195 build nodes exist; 190 are written by the level-3 scan on each run.
+- 799 nodes total.
+- `level3.py` re-derives and rewrites build node bodies on every run; two
+  consecutive runs currently leave an identical, stable diff (verified this
+  session) — the regeneration is idempotent, which is what makes swapping its
+  output from "contract" to "rendered payload" a change in *what* is derived,
+  not a change in whether regeneration is safe to run repeatedly.
+
+## Out of scope
+
+**Where `why`/`perf`/`security` move once `BUILD-CONTRACT` is no longer the
+body's shape** is not decided here — flagged above as an open question this
+goal surfaces but does not close, so it does not get answered by default
+while this goal is still at `horizon`.
+
 ## G10 — The hypergraph: an environment, not a document — status: horizon
 
 **The end state this whole system is walking toward.** Not "a graph the agent can
@@ -3680,6 +3772,393 @@ because one counts from a directory and the other from a file.
 deliberately: it is a different failure shape — arithmetic divergence, not
 copy-paste duplication — and folding it in would let this goal's mechanical
 falsifier drift into something that needs judgment to check.
+
+## G12 — Only morals are parentless — moral spawns vision spawns goal — status: horizon
+
+**The rule, stated once: exactly one node type may have an empty `parents`
+list — `moral`.** Every other type, without exception, resolves to at least
+one moral by walking `parents` upward. Morals are the root; morals spawn
+visions, which require a moral parent (but may take others too); visions
+spawn goals, which require a vision parent (but may take others too). The
+owner's framing: morals are "the original guardrails," a vision is "what must
+be," a goal is the "concrete actionable steps" toward it. The payoff, in the
+owner's own words: **"any node other than moral has a path of parenthood that
+leads to one or a few morals."**
+
+## The chain
+
+```
+moral   (parentless — the only type that is)
+  -> vision   (requires >=1 moral parent; may also have verdict / bigger_outcome)
+    -> goal   (requires >=1 vision parent; may also have idea / build / verdict / outcome)
+```
+
+## Why this is cheap: the enforcement mechanism already exists
+
+`bin/spawn_gate.py` already enforces exactly this shape of rule for every type
+in the corpus today: `parentless_types` is read from `[shape].md`,
+`allowed_parents` / `min_parents` / `max_parents` / `min_parents_by_type` are
+read per-type from each `[<type>].md`'s `spawn:` block, and both are checked
+at write time by `check_spawn`. **Nothing about this goal asks for a new
+enforcement engine.** What changes is three declared facts: `parentless_types`
+collapses from three entries to one (`moral`), a new `[moral].md` schema is
+minted with `allowed_parents: []`, and `[vision].md` / `[goal].md` get new
+`spawn:` blocks matching the tables below. The owner's own reasoning for why
+this is safe to lean on: **"using kids helps mitigate as they must spawn only
+nodes that have parents only"** — a kid agent that can only produce
+spawn-gate-approved nodes cannot itself create a new parentless node once
+`moral` is the only legal shape, so the invariant holds going forward without
+a human re-checking every write.
+
+## The two allowed-parent tables, as specified
+
+**Vision — parents arrive only through season-boundary edges** (no such edge
+kind exists in the graph yet; see G12.1):
+
+| parent type | required / optional |
+|---|---|
+| moral | required |
+| verdict | required/optional |
+| bigger_outcome | required/optional |
+
+"Just needs any one of the required/optional parents to be valid" — see
+Ambiguity 1 below.
+
+**Goal — parents arrive only through intra-season standard edges** (the
+ordinary `parents:` edges written today):
+
+| parent type | required / optional |
+|---|---|
+| vision | required |
+| idea | required/optional |
+| build | required/optional |
+| verdict | required/optional |
+| outcome | required/optional |
+
+## Ambiguity 1 — does "any one" override "moral(required)"?
+
+The quote: *"vision node allowed parents ...: moral(required),
+verdict(required/optional), bigger outcome(required/optional). Just needs any
+one of the required/optional parents to be valid."* Two incompatible
+readings:
+
+- **(a) Moral is unconditionally mandatory.** `verdict` / `bigger_outcome` are
+  each independently optional add-ons; the closing sentence only says you
+  don't need both of them at once. This matches the rest of the spec
+  verbatim — "vision nodes ... require moral parents" and the "leads to one
+  or a few morals" payoff both only hold if moral is non-negotiable.
+- **(b) The closing sentence overrides the per-type labels.** Any one of the
+  three types satisfies the rule on its own — including a vision with only a
+  `bigger_outcome` parent and no `moral` at all. This reading takes
+  "required/optional" at face value and treats `moral(required)` as loosely
+  worded rather than load-bearing.
+
+**This node adopts reading (a)** — moral required unconditionally, i.e.
+`min_parents_by_type: {moral: 1}` on `[vision].md`'s eventual `spawn:`
+block — because reading (b) breaks this goal's own falsifier (below) and
+contradicts the plain-prose statement of the design twice over. **This is an
+adopted reading, not a confirmed decision — flagged here for the owner to
+settle before `[vision].md` is actually edited.**
+
+## What "cite the moral(s) it adheres to, and how" means for the schema
+
+The owner: *"Each vision node must cite a moral guardrail(s) it adheres to,
+and how, so that any agents spawning goals from them know whether it takes
+the project in the right direction."* An edge (`parents: [moral:x]`) records
+*that* a vision descends from a moral; it does not record *how* the vision
+honors it. This needs a real field, not prose buried in the body — e.g.
+`moral_adherence: {moral:x: "why this vision satisfies x", ...}` — so a
+goal-spawning agent can read the justification mechanically rather than infer
+it. **This is a real authoring burden**: every vision (eventually capped at 3,
+see G12.1) needs a written justification per cited moral, not just an id.
+
+## The falsifier
+
+Mechanical and countable: walk `parents` from every node in the corpus; every
+node resolves to at least one `moral` node, and the count of nodes with an
+empty `parents` list equals the count of `moral` nodes.
+
+Today: **113 of 799 nodes are parentless, and 0 are `moral`** — the type does
+not exist, no node, no `context/schemas/[moral].md`. The target state is 5
+parentless nodes total, all of type `moral`.
+
+## What this collides with
+
+**`[shape].md :: parentless_types` today lists three entries** —
+`goal:long-term`, `goal:short-term`, `idea` — and this goal removes all
+three, unconditionally. That is 10 long-term goals, the short-term (`S`)
+goals, and 42 ideas that currently have zero parents and would all need a
+vision-or-moral ancestor.
+
+**The universal rule sweeps in types the owner's spec never mentions.** "Only
+one type of node can be parentless" is stated as a total rule, not scoped to
+goal/idea. Measured today: 15 `verdict` nodes and 15 `hypothesis` nodes are
+also parentless, with no discussion in the spec of what a verdict's or a
+hypothesis's path to a moral should look like. Migrating those 30 nodes is in
+scope by the letter of the rule even though the owner's worked example
+(moral -> vision -> goal) never names them.
+
+**The existing `[vision].md` schema is not merely silent on this — it
+actively conflicts.** It was authored 2026-08-27, two days before this spec,
+and already declares a `spawn:` block: `allowed_parents: [overview]`,
+`min_parents: 2`, `max_parents: 4`, `min_parents_by_type: {overview: 2}`,
+sitting at the top of an already-designed chain
+`outcome -> bigger_outcome -> overview -> vision`. Nothing in that chain is
+`moral`, and `bigger_outcome` there is a *grandparent* of vision (via
+`overview`), not the direct parent the owner's table names; `overview` does
+not appear in the owner's table at all. Replacing `[vision].md`'s spawn rule
+per this goal does not just add a new option — it discards a floor (2
+overviews minimum) built deliberately as "harder to earn than the middle"
+convergence forcing, with nothing here yet saying whether that floor is kept,
+dropped, or reworked into the new table.
+
+### That floor is currently satisfied by nothing, which changes the argument
+
+Measured 2026-08-29, and it is the single most useful fact in this node:
+
+| | |
+|---|---|
+| `overview` nodes in the corpus | **0** |
+| vision nodes | 17 |
+| their actual parent types | `bigger_outcome` ×17, `outcome` ×2 |
+| visions meeting `min_parents_by_type: {overview: 2}` | **0 of 17** |
+
+**The `overview -> vision` chain is a dead declaration.** `[overview].md`
+itself requires 3 `bigger_outcome` parents, and not one overview node was ever
+minted — so the floor `[vision].md` declares has never once been met, and
+every vision in the graph is parented on `bigger_outcome` directly, exactly
+one hop below where the schema says it should sit.
+
+This reverses the collision into an argument *for* the change. The owner's
+table is not overwriting a working rule; it is replacing one that **no node
+has ever satisfied** with one that already describes what 17 of 17 visions
+actually do — `bigger_outcome` as a direct vision parent is in the owner's
+table, and `overview` is absent from it. What the change genuinely costs is
+the convergence floor's *intent*, not its practice: whether "a vision must be
+harder to earn than the middle of the graph" survives as a `min_parents_by_type`
+on `moral`/`bigger_outcome`, or is dropped. That is a live question. The
+`overview` type itself should be deprecated rather than deleted (CLAUDE.md's
+retirement rule) if this lands, since a schema for a type with zero instances
+is exactly the "prose with a directory name" failure `goal:g10.2` warns about.
+
+## Total parentless count today, for reference
+
+| type | total | parentless |
+|---|---|---|
+| idea | 72 | 42 |
+| goal | 87 | 32 |
+| verdict | 86 | 15 |
+| hypothesis | 107 | 15 |
+| build | 195 | 7 |
+| experiment | 77 | 1 |
+| doc | 1 | 1 |
+| vision | 17 | 0 |
+| **TOTAL** | | **113 of 799** |
+
+### G12.1 — Caps on morals and visions, and season-boundary edges — status: horizon
+
+**G12 sets the chain; this sets the numbers on it.** Two caps, one new edge
+concept, and one open question about who may edit the root of the tree.
+
+## Caps: 5 morals, 3 visions, declared in a config node
+
+The owner: morals capped at 5, visions capped at 3, "all in config node."
+Two things are true at once here. First, **zero `config`-type nodes exist in
+the corpus today** — `context/schemas/[config].md` describes filesystem
+locations and says so of itself: "there are zero `config` nodes in the
+corpus... Minting a `.geometry/` node from it is G10.2's job and waits on a
+code path that reads more than one field." So "the config node" the owner
+points at does not exist yet, the same way `moral` does not exist yet.
+Second, there is already a **working precedent for exactly this shape**:
+`nodes/.geometry/crons.md` plus `context/schemas/[cron].md` — a real node
+that a real applier reads at runtime (goal:g10.2), parented to `goal:g10.2`
+rather than left parentless (its own authored version-history note records
+that `cron` was minted parentless in v1 and corrected in v2, because
+"describes the graph's own shape" is not the same claim as "has no
+lineage"). Declaring
+`moral_cap: 5` and `vision_cap: 3` the same way — a `.geometry`-style node,
+parented under `goal:g10.2`, read by `spawn_gate.py` or an extension of it —
+is the same move `crons.md` already made, not a new pattern this project has
+to invent.
+
+## Seasons: vision changes only through season-boundary edges; morals never change
+
+The owner: visions "update ... only when we use ... season-boundary edges,"
+and "moral nodes always stay the same." `[vision].md` already declares a
+`season: {type: int}` field — "which season this version of the vision
+belongs to" — so the *concept* of a season is not entirely new to the schema.
+What is genuinely new is a distinct **edge kind**. `[shape].md :: edge_fields`
+currently declares five: `parents`, `next_edges`, `depends_on`, `seeds`,
+`proposes_goals` — none of which distinguishes "this parent edge crosses a
+season boundary" from "this is an ordinary intra-season edge." The owner's
+spec needs exactly that distinction: vision parents arrive "only through
+season roll-over edges," goal parents arrive "only through intra-season
+standard edges." Minimally, this needs either a new edge field (e.g.
+`season_parents:` alongside `parents:`) or a way to tag entries within
+`parents:` by kind — today `parents:` is one undifferentiated list, and
+`spawn_gate.py` has no notion of "which kind of edge this entry is."
+
+## The cap collides with reality: 17 visions exist, cap is 3
+
+`vision` has 17 live nodes today against a proposed cap of 3. Three ways to
+close that gap, named honestly, none obviously right:
+
+- **Retire 14.** Move them to `nodes/deprecated/vision/` per this project's
+  deprecate-never-delete rule — mint id and grid history survive, only the
+  address changes. Requires picking which 3 of 17 stay, on what basis: the
+  current 17 predate the `overview` tier entirely (see G12's collision
+  section), so "best 3" has no obvious metric yet.
+- **Merge.** Collapse the 17 into 3 by combining their content — loses the
+  one-vision-per-overview-set granularity `[vision].md`'s current design
+  already assumes.
+- **Cap applies to new visions only.** Grandfather the 17 and enforce 3 only
+  from here forward — cheapest, but means "3 visions total" is not actually
+  true today, and G12's falsifier carries an asterisk until the 14 are dealt
+  with.
+
+This goal does not choose between them.
+
+## Moral mutability: by hand initially; CodexOperator-only permission is an open question, not a decision
+
+The owner: morals can be "modified as well but initially only by hand," and
+floated — with an explicit "maybe" — restricting that hand-edit to "the
+CodexOperator owner of the repo," with a fallback stated in the same breath:
+"if not, just leave them as the unique parentless node type." **Record this
+as a debated idea, not a requirement** — the owner has not committed to it.
+
+If pursued, it runs into a real constraint worth stating plainly: **a normal
+git clone has no concept of per-path write permission.** `CODEOWNERS`
+(GitHub) is a merge-review gate on a pull request, not a filesystem lock — it
+does nothing to a local clone or a direct push to an unprotected branch.
+Branch protection rules are server-side and can be bypassed by anyone with
+admin rights, or simply do not apply outside the protected branch. Neither
+mechanism stops a local agent (or a person) from editing `nodes/moral/*.md`
+directly and committing — the most a hook (`pre-commit`, `pre-push`) can do
+is warn or refuse locally, and only for an agent that has the hook installed
+and does not bypass it (`--no-verify` defeats it trivially). So "only the
+CodexOperator owner may modify morals" is, at best, an advisory policy
+enforceable at review time — not a technical guarantee that a careless or
+rogue write is prevented at the point of edit. **If pursued, this should be
+scoped as "reviewed-and-reverted if violated," not "cannot happen."** If not
+pursued, the fallback the owner already named applies: morals stay nothing
+more than the unique parentless node type, editable by hand like any other
+node, with no special-cased permission at all.
+
+## Falsifier
+
+Once the config-style node exists: `moral` count <= 5, `vision` count <= 3
+(or <= 3 among post-cap visions, if the grandfather reading is chosen), and
+every `vision` node's parent set includes exactly one edge tagged as a
+season-boundary edge — once that edge kind exists to check.
+
+### G12.2 — Idea nodes require a goal or vision parent, and what they may spawn depends on which — status: horizon
+
+**G12 establishes the parentage spine — `moral → vision → goal`, `moral` the
+only parentless type. This is that spine's sub-goal for `idea`.**
+
+## The parent requirement
+
+An idea node requires **at least one `goal` OR at least one `vision`** —
+either is sufficient, neither is mandatory over the other. Today's schema
+(`context/schemas/[idea].md`) declares `allowed_parents: [goal]`,
+`min_parents: 0`, and lists `idea` in `[shape].md :: parentless_types` as one
+of exactly three shapes ever licensed to float free. Both change under this
+goal: `vision` joins `allowed_parents`, and `min_parents` moves from 0 to 1,
+which also means removing `idea` from `parentless_types`.
+
+**That removal is one of three, not the last one.** `parentless_types` ends up
+holding exactly one entry, `moral` — `goal:long-term` and `goal:short-term`
+come out too, under `goal:g12`, because a goal requires a vision parent and a
+vision requires a moral parent. This sub-goal removes `idea`; G12 removes the
+other two. Stating it the other way round — that goal and vision remain
+parentless alongside moral — would contradict the spine G12 exists to
+establish, whose whole payoff is that **every** node but a moral has a path of
+parenthood leading to one.
+
+## The conditional spawn rule — the genuinely new mechanism
+
+What an idea may spawn depends on **what its own parents are**, not on
+anything intrinsic to the idea node itself:
+
+- **Parents are only goal(s)/vision(s).** The idea must invoke the full
+  scientific-method lifecycle: hypothesis → experiment → verdict → mvp →
+  outcome. No shortcut.
+- **Parents include a required goal/vision AND an existing `build` node.**
+  The idea may spawn an MVP, or a new version of that build node, directly —
+  skipping the chain.
+
+So the same idea type has two different downstream contracts, selected by
+parent composition. That is a distinction the current spawn model has no way
+to hold.
+
+## Why this is a new shape for the spawn gate
+
+`bin/spawn_gate.py` validates a node against its **own type's** rules —
+`min_parents`, `max_parents`, `allowed_parents` from the schema, plus
+`parentless_types` from `[shape].md`, all read at the moment the node itself
+is written. Every check in `check_spawn()` looks upward, at what a node's
+parents are permitted to be. This rule looks the other way: it constrains a
+node's **children** based on its **parents** — a downstream node (a build
+version, say) has to be checked not just against its own type's
+`allowed_parents`, but against what its *idea* parent's own parent set was.
+Nothing in the gate expresses that today, and nothing in `[shape].md`'s two
+cross-cutting facts (`parentless_types`, `max_parents_ceiling`) reaches it
+either. Say this plainly because it is the main implementation cost of this
+goal: it is not a new rule slotted into the existing per-type table, it is a
+second axis (parent composition of the grandparent idea) that the gate's
+one-hop, own-type check was never built to see. Whoever picks this up should
+budget for that shape, not for a `spawn:` block edit.
+
+## Idea as the graph analogue of the thought block, with extra metadata
+
+The owner's own framing, and it draws a sharp line against `goal:g2.11`'s
+`THOUGHT` block rather than restating it. `body` is state, `thought` is
+delta — but a `THOUGHT` block is bound to **one node's version**: it lives
+inside that node's body, is rewritten from scratch each version, and has no
+edges of its own. An idea is a **free-floating first-class node** with its
+own id, its own `parents`, and its own `next_edges` — it can be pointed at,
+spawned from, and outlive the version of whatever prompted it. That is what
+lets it re-orient work mid-season in a way a `THOUGHT` block cannot: a
+thought is provenance for the node that carries it; an idea is a node in its
+own right that other nodes can descend from.
+
+## The two uses the owner named
+
+- **Gently re-orienting mid-season**, as an idea spawned from an existing
+  `goal` or `vision` reveals a gap the current chain does not cover, without
+  requiring a whole new goal to be declared first.
+- **Spawning the experiment chains that justify changing a vision node**,
+  at the next season boundary — an idea parented on the vision it means to
+  revise, running the full lifecycle above, whose outcome is the evidence a
+  season roll-over cites when minting the vision's next version.
+
+## Measured facts (2026-08-29, do not re-measure without cause)
+
+- **72 idea nodes exist; 42 are parentless.** This rule breaks all 42 on day
+  one — each needs a `goal` or `vision` parent assigned, or needs
+  deprecating in place per CLAUDE.md's retirement convention (never deleted).
+- 799 nodes total, 113 parentless across all types.
+- 17 vision nodes, 87 goal nodes, 195 build nodes, 27 mvp nodes.
+
+## Falsifier
+
+```
+every idea node has >=1 parent of type goal or vision
+every idea node whose parents include no build node has no mvp child
+```
+
+Both are mechanical: the first is a frontmatter+type-index scan identical in
+shape to what `spawn_gate.build_type_index` already does; the second is a
+child-edge walk gated on the same parent-type resolution. Neither requires
+judgement to check.
+
+## Out of scope
+
+**Migrating the 42 parentless idea nodes is not this goal.** This goal
+records the rule and its cost; assigning parents (or deprecating) to 42
+existing nodes is a separate, mechanical follow-up once the schema change
+itself is made — bundling the two would let the rule's definition drift
+while the migration is still being decided node by node.
 
 ## S11 — Retire `level3` as a type name — status: complete
 

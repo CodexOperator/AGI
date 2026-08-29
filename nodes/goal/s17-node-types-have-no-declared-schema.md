@@ -5,7 +5,7 @@ goal_kind: short-term
 heading_level: 2
 id: "goal:s17"
 mint_id: 46b7d8f76a8742bf9aafa5a82ad8cca3
-order: 72
+order: 76
 origin: goals-doc
 seeds:
   - idea:schema-declared-spawn-gate
