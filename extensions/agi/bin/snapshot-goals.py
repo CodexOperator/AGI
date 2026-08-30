@@ -47,9 +47,6 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
-
 #: **goal:g11.1's first casualty, found the hour the layout changed.** This was
 #: `... or os.getcwd()`: an env var, else whatever directory you happened to be
 #: standing in. Under the old layout that was harmless, because cwd *was* the
@@ -107,13 +104,14 @@ def ensure_mint_id(fm: dict) -> dict:
     return {**fm, "mint_id": mint_permanent_id()}
 
 
-def config_path(root: Path) -> Path | None:
-    """First existing config file in `root`, or None if it is not a project."""
-    for name in CONFIG_NAMES:
-        p = root / name
-        if p.exists():
-            return p
-    return None
+#: **goal:g11.1.** Re-exported from `locations`, which is where it always
+#: should have pointed. The local copy left behind by the half-migration knew
+#: only the two prefixed marker names, so `config_path(<repo>/.agi)` returned
+#: None for a graph directory whose config is `config.json` — and both callers
+#: below read that None as "no config" and fell back to engine defaults. The
+#: root was right and the config lookup was silently wrong, which is why this
+#: file counted as half-migrated rather than done.
+config_path = locations.config_path
 
 # goal:g11 — not `PROJECT_ROOT / "GOALS.md"`. Under the `.agi/` layout the graph
 # root is `<repo>/.agi`, and rendering the goal document there would hide the

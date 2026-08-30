@@ -37,19 +37,11 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # goal:s17 -- the one node-writing routine, reached the same way `cli.py` and
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
 import node_writer  # noqa: E402
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
-
-
-def config_path(root: Path) -> Path | None:
-    """First existing config file in `root`, or None if it is not a project."""
-    for name in CONFIG_NAMES:
-        p = root / name
-        if p.exists():
-            return p
-    return None
+#: goal:g11.1 — re-exported from `locations` rather than redefined.
+config_path = locations.config_path
 
 
 # Env vars Claude Code injects so its own agent can use the user's Anthropic
@@ -89,10 +81,14 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    root = Path(args.project_root).resolve()
-    cfg_path = config_path(root)
+    # goal:g11.1 — resolve the given path the way every entry point resolves
+    # cwd, rather than demanding it already BE the graph root. Identity on a
+    # legacy root (phase 1), so no existing project resolves differently.
+    given = Path(args.project_root).resolve()
+    root = locations.find_project_root(given)
+    cfg_path = locations.config_path(root) if root is not None else None
     if cfg_path is None:
-        print(f"ERR: no {CONFIG_NAMES[0]} in {root}", file=sys.stderr)
+        print(f"ERR: not an agi project: {given}", file=sys.stderr)
         return 1
     cfg = json.loads(cfg_path.read_text())
 

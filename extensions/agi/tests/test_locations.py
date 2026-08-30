@@ -7,8 +7,10 @@ commits and are exactly where a resolver goes wrong.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -394,3 +396,158 @@ def test_cli_missing_project_exits_nonzero(tmp_path, capsys):
     (tmp_path / "empty").mkdir()
     assert locations.main([str(tmp_path / "empty")]) == 1
     assert "no agi project found" in capsys.readouterr().out
+
+
+# --- every entry point calls this module, and only this module -------------
+#
+# goal:g11.1. `locations.py` existing did not collapse anything by itself: ten
+# entry points under `bin/` kept their own copy of "walk up for
+# agi-tree.config.json", and when goal:g11 moved the graph into `<repo>/.agi/`
+# every one of those copies went wrong at once. The two tests below are the two
+# halves of that failure — a structural one that catches a *new* copy being
+# added, and a behavioural one that catches a copy that exists but disagrees.
+
+
+#: Entry points that resolve a project root from the current directory. The
+#: expression is carried as source, not as a callable, because these run in
+#: separate processes: varying cwd is the whole point and cwd is process state.
+CWD_RESOLVERS = {
+    "benchmark.py": (
+        # Refuses to load without `ollama`, which is not a test dependency. The
+        # stub goes in before the import so the resolver is reachable at all.
+        'sys.modules.setdefault("ollama", types.ModuleType("ollama"))\n'
+        "import benchmark\n"
+        "RESOLVED = benchmark._find_root()"
+    ),
+    "cli.py": "import cli\nRESOLVED = cli._find_root()",
+    "metrics.py": "import metrics\nRESOLVED = metrics._find_root(Path.cwd())",
+    "post_wire.py": "import post_wire\nRESOLVED = post_wire._find_root()",
+    "spawn_gate.py": "import spawn_gate\nRESOLVED = spawn_gate._find_root()",
+    # Hyphenated filenames are not importable; these expose the root as a
+    # module-level PROJECT_ROOT instead of a function.
+    "render-context.py": '_m = _by_path("render-context.py")\nRESOLVED = _m.PROJECT_ROOT',
+    "snapshot-build-site.py": '_m = _by_path("snapshot-build-site.py")\nRESOLVED = _m.PROJECT_ROOT',
+    "snapshot-goals.py": '_m = _by_path("snapshot-goals.py")\nRESOLVED = _m.PROJECT_ROOT',
+}
+
+_PROBE = '''
+import importlib.util, sys, types
+from pathlib import Path
+BIN = {bin_dir!r}
+sys.path.insert(0, BIN)
+
+def _by_path(fname):
+    spec = importlib.util.spec_from_file_location("probe_" + fname, Path(BIN) / fname)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+{body}
+print(RESOLVED)
+'''
+
+
+def _resolve_in(entry: str, cwd: Path) -> str:
+    """Run `entry`'s own resolver in a fresh process at `cwd`, return the root."""
+    env = dict(os.environ)
+    # The walk is what is under test; an inherited override would mask it.
+    for var in locations.PROJECT_ROOT_ENV_VARS:
+        env.pop(var, None)
+    res = subprocess.run(
+        [sys.executable, "-c",
+         _PROBE.format(bin_dir=str(BIN), body=CWD_RESOLVERS[entry])],
+        capture_output=True, text=True, cwd=str(cwd), env=env,
+    )
+    assert res.returncode == 0, f"{entry} failed at cwd={cwd}:\n{res.stderr}"
+    return res.stdout.strip().splitlines()[-1]
+
+
+def test_only_locations_declares_the_marker_names():
+    """goal:g11.1's falsifier, as a test.
+
+    Structural rather than behavioural on purpose: a newly added copy is
+    harmless right up until the layout changes under it, so the thing worth
+    catching is the copy appearing, not the day it finally disagrees.
+    """
+    offenders = sorted(
+        p.name for p in BIN.glob("*.py")
+        if p.name != "locations.py"
+        and re.search(r"^CONFIG_NAMES\s*=", p.read_text(), re.MULTILINE)
+    )
+    assert offenders == [], (
+        "these entry points declare their own copy of the marker names instead "
+        f"of importing locations: {offenders}"
+    )
+
+
+@pytest.mark.parametrize("entry", sorted(CWD_RESOLVERS))
+def test_entry_point_resolves_the_same_root_from_repo_and_graph_dir(entry, tmp_path):
+    """One question, one answer, wherever you are standing.
+
+    Under the goal:g11 layout the graph is `<repo>/.agi` and the repo root
+    holds no config at all, so a resolver that only knows the legacy marker
+    names either exits (`cli.py`, `metrics.py`, `spawn_gate.py`, `post_wire.py`,
+    `benchmark.py`) or — worse — silently answers `os.getcwd()`
+    (`render-context.py`, `snapshot-build-site.py`). The second shape is the
+    one that matters: it aims a generator at `<repo>/nodes` instead of
+    `<repo>/.agi/nodes` with nothing raised, which is exactly how level3.py
+    minted 3,098 files into its own input set the hour G11 landed.
+    """
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    (repo / "src").mkdir()
+
+    from_repo = _resolve_in(entry, repo)
+    from_graph = _resolve_in(entry, graph)
+
+    assert from_repo == from_graph == str(graph), (
+        f"{entry} resolves differently depending on cwd: "
+        f"from repo root {from_repo!r}, from .agi/ {from_graph!r}, "
+        f"expected {str(graph)!r}"
+    )
+
+
+@pytest.mark.parametrize("entry", ["dispatch.py", "zoom.py"])
+def test_root_taking_entry_points_share_the_config_lookup(entry):
+    """`dispatch.py` and `zoom.py` take the root as an argument, not from cwd.
+
+    Their copy of the rule lived in `config_path`, and its blind spot was the
+    graph directory's bare `config.json` — so `zoom.py` rejected both the repo
+    root and `.agi/` with "not a project root" and was unusable in this repo,
+    while `default_runtime` fell through to `pi` and handed every Claude-Code
+    kid the wrong completion contract (goal:s8, silently re-broken).
+    """
+    spec = importlib.util.spec_from_file_location("shared_cfg_" + entry, BIN / entry)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    assert mod.config_path is locations.config_path
+
+
+def test_zoom_accepts_the_repo_root_and_the_graph_dir(tmp_path):
+    """The confirmed live breakage, as a regression test.
+
+    `zoom.py <repo>` is what `dispatch.py` and every human actually type; it
+    returned "ERR: not a project root" for every directory in a migrated repo.
+    Both spellings must now land on the same context file.
+    """
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "nodes" / "goal" / "g1.md").write_text(
+        '---\nid: "goal:g1"\ntype: goal\nstatus: active\n'
+        'title: "G1: a goal"\nparents: []\n---\n\nbody\n'
+    )
+
+    outs = []
+    for start in (repo, graph):
+        res = subprocess.run(
+            [sys.executable, str(BIN / "zoom.py"), str(start), "1", "kid",
+             "--level", "small", "--target", "goal:g1"],
+            capture_output=True, text=True,
+        )
+        assert res.returncode == 0, f"zoom.py {start} failed:\n{res.stderr}"
+        outs.append(res.stdout.strip().splitlines()[-1])
+
+    assert outs[0] == outs[1] == str(graph / "sessions" / "iter-001" / "kid" / "context.md")

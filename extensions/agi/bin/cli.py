@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import locations  # noqa: E402
 import node_writer  # noqa: E402
 from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
@@ -40,19 +41,18 @@ TYPE_ALIASES = node_writer.TYPE_ALIASES
 NODE_TYPES = node_writer.NODE_TYPES
 
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
-
-
 def _find_root() -> Path:
-    """Walk up cwd to find agi-tree.config.json."""
-    d = Path.cwd().resolve()
-    while d != d.parent:
-        if any((d / name).exists() for name in CONFIG_NAMES):
-            return d
-        d = d.parent
-    print("ERR: no agi-tree.config.json found from cwd up", file=sys.stderr)
-    sys.exit(1)
+    """The graph root for cwd, via the one shared resolver (goal:g11.1).
+
+    The walk this replaced knew only the legacy marker names, so under the
+    goal:g11 layout it walked past `<repo>/.agi/` to `/` and exited 1 — every
+    subcommand here was unusable in a migrated repo.
+    """
+    root = locations.find_project_root()
+    if root is None:
+        print("ERR: no agi project found from cwd up", file=sys.stderr)
+        sys.exit(1)
+    return root
 
 
 def _agent_path(root: Path, iter_n: int, agent_id: str) -> Path:

@@ -76,6 +76,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# goal:g11.1 — one resolver for every path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
+
 #: Where the schemas live, relative to the graph root. Mirrors
 #: `schema_registry/loader.py`'s caller; also declared in
 #: `context/schemas/[config].md :: locations.schemas_root`.
@@ -854,17 +858,13 @@ def _cli(argv) -> int:
     return 2 if res.status == REJECTED else 0
 
 
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
-
-
 def _find_root() -> Path:
-    d = Path.cwd().resolve()
-    while d != d.parent:
-        if any((d / name).exists() for name in CONFIG_NAMES):
-            return d
-        d = d.parent
-    print("ERR: no agi-tree.config.json found from cwd up", file=sys.stderr)
-    raise SystemExit(1)
+    """The graph root for cwd, via the one shared resolver (goal:g11.1)."""
+    root = locations.find_project_root()
+    if root is None:
+        print("ERR: no agi project found from cwd up", file=sys.stderr)
+        raise SystemExit(1)
+    return root
 
 
 if __name__ == "__main__":

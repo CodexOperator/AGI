@@ -52,17 +52,16 @@ import json
 import sys
 from pathlib import Path
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+# goal:g11.1 — one resolver for every path. `bin/` is already importable when
+# zoom is run as a script; the insert makes it so when it is imported as one.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
 
-
-def config_path(root: Path) -> Path | None:
-    """First existing config file in `root`, or None if it is not a project."""
-    for name in CONFIG_NAMES:
-        p = root / name
-        if p.exists():
-            return p
-    return None
+#: Re-exported from `locations` rather than redefined. This file's own copy
+#: knew only the legacy marker names, so it rejected both the repo root and
+#: `.agi/` under the goal:g11 layout — `zoom.py . 5 kid --level small` printed
+#: "not a project root" for every directory in this repo.
+config_path = locations.config_path
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
@@ -353,12 +352,19 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    root = Path(args.project_root).resolve()
+    # goal:g11.1 — resolve the given path the same way every other entry point
+    # resolves cwd, instead of demanding it already BE the graph root. Under the
+    # goal:g11 layout the graph is at `<repo>/.agi`, so the natural argument —
+    # the repo root, which is what `dispatch.py` and every human pass — held no
+    # config and was rejected outright. `find_project_root` is the identity on a
+    # legacy root (phase 1), so no existing project resolves differently.
+    given = Path(args.project_root).resolve()
+    root = locations.find_project_root(given)
+    if root is None:
+        print(f"ERR: not a project root: {given}", file=sys.stderr)
+        return 1
     if args.runtime is None:
         args.runtime = default_runtime(root)
-    if config_path(root) is None:
-        print(f"ERR: not a project root: {root}", file=sys.stderr)
-        return 1
 
     raw_level = args.level
     if raw_level in LEGACY_LEVEL_MAP:

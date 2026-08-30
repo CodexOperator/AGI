@@ -32,7 +32,12 @@ experiments/
 # written into the graph would arm, on every run, the gate it exists to report.
 .agi/context/publish-state.json
 .agi/nodes.db
+# dashboard.py writes this to `<nodes_dir>/.chain_cache.pkl`, i.e. inside the
+# graph directory itself — not beside it. unify.py's migration map assumed
+# `.agi/.chain_cache.pkl` and the rule was one directory off, so a binary cache
+# sat untracked in committed graph content and every kid reported it.
 .agi/.chain_cache.pkl
+.agi/nodes/.chain_cache.pkl
 .agi/loop.log
 
 # Agent worktrees + local caches
