@@ -54,8 +54,13 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: locations
+  how: '`import locations` at line 30'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: chain_file
-  how: '`chain_file.read_text()` at line 74'
+  how: '`chain_file.read_text()` at line 76'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -66,52 +71,52 @@ inputs:
   security: TODO(model)
 outputs:
 - name: _find_root
-  how: defines private function `_find_root` at line 30
+  how: defines private function `_find_root` at line 33
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _load_chain
-  how: 'defines private function `_load_chain` at line 40, signature: (root: Path,
+  how: 'defines private function `_load_chain` at line 42, signature: (root: Path,
     chain_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _parse_frontmatter
-  how: 'defines private function `_parse_frontmatter` at line 52, signature: (content:
+  how: 'defines private function `_parse_frontmatter` at line 54, signature: (content:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _build_judge_prompt
-  how: 'defines private function `_build_judge_prompt` at line 72, signature: (chain_file:
+  how: 'defines private function `_build_judge_prompt` at line 74, signature: (chain_file:
     Path, chain_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: judge_chain
-  how: 'defines public function `judge_chain` at line 106, signature: (chain_id: str,
+  how: 'defines public function `judge_chain` at line 108, signature: (chain_id: str,
     model: str=DEFAULT_MODEL, timeout: int=120)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_closed_chain
-  how: 'defines public function `write_closed_chain` at line 145, signature: (chain_id:
+  how: 'defines public function `write_closed_chain` at line 147, signature: (chain_id:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 153
+  how: defines public function `main` at line 155
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: out
-  how: '`open(out, "a")` at line 149 (mode=''a'')'
+  how: '`open(out, "a")` at line 151 (mode=''a'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 8 `print()` call(s) at line(s) [19, 36, 111, 128, 141, 170, 173, 177]
+  how: 8 `print()` call(s) at line(s) [19, 37, 113, 130, 143, 172, 175, 179]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

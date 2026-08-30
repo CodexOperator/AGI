@@ -44,83 +44,88 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: locations
+  how: '`import locations` at line 30'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: collections.defaultdict
-  how: '`from collections import defaultdict` at line 60'
+  how: '`from collections import defaultdict` at line 57'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: datetime.datetime
-  how: '`from datetime import datetime` at line 61'
+  how: '`from datetime import datetime` at line 58'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: datetime.timezone
-  how: '`from datetime import timezone` at line 61'
+  how: '`from datetime import timezone` at line 58'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_core.Node
-  how: '`from graph_core import Node` at line 63'
+  how: '`from graph_core import Node` at line 60'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_core.edge.Edge
-  how: '`from graph_core.edge import Edge` at line 64'
+  how: '`from graph_core.edge import Edge` at line 61'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_core.graph.Graph
-  how: '`from graph_core.graph import Graph` at line 65'
+  how: '`from graph_core.graph import Graph` at line 62'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_core.loader.load_directory
-  how: '`from graph_core.loader import load_directory` at line 66'
+  how: '`from graph_core.loader import load_directory` at line 63'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: renderers.build_representation
-  how: '`from renderers import build_representation` at line 67'
+  how: '`from renderers import build_representation` at line 64'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: renderers.render_ascii
-  how: '`from renderers import render_ascii` at line 67'
+  how: '`from renderers import render_ascii` at line 64'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: metrics.DEFAULT_METRIC_PRIMARY
-  how: '`from metrics import DEFAULT_METRIC_PRIMARY` at line 72'
+  how: '`from metrics import DEFAULT_METRIC_PRIMARY` at line 69'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: metrics.GAMEABLE_METRICS
-  how: '`from metrics import GAMEABLE_METRICS` at line 72'
+  how: '`from metrics import GAMEABLE_METRICS` at line 69'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: metrics.outcome_coverage
-  how: '`from metrics import outcome_coverage` at line 72'
+  how: '`from metrics import outcome_coverage` at line 69'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: metrics.primary_metric_name
-  how: '`from metrics import primary_metric_name` at line 72'
+  how: '`from metrics import primary_metric_name` at line 69'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: metrics.read_config
-  how: '`from metrics import read_config` at line 72'
+  how: '`from metrics import read_config` at line 69'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 87'
+  how: '`json.loads(cfg_path.read_text())` at line 84'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 87'
+  how: '`cfg_path.read_text()` at line 84'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -130,35 +135,30 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 outputs:
-- name: config_path
-  how: 'defines public function `config_path` at line 37, signature: (root: Path)'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
 - name: _load_graph_sqlite
-  how: 'defines private function `_load_graph_sqlite` at line 81, signature: (nodes_dir:
+  how: 'defines private function `_load_graph_sqlite` at line 78, signature: (nodes_dir:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 97
+  how: defines public function `main` at line 94
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _count_descendants
-  how: 'defines private function `_count_descendants` at line 262, signature: (g:
+  how: 'defines private function `_count_descendants` at line 259, signature: (g:
     Graph, root: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: out_path
-  how: '`out_path.write_text("\n".join(out_lines), encoding="utf-8")` at line 257'
+  how: '`out_path.write_text("\n".join(out_lines), encoding="utf-8")` at line 254'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 6 `print()` call(s) at line(s) [100, 108, 111, 129, 131, 258]
+  how: 6 `print()` call(s) at line(s) [97, 105, 108, 126, 128, 255]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

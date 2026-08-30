@@ -138,6 +138,203 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
+# SESSION HANDOFF — 2026-08-30: the migration's residuals, closed
+
+> **Read this section first.** It supersedes 2026-08-29b below wherever they
+> disagree — in particular §1 of that section, which says the repo is unpushed
+> and blocked on a remote decision. **Both halves of that are now false.**
+
+## 0. State
+
+```
+repo         /home/ubuntu/work/agi   ONE repo: source + .agi/ graph + refs/grid/*
+HEAD         efa7ea347               714 commits, 1087 grid refs
+node_count   816                     active 811, deprecated 5, goal_count 91
+tests        1049 pass, 0 fail       metric outcome_coverage 0.283 (was 0.255)
+crons        FROZEN — crons_live: false. See §4.
+PUSHED       master is 2 commits ahead of origin. Grid refs are current.
+```
+
+## 1. The remote question is SETTLED. Do not reopen it.
+
+The previous section called the push blocked pending a new repo name. It was
+not blocked — **the hourly `branch_push` cron had already published everything
+to `CodexOperator/agi`** before anyone decided anything. `git rev-list
+--left-right --count origin/master...HEAD` read `0 0`.
+
+The owner's decision, 2026-08-30, is that **the `agi` name stays on the live
+repo**. Three repos, and this is the final shape:
+
+| repo | holds | commits |
+|---|---|---|
+| `CodexOperator/agi` | **canonical and live.** The unified repo, keeping its split-era history. `origin` points here. | 714 + 1087 grid refs |
+| `CodexOperator/agi-archive` | the engine immediately before the merge: `21308535f`, no `.agi/` | 210 |
+| `CodexOperator/agi-tree` | the pre-migration graph repo, untouched | — |
+
+`agi-archive` was created and pushed 2026-08-30. It is push-once; **no local
+remote was added for it**, deliberately, so nothing can accidentally push there
+again. The rename-to-archive plan was dropped because, post-push, renaming
+`agi` would have produced two identical repos and a true engine-only archive
+would have needed a force push against published history.
+
+## 2. What landed, 2026-08-30 — two iterations, four kids
+
+**iter-5 (`b124133d3`) — the two post-migration bugfixes.**
+
+- **All ten `bin/` entry points delegate to `locations.py`.** `goal:g11.1` is
+  closed; its falsifier (`grep -c '^CONFIG_NAMES' extensions/agi/bin/*.py`)
+  went 11 → 1. The goal said ten *duplicates*; the measurement said ten
+  *breakages* — no `agi-tree.config.json` or `autoresearch-tree.config.json`
+  exists anywhere in this repo, so every copy of the legacy walk was already
+  dead code resolving nothing. Seven failed hard, two answered `os.getcwd()`
+  with no walk at all, one had the right root and a wrong config lookup.
+- **`grid.py` takes two roots** — `repo_root` for every git invocation,
+  `graph_root` only for finding node files. `grid.py status` went from
+  reporting 809 byte-identical nodes as `CHANGED` to reporting 0. `--full-tree`
+  was proven **not load-bearing** once the roots are split (stripped: 68/68
+  pass; conflation restored: 5–7 fail). Both spellings shipped anyway, now
+  provably belt-and-braces. `cmd_diff` was separately returning an empty diff
+  and exit 0 — `git diff` has no `--full-tree`, so the flag never covered it.
+
+**iter-6 (`efa7ea347`) — the residuals.**
+
+- **`order:` is retired.** `GOALS.md` renders by natural `goal_id` sort. The
+  new document is a byte-exact permutation of the old: identical size, empty
+  sorted-line diff, all 70 G-goals in place, only S1..S17 rotated out of
+  historical order.
+- **`cron:crons` can finally say which value kills.** See §4.
+- **`metrics.py` no longer measures the retired publish boundary.** Four dead
+  metrics removed; `unpushed_graph_*` fixed and renamed to `unpushed_commits`/
+  `unpushed_reason`, routed through `locations.repo_root()` — the `not-a-repo`
+  sentinel was it treating `.agi/` as its own repo. **No metric reports a
+  sentinel in place of a measurement any more.**
+
+**Three live bugs found in passing, none of which anyone was looking for:**
+
+| bug | what it would have done |
+|---|---|
+| `snapshot-goals.py` lost `.agi/config.json`, fell back to `BODY_CAP=4000` | written **26 of 91 goal NODE bodies truncated** on the next `--snapshot`. `driver.sh` only runs `--render`, which is the only reason it had not fired |
+| `zoom.py::default_runtime` returned `pi`, not `cc` | handed every Claude Code kid the **wrong completion contract** — `goal:s8`, silently re-broken by the layout change |
+| `snapshot-build-site.py` answered `os.getcwd()` with no walk | run its prune against the wrong tree. The 159 build-site nodes survived **only because the missing-`build-site.md` guard returns before the unlink** — the guard, not the resolver |
+
+That last one has since been exercised for real: with the resolver fixed the
+prune path is reachable for the first time, and it re-derived exactly
+`7 idea + 61 hypothesis + 91 task = 159` and changed nothing.
+
+## 3. 🔴 Next tasks, in order
+
+### 3a. The goal sweep. `METRIC_WARNING goal_rotation=44/3` fires every run.
+
+44 goals are `status: active` against `cc_dispatch.max_goals_active: 3`.
+**This is not only over-declaration — several are finished and mislabelled:**
+
+- `G11` — one repo. Landed 2026-08-29. Should be `complete`.
+- `G11.1` — closed by iter-5; its own falsifier passes. Should be `complete`.
+- `G6.5` — "the cron rebuilds agi from agi-tree, then commits and pushes it".
+  Describes the retired two-repo publish. `phasing-out`, superseded by G11.
+- `S5` — "the engine repo has no sync at all". The crons sync it.
+- `S8` — "`zoom.py` bakes the pi-runtime completion contract into the kid
+  context". iter-5 fixed exactly that.
+
+**So the job is classify-with-evidence, not demote-in-bulk:** complete /
+phasing-out / horizon / at most three active. Retire by marking, never by
+deleting; `node_count` must not drop.
+
+One off-taxonomy value to fix while there: **`goal:S16` carries
+`status: proved`** — a verdict value in a lifecycle field. The four states are
+`active | horizon | phasing-out | complete`. The irony is that S16 is the goal
+about the evidence gate leaving a `status` shadow behind.
+
+### 3b. Config influence — what `.agi/config.json` should govern and does not
+
+`locations.source_root` and `goals_file` exist. Log paths, remote name and the
+branch to push are still computed or hardcoded. `crons.py` is already better
+than the note in the previous section implied — it re-resolves the checked-out
+branch at every `apply` and **refuses rather than guessing** `master`/`main`.
+
+The cron-symlink question from the previous session still wants costing:
+**not possible for crontab** (`/var/spool/cron/crontabs/<user>` is root-owned
+and mode-checked; a symlink there is refused or ignored), but **`systemd --user`
+timers CAN be symlinked** out of the repo, which would make the schedule a
+tracked file. Interim win available without any of that: reduce to **one**
+bootstrap cron line running `crons.py apply` and let the rest be graph state.
+
+### 3c. Carried, unchanged
+
+- **G6.6** — `build:CLAUDE.md` / `AGENTS.md` / `GOALS.md` exist but carry
+  `parse_ok: false` and empty contracts. Give them real prose contracts.
+- **Worktree-per-kid isolation (G4.1)** — now genuinely possible; one repo
+  means a `git worktree` isolates source, graph and tests together.
+- **`init` (G1.5)**, **G8.2 falsifier** (a third project reaching a rendered
+  map with no engine change).
+- **Cosmetic, but it misleads:** the SessionStart hook still prints
+  `## agi-tree map` and `Run: agi-tree --max-iters N`. The command is `agi`.
+
+## 4. 🔴 THE CRONS ARE FROZEN. Turning them back on takes a manual step.
+
+`.agi/nodes/.geometry/crons.md` has `crons_live: false`, set deliberately at
+the start of the 2026-08-30 session because a kid was editing `grid.py` —
+the exact file the `*/5` job runs. **Nothing is scheduled right now: no grid
+snapshot, no ref push, no branch push.**
+
+To restore:
+
+```bash
+$EDITOR /home/ubuntu/work/agi/.agi/nodes/.geometry/crons.md   # crons_live: true
+python3 /home/ubuntu/work/agi/extensions/agi/bin/crons.py apply
+python3 /home/ubuntu/work/agi/extensions/agi/bin/crons.py show   # expect 2 lines
+```
+
+**The manual `apply` is required and is not a bug.** `false` removes all four
+managed lines including `grid_sync`, and `grid_sync` is the job that re-runs
+`crons.py apply`. So the switch is self-disabling in one direction and not the
+other — off is one edit, on is one edit plus one command.
+
+While frozen, **nothing pushes.** `git push` by hand if you need the remote
+current; `master` is 2 commits ahead as of this writing.
+
+## 5. 🔴 Traps from this session — do not re-learn these
+
+- **Anchor the pattern before believing the number.** Twice in two iterations
+  a loose `grep -rl` produced a confident wrong count that an anchored one
+  refuted. `grep -rl 'origin: build-site'` returns **167** because eight nodes
+  merely mention the marker in prose; `grep -rl '^origin: build-site$'` returns
+  the true **159**. Same shape for `THOUGHT:BEGIN` vs `<!-- THOUGHT:BEGIN`.
+  Both times the loose number was asserted first and corrected at review.
+- **A doc bug can be produced mechanically and survive every version.**
+  `cron:crons` said "`crons_live: X` removes every managed line … and
+  `crons_live: X` brings all four back" — same X on both sides, at v1, at v2
+  and at v3, because each edit replace-all'd the boolean through the prose as
+  well as the frontmatter. Prose that embeds a key:value literal is prose a
+  find-and-replace will silently corrupt.
+- **A commit subject that names one change can carry another.** `27855bafc`,
+  "retire two cadences the migration made meaningless", also flipped
+  `crons_live` false→true and re-enabled every scheduled job. That is why the
+  crons were believed off while they were running and pushing.
+- **`git for-each-ref 'refs/grid/*'` returns 0.** The quoted glob does not
+  match under `for-each-ref`'s pattern rules. Use `git for-each-ref refs/grid`.
+  A brief handed to a kid with the wrong form nearly produced a "the refs are
+  gone" finding.
+- **Check the filesystem before resuming a dead kid.** Both iter-6 kids were
+  cut off when the host process exited. One had landed everything and needed
+  nothing; the other had done half its work and no node. Resuming with context
+  intact beat respawning cold, and neither lost work.
+
+## 6. Known-good verification sequence
+
+```bash
+cd /home/ubuntu/work/agi
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must not drop
+python3 -m pytest extensions/agi/tests/ -q              # 1049 passed
+python3 extensions/agi/bin/snapshot-goals.py --render --check   # 91 byte-identical
+python3 extensions/agi/bin/locations.py . --json        # layout must be graph_dir
+python3 extensions/agi/bin/crons.py show                # says: up to date
+python3 extensions/agi/bin/grid.py status | grep -c CHANGED     # 0 on a clean tree
+grep -c '^CONFIG_NAMES' extensions/agi/bin/*.py | grep -v ':0'  # exactly 1
+```
+
+---
+
 # SESSION HANDOFF — 2026-08-29b: one repo. G11 landed.
 
 > **Read this first.** Everything above is install/orientation and is now

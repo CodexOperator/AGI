@@ -124,6 +124,11 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: src
+  how: '`src.read_bytes()` at line 1088'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: f
   how: '`f.read_text()` at line 69'
   why: TODO(model)
@@ -141,6 +146,11 @@ inputs:
   security: TODO(model)
 - name: p
   how: '`p.read_text()` at line 521'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: f
+  how: '`f.read_text()` at line 964'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -531,6 +541,76 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: g11
+  how: 'defines public function `g11` at line 942, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _bump
+  how: 'defines private function `_bump` at line 962, signature: (graph, text)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_repo_root_is_the_git_repo_never_the_graph_dir
+  how: 'defines public function `test_repo_root_is_the_git_repo_never_the_graph_dir`
+    at line 968, signature: (g11)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_no_git_invocation_ever_targets_the_graph_dir
+  how: 'defines public function `test_no_git_invocation_ever_targets_the_graph_dir`
+    at line 978, signature: (g11, monkeypatch, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_byte_identical_corpus_reports_zero_changed
+  how: 'defines public function `test_byte_identical_corpus_reports_zero_changed`
+    at line 1014, signature: (g11, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_status_reports_the_same_set_from_either_cwd
+  how: 'defines public function `test_status_reports_the_same_set_from_either_cwd`
+    at line 1027, signature: (g11, capsys, monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_diff_reads_node_md_when_the_graph_is_a_subdirectory
+  how: 'defines public function `test_diff_reads_node_md_when_the_graph_is_a_subdirectory`
+    at line 1048, signature: (g11, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_payload_round_trips_with_no_staging_copy
+  how: 'defines public function `test_payload_round_trips_with_no_staging_copy` at
+    line 1069, signature: (g11, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_cron_marker_distinguishes_two_migrated_projects
+  how: 'defines public function `test_cron_marker_distinguishes_two_migrated_projects`
+    at line 1095, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_cron_lines_name_the_repo_under_the_g11_layout
+  how: 'defines public function `test_cron_lines_name_the_repo_under_the_g11_layout`
+    at line 1114, signature: (g11)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_find_project_root_honours_the_env_override
+  how: 'defines public function `test_find_project_root_honours_the_env_override`
+    at line 1125, signature: (g11, monkeypatch, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_ensure_repo_names_the_repo_not_the_graph_dir
+  how: 'defines public function `test_ensure_repo_names_the_repo_not_the_graph_dir`
+    at line 1146, signature: (tmp_path, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: tmp_path / "agi-tree.config.json"
   how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 26'
   why: TODO(model)
@@ -671,6 +751,38 @@ outputs:
   security: TODO(model)
 - name: engine / "bin" / "plain.py"
   how: '`(engine / "bin" / "plain.py").write_text("print(''moved'')\n")` at line 914'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: repo / ".agi" / "config.json"
+  how: '`(repo / ".agi" / "config.json").write_text("{}")` at line 953'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: repo / ".agi" / "nodes" / "idea" / "x.md"
+  how: '`(repo / ".agi" / "nodes" / "idea" / "x.md").write_text( f''---\nid: "idea:x"\nmint_id:
+    {MINT_G11}\ntype: idea\n---\n\nfirst thought\n'' )` at line 954'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: f
+  how: '`f.write_text(f.read_text().replace("first thought", text))` at line 964'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: src
+  how: '`src.write_text("print(''v1'')\n")` at line 1076'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: node
+  how: '`node.write_text( f''---\nid: "level3:thing"\nmint_id: {MINT_P}\ntype: level3\n''
+    f"payload_ref: extensions/agi/bin/thing.py\n---\n\nbuild node\n" )` at line 1079'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: graph / "config.json"
+  how: '`(graph / "config.json").write_text("{}")` at line 1152'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

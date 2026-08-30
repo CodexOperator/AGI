@@ -59,18 +59,23 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: locations
+  how: '`import locations` at line 22'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: node_writer
-  how: '`import node_writer` at line 22'
+  how: '`import node_writer` at line 23'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_gate.VERDICT_HELP
-  how: '`from evidence_gate import VERDICT_HELP` at line 23'
+  how: '`from evidence_gate import VERDICT_HELP` at line 24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_gate.VERDICT_RE
-  how: '`from evidence_gate import VERDICT_RE` at line 23'
+  how: '`from evidence_gate import VERDICT_RE` at line 24'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -166,7 +171,7 @@ inputs:
   security: TODO(model)
 outputs:
 - name: _find_root
-  how: defines private function `_find_root` at line 47
+  how: defines private function `_find_root` at line 44
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -299,7 +304,7 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 20 `print()` call(s) at line(s) [54, 86, 92, 119, 156, 188, 195, 197, 205,
+  how: 20 `print()` call(s) at line(s) [53, 86, 92, 119, 156, 188, 195, 197, 205,
     212, 239, 246, 248, 368, 376, 379, 386, 442, 445, 449]
   why: TODO(model)
   perf: TODO(model)
