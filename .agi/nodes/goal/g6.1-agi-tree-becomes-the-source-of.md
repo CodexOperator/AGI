@@ -5,7 +5,6 @@ goal_kind: subgoal
 heading_level: 3
 id: "goal:g6.1"
 mint_id: 73547cd61d2f4e37847b43ee6e050a83
-order: 31
 origin: goals-doc
 parents:
   - goal:g6

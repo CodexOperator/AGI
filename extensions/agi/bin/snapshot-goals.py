@@ -135,6 +135,38 @@ HEADING_RE = re.compile(r"^##\s")
 STATUS_RE = re.compile(r"[—\-]?\s*status\s*:\s*(.+?)\s*$", re.IGNORECASE)
 GOAL_ID_RE = re.compile(r"^goal:")
 
+_GID_RE = re.compile(r"^([A-Za-z]+)(\d+(?:\.\d+)*)$")
+
+
+def natural_sort_key(gid: str) -> tuple:
+    """Numeric-aware sort key for a goal id like ``G2.10`` or ``S11``.
+
+    Replaces the old `order:` frontmatter field (goal:s12's follow-on): a
+    dense, contiguous `order: 0..90` across 91 goals meant every insertion
+    renumbered every later goal — 21 nodes churned twice in one session for
+    no semantic change. `goal_id` is already the permanent identity
+    (goal:g2.5), so it needs no separate position to be sortable; it only
+    needs a key that gets the numbers right.
+
+    Splits the letter prefix from the dot-separated numeric suffix and
+    compares the numeric parts component-wise as integers, so `G2.10` sorts
+    after `G2.9` (a plain string/lexicographic sort would put it between
+    `G2.1` and `G2.2`) and `S11` sorts after `S2`. `G` sorts before `S`
+    because the prefix compares first and `"G" < "S"` lexically — which also
+    preserves GOALS.md's existing G-goals-then-S-goals grouping.
+
+    A `gid` that does not match the `<letters><digits[.digits...]>` shape
+    (should not occur in practice; every goal id is minted by this same
+    script) falls back to a plain string key rather than raising, so a
+    malformed id degrades to alphabetical placement instead of aborting the
+    whole render.
+    """
+    m = _GID_RE.match(gid)
+    if not m:
+        return (gid, ())
+    prefix, nums = m.group(1), m.group(2)
+    return (prefix, tuple(int(p) for p in nums.split(".")))
+
 
 def _id_rest(node_id: str) -> str:
     """Everything after the first ``:`` in an id, or the whole id if there is none.
@@ -480,12 +512,16 @@ def parse_goals(text: str) -> list[dict]:
     by `parse_preamble`, not here.
 
     Each goal carries `heading_level` (2 for `## G7` / `## S4`, 3 for
-    `### G7.2`) and `order` (its position in the document). **Both exist so the
-    document can be rendered back from the nodes** (goal:g6.9): without them a
-    renderer has to guess the heading depth from the id shape and the ordering
-    from a sort, and this document's ordering is deliberately not sorted — the
-    S-block runs S11..S17 before S1..S10 because ids are never renumbered and
-    the file grew that way.
+    `### G7.2`), stored so the document can be rendered back from the nodes**
+    (goal:g6.9) without guessing the heading depth from the id shape.
+
+    Document position is **not** stored (the retired `order:` field —
+    natural-sort-by-`goal_id` follow-on to goal:s12). `render_goals` recovers
+    ordering from `goal_id` itself via `natural_sort_key`, which reshuffles
+    the old, deliberately-unsorted S-block (S11..S17 used to sit before
+    S1..S10 because ids are never renumbered and the file grew that way) into
+    natural order exactly once — a documented, intentional correction, not a
+    regression.
     """
     goals: list[dict] = []
     current: dict | None = None
@@ -502,7 +538,6 @@ def parse_goals(text: str) -> list[dict]:
             "title": title or gid,
             "status": status or "active",
             "heading_level": level,
-            "order": len(goals),
             # A sub-goal carries its long-term goal as a parent; a top-level
             # goal (G or S) is a root and carries none.
             "parent_gid": gid.split(".")[0] if "." in gid else None,
@@ -586,11 +621,13 @@ def render_goals(preamble: str, goals: list[dict]) -> str:
     merely close produces a diff on every run and nobody reads it after the
     third time.
 
-    Ordering and heading depth come from the nodes' own `order` and
-    `heading_level`, never from a sort over ids — see `parse_goals`.
+    Heading depth comes from the node's own `heading_level`. Ordering comes
+    from a natural sort over `goal_id` (`natural_sort_key`, retiring the old
+    `order:` field) — G-goals before S-goals, numeric-aware within each
+    (`G2.10` after `G2.9`, `S11` after `S2`).
     """
     out = [GENERATED_BANNER, "", preamble, ""]
-    for g in sorted(goals, key=lambda x: x["order"]):
+    for g in sorted(goals, key=lambda x: natural_sort_key(x["gid"])):
         hashes = "#" * int(g["heading_level"])
         out.append(f"{hashes} {g['gid']} — {g['title']} — status: {g['status']}")
         out.append("")
@@ -715,9 +752,11 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
     that happens to be `type: goal` cannot inject a section into the rendered
     document without declaring itself part of it.
 
-    A goal node missing `order` or `heading_level` is a hard error naming the
-    file, never a guess: guessing the ordering is precisely how a renderer
-    silently reshuffles a document whose ids are permanent.
+    A goal node missing `heading_level` is a hard error naming the file, never
+    a guess: guessing the heading depth is precisely how a renderer silently
+    reshuffles a document whose ids are permanent. `order` is no longer part
+    of this check — retired in favour of a natural sort over `goal_id`
+    (`natural_sort_key`), so a node need not carry it at all.
     """
     preamble = ""
     goals: list[dict] = []
@@ -733,9 +772,9 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
         gid = fm.get("goal_id")
         if not gid:
             sys.exit(f"ERR: {node['path']} is origin={ORIGIN} but has no goal_id")
-        if fm.get("order") is None or fm.get("heading_level") is None:
-            sys.exit(f"ERR: {node['path']} has no order/heading_level; run "
-                     "`snapshot-goals.py --from-doc` once to backfill them "
+        if fm.get("heading_level") is None:
+            sys.exit(f"ERR: {node['path']} has no heading_level; run "
+                     "`snapshot-goals.py --from-doc` once to backfill it "
                      "before rendering (goal:g6.9)")
         title = str(fm.get("title") or gid)
         # Node titles are stored as "G7: Title"; the document heading is
@@ -747,14 +786,8 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
             "title": title,
             "status": fm.get("status", "active"),
             "heading_level": int(fm["heading_level"]),
-            "order": int(fm["order"]),
             "body": (node.get("body") or "").strip(),
         })
-    orders = [g["order"] for g in goals]
-    if len(set(orders)) != len(orders):
-        dupes = sorted({o for o in orders if orders.count(o) > 1})
-        sys.exit(f"ERR: duplicate `order` values across goal nodes: {dupes}. "
-                 "Two sections cannot occupy one position; fix the nodes.")
     return preamble, goals
 
 
@@ -878,12 +911,12 @@ def main(argv: list[str] | None = None) -> int:
             "title": title,
             "status": g["status"],
             "goal_kind": kind,
-            # goal:g6.9 — the two fields a renderer needs to put this section
-            # back where it was, at the depth it was. Neither is inferable:
-            # heading depth would have to be guessed from the id shape, and the
-            # S-block deliberately runs S11..S17 before S1..S10.
+            # goal:g6.9 — the field a renderer needs to put this section back
+            # at the depth it was. Not inferable: heading depth would have to
+            # be guessed from the id shape. Document *position* used to be a
+            # second such field (`order:`), retired in favour of a natural
+            # sort over `goal_id` — see `natural_sort_key`.
             "heading_level": g["heading_level"],
-            "order": g["order"],
             "seeds": refs.get(node_id, []),
             "tags": tags,
             "confidence": 1.0,

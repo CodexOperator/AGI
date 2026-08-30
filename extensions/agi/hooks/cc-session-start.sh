@@ -42,12 +42,13 @@ fi
 # because a hook that can fail is a hook that gets uninstalled, and this one
 # has to keep working precisely when the project is in a broken state.
 #
-# No marker at all means silence HERE and an alarm in metrics.py, deliberately.
-# A project that never installed the publish cron has nothing to be told, and a
-# banner in every one of its sessions forever would be a false alarm loud
-# enough to get this whole mechanism switched off. `metrics.py` reports
-# `publish_blocked_reason=never-run` for the same state, which is read by
-# someone already looking at this project's numbers.
+# No marker at all means silence HERE, deliberately: a project that never
+# installed the publish cron has nothing to be told, and a banner in every one
+# of its sessions forever would be a false alarm loud enough to get this whole
+# mechanism switched off. (`metrics.py` no longer mirrors this state as a
+# METRIC line — goal:g11 retired the two-repo publish path this alarm reads,
+# so a metrics.py reader gets nothing here to disagree with; this banner is
+# now the only surviving reader of context/publish-state.json.)
 PUBLISH_STATE="$PROJECT_ROOT/context/publish-state.json"
 if [[ -f "$PUBLISH_STATE" ]]; then
   AGI_PUBLISH_STATE="$PUBLISH_STATE" AGI_PROJECT_ROOT="$PROJECT_ROOT" \
@@ -125,12 +126,11 @@ PY
 fi
 
 # --- the stranded-push alarm (goal:s20) --------------------------------------
-# The block above ends where `publish-engine.sh` does: at the local commit. It
-# does not push, on the stated grounds that pushing is the hourly push cron's
-# job — and for the engine repo that cron did not exist. Both halves reported
-# success and the remote sat 3 days and 25 commits behind, found by looking at
-# GitHub. So this asks the only question the marker above cannot: is anything
-# committed here still only here?
+# Is anything committed here still only here? Pre-goal:g11 this measured two
+# repos (a separate publish path landed commits in an engine repo that nothing
+# pushed) and the remote once sat 3 days and 25 commits behind, found only by
+# looking at GitHub. goal:g11 merged graph and engine into one repo, so there
+# is one gap to ask about now, not two (mvp:g11-crons-metrics-residual).
 #
 # It does NOT reimplement the count. `metrics.py` is imported and its
 # `push_gap_stats` and `UNPUSHED_WARN_AT` are used as-is, so the banner and the
@@ -160,28 +160,18 @@ try:
 except Exception:
     raise SystemExit(0)   # cannot measure: say nothing rather than guess
 
-stranded = []
-for label in ("graph", "engine"):
-    n = stats.get(f"unpushed_{label}_commits")
-    if isinstance(n, int) and n >= warn_at:
-        stranded.append((label, n))
-if not stranded:
+n = stats.get("unpushed_commits")
+if not isinstance(n, int) or n < warn_at:
     raise SystemExit(0)
 
-names = {"graph": "thoughtgraph", "engine": "engine"}
 print("## ⚠️  agi commits are STRANDED on this machine")
 print()
-for label, n in stranded:
-    print(f"- **{n} commits** in the {names[label]} repo are not on its remote.")
-print()
-print("The publish path landed them locally and stopped there. "
-      "`hours_since_successful_publish` measures the local commit, so a healthy "
-      "publish and a stale remote look identical from it — that combination "
-      "once left the remote 3 days and 25 commits behind, found only by looking "
-      "at GitHub.")
+print(f"- **{n} commits** in this repo are not on its remote.")
 print()
 print("**Nothing is lost.** The commits are on this disk. What is missing is "
-      "the push, so no other machine and no reader of the remote has them.")
+      "the push, so no other machine and no reader of the remote has them — "
+      "that combination once left a remote 3 days and 25 commits behind, "
+      "found only by looking at GitHub.")
 print()
 print("```bash")
 print("crontab -l | grep push      # is the hourly push cron there at all?")

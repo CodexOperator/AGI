@@ -26,7 +26,6 @@ import os
 import re
 import subprocess
 import sys
-import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -48,8 +47,11 @@ DEFAULT_METRIC_PRIMARY = "outcome_coverage"
 #: Metrics that are descriptive only and must never be primary.
 GAMEABLE_METRICS = ("longest_chain_length",)
 
-#: Where `publish-engine.sh` records the outcome of every run it makes
-#: (goal:g7.10). Generated state, gitignored, sitting beside
+#: Where `publish-engine.sh` used to record the outcome of every run it made
+#: (goal:g7.10, pre-goal:g11). Kept only because `publish-engine.sh` itself and
+#: its own test suite (`test_publish_alarm.py`) still read/write this path —
+#: **metrics.py no longer turns it into a METRIC line** (goal:g11 residual,
+#: see below). Generated state, gitignored, sitting beside
 #: `context/INJECTION.md` because that is where this repo already keeps
 #: generated state. Deliberately **not** under `nodes/`: gate 0 of
 #: publish-engine.sh refuses on any uncommitted change under `nodes/`, so a
@@ -57,63 +59,30 @@ GAMEABLE_METRICS = ("longest_chain_length",)
 #: it exists to report on.
 PUBLISH_STATE_PATH = ("context", "publish-state.json")
 
-#: Value emitted for `hours_since_successful_publish` when no successful
-#: publish has ever been recorded.
+#: `unpushed_commits` when the gap could not be measured at all.
 #:
-#: Not `0`. Higher is worse for this metric, so `0` reads as "published
-#: seconds ago" — the most reassuring number in the range — for the worst state
-#: the system can be in. That inversion is the whole defect: the cron refused
-#: 40 times in a row, published nothing at all, and every number the loop
-#: printed looked healthy. A sentinel far above any real elapsed time (~11
-#: years) cannot be mistaken for a measurement and cannot be mistaken for good.
-NEVER_PUBLISHED_HOURS = 99999.0
-
-#: `publish_blocked_reason` when no publish state exists at all. Empty would
-#: mean "the last run succeeded", which is exactly the lie this metric exists
-#: to stop telling; a cron that has never written a marker has never published.
-NEVER_RUN_REASON = "never-run"
-
-#: `publish_blocked_reason` when the state records a refusal but names no
-#: reason. A refusal must never collapse to the same value as a success.
-UNKNOWN_REASON = "unknown"
-
-#: Longest reason token emitted. Truncated rather than dropped — a clipped
-#: reason still tells you which failure it was.
-MAX_REASON_LEN = 64
-
-#: Where a project keeps its engine clone, relative to the project root:
-#: `<project>/<project>-tree/agi`. Derived from the layout every project
-#: shares, not from this machine's — in `agi-tree` the same path happens to be
-#: a symlink, and nothing here can tell (goal:g8.2 forbids a branch that
-#: could). A project with no clone yet reports `missing` and alarms on nothing.
-ENGINE_CLONE_DIRNAME = "agi"
-
-#: `unpushed_*_commits` when the gap could not be measured at all.
-#:
-#: Not `0`, and the reason is `NEVER_PUBLISHED_HOURS`' reason pointed the other
-#: way: `0` is this metric's one *reassuring* value — "everything local is on
-#: the remote" — so letting an unmeasurable repo collapse to it builds an alarm
-#: that reports perfect health exactly when it is blind. `-1` is outside the
-#: range of every true measurement (a commit gap is a count; it cannot be
+#: Not `0`. `0` is this metric's one *reassuring* value — "everything local is
+#: on the remote" — so letting an unmeasurable repo collapse to it builds an
+#: alarm that reports perfect health exactly when it is blind. `-1` is outside
+#: the range of every true measurement (a commit gap is a count; it cannot be
 #: negative), so it can be neither mistaken for one nor quietly averaged into
-#: one.
-#:
-#: Deliberately *not* a huge worst-case sentinel like `NEVER_PUBLISHED_HOURS`
-#: either. Unmeasurable here is not the worst state — a freshly forked project
-#: with no remote configured is unconfigured, not stranded — and a sentinel
-#: that shouted would be a permanent false alarm in every such project, which
-#: is how a mechanism like this gets switched off. The number says "unknown"
-#: and the paired reason says which unknown; neither says "fine".
+#: one. Unmeasurable is also not treated as the worst state — a freshly forked
+#: project with no remote configured is unconfigured, not stranded — so this is
+#: a small, out-of-range sentinel rather than a shouting one. The number says
+#: "unknown" and the paired reason says which unknown; neither says "fine".
 UNKNOWN_GAP = -1
 
 #: Unpushed commits at or above which `emit` shouts.
 #:
-#: Measured, not picked. Both push crons are hourly (`:07` graph, `:47`
-#: engine), so the normal reading is one cycle of work — and over the 14 days
-#: to 2026-08-28 the busiest single hour in this pair produced **8** commits in
-#: the graph and **9** in the engine. 20 cannot be one missed cycle even at the
-#: worst rate ever observed here, and the outage this metric exists for reached
-#: **25**.
+#: Measured, not picked, back when this repo and its engine were two repos
+#: pushed by two separate hourly crons (`:07` graph, `:47` engine): over the 14
+#: days to 2026-08-28 the busiest single hour in that pair produced **8**
+#: commits in the graph and **9** in the engine. 20 cannot be one missed cycle
+#: even at the worst rate ever observed here, and the outage this metric exists
+#: for reached **25**. goal:g11 unified the two repos into one, pushed by one
+#: `branch_push` cron, but the threshold's job — distinguishing one missed
+#: cycle from a stall — has not changed, so the number is kept rather than
+#: re-derived from a single cron's narrower history.
 #:
 #: The threshold governs only the shout. The count is emitted every run
 #: whatever it is, so a reader watching the number sees a stall long before a
@@ -128,11 +97,6 @@ GIT_TIMEOUT_SECONDS = 10
 
 #: Frontmatter `status:` that retires a node file without deleting it.
 DEPRECATED_STATUS = "deprecated"
-
-#: Anything outside this set is collapsed to `-` in a reason token. A
-#: `METRIC k=v` line is read whole, one per line, so a value carrying a space
-#: or a newline silently becomes two fields or two records.
-_REASON_UNSAFE_RE = re.compile(r"[^A-Za-z0-9._:-]+")
 
 
 def _load_graph(root: Path):
@@ -287,82 +251,6 @@ def node_lifecycle_stats(nodes_dir: Path, node_count: int) -> dict:
     }
 
 
-def normalize_reason(value) -> str:
-    """Collapse a refusal reason to one `METRIC`-safe token.
-
-    `METRIC k=v` is a whitespace-delimited line format, so a reason containing
-    a space becomes a truncated value plus a stray field, and one containing a
-    newline becomes a second, malformed METRIC record. Neither fails loudly —
-    they just quietly stop meaning what they say, which is the failure mode
-    this whole metric exists to remove.
-    """
-    if not isinstance(value, str):
-        return ""
-    return _REASON_UNSAFE_RE.sub("-", value.strip()).strip("-")[:MAX_REASON_LEN]
-
-
-def read_publish_state(root: Path) -> dict:
-    """`context/publish-state.json` as a dict, or `{}` if unreadable.
-
-    Missing, truncated and corrupt all collapse to the same answer on purpose:
-    a state file this metric cannot read is indistinguishable from a cron that
-    never wrote one, and both must alarm.
-    """
-    try:
-        data = json.loads(root.joinpath(*PUBLISH_STATE_PATH).read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
-def publish_stats(root: Path, now: float | None = None) -> dict:
-    """The stalled-publish alarm (goal:g7.10 item 1).
-
-    The hourly `:37` publish cron refused 40 consecutive times and published
-    nothing at all between 2026-08-25 and 2026-08-27. Nothing caught it: the
-    refusal went to a log, `driver.sh --smoke` said nothing, the injected map
-    said nothing, and **no metric moved**. A failure that does not move a
-    number is a failure this project cannot see — the one time the idiom was
-    used (`shadow_decisive_verdicts`, 0 -> 1) it caught a defect that would
-    otherwise have shipped.
-
-    Two numbers, both read out of the marker `publish-engine.sh` writes:
-
-    `hours_since_successful_publish`
-        Time since the last publish that actually landed. Monotone in the bad
-        direction and unbounded, so a cron that stops running entirely — never
-        refusing, simply absent — climbs it just the same. No threshold lives
-        here; a threshold would be a second opinion to keep in sync.
-
-    `publish_blocked_reason`
-        Which refusal, as a single token. Empty means, and may only mean, that
-        the last run succeeded.
-    """
-    state = read_publish_state(root)
-    now = time.time() if now is None else now
-
-    ts = state.get("last_success_epoch")
-    if isinstance(ts, bool) or not isinstance(ts, (int, float)) or ts <= 0:
-        hours = NEVER_PUBLISHED_HOURS
-    else:
-        # Clamped at 0: a clock that moved backwards must not read as a
-        # publish from the future, which would be the reassuring answer again.
-        hours = round(max(0.0, (now - float(ts)) / 3600.0), 2)
-
-    status = state.get("last_run_status")
-    if not state:
-        reason = NEVER_RUN_REASON
-    elif status == "ok":
-        reason = ""
-    else:
-        reason = normalize_reason(state.get("last_run_reason")) or UNKNOWN_REASON
-
-    return {
-        "hours_since_successful_publish": hours,
-        "publish_blocked_reason": reason,
-    }
-
-
 def _git_out(repo: Path, *args: str) -> str | None:
     """Stripped stdout of a local `git` command, or None if it did not succeed.
 
@@ -398,19 +286,20 @@ def unpushed_commits(repo: Path) -> tuple[int, str]:
     would put network I/O in it. Over-reporting stranded work is also the
     correct direction for an alarm to be wrong.
 
-    The refusals, in the order they are checked:
+    Generic over what `repo` points at — a project's own root, or (pre-g11,
+    and still true for a project that clones the engine in per the layout
+    documented in `CLAUDE.md`) a nested engine clone. The refusals, in the
+    order they are checked:
 
     `missing`
-        No such directory. A project that has not cloned the engine yet is not
+        No such directory. A directory that does not exist yet is not
         failing at anything.
     `not-a-repo`
         Not a git repo, or not the *root* of one. The second half is the load
-        bearing one: if `<project>/agi` were an ordinary directory inside the
-        graph repo rather than a clone, `git -C` would happily answer for the
-        **graph**, and the engine's gap would be reported as a copy of the
-        graph's — a wrong number that reads as a measurement, which is the one
-        outcome worse than no number. `publish-engine.sh` gate (a) refuses on
-        exactly this shape for exactly this reason.
+        bearing one: if `repo` were an ordinary directory inside some other
+        repo rather than its own clone, `git -C` would happily answer for the
+        **enclosing** repo — a wrong number that reads as a measurement,
+        which is the one outcome worse than no number.
     `detached-head`
         `@{upstream}` is a property of a branch. A detached HEAD has none, so
         the question has no answer rather than the answer `0`.
@@ -447,39 +336,43 @@ def unpushed_commits(repo: Path) -> tuple[int, str]:
 
 
 def push_gap_stats(root: Path) -> dict:
-    """The stranded-push alarm (goal:s20) — the other half of goal:g7.10.
+    """The stranded-push alarm (goal:s20).
 
-    `hours_since_successful_publish` measures the **local commit**.
-    `publish-engine.sh` commits the engine and deliberately does not push, on
-    the stated grounds that pushing is the hourly push cron's job — and for the
-    engine repo that cron did not exist. The two halves shipped apart and the
-    gap was invisible from both sides: publish-engine reported success every
-    time, the publish alarm read healthy, the local tree was healthy, and the
-    remote sat **3 days and 25 commits** behind. It was noticed by looking at
-    GitHub, which is the failure mode goal:g7.10 exists to remove.
+    Originally the other half of goal:g7.10's publish alarm: that alarm
+    measured the **local commit**, `publish-engine.sh` committed a *separate*
+    engine repo and deliberately did not push it (pushing was the hourly push
+    cron's job, and for the engine repo that cron did not exist), and the gap
+    was invisible from both sides — publish reported success, the local tree
+    was healthy, and the remote sat **3 days and 25 commits** behind. It was
+    noticed by looking at GitHub, which is the failure mode goal:g7.10 existed
+    to remove.
 
-    So: measure the **gap**, not the event. Two alternatives were considered
-    and rejected. `hours_since_successful_push` needs a wrapper around the bare
-    `git push` cron line plus a second state file; having the push cron write
-    into `context/publish-state.json` puts a second writer on a file whose
-    write is read-prior-then-rewrite-whole, where an overlap silently drops
-    keys. Both also share a deeper flaw: **a timestamp can read fresh while
-    work is stranded.** A push that succeeds with nothing to push is
-    indistinguishable from one that shipped 25 commits. A gap count is state,
-    not an event; it cannot lie that way, it needs no state file at all, and
-    the number is the severity — it would have read 25 during the outage above
-    and reads 0 when healthy.
+    goal:g11 removed the boundary that made that a two-repo question:
+    `payloads/`, the staged engine checkout and `publish-engine.sh`'s write
+    into it are retired, and one push cron (`branch_push`) now covers what
+    used to be two. What survives, and is still genuinely useful, is the
+    single question that boundary never changed: **is anything committed on
+    this machine still only on this machine?** A push that succeeds with
+    nothing to push reads identical to a healthy repo; only a gap **count**,
+    not a timestamp, tells the two apart. `unpushed_reason` is `""` if and
+    only if `unpushed_commits` is a real measurement (see `unpushed_commits`
+    for what every other value means).
 
-    Both repos, because the `:07` graph push has exactly the same hole as the
-    `:47` engine one; only the engine's happened to be the one that broke.
+    `root` is the *graph* root (`<repo>/.agi` under the unified layout, or the
+    repo root itself under the legacy one) — the same argument every other
+    stat in this module takes. `unpushed_commits` demands `repo` be the git
+    toplevel, and under the unified layout `.agi` is not: it is a directory
+    *inside* the repo, so measuring `root` directly would answer
+    `not-a-repo` on every unified project, forever — the exact permanent
+    sentinel this bug fix exists to remove. `locations.repo_root` resolves
+    the actual toplevel for either layout (identity under the legacy one,
+    parent-of-`.agi` under the unified one), so this is the one caller of
+    `unpushed_commits` that does *not* pass its own `root` straight through.
     """
-    graph_n, graph_reason = unpushed_commits(root)
-    engine_n, engine_reason = unpushed_commits(root / ENGINE_CLONE_DIRNAME)
+    n, reason = unpushed_commits(locations.repo_root(root))
     return {
-        "unpushed_graph_commits": graph_n,
-        "unpushed_graph_reason": graph_reason,
-        "unpushed_engine_commits": engine_n,
-        "unpushed_engine_reason": engine_reason,
+        "unpushed_commits": n,
+        "unpushed_reason": reason,
     }
 
 
@@ -718,14 +611,12 @@ def compute(root: Path) -> dict:
     # goal:g7.10 — node-level retirement, kept apart from `retired_goal_nodes`
     # above (that one is goal attribution; this one is the node's own status).
     m.update(node_lifecycle_stats(root / "nodes", m["node_count"]))
-    # goal:g7.10 — the stalled-publish alarm. Computed here rather than in the
-    # cron so it is reported by every `--smoke` run, including runs on a
-    # machine where the cron is not installed at all.
-    m.update(publish_stats(root))
-    # goal:s20 — the same path's second half. `publish_stats` above ends at the
-    # local commit; these two counts are everything after it. Kept adjacent
-    # because the pair is the whole path and reading either alone is what let a
-    # 3-day outage look healthy.
+    # goal:s20, post-goal:g11 — the stranded-push gap. `hours_since_successful_
+    # publish` and `publish_blocked_reason` (goal:g7.10) measured a two-repo
+    # publish boundary that goal:g11 removed; they were dropped rather than
+    # kept reporting a sentinel for a publish that structurally cannot happen
+    # any more (mvp:g11-crons-metrics-residual). This one honest number
+    # survives the merge: whether this repo's own HEAD is ahead of its remote.
     m.update(push_gap_stats(root))
     ev = evidence_stats(root / "nodes")
     m.update(ev)
@@ -777,62 +668,41 @@ def emit(root: Path, out=None) -> dict:
         )
         print(f"METRIC_WARNING goal_rotation={active}/{max_active}", file=out)
 
-    # goal:g7.10 — the publish cron must never fail silently. A non-empty
-    # `publish_blocked_reason` means the last publish did not land, so this
-    # needs no threshold of its own: the reason string is the trigger.
-    blocked = m.get("publish_blocked_reason")
-    if isinstance(blocked, str) and blocked:
-        stalled = m.get("hours_since_successful_publish")
-        never = stalled == NEVER_PUBLISHED_HOURS
-        # `never-run` is not a stall. A project that has never installed the
-        # publish cron is in a different state from one whose cron is refusing,
-        # and calling both STALLED is how an alarm earns a reputation for crying
-        # wolf — which for this goal is the whole failure mode, one level up.
-        never_run = blocked == NEVER_RUN_REASON
-        headline = (
-            "the engine publish has NEVER RUN" if never_run
-            else "the engine publish is STALLED"
-        )
-        print(
-            f"!! METRIC-WARNING {headline} (reason={blocked}). "
-            + ("No successful publish has EVER been recorded. "
-               if never else f"Last successful publish was {stalled}h ago. ")
-            + "Payload bytes are NOT lost — `grid.py commit --all` runs on its own "
-            "ungated 5-minute cron, so every byte under payloads/ is already in its "
-            "node's grid ref; only the engine publish is blocked. Unblock it with "
-            "`level3.py` + `git status` (one node whose contract re-derives "
-            "differently keeps the graph permanently dirty), commit the graph, then "
-            "`publish-engine.sh --dry-run` (goal:g7.10).",
-            file=sys.stderr,
-        )
-        print(f"METRIC_WARNING publish_stalled={blocked}", file=out)
+    # goal:g7.10's publish-stall alarm used to live here: a non-empty
+    # `publish_blocked_reason` meant the last publish did not land, and this
+    # block shouted about it with no threshold needed (the reason string was
+    # the trigger). Removed, not just silenced, because goal:g11 removed what
+    # it guarded: `publish_blocked_reason` measured `publish-engine.sh`
+    # writing into a *separate* engine repo, and there is no separate engine
+    # repo any more for it to fail to write into. Keeping the block with the
+    # metric gone would mean `m.get("publish_blocked_reason")` reads `None`
+    # forever — permanently, silently inert code, which is worse than deleting
+    # it, because inert-looking-armed is exactly the shape of bug this project
+    # keeps finding (mvp:g11-crons-metrics-residual). If a real one-repo
+    # publish concept is ever reintroduced, it needs a guard against *that*
+    # failure mode, not a revival of this one.
 
-    # goal:s20 — a publish that landed locally and never left the machine. The
+    # goal:s20 — a commit that landed locally and never left the machine. The
     # threshold is here and not in the metric on purpose: the count is emitted
     # every run whatever it is, and this only decides when to raise a voice.
     #
     # An UNKNOWN_GAP is deliberately silent. It is not a claim of health — the
-    # count reads -1 and `unpushed_*_reason` names the blind spot for whoever
-    # is reading the numbers — but a fork with no remote configured is
+    # count reads -1 and `unpushed_reason` names the blind spot for whoever is
+    # reading the numbers — but a fork with no remote configured is
     # unconfigured, not stranded, and a banner it can never clear is how an
     # alarm earns the reputation that gets it ignored.
-    for label in ("graph", "engine"):
-        n = m.get(f"unpushed_{label}_commits")
-        if not isinstance(n, int) or n < UNPUSHED_WARN_AT:
-            continue
+    n = m.get("unpushed_commits")
+    if isinstance(n, int) and n >= UNPUSHED_WARN_AT:
         print(
-            f"!! METRIC-WARNING {n} commits in the {label} repo have NEVER BEEN "
-            "PUSHED. The publish path landed them locally and stopped there: "
-            "`hours_since_successful_publish` measures the local commit, so a "
-            "healthy publish and a stale remote look identical from it. That "
-            "combination once left the remote 3 days and 25 commits behind, "
-            "found only by looking at GitHub. Nothing is lost — the commits are "
-            "on this disk — but nothing off this machine has them. Check the "
-            "hourly push cron (`crontab -l`), then `git -C <repo> push origin "
-            "HEAD` (goal:s20).",
+            f"!! METRIC-WARNING {n} commits have NEVER BEEN PUSHED. They are "
+            "committed on this machine and nowhere else — nothing is lost, but "
+            "nothing off this machine has them, which once let a stranded "
+            "branch sit 3 days and 25 commits behind before anyone noticed, "
+            "found only by looking at GitHub. Check the hourly push cron "
+            "(`crontab -l`), then `git push origin HEAD` (goal:s20).",
             file=sys.stderr,
         )
-        print(f"METRIC_WARNING unpushed_{label}_commits={n}", file=out)
+        print(f"METRIC_WARNING unpushed_commits={n}", file=out)
 
     for k, v in m.items():
         print(f"METRIC {k}={v}", file=out)
