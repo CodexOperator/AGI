@@ -25,7 +25,7 @@ payload_ref: extensions/agi/hooks/cc-session-start.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 1b64ceb527481a849f6e705aeea2b9778dfac13e443d75afddb022d58ced431b
+content_sha256: c8b1ba151927e1b4e4bc9445750df7ec6ef056044051796561332aaca2ededfc
 inputs: []
 outputs: []
 ```

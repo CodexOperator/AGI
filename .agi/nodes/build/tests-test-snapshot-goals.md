@@ -65,22 +65,22 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / "GOALS.md"
-  how: '`(tmp_path / "GOALS.md").read_text()` at line 686'
+  how: '`(tmp_path / "GOALS.md").read_text()` at line 689'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
-  how: '`doc.read_text()` at line 716'
+  how: '`doc.read_text()` at line 753'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text()` at line 875'
+  how: '`p.read_text()` at line 916'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text()` at line 881'
+  how: '`p.read_text()` at line 922'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -115,27 +115,32 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: node
-  how: '`node.read_text()` at line 699'
+  how: '`node.read_text()` at line 736'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
-  how: '`doc.read_text()` at line 719'
+  how: '`doc.read_text()` at line 756'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
-  how: '`doc.read_text()` at line 723'
+  how: '`doc.read_text()` at line 760'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / "GOALS.md"
-  how: '`(tmp_path / "GOALS.md").read_text()` at line 733'
+  how: '`(tmp_path / "GOALS.md").read_text()` at line 770'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / "GOALS.md"
+  how: '`(tmp_path / "GOALS.md").read_text()` at line 796'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: bsb
-  how: '`bsb.read_text()` at line 908'
+  how: '`bsb.read_text()` at line 949'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -145,17 +150,17 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: project / "GOALS.md"
-  how: '`(project / "GOALS.md").read_text()` at line 708'
+  how: '`(project / "GOALS.md").read_text()` at line 745'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
-  how: '`doc.read_text()` at line 810'
+  how: '`doc.read_text()` at line 851'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text()` at line 895'
+  how: '`p.read_text()` at line 936'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -476,156 +481,179 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: test_heading_level_and_order_are_stored_not_inferred
-  how: 'defines public function `test_heading_level_and_order_are_stored_not_inferred`
-    at line 663, signature: (nested)'
+- name: test_heading_level_is_stored_not_inferred
+  how: 'defines public function `test_heading_level_is_stored_not_inferred` at line
+    663, signature: (nested)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: test_unsorted_document_order_survives_the_round_trip
-  how: 'defines public function `test_unsorted_document_order_survives_the_round_trip`
-    at line 676, signature: (tmp_path)'
+- name: test_document_order_is_naturally_sorted_by_goal_id_on_render
+  how: 'defines public function `test_document_order_is_naturally_sorted_by_goal_id_on_render`
+    at line 677, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_natural_sort_orders_dotted_subgoals_numerically
+  how: defines public function `test_natural_sort_orders_dotted_subgoals_numerically`
+    at line 696
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_natural_sort_orders_short_term_goals_numerically
+  how: defines public function `test_natural_sort_orders_short_term_goals_numerically`
+    at line 704
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_natural_sort_puts_g_goals_before_s_goals
+  how: defines public function `test_natural_sort_puts_g_goals_before_s_goals` at
+    line 710
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_natural_sort_full_worked_example
+  how: defines public function `test_natural_sort_full_worked_example` at line 716
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_preamble_becomes_a_doc_node_not_a_goal
   how: 'defines public function `test_preamble_becomes_a_doc_node_not_a_goal` at line
-    690, signature: (project)'
+    727, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_the_banner_does_not_accrete_across_round_trips
   how: 'defines public function `test_the_banner_does_not_accrete_across_round_trips`
-    at line 703, signature: (project)'
+    at line 740, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_deleting_a_heading_does_not_delete_the_node
   how: 'defines public function `test_deleting_a_heading_does_not_delete_the_node`
-    at line 711, signature: (project)'
+    at line 748, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_render_refuses_to_write_an_empty_document
   how: 'defines public function `test_render_refuses_to_write_an_empty_document` at
-    line 726, signature: (tmp_path)'
+    line 763, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: test_a_goal_node_missing_order_is_a_hard_error
-  how: 'defines public function `test_a_goal_node_missing_order_is_a_hard_error` at
-    line 736, signature: (project)'
+- name: test_a_goal_node_missing_heading_level_is_a_hard_error
+  how: 'defines public function `test_a_goal_node_missing_heading_level_is_a_hard_error`
+    at line 773, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: test_duplicate_order_across_nodes_is_a_hard_error
-  how: 'defines public function `test_duplicate_order_across_nodes_is_a_hard_error`
-    at line 746, signature: (project)'
+- name: test_a_goal_node_missing_order_renders_without_error
+  how: 'defines public function `test_a_goal_node_missing_order_renders_without_error`
+    at line 783, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_integrity_check_runs_in_the_render_direction_too
   how: 'defines public function `test_integrity_check_runs_in_the_render_direction_too`
-    at line 758, signature: (project)'
+    at line 799, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_preserves_embedded_double_quotes
   how: 'defines public function `test_write_frontmatter_preserves_embedded_double_quotes`
-    at line 769, signature: (tmp_path)'
+    at line 810, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_preserves_backslashes
   how: 'defines public function `test_write_frontmatter_preserves_backslashes` at
-    line 780, signature: (tmp_path)'
+    line 821, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_prune_only_touches_nodes_this_script_can_produce
   how: 'defines public function `test_prune_only_touches_nodes_this_script_can_produce`
-    at line 786, signature: (project)'
+    at line 827, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_prune_still_removes_a_goal_the_document_dropped
   how: 'defines public function `test_prune_still_removes_a_goal_the_document_dropped`
-    at line 804, signature: (project)'
+    at line 845, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_extract_thought_absent_is_none
-  how: defines public function `test_extract_thought_absent_is_none` at line 819
+  how: defines public function `test_extract_thought_absent_is_none` at line 860
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_extract_thought_returns_block_with_markers
   how: defines public function `test_extract_thought_returns_block_with_markers` at
-    line 827
+    line 868
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_extract_thought_is_multiline_and_non_greedy
   how: defines public function `test_extract_thought_is_multiline_and_non_greedy`
-    at line 835
+    at line 876
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_splice_carries_thought_across_a_regenerating_write
   how: defines public function `test_splice_carries_thought_across_a_regenerating_write`
-    at line 843
+    at line 884
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_splice_prefers_a_thought_authored_this_pass
   how: defines public function `test_splice_prefers_a_thought_authored_this_pass`
-    at line 853
+    at line 894
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_splice_is_a_noop_without_a_stored_thought
   how: defines public function `test_splice_is_a_noop_without_a_stored_thought` at
-    line 862
+    line 903
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_preserves_thought_block
   how: 'defines public function `test_write_frontmatter_preserves_thought_block` at
-    line 867, signature: (tmp_path)'
+    line 908, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_write_frontmatter_without_preserve_body_still_wipes
   how: 'defines public function `test_write_frontmatter_without_preserve_body_still_wipes`
-    at line 887, signature: (tmp_path)'
+    at line 928, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_one_serializer_not_two
-  how: defines public function `test_one_serializer_not_two` at line 898
+  how: defines public function `test_one_serializer_not_two` at line 939
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_strip_thought_removes_the_block
-  how: defines public function `test_strip_thought_removes_the_block` at line 918
+  how: defines public function `test_strip_thought_removes_the_block` at line 959
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_strip_thought_is_a_noop_without_one
   how: defines public function `test_strip_thought_is_a_noop_without_one` at line
-    925
+    966
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_render_strips_thought_but_the_node_keeps_it
   how: defines public function `test_render_strips_thought_but_the_node_keeps_it`
-    at line 930
+    at line 971
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_render_check_round_trip_survives_a_thought
   how: defines public function `test_render_check_round_trip_survives_a_thought` at
-    line 941
+    line 982
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -681,24 +709,24 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / "GOALS.md"
-  how: '`(tmp_path / "GOALS.md").write_text(doc)` at line 682'
+  how: '`(tmp_path / "GOALS.md").write_text(doc)` at line 685'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
   how: '`doc.write_text(before.replace( "## G2 — Persistent ideation system — status:
-    active\n\nAdapt the research loop.\n", ""))` at line 717'
+    active\n\nAdapt the research loop.\n", ""))` at line 754'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / "GOALS.md"
-  how: '`(tmp_path / "GOALS.md").write_text("# real content\n")` at line 730'
+  how: '`(tmp_path / "GOALS.md").write_text("# real content\n")` at line 767'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: doc
   how: '`doc.write_text(doc.read_text().replace( "## G2 — Persistent ideation system
-    — status: active\n\nAdapt the research loop.\n", ""))` at line 810'
+    — status: active\n\nAdapt the research loop.\n", ""))` at line 851'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
