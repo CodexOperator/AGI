@@ -151,129 +151,46 @@ def _run_hook(cwd: Path):
                           capture_output=True, text=True, env=env)
 
 
-# ------------------------------------------ 1. the alarm has to move a number
+# ------------------------------------------ 1. the alarm that used to live here
+#
+# `hours_since_successful_publish` and `publish_blocked_reason` (goal:g7.10)
+# read `context/publish-state.json` through `metrics.publish_stats` and turned
+# it into two METRIC lines. goal:g11 merged the graph and engine repos that
+# `publish-engine.sh` moved bytes between, so the publish this alarm existed to
+# catch can no longer happen — and a metric permanently reporting its own
+# sentinel is exactly the failure mode H3/H4c already forced this project to
+# remove elsewhere. `metrics.py` no longer computes either number
+# (mvp:g11-crons-metrics-residual). `publish-engine.sh` and the SessionStart
+# banner below (sections 2-4) are untouched — they still read this same marker
+# file directly — only the METRIC-line mirror of it is gone.
 
 
-def test_never_published_is_the_loudest_value_not_the_quietest(project):
-    """The inversion that hid the outage: for this metric higher is worse, so
-    `0` — "published seconds ago", the most reassuring number in the range —
-    must not be what "never published at all" reads as."""
-    s = metrics.publish_stats(project)
-    assert s["hours_since_successful_publish"] == metrics.NEVER_PUBLISHED_HOURS
-    assert metrics.NEVER_PUBLISHED_HOURS > 24 * 365   # unmistakably not elapsed time
-    assert s["publish_blocked_reason"] == metrics.NEVER_RUN_REASON
+def test_publish_stats_no_longer_exists_on_metrics():
+    """Regression: the function that emitted a permanent sentinel for a
+    publish goal:g11 made structurally impossible must not come back."""
+    assert not hasattr(metrics, "publish_stats")
+    assert not hasattr(metrics, "read_publish_state")
+    assert not hasattr(metrics, "NEVER_PUBLISHED_HOURS")
+    assert not hasattr(metrics, "NEVER_RUN_REASON")
 
 
-def test_no_marker_at_all_does_not_report_as_healthy(project):
-    """A cron that has never written a marker has never published. Empty is
-    reserved for "the last run succeeded" and may mean nothing else."""
-    assert metrics.publish_stats(project)["publish_blocked_reason"] != ""
-
-
-def test_a_successful_publish_clears_both_numbers(project):
-    now = time.time()
-    _write_state(project, last_run_status="ok", last_run_reason="",
-                 last_success_epoch=now - 1800)
-    s = metrics.publish_stats(project, now=now)
-    assert s["hours_since_successful_publish"] == 0.5
-    assert s["publish_blocked_reason"] == ""
-
-
-def test_a_refusal_names_itself_and_keeps_the_clock_running(project):
-    """40 refusals in a row must be legible as 40 hours of not publishing."""
-    now = time.time()
+def test_the_retired_publish_metrics_are_not_emitted(project):
+    """The exact two METRIC keys measured on a real `driver.sh --smoke` run
+    and found to always read a sentinel, never a measurement."""
     _write_state(project, last_run_status="refused", last_run_reason="graph-dirty",
-                 last_success_epoch=now - 40 * 3600)
-    s = metrics.publish_stats(project, now=now)
-    assert s["hours_since_successful_publish"] == 40.0
-    assert s["publish_blocked_reason"] == "graph-dirty"
-
-
-def test_a_cron_that_simply_stops_still_moves_the_number(project):
-    """No refusal, no error — the cron is just gone. The metric needs no
-    threshold to catch that: elapsed time since a real publish is unbounded."""
-    now = time.time()
-    _write_state(project, last_run_status="ok", last_success_epoch=now - 72 * 3600)
-    assert metrics.publish_stats(project, now=now)["hours_since_successful_publish"] == 72.0
-
-
-def test_a_refusal_with_no_reason_is_still_not_silent(project):
-    _write_state(project, last_run_status="refused", last_run_reason="")
-    assert metrics.publish_stats(project)["publish_blocked_reason"] == \
-        metrics.UNKNOWN_REASON
-
-
-def test_a_corrupt_marker_alarms_rather_than_reassures(project):
-    """Unreadable and absent collapse to the same answer on purpose. A marker
-    this metric cannot parse is not evidence that anything was published."""
-    p = project / STATE_REL
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text("{not json at all")
-    s = metrics.publish_stats(project)
-    assert s["hours_since_successful_publish"] == metrics.NEVER_PUBLISHED_HOURS
-    assert s["publish_blocked_reason"] == metrics.NEVER_RUN_REASON
-
-
-def test_a_clock_that_moved_backwards_does_not_read_as_a_future_publish(project):
-    now = time.time()
-    _write_state(project, last_run_status="ok", last_success_epoch=now + 9999)
-    assert metrics.publish_stats(project, now=now)["hours_since_successful_publish"] == 0.0
-
-
-@pytest.mark.parametrize("raw", [
-    "graph dirty\nsecond line",
-    "  contracts disagree  ",
-    "REFUSING: nodes/ + GOALS.md",
-])
-def test_the_reason_survives_as_one_metric_token(project, raw):
-    """`METRIC k=v` is a whitespace-delimited line format: a space makes the
-    value a truncated field plus a stray one, a newline makes a second
-    malformed record. Neither fails loudly."""
-    _write_state(project, last_run_status="refused", last_run_reason=raw)
-    buf = io.StringIO()
-    metrics.emit(project, out=buf)
-    line = [ln for ln in buf.getvalue().splitlines()
-            if ln.startswith("METRIC publish_blocked_reason=")]
-    assert len(line) == 1
-    value = line[0].split("=", 1)[1]
-    assert value and " " not in value and "\t" not in value
-    assert len(value) <= metrics.MAX_REASON_LEN
-
-
-def test_a_reason_that_is_not_a_string_does_not_crash_the_metrics_stage(project):
-    _write_state(project, last_run_status="refused", last_run_reason={"a": 1})
-    assert metrics.publish_stats(project)["publish_blocked_reason"] == \
-        metrics.UNKNOWN_REASON
-
-
-def test_both_metrics_reach_the_metric_lines(project):
-    """They have to appear in every `--smoke` run, which is this loop."""
+                 last_success_epoch=time.time() - 40 * 3600)
     buf = io.StringIO()
     metrics.emit(project, out=buf)
     text = buf.getvalue()
-    assert "METRIC hours_since_successful_publish=" in text
-    assert "METRIC publish_blocked_reason=" in text
+    assert "hours_since_successful_publish" not in text
+    assert "publish_blocked_reason" not in text
+    assert "publish_stalled" not in text
 
 
-def test_compute_carries_the_publish_alarm(project):
+def test_compute_no_longer_carries_the_publish_alarm(project):
     m = metrics.compute(project)
-    assert "hours_since_successful_publish" in m
-    assert "publish_blocked_reason" in m
-
-
-def test_a_stall_raises_a_warning_a_healthy_publish_does_not(project, capsys):
-    _write_state(project, last_run_status="refused", last_run_reason="graph-dirty",
-                 last_success_epoch=time.time() - 3600)
-    metrics.emit(project)
-    out = capsys.readouterr()
-    assert "METRIC_WARNING publish_stalled=graph-dirty" in out.out
-    assert "STALLED" in out.err
-    # the reassuring true thing, said where the fear is
-    assert "NOT lost" in out.err and "grid.py commit" in out.err
-
-    _write_state(project, last_run_status="ok", last_success_epoch=time.time())
-    metrics.emit(project)
-    assert "publish_stalled" not in capsys.readouterr().out
+    assert "hours_since_successful_publish" not in m
+    assert "publish_blocked_reason" not in m
 
 
 # ---------------------------------- 2. non-zero exit + a durable marker
@@ -450,13 +367,10 @@ def test_a_corrupt_marker_does_not_break_the_hook(project):
 def test_no_marker_means_no_banner(project):
     """A project that never installed the publish cron has nothing to be told,
     and a permanent false alarm in every session is how a mechanism like this
-    gets switched off. `metrics.py` still reports `never-run` for the same
-    state, for whoever is actually reading the numbers."""
+    gets switched off."""
     (project / "context" / "INJECTION.md").write_text("map\n")
     r = _run_hook(project)
     assert "STALLED" not in r.stdout
-    assert metrics.publish_stats(project)["publish_blocked_reason"] == \
-        metrics.NEVER_RUN_REASON
 
 
 # ------------------------------- 4. branch and continue (goal:g7.10 part 3)
@@ -631,7 +545,6 @@ def test_parking_the_bytes_does_not_make_the_alarm_read_healthy(tmp_path):
     assert state["last_run_reason"] == "graph-dirty"
     assert state["last_success_epoch"] == 1000
     assert state["last_success_graph_commit"] == "deadbee"
-    assert metrics.publish_stats(project)["publish_blocked_reason"] == "graph-dirty"
 
 
 def test_the_marker_says_where_the_parked_bytes_went(tmp_path):
@@ -1201,76 +1114,68 @@ def test_the_gap_is_still_measurable_with_an_unreachable_remote(tmp_path):
     assert metrics.unpushed_commits(repo) == (5, "")
 
 
-# ------------------------------------------------- both repos, and the wiring
+# ------------------------------------------------- the project's own repo
+#
+# Pre-goal:g11 this section was "both repos, and the wiring": the engine push
+# was the one that broke, the `:07` graph push had exactly the same hole, and
+# both had to be measured. goal:g11 merged graph and engine into one repo, so
+# there is one number now, not two — and `unpushed_graph_commits` /
+# `unpushed_engine_commits` collapsing to a single `unpushed_commits` is
+# itself the fix under test here, not incidental cleanup
+# (mvp:g11-crons-metrics-residual).
 
 
-def test_both_repos_are_covered(tmp_path):
-    """The engine push is the one that broke; the `:07` graph push has exactly
-    the same hole. The engine is found at `<project>/agi`, the layout every
-    project shares — no branch on which project this is (goal:g8.2)."""
-    graph = tmp_path / "graph"
-    _repo_with_upstream(graph)
-    _commits(graph, 6)
-    (graph / "agi-tree.config.json").write_text("{}")
-    (graph / "nodes").mkdir()
-    engine = tmp_path / "engine"
-    _repo_with_upstream(engine)
-    _commits(engine, 25)
-    (graph / "agi").symlink_to(engine)
+def test_push_gap_stats_measures_the_projects_own_repo(tmp_path):
+    repo = tmp_path / "repo"
+    _repo_with_upstream(repo)
+    _commits(repo, 6)
 
-    s = metrics.push_gap_stats(graph)
-
-    assert s["unpushed_graph_commits"] == 6
-    assert s["unpushed_graph_reason"] == ""
-    assert s["unpushed_engine_commits"] == 25
-    assert s["unpushed_engine_reason"] == ""
+    assert metrics.push_gap_stats(repo) == {"unpushed_commits": 6, "unpushed_reason": ""}
 
 
-def test_a_project_with_no_engine_clone_reports_unknown_on_that_half_only(tmp_path):
-    """Forkability again, at the level the metric is actually read: one half
-    unmeasurable must not take the other half's number down with it."""
-    graph = tmp_path / "graph"
-    _repo_with_upstream(graph)
-    _commits(graph, 2)
+def test_push_gap_stats_resolves_a_graph_dir_to_its_enclosing_repo(tmp_path):
+    """The exact defect this bug fix removes. Under the unified layout `root`
+    is `<repo>/.agi`, not the repo's own toplevel — measuring `.agi` directly
+    answers `not-a-repo` on every project running the new layout, forever,
+    since `.agi` never becomes its own git repo. That was a real, observed
+    reading (`unpushed_graph_reason=not-a-repo` on a real `driver.sh --smoke`
+    run) before `push_gap_stats` was changed to resolve through
+    `locations.repo_root` first."""
+    repo = tmp_path / "repo"
+    _repo_with_upstream(repo)
+    graph_dir = repo / ".agi"
+    graph_dir.mkdir()
+    (graph_dir / "config.json").write_text("{}")
+    _commits(repo, 3)
 
-    s = metrics.push_gap_stats(graph)
-
-    assert s["unpushed_graph_commits"] == 2
-    assert s["unpushed_engine_commits"] == metrics.UNKNOWN_GAP
-    assert s["unpushed_engine_reason"] == "missing"
+    assert metrics.push_gap_stats(graph_dir) == \
+        {"unpushed_commits": 3, "unpushed_reason": ""}
 
 
 def test_compute_and_emit_carry_the_push_gap(project):
     """They have to appear in every `--smoke` run, which is this loop."""
     m = metrics.compute(project)
-    for k in ("unpushed_graph_commits", "unpushed_graph_reason",
-              "unpushed_engine_commits", "unpushed_engine_reason"):
-        assert k in m
+    assert "unpushed_commits" in m
+    assert "unpushed_reason" in m
 
     buf = io.StringIO()
     metrics.emit(project, out=buf)
-    text = buf.getvalue()
-    for k in ("unpushed_graph_commits", "unpushed_engine_commits"):
-        assert f"METRIC {k}=" in text
+    assert "METRIC unpushed_commits=" in buf.getvalue()
 
 
 def test_a_non_project_does_not_crash_the_metrics_stage(project):
-    """`project` is a tmp dir that is not a git repo at all. Every gap reads
-    unknown and nothing raises — the stage still emits its other 30 numbers."""
-    m = metrics.compute(project)
-    assert m["unpushed_graph_commits"] == metrics.UNKNOWN_GAP
-    assert m["unpushed_engine_commits"] == metrics.UNKNOWN_GAP
+    """`project` is a tmp dir that is not a git repo at all. The gap reads
+    unknown and nothing raises — the stage still emits its other numbers."""
+    assert metrics.compute(project)["unpushed_commits"] == metrics.UNKNOWN_GAP
 
 
-@pytest.mark.parametrize("key", ["unpushed_graph_reason", "unpushed_engine_reason"])
-def test_the_reason_survives_as_one_metric_token(project, key):
+def test_the_reason_survives_as_one_metric_token(project):
     """`METRIC k=v` is whitespace-delimited: a value with a space becomes a
-    truncated field plus a stray one. Same trap `publish_blocked_reason` was
-    normalised for."""
+    truncated field plus a stray one."""
     buf = io.StringIO()
     metrics.emit(project, out=buf)
     line = [ln for ln in buf.getvalue().splitlines()
-            if ln.startswith(f"METRIC {key}=")]
+            if ln.startswith("METRIC unpushed_reason=")]
     assert len(line) == 1
     value = line[0].split("=", 1)[1]
     assert value and " " not in value and "\t" not in value
@@ -1280,8 +1185,7 @@ def test_the_reason_survives_as_one_metric_token(project, key):
 
 
 def _emit_with_gap(project, capsys, **stats):
-    base = {"unpushed_graph_commits": 0, "unpushed_graph_reason": "",
-            "unpushed_engine_commits": 0, "unpushed_engine_reason": ""}
+    base = {"unpushed_commits": 0, "unpushed_reason": ""}
     base.update(stats)
     real = metrics.push_gap_stats
     metrics.push_gap_stats = lambda _root: base
@@ -1293,34 +1197,32 @@ def _emit_with_gap(project, capsys, **stats):
 
 
 def test_a_large_gap_shouts(project, capsys):
-    out = _emit_with_gap(project, capsys,
-                         unpushed_engine_commits=metrics.UNPUSHED_WARN_AT)
-    assert f"METRIC_WARNING unpushed_engine_commits={metrics.UNPUSHED_WARN_AT}" in out.out
+    out = _emit_with_gap(project, capsys, unpushed_commits=metrics.UNPUSHED_WARN_AT)
+    assert f"METRIC_WARNING unpushed_commits={metrics.UNPUSHED_WARN_AT}" in out.out
     assert "NEVER BEEN PUSHED" in out.err
 
 
 def test_a_healthy_repo_is_silent(project, capsys):
     out = _emit_with_gap(project, capsys)
-    assert "unpushed_" not in out.out.replace("METRIC unpushed_", "")
+    assert "METRIC_WARNING unpushed" not in out.out
     assert "NEVER BEEN PUSHED" not in out.err
 
 
 def test_one_cycle_of_ordinary_work_does_not_shout(project, capsys):
-    """Both push crons are hourly, and over the 14 days to 2026-08-28 the
-    busiest single hour in this pair produced 8 commits in the graph and 9 in
-    the engine. A threshold that fires on one missed cycle is a threshold
-    people learn to ignore."""
+    """Measured, not picked: over the 14 days to 2026-08-28, before goal:g11
+    unified the two hourly push crons into `branch_push`, the busiest single
+    hour of the pair produced 9 commits. A threshold that fires on one missed
+    cycle is a threshold people learn to ignore."""
     assert metrics.UNPUSHED_WARN_AT > 9
-    out = _emit_with_gap(project, capsys, unpushed_graph_commits=9,
-                         unpushed_engine_commits=9)
+    out = _emit_with_gap(project, capsys, unpushed_commits=9)
     assert "NEVER BEEN PUSHED" not in out.err
 
 
 def test_the_threshold_would_have_caught_the_real_outage(project, capsys):
     """3 days, 25 commits, publish reporting success the whole time."""
     assert metrics.UNPUSHED_WARN_AT <= 25
-    out = _emit_with_gap(project, capsys, unpushed_engine_commits=25)
-    assert "METRIC_WARNING unpushed_engine_commits=25" in out.out
+    out = _emit_with_gap(project, capsys, unpushed_commits=25)
+    assert "METRIC_WARNING unpushed_commits=25" in out.out
 
 
 def test_an_unmeasurable_gap_does_not_shout(project, capsys):
@@ -1329,22 +1231,20 @@ def test_an_unmeasurable_gap_does_not_shout(project, capsys):
     unconfigured, not stranded, and a banner it can never clear is how an alarm
     earns the reputation that gets it switched off."""
     out = _emit_with_gap(project, capsys,
-                         unpushed_graph_commits=metrics.UNKNOWN_GAP,
-                         unpushed_graph_reason="no-upstream",
-                         unpushed_engine_commits=metrics.UNKNOWN_GAP,
-                         unpushed_engine_reason="missing")
+                         unpushed_commits=metrics.UNKNOWN_GAP,
+                         unpushed_reason="no-upstream")
     assert "NEVER BEEN PUSHED" not in out.err
     assert "METRIC_WARNING unpushed" not in out.out
-    assert "METRIC unpushed_graph_reason=no-upstream" in out.out
+    assert "METRIC unpushed_reason=no-upstream" in out.out
 
 
 # ------------------------------------------------- and the hook reaches it
 
 
-def _hook_project(tmp_path, graph_gap: int, engine_gap: int | None):
-    """A real project that is a real repo with a real upstream, plus an engine
-    clone when `engine_gap` is not None. The hook shells out to git for real,
-    so nothing here can be faked with a state file."""
+def _hook_project(tmp_path, gap: int):
+    """A real project that is a real repo with a real upstream. The hook
+    shells out to git for real, so nothing here can be faked with a state
+    file."""
     graph = tmp_path / "graph"
     _repo_with_upstream(graph)
     (graph / "agi-tree.config.json").write_text("{}")
@@ -1353,19 +1253,14 @@ def _hook_project(tmp_path, graph_gap: int, engine_gap: int | None):
     _git(graph, "add", "-A")
     _git(graph, "commit", "-qm", "project marker")
     _git(graph, "push", "-q", "origin", "HEAD")
-    _commits(graph, graph_gap)
-    if engine_gap is not None:
-        engine = tmp_path / "engine"
-        _repo_with_upstream(engine)
-        _commits(engine, engine_gap)
-        (graph / "agi").symlink_to(engine)
+    _commits(graph, gap)
     return graph
 
 
 def test_the_hook_shouts_when_commits_are_stranded(tmp_path):
     """A metric nobody reads is one step short of a failure that moves no
     metric. The next agent to open any session in this project is told."""
-    graph = _hook_project(tmp_path, 0, metrics.UNPUSHED_WARN_AT)
+    graph = _hook_project(tmp_path, metrics.UNPUSHED_WARN_AT)
     (graph / "context" / "INJECTION.md").write_text("map\n")
 
     r = _run_hook(graph)
@@ -1379,18 +1274,7 @@ def test_the_hook_shouts_when_commits_are_stranded(tmp_path):
 
 
 def test_the_hook_is_quiet_when_nothing_is_stranded(tmp_path):
-    graph = _hook_project(tmp_path, 0, 0)
-    (graph / "context" / "INJECTION.md").write_text("map\n")
-
-    r = _run_hook(graph)
-
-    assert "STRANDED" not in r.stdout
-    assert "agi-tree map (auto-injected)" in r.stdout
-
-
-def test_the_hook_is_quiet_on_a_project_it_cannot_measure(tmp_path):
-    """No engine clone, and one push cycle of ordinary work in the graph."""
-    graph = _hook_project(tmp_path, 3, None)
+    graph = _hook_project(tmp_path, 0)
     (graph / "context" / "INJECTION.md").write_text("map\n")
 
     r = _run_hook(graph)

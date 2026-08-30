@@ -4228,6 +4228,348 @@ existing nodes is a separate, mechanical follow-up once the schema change
 itself is made — bundling the two would let the rule's definition drift
 while the migration is still being decided node by node.
 
+## S1 — Retire `bin/` as a directory name — status: active
+
+**Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
+holds fifteen `.py` files with shebangs, plus `driver.sh` alongside in the
+parent. Nothing in it is compiled and nothing in it is a binary.
+
+The name has a measured cost: **GitNexus excludes any directory called `bin/`
+by default**, so it indexes zero symbols for all fifteen — verified after a
+fresh reindex, against a working control probe on `src/`. That is the half of
+the engine where every 2026-08 change landed, and it is why the engine census
+had to be seeded from `git ls-files` instead of the code index.
+
+Rename to something that describes what is there — `cmd/`, `tools/`, `scripts/`
+— and take the opportunity to reconsider the layout as a whole rather than
+doing a one-word rename. Fifteen flat scripts with three separate generators
+among them (`snapshot-goals`, `snapshot-build-site`, `decompose-engine`,
+`level3`) have a structure worth making explicit.
+
+**Not a cheap change.** `driver.sh`, `dispatch.py`, the hooks, the skill, the
+tests and every one of the 27 census nodes reference these paths; `zoom.py`'s
+`--level` aliases are invoked by `dispatch.py` by path. Do it as a deliberate
+pass with the census re-run afterwards, and confirm GitNexus actually picks the
+directory up before committing to the churn — the exclusion is inferred from
+behaviour, not from a documented setting.
+
+## S2 — Cron parity with fantasia — status: complete
+
+`grid.py cron install` sets both cadences — a 5-minute grid snapshot + push
+(crash window ≤ 5 minutes) and an hourly main-branch push. fantasia has this;
+**agi-tree does not**, and the grid was only initialised in this project on
+2026-08-22.
+
+Until it is installed, every guarantee that rests on "sync is automated, nobody
+syncs by hand" is false here, and the grid's 535 refs exist only on this
+machine. Install it, verify both entries land, and confirm a push actually
+reaches the remote rather than assuming the cron line is correct — a cd-less
+cron line is exactly the class of small operational error the design ethic says
+the system should absorb.
+
+**Done 2026-08-22.** Both cadences installed and verified, targeting `master`
+(fantasia's line pushes `main`; the engine's installer got the branch right
+rather than copying it). First push completed: 84 commits and 641 grid refs are
+now on the remote, where before this the entire session existed on one disk.
+
+**Found while installing it, and it is the more useful half:** agi-tree's
+working branch was `iter24-extend-300hop`, a leftover from the 2026-05 padding
+run, and every commit this session landed there rather than on `master`. The
+branch was 84 ahead / 0 behind, so `master` fast-forwarded cleanly with nothing
+lost — but a cron installed before checking would have pushed `master` and
+silently published nothing at all, for as long as nobody looked.
+
+Precondition for **G6.5** (automatic rebuild on the grid's cadence).
+
+## S3 — A truncated contract value can contain a fence lookalike — status: active
+
+`level3.py`'s `_cap()` truncates derived text to 240 characters. In
+`nodes/level3/bin-heal.md` the `healer_ctx` input's `how` field is the truncated
+source of a `write_text(f"""...```json ...```...""")` call, so the truncated
+value contains a literal ` ```json ` sequence **inside** the YAML scalar.
+
+The file is valid YAML today — `yaml.safe_dump` escapes it correctly. The trap
+is on the reading side: any consumer that locates the contract's closing fence
+by scanning for the first ` ``` ` after ` ```yaml ` stops at the embedded one and
+gets a truncated, broken parse. This was hit for real while writing
+`stitch.py`, and fixed there by bounding extraction on the
+`BUILD-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
+there is a regression test reproducing the exact `bin-heal.md` shape.
+
+Fix it at the source, cheaply: either neutralise fence-lookalike sequences in
+`_cap()`'s output, or document the bounded-extraction requirement in a comment
+beside `_cap()` and the marker constants. **The next consumer is the G2.2 model
+pass** that fills `why`/`perf`/`security`, so this should land before that runs.
+Must not regress the 20 existing level3 tests.
+
+## S4 — Retire the legacy directories and repos — status: horizon
+
+Housekeeping carried from TODO **C1–C6**, gated on bug-sweep clearance and
+grouped here because none of it is worth its own long-term goal:
+
+- `~/autoresearch-tree/` local directory (C1) and the
+  `CodexOperator/autoresearch-tree` repo (C2) — archive rather than delete.
+- The old pi fallback under `~/.pi/agent/git/.../extensions/autoresearch-tree/`
+  (C3), pending verification that nothing resolves through it.
+- The modularNN spike worktree (C4) and legacy `~/.hermes/agi/` artifacts (C5).
+- `.claude/skills/gitnexus/*/SKILL.md` accidentally tracked (C6).
+
+Do these last. Every one is a deletion, and the two data-loss defects this
+project has already paid for both arrived as routine cleanup.
+
+## S5 — The engine repo has no sync at all — status: active
+
+`agi-tree` got both grid cadences on 2026-08-22 (**S2**). **`agi` got nothing** —
+no cron, and as of that date 11 unpushed commits on `master` carrying every
+engine fix this session produced.
+
+**The consequence is worse than "not backed up", and it is specific:**
+`agi-tree` is now published, and its 74 level-3 nodes carry `payload_ref`
+values pointing at engine files at commits that exist only on one disk. A fresh
+clone of `agi-tree` gets a graph that describes code it cannot fetch —
+`stitch.py` would report every payload missing. The graph and its subject are
+published at different times, which is a new way for the two to disagree.
+
+Immediate fix, one line:
+
+```
+git -C /home/ubuntu/work/agi push origin master
+```
+
+Then decide the standing arrangement, which is **not** simply "install the same
+cron". The engine repo's sync should eventually be a *consequence* of the
+rebuild in **G6.5**, not an independent schedule racing it — two crons pushing
+two repos on separate cadences is exactly how the graph and the engine drift
+apart at the moment either one is slow. Until G6.3 makes the rebuild
+trustworthy, a plain hourly push of `agi` is the honest interim.
+
+Check the same thing that made S2 worth doing: **verify which branch is
+actually checked out before trusting any push.** agi-tree's work had
+accumulated on a stale `iter24-extend-300hop` branch, and a cron pushing
+`master` would have published nothing, silently, indefinitely.
+
+## S6 — Strip agi-tree to the graph and its inputs — status: complete
+
+Done 2026-08-23. `agi-tree` had accumulated a second copy of most of `agi`:
+~95 one-off `exp-*.py` / `extend-*.py` scripts at the root, a vendored engine
+tree (`src/`, `tests/`, `engines/` — the copy **G7.7** wanted retired), the
+cavekit-era runner, both `.STALE-DO-NOT-USE` snapshot scripts, a duplicate
+`skill/autoresearch-tree/` under the pre-rename name, and 768 tracked session
+transcripts. 1,026 files, −281k lines; git history is the archive.
+
+**The rule that replaces it, now in `CLAUDE.md` as a table:** this repo holds
+`nodes/`, the inputs the nodes are derived from (`GOALS.md`, `context/kits/`,
+`context/plans/build-site.md`, `context/schemas/`), and `agi-tree.config.json`.
+A `.py` file added here belongs in the engine.
+
+> `GOALS.md` moved out of that list on 2026-08-25 (goal:g6.9): it is now
+> **derived from** `nodes/goal/`, not an input to it. The table in `CLAUDE.md`
+> is the live version, as this sentence already says — the list above is what
+> it read when this goal closed.
+
+The engine arrives as a gitignored clone at `agi/`, the way `fantasia` takes it,
+so `driver.sh --smoke` runs from this repo with no install step. That is an
+interim shape and **G8.1** still owns the real answer — it is a second working
+copy of a repo that also lives at `~/work/agi`, and G6.5 wants exactly one
+stitch target. Recorded here so the interim is not mistaken for the decision.
+
+The duplicate skill was deleted rather than re-pointed: `~/.claude/skills/agi`
+already symlinks to `agi/skills/agi`. One skill, one source — **G1.2**'s first
+concrete step, taken by subtraction.
+
+Two things this surfaced that were not housekeeping:
+
+- **`agi` was 11 commits ahead of `origin`** — exactly **S5**'s defect, caught
+  because a fresh clone would have pulled an engine 11 commits stale. Pushed
+  before cloning. S5's standing arrangement is still open.
+- **`context/kits/` and `context/plans/build-site.md` are generators, not
+  stale output.** They mint 159 of 661 nodes, and `snapshot-build-site.py`
+  unlinks every `origin: build-site` node it does not re-derive on a run — so
+  deleting them prunes a quarter of the graph silently, at loop time rather than
+  at delete time. Kept, and the hazard is written into `CLAUDE.md`. This is the
+  **H0i** class a third time, and the third time it was found by reading the
+  script rather than by losing the data.
+
+Verified: `driver.sh --smoke --max-iters 1` completes and `nodes/` is
+byte-identical afterwards.
+
+**Left standing on purpose:** `nodes.db` (7.8 MB, gitignored — **G7.6** owns the
+persistence question, and deleting it while two loaders disagree is not
+cleanup), and the `.claude/worktrees/` worktree still registered against a
+`~/.hermes/agi-tree/` path (**S4** C5, which is gated and explicitly last).
+
+## S7 — `snapshot-goals.py` needs two passes to wire a new sub-goal — status: active
+
+Found 2026-08-23 while adding G1.3–G1.5, G6.6 and G6.7. Adding a sub-goal and
+running the script once mints the child node with a correct `parents:` list, but
+the **parent's `seeds:` list does not contain it**. A second run adds it.
+Reproduced twice: pass 1 wrote `goal:g1.5` and left `goal:g1` unchanged; pass 2
+added `- goal:g1.5` to `goal:g1`.
+
+Cause is ordering — the parent's frontmatter is composed before the children of
+that pass exist, so each run wires the sub-goals it knew about at entry.
+
+## 🔴 Amended 2026-08-27: G6.9 turned "needs two passes" into "never"
+
+**The second pass no longer fixes it, because the pass that did the wiring is
+not run any more.** Seed wiring lived in the `GOALS.md -> nodes` direction.
+G6.9 reversed the arrow, and `driver.sh` now runs `snapshot-goals.py --render`
+and nothing else — which writes `GOALS.md` *out of* the nodes and never
+recomputes `seeds:`. So a sub-goal added after 2026-08-25 gets a correct
+`parents:` and its parent is **never** told, no matter how many times the loop
+runs.
+
+Measured over the whole corpus on 2026-08-27 — every goal→sub-goal edge whose
+parent does not list the child:
+
+    goal:g1 missing goal:g1.7
+    goal:g2 missing goal:g2.10, goal:g2.11
+    goal:g4 missing goal:g4.5
+    goal:g7 missing goal:g7.9
+
+Five, and the pattern in them is the damage this row already predicted:
+**every one is a recently-added sub-goal, and three of the five are the exact
+items the current handoff names as next.** The newest work is reliably the work
+that is invisible from above.
+
+Repaired by hand in the same commit, which closes the data but not the defect:
+nothing prevents the sixth. The fix S7 already asks for — compose parent seed
+lists after all nodes for the pass are known, and assert the fixed point in a
+test — now has to be re-homed into the render direction rather than restored in
+the direction that no longer exists. Pairs with **G7.1**: that goal checks the
+reference that exists, this one is the reference that silently does not.
+
+**Why it is worth a row rather than a shrug.** The edge exists in one direction
+only, so nothing looks broken: the child's `parents:` is right, traversal
+upward works, and `--verify` has no complaint. What breaks is downward
+traversal — a renderer or a kid walking `seeds:` from `goal:g1` cannot see the
+newest sub-goal, which is reliably the one being worked. `driver.sh` runs the
+script every iteration so a live loop self-heals on the next pass, which is
+exactly what makes this easy to never notice; a fresh clone plus a single run
+renders a graph whose most recent work is invisible from above.
+
+Fix: compose parent seed lists after all nodes for the pass are known, or make
+the wiring a second phase over the completed set. Assert the fixed point in a
+test — run twice, second run writes nothing. Related to **G7.1** (referential
+integrity on every parent reference), which checks the reference that exists;
+this is the reference that silently does not.
+
+## S8 — `zoom.py` bakes the pi-runtime completion contract into the kid context — status: active
+
+When using the script to inject context, eventually zoom.py fires and inserts the
+reference for each kid on how to mark the completion of their task. It currently
+inserts a pi-runtime reference for completion, rather than being properly runtime-
+agnostic.
+
+Fix: make zoom.py or whatever upstream file be runtime aware and offer the proper
+completion contract or have this be set during install.
+
+**Corroborated 2026-08-23 by the iter-9006..9008 run, which hit it three times.**
+The generated kid context ends with a `cli.py done` block, so every CC-dispatch
+kid was handed a completion contract that `skills/agi/SKILL.md` explicitly
+forbids for its role ("do not commit, and do not call `cli.py done`"). All six
+spawn prompts had to carry an out-of-band override telling the kid to ignore its
+own context file. `exp:noncode-surface-census` independently found the same
+contradiction one layer up, between `agent-prompt.md` rules 5–6 and SKILL.md's
+kid contract.
+
+That makes this a three-way disagreement — `agent-prompt.md`, `zoom.py`'s emitted
+block, and `SKILL.md` — about one procedure, with no file deferring to another.
+Note the shape: it is the same defect **G6.6** exists to catch, and G6.6's own
+verdict says the currently-prescribed remedy would not have caught it, because
+all three are internally self-consistent and only disagree with each other.
+Patching at dispatch time, as this run did, is the workaround, not the fix.
+
+## S9 — `commit_file()` drops the exec bit and mis-hashes symlinks — status: complete
+
+Found 2026-08-23 by `exp:grid-payload-roundtrip`, confirmed at the cited lines.
+`bin/grid.py`:
+
+- **`:154`** — `git hash-object -w str(path.resolve())`. `Path.resolve()`
+  dereferences a symlink *before* hashing, so the object committed is the
+  **target file's bytes**, not the link text. Not a dropped-metadata edge case: a
+  silently wrong object, no error, no warning.
+- **`:160`** — the tree line is `f"100644 blob {blob}\tnode.md\n"`. Mode is
+  hardcoded, so any `100755` payload comes back `100644` and any `120000` comes
+  back a regular file.
+
+**Benign today, and it will not stay that way.** Grid only ever commits regular
+node `.md` files under the fixed name `node.md`, and node files are not symlinks
+and not executable — so nothing is currently wrong on disk. The defect activates
+the moment a *payload* goes through the same call, which is exactly what
+**G6.3** picked and what **G6.7** is built on. This is the rare case where the
+right time to fix a latent bug is before its first caller, because both callers'
+falsifiers are byte-comparisons that it would fail.
+
+Fix: read the mode from `os.lstat()` (100644 / 100755 / 120000) and, for a
+symlink, hash the `readlink()` target text via `hash-object --stdin` rather than
+the dereferenced file — which is what `git add` does internally, built from the
+four primitives `grid.py` already calls. A matching mode/symlink-aware read path
+is needed in whatever resolves a payload back out. Estimated ~15–20 lines, and
+the experiment's mode-aware variant is a working reference implementation
+(`sessions/iter-9007/kid-c/sandbox/`, which is gitignored — port it, do not
+depend on it).
+
+Test: the experiment's own table is the regression suite — a 100755 file and a
+120000 symlink, three version bumps each, sha256 against a non-git baseline.
+
+Blocks **G6.3** and **G6.7**. One fix, two callers.
+
+**Fixed 2026-08-25, and the "rare case" call was the right one.** Three
+functions replace the two defective lines: `git_mode()` reads `os.lstat()`
+(100644 / 100755 / 120000), `hash_path()` hashes a symlink's `readlink()` text
+via `hash-object --stdin` instead of the dereferenced file, and
+`materialize_entry()` is their exact inverse on the read side — which S9 asked
+for by name and which nothing had. `os.path.abspath` replaced `Path.resolve()`:
+it normalises `..` lexically without dereferencing the final component, which
+is the whole bug.
+
+The experiment's table is the regression suite, as prescribed: three modes ×
+round trip, symlink-blob-is-link-text, three version bumps with non-ASCII
+content, plus a `status`-writes-no-objects check the fix newly needed.
+
+Both callers landed on top of it the same day, and the live measurement is
+G6.3's: **16 executables across the engine survived a full grid round trip at
+100755**, every one of which the old code would have published as 100644 —
+silently, and into the published engine tree, which is exactly the blast radius
+G6.7 predicted.
+
+## S10 — the purged gamed mass is still on disk inside agi-tree — status: active
+
+Found 2026-08-23. **G6.2 says the 28,916 gamed `-extend<N>` nodes were "removed
+from the working tree and archived outside the repo." The first half is not
+true.** `.claude/worktrees/wonderful-lamport-51c9a9/` — a git worktree registered
+against a `~/.hermes/agi-tree/` path — still holds **29,706 `.md` files, 29,062
+of them `-extend<N>` nodes**. They are gitignored, which is why nothing has
+complained, and why nothing found them for two days.
+
+**The hazard is specific and I walked into it while writing this iteration.**
+`evidence_gate.build_corpus()` takes a directory and `rglob`s it for `*.md`.
+Called on `nodes/` it returns 657 ids, correct. Called on the **project root** it
+returns **29,582** — the pre-purge corpus, resurrected. A verdict citing a
+deleted gamed node as `evidence_runs` would resolve against it and pass the gate,
+which is H4c's fix silently undone.
+
+**The engine is not currently affected, and that was checked rather than
+assumed:** all three real callers pass `root / "nodes"` — `cli.py:85`,
+`metrics.py:145`, `post_wire.py:137`. The bug was in the throwaway harness that
+found it. But "the correct argument is passed at all three current call sites" is
+a property of today's callers, not of the function, and the incorrect call took
+one line to write.
+
+Two independent fixes, and both are cheap:
+1. **Delete the worktree.** `git worktree remove` / prune. This is **S4** C5,
+   which is gated and explicitly last — this entry is the evidence for promoting
+   it, because "archived, not deleted" was the deviation G6.2 recorded and it did
+   not fully happen.
+2. **Make `build_corpus` refuse a non-`nodes/` root**, or resolve `nodes/` itself
+   from the project root rather than trusting the caller. A gate that cannot
+   verify must fail closed — the function already argues exactly this for a
+   `None` corpus, and should hold itself to it for a wrong directory.
+
+Do (2) regardless of (1). Deleting the worktree removes today's 29k; it does not
+stop the next stale tree from being swept in.
+
 ## S11 — Retire `level3` as a type name — status: complete
 
 `level3` names a zoom level in the data — the category error G2 now records.
@@ -4720,348 +5062,6 @@ until it is written up to them. The three generators remain un-gated for the
 reason above. One type is still **unverified**: `doc`, which has no
 `[doc].md` at all — one node, `doc:goals-preamble`, and it is the file that
 renders GOALS.md's preamble.
-
-## S1 — Retire `bin/` as a directory name — status: active
-
-**Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
-holds fifteen `.py` files with shebangs, plus `driver.sh` alongside in the
-parent. Nothing in it is compiled and nothing in it is a binary.
-
-The name has a measured cost: **GitNexus excludes any directory called `bin/`
-by default**, so it indexes zero symbols for all fifteen — verified after a
-fresh reindex, against a working control probe on `src/`. That is the half of
-the engine where every 2026-08 change landed, and it is why the engine census
-had to be seeded from `git ls-files` instead of the code index.
-
-Rename to something that describes what is there — `cmd/`, `tools/`, `scripts/`
-— and take the opportunity to reconsider the layout as a whole rather than
-doing a one-word rename. Fifteen flat scripts with three separate generators
-among them (`snapshot-goals`, `snapshot-build-site`, `decompose-engine`,
-`level3`) have a structure worth making explicit.
-
-**Not a cheap change.** `driver.sh`, `dispatch.py`, the hooks, the skill, the
-tests and every one of the 27 census nodes reference these paths; `zoom.py`'s
-`--level` aliases are invoked by `dispatch.py` by path. Do it as a deliberate
-pass with the census re-run afterwards, and confirm GitNexus actually picks the
-directory up before committing to the churn — the exclusion is inferred from
-behaviour, not from a documented setting.
-
-## S2 — Cron parity with fantasia — status: complete
-
-`grid.py cron install` sets both cadences — a 5-minute grid snapshot + push
-(crash window ≤ 5 minutes) and an hourly main-branch push. fantasia has this;
-**agi-tree does not**, and the grid was only initialised in this project on
-2026-08-22.
-
-Until it is installed, every guarantee that rests on "sync is automated, nobody
-syncs by hand" is false here, and the grid's 535 refs exist only on this
-machine. Install it, verify both entries land, and confirm a push actually
-reaches the remote rather than assuming the cron line is correct — a cd-less
-cron line is exactly the class of small operational error the design ethic says
-the system should absorb.
-
-**Done 2026-08-22.** Both cadences installed and verified, targeting `master`
-(fantasia's line pushes `main`; the engine's installer got the branch right
-rather than copying it). First push completed: 84 commits and 641 grid refs are
-now on the remote, where before this the entire session existed on one disk.
-
-**Found while installing it, and it is the more useful half:** agi-tree's
-working branch was `iter24-extend-300hop`, a leftover from the 2026-05 padding
-run, and every commit this session landed there rather than on `master`. The
-branch was 84 ahead / 0 behind, so `master` fast-forwarded cleanly with nothing
-lost — but a cron installed before checking would have pushed `master` and
-silently published nothing at all, for as long as nobody looked.
-
-Precondition for **G6.5** (automatic rebuild on the grid's cadence).
-
-## S3 — A truncated contract value can contain a fence lookalike — status: active
-
-`level3.py`'s `_cap()` truncates derived text to 240 characters. In
-`nodes/level3/bin-heal.md` the `healer_ctx` input's `how` field is the truncated
-source of a `write_text(f"""...```json ...```...""")` call, so the truncated
-value contains a literal ` ```json ` sequence **inside** the YAML scalar.
-
-The file is valid YAML today — `yaml.safe_dump` escapes it correctly. The trap
-is on the reading side: any consumer that locates the contract's closing fence
-by scanning for the first ` ``` ` after ` ```yaml ` stops at the embedded one and
-gets a truncated, broken parse. This was hit for real while writing
-`stitch.py`, and fixed there by bounding extraction on the
-`BUILD-CONTRACT:BEGIN/END` markers and taking the **last** fence in that span;
-there is a regression test reproducing the exact `bin-heal.md` shape.
-
-Fix it at the source, cheaply: either neutralise fence-lookalike sequences in
-`_cap()`'s output, or document the bounded-extraction requirement in a comment
-beside `_cap()` and the marker constants. **The next consumer is the G2.2 model
-pass** that fills `why`/`perf`/`security`, so this should land before that runs.
-Must not regress the 20 existing level3 tests.
-
-## S4 — Retire the legacy directories and repos — status: horizon
-
-Housekeeping carried from TODO **C1–C6**, gated on bug-sweep clearance and
-grouped here because none of it is worth its own long-term goal:
-
-- `~/autoresearch-tree/` local directory (C1) and the
-  `CodexOperator/autoresearch-tree` repo (C2) — archive rather than delete.
-- The old pi fallback under `~/.pi/agent/git/.../extensions/autoresearch-tree/`
-  (C3), pending verification that nothing resolves through it.
-- The modularNN spike worktree (C4) and legacy `~/.hermes/agi/` artifacts (C5).
-- `.claude/skills/gitnexus/*/SKILL.md` accidentally tracked (C6).
-
-Do these last. Every one is a deletion, and the two data-loss defects this
-project has already paid for both arrived as routine cleanup.
-
-## S5 — The engine repo has no sync at all — status: active
-
-`agi-tree` got both grid cadences on 2026-08-22 (**S2**). **`agi` got nothing** —
-no cron, and as of that date 11 unpushed commits on `master` carrying every
-engine fix this session produced.
-
-**The consequence is worse than "not backed up", and it is specific:**
-`agi-tree` is now published, and its 74 level-3 nodes carry `payload_ref`
-values pointing at engine files at commits that exist only on one disk. A fresh
-clone of `agi-tree` gets a graph that describes code it cannot fetch —
-`stitch.py` would report every payload missing. The graph and its subject are
-published at different times, which is a new way for the two to disagree.
-
-Immediate fix, one line:
-
-```
-git -C /home/ubuntu/work/agi push origin master
-```
-
-Then decide the standing arrangement, which is **not** simply "install the same
-cron". The engine repo's sync should eventually be a *consequence* of the
-rebuild in **G6.5**, not an independent schedule racing it — two crons pushing
-two repos on separate cadences is exactly how the graph and the engine drift
-apart at the moment either one is slow. Until G6.3 makes the rebuild
-trustworthy, a plain hourly push of `agi` is the honest interim.
-
-Check the same thing that made S2 worth doing: **verify which branch is
-actually checked out before trusting any push.** agi-tree's work had
-accumulated on a stale `iter24-extend-300hop` branch, and a cron pushing
-`master` would have published nothing, silently, indefinitely.
-
-## S6 — Strip agi-tree to the graph and its inputs — status: complete
-
-Done 2026-08-23. `agi-tree` had accumulated a second copy of most of `agi`:
-~95 one-off `exp-*.py` / `extend-*.py` scripts at the root, a vendored engine
-tree (`src/`, `tests/`, `engines/` — the copy **G7.7** wanted retired), the
-cavekit-era runner, both `.STALE-DO-NOT-USE` snapshot scripts, a duplicate
-`skill/autoresearch-tree/` under the pre-rename name, and 768 tracked session
-transcripts. 1,026 files, −281k lines; git history is the archive.
-
-**The rule that replaces it, now in `CLAUDE.md` as a table:** this repo holds
-`nodes/`, the inputs the nodes are derived from (`GOALS.md`, `context/kits/`,
-`context/plans/build-site.md`, `context/schemas/`), and `agi-tree.config.json`.
-A `.py` file added here belongs in the engine.
-
-> `GOALS.md` moved out of that list on 2026-08-25 (goal:g6.9): it is now
-> **derived from** `nodes/goal/`, not an input to it. The table in `CLAUDE.md`
-> is the live version, as this sentence already says — the list above is what
-> it read when this goal closed.
-
-The engine arrives as a gitignored clone at `agi/`, the way `fantasia` takes it,
-so `driver.sh --smoke` runs from this repo with no install step. That is an
-interim shape and **G8.1** still owns the real answer — it is a second working
-copy of a repo that also lives at `~/work/agi`, and G6.5 wants exactly one
-stitch target. Recorded here so the interim is not mistaken for the decision.
-
-The duplicate skill was deleted rather than re-pointed: `~/.claude/skills/agi`
-already symlinks to `agi/skills/agi`. One skill, one source — **G1.2**'s first
-concrete step, taken by subtraction.
-
-Two things this surfaced that were not housekeeping:
-
-- **`agi` was 11 commits ahead of `origin`** — exactly **S5**'s defect, caught
-  because a fresh clone would have pulled an engine 11 commits stale. Pushed
-  before cloning. S5's standing arrangement is still open.
-- **`context/kits/` and `context/plans/build-site.md` are generators, not
-  stale output.** They mint 159 of 661 nodes, and `snapshot-build-site.py`
-  unlinks every `origin: build-site` node it does not re-derive on a run — so
-  deleting them prunes a quarter of the graph silently, at loop time rather than
-  at delete time. Kept, and the hazard is written into `CLAUDE.md`. This is the
-  **H0i** class a third time, and the third time it was found by reading the
-  script rather than by losing the data.
-
-Verified: `driver.sh --smoke --max-iters 1` completes and `nodes/` is
-byte-identical afterwards.
-
-**Left standing on purpose:** `nodes.db` (7.8 MB, gitignored — **G7.6** owns the
-persistence question, and deleting it while two loaders disagree is not
-cleanup), and the `.claude/worktrees/` worktree still registered against a
-`~/.hermes/agi-tree/` path (**S4** C5, which is gated and explicitly last).
-
-## S7 — `snapshot-goals.py` needs two passes to wire a new sub-goal — status: active
-
-Found 2026-08-23 while adding G1.3–G1.5, G6.6 and G6.7. Adding a sub-goal and
-running the script once mints the child node with a correct `parents:` list, but
-the **parent's `seeds:` list does not contain it**. A second run adds it.
-Reproduced twice: pass 1 wrote `goal:g1.5` and left `goal:g1` unchanged; pass 2
-added `- goal:g1.5` to `goal:g1`.
-
-Cause is ordering — the parent's frontmatter is composed before the children of
-that pass exist, so each run wires the sub-goals it knew about at entry.
-
-## 🔴 Amended 2026-08-27: G6.9 turned "needs two passes" into "never"
-
-**The second pass no longer fixes it, because the pass that did the wiring is
-not run any more.** Seed wiring lived in the `GOALS.md -> nodes` direction.
-G6.9 reversed the arrow, and `driver.sh` now runs `snapshot-goals.py --render`
-and nothing else — which writes `GOALS.md` *out of* the nodes and never
-recomputes `seeds:`. So a sub-goal added after 2026-08-25 gets a correct
-`parents:` and its parent is **never** told, no matter how many times the loop
-runs.
-
-Measured over the whole corpus on 2026-08-27 — every goal→sub-goal edge whose
-parent does not list the child:
-
-    goal:g1 missing goal:g1.7
-    goal:g2 missing goal:g2.10, goal:g2.11
-    goal:g4 missing goal:g4.5
-    goal:g7 missing goal:g7.9
-
-Five, and the pattern in them is the damage this row already predicted:
-**every one is a recently-added sub-goal, and three of the five are the exact
-items the current handoff names as next.** The newest work is reliably the work
-that is invisible from above.
-
-Repaired by hand in the same commit, which closes the data but not the defect:
-nothing prevents the sixth. The fix S7 already asks for — compose parent seed
-lists after all nodes for the pass are known, and assert the fixed point in a
-test — now has to be re-homed into the render direction rather than restored in
-the direction that no longer exists. Pairs with **G7.1**: that goal checks the
-reference that exists, this one is the reference that silently does not.
-
-**Why it is worth a row rather than a shrug.** The edge exists in one direction
-only, so nothing looks broken: the child's `parents:` is right, traversal
-upward works, and `--verify` has no complaint. What breaks is downward
-traversal — a renderer or a kid walking `seeds:` from `goal:g1` cannot see the
-newest sub-goal, which is reliably the one being worked. `driver.sh` runs the
-script every iteration so a live loop self-heals on the next pass, which is
-exactly what makes this easy to never notice; a fresh clone plus a single run
-renders a graph whose most recent work is invisible from above.
-
-Fix: compose parent seed lists after all nodes for the pass are known, or make
-the wiring a second phase over the completed set. Assert the fixed point in a
-test — run twice, second run writes nothing. Related to **G7.1** (referential
-integrity on every parent reference), which checks the reference that exists;
-this is the reference that silently does not.
-
-## S8 — `zoom.py` bakes the pi-runtime completion contract into the kid context — status: active
-
-When using the script to inject context, eventually zoom.py fires and inserts the
-reference for each kid on how to mark the completion of their task. It currently
-inserts a pi-runtime reference for completion, rather than being properly runtime-
-agnostic.
-
-Fix: make zoom.py or whatever upstream file be runtime aware and offer the proper
-completion contract or have this be set during install.
-
-**Corroborated 2026-08-23 by the iter-9006..9008 run, which hit it three times.**
-The generated kid context ends with a `cli.py done` block, so every CC-dispatch
-kid was handed a completion contract that `skills/agi/SKILL.md` explicitly
-forbids for its role ("do not commit, and do not call `cli.py done`"). All six
-spawn prompts had to carry an out-of-band override telling the kid to ignore its
-own context file. `exp:noncode-surface-census` independently found the same
-contradiction one layer up, between `agent-prompt.md` rules 5–6 and SKILL.md's
-kid contract.
-
-That makes this a three-way disagreement — `agent-prompt.md`, `zoom.py`'s emitted
-block, and `SKILL.md` — about one procedure, with no file deferring to another.
-Note the shape: it is the same defect **G6.6** exists to catch, and G6.6's own
-verdict says the currently-prescribed remedy would not have caught it, because
-all three are internally self-consistent and only disagree with each other.
-Patching at dispatch time, as this run did, is the workaround, not the fix.
-
-## S9 — `commit_file()` drops the exec bit and mis-hashes symlinks — status: complete
-
-Found 2026-08-23 by `exp:grid-payload-roundtrip`, confirmed at the cited lines.
-`bin/grid.py`:
-
-- **`:154`** — `git hash-object -w str(path.resolve())`. `Path.resolve()`
-  dereferences a symlink *before* hashing, so the object committed is the
-  **target file's bytes**, not the link text. Not a dropped-metadata edge case: a
-  silently wrong object, no error, no warning.
-- **`:160`** — the tree line is `f"100644 blob {blob}\tnode.md\n"`. Mode is
-  hardcoded, so any `100755` payload comes back `100644` and any `120000` comes
-  back a regular file.
-
-**Benign today, and it will not stay that way.** Grid only ever commits regular
-node `.md` files under the fixed name `node.md`, and node files are not symlinks
-and not executable — so nothing is currently wrong on disk. The defect activates
-the moment a *payload* goes through the same call, which is exactly what
-**G6.3** picked and what **G6.7** is built on. This is the rare case where the
-right time to fix a latent bug is before its first caller, because both callers'
-falsifiers are byte-comparisons that it would fail.
-
-Fix: read the mode from `os.lstat()` (100644 / 100755 / 120000) and, for a
-symlink, hash the `readlink()` target text via `hash-object --stdin` rather than
-the dereferenced file — which is what `git add` does internally, built from the
-four primitives `grid.py` already calls. A matching mode/symlink-aware read path
-is needed in whatever resolves a payload back out. Estimated ~15–20 lines, and
-the experiment's mode-aware variant is a working reference implementation
-(`sessions/iter-9007/kid-c/sandbox/`, which is gitignored — port it, do not
-depend on it).
-
-Test: the experiment's own table is the regression suite — a 100755 file and a
-120000 symlink, three version bumps each, sha256 against a non-git baseline.
-
-Blocks **G6.3** and **G6.7**. One fix, two callers.
-
-**Fixed 2026-08-25, and the "rare case" call was the right one.** Three
-functions replace the two defective lines: `git_mode()` reads `os.lstat()`
-(100644 / 100755 / 120000), `hash_path()` hashes a symlink's `readlink()` text
-via `hash-object --stdin` instead of the dereferenced file, and
-`materialize_entry()` is their exact inverse on the read side — which S9 asked
-for by name and which nothing had. `os.path.abspath` replaced `Path.resolve()`:
-it normalises `..` lexically without dereferencing the final component, which
-is the whole bug.
-
-The experiment's table is the regression suite, as prescribed: three modes ×
-round trip, symlink-blob-is-link-text, three version bumps with non-ASCII
-content, plus a `status`-writes-no-objects check the fix newly needed.
-
-Both callers landed on top of it the same day, and the live measurement is
-G6.3's: **16 executables across the engine survived a full grid round trip at
-100755**, every one of which the old code would have published as 100644 —
-silently, and into the published engine tree, which is exactly the blast radius
-G6.7 predicted.
-
-## S10 — the purged gamed mass is still on disk inside agi-tree — status: active
-
-Found 2026-08-23. **G6.2 says the 28,916 gamed `-extend<N>` nodes were "removed
-from the working tree and archived outside the repo." The first half is not
-true.** `.claude/worktrees/wonderful-lamport-51c9a9/` — a git worktree registered
-against a `~/.hermes/agi-tree/` path — still holds **29,706 `.md` files, 29,062
-of them `-extend<N>` nodes**. They are gitignored, which is why nothing has
-complained, and why nothing found them for two days.
-
-**The hazard is specific and I walked into it while writing this iteration.**
-`evidence_gate.build_corpus()` takes a directory and `rglob`s it for `*.md`.
-Called on `nodes/` it returns 657 ids, correct. Called on the **project root** it
-returns **29,582** — the pre-purge corpus, resurrected. A verdict citing a
-deleted gamed node as `evidence_runs` would resolve against it and pass the gate,
-which is H4c's fix silently undone.
-
-**The engine is not currently affected, and that was checked rather than
-assumed:** all three real callers pass `root / "nodes"` — `cli.py:85`,
-`metrics.py:145`, `post_wire.py:137`. The bug was in the throwaway harness that
-found it. But "the correct argument is passed at all three current call sites" is
-a property of today's callers, not of the function, and the incorrect call took
-one line to write.
-
-Two independent fixes, and both are cheap:
-1. **Delete the worktree.** `git worktree remove` / prune. This is **S4** C5,
-   which is gated and explicitly last — this entry is the evidence for promoting
-   it, because "archived, not deleted" was the deviation G6.2 recorded and it did
-   not fully happen.
-2. **Make `build_corpus` refuse a non-`nodes/` root**, or resolve `nodes/` itself
-   from the project root rather than trusting the caller. A gate that cannot
-   verify must fail closed — the function already argues exactly this for a
-   `None` corpus, and should hold itself to it for a wrong directory.
-
-Do (2) regardless of (1). Deleting the worktree removes today's 29k; it does not
-stop the next stale tree from being swept in.
 
 ## S18 — Absorb cavekit references before cavekit retires — status: active
 

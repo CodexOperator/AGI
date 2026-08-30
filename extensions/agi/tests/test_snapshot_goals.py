@@ -660,23 +660,26 @@ def test_round_trip_is_byte_identical(project):
     assert run(project, "--render", "--check").returncode == 0
 
 
-def test_heading_level_and_order_are_stored_not_inferred(nested):
-    """Heading depth and document position are recorded on the node. Neither is
-    derivable: depth would have to be guessed from the id shape, and this
-    document's ordering is deliberately unsorted."""
+def test_heading_level_is_stored_not_inferred(nested):
+    """Heading depth is recorded on the node — not derivable, since depth
+    would have to be guessed from the id shape. Document position used to be
+    a second such field (`order:`); it is retired (this iteration) in favour
+    of a natural sort over `goal_id`, so no node should carry it."""
     run(nested)
     nodes = goal_nodes(nested)
     assert nodes["goal:g1"][1]["heading_level"] == 2
     assert nodes["goal:g1.2"][1]["heading_level"] == 3
     assert nodes["goal:s1"][1]["heading_level"] == 2
-    orders = [fm["order"] for _p, fm in nodes.values()]
-    assert len(set(orders)) == len(orders)        # positions are unique
+    for _p, fm in nodes.values():
+        assert "order" not in fm
 
 
-def test_unsorted_document_order_survives_the_round_trip(tmp_path):
-    """S11..S17 sit before S1..S10 in the real document because ids are never
-    renumbered and the file grew that way. A renderer that sorts would silently
-    reshuffle 2,800 lines."""
+def test_document_order_is_naturally_sorted_by_goal_id_on_render(tmp_path):
+    """`order:` is retired: rendering now sorts by a natural read of
+    `goal_id` instead of a stored document position. S11..S17 used to sit
+    before S1..S10 in the real document (ids are never renumbered and the
+    file grew that way) — the render now corrects that once, deliberately,
+    rather than preserving the historical, unsorted order."""
     doc = ("# T\n\npre\n\n## S11 — Later — status: active\n\nb11\n\n"
            "## S1 — Earlier — status: active\n\nb1\n")
     (tmp_path / "GOALS.md").write_text(doc)
@@ -684,7 +687,41 @@ def test_unsorted_document_order_survives_the_round_trip(tmp_path):
     run(tmp_path)
     run(tmp_path, "--render")
     out = (tmp_path / "GOALS.md").read_text()
-    assert out.index("## S11") < out.index("## S1 —")
+    assert out.index("## S1 —") < out.index("## S11")
+
+
+# --- natural_sort_key: order: 's replacement -----------------------------
+
+
+def test_natural_sort_orders_dotted_subgoals_numerically():
+    """A plain lexicographic sort puts `G2.10` between `G2.1` and `G2.2`,
+    which is exactly the defect a numeric-aware key exists to avoid."""
+    ids = ["G2.10", "G2.1", "G2.11", "G2.9", "G2.2"]
+    ordered = sorted(ids, key=sg.natural_sort_key)
+    assert ordered == ["G2.1", "G2.2", "G2.9", "G2.10", "G2.11"]
+
+
+def test_natural_sort_orders_short_term_goals_numerically():
+    ids = ["S11", "S1", "S2", "S21", "S9", "S10"]
+    ordered = sorted(ids, key=sg.natural_sort_key)
+    assert ordered == ["S1", "S2", "S9", "S10", "S11", "S21"]
+
+
+def test_natural_sort_puts_g_goals_before_s_goals():
+    ids = ["S1", "G1", "S2", "G2"]
+    ordered = sorted(ids, key=sg.natural_sort_key)
+    assert ordered == ["G1", "G2", "S1", "S2"]
+
+
+def test_natural_sort_full_worked_example():
+    """The exact ordering the migration's spec calls out."""
+    ids = ["G1", "G1.5", "G2", "G2.5", "G2.7", "G2.10", "G2.11", "G3",
+           "G9.6", "G10", "G10.1", "G11", "G11.1", "G12", "G12.2",
+           "S1", "S2", "S11", "S21"]
+    import random
+    shuffled = ids[:]
+    random.Random(0).shuffle(shuffled)
+    assert sorted(shuffled, key=sg.natural_sort_key) == ids
 
 
 def test_preamble_becomes_a_doc_node_not_a_goal(project):
@@ -733,26 +770,30 @@ def test_render_refuses_to_write_an_empty_document(tmp_path):
     assert (tmp_path / "GOALS.md").read_text() == "# real content\n"
 
 
-def test_a_goal_node_missing_order_is_a_hard_error(project):
+def test_a_goal_node_missing_heading_level_is_a_hard_error(project):
     run(project)
     path, fm = goal_nodes(project)["goal:g1"]
-    del fm["order"]
+    del fm["heading_level"]
     sg.write_frontmatter(path, fm, "body", origin="goals-doc")
     r = run(project, "--render")
     assert r.returncode != 0
-    assert "order/heading_level" in r.stderr
+    assert "heading_level" in r.stderr
 
 
-def test_duplicate_order_across_nodes_is_a_hard_error(project):
-    run(project)
-    nodes = goal_nodes(project)
-    p1, fm1 = nodes["goal:g1"]
-    p2, fm2 = nodes["goal:g2"]
-    fm2["order"] = fm1["order"]
-    sg.write_frontmatter(p2, fm2, "body", origin="goals-doc")
-    r = run(project, "--render")
-    assert r.returncode != 0
-    assert "duplicate `order`" in r.stderr
+def test_a_goal_node_missing_order_renders_without_error(tmp_path):
+    """`order:` is retired: a goal node need not carry it at all, and its
+    absence must render cleanly -- unlike a missing `heading_level`, which is
+    still a hard error (see the test above). Natural-sort-by-`goal_id`
+    replaces the stored document position this field used to hold."""
+    (tmp_path / "nodes").mkdir()
+    write_node(tmp_path, "goal/g1-only.md",
+               {"id": "goal:g1", "type": "goal", "goal_id": "G1",
+                "title": "G1: Only goal", "status": "active",
+                "heading_level": 2, "origin": "goals-doc"})
+    assert "order" not in fm_of(tmp_path / "nodes" / "goal" / "g1-only.md")
+    r = run(tmp_path, "--render")
+    assert r.returncode == 0
+    assert "G1" in (tmp_path / "GOALS.md").read_text()
 
 
 def test_integrity_check_runs_in_the_render_direction_too(project):

@@ -5,7 +5,6 @@ goal_kind: long-term
 heading_level: 2
 id: "goal:g9"
 mint_id: 21b70478f4414c09ae658a4caa63d686
-order: 54
 origin: goals-doc
 seeds:
   - goal:g9.1

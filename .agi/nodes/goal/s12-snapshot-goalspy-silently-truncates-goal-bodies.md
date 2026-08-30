@@ -5,7 +5,6 @@ goal_kind: short-term
 heading_level: 2
 id: "goal:s12"
 mint_id: 9532754542ee47ac806a47721c2c89c5
-order: 71
 origin: goals-doc
 seeds: []
 status: complete
