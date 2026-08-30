@@ -4,7 +4,7 @@ cadences:
   branch_push: {schedule: "7 * * * *", enabled: true}
   publish_engine: {schedule: "37 * * * *", enabled: false}
   engine_push: {schedule: "47 * * * *", enabled: false}
-crons_live: true
+crons_live: false
 id: "cron:crons"
 mint_id: dc4da698f3f94dbc83a0c2233b2a8b94
 parents:

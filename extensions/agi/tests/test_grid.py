@@ -915,3 +915,242 @@ def test_status_writes_no_objects(project, engine):
     before = grid.git(project, "count-objects", "-v")
     grid.cmd_status(project, engine_root=engine)
     assert grid.git(project, "count-objects", "-v") == before
+
+
+# --- goal:g11: two roots, and the tests that hold them apart -----------------
+#
+# Every fixture above builds a LEGACY tree: the graph root and the git repo are
+# the same directory, so a call that hands the graph root to `git -C` is
+# invisibly correct and this file could not see the defect goal:g11 introduced.
+# These build the G11 layout instead — a git repo with its graph at
+# `<repo>/.agi` — which is the only shape in which the conflation is
+# observable at all.
+#
+# What that conflation produces is a silent wrong answer, never an error, and
+# these tests are written to fail on it from two independent directions:
+#
+#   1. Behaviourally, through `cmd_diff` — the one command whose bug no
+#      pathspec flag was masking (`git diff` has no `--full-tree`).
+#   2. Structurally, by spying on every `git` argv and asserting no `-C` ever
+#      names the graph directory. That one cannot be masked by any flag,
+#      present or future, because it checks the cause rather than a symptom.
+
+MINT_G11 = "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+
+
+@pytest.fixture()
+def g11(tmp_path):
+    """A goal:g11-layout project. Returns `(repo, graph)`, two real directories.
+
+    `repo` is the git repo and holds `refs/grid/*`; `graph` is `<repo>/.agi` and
+    holds the nodes. The payload sits in the tracked source tree the way it does
+    under one repo (`<repo>/extensions/...`) — there is no `payloads/` staging
+    copy to check out, which is the whole point of the layout.
+    """
+    repo = tmp_path / "proj"
+    (repo / ".agi" / "nodes" / "idea").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / ".agi" / "config.json").write_text("{}")
+    (repo / ".agi" / "nodes" / "idea" / "x.md").write_text(
+        f'---\nid: "idea:x"\nmint_id: {MINT_G11}\ntype: idea\n---\n\nfirst thought\n'
+    )
+    graph = repo / ".agi"
+    grid.cmd_init(graph)
+    return repo.resolve(), graph.resolve()
+
+
+def _bump(graph, text):
+    f = graph / "nodes" / "idea" / "x.md"
+    f.write_text(f.read_text().replace("first thought", text))
+    return f
+
+
+def test_repo_root_is_the_git_repo_never_the_graph_dir(g11):
+    """The split itself. `repo_root` is `.parent` on a `.agi/` and the identity
+    on anything else, so a caller asks unconditionally and legacy projects —
+    every other fixture in this file — are unaffected."""
+    repo, graph = g11
+    assert grid.repo_root(graph) == repo
+    assert grid.repo_root(repo) == repo
+    assert (repo / ".git").is_dir() and not (graph / ".git").exists()
+
+
+def test_no_git_invocation_ever_targets_the_graph_dir(g11, monkeypatch, capsys):
+    """The structural test, and the one that cannot be masked.
+
+    Grid refs and the object store live in the repo; only node *files* live
+    under the graph root. Handing `git -C` the graph root sets git's prefix to
+    `.agi/`, and every cwd-scoped subcommand then resolves paths under a prefix
+    a grid tree does not have. Rather than assert on any one command's output,
+    this spies on every `git` argv a full commit/status/diff/log/payload cycle
+    produces and asserts the `-C` is always the repo.
+    """
+    repo, graph = g11
+    seen: list[Path] = []
+    real_run = subprocess.run
+
+    def spy(argv, *a, **kw):
+        if isinstance(argv, (list, tuple)) and argv and argv[0] == "git" and "-C" in argv:
+            seen.append(Path(argv[list(argv).index("-C") + 1]))
+        return real_run(argv, *a, **kw)
+
+    monkeypatch.setattr(grid.subprocess, "run", spy)
+
+    grid.cmd_commit(graph, [], do_all=True, session=None)
+    _bump(graph, "second thought")
+    grid.cmd_commit(graph, [], do_all=True, session=None)
+    grid.cmd_status(graph)
+    grid.cmd_diff(graph, "idea:x", 1)
+    grid.cmd_log(graph, "idea:x", 5)
+    grid.cmd_versions(graph, "idea:x")
+    capsys.readouterr()
+
+    assert seen, "the spy saw no git invocations at all — it is not wired up"
+    offenders = {str(p) for p in seen if p.name == grid.locations.GRAPH_DIR_NAME}
+    assert not offenders, f"git invoked with the graph root: {sorted(offenders)}"
+    assert {p.resolve() for p in seen} == {repo}
+
+
+def test_byte_identical_corpus_reports_zero_changed(g11, capsys):
+    """A corpus that has just been committed and not touched since has drifted
+    from nothing. Under the conflated roots this reported every node CHANGED —
+    812 of them on the live corpus, all byte-identical."""
+    repo, graph = g11
+    grid.cmd_commit(graph, [], do_all=True, session=None)
+    capsys.readouterr()
+    grid.cmd_status(graph)
+    out = capsys.readouterr().out
+    assert "CHANGED" not in out
+    assert "0 new, 0 changed, 1 clean" in out
+
+
+def test_status_reports_the_same_set_from_either_cwd(g11, capsys, monkeypatch):
+    """`status` must answer the same question from the repo root and from
+    inside `.agi/`. It is cwd-independent by construction now — the `-C` is
+    derived from the resolved graph root, never from where you are standing —
+    and this pins that rather than trusting it."""
+    repo, graph = g11
+    grid.cmd_commit(graph, [], do_all=True, session=None)
+    _bump(graph, "second thought")
+    capsys.readouterr()
+
+    def status_from(cwd):
+        monkeypatch.chdir(cwd)
+        grid.cmd_status(graph)
+        return sorted(l for l in capsys.readouterr().out.splitlines()
+                      if l.startswith("CHANGED"))
+
+    from_repo = status_from(repo)
+    from_graph = status_from(graph)
+    assert from_repo == from_graph == ["CHANGED  idea:x"]
+
+
+def test_diff_reads_node_md_when_the_graph_is_a_subdirectory(g11, capsys):
+    """The behavioural regression test, and the one no flag was covering.
+
+    `read_tree`/`read_tree_entry` were patched with `ls-tree --full-tree`, which
+    made `status` correct again and left the underlying root conflation in
+    place. `git diff` has no such flag, so `cmd_diff` stayed broken in exactly
+    the way that is hardest to notice: a bare `node.md` pathspec became
+    `.agi/node.md`, matched nothing, and the command printed an empty diff and
+    exited 0 for a node with real version history.
+    """
+    repo, graph = g11
+    grid.cmd_commit(graph, [], do_all=True, session=None)
+    _bump(graph, "second thought")
+    grid.cmd_commit(graph, [], do_all=True, session=None)
+    capsys.readouterr()
+
+    grid.cmd_diff(graph, "idea:x", 1)
+    out = capsys.readouterr().out
+    assert "-first thought" in out and "+second thought" in out
+
+
+def test_payload_round_trips_with_no_staging_copy(g11, capsys):
+    """goal:g11's payload story end to end: the payload is a tracked file in the
+    same worktree as the graph, committed into the node's ref and read back out
+    of it — no `payloads/` directory involved at any point."""
+    repo, graph = g11
+    src = repo / "extensions" / "agi" / "bin" / "thing.py"
+    src.parent.mkdir(parents=True)
+    src.write_text("print('v1')\n")
+    node = graph / "nodes" / "level3" / "thing.md"
+    node.parent.mkdir(parents=True)
+    node.write_text(
+        f'---\nid: "level3:thing"\nmint_id: {MINT_P}\ntype: level3\n'
+        f"payload_ref: extensions/agi/bin/thing.py\n---\n\nbuild node\n"
+    )
+    assert not (graph / grid.PAYLOAD_DIR).exists()
+
+    grid.cmd_commit(graph, [], do_all=True, session=None, engine_root=repo)
+    ref = grid.resolve_ref(graph, "level3:thing")
+    mode, data = grid.read_tree_entry(graph, ref, grid.PAYLOAD_ENTRY)
+    assert data == src.read_bytes() and mode == grid.GIT_MODE_REGULAR
+
+    capsys.readouterr()
+    grid.cmd_status(graph, engine_root=repo)
+    assert "CHANGED" not in capsys.readouterr().out
+
+
+def test_cron_marker_distinguishes_two_migrated_projects(tmp_path):
+    """`cmd_cron` uses the log path as the marker for "our" crontab lines, and
+    removes every line carrying it before installing. Every migrated project's
+    graph root is literally named `.agi`, so a marker derived from it would be
+    identical across projects and installing for one would silently uninstall
+    another's. The repo's name is the part that actually differs."""
+    a = tmp_path / "alpha" / ".agi"
+    b = tmp_path / "beta" / ".agi"
+    for d in (a, b):
+        d.mkdir(parents=True)
+    assert grid.cron_log(a) != grid.cron_log(b)
+    assert grid.cron_log(a).name == "grid-sync-alpha.log"
+    # Legacy layout is untouched: the graph root IS the repo root there, so an
+    # already-installed line keeps matching its marker byte for byte.
+    legacy = tmp_path / "gamma"
+    legacy.mkdir()
+    assert grid.cron_log(legacy).name == "grid-sync-gamma.log"
+
+
+def test_cron_lines_name_the_repo_under_the_g11_layout(g11):
+    """`cd` and `git -C` in the installed crontab entries both take the repo.
+    `find_project_root` walking up from `<repo>` finds `<repo>/.agi` in phase 0
+    and resolves identically, and the push has to run where the refs are."""
+    repo, graph = g11
+    lines = grid.cron_lines(graph, "main", 5, repo / "g.log")
+    assert lines[0].startswith(f"*/5 * * * * cd {repo} && ")
+    assert lines[1].startswith(f"7 * * * * git -C {repo} push -q origin main")
+    assert f"cd {graph}" not in lines[0] and f"-C {graph}" not in lines[1]
+
+
+def test_find_project_root_honours_the_env_override(g11, monkeypatch, tmp_path):
+    """goal:g11.1 — `grid.py` resolves through `locations.project_root_from_env`,
+    the same entry point the rest of the engine uses, so an explicit
+    `$AGI_TREE_PROJECT_ROOT` wins here too. It previously called the plain
+    `find_project_root`, which ignores the override: `grid.py` versioning a
+    different project than its caller believes is the one disagreement the grid
+    cannot survive."""
+    repo, graph = g11
+    for var in grid.locations.PROJECT_ROOT_ENV_VARS:
+        monkeypatch.delenv(var, raising=False)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(graph))
+    assert grid.find_project_root(elsewhere) == graph
+
+    monkeypatch.delenv("AGI_TREE_PROJECT_ROOT")
+    monkeypatch.chdir(graph)
+    assert grid.find_project_root() == graph  # and still resolves with no env
+
+
+def test_ensure_repo_names_the_repo_not_the_graph_dir(tmp_path, capsys):
+    """A `.agi/` is never itself a git repo. `git init`-ing one because an error
+    message pointed there would create a nested repo whose object store is not
+    the one holding `refs/grid/*`, so the error has to name the enclosing repo."""
+    graph = tmp_path / "proj" / ".agi"
+    graph.mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    with pytest.raises(SystemExit) as exc:
+        grid.ensure_repo(graph)
+    assert str(tmp_path / "proj") in str(exc.value)
+    assert str(graph) not in str(exc.value)

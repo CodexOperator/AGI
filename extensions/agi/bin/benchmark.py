@@ -23,18 +23,20 @@ DEFAULT_MODEL = "qwen3:4b"
 CLOSED_CHAINS_FILE = "closed_chains.txt"
 
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+# goal:g11.1 — one resolver for every path. Imported after the `ollama` guard
+# above deliberately: this module already refuses to load without it, and the
+# import order keeps that the first thing a caller hears about.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
 
 
 def _find_root() -> Path:
-    d = Path.cwd().resolve()
-    while d != d.parent:
-        if any((d / name).exists() for name in CONFIG_NAMES):
-            return d
-        d = d.parent
-    print("ERR: no agi-tree.config.json found from cwd up", file=sys.stderr)
-    sys.exit(1)
+    """The graph root for cwd, via the one shared resolver (goal:g11.1)."""
+    root = locations.find_project_root()
+    if root is None:
+        print("ERR: no agi project found from cwd up", file=sys.stderr)
+        sys.exit(1)
+    return root
 
 
 def _load_chain(root: Path, chain_id: str) -> dict | None:

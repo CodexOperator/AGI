@@ -20,6 +20,11 @@ Design notes (why this shape — see TODO.md H10):
     fetch refspec to origin so a fresh machine gets the grid with `git fetch`.
   - No dependencies beyond git and stdlib. Frontmatter id is parsed with a
     regex, not yaml, so this file runs anywhere.
+  - **Two roots, two jobs (goal:g11).** Callers hand this file the GRAPH root
+    (`<repo>/.agi`). Node files are found under it; every git invocation runs
+    against `repo_root()` of it, because that is where `refs/grid/*` and the
+    object store live. See the block comment above `repo_root` for what the
+    conflated version silently got wrong.
 
 Usage:
   grid.py init                      # idempotent; configures origin refspec
@@ -55,9 +60,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 
-CONFIG_MARKER = "agi-tree.config.json"
-# Compatibility window: legacy-named projects still resolve. Canonical name first.
-CONFIG_MARKERS = (CONFIG_MARKER, "autoresearch-tree.config.json")
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 # goal:g2.5 "Tension resolved 2026-08-25" — the permanent identifier grid.py
 # now keys writes on. Same line shape as ID_RE, parsed the same stdlib-regex
@@ -91,33 +93,89 @@ PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
 
 
 def find_project_root(start: Path | None = None) -> Path:
-    """Delegate to `locations.find_project_root` — **goal:g11.1**.
+    """The GRAPH root — `<repo>/.agi` under G11 — via `locations` (**goal:g11.1**).
 
-    This was its own ancestor walk, looking only for a bare `CONFIG_MARKERS`
-    name in each parent. That has no phase 0, so it cannot see a `<d>/.agi/`
-    graph directory, and under the goal:g11 layout it walked the whole way to
-    `/` and exited. The grid is where every payload byte and every node version
-    lives, so a `grid.py` that cannot find the project is the most expensive
-    form this residual could take: `commit --all` stops recording history and
-    says so only on stderr, which in a cron is nowhere.
+    This was its own ancestor walk, looking only for a bare config-marker name
+    in each parent. That has no phase 0, so it cannot see a `<d>/.agi/` graph
+    directory, and under the goal:g11 layout it walked the whole way to `/` and
+    exited. The grid is where every payload byte and every node version lives,
+    so a `grid.py` that cannot find the project is the most expensive form this
+    residual could take: `commit --all` stops recording history and says so only
+    on stderr, which in a cron is nowhere.
+
+    Delegates to `project_root_from_env`, not to `find_project_root`, so an
+    explicit `$AGI_TREE_PROJECT_ROOT` wins here exactly as it does for every
+    other entry point. `grid.py` disagreeing with its callers about which
+    project it is versioning is the one disagreement the grid cannot survive.
 
     Kept as a wrapper rather than deleted: `grid.py` calls this in a dozen
     places and the `sys.exit`-on-failure contract is what those callers expect.
     """
-    root = locations.find_project_root(start)
+    root = locations.project_root_from_env(start)
     if root is None:
         cur = (start or Path.cwd()).resolve()
         sys.exit(
             f"ERR: no agi project found from {cur} — looked for "
-            f"{locations.GRAPH_DIR_NAME}/ or {CONFIG_MARKER} walking up, "
-            f"then <dir>/*-tree/ below"
+            f"{locations.GRAPH_DIR_NAME}/ or {locations.CONFIG_NAMES[0]} "
+            f"walking up, then <dir>/*-tree/ below"
         )
     return root
 
 
+# --- the two roots, and why every git call takes the second one (goal:g11) ---
+#
+# `grid.py` is handed ONE root by its callers — the graph root — and has two
+# different jobs for it:
+#
+#     graph root   `<repo>/.agi`   node FILES live here     (`iter_node_files`)
+#     repo root    `<repo>`        grid REFS live here      (every `git` call)
+#
+# Before goal:g11 those were the same directory, so handing the graph root to
+# `git -C` was invisibly correct. It is not any more, and what it produces is a
+# **silent wrong answer, not an error**: `git -C <repo>/.agi` sets git's
+# *prefix* to `.agi/`, and every cwd-scoped subcommand then resolves paths
+# under that prefix — but a grid commit's tree carries `node.md` at ITS OWN
+# root, under no prefix at all. Two measured consequences, both of which
+# reported success:
+#
+#   - `ls-tree` matched nothing, so `read_tree` returned `[]` and all 809 nodes
+#     read as CHANGED while being byte-identical (`cmd_status`).
+#   - `diff <ref>~1 <ref> -- node.md` printed an empty diff and exited 0 for
+#     `goal:g11.1`, a node with three real versions — 3696 bytes of diff when
+#     the same command runs from the repo root.
+#
+# `ref_tip`, `rev-list` and `commit-tree` take no pathspec and were correct
+# throughout, which is exactly what made the whole thing look fine.
+#
+# Every git invocation in this file goes through `repo_root()` below. The
+# pathspec spellings that are prefix-proof (`ls-tree --full-tree`,
+# `diff -- ':(top)node.md'`) are kept as belt-and-braces — they are the right
+# way to say "this is a tree-root path" no matter where git is run from — but
+# they are no longer what holds this up. `test_status_agrees_from_repo_root_
+# and_graph_dir` and friends pin the root split on its own.
+
+
+def repo_root(root: Path) -> Path:
+    """The git repo enclosing graph root `root` — where `refs/grid/*` lives.
+
+    Straight delegation to `locations.repo_root`, which is the identity under
+    the legacy layout (graph root == repo root) and `root.parent` under G11.
+    That is what lets every call site ask unconditionally instead of branching
+    on layout, and it is why routing `git()` through here is a no-op for every
+    pre-G11 project and every test fixture built as a bare tree.
+    """
+    return locations.repo_root(root)
+
+
 def git(root: Path, *args: str, input_text: str | None = None, check: bool = True) -> str:
+    """Run git for the repo enclosing graph root `root`.
+
+    `root` is the GRAPH root as every caller in this file holds it; the `-C`
+    handed to git is the REPO root (see the block comment above). Callers pass
+    the root they have and never have to remember the distinction.
+    """
     res = subprocess.run(
-        ["git", *GIT_IDENT, "-C", str(root), *args],
+        ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
         capture_output=True, text=True, input=input_text,
     )
     if check and res.returncode != 0:
@@ -416,8 +474,11 @@ def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | No
 
 
 def ref_tip(root: Path, ref: str) -> str | None:
+    """Tip sha of `ref`, or None. Raw `subprocess.run` rather than `git()`
+    because a missing ref must be None, not `sys.exit` — but the `-C` still
+    goes through `repo_root` like every other git call in this file."""
     res = subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "-q", "--verify", ref],
+        ["git", "-C", str(repo_root(root)), "rev-parse", "-q", "--verify", ref],
         capture_output=True, text=True,
     )
     return res.stdout.strip() or None
@@ -468,18 +529,16 @@ def read_tree_entry(root: Path, rev: str, name: str) -> tuple[str, bytes] | None
     Bytes, not text: a payload may be any file in the engine repo, and
     decoding one to hand it back would make the round trip encoding-dependent.
     """
-    # --full-tree: goal:g11. `git ls-tree` is scoped by cwd WITHIN the work
-    # tree, so from `<repo>/.agi` it looks for entries under an `.agi/` prefix
-    # — and a grid commit's tree has `node.md` at ITS root, not under one.
-    # Without this, every lookup returned empty and every node read as CHANGED
-    # while being byte-identical. Harmless before G11 only because the graph
-    # root and the repo root were the same directory.
+    # `--full-tree` is belt-and-braces since `git()` moved to `repo_root`: it
+    # pins the pathspec to the tree's own root regardless of git's prefix, which
+    # is the right thing to say about a grid tree either way. It is no longer
+    # what makes this correct — see the two-roots block comment.
     line = git(root, "ls-tree", "--full-tree", rev, "--", name, check=False)
     if not line:
         return None
     mode = line.split(maxsplit=1)[0]
     res = subprocess.run(
-        ["git", "-C", str(root), "cat-file", "blob", f"{rev}:{name}"],
+        ["git", "-C", str(repo_root(root)), "cat-file", "blob", f"{rev}:{name}"],
         capture_output=True,
     )
     if res.returncode != 0:
@@ -535,7 +594,7 @@ def read_tree(root: Path, rev: str) -> list[tuple[str, str, str]]:
     """`(name, mode, blob)` for every entry in `rev`'s tree, sorted by name —
     the read-side counterpart of `tree_entries`, so the two are directly
     comparable without materialising anything."""
-    out = git(root, "ls-tree", "--full-tree", rev, check=False)  # see read_tree_entry
+    out = git(root, "ls-tree", "--full-tree", rev, check=False)  # belt-and-braces; see read_tree_entry
     rows = []
     for line in out.splitlines():
         meta, _, name = line.partition("\t")
@@ -545,9 +604,17 @@ def read_tree(root: Path, rev: str) -> list[tuple[str, str, str]]:
 
 
 def ensure_repo(root: Path) -> None:
-    if subprocess.run(["git", "-C", str(root), "rev-parse", "--git-dir"],
+    """Fail loudly unless graph root `root` sits inside a git repo.
+
+    Checks — and names, in the error — the REPO root, not the graph root: under
+    G11 `<repo>/.agi` is never itself a repo, and `git init`-ing it because an
+    error message pointed there would create a nested repo whose object store
+    is not the one holding `refs/grid/*`.
+    """
+    repo = repo_root(root)
+    if subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-dir"],
                       capture_output=True).returncode != 0:
-        sys.exit(f"ERR: {root} is not a git repo — the grid bakes into the "
+        sys.exit(f"ERR: {repo} is not a git repo — the grid bakes into the "
                  "project repo; `git init` it first")
 
 
@@ -740,11 +807,21 @@ def cmd_log(root: Path, node_id: str, n: int) -> None:
 
 
 def cmd_diff(root: Path, node_id: str, back: int) -> None:
+    """Diff two versions of a node's `node.md`.
+
+    `:(top)` on the pathspec is `ls-tree --full-tree`'s counterpart — `git diff`
+    has no such flag, so the magic prefix is the only way to say "this path is
+    relative to the tree root, not to git's prefix". It is belt-and-braces now
+    that `git()` runs from `repo_root`, but it is the second place the graph-root
+    `-C` bug was live and the only one `--full-tree` never covered: a bare
+    `node.md` pathspec became `.agi/node.md`, matched nothing, and this command
+    printed an empty diff and exited 0 for a node with three real versions.
+    """
     ref = resolve_ref(root, node_id)
     count = int(git(root, "rev-list", "--count", ref))
     if count < back + 1:
         sys.exit(f"ERR: only {count} version(s); cannot go back {back}")
-    print(git(root, "diff", f"{ref}~{back}", ref, "--", "node.md"))
+    print(git(root, "diff", f"{ref}~{back}", ref, "--", f":(top){NODE_ENTRY}"))
 
 
 def cmd_versions(root: Path, node_id: str) -> None:
@@ -807,8 +884,14 @@ def cmd_payload(root: Path, node_id: str, version: int | None,
 
 
 def engine_tracked_files(engine_root: Path) -> list[str]:
-    """Every file git tracks in the engine repo, or [] if it is not one."""
-    res = subprocess.run(["git", "-C", str(engine_root), "ls-files"],
+    """Every file git tracks in the engine repo, or [] if it is not one.
+
+    `ls-files` is the third cwd-scoped subcommand this file calls, and it lists
+    only what is under git's prefix — so it goes through `repo_root` like the
+    rest. Identity in practice (a source root is never named `.agi`), routed
+    anyway so no git invocation here is an exception to the rule.
+    """
+    res = subprocess.run(["git", "-C", str(repo_root(engine_root)), "ls-files"],
                          capture_output=True, text=True)
     return [l for l in res.stdout.splitlines() if l] if res.returncode == 0 else []
 
@@ -1174,13 +1257,33 @@ def cmd_sync(root: Path, remote: str | None) -> None:
 
 
 def cron_log(root: Path) -> Path:
-    return Path.home() / "logs" / f"grid-sync-{root.name}.log"
+    """The per-project cron log — and, because `cmd_cron` uses its path as the
+    marker for "our" crontab lines, the per-project *identity* of those lines.
+
+    Named after the REPO root, not the graph root (goal:g11). Every migrated
+    project's graph root is literally named `.agi`, so deriving the name from it
+    gives every project on the planet the same `grid-sync-.agi.log` marker — and
+    `cron install`, which removes every line carrying the marker before writing
+    its own, would then silently uninstall a *different* project's crons. The
+    repo root's name is the thing that actually differs between projects.
+    Identity under the legacy layout, so an already-installed line keeps
+    matching (verified against the live `grid-sync-fantasia.log` entry).
+    """
+    return Path.home() / "logs" / f"grid-sync-{repo_root(root).name}.log"
 
 
 def cron_lines(root: Path, branch: str, mins: int, log: Path,
                publish_engine: bool = False) -> list[str]:
     """The cadence entries. The `cd` is load-bearing: cron runs from $HOME
     and find_project_root walks up from cwd — a cd-less line fails silently.
+
+    Both the `cd` and the `git -C` name the REPO root, not the graph root
+    (goal:g11). The `cd` because `find_project_root` walking up from `<repo>`
+    finds `<repo>/.agi` in phase 0 and resolves identically, while `<repo>/.agi`
+    is a directory that may not exist on a project that has not migrated; the
+    `git -C` for the same reason every other git call in this file does. Under
+    the legacy layout `repo_root` is the identity, so these lines are unchanged
+    byte-for-byte for any project already carrying an installed crontab entry.
 
     Two cadences always: snapshot+grid-push every `mins`, branch push hourly.
 
@@ -1210,15 +1313,16 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
     the wrong branch — at worst it creates a remote branch, which is visible.
     """
     script = Path(__file__).resolve()
-    snap = (f"*/{mins} * * * * cd {root} && "
+    repo = repo_root(root)
+    snap = (f"*/{mins} * * * * cd {repo} && "
             f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
             f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
-    d1 = f"7 * * * * git -C {root} push -q origin {branch} >> {log} 2>&1"
+    d1 = f"7 * * * * git -C {repo} push -q origin {branch} >> {log} 2>&1"
     lines = [snap, d1]
     if publish_engine:
         publisher = script.parent / "publish-engine.sh"
         engine_root = script.parents[3]
-        lines.append(f"37 * * * * cd {root} && bash {publisher} >> {log} 2>&1")
+        lines.append(f"37 * * * * cd {repo} && bash {publisher} >> {log} 2>&1")
         lines.append(
             f"47 * * * * git -C {engine_root} push -q origin HEAD >> {log} 2>&1")
     return lines

@@ -33,6 +33,7 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
 from evidence_gate import (  # noqa: E402
     DECISIVE_VERDICTS,
     build_corpus,
@@ -558,17 +559,11 @@ def evidence_stats(nodes_dir: Path) -> dict:
     }
 
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
-
-
-def config_path(root: Path) -> Path | None:
-    """First existing config file in `root`, or None if it is not a project."""
-    for name in CONFIG_NAMES:
-        p = root / name
-        if p.exists():
-            return p
-    return None
+#: goal:g11.1 — re-exported from `locations` rather than redefined. The
+#: accepted marker names are a property of the layout, not of this module.
+#: `render-context.py` imports `read_config` from here, so both halves of the
+#: config lookup have to agree with the shared resolver, not just one.
+config_path = locations.config_path
 
 
 def read_config(root: Path) -> dict:
@@ -852,13 +847,16 @@ def emit(root: Path, out=None) -> dict:
 
 
 def _find_root(start: Path) -> Path:
-    d = start.resolve()
-    while d != d.parent:
-        if config_path(d) is not None:
-            return d
-        d = d.parent
-    print("ERR: no agi-tree.config.json found", file=sys.stderr)
-    sys.exit(1)
+    """The shared resolver, kept under this name because `dashboard.py` calls it.
+
+    goal:g11.1 — the walk this replaced knew only the legacy marker names, so
+    under the goal:g11 layout it walked past `<repo>/.agi/` to `/` and exited 1.
+    """
+    root = locations.find_project_root(start)
+    if root is None:
+        print(f"ERR: no agi project found from {start}", file=sys.stderr)
+        sys.exit(1)
+    return root
 
 
 def main(argv: list[str] | None = None) -> int:

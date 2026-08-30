@@ -26,21 +26,17 @@ SRC_GRAPH = PLUGIN_ROOT / "src" / "graph_core"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_gate  # noqa: E402
 
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
-
-
 def _find_root(cwd: Path | None = None) -> Path:
-    d = (cwd or Path.cwd()).resolve()
-    while d != d.parent:
-        if any((d / name).exists() for name in CONFIG_NAMES):
-            return d
-        d = d.parent
-    raise SystemExit("ERR: no agi-tree.config.json found")
+    """The graph root for `cwd`, via the one shared resolver (goal:g11.1)."""
+    root = locations.find_project_root(cwd)
+    if root is None:
+        raise SystemExit(f"ERR: no agi project found from {cwd or Path.cwd()}")
+    return root
 
 
 def _load_graph_core():

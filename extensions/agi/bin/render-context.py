@@ -23,24 +23,21 @@ import sys
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = Path(
-    os.environ.get("AGI_TREE_PROJECT_ROOT")
-    or os.environ.get("AUTORESEARCH_TREE_PROJECT_ROOT")  # legacy, rename window
-    or os.environ.get("PROJECT_ROOT")
-    or os.getcwd()
-).resolve()
 
-# Canonical name first; the legacy name stays accepted during the rename window.
-CONFIG_NAMES = ("agi-tree.config.json", "autoresearch-tree.config.json")
+# goal:g11.1 — one resolver for every path. `bin/` goes on sys.path so the
+# hyphenated filename can still reach its importable siblings.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
 
+#: Was `... or os.getcwd()` with no ancestor walk, so this resolved the repo
+#: root when run from it and the graph root when run from `.agi/` — two
+#: different answers to one question, neither of them a walk.
+PROJECT_ROOT = locations.project_root_from_env() or Path(os.getcwd()).resolve()
 
-def config_path(root: Path) -> Path | None:
-    """First existing config file in `root`, or None if it is not a project."""
-    for name in CONFIG_NAMES:
-        p = root / name
-        if p.exists():
-            return p
-    return None
+#: Re-exported from `locations` rather than redefined: the accepted marker
+#: names are a property of the layout, not of this script.
+config_path = locations.config_path
+
 # Ensure project src (which has chain_engine) is on sys.path.
 # Append it AFTER plugin src so plugin's graph_core takes precedence
 # (graph_core types must come from plugin, chain_engine from project).
