@@ -135,6 +135,31 @@ _agi_find_root_descend() {
 find_project_root() {
   local start="${1:-$PWD}" d="${1:-$PWD}" graph_dir
 
+  # Resolve to an absolute path FIRST, exactly as the Python half does
+  # (`Path(start).resolve()`). Without this the upward walk below never
+  # terminates on a relative argument: `dirname .` is `.`, and `dirname nodes`
+  # is `.`, so `d` stops changing while the loop waits for it to become `/`.
+  # Found 2026-08-31 by running `find-root.sh .` from a directory that is not a
+  # project — it spun at 100% CPU, printed nothing, and had to be killed.
+  # The live callers all pass `$PWD` and so never hit it, which is exactly why
+  # it survived: the failure needs a relative argument AND no project above it.
+  #
+  # `cd -P` resolves symlinks the way `Path.resolve()` does, so the two halves
+  # agree on a path reached through a symlinked directory too.
+  #
+  # A start that does NOT exist is still made absolute, because that is what
+  # `Path.resolve()` does — it does not require the path to exist, and the walk
+  # then correctly finds the project enclosing where the missing directory
+  # would have been. Leaving it literal was the first attempt here and was
+  # wrong twice over: it disagreed with the Python half, and `dirname nope` is
+  # `.`, so it re-armed the very loop this block exists to disarm.
+  if [[ -d "$start" ]]; then
+    start="$(cd -P "$start" 2>/dev/null && pwd)" || start="$PWD"
+  elif [[ "$start" != /* ]]; then
+    start="$PWD/$start"
+  fi
+  d="$start"
+
   # Phases 0 and 1, interleaved in ONE upward walk rather than run as two
   # separate walks. That matters: two walks would let a distant .agi/ outrank a
   # legacy config sitting right next to you, which inverts "nearest enclosing

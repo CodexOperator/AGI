@@ -186,6 +186,48 @@ the shape is. **Flagged for a dedicated small-context brainstorm** — a
 half-chosen answer gets built into both runtimes at once through `goal:g4.3`
 and is expensive to reverse.
 
+## 0b. `agi-tree` is disarmed. The live repo is `/home/ubuntu/work/agi`.
+
+**`~/work/agi-tree` is prior art and is no longer a resolvable project.** Its
+`agi-tree.config.json` was renamed to `.RETIRED` on 2026-08-31 (`bb9d29be8`,
+one reversible `git mv`; files, history and remote untouched — `goal:s4`).
+
+Why it mattered: the config made the resolver treat it as a *live* legacy
+project, and its `source_root` resolved through the `agi -> ~/work/agi` symlink
+to the **live engine**. A loop run from there would have rewritten that repo's
+`GOALS.md` from its 809 stale goal nodes and minted build nodes from live
+engine source into the retired graph. Nothing warns — the resolver was behaving
+correctly for what it was told it was looking at.
+
+```
+locations.py  from agi-tree        -> ERR: no agi project found        (was: a live project)
+locations.py  from agi             -> /home/ubuntu/work/agi/.agi        (unaffected)
+locations.py  agi-tree/agi         -> /home/ubuntu/work/agi/.agi        (symlink still fine)
+```
+
+`agi-tree` is 5 commits ahead of its own origin and **deliberately unpushed**
+(4 migration-era from 2026-08-29, plus the disarm). Push it if you want GitHub
+to hold the complete archive; nothing depends on it.
+
+## 0c. `find-root.sh` hung on relative paths — fixed, found by accident
+
+Running `find-root.sh .` from a non-project directory **spun at 100% CPU
+forever**: the upward walk did `d="$(dirname "$d")"` on the raw argument, and
+`dirname .` is `.`, so `d` stopped changing while the loop waited for it to
+reach `/`. No output, no error, no timeout. `dirname nope` is also `.`, so a
+nonexistent relative path did it too.
+
+It survived because **every live caller passes `$PWD`** — triggering it needs a
+relative argument *and* no project above the cwd. `driver.sh` was never at
+risk. The Python half was never affected: it does `Path(start).resolve()`
+first, and this now does the same, including for paths that do not exist.
+Second effect fixed with it: a relative start used to return a *relative* root
+(`./.agi`), which callers hand to other processes.
+
+`test_bash_and_python_agree` only ever passed absolute paths. Ten new cases in
+`test_locations.py` cover relative, nonexistent and symlinked starts; the
+timeout is the assertion, so a regression hangs rather than passes.
+
 ## 1. Provider keys — DONE. Do not redo this.
 
 `.env` exists, mode 0600, and `driver.sh --smoke` prints

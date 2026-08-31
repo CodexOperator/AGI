@@ -75,12 +75,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(capsys.readouterr().out)` at line 389'
+  how: '`json.loads(capsys.readouterr().out)` at line 463'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.read_text()` at line 476'
+  how: '`p.read_text()` at line 550'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -301,51 +301,81 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _bash_find_root_in
+  how: 'defines private function `_bash_find_root_in` at line 385, signature: (cwd:
+    Path, arg: str, timeout: int=10)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_relative_start_with_no_project_terminates
+  how: 'defines public function `test_relative_start_with_no_project_terminates` at
+    line 395, signature: (tmp_path, arg)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_relative_start_resolves_to_an_absolute_root
+  how: 'defines public function `test_relative_start_resolves_to_an_absolute_root`
+    at line 407, signature: (tmp_path, arg)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_relative_start_agrees_with_python
+  how: 'defines public function `test_relative_start_agrees_with_python` at line 419,
+    signature: (tmp_path, arg)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_symlinked_start_resolves_like_python
+  how: 'defines public function `test_symlinked_start_resolves_like_python` at line
+    438, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: test_cli_what_prints_one_path
-  how: 'defines public function `test_cli_what_prints_one_path` at line 378, signature:
+  how: 'defines public function `test_cli_what_prints_one_path` at line 452, signature:
     (tmp_path, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_json_reports_the_layout
-  how: 'defines public function `test_cli_json_reports_the_layout` at line 385, signature:
+  how: 'defines public function `test_cli_json_reports_the_layout` at line 459, signature:
     (tmp_path, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_cli_missing_project_exits_nonzero
-  how: 'defines public function `test_cli_missing_project_exits_nonzero` at line 395,
+  how: 'defines public function `test_cli_missing_project_exits_nonzero` at line 469,
     signature: (tmp_path, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _resolve_in
-  how: 'defines private function `_resolve_in` at line 451, signature: (entry: str,
+  how: 'defines private function `_resolve_in` at line 525, signature: (entry: str,
     cwd: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_only_locations_declares_the_marker_names
   how: defines public function `test_only_locations_declares_the_marker_names` at
-    line 466
+    line 540
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_entry_point_resolves_the_same_root_from_repo_and_graph_dir
   how: 'defines public function `test_entry_point_resolves_the_same_root_from_repo_and_graph_dir`
-    at line 485, signature: (entry, tmp_path)'
+    at line 559, signature: (entry, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_root_taking_entry_points_share_the_config_lookup
   how: 'defines public function `test_root_taking_entry_points_share_the_config_lookup`
-    at line 512, signature: (entry)'
+    at line 586, signature: (entry)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_zoom_accepts_the_repo_root_and_the_graph_dir
   how: 'defines public function `test_zoom_accepts_the_repo_root_and_the_graph_dir`
-    at line 528, signature: (tmp_path)'
+    at line 602, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -385,7 +415,7 @@ outputs:
 - name: graph / "nodes" / "goal" / "g1.md"
   how: '`(graph / "nodes" / "goal" / "g1.md").write_text( ''---\nid: "goal:g1"\ntype:
     goal\nstatus: active\n'' ''title: "G1: a goal"\nparents: []\n---\n\nbody\n'' )`
-    at line 538'
+    at line 612'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
