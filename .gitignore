@@ -1,3 +1,11 @@
+# Provider secrets (goal:g1.8). `.env.example` is the committed SHAPE and is
+# graph content; `.env` is the value and stays on the box that typed it.
+# The negation is defensive: the pattern above is exact today, but anyone who
+# widens it to `.env*` in a hurry would otherwise untrack the template too,
+# and the graph would lose the one half of this pair it is supposed to hold.
+.env
+!.env.example
+
 .gitnexus
 .graph_cache.pkl
 .gitnexus_cache.json
