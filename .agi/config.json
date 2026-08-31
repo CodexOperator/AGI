@@ -24,7 +24,6 @@
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
     "model": "z-ai/glm-5.3-flash",
-    "max_turns": 30,
     "thinking": "medium"
   },
   "agent_timeout_mins": 10,

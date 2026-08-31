@@ -78,3 +78,56 @@ def test_flags_precede_the_prompt_arguments(tmp_path):
 def test_binary_is_still_first(tmp_path):
     args = build({"agent_dispatch": {"model": "qwen/qwen3.8-27b"}}, tmp_path)
     assert args[0].endswith("pi")
+
+
+# --- the scaffold prompt ---------------------------------------------------
+
+
+def scaffold(parent: str) -> dict:
+    return {"path": "/tmp/n.md", "node_type": "idea", "node_id": "idea:x", "parent": parent}
+
+
+def test_parent_flag_is_emitted_when_there_is_a_parent(tmp_path):
+    args = dispatch._build_pi_args({}, "ctx", "a00", 1, tmp_path, scaffold("idea:root"))
+    prompt = "\n".join(args)
+    assert "--parent idea:root" in prompt
+    assert "Parent: idea:root" in prompt
+
+
+@pytest.mark.parametrize("parent", ["", "   ", None])
+def test_parentless_node_emits_no_bare_parent_flag(parent, tmp_path):
+    """A fresh `idea` is parentless and the schema allows it. Interpolating an
+    empty parent produced a command ending in a bare `--parent`, which argparse
+    rejects — reported by a kid on the 2026-08-31 live run, which then guessed
+    its way around it."""
+    args = dispatch._build_pi_args({}, "ctx", "a00", 1, tmp_path, scaffold(parent))
+    prompt = "\n".join(args)
+    assert "--parent" not in prompt
+    assert "parentless" in prompt
+    assert "--node-id idea:x" in prompt
+
+
+# --- the zoom invocation ---------------------------------------------------
+
+
+def test_zoom_command_always_states_the_runtime(tmp_path):
+    """goal:s8. zoom.py's own default answers 'cc' for any project carrying a
+    cc_dispatch block, and a project may carry both — so the pi dispatcher has
+    to say which runtime it is rather than let a config key guess."""
+    cmd = dispatch.zoom_command(tmp_path, 3, "a00", "big", None)
+    assert cmd[cmd.index("--runtime") + 1] == "pi"
+
+
+def test_zoom_command_passes_target_only_for_small(tmp_path):
+    small = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x")
+    assert small[small.index("--target") + 1] == "idea:x"
+    big = dispatch.zoom_command(tmp_path, 3, "a00", "big", "idea:x")
+    assert "--target" not in big
+
+
+def test_zoom_command_small_without_target_omits_the_flag(tmp_path):
+    """zoom.py refuses `small` with no target by design (it would otherwise
+    serve the whole graph). Passing a bare `--target` here would turn that
+    loud refusal into an argparse error instead."""
+    cmd = dispatch.zoom_command(tmp_path, 3, "a00", "small", None)
+    assert "--target" not in cmd

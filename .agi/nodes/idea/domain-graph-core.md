@@ -4,6 +4,7 @@ id: "idea:domain-graph-core"
 mint_id: 8f731f3bc4984fefbb39e96289869c65
 next_edges:
   - hyp:graph-core-r1
+  - hypothesis:a01-144a1c04-8ba9b7
 origin: build-site
 scale: big
 status: open

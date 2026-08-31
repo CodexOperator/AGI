@@ -34,6 +34,32 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 
 TERMINAL = {"done", "pending", "hung-healed", "failed"}
 
+# goal:g11.1 / goal:s8 — one definition of "which env is safe to hand pi" and
+# one of "which model does a pi child run", shared with the other spawner
+# rather than re-derived here. `bin/` is on sys.path when this runs as a
+# script; the insert makes it so when it is imported as a module too.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import locations  # noqa: E402
+from dispatch import pi_model_args, scrubbed_env as _scrubbed_env  # noqa: E402
+
+
+def _pi_model_args(root: Path) -> list[str]:
+    """`agent_dispatch` model flags for the project at `root`, or none.
+
+    Never raises: healing runs when something is already broken, so a missing
+    or malformed config must cost the healer its model preference, not its
+    existence.
+    """
+    try:
+        cfg_path = locations.config_path(root)
+        if cfg_path is None:
+            return []
+        return pi_model_args(json.loads(cfg_path.read_text()))
+    except Exception as exc:  # noqa: BLE001 — see docstring
+        print(f"heal: could not read model config ({exc}); using pi defaults",
+              file=sys.stderr)
+        return []
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -43,7 +69,12 @@ def main() -> int:
     ap.add_argument("--max-wait-mins", type=int, default=30)
     args = ap.parse_args()
 
-    root = Path(args.project_root).resolve()
+    # goal:g11.1 — resolve the given path the way every other entry point
+    # resolves cwd, rather than demanding it already BE the graph root.
+    # Identity when driver.sh passes an already-resolved root, so nothing
+    # changes for the caller that exists today.
+    given = Path(args.project_root).resolve()
+    root = locations.find_project_root(given) or given
     iter_dir = root / "sessions" / f"iter-{args.iter_n:03d}"
     manifest_path = iter_dir / "manifest.json"
     if not manifest_path.exists():
@@ -168,10 +199,26 @@ Stay surgical. Don't refactor unrelated code.
 
     pi_bin = os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")
     healer_log = healer_dir / "output.log"
+    # Two defects fixed here on 2026-08-31, both silent, both on the path that
+    # only runs once something else has already gone wrong:
+    #
+    #   `--max-turns 8`  pi has no such flag. It printed "Unknown option:
+    #                    --max-turns" and exited — *with status 0* — so every
+    #                    healer this file ever spawned died before reading its
+    #                    own context, and the loop recorded it as launched.
+    #   raw environment  this Popen had no `env=`, so a healer inherited the
+    #                    ANTHROPIC_*/CLAUDE_CODE_* variables dispatch.py
+    #                    scrubs, and billed the interactive Claude Code
+    #                    subscription. The scrub existed; the healer sat
+    #                    outside it.
+    #
+    # The model flags are new for the same reason dispatch.py grew them: a
+    # healer that silently runs a different model than the kid it is repairing
+    # is a confusing thing to debug.
     pi_args = [
         pi_bin,
+        *_pi_model_args(root),
         "--append-system-prompt", f"@{healer_ctx}",
-        "--max-turns", "8",
         f"You are healer {healer_id}. Diagnose and patch.",
     ]
     with open(healer_log, "wb") as logf:
@@ -182,6 +229,7 @@ Stay surgical. Don't refactor unrelated code.
             stdin=subprocess.DEVNULL,
             start_new_session=True,
             cwd=str(root),
+            env=_scrubbed_env(),
         )
 
     rec["status"] = "hung-healed"
