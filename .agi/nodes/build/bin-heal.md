@@ -79,28 +79,53 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: locations
+  how: '`import locations` at line 42'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: dispatch.pi_model_args
+  how: '`from dispatch import pi_model_args` at line 43'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: dispatch.scrubbed_env
+  how: '`from dispatch import scrubbed_env as _scrubbed_env` at line 43'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: json.loads
-  how: '`json.loads(manifest_path.read_text())` at line 52'
+  how: '`json.loads(manifest_path.read_text())` at line 83'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest_path
-  how: '`manifest_path.read_text()` at line 52'
+  how: '`manifest_path.read_text()` at line 83'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(ap_file.read_text())` at line 65'
+  how: '`json.loads(cfg_path.read_text())` at line 57'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(ap_file.read_text())` at line 96'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: log_path
-  how: '`log_path.read_bytes()` at line 129'
+  how: '`log_path.read_bytes()` at line 160'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cfg_path
+  how: '`cfg_path.read_text()` at line 57'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap_file
-  how: '`ap_file.read_text()` at line 65'
+  how: '`ap_file.read_text()` at line 96'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -110,18 +135,23 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 outputs:
+- name: _pi_model_args
+  how: 'defines private function `_pi_model_args` at line 46, signature: (root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: main
-  how: defines public function `main` at line 38
+  how: defines public function `main` at line 64
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _pid_alive
-  how: 'defines private function `_pid_alive` at line 101, signature: (pid: int)'
+  how: 'defines private function `_pid_alive` at line 132, signature: (pid: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _heal
-  how: 'defines private function `_heal` at line 109, signature: (root: Path, iter_n:
+  how: 'defines private function `_heal` at line 140, signature: (root: Path, iter_n:
     int, agent_id: str, rec: dict)'
   why: TODO(model)
   perf: TODO(model)
@@ -130,53 +160,53 @@ outputs:
   how: '`healer_ctx.write_text( f"""# HEALER for hung agent {agent_id} (iter {iter_n})
     The original agent timed out. Diagnose what blocked it and patch. ## Original
     Agent Record ```json {json.dumps(rec, indent=2)} ``` ## Last 4 KiB of Agent Output
-    `...[truncated, 805 chars total]` at line 139'
+    `...[truncated, 805 chars total]` at line 170'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sess_dir / "agent.json"
   how: '`(sess_dir / "agent.json").write_text(json.dumps(rec, indent=2))` at line
-    196'
+    244'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest_path
-  how: '`manifest_path.write_text(json.dumps(manifest, indent=2))` at line 91'
+  how: '`manifest_path.write_text(json.dumps(manifest, indent=2))` at line 122'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: healer_log
-  how: '`open(healer_log, "wb")` at line 177 (mode=''wb'')'
+  how: '`open(healer_log, "wb")` at line 224 (mode=''wb'')'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(rec, indent=2)` at line 196'
+  how: '`json.dumps(rec, indent=2)` at line 244'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(manifest, indent=2)` at line 91'
+  how: '`json.dumps(manifest, indent=2)` at line 122'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(rec, indent=2)` at line 146'
+  how: '`json.dumps(rec, indent=2)` at line 177'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: ap_file
-  how: '`ap_file.write_text(json.dumps(rec, indent=2))` at line 86'
+  how: '`ap_file.write_text(json.dumps(rec, indent=2))` at line 117'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(rec, indent=2)` at line 86'
+  how: '`json.dumps(rec, indent=2)` at line 117'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 6 `print()` call(s) at line(s) [50, 89, 93, 97, 111, 197]
+  how: 7 `print()` call(s) at line(s) [59, 81, 120, 124, 128, 142, 245]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

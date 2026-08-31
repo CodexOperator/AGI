@@ -125,8 +125,26 @@ iter_run() {
   # 3. Emit METRICs
   emit_metrics "$n"
 
-  # 4. Pre-dispatch benchmark (attractiveness scores for transparency)
-  python3 "$PLUGIN_ROOT/bin/benchmark.py" "$PROJECT_ROOT" 2>&1 | tee -a "$LOG" || true
+  # 4. Pre-dispatch chain judgment — REMOVED 2026-08-31, see goal:g4.3 (H4b).
+  #
+  # This line was `benchmark.py "$PROJECT_ROOT" ... || true`, and it could
+  # never have worked: `benchmark.py` takes a positional CHAIN ID (`idea:foo`)
+  # and was handed a directory path, so even with its `ollama` dependency
+  # installed it would have tried to judge a chain named after the project
+  # root. Without ollama it printed one ERR line and exited 1, which `|| true`
+  # swallowed. Confirmed live on 2026-08-31: one ERR line, every run.
+  #
+  # The consequence is not cosmetic. `benchmark.py` is what writes
+  # `closed_chains.txt`, and `dispatch.py` reads that file to stop re-picking
+  # a chain it has already judged finished. Since it never ran, no chain has
+  # ever been closed, and target selection has been choosing from the full set
+  # every iteration. Re-enabling it needs a per-chain loop, a config gate, and
+  # the dependency actually present — a design job, not a fixed argument, so
+  # the call is removed rather than repaired in place.
+  #
+  # It also does NOT reach `src/chain_engine/ranking.py`, contrary to what
+  # goal:g4.3 said before this was traced; that module is reached through
+  # `chain_engine/queries.py` instead.
 
   if [[ "$SMOKE" == "true" ]]; then
     echo "[smoke] skipping agent dispatch + heal" | tee -a "$LOG"

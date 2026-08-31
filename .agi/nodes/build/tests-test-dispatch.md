@@ -97,6 +97,41 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: scaffold
+  how: 'defines public function `scaffold` at line 86, signature: (parent: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_parent_flag_is_emitted_when_there_is_a_parent
+  how: 'defines public function `test_parent_flag_is_emitted_when_there_is_a_parent`
+    at line 90, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_parentless_node_emits_no_bare_parent_flag
+  how: 'defines public function `test_parentless_node_emits_no_bare_parent_flag` at
+    line 98, signature: (parent, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_zoom_command_always_states_the_runtime
+  how: 'defines public function `test_zoom_command_always_states_the_runtime` at line
+    113, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_zoom_command_passes_target_only_for_small
+  how: 'defines public function `test_zoom_command_passes_target_only_for_small` at
+    line 121, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_zoom_command_small_without_target_omits_the_flag
+  how: 'defines public function `test_zoom_command_small_without_target_omits_the_flag`
+    at line 128, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 ```
 <!-- BUILD-CONTRACT:END -->
 

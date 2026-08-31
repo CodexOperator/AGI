@@ -517,6 +517,11 @@ machine-global store no project's graph describes.
    does not silently break the loop. Until that exists, OpenRouter models are
    reachable through the pi runtime only.
 
+   **The dispatcher itself is specified under `goal:g4.3`, not here** — its
+   two spawn modes (kids directly, and parents that spawn their own kids) and
+   its per-tier models are statements about the runtime split. This goal owns
+   only the question of how the key reaches it.
+
 ## Falsifier
 
 A fresh clone on a new box, with `.env` absent, runs `driver.sh --smoke` and is
@@ -1284,11 +1289,66 @@ Claude Code instead — a runtime flag, not a parallel code path — and audit h
 parity between the two. H9's kid→parent question channel exists for the CC path
 (four escalation triggers, one question per kid) and not for pi.
 
-**H4b** belongs here too: `driver.sh` calls `benchmark.py` with the wrong
-arguments under `|| true`, so it may never have run. That matters beyond the
-bug — `benchmark.py` is what reaches `ranking.py` and the weighted attractiveness
-path, which means the ranking this loop supposedly selects targets with has
-never been confirmed to execute at all.
+Two halves of the split are now asymmetric in a way worth naming. The pi half
+is real and was verified live on 2026-08-31: `driver.sh --max-iters 1`
+dispatches, kids write nodes, `heal.py` closes them out, `post_wire` wires the
+edges. The CC half is configuration with nothing behind it.
+
+## The CC dispatcher — two spawn modes, models per tier
+
+**Added 2026-08-31, on finding that `cc_dispatch` has no dispatcher behind it.**
+`agent_dispatch.*` becomes real pi flags; `cc_dispatch.kid_model` and
+`parent_model` are read by nothing. Claude Code's own subagent tool spawns
+Claude models only, so a project cannot reach a non-Claude provider from the CC
+side by configuration — it needs code. What that code must do:
+
+1. **Spawn kids directly.** Dispatcher → N kids, one node each, exactly the
+   shape `dispatch.py` produces for pi. This is the cheap mode and the one
+   that must work first.
+2. **Spawn parents, which then spawn their own kids.** A parent owns one loop:
+   picks targets, spawns kids, reviews their nodes, enforces the evidence
+   gate, reports. Kids do not become parents; the tier is assigned at spawn.
+   This is what keeps review motion out of the delegating session, and it is
+   the reason the three tiers exist at all.
+3. **A model per tier, independently set.** `parent_model` and `kid_model` are
+   already in the config and already mean this — they simply have no reader.
+   Both modes honour them: mode 1 uses `kid_model` only; mode 2 uses
+   `parent_model` for the parents it spawns and `kid_model` for whatever they
+   spawn beneath. A parent must not silently inherit the kid model, and a kid
+   must not silently inherit the parent's — tiering the model is the whole
+   point of having tiers.
+4. **Provider-agnostic, and that means an SDK.** Reaching OpenRouter from
+   here is `goal:g1.8` item 4, and the decision recorded there stands: **use
+   the OpenRouter Python SDK, not raw HTTP**, so a minor change on their side
+   cannot silently break the loop. Claude models keep going through the
+   subscription; the main chat is never routed anywhere else.
+
+The invariant this must not break: **a runtime flag, not a parallel code
+path.** Target selection, the spawn gate, the evidence gate, `post_wire` and
+the node format are the same for both runtimes. If the CC dispatcher grows its
+own copy of any of them, this goal has failed even if the dispatcher works.
+
+## H4b — traced 2026-08-31, and the diagnosis was half wrong
+
+`driver.sh` called `benchmark.py "$PROJECT_ROOT" ... || true`. The argument was
+indeed wrong — `benchmark.py` takes a positional **chain id** (`idea:foo`) and
+was handed a directory — but it never got that far: the module `sys.exit(1)`s
+at import when `ollama` is missing, which it is, and `|| true` swallowed it.
+Confirmed live: one `ERR: ollama package not installed` line, every run, for
+however long that call has been there.
+
+**The consequence is real.** `benchmark.py` writes `closed_chains.txt`, and
+`dispatch.py` reads it to stop re-picking a chain it has already judged
+finished. Nothing has ever written that file, so no chain has ever been closed
+and target selection has drawn from the full set every iteration.
+
+**The claim that it reaches `ranking.py` is false.** That module is reached
+through `chain_engine/queries.py`; `benchmark.py` does not import it. So the
+weighted attractiveness path is not implicated — the scoring `dispatch.py`
+actually uses is its own, in `_pick_targets`, and that does run.
+
+The call is removed rather than repaired: re-enabling wants a per-chain loop, a
+config gate and the dependency present, which is a design job.
 
 ### G4.4 — A web of specialists, each owning a region — status: horizon
 

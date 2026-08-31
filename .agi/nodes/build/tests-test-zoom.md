@@ -272,6 +272,12 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_both_contracts_forbid_git
+  how: 'defines public function `test_both_contracts_forbid_git` at line 350, signature:
+    (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: d / f"{slug}.md"
   how: '`(d / f"{slug}.md").write_text("\n".join(lines), encoding="utf-8")` at line
     45'
