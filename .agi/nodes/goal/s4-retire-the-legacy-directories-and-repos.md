@@ -57,6 +57,37 @@ So: **disarm first, on everything here that carries a marker; decide about
 deletion later, separately, or never.** The two steps were being treated as one
 and they are not.
 
+## Completed the same day: archive, then make it read-only
+
+The owner's call was to finish the job rather than leave a half-retired repo:
+push everything, then close it. Both halves matter and the order is not
+optional — an archived GitHub repo refuses pushes, so the archive has to be
+*complete* before it is *sealed*.
+
+**Verified complete ref-by-ref, not assumed:** 3 branches and 1080 grid refs on
+the remote at the same sha, zero local-only refs. `master` was 5 ahead and
+`iter24-extend-300hop` 9 ahead; both pushed. Those 9 were not unique work —
+every one is reachable from `master`, so the remote branch pointer was merely
+stale. Worth recording, because that is the branch `CLAUDE.md` warns about and
+someone will eventually go looking for lost commits on it.
+
+**Then three guards, and the third is the non-obvious one:**
+
+1. marker file renamed — no tooling resolves it,
+2. repo archived on GitHub — remote read-only, pushes get 403,
+3. a local `pre-commit` hook that refuses.
+
+**(3) exists because of (2).** Once the remote is read-only a local commit
+still *succeeds* — it just becomes unpushable and sits in that working copy
+forever, with nothing saying so until someone tries. Sealing the far end
+converts a loud failure into a silent one, so the near end needs a refusal to
+match. That generalises to every item left on this list: **whatever makes a
+thing unwritable remotely creates a new silent-failure mode locally, and both
+ends have to be closed together.**
+
+All three are reversible: unarchive in settings, `git mv` the marker back,
+delete the hook. Nothing was deleted at any point.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 The node was a checklist of five deletions with a sensible warning attached.
 What changed is not the list but the shape of the work: acting on one item
@@ -73,4 +104,13 @@ waiting indefinitely at no cost.
 
 Kept at `horizon`: one item is handled, the rule is stated, nobody is working
 the rest.
+
+Second pass the same day, after the owner said to finish rather than leave it
+half-retired. The addition worth flagging is the third guard, which was not in
+the plan and came out of testing the second: archiving the remote made a local
+commit *succeed* and become unpushable, which is a worse failure than the one
+being prevented. Sealing one end created a silent failure at the other. That is
+now written as the general rule for the remaining items rather than as a note
+about this one, because `~/autoresearch-tree/` and the pi fallback path will
+each hit it in the same shape.
 <!-- THOUGHT:END -->

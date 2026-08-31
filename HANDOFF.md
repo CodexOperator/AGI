@@ -186,18 +186,36 @@ the shape is. **Flagged for a dedicated small-context brainstorm** — a
 half-chosen answer gets built into both runtimes at once through `goal:g4.3`
 and is expensive to reverse.
 
-## 0b. `agi-tree` is disarmed. The live repo is `/home/ubuntu/work/agi`.
+## 0b. `agi-tree` is ARCHIVED and read-only. Everything goes in `~/work/agi`.
 
-**`~/work/agi-tree` is prior art and is no longer a resolvable project.** Its
-`agi-tree.config.json` was renamed to `.RETIRED` on 2026-08-31 (`bb9d29be8`,
-one reversible `git mv`; files, history and remote untouched — `goal:s4`).
+**`~/work/agi-tree` is prior art. It is finished, complete, and closed.** Three
+guards, applied 2026-08-31, innermost last:
 
-Why it mattered: the config made the resolver treat it as a *live* legacy
-project, and its `source_root` resolved through the `agi -> ~/work/agi` symlink
-to the **live engine**. A loop run from there would have rewritten that repo's
-`GOALS.md` from its 809 stale goal nodes and minted build nodes from live
-engine source into the retired graph. Nothing warns — the resolver was behaving
-correctly for what it was told it was looking at.
+| | guard | effect |
+|---|---|---|
+| 1 | `agi-tree.config.json` → `.RETIRED` (`bb9d29be8`) | no agi tooling resolves it as a project |
+| 2 | `CodexOperator/agi-tree` archived on GitHub | remote is read-only; every push gets `403 … archived so it is read-only` |
+| 3 | `.git/hooks/pre-commit` refusing, in that working copy | a local commit is refused rather than becoming a dead end |
+
+Guard 3 exists *because of* guard 2: with a read-only remote, a local commit
+would **succeed** and then sit in that working copy forever, unpushable, with
+nothing telling you until you tried. A refusal beats a silent dead end. Both
+were tested — push returned 403, commit was refused, and the test commits were
+discarded (`HEAD` is still `bb9d29be8`).
+
+**The archive is complete and was verified ref-by-ref**, not assumed: all 3
+branches and all 1080 grid refs exist on the remote at the same sha, with zero
+local-only refs. `master` was 5 ahead and `iter24-extend-300hop` 9 ahead before
+this; both were pushed. *(Those 9 were not unique work — every one is reachable
+from `master`; the remote branch pointer was simply stale. Worth knowing before
+anyone goes looking for lost commits on the branch `CLAUDE.md` warns about.)*
+
+Why guard 1 mattered in the first place: the config made the resolver treat it
+as a *live* legacy project, and its `source_root` resolved through the
+`agi -> ~/work/agi` symlink to the **live engine**. A loop run from there would
+have rewritten that repo's `GOALS.md` from its 809 stale goal nodes and minted
+build nodes from live engine source into the retired graph. Nothing warns — the
+resolver was behaving correctly for what the marker file claimed.
 
 ```
 locations.py  from agi-tree        -> ERR: no agi project found        (was: a live project)
@@ -205,9 +223,8 @@ locations.py  from agi             -> /home/ubuntu/work/agi/.agi        (unaffec
 locations.py  agi-tree/agi         -> /home/ubuntu/work/agi/.agi        (symlink still fine)
 ```
 
-`agi-tree` is 5 commits ahead of its own origin and **deliberately unpushed**
-(4 migration-era from 2026-08-29, plus the disarm). Push it if you want GitHub
-to hold the complete archive; nothing depends on it.
+**To reverse any of it:** unarchive in GitHub settings, `git mv` the config
+back, `rm .git/hooks/pre-commit`. None of it deletes anything.
 
 ## 0c. `find-root.sh` hung on relative paths — fixed, found by accident
 
