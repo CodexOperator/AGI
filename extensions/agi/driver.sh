@@ -66,31 +66,23 @@ echo "[driver] PLUGIN_ROOT=$PLUGIN_ROOT"
 
 # Provider credentials (goal:g1.8). ONE file holds them, it is sourced here,
 # and everything below inherits — dispatch.py, pi, and every pi child. Sourced
-# before any dispatch and after root resolution, so the file found is the one
-# belonging to the project actually being run.
+# after root resolution and before any dispatch, so the file found belongs to
+# the project actually being run.
 #
-# Resolution is asked of locations.py rather than recomputed here: `--what
-# source` is the repo enclosing `.agi/` under the g11 layout, which is where
-# `.env` sits, beside `.env.example`. The graph-dir fallback covers a legacy
-# project where the two are the same directory.
-#
-# Nothing here ever prints a value. The mode check is a warning and not a
-# refusal on purpose — a wrong mode is a hazard, but refusing to run the loop
-# over it would be the tool deciding a thing the operator can see for itself.
-AGI_SOURCE_ROOT="$(python3 "$PLUGIN_ROOT/bin/locations.py" "$PROJECT_ROOT" --what source 2>/dev/null || echo "$PROJECT_ROOT")"
-for _env_file in "$AGI_SOURCE_ROOT/.env" "$PROJECT_ROOT/.env"; do
-  [[ -f "$_env_file" ]] || continue
-  _env_mode="$(stat -c '%a' "$_env_file" 2>/dev/null || echo '?')"
-  [[ "$_env_mode" == "600" ]] || \
-    echo "[driver] WARN: $_env_file is mode $_env_mode, expected 600 — chmod 600 it" >&2
-  echo "[driver] env <- $_env_file"
+# The path is NOT written here. `nodes/.geometry/secrets.md` declares it and
+# `bin/envfile.py` resolves it (goal:g10.2) — the same fact `bin/env-get.sh`
+# asks for, stated once in the graph instead of twice in shell. The check runs
+# every pass so a missing key is reported by `--smoke`, not discovered later
+# inside pi; it reports and never refuses, and it never prints a value.
+AGI_ENV_FILE="$(python3 "$PLUGIN_ROOT/bin/envfile.py" "$PROJECT_ROOT" --what env-file 2>/dev/null || true)"
+python3 "$PLUGIN_ROOT/bin/envfile.py" "$PROJECT_ROOT" 2>&1 | sed 's/^/[driver] /' || true
+if [[ -n "$AGI_ENV_FILE" && -f "$AGI_ENV_FILE" ]]; then
+  echo "[driver] env <- $AGI_ENV_FILE"
   set -a
   # shellcheck disable=SC1090
-  source "$_env_file"
+  source "$AGI_ENV_FILE"
   set +a
-  break
-done
-unset _env_file _env_mode
+fi
 
 LOG="$PROJECT_ROOT/loop.log"
 mkdir -p "$PROJECT_ROOT/sessions" "$PROJECT_ROOT/context" "$PROJECT_ROOT/nodes"

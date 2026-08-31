@@ -43,40 +43,59 @@ between them is a `.gitignore` line rather than a mechanism.
 
 ## What exists now
 
-- `.env.example` at the repo root — committed, the shape.
+- `.env.example` at the repo root — committed, the shape, with its own build
+  node like any other tracked file.
 - `.env` beside it — gitignored, mode 0600, written by hand once.
-- `driver.sh` sources `.env` after resolving the project and before any
-  dispatch, so `dispatch.py`, pi, and every pi child inherit it. Resolution is
-  `locations.py --what source`, the same resolver every other entry point
-  calls, so the file found belongs to the project actually being run.
+- **`nodes/.geometry/secrets.md`** — the declaration. Where both files live,
+  which keys are required, optional, and forbidden. **The first `config` node
+  in the corpus**, which is the code path `[config]`'s schema had been waiting
+  on since it was written (**goal:g10.2**).
+- `extensions/agi/bin/envfile.py` — the one reader. Resolves the node, expands
+  `<source_root>` against `locations.py`, and checks the file. Named `envfile`
+  and not `secrets` because `bin/` goes on `sys.path` in a dozen entry points
+  and a module called `secrets` there shadows the standard library's for all of
+  them — confirmed, not theorised.
+- `driver.sh` — asks `envfile.py` for the path, runs the check every pass, then
+  sources the file before any dispatch, so `dispatch.py`, pi, and every pi child
+  inherit it.
 - `extensions/agi/bin/env-get.sh` — prints one value and nothing else, so
   `~/.pi/agent/auth.json` can use pi's `"!command"` key form and resolve the
   same single file rather than holding a second copy of the secret.
 
-That is one value, one file, two readers, and no path by which a key reaches
-git.
+One value, one file, one declaration, two readers, and no path by which a key
+reaches git. **Per project, not per box** — both paths resolve against
+`source_root`, so `fantasia/.env` and `fantasia/agi/.env` are different files
+found by the same nearest-enclosing rule, with no flag (**goal:g8.2**). The cost
+is that a key needed by two projects is typed twice; the alternative is a
+machine-global store no project's graph describes.
 
 ## What is NOT built, and is the rest of this goal
 
-1. **A schema for it.** A `secret` (or `config-template`) node type declaring
-   which keys a project requires, so `--smoke` can say *"`.env` is missing
-   `OPENROUTER_API_KEY`"* instead of the loop failing later inside pi with a
-   provider error. Today the requirement is prose in `.env.example`; nothing
-   reads it.
+1. ~~A schema, so `--smoke` reports a missing key.~~ **Done 2026-08-31.**
+   `driver.sh --smoke` on a project with no `.env` now prints the file to
+   create, the mode to set, and the keys to fill in.
 2. **`init` writes the stub.** G1.5's job, this file's case: bringing a project
    up should render `.env.example` → `.env` and stop, telling the operator the
    one manual step that is genuinely irreducible — typing the secret.
 3. **A verifier.** A check that no tracked file, no grid ref and no session
    transcript contains a value from `.env`. Cheap to write, and the only thing
    that turns "we are careful" into something falsifiable.
+4. **An OpenRouter dispatch path, if CC-side kids are to use it.** Claude
+   Code's own subagent tool can only spawn Claude models, so `cc_dispatch`
+   cannot route to OpenRouter by configuration alone — it needs a dispatcher
+   that calls the API. Decided when the need appeared: **use the OpenRouter
+   Python SDK, not raw `requests`/`curl`**, so a minor change on their side
+   does not silently break the loop. Until that exists, OpenRouter models are
+   reachable through the pi runtime only.
 
 ## Falsifier
 
 A fresh clone on a new box, with `.env` absent, runs `driver.sh --smoke` and is
 told exactly which keys it needs and where to put them — from the graph, not
 from a human remembering. Filling them in is then the only manual step, and a
-second `--smoke` is clean. **Until item 1 exists this goal is not met**, because
-the current state tells the operator nothing until pi itself fails.
+second `--smoke` is clean. **Half met as of 2026-08-31:** the telling works and
+is tested; the clone still has to create `.env` by hand rather than `init`
+rendering the stub, which is item 2.
 
 ## Why this is a G1 subgoal
 
@@ -87,21 +106,27 @@ missing* is not irreducible, and is exactly the class of "repeated, mechanical,
 therefore script it" that G1 exists to close.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version, written at the moment the need appeared: an OpenRouter key had
-to go on this box and there was no declared answer for where credentials live.
-The temptation was to answer only the immediate question — put the key in
-`~/.pi/agent/auth.json` beside the MiniMax one and move on, which works today
-and is what pi documents. Rejected because it puts the secret in a file the
-graph does not describe, on a path no project inherits, and the next box
-re-derives the whole arrangement from nothing.
+v1 declared the split and shipped it with the path written into two shell
+scripts. The owner rejected exactly that on reading it: a path known only to
+code is a path the graph cannot answer questions about, and this repo already
+carries the scar of that class of fact — the ancestor walk, restated eleven
+times until nobody could change the rule once. So v2 moves the location into
+`nodes/.geometry/secrets.md` and gives it one reader.
 
-The split that made this a goal rather than a chore: a gitignored file is
-usually treated as a hole in the graph, and here the hole is load-bearing.
-Naming `.env.example` as the graph's half and `.env` as the box's half turns
-"we cannot version this" from a limitation into the actual design — the shape
-gets a build node and a grid ref, the value gets neither, and the asymmetry is
-what makes it safe. Scoped as a G1 subgoal rather than a top-level goal because
-it is G1.5's `init` story applied to one file class, and because 44 goals are
-already `active`; this adds a 45th and should be among the first retired once
-items 1–3 land.
+Two things fell out that v1 could not have predicted. First, the `[config]`
+schema had been sitting since 2026-08-25 with zero nodes minted against it and
+a note that minting one waited on "a code path that reads more than one field";
+this is that path, reading five, so the schema stopped being speculative rather
+than a new type being invented beside it. Second, the reader could not be
+called `secrets.py`: `bin/` goes on `sys.path` in a dozen entry points, and a
+module by that name there shadows the standard library's `secrets` for every
+one of them. Confirmed by import, not reasoned about, and renamed to
+`envfile.py` before anything depended on it.
+
+Item 1 is struck because it is done and tested, not because it was descoped —
+`--smoke` on a project with no `.env` now names the file, the mode and the
+keys. Item 4 is new and is a constraint discovered while answering the owner's
+model-routing question: Claude Code's subagent tool spawns Claude models only,
+so `cc_dispatch` cannot reach OpenRouter by configuration, and the SDK-over-raw
+decision is recorded here rather than left to whoever writes that dispatcher.
 <!-- THOUGHT:END -->
