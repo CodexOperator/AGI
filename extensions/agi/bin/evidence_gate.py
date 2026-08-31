@@ -66,9 +66,16 @@ VERDICT_RE = re.compile(
     r"|inconclusive_lean_disproved:\d{1,3}|pending)$"
 )
 
+#: `N` is spelled out because it was not, and a kid paid for it. On the
+#: 2026-08-31 live run one wrote `inconclusive_lean_proved:0.6` — a reasonable
+#: reading of a bare `:N` next to a `--confidence 0.0-1.0` flag — was rejected,
+#: and fell back to `pending`, losing the lean it had actually formed. The
+#: regex has always wanted 1-3 digits; only the help was ambiguous.
 VERDICT_HELP = (
     "proved | disproved | inconclusive_lean_proved:N | "
-    "inconclusive_lean_disproved:N | pending"
+    "inconclusive_lean_disproved:N | pending "
+    "(N = integer percent 0-100, e.g. inconclusive_lean_proved:60 — "
+    "NOT a 0..1 fraction; that is what --confidence takes)"
 )
 
 #: Shape of a legitimate `evidence_runs` entry: `type:slug`, no whitespace.

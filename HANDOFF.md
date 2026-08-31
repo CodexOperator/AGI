@@ -138,6 +138,184 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
+# SESSION HANDOFF — 2026-08-31: paid keys in, pi runtime audited live
+
+> **Read this section first.** It supersedes 2026-08-30 below wherever they
+> disagree — in particular that section's §3a, which is the *previous* state of
+> the credential work and is now finished. The pi runtime was run end to end
+> three times this session; every claim below about it was watched, not
+> reasoned about.
+
+## 0. State
+
+```
+repo         /home/ubuntu/work/agi   ONE repo: source + .agi/ graph + refs/grid/*
+HEAD         (see git log)           719 commits, 1100 grid refs
+node_count   831                     active 826, deprecated 5, goal_count 92
+tests        1097 pass, 0 fail       outcome_coverage 0.275
+provider     OpenRouter, LIVE        .env set, pi resolves it, both models ping OK
+crons        FROZEN — crons_live: false. Unchanged from 2026-08-30. See §4 there.
+PUSHED       master is 4 commits ahead of origin. Grid refs current locally.
+```
+
+## 1. Provider keys — DONE. Do not redo this.
+
+`.env` exists, mode 0600, and `driver.sh --smoke` prints
+`[secrets] ok: … satisfies required keys: OPENROUTER_API_KEY`. The chain, end
+to end:
+
+```
+.env  →  bin/envfile.py  →  driver.sh (sources it) ──→ dispatch.py → pi → kid
+      ↘  bin/env-get.sh  →  ~/.pi/agent/auth.json  ──↗   (same one value)
+```
+
+`.agi/nodes/.geometry/secrets.md` declares where `.env` is and which keys it
+must hold; `bin/envfile.py` is the only reader. **Shape is graph content
+(`.env.example`, committed, has a build node); value is not, ever.**
+
+**Models. `~/.pi/agent/models.json`, not `settings.json`** — pi reads custom
+models from the former only, which cost an hour to find. Both are registered
+there because pi's baked registry does not know either:
+
+| tier | model | $/Mtok in / out |
+|---|---|---|
+| pi default + parent | `qwen/qwen3.8-27b` | 0.43 / 2.55 |
+| kid (`agent_dispatch.model`) | `z-ai/glm-5.3-flash` | 0.075 / 0.25 |
+
+Verify in one line: `pi --list-models | grep -E 'qwen3.8-27b|glm-5.3-flash'`.
+Backups: `~/.pi/agent/{settings,auth}.json.bak-2026-08-31`.
+
+## 2. The pi runtime works, and was silently broken in five places
+
+Three live `--max-iters 1` runs. The path is sound — dispatch → 2 kids → nodes
+written → `heal.py` closes them out → `post_wire` adds the edge → status. Every
+defect below was found by *running* it; none was visible by reading.
+
+1. **pi kids were handed the CC contract.** `zoom.py::default_runtime()`
+   answers `"cc"` for any project carrying a `cc_dispatch` block, and a project
+   may carry both — so pi kids read *"Do not call cli.py"* in the one runtime
+   where `cli.py done` is how the manifest closes. Both kids reported the
+   contradiction and correctly ignored their own context. `dispatch.py` now
+   passes `--runtime pi` explicitly (`goal:s8`).
+2. 🔴 **A kid ran `git commit -A`** and swept a second kid's half-written node
+   *and* a human's uncommitted engine edits into one commit labelled with its
+   own node id — **`d34048aa1`, left in place deliberately**: it is true
+   evidence for `goal:g4.1` and rewriting it would erase that. Nothing was
+   lost; the history says something untrue. Cause: the pi contract said how to
+   signal done and nothing about git, so committing read as part of finishing.
+   Both contracts now forbid git outright.
+3. **Every healer ever spawned died at birth.** `heal.py` passed
+   `--max-turns 8`; pi has no such flag, printed `Unknown option`, and **exited
+   0**, so the loop recorded a healer as launched that never read its context.
+4. **Healers billed the Claude Code subscription.** That `Popen` had no `env=`,
+   so it inherited the `ANTHROPIC_*` vars `dispatch.py` scrubs. The scrub
+   existed; the healer sat outside it. One shared definition now.
+5. **A parentless idea produced a bare `--parent`**, which argparse rejects.
+
+Also fixed: `agent_dispatch.provider/model/thinking` are now *real* pi flags —
+`_build_pi_args` used to read the config and use none of it, so every kid ran
+whatever `settings.json` said. `agent_dispatch.max_turns` was dropped from
+config and SKILL.md: pi has no turn cap and nothing read the key. And
+`VERDICT_HELP` now says `N` is an integer percent — a kid wrote
+`inconclusive_lean_proved:0.6`, was rejected, and fell back to `pending`,
+losing the lean it had formed.
+
+## 3. 🔴 Next tasks, in order
+
+### 3a. The CC dispatcher — specified, not built (`goal:g4.3`)
+
+**`cc_dispatch` is configuration with nothing behind it.** `kid_model` and
+`parent_model` are read by no code. The spec now lives in `goal:g4.3` and has
+four parts, of which the first two are the owner's explicit requirement:
+
+1. **Spawn kids directly** — N kids, one node each, the shape `dispatch.py`
+   already produces for pi. Cheap mode, must work first.
+2. **Spawn parents, which then spawn their own kids** — a parent owns one
+   loop: picks targets, spawns kids, reviews, enforces the evidence gate,
+   reports. Tier is assigned at spawn; kids never become parents.
+3. **A model per tier, independently** — `parent_model` for parents,
+   `kid_model` for kids, in *both* modes. Neither may silently inherit the
+   other's; tiering the model is the point of having tiers.
+4. **Provider-agnostic via the OpenRouter Python SDK, not raw HTTP** — so a
+   minor change on their side cannot silently break the loop.
+
+**The invariant that must not break: a runtime flag, not a parallel code
+path.** Target selection, spawn gate, evidence gate, `post_wire` and the node
+format stay shared. If the CC dispatcher grows its own copy of any of them,
+this goal has failed even if the dispatcher runs.
+
+Until it exists, **OpenRouter is reachable through the pi runtime only** —
+Claude Code's subagent tool spawns Claude models and nothing else.
+
+### 3b. `closed_chains.txt` has never been written (`goal:g4.3`, H4b)
+
+`driver.sh`'s `benchmark.py` call is **removed** — it passed a directory where
+a chain id belongs and never got that far anyway: the module exits at import
+without `ollama`, under `|| true`. One `ERR` line per run, for however long.
+The consequence is live: `dispatch.py` reads `closed_chains.txt` to stop
+re-picking a finished chain, and nothing has ever written it, so target
+selection has drawn from the full set every iteration. Re-enabling wants a
+per-chain loop, a config gate, and the dependency present.
+
+**The old diagnosis was half wrong and is corrected in the goal:**
+`benchmark.py` does not import `ranking.py`. The attractiveness path was never
+implicated; `dispatch.py::_pick_targets` does its own scoring and does run.
+
+### 3c. The goal sweep — now 45 active against a cap of 3
+
+Unchanged from 2026-08-30 §3b and one worse (`goal:g1.8` was added and is
+genuinely in flight). Same job: classify with evidence into complete /
+phasing-out / horizon / at most three active. `goal:S16` still carries
+`status: proved`, a verdict value in a lifecycle field.
+
+### 3d. `goal:g1.8` items 2–4
+
+`init` rendering the `.env` stub (G1.5's job); a verifier that no tracked file,
+grid ref or session transcript ever contains a value from `.env`; and item 4,
+which is 3a above.
+
+### 3e. Carried, unchanged
+
+Everything in 2026-08-30 §3c: **G6.6** prose contracts, worktree-per-kid
+isolation (**G4.1** — now with live evidence, see §2.2), **`init` (G1.5)**,
+the **G8.2** falsifier, and the SessionStart hook still printing `agi-tree`.
+
+## 4. 🔴 Traps from this session
+
+- **A green test suite says nothing about the runtime.** 1081 tests passed
+  over a `heal.py` that could not spawn a healer, a `dispatch.py` that ignored
+  its own model config, and a `zoom.py` that handed kids the wrong contract.
+  All four surfaced within two live runs. **Run the loop.**
+- **Kids are the best defect reporters you have.** Four of the five bugs above
+  were in kid `struggles:` lines, unprompted and accurate. Read them.
+- **`|| true` is where bugs go to live.** Two of the five were invisible
+  because a non-zero exit was swallowed — and pi's own `Unknown option` path
+  exits **0**, so even `set -e` would not have caught the healer.
+- **Check which file a tool reads before writing to it.** Registering models in
+  `~/.pi/agent/settings.json` looked correct, changed nothing, and reported no
+  error; pi reads `models.json`.
+- **The verification runs left six kid nodes in the graph.** They are real
+  loop output and are kept — `node_count` never drops. Runs 1 and 2's four are
+  in `d34048aa1` (see §2.2); run 3's two are reviewed and committed normally.
+
+## 5. Known-good verification sequence
+
+```bash
+cd /home/ubuntu/work/agi
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must not drop; secrets must say ok
+python3 -m pytest extensions/agi/tests/ -q              # 1097 passed
+python3 extensions/agi/bin/snapshot-goals.py --render --check
+python3 extensions/agi/bin/envfile.py --check           # exit 0
+pi --list-models | grep -E 'qwen3.8-27b|glm-5.3-flash'  # 2 lines
+bash extensions/agi/driver.sh --max-iters 1             # LIVE, ~90s, ~2 nodes, costs cents
+```
+
+The last line is the one that matters and the one that was missing. After it:
+`git log --oneline -1` must still be **your** commit — a kid that committed is
+a regression of §2.2.
+
+---
+
 # SESSION HANDOFF — 2026-08-30: the migration's residuals, closed
 
 > **Read this section first.** It supersedes 2026-08-29b below wherever they
