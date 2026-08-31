@@ -345,3 +345,18 @@ def test_one_contract_definition_serves_every_renderer():
     otherwise. Assert the duplication cannot return."""
     assert SOURCE.count("bin/cli.py done") == 1, \
         "the pi contract must be emitted from completion_contract() only"
+
+
+def test_both_contracts_forbid_git(tmp_path):
+    """A kid's git surface is none, in either runtime — the only difference is
+    that a pi kid additionally calls `cli.py done`.
+
+    The pi contract used to say only how to signal completion, and a kid on
+    the 2026-08-31 live run inferred that committing was part of finishing:
+    `git commit -A` in a shared worktree swept a second kid's half-written
+    node and a human's uncommitted engine edits into one commit labelled with
+    the first kid's node id (goal:g4.1)."""
+    for runtime in ("pi", "cc"):
+        text = _ctx(tmp_path, f"agent-{runtime}", runtime=runtime)
+        assert "Do not commit" in text, f"{runtime} contract permits committing"
+        assert "Do not push" in text, f"{runtime} contract permits pushing"

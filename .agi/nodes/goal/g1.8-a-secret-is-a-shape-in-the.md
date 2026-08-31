@@ -88,6 +88,11 @@ machine-global store no project's graph describes.
    does not silently break the loop. Until that exists, OpenRouter models are
    reachable through the pi runtime only.
 
+   **The dispatcher itself is specified under `goal:g4.3`, not here** — its
+   two spawn modes (kids directly, and parents that spawn their own kids) and
+   its per-tier models are statements about the runtime split. This goal owns
+   only the question of how the key reaches it.
+
 ## Falsifier
 
 A fresh clone on a new box, with `.env` absent, runs `driver.sh --smoke` and is

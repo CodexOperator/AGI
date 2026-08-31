@@ -117,6 +117,20 @@ def completion_contract(runtime: str, iter_n, agent_id, target: str | None = Non
         node_id_line + " \\",
         '  --notes "<one-line>"',
         "```",
+        "",
+        "Do not commit. Do not push. Do not run git at all, and do not run",
+        "grid.py. `cli.py done` is the ONLY command you run; the loop owns",
+        "every commit.",
+        "",
+        "**This line is here because its absence was expensive.** The pi",
+        "contract used to say only how to signal completion, so a kid on the",
+        "2026-08-31 live run reasonably inferred that committing its own work",
+        "was part of finishing — and `git commit -A` in a shared worktree swept",
+        "up a second kid's half-written node and a human's uncommitted engine",
+        "edits into one commit labelled with the first kid's node id",
+        "(goal:g4.1). Nothing was lost; the history now says something untrue.",
+        "Parallel kids share one tree, so the only safe git surface for a kid",
+        "is none.",
     ]
 
 
