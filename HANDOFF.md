@@ -155,9 +155,36 @@ node_count   832                     active 827, deprecated 5, goal_count 93
 tests        1098 pass, 0 fail       outcome_coverage 0.275
 provider     OpenRouter, LIVE        .env set, pi resolves it, both models ping OK
 runtime      pi: verified live 3x    CC: config only, no dispatcher — see §3a
-crons        FROZEN — crons_live: false. Unchanged from 2026-08-30. See §4 there.
-PUSHED       master is 6 commits ahead of origin. Grid refs current locally.
+crons        FROZEN — deliberately, not pending. See §0a before touching them.
+PUSHED       master + refs/grid/* pushed by hand 2026-08-31. Remote is current.
 ```
+
+## 0a. Operating mode: manual, deliberately. Do not re-enable the crons.
+
+**The owner's sequencing, 2026-08-31 — this is a decision, not an oversight:**
+
+1. **Finish automated worktree branching first** (`goal:g4.1`). Not because
+   the loop is unstable — three live runs were clean — but because the one
+   failure it produced was a shared-worktree collision, and turning a schedule
+   on is the wrong moment to find the next one.
+2. **Then ramp live slowly: one parent, spawning two kids at a time.** Not the
+   full `iterations_per_run`, not unattended.
+3. **Crons stay `crons_live: false` until both.** The grid is run by hand —
+   `grid.py commit --all` after a commit — with periodic manual pushes. That
+   is working; `grid status` reports 832 clean and remote refs match local.
+
+Pushing is manual too. `master` and `refs/grid/*` were pushed by hand on
+2026-08-31 and are current; nothing pushes on a timer.
+
+**`goal:g4.1` now carries the open question this depends on**, recorded rather
+than answered at the owner's direction: *what a worktree means once the tiers
+are nested* — whose tree it is, where review happens when kids wrote in
+separate trees, what an iteration commit becomes across N branches, and whether
+the grid makes the merge smaller or just hides it. `isolation: worktree`
+already exists in the dispatch layer, so the mechanism is not what is missing;
+the shape is. **Flagged for a dedicated small-context brainstorm** — a
+half-chosen answer gets built into both runtimes at once through `goal:g4.3`
+and is expensive to reverse.
 
 ## 1. Provider keys — DONE. Do not redo this.
 
