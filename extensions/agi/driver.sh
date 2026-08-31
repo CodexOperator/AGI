@@ -27,6 +27,8 @@ MAX_ITERS=1
 DELAY_MINS=0
 SMOKE=false
 NO_HEAL=false
+TARGET=""
+LEVEL=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -34,6 +36,8 @@ while [[ $# -gt 0 ]]; do
     --delay-mins) DELAY_MINS="$2"; shift 2 ;;
     --smoke) SMOKE=true; shift ;;
     --no-heal) NO_HEAL=true; shift ;;
+    --target) TARGET="$2"; shift 2 ;;
+    --level) LEVEL="$2"; shift 2 ;;
     -h|--help)
       cat <<HELP
 agi-tree driver — thoughtgraph loop for agi
@@ -43,6 +47,8 @@ OPTIONS:
   --delay-mins M     Sleep M minutes between iters (default 0)
   --smoke            One dry pass: snapshot+render+METRICs, no agent dispatch
   --no-heal          Skip healer monitoring (debug)
+  --target ID        Aim every slot at node ID (default: attractiveness scoring)
+  --level L          Zoom level for --target: big|small|auto (default small)
 
 PROJECT ROOT:
   Auto-detected by walking up from \$PWD looking for
@@ -151,8 +157,17 @@ iter_run() {
     return
   fi
 
-  # 5. Spawn parallel pi agents w/ zoom-targeted contexts
-  python3 "$PLUGIN_ROOT/bin/dispatch.py" "$PROJECT_ROOT" "$n" 2>&1 | tee -a "$LOG"
+  # 5. Spawn pi agents w/ zoom-targeted contexts.
+  # --target aims every slot at one node instead of letting attractiveness
+  # scoring choose. Without it a single-slot run is unsteerable: _pick_targets
+  # short-circuits at n<=1 to an untargeted big-zoom slot, so the one kid you
+  # dispatch always scaffolds a parentless idea and explores where scoring
+  # points. A dispatch that cannot be aimed cannot be a parent's kid.
+  DISPATCH_ARGS=()
+  [[ -n "$TARGET" ]] && DISPATCH_ARGS+=(--target "$TARGET")
+  [[ -n "$LEVEL" ]] && DISPATCH_ARGS+=(--level "$LEVEL")
+  python3 "$PLUGIN_ROOT/bin/dispatch.py" "$PROJECT_ROOT" "$n" \
+    "${DISPATCH_ARGS[@]+"${DISPATCH_ARGS[@]}"}" 2>&1 | tee -a "$LOG"
 
   # 6. Monitor + heal
   if [[ "$NO_HEAL" != "true" ]]; then

@@ -131,3 +131,43 @@ def test_zoom_command_small_without_target_omits_the_flag(tmp_path):
     loud refusal into an argparse error instead."""
     cmd = dispatch.zoom_command(tmp_path, 3, "a00", "small", None)
     assert "--target" not in cmd
+
+
+# --- aiming a slot: `--target` vs attractiveness scoring -------------------
+#
+# `_pick_targets` short-circuits at `n <= 1` to ("big", None, "explore_new"),
+# so before `_explicit_targets` existed a single-slot pi run could not be
+# pointed at anything: it always scaffolded a parentless `idea` and explored
+# wherever scoring led. These lock the aim in place.
+
+
+def test_aimed_slot_carries_the_target():
+    got = dispatch._explicit_targets("goal:g4.3", None, "extend_existing", 1)
+    assert got == [("small", "goal:g4.3", "extend_existing")]
+
+
+def test_aim_defaults_to_small_because_big_zoom_discards_a_target():
+    """`zoom_command` omits --target for big zoom, so defaulting the level to
+    `big` here would silently throw the aim away."""
+    level, target, _strategy = dispatch._explicit_targets("goal:g4.3", None, "s", 1)[0]
+    assert level == "small"
+    assert "--target" in dispatch.zoom_command(Path("/tmp"), 1, "a00", level, target)
+
+
+def test_every_slot_is_aimed_at_the_same_node():
+    got = dispatch._explicit_targets("idea:x", "small", "branch_fork", 3)
+    assert len(got) == 3
+    assert {t for _l, t, _s in got} == {"idea:x"}
+
+
+def test_explicit_level_is_honoured():
+    assert dispatch._explicit_targets("idea:x", "big", "s", 1)[0][0] == "big"
+    assert dispatch._explicit_targets("idea:x", "auto", "s", 1)[0][0] == "auto"
+
+
+def test_aiming_does_not_scaffold_a_parentless_idea():
+    """The regression this closes: an aimed slot must produce a node type that
+    follows the target, not the `idea` an untargeted big-zoom slot gets."""
+    level, target, _s = dispatch._explicit_targets("hypothesis:x", None, "s", 1)[0]
+    assert dispatch._node_type_for(level, target, None) == "experiment"
+    assert dispatch._node_type_for("big", None, None) == "idea"
