@@ -1365,6 +1365,55 @@ could not cover is a **whole-tree command** that no ownership statement scopes.
 That is a third option this goal had not considered: not "who edits what" but
 "which commands are safe to run while someone else is working".
 
+**A third instance, 2026-08-31, and it is the same third option again.** A pi
+kid ran `git commit -A` and swept a sibling's half-written node and a human's
+uncommitted engine edits into one commit labelled with its own node id
+(`d34048aa1`, left in place as the record — nothing was lost, but the history
+says something untrue). `git commit -A` is a whole-tree command exactly like
+`grid.py checkout --all`: no statement of *who owns what* can scope it, because
+it does not read ownership. Both contracts now forbid git in words, and
+`goal:g1.4` stage 2 would remove the capability rather than the permission —
+but the pattern is now three-for-three, and it is worth stating as a finding
+rather than three anecdotes: **every collision this goal has recorded came
+from a command whose blast radius is the tree, not from two agents editing the
+same file.** File ownership has never once been the thing that failed.
+
+## Open, and deliberately not decided here: worktrees under the hierarchy
+
+The owner's sequencing, 2026-08-31: **finish automated worktree branching
+before re-enabling the crons**, then ramp live slowly — one parent that spawns
+two kids — rather than turning the schedule back on and finding out.
+
+What is genuinely unresolved is not whether to use worktrees but **what a
+worktree means once the tiers are nested**, and this goal predates the
+hierarchy it now has to serve. The question was framed when "parallel agents"
+meant two peer kids in one checkout. With a parent that spawns its own kids,
+at least these are open and none has an obvious answer:
+
+- **Whose worktree is it?** One per parent, with its kids sharing it — which
+  reproduces this exact goal's problem one level down, just with a smaller
+  blast radius. Or one per kid, in which case a parent reviewing its kids'
+  work is reviewing across N trees and has to merge them before it can run a
+  test suite over the result.
+- **Where does review happen?** The parent's job is to read every node and run
+  the gate. If kids wrote in separate trees, the parent needs their work
+  *together* to judge it — so the merge is not a tidy-up step at the end, it
+  is a precondition of the review, and something has to own it.
+- **What does an iteration commit mean?** Today it is one commit carrying the
+  thought and the code. Across N worktrees it is N branches that have to become
+  one commit without a merge conflict deciding, silently, which kid's thought
+  survived.
+- **Does the grid change?** `refs/grid/*` versions a node independently of the
+  commit that touched it, which may make the merge question smaller than it
+  looks — the per-node history survives regardless of which branch the file
+  landed on. Or it may hide the conflict rather than solve it. Untested.
+
+`isolation: worktree` already exists in the dispatch layer, so the mechanism is
+not the missing piece; the shape is. **This is flagged for a dedicated
+brainstorming session with a small context, not for the next kid that reads
+this node** — a half-chosen answer here would be built into both runtimes at
+once via `goal:g4.3`, and would be expensive to reverse.
+
 ### G4.2 — A reasoning-effort dial, not just a model name — status: active
 
 `cc_dispatch.kid_model` selects the model. **Nothing selects how hard it
