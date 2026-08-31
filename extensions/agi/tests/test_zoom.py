@@ -306,10 +306,20 @@ def test_cc_project_gets_the_cc_contract_not_pi_s(tmp_path):
     assert "Do not commit" in text
 
 
-def test_pi_project_contract_is_unchanged(tmp_path):
+def test_pi_contract_is_the_report_plus_cli_done(tmp_path):
+    """`cli.py done` is what distinguishes the pi contract — not the absence of
+    the report block.
+
+    This test used to assert `"DONE <node-id>" not in text`, which encoded the
+    gap rather than a requirement: the structured report was CC-only, so pi
+    kids reported in free prose and `struggles:` — the line that surfaced four
+    of five defects on 2026-08-31 — was never asked for. The two runtimes
+    differ in how a kid *signals* completion, never in what it *reports*.
+    """
     text = _ctx(tmp_path, "k", cc_dispatch=False)
     assert "cli.py done" in text
-    assert "DONE <node-id>" not in text
+    assert "DONE <node-id>" in text
+    assert "struggles:" in text
 
 
 def test_explicit_runtime_flag_overrides_the_config_default(tmp_path):
@@ -360,3 +370,15 @@ def test_both_contracts_forbid_git(tmp_path):
         text = _ctx(tmp_path, f"agent-{runtime}", runtime=runtime)
         assert "Do not commit" in text, f"{runtime} contract permits committing"
         assert "Do not push" in text, f"{runtime} contract permits pushing"
+
+
+def test_both_contracts_ask_for_the_struggles_line(tmp_path):
+    """`struggles:` is a measurement instrument, not politeness — four of the
+    five defects found on 2026-08-31 came out of one. It belonged to the CC
+    contract alone, and the gap only showed once pi kids started receiving
+    their own contract and reported in free prose instead."""
+    for runtime in ("pi", "cc"):
+        text = _ctx(tmp_path, f"agent-{runtime}", runtime=runtime)
+        assert "DONE <node-id>" in text, f"{runtime} contract has no report block"
+        assert "struggles:" in text, f"{runtime} contract never asks for struggles"
+        assert "caveats:" in text, f"{runtime} contract never asks for caveats"

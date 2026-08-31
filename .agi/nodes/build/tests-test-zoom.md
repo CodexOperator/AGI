@@ -248,33 +248,39 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: test_pi_project_contract_is_unchanged
-  how: 'defines public function `test_pi_project_contract_is_unchanged` at line 309,
-    signature: (tmp_path)'
+- name: test_pi_contract_is_the_report_plus_cli_done
+  how: 'defines public function `test_pi_contract_is_the_report_plus_cli_done` at
+    line 309, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_explicit_runtime_flag_overrides_the_config_default
   how: 'defines public function `test_explicit_runtime_flag_overrides_the_config_default`
-    at line 315, signature: (tmp_path)'
+    at line 325, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_default_runtime_fails_closed_to_pi
   how: 'defines public function `test_default_runtime_fails_closed_to_pi` at line
-    320, signature: (tmp_path)'
+    330, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_one_contract_definition_serves_every_renderer
   how: defines public function `test_one_contract_definition_serves_every_renderer`
-    at line 343
+    at line 353
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_both_contracts_forbid_git
-  how: 'defines public function `test_both_contracts_forbid_git` at line 350, signature:
+  how: 'defines public function `test_both_contracts_forbid_git` at line 360, signature:
     (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_both_contracts_ask_for_the_struggles_line
+  how: 'defines public function `test_both_contracts_ask_for_the_struggles_line` at
+    line 375, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -318,13 +324,13 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / "agi-tree.config.json"
-  how: '`(tmp_path / "agi-tree.config.json").write_text("{not json")` at line 337'
+  how: '`(tmp_path / "agi-tree.config.json").write_text("{not json")` at line 347'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: tmp_path / "agi-tree.config.json"
   how: '`(tmp_path / "agi-tree.config.json").write_text(''{"cc_dispatch": {}}'')`
-    at line 339'
+    at line 349'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

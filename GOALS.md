@@ -309,6 +309,27 @@ definition. This is a constraint on kids only.
    `Grep`, `Glob`, `Bash`. The allowlist is derived from what stage 1 observed,
    not guessed in advance.
 
+**Live evidence for stage 2, 2026-08-31.** A pi kid with an unrestricted shell
+ran `git commit -A` and swept a second kid's half-written node and a human's
+uncommitted engine edits into one commit labelled with its own node id
+(`d34048aa1`, left in place as the record). Nothing was lost; the history now
+says something untrue. The kid was not misbehaving — its contract said how to
+signal completion and nothing about git, so committing read as part of
+finishing. Both contracts now forbid git in words.
+
+**Words are stage 1, and this is exactly the case that shows their ceiling.**
+A wording fix depends on every future kid reading and obeying a prohibition; an
+allowlist makes the call unavailable. Note also what the failure was *not*: it
+was not a node written badly, it was a **raw write to a path the graph does not
+own** — the general shape stage 2 removes. The narrower reading is worth
+holding onto: the dangerous surface is not "tools" in the abstract, it is
+uncontrolled write paths, of which a kid's shell is the widest.
+
+**This does not license skipping the gate.** The observation is that a shell
+lets a kid do damage, not that kids need the graph less than they thought — no
+kid this session reached for a file the graph could not answer. Stage 1's
+measurement is still what derives the allowlist.
+
 **The gate between the stages, stated so it cannot be skipped:** if stage 1 shows
 kids reaching for files the graph genuinely cannot answer, that is a **G1.1 gap,
 not a discipline problem**. Clamping the tools first would convert a missing
@@ -538,6 +559,85 @@ leaves nothing to install by hand. A key that must be typed on each box is the
 irreducible manual step — but *knowing which keys, and being told when one is
 missing* is not irreducible, and is exactly the class of "repeated, mechanical,
 therefore script it" that G1 exists to close.
+
+### G1.9 — One brief, assembled by the engine, never typed per spawn — status: active
+
+**A parent should name the target and the tier, and nothing else.** Today
+`SKILL.md` tells it to hand-assemble a self-contained prompt per kid, listing
+six ingredients by name:
+
+> zoom scope, target parent node id, chain step, node file format, verdict
+> taxonomy, project paths (`INJECTION.md`, `GOALS.md`, spec)
+
+Every one of those is already known to the engine at spawn time. The parent is
+retyping the harness's own state into a string, once per kid, once per
+iteration, forever — and paying tokens to do it in the tier where tokens are
+most expensive, because a parent's context carries every brief it wrote for the
+rest of the run. **That is the Design Ethic's exact failure mode: motion spent
+on operations instead of work**, and it is not even *fresh* motion, it is the
+same six facts re-emitted every time.
+
+It is also a correctness problem, not only a cost one. A hand-assembled brief
+is a hand-maintained copy of a contract that lives elsewhere, so it drifts, and
+it drifts silently — nothing compares the string a parent typed against the
+taxonomy the gate actually enforces. Two instances of exactly that were found
+in one session on 2026-08-31: kids received a completion contract belonging to
+the other runtime (**`goal:s8`**), and the verdict taxonomy reached them as a
+bare `:N` that one kid read as `0.6` and lost a verdict to.
+
+## What has to exist
+
+1. **One assembler, not one per caller.** A function that takes
+   `(target, tier, iteration)` and returns the whole brief. `zoom.py`'s
+   `completion_contract()` is the shape to copy — it exists because the same
+   contract had been pasted into three renderers and drifted in all three.
+2. **Every varying part derived, not passed.** Zoom scope from the target;
+   node format and verdict taxonomy from the schema registry and
+   `evidence_gate`, so a change to the enforced rule changes the brief in the
+   same commit; project paths from `locations.py`; the map from `zoom.py`.
+3. **Tier is a parameter, and the only interesting one.** A parent brief and a
+   kid brief differ in scope, permissions and what they own — not in six
+   re-typed facts. This is the input `goal:g4.3`'s dispatcher needs for its
+   two spawn modes, and building it there instead would put the assembler
+   inside one runtime.
+4. **A per-project override that is additive.** A project says what is
+   *special* about its briefs; it never restates the general ones. Same rule
+   as `.agi/config.json` — the customization surface is a delta, never a fork.
+
+## Deliberately in scope: the brief is a file with no node
+
+`extensions/agi/lib/agent-prompt.md` is the pi kid brief today, and
+`dispatch.py` appends it. It is one of the files **`goal:g6.6`** names as
+outside the graph entirely — *"a change to `agent-prompt.md` alters every kid
+in every future iteration, and today that change can be made with no node
+behind it"*. The assembler must not inherit that. Whatever it reads from is
+graph content, versioned like everything else.
+
+## Where this sits among its neighbours
+
+- **`goal:g1.6`** is the same complaint one layer down — *invoking* a command
+  costs ceremony. This is *briefing* an agent costing ceremony. They are the
+  two halves of "an action should cost what the action is worth" and should be
+  built with the same instinct, not merged.
+- **`goal:g1.1`** is why the brief can be small at all: if an agent needs only
+  the graph to orient, the brief is a pointer plus a scope, not a manual.
+- **`goal:g1.4`** decides what a briefed kid is *allowed* to do. A brief that
+  is assembled and a permission set that is enforced are the same statement
+  made twice, and stage 2 there should read from here.
+- **`goal:g9.3`** — ride along as a kid — is how a human checks the output of
+  this without spending an agent. It is the natural falsifier's front-end.
+- **`goal:g4.3`** is the first consumer: its CC dispatcher needs parent briefs
+  and kid briefs from one place, or it grows its own copy and breaks the
+  "runtime flag, not a parallel code path" invariant.
+
+## Falsifier
+
+Spawn a kid and a parent with nothing but a target id and a tier. Both arrive
+with a correct, complete brief; neither prompt contains a fact the engine
+already knew. Then change the verdict taxonomy in `evidence_gate.py` and spawn
+again — **the brief must change with it, in the same commit, with nothing
+edited by hand.** Until that second half holds, the drift this goal exists to
+remove is still possible, and the first half alone is a convenience.
 
 ## G2 — Adjustable zoom with contracts that survive the trip — status: active
 
