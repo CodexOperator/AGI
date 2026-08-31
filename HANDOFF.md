@@ -150,12 +150,13 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ```
 repo         /home/ubuntu/work/agi   ONE repo: source + .agi/ graph + refs/grid/*
-HEAD         (see git log)           719 commits, 1100 grid refs
-node_count   831                     active 826, deprecated 5, goal_count 92
-tests        1097 pass, 0 fail       outcome_coverage 0.275
+HEAD         (see git log)           720 commits, 1102 grid refs
+node_count   832                     active 827, deprecated 5, goal_count 93
+tests        1098 pass, 0 fail       outcome_coverage 0.275
 provider     OpenRouter, LIVE        .env set, pi resolves it, both models ping OK
+runtime      pi: verified live 3x    CC: config only, no dispatcher — see §3a
 crons        FROZEN — crons_live: false. Unchanged from 2026-08-30. See §4 there.
-PUSHED       master is 4 commits ahead of origin. Grid refs current locally.
+PUSHED       master is 6 commits ahead of origin. Grid refs current locally.
 ```
 
 ## 1. Provider keys — DONE. Do not redo this.
@@ -220,6 +221,30 @@ config and SKILL.md: pi has no turn cap and nothing read the key. And
 `inconclusive_lean_proved:0.6`, was rejected, and fell back to `pending`,
 losing the lean it had formed.
 
+### 2a. 🔴 `struggles:` is the instrument. Read it every run.
+
+**Four of the five defects above came out of a kid's `struggles:` line** —
+unprompted, accurate, one line each. Nothing else in this system reports
+harness bugs, because nothing else is *inside* the harness while it runs.
+
+**To be clear about where the field comes from: kids did not invent it.** It is
+specified in `SKILL.md`'s DONE contract and emitted by `zoom.py::
+completion_contract()`. But it was in the **CC** branch only, and the moment
+fixing §2.1 gave pi kids their own contract they stopped emitting it and
+reported in free prose instead — run 3's verdict-taxonomy defect survived as a
+loose "Note:" and could as easily have been dropped. **Both contracts now carry
+the report block**; they differ only in how a kid *signals* completion
+(`cli.py done` for pi), never in what it *reports*. `test_zoom.py` asserts
+both. The old test asserted the pi contract had no report block at all, which
+encoded the gap as a requirement — rewritten.
+
+The wording now distinguishes the two lines, because they do different jobs:
+`caveats` is what the kid knows is weak about **its node**; `struggles` is what
+fought it — a tool, a flag, a contradiction. The second finds engine bugs,
+because a kid describing what obstructed it is describing the harness. It also
+now says **report a struggle even when you worked around it**, which is exactly
+what run 3's kid did and nearly did not say.
+
 ## 3. 🔴 Next tasks, in order
 
 ### 3a. The CC dispatcher — specified, not built (`goal:g4.3`)
@@ -261,20 +286,67 @@ per-chain loop, a config gate, and the dependency present.
 `benchmark.py` does not import `ranking.py`. The attractiveness path was never
 implicated; `dispatch.py::_pick_targets` does its own scoring and does run.
 
-### 3c. The goal sweep — now 45 active against a cap of 3
+### 3c. Stop hand-typing spawn prompts (`goal:g1.9`, new)
 
-Unchanged from 2026-08-30 §3b and one worse (`goal:g1.8` was added and is
-genuinely in flight). Same job: classify with evidence into complete /
-phasing-out / horizon / at most three active. `goal:S16` still carries
-`status: proved`, a verdict value in a lifecycle field.
+**Before running hierarchical loops at any volume, read this one.** `SKILL.md`
+still tells a parent to hand-assemble a self-contained brief per kid, naming
+six ingredients: zoom scope, target parent id, chain step, node file format,
+verdict taxonomy, project paths. **The engine already knows all six at spawn
+time.** The parent is retyping harness state into a string, once per kid, once
+per iteration — in the tier where tokens cost most, since a parent's context
+carries every brief it wrote for the rest of the run.
 
-### 3d. `goal:g1.8` items 2–4
+It is also a correctness problem, which is why it is above the goal sweep: a
+hand-assembled brief is a hand-maintained copy of a contract enforced
+elsewhere, so it drifts silently. **Both §2.1 and the `:0.6` verdict bug are
+instances of exactly that**, found in one session.
+
+The falsifier is the half that matters: change the verdict taxonomy in
+`evidence_gate.py`, spawn again, and **the brief must change with it in the
+same commit with nothing edited by hand.** The convenience half will look done
+long before that holds.
+
+Neighbours it must not be merged into: `goal:g1.6` (cost of *invoking* a
+command), `goal:g1.1` (how little an agent needs to orient), `goal:g1.4` (what
+it may *touch*). `goal:g4.3`'s dispatcher is the first consumer — if it grows
+its own brief assembler, that goal's "runtime flag, not a parallel code path"
+invariant is already broken.
+
+### 3d. The kid tool allowlist now has live evidence (`goal:g1.4` stage 2)
+
+§2.2's rogue commit is stage 2's case, recorded on the goal. Worth restating
+precisely: the failure was **not** a badly written node, it was a **raw write
+to a path the graph does not own** — a kid's shell being the widest such path.
+Words are stage 1 and both contracts now forbid git in words, but a wording fix
+depends on every future kid reading and obeying; an allowlist makes the call
+unavailable.
+
+**The stage gate still stands and this does not license skipping it.** No kid
+this session reached for a file the graph could not answer, so stage 1's
+measurement is still what derives the allowlist. Clamp after measuring, not
+before.
+
+### 3e. The goal sweep — now 46 active against a cap of 3
+
+Unchanged from 2026-08-30 §3b and two worse: `goal:g1.8` and `goal:g1.9` were
+both added this session and both are genuinely in flight, which is the honest
+use of `active` and still makes the number less useful. Same job: classify with
+evidence into complete / phasing-out / horizon / at most three active.
+`goal:S16` still carries `status: proved`, a verdict value in a lifecycle
+field.
+
+**Do this before running loops at volume, not after.** The sweep is what makes
+`INJECTION.md` say something to a kid picking a target; with 46 goals claiming
+to be in flight, target selection is choosing from noise — and `closed_chains
+.txt` (§3b) never having been written means it is choosing from *all* of it.
+
+### 3f. `goal:g1.8` items 2–4
 
 `init` rendering the `.env` stub (G1.5's job); a verifier that no tracked file,
 grid ref or session transcript ever contains a value from `.env`; and item 4,
 which is 3a above.
 
-### 3e. Carried, unchanged
+### 3g. Carried, unchanged
 
 Everything in 2026-08-30 §3c: **G6.6** prose contracts, worktree-per-kid
 isolation (**G4.1** — now with live evidence, see §2.2), **`init` (G1.5)**,
@@ -303,7 +375,7 @@ the **G8.2** falsifier, and the SessionStart hook still printing `agi-tree`.
 ```bash
 cd /home/ubuntu/work/agi
 bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must not drop; secrets must say ok
-python3 -m pytest extensions/agi/tests/ -q              # 1097 passed
+python3 -m pytest extensions/agi/tests/ -q              # 1098 passed
 python3 extensions/agi/bin/snapshot-goals.py --render --check
 python3 extensions/agi/bin/envfile.py --check           # exit 0
 pi --list-models | grep -E 'qwen3.8-27b|glm-5.3-flash'  # 2 lines

@@ -95,22 +95,39 @@ def completion_contract(runtime: str, iter_n, agent_id, target: str | None = Non
     telling the kid to ignore its own context file. Four copies of one
     contract is how that stayed true after SKILL.md said otherwise (goal:s8).
     """
+    # The structured report is BOTH runtimes' — it was the CC contract's alone
+    # until 2026-08-31, and the difference showed the moment the pi runtime
+    # started getting its own contract: pi kids stopped emitting `struggles:`
+    # and reported in free prose instead. Four of the five defects found in
+    # that session's live runs came out of `struggles:` lines, so this block is
+    # a measurement instrument, not politeness. `caveats` is what the kid knows
+    # is weak about its node; `struggles` is what fought it — the second is the
+    # one that finds engine bugs, because a kid describing what obstructed it is
+    # describing the harness.
+    report = [
+        "When done, report exactly:",
+        "```",
+        "DONE <node-id>",
+        "caveats: <optional, one line — what is weak about the node itself>",
+        "struggles: <optional, one line — what fought you: a tool, a flag, a",
+        "            contradiction, anything that cost you a turn>",
+        "```",
+        "**Report a struggle even when you worked around it.** A workaround you",
+        "found is still a defect someone else will hit.",
+    ]
+
     if runtime == "cc":
-        return [
-            "When done, report exactly:",
-            "```",
-            "DONE <node-id>",
-            "caveats: <optional, one line>",
-            "struggles: <optional, one line>",
-            "```",
+        return report + [
+            "",
             "Do not commit. Do not push. Do not call cli.py. The parent reviews",
             "your node and owns all git.",
         ]
     node_id_line = "  --node-id <new_node_id>"
     if target:
         node_id_line += f" --parent {target}"
-    return [
-        "When done, signal completion:",
+    return report + [
+        "",
+        "Then signal completion — this is the ONE command you run:",
         "```",
         f"python3 <plugin>/bin/cli.py done {iter_n} {agent_id} \\",
         "  --verdict <verdict_state> --confidence <0.0-1.0> \\",
