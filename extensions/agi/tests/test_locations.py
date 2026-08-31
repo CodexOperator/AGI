@@ -372,6 +372,80 @@ def test_bash_and_python_agree(tmp_path, shape):
     )
 
 
+# --- relative start paths --------------------------------------------------
+#
+# The bash half walked up with `d="$(dirname "$d")"` on whatever it was given.
+# `dirname .` is `.`, so a relative argument made `d` stop changing while the
+# loop waited for it to reach `/`: an infinite spin, no output, 100% CPU, until
+# killed. It survived because every live caller passes `$PWD`, so triggering it
+# needs a relative argument AND no project above the cwd. Timeouts below are the
+# assertion — a regression hangs rather than fails.
+
+
+def _bash_find_root_in(cwd: Path, arg: str, timeout: int = 10):
+    """Run the bash resolver with `arg`, from `cwd`. Returns (rc, stdout)."""
+    res = subprocess.run(
+        ["bash", str(LIB / "find-root.sh"), arg],
+        capture_output=True, text=True, cwd=str(cwd), timeout=timeout,
+    )
+    return res.returncode, res.stdout.strip()
+
+
+@pytest.mark.parametrize("arg", [".", "sub", "./sub", "nope"])
+def test_relative_start_with_no_project_terminates(tmp_path, arg):
+    """The regression test proper: these used to never return.
+
+    `nope` does not exist and is included deliberately — it has to be made
+    absolute too, or `dirname nope` is `.` and the loop is back.
+    """
+    (tmp_path / "sub").mkdir()
+    rc, out = _bash_find_root_in(tmp_path, arg)
+    assert rc == 1, f"expected a clean refusal for {arg!r}, got rc={rc} out={out!r}"
+
+
+@pytest.mark.parametrize("arg", [".", "sub"])
+def test_relative_start_resolves_to_an_absolute_root(tmp_path, arg):
+    """And it must answer with an absolute path, not `./.agi` — every caller
+    treats the result as a root it can hand to another process."""
+    graph = make_graph_dir(tmp_path)
+    (tmp_path / "sub").mkdir()
+    rc, out = _bash_find_root_in(tmp_path, arg)
+    assert rc == 0
+    assert out == str(graph)
+    assert Path(out).is_absolute()
+
+
+@pytest.mark.parametrize("arg", [".", "sub", "nope"])
+def test_relative_start_agrees_with_python(tmp_path, arg):
+    """Same cross-check as `test_bash_and_python_agree`, on the input shape it
+    never covered — it only ever passed absolute paths."""
+    make_graph_dir(tmp_path)
+    (tmp_path / "sub").mkdir()
+    rc, out = _bash_find_root_in(tmp_path, arg)
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        py = locations.find_project_root(arg)
+    finally:
+        os.chdir(cwd)
+
+    assert (out if rc == 0 else None) == (str(py) if py else None), (
+        f"bash and python disagree on relative start {arg!r}"
+    )
+
+
+def test_symlinked_start_resolves_like_python(tmp_path):
+    """`cd -P` must match `Path.resolve()`, or the two halves disagree for any
+    project reached through a symlinked directory."""
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    link = tmp_path / "link"
+    link.symlink_to(repo)
+    assert _bash_find_root(link) == str(graph)
+    assert str(locations.find_project_root(link)) == str(graph)
+
+
 # --- cli -------------------------------------------------------------------
 
 
