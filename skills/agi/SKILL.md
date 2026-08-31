@@ -307,7 +307,7 @@ Grid refs are **designed** to key on the mint id rather than the address, so ret
   "fresh_start_prob": 0.15,
   "big_idea_vs_small_idea_split": 0.3,
   "attractiveness_weights": { "length": 0.3, "depth": 0.2, "recency": 0.2, "mvp_count": 0.3 },
-  "agent_dispatch": { "provider": "...", "model": "...", "max_turns": 30 },
+  "agent_dispatch": { "provider": "openrouter", "model": "...", "thinking": "medium" },
   "cc_dispatch": {
     "iterations_per_run": 5,
     "max_goals_active": 3,
@@ -319,6 +319,8 @@ Grid refs are **designed** to key on the mint id rather than the address, so ret
 ```
 
 One namespace per runtime — `agent_dispatch.*` for pi, `cc_dispatch.*` for Claude Code. Keep them separate.
+
+**`agent_dispatch.provider` / `.model` / `.thinking` become real pi flags** (`--provider`, `--model`, `--thinking`), on kids and on healers alike. Omit a key and pi's own `~/.pi/agent/settings.json` wins for it — the engine never invents a default here. **`max_turns` was removed from this example on 2026-08-31: pi has no turn-cap flag, nothing in the engine ever read the key, and an inert key that looks live is worse than an absent one.** Custom models pi's baked registry does not know go in `~/.pi/agent/models.json`, not `settings.json`.
 
 **The config file is the project's whole customization surface.** It is per-project, owned by the project repo, and meant to be edited programmatically — the engine reads it, never writes engine behavior back into it. A project changes metrics, dispatch, and schema here; it never forks engine code to change behavior.
 

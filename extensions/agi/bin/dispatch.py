@@ -64,10 +64,68 @@ ENV_VARS_TO_SCRUB = (
 )
 
 
-def _scrubbed_env() -> dict[str, str]:
-    """Inherited env minus Claude-Code-injected Anthropic credentials."""
+def scrubbed_env() -> dict[str, str]:
+    """Inherited env minus Claude-Code-injected Anthropic credentials.
+
+    Public because `heal.py` spawns pi too and was spawning it with the raw
+    inherited environment — the exact leak this function exists to close, on
+    the one path that only runs when something has already gone wrong. One
+    definition, both spawners.
+    """
     env = {k: v for k, v in os.environ.items() if k not in ENV_VARS_TO_SCRUB}
     return env
+
+
+#: Legacy private name. Kept so nothing that already imported it breaks.
+_scrubbed_env = scrubbed_env
+
+
+def zoom_command(root: Path, iter_n: int, agent_id: str,
+                 level: str, target: str | None) -> list[str]:
+    """The `zoom.py` invocation for one kid's context bundle.
+
+    **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
+    zoom.py falls back to `default_runtime()`, which answers `"cc"` for any
+    project whose config carries a `cc_dispatch` block — and a project can
+    carry both, because the two runtimes are alternatives, not exclusive
+    states. This project does, so every pi kid was handed the CC contract:
+    *"Do not call cli.py"*, in the one runtime where `cli.py done` is how the
+    manifest closes. Both kids on the 2026-08-31 live run reported the
+    contradiction and, correctly, ignored their own context file.
+
+    The process doing the dispatching knows which runtime it is. A config key
+    never can.
+    """
+    cmd = ["python3", str(ZOOM_PY), str(root), str(iter_n), agent_id,
+           "--level", level, "--runtime", "pi"]
+    if level == "small" and target:
+        cmd.extend(["--target", target])
+    return cmd
+
+
+def pi_model_args(cfg: dict) -> list[str]:
+    """`agent_dispatch.provider/model/thinking` -> pi flags. Empty when unset.
+
+    Until 2026-08-31 nothing built these: `_build_pi_args` read
+    `agent_dispatch` and then used none of it, so every kid ran whatever
+    `~/.pi/agent/settings.json` said while the config key that claims to
+    choose the model chose nothing.
+
+    Omitted keys stay omitted rather than defaulting here, so a project that
+    sets none of them keeps the old behaviour exactly: pi's own settings win.
+    `thinking` is the reasoning-effort dial `goal:g4.2` asks for — pi accepts
+    off|minimal|low|medium|high|xhigh — and is passed for the same reason the
+    model is: a model name alone does not say how hard to think.
+    """
+    dispatch_cfg = cfg.get("agent_dispatch", {}) or {}
+    args: list[str] = []
+    for key, flag in (("provider", "--provider"),
+                      ("model", "--model"),
+                      ("thinking", "--thinking")):
+        value = dispatch_cfg.get(key)
+        if isinstance(value, str) and value.strip():
+            args.extend([flag, value.strip()])
+    return args
 
 
 def main() -> int:
@@ -135,10 +193,7 @@ def main() -> int:
         sess_dir = iter_dir / agent_id
         sess_dir.mkdir(parents=True, exist_ok=True)
 
-        # Build zoom context
-        zoom_cmd = ["python3", str(ZOOM_PY), str(root), str(args.iter_n), agent_id, "--level", level]
-        if level == "small" and target:
-            zoom_cmd.extend(["--target", target])
+        zoom_cmd = zoom_command(root, args.iter_n, agent_id, level, target)
         ctx_path = subprocess.run(zoom_cmd, capture_output=True, text=True, check=True).stdout.strip()
 
         # Scaffold a node file before agent starts — agent fills body only
@@ -517,29 +572,9 @@ def _build_pi_args(
     sess_dir: Path,
     scaffold_info: dict | None = None,
 ) -> list[str]:
-    dispatch_cfg = cfg.get("agent_dispatch", {})
     pi_bin = os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")
     args = [pi_bin]
-
-    # `agent_dispatch.provider` / `.model` / `.thinking` -> pi's own flags.
-    # Until 2026-08-31 this function read `dispatch_cfg` and then used none of
-    # it: every kid ran whatever `~/.pi/agent/settings.json` happened to say,
-    # so the config key that claims to choose the kid model chose nothing and
-    # said nothing about it. The module docstring had claimed otherwise since
-    # the file was written.
-    #
-    # Omitted keys stay omitted rather than defaulting here, so a project that
-    # sets none of them keeps today's behaviour exactly: pi's own settings win.
-    # `thinking` is the reasoning-effort dial `goal:g4.2` asks for — pi accepts
-    # off|minimal|low|medium|high|xhigh — and is passed for the same reason:
-    # the model name alone does not say how hard to think.
-    for key, flag in (("provider", "--provider"),
-                      ("model", "--model"),
-                      ("thinking", "--thinking")):
-        value = dispatch_cfg.get(key)
-        if isinstance(value, str) and value.strip():
-            args.extend([flag, value.strip()])
-
+    args += pi_model_args(cfg)
     args += [
         "--append-system-prompt", f"@{context_file}",
         "--append-system-prompt", (
@@ -548,16 +583,24 @@ def _build_pi_args(
         ),
     ]
     if scaffold_info:
+        # A parentless node (a fresh `idea`, which the schema explicitly
+        # allows) has `parent == ""`. Interpolating that produced a command
+        # ending in a bare `--parent`, and argparse rejected it — the kid on
+        # the 2026-08-31 live run reported exactly that, then guessed its way
+        # around it. Emit the flag only when there is a value for it.
+        parent = (scaffold_info.get("parent") or "").strip()
+        parent_arg = f" --parent {parent}" if parent else ""
+        parent_line = f"Parent: {parent}" if parent else "Parent: (none — parentless node)"
         args.extend([
             "--append-system-prompt", (
                 f"SCAFFOLDED NODE FILE: {scaffold_info['path']}\n"
                 f"Node type: {scaffold_info['node_type']}  "
                 f"Node ID: {scaffold_info['node_id']}  "
-                f"Parent: {scaffold_info['parent']}\n"
+                f"{parent_line}\n"
                 f"FILL IN the body of that file. Do NOT rewrite frontmatter.\n"
                 f"When done, run: python3 {CLI_PY} done {iter_n} {agent_id} "
-                f"--verdict <state> --confidence <0..1> --node-id {scaffold_info['node_id']} "
-                f"--parent {scaffold_info['parent']}"
+                f"--verdict <state> --confidence <0..1> --node-id {scaffold_info['node_id']}"
+                f"{parent_arg}"
             ),
         ])
     else:
