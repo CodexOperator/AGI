@@ -472,40 +472,59 @@ between them is a `.gitignore` line rather than a mechanism.
 
 ## What exists now
 
-- `.env.example` at the repo root — committed, the shape.
+- `.env.example` at the repo root — committed, the shape, with its own build
+  node like any other tracked file.
 - `.env` beside it — gitignored, mode 0600, written by hand once.
-- `driver.sh` sources `.env` after resolving the project and before any
-  dispatch, so `dispatch.py`, pi, and every pi child inherit it. Resolution is
-  `locations.py --what source`, the same resolver every other entry point
-  calls, so the file found belongs to the project actually being run.
+- **`nodes/.geometry/secrets.md`** — the declaration. Where both files live,
+  which keys are required, optional, and forbidden. **The first `config` node
+  in the corpus**, which is the code path `[config]`'s schema had been waiting
+  on since it was written (**goal:g10.2**).
+- `extensions/agi/bin/envfile.py` — the one reader. Resolves the node, expands
+  `<source_root>` against `locations.py`, and checks the file. Named `envfile`
+  and not `secrets` because `bin/` goes on `sys.path` in a dozen entry points
+  and a module called `secrets` there shadows the standard library's for all of
+  them — confirmed, not theorised.
+- `driver.sh` — asks `envfile.py` for the path, runs the check every pass, then
+  sources the file before any dispatch, so `dispatch.py`, pi, and every pi child
+  inherit it.
 - `extensions/agi/bin/env-get.sh` — prints one value and nothing else, so
   `~/.pi/agent/auth.json` can use pi's `"!command"` key form and resolve the
   same single file rather than holding a second copy of the secret.
 
-That is one value, one file, two readers, and no path by which a key reaches
-git.
+One value, one file, one declaration, two readers, and no path by which a key
+reaches git. **Per project, not per box** — both paths resolve against
+`source_root`, so `fantasia/.env` and `fantasia/agi/.env` are different files
+found by the same nearest-enclosing rule, with no flag (**goal:g8.2**). The cost
+is that a key needed by two projects is typed twice; the alternative is a
+machine-global store no project's graph describes.
 
 ## What is NOT built, and is the rest of this goal
 
-1. **A schema for it.** A `secret` (or `config-template`) node type declaring
-   which keys a project requires, so `--smoke` can say *"`.env` is missing
-   `OPENROUTER_API_KEY`"* instead of the loop failing later inside pi with a
-   provider error. Today the requirement is prose in `.env.example`; nothing
-   reads it.
+1. ~~A schema, so `--smoke` reports a missing key.~~ **Done 2026-08-31.**
+   `driver.sh --smoke` on a project with no `.env` now prints the file to
+   create, the mode to set, and the keys to fill in.
 2. **`init` writes the stub.** G1.5's job, this file's case: bringing a project
    up should render `.env.example` → `.env` and stop, telling the operator the
    one manual step that is genuinely irreducible — typing the secret.
 3. **A verifier.** A check that no tracked file, no grid ref and no session
    transcript contains a value from `.env`. Cheap to write, and the only thing
    that turns "we are careful" into something falsifiable.
+4. **An OpenRouter dispatch path, if CC-side kids are to use it.** Claude
+   Code's own subagent tool can only spawn Claude models, so `cc_dispatch`
+   cannot route to OpenRouter by configuration alone — it needs a dispatcher
+   that calls the API. Decided when the need appeared: **use the OpenRouter
+   Python SDK, not raw `requests`/`curl`**, so a minor change on their side
+   does not silently break the loop. Until that exists, OpenRouter models are
+   reachable through the pi runtime only.
 
 ## Falsifier
 
 A fresh clone on a new box, with `.env` absent, runs `driver.sh --smoke` and is
 told exactly which keys it needs and where to put them — from the graph, not
 from a human remembering. Filling them in is then the only manual step, and a
-second `--smoke` is clean. **Until item 1 exists this goal is not met**, because
-the current state tells the operator nothing until pi itself fails.
+second `--smoke` is clean. **Half met as of 2026-08-31:** the telling works and
+is tested; the clone still has to create `.env` by hand rather than `init`
+rendering the stub, which is item 2.
 
 ## Why this is a G1 subgoal
 

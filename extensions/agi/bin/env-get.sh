@@ -27,10 +27,15 @@ PLUGIN_ROOT="$(cd "$(dirname "$SCRIPT_REAL")/.." && pwd)"
 
 ENV_FILE="${2:-}"
 if [[ -z "$ENV_FILE" ]]; then
-  # Same resolver every other entry point calls; `--what source` is the repo
-  # enclosing `.agi/` under the g11 layout, which is where `.env` lives.
-  SOURCE_ROOT="$(python3 "$PLUGIN_ROOT/bin/locations.py" "$PLUGIN_ROOT" --what source 2>/dev/null || true)"
-  ENV_FILE="${SOURCE_ROOT:-$PLUGIN_ROOT}/.env"
+  # The path is graph content: `nodes/.geometry/secrets.md` declares it and
+  # `envfile.py` resolves it (goal:g10.2). Asked for rather than written here,
+  # so this script and driver.sh cannot disagree about where the file is.
+  ENV_FILE="$(python3 "$PLUGIN_ROOT/bin/envfile.py" "$PLUGIN_ROOT" --what env-file 2>/dev/null || true)"
+fi
+
+if [[ -z "$ENV_FILE" ]]; then
+  echo "ERR: could not resolve an env file from $PLUGIN_ROOT" >&2
+  exit 1
 fi
 
 if [[ ! -f "$ENV_FILE" ]]; then

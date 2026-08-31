@@ -519,8 +519,28 @@ def _build_pi_args(
 ) -> list[str]:
     dispatch_cfg = cfg.get("agent_dispatch", {})
     pi_bin = os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")
-    args = [
-        pi_bin,
+    args = [pi_bin]
+
+    # `agent_dispatch.provider` / `.model` / `.thinking` -> pi's own flags.
+    # Until 2026-08-31 this function read `dispatch_cfg` and then used none of
+    # it: every kid ran whatever `~/.pi/agent/settings.json` happened to say,
+    # so the config key that claims to choose the kid model chose nothing and
+    # said nothing about it. The module docstring had claimed otherwise since
+    # the file was written.
+    #
+    # Omitted keys stay omitted rather than defaulting here, so a project that
+    # sets none of them keeps today's behaviour exactly: pi's own settings win.
+    # `thinking` is the reasoning-effort dial `goal:g4.2` asks for — pi accepts
+    # off|minimal|low|medium|high|xhigh — and is passed for the same reason:
+    # the model name alone does not say how hard to think.
+    for key, flag in (("provider", "--provider"),
+                      ("model", "--model"),
+                      ("thinking", "--thinking")):
+        value = dispatch_cfg.get(key)
+        if isinstance(value, str) and value.strip():
+            args.extend([flag, value.strip()])
+
+    args += [
         "--append-system-prompt", f"@{context_file}",
         "--append-system-prompt", (
             f"You are agent {agent_id} on iteration {iter_n}. "

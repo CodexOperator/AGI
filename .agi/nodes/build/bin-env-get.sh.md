@@ -23,7 +23,7 @@ payload_ref: extensions/agi/bin/env-get.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 35e6c2bbcb5f6f3467bd6a8192772147a7b605ca3aa4a1c61435596847078f78
+content_sha256: 6e20bdd454eb6908c19d1a585da466af6405dee05f56e6b449725c418e611316
 inputs: []
 outputs: []
 ```

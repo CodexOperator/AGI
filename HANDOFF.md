@@ -223,53 +223,82 @@ prune path is reachable for the first time, and it re-derived exactly
 
 ## 3. 🔴 Next tasks, in order
 
-### 3a. Provider keys — `.env` is plumbed, the graph half is not (goal:g1.8)
+### 3a. 🔴 ONE MANUAL STEP REMAINS: paste the OpenRouter key (goal:g1.8)
 
-**Added 2026-08-31, and it is item one because iterations cannot run on a paid
-provider until the value is on the box.** The mechanical half landed this
-session and is done:
+**Added 2026-08-31. Item one because no paid iteration runs until the value is
+on the box, and the value is the one thing an agent must never touch.**
+Everything around it landed this session:
 
 ```
-.env.example                      committed — the SHAPE of the secret set
-.env                              gitignored, mode 0600 — the VALUES, never committed
-.gitignore                        `.env` + `!.env.example`
-driver.sh                         sources .env after root resolution, before dispatch
-extensions/agi/bin/env-get.sh     prints one value; for pi auth.json's "!command" form
+.env.example                     committed — the SHAPE of the secret set, has a build node
+.env                             gitignored, mode 0600 — the VALUES, never committed  ← MISSING
+.agi/nodes/.geometry/secrets.md  DECLARES both paths + required/optional/forbidden keys
+extensions/agi/bin/envfile.py    the one reader — resolves the node, checks the file
+extensions/agi/driver.sh         asks envfile.py, runs the check, sources the file
+extensions/agi/bin/env-get.sh    prints one value; for pi auth.json's "!command" form
+~/.pi/agent/auth.json            openrouter entry → env-get.sh (pointer, not a copy)
+~/.pi/agent/settings.json        default model qwen/qwen3.8-27b; both OR models registered
+.agi/config.json                 agent_dispatch → openrouter / z-ai/glm-5.3-flash / medium
 ```
 
-One value, one file, two readers — `driver.sh` (so `dispatch.py`, pi and every
-pi child inherit it) and `~/.pi/agent/auth.json` via `env-get.sh` (so a pi
-launched by hand resolves the same file rather than a second copy).
+Backups of both pi files are at `~/.pi/agent/*.bak-2026-08-31`.
 
-**Setting the value, on the box, over SSH — the key must never be pasted into
-an agent session:**
+**Do this over SSH. Never paste the key into an agent session — not into a
+prompt, not into a file an agent then reads back:**
 
 ```bash
-cd /home/ubuntu/work/agi
-cp -n .env.example .env && chmod 600 .env
-read -rs -p 'OPENROUTER_API_KEY: ' K && printf 'OPENROUTER_API_KEY=%s\n' "$K" >> .env && unset K
-extensions/agi/bin/env-get.sh OPENROUTER_API_KEY | wc -c    # length only, never the value
+cd /home/ubuntu/work/agi && cp -n .env.example .env && chmod 600 .env && read -rs -p 'OPENROUTER_API_KEY: ' K && printf 'OPENROUTER_API_KEY=%s\n' "$K" >> .env && unset K && bash extensions/agi/driver.sh --smoke --max-iters 1 2>&1 | grep secrets
 ```
 
-Then point pi at it — `~/.pi/agent/auth.json`, alongside the existing
-`minimax` entry:
+Expected last line: `[driver] [secrets] ok: /home/ubuntu/work/agi/.env satisfies
+required keys: OPENROUTER_API_KEY`. Then confirm pi resolves it — this is the
+step that proves the indirection works and that the model slugs match:
 
-```json
-"openrouter": { "type": "api_key",
-                "key": "!/home/ubuntu/work/agi/extensions/agi/bin/env-get.sh OPENROUTER_API_KEY" }
+```bash
+pi --list-models | grep -E 'qwen3.8-27b|glm-5.3-flash'
 ```
 
-**What is still open is the graph half**, and it is G1.8 items 1–3: a schema so
-`--smoke` can say *"`.env` is missing `OPENROUTER_API_KEY`"* instead of letting
-the loop fail later inside pi; `init` rendering the stub (G1.5's job); and a
-verifier that no tracked file, grid ref or session transcript ever contains a
-value from `.env`. Until item 1 exists the requirement is prose nothing reads.
+**If those two lines do not appear, the model id string is what to adjust**, in
+`~/.pi/agent/settings.json` — `providers.openrouter.models[].id` and
+`agents.default.model`. pi's baked registry does not know either model (checked:
+it knows `z-ai/glm-5` and `glm-5.1`, not `5.3-flash`), which is why they are
+registered explicitly rather than merely named. Both ids are real —
+`https://openrouter.ai/api/v1/models` lists them — so a mismatch is pi's
+matching rule, not a wrong slug.
+
+**Model routing, as decided 2026-08-31.** pi general default and the parent
+role: `qwen/qwen3.8-27b` ($0.43/$2.55 per Mtok, 1M ctx). Kid role:
+`z-ai/glm-5.3-flash` ($0.075/$0.25, 1M ctx) — ~6x cheaper in, ~10x out, which
+is the right shape for the tier that does the most talking.
+
+🔴 **`cc_dispatch` cannot be pointed at OpenRouter, and this is a hard limit,
+not a config gap.** Claude Code's subagent tool spawns Claude models only;
+there is no setting that makes a CC kid an OpenRouter model. So OpenRouter is
+reachable **through the pi runtime only** (`driver.sh --max-iters N`) until
+someone writes an OpenRouter dispatcher — G1.8 item 4, and the decision there
+is already made: **use the OpenRouter Python SDK, not raw HTTP**, so a minor
+change on their side cannot silently break the loop. `cc_dispatch` stays on
+Claude models and the main chat stays on the Anthropic subscription, which is
+what was asked for anyway.
+
+**Fixed in passing, and it was silently defeating every model setting:**
+`dispatch.py::_build_pi_args` read `agent_dispatch` and then used none of it —
+every pi kid ran whatever `~/.pi/agent/settings.json` said, while the config
+key that claims to choose the model chose nothing. It now passes `--provider`,
+`--model` and `--thinking` (the `goal:g4.2` dial) when set, and passes nothing
+when unset, so a project that configures none of them is unaffected.
+`tests/test_dispatch.py` covers both directions.
+
+**Still open — G1.8 items 2–4:** `init` rendering the `.env` stub (G1.5's job);
+a verifier that no tracked file, grid ref or session transcript ever contains a
+value from `.env`; and the OpenRouter dispatcher above.
 
 **The one hard rule, restated because it is the failure mode with teeth:**
 never put `ANTHROPIC_API_KEY` or a `CLAUDE_CODE_*` var in `.env`.
 `dispatch.py` scrubs exactly those from pi children so subagents cannot bill
 the interactive Claude Code subscription; setting one in `.env` re-adds that
-leak from *below* the scrub, where nothing checks.
+leak from *below* the scrub, where nothing checks. `envfile.py` enforces the
+three `ANTHROPIC_*` names as a floor a project's own node cannot lower.
 
 ### 3b. The goal sweep. `METRIC_WARNING goal_rotation=45/3` fires every run.
 

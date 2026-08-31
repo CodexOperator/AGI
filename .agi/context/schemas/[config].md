@@ -6,12 +6,18 @@ fields:
   locations: {type: dict}            # role -> {path, derivation, declared_in}
   config_marker_names: {type: list}  # what makes a directory a project
   discovery: {type: dict}            # how the graph root is found
+  required_keys: {type: list}        # env keys a project cannot run without
+  optional_keys: {type: list}        # env keys it will use if present
+  forbidden_keys: {type: list}       # env keys that must never be set
 validation:
-  required: [locations, config_marker_names]
+  required: [locations]
   types:
     locations: dict
     config_marker_names: list
     discovery: dict
+    required_keys: list
+    optional_keys: list
+    forbidden_keys: list
 
 # ===========================================================================
 # The three filesystem facts, and the three places each is defined today.
@@ -109,6 +115,35 @@ locations:
       removes payload_root's reason to exist -- there is no second repo to
       write the bytes into.
 
+  # --- goal:g1.8 ------------------------------------------------------------
+  # The one file class the graph must describe and must never hold. Both are
+  # per-project and both resolve against source_root, so a project with the
+  # engine cloned in gets its own pair rather than sharing the engine's.
+
+  env_file:
+    role: "provider credentials — the VALUES, set once by hand on each box"
+    derivation: relative-to-source-root
+    path: "<source_root>/.env"
+    declared_in:
+      - "extensions/agi/bin/envfile.py :: DEFAULT_ENV_FILE"
+    gitignored: true
+    note: >-
+      Has no history, remotely or locally, and that is the design rather than a
+      limitation: a version history of a secret is a leak with a changelog. Its
+      SHAPE is versioned instead, as env_template below.
+
+  env_template:
+    role: "the committed shape of env_file -- which keys, and what each is for"
+    derivation: relative-to-source-root
+    path: "<source_root>/.env.example"
+    declared_in:
+      - "extensions/agi/bin/envfile.py :: DEFAULT_TEMPLATE"
+    gitignored: false
+    note: >-
+      An ordinary tracked file with an ordinary build node and an ordinary grid
+      ref. Adding, retiring or re-explaining a key is a version; changing a
+      value is not.
+
   goals_file:
     role: "where snapshot-goals.py --render writes the goal document"
     derivation: config-else-layout-default
@@ -175,12 +210,28 @@ might drift, which is the whole reason G11 starts here.
   Never an absolute path: this schema ships with the engine and must not
   encode one machine's layout (G8.2 — no project-specific branch anywhere).
 
+## The first minted node — 2026-08-31, `goal:g1.8`
+
+`nodes/.geometry/secrets.md` is the first node of this type in the corpus, and
+`bin/envfile.py` is the code path G10.2 was waiting on: it reads `locations
+.env_file.path`, `locations.env_template.path`, `required_keys`,
+`optional_keys` and `forbidden_keys` — five fields, not one — and both
+`driver.sh` and `bin/env-get.sh` go through it rather than each spelling `.env`
+for themselves. A geometry node earns its place by removing a literal from
+code, and this one removes it from two languages at once.
+
+**`validation.required` dropped `config_marker_names` when that node was
+minted.** The rule was written speculatively, against zero nodes, and it turned
+out to demand that a declaration about *credentials* restate an unrelated list
+about *project discovery* — a duplication invented by the validator rather than
+by the graph. `locations` alone is required now; a config node still declares
+whichever facts it owns and no others.
+
 ## Deliberately absent
 
-No `active`/`inactive` variant, no `spawn:` block, no `parents` rule: there
-are zero `config` nodes in the corpus. This file declares a shape; nothing has
-been minted against it. Minting a `.geometry/` node from it is G10.2's job and
-waits on a code path that reads more than one field.
+No `active`/`inactive` variant and no `spawn:` block: `config` nodes are
+structural declarations a human or a migration writes, never something a kid is
+dispatched to produce.
 
 ## The `THOUGHT` block (goal:g2.11)
 
