@@ -1,29 +1,29 @@
 ---
-build_kind: prose
+build_kind: code
 confidence: 1.0
-id: "build:GOALS.md"
-mint_id: 16fd4c7f953c40298fc1a486e8a2a4c8
+id: "build:bin-env-get.sh"
+mint_id: 84f3916bec834bbab67116426ae07201
 origin: build-scan
-payload_ref: GOALS.md
+payload_ref: extensions/agi/bin/env-get.sh
 tags:
   - build
-  - prose
+  - code
   - g2.1
-title: "Build: GOALS.md"
+title: "Build: extensions/agi/bin/env-get.sh"
 type: build
 ---
 
-`GOALS.md` — level-3 code node (one file, one canonical node).
+`extensions/agi/bin/env-get.sh` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: GOALS.md
+payload_ref: extensions/agi/bin/env-get.sh
 parse_ok: false
-parse_error: 'not-python: .md (no mechanical contract derivation for this file type
+parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 1221b33b22bb27b469682e071f182731786e69740193afe3de3c2868c91a62a3
+content_sha256: 35e6c2bbcb5f6f3467bd6a8192772147a7b605ca3aa4a1c61435596847078f78
 inputs: []
 outputs: []
 ```

@@ -223,9 +223,59 @@ prune path is reachable for the first time, and it re-derived exactly
 
 ## 3. 🔴 Next tasks, in order
 
-### 3a. The goal sweep. `METRIC_WARNING goal_rotation=44/3` fires every run.
+### 3a. Provider keys — `.env` is plumbed, the graph half is not (goal:g1.8)
 
-44 goals are `status: active` against `cc_dispatch.max_goals_active: 3`.
+**Added 2026-08-31, and it is item one because iterations cannot run on a paid
+provider until the value is on the box.** The mechanical half landed this
+session and is done:
+
+```
+.env.example                      committed — the SHAPE of the secret set
+.env                              gitignored, mode 0600 — the VALUES, never committed
+.gitignore                        `.env` + `!.env.example`
+driver.sh                         sources .env after root resolution, before dispatch
+extensions/agi/bin/env-get.sh     prints one value; for pi auth.json's "!command" form
+```
+
+One value, one file, two readers — `driver.sh` (so `dispatch.py`, pi and every
+pi child inherit it) and `~/.pi/agent/auth.json` via `env-get.sh` (so a pi
+launched by hand resolves the same file rather than a second copy).
+
+**Setting the value, on the box, over SSH — the key must never be pasted into
+an agent session:**
+
+```bash
+cd /home/ubuntu/work/agi
+cp -n .env.example .env && chmod 600 .env
+read -rs -p 'OPENROUTER_API_KEY: ' K && printf 'OPENROUTER_API_KEY=%s\n' "$K" >> .env && unset K
+extensions/agi/bin/env-get.sh OPENROUTER_API_KEY | wc -c    # length only, never the value
+```
+
+Then point pi at it — `~/.pi/agent/auth.json`, alongside the existing
+`minimax` entry:
+
+```json
+"openrouter": { "type": "api_key",
+                "key": "!/home/ubuntu/work/agi/extensions/agi/bin/env-get.sh OPENROUTER_API_KEY" }
+```
+
+**What is still open is the graph half**, and it is G1.8 items 1–3: a schema so
+`--smoke` can say *"`.env` is missing `OPENROUTER_API_KEY`"* instead of letting
+the loop fail later inside pi; `init` rendering the stub (G1.5's job); and a
+verifier that no tracked file, grid ref or session transcript ever contains a
+value from `.env`. Until item 1 exists the requirement is prose nothing reads.
+
+**The one hard rule, restated because it is the failure mode with teeth:**
+never put `ANTHROPIC_API_KEY` or a `CLAUDE_CODE_*` var in `.env`.
+`dispatch.py` scrubs exactly those from pi children so subagents cannot bill
+the interactive Claude Code subscription; setting one in `.env` re-adds that
+leak from *below* the scrub, where nothing checks.
+
+### 3b. The goal sweep. `METRIC_WARNING goal_rotation=45/3` fires every run.
+
+45 goals are `status: active` against `cc_dispatch.max_goals_active: 3` — 44,
+plus `G1.8` added by §3a above, which is genuinely in flight and should be among
+the first retired once its items 1–3 land.
 **This is not only over-declaration — several are finished and mislabelled:**
 
 - `G11` — one repo. Landed 2026-08-29. Should be `complete`.
@@ -245,7 +295,7 @@ One off-taxonomy value to fix while there: **`goal:S16` carries
 `active | horizon | phasing-out | complete`. The irony is that S16 is the goal
 about the evidence gate leaving a `status` shadow behind.
 
-### 3b. Config influence — what `.agi/config.json` should govern and does not
+### 3c. Config influence — what `.agi/config.json` should govern and does not
 
 `locations.source_root` and `goals_file` exist. Log paths, remote name and the
 branch to push are still computed or hardcoded. `crons.py` is already better
@@ -259,7 +309,7 @@ timers CAN be symlinked** out of the repo, which would make the schedule a
 tracked file. Interim win available without any of that: reduce to **one**
 bootstrap cron line running `crons.py apply` and let the rest be graph state.
 
-### 3c. Carried, unchanged
+### 3d. Carried, unchanged
 
 - **G6.6** — `build:CLAUDE.md` / `AGENTS.md` / `GOALS.md` exist but carry
   `parse_ok: false` and empty contracts. Give them real prose contracts.
