@@ -137,6 +137,22 @@ def main() -> int:
         default=None,
         help="Override pipeline_template from config (e.g. 'research', 'builder-first')",
     )
+    ap.add_argument(
+        "--target",
+        default=None,
+        help="Aim every slot at this node id, bypassing attractiveness scoring",
+    )
+    ap.add_argument(
+        "--level",
+        default=None,
+        choices=["big", "small", "auto"],
+        help="Zoom level for --target (default: small)",
+    )
+    ap.add_argument(
+        "--strategy",
+        default="extend_existing",
+        help="Strategy label recorded for an aimed slot (default: extend_existing)",
+    )
     args = ap.parse_args()
 
     # goal:g11.1 — resolve the given path the way every entry point resolves
@@ -164,7 +180,15 @@ def main() -> int:
         print(f"ERR: pipeline_template=research requires claude_max_parallel>=2, got {n}", file=sys.stderr)
         return 1
 
-    if pipeline_template == "research":
+    if args.target:
+        if pipeline_template == "research":
+            print("ERR: --target and pipeline_template=research both choose the "
+                  "targets; pass one or the other", file=sys.stderr)
+            return 1
+        targets = _explicit_targets(args.target, args.level, args.strategy, n)
+        print(f"aimed: {n} slot(s) at {args.target} "
+              f"(level={targets[0][0]}, strategy={args.strategy})")
+    elif pipeline_template == "research":
         targets = _research_pipeline_targets(root, n, iter_dir)
     else:
         targets = _pick_targets(root, n)
@@ -194,7 +218,18 @@ def main() -> int:
         sess_dir.mkdir(parents=True, exist_ok=True)
 
         zoom_cmd = zoom_command(root, args.iter_n, agent_id, level, target)
-        ctx_path = subprocess.run(zoom_cmd, capture_output=True, text=True, check=True).stdout.strip()
+        try:
+            ctx_path = subprocess.run(
+                zoom_cmd, capture_output=True, text=True, check=True
+            ).stdout.strip()
+        except subprocess.CalledProcessError as exc:
+            # An aimed run is the case where this is a typo rather than a bug:
+            # scoring can only return ids it just read out of the graph, but a
+            # hand-passed `--target` can name anything. Say which id failed
+            # instead of surfacing a CalledProcessError traceback.
+            print(f"ERR: no context for target {target!r} at level {level}: "
+                  f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            return 1
 
         # Scaffold a node file before agent starts — agent fills body only
         scaffold_info = _scaffold_node_for_agent(root, args.iter_n, agent_id, level, target, role)
@@ -337,6 +372,31 @@ def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple
         result.append(("small", parent, "extend_existing", "implementation"))
 
     return result
+
+
+def _explicit_targets(
+    target: str, level: str | None, strategy: str, n: int
+) -> list[tuple[str, str | None, str]]:
+    """Aim every slot at one node, instead of letting scoring choose.
+
+    `_pick_targets` answers "what is most attractive right now"; this answers
+    "work on THIS". Both are needed and they are different questions. Without
+    it a single-slot run is not steerable at all: `_pick_targets` short-circuits
+    at `n <= 1` to `("big", None, "explore_new")`, so the one kid you dispatch
+    gets no target, `_node_type_for` scaffolds a parentless `idea`, and the run
+    explores wherever scoring points rather than where you aimed.
+
+    `small` is the default level because a target only means something to a
+    zoom that reads it -- `zoom.py --level big` ignores `--target` entirely, so
+    defaulting to `big` here would silently discard the aim. `auto` is accepted
+    and left for `main()` to resolve against `big_idea_vs_small_idea_split`,
+    which is the one case where discarding the aim is what was asked for.
+
+    The target is NOT validated here. `zoom.py --level small --target` already
+    exits non-zero rather than serving the whole graph for an id it cannot
+    find, and one validator beats two that can disagree.
+    """
+    return [(level or "small", target, strategy)] * n
 
 
 def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:

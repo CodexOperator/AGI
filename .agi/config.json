@@ -19,7 +19,7 @@
     "mvp_count": 0.3
   },
   "agent_dispatch": {
-    "claude_max_parallel": 2,
+    "claude_max_parallel": 1,
     "ollama_max_parallel": 0,
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
