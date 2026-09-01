@@ -56,6 +56,7 @@ from pathlib import Path
 # zoom is run as a script; the insert makes it so when it is imported as one.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import node_writer  # noqa: E402
 
 #: Re-exported from `locations` rather than redefined. This file's own copy
 #: knew only the legacy marker names, so it rejected both the repo root and
@@ -104,6 +105,14 @@ def completion_contract(runtime: str, iter_n, agent_id, target: str | None = Non
     # is weak about its node; `struggles` is what fought it — the second is the
     # one that finds engine bugs, because a kid describing what obstructed it is
     # describing the harness.
+    # The field NAMES are literal and English, whatever language the model
+    # reasons in. A `z-ai/glm-5.3-flash` kid on an all-English prompt reported
+    # `已完成` / `注意事项` / `难点` for DONE / caveats / struggles on
+    # 2026-09-01 — a correct translation, and unreadable to a reader keyed on
+    # the words. It cost nothing that run because nothing parses these fields
+    # yet; it costs something the day anything does, and it already costs a
+    # human skimming for `struggles:`. Naming the language is cheaper than
+    # teaching every future reader every translation of it.
     report = [
         "When done, report exactly:",
         "```",
@@ -112,6 +121,9 @@ def completion_contract(runtime: str, iter_n, agent_id, target: str | None = Non
         "struggles: <optional, one line — what fought you: a tool, a flag, a",
         "            contradiction, anything that cost you a turn>",
         "```",
+        "**Write the report in English, and keep the field names exactly as",
+        "spelled above** — `DONE`, `caveats:`, `struggles:` — whatever language",
+        "you reasoned in. They are read by name.",
         "**Report a struggle even when you worked around it.** A workaround you",
         "found is still a defect someone else will hit.",
     ]
@@ -494,6 +506,37 @@ If stuck >2 attempts on same approach → write a `pending` verdict and stop.
 """
 
 
+def _node_path_hint(root: Path, node_id: str) -> str | None:
+    """Where a node's file actually is, relative to the graph root.
+
+    A small-zoom context lists ids and types and no bodies, so a kid that needs
+    a node's text has to open the file -- and an id is not a filename. The
+    address is a slug (`goal:g4.3` lives in
+    `nodes/goal/g4.3-finish-the-runtime-split-pi-and.md`), so the obvious guess
+    fails. A live kid burned its first read on `g4.3.md` on 2026-09-01 and said
+    so in its `struggles:` line.
+
+    That is the id/address split (G2.5) billing a kid for a lookup the engine
+    can do for free: `node_writer.find_node_file` is the one resolver and it is
+    already loaded here. Emitting the answer beside the id is `goal:g1.9`'s
+    principle at its smallest -- a fact the engine knows should not cost a kid
+    a turn to rediscover.
+
+    Best-effort by design: a node in the graph with no file on disk still
+    renders, it just renders without the hint.
+    """
+    try:
+        path = node_writer.find_node_file(root, node_id)
+    except Exception:
+        return None
+    if path is None:
+        return None
+    try:
+        return str(Path(path).relative_to(root))
+    except ValueError:
+        return str(path)
+
+
 def _compose_small(root: Path, args: argparse.Namespace) -> str:
     """Legacy 2-hop subtree around --target, ANY node type. Unchanged content."""
     g, _loaded = _load_wired_graph(root)
@@ -524,6 +567,9 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
             continue
         marker = "→" if nid == target else " "
         lines.append(f"- {marker} `{nid}` (type={n.type}, layer={layers[nid]})")
+        path = _node_path_hint(root, nid)
+        if path:
+            lines.append(f"    file: {path}")
         if n.parents:
             lines.append(f"    parents: {', '.join(sorted(n.parents)[:3])}")
         if n.children:

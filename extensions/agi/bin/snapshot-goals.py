@@ -362,6 +362,26 @@ def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
                     # entry handling above -- came back as `parents: [None]`
                     # after one write_frontmatter round trip).
                     lines.append("  -" if item is None else f"  - {item}")
+        elif isinstance(v, dict):
+            # A nested mapping has to be serialized AS YAML. The generic
+            # branch below does `str(v)`, which renders a dict as its Python
+            # repr -- `{'enabled': True}`, with Python's capitalized booleans
+            # and single quotes -- and stores it as a *string scalar*. That
+            # is silent data loss in the one function that writes every node:
+            # the value survives a round trip looking plausible and parses
+            # back as text, so the field is no longer a mapping and every
+            # reader that indexes into it fails somewhere else.
+            #
+            # Latent until 2026-09-01 only because the nodes carrying nested
+            # fields are `.geometry/*` (`cadences:` in crons.md, `locations:`
+            # in secrets.md) and no writer had reached them -- `crons.py`
+            # reads that mapping to build the real crontab. Found by making
+            # post_wire delegate here and round-tripping the corpus first.
+            block = yaml.safe_dump(
+                {k: v}, default_flow_style=False, sort_keys=False,
+                allow_unicode=True, width=10_000,
+            ).rstrip("\n")
+            lines.extend(block.split("\n"))
         elif isinstance(v, bool):
             lines.append(f"{k}: {str(v).lower()}")
         elif v is None:

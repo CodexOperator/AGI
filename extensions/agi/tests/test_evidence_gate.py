@@ -507,13 +507,29 @@ def _wire(iter_dir, agent):
     return post_wire.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
 
 
+def _fm_of(path: Path) -> dict:
+    """Parse a node's frontmatter.
+
+    These assertions used to be substring checks against the raw file, which
+    made them assertions about SERIALIZATION rather than about the gate: they
+    failed the moment `post_wire` stopped emitting its own YAML and delegated
+    to the one serializer (goal:s14), because that one quotes a scalar
+    containing a colon -- `verdict: "inconclusive_lean_proved:50"`. Both
+    spellings load to the identical string and every reader in the engine goes
+    through `yaml.safe_load`, so the behaviour never changed; only the bytes
+    did. Assert on the parsed value, which is what the gate actually decides.
+    """
+    import yaml
+    return yaml.safe_load(path.read_text().split("---", 2)[1]) or {}
+
+
 def test_post_wire_demotes_unevidenced_proved(wired_project):
     root, iter_dir = wired_project
     _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "proved",
                      "node_id": "experiment:e1", "evidence_runs": 0})
-    text = (root / "nodes" / "experiment" / "e1.md").read_text()
-    assert "verdict: inconclusive_lean_proved:50" in text
-    assert "demoted_from: proved" in text
+    fm = _fm_of(root / "nodes" / "experiment" / "e1.md")
+    assert fm["verdict"] == "inconclusive_lean_proved:50"
+    assert fm["demoted_from"] == "proved"
 
 
 def test_post_wire_keeps_evidenced_proved(wired_project):
@@ -521,9 +537,9 @@ def test_post_wire_keeps_evidenced_proved(wired_project):
     _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "proved",
                      "node_id": "experiment:e1",
                      "evidence_runs": ["experiment:e1"]})
-    text = (root / "nodes" / "experiment" / "e1.md").read_text()
-    assert "verdict: proved" in text
-    assert "demoted_from" not in text
+    fm = _fm_of(root / "nodes" / "experiment" / "e1.md")
+    assert fm["verdict"] == "proved"
+    assert "demoted_from" not in fm
 
 
 def test_post_wire_permits_lean_without_evidence(wired_project):
@@ -531,9 +547,9 @@ def test_post_wire_permits_lean_without_evidence(wired_project):
     _wire(iter_dir, {"id": "a1", "status": "done",
                      "verdict": "inconclusive_lean_disproved:30",
                      "node_id": "experiment:e1", "evidence_runs": 0})
-    text = (root / "nodes" / "experiment" / "e1.md").read_text()
-    assert "verdict: inconclusive_lean_disproved:30" in text
-    assert "demoted_from" not in text
+    fm = _fm_of(root / "nodes" / "experiment" / "e1.md")
+    assert fm["verdict"] == "inconclusive_lean_disproved:30"
+    assert "demoted_from" not in fm
 
 
 def test_post_wire_falls_back_to_node_frontmatter_evidence(wired_project):
@@ -585,5 +601,5 @@ def test_post_wire_sentinel_does_not_reject_uncertain_verdicts(wired_project):
     _wire(iter_dir, {"id": "a1", "status": "done",
                      "verdict": "inconclusive_lean_proved:60",
                      "node_id": "experiment:e1", "evidence_runs": ["synthetic"]})
-    text = (root / "nodes" / "experiment" / "e1.md").read_text()
-    assert "verdict: inconclusive_lean_proved:60" in text
+    fm = _fm_of(root / "nodes" / "experiment" / "e1.md")
+    assert fm["verdict"] == "inconclusive_lean_proved:60"

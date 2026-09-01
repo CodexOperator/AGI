@@ -382,3 +382,51 @@ def test_both_contracts_ask_for_the_struggles_line(tmp_path):
         assert "DONE <node-id>" in text, f"{runtime} contract has no report block"
         assert "struggles:" in text, f"{runtime} contract never asks for struggles"
         assert "caveats:" in text, f"{runtime} contract never asks for caveats"
+
+
+# --- the brief answers what the engine already knows -----------------------
+#
+# The tests above drive zoom.py as a subprocess, which is right for asserting
+# on rendered output. These three assert on two helpers directly, so they load
+# the module.
+
+
+def _zoom_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("agi_zoom", ZOOM)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+zoom = _zoom_module()
+
+
+def test_contract_names_the_report_language_and_field_spelling():
+    """A glm kid on an all-English prompt reported `已完成`/`注意事项`/`难点`
+    for DONE/caveats/struggles (2026-09-01). Correct translation, unreadable
+    to a reader keyed on the words. Both runtimes get the instruction, since
+    the report block is shared and only the completion signal differs."""
+    for runtime in ("cc", "pi"):
+        text = "\n".join(zoom.completion_contract(runtime, 1, "a00"))
+        assert "English" in text, runtime
+        assert "field names exactly as" in text, runtime
+
+
+def test_small_zoom_emits_the_file_path_beside_the_node_id(tmp_path):
+    """An id is not a filename -- `goal:g4.3` lives in
+    `g4.3-finish-the-runtime-split-pi-and.md`. A kid that has to open a node
+    should not have to guess the slug."""
+    root = tmp_path
+    (root / "nodes" / "goal").mkdir(parents=True)
+    (root / "nodes" / "goal" / "g4.3-a-long-derived-slug.md").write_text(
+        '---\nid: "goal:g4.3"\ntype: goal\nparents: []\n---\n\nbody\n'
+    )
+    assert zoom._node_path_hint(root, "goal:g4.3") == "nodes/goal/g4.3-a-long-derived-slug.md"
+
+
+def test_path_hint_is_best_effort_not_a_hard_failure(tmp_path):
+    """A node in the graph with no file on disk must still render -- without
+    the hint, never by raising."""
+    (tmp_path / "nodes").mkdir()
+    assert zoom._node_path_hint(tmp_path, "goal:does-not-exist") is None
