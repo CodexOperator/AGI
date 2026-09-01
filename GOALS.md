@@ -723,6 +723,37 @@ Do the model pass only after **S3** — a truncated `how` can currently contain 
 fence-lookalike that trips a naive reader, and the model pass is exactly the
 next consumer that would hit it.
 
+## Interim: gitnexus, because agents grep code the graph should already answer
+
+**The destination is this goal; the gap today is that nothing lets an agent
+query the code as a graph at all.** Every kid so far has navigated the engine
+by `grep` and `find` — and the cost is visible in their own reports: one burned
+its first read guessing a filename from a node id, another fell back to `grep`
+after reaching for `rg`. That is motion spent on operations, which is the one
+thing the design ethic says to script away.
+
+`gitnexus` is installed, works on ordinary code with no schema of ours, and
+answers the structural questions the IO maps will eventually answer natively —
+what calls this, what breaks if I change it, where does this flow. **It is a
+stopgap and should be named as one**, for two reasons that are the same
+reason: it indexes *files and symbols*, not nodes, so it knows nothing about
+`payload_ref`, mint ids, or the contract entries `level3.py` derives; and its
+index goes stale against a tree the loop is actively editing, so it reports
+staleness rather than truth unless re-run.
+
+**What to do with it, smallest first:** wire invocation into the `agi` skill so
+a kid reaches for a query instead of a grep, and record which questions it
+actually answered well. That last part is the useful output even after it is
+retired — a measured list of what agents needed to ask about the code is
+precisely the requirements document for the real IO maps, written by usage
+instead of by guessing.
+
+**Do not let the stopgap become the design.** If IO map work starts deferring
+to "gitnexus already covers that", this goal has been replaced rather than
+served — the maps are *inherited contract slices attached to nodes*, which is a
+different object from an index of symbols, and only one of them survives a
+`stitch.py --from-grid` of a historical version.
+
 ### G2.3 — `graph_builder` becomes data-source-agnostic and cold-builds fast — status: horizon
 
 `agi_algos/graph_builder.py` is the code-intelligence layer and the natural
