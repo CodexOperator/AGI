@@ -15,6 +15,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 import time
@@ -29,6 +30,19 @@ import evidence_gate  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_gate  # noqa: E402
+
+# --- reuse snapshot-goals.py's write_frontmatter --------------------------
+# Loaded by file path (not `import`) because the filename has a hyphen and is
+# not a valid module name. Same pattern as decompose-engine.py and
+# backfill-mint-ids.py. This is the actual function, never a copy: goal:s14
+# swept the duplicate serializers and `test_snapshot_goals.py` asserts
+# snapshot-build-site.py never re-grows one -- but the sweep missed this file,
+# which kept a private one until 2026-09-01.
+_SNAPSHOT_GOALS_PATH = Path(__file__).resolve().parent / "snapshot-goals.py"
+_sg_spec = importlib.util.spec_from_file_location("snapshot_goals", _SNAPSHOT_GOALS_PATH)
+snapshot_goals = importlib.util.module_from_spec(_sg_spec)
+_sg_spec.loader.exec_module(snapshot_goals)
+write_frontmatter = snapshot_goals.write_frontmatter
 
 
 def _find_root(cwd: Path | None = None) -> Path:
@@ -87,11 +101,23 @@ def _read_frontmatter(body: str) -> tuple[dict, str]:
 
 
 def _write_node(path: Path, fm: dict, body: str) -> None:
-    """Write frontmatter + body back to a node file."""
-    import yaml
-    fm_lines = yaml.dump(dict(fm), default_flow_style=False).splitlines()
-    content = "---\n" + "\n".join(fm_lines) + "\n---\n" + body
-    path.write_text(content, encoding="utf-8")
+    """Write frontmatter + body back to a node file.
+
+    Delegates to the one serializer (goal:s14). The private serializer this
+    replaced round-tripped every node it wired into a *different* YAML style
+    than the corpus is written in: list items lost their two-space indent
+    (`- goal:g4` for `  - goal:g4`), `id:` lost its quotes, `title:` was
+    re-quoted single, and `"---\\n" + body` on a body that already opens with a
+    blank line added a third.
+
+    That is five cosmetic diffs riding along with the one real change, on every
+    node wired. It cost more than noise: **the grid records a version per
+    changed node**, so wiring an edge minted versions whose entire content was
+    quote style, and `grid.py diff` -- which the project reads as a changelog
+    of reasoning -- filled with re-indentation. Found 2026-09-01 when a kid's
+    one-line `next_edges` addition to `goal:g4.3` arrived as a six-line diff.
+    """
+    write_frontmatter(path, fm, body)
 
 
 def _gate(agent: dict, fm: dict, corpus):

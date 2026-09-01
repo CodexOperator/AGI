@@ -988,3 +988,24 @@ def test_render_check_round_trip_survives_a_thought():
               "body": f"argument\n\n{sg.THOUGHT_BEGIN}\nSECRET\n{sg.THOUGHT_END}"}]
     first = sg.render_goals("preamble", goals)
     assert sg.render_goals("preamble", goals) == first
+
+
+def test_post_wire_does_not_define_its_own_serializer():
+    """goal:s14, third copy. The sweep that de-duplicated `write_frontmatter`
+    missed post_wire.py, which kept a private `yaml.dump` until 2026-09-01 --
+    so every node it wired was round-tripped into a different YAML style than
+    the corpus (list indent lost, `id:` unquoted, `title:` re-quoted, a stray
+    blank line). The grid records a version per changed node, so wiring one
+    edge minted versions whose content was quote style."""
+    pw = Path(__file__).resolve().parents[1] / "bin" / "post_wire.py"
+    text = pw.read_text()
+    assert "def write_frontmatter" not in text, (
+        "post_wire.py has re-grown its own serializer (goal:s14)")
+    assert "yaml.dump" not in text, (
+        "post_wire.py is serializing frontmatter itself again (goal:s14)")
+
+    spec = importlib.util.spec_from_file_location("agi_post_wire", pw)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    defined_in = Path(mod.write_frontmatter.__code__.co_filename).name
+    assert defined_in == "snapshot-goals.py", defined_in
