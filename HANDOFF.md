@@ -138,6 +138,53 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
+# DEFERRED TO THE ITER-9 SWEEP — opened 2026-09-01 (qwen-kid session)
+
+> Provisional list, folded into the full session handoff when that session
+> ends. Each item is recorded rather than fixed, and the reason is given —
+> "found it, left it" without a reason is how a to-do list rots.
+
+1. 🔴 **`post_wire._read_frontmatter` raises on malformed YAML, uncaught**
+   (`post_wire.py:100`). Three-way semantic, only one branch previously known:
+   no closing marker → `{}`+raw; **two markers + bad YAML → `ParserError`**.
+   `post_wire` is in the loop's critical path, so one malformed node loses the
+   **whole iteration's wiring**, not one node. Latent: corpus has 0 malformed
+   nodes. **Left unfixed on purpose** — `hypothesis:a00-6b4ad6b2-a60b78` is
+   actively measuring exactly these semantics, and editing one mid-measurement
+   is what left an earlier hypothesis grounded in a tree that had moved.
+2. **The healer, end to end.** `heal.py:187` told healers to commit ("NEW
+   commit; do not amend") while the kid contract had forbidden git since
+   2026-08-31; a healer obeyed it and produced `7b57b5955`. Contract fixed
+   (`4d00b7927`), but: the commit still stands, authored as the repo owner,
+   and `heal.py` has never been reviewed as a whole. Its diagnosis is also
+   **self-refuting** — it claims pi hangs without `-p`, and the healer that
+   wrote it ran without `-p` and did not hang. **The real cause of
+   `a00-df2af9f7`'s hang is still unknown.**
+3. **The evidence gate accepts self-citation.** `evidence_runs: [<my own id>]`
+   resolves and buys a decisive verdict. `goal:g7.3` closed `evidence_runs: 3`
+   for being "exactly as cheap to write"; this is the same hole one
+   substitution later. Probable resolution: an `experiment` may cite itself
+   (it IS the run), a `verdict` may not (it must cite its experiments). The
+   kid contract now says so in words; the gate does not enforce it.
+4. **262 orphaned grid refs.** 1109 refs under `refs/grid/node`, 847 node
+   files carrying a `mint_id`. This is the decoupling `CLAUDE.md`'s
+   never-delete rule exists to prevent, already at scale, and is consistent
+   with refs keyed on addresses rather than mint ids — `goal:g2.5`'s design,
+   which `SKILL.md` records as not yet deployed.
+5. **`evidence_fraction` penalises the verdict step.** A `verdict` that
+   faithfully cites its parent experiment still scores as unevidenced, because
+   the evidence sits on the parent. The metric therefore rewards chains that
+   skip verdicts — and the kid contract omitted the verdict step until
+   2026-09-01 (`goal:s22`). Two mechanisms pushing the same wrong way.
+6. **15 duplicate basenames** across type directories, one repeated 7 times.
+   Basename-keyed tooling over this corpus is silently wrong; a kid hit it as
+   37 phantom disagreements before re-keying on relative path.
+7. **The goal sweep itself: 49 active against a cap of 3.** Two added this
+   session (`goal:g13`, `goal:s22`), both genuinely in flight. `goal:S16`
+   still carries `status: proved`, a verdict value in a lifecycle field.
+
+---
+
 # SESSION HANDOFF — 2026-09-01: the spawn silo, named and half-closed
 
 > **Read this section first.** It supersedes 2026-08-31 below wherever they
