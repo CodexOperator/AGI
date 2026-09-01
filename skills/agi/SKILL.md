@@ -360,6 +360,32 @@ tmux attach -t agi          # Ctrl-B D to detach
 - **Healing.** On an API-error death, check the filesystem **before** resuming — kids often die after the node file landed, losing only their report, in which case the artifact is reviewable and no resume is needed. Otherwise resume the same agent (context intact) rather than respawning cold. On overload waves, back off 60s+, and give resumed kids a degraded-mode fallback (fewer trials, reduced n recorded honestly) so a wave can't stall the run.
 - **Parallel-kid hygiene.** Kids see each other's untracked files in `git status`. Instruct: report unexpected files, never touch or clean them. Kids reliably flag them unprompted — that's the expected behavior.
 - **Cheap-agent experiments stay cheap.** When a hypothesis is about what weak models do, dispatch genuinely weak subagents for those roles and keep ground truth + scoring to the orchestrator, with scratch under gitignored `sessions/`, never `nodes/`.
+- **Read `struggles:` and `caveats:` before reviewing the node.** On 2026-09-01 those two lines produced: the evidence gate's self-citation hole, `--evidence-runs` being absent from the `done` template, the `pi_adapter` frontmatter contradiction, and two bugs in a change the parent had just landed. Every one was found by the agent and missed by the parent's review. They are one line each and they are the cheapest signal in the system.
+
+## Querying the code as a graph — `gitnexus` (optional, verify before trusting)
+
+`iomap` (the engine's own source as a queryable graph) is unbuilt. **`gitnexus`
+is the interim**, and it works, with two sharp edges measured on 2026-09-01:
+
+```bash
+npx gitnexus status                                     # is the index current?
+npx gitnexus analyze                                    # ~9s, 2934 nodes / 6912 edges
+npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
+```
+
+- **Always pass `--repo` as an absolute PATH, not a name.** Two different
+  checkouts register as `agi` (`/home/ubuntu/work/agi` and
+  `/home/ubuntu/.hermes/agi`), so `--repo agi` is ambiguous and errors out.
+- **The index is pinned to a commit and this loop commits every iteration**,
+  so it is stale almost immediately. `status` tells you; `analyze` is ~9s,
+  which is cheap enough to re-run rather than reason over a stale graph.
+- 🔴 **It is a semantic search, not an oracle, and it does not replace `grep`.**
+  Measured: *"how does post_wire decide an agent is done"* returned
+  `GraphBuilder` in `agi_algos/graph_builder.py` — unrelated. A second query
+  returned the right area but the tests rather than the module. **Treat a hit
+  as a place to start reading and confirm it with `grep`;** a confidently wrong
+  pointer costs more than the search saved, and stale or wrong grounding has
+  already invalidated real work in this project.
 
 ## Safety rails (non-negotiable)
 
