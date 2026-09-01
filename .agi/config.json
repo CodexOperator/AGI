@@ -18,6 +18,29 @@
     "recency": 0.2,
     "mvp_count": 0.3
   },
+  "harnesses": {
+    "pi": {
+      "adapter": "pi",
+      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "provider": "openrouter",
+      "thinking": "medium",
+      "models": {
+        "kid": "z-ai/glm-5.3-flash",
+        "parent": "qwen/qwen3.8-27b"
+      }
+    },
+    "claude-code": {
+      "adapter": "claude_code",
+      "models": {
+        "kid": "claude-sonnet-5",
+        "parent": "claude-opus-5"
+      }
+    }
+  },
+  "spawn": {
+    "harness": "pi",
+    "parallel": 1
+  },
   "agent_dispatch": {
     "claude_max_parallel": 1,
     "ollama_max_parallel": 0,

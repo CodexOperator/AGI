@@ -37,6 +37,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # goal:s17 -- the one node-writing routine, reached the same way `cli.py` and
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import adapters  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 
@@ -103,29 +104,20 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     return cmd
 
 
-def pi_model_args(cfg: dict) -> list[str]:
-    """`agent_dispatch.provider/model/thinking` -> pi flags. Empty when unset.
+def pi_model_args(cfg: dict, tier: str = "kid") -> list[str]:
+    """LEGACY SHIM — the pi flags now live in `adapters/pi_adapter.py`.
 
-    Until 2026-08-31 nothing built these: `_build_pi_args` read
-    `agent_dispatch` and then used none of it, so every kid ran whatever
-    `~/.pi/agent/settings.json` said while the config key that claims to
-    choose the model chose nothing.
+    Kept, and kept working, for two callers outside `goal:g4.6`'s scope:
+    `heal.py` imports it by name, and `tests/test_dispatch.py` asserts on it.
+    Same rule this file already applies to `scrubbed_env` and this project
+    applies to legacy config names — a public name other code imports is a
+    compatibility surface, so it delegates rather than disappearing.
 
-    Omitted keys stay omitted rather than defaulting here, so a project that
-    sets none of them keeps the old behaviour exactly: pi's own settings win.
-    `thinking` is the reasoning-effort dial `goal:g4.2` asks for — pi accepts
-    off|minimal|low|medium|high|xhigh — and is passed for the same reason the
-    model is: a model name alone does not say how hard to think.
+    **This is not the live path.** `main()` resolves a harness from config and
+    calls that adapter's `build_command`, so no spawn goes through here.
     """
-    dispatch_cfg = cfg.get("agent_dispatch", {}) or {}
-    args: list[str] = []
-    for key, flag in (("provider", "--provider"),
-                      ("model", "--model"),
-                      ("thinking", "--thinking")):
-        value = dispatch_cfg.get(key)
-        if isinstance(value, str) and value.strip():
-            args.extend([flag, value.strip()])
-    return args
+    _name, harness = adapters.resolve(cfg)
+    return adapters.load(harness["adapter"]).model_args(harness, tier)
 
 
 def main() -> int:
@@ -153,6 +145,16 @@ def main() -> int:
         default="extend_existing",
         help="Strategy label recorded for an aimed slot (default: extend_existing)",
     )
+    ap.add_argument(
+        "--harness",
+        default=None,
+        help="Harness to spawn through (default: spawn.harness from config)",
+    )
+    ap.add_argument(
+        "--tier",
+        default="kid",
+        help="Tier to spawn: selects harnesses.<h>.models[tier] (default: kid)",
+    )
     args = ap.parse_args()
 
     # goal:g11.1 — resolve the given path the way every entry point resolves
@@ -166,7 +168,17 @@ def main() -> int:
         return 1
     cfg = json.loads(cfg_path.read_text())
 
-    n = int(cfg.get("agent_dispatch", {}).get("claude_max_parallel", 1))
+    # goal:g4.6 — the harness is resolved ONCE, from config, and everything
+    # below spawns through it. This function no longer knows what a pi flag
+    # looks like. Adding a harness is a config entry plus one file in
+    # bin/adapters/; if it ever needs an edit here, the seam is wrong.
+    try:
+        harness_name, harness = adapters.resolve(cfg, args.harness)
+        adapter = adapters.load(harness["adapter"])
+    except adapters.AdapterError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 1
+    n = adapters.parallelism(cfg)
     big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
@@ -237,17 +249,36 @@ def main() -> int:
             print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
 
         # Spawn pi (detached). Output -> sess_dir/output.log
-        pi_args = _build_pi_args(cfg, ctx_path, agent_id, args.iter_n, sess_dir, scaffold_info)
+        try:
+            spawn_args = adapter.build_command(
+                harness=harness,
+                tier=args.tier,
+                context_file=ctx_path,
+                agent_id=agent_id,
+                iter_n=args.iter_n,
+                sess_dir=sess_dir,
+                scaffold=scaffold_info,
+                cli_py=CLI_PY,
+                skill_prompt=PLUGIN_ROOT / "lib" / "agent-prompt.md",
+            )
+            spawn_env = adapter.child_env(harness=harness, base=scrubbed_env())
+        except (KeyError, NotImplementedError) as exc:
+            # A tier with no model, or a declared-but-unimplemented harness.
+            # Both are config errors and both must name what is missing rather
+            # than surfacing a traceback from inside an adapter.
+            print(f"ERR: harness {harness_name!r} cannot spawn tier "
+                  f"{args.tier!r}: {exc}", file=sys.stderr)
+            return 1
         log_file = sess_dir / "output.log"
         with open(log_file, "wb") as logf:
             proc = subprocess.Popen(
-                pi_args,
+                spawn_args,
                 stdout=logf,
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
                 start_new_session=True,
                 cwd=str(root),
-                env=_scrubbed_env(),
+                env=spawn_env,
             )
         agent_record = {
             "id": agent_id,
@@ -261,14 +292,18 @@ def main() -> int:
             "status": "running",
             "context_file": ctx_path,
             "log_file": str(log_file),
-            "command": " ".join(shlex.quote(a) for a in pi_args),
+            "harness": harness_name,
+            "tier": args.tier,
+            "command": " ".join(shlex.quote(a) for a in spawn_args),
         }
         if scaffold_info:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
         manifest["agents"].append(agent_record)
-        print(f"spawned {agent_id} pid={proc.pid} level={level} target={target or '-'} strategy={strategy}")
+        print(f"spawned {agent_id} pid={proc.pid} harness={harness_name} "
+              f"tier={args.tier} level={level} target={target or '-'} "
+              f"strategy={strategy}")
 
     (iter_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
     print(f"manifest: {iter_dir / 'manifest.json'}")
@@ -632,51 +667,27 @@ def _build_pi_args(
     sess_dir: Path,
     scaffold_info: dict | None = None,
 ) -> list[str]:
-    pi_bin = os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")
-    args = [pi_bin]
-    args += pi_model_args(cfg)
-    args += [
-        "--append-system-prompt", f"@{context_file}",
-        "--append-system-prompt", (
-            f"You are agent {agent_id} on iteration {iter_n}. "
-            f"Your job: fill in the scaffolded node file below, then signal done."
-        ),
-    ]
-    if scaffold_info:
-        # A parentless node (a fresh `idea`, which the schema explicitly
-        # allows) has `parent == ""`. Interpolating that produced a command
-        # ending in a bare `--parent`, and argparse rejected it — the kid on
-        # the 2026-08-31 live run reported exactly that, then guessed its way
-        # around it. Emit the flag only when there is a value for it.
-        parent = (scaffold_info.get("parent") or "").strip()
-        parent_arg = f" --parent {parent}" if parent else ""
-        parent_line = f"Parent: {parent}" if parent else "Parent: (none — parentless node)"
-        args.extend([
-            "--append-system-prompt", (
-                f"SCAFFOLDED NODE FILE: {scaffold_info['path']}\n"
-                f"Node type: {scaffold_info['node_type']}  "
-                f"Node ID: {scaffold_info['node_id']}  "
-                f"{parent_line}\n"
-                f"FILL IN the body of that file. Do NOT rewrite frontmatter.\n"
-                f"When done, run: python3 {CLI_PY} done {iter_n} {agent_id} "
-                f"--verdict <state> --confidence <0..1> --node-id {scaffold_info['node_id']}"
-                f"{parent_arg}"
-            ),
-        ])
-    else:
-        args.extend([
-            "--append-system-prompt", (
-                f"When complete, run: python3 {CLI_PY} done {iter_n} {agent_id} "
-                f"--verdict <state> --confidence <0..1> --node-id <id> --parent <parent>"
-            ),
-        ])
-    # Allow extra prompt-from-skill
-    skill_prompt = (PLUGIN_ROOT / "lib" / "agent-prompt.md")
-    if skill_prompt.exists():
-        args.extend(["--append-system-prompt", f"@{skill_prompt}"])
-    # Initial user message: the task
-    args.append(f"Begin iteration {iter_n} as agent {agent_id}. Read your zoom context, do the work, signal done.")
-    return args
+    """LEGACY SHIM — the pi command now lives in `adapters/pi_adapter.py`.
+
+    Same reasoning as `pi_model_args` above: `tests/test_dispatch.py` asserts
+    on this name and its assertions must keep passing unchanged, which is
+    `mvp:unified-spawn-path`'s third falsifier. The body moved; the behaviour
+    did not.
+
+    **Not the live path.** `main()` goes through `adapters.load(...)`.
+    """
+    _name, harness = adapters.resolve(cfg)
+    return adapters.load(harness["adapter"]).build_command(
+        harness=harness,
+        tier="kid",
+        context_file=context_file,
+        agent_id=agent_id,
+        iter_n=iter_n,
+        sess_dir=sess_dir,
+        scaffold=scaffold_info,
+        cli_py=CLI_PY,
+        skill_prompt=PLUGIN_ROOT / "lib" / "agent-prompt.md",
+    )
 
 
 if __name__ == "__main__":
