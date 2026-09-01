@@ -950,6 +950,37 @@ node is retagged) and on **G10.1**, which already argues chats are nodes.
 Unbuilt; recorded so the id and grid work is designed to make it possible rather
 than to need undoing.
 
+**Where the transcripts already are, and why that is a subsidy worth naming
+(added 2026-09-01).** Under the pi harness the logs are being written for us:
+pi keeps a full JSONL transcript per session at
+`~/.pi/agent/sessions/<cwd-slug>/<timestamp>_<uuid>.jsonl`. **That is real
+infrastructure the project is getting for free and has not had to build** — no
+collector, no storage, no retention policy. What is missing is only the *link*:
+nothing records which transcript produced which node, so the mapping is
+recoverable by mtime comparison and luck. Confirmed on 2026-09-01 —
+`thought_session:` appears in **zero** code paths and **zero** nodes, and
+`pi_adapter.build_command` never learns the session path because pi chooses it
+after launch. Neither direction of the link exists.
+
+**Two directions, and the choice is not obvious.** Either stamp
+`thought_session:` into the node's frontmatter (queryable, versioned with the
+node, but a write-path change that `goal:g13` should own), or put the session
+reference in the **grid commit message** for that version (no schema change,
+naturally per-version, but only reachable through `grid.py log`). The first
+makes the link data; the second makes it provenance. Both are cheap; picking
+one without deciding which the hypergraph wants to traverse is how the wrong
+one gets built.
+
+**Leaving pi means building this, and that cost is easy to miss** — see
+`goal:g4.3` clause 4. A raw-API harness gets one thing pi does not give us:
+OpenRouter accepts a caller-chosen `session_id` in the request body, so the
+session id can simply **be the node's mint id** and the link exists by
+construction rather than by bookkeeping. What it loses is the transcript
+itself, which then has to be collected — a webhook we host, or one of the
+OpenRouter-compatible observability platforms already available at no cost
+(Sentry, New Relic). Until that is built, **pi keeping the logs is a reason not
+to leave it casually.**
+
 ### G2.8 — LOD is a second axis: detail dials independently of position — status: horizon
 
 **Zoom says where you are; LOD says how much is drawn there.** They are
@@ -1516,6 +1547,39 @@ side by configuration — it needs code. What that code must do:
    the OpenRouter Python SDK, not raw HTTP**, so a minor change on their side
    cannot silently break the loop. Claude models keep going through the
    subscription; the main chat is never routed anywhere else.
+
+   **Caveat added 2026-09-01: calling OpenRouter directly means inheriting the
+   transcript problem pi currently solves for us.** pi writes a full JSONL
+   session log per run to `~/.pi/agent/sessions/`, unasked — that is the only
+   record of how a kid reasoned, and this session needed it (a kid wrote
+   `bin/completion.py` in full, died on a 403, and its 204 KB transcript was
+   the sole account of the design). A raw/SDK harness gets no such log by
+   default, so **leaving pi is not purely a simplification; it trades a free
+   subsidy for infrastructure we would have to run.**
+
+   What the direct path gains in exchange is the *link* `goal:g2.7` wants.
+   OpenRouter accepts a caller-chosen session id in the request body, placed
+   last, after `model` and `messages`:
+
+   ```jsonc
+   {
+     "model": "qwen/qwen3.8-27b",
+     "messages": [ /* ... */ ],
+     "session_id": "my-session-123"
+   }
+   ```
+
+   Because we choose that value, it can simply **be the node's mint id**, and
+   node-to-chat cross-linking exists by construction rather than by
+   bookkeeping — which is strictly better than anything achievable under pi,
+   where the session id is generated after launch and never told to the
+   engine.
+
+   Retrieving the transcripts is then the open piece: a webhook we host, or one
+   of the OpenRouter-compatible observability platforms already available at no
+   cost (**Sentry**, **New Relic**). Not chosen, and not urgent — **while the
+   loop runs on pi, the logs are already being kept**, which is the concrete
+   reason this clause is not blocking.
 
 The invariant this must not break: **a runtime flag, not a parallel code
 path.** Target selection, the spawn gate, the evidence gate, `post_wire` and
