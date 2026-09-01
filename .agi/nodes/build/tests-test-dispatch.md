@@ -92,43 +92,71 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: test_binary_is_still_first
-  how: 'defines public function `test_binary_is_still_first` at line 78, signature:
+  how: 'defines public function `test_binary_is_still_first` at line 81, signature:
     (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: scaffold
-  how: 'defines public function `scaffold` at line 86, signature: (parent: str)'
+  how: 'defines public function `scaffold` at line 89, signature: (parent: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_parent_flag_is_emitted_when_there_is_a_parent
   how: 'defines public function `test_parent_flag_is_emitted_when_there_is_a_parent`
-    at line 90, signature: (tmp_path)'
+    at line 93, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_parentless_node_emits_no_bare_parent_flag
   how: 'defines public function `test_parentless_node_emits_no_bare_parent_flag` at
-    line 98, signature: (parent, tmp_path)'
+    line 101, signature: (parent, tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_zoom_command_always_states_the_runtime
   how: 'defines public function `test_zoom_command_always_states_the_runtime` at line
-    113, signature: (tmp_path)'
+    116, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_zoom_command_passes_target_only_for_small
   how: 'defines public function `test_zoom_command_passes_target_only_for_small` at
-    line 121, signature: (tmp_path)'
+    line 124, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_zoom_command_small_without_target_omits_the_flag
   how: 'defines public function `test_zoom_command_small_without_target_omits_the_flag`
-    at line 128, signature: (tmp_path)'
+    at line 131, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_aimed_slot_carries_the_target
+  how: defines public function `test_aimed_slot_carries_the_target` at line 147
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_aim_defaults_to_small_because_big_zoom_discards_a_target
+  how: defines public function `test_aim_defaults_to_small_because_big_zoom_discards_a_target`
+    at line 152
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_every_slot_is_aimed_at_the_same_node
+  how: defines public function `test_every_slot_is_aimed_at_the_same_node` at line
+    160
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_explicit_level_is_honoured
+  how: defines public function `test_explicit_level_is_honoured` at line 166
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_aiming_does_not_scaffold_a_parentless_idea
+  how: defines public function `test_aiming_does_not_scaffold_a_parentless_idea` at
+    line 171
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

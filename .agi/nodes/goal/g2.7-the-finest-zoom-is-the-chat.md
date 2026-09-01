@@ -76,3 +76,25 @@ itself, which then has to be collected — a webhook we host, or one of the
 OpenRouter-compatible observability platforms already available at no cost
 (Sentry, New Relic). Until that is built, **pi keeping the logs is a reason not
 to leave it casually.**
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+This version turns "unbuilt, recorded so the design does not need undoing" into
+something actionable, because the session that added it needed the link and did
+not have it. A kid wrote `bin/completion.py` in full and died before recording
+anything; recovering which transcript produced that design required comparing
+file mtimes. That is the failure this goal describes, met in practice rather
+than in principle, and it is the reason the caveat is written as mechanism
+rather than intent.
+
+Two things are stated that the previous version did not know. First, the
+transcripts already exist — pi writes them unasked — so this goal is missing a
+link, not a logging system, and the distinction changes what it costs. Second,
+the two link directions are not interchangeable: frontmatter makes it data that
+`goal:g13`'s write path should own, a grid commit message makes it provenance
+reachable only through `grid.py log`. Naming both is deliberate; choosing
+between them belongs to whoever knows which one the hypergraph needs to
+traverse, and guessing now is how the wrong one gets built.
+
+Verified before writing, rather than assumed: `thought_session:` appears in
+zero code paths and zero nodes. Neither direction exists today.
+<!-- THOUGHT:END -->

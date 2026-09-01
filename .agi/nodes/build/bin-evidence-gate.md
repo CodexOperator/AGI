@@ -55,91 +55,91 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding="utf-8")` at line 199'
+  how: '`nf.read_text(encoding="utf-8")` at line 208'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 208'
+  how: '`yaml.safe_load(parts[1])` at line 217'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 outputs:
 - name: is_valid_verdict
-  how: 'defines public function `is_valid_verdict` at line 117, signature: (verdict:
+  how: 'defines public function `is_valid_verdict` at line 126, signature: (verdict:
     str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: requires_evidence
-  how: 'defines public function `requires_evidence` at line 121, signature: (verdict:
+  how: 'defines public function `requires_evidence` at line 130, signature: (verdict:
     str | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: is_decisive_shadow
-  how: 'defines public function `is_decisive_shadow` at line 126, signature: (value)'
+  how: 'defines public function `is_decisive_shadow` at line 135, signature: (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: shadow_verdict_fields
-  how: 'defines public function `shadow_verdict_fields` at line 141, signature: (fm:
+  how: 'defines public function `shadow_verdict_fields` at line 150, signature: (fm:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: is_node_id_shaped
-  how: 'defines public function `is_node_id_shaped` at line 154, signature: (value)'
+  how: 'defines public function `is_node_id_shaped` at line 163, signature: (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_runs_violations
-  how: 'defines public function `evidence_runs_violations` at line 164, signature:
+  how: 'defines public function `evidence_runs_violations` at line 173, signature:
     (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: build_corpus
-  how: 'defines public function `build_corpus` at line 182, signature: (nodes_dir)'
+  how: 'defines public function `build_corpus` at line 191, signature: (nodes_dir)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: normalize_evidence_runs
-  how: 'defines public function `normalize_evidence_runs` at line 219, signature:
+  how: 'defines public function `normalize_evidence_runs` at line 228, signature:
     (value, corpus=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: is_unverifiable_attestation
-  how: 'defines public function `is_unverifiable_attestation` at line 269, signature:
+  how: 'defines public function `is_unverifiable_attestation` at line 278, signature:
     (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: GateResult
-  how: defines public class `GateResult` at line 288
+  how: defines public class `GateResult` at line 297
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: apply_gate
-  how: 'defines public function `apply_gate` at line 305, signature: (verdict: str,
+  how: 'defines public function `apply_gate` at line 314, signature: (verdict: str,
     evidence_runs, *, bypass: bool=False, corpus=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: announce
-  how: 'defines public function `announce` at line 383, signature: (res: GateResult,
+  how: 'defines public function `announce` at line 392, signature: (res: GateResult,
     stream=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stamp
-  how: 'defines public function `stamp` at line 402, signature: (fm: dict, res: GateResult)'
+  how: 'defines public function `stamp` at line 411, signature: (fm: dict, res: GateResult)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 4 `print()` call(s) at line(s) [391, 393, 396, 399]
+  how: 4 `print()` call(s) at line(s) [400, 402, 405, 408]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

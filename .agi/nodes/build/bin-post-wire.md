@@ -34,68 +34,88 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: importlib.util
+  how: '`import importlib.util` at line 18'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: json
-  how: '`import json` at line 18'
+  how: '`import json` at line 19'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: sys
-  how: '`import sys` at line 19'
+  how: '`import sys` at line 20'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: time
-  how: '`import time` at line 20'
+  how: '`import time` at line 21'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: pathlib.Path
-  how: '`from pathlib import Path` at line 21'
+  how: '`from pathlib import Path` at line 22'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: completion
+  how: '`import completion` at line 29'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_gate
-  how: '`import evidence_gate` at line 28'
+  how: '`import evidence_gate` at line 30'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: locations
-  how: '`import locations` at line 29'
+  how: '`import locations` at line 31'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_writer
-  how: '`import node_writer` at line 30'
+  how: '`import node_writer` at line 32'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: spawn_gate
-  how: '`import spawn_gate` at line 31'
+  how: '`import spawn_gate` at line 33'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(manifest_path.read_text())` at line 127'
+  how: '`json.loads(manifest_path.read_text())` at line 226'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 85'
+  how: '`yaml.safe_load(parts[1])` at line 100'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(path.read_text())` at line 165'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest_path
-  how: '`manifest_path.read_text()` at line 127'
+  how: '`manifest_path.read_text()` at line 226'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: path
+  how: '`path.read_text()` at line 165'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding="utf-8")` at line 177'
+  how: '`node_path.read_text(encoding="utf-8")` at line 293'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parent_path
-  how: '`parent_path.read_text(encoding="utf-8")` at line 247'
+  how: '`parent_path.read_text(encoding="utf-8")` at line 370'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -106,80 +126,76 @@ inputs:
   security: TODO(model)
 outputs:
 - name: _find_root
-  how: 'defines private function `_find_root` at line 34, signature: (cwd: Path |
+  how: 'defines private function `_find_root` at line 49, signature: (cwd: Path |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _load_graph_core
-  how: defines private function `_load_graph_core` at line 42
+  how: defines private function `_load_graph_core` at line 57
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _slug_from_node_id
-  how: 'defines private function `_slug_from_node_id` at line 56, signature: (node_id:
+  how: 'defines private function `_slug_from_node_id` at line 71, signature: (node_id:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _node_file_path
-  how: 'defines private function `_node_file_path` at line 63, signature: (root: Path,
+  how: 'defines private function `_node_file_path` at line 78, signature: (root: Path,
     node_id: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _read_frontmatter
-  how: 'defines private function `_read_frontmatter` at line 77, signature: (body:
+  how: 'defines private function `_read_frontmatter` at line 92, signature: (body:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _write_node
-  how: 'defines private function `_write_node` at line 89, signature: (path: Path,
+  how: 'defines private function `_write_node` at line 104, signature: (path: Path,
     fm: dict, body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _merged_agent
+  how: 'defines private function `_merged_agent` at line 124, signature: (iter_dir:
+    Path, entry: dict)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: _gate
-  how: 'defines private function `_gate` at line 97, signature: (agent: dict, fm:
+  how: 'defines private function `_gate` at line 174, signature: (agent: dict, fm:
     dict, corpus)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_wire
-  how: 'defines public function `cmd_wire` at line 118, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_wire` at line 217, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 319
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: path
-  how: '`path.write_text(content, encoding="utf-8")` at line 94'
+  how: defines public function `main` at line 450
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_path
   how: '`graph_path.write_text(json.dumps(graph_data, indent=2), encoding="utf-8")`
-    at line 289'
+    at line 412'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(graph_data, indent=2)` at line 289'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: yaml.dump
-  how: '`yaml.dump(dict(fm), default_flow_style=False)` at line 92'
+  how: '`json.dumps(graph_data, indent=2)` at line 412'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 13 `print()` call(s) at line(s) [124, 292, 293, 295, 296, 298, 300, 302, 308,
-    310, 312, 314, 315]
+  how: 16 `print()` call(s) at line(s) [167, 223, 415, 416, 418, 419, 421, 423, 425,
+    431, 433, 438, 441, 443, 445, 446]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -187,3 +203,29 @@ outputs:
 <!-- BUILD-CONTRACT:END -->
 
 Generated by `level3.py` (see `hyp:level3-node-anatomy` in the graph repo for the design). `how` fields above are derived mechanically via the standard library `ast` module; `why`/`perf`/`security` are placeholders for a later model pass — never fabricated by this generator.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Three changes on 2026-09-01, and two of them were repairs to the first.
+
+**Completion became a graph event** (`goal:g4.6` clause 5). The agent filter was
+`status != "done" -> continue`, i.e. gated on `cli.py done` having run. It now
+also admits an agent whose node `is_complete`, so a kid that filled its node and
+then died — API error, content filter, killed pid — is no longer discarded.
+That is not hypothetical: it happened to the kid that wrote `completion.py`.
+Admissions print, because a silent recovery would hide both the rescue and
+whatever killed the kid.
+
+**Then the same change broke two things, found by a kid's `struggles:` line.**
+Making frontmatter primary meant re-wiring read back the normalized COUNT that
+`evidence_gate.stamp` writes (`evidence_runs: 1`), and `goal:g7.3` resolves a
+bare int to zero evidence on purpose — so a second wire silently demoted an
+earned `proved`. And `fm.get("verdict") or agent.get(...)` treated `pending` as
+a claim, letting a scaffold's placeholder outrank a verdict the agent actually
+reported. Only a list counts as an evidence claim now, and `pending` counts as
+the absence of one.
+
+**Notes stopped landing twice.** This module appended `## Agent Notes`
+unconditionally while `cli.py` separately appended the same text bare; both run
+on every kid. The kid contract blamed kids for it by name and count. No kid was
+doing it.
+<!-- THOUGHT:END -->
