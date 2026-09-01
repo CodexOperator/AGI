@@ -188,7 +188,45 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
    `except ImportError: sys.exit(1)` at module scope killed any process that
    merely imported it; it took out a kid's first run mid-experiment. `ollama`
    is now required at call time via `require_ollama()`, not at import.
-8. ⏳ **The goal sweep itself: see below.**
+8. ⏳ **The goal sweep: 49 -> 40 active. NOT DONE — the cap is 3.**
+   Nine reclassified on mechanical falsifiers (G11, G11.1, G4.6, G3.1, S5, S8,
+   S17, S22 complete; G6.5 phasing-out), each with a rewritten `THOUGHT`.
+   Forty remain and most are genuinely open; the next pass is judgement, not
+   greps. One list item was a **phantom carried across three handoffs** —
+   "goal:S16 still carries `status: proved`" is a fenced code block
+   *illustrating* the bug S16 describes, found by an unanchored grep.
+
+9. 🔴 **`outcome_coverage` penalises finishing — fix before the next sweep.**
+   `metrics.py:483` `SCORING_GOAL_STATUSES = {"active", "horizon"}` excludes
+   `complete` and `phasing-out` alike, so today's sweep dropped the primary
+   metric **0.27 -> 0.232** with no work undone and no node removed. A metric
+   that falls when you finish teaches you not to finish, and this project has
+   sat at 49 active against a cap of 3 for three sessions.
+
+   **The fix is a semantics split, not a constant change** — specified on
+   `goal:g5`, which owns "status is a field the engine acts on" and whose own
+   text is the defect:
+   - **`complete`** = achieved. Chains are valid and still extendable, so the
+     evidence **stays in the metric**. Success must not read as regression.
+   - **retired** (`phasing-out`) = folded into another goal, achieved
+     incidentally, or no longer worth pursuing. Results leave the score.
+   - A chain that **concluded "retire this goal"** is excluded — it produced
+     evidence for *stopping*, which is a decision about the graph, not a
+     contribution to it. Counting it would reward abandonment.
+   - A goal **retired before any chain closed** is ignored in BOTH terms of
+     the ratio, rather than counting as an unconverted hypothesis.
+
+   Naming is the only real gap: `phasing-out` already means retired
+   (`CLAUDE.md` documents retirement that way). Renaming costs a `status`
+   regex plus a corpus pass — do it with the change, not before.
+
+10. ⚠️ **`npx gitnexus analyze` writes 102 lines into `CLAUDE.md`.** It
+    appends a `<!-- gitnexus:start -->` block of **MUST** directives telling
+    agents to call GitNexus **MCP** tools — which pi kids have no client for —
+    and to query "instead of grepping", which `skills/agi/SKILL.md`
+    deliberately does not claim after a measured query returned an unrelated
+    symbol. Reverted before the 2026-09-01 push. **Re-check `git status` after
+    every `analyze`**; it edits the one document every agent reads first.
 
 ---
 
