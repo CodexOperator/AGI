@@ -650,3 +650,40 @@ def test_missing_agent_json_falls_back_to_the_manifest_entry(wired_project):
     _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "pending",
                      "node_id": "experiment:e1", "evidence_runs": 0})
     assert _fm_of(root / "nodes" / "experiment" / "e1.md")["verdict"] == "pending"
+
+
+# --- the lean percent is 0-100, as four documents have always said ---------
+
+
+@pytest.mark.parametrize("n", ["0", "1", "50", "65", "99", "100"])
+def test_lean_accepts_the_documented_range(n):
+    assert eg.is_valid_verdict(f"inconclusive_lean_proved:{n}")
+    assert eg.is_valid_verdict(f"inconclusive_lean_disproved:{n}")
+
+
+@pytest.mark.parametrize("n", ["101", "150", "999", "1000"])
+def test_lean_rejects_out_of_range(n):
+    """`\\d{1,3}` accepted `:999` while VERDICT_HELP, zoom.py's contract,
+    agent-prompt.md and task:t-054 all said 0-100. t-054's own Test Strategy
+    reads 'reject inconclusive_lean_proved:101' -- the graph specified this and
+    the regex never implemented it."""
+    assert not eg.is_valid_verdict(f"inconclusive_lean_proved:{n}")
+    assert not eg.is_valid_verdict(f"inconclusive_lean_disproved:{n}")
+
+
+def test_no_live_node_carries_an_out_of_range_lean():
+    """Guards the tightening itself: if a real node ever holds one, this fails
+    loudly rather than that node silently becoming invalid."""
+    import re as _re
+    root = Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+    if not root.is_dir():
+        pytest.skip("engine graph not present")
+    bad = []
+    for p in root.rglob("*.md"):
+        head = p.read_text(encoding="utf-8", errors="replace").split("---", 2)
+        if len(head) < 3:
+            continue
+        m = _re.search(r"^verdict:\s*[\"']?(\S+?)[\"']?\s*$", head[1], _re.M)
+        if m and not eg.is_valid_verdict(m.group(1)):
+            bad.append((p.name, m.group(1)))
+    assert bad == [], f"nodes with invalid verdicts: {bad}"

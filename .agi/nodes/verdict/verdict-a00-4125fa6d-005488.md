@@ -13,7 +13,7 @@ supports:
   - verdict:chain-engine-r8
 title: Agent Spawning via Verdict Nodes — Architecturally Feasible
 type: verdict
-verdict: inconclusive_lean_proved
+verdict: "inconclusive_lean_proved:75"
 ---
 
 # verdict:verdict-a00-4125fa6d-005488
