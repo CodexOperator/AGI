@@ -20,6 +20,20 @@ type: goal
 ---
 
 
+> **⚠ SUPERSEDED IN INTENT by `goal:g4.6` (2026-09-01), and still open as
+> stated.** Read that goal before doing work here. This one is framed as *two
+> named runtimes reaching parity* — the frame the Claude Code adaptation had
+> when it was a stop-gap at the start of the project. Under it, "unify" reads
+> as "make the second runtime work like the first", which is why the CC half
+> stayed configuration with nothing behind it. `goal:g4.6` keeps this goal's
+> invariant verbatim ("a runtime flag, not a parallel code path") and moves the
+> seam: **one** spawn path, *N* harnesses declared in config as adapters, with
+> pi and Claude Code the first two and neither privileged. The drift is
+> recorded rather than edited away because this text steered real work — kids
+> aimed at this goal produced CC-framed nodes, correctly, because that is what
+> it asks for. Its own remaining items (H4b's `closed_chains.txt`, hook parity,
+> H9's question channel) are unaffected and still live here.
+
 **L12** remainder plus **H9**. Anywhere the engine invokes `pi`, allow invoking
 Claude Code instead — a runtime flag, not a parallel code path — and audit hook
 parity between the two. H9's kid→parent question channel exists for the CC path

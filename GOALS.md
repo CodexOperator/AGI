@@ -1433,6 +1433,20 @@ structure (0.792 vs 0.000) — effort may split the same way.
 
 ### G4.3 — Finish the runtime split: pi and Claude Code as one path — status: horizon
 
+> **⚠ SUPERSEDED IN INTENT by `goal:g4.6` (2026-09-01), and still open as
+> stated.** Read that goal before doing work here. This one is framed as *two
+> named runtimes reaching parity* — the frame the Claude Code adaptation had
+> when it was a stop-gap at the start of the project. Under it, "unify" reads
+> as "make the second runtime work like the first", which is why the CC half
+> stayed configuration with nothing behind it. `goal:g4.6` keeps this goal's
+> invariant verbatim ("a runtime flag, not a parallel code path") and moves the
+> seam: **one** spawn path, *N* harnesses declared in config as adapters, with
+> pi and Claude Code the first two and neither privileged. The drift is
+> recorded rather than edited away because this text steered real work — kids
+> aimed at this goal produced CC-framed nodes, correctly, because that is what
+> it asks for. Its own remaining items (H4b's `closed_chains.txt`, hook parity,
+> H9's question channel) are unaffected and still live here.
+
 **L12** remainder plus **H9**. Anywhere the engine invokes `pi`, allow invoking
 Claude Code instead — a runtime flag, not a parallel code path — and audit hook
 parity between the two. H9's kid→parent question channel exists for the CC path
@@ -1565,6 +1579,111 @@ exact mistake once: 9 chains x 2000 hops of shortcut cycles carrying no
 signal, whose pathological structure then broke the render path outright.
 `depends_on` is denser and more legitimate-looking than a shortcut cycle,
 which makes it a worse offender, not a better one. Pairs with **G3**.
+
+### G4.6 — One spawn path; a harness is an adapter named in config — status: active
+
+**There is no single place where an agent is spawned, and that is the real
+shortfall `goal:g4.3` has been masking.** Today `dispatch.py` builds a pi
+command inline (`pi_model_args`, `_build_pi_args`, a hardcoded `--runtime pi`
+in `zoom_command`, `_scrubbed_env`), `zoom.py` branches its completion
+contract on two string literals, and the config carries two sibling blocks —
+`agent_dispatch` and `cc_dispatch` — that mean overlapping things in different
+shapes, one of which is read by no code at all. Adding a third harness means
+touching all three files and inventing a third config shape.
+
+**A harness must be a named entry in config with an adapter behind it**, and
+`dispatch.py` must not know which one it is spawning. The config names every
+spawn path and links it to its keys, its models per tier, and its harness
+binary. Minimal branching is allowed, and only inside a `*-adapter.py`.
+
+## What has to exist
+
+1. **One spawn function.** Target selection, the spawn gate, scaffolding,
+   manifest recording, wiring and the evidence gate are shared and stay
+   shared. Only command construction varies.
+2. **A harness is config.** Each declares its adapter, its binary, its
+   provider, its env keys, and a model **per tier**. Adding a harness is a
+   config entry plus one adapter file — never an edit to `dispatch.py`.
+3. **Tier is a parameter on that path, not a second path.** `parent` and
+   `kid` differ in model and brief. This is `goal:g4`'s per-tier model
+   assignment finally having somewhere to land: `cc_dispatch.kid_model` and
+   `parent_model` have existed for weeks and are read by **no code**.
+4. **Completion is harness-agnostic, and it is not process inspection.**
+   Today "done" means `cli.py done` writing `agent.json` while `heal.py` polls
+   a pid. Both are the pi process model wearing a general name — a Claude Code
+   kid has no pid to poll, and a kid that finished its node but died before its
+   report looks identical to one that never started. **The finish signal should
+   be the graph changing**: the scaffolded node acquiring real content is the
+   event, observable by any harness, and observable the same way from the
+   spawned agent's own point of view. `cli.py done` becomes one way to announce
+   a completion, never the definition of one.
+
+## Where this sits, and the drift it corrects
+
+`goal:g4.3` says "anywhere the engine invokes `pi`, allow invoking Claude Code
+instead — a runtime flag, not a parallel code path." That was written when the
+Claude Code adaptation was a **stop-gap**, and it inherits the stop-gap's
+frame: two named runtimes, reaching parity with each other. Under that frame
+"unify" means "make the second one work like the first", which is why the CC
+half has stayed configuration with nothing behind it while the pi half grew.
+
+The frame is wrong, not the goal. There should be **one** spawn path and *N*
+harnesses hanging off it, with pi and Claude Code as the first two entries and
+neither privileged. `goal:g4.3`'s invariant — a runtime flag, not a parallel
+code path — is exactly right and is inherited here verbatim; what changes is
+that the flag selects an adapter from config rather than choosing between two
+hardcoded branches.
+
+## Falsifier
+
+Add a third harness with **no edit to `dispatch.py`** — one config entry and
+one `*-adapter.py`. Then spawn a parent and a kid on it. If either requires a
+change outside those two files, the seam is in the wrong place. Second half,
+and the one that decides whether this is real: `grep` the shared path for
+branches keyed on harness name and find **zero** outside the adapter lookup.
+
+### G4.7 — Healing belongs to every harness, and to the dispatch loop — status: horizon
+
+**`heal.py` is not redundant machinery; it is the shape of a missing
+abstraction.** It exists because `dispatch.py` fires agents into detached
+`Popen` calls and then has no idea what became of them, so a second program
+polls pids and manifests to find out. That is the **pi process model** wearing
+a general name, and it is why healing does not exist at all for Claude Code
+kids — which have died mid-run, and would have benefited from exactly this.
+
+Two changes, and they are separable:
+
+1. **Healing runs inside the dispatch loop**, not as a second program invoked
+   after it. A dispatch that cannot observe its own agents is the defect;
+   `driver.sh` calling `heal.py` afterwards is the workaround.
+2. **Healing is expressed through adapters** (`goal:g4.6`). "Is this agent
+   alive", "is it finished", "restart it with the tail of its log" are three
+   questions every harness must answer and each answers differently. Once
+   `goal:g4.6` defines completion as a graph event rather than a process
+   state, the *finished* question stops being per-harness at all and only
+   *alive* and *restart* remain.
+
+## Evidence already on the record
+
+- Every healer ever spawned died at birth: `heal.py` passed `--max-turns 8`,
+  pi has no such flag, printed `Unknown option`, and **exited 0** — so the
+  loop recorded a healer as launched that never read its context.
+- Those healers billed the Claude Code subscription, because that `Popen` had
+  no `env=` and sat outside the scrub `dispatch.py` applies. One shared
+  definition of the child environment is the same fix as one shared spawn
+  path.
+- `heal.py` syncs exactly one field (`status`) from `agent.json` into the
+  manifest, which is how every pi kid's `verdict`, `confidence` and
+  `evidence_runs` came to be silently dropped for the entire life of the
+  runtime (fixed 2026-09-01, `post_wire._merged_agent`). A watchdog owning a
+  data-marshalling responsibility is the same symptom from another angle.
+
+## Falsifier
+
+Kill a kid mid-run on **each** configured harness. Each is detected, restarted
+with its context intact, and closed out — by the same code, with the only
+harness-specific part living in that harness's adapter. Today only one harness
+can be tested at all, which is itself the finding.
 
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: active
 
