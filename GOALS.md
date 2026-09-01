@@ -4677,6 +4677,59 @@ existing nodes is a separate, mechanical follow-up once the schema change
 itself is made — bundling the two would let the rule's definition drift
 while the migration is still being decided node by node.
 
+## G13 — One read/write path for nodes — an LLM-native node interface — status: active
+
+**One way in and one way out of the graph.** Every operation an agent performs
+on a node — create it, create the file behind it, edit it in place, read it,
+read its history — should go through a single interface, turn-by-turn and
+guardrailed, rather than through whichever of a dozen call sites happened to be
+nearest. The shape wanted is **vim-like, not chat-like**: a small set of
+composable operations, a locked sequence, and guardrails that make an illegal
+move *unavailable* rather than merely discouraged.
+
+**Today the write half is partly unified and the read half is not unified at
+all.** `node_writer.write_node` is the one gated write routine and four callers
+use it — `cli.py scaffold`, `cli.py done`, `post_wire`, `dispatch`. Three
+generators sit outside it deliberately (`snapshot-goals.py`,
+`snapshot-build-site.py`, `level3.py`), owning their own frontmatter keys and a
+`preserve=` merge the routine has no notion of. There is no reading equivalent:
+`zoom.py`, `stitch.py`, `level3.py`, `post_wire.py`, `grid.py`, `metrics.py`
+and `snapshot-goals.py` each re-implement "open a node, split on `---`, parse
+frontmatter, find the body" — and a reader that stops seeing a retired node
+fails quietly and in its own way, which is the failure mode `CLAUDE.md` already
+documents for the live-first deprecated glob.
+
+**`goal:g4.6` is what made this legible.** One spawn path turned out to be a
+config entry plus one adapter file, not a rewrite. The same argument applies
+one layer down: a harness is to spawning what a node interface is to writing.
+Both replace "N call sites that agree by convention" with "one call site that
+agrees by construction".
+
+**Three debts it would pay, each already recorded elsewhere.** First,
+`thought_session:` is reserved in frontmatter and nothing writes it —
+`goal:g2.7` and `goal:g10.1` want the chat that produced a version linked to
+that version, the finest grain of the LOD axis, and `dispatch.py` knows the
+harness session path at spawn time and drops it on the floor. On 2026-09-01 a
+kid wrote `bin/completion.py` in full and died before recording anything; its
+204 KB transcript was the only account of that design and was recovered by
+comparing file mtimes. A write path that stamps the session once is the
+difference between provenance and forensics. Second, a node's mint id and its
+address are two identifiers (`goal:g2.5`), and every reader resolving one by
+hand is a place they can be conflated. Third, `dispatch._node_type_for`'s
+private step table and the `[<type>].md :: spawn` blocks that `spawn_gate`
+actually enforces are two definitions of one fact, and they already disagree.
+
+**What would falsify it.** A new node operation can be added and every existing
+caller gains it without editing more than one file. Changing the verdict
+taxonomy or the chain grammar changes what agents may write in the same commit
+with nothing edited by hand. A retired node stays resolvable through the
+interface with no caller knowing about `deprecated/`.
+
+**Sibling, not duplicate, of `goal:g1.9`** — that goal is about what an agent
+is *told*, this one about what an agent may *do*; merging them would lose the
+distinction that makes either checkable. **Feeds `goal:g10`**, the hypergraph:
+G10 is the structure, this is the aperture onto it.
+
 ## S1 — Retire `bin/` as a directory name — status: active
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
@@ -6074,3 +6127,61 @@ engine. The file must be gone after the first publish, still gone after the
 second, `stitch --verify --strict` must report zero findings in all four
 categories, and `--grid-version N` for a version predating the retirement must
 still materialise the file. Today none of that is expressible.
+
+## S22 — A long-term goal spawns only hypotheses — design is earned — status: active
+
+**A goal may not shortcut to a design brief.** The route from a goal to an
+`mvp` runs through `hypothesis -> experiment -> verdict`, so a design is
+written against measured evidence rather than against the goal's own optimism.
+Make that mechanical, in the schemas the spawn gate already reads, so it holds
+for agents nobody briefed.
+
+**What is actually broken is the gate, not dispatch.** `allowed_parents`
+declares who may be a node's parent, and six type schemas name `goal`:
+
+| schema | `allowed_parents` | |
+|---|---|---|
+| `[mvp].md` | verdict, **goal**, experiment, hypothesis | `goal -> mvp` skips the whole chain |
+| `[experiment].md` | hypothesis, verdict, **goal**, task, idea, experiment, build | `goal -> experiment` skips the hypothesis |
+| `[hypothesis].md` | idea, **goal**, experiment, hypothesis | the intended route — keep |
+| `[idea].md` | **goal** | exploration; still lands on a hypothesis next — keep |
+| `[build].md` | idea, **goal**, verdict, mvp, build | minted mechanically by `level3.py` — keep |
+| `[cron].md` | **goal** | `goal` is its ONLY legal parent; a blanket strip orphans it |
+
+So the change is two lines, not six: drop `goal` from `[mvp].md` and
+`[experiment].md`. `[cron].md` is the trap — a structural node, not a chain
+node, and stripping it would leave the type unspawnable.
+
+**The dispatch half already behaves.** `_node_type_for`'s step table has no
+`goal` key, so a kid aimed at any goal falls through to the default and is
+scaffolded a `hypothesis`. Nothing needs building there; what is missing is the
+gate that stops a hand-written or differently-routed node taking the shortcut
+anyway.
+
+**The kid contract contradicts this and must change in the same commit.**
+`zoom.py:594` and `zoom.py:691` both tell every kid: *"Acceptable: spawn one
+child node (hyp from idea, exp from hyp, mvp from exp, outcome from mvp)."*
+`mvp from exp` advertises precisely the shortcut this goal closes, and
+`verdict` appears nowhere in that list — a kid is never told the verdict step
+exists, which is a candidate explanation for why asserting verdicts outnumber
+evidence-backed ones better than four to one. Closing the gate while the brief
+still advertises the hole is how the two drift, which is `goal:g1.9`'s thesis.
+They move together or not at all.
+
+**Not scoped to `long-term` goals specifically, because that cannot be
+expressed today.** `spawn_gate._parse_rule` maps `allowed_parents` through
+`canonical_type()`, which flattens to bare type names: a schema can say `goal`,
+never `goal:long-term`. The variant machinery exists — `_shape_key`,
+`canonical_shape_key`, and `[shape].md`'s
+`parentless_types: [goal:long-term, goal:short-term, idea]` — but only for a
+node's **own** variant via its discriminator, never for its parent's.
+Parent-variant resolution means `build_type_index` carrying `goal_kind`, which
+is real unbuilt work. This goal therefore lands the blanket rule, correct for
+all three goal kinds anyway, and **records variant-qualified `allowed_parents`
+as its open item** — deferred rather than guessed.
+
+**What would falsify it.** `spawn_gate`'s CLI rejects an `mvp` whose parents
+are `[goal:g13]` and accepts a `hypothesis` with the same parent. No existing
+node is invalidated — the rule gates new spawns, and the corpus's current
+`goal -> mvp` edges stay resolvable as prior art. `[cron].md` still spawns. The
+kid contract and the gate agree, checked by a test that reads both.
