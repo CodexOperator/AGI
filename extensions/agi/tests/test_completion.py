@@ -1,0 +1,232 @@
+"""Tests for the harness-blind completion check — bin/completion.py.
+
+mvp:unified-spawn-path clause 5: the finish signal is the scaffolded node
+acquiring real content — a graph event, observable identically on every
+harness. These tests are the falsifiers the hypothesis aimed at:
+
+  F4  a kid that wrote its node and was killed before `cli.py done` is still
+      complete, with no pid and no agent.json anywhere;
+      the inverse too — a `done` record on an untouched scaffold is not
+      completion, because the process state is not the signal.
+  F2  no harness-keyed branch in the completion path (AST check over the
+      code, docstrings excluded), and `post_wire._gate` reading the node's
+      own frontmatter before the agent record.
+
+The scaffold-hash variant is the fallback the hypothesis named in case plain
+body comparison proved ambiguous: a template change must not make an
+untouched scaffold look filled, so the placeholder's identity is captured at
+write time (the `scaffold_hash:` stamp `node_writer` now mints).
+"""
+
+import ast
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+BIN = Path(__file__).resolve().parents[1] / "bin"
+
+
+def _load(name):
+    path = BIN / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+comp = _load("completion")
+nw = comp.node_writer
+pw = _load("post_wire")
+
+SHAPE = """\
+---
+name: shape
+structural: true
+parentless_types:
+  - idea
+max_parents_ceiling: 2
+canonical_type_spelling: underscore
+---
+shape
+"""
+
+SCHEMAS = {
+    "[idea].md": "allowed_parents: [goal]\n  min_parents: 0\n  max_parents: 1",
+    "[hypothesis].md": "allowed_parents: [idea, hypothesis, experiment]\n  min_parents: 1\n  max_parents: 2",
+    "[experiment].md": "allowed_parents: [hypothesis, idea]\n  min_parents: 1\n  max_parents: 2",
+}
+
+
+@pytest.fixture
+def project(tmp_path):
+    """A throwaway graph repo: schemas plus an idea -> hypothesis -> chain."""
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    sd = tmp_path / "context" / "schemas"
+    sd.mkdir(parents=True)
+    (sd / "[shape].md").write_text(SHAPE)
+    for fname, spawn in SCHEMAS.items():
+        name = fname[1:-4]
+        (sd / fname).write_text(f"---\nname: {name}\nspawn:\n  {spawn}\n---\n{name}\n")
+    nd = tmp_path / "nodes"
+    for ntype, slug in [("idea", "i1"), ("hypothesis", "h1")]:
+        d = nd / ntype
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{slug}.md").write_text(f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n")
+    return tmp_path
+
+
+def _scaffold(project, slug="exp1", parent="hypothesis:h1"):
+    """One real node through the one writer, so the stamp is real too."""
+    res = nw.write_node(project, "experiment", slug, [parent])
+    assert res.written, res.reason
+    return res
+
+
+def _fm(path):
+    import yaml
+    return yaml.safe_load(path.read_text().split("---", 2)[1])
+
+
+def _fill(path, body):
+    """A kid filling its scaffold: the body changes, nothing else does."""
+    parts = path.read_text().split("---", 2)
+    path.write_text(f"---\n{parts[1]}---\n{body}")
+
+
+def _agent_done(iter_dir, agent_id, node_id):
+    """The pi-process record a kid leaves when it did run `cli.py done`."""
+    d = iter_dir / agent_id
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "agent.json").write_text(json.dumps(
+        {"id": agent_id, "status": "done", "node_id": node_id,
+         "verdict": "inconclusive_lean_proved:65"}))
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"timeout_seconds": 600,
+         "agents": [{"id": agent_id, "status": "done"}]}))
+
+
+# --------------------------------------------------------------------------
+# the stamp
+# --------------------------------------------------------------------------
+
+def test_writer_stamps_the_scaffold_identity(project):
+    res = _scaffold(project)
+    fm = _fm(res.path)
+    expected = nw.scaffold_hash(
+        f"\n# {res.node_id}\n\n" + nw.BODY_PROMPTS["experiment"])
+    assert fm["scaffold_hash"] == expected
+
+
+# --------------------------------------------------------------------------
+# F4 — completion is the node's content, not the process
+# --------------------------------------------------------------------------
+
+def test_untouched_scaffold_is_not_complete(project):
+    res = _scaffold(project)
+    assert comp.is_complete(project, res.node_id) is False
+
+
+def test_killed_after_writing_is_complete(project):
+    """Falsifier 4. Node filled, no `done`, no pid, no session at all."""
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nRan the thing. It works. See output.\n")
+    assert comp.is_complete(project, res.node_id) is True
+
+
+def test_done_on_untouched_scaffold_is_not_complete(project):
+    """The inverse: a report of done does not complete an empty node."""
+    res = _scaffold(project)
+    _agent_done(project / "sessions" / "iter-001", "kid1", res.node_id)
+    assert comp.is_complete(project, res.node_id) is False
+
+
+def test_completion_does_not_depend_on_which_report_path_existed(project):
+    """Same node state, two report histories — the answer is the same."""
+    a = _scaffold(project, "expa")
+    b = _scaffold(project, "expb", )
+    for r in (a, b):
+        _fill(r.path, f"\n# {r.node_id}\n\nFilled in for real.\n")
+    _agent_done(project / "sessions" / "iter-001", "kid-b", b.node_id)
+    assert comp.is_complete(project, a.node_id)
+    assert comp.is_complete(project, b.node_id)
+
+
+def test_missing_node_is_not_complete(project):
+    assert comp.is_complete(project, "experiment:never-minted") is False
+
+
+# --------------------------------------------------------------------------
+# the weak joint — template drift
+# --------------------------------------------------------------------------
+
+def test_template_drift_keeps_untouched_scaffold_incomplete(project, monkeypatch):
+    """BODY_PROMPTS changes after the write; the stamp was captured then."""
+    res = _scaffold(project)
+    monkeypatch.setitem(nw.BODY_PROMPTS, "experiment", "## New placeholder\n\n")
+    assert comp.is_complete(project, res.node_id) is False
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n")
+    assert comp.is_complete(project, res.node_id) is True
+
+
+def test_legacy_node_without_stamp_uses_current_placeholder(project):
+    """Nodes scaffolded before the field existed still resolve, both ways."""
+    d = project / "nodes" / "experiment"
+    d.mkdir(parents=True, exist_ok=True)
+    nid = "experiment:legacy"
+    p = d / "legacy.md"
+    p.write_text(
+        f"---\nid: {nid}\nmint_id: deadbeef\ntype: experiment\n"
+        f"parents:\n  - hypothesis:h1\n---\n"
+        f"# {nid}\n\n{nw.BODY_PROMPTS['experiment']}")
+    assert comp.is_complete(project, nid) is False
+    _fill(p, f"\n# {nid}\n\nContent written by a pre-stamp loop.\n")
+    assert comp.is_complete(project, nid) is True
+
+
+# --------------------------------------------------------------------------
+# F2 — no harness in the completion path
+# --------------------------------------------------------------------------
+
+def _code_tokens(src):
+    """Names, attributes and non-docstring strings in `src` — the code, not
+    the prose. A docstring may name a harness it is replacing; a branch may
+    not."""
+    tree = ast.parse(src)
+    for node in list(ast.walk(tree)):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+            if (node.body
+                    and isinstance(node.body[0], ast.Expr)
+                    and isinstance(node.body[0].value, ast.Constant)
+                    and isinstance(node.body[0].value.value, str)):
+                node.body = node.body[1:]
+    out = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            out.append(node.value)
+        elif isinstance(node, ast.Name):
+            out.append(node.id)
+        elif isinstance(node, ast.Attribute):
+            out.append(node.attr)
+    return " ".join(out)
+
+
+def test_completion_code_names_no_harness_and_no_process_state():
+    toks = _code_tokens((BIN / "completion.py").read_text(encoding="utf-8")).lower()
+    for bad in ("claude", "pi", "agent.json", "manifest", "pid", "heal"):
+        assert bad not in toks, f"'{bad}' in completion.py code: {toks}"
+
+
+def test_post_wire_gate_reads_the_node_before_the_record():
+    # The node's own stamp wins over a more aggressive agent-record claim.
+    agent = {"verdict": "proved", "evidence_runs": []}
+    fm = {"verdict": "inconclusive_lean_proved:65", "evidence_runs": []}
+    res = pw._gate(agent, fm, frozenset())
+    assert res.verdict == "inconclusive_lean_proved:65"
+    # A scaffold carries no verdict key, so an unreported kid still lands
+    # where the old path landed: pending, from the record or from neither.
+    assert pw._gate({"verdict": "pending"}, {}, frozenset()).verdict == "pending"
+    assert pw._gate({}, {}, frozenset()).verdict == "pending"
