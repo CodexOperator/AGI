@@ -72,6 +72,9 @@ def test_flags_precede_the_prompt_arguments(tmp_path):
     trailing user message would be read as part of it."""
     args = build({"agent_dispatch": {"model": "qwen/qwen3.8-27b"}}, tmp_path)
     assert args.index("--model") < args.index("--append-system-prompt")
+    # Headless mode: without -p the trailing prompt opens the interactive
+    # TUI, which hangs forever off a TTY (empty output.log, never exits).
+    assert "-p" in args and args.index("-p") < args.index("--append-system-prompt")
     assert args[-1].startswith("Begin iteration")
 
 
