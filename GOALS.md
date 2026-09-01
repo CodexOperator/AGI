@@ -4703,13 +4703,14 @@ depending which reader you happened to reach. None of those was chosen. They
 are accidents that agree only because the corpus currently contains nothing
 that would tell them apart.
 
-**The count belongs to the chain, not to this goal.** This paragraph has been
-wrong twice — it said seven modules, then five parsers, and the measured
-answer is four in two stacks with the `graph_core` stack carrying two
-different semantics one call apart. `hypothesis:a00-5b27ca07-438c0a` and
-`experiment:a00-a10998e3-ca0b99` hold the live numbers and the method; a goal
-that restates them becomes the hand-maintained second copy this project keeps
-paying for. Read the chain.
+**The count belongs to the chain, not to this goal — and this goal will stop
+guessing at it.** Successive nodes have said seven, five, four and ten,
+because the honest answer depends on where you draw the boundary: bulk corpus
+readers and single-node readers are different populations, and only the first
+is what a unified `parse_node` would replace. A goal that restates its chain's
+measurements becomes the hand-maintained second copy this project keeps paying
+for (`goal:s17`), so the number lives in the chain and nowhere else. Read it
+there.
 
 A reader that stops seeing a retired node fails quietly and in its own way,
 which is the failure mode `CLAUDE.md` already documents for the live-first
