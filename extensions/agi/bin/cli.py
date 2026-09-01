@@ -466,10 +466,19 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
         fm_lines.append(f"next_edges: [{next_edge}]")
     new_fm = "---\n" + "\n".join(fm_lines) + "\n---"
     node_file.write_text(new_fm + "\n" + body)
-    # Append notes to body
-    if notes:
+    # Notes go under the SAME heading `post_wire` uses, and only when the body
+    # does not already carry them.
+    #
+    # This used to write the notes bare -- `f.write("\n" + notes + "\n")` --
+    # while `post_wire` separately appended `## Agent Notes\n{notes}`. Both run
+    # on every kid, so every node got the text twice: once loose, once headed.
+    # The kid contract blamed the kid for it ("Do not also write that sentence
+    # into the body -- four kids in a row did, and it lands twice"), and the
+    # accusation was false: no kid was writing it, two engine writers were.
+    # Re-running `done` after an evidence-gate demotion made it three copies.
+    if notes and notes.strip() not in body:
         with open(node_file, "a") as f:
-            f.write("\n" + notes + "\n")
+            f.write(f"\n\n## Agent Notes\n{notes}\n")
 
 
 def cmd_status(args: argparse.Namespace) -> int:

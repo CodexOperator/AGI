@@ -287,3 +287,37 @@ def test_failed_kid_with_an_untouched_scaffold_is_not_wired(project, monkeypatch
     monkeypatch.chdir(project)
     _wire_failed_agent(project, "a00-dead", res.node_id)
     assert "wired_from" not in _fm(res.path)
+
+
+# --------------------------------------------------------------------------
+# Agent Notes land ONCE — two writers, one section
+#
+# `cli.py done` wrote the notes bare and `post_wire` appended them under a
+# heading; both run on every kid, so every node carried the text twice. The kid
+# contract blamed kids for it by name and by count. No kid was doing it.
+# --------------------------------------------------------------------------
+
+
+def test_notes_land_once_even_when_both_writers_run(project, monkeypatch):
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n")
+    monkeypatch.chdir(project)
+    notes = "one line of agent notes"
+
+    # post_wire, twice — re-wiring must not accumulate sections either.
+    for _ in range(2):
+        iter_dir = project / "sessions" / "iter-001"
+        (iter_dir / "a1").mkdir(parents=True, exist_ok=True)
+        (iter_dir / "a1" / "agent.json").write_text(json.dumps(
+            {"id": "a1", "status": "done", "node_id": res.node_id,
+             "notes": notes, "verdict": "pending"}))
+        (iter_dir / "manifest.json").write_text(json.dumps(
+            {"timeout_seconds": 600, "agents": [
+                {"id": "a1", "status": "done", "node_id": res.node_id,
+                 "parent": "hypothesis:h1", "notes": notes}]}))
+        import argparse
+        pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+    text = res.path.read_text()
+    assert text.count("## Agent Notes") == 1, text
+    assert text.count(notes) == 1, text

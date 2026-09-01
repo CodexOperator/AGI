@@ -298,7 +298,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
             evidence_gate.stamp(fm, gate)
             fm["wired_at"] = int(time.time())
             fm["wired_from"] = agent["id"]
-            if notes:
+            # Idempotent: `cli.py done` may already have written this exact
+            # section. Appending unconditionally is what put the notes in
+            # twice on every kid for as long as both writers have existed.
+            if notes and notes.strip() not in body:
                 body = body.rstrip() + f"\n\n## Agent Notes\n{notes}\n"
             _write_node(node_path, fm, body)
             updated_nodes.append(node_id)
