@@ -354,3 +354,17 @@ def test_pending_in_the_node_does_not_outrank_a_reported_verdict():
     # a real claim in the node still wins over the agent record
     fm = {"verdict": "inconclusive_lean_proved:65", "evidence_runs": []}
     assert pw._gate(agent, fm, corpus).verdict == "inconclusive_lean_proved:65"
+
+
+def test_malformed_frontmatter_is_not_complete_and_does_not_raise(project):
+    """A predicate must answer, not explode.
+
+    `post_wire.cmd_wire` calls `is_complete` inside its agent loop, so a raise
+    here loses the whole iteration's wiring rather than one node. Unreachable
+    until this module acquired its first caller on 2026-09-01.
+    """
+    d = project / "nodes" / "experiment"
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / "bad.md"
+    p.write_text("---\nfoo: [unclosed\n---\n\nreal looking body\n")
+    assert comp.is_complete(project, "experiment:bad") is False

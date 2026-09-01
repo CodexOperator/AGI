@@ -67,7 +67,22 @@ def is_complete(root: Path, node_id: str) -> bool:
     if len(parts) < 3:
         return False  # no frontmatter — not a node this function recognizes
     import yaml
-    fm = yaml.safe_load(parts[1]) or {}
+    try:
+        fm = yaml.safe_load(parts[1]) or {}
+    except yaml.YAMLError:
+        # A node whose frontmatter will not parse is not a finished node, and
+        # this is a PREDICATE -- it answers True or False, it does not get to
+        # take the caller down. `post_wire.cmd_wire` calls this inside its
+        # agent loop, so a raise here would lose the whole iteration's wiring
+        # rather than one node. That is a regression this file introduced on
+        # 2026-09-01 by acquiring its first caller: with zero callers the raise
+        # was unreachable.
+        #
+        # `skip_quiet` is the right policy HERE and is not a vote on the
+        # unified reader's default (`hypothesis:a00-6b4ad6b2-a60b78` is
+        # deciding that): a boolean predicate has exactly one safe answer for
+        # input it cannot read.
+        return False
     stored = fm.get("scaffold_hash") if isinstance(fm, dict) else None
     body = parts[2]
     if isinstance(stored, str) and stored.strip():
