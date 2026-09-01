@@ -3,6 +3,8 @@ confidence: 0.7
 evidence_runs: 0
 id: "hypothesis:a00-9bae6ee8-52d7f5"
 mint_id: d7bc277d95384e9b969219b34fa4aa5a
+next_edges:
+  - experiment:a00-40bc8d0a-f0690e
 parents:
   - goal:g4.6
 type: hypothesis

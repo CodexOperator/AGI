@@ -173,18 +173,25 @@ def _merged_agent(iter_dir: Path, entry: dict) -> dict:
 def _gate(agent: dict, fm: dict, corpus):
     """Apply the H4 evidence gate to one agent record (post_wire writer path).
 
-    Evidence count comes from the agent record first (written by `cli.py done`),
-    falling back to the node's own `evidence_runs` frontmatter. `corpus` is
-    the set of real node ids (`evidence_gate.build_corpus`) evidence_runs
-    entries are resolved against (H4c / goal:g3.1).
+    Verdict and evidence count come from the node's own frontmatter first
+    (mvp:unified-spawn-path clause 5 — the kid writes what it claimed into its
+    node, and `cli.py done` stamps the same values there at announce time),
+    with the `agent.json` record as fallback. The scaffold itself never
+    carries a `verdict:` or `evidence_runs:` key, so a kid that never
+    reported still falls through to `pending` exactly as before; a kid that
+    reported only via `cli.py done` is read identically, because `done`
+    stamps the node and the record with the same gated values in one pass.
+    `corpus` is the set of real node ids (`evidence_gate.build_corpus`)
+    evidence_runs entries are resolved against (H4c / goal:g3.1).
     """
-    runs = agent.get("evidence_runs")
+    verdict = fm.get("verdict") or agent.get("verdict") or "pending"
+    runs = fm.get("evidence_runs")
     if runs is None:
-        runs = fm.get("evidence_runs")
+        runs = agent.get("evidence_runs")
     res = evidence_gate.apply_gate(
-        agent.get("verdict") or "pending",
+        verdict,
         runs,
-        bypass=str(agent.get("evidence_gate", "")) == "bypassed",
+        bypass=str(fm.get("evidence_gate") or agent.get("evidence_gate", "")) == "bypassed",
         corpus=corpus,
     )
     evidence_gate.announce(res)
@@ -264,6 +271,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
             verdict = gate.verdict
             if gate.demoted:
                 demoted.append(f"{node_id}: {gate.original} -> {gate.verdict}")
+            if fm.get("confidence") is not None:
+                # clause 5 — the sibling of the gate's own precedence: the
+                # node's own stamp beats the agent record's.
+                confidence = fm["confidence"]
             fm["verdict"] = verdict
             fm["confidence"] = confidence
             evidence_gate.stamp(fm, gate)

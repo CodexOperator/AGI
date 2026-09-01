@@ -51,6 +51,7 @@ of them had been fixed.
 """
 from __future__ import annotations
 
+import hashlib
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -315,6 +316,23 @@ class NodeWrite:
         }
 
 
+def scaffold_hash(body: str) -> str:
+    """Identity of a scaffold's body: what `completion.is_complete` compares against.
+
+    Stamped into the node's frontmatter as `scaffold_hash:` by `write_node`, at
+    write time. The stripped form, because the file's body region carries one
+    leading blank line (a byproduct of how `write_node` joins its lines) that
+    the scaffold body string itself does not.
+
+    Capturing the hash when the file is written — rather than recomputing the
+    placeholder at check time — is what makes the test drift-safe: if
+    `BODY_PROMPTS` changes later, an untouched scaffold still hashes to the
+    stamp and still reads incomplete (mvp:unified-spawn-path clause 5, the
+    weak joint the MVP's own THOUGHT names).
+    """
+    return hashlib.sha256(body.strip().encode("utf-8")).hexdigest()[:16]
+
+
 def _is_untouched_scaffold(text: str, scaffold_body: str) -> bool:
     """Has nobody filled this scaffold in yet?
 
@@ -411,6 +429,10 @@ def write_node(
         "type": ntype,
         "parents": list(plist),
         "next_edges": [],
+        # mvp:unified-spawn-path clause 5 — the finish signal is "body differs
+        # from the scaffold placeholder", and the placeholder's identity is
+        # captured here, at write time, not re-derived at check time.
+        "scaffold_hash": scaffold_hash(scaffold_body),
     }
     fm.update(extra_fm or {})
     spawn_gate.stamp(fm, gate)

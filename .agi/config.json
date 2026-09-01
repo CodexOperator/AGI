@@ -25,7 +25,7 @@
       "provider": "openrouter",
       "thinking": "medium",
       "models": {
-        "kid": "z-ai/glm-5.3-flash",
+        "kid": "qwen/qwen3.8-27b",
         "parent": "qwen/qwen3.8-27b"
       }
     },
@@ -46,7 +46,7 @@
     "ollama_max_parallel": 0,
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
-    "model": "z-ai/glm-5.3-flash",
+    "model": "qwen/qwen3.8-27b",
     "thinking": "medium"
   },
   "agent_timeout_mins": 10,
