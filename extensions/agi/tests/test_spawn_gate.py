@@ -19,6 +19,7 @@ The three behaviours that matter, in order of how easy they are to get wrong:
 
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 import textwrap
@@ -595,6 +596,93 @@ def test_shipped_schemas_load_without_error():
     assert rules.geometry.source.endswith("[shape].md")
     assert rules.geometry.max_parents_ceiling >= 1
     assert "verdict" in rules.schemas
+
+
+def _shipped_schemas_dir():
+    """`context/schemas` for this checkout, under any known layout.
+
+    Bare `context/` (legacy), `.agi/context/` (post-`goal:g11`), and
+    `agi-tree/context/` (the pre-migration nested name). None -> no checkout.
+    """
+    here = Path(__file__).resolve()
+    for p in here.parents:
+        for rel in (("context", "schemas"),
+                    (".agi", "context", "schemas"),
+                    ("agi-tree", "context", "schemas")):
+            c = p.joinpath(*rel)
+            if c.is_dir():
+                return c
+    return None
+
+
+def _flat_or_variants(schema):
+    """Every Rule a schema enforces — flat or one per variant (build_kind)."""
+    if schema.flat:
+        return [schema.flat]
+    return list(schema.variants.values())
+
+
+def test_goal_may_not_parent_mvp_or_experiment():
+    """`goal:s22` — a goal spawns hypotheses, not designs or runs.
+
+    `goal` is dropped from `[mvp].md` and `[experiment].md`, but kept where it
+    is the intended route (`hypothesis`, `idea`) or the only legal parent
+    (`cron` — a blanket strip would orphan the type), and kept in `[build].md`
+    because level3.py mints builds mechanically, outside the gate.
+    """
+    sd = _shipped_schemas_dir()
+    if sd is None:
+        pytest.skip("no context/schemas in this checkout")
+    rules = sg.load_spawn_rules(sd)
+    assert rules.schema_errors == [], rules.schema_errors
+    for ntype in ("mvp", "experiment"):
+        for rule in _flat_or_variants(rules.schemas[ntype]):
+            assert "goal" not in rule.allowed_parents, (
+                f"goal -> {ntype} must be rejected; allows "
+                f"{sorted(rule.allowed_parents)}")
+    for ntype in ("hypothesis", "idea", "cron", "build"):
+        rules_list = _flat_or_variants(rules.schemas[ntype])
+        assert rules_list, f"[{ntype}].md has no spawn: rule"
+        for rule in rules_list:
+            assert "goal" in rule.allowed_parents, (
+                f"goal -> {ntype} is the intended (or only) route and was "
+                f"over-stripped; allows {sorted(rule.allowed_parents)}")
+
+
+def test_kid_contract_advertises_only_gate_legal_routes():
+    """`goal:s22` — the kid brief in `zoom.py` and the spawn gate agree.
+
+    Before `goal:s22` the contract advertised `mvp from exp` and never told a
+    kid the `verdict` step existed: the brief advertised exactly the chain the
+    gate closes, which is how `goal:g1.9` says a prose control drifts from the
+    code control. So the test reads BOTH: every `X from Y` the contract
+    promises must be a spawn the gate would approve, and the two copies of the
+    line in `zoom.py` must be the same line.
+    """
+    zoom_py = Path(__file__).resolve().parents[1] / "bin" / "zoom.py"
+    sd = _shipped_schemas_dir()
+    if sd is None or not zoom_py.is_file():
+        pytest.skip("no checkout to check (schemas + bin/zoom.py)")
+    rules = sg.load_spawn_rules(sd)
+    text = zoom_py.read_text()
+    lines = re.findall(r"Acceptable: spawn one child node \(([^)]*)\)", text)
+    assert len(lines) == 2, f"expected two kid-contract lines, found {len(lines)}"
+    assert lines[0] == lines[1], "the two kid-contract lines drifted apart"
+    assert "mvp from exp" not in lines[0], (
+        "the kid contract still advertises the verdict-less shortcut")
+    abbr = {"hyp": "hypothesis", "exp": "experiment"}
+    for child_abbr, parent_abbr in re.findall(r"(\w+) from (\w+)", lines[0]):
+        child = abbr.get(child_abbr, child_abbr)
+        parent = abbr.get(parent_abbr, parent_abbr)
+        schema = rules.schemas.get(child)
+        assert schema is not None, f"no schema for `{child}`"
+        rule_list = _flat_or_variants(schema)
+        assert rule_list, f"[{child}].md has no spawn: rule"
+        assert all(sg.canonical_type(parent) in r.allowed_parents
+                   for r in rule_list), (
+            f"kid contract advertises `{child_abbr} from {parent_abbr}` but "
+            f"{child} allows "
+            f"{sorted(set().union(*[r.allowed_parents for r in rule_list]))}")
 
 
 # --------------------------------------------------------------------------

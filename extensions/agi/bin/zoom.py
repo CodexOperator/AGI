@@ -591,7 +591,7 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         "",
         "## Your Task",
         f"Extend or fork from `{target}`. Stay tight — don't wander to other chains.",
-        "Acceptable: spawn one child node (hyp from idea, exp from hyp, mvp from exp, outcome from mvp).",
+        "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).",
     ])
     lines.extend(completion_contract(args.runtime, args.iter_n, args.agent_id, target))
     lines.extend([
@@ -688,7 +688,7 @@ def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
             f"Pick one `{info['node_type']}` node above to extend, fork, or seed a new chain from."
         )
     lines.extend([
-        "Acceptable: spawn one child node (hyp from idea, exp from hyp, mvp from exp, outcome from mvp).",
+        "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).",
     ])
     lines.extend(completion_contract(args.runtime, args.iter_n, args.agent_id, target))
     lines.extend([
