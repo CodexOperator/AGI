@@ -144,14 +144,27 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 > ends. Each item is recorded rather than fixed, and the reason is given —
 > "found it, left it" without a reason is how a to-do list rots.
 
-1. 🔴 **`post_wire._read_frontmatter` raises on malformed YAML, uncaught**
-   (`post_wire.py:100`). Three-way semantic, only one branch previously known:
-   no closing marker → `{}`+raw; **two markers + bad YAML → `ParserError`**.
-   `post_wire` is in the loop's critical path, so one malformed node loses the
-   **whole iteration's wiring**, not one node. Latent: corpus has 0 malformed
-   nodes. **Left unfixed on purpose** — `hypothesis:a00-6b4ad6b2-a60b78` is
-   actively measuring exactly these semantics, and editing one mid-measurement
-   is what left an earlier hypothesis grounded in a tree that had moved.
+1. 🔴🔴 **`post_wire._read_frontmatter` — BOTH branches are unsafe, and the
+   quiet one is worse** (`post_wire.py:100`).
+   - *two markers + bad YAML* → uncaught `ParserError`. `post_wire` is in the
+     loop's critical path, so one malformed node loses the **whole
+     iteration's wiring**, not one node.
+   - *no closing marker* → `{}` + the whole file as body, and `cmd_wire` then
+     **writes that back**. Verified 2026-09-01: the node is re-headered with a
+     **freshly minted `mint_id`** and its original frontmatter — real
+     `mint_id` included — is demoted into the body. That is silent corruption
+     that **fabricates a new identity and orphans the node's grid ref**, which
+     may account for part of item 4's 262 orphans.
+
+   Latent: the corpus has 0 malformed nodes. **The original reason for
+   deferring has now expired** — it was left alone because
+   `hypothesis:a00-6b4ad6b2-a60b78` was actively measuring these semantics, and
+   that chain has since closed with a verdict and an MVP. `mvp:a00-8a013aaf-
+   ca2434` prescribes the fix: wrap `yaml.YAMLError` in `FrontmatterError` so
+   one `except` catches both classes, reject non-dict YAML in the parser, and
+   default write-adjacent callers to `skip`-with-report rather than `{}`+raw.
+   Held for iter-9 at the owner's explicit instruction, not because it is
+   still the right thing to defer.
 2. **The healer, end to end.** `heal.py:187` told healers to commit ("NEW
    commit; do not amend") while the kid contract had forbidden git since
    2026-08-31; a healer obeyed it and produced `7b57b5955`. Contract fixed
