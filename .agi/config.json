@@ -49,7 +49,7 @@
     "model": "qwen/qwen3.8-27b",
     "thinking": "medium"
   },
-  "agent_timeout_mins": 10,
+  "agent_timeout_mins": 20,
   "delay_mins": 0,
   "max_iters": 10,
   "injection_file": "context/INJECTION.md",
