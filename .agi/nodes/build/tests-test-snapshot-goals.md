@@ -84,6 +84,11 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: pw
+  how: '`pw.read_text()` at line 1001'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: yaml.safe_load
   how: '`yaml.safe_load(parts[1])` at line 72'
   why: TODO(model)
@@ -654,6 +659,12 @@ outputs:
 - name: test_render_check_round_trip_survives_a_thought
   how: defines public function `test_render_check_round_trip_survives_a_thought` at
     line 982
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_post_wire_does_not_define_its_own_serializer
+  how: defines public function `test_post_wire_does_not_define_its_own_serializer`
+    at line 993
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

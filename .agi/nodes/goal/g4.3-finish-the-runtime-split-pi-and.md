@@ -134,10 +134,32 @@ The call is removed rather than repaired: re-enabling wants a per-chain loop, a
 config gate and the dependency present, which is a design job.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 was two paragraphs of intent written before either runtime had been watched
-end to end. This version is written after watching one: two live
-`--max-iters 1` runs on 2026-08-31, which is also how every claim added here
-was checked rather than reasoned about.
+This version adds one thing to clause 4 and it inverts part of that clause's
+premise. Reaching OpenRouter directly had been framed as purely a robustness
+and provider-agnosticism decision. Running the loop on OpenRouter through pi
+all day on 2026-09-01 showed a second, larger axis nobody had priced: pi is
+silently providing the session transcripts, and a raw/SDK harness gets none.
+That is a cost of leaving, not a benefit — and this session needed those logs
+concretely, when a kid wrote `bin/completion.py` in full, died on a provider
+403, and its 204 KB transcript was the only surviving account of the design.
+
+The compensating gain is recorded with it because it is not obvious and it is
+strictly better than what pi can do: OpenRouter takes a caller-chosen
+`session_id` in the request body, so the id can BE the node's mint id and
+`goal:g2.7`'s cross-link exists by construction. Under pi the id is minted
+after launch and never told to the engine, so that link can only ever be
+reconstructed after the fact — which is exactly the mtime forensics this
+session had to perform.
+
+Recorded on the goal rather than left in a handoff because it changes what
+"provider-agnostic" costs, and the next person to weigh leaving pi should see
+both sides on the goal that proposes it.
+
+The prior version's reasoning, kept only in the grid as this block is rewritten
+per version: it was written after watching two live `--max-iters 1` runs on
+2026-08-31, and placed the CC-dispatcher section here rather than under
+`goal:g1.8` because tier-per-model is a statement about the runtime split, not
+about credentials.
 
 The CC-dispatcher section is here rather than under `goal:g1.8` because the
 owner's requirement — spawn kids directly, *and* spawn parents that spawn their

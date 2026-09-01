@@ -284,6 +284,29 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _zoom_module
+  how: defines private function `_zoom_module` at line 394
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_contract_names_the_report_language_and_field_spelling
+  how: defines public function `test_contract_names_the_report_language_and_field_spelling`
+    at line 405
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_small_zoom_emits_the_file_path_beside_the_node_id
+  how: 'defines public function `test_small_zoom_emits_the_file_path_beside_the_node_id`
+    at line 416, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_path_hint_is_best_effort_not_a_hard_failure
+  how: 'defines public function `test_path_hint_is_best_effort_not_a_hard_failure`
+    at line 428, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: d / f"{slug}.md"
   how: '`(d / f"{slug}.md").write_text("\n".join(lines), encoding="utf-8")` at line
     45'
@@ -331,6 +354,12 @@ outputs:
 - name: tmp_path / "agi-tree.config.json"
   how: '`(tmp_path / "agi-tree.config.json").write_text(''{"cc_dispatch": {}}'')`
     at line 349'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: root / "nodes" / "goal" / "g4.3-a-long-derived-slug.md"
+  how: '`(root / "nodes" / "goal" / "g4.3-a-long-derived-slug.md").write_text( ''---\nid:
+    "goal:g4.3"\ntype: goal\nparents: []\n---\n\nbody\n'' )` at line 422'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

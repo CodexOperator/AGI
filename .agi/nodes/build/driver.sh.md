@@ -25,7 +25,7 @@ payload_ref: extensions/agi/driver.sh
 parse_ok: false
 parse_error: 'not-python: .sh (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 0515b0195fd9f416dda3636ce4547cfdc01badd3262e1818429869ef66e193cb
+content_sha256: 2d1127e049e7644eaa3e88fb198dab76b3c1909c8628ff27149085f200adfdbf
 inputs: []
 outputs: []
 ```

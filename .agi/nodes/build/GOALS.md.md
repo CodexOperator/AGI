@@ -23,7 +23,7 @@ payload_ref: GOALS.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 289f61096f5eda565e38faed7c631577d6d7a52d0541660aa4c77266e4799a82
+content_sha256: 005d84db7a6007ae503e2f4660acf55dc85eb29ee57b8c548f80ee1870b3fc26
 inputs: []
 outputs: []
 ```

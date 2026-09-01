@@ -27,114 +27,124 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: hashlib
+  how: '`import hashlib` at line 54'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: sys
-  how: '`import sys` at line 54'
+  how: '`import sys` at line 55'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: dataclasses.dataclass
-  how: '`from dataclasses import dataclass` at line 55'
+  how: '`from dataclasses import dataclass` at line 56'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: dataclasses.field
-  how: '`from dataclasses import field` at line 55'
+  how: '`from dataclasses import field` at line 56'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: pathlib.Path
-  how: '`from pathlib import Path` at line 56'
+  how: '`from pathlib import Path` at line 57'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: spawn_gate
-  how: '`import spawn_gate` at line 59'
+  how: '`import spawn_gate` at line 60'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_core.identity.mint_permanent_id
-  how: '`from graph_core.identity import mint_permanent_id` at line 65'
+  how: '`from graph_core.identity import mint_permanent_id` at line 66'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding="utf-8")` at line 151'
+  how: '`nf.read_text(encoding="utf-8")` at line 152'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 161'
+  how: '`yaml.safe_load(parts[1])` at line 162'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding="utf-8")` at line 226'
+  how: '`nf.read_text(encoding="utf-8")` at line 227'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(text.split("---", 2)[1])` at line 230'
+  how: '`yaml.safe_load(text.split("---", 2)[1])` at line 231'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.read_text(encoding="utf-8")` at line 402'
+  how: '`node_file.read_text(encoding="utf-8")` at line 420'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 outputs:
 - name: canonical_node_type
-  how: 'defines public function `canonical_node_type` at line 120, signature: (node_type)'
+  how: 'defines public function `canonical_node_type` at line 121, signature: (node_type)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_dir
-  how: 'defines public function `node_dir` at line 132, signature: (root, node_type)'
+  how: 'defines public function `node_dir` at line 133, signature: (root, node_type)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _build_id_index
-  how: 'defines private function `_build_id_index` at line 143, signature: (root:
+  how: 'defines private function `_build_id_index` at line 144, signature: (root:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: find_node_file
-  how: 'defines public function `find_node_file` at line 171, signature: (root, node_id)'
+  how: 'defines public function `find_node_file` at line 172, signature: (root, node_id)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _needs_quoting
-  how: 'defines private function `_needs_quoting` at line 242, signature: (sval: str)'
+  how: 'defines private function `_needs_quoting` at line 243, signature: (sval: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: render_frontmatter
-  how: 'defines public function `render_frontmatter` at line 259, signature: (fm:
+  how: 'defines public function `render_frontmatter` at line 260, signature: (fm:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: NodeWrite
-  how: defines public class `NodeWrite` at line 286
+  how: defines public class `NodeWrite` at line 287
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: scaffold_hash
+  how: 'defines public function `scaffold_hash` at line 319, signature: (body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _is_untouched_scaffold
-  how: 'defines private function `_is_untouched_scaffold` at line 318, signature:
+  how: 'defines private function `_is_untouched_scaffold` at line 336, signature:
     (text: str, scaffold_body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: write_node
-  how: 'defines public function `write_node` at line 335, signature: (root, node_type,
+  how: 'defines public function `write_node` at line 353, signature: (root, node_type,
     slug, parents=None, *, extra_fm=None, body=None, heading=True, bypass=False, rules=None,
     type_index=None, fm_for_gate=None, on_exists=SKIP, announce=True)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_file
-  how: '`node_file.write_text(text, encoding="utf-8")` at line 421'
+  how: '`node_file.write_text(text, encoding="utf-8")` at line 443'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -142,3 +152,17 @@ outputs:
 <!-- BUILD-CONTRACT:END -->
 
 Generated by `level3.py` (see `hyp:level3-node-anatomy` in the graph repo for the design). `how` fields above are derived mechanically via the standard library `ast` module; `why`/`perf`/`security` are placeholders for a later model pass — never fabricated by this generator.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Gained `scaffold_hash`: the identity of a scaffold's body, stamped into
+frontmatter at write time and compared by `completion.is_complete` to decide
+whether a node has acquired real content.
+
+Capturing the hash at write time rather than regenerating the placeholder at
+check time is the whole point. The obvious implementation — rebuild the
+placeholder from `BODY_PROMPTS` and compare — silently reports an untouched
+scaffold as filled the moment that template changes. The stamp cannot: an
+untouched scaffold still hashes to what was stored. This was the weak joint
+`mvp:unified-spawn-path` flagged at confidence 0.7, and it is closed by
+construction rather than by care.
+<!-- THOUGHT:END -->

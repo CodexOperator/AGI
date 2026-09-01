@@ -23,7 +23,7 @@ payload_ref: AGENTS.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 3f5da2571624de17d3c7e7ff63bb6ed2efa3a11398fb9b07dc363ddf42d0688e
+content_sha256: d6bf558f8313f61fd50f05ba6a286e8e6e3ed020a75f81ac7f02dcf35e6d4d55
 inputs: []
 outputs: []
 ```
