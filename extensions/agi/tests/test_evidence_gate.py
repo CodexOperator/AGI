@@ -687,3 +687,44 @@ def test_no_live_node_carries_an_out_of_range_lean():
         if m and not eg.is_valid_verdict(m.group(1)):
             bad.append((p.name, m.group(1)))
     assert bad == [], f"nodes with invalid verdicts: {bad}"
+
+
+# ------------------------------------------------- self-citation (goal:g7.3, 2)
+
+
+def test_verdict_may_not_cite_itself():
+    """`evidence_runs: [<my own id>]` is `evidence_runs: 3` one substitution on.
+
+    It resolves against the corpus because the node exists, and bought a
+    decisive verdict. Fired unprompted on 2026-09-01, on the first kid that
+    reached for `proved`.
+    """
+    corpus = frozenset(["verdict:v1", "experiment:e1"])
+    res = eg.apply_gate(
+        "proved", ["verdict:v1"], corpus=corpus,
+        self_id="verdict:v1", node_type="verdict")
+    assert res.demoted and res.verdict == "inconclusive_lean_proved:50"
+
+
+def test_verdict_citing_its_experiment_is_fine():
+    corpus = frozenset(["verdict:v1", "experiment:e1"])
+    res = eg.apply_gate(
+        "proved", ["experiment:e1"], corpus=corpus,
+        self_id="verdict:v1", node_type="verdict")
+    assert not res.demoted and res.verdict == "proved"
+
+
+def test_experiment_may_cite_itself_because_it_is_the_run():
+    """The asymmetry is the point, not an exemption."""
+    corpus = frozenset(["experiment:e1"])
+    res = eg.apply_gate(
+        "proved", ["experiment:e1"], corpus=corpus,
+        self_id="experiment:e1", node_type="experiment")
+    assert not res.demoted and res.verdict == "proved"
+
+
+def test_self_id_absent_keeps_historical_behaviour():
+    """Every existing caller and node behaves exactly as before."""
+    corpus = frozenset(["verdict:v1"])
+    res = eg.apply_gate("proved", ["verdict:v1"], corpus=corpus)
+    assert not res.demoted and res.verdict == "proved"

@@ -368,3 +368,37 @@ def test_malformed_frontmatter_is_not_complete_and_does_not_raise(project):
     p = d / "bad.md"
     p.write_text("---\nfoo: [unclosed\n---\n\nreal looking body\n")
     assert comp.is_complete(project, "experiment:bad") is False
+
+
+# --------------------------------------------------------------------------
+# Malformed nodes: skip with report, never write back
+# --------------------------------------------------------------------------
+
+
+def test_malformed_node_is_never_rewritten(project, monkeypatch):
+    """The corruption case, verified 2026-09-01 and now prevented.
+
+    Reading `{}` + the whole file and writing that back re-headered the node
+    with a FRESHLY MINTED `mint_id` and demoted the real one into the body —
+    inventing an identity and orphaning the node's grid ref.
+    """
+    d = project / "nodes" / "experiment"
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / "e1.md"
+    original = "---\nid: experiment:e1\nmint_id: deadbeef\ntype: experiment\nbody\n"
+    p.write_text(original)          # frontmatter opened, never closed
+    monkeypatch.chdir(project)
+    _wire_failed_agent(project, "a1", "experiment:e1", status="done")
+    assert p.read_text() == original, "malformed node was rewritten"
+
+
+def test_both_malformed_shapes_raise_one_catchable_class():
+    """`raise` is ONE class — a caller writes a single `except`."""
+    for bad in ("---\nfoo: [unclosed\nbody\n",          # never closed
+                "---\nfoo: [unclosed\n---\nbody\n",     # closed, bad YAML
+                "---\n- a\n- b\n---\nbody\n"):          # parses, not a mapping
+        with pytest.raises(pw.MalformedNode):
+            pw._read_frontmatter(bad)
+    # a file with no frontmatter at all is legitimate, not malformed
+    fm, body = pw._read_frontmatter("just text\n")
+    assert fm == {} and body == "just text\n"

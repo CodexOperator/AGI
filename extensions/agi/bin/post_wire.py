@@ -89,15 +89,54 @@ def _node_file_path(root: Path, node_id: str) -> Path | None:
     return node_writer.find_node_file(root, node_id)
 
 
+class MalformedNode(Exception):
+    """This text opens frontmatter and does not close it, or will not parse.
+
+    Distinct from "has no frontmatter at all", which is a legitimate shape and
+    still returns `({}, text)`. The distinction is the whole point: `cmd_wire`
+    WRITES BACK what this returns, so conflating the two silently rewrites a
+    node it could not read.
+    """
+
+
 def _read_frontmatter(body: str) -> tuple[dict, str]:
-    """Split YAML frontmatter (between --- markers) from body."""
+    """Split YAML frontmatter (between --- markers) from body.
+
+    Raises `MalformedNode` rather than returning `({}, whole_text)` for input
+    that opens frontmatter it cannot parse. `mvp:a00-8a013aaf-ca2434` calls
+    this the right default for a *write-adjacent* caller, and the measurement
+    behind that is concrete (verified 2026-09-01):
+
+        in    ---\\nid: experiment:e1\\nmint_id: deadbeef\\n...   (no closing ---)
+        old   fm={} , body = the ENTIRE file
+        write ---\\nmint_id: <FRESHLY MINTED>\\nverdict: proved\\n---
+              ---\\nid: experiment:e1\\nmint_id: deadbeef\\n...   (now body text)
+
+    So the quiet branch did not lose one node's wiring -- it rewrote the node,
+    **minted a new `mint_id`**, and demoted the real one into prose. `mint_id`
+    is the identifier this project says never changes and the key its grid refs
+    hang off, so that both invented an identity and orphaned a ref. A candidate
+    mechanism for part of the 262 orphaned refs counted the same day.
+
+    The other branch was a bare `yaml.YAMLError` escaping into `cmd_wire`,
+    which is in the loop's critical path -- one malformed node lost the whole
+    iteration's wiring. Both now surface as one catchable class, which is the
+    MVP's "raise is ONE class" clause: a caller writes a single `except`.
+    """
     if "---\n" not in body and "---\r\n" not in body:
-        return {}, body
+        return {}, body          # no frontmatter at all — legitimate, not malformed
     parts = body.split("---", 2)
     if len(parts) < 3:
-        return {}, body
+        raise MalformedNode("frontmatter opened but never closed")
     import yaml
-    fm = yaml.safe_load(parts[1]) or {}
+    try:
+        fm = yaml.safe_load(parts[1]) or {}
+    except yaml.YAMLError as exc:
+        raise MalformedNode(f"frontmatter is not valid YAML: {exc}") from exc
+    if not isinstance(fm, dict):
+        # A list or scalar reaches the caller as an AttributeError on .get()
+        # otherwise — the fourth, unmodeled branch.
+        raise MalformedNode(f"frontmatter parsed to {type(fm).__name__}, not a mapping")
     return fm, parts[2]
 
 
@@ -209,6 +248,11 @@ def _gate(agent: dict, fm: dict, corpus):
         runs,
         bypass=str(fm.get("evidence_gate") or agent.get("evidence_gate", "")) == "bypassed",
         corpus=corpus,
+        # Who is claiming, and what kind of node it is: an `experiment` IS its
+        # own run and may cite itself; a `verdict` must cite the experiments it
+        # judges. Without these the gate cannot tell the two apart.
+        self_id=fm.get("id") or agent.get("node_id"),
+        node_type=fm.get("type"),
     )
     evidence_gate.announce(res)
     return res
@@ -291,7 +335,14 @@ def cmd_wire(args: argparse.Namespace) -> int:
         node_path = _node_file_path(root, node_id)
         if node_path and node_path.exists():
             content = node_path.read_text(encoding="utf-8")
-            fm, body = _read_frontmatter(content)
+            try:
+                fm, body = _read_frontmatter(content)
+            except MalformedNode as exc:
+                # Skip WITH a report, never write. Writing back what we could
+                # not read is what re-headered the node and minted it a new
+                # identity; crashing here would cost the whole iteration.
+                skipped.append(f"{node_id}: unreadable, left untouched — {exc}")
+                continue
             # H4 evidence gate — this is the second writer path, and it must
             # enforce the same rule as cli.py done.
             gate = _gate(agent, fm, corpus)
@@ -368,7 +419,12 @@ def cmd_wire(args: argparse.Namespace) -> int:
             parent_path = _node_file_path(root, parent)
             if parent_path and parent_path.exists():
                 pcontent = parent_path.read_text(encoding="utf-8")
-                pfm, pbody = _read_frontmatter(pcontent)
+                try:
+                    pfm, pbody = _read_frontmatter(pcontent)
+                except MalformedNode as exc:
+                    skipped.append(
+                        f"{parent}: parent unreadable, edge not written — {exc}")
+                    continue
                 next_edges = pfm.get("next_edges", [])
                 if isinstance(next_edges, list):
                     # Must be plain node ID string for find_chains() compatibility

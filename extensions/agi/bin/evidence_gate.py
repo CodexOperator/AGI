@@ -225,7 +225,8 @@ def build_corpus(nodes_dir) -> frozenset:
     return frozenset(ids)
 
 
-def normalize_evidence_runs(value, corpus=None) -> int:
+def normalize_evidence_runs(value, corpus=None, self_id=None,
+                            allow_self: bool = False) -> int:
     """Coerce an `evidence_runs` frontmatter value to a count of entries
     that actually resolve to a real node (goal:g3.1 / TODO.md H4c).
 
@@ -269,10 +270,39 @@ def normalize_evidence_runs(value, corpus=None) -> int:
     if isinstance(value, (list, tuple, set)):
         if corpus is None:
             return 0
-        return sum(1 for v in value if is_node_id_shaped(v) and v.strip() in corpus)
+        return sum(
+            1 for v in value
+            if is_node_id_shaped(v)
+            and v.strip() in corpus
+            and not _is_self_citation(v, self_id, allow_self)
+        )
     if isinstance(value, str):
         return 0
     return 0
+
+
+def _is_self_citation(value, self_id, allow_self: bool) -> bool:
+    """A node naming itself as its own backing run.
+
+    goal:g7.3 closed `evidence_runs: 3` because a count nothing could check
+    certified nothing and was "exactly as cheap to write". `evidence_runs:
+    [<my own id>]` is exactly as cheap, resolves against the corpus because the
+    node exists, and buys a decisive verdict. Same hole, one substitution
+    later. It fired unprompted on 2026-09-01, on the first kid that reached for
+    `proved`.
+
+    **An `experiment` may cite itself and a `verdict` may not**, and the
+    asymmetry is not a nicety: an experiment node IS the run, so naming itself
+    is the honest reference. A verdict's job is to judge experiments, so a
+    verdict citing itself is a claim with nothing behind it. That is the rule
+    the kid contract states in words; this is where it becomes mechanical.
+
+    `self_id=None` disables the check, so every existing caller and every
+    historical node behaves exactly as before.
+    """
+    if allow_self or not self_id:
+        return False
+    return str(value).strip() == str(self_id).strip()
 
 
 def is_unverifiable_attestation(value) -> bool:
@@ -312,7 +342,8 @@ class GateResult:
 
 
 def apply_gate(
-    verdict: str, evidence_runs, *, bypass: bool = False, corpus=None
+    verdict: str, evidence_runs, *, bypass: bool = False, corpus=None,
+    self_id=None, node_type=None
 ) -> GateResult:
     """Apply the evidence gate to a requested verdict.
 
@@ -338,7 +369,12 @@ def apply_gate(
     exit behaviour (`cli.py done` turns it into exit 2, matching the
     existing malformed-verdict convention).
     """
-    runs = normalize_evidence_runs(evidence_runs, corpus=corpus)
+    # An `experiment` IS its own run, so it may cite itself; every other
+    # type must cite something else. `self_id=None` keeps the old behaviour.
+    runs = normalize_evidence_runs(
+        evidence_runs, corpus=corpus, self_id=self_id,
+        allow_self=(str(node_type or '').strip() == 'experiment'),
+    )
     violations = evidence_runs_violations(evidence_runs)
     res = GateResult(
         verdict=verdict, original=verdict, evidence_runs=runs,

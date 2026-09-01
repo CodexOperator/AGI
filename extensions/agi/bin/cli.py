@@ -147,7 +147,12 @@ def cmd_done(args: argparse.Namespace) -> int:
         runs = _node_evidence_runs_raw(root, args.node_id)
     corpus = evidence_gate.build_corpus(root / "nodes")
     gate = evidence_gate.apply_gate(
-        args.verdict, runs, bypass=args.no_evidence_gate, corpus=corpus
+        args.verdict, runs, bypass=args.no_evidence_gate, corpus=corpus,
+        # An `experiment` may name itself (it IS the run); anything else must
+        # cite something other than itself. Type comes from the id prefix,
+        # which is how every node id in this corpus is built.
+        self_id=args.node_id,
+        node_type=(args.node_id or "").split(":", 1)[0] or None,
     )
     evidence_gate.announce(gate)
     if gate.rejected:
