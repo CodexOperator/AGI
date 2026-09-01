@@ -184,7 +184,14 @@ The original agent timed out. Diagnose what blocked it and patch.
 
 ## Your Task
 1. Identify the failure mode: stuck command, missing dep, infinite loop, syntax error, etc.
-2. Apply the smallest patch that unblocks it (NEW commit; do not amend).
+2. Apply the smallest patch that unblocks it. Leave it UNCOMMITTED in the
+   working tree.
+   **Do not commit. Do not push. Do not run git at all.** The loop owns every
+   commit, and a commit made here is authored as the repo owner, lands
+   unreviewed on the checked-out branch, and says something untrue about who
+   changed the engine. This line used to read "NEW commit; do not amend" and a
+   healer correctly obeyed it on 2026-09-01 (`7b57b5955`) -- the kid contract
+   had forbidden git since 2026-08-31 and this one was never updated to match.
 3. If unfixable in <5 turns, mark this agent's verdict as `pending` with reason.
 4. When done:
    ```
@@ -218,6 +225,10 @@ Stay surgical. Don't refactor unrelated code.
     pi_args = [
         pi_bin,
         *_pi_model_args(root),
+        # Headless, matching `pi_adapter.build_command`. Note this path ran
+        # WITHOUT `-p` and did not hang, which is why the hang that prompted
+        # adding it is still unexplained -- see `7b57b5955`.
+        "-p",
         "--append-system-prompt", f"@{healer_ctx}",
         f"You are healer {healer_id}. Diagnose and patch.",
     ]
