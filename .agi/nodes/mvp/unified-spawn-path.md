@@ -1,13 +1,14 @@
 ---
+confidence: 0.7
 id: "mvp:unified-spawn-path"
 mint_id: 1646a6b2322244b886c6ce467a573d7c
-type: mvp
+next_edges:
+  - outcome:a00-c8365a0c-85a6d1
 parents:
   - goal:g4.6
-next_edges: []
-confidence: 0.7
 status: open
 title: "One spawn path: harnesses declared in config, adapters behind them"
+type: mvp
 ---
 
 # mvp:unified-spawn-path

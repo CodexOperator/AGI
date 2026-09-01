@@ -138,6 +138,204 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
+# SESSION HANDOFF — 2026-09-01: the spawn silo, named and half-closed
+
+> **Read this section first.** It supersedes 2026-08-31 below wherever they
+> disagree — in particular that section's §3a, which frames the work as "build
+> the CC dispatcher". That frame is now recorded as **drift**; see §2.
+
+## 0. State
+
+```
+repo         /home/ubuntu/work/agi   ONE repo: source + .agi/ graph + refs/grid/*
+node_count   838                     goal_count 95, active 47
+tests        1121 pass, 0 fail       outcome_coverage 0.27, evidence_fraction 0.212
+runtime      pi, live, primary       CC: config only, and now deliberately deferred
+crons        FROZEN — crons_live: false. Unchanged. Do not re-enable.
+PUSHED       NO — several commits ahead. Push by hand when ready.
+```
+
+**Operating mode, unchanged and deliberate: one pi kid at a time.**
+`agent_dispatch.claude_max_parallel: 1`. Aim every run —
+`driver.sh --max-iters 1 --target <node-id>` — because an unaimed single-slot
+run is the *least* steerable shape available (§4).
+
+## 1. The defect that matters: every pi kid's verdict was being dropped
+
+**Live for the entire life of the pi runtime. Fixed 2026-09-01.**
+
+`dispatch.py` writes the manifest **once**, at spawn. `cli.py done` writes the
+kid's results to `<agent>/agent.json`. `heal.py` bridges them by syncing
+exactly **one** field — `status` — under a comment reading "so post_wire sees
+current state". `post_wire` read the manifest. So `verdict`, `confidence`,
+`evidence_runs` and `notes` went to a file nothing read, and every node kept
+the scaffold's `pending`.
+
+It hid because **the dropped value equalled the default.** Every pi verdict
+anyone had ever observed — including all three of 2026-08-31's verification
+runs — was `pending`. The first kid to return anything else exposed it in one
+run.
+
+**The quiet part is worse than the lost field.** `post_wire` applies the
+evidence gate to the verdict it reads there, so the gate has been running
+against `None` and finding nothing to demote. `unevidenced_decisive_verdicts:
+0` and `evidence_fraction` never said anything about pi discipline — only that
+no pi verdict ever arrived. `post_wire`'s own docstring had claimed since it
+was written that it "reads all agent.json records". The loop never did.
+
+Fixed by `post_wire._merged_agent`: manifest for dispatch-time context,
+`agent.json` overlaid and winning. Also makes `--no-heal` runs wire correctly,
+which they previously did not.
+
+**`mvp:unified-spawn-path` proposes making this structurally impossible** —
+the kid writes `verdict`/`confidence`/`evidence_runs` into its own node
+frontmatter and `post_wire` reads the node, deleting the four-hop marshalling
+path entirely.
+
+## 2. 🔴 The frame was wrong: `goal:g4.3` was masking the real shortfall
+
+The owner's call, and the analysis agrees. `goal:g4.3` says "anywhere the
+engine invokes `pi`, allow invoking Claude Code instead". That is the frame the
+CC adaptation had **when it was a stop-gap at the start of the project**: two
+named runtimes reaching parity. Under it, "unify" reads as "make the second one
+work like the first", which is why the CC half stayed configuration with
+nothing behind it while the pi half grew.
+
+Observed, not theorised: kids aimed at `goal:g4.3` produced CC-framed nodes,
+**correctly**, because that is what the goal asks for. `hypothesis:pi-parent-
+tier-mode2` had to be seeded by hand to get pi work out of the same goal.
+
+- **`goal:g4.6` — one spawn path, N harnesses declared in config as adapters.**
+  `active`. Filed under g4, not beside g4.3: g4 already says model choice is a
+  per-tier knob with nothing hardcoded, and a spawn path that cannot name a
+  tier is exactly why that knob was never connected to anything.
+- **`goal:g4.7` — healing belongs to every harness, and inside the dispatch
+  loop.** `horizon`, waiting on g4.6 to define completion.
+- **`goal:g4.3` keeps its own live items** (H4b `closed_chains.txt`, hook
+  parity, H9's question channel) and carries a superseded-in-intent banner. Not
+  rewritten — that text steered real work and a reader needs to see the frame
+  that produced those nodes.
+
+**`mvp:unified-spawn-path` is the design to build from.** Two-function adapter
+interface (`build_command`, `child_env`), the config shape, an explicit
+out-of-scope list, four falsifiers. **Read it before writing any of this.**
+
+### 2a. Completion must become a graph event
+
+The owner's addition, and the piece most likely to be discarded as an
+implementation detail. It is not one. Today "done" is `cli.py done` writing
+`agent.json` while `heal.py` polls a pid — the pi process model wearing a
+general name. A CC kid has no pid. A kid that wrote its node and then died
+looks identical to one that never started (a 2026-08-31 field note, handled by
+hand ever since).
+
+**The finish signal should be the scaffolded node acquiring real content.**
+Observable by any harness, and identical from the spawned agent's own point of
+view: *write your node*. `cli.py done` demotes from the definition of done to
+one way to announce it. This is also a prerequisite for `goal:g1.9`'s
+assembled brief, which cannot describe finishing without naming a runtime
+until it lands.
+
+## 3. `mvp` is now a design type, not a code type
+
+`[mvp].md` revised. The corpus said so before anyone decided it: `source_files`
+**0/26**, `tests_pass` **0/26**, `commit_hash` **0/26** — the three fields that
+would make an MVP a code artifact have never been filled in by any author. The
+old schema read that as a backlog; it reads better as a measurement. An `mvp`
+now states the minimum a subsequent `build` must satisfy, plus the falsifier.
+It removes a real overlap too: `build` nodes already carry code mechanically,
+and the hand-maintained second copy is the one that drifts.
+
+## 4. `dispatch.py` can now be aimed
+
+`--target ID [--level L]`, passed through from `driver.sh`. Before this, a
+single-slot run was unsteerable: `_pick_targets` short-circuits at `n <= 1` to
+`("big", None, "explore_new")`, so the one kid always scaffolded a parentless
+`idea` and explored wherever scoring pointed. `_explicit_targets` bypasses
+scoring; `small` is the default level because `zoom_command` omits `--target`
+for big zoom and would silently discard the aim.
+
+Not fixed, and it still bounds what aiming buys: **`closed_chains.txt` has
+never been written**, so unaimed selection still draws from the full set.
+
+## 5. 🔴 Next tasks, in order
+
+1. **Build `goal:g4.6` from `mvp:unified-spawn-path`.** Extract
+   `pi_adapter.py` first — it is a pure move of `pi_model_args` +
+   `_build_pi_args` + `_scrubbed_env`, and **the existing tests must pass with
+   assertions unchanged**; a rewrite that needs the tests edited has changed
+   behaviour and is out of scope. Then config routing, then the completion
+   rule. `claude_code_adapter.py` is a deliberate stub this pass — pi is the
+   primary platform now that OpenRouter is reachable.
+2. **Decide what a design MVP's child is.** `_node_type_for` maps
+   `mvp -> outcome` and the documented chain agrees — both assuming `mvp` held
+   built code. It no longer does (§3), so **the chain has no step meaning
+   "implement this design"**, and a kid aimed at a design MVP is scaffolded an
+   `outcome` it cannot honestly write. The first kid aimed at one hit this
+   immediately and adapted by writing a falsifier baseline instead. `task` is
+   the likely answer; the change touches every chain, so it was recorded rather
+   than made in the same pass as the redefinition. **Do not fix it by quietly
+   widening `outcome`.**
+3. **Graph the code (`iomap`, unbuilt).** The owner wants the engine's own
+   source queryable as a graph. **Interim: gitnexus**, which is installed and
+   works on standard code — worth wiring into the `agi` skill so kids can use
+   it instead of grepping. Not started; no node yet beyond this paragraph.
+4. **`goal:g4.7`** once completion is a graph event — half of it dissolves
+   then.
+5. **The goal sweep, still 47 active against a cap of 3.** Two more were added
+   this session, both genuinely in flight. Same job as ever: classify with
+   evidence. `goal:S16` still carries `status: proved`, a verdict value in a
+   lifecycle field.
+6. Carried unchanged from 2026-08-31 §3: `goal:g1.9` (assembled brief — now
+   partly blocked on 2a), `goal:g1.4` stage 2, `goal:g1.8` items 2–3,
+   `goal:g6.6`, `goal:g1.5` init, the `goal:g8.2` falsifier, and the
+   SessionStart hook still printing `agi-tree`.
+
+## 6. 🔴 Traps from this session
+
+- **A green suite says nothing about the runtime, again.** 1097 tests passed
+  over a `post_wire` that had never once read a kid's verdict. It took a kid
+  returning a non-default value to surface it. **Run the loop.**
+- **A defect hides perfectly when its wrong answer equals the default.** The
+  verdict drop was undetectable for as long as every verdict was `pending`.
+  When a field's failure mode is indistinguishable from its common value, the
+  test has to supply an uncommon one.
+- **Delegating to a shared function can trade churn for corruption.** Making
+  `post_wire` use `write_frontmatter` exposed that it has no dict branch, so
+  nested mappings became Python reprs in string scalars — and `crons.py` reads
+  one of those to build the real crontab. Round-tripping all 833 nodes before
+  trusting the change is what caught it (**0 data-lossy, 787 byte-identical**).
+- **An explicit warning in the brief is not a fix.** The contract already said
+  "N is an INTEGER PERCENT... not a 0..1 fraction — that is what
+  `--confidence` takes", and a kid still passed 65 to `--confidence`. Two
+  scales on one command line is the defect; the prose was never the problem.
+  Now shown as one filled example with both numbers pointed at.
+- **Hand-written nodes skip `mint_id`.** `grid.py commit --all` says
+  `N error(s) (missing mint_id)` and does not version them. Read that line.
+- **`test_zoom.py` drives zoom as a subprocess**, so a test asserting on an
+  internal helper has to load the module — it is not importable by default.
+- **Three test assertions were substring checks against raw file bytes**, so
+  they asserted *serialization* where they meant to assert *the gate*, and
+  broke on a quoting change alone. Rewritten to parse frontmatter.
+
+## 7. Known-good verification sequence
+
+```bash
+cd /home/ubuntu/work/agi
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must not drop; secrets ok
+python3 -m pytest extensions/agi/tests/ -q              # 1121 passed
+python3 extensions/agi/bin/snapshot-goals.py --render --check   # 95, byte-identical, exit 0
+python3 extensions/agi/bin/grid.py status               # 0 changed on a clean tree
+python3 extensions/agi/bin/crons.py show                # crons_live: False, none installed
+bash extensions/agi/driver.sh --max-iters 1 --target <node-id>  # LIVE, aimed, costs cents
+```
+
+After the last line: `git log --oneline -1` must still be **your** commit, and
+the kid's node must carry the verdict the kid reported — not `pending` by
+default. That second check is new, and it is the one that would have caught §1.
+
+---
+
 # SESSION HANDOFF — 2026-08-31: paid keys in, pi runtime audited live
 
 > **Read this section first.** It supersedes 2026-08-30 below wherever they
