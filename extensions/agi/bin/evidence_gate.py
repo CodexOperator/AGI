@@ -61,16 +61,25 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+#: `100|\d{1,2}` and not `\d{1,3}`. The loose form accepted `:999` while every
+#: document describing it — VERDICT_HELP below, `zoom.py`'s contract,
+#: `agent-prompt.md`, and `task:t-054-verdict-taxonomy-state-validation` —
+#: said 0-100. That task node's own Test Strategy reads "reject
+#: `inconclusive_lean_proved:101`", so the graph had specified this and the
+#: regex had never implemented it. Tightened 2026-09-01 after confirming no
+#: live node carries an out-of-range lean: the only `:101` in the corpus is
+#: inside that task's prose, as the example of what must be rejected.
 VERDICT_RE = re.compile(
-    r"^(proved|disproved|inconclusive_lean_proved:\d{1,3}"
-    r"|inconclusive_lean_disproved:\d{1,3}|pending)$"
+    r"^(proved|disproved|inconclusive_lean_proved:(?:100|\d{1,2})"
+    r"|inconclusive_lean_disproved:(?:100|\d{1,2})|pending)$"
 )
 
 #: `N` is spelled out because it was not, and a kid paid for it. On the
 #: 2026-08-31 live run one wrote `inconclusive_lean_proved:0.6` — a reasonable
 #: reading of a bare `:N` next to a `--confidence 0.0-1.0` flag — was rejected,
-#: and fell back to `pending`, losing the lean it had actually formed. The
-#: regex has always wanted 1-3 digits; only the help was ambiguous.
+#: and fell back to `pending`, losing the lean it had actually formed. Spelling
+#: out the range in the help was half the fix; the other half was making the
+#: regex agree with it.
 VERDICT_HELP = (
     "proved | disproved | inconclusive_lean_proved:N | "
     "inconclusive_lean_disproved:N | pending "

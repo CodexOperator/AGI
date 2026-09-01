@@ -8,7 +8,7 @@ mint_id: f79fce513f4d4502be270f0b600333ed
 next_edges: []
 parents:
   - exp:topological-queries-r1
-status: inconclusive_lean_proved
+status: "inconclusive_lean_proved:65"
 supports:
   - hyp:a00-c2d7dbcc-3987c7
 tags:
@@ -17,7 +17,7 @@ tags:
   - partial-support
 title: "verdict:topological-queries-r1"
 type: verdict
-verdict: inconclusive_lean_proved
+verdict: "inconclusive_lean_proved:65"
 ---
 
 # verdict:topological-queries-r1
