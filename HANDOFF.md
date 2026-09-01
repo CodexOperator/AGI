@@ -260,13 +260,18 @@ never been written**, so unaimed selection still draws from the full set.
 
 ## 5. 🔴 Next tasks, in order
 
-1. **Build `goal:g4.6` from `mvp:unified-spawn-path`.** Extract
-   `pi_adapter.py` first — it is a pure move of `pi_model_args` +
-   `_build_pi_args` + `_scrubbed_env`, and **the existing tests must pass with
-   assertions unchanged**; a rewrite that needs the tests edited has changed
-   behaviour and is out of scope. Then config routing, then the completion
-   rule. `claude_code_adapter.py` is a deliberate stub this pass — pi is the
-   primary platform now that OpenRouter is reachable.
+1. **Finish `goal:g4.6`: the completion half.** The **spawn** half LANDED
+   2026-09-01 (`2857a7f64`) — `bin/adapters/` with `pi_adapter` and a
+   `claude_code_adapter` stub, `harnesses`/`spawn` in config, tier selecting
+   the model, and falsifiers 1–3 passing as tests. Verified live: a kid spawned
+   with `harness=pi tier=kid` and a command built entirely by the adapter.
+   **Falsifier 4 is the one still open** — completion as a graph event.
+   `hypothesis:a00-9bae6ee8-52d7f5` is aimed at exactly it and names the work:
+   one shared `is_complete(root, node_id)`, `post_wire` reading verdict data
+   from the node's own frontmatter with `agent.json` only as fallback, and no
+   harness-keyed branch in the completion path. Its named risk is the MVP's own
+   weak joint: if "scaffold filled with real content" needs harness-specific
+   knowledge, the seam is wrong — the scaffold-hash variant is the fallback.
 2. **Decide what a design MVP's child is.** `_node_type_for` maps
    `mvp -> outcome` and the documented chain agrees — both assuming `mvp` held
    built code. It no longer does (§3), so **the chain has no step meaning
