@@ -11,7 +11,7 @@ origin: goals-doc
 parents:
   - goal:g4
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - subgoal
@@ -80,22 +80,22 @@ and the one that decides whether this is real: `grep` the shared path for
 branches keyed on harness name and find **zero** outside the adapter lookup.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Raised by the owner on 2026-09-01, after two sequential pi iterations made the
-silo concrete: `hypothesis:pi-parent-tier-mode2` had to be seeded by hand
-because aiming kids at `goal:g4.3` kept producing CC-framed work, since that
-goal's body opens by naming Claude Code as the thing to reach parity with.
-A goal whose framing steers every kid toward the stop-gap is the drift, and
-it is recorded here rather than by rewriting g4.3, which stays as the prior
-art it is.
+Marked complete in the 2026-09-01 sweep, with all five clauses landed and
+tested rather than argued.
 
-Filed under `goal:g4` rather than beside `g4.3` on the owner's call, because
-the tier concept and the spawn concept are the same concept: g4 already says
-model choice is a per-tier knob with nothing hardcoded, and a spawn path that
-cannot name a tier is why that knob has never been connected to anything.
+The spawn half landed 2026-09-01 (`2857a7f64`): `bin/adapters/` with a
+resolved-once harness, `harnesses`/`spawn` in config, tier selecting the model,
+falsifiers 1-3 as tests. Clause 5 — completion as a graph event — landed the
+same day: `bin/completion.py`'s `is_complete(root, node_id)` is harness-blind
+(ast-verified: no `pid`, no `agent.json`, no harness name), `post_wire` reads
+verdict data from node frontmatter first, and `cmd_wire` admits an agent whose
+node is complete regardless of what the process reported.
 
-The completion clause is the owner's addition and is the part most likely to
-be dropped as an implementation detail. It is not one — it is the reason
-`heal.py` exists (see `goal:g4.7`), and defining "done" as a graph event
-rather than a process state is what makes the finish step mean the same thing
-to a pi kid, a CC kid, and the loop watching both.
+The evidence that mattered was not a test. The kid that WROTE `completion.py`
+died on a provider 403 immediately after, was marked `failed`, and produced
+`nodes updated: 0` — the exact loss this clause prevents, suffered by the change
+that prevents it, on the first live try.
+
+`heal.py` still polls pids and is deliberately left to `goal:g4.7`; post_wire
+alone closes the loss, so heal's stamp no longer decides anything.
 <!-- THOUGHT:END -->

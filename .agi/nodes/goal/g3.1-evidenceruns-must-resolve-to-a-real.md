@@ -12,7 +12,7 @@ seeds:
   - exp:evidence-gate-resolution-r1
   - idea:engine-evidence-gate
   - idea:engine-post-wire
-status: active
+status: complete
 tags:
   - goal
   - subgoal
@@ -34,3 +34,17 @@ Then re-measure and record a corrected baseline on both live projects.
 **Until this lands, no `evidence_fraction` reading means anything** — including
 the post-offload 0.365, of which 33 of 121 surviving verdicts are still
 sentinel-backed. Owns TODO **H4c**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Marked complete in the 2026-09-01 sweep. `evidence_runs` resolves against a
+real corpus: `build_corpus` builds the id set and `normalize_evidence_runs`
+counts only entries that are node-id-shaped AND present in it. A bare int
+resolves to 0 by design, because a count nobody can check certifies nothing.
+
+Extended the same day rather than merely confirmed: the resolution rule had a
+hole this goal's own logic implies — a node citing ITSELF resolves, because the
+node exists. `goal:g7.3` closed `evidence_runs: 3` for being "exactly as cheap
+to write"; `[<my own id>]` was exactly as cheap and bought a decisive verdict,
+and it fired unprompted on the first kid that reached for `proved`. Now an
+`experiment` may cite itself (it IS the run) and no other type may.
+<!-- THOUGHT:END -->

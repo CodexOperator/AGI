@@ -8,7 +8,7 @@ mint_id: 46b7d8f76a8742bf9aafa5a82ad8cca3
 origin: goals-doc
 seeds:
   - idea:schema-declared-spawn-gate
-status: active
+status: complete
 tags:
   - goal
   - root
@@ -161,3 +161,15 @@ reason above. One type is still **unverified**: `doc`, which has no
 `[doc].md` at all — one node, `doc:goals-preamble`, and it is the file that
 renders GOALS.md's preamble.
 
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Marked complete in the 2026-09-01 sweep. Node types have declared schemas —
+16 files under `context/schemas/`, each owning its own `spawn:` block — and
+`spawn_gate.check_spawn` enforces them on every writer path through the one
+routine, `node_writer.write_node`.
+
+Proven live the same day rather than assumed: `goal:s22` changed two schemas'
+`allowed_parents` and the gate immediately began rejecting `goal -> mvp` and
+`goal -> experiment` at exit 2 while still approving `goal -> hypothesis` and
+`goal -> cron`. A schema edit changed what agents may write, with no code
+change — which is the thing this goal asked for.
+<!-- THOUGHT:END -->

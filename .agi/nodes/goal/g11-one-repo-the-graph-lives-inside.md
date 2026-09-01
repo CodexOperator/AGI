@@ -9,7 +9,7 @@ origin: goals-doc
 parents: []
 seeds:
   - goal:g11.1
-status: active
+status: complete
 tags:
   - goal
   - root
@@ -18,19 +18,13 @@ type: goal
 ---
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Second unverified number found and corrected: this node claimed 375
-`payload_ref` values would need rewriting. Measured, the answer is zero — a
-payload_ref is stored relative to the engine root, and under the `.agi` layout
-`source_root` resolves to that same directory, so every value resolves
-unchanged across the move. The migration touches history, refs and two file
-locations, and no node content at all.
+Marked complete in the 2026-09-01 sweep. The repo IS one repo: source,
+`.agi/` graph and `refs/grid/*` in a single tree, `payloads/` gone,
+`grid.py checkout` retired, `agi-tree` archived and read-only. The goal has
+been done since 2026-08-29 and stayed `active` only because nothing swept.
 
-That is the second confidently-asserted figure in this node to be wrong (v2
-corrected "thirteen" ancestor-walk sites to eleven). Both were estimates
-written in the voice of measurements. The correction is kept visible in the
-body rather than edited away, because the recurring pattern is more useful to
-a later reader than either individual number — and because this node argues
-for collapsing duplication on the strength of counts.
+Kept as evidence rather than restated: the migration was rehearsed four times
+at 807 nodes in / 807 out, zero bytes changed, before the real cut ran.
 <!-- THOUGHT:END -->
 
 **The two-repo split is the tax every other goal pays.** `agi-tree` holds the

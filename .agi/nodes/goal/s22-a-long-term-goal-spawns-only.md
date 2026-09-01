@@ -9,7 +9,7 @@ next_edges:
   - hypothesis:a00-0d182e77-3f4501
 origin: goals-doc
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - short-term
@@ -74,17 +74,21 @@ node is invalidated — the rule gates new spawns, and the corpus's current
 kid contract and the gate agree, checked by a test that reads both.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted alongside `goal:g13` and sequenced before it on purpose: g13 is the
-first long-term goal that will be held to this rule, so the rule wants to be
-live in the graph before g13 spawns anything, rather than enforced by whoever
-remembers.
+Marked complete in the 2026-09-01 sweep, the same day it was minted, because
+its falsifiers all pass and it has already shaped an iteration.
 
-Short-term because it is a bounded, checkable change whose falsifier runs in
-one command — not a standing commitment. The standing commitment it serves is
-`goal:g3`'s evidence discipline; this is one mechanism for it.
+`spawn_gate check --type mvp --parent goal:g13` exits 2; `--type experiment
+--parent goal:s22` exits 2; `hypothesis` and `cron` still exit 0; no existing
+node was invalidated. The kid contract moved in the same commit rather than
+drifting behind the gate, and carries a test that reads BOTH the contract
+string and the gate rules and asserts every route advertised is a route the
+gate approves.
 
-The audit table sits in the body rather than in the eventual experiment because
-it was measured before the goal was written — a grep over all fourteen type
-schemas — and burying a finished measurement inside a node nobody has spawned
-yet would make the next agent re-derive it.
+The proof it works is that nobody had to remember it: `goal:g13`'s design brief
+was spawned off a verdict because that is the only parent the gate now permits,
+not because a parent chose correctly.
+
+Its open item stands and is NOT part of this completion: `allowed_parents`
+cannot say `goal:long-term`, because `_parse_rule` flattens through
+`canonical_type`. Variant-qualified parents remain unbuilt.
 <!-- THOUGHT:END -->
