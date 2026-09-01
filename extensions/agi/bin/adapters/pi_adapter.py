@@ -15,6 +15,11 @@ of the pi CLI, not of where the code sat:
     `--parent`, which argparse rejects. Emit the flag only with a value.
   - Omitted keys stay omitted rather than defaulting here, so a project that
     configures none of them keeps pi's own settings winning.
+  - Without `-p` the final positional prompt starts pi's *interactive TUI*,
+    which on a spawned non-TTY process renders nothing and never exits: the
+    agent record says `status: running` with a permanently empty `output.log`
+    until the timeout fires (observed 2026-09-01, iter 1). `-p` = process the
+    prompt and exit, which is the only mode that works headless.
 """
 from __future__ import annotations
 
@@ -99,6 +104,9 @@ def build_command(
     """The argv that starts one pi agent."""
     args = [resolve_bin(harness)]
     args += model_args(harness, tier)
+    # Headless: process the prompt and exit. Without this flag the prompt is
+    # fed to the interactive TUI, which hangs forever off a TTY (empty log).
+    args += ["-p"]
     args += [
         "--append-system-prompt", f"@{context_file}",
         "--append-system-prompt", (
