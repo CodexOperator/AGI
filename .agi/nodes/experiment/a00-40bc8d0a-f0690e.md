@@ -3,6 +3,8 @@ confidence: 0.65
 evidence_runs: 1
 id: "experiment:a00-40bc8d0a-f0690e"
 mint_id: d0d380443abb4a099a2faec36f960636
+next_edges:
+  - verdict:a00-ad1d7097-fc613c
 parents:
   - hypothesis:a00-9bae6ee8-52d7f5
 scaffold_hash: 4c52118e15558a66

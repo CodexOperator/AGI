@@ -230,3 +230,60 @@ def test_post_wire_gate_reads_the_node_before_the_record():
     # where the old path landed: pending, from the record or from neither.
     assert pw._gate({"verdict": "pending"}, {}, frozenset()).verdict == "pending"
     assert pw._gate({}, {}, frozenset()).verdict == "pending"
+
+
+# --------------------------------------------------------------------------
+# F4 at LOOP level — the wiring, not just the function
+#
+# The function passing is not the claim. `verdict:a00-ad1d7097-fc613c` ratified
+# the experiment at 65 precisely because `is_complete` had zero callers, and
+# named the one thing that would move it: the loop must count a killed-but-
+# filled kid as done end-to-end. These two tests are that.
+# --------------------------------------------------------------------------
+
+
+def _wire_failed_agent(project, agent_id, node_id, status="failed"):
+    """The record a kid leaves when the PROCESS model gave up on it.
+
+    `heal.py` stamps exactly this after a pid vanishes with no completion
+    signal, and `cmd_wire` used to skip it outright. No `cli.py done` ever ran,
+    so there is no verdict anywhere but the node itself.
+    """
+    iter_dir = project / "sessions" / "iter-001"
+    (iter_dir / agent_id).mkdir(parents=True, exist_ok=True)
+    (iter_dir / agent_id / "agent.json").write_text(json.dumps(
+        {"id": agent_id, "status": status, "node_id": node_id,
+         "fail_reason": "pid disappeared without completion signal"}))
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"timeout_seconds": 600,
+         "agents": [{"id": agent_id, "status": status, "node_id": node_id,
+                     "parent": "hypothesis:h1"}]}))
+    import argparse
+    return pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+
+def test_failed_kid_with_a_filled_node_is_wired_anyway(project, monkeypatch):
+    """MVP falsifier 4, end to end.
+
+    This is the 2026-09-01 loss reproduced: the kid that wrote `completion.py`
+    died on a provider 403 straight after, `heal.py` marked it failed, and
+    `post_wire` reported `nodes updated: 0` over a node that was complete on
+    disk. The work survived only because it also touched source files.
+    """
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal measured content.\n")
+    monkeypatch.chdir(project)
+    _wire_failed_agent(project, "a00-dead", res.node_id)
+    assert _fm(res.path).get("wired_from") == "a00-dead"
+
+
+def test_failed_kid_with_an_untouched_scaffold_is_not_wired(project, monkeypatch):
+    """The inverse, and the reason this is not just `status != failed`.
+
+    A kid that died having written nothing must stay unwired — otherwise the
+    check would launder every crash into a finished node.
+    """
+    res = _scaffold(project)
+    monkeypatch.chdir(project)
+    _wire_failed_agent(project, "a00-dead", res.node_id)
+    assert "wired_from" not in _fm(res.path)
