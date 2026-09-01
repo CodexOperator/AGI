@@ -5,14 +5,15 @@ goal_kind: short-term
 heading_level: 2
 id: "goal:s22"
 mint_id: e95212d7f04241a7a3f5a90e6b4fff8a
-next_edges: []
+next_edges:
+  - hypothesis:a00-0d182e77-3f4501
 origin: goals-doc
 seeds: []
 status: active
 tags:
   - goal
   - short-term
-title: "A long-term goal spawns only hypotheses — design is earned"
+title: A long-term goal spawns only hypotheses — design is earned
 type: goal
 ---
 
