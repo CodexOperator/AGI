@@ -73,6 +73,39 @@ side by configuration — it needs code. What that code must do:
    cannot silently break the loop. Claude models keep going through the
    subscription; the main chat is never routed anywhere else.
 
+   **Caveat added 2026-09-01: calling OpenRouter directly means inheriting the
+   transcript problem pi currently solves for us.** pi writes a full JSONL
+   session log per run to `~/.pi/agent/sessions/`, unasked — that is the only
+   record of how a kid reasoned, and this session needed it (a kid wrote
+   `bin/completion.py` in full, died on a 403, and its 204 KB transcript was
+   the sole account of the design). A raw/SDK harness gets no such log by
+   default, so **leaving pi is not purely a simplification; it trades a free
+   subsidy for infrastructure we would have to run.**
+
+   What the direct path gains in exchange is the *link* `goal:g2.7` wants.
+   OpenRouter accepts a caller-chosen session id in the request body, placed
+   last, after `model` and `messages`:
+
+   ```jsonc
+   {
+     "model": "qwen/qwen3.8-27b",
+     "messages": [ /* ... */ ],
+     "session_id": "my-session-123"
+   }
+   ```
+
+   Because we choose that value, it can simply **be the node's mint id**, and
+   node-to-chat cross-linking exists by construction rather than by
+   bookkeeping — which is strictly better than anything achievable under pi,
+   where the session id is generated after launch and never told to the
+   engine.
+
+   Retrieving the transcripts is then the open piece: a webhook we host, or one
+   of the OpenRouter-compatible observability platforms already available at no
+   cost (**Sentry**, **New Relic**). Not chosen, and not urgent — **while the
+   loop runs on pi, the logs are already being kept**, which is the concrete
+   reason this clause is not blocking.
+
 The invariant this must not break: **a runtime flag, not a parallel code
 path.** Target selection, the spawn gate, the evidence gate, `post_wire` and
 the node format are the same for both runtimes. If the CC dispatcher grows its

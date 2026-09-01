@@ -179,9 +179,25 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 6. **15 duplicate basenames** across type directories, one repeated 7 times.
    Basename-keyed tooling over this corpus is silently wrong; a kid hit it as
    37 phantom disagreements before re-keying on relative path.
-7. **The goal sweep itself: 49 active against a cap of 3.** Two added this
+7. **`benchmark.py` still `sys.exit(1)`s at import** when `ollama` is absent.
+   The 2026-08-30 handoff recorded this as the reason it was cut from
+   `driver.sh`; it has since killed a kid's first run, which worked around it
+   by stubbing `sys.modules["ollama"]`. Anything importing `benchmark` hits the
+   same wall.
+8. **The goal sweep itself: 49 active against a cap of 3.** Two added this
    session (`goal:g13`, `goal:s22`), both genuinely in flight. `goal:S16`
    still carries `status: proved`, a verdict value in a lifecycle field.
+
+**Not on this list, deliberately: session-to-node cross-linking.** Confirmed
+unimplemented in both directions on 2026-09-01 — `thought_session:` is in zero
+code paths and zero nodes. Deferred with the owner's agreement because the
+goals already exist and carry the mechanism: `goal:g2.7` (which direction to
+link, and that pi's free JSONL transcripts are a subsidy worth not discarding)
+and `goal:g4.3` clause 4 (a raw/SDK harness must stamp OpenRouter's
+caller-chosen `session_id`, last after `model` and `messages`, so it can be the
+node's mint id; transcripts then need a webhook or Sentry/New Relic). **While
+the loop runs on pi the logs are already being kept**, which is why this is not
+urgent.
 
 ---
 
