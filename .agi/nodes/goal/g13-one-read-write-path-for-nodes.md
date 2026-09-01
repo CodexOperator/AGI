@@ -32,26 +32,26 @@ generators sit outside it deliberately (`snapshot-goals.py`,
 `snapshot-build-site.py`, `level3.py`), owning their own frontmatter keys and a
 `preserve=` merge the routine has no notion of. There is no reading equivalent.
 
-**Measured, superseding this goal's own first estimate.**
-`hypothesis:a00-5b27ca07-438c0a` counted the read side rather than listing it
-from memory, and the shape is sharper than "seven modules each re-implement
-parsing": it is **five parsers in two stacks** —
-`graph_core.persistence.frontmatter.load_node_file` (used by `zoom.py`,
-`dispatch.py`, `dashboard.py`, `backfill-mint-ids.py`) against four ad-hoc
-`split("---", 2)` readers in `bin/` (`post_wire`, `metrics`, `stitch`, and
-`snapshot-goals`, whose loader `level3.py` reuses). `grid.py` was wrongly on
-the first list: it reads git objects, a different job. The five agree on
-frontmatter for **847/847** nodes and disagree on **847/847** bodies by
-exactly two deterministic rules (a leading blank line, a trailing newline).
+**The read-side defect is not divergent parsing — it is divergent failure
+semantics.** Every parser in the tree agrees on frontmatter for every node in
+the corpus; what differs is what each does when a node is malformed or an id
+is duplicated. Malformed input raises, is silently skipped per-file, returns
+`{}` with the whole file as its body, returns `None`, or vanishes from a dict,
+depending which reader you happened to reach. None of those was chosen. They
+are accidents that agree only because the corpus currently contains nothing
+that would tell them apart.
 
-So the read-side defect is not divergent parsing, it is **divergent failure
-semantics**: malformed input raises, returns `{}`, returns `None`, or is
-silently swallowed depending on which of the five you reached; duplicate ids
-resolve first-wins in one stack and last-wins in the others. Both are latent
-today (0 malformed, 0 duplicates) and neither is chosen — they are four
-accidents. A reader that stops seeing a retired node fails quietly and in its
-own way, which is the failure mode `CLAUDE.md` already documents for the
-live-first deprecated glob.
+**The count belongs to the chain, not to this goal.** This paragraph has been
+wrong twice — it said seven modules, then five parsers, and the measured
+answer is four in two stacks with the `graph_core` stack carrying two
+different semantics one call apart. `hypothesis:a00-5b27ca07-438c0a` and
+`experiment:a00-a10998e3-ca0b99` hold the live numbers and the method; a goal
+that restates them becomes the hand-maintained second copy this project keeps
+paying for. Read the chain.
+
+A reader that stops seeing a retired node fails quietly and in its own way,
+which is the failure mode `CLAUDE.md` already documents for the live-first
+deprecated glob — the same defect class, already observed.
 
 **`goal:g4.6` is what made this legible.** One spawn path turned out to be a
 config entry plus one adapter file, not a rewrite. The same argument applies
@@ -85,13 +85,19 @@ distinction that makes either checkable. **Feeds `goal:g10`**, the hypergraph:
 G10 is the structure, this is the aperture onto it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version replaces the read-path paragraph with a measurement. The first
-version listed seven modules from memory and was wrong twice — `grid.py` reads
-git objects rather than node files, and `level3.py` has no parser of its own —
-and it named the wrong defect: the parsers agree, their failure semantics do
-not. The correction came from the goal's own first hypothesis, which is the
-chain working as intended, and is exactly why a long-term goal is not allowed
-to seed a design brief before one exists (`goal:s22`).
+This version stops the goal from carrying a count at all. v1 listed seven
+modules from memory; v2 replaced that with the hypothesis's measured five; the
+experiment then made it four, because `metrics._parse_frontmatter` no longer
+exists and metrics now routes through `graph_core.loader.load_directory`. Two
+corrections to one paragraph in two nodes is the signal — a goal that restates
+its chain's measurements is a second copy that drifts, which is the exact
+antipattern `goal:s17` names. The chain holds the numbers; the goal holds the
+shape.
+
+What survived all three versions, and is the actual finding: the parsers agree
+on frontmatter everywhere and disagree on failure. That is a better problem
+than the one this goal was written about, and it only surfaced because the
+owner required recon before a design brief (`goal:s22`).
 
 Minted as a long-term goal at the owner's direction, having been intended "for
 a while" and only becoming statable once `goal:g4.6` showed what unification
