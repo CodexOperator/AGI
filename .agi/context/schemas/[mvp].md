@@ -3,7 +3,7 @@ name: mvp
 derived_from: corpus-survey-2026-08-25 (n=26)
 fields:
   title: {type: str}
-  parents: {type: list}        # verdict | goal | experiment | hypothesis ids
+  parents: {type: list}        # verdict | experiment | hypothesis ids
   next_edges: {type: list}
   source_files: {type: list}   # paths to actual code -- optional, see below
   tests_pass: {type: bool}
@@ -18,7 +18,7 @@ validation:
     tests_pass: bool
     parents: list
 spawn:
-  allowed_parents: [verdict, goal, experiment, hypothesis]
+  allowed_parents: [verdict, experiment, hypothesis]
   min_parents: 1
   max_parents: 2
 ---
@@ -84,11 +84,19 @@ redefinition.** Do not "fix" it by quietly widening `outcome`.
 
 ## Spawn rule
 
-`allowed_parents: [verdict, goal, experiment, hypothesis]`, `max_parents: 2`.
+`allowed_parents: [verdict, experiment, hypothesis]`, `max_parents: 2`.
 Observed over 26 nodes: `verdict` 20, `goal` 5, `experiment` 2, `hypothesis`
 1. **Zero parentless**, and `parents` is present on 26/26 — the only content
 type besides `task` with perfect parent coverage, so `parents` is `required:`
 here on measured grounds rather than aspiration.
+
+**`goal` was removed from `allowed_parents` on 2026-09-01 (`goal:s22`).**
+A design is written against measured evidence
+(`hypothesis -> experiment -> verdict -> mvp`), not against the goal's own
+optimism — so the gate now stops *new* `goal -> mvp` spawns. The 5 existing
+`goal -> mvp` edges stay resolvable as prior art; the rule gates spawns, not
+history. `[cron].md` keeps `goal` — for that type it is the only legal parent,
+and a blanket strip would orphan it.
 
 ## Repair: `source_files` was required and is carried by no node
 

@@ -3,6 +3,8 @@ confidence: 0.85
 evidence_runs: 0
 id: "hypothesis:a00-0d182e77-3f4501"
 mint_id: e92746414a884a889f27bb02cc92c8ed
+next_edges:
+  - experiment:a00-788f8d7f-f11472
 parents:
   - goal:s22
 scaffold_hash: 9998df62558bd57b
