@@ -13,11 +13,32 @@ import sys
 import time
 from pathlib import Path
 
+#: `ollama` is required to RUN this, not to IMPORT it.
+#:
+#: This used to be a bare `except ImportError: sys.exit(1)` at module scope, so
+#: merely importing `benchmark` on a box without ollama killed the importing
+#: process. That is why `driver.sh` printed one `ERR:` line per run for however
+#: long, under `|| true` — and on 2026-09-01 it killed a kid's first run
+#: outright, mid-experiment; the kid worked around it by stubbing
+#: `sys.modules["ollama"]` and reported the wall in its `struggles:` line.
+#:
+#: An import-time `sys.exit` makes a module unusable to every reader, including
+#: the ones that only want a constant or a pure helper out of it. The
+#: dependency is real, so `require_ollama()` states it at the point of use —
+#: where the caller can actually do something about it.
 try:
     import ollama
-except ImportError:
-    print("ERR: ollama package not installed (pip install ollama)", file=sys.stderr)
-    sys.exit(1)
+except ImportError:  # pragma: no cover - depends on the box
+    ollama = None
+
+
+def require_ollama():
+    """Fail loudly, at call time, for the paths that genuinely need it."""
+    if ollama is None:
+        print("ERR: ollama package not installed (pip install ollama)",
+              file=sys.stderr)
+        sys.exit(1)
+    return ollama
 
 DEFAULT_MODEL = "qwen3:4b"
 CLOSED_CHAINS_FILE = "closed_chains.txt"
@@ -116,7 +137,7 @@ def judge_chain(chain_id: str, model: str = DEFAULT_MODEL, timeout: int = 120) -
     prompt = _build_judge_prompt(Path(chain["path"]), chain_id)
 
     try:
-        response = ollama.generate(
+        response = require_ollama().generate(
             model=model,
             prompt=prompt,
             options={

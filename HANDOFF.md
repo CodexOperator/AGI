@@ -138,79 +138,57 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
-# DEFERRED TO THE ITER-9 SWEEP — opened 2026-09-01 (qwen-kid session)
+# ITER-9 SWEEP — worked 2026-09-01. Status per item.
 
-> Provisional list, folded into the full session handoff when that session
-> ends. Each item is recorded rather than fixed, and the reason is given —
-> "found it, left it" without a reason is how a to-do list rots.
+> Opened as a deferred list mid-session, then worked. Each item records what
+> was found, not just what was decided.
 
-1. 🔴🔴 **`post_wire._read_frontmatter` — BOTH branches are unsafe, and the
-   quiet one is worse** (`post_wire.py:100`).
-   - *two markers + bad YAML* → uncaught `ParserError`. `post_wire` is in the
-     loop's critical path, so one malformed node loses the **whole
-     iteration's wiring**, not one node.
-   - *no closing marker* → `{}` + the whole file as body, and `cmd_wire` then
-     **writes that back**. Verified 2026-09-01: the node is re-headered with a
-     **freshly minted `mint_id`** and its original frontmatter — real
-     `mint_id` included — is demoted into the body. That is silent corruption
-     that **fabricates a new identity and orphans the node's grid ref**, which
-     may account for part of item 4's 262 orphans.
-
-   Latent: the corpus has 0 malformed nodes. **The original reason for
-   deferring has now expired** — it was left alone because
-   `hypothesis:a00-6b4ad6b2-a60b78` was actively measuring these semantics, and
-   that chain has since closed with a verdict and an MVP. `mvp:a00-8a013aaf-
-   ca2434` prescribes the fix: wrap `yaml.YAMLError` in `FrontmatterError` so
-   one `except` catches both classes, reject non-dict YAML in the parser, and
-   default write-adjacent callers to `skip`-with-report rather than `{}`+raw.
-   Held for iter-9 at the owner's explicit instruction, not because it is
-   still the right thing to defer.
-2. **The healer, end to end.** `heal.py:187` told healers to commit ("NEW
-   commit; do not amend") while the kid contract had forbidden git since
-   2026-08-31; a healer obeyed it and produced `7b57b5955`. Contract fixed
-   (`4d00b7927`), but: the commit still stands, authored as the repo owner,
-   and `heal.py` has never been reviewed as a whole. Its diagnosis is also
-   **self-refuting** — it claims pi hangs without `-p`, and the healer that
-   wrote it ran without `-p` and did not hang. **The real cause of
+1. ✅ **`post_wire._read_frontmatter` — FIXED.** Both branches were unsafe and
+   the quiet one was worse. *Two markers + bad YAML* raised uncaught, and
+   `post_wire` is in the loop's critical path, so one malformed node lost the
+   **whole iteration's wiring**. *No closing marker* returned `{}` + the entire
+   file, which `cmd_wire` then WROTE BACK — verified: the node was re-headered
+   with a **freshly minted `mint_id`** and its real one demoted into the body,
+   inventing an identity and orphaning a grid ref. Now one catchable
+   `MalformedNode` class covering unclosed / unparseable / non-mapping, and
+   both call sites **skip with a report and never write**. A file with no
+   frontmatter at all is still legitimate and still returns `({}, text)` — that
+   distinction is the fix.
+2. ✅ **Healer contract — FIXED** (`4d00b7927`). `heal.py` told healers to
+   commit; one obeyed and produced `7b57b5955`. Contract now matches the kid's.
+   `-p` added for consistency. **Still open and worth knowing:** that commit
+   stands, authored as the repo owner, and its justification is self-refuting —
+   it claims pi hangs without `-p`, while five kids succeeded without it that
+   day and the healer that wrote the claim ran without it. **The real cause of
    `a00-df2af9f7`'s hang is still unknown.**
-3. **The evidence gate accepts self-citation.** `evidence_runs: [<my own id>]`
-   resolves and buys a decisive verdict. `goal:g7.3` closed `evidence_runs: 3`
-   for being "exactly as cheap to write"; this is the same hole one
-   substitution later. Probable resolution: an `experiment` may cite itself
-   (it IS the run), a `verdict` may not (it must cite its experiments). The
-   kid contract now says so in words; the gate does not enforce it.
-4. **262 orphaned grid refs.** 1109 refs under `refs/grid/node`, 847 node
-   files carrying a `mint_id`. This is the decoupling `CLAUDE.md`'s
-   never-delete rule exists to prevent, already at scale, and is consistent
-   with refs keyed on addresses rather than mint ids — `goal:g2.5`'s design,
-   which `SKILL.md` records as not yet deployed.
-5. **`evidence_fraction` penalises the verdict step.** A `verdict` that
-   faithfully cites its parent experiment still scores as unevidenced, because
-   the evidence sits on the parent. The metric therefore rewards chains that
-   skip verdicts — and the kid contract omitted the verdict step until
-   2026-09-01 (`goal:s22`). Two mechanisms pushing the same wrong way.
-6. **15 duplicate basenames** across type directories, one repeated 7 times.
-   Basename-keyed tooling over this corpus is silently wrong; a kid hit it as
-   37 phantom disagreements before re-keying on relative path.
-7. **`benchmark.py` still `sys.exit(1)`s at import** when `ollama` is absent.
-   The 2026-08-30 handoff recorded this as the reason it was cut from
-   `driver.sh`; it has since killed a kid's first run, which worked around it
-   by stubbing `sys.modules["ollama"]`. Anything importing `benchmark` hits the
-   same wall.
-8. **The goal sweep itself: 49 active against a cap of 3.** Two added this
-   session (`goal:g13`, `goal:s22`), both genuinely in flight. `goal:S16`
-   still carries `status: proved`, a verdict value in a lifecycle field.
-
-**Not on this list, deliberately: session-to-node cross-linking.** Confirmed
-unimplemented in both directions on 2026-09-01 — `thought_session:` is in zero
-code paths and zero nodes. Deferred with the owner's agreement because the
-goals already exist and carry the mechanism: `goal:g2.7` (which direction to
-link, and that pi's free JSONL transcripts are a subsidy worth not discarding)
-and `goal:g4.3` clause 4 (a raw/SDK harness must stamp OpenRouter's
-caller-chosen `session_id`, last after `model` and `messages`, so it can be the
-node's mint id; transcripts then need a webhook or Sentry/New Relic). **While
-the loop runs on pi the logs are already being kept**, which is why this is not
-urgent.
+3. ✅ **Evidence-gate self-citation — FIXED.** `evidence_runs: [<my own id>]`
+   resolved and bought a decisive verdict — `goal:g7.3`'s hole one substitution
+   later. Now: an `experiment` may cite itself (it IS the run); every other type
+   may not. `self_id=None` preserves historical behaviour exactly, so no
+   existing node is retroactively demoted.
+4. ✅ **262 orphaned grid refs — DIAGNOSED, not ongoing.** Two historical
+   scars: **185** are `type: level3`, from the level3→build rename that changed
+   mint ids rather than only addresses (exactly what `goal:g2.5` exists to
+   prevent, and it predates mint-id stability); **76** are chain nodes whose
+   ids are gone from the corpus, named `exp:…-r1-extend3` /
+   `verdict:…-r1-extend1` — the 2000-hop shortcut-cycle era that was cleaned
+   up. 1 was re-minted. **Nothing is producing new orphans.** Reattaching them
+   is a migration, not a sweep item.
+5. ✅ **`evidence_fraction` was never the problem — the interface was.**
+   `--evidence-runs` was absent from the `done` template, so a kid could not
+   supply evidence without discovering an undocumented flag. Measured after the
+   fix: both verdicts written since carry `evidence_runs: 1`; the one written
+   before carries 0. The metric was correct throughout.
+6. ⏸ **15 duplicate basenames** across type directories, one repeated 7 times.
+   Basename-keyed tooling is silently wrong (a kid hit it as 37 phantom
+   disagreements). Left alone: renaming node files changes addresses, and the
+   right fix is for readers to key on relative path or mint id — `goal:g13`'s
+   territory, not a rename pass.
+7. ✅ **`benchmark.py` import-time `sys.exit(1)` — FIXED.** An unguarded
+   `except ImportError: sys.exit(1)` at module scope killed any process that
+   merely imported it; it took out a kid's first run mid-experiment. `ollama`
+   is now required at call time via `require_ollama()`, not at import.
+8. ⏳ **The goal sweep itself: see below.**
 
 ---
 
