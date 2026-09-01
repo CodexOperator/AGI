@@ -25,9 +25,41 @@ spawn:
 
 # mvp
 
-Minimum viable production code. Children are `outcome` nodes (i/o-doc fusion).
+**The minimum a build must satisfy — stated as design, not written as code.**
+An `mvp` node describes the smallest thing that would discharge its parent
+verdict or goal: the interfaces, the invariants, the falsifier. The code that
+satisfies it is a `build` node, minted from a real file in the source tree by
+`level3.py`, and an `mvp` points *forward* at what that build owes rather than
+containing it.
+
+Children are `outcome` nodes (i/o-doc fusion).
 
 ID prefix: `mvp:<short-slug>`.
+
+## Why design and not code (revised 2026-09-01)
+
+The corpus said this before anyone decided it. `source_files` **0/26**,
+`tests_pass` **0/26**, `commit_hash` **0/26** — the three fields that would
+make an MVP node a *code* artifact have never been filled in, across every MVP
+ever written. The old schema read that as a defect to be repaired later.
+
+It is better read as a measurement: **26 authors independently used `mvp` to
+say what should be built, not to hold what was built.** The type was already a
+design node; only its definition disagreed. Naming that makes the three empty
+fields stop being a backlog — they are optional pointers a build node fills in
+if it wants, and their emptiness is no longer evidence of anything.
+
+This also removes a real overlap. `build` nodes already carry code: one per
+tracked file, with a derived contract, a `payload_ref`, and grid versions of
+the payload itself. An `mvp` that also held code was a second, hand-maintained
+answer to a question `build` answers mechanically — and the hand-maintained
+copy is the one that drifts (the same failure `goal:g1.9` names for briefs and
+`goal:s14` names for serializers).
+
+**What an MVP body should contain:** the interface or schema it fixes, the
+minimum behaviour required, what is explicitly out of scope, and the falsifier
+that tells a later reader whether the build discharged it. What it should not
+contain: the implementation.
 
 ## Spawn rule
 

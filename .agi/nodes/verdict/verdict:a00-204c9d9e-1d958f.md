@@ -49,4 +49,4 @@ Most hypothesis nodes (e.g., `hyp:graph-core-r4`, `hyp:renderers-r8`) are raw re
 
 ### Confidence: 0.82
 
-扣 0.18 because Q1 has very sparse non-zero results (only 1/94 tasks scored). This reflects correct graph state but limits practical utility for raw-hypothesis domains. Future work: score tasks by hypothesis R-number recency even when hypothesis has no graph edges.
+Deducted 0.18 because Q1 has very sparse non-zero results (only 1/94 tasks scored). This reflects correct graph state but limits practical utility for raw-hypothesis domains. Future work: score tasks by hypothesis R-number recency even when hypothesis has no graph edges.
