@@ -8,7 +8,7 @@ mint_id: d3ded88fb3b34d52beb8eb38ec6bf973
 origin: goals-doc
 seeds:
   - mvp:zoom-runtime-contract
-status: active
+status: complete
 tags:
   - goal
   - root
@@ -40,3 +40,16 @@ Note the shape: it is the same defect **G6.6** exists to catch, and G6.6's own
 verdict says the currently-prescribed remedy would not have caught it, because
 all three are internally self-consistent and only disagree with each other.
 Patching at dispatch time, as this run did, is the workaround, not the fix.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Marked complete in the 2026-09-01 sweep, on the live path rather than on the
+tests: `dispatch.py:101` passes `--runtime pi` explicitly when it builds the
+zoom command, so a pi kid can no longer be handed the Claude Code contract by
+`zoom.py::default_runtime` guessing from the presence of a `cc_dispatch` block.
+
+How it was found is the part worth keeping: both kids on the 2026-08-31 live
+run READ the contradiction in their own context — told "do not call cli.py" in
+the one runtime where `cli.py done` is how the manifest closes — reported it,
+and correctly ignored their own instructions. The engine was wrong and the
+agents caught it, which happened four more times on 2026-09-01.
+<!-- THOUGHT:END -->

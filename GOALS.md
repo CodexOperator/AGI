@@ -1341,7 +1341,7 @@ Still open, and the reason this stays active: **L4** — `outcome_coverage` is a
 specific goal**. True goal-fulfilment scoring is unbuilt. The goal nodes it
 needs exist as of L15.
 
-### G3.1 — `evidence_runs` must resolve to a real node — status: active
+### G3.1 — `evidence_runs` must resolve to a real node — status: complete
 
 🔴 **The evidence metric was itself gamed, and by the cheapest possible move.**
 `normalize_evidence_runs` returns `len(value)` for any list, so
@@ -1675,7 +1675,7 @@ signal, whose pathological structure then broke the render path outright.
 `depends_on` is denser and more legitimate-looking than a shortcut cycle,
 which makes it a worse offender, not a better one. Pairs with **G3**.
 
-### G4.6 — One spawn path; a harness is an adapter named in config — status: active
+### G4.6 — One spawn path; a harness is an adapter named in config — status: complete
 
 **There is no single place where an agent is spawned, and that is the real
 shortfall `goal:g4.3` has been masking.** Today `dispatch.py` builds a pi
@@ -2095,7 +2095,7 @@ attempt survives as prior art (G9.5's rejected-draft case).
 Depends on G6.3 for versioning and on G9.5 for the session→version link, without
 which a branch point cannot be identified after the fact.
 
-### G6.5 — The cron rebuilds agi from agi-tree, then commits and pushes it — status: active
+### G6.5 — The cron rebuilds agi from agi-tree, then commits and pushes it — status: phasing-out
 
 **The shape being committed to: `agi-tree` is the development environment,
 `agi` is the shippable package.** Work happens in the graph; the engine repo is
@@ -4026,7 +4026,7 @@ second one, which is **G1.2**'s failure mode.
 Depends on **G1.3** (the supermap convention it extends), **G10.2** (the actions
 it lists should be read from the geometry, not hardcoded a second time).
 
-## G11 — One repo: the graph lives inside what it builds — status: active
+## G11 — One repo: the graph lives inside what it builds — status: complete
 
 
 
@@ -4242,7 +4242,7 @@ a publish script with four gates that refuses more often than it acts.
   home of every payload byte. Verified on a scratch clone in step 3 before
   anything is moved for real.
 
-### G11.1 — Nine Python files still declare their own ancestor walk, and it has cost three outages — status: active
+### G11.1 — Nine Python files still declare their own ancestor walk, and it has cost three outages — status: complete
 
 
 
@@ -4959,7 +4959,7 @@ ends have to be closed together.**
 All three are reversible: unarchive in settings, `git mv` the marker back,
 delete the hook. Nothing was deleted at any point.
 
-## S5 — The engine repo has no sync at all — status: active
+## S5 — The engine repo has no sync at all — status: complete
 
 `agi-tree` got both grid cadences on 2026-08-22 (**S2**). **`agi` got nothing** —
 no cron, and as of that date 11 unpushed commits on `master` carrying every
@@ -5096,7 +5096,7 @@ test — run twice, second run writes nothing. Related to **G7.1** (referential
 integrity on every parent reference), which checks the reference that exists;
 this is the reference that silently does not.
 
-## S8 — `zoom.py` bakes the pi-runtime completion contract into the kid context — status: active
+## S8 — `zoom.py` bakes the pi-runtime completion contract into the kid context — status: complete
 
 When using the script to inject context, eventually zoom.py fires and inserts the
 reference for each kid on how to mark the completion of their task. It currently
@@ -5559,7 +5559,7 @@ runs that resolve. The number was previously wrong in the flattering
 direction *and* the unflattering one at once — it hid 10 backed verdicts and 5
 unbacked ones. `decisive_verdicts` 7 → 17 is the same effect.
 
-## S17 — Node types have no declared schema, so a spawn is never checked — status: active
+## S17 — Node types have no declared schema, so a spawn is never checked — status: complete
 
 **Seven node types are in daily use and `context/schemas/` declares six of
 them — and the overlap is not what you would guess.** Active (bracketed, per
@@ -6209,7 +6209,7 @@ second, `stitch --verify --strict` must report zero findings in all four
 categories, and `--grid-version N` for a version predating the retirement must
 still materialise the file. Today none of that is expressible.
 
-## S22 — A long-term goal spawns only hypotheses — design is earned — status: active
+## S22 — A long-term goal spawns only hypotheses — design is earned — status: complete
 
 **A goal may not shortcut to a design brief.** The route from a goal to an
 `mvp` runs through `hypothesis -> experiment -> verdict`, so a design is

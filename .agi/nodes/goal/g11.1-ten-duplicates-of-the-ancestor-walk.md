@@ -9,7 +9,7 @@ origin: goals-doc
 parents:
   - goal:g11
 seeds: []
-status: active
+status: complete
 tags:
   - goal
 title: "G11.1: Nine Python files still declare their own ancestor walk, and it has cost three outages"
@@ -17,12 +17,15 @@ type: goal
 ---
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 recorded this as tidiness: ten duplicated resolvers, worth collapsing.
-Within an hour of goal:g11 landing, three of them broke in production, each
-differently, and one of the three was a silent wrong answer rather than a
-crash. This version reclassifies the goal from cleanup to defect and records
-the three as evidence, because "ten copies of a rule" is an abstraction and
-"level3.py minted nodes for its own output" is not.
+Marked complete in the 2026-09-01 sweep, on its own falsifier rather than on
+judgement: `grep -c '^CONFIG_NAMES' extensions/agi/bin/*.py` names exactly one
+file. The goal asked for ten duplicates of the ancestor walk to become one
+resolver, and iter-5 (2026-08-30) did it.
+
+Worth keeping from that work: the goal said ten *duplicates*; the measurement
+said ten *breakages*. No legacy config file existed anywhere in the repo, so
+every copy of the walk was already dead code resolving nothing — seven failed
+hard, two answered `os.getcwd()` with no walk at all.
 <!-- THOUGHT:END -->
 
 **The residual G11 left behind.** `bin/locations.py` exists as the single

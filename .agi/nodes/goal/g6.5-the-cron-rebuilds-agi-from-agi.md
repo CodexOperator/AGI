@@ -9,7 +9,7 @@ origin: goals-doc
 parents:
   - goal:g6
 seeds: []
-status: active
+status: phasing-out
 tags:
   - goal
   - subgoal
@@ -152,3 +152,17 @@ cases.** Gate 1 could re-run the derivation and say "the graph is dirty *and*
 re-deriving does not clean it — node X disagrees with its own contract",
 which is a different sentence demanding different work. Pairs with **G7.9**
 (a scan must not be quiet about what it changes) and **G7.5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Marked `phasing-out` in the 2026-09-01 sweep rather than complete, because it
+was never done — it was made meaningless.
+
+The goal describes a cron that rebuilds `agi` from `agi-tree`, commits and
+pushes it. `goal:g11` deleted the boundary that job existed to cross: there is
+no second repo to rebuild from, `publish-engine.sh` has nothing to run, and
+`engine_push` duplicates `branch_push` against the same remote. Both are
+expected to stay disabled rather than be deleted from the cron schema.
+
+Retired by marking, not by deleting, and the seed nodes stay as prior art —
+this chain is the record of what the two-repo era cost.
+<!-- THOUGHT:END -->

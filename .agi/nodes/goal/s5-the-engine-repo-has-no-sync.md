@@ -7,7 +7,7 @@ id: "goal:s5"
 mint_id: 9cfe86f4759648ed914615ddc2e4b019
 origin: goals-doc
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - root
@@ -44,3 +44,16 @@ Check the same thing that made S2 worth doing: **verify which branch is
 actually checked out before trusting any push.** agi-tree's work had
 accumulated on a stale `iter24-extend-300hop` branch, and a cron pushing
 `master` would have published nothing, silently, indefinitely.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Marked complete in the 2026-09-01 sweep. The engine repo has sync: it is
+declared as graph content in `.agi/nodes/.geometry/crons.md` and reconciled by
+`bin/crons.py apply`, which re-resolves the checked-out branch every time
+rather than caching it.
+
+Complete refers to the MECHANISM, which is what the goal asked for. The
+schedule is currently frozen (`crons_live: false`), deliberately and for
+operational reasons, and that is a switch position rather than an absence —
+turning it back on is one edit plus one manual `apply`, because the job that
+would re-apply the declaration is itself one of the lines it removes.
+<!-- THOUGHT:END -->
