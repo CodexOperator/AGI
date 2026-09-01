@@ -185,10 +185,25 @@ def _gate(agent: dict, fm: dict, corpus):
     `corpus` is the set of real node ids (`evidence_gate.build_corpus`)
     evidence_runs entries are resolved against (H4c / goal:g3.1).
     """
-    verdict = fm.get("verdict") or agent.get("verdict") or "pending"
+    # `pending` in the node is the ABSENCE of a claim, not a claim of its own,
+    # so it must not outrank a verdict the agent actually reported. Written as
+    # `fm.get("verdict") or agent.get(...)` this read `pending` as truthy and
+    # silently discarded the agent's real verdict.
+    fm_verdict = fm.get("verdict")
+    if fm_verdict in (None, "", "pending"):
+        fm_verdict = None
+    verdict = fm_verdict or agent.get("verdict") or "pending"
+
+    # Only a LIST in the node is a claim. `evidence_gate.stamp` writes back the
+    # normalized COUNT (`evidence_runs: 1`), so on a second wire the node holds
+    # an int -- and `normalize_evidence_runs` resolves an int to 0 by design
+    # (goal:g7.3: a count nothing can check certifies nothing). Preferring the
+    # node's int over the agent's list therefore DEMOTED an earned `proved` to
+    # `inconclusive_lean_proved:50` on every re-wire. Latent only because
+    # nothing re-wires today.
     runs = fm.get("evidence_runs")
-    if runs is None:
-        runs = agent.get("evidence_runs")
+    if not isinstance(runs, (list, tuple, set)):
+        runs = agent.get("evidence_runs", runs)
     res = evidence_gate.apply_gate(
         verdict,
         runs,

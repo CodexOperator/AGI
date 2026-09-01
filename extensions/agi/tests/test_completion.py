@@ -321,3 +321,36 @@ def test_notes_land_once_even_when_both_writers_run(project, monkeypatch):
     text = res.path.read_text()
     assert text.count("## Agent Notes") == 1, text
     assert text.count(notes) == 1, text
+
+
+# --------------------------------------------------------------------------
+# `_gate` precedence — the two ways frontmatter-primary went wrong
+# --------------------------------------------------------------------------
+
+
+def test_rewire_does_not_demote_an_earned_proved():
+    """`stamp` writes back a COUNT; the gate needs the LIST.
+
+    Second wire sees `evidence_runs: 1`, an int, which goal:g7.3 resolves to
+    zero evidence on purpose — so preferring it over the agent's list turned a
+    legitimately proved node into `inconclusive_lean_proved:50` on every
+    re-wire.
+    """
+    corpus = frozenset(["experiment:e1"])
+    agent = {"verdict": "proved", "evidence_runs": ["experiment:e1"]}
+    first = pw._gate(agent, {"verdict": "pending"}, corpus)
+    assert first.verdict == "proved", first.verdict
+    # what the node looks like after stamp(): verdict set, runs a bare count
+    rewire = pw._gate(agent, {"verdict": "proved", "evidence_runs": 1}, corpus)
+    assert rewire.verdict == "proved", rewire.verdict
+    assert not rewire.demoted
+
+
+def test_pending_in_the_node_does_not_outrank_a_reported_verdict():
+    """`pending` is the absence of a claim, not a claim."""
+    corpus = frozenset(["experiment:e1"])
+    agent = {"verdict": "proved", "evidence_runs": ["experiment:e1"]}
+    assert pw._gate(agent, {"verdict": "pending"}, corpus).verdict == "proved"
+    # a real claim in the node still wins over the agent record
+    fm = {"verdict": "inconclusive_lean_proved:65", "evidence_runs": []}
+    assert pw._gate(agent, fm, corpus).verdict == "inconclusive_lean_proved:65"
