@@ -272,7 +272,31 @@ never been written**, so unaimed selection still draws from the full set.
    harness-keyed branch in the completion path. Its named risk is the MVP's own
    weak joint: if "scaffold filled with real content" needs harness-specific
    knowledge, the seam is wrong — the scaffold-hash variant is the fallback.
-2. **Decide what a design MVP's child is.** `_node_type_for` maps
+2. **The parent tier spawns, but has no brief. Deliberately left manual.**
+   `dispatch.py --tier parent` works and correctly selects
+   `harnesses.pi.models.parent` (`qwen/qwen3.8-27b`) — but the brief it hands
+   that process is **the kid brief**, because `_build_pi_args`' successor
+   builds one prompt shape and `zoom.py`'s contract knows tiers not at all. So
+   a parent spawned today is a kid on a better model, which is worse than
+   useless: it would write one node and stop, while looking like it ran a loop.
+
+   **Not built on purpose, for a reason worth keeping.** A parent brief is
+   `goal:g1.9`'s object — *"a parent should name the target and the tier, and
+   nothing else"* — and writing one by hand now would create exactly the
+   hand-maintained copy of a contract that g1.9 exists to delete. It also
+   depends on clause 5 above: a parent brief has to tell a parent how it knows
+   its kids finished, and that answer is changing.
+
+   **Until then, the delegator is the parent**, by hand, which is how every
+   iteration in this session ran and it worked. What a parent brief will need
+   when it is written: the target and tier only; how to spawn (shell out to
+   `dispatch.py --tier kid --target <id>`); the review gate; and the
+   serialization rule — **`spawn.parallel` does not bound grandchildren**
+   (`experiment:a00-763e629b-5c04ad`), so a parent's own spawns need the limit
+   applied again, and making that a property of the brief alone means a parent
+   that ignores its brief can still collide.
+
+3. **Decide what a design MVP's child is.** `_node_type_for` maps
    `mvp -> outcome` and the documented chain agrees — both assuming `mvp` held
    built code. It no longer does (§3), so **the chain has no step meaning
    "implement this design"**, and a kid aimed at a design MVP is scaffolded an
@@ -281,17 +305,17 @@ never been written**, so unaimed selection still draws from the full set.
    the likely answer; the change touches every chain, so it was recorded rather
    than made in the same pass as the redefinition. **Do not fix it by quietly
    widening `outcome`.**
-3. **Graph the code (`iomap`, unbuilt).** The owner wants the engine's own
+4. **Graph the code (`iomap`, unbuilt).** The owner wants the engine's own
    source queryable as a graph. **Interim: gitnexus**, which is installed and
    works on standard code — worth wiring into the `agi` skill so kids can use
    it instead of grepping. Not started; no node yet beyond this paragraph.
-4. **`goal:g4.7`** once completion is a graph event — half of it dissolves
+5. **`goal:g4.7`** once completion is a graph event — half of it dissolves
    then.
-5. **The goal sweep, still 47 active against a cap of 3.** Two more were added
+6. **The goal sweep, still 47 active against a cap of 3.** Two more were added
    this session, both genuinely in flight. Same job as ever: classify with
    evidence. `goal:S16` still carries `status: proved`, a verdict value in a
    lifecycle field.
-6. Carried unchanged from 2026-08-31 §3: `goal:g1.9` (assembled brief — now
+7. Carried unchanged from 2026-08-31 §3: `goal:g1.9` (assembled brief — now
    partly blocked on 2a), `goal:g1.4` stage 2, `goal:g1.8` items 2–3,
    `goal:g6.6`, `goal:g1.5` init, the `goal:g8.2` falsifier, and the
    SessionStart hook still printing `agi-tree`.
