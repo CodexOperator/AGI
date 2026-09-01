@@ -3,19 +3,22 @@ confidence: 1.0
 goal_id: G4.3
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.3"
+id: goal:g4.3
 mint_id: 486acf4bc70c403aa16c9d1efdcb8107
+next_edges:
+- hypothesis:a00-652a7e70-1adcde
 origin: goals-doc
 parents:
-  - goal:g4
+- goal:g4
 seeds: []
 status: horizon
 tags:
-  - goal
-  - subgoal
-title: "G4.3: Finish the runtime split: pi and Claude Code as one path"
+- goal
+- subgoal
+title: 'G4.3: Finish the runtime split: pi and Claude Code as one path'
 type: goal
 ---
+
 
 **L12** remainder plus **H9**. Anywhere the engine invokes `pi`, allow invoking
 Claude Code instead — a runtime flag, not a parallel code path — and audit hook
