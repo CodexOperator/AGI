@@ -1,12 +1,13 @@
 ---
-id: hypothesis:pi-parent-tier-mode2
-mint_id: 4ae522af783740e5ab495720b5992e25
-type: hypothesis
-parents:
-  - goal:g4.3
-next_edges: []
 confidence: 0.5
 evidence_runs: 0
+id: "hypothesis:pi-parent-tier-mode2"
+mint_id: 4ae522af783740e5ab495720b5992e25
+next_edges:
+  - experiment:a00-763e629b-5c04ad
+parents:
+  - goal:g4.3
+type: hypothesis
 verdict: pending
 ---
 

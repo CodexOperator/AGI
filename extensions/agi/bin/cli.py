@@ -81,10 +81,48 @@ def _node_evidence_runs_raw(root: Path, node_id: str | None):
     return fm.get("evidence_runs")
 
 
+def _normalize_confidence(value: float) -> float:
+    """`--confidence` is 0..1. A kid that passes 65 meant 0.65.
+
+    The two numbers on this command are on different scales and the kid has to
+    hold both at once: a lean verdict carries `:N` as an INTEGER PERCENT
+    (`inconclusive_lean_proved:65`) while `--confidence` is a fraction. The
+    2026-08-31 session found the first half of that confusion -- a kid wrote
+    `:0.6`, was rejected, and fell back to `pending`, losing the lean -- and
+    fixed it by making VERDICT_HELP say `N` is a percent. On 2026-09-01 a kid
+    made the mirror error, passing the percent to `--confidence` as well and
+    storing `confidence: 65.0` on a 0..1 field. Nothing checked the range.
+
+    Normalized rather than rejected, and announced. The intent at 65 is not
+    ambiguous, and this module already prefers recovering a kid's real work
+    over discarding it for argument style -- see the `["3"]` evidence-runs
+    collapse below, which reasons that "rejection is reserved for claims that
+    are actively false". A percent written where a fraction belongs is a unit
+    error, not a false claim. Outside 0..100 there is no recoverable intent,
+    so that is an error.
+    """
+    if value is None or 0.0 <= value <= 1.0:
+        return value
+    if 1.0 < value <= 100.0:
+        scaled = value / 100.0
+        print(f"CONFIDENCE-NORMALIZED {value} -> {scaled} "
+              "(--confidence is 0..1; a lean verdict's `:N` is an integer "
+              "percent — they are different scales)", file=sys.stderr)
+        return scaled
+    raise ValueError(
+        f"--confidence {value} is outside 0..1 (and outside 0..100, so it is "
+        "not a percent either)")
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
               file=sys.stderr)
+        return 2
+    try:
+        args.confidence = _normalize_confidence(args.confidence)
+    except ValueError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
         return 2
     root = _find_root()
     ap = _agent_path(root, args.iter_n, args.agent_id)

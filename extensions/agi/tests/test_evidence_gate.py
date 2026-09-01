@@ -603,3 +603,50 @@ def test_post_wire_sentinel_does_not_reject_uncertain_verdicts(wired_project):
                      "node_id": "experiment:e1", "evidence_runs": ["synthetic"]})
     fm = _fm_of(root / "nodes" / "experiment" / "e1.md")
     assert fm["verdict"] == "inconclusive_lean_proved:60"
+
+
+# --- the kid's own record is what post_wire must read ----------------------
+
+
+def test_post_wire_reads_the_verdict_the_kid_actually_wrote(wired_project):
+    """The manifest is written once, at spawn. `cli.py done` writes the kid's
+    results to `<agent>/agent.json`, and `heal.py` syncs only `status` across.
+    So every pi kid's verdict/confidence/evidence_runs was dropped and the
+    node kept the scaffold's `pending` -- invisible while every observed pi
+    verdict happened to BE `pending`."""
+    root, iter_dir = wired_project
+    agent = {"id": "a1", "status": "done", "node_id": "experiment:e1"}
+    (iter_dir / "manifest.json").write_text(json.dumps({"agents": [agent]}))
+    sess = iter_dir / "a1"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / "agent.json").write_text(json.dumps({
+        "id": "a1", "status": "done", "node_id": "experiment:e1",
+        "verdict": "inconclusive_lean_proved:65", "confidence": 0.65,
+    }))
+    import argparse
+    post_wire.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+    fm = _fm_of(root / "nodes" / "experiment" / "e1.md")
+    assert fm["verdict"] == "inconclusive_lean_proved:65"
+    assert fm["confidence"] == 0.65
+
+
+def test_agent_json_wins_over_the_stale_manifest_copy(wired_project):
+    root, iter_dir = wired_project
+    (iter_dir / "manifest.json").write_text(json.dumps({"agents": [
+        {"id": "a1", "status": "running", "node_id": "experiment:e1",
+         "verdict": None}]}))
+    sess = iter_dir / "a1"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / "agent.json").write_text(json.dumps({
+        "id": "a1", "status": "done", "node_id": "experiment:e1",
+        "verdict": "pending", "confidence": 0.4}))
+    import argparse
+    post_wire.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+    assert _fm_of(root / "nodes" / "experiment" / "e1.md")["confidence"] == 0.4
+
+
+def test_missing_agent_json_falls_back_to_the_manifest_entry(wired_project):
+    root, iter_dir = wired_project
+    _wire(iter_dir, {"id": "a1", "status": "done", "verdict": "pending",
+                     "node_id": "experiment:e1", "evidence_runs": 0})
+    assert _fm_of(root / "nodes" / "experiment" / "e1.md")["verdict"] == "pending"
