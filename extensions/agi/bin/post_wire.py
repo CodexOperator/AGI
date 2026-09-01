@@ -26,6 +26,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 SRC_GRAPH = PLUGIN_ROOT / "src" / "graph_core"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import completion  # noqa: E402
 import evidence_gate  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
@@ -239,13 +240,30 @@ def cmd_wire(args: argparse.Namespace) -> int:
     skipped: list[str] = []
     demoted: list[str] = []
     rejected: list[str] = []
+    admitted_by_graph: list[str] = []
 
     for agent in (_merged_agent(iter_dir, a) for a in manifest.get("agents", [])):
-        if agent.get("status") != "done":
+        node_id = agent.get("node_id")
+        # goal:g4.6 clause 5 -- completion is a GRAPH event, not a process one.
+        # `status == "done"` means `cli.py done` ran, which is one way to
+        # announce finishing and not the definition of it. A kid that filled
+        # its node and then died -- API error, content filter, killed pid --
+        # is finished, and its work was previously dropped here: `heal.py`
+        # stamps `failed (pid disappeared without completion signal)` and this
+        # filter skipped it, so the node sat on disk unwired.
+        #
+        # That is not hypothetical. On 2026-09-01 the kid that WROTE
+        # `completion.py` died on a provider 403 immediately after, was marked
+        # failed, and produced `nodes updated: 0` -- the loss this check
+        # prevents, suffered by the change that prevents it.
+        finished = agent.get("status") == "done"
+        if not finished and node_id and completion.is_complete(root, node_id):
+            finished = True
+            admitted_by_graph.append(f"{agent['id']}: {node_id}")
+        if not finished:
             continue
         verdict = agent.get("verdict")
         confidence = agent.get("confidence", 0.5)
-        node_id = agent.get("node_id")
         parent = agent.get("parent", "")
         notes = agent.get("notes", "")
         strategy = agent.get("strategy", "unknown")
@@ -395,6 +413,14 @@ def cmd_wire(args: argparse.Namespace) -> int:
         print(f"  gate rejections (nothing written): {len(rejected)}")
         for r in rejected:
             print(f"    - {r}")
+    if admitted_by_graph:
+        # Say it loudly: these kids never signalled, and were wired anyway
+        # because their node is real. Silence here would hide both the
+        # recovery and whatever killed the kid.
+        print(f"  admitted by graph completion (no cli.py done): "
+              f"{len(admitted_by_graph)}")
+        for a in admitted_by_graph:
+            print(f"    - {a}")
     if skipped:
         print(f"  skipped: {len(skipped)}")
         for s in skipped:
