@@ -124,10 +124,14 @@ def build_command(
                 f"Node type: {scaffold['node_type']}  "
                 f"Node ID: {scaffold['node_id']}  "
                 f"{parent_line}\n"
-                f"FILL IN the body of that file. Do NOT rewrite frontmatter.\n"
+                f"FILL IN the body of that file. Leave frontmatter alone --\n"
+                f"`cli.py done` writes `verdict`, `confidence` and\n"
+                f"`evidence_runs` into it for you. Seeing those keys on a node\n"
+                f"is not a request to maintain them by hand.\n"
                 f"When done, run: python3 {cli_py} done {iter_n} {agent_id} "
                 f"--verdict <state> --confidence <0..1> --node-id {scaffold['node_id']}"
                 f"{parent_arg}"
+                f" --evidence-runs <backing-node-id> [...]"
             ),
         ])
     else:
