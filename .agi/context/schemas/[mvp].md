@@ -61,6 +61,27 @@ minimum behaviour required, what is explicitly out of scope, and the falsifier
 that tells a later reader whether the build discharged it. What it should not
 contain: the implementation.
 
+## 🔴 Unresolved consequence: what a design MVP's child should be
+
+`dispatch.py::_node_type_for` maps `mvp -> outcome`, and the documented chain
+reads `… verdict -> mvp -> outcome`. **Both assumed `mvp` held code that had
+been built**, so an `outcome` could report its result. Under this revision
+there is no result yet when the MVP is written — the build has not happened,
+and `build` nodes are minted mechanically by `level3.py` from tracked source
+files, never by a kid.
+
+So the chain currently has no step meaning *"implement this design"*, and a kid
+aimed at a design MVP is scaffolded an `outcome` it cannot honestly write.
+Found immediately, by the first kid aimed at one
+(`outcome:a00-c8365a0c-85a6d1`), which reported it as a struggle and adapted by
+casting its node as a measured falsifier baseline instead of a result — a
+reasonable save, and not a substitute for fixing the map.
+
+`task` is the likely answer (91 exist, and it is the only type that already
+means work-to-be-done), but changing the step map affects every chain, so it is
+**recorded here and deliberately not changed in the same pass as the
+redefinition.** Do not "fix" it by quietly widening `outcome`.
+
 ## Spawn rule
 
 `allowed_parents: [verdict, goal, experiment, hypothesis]`, `max_parents: 2`.
