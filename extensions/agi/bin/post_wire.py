@@ -120,6 +120,56 @@ def _write_node(path: Path, fm: dict, body: str) -> None:
     write_frontmatter(path, fm, body)
 
 
+def _merged_agent(iter_dir: Path, entry: dict) -> dict:
+    """Dispatch-time record overlaid with what the kid actually reported.
+
+    This module's own docstring has always said it "reads all agent.json
+    records"; the loop read `manifest["agents"]` instead, and the two are not
+    the same record. `dispatch.py` writes the manifest **once**, at spawn, so
+    its entries carry only dispatch-time fields. `cli.py done` writes the
+    kid's results to `<agent_id>/agent.json`. `heal.py` bridges them by
+    syncing exactly one field -- `status` -- with a comment saying it does so
+    "so post_wire sees current state".
+
+    Everything else the kid reported stayed in `agent.json` and was never
+    read: **`verdict`, `confidence`, `evidence_runs` and `notes` were silently
+    dropped on every pi run.** The node kept whatever the scaffold gave it,
+    which is `verdict: pending`.
+
+    Invisible for as long as it existed because every observed pi verdict
+    *was* `pending`, so the dropped value equalled the default. Found
+    2026-09-01 the first time a pi kid returned something else: it reported
+    `inconclusive_lean_proved:65`, the driver printed that from `agent.json`,
+    and the node on disk said `pending`.
+
+    The quiet part is worse than the lost field. `post_wire` applies the
+    evidence gate to the verdict it reads here, so a gate fed `None` has
+    nothing to demote -- meaning `unevidenced_decisive_verdicts: 0` was never
+    evidence of discipline on the pi path, only evidence that no pi verdict
+    ever arrived. Same for `evidence_fraction`.
+
+    Merge direction: `agent.json` wins, because it is written later and is the
+    only record of what the kid claimed. Falls back to the manifest entry
+    alone when there is no `agent.json` -- and reading it here rather than
+    relying on `heal.py`'s sync also makes `--no-heal` runs wire correctly,
+    which they previously did not.
+    """
+    agent_id = entry.get("id")
+    if not agent_id:
+        return entry
+    path = iter_dir / str(agent_id) / "agent.json"
+    if not path.exists():
+        return entry
+    try:
+        rec = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"WARN: unreadable agent record {path}: {exc}", file=sys.stderr)
+        return entry
+    if not isinstance(rec, dict):
+        return entry
+    return {**entry, **{k: v for k, v in rec.items() if v is not None}}
+
+
 def _gate(agent: dict, fm: dict, corpus):
     """Apply the H4 evidence gate to one agent record (post_wire writer path).
 
@@ -183,7 +233,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
     demoted: list[str] = []
     rejected: list[str] = []
 
-    for agent in manifest.get("agents", []):
+    for agent in (_merged_agent(iter_dir, a) for a in manifest.get("agents", [])):
         if agent.get("status") != "done":
             continue
         verdict = agent.get("verdict")
