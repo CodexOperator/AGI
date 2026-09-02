@@ -61,6 +61,7 @@ minus the clone step it doesn't need to take against itself.
 | `.agi/context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
 | `.agi/config.json` | Project marker + loop tuning. Its presence is what makes the enclosing repo a project. (The legacy name, `agi-tree.config.json` at the repo root instead of inside `.agi/`, still resolves.) |
 | `refs/grid/*` | Per-node version history, in this repo's own ref namespace. See Git grid below. |
+| `HANDOFF.md` | The director's **live scratchpad**, newest section first. Written *during* a session, not after it. See below. |
 | `CLAUDE.md`, `AGENTS.md` | This file, read by every agent. `AGENTS.md` is a symlink to it — one document, two names agents look for it under. |
 
 **The table above is the graph's footprint, not the whole repo** — `agi` also
@@ -97,6 +98,42 @@ Everything is reachable globally, by symlink, with no second copy anywhere:
 
 One skill, one source. The hook is a silent no-op outside a project, which is
 what makes registering it globally safe.
+
+## `HANDOFF.md` is a scratchpad, not a report
+
+**Write it as you work, not when you finish.** It is the one file a cold
+session can open and resume from, so it has to be current at every moment —
+including the moment a session dies without a summary. A handoff written at the
+end is a handoff that does not exist for every run that ends badly, which is
+exactly when it is needed.
+
+**The director opens a fresh section at the TOP of the file, on their first
+substantive action of the session, and edits it in place all session long.**
+Newest first, so a reader hits current state before history. The heading carries
+the date and a one-line characterisation:
+
+```
+# SESSION HANDOFF — 2026-09-02: LIVE SCRATCHPAD (session in progress)
+```
+
+What a live section owes a cold reader, in this order: **§0 the state block**
+(counts, runtime, models, whether anything is unpushed), **§1 the plan with each
+item marked done/next/blocked**, **§2 what landed in one line each**, **§3
+🔴 where it stopped and the exact next command**, **§4 traps hit this session**,
+**§5 the known-good verification sequence.** Mark the next action so plainly
+that a fresh session does not have to infer it.
+
+**Old sections are archive and stay.** Never rewrite one to match what you later
+learned — a superseded section is the frame that produced the work under it, the
+same reason `goal:g4.3` keeps its retired text. When a later section contradicts
+an earlier one, say so in the later one and mark the earlier one superseded in
+place.
+
+**Keep it thin. `GOALS.md` is the tracker, not this.** Active goals are how
+projects are tracked; `HANDOFF.md` is only the session-to-session bridge — the
+things a graph cannot say, like "the run is half done and the next command is
+this". Anything that is a commitment belongs in a goal node. Work recorded only
+here is work the graph does not know about.
 
 ## Editing the engine — one commit
 
