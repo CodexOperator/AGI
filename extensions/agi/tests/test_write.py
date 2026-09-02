@@ -239,3 +239,34 @@ def test_set_link_goes_through_the_gated_writer(project, monkeypatch):
     write.set_link(project, "hypothesis:h1", write.SELF)
     assert calls, "set_link wrote the field itself instead of going through update_node"
     assert "link_ref: self" in (project / "nodes/hypothesis/h1.md").read_text()
+
+
+def test_the_resolver_has_no_type_branch_in_its_executable_lines():
+    """`self` must resolve without the reader learning what a goal is.
+
+    Asserted with `ast` rather than `grep`, because a first attempt used
+    `grep -c "type == goal"` and got **1** — the phrase is in the module
+    docstring, describing the invariant. A text search for a concept cannot
+    tell prose from code, which is the same class of mistake as a smoke check
+    passing on a traceback: the tool answered a different question.
+    """
+    import ast
+
+    src = (BIN / "write.py").read_text()
+    tree = ast.parse(src)
+    in_string: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            in_string.update(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+
+    offenders = []
+    for lineno, line in enumerate(src.splitlines(), 1):
+        code = line.split("#", 1)[0].lower()
+        if lineno in in_string:
+            continue
+        if "goal" in code and "type" in code:
+            offenders.append((lineno, line.strip()))
+
+    assert offenders == [], (
+        f"the resolver branches on node type: {offenders}. `link_ref: self` is "
+        f"an exception WITH A NAME; a type check turns it back into a hole.")
