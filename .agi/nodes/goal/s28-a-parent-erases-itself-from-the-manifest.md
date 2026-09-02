@@ -7,7 +7,7 @@ id: "goal:s28"
 mint_id: c43a2514d4a843339de9e0f4244232a3
 origin: goals-doc
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - root
@@ -76,22 +76,44 @@ all is the real test, since today it cannot. Finally, spawn two kids
 concurrently from one parent and assert no agent entry is lost.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted the moment it was found, because it invalidates part of what the same
-session had just shipped and that is worth recording immediately rather than
-discovering later. `goal:s27`'s design is right and its code is right; one of
-its five changes is dead on arrival for a reason none of the five could have
-anticipated.
+Closed 2026-09-02, iteration 101, and the way it closed is the record worth
+keeping: **every clause of the falsifier was executed, and executing the last
+one found a second defect that the fix for the first had introduced.**
 
-The honest framing is that `goal:s27` was verified at the wrong level. Its
-falsifier's first two clauses were checked in tests and in a live run and both
-hold -- no scaffold, nothing authored, no metric artefact. The completion half
-was checked by reading `agent.json` and finding `owns` correctly written. What
-was never checked is whether anything downstream READS it, which is exactly the
-lesson this repo already paid for once: `post_wire`'s docstring claimed for
-months that it "reads all agent.json records" while the loop never did.
-Believing a field is consumed because it is written is the same mistake, and I
-made it four hours after writing the commit message about it.
+Clauses 1 and 2 held. A live parent (`a00-dea93ac5`, qwen) spawned a kid into
+its own iteration directory and its `tier: parent` entry survived — the exact
+sequence that erased it before. The same parent then ran `post_wire` on a
+scratch project and watched the `owns_all_complete` branch fire and admit a
+parent, so the path this goal called unreachable is now observed live rather
+than argued for.
 
-Filed `active` rather than `horizon`: it is a live defect in a path shipped
-today, and the parent tier does not honestly work until it is fixed.
+Clause 3 did not hold, and it was never run before today. `b8cb2ec05` shipped
+the merge with **no test behind it** — `grep -c manifest tests/test_dispatch.py`
+returned 0 — so the concurrency clause had been asserted in a commit message
+and nowhere else. The parent measured entry loss in 3 of 6 runs; the director
+reproduced it at 8 concurrent dispatches and lost entries in **6 of 6, usually
+6-7 of the 8 kids**. Two causes, and the second is the nastier one: the
+read-merge-write cycle was not atomic even though its final `rename` was, and
+`.manifest.json.tmp` was a *fixed shared name*, so one dispatch renamed the
+file out from under another, which then died `FileNotFoundError` **after**
+`Popen` had already run. That is a spawned agent nothing tracks — `heal.py`
+cannot time it out and `post_wire` cannot wire its node, which is `goal:g7`
+failing at the instant of spawn.
+
+The correction was mine as director rather than a kid's, because the diagnosis
+was unambiguous and the fix is small: an `flock` around the cycle, a re-read
+under that lock so the merge runs against what is on disk *now*, and a unique
+`tempfile.mkstemp` name. Six tests now carry the falsifier, including the
+concurrent one, and the full suite is green at 1221.
+
+**Recording the lesson rather than only the fix, because it is the same lesson
+this goal was minted for.** `goal:s27` was verified at the wrong level, and
+this goal's own THOUGHT says so. Its fix was then verified at the wrong level
+in turn — read line by line and believed, in a commit that asserted atomicity
+the code did not have. Both times the missing step was running the thing under
+the conditions it claimed to survive. The parent's `struggles:` line is what
+surfaced it again, which is the fourth time this session's field note has held.
+
+Kept `active` until all three clauses passed, then `complete` — not when the
+code looked right.
 <!-- THOUGHT:END -->
