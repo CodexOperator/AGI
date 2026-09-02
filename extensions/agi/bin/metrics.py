@@ -222,6 +222,25 @@ def thought_stats(nodes_dir: Path) -> dict:
     }
 
 
+def deprecated_node_ids(nodes_dir: Path) -> frozenset:
+    """Ids of nodes declaring `status: deprecated`. `goal:s23`.
+
+    Lives here, beside `node_lifecycle_stats`, so "what counts as retired" has
+    exactly ONE definition. `render-context.py` imports it to keep retired
+    nodes out of the injected map. A second predicate over there would be
+    `goal:s17` again -- two definitions of one fact, and one of them is always
+    the one a given reader consults.
+    """
+    ids = set()
+    for _nf, fm in _iter_frontmatter(nodes_dir):
+        st = fm.get("status")
+        nid = fm.get("id")
+        if (isinstance(st, str) and st.strip().lower() == DEPRECATED_STATUS
+                and isinstance(nid, str) and nid.strip()):
+            ids.add(nid.strip())
+    return frozenset(ids)
+
+
 def node_lifecycle_stats(nodes_dir: Path, node_count: int) -> dict:
     """Retirement counted at the node, not at the goal it answers to.
 

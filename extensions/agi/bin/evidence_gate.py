@@ -188,6 +188,10 @@ def evidence_runs_violations(value) -> list:
     return []
 
 
+class CorpusRootError(ValueError):
+    """`build_corpus` was handed something that is not a nodes directory."""
+
+
 def build_corpus(nodes_dir) -> frozenset:
     """The set of real node ids under `nodes_dir` — what `evidence_runs`
     entries are allowed to resolve against (goal:g3.1).
@@ -196,6 +200,23 @@ def build_corpus(nodes_dir) -> frozenset:
     `graph_core`, so both writer paths can build it cheaply without
     loading the full graph. `metrics.py` calls this exact function too —
     one definition, so the gate and the metric cannot drift apart (G3).
+
+    **Refuses a project root (goal:s25).** This function `rglob`s whatever it
+    is given, so pointed at a project root instead of `nodes/` it returns
+    every `id:` lying anywhere in the tree — measured once at **657 ids vs
+    29,582**, the purged gamed corpus resurrected. A verdict citing a deleted
+    node would then resolve against it and pass the gate, silently undoing
+    `goal:g3.1`.
+
+    All three live callers pass `root / "nodes"` and always did. But *"the
+    correct argument is passed at every current call site"* is a property of
+    today's callers, not of this function, and the wrong call takes one line
+    to write. **A gate that cannot verify must fail closed** — this function
+    already argues exactly that for a `None` corpus, and now holds itself to
+    it. The check is deliberately narrow: a directory containing a `nodes/`
+    child is a project root, which is the one confusion that has actually
+    happened. A missing directory still returns empty, unchanged — that is a
+    legitimate state (a project with no graph yet), not a mistake.
     """
     import yaml
 
@@ -203,6 +224,14 @@ def build_corpus(nodes_dir) -> frozenset:
     p = Path(nodes_dir)
     if not p.is_dir():
         return frozenset(ids)
+    if (p / "nodes").is_dir():
+        raise CorpusRootError(
+            f"build_corpus was handed {p}, which contains a 'nodes/' "
+            f"directory — that is a project root, not a nodes dir. Pass "
+            f"{p / 'nodes'} instead. Scanning a project root pulls in every "
+            f"stray id in the tree and lets a verdict cite a node that is not "
+            f"in the graph (goal:s25, goal:g3.1)."
+        )
     for nf in sorted(p.rglob("*.md")):
         try:
             text = nf.read_text(encoding="utf-8")
