@@ -198,6 +198,21 @@ def cmd_done(args: argparse.Namespace) -> int:
         if node_file and node_file.exists():
             _append_verdict_to_node(node_file, verdict, args.confidence, args.notes,
                                     args.next_edge, gate)
+            # goal:s31 -- the completion half. A scaffold is born with what the
+            # engine can derive from a slug; the rest is content only the kid
+            # has, and the kid wrote it into the BODY because a kid writing
+            # frontmatter is the trade s31 forbids. Lift it into the required
+            # field now, through the gated writer. Never fatal: a node that
+            # cannot be completed this way stays reported, not rejected -- the
+            # kid's work is already on disk and is worth more than the field.
+            try:
+                filled = node_writer.derive_required_from_body(root, args.node_id)
+                if filled.status == node_writer.UPDATED:
+                    print(f"schema: filled required field(s) on {args.node_id} "
+                          f"from its body (goal:s31)")
+            except Exception as exc:
+                print(f"warn: could not complete {args.node_id} from its body: "
+                      f"{exc}", file=sys.stderr)
             print(f"updated verdict in: {node_file}")
         else:
             # Fallback: write verdict node. goal:s17 -- this is cli.py's second
