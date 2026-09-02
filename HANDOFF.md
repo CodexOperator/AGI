@@ -7,15 +7,35 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 869 | **891** |
+| active nodes | 869 | **893** |
 | deprecated | 7 | 7 |
 | `outcome_coverage` (primary) | 0.277 | 0.266 |
 | `evidence_fraction` | 0.225 | **0.250** |
 | `decisive_evidence_fraction` | 0.95 | **0.955** |
 | unevidenced decisive | 1 | 1 |
-| goals active / horizon / complete | 10 / 61 / 33 | 10 / 62 / 34 |
+| goals active / horizon / complete | 10 / 61 / 33 | **12** / 62 / 34 |
 | tests | 1221 | **1250** |
-| unpushed | 0 | 0 (cron pushes) |
+| goals | 108 | **110** |
+| unpushed | 0 | **9 — push by hand, see below** |
+
+### 🔴 Crons are OFF on purpose — push by hand
+
+`.geometry/crons.md` has `crons_live: false`, set during the `goal:g11`
+migration freeze and **deliberately left off by the owner** until the read and
+write paths are buttoned down next session — the risk being an automated push
+of a half-finished write path. The two managed lines currently in the real
+crontab belong to **`fantasia`, not `agi`**, so this repo's graph-declared
+crons are genuinely inert.
+
+Consequence: **nothing pushes `agi` automatically.** Push by hand:
+
+```bash
+git -C /home/ubuntu/work/agi push origin master
+```
+
+Turning them back on is one edit to `crons_live` plus a manual
+`crons.py apply` — manual because the job that would re-apply the declaration
+is itself one of the removed lines.
 
 **Runtime:** pi — deepseek-v4-flash kids under qwen3.8-27b parents, per the
 owner's instruction to use cheap tokens liberally. **Budget:** max 10
@@ -117,6 +137,32 @@ Keys: arrows/hjkl pan · `+`/`-` depth · `[`/`]` time · `a` live · `q` quit.
 Cross-validates against `metrics.py` on two independent numbers: 1 damaged
 node (= `unevidenced_decisive_verdicts`) and 5 nodes under agents in iter-104.
 
+### 🆕 `goal:g1` renamed to **config-maxxing**, and two goals minted `active`
+
+**`goal:g1` is now "Config-maxxing: every engine action is declared, never
+improvised"** (was "Zero-operations loop"). Same invariant, one level deeper —
+zero-operations names a *cost*; config-maxxing names the *cause*. Recorded as a
+rename with the old title preserved in the body; no seed, subgoal or banked
+result moved. The owner's framing: *everything is in a config, everything is a
+node, everything is a unified spawn path, everything is a unified read and
+write path.*
+
+- **`goal:g1.10`** — the engine's standard commands declared in a node, not
+  memorised. Scope is deliberately narrow (the owner's words): *"not a command
+  for every custom test call, just the commands used during standard
+  workflows"*, primarily the unified read and write paths. **The shape is
+  already built and running: `.geometry/crons.md`.** Copy it — a
+  `.geometry/commands.md`, a `[command]` schema beside `[cron]`, one resolver.
+- **`goal:g13.1`** — **edit mode**: a modal, vim-like shell that drives the CLI
+  until a submit signal, wrapping the renderer and the writer. The problem it
+  solves, in the owner's words: a hand edit is *"a completely stray and
+  untraceable commit"* — it bypasses `write_node`, the `scaffold_hash` stamp,
+  the gate and schema validation. Two hard constraints written into the goal:
+  **the viewport must never gain a write path** (`goal:g9`'s reader-only
+  invariant, currently enforced by a test that greps `viewport.py`), and every
+  verb must be *nameable* so the LLM's `&&`-serialised form runs the identical
+  operations — `goal:g9.7`'s argument applied to writing.
+
 ### 🆕 `goal:g9.7` and `goal:s31` minted
 
 - **`g9.7`** — one render, two readers. Your constraint, now a falsifiable goal.
@@ -128,13 +174,39 @@ node (= `unevidenced_decisive_verdicts`) and 5 nodes under agents in iter-104.
 
 ## §3 🔴 Where it stopped, and the exact next command
 
-Iterations 101–106 are committed, grid-versioned and green. The next real work is **`goal:g13`'s write half** — `write.py`. The read
-half landed; `node_writer.write_node` is the starting point, and `goal:s31` is
-the first thing it should fix.
+**You said you will read this one rather than replace it — the sprint is
+continuing.** So this section is a starting line, not a summary.
+
+Iterations 101–106 are committed, grid-versioned and green at 1250 tests.
+**Nine commits are unpushed** (crons off on purpose — see §0).
+
+### The one thing everything else now waits on: `write.py`
+
+`goal:g13`'s read half landed. The write half does not exist, and **both new
+goals depend on it**:
+
+- `goal:g13.1` (edit mode) is its first real consumer — it will say whether the
+  seam is right.
+- `goal:s31` (scaffolded nodes ship schema-invalid) is the first defect it
+  should fix from the inside. The constraint that makes the fix safe is already
+  measured: **`scaffold_hash` hashes the BODY, not the frontmatter**, so
+  seeding schema-required fields cannot break completion detection.
 
 ```bash
+cd /home/ubuntu/work/agi
+git push origin master                                    # first: 9 commits waiting
 python3 extensions/agi/bin/dispatch.py "$PWD" 107 --tier parent --target goal:g13 --level small
 ```
+
+### Suggested ordering for the next sprint
+
+1. **`write.py`** — `node_writer.write_node` is the starting point.
+2. **`goal:s31`** — first defect fixed through the new write path.
+3. **`goal:g1.10`** — `.geometry/commands.md`, copying `crons.md`'s shape.
+   Cheap, and it makes step 4's commands declarative from birth.
+4. **`goal:g13.1`** — edit mode, on top of all three.
+5. **`goal:g4.8` item 3** — the unbounded-grandchildren fix, before parallel
+   loops (see §7).
 
 ## §4 Traps hit this session
 
@@ -188,11 +260,11 @@ paid for collides with the "node body is a marker, not data" shape:
 
 **Two smaller ones, yours because they are yours:**
 
-4. **`goals_active` is 10 against `cc_dispatch.max_goals_active: 9`.** I marked
-   `g9.4` active because it is genuinely being worked, rather than silently
-   raising your cap. Either raise it to 10 or retire one — `g3`, `g5` and `g7`
-   are overarching and arguably permanent residents, which may mean the cap
-   should count only subgoals.
+4. **RESOLVED by the owner:** `goals_active` is now **12** against a cap of 9,
+   deliberately — `g1.10` and `g13.1` were filed active on instruction because
+   they are in immediate use. The cap warning is expected noise until the cap
+   is retuned. Worth deciding *how* it should count: `g3`, `g5` and `g7` are
+   overarching and arguably permanent residents.
 5. **Should the viewport replace `INJECTION.md`'s renderer outright?** `g9.7`'s
    falsifier is currently proven *within* `viewport.py`. Making `render-context.py`
    and `zoom.py` call `frame_stream` too is the real prize — it would delete
