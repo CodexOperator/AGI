@@ -346,6 +346,24 @@ One skill, one source — no project ever carries its own copy of either symlink
 
 `hooks/cc-session-start.sh`, registered as a Claude Code `SessionStart` hook, injects the project's map into every new session. It resolves the project root the same way every other entry point does (`bin/locations.py` / `lib/find-root.sh`), re-renders if stale, and emits the head of `INJECTION.md`. **Silent no-op outside projects**, so it's safe to register globally.
 
+## `HANDOFF.md` — the director's scratchpad, replaced each session
+
+One file a cold session opens to resume. **Written during the work, not after
+it**, because a handoff composed at the end does not exist for any run that
+ends badly — which is when it is needed.
+
+**The director deletes the previous session section and writes its own.** No
+appending, no reading it first. The one exception is when the user asks you to
+check the handoff, which is a question about the previous session.
+
+Safe because `HANDOFF.md` is `build:HANDOFF.md` and its payload rides in its
+grid ref, so every prior version is `grid.py payload build:HANDOFF.md --version
+N`. Accumulating them in the file costs every future session context and buys
+nothing — it had reached 1,723 lines and six sections before this rule.
+
+**`GOALS.md` is the project tracker; this is only the bridge between sessions.**
+Anything that is a commitment is a goal node. Keep it thin.
+
 ## Long runs
 
 ```bash
