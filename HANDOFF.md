@@ -7,16 +7,21 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 893 | 893 |
+| active nodes | 893 | **896** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.266 | 0.266 |
-| `evidence_fraction` | 0.250 | 0.250 |
-| `decisive_evidence_fraction` | 0.955 | 0.955 |
+| `outcome_coverage` (primary) | 0.266 | 0.264 |
+| `evidence_fraction` | 0.250 | **0.262** |
+| `decisive_evidence_fraction` | 0.955 | **0.958** |
 | unevidenced decisive | 1 | 1 |
 | goals active / horizon / complete | 12 / 62 / 34 | 12 / 62 / 34 |
-| tests | 1250 | 1250 |
+| tests | 1250 | **1265** |
 | goals | 110 | 110 |
 | unpushed | 0 | 0 |
+
+`outcome_coverage` dipping 0.266 → 0.264 is the expected shape, not a
+regression: iter-107 minted a hypothesis without minting an mvp, so the
+denominator grew. `evidence_fraction` — the metric that only moves when
+experiments actually run — went up.
 
 **Runtime:** pi — `deepseek/deepseek-v4-flash` kids under `qwen/qwen3.8-27b`
 parents. **Budget this session: iterations 107–116 (ten).** Director is the
@@ -38,10 +43,10 @@ Ten iterations, ordered so each one's prerequisite is the one before it. The
 concurrency numbers the owner asked for (`spawn.parallel = 5`, 5 parents per
 iteration) are **not** safe until iter-107 lands, which is why it is first.
 
-- [ ] **Phase 0** — G13's three answers into the graph; push. *In progress.*
-- [ ] **iter-107** — `goal:g4.8` item 3: a concurrency bound that survives a
-      tier. **Cap 5 live agents, tree-wide.** ← everything waits on this
-- [ ] **iter-108** — `write.py`, `goal:g13`'s write half.
+- [x] **Phase 0** — G13's three answers into the graph; pushed.
+- [x] **iter-107** — `goal:g4.8` item 3: a concurrency bound that survives a
+      tier. **Cap 5 live agents, tree-wide.** Built, measured, pushed.
+- [ ] **iter-108 (next)** — `write.py`, `goal:g13`'s write half.
 - [ ] **iter-109** — `goal:s31`, first defect fixed *through* the new write path.
 - [ ] **iter-110** — `goal:g1.10`, `.geometry/commands.md`.
 - [ ] **iter-111–112** — `goal:g13.1`, edit mode.
@@ -83,25 +88,94 @@ The **scope gate in `goal:g13` is now open**, recorded in the node: the tiers
 it was waiting on stand (manifest race fixed and verified at 8 concurrent
 agents, two concurrent parents clean, read half landed).
 
+### ✅ iter-107 — the bound is structural now (`goal:g4.8` item 3)
+
+`spawn.parallel` bounds one invocation's slots and **never bounded
+grandchildren**: a parent gets its kids by running `dispatch.py` again, and
+that second invocation reads its own copy of the same number. A parent
+carefully *enforcing* the number does not close it either —
+`experiment:a00-5f927203-8a66a2` disproved that. **A limit expressed as a
+number cannot be global.**
+
+`bin/spawn_budget.py` puts it in shared state: one lease per live agent, taken
+under a lock at the spawn site immediately before `Popen`, **reclaimed by
+liveness rather than by any release path** — so a `kill -9` frees its slot and
+the rail cannot degrade into an outage. There is no separate grandchild code
+path to bound; **the same admission path entered twice is the whole mechanism.**
+
+| cap | admissions | peak live |
+|---|---|---|
+| 1 | 2 | **1** |
+| 3 | 5 | **3** |
+| 5 | 10 | **5** |
+| 999 (control = pre-fix) | 25 | **24** |
+
+Peak **equals** cap in every bounded run, so the runs sat on the boundary
+rather than passing because nothing was admitted. The control is what makes
+the other three a comparison instead of an observation.
+
+**Admission is non-blocking on purpose.** Waiting deadlocks this exact
+topology — parents holding every lease, each blocked on a kid that cannot be
+admitted until a parent finishes. A refused slot is skipped and recorded in
+`manifest.unadmitted`, kept out of `agents` so nothing polls a corpse that was
+never born.
+
+Chain: `hypothesis:shared-lease-bounds-the-tree` →
+`experiment:lease-bound-under-five-spawners` →
+`verdict:the-bound-is-structural-now` (**proved @0.97**, evidence resolving to
+a real node). **The verdict says plainly it closes falsifier clause 2 only** —
+no pi agent was spawned, fairness is unmeasured, and the cap of 5 is *policy,
+not a finding*.
+
+Config now: `spawn.parallel: 5`, `spawn.max_live: 5`.
+
+Inspect the live population any time:
+
+```bash
+python3 extensions/agi/bin/spawn_budget.py status
+```
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-Phase 0's node edits are written. Next is iter-107.
+Phase 0 and iter-107 are committed, grid-versioned, pushed, green at 1265
+tests. **Next is iter-108: `write.py`, `goal:g13`'s write half** — the thing
+`goal:s31`, `goal:g1.10` and `goal:g13.1` all wait on. Its three design inputs
+are now settled in the goal node (see §2).
+
+`node_writer.write_node` is the starting point. The constraint that makes
+`goal:s31`'s fix safe is already measured: **`scaffold_hash` hashes the BODY,
+not the frontmatter**, so seeding schema-required fields cannot break
+completion detection.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/snapshot-goals.py --render --check   # g13 round-trips
-git push origin master
+python3 extensions/agi/bin/dispatch.py "$PWD" 108 --tier parent --target goal:g13 --level small
 ```
 
 ## §4 Traps hit this session
 
-*(none yet — filled as they happen)*
+1. **A background `pytest` reported exit 0 with an empty output file, and the
+   suite was actually red.** One test failed. Trap 2 from last session in a new
+   costume: *the exit code and the output disagreed, and believing either alone
+   was wrong.* Re-run in the foreground before trusting a green.
+2. **Backticks in a `git commit -m` message are command substitution.**
+   ` `agents` ` in the iter-107 message ran as a command and left a hole in the
+   commit body (`kept out of  so nothing that polls...`). Not amended — force-
+   pushing `master` to fix one word is worse than the word. **Use `-F -` with a
+   heredoc for any message containing backticks.**
+3. **A test asserting a brief's wording is a test of the design, and it broke
+   correctly.** `test_parent_brief_carries_the_grandchild_bound` asserted the
+   string `"does not bound"`. Its own docstring said the brief was *not
+   sufficient* and that `goal:g4.8` owned enforcing it at the spawn site — so
+   once it was enforced, the right move was to strengthen the assertion (the
+   brief must now name both bounds, say which is enforced, and name
+   `unadmitted`), not to restore the old sentence.
 
 ## §5 Known-good verification sequence
 
 ```bash
-bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must NOT drop from 893
-python3 -m pytest extensions/agi/tests/ -q              # 1250 passing
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must NOT drop from 896
+python3 -m pytest extensions/agi/tests/ -q              # 1265 passing
 python3 extensions/agi/bin/viewport.py --verify         # goal:g9.7's invariant
 python3 extensions/agi/bin/snapshot-goals.py --render --check
 python3 extensions/agi/bin/grid.py commit --all
@@ -123,8 +197,11 @@ Two carried forward from last session, both still the owner's:
 
 ## §7 Standing hazards this session must respect
 
-- **`spawn.parallel` does not bound grandchildren** until iter-107 lands. Do
-  not raise it to 5 before then.
+- **The bound is real but the live run is not observed.** `spawn.max_live: 5`
+  holds against sleeping interpreters. No pi agent has been spawned under it.
+  Watch `spawn_budget.py status` and `manifest.unadmitted` on the first real
+  dispatch, and note that a `SIGSTOP`ped agent is alive to `os.kill(pid, 0)`
+  and holds its slot indefinitely — correct, and still a surprise at cap 5.
 - **A parent's REPORT is not its artefact.** Check the node file, not the
   summary — last session a `proved` @0.99 sat unevidenced because a parent
   reported a field it never wrote.
