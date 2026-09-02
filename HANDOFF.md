@@ -7,15 +7,15 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 893 | **896** |
+| active nodes | 893 | **897** |
 | deprecated | 7 | 7 |
 | `outcome_coverage` (primary) | 0.266 | 0.264 |
 | `evidence_fraction` | 0.250 | **0.262** |
 | `decisive_evidence_fraction` | 0.955 | **0.958** |
 | unevidenced decisive | 1 | 1 |
-| goals active / horizon / complete | 12 / 62 / 34 | 12 / 62 / 34 |
-| tests | 1250 | **1265** |
-| goals | 110 | 110 |
+| goals active / horizon / complete | 12 / 62 / 34 | **13** / 62 / 34 |
+| tests | 1250 | **1267** |
+| goals | 110 | **111** |
 | unpushed | 0 | 0 |
 
 `outcome_coverage` dipping 0.266 → 0.264 is the expected shape, not a
@@ -39,28 +39,38 @@ git -C /home/ubuntu/work/agi push origin master
 
 ## §1 The plan, and where it got to
 
-Ten iterations, ordered so each one's prerequisite is the one before it. The
-concurrency numbers the owner asked for (`spawn.parallel = 5`, 5 parents per
-iteration) are **not** safe until iter-107 lands, which is why it is first.
+Ten iterations, ordered so each one's prerequisite is the one before it.
+iter-107 came first because the concurrency numbers the owner asked for were
+not safe without it. `goal:g1.11` was minted mid-session at the owner's
+direction and displaced `write.py` from the front of the queue.
 
 - [x] **Phase 0** — G13's three answers into the graph; pushed.
 - [x] **iter-107** — `goal:g4.8` item 3: a concurrency bound that survives a
-      tier. **Cap 5 live agents, tree-wide.** Built, measured, pushed.
-- [ ] **iter-108 (next)** — `write.py`, `goal:g13`'s write half.
-- [ ] **iter-109** — `goal:s31`, first defect fixed *through* the new write path.
-- [ ] **iter-110** — `goal:g1.10`, `.geometry/commands.md`.
-- [ ] **iter-111–112** — `goal:g13.1`, edit mode.
-- [ ] **iter-113** — `goal:g4.7`, wire `restart()`.
-- [ ] **iter-114** — `goal:g3`/`g5`, close chains to mvp.
-- [ ] **iter-115–116** — reserve.
+      tier. Built, measured, pushed. **Cap now 25 tree-wide** (owner's call).
+- [ ] **iter-108 (next)** — `goal:g1.11`, a fresh credit-capped provider key
+      per spawn. Minted this session at the owner's direction and moved to the
+      front of the queue. **Buildable now: the loop must run with the key
+      absent, so nothing waits on the owner.**
+- [ ] **iter-109** — `write.py`, `goal:g13`'s write half.
+- [ ] **iter-110** — `goal:s31`, first defect fixed *through* the new write path.
+- [ ] **iter-111** — `goal:g1.10`, `.geometry/commands.md`.
+- [ ] **iter-112–113** — `goal:g13.1`, edit mode.
+- [ ] **iter-114** — `goal:g4.7`, wire `restart()`.
+- [ ] **iter-115** — `goal:g3`/`g5`, close chains to mvp.
+- [ ] **iter-116** — reserve.
 
-### 🔵 The concurrency number, stated so it can be corrected
+### The concurrency number, settled
 
-The owner said "bound it to 5 just to be safe". Read as **5 live agents across
-all tiers, tree-wide** — so 5 parents fill the budget and their kids queue
-behind them. The other reading is 5 kids *per parent* (25 live). The safe one
-was taken because last session measured parent deaths from rate limits above
-roughly 4 concurrent pi agents.
+Built at 5, then raised: **`spawn.max_live: 25` tree-wide**, `spawn.parallel:
+5`. The owner's intended shape is **5 parents + 10 kids**, with 25 as the
+ceiling nothing may cross. 5 was rejected once the arithmetic was concrete —
+5 parents at cap 5 leaves zero budget for kids, so five parents would have run
+and produced nothing.
+
+**The cap is policy, not a finding.** What is measured is that whatever number
+is declared is the number that holds. 25 concurrent pi agents is well past the
+~4 where rate-limit deaths were measured last session, which is the reason
+`goal:g1.11` moved to the front of the queue.
 
 ## §2 What landed
 
@@ -127,7 +137,7 @@ a real node). **The verdict says plainly it closes falsifier clause 2 only** —
 no pi agent was spawned, fairness is unmeasured, and the cap of 5 is *policy,
 not a finding*.
 
-Config now: `spawn.parallel: 5`, `spawn.max_live: 5`.
+Config now: `spawn.parallel: 5`, `spawn.max_live: 25`.
 
 Inspect the live population any time:
 
@@ -137,19 +147,24 @@ python3 extensions/agi/bin/spawn_budget.py status
 
 ## §3 🔴 Where it stopped, and the exact next command
 
-Phase 0 and iter-107 are committed, grid-versioned, pushed, green at 1265
-tests. **Next is iter-108: `write.py`, `goal:g13`'s write half** — the thing
-`goal:s31`, `goal:g1.10` and `goal:g13.1` all wait on. Its three design inputs
-are now settled in the goal node (see §2).
+Phase 0, iter-107 and `goal:g1.11`'s groundwork are committed,
+grid-versioned, pushed, green at 1267 tests.
 
-`node_writer.write_node` is the starting point. The constraint that makes
-`goal:s31`'s fix safe is already measured: **`scaffold_hash` hashes the BODY,
-not the frontmatter**, so seeding schema-required fields cannot break
-completion detection.
+**Next is iter-108: `goal:g1.11`** — the minting module. It is buildable with
+no provisioning key present, because "the loop still runs with the key absent"
+is one of the goal's own falsifier clauses. Start with `envfile.py`'s reader
+(never `os.environ` directly) and wire issuance to `spawn_budget`'s lease, on
+the argument that a lease and a key are the same object at two layers.
+
+**Then iter-109: `write.py`**, `goal:g13`'s write half — the thing `goal:s31`,
+`goal:g1.10` and `goal:g13.1` all wait on, with its three design inputs now
+settled in the goal node (see §2). `node_writer.write_node` is the starting
+point, and `scaffold_hash` hashes the BODY not the frontmatter, so seeding
+schema-required fields cannot break completion detection.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/dispatch.py "$PWD" 108 --tier parent --target goal:g13 --level small
+python3 extensions/agi/bin/envfile.py --check    # is the provisioning key in yet?
 ```
 
 ## §4 Traps hit this session
@@ -183,14 +198,26 @@ python3 extensions/agi/bin/grid.py commit --all
 
 ## §6 🔵 BANKED — decisions deliberately not made
 
-Two carried forward from last session, both still the owner's:
+**New this session, and the first thing to settle when the owner returns:**
+
+0. **`goal:g1.11`'s batching granularity.** One minted key per spawn, per
+   `ceil(max_live / 3)` batch, or one per slot minted at loop start? All three
+   were named by the owner and none chosen. **Leading candidate: per slot** —
+   `spawn_budget` already owns a bounded set of slots, so a lease and a key
+   become the same object at two layers and there is one admission path
+   granting both. Not decided here, because mint latency and failure rate
+   against the real API are unmeasured and a guess baked into a goal is the
+   `goal:s17` shape. Recorded in the goal node too.
+
+**Two carried forward from last session, both still the owner's:**
 
 1. **Should the viewport replace `INJECTION.md`'s renderer outright?**
    `goal:g9.7`'s falsifier is proven *within* `viewport.py`. Making
    `render-context.py` and `zoom.py` call `frame_stream` too would delete 4 of
    the 5 remaining render paths — the real prize — but it changes what every
    kid is handed. Parked as an iter-115 candidate, not scheduled.
-2. **`goals_active` is 12 against a cap of 9, deliberately.** The open question
+2. **`goals_active` is 13 against a cap of 9, deliberately** — `g1.11` makes
+   thirteen. The open question
    is *how* it should count: `g3`, `g5` and `g7` are overarching and arguably
    permanent residents rather than in-flight work. Retune the cap or exempt
    them; the warning is expected noise until then.
