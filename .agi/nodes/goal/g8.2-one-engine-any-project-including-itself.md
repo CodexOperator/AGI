@@ -11,7 +11,7 @@ parents:
 seeds:
   - build:lib-find-root.sh@v2
   - build:skills-agi-SKILL.md@v2
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

@@ -12,7 +12,7 @@ seeds:
   - hyp:zoom-encoded-node-ids
   - build:bin-grid@v2
   - build:src-graph-core-identity@v2
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

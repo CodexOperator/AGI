@@ -11,7 +11,7 @@ parents:
 seeds:
   - exp:dashboard-cli-r1
   - idea:engine-dashboard
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

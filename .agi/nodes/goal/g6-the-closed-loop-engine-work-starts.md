@@ -18,7 +18,7 @@ seeds:
   - goal:g6.9
   - idea:deprecate-the-gamed-mass
   - idea:engine-self-decomposition
-status: active
+status: horizon
 tags:
   - goal
   - root

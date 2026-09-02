@@ -206,7 +206,7 @@ configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
 project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
 prior session manifests).
 
-### G1.1 — An agent should need only the graph to orient — status: active
+### G1.1 — An agent should need only the graph to orient — status: horizon
 
 **Recon happens in the graph, not in the filesystem.** Today a kid arrives with
 a rendered map and then reads files anyway, because the map cannot answer
@@ -254,7 +254,7 @@ which should be done as part of deciding the boundary rather than before it.
 it currently indexes zero symbols for all fifteen engine entry points. See
 **S1** — that is the same problem from the other end.
 
-### G1.3 — The injected map teaches its own use — status: active
+### G1.3 — The injected map teaches its own use — status: horizon
 
 **The map shows what is in the graph and says nothing about how to move through
 it.** An agent arrives holding 200 lines of ASCII render and no addressing
@@ -294,7 +294,7 @@ Shares its substrate with **G1.1** and **G9.4** — the coordinate a kid names,
 the region it requests and the viewport a human pans are one query at three
 resolutions. Build one mechanism with three front-ends.
 
-### G1.4 — Kids get the graph and nothing else — status: active
+### G1.4 — Kids get the graph and nothing else — status: horizon
 
 **A kid should not be able to spend motion on anything but the graph.** Weight
 is the reason: everything a kid reads rides along in its context for the rest of
@@ -348,7 +348,7 @@ Falsifier: non-graph tool calls per kid trend to zero in stage 1 *without* node
 quality dropping. If quality drops, the graph is not yet carrying what it claims
 and stage 2 must not ship.
 
-### G1.5 — `init` leaves nothing to install by hand — status: active
+### G1.5 — `init` leaves nothing to install by hand — status: horizon
 
 **Setting up a project is currently two manual steps and a memory test.** The
 cron half of this is now largely satisfied; the other two are not:
@@ -397,7 +397,7 @@ that `git fetch` brings the grid down and the crontab shows the managed
 `agi-crons` block with all four jobs. If either needs a second command, this
 is not done.
 
-### G1.6 — Every action is a one-word command, inside the project — status: active
+### G1.6 — Every action is a one-word command, inside the project — status: horizon
 
 **No more reaching for a file whose path you have to know.** Today an agent runs
 `python3 agi/extensions/agi/bin/zoom.py "$PWD" 9006 kid-a --level small --target
@@ -436,7 +436,7 @@ touch every entry point.
 Falsifier: take the transcript of any completed iteration and count invocations
 that needed an absolute path or an interpreter prefix. Not done until that is zero.
 
-### G1.7 — The demotion path is a command, not a careful hand — status: active
+### G1.7 — The demotion path is a command, not a careful hand — status: horizon
 
 Demoting a verdict is a **four-field** edit -- `verdict`, `status`,
 `demoted_from`, `demote_reason` -- and `bin/evidence_gate.py` only owns the
@@ -472,7 +472,7 @@ Pairs with **S16** (which closed the code path but not the data), **G3.1**,
 and **G7.6** (one persistence model). Falsifier: demote a verdict with one
 command and have `shadow_decisive_verdicts` stay 0 without anyone checking.
 
-### G1.8 — A secret is a shape in the graph and a value on the box — status: active
+### G1.8 — A secret is a shape in the graph and a value on the box — status: horizon
 
 **A credential is the one kind of file the graph must describe and must never
 hold.** Every other file in this repo is graph content: `level3.py` mints a node
@@ -646,7 +646,7 @@ again — **the brief must change with it, in the same commit, with nothing
 edited by hand.** Until that second half holds, the drift this goal exists to
 remove is still possible, and the first half alone is a convenience.
 
-## G2 — Adjustable zoom with contracts that survive the trip — status: active
+## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that
 stitch into a runnable directory layout** — the property that makes the graph an
@@ -686,7 +686,7 @@ round-trips. Ground truth and scoring rule are preserved at
 
 Owns: **L1** (the 1..5 axis), **L2** (live IO maps as inherited contract slices).
 
-### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: active
+### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
 **Build level 3 before any other level.** It is the one that makes the graph an
 executable artifact rather than a description of one, and it is the level with
@@ -837,7 +837,7 @@ rearranging itself under the reader.
 Note `.gitnexus/meta.json` reports `embeddings: 0` — nothing is generated today,
 and `npx gitnexus analyze` without `--embeddings` deletes any that exist.
 
-### G2.5 — Node ids are hierarchical addresses, not lineage — status: active
+### G2.5 — Node ids are hierarchical addresses, not lineage — status: horizon
 
 **An id should answer "where is this node" in one string, with no lookup and no
 ambiguity.** Today's scheme is `<type>:<kebab-slug>` minted from title text,
@@ -1534,7 +1534,7 @@ brainstorming session with a small context, not for the next kid that reads
 this node** — a half-chosen answer here would be built into both runtimes at
 once via `goal:g4.3`, and would be expensive to reverse.
 
-### G4.2 — A reasoning-effort dial, not just a model name — status: active
+### G4.2 — A reasoning-effort dial, not just a model name — status: horizon
 
 `cc_dispatch.kid_model` selects the model. **Nothing selects how hard it
 thinks.** Asked for "sonnet 5 on max settings" the honest answer was that the
@@ -1703,7 +1703,7 @@ the full input cost of the draft anyway. The saving comes from work the local mo
 Depends on **G4.2** (the dial), **G4.1** (parallel kids must stop colliding before
 there are many more of them), and **G10** for stable territory.
 
-### G4.5 — `depends_on` as a first-class scheduling edge — status: active
+### G4.5 — `depends_on` as a first-class scheduling edge — status: horizon
 
 The edge already exists, under another name and confined to one type.
 `blocked_by` is carried by 94 `task` nodes, 89 of them populated, with exactly
@@ -1795,7 +1795,7 @@ change outside those two files, the seam is in the wrong place. Second half,
 and the one that decides whether this is real: `grep` the shared path for
 branches keyed on harness name and find **zero** outside the adapter lookup.
 
-### G4.7 — Healing belongs to every harness, and to the dispatch loop — status: horizon
+### G4.7 — Healing belongs to every harness, and to the dispatch loop — status: active
 
 **`heal.py` is not redundant machinery; it is the shape of a missing
 abstraction.** It exists because `dispatch.py` fires agents into detached
@@ -2065,7 +2065,7 @@ Falsifier: run the metric over this file as it stands. It must flag **G6.6**
 (single claim, single falsifier, closed cleanly). If it cannot separate those,
 the signal is length in disguise.
 
-## G6 — The closed loop: engine work starts in the graph — status: active
+## G6 — The closed loop: engine work starts in the graph — status: horizon
 
 Run `agi` and `agi-tree` against each other and the pair is closed: a change to
 the engine originates as a node in this graph, and the engine that grows this
@@ -2443,7 +2443,7 @@ re-deriving does not clean it — node X disagrees with its own contract",
 which is a different sentence demanding different work. Pairs with **G7.9**
 (a scan must not be quiet about what it changes) and **G7.5**.
 
-### G6.6 — Level 3 covers the non-code surfaces too — status: active
+### G6.6 — Level 3 covers the non-code surfaces too — status: horizon
 
 **A projection that omits half the engine cannot rebuild it.** `level3.py`'s
 scope is deliberately narrow and says so in its own docstring:
@@ -2600,7 +2600,7 @@ plus each node's `payload_ref` for placement — no markdown to parse, no sha
 lookups. Its falsifier (build `refs/grid/release/agi` and compare against
 `stitch.py --out`) is newly runnable and unrun.
 
-### G6.8 — The payload boundary: what is allowed to be a node — status: active
+### G6.8 — The payload boundary: what is allowed to be a node — status: horizon
 
 **G6.6 said "cover the non-code surfaces" without saying where coverage stops.
 This draws the line, so the answer is a rule rather than a judgement call each
@@ -2848,7 +2848,7 @@ warn, never fail, on drift — it closes the whole staleness class), **H1**/**H2
 (state into the DB), **L16** (close the config-name compatibility window only
 once pinning exists — it is load-bearing until then).
 
-### G7.1 — Referential integrity on every parent reference — status: active
+### G7.1 — Referential integrity on every parent reference — status: horizon
 
 L15 validates `goal:`-prefixed parents only. Everything else dangles silently,
 and on this corpus 60.3% of parent references did — a `hypothesis:` vs `hyp:`
@@ -2912,7 +2912,7 @@ G7.5 node's stray line was a `spawns:` entry, and three `next_edges:` pointed at
 nodes S15 deleted. A reference is a reference; checking only one field name is
 the same scope mistake L15 made with `goal:`.
 
-### G7.2 — Duplicate node ids silently hide files on disk — status: active
+### G7.2 — Duplicate node ids silently hide files on disk — status: horizon
 
 Found 2026-08-22 by the G9.1 dashboard on its first run, which is the argument
 for G9 in miniature: **17 node ids are declared by two files each.** The loader
@@ -3055,7 +3055,7 @@ Side effect worth recording: `metrics.py` and `dashboard.py` now agree.
 and called that gap "the contamination the dashboard exists to name". Closing
 the hole in the shared `normalize_evidence_runs` closed it in both.
 
-### G7.4 — Two loaders, two opposite duplicate-id policies — status: active
+### G7.4 — Two loaders, two opposite duplicate-id policies — status: horizon
 
 `graph_core/loader.py::load_directory` keeps the **first**-sorted file on an id
 collision and, as of 2026-08-22, reports every collision via
@@ -3095,7 +3095,7 @@ reporting event, never a load-time deletion — the node is still real, and G7's
 first invariant is that node count never drops. G7.1's sweep applied that same
 rule by hand: 79 references were removed and 0 nodes were.
 
-### G7.5 — Parse failures are swallowed with zero signal — status: active
+### G7.5 — Parse failures are swallowed with zero signal — status: horizon
 
 > **Corpus repaired 2026-08-25; the code fix is still open, which is why this
 > stays `active`.** The malformed file below now parses, carries a `mint_id`,
@@ -3216,7 +3216,7 @@ deliberately — the historical `exp-*.py` scripts import from it, so verify
 before deleting. Absorbs **H0h** and **H5** (the R11 loader path-safety bug,
 which lives in the same code).
 
-### G7.8 — A generator mints parent ids it never checks exist — status: active
+### G7.8 — A generator mints parent ids it never checks exist — status: horizon
 
 Found 2026-08-25 while sweeping G7.1. **Corpus side resolved the same day; the
 missing validation is what keeps this `active`.**
@@ -3348,7 +3348,7 @@ asks for is upstream of both: the generator should **refuse to mint a
 reference it cannot resolve**, or emit it and fail loudly, rather than
 writing a broken edge and exiting 0. Pairs with **G7.5** and **G7.9**.
 
-### G7.9 — A scan must not prune quietly, and `level3.py` is misnamed — status: active
+### G7.9 — A scan must not prune quietly, and `level3.py` is misnamed — status: horizon
 
 Two changes to the same file, grouped because they touch the same lines and
 the rename is the safer half.
@@ -3823,7 +3823,7 @@ exposed to a workflow.
 Owns: **L9** (scaffolding a project without copying by hand — shares its writer
 with G1/L17). L10 moved to **G9**, which is where legibility now lives.
 
-### G8.1 — Decide the distribution shape: drop-in clone, skill package, or install — status: active
+### G8.1 — Decide the distribution shape: drop-in clone, skill package, or install — status: horizon
 
 **The engine currently arrives by being cloned into a project and gitignored.**
 That was chosen to prevent vendoring (H0/H0b: a committed copy diverges
@@ -3863,7 +3863,7 @@ question — a directory of scripts named `bin/` is exactly what a package
 layout would have to rename anyway, and it is currently costing GitNexus
 coverage of all fifteen entry points.
 
-### G8.2 — One engine, any project, including itself — status: active
+### G8.2 — One engine, any project, including itself — status: horizon
 
 **The engine must never need to know which project it is running.** It already
 mostly holds: `driver.sh` walks up for a config file, the goal and build-site
@@ -3882,7 +3882,7 @@ agi-tree — should reach a rendered map and a first chain with no engine change
 at all. L18 already proved the goals-only stage works on a bare project; this
 extends it through a full iteration.
 
-## G9 — Legibility: a human can see what the loop is doing — status: active
+## G9 — Legibility: a human can see what the loop is doing — status: horizon
 
 **Stated plainly by the owner, and it is the sharpest usability signal this
 project has had:** *"You keep referencing these items and I have no idea what
@@ -3903,7 +3903,7 @@ run at any moment, mid-iteration, with zero possibility of touching the corpus.
 unevidenced verdicts and deprecated mass are the things a human most needs to
 see — a dashboard that shows a clean graph over a broken one is worse than none.
 
-### G9.1 — CLI dashboard, runnable as a Claude Code side terminal — status: active
+### G9.1 — CLI dashboard, runnable as a Claude Code side terminal — status: horizon
 
 First deliverable, and deliberately the humble one. A terminal view that
 answers, without the reader knowing any of this system's vocabulary:
@@ -3927,7 +3927,7 @@ Load the exact context injection a kid receives on arrival. The fastest way to
 judge whether a brief is genuinely self-contained, and the only way to see the
 system from the inside without spending an agent. Was L10's first half.
 
-### G9.4 — The live graph viewport: watch the whole thing, moving — status: active
+### G9.4 — The live graph viewport: watch the whole thing, moving — status: horizon
 
 **This supersedes the dashboard as the primary view.** G9.1 answers "what is the
 state" in panels of text. This answers "what does the graph *look* like, right
@@ -3962,7 +3962,7 @@ to do.
 Inherits G9's invariants: reader-never-writer, and it renders damage rather than
 hiding it — a broken region of the graph should be visibly broken on the web.
 
-### G9.5 — Pick a node, see its history; pick a version, see how it got there — status: active
+### G9.5 — Pick a node, see its history; pick a version, see how it got there — status: horizon
 
 The viewport is only half of it. From any node on the web:
 - **select the node → its version history**, straight off the git grid
@@ -5087,7 +5087,7 @@ both properly standing, because this interface is what they will both call and
 designing it against a half-built caller is how it acquires a caller-shaped
 seam.
 
-## S1 — Retire `bin/` as a directory name — status: active
+## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
 holds fifteen `.py` files with shebangs, plus `driver.sh` alongside in the
@@ -5140,7 +5140,7 @@ silently published nothing at all, for as long as nobody looked.
 
 Precondition for **G6.5** (automatic rebuild on the grid's cadence).
 
-## S3 — A truncated contract value can contain a fence lookalike — status: active
+## S3 — A truncated contract value can contain a fence lookalike — status: horizon
 
 `level3.py`'s `_cap()` truncates derived text to 240 characters. In
 `nodes/level3/bin-heal.md` the `healer_ctx` input's `how` field is the truncated
@@ -5316,7 +5316,7 @@ persistence question, and deleting it while two loaders disagree is not
 cleanup), and the `.claude/worktrees/` worktree still registered against a
 `~/.hermes/agi-tree/` path (**S4** C5, which is gated and explicitly last).
 
-## S7 — `snapshot-goals.py` needs two passes to wire a new sub-goal — status: active
+## S7 — `snapshot-goals.py` needs two passes to wire a new sub-goal — status: horizon
 
 Found 2026-08-23 while adding G1.3–G1.5, G6.6 and G6.7. Adding a sub-goal and
 running the script once mints the child node with a correct `parents:` list, but
@@ -5452,7 +5452,7 @@ G6.3's: **16 executables across the engine survived a full grid round trip at
 silently, and into the published engine tree, which is exactly the blast radius
 G6.7 predicted.
 
-## S10 — the purged gamed mass is still on disk inside agi-tree — status: active
+## S10 — the purged gamed mass is still on disk inside agi-tree — status: retired
 
 Found 2026-08-23. **G6.2 says the 28,916 gamed `-extend<N>` nodes were "removed
 from the working tree and archived outside the repo." The first half is not
@@ -5487,6 +5487,22 @@ Two independent fixes, and both are cheap:
 
 Do (2) regardless of (1). Deleting the worktree removes today's 29k; it does not
 stop the next stale tree from being swept in.
+
+## Retired 2026-09-02 — the premise is gone, the residual is `goal:s25`
+
+**Checked rather than assumed, which is what this goal asked for in the first
+place.** `~/.hermes/agi-tree` holds **0 `.md` files and 0 `-extend*` nodes**;
+`.claude/worktrees/wonderful-lamport-51c9a9/` is not in `git worktree list` and
+does not exist. The 29,706-file mass this goal was written about is not on disk
+anywhere. Fix (1) happened, by whatever route.
+
+**Fix (2) did not, and it is the half that was never about today's 29k.**
+`evidence_gate.build_corpus()` still takes a directory and `rglob`s it, so it
+still resolves whatever it is handed. This goal said "do (2) regardless of (1)"
+and it was right — deleting a stale tree removes today's fuel, not the hazard.
+That residual is minted as **`goal:s25`** rather than kept alive here, because
+this goal's title names a condition that is now false, and a goal whose premise
+has evaporated cannot steer work honestly.
 
 ## S11 — Retire `level3` as a type name — status: complete
 
@@ -5981,7 +5997,7 @@ reason above. One type is still **unverified**: `doc`, which has no
 `[doc].md` at all — one node, `doc:goals-preamble`, and it is the file that
 renders GOALS.md's preamble.
 
-## S18 — Absorb cavekit references before cavekit retires — status: active
+## S18 — Absorb cavekit references before cavekit retires — status: horizon
 
 Cavekit was the bootstrap that seeded this graph and is being phased out.
 The graph still leans on it in three ways, and **the retirement order matters
@@ -6378,7 +6394,7 @@ next place reach is missing.
 `level3.py` reads the engine tree, so the contract is stale until it is
 published and rescanned. That is **G6.1**'s standing residual, not this one's.
 
-## S21 — The graph can add a file to the engine but can never remove one — status: active
+## S21 — The graph can add a file to the engine but can never remove one — status: horizon
 
 🔴 **The publish path is one-directional for existence.** `level3.py` mints a
 node for a new file authored under `payloads/` and `stitch.py --publish` writes
@@ -6542,3 +6558,125 @@ are `[goal:g13]` and accepts a `hypothesis` with the same parent. No existing
 node is invalidated — the rule gates new spawns, and the corpus's current
 `goal -> mvp` edges stay resolvable as prior art. `[cron].md` still spawns. The
 kid contract and the gate agree, checked by a test that reads both.
+
+## S23 — A deprecated node still reaches injected context — status: horizon
+
+**Measured 2026-09-02, during the goal sweep.** `build:TODO.md` and
+`idea:engine-todo` were marked `status: deprecated` and moved to
+`.agi/nodes/deprecated/`. `driver.sh --smoke` was re-run. **`build:TODO.md` is
+still on line 85 of `INJECTION.md`.** Retirement is invisible to the renderer.
+
+**This started as a proposal for a new lifecycle state.** The owner asked for
+`legacy` — retired as far as graph-walking, so it never clutters context and no
+agent ever reads it, while chains stay valid until their edges can be remapped.
+Investigating it produced a better answer than building it: **`deprecated`
+already means exactly that.** `CLAUDE.md` already requires readers to glob the
+retired sibling live-first precisely so edges keep resolving. The state exists
+and is documented; the renderer simply does not honour it.
+
+**Minting `legacy` would have been a second state meaning the first one**, which
+is the failure this project keeps paying for — `goal:s17` (two definitions of
+one fact), `goal:g2.5` (mint id vs address), `goal:g7.4` (two loaders, two
+policies). One of them is *always* the one a given reader consults.
+
+## The distinction that has to survive the fix
+
+**Load it; do not render it.** These are different operations and collapsing
+them breaks something real in each direction:
+
+- **Loading must keep including deprecated nodes.** `stitch.py`, `level3.py`,
+  `node_writer.py` and `zoom.py` read the retired sibling deliberately. A
+  reader that stops seeing a retired node fails quietly and in its own way —
+  orphaned engine file, re-minted duplicate, unresolvable edge, missing title.
+- **Injection must stop including them.** Context is the scarcest thing an
+  agent has. A retired node in the map is weight every agent carries for the
+  rest of the project's life, to describe something deliberately not being
+  worked.
+
+So the fix belongs in the render/chain-selection path, not in the loader, and
+certainly not in a new `status` value.
+
+## Deliberately out of scope, and it is the harder half
+
+**Remapping edges so a node with real children can retire cleanly.** TODO was
+retirable *only* because it is a two-node island — `build:TODO.md` has 0
+children, `idea:engine-todo` has 1 child and no parents. A node with live
+descendants cannot be retired today without stranding them, and the answer is
+to re-parent those chains onto appropriate goal/idea parents first. That is
+`goal:g4.5`'s and `goal:g13`'s territory (edges as first-class, one write path
+that can perform a remap), not this goal's.
+
+## Falsifier
+
+Deprecate a node that currently appears in `INJECTION.md`, re-render, and it is
+gone from the map — while `stitch.py --verify`, `level3.py` and a `zoom.py`
+`--level small` on one of its neighbours all still resolve it. Both halves, or
+the fix has traded a context leak for a silent reader failure.
+
+## S24 — Sweep the corpus for stale nodes: orphan @v2s and filler chain extensions — status: horizon
+
+**The owner's ask, 2026-09-02, alongside the goal sweep: the same pass the
+goals just got, applied to the nodes.** A goal sweep classifies 41 declarations;
+this classifies 861 nodes. Two populations are named as suspects, and both are
+known to exist rather than guessed at:
+
+1. **Standalone `@v2` nodes.** `goal:g6.3` retired the `@v2` convention — a
+   version is a grid commit, not a second file — and the five `@v2` nodes it
+   left behind are deprecated but still resolve as chain head. `HANDOFF.md`
+   records the trap: *"a `@v2` node is the publish head, not the v1 node"*.
+   Any `@v2` that is no longer anything's head is residue.
+2. **Chain-extension fillers attached to other fillers.** This corpus already
+   had 9 chains x 2000 hops of shortcut cycles carrying no signal, purged under
+   `goal:g6.2`/`goal:s15`. The metric that rewarded them is gone
+   (`goal:g3`), but nothing has since asked whether smaller instances of the
+   same shape survived — a hop whose only parent is another hop, with no
+   evidence at either end.
+
+**Retire, never delete** — `status: deprecated` into `.agi/nodes/deprecated/`.
+The reason is mechanical: a node's grid ref outlives its file, so deleting
+decouples the durable structure instead of shrinking it. **Verify
+`active_node_count` + `deprecated_node_count` never drops.**
+
+**Gated on `goal:s23`.** Retiring nodes in bulk before deprecation suppresses
+injection would move the clutter rather than remove it — the map would carry
+every swept node exactly as it carries `build:TODO.md` today.
+
+## Falsifier
+
+Every node the pass retires is one a named rule already condemns — an orphaned
+`@v2`, or a hop with no evidence and no non-hop parent. State the rule that
+caught it per node. **A node retired because it "looks stale" is the failure
+case**, and the count moving is not the result: this project has already
+watched a sweep that undid no work move the primary metric by 0.038, which is
+why `goal:g5` had to be revised before this could safely run at all.
+
+## S25 — `build_corpus` resolves whatever directory it is handed — status: horizon
+
+**`goal:s10`'s second fix, which that goal said to do "regardless of (1)" and
+which never landed.** Split out on 2026-09-02 when S10 retired: its title
+asserts a file count that is now zero, so it can no longer carry a live defect
+honestly.
+
+`evidence_gate.build_corpus(nodes_dir)` takes a directory and `rglob`s it for
+`*.md`, returning every `id:` it finds. Called on `nodes/` it is correct.
+Called on a project root it returns whatever else is lying there — measured at
+the time as **657 ids vs 29,582**, the pre-purge gamed corpus resurrected. A
+verdict citing a deleted node as `evidence_runs` would resolve against it and
+pass the gate, silently undoing `goal:g3.1`'s fix.
+
+**The engine is not affected today, and that was checked rather than assumed:**
+all three real callers pass `root / "nodes"`. But *"the correct argument is
+passed at all three current call sites"* is a property of today's callers, not
+of the function, and the incorrect call takes one line to write. The fuel is
+gone; the mechanism is not.
+
+**A gate that cannot verify must fail closed** — the function already argues
+exactly this for a `None` corpus and should hold itself to it for a wrong
+directory. Either refuse a non-`nodes/` root, or resolve `nodes/` itself from
+the project root rather than trusting the caller.
+
+## Falsifier
+
+Call `build_corpus` on a project root containing stray `.md` files with `id:`
+frontmatter outside `nodes/`. It refuses, or returns only the `nodes/` ids —
+never the union. Then confirm the three live callers still pass.

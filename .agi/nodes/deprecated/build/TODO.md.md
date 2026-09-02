@@ -12,6 +12,7 @@ tags:
   - prose
   - g2.1
 title: "Build: TODO.md"
+status: deprecated
 type: build
 ---
 

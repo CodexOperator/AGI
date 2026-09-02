@@ -1,6 +1,18 @@
 # TODO — agi
 
-> **⚠️ This file is no longer where new work is recorded. `agi-tree/GOALS.md` is.**
+> **🔴 RETIRED 2026-09-02.** `build:TODO.md` and `idea:engine-todo` carry
+> `status: deprecated` and live in `.agi/nodes/deprecated/`. The file stays on
+> disk because deprecating a build node deliberately does not remove its
+> payload — `stitch.py` reads the retired sibling so history stays
+> materialisable. **Nothing here is a work queue. Read `GOALS.md`.**
+>
+> Retiring it was safe only because it is a two-node island: `build:TODO.md`
+> has no children and `idea:engine-todo` has no parents, so no chain was
+> stranded. It does not yet vanish from `INJECTION.md` — see `goal:s23`.
+>
+> **⚠️ This file is no longer where new work is recorded. `GOALS.md` is.**
+> (That line read `agi-tree/GOALS.md` until 2026-09-02; `goal:g11` merged that
+> repo away and `GOALS.md` now renders to this repo's own root.)
 >
 > L19 action 4 asked what this file becomes once engine reasoning lives in the
 > graph. Answered 2026-08-22: **`GOALS.md` is the live surface; this file is the

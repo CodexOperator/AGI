@@ -15,7 +15,7 @@ seeds:
   - idea:engine-cc-session-start
   - idea:engine-render-context
   - idea:engine-renderers
-status: active
+status: horizon
 tags:
   - goal
   - root

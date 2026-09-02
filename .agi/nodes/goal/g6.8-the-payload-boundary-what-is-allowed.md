@@ -12,7 +12,7 @@ seeds:
   - mvp:census-boundary-scope
   - mvp:level3-boundary-scope
   - mvp:payload-boundary-predicate
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

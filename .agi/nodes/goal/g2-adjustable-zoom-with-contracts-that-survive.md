@@ -21,7 +21,7 @@ seeds:
   - goal:g2.9
   - idea:engine-embeddings
   - idea:engine-zoom
-status: active
+status: horizon
 tags:
   - goal
   - root
