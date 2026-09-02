@@ -5260,26 +5260,44 @@ Three things follow, each already half-true somewhere in this repo:
    schema prose restated in `CLAUDE.md` and `SKILL.md`, whose links are to
    marked *regions* rather than whole files.
 
-**Three questions this opens and deliberately does not answer.** Each must be
-settled before any of it is built, and each is cheap to state now and expensive
-to discover later:
+**Three questions this opened, answered by the owner on 2026-09-02.** Each was
+a place where a decision this project had already paid for collided with the
+marker shape. All three are now binding on the build, and the chain falsifies
+them rather than re-opening them:
 
-- **Where does `THOUGHT` live?** It is authored, durable, and today it lives in
-  the body. If the body is a marker, thought needs a home — and frontmatter is
-  ruled out already, because `write_frontmatter` flattens newlines and would
-  destroy it silently.
-- **What is a goal node's linked file?** `goal:g6.9` established that
-  `GOALS.md` is rendered *from* goal node bodies. A live-linked body points the
-  arrow the other way. One of the two has to give, and G6.9 was paid for.
-- **What does a link to a missing file do?** A deprecated node whose file is
-  gone must not fail quietly — that is precisely the divergent-failure-semantics
-  defect this goal was written about, reappearing inside its own fix.
+- **`THOUGHT` stays in the node body.** A node file carries a marker *and*
+  exactly one authored region, and they coexist — the marker says where the
+  data is, the thought says why this version differs. Nothing migrates,
+  `goal:g2.11` is untouched, and the grid keeps versioning thought for free
+  because it already snapshots `node.md` per version. The alternatives were a
+  third grid tree entry (clean, but thought stops being visible in the working
+  tree and every reader grows an entry) and the head of the linked file (which
+  puts an authored region inside a file generators rewrite — the exact
+  `goal:g2.10` failure mode that left 8,034 fields reading `TODO(model)`).
+- **A goal node links to itself.** `link_ref: self` — the body *is* the data,
+  stated uniformly rather than as an absent field. `goal:g6.9` stands untouched
+  and `GOALS.md` keeps rendering *from* goal bodies. This is deliberately an
+  exception with a name instead of a hole: a reader never branches on
+  `type == goal`, it resolves `self` like any other link, so the one path in
+  and one path out survives the exception intact.
+- **A link to a missing file raises where a caller can act, and is counted
+  where it cannot.** A single-node read raises `MissingLink`. A bulk corpus
+  scan returns a typed sentinel and increments a `broken_links` metric, in the
+  same shape as `unevidenced_decisive_verdicts`. This is the goal's founding
+  finding applied to itself: the defect was never divergent *parsing*, it was
+  divergent *failure semantics*, so the answer is not one behaviour everywhere
+  but two behaviours **chosen** — loud where a caller can fix it, survivable
+  where one bad node must not kill a scan of 893.
 
-**Scope, at the owner's direction: nothing here is built this session.** The
-read and write paths are not to be touched until the parent and kid tiers are
-both properly standing, because this interface is what they will both call and
-designing it against a half-built caller is how it acquires a caller-shaped
-seam.
+**The scope gate is now open.** The original direction was that nothing here
+gets built until the parent and kid tiers are both properly standing, because
+this interface is what they will both call and designing it against a
+half-built caller is how it acquires a caller-shaped seam. That condition is
+met: the manifest race is fixed and verified at eight concurrent agents, two
+concurrent parents ran without collision, and the read half landed with the
+canonical reader keeping its own contract. **`write.py` is the next thing
+built**, with the three answers above as its inputs rather than as questions it
+has to stop and ask.
 
 ### G13.1 — Edit mode: a modal shell over the read and write paths, so a human edit is an engine action — status: active
 
