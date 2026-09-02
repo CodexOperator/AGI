@@ -491,6 +491,29 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_verdict_may_not_cite_itself
+  how: defines public function `test_verdict_may_not_cite_itself` at line 695
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_verdict_citing_its_experiment_is_fine
+  how: defines public function `test_verdict_citing_its_experiment_is_fine` at line
+    709
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_experiment_may_cite_itself_because_it_is_the_run
+  how: defines public function `test_experiment_may_cite_itself_because_it_is_the_run`
+    at line 717
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_self_id_absent_keeps_historical_behaviour
+  how: defines public function `test_self_id_absent_keeps_historical_behaviour` at
+    line 726
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: d / "e1.md"
   how: '`(d / "e1.md").write_text(''---\nid: "exp:e1"\ntype: experiment\n---\n\nbody\n'')`
     at line 199'

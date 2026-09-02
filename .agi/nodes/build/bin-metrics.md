@@ -100,7 +100,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(cfg_path.read_text())` at line 467'
+  how: '`json.loads(cfg_path.read_text())` at line 486'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -110,7 +110,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: cfg_path
-  how: '`cfg_path.read_text()` at line 467'
+  how: '`cfg_path.read_text()` at line 486'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -142,82 +142,88 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: deprecated_node_ids
+  how: 'defines public function `deprecated_node_ids` at line 225, signature: (nodes_dir:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: node_lifecycle_stats
-  how: 'defines public function `node_lifecycle_stats` at line 225, signature: (nodes_dir:
+  how: 'defines public function `node_lifecycle_stats` at line 244, signature: (nodes_dir:
     Path, node_count: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _git_out
-  how: 'defines private function `_git_out` at line 254, signature: (repo: Path, *args:
+  how: 'defines private function `_git_out` at line 273, signature: (repo: Path, *args:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: unpushed_commits
-  how: 'defines public function `unpushed_commits` at line 271, signature: (repo:
+  how: 'defines public function `unpushed_commits` at line 290, signature: (repo:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: push_gap_stats
-  how: 'defines public function `push_gap_stats` at line 338, signature: (root: Path)'
+  how: 'defines public function `push_gap_stats` at line 357, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: evidence_stats
-  how: 'defines public function `evidence_stats` at line 379, signature: (nodes_dir:
+  how: 'defines public function `evidence_stats` at line 398, signature: (nodes_dir:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: read_config
-  how: 'defines public function `read_config` at line 462, signature: (root: Path)'
+  how: 'defines public function `read_config` at line 481, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: primary_metric_name
-  how: 'defines public function `primary_metric_name` at line 472, signature: (cfg:
+  how: 'defines public function `primary_metric_name` at line 491, signature: (cfg:
     dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: goal_attribution
-  how: 'defines public function `goal_attribution` at line 486, signature: (nodes_dir:
+  how: 'defines public function `goal_attribution` at line 525, signature: (nodes_dir:
     Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: outcome_coverage
-  how: 'defines public function `outcome_coverage` at line 570, signature: (mvp_count:
+  how: 'defines public function `outcome_coverage` at line 649, signature: (mvp_count:
     int, hypothesis_count: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: compute
-  how: 'defines public function `compute` at line 581, signature: (root: Path)'
+  how: 'defines public function `compute` at line 660, signature: (root: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: emit
-  how: 'defines public function `emit` at line 635, signature: (root: Path, out=None)'
+  how: 'defines public function `emit` at line 714, signature: (root: Path, out=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _find_root
-  how: 'defines private function `_find_root` at line 719, signature: (start: Path)'
+  how: 'defines private function `_find_root` at line 798, signature: (start: Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: 'defines public function `main` at line 732, signature: (argv: list[str] |
+  how: 'defines public function `main` at line 811, signature: (argv: list[str] |
     None=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 11 `print()` call(s) at line(s) [642, 649, 660, 669, 696, 705, 708, 711, 714,
-    715, 727]
+  how: 11 `print()` call(s) at line(s) [721, 728, 739, 748, 775, 784, 787, 790, 793,
+    794, 806]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

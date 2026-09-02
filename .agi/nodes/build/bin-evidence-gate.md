@@ -55,12 +55,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: nf
-  how: '`nf.read_text(encoding="utf-8")` at line 208'
+  how: '`nf.read_text(encoding="utf-8")` at line 237'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 217'
+  how: '`yaml.safe_load(parts[1])` at line 246'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -99,47 +99,58 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: CorpusRootError
+  how: defines public class `CorpusRootError` at line 191
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: build_corpus
-  how: 'defines public function `build_corpus` at line 191, signature: (nodes_dir)'
+  how: 'defines public function `build_corpus` at line 195, signature: (nodes_dir)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: normalize_evidence_runs
-  how: 'defines public function `normalize_evidence_runs` at line 228, signature:
-    (value, corpus=None)'
+  how: 'defines public function `normalize_evidence_runs` at line 257, signature:
+    (value, corpus=None, self_id=None, allow_self: bool=False)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _is_self_citation
+  how: 'defines private function `_is_self_citation` at line 313, signature: (value,
+    self_id, allow_self: bool)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: is_unverifiable_attestation
-  how: 'defines public function `is_unverifiable_attestation` at line 278, signature:
+  how: 'defines public function `is_unverifiable_attestation` at line 337, signature:
     (value)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: GateResult
-  how: defines public class `GateResult` at line 297
+  how: defines public class `GateResult` at line 356
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: apply_gate
-  how: 'defines public function `apply_gate` at line 314, signature: (verdict: str,
-    evidence_runs, *, bypass: bool=False, corpus=None)'
+  how: 'defines public function `apply_gate` at line 373, signature: (verdict: str,
+    evidence_runs, *, bypass: bool=False, corpus=None, self_id=None, node_type=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: announce
-  how: 'defines public function `announce` at line 392, signature: (res: GateResult,
+  how: 'defines public function `announce` at line 457, signature: (res: GateResult,
     stream=None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stamp
-  how: 'defines public function `stamp` at line 411, signature: (fm: dict, res: GateResult)'
+  how: 'defines public function `stamp` at line 476, signature: (fm: dict, res: GateResult)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 4 `print()` call(s) at line(s) [400, 402, 405, 408]
+  how: 4 `print()` call(s) at line(s) [465, 467, 470, 473]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

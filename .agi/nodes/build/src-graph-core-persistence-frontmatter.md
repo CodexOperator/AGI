@@ -55,7 +55,7 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: typing.NamedTuple
-  how: '`from typing import NamedTuple` at line 133'
+  how: '`from typing import NamedTuple` at line 150'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -65,12 +65,12 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(text)` at line 84'
+  how: '`json.loads(text)` at line 99'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_load
-  how: '`yaml.safe_load(yaml_text)` at line 69'
+  how: '`yaml.safe_load(yaml_text)` at line 77'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -103,56 +103,56 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: _parse_json
-  how: 'defines private function `_parse_json` at line 83, signature: (text: str,
+  how: 'defines private function `_parse_json` at line 93, signature: (text: str,
     suffix: str, want_body: bool)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: save_node_file
-  how: 'defines public function `save_node_file` at line 96, signature: (path: str
+  how: 'defines public function `save_node_file` at line 113, signature: (path: str
     | Path, nf: NodeFile)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _emit_md
-  how: 'defines private function `_emit_md` at line 112, signature: (nf: NodeFile)'
+  how: 'defines private function `_emit_md` at line 129, signature: (nf: NodeFile)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _emit_json
-  how: 'defines private function `_emit_json` at line 125, signature: (nf: NodeFile)'
+  how: 'defines private function `_emit_json` at line 142, signature: (nf: NodeFile)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: LoadError
-  how: defines public class `LoadError` at line 136
+  how: defines public class `LoadError` at line 153
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: DirLoadResult
-  how: defines public class `DirLoadResult` at line 143
+  how: defines public class `DirLoadResult` at line 160
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: load_node_dir
-  how: 'defines public function `load_node_dir` at line 150, signature: (directory:
+  how: 'defines public function `load_node_dir` at line 167, signature: (directory:
     str | Path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: p
-  how: '`p.write_text(text, encoding="utf-8", newline="\n")` at line 109'
+  how: '`p.write_text(text, encoding="utf-8", newline="\n")` at line 126'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False)` at line 127'
+  how: '`json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False)` at line 144'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: yaml.safe_dump
   how: '`yaml.safe_dump( nf.frontmatter, sort_keys=True, default_flow_style=False,
-    allow_unicode=True, )` at line 113'
+    allow_unicode=True, )` at line 130'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

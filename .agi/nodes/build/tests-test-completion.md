@@ -64,6 +64,11 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: p
+  how: '`p.read_text()` at line 392'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: path
   how: '`path.read_text()` at line 96'
   why: TODO(model)
@@ -219,6 +224,18 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: test_malformed_node_is_never_rewritten
+  how: 'defines public function `test_malformed_node_is_never_rewritten` at line 378,
+    signature: (project, monkeypatch)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_both_malformed_shapes_raise_one_catchable_class
+  how: defines public function `test_both_malformed_shapes_raise_one_catchable_class`
+    at line 395
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: tmp_path / "agi-tree.config.json"
   how: '`(tmp_path / "agi-tree.config.json").write_text("{}")` at line 67'
   why: TODO(model)
@@ -270,6 +287,11 @@ outputs:
 - name: p
   how: '`p.write_text("---\nfoo: [unclosed\n---\n\nreal looking body\n")` at line
     369'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.write_text(original)` at line 389'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

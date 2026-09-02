@@ -7,12 +7,12 @@ origin: build-scan
 parents:
   - idea:engine-todo
 payload_ref: TODO.md
+status: deprecated
 tags:
   - build
   - prose
   - g2.1
 title: "Build: TODO.md"
-status: deprecated
 type: build
 ---
 
@@ -26,7 +26,7 @@ payload_ref: TODO.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: cf6388e3ce24faea9d9a66e18683087363a88d655c0dc74fdd0c304a36336522
+content_sha256: b4fcfbb2c66d22a1c389241897ca93b2bcc17bb73e9e4ac96f751c9f58174068
 inputs: []
 outputs: []
 ```

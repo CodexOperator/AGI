@@ -1,67 +1,70 @@
 ---
 build_kind: code
 confidence: 1.0
-id: "build:bin-adapters-init"
-mint_id: 8b0df07c6d62405388a188920ae69fc9
+id: "build:bin-brief"
+mint_id: 45c0ff4a2fe34d2aaa496f339ef96b70
 origin: build-scan
-payload_ref: extensions/agi/bin/adapters/__init__.py
+payload_ref: extensions/agi/bin/brief.py
 tags:
   - build
   - code
   - g2.1
-title: "Build: extensions/agi/bin/adapters/__init__.py"
+title: "Build: extensions/agi/bin/brief.py"
 type: build
 ---
 
-`extensions/agi/bin/adapters/__init__.py` — level-3 code node (one file, one canonical node).
+`extensions/agi/bin/brief.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: extensions/agi/bin/adapters/__init__.py
+payload_ref: extensions/agi/bin/brief.py
 parse_ok: true
 inputs:
 - name: __future__.annotations
-  how: '`from __future__ import annotations` at line 27'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: importlib
-  how: '`import importlib` at line 29'
+  how: '`from __future__ import annotations` at line 38'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: pathlib.Path
-  how: '`from pathlib import Path` at line 30'
+  how: '`from pathlib import Path` at line 40'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: types.ModuleType
-  how: '`from types import ModuleType` at line 31'
+- name: evidence_gate
+  how: '`import evidence_gate` at line 42'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 outputs:
-- name: AdapterError
-  how: defines public class `AdapterError` at line 38
+- name: BriefError
+  how: defines public class `BriefError` at line 51
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: load
-  how: 'defines public function `load` at line 42, signature: (name: str)'
+- name: _kid
+  how: 'defines private function `_kid` at line 55, signature: (*, agent_id: str,
+    iter_n: int, cli_py: str, scaffold: dict | None)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: resolve
-  how: 'defines public function `resolve` at line 82, signature: (cfg: dict, name:
-    str | None=None)'
+- name: _parent
+  how: 'defines private function `_parent` at line 112, signature: (*, agent_id: str,
+    iter_n: int, cli_py: str, dispatch_py: str, target: str | None, parallel: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
-- name: parallelism
-  how: 'defines public function `parallelism` at line 141, signature: (cfg: dict,
-    default: int=1)'
+- name: assemble
+  how: 'defines public function `assemble` at line 197, signature: (*, tier: str,
+    agent_id: str, iter_n: int, cli_py: str | Path='''', dispatch_py: str | Path='''',
+    scaffold: dict | None=None, target: str | None=None, parallel: int=1)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: closing_line
+  how: 'defines public function `closing_line` at line 226, signature: (tier: str,
+    agent_id: str, iter_n: int)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

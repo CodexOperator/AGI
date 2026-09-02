@@ -3927,7 +3927,7 @@ Load the exact context injection a kid receives on arrival. The fastest way to
 judge whether a brief is genuinely self-contained, and the only way to see the
 system from the inside without spending an agent. Was L10's first half.
 
-### G9.4 — The live graph viewport: watch the whole thing, moving — status: horizon
+### G9.4 — The live graph viewport: watch the whole thing, moving — status: active
 
 **This supersedes the dashboard as the primary view.** G9.1 answers "what is the
 state" in panels of text. This answers "what does the graph *look* like, right

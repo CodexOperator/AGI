@@ -25,7 +25,7 @@ payload_ref: skills/agi/SKILL.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: 7d8343ce8c4483c25eebcd51792fa091b81e01b8b50b1e5d1143cb6b1d6ce492
+content_sha256: 2fed40dfcf3968c1b32221d5becae2b387da878b67f25f5ade5858b56dc05e98
 inputs: []
 outputs: []
 ```
