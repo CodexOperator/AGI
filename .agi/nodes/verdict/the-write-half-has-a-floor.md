@@ -32,7 +32,10 @@ proved
   with its bytes intact.
 - **No `type == goal` branch exists in the resolver** — `self` resolves like
   any other link.
-- 15 new tests; suite 1279 → 1294.
+- 16 new tests; suite 1279 → 1295. The type-branch claim is carried by an
+  `ast` test, not a `grep` — a first attempt used `grep -c "type == goal"` and
+  got 1, because the phrase is in the module docstring stating the invariant.
+  A text search for a concept cannot tell prose from code.
 
 ## What is proved, at the level it holds
 

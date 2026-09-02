@@ -70,14 +70,23 @@ worse and much harder to notice.
 
 `test_self_resolves_to_the_nodes_own_body_without_branching_on_type` resolves
 `goal:g1` with `link_ref: self` through the same code path as every other
-node. There is no `type == goal` branch in `write.py` — `grep` confirms the
-string does not appear. That is the entire difference between the owner's
-answer (an exception **with a name**) and the alternative it beat (goals are
-exempt, i.e. a hole every caller handles its own way).
+node. That is the entire difference between the owner's answer (an exception
+**with a name**) and the alternative it beat (goals are exempt, i.e. a hole
+every caller handles its own way).
+
+**A first attempt to evidence this with `grep` was wrong and is recorded
+rather than deleted.** `grep -c "type == goal" write.py` returns **1** — the
+phrase appears in the module docstring, describing the invariant. A grep for a
+concept cannot tell prose from code, so the claim is carried by
+`test_the_resolver_has_no_type_branch_in_its_executable_lines`, which parses
+the module with `ast`, excludes every line inside a string constant, and
+asserts no executable line mentions both `type` and `goal`. The distinction
+matters exactly as much here as it did when a smoke check passed on a
+traceback: **the tool answered a different question than the one asked.**
 
 ### Counts
 
-15 new tests in `test_write.py`; suite 1279 → **1294**, all passing.
+16 new tests in `test_write.py`; suite 1279 → **1295**, all passing.
 
 ### What this experiment does NOT show
 
