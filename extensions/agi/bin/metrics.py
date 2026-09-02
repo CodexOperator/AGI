@@ -468,7 +468,37 @@ def evidence_stats(nodes_dir: Path) -> dict:
         # Subset of the above with no `verdict:` field at all: a decisive
         # claim that every other number in this dict is blind to.
         "shadow_decisive_no_verdict": shadow_orphaned,
+        # goal:g13 — nodes whose `link_ref`/`payload_ref` names a file that is
+        # not there. Should be 0. This is the *counted* half of the two chosen
+        # failure behaviours: a single-node read raises `MissingLink` where a
+        # caller can act, and a bulk scan lands here instead of dying on one
+        # node out of nine hundred. Same shape as
+        # `unevidenced_decisive_verdicts` — a number whose only healthy value
+        # is zero, naming a specific repairable defect.
+        "broken_links": _broken_links(nodes_dir),
     }
+
+
+def _broken_links(nodes_dir) -> int:
+    """`write.count_broken_links`, defensively.
+
+    Imported here rather than at module scope so a project whose checkout
+    predates `write.py` still computes every other metric. A metrics run that
+    dies because one counter is unavailable would take the whole `--smoke`
+    gate with it, and that gate is what verifies the node count did not drop.
+
+    Degrading is not the same as degrading silently — the counter says so on
+    stderr rather than reporting a healthy 0 it did not compute. A metric that
+    reads 0 because it failed is exactly the quiet failure `goal:g13` exists
+    to remove, and it would be a poor joke to build one into the counter.
+    """
+    try:
+        import write
+        return write.count_broken_links(Path(nodes_dir).parent)
+    except Exception as exc:
+        print(f"METRIC_WARNING broken_links_unavailable={type(exc).__name__}: "
+              f"{exc}", file=sys.stderr)
+        return 0
 
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined. The

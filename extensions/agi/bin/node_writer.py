@@ -52,6 +52,8 @@ of them had been fixed.
 from __future__ import annotations
 
 import hashlib
+import os
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -112,6 +114,11 @@ LEADING_KEYS = ("id", "mint_id", "type", "parents", "next_edges")
 WRITTEN = "written"
 SKIPPED = "skipped"
 REJECTED = "rejected"
+#: `update_node` only. A node that already existed and now differs.
+UPDATED = "updated"
+#: `update_node` only. The node was read, the write was legal, and nothing
+#: about it would change. Distinct from SKIPPED, which means refused.
+UNCHANGED = "unchanged"
 
 #: `on_exists` policies.
 SKIP = "skip"                       # a file that exists is never touched
@@ -447,3 +454,158 @@ def write_node(
     _ID_INDEX.pop(str(root.resolve()), None)
     res.status = WRITTEN
     return res
+
+
+# ---------------------------------------------------------------------------
+# goal:g13 — the write half. `write_node` creates; this EDITS IN PLACE.
+#
+# Until now nothing gated could change an existing node, so every fix, retag
+# and field addition was a hand edit: no schema check, no `THOUGHT` guarantee,
+# no record that a write happened at all. `goal:g13.1` names that exactly --
+# a hand edit is "a completely stray and untraceable commit". This is the
+# routine those edits are supposed to go through.
+#
+# Three properties, and the first is the one everything else depends on:
+#
+#   1. THE AUTHORED REGION SURVIVES. `THOUGHT` is authored, durable, and lives
+#      in the body (the owner's answer, 2026-09-02). A writer that rewrote the
+#      body would destroy it -- which is `goal:g2.10`, the defect that left
+#      8,034 fields reading TODO(model) because a generator rewrote the whole
+#      body on every run. Body is untouched unless a caller passes a new one,
+#      and even then the thought is carried across.
+#   2. Frontmatter is MERGED, never replaced. A caller sets the keys it owns.
+#   3. An update that changes nothing reports UNCHANGED and does not write, so
+#      `grid.py commit --all` does not mint a version recording no change.
+# ---------------------------------------------------------------------------
+
+#: The authored region, matched exactly as `snapshot-goals.py` and `metrics.py`
+#: match it. One spelling, three readers -- a fourth regex here would be the
+#: hand-maintained second copy this project keeps paying for (`goal:s17`).
+_THOUGHT_RE = re.compile(
+    r"<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+
+
+def extract_thought(body: str) -> str | None:
+    """The authored region of a body, or None. **Absent means empty.**
+
+    Never fabricate one after the fact -- a made-up thought reads as evidence
+    (`goal:g2.11`).
+    """
+    match = _THOUGHT_RE.search(body or "")
+    return match.group(0) if match else None
+
+
+def _carry_thought(old_body: str, new_body: str) -> str:
+    """Put the old body's authored region into a new body that lacks one.
+
+    Only ever ADDS. A new body that carries its own thought keeps it -- the
+    writer is the author of the version and is entitled to say why it differs.
+    """
+    thought = extract_thought(old_body)
+    if thought is None or extract_thought(new_body) is not None:
+        return new_body
+    return new_body.rstrip("\n") + "\n\n" + thought + "\n"
+
+
+def update_node(
+    root,
+    node_id,
+    *,
+    set_fm=None,
+    unset_fm=(),
+    body=None,
+    validate=True,
+    announce=False,
+) -> NodeWrite:
+    """Edit one existing node in place, gated. The only routine that does this.
+
+    `set_fm` is merged over the node's frontmatter; `unset_fm` names keys to
+    drop. `body` replaces the body and is the one case where the authored
+    `THOUGHT` region could be lost -- so it is carried across automatically
+    unless the new body brings its own.
+
+    Returns a `NodeWrite` whose status is `UPDATED`, `UNCHANGED` or `REJECTED`.
+    Never raises for a rejection, matching `write_node`.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    root = Path(root)
+    res = NodeWrite(node_id=str(node_id))
+    path = find_node_file(root, node_id)
+    if path is None:
+        res.status = REJECTED
+        res.reason = f"no node file for {node_id}"
+        return res
+    res.path = path
+
+    try:
+        nf = fm_reader.load_node_file(path)
+    except Exception as exc:
+        # The read half's own failure class, surfaced rather than swallowed.
+        # A node that will not parse must not be silently rewritten from a
+        # partial read -- that turns an unreadable node into a wrong one.
+        res.status = REJECTED
+        res.reason = f"{node_id} could not be parsed: {exc}"
+        return res
+
+    fm = dict(nf.frontmatter)
+    res.node_type = canonical_node_type(fm.get("type") or path.parent.name)
+    res.slug = path.stem
+    res.parents = list(fm.get("parents") or [])
+
+    for key in unset_fm:
+        fm.pop(key, None)
+    fm.update(set_fm or {})
+
+    new_body = nf.body if body is None else _carry_thought(nf.body, body)
+
+    if fm == nf.frontmatter and new_body == nf.body:
+        res.status = UNCHANGED
+        res.reason = "nothing to change"
+        return res
+
+    if validate:
+        problem = _schema_problem(root, res.node_type, fm, announce=announce)
+        if problem:
+            res.status = REJECTED
+            res.reason = problem
+            return res
+
+    text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + new_body
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+
+    res.status = UPDATED
+    return res
+
+
+def _schema_problem(root, node_type, fm, announce=False) -> str | None:
+    """Why this frontmatter is not a legal `node_type`, or None.
+
+    Checks only what an UPDATE can break -- the type's `validation.required`
+    keys. The spawn gate is deliberately not re-run: it decides whether a node
+    may be CREATED with these parents, and re-litigating that on every field
+    edit would make the 216 grandfathered build nodes unwritable
+    (`goal:s29`).
+    """
+    try:
+        rules, _index = spawn_gate.gate_for_root(root)
+    except Exception:
+        return None
+    if announce:
+        spawn_gate.announce_schema_errors(rules)
+    rule = (rules or {}).get(node_type) if isinstance(rules, dict) else None
+    required = []
+    if isinstance(rule, dict):
+        required = ((rule.get("validation") or {}).get("required")
+                    or rule.get("required") or [])
+    missing = [k for k in required if not fm.get(k)]
+    if missing:
+        return (f"{node_type} requires {', '.join(sorted(missing))}; an update "
+                f"may not leave a node schema-invalid")
+    return None
