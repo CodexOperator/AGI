@@ -49,6 +49,31 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: json
+  how: '`import json` at line 188'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: os
+  how: '`import os` at line 189'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: multiprocessing.Process
+  how: '`from multiprocessing import Process` at line 190'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads((tmp_path / "manifest.json").read_text())` at line 270'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / "manifest.json"
+  how: '`(tmp_path / "manifest.json").read_text()` at line 270'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 outputs:
 - name: _load_dispatch
   how: defines private function `_load_dispatch` at line 21
@@ -157,6 +182,59 @@ outputs:
 - name: test_aiming_does_not_scaffold_a_parentless_idea
   how: defines public function `test_aiming_does_not_scaffold_a_parentless_idea` at
     line 171
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _rec
+  how: 'defines private function `_rec` at line 193, signature: (agent_id: str, tier:
+    str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_merge_preserves_the_parent_when_a_kid_dispatches_into_the_same_iter
+  how: 'defines public function `test_merge_preserves_the_parent_when_a_kid_dispatches_into_the_same_iter`
+    at line 197, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_started_at_is_carried_forward_not_reset_by_a_later_dispatch
+  how: 'defines public function `test_started_at_is_carried_forward_not_reset_by_a_later_dispatch`
+    at line 212, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_redispatching_one_agent_updates_it_rather_than_duplicating
+  how: 'defines public function `test_redispatching_one_agent_updates_it_rather_than_duplicating`
+    at line 223, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_a_corrupt_manifest_degrades_with_a_warning_and_still_records
+  how: 'defines public function `test_a_corrupt_manifest_degrades_with_a_warning_and_still_records`
+    at line 234, signature: (tmp_path, capsys)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _concurrent_writer
+  how: 'defines private function `_concurrent_writer` at line 243, signature: (iter_dir:
+    str, agent_id: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_concurrent_dispatches_lose_no_agent
+  how: 'defines public function `test_concurrent_dispatches_lose_no_agent` at line
+    249, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_no_shared_temp_file_name_is_left_behind
+  how: 'defines public function `test_no_shared_temp_file_name_is_left_behind` at
+    line 275, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: tmp_path / "manifest.json"
+  how: '`(tmp_path / "manifest.json").write_text("{not json")` at line 236'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

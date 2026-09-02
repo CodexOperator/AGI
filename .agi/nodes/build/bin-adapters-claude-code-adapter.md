@@ -46,6 +46,20 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: is_alive
+  how: 'defines public function `is_alive` at line 65, signature: (pid: int)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: restart
+  how: 'defines public function `restart` at line 70, signature: (*, harness: dict,
+    tier: str, context_file: str, agent_id: str, iter_n: int, sess_dir: Path, scaffold:
+    dict | None=None, cli_py: str | Path='''', skill_prompt: Path | None=None, dispatch_py:
+    str | Path='''', target: str | None=None, parallel: in...[truncated, 275 chars
+    total])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 ```
 <!-- BUILD-CONTRACT:END -->
 

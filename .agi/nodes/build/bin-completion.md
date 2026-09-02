@@ -70,6 +70,12 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: owns_all_complete
+  how: 'defines public function `owns_all_complete` at line 94, signature: (root:
+    Path, node_ids)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 ```
 <!-- BUILD-CONTRACT:END -->
 

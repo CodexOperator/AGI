@@ -215,86 +215,116 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: test_horizon_goals_still_score
-  how: 'defines public function `test_horizon_goals_still_score` at line 309, signature:
+  how: 'defines public function `test_horizon_goals_still_score` at line 312, signature:
     (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_unattributed_nodes_keep_scoring
-  how: 'defines public function `test_unattributed_nodes_keep_scoring` at line 318,
+  how: 'defines public function `test_unattributed_nodes_keep_scoring` at line 321,
     signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_node_shared_with_a_live_goal_still_scores
   how: 'defines public function `test_node_shared_with_a_live_goal_still_scores` at
-    line 331, signature: (project)'
+    line 334, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goal_status_counts_are_emitted
-  how: 'defines public function `test_goal_status_counts_are_emitted` at line 341,
+  how: 'defines public function `test_goal_status_counts_are_emitted` at line 344,
     signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_completing_a_goal_does_not_move_the_metric
+  how: 'defines public function `test_completing_a_goal_does_not_move_the_metric`
+    at line 366, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_retiring_a_goal_removes_its_closed_chain_from_both_terms
+  how: 'defines public function `test_retiring_a_goal_removes_its_closed_chain_from_both_terms`
+    at line 388, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_retiring_a_goal_with_no_chain_changes_nothing
+  how: 'defines public function `test_retiring_a_goal_with_no_chain_changes_nothing`
+    at line 409, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_retiring_cannot_launder_unconverted_hypotheses_out_of_the_ratio
+  how: 'defines public function `test_retiring_cannot_launder_unconverted_hypotheses_out_of_the_ratio`
+    at line 427, signature: (project)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_legacy_phasing_out_still_reads_as_retired
+  how: 'defines public function `test_legacy_phasing_out_still_reads_as_retired` at
+    line 453, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_exceeding_max_goals_active_warns_but_does_not_refuse
   how: 'defines public function `test_exceeding_max_goals_active_warns_but_does_not_refuse`
-    at line 351, signature: (project, capsys)'
+    at line 465, signature: (project, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_within_max_goals_active_is_silent
-  how: 'defines public function `test_within_max_goals_active_is_silent` at line 366,
+  how: 'defines public function `test_within_max_goals_active_is_silent` at line 480,
     signature: (project, capsys)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_goal_cycle_does_not_hang_attribution
   how: 'defines public function `test_goal_cycle_does_not_hang_attribution` at line
-    375, signature: (project)'
+    489, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_deprecated_nodes_are_counted
-  how: 'defines public function `test_deprecated_nodes_are_counted` at line 391, signature:
+  how: 'defines public function `test_deprecated_nodes_are_counted` at line 505, signature:
     (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_node_count_does_not_drop_when_a_node_is_deprecated
   how: 'defines public function `test_node_count_does_not_drop_when_a_node_is_deprecated`
-    at line 400, signature: (project)'
+    at line 514, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_a_graph_with_no_deprecations_reads_zero_not_absent
   how: 'defines public function `test_a_graph_with_no_deprecations_reads_zero_not_absent`
-    at line 417, signature: (project)'
+    at line 531, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_lifecycle_count_is_not_goal_attribution
   how: 'defines public function `test_lifecycle_count_is_not_goal_attribution` at
-    line 426, signature: (project)'
+    line 540, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_deprecated_status_tolerates_case_and_whitespace
   how: 'defines public function `test_deprecated_status_tolerates_case_and_whitespace`
-    at line 440, signature: (project)'
+    at line 562, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_other_statuses_are_not_deprecation
   how: 'defines public function `test_other_statuses_are_not_deprecation` at line
-    446, signature: (project)'
+    568, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: test_lifecycle_counts_reach_the_metric_lines
   how: 'defines public function `test_lifecycle_counts_reach_the_metric_lines` at
-    line 455, signature: (project)'
+    line 577, signature: (project)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -322,13 +352,13 @@ outputs:
   security: TODO(model)
 - name: project / "agi-tree.config.json"
   how: '`(project / "agi-tree.config.json").write_text( json.dumps({"cc_dispatch":
-    {"max_goals_active": 1}}) )` at line 354'
+    {"max_goals_active": 1}}) )` at line 468'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: project / "agi-tree.config.json"
   how: '`(project / "agi-tree.config.json").write_text( json.dumps({"cc_dispatch":
-    {"max_goals_active": 3}}) )` at line 367'
+    {"max_goals_active": 3}}) )` at line 481'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -343,12 +373,12 @@ outputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({"cc_dispatch": {"max_goals_active": 1}})` at line 355'
+  how: '`json.dumps({"cc_dispatch": {"max_goals_active": 1}})` at line 469'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps({"cc_dispatch": {"max_goals_active": 3}})` at line 368'
+  how: '`json.dumps({"cc_dispatch": {"max_goals_active": 3}})` at line 482'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

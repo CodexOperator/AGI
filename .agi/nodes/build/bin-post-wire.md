@@ -85,37 +85,37 @@ inputs:
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(manifest_path.read_text())` at line 226'
-  why: TODO(model)
-  perf: TODO(model)
-  security: TODO(model)
-- name: yaml.safe_load
-  how: '`yaml.safe_load(parts[1])` at line 100'
+  how: '`json.loads(manifest_path.read_text())` at line 270'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.loads
-  how: '`json.loads(path.read_text())` at line 165'
+  how: '`json.loads(path.read_text())` at line 204'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: manifest_path
-  how: '`manifest_path.read_text()` at line 226'
+  how: '`manifest_path.read_text()` at line 270'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: yaml.safe_load
+  how: '`yaml.safe_load(parts[1])` at line 133'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: path
-  how: '`path.read_text()` at line 165'
+  how: '`path.read_text()` at line 204'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: node_path
-  how: '`node_path.read_text(encoding="utf-8")` at line 293'
+  how: '`node_path.read_text(encoding="utf-8")` at line 351'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: parent_path
-  how: '`parent_path.read_text(encoding="utf-8")` at line 370'
+  how: '`parent_path.read_text(encoding="utf-8")` at line 435'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -148,54 +148,59 @@ outputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: MalformedNode
+  how: defines public class `MalformedNode` at line 92
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 - name: _read_frontmatter
-  how: 'defines private function `_read_frontmatter` at line 92, signature: (body:
+  how: 'defines private function `_read_frontmatter` at line 102, signature: (body:
     str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _write_node
-  how: 'defines private function `_write_node` at line 104, signature: (path: Path,
+  how: 'defines private function `_write_node` at line 143, signature: (path: Path,
     fm: dict, body: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _merged_agent
-  how: 'defines private function `_merged_agent` at line 124, signature: (iter_dir:
+  how: 'defines private function `_merged_agent` at line 163, signature: (iter_dir:
     Path, entry: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: _gate
-  how: 'defines private function `_gate` at line 174, signature: (agent: dict, fm:
+  how: 'defines private function `_gate` at line 213, signature: (agent: dict, fm:
     dict, corpus)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: cmd_wire
-  how: 'defines public function `cmd_wire` at line 217, signature: (args: argparse.Namespace)'
+  how: 'defines public function `cmd_wire` at line 261, signature: (args: argparse.Namespace)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: main
-  how: defines public function `main` at line 450
+  how: defines public function `main` at line 520
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: graph_path
   how: '`graph_path.write_text(json.dumps(graph_data, indent=2), encoding="utf-8")`
-    at line 412'
+    at line 482'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: json.dumps
-  how: '`json.dumps(graph_data, indent=2)` at line 412'
+  how: '`json.dumps(graph_data, indent=2)` at line 482'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: stdout
-  how: 16 `print()` call(s) at line(s) [167, 223, 415, 416, 418, 419, 421, 423, 425,
-    431, 433, 438, 441, 443, 445, 446]
+  how: 16 `print()` call(s) at line(s) [206, 267, 485, 486, 488, 489, 491, 493, 495,
+    501, 503, 508, 511, 513, 515, 516]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

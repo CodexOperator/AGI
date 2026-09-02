@@ -37,28 +37,75 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: brief
+  how: '`import brief` at line 29'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 outputs:
 - name: resolve_bin
-  how: 'defines public function `resolve_bin` at line 35, signature: (harness: dict)'
+  how: 'defines public function `resolve_bin` at line 37, signature: (harness: dict)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: model_args
-  how: 'defines public function `model_args` at line 45, signature: (harness: dict,
+  how: 'defines public function `model_args` at line 47, signature: (harness: dict,
     tier: str)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: child_env
-  how: 'defines public function `child_env` at line 79, signature: (*, harness: dict,
+  how: 'defines public function `child_env` at line 81, signature: (*, harness: dict,
     base: dict[str, str])'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
 - name: build_command
-  how: 'defines public function `build_command` at line 92, signature: (*, harness:
+  how: 'defines public function `build_command` at line 94, signature: (*, harness:
     dict, tier: str, context_file: str, agent_id: str, iter_n: int, sess_dir: Path,
-    scaffold: dict | None=None, cli_py: str | Path='''', skill_prompt: Path | None=None)'
+    scaffold: dict | None=None, cli_py: str | Path='''', skill_prompt: Path | None=None,
+    dispatch_py: str | Path='''', target: str | None=None, parallel: in...[truncated,
+    243 chars total])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: is_alive
+  how: 'defines public function `is_alive` at line 132, signature: (pid: int)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: restart
+  how: 'defines public function `restart` at line 147, signature: (*, harness: dict,
+    tier: str, context_file: str, agent_id: str, iter_n: int, sess_dir: Path, scaffold:
+    dict | None=None, cli_py: str | Path='''', skill_prompt: Path | None=None, dispatch_py:
+    str | Path='''', target: str | None=None, parallel: in...[truncated, 275 chars
+    total])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: import_sys_stderr
+  how: defines public function `import_sys_stderr` at line 207
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: sess_dir / "agent.json"
+  how: '`(sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))`
+    at line 203'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: log_file
+  how: '`open(log_file, "ab")` at line 185 (mode=''ab'')'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.dumps
+  how: '`json.dumps(agent_record, indent=2)` at line 203'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: stdout
+  how: 1 `print()` call(s) at line(s) [196]
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

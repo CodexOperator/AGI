@@ -194,7 +194,8 @@ outputs:
 - name: src
   how: '`src.write_text( "NAME = ''thirdparty''\n" "def build_command(**kw):\n" "    return
     [''third'', kw[''tier''], kw[''agent_id'']]\n" "def child_env(*, harness, base):\n"
-    "    return base\n" )` at line 200'
+    "    return base\n" "def is_alive(pid):\n" "    return True\n" "def restart(**kw)...[truncated,
+    266 chars total]` at line 200'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

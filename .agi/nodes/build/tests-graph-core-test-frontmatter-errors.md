@@ -39,6 +39,32 @@ inputs:
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
+- name: _json
+  how: '`import json as _json` at line 75'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _pytest
+  how: '`import pytest as _pytest` at line 76'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _yaml
+  how: '`import yaml as _yaml` at line 77'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: graph_core.persistence.frontmatter.FrontmatterError
+  how: '`from graph_core.persistence.frontmatter import FrontmatterError` at line
+    79'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: graph_core.persistence.frontmatter.load_node_file
+  how: '`from graph_core.persistence.frontmatter import load_node_file` at line 79'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
 outputs:
 - name: test_dir_load_isolates_bad_file
   how: 'defines public function `test_dir_load_isolates_bad_file` at line 8, signature:
@@ -67,6 +93,30 @@ outputs:
 - name: test_dir_load_continues_after_multiple_errors
   how: 'defines public function `test_dir_load_continues_after_multiple_errors` at
     line 51, signature: (tmp_path: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_malformed_yaml_raises_frontmatter_error_not_a_yaml_error
+  how: 'defines public function `test_malformed_yaml_raises_frontmatter_error_not_a_yaml_error`
+    at line 90, signature: (tmp_path, bad_yaml)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_malformed_json_raises_frontmatter_error_not_a_decode_error
+  how: 'defines public function `test_malformed_json_raises_frontmatter_error_not_a_decode_error`
+    at line 97, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_the_underlying_cause_is_preserved_for_debugging
+  how: 'defines public function `test_the_underlying_cause_is_preserved_for_debugging`
+    at line 104, signature: (tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_every_malformed_shape_fails_in_exactly_one_class
+  how: 'defines public function `test_every_malformed_shape_fails_in_exactly_one_class`
+    at line 120, signature: (tmp_path)'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
@@ -129,6 +179,31 @@ outputs:
   security: TODO(model)
 - name: tmp_path / "bad2.json"
   how: '`(tmp_path / "bad2.json").write_text("{not json")` at line 56'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.write_text(bad_yaml)` at line 92'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.write_text("{not json")` at line 99'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.write_text("---\nid: [unclosed\n---\nbody\n")` at line 108'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: j
+  how: '`j.write_text("{not json")` at line 114'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: p
+  how: '`p.write_text(text)` at line 134'
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)

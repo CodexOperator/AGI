@@ -25,7 +25,7 @@ payload_ref: autoresearch.ideas.md
 parse_ok: false
 parse_error: 'not-python: .md (no mechanical contract derivation for this file type
   yet — see goal:g6.6)'
-content_sha256: daafb028145aee1db4e25d5e1fa505df61ec7b89f7b6bc28874a16713169b44f
+content_sha256: eaa15ba157c58b5f2f1808390ae0b74371930ae7f6882dc79616df9ccfea14fe
 inputs: []
 outputs: []
 ```
