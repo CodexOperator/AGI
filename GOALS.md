@@ -187,17 +187,61 @@ the defect in place and the next agent would have hit it.
 This is also why the honest report matters more than the clean one. An agent
 that hides a failure has destroyed the only thing that failure was good for.
 
-## G1 — Zero-operations loop: every mundane step is a command — status: horizon
+## G1 — Config-maxxing: every engine action is declared, never improvised — status: horizon
 
-The ethic above, reduced to buildable surface. An agent should never spend
-motion on tending the machine: no hand-pasting a rendered map into a spawn
-prompt, no hand-writing a config, no syncing by hand.
+**Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
+step is a command".** The invariant did not change; the framing got one level
+deeper, and the new name is the one that generalises. Recorded as a rename
+rather than a fresh goal because the seeds, the banked results and every
+subgoal below still hold verbatim — this project does not renumber, and it
+does not edit drift away either.
 
-**Invariant:** any repeated, mechanical step is a named command, and every
-surviving manual handle carries a written reason.
+**The owner's statement of it:**
+
+> Everything is in a config, everything is a node, everything is a unified
+> spawn path, everything is a unified read and write path. Every action is
+> defined, config-maxxed. Nothing is just created randomly or freely — the
+> graph is the creation engine, so each engine action must be as mechanical as
+> possible.
+
+**Why the rename is not cosmetic.** "Zero-operations" names a *cost* to be
+driven down: the agent should not spend motion tending the machine. That is
+true and it stays true, but it is a symptom. **Config-maxxing names the
+cause.** An action that is improvised has to be re-derived, re-typed and
+re-checked by whoever meets it next; an action that is *declared* is read once
+and executed identically forever. Zero operations is what you get when
+everything is declared — not a separate target to aim at.
+
+**Invariant, restated at the deeper level:** every engine action is declared in
+a node or a config the engine reads. Any repeated, mechanical step is a named
+command, and every surviving manual handle carries a written reason.
+
+## The four "everything"s, and where each stands
+
+| | claim | status |
+|---|---|---|
+| **everything is in a config** | behaviour is declared data the engine reads, never a fork of engine code | partial — `config.json` is the customization surface; `goal:g1.10` extends it to the commands themselves |
+| **everything is a node** | including the engine's own geometry: crons, secrets, commands | partial — `.geometry/crons.md` and `secrets.md` exist; commands do not |
+| **one spawn path** | a harness is an adapter named in config, not a parallel code path | `goal:g4.6` |
+| **one read/write path** | one way in, one way out of the graph | `goal:g13` — read half landed 2026-09-02 |
+
+**`.geometry/crons.md` is the working precedent and the shape to copy.** It is
+graph content declaring cron cadences; `crons.py apply` is the one command that
+makes reality agree with the declaration; editing the node *is* the change. No
+schedule is typed at a shell. That is config-maxxing built and running, on one
+narrow surface, and `goal:g1.10` is the argument that the surface should be
+wider.
+
+**The counter-example this goal exists to prevent** is the one the repo has
+already paid for: a step that is mechanical but undeclared gets done slightly
+differently each time, and the differences are invisible until one of them is
+wrong. Six node parsers that agree only by accident (`goal:g13`), a manifest
+merge asserted in a commit message and nowhere else (`goal:s28`), a scaffold
+that omits schema-required fields nobody declared it must supply
+(`goal:s31`) — each is an undeclared action drifting.
 
 Already banked — cron owns all remote traffic (H10), embedded maps cut kids from
-11–13 tool calls to 5–7 (L7), the DONE contract makes stopping one line.
+11-13 tool calls to 5-7 (L7), the DONE contract makes stopping one line.
 
 Owns: **L11** remainder (one command that renders *and* spawns — the parent's
 last machine-tending chore), **L12** remainder (a runtime flag rather than a
@@ -645,6 +689,77 @@ already knew. Then change the verdict taxonomy in `evidence_gate.py` and spawn
 again — **the brief must change with it, in the same commit, with nothing
 edited by hand.** Until that second half holds, the drift this goal exists to
 remove is still possible, and the first half alone is a convenience.
+
+### G1.10 — The engine's standard commands are declared in a node, not memorised — status: active
+
+**Config-maxxing applied to the one surface that has escaped it: the commands
+themselves.** Everything else about a run is declared — metrics, dispatch,
+harnesses, schemas, cron cadences. The commands an operator actually types to
+make the engine work are declared nowhere. They live in `CLAUDE.md` prose, in
+`SKILL.md`'s table, in `QUICKSTART.md`, and in whatever the last session's
+`HANDOFF.md` happened to write down.
+
+**Scope, stated by the owner and load-bearing:** *"not a command for every
+custom test call, just the commands that are used during standard workflows."*
+A `commands` node is not a shell-alias dumping ground. It declares the small
+set of operations the engine cannot run without — **primarily the unified read
+and write paths** (`goal:g13`), plus snapshot, render, metrics, grid commit,
+dispatch and verification.
+
+## The precedent is already built and running
+
+`.agi/nodes/.geometry/crons.md` is graph content declaring cron cadences;
+`crons.py apply` is the one command that reconciles reality with the
+declaration; **editing the node is the change.** No schedule is typed at a
+shell. This goal is that exact shape, widened by one surface: a
+`.geometry/commands.md` node, a `type: command` schema beside `[cron]`, and
+one resolver that turns a declared name into the argv it stands for.
+
+That the precedent exists is most of the argument. This is not a new mechanism;
+it is the second user of a mechanism that has already survived a migration
+freeze and a live kill-switch test.
+
+## What it buys, and it is not convenience
+
+**Three failure modes this session produced, all the same defect.** A step that
+is mechanical but undeclared gets done slightly differently each time, and the
+differences stay invisible until one of them is wrong:
+
+- Six node parsers agreeing only by accident (`goal:g13`).
+- A manifest merge whose atomicity was asserted in a commit message and
+  nowhere else (`goal:s28`).
+- A scaffold omitting schema-required fields nobody declared it must supply
+  (`goal:s31`).
+
+A declared command is read once and executed identically forever. An
+improvised one is re-derived by every reader, and this project has now paid for
+that three times in one day.
+
+**It also closes a documentation leak.** `CLAUDE.md` and `SKILL.md` both carry
+hand-maintained command tables. `goal:s17` is the standing complaint about
+hand-maintained second copies, and `goal:g1.9` made the same argument for
+briefs: a document that restates a rule enforced elsewhere is a copy that will
+drift. Rendering those tables *from* the node is the same fix one surface over.
+
+## What it must not become
+
+**Not a wrapper that hides what it runs.** An operator and an agent must both
+be able to ask what a declared name expands to and get the literal argv back.
+The failure mode is a command layer that becomes its own thing to learn — the
+`goal:g1.2` complaint (a second manual) arriving through a new door.
+
+**Not a writer.** Declaring a command must not mean the engine may invent or
+edit one. The node is authored; the resolver reads it.
+
+## Falsifier
+
+Change the argv of a standard workflow step by editing only the node, and have
+every caller — `driver.sh`, the skill's table, a fresh operator following
+`QUICKSTART.md` — pick up the change with nothing else edited by hand. Then ask
+the resolver what a declared name expands to and get the literal command back.
+
+If either half fails, this is a config file that happens to contain strings
+rather than a declaration the engine reads.
 
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
@@ -5165,6 +5280,95 @@ read and write paths are not to be touched until the parent and kid tiers are
 both properly standing, because this interface is what they will both call and
 designing it against a half-built caller is how it acquires a caller-shaped
 seam.
+
+### G13.1 — Edit mode: a modal shell over the read and write paths, so a human edit is an engine action — status: active
+
+**The write-side counterpart of the viewport, and the reason it is a separate
+goal from it.** `goal:g9.4` gave the graph a *reader* a human can drive.
+Everything a human does to *change* the graph is still a text editor and a
+commit — which is to say, outside the engine entirely.
+
+**The owner's statement of the problem, and it is the sharpest framing of it:**
+
+> This allows us to edit configs or other nodes using engine-native paths
+> rather than just lodge a completely stray and untraceable commit from my end.
+
+**A hand edit is currently an undeclared write.** It bypasses
+`node_writer.write_node`, so it bypasses the `scaffold_hash` stamp, the
+evidence gate, schema validation, and every guard the write path exists to
+apply. The node changes and nothing records that a human changed it or why.
+Under `goal:g1`'s config-maxxing framing this is the last large improvised
+action in the system: the engine's own owner is the one actor who cannot edit
+the graph mechanically.
+
+## What it is
+
+**A modal shell, in the vim sense.** One command enters edit mode; from there
+it **drives the CLI completely** until a submit signal ends it. Inside the
+mode, keys and short verbs act on the node under the cursor; on submit, every
+accumulated change goes out through `write.py` as one recorded operation.
+
+**It composes nothing new.** The renderer draws, the writer writes, and this
+goal is the interactive wrapper around them — *"relies on the renderer and the
+writer to do everything in the background but just wraps it in a more dynamic
+and interactive shell for ease-of-use."* If edit mode needs its own parser or
+its own file-writing code, the seam is wrong and `goal:g13` has not actually
+unified anything.
+
+**Deliberately separate from the viewport.** `goal:g9.4` is the spiderweb view:
+read-only, safe to run mid-iteration, `goal:g9`'s invariant. This is a
+*different instrument* that happens to share a renderer. Folding them would put
+a writer inside the one surface this project has promised is a reader — the
+invariant `goal:g9` states in bold and that `viewport.py` enforces with a test
+that greps its own source. **Edit mode may call the same renderer; the viewport
+must never gain a write path.**
+
+## The two callers are not the same, and that is the design
+
+**For a human**, the mode is the point: modal editing, a cursor, live
+re-render after each change, and one submit.
+
+**For an LLM**, the owner notes the whole session serialises into a single
+`&&`-joined command. That is not a lesser path — it is the *same* operations
+with the interaction removed, and it is the reason the verbs must be nameable
+rather than only keystrokes. **A keystroke an agent cannot spell is a verb that
+exists only for humans**, which would split the write path exactly as
+`goal:g9.7` forbids splitting the read path.
+
+So: one set of named operations; a modal shell that binds keys to them; a
+serial form that runs the identical operations non-interactively. The
+`goal:g9.7` argument, applied to writing.
+
+## What it must not become
+
+**Not a second way to write.** If a change can be made in edit mode that
+`write.py` cannot make, edit mode has become a bypass rather than a front end
+— reintroducing the stray untraceable write it was built to eliminate.
+
+**Not a text editor.** The unit is a node operation, not a buffer. Dropping to
+`$EDITOR` for a body is legitimate; hand-editing frontmatter is the thing being
+replaced.
+
+**Provenance is the payoff, so it must actually be recorded.** A submitted
+edit should say who made it and why — `thought_session:` is reserved in
+frontmatter for exactly this (`goal:g2.7`, `goal:g10.1`) and nothing writes it
+yet. An edit mode that produces an untraceable change has delivered the
+convenience and none of the reason.
+
+## Falsifier
+
+Make the same node change three ways — by hand, through edit mode, and through
+the serialised single-command form — and get byte-identical results, with the
+hand edit being the only one that fails a validation the other two pass. Then
+confirm the viewport still holds `goal:g9`'s reader-only invariant with edit
+mode installed beside it.
+
+## Depends on
+
+**`goal:g13`'s write half**, which does not exist yet — `read.py`'s equivalent
+landed 2026-09-02 and `write.py` did not. This goal is the first real consumer
+of it, so it is also the thing that will say whether that seam is right.
+**`goal:s31`** is the first defect it should be able to fix from the inside.
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 

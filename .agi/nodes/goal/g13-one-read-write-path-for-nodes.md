@@ -6,6 +6,7 @@ heading_level: 2
 id: "goal:g13"
 mint_id: fe31c846128c479d8687ea6b4c042547
 next_edges:
+  - goal:g13.1
   - hypothesis:a00-5b27ca07-438c0a
   - hypothesis:a00-6b4ad6b2-a60b78
 origin: goals-doc
