@@ -266,3 +266,41 @@ def test_cli_never_prints_a_value(tmp_path, capsys):
     captured = capsys.readouterr()
     assert "SUPERSECRET" not in captured.out + captured.err
     assert "ALSOSECRET" not in captured.out + captured.err
+
+
+# ---------------------------------------------------------------------------
+# goal:g1.11 -- an optional key must be verifiable without being printed.
+#
+# `OPENROUTER_PROVISIONING_KEY` is optional by design, so `--check` said
+# nothing about it and there was no way to confirm a write short of reading
+# the file -- which puts a secret on a terminal to answer "did it land?".
+# ---------------------------------------------------------------------------
+
+
+def test_an_optional_key_that_is_set_is_reported_present_but_never_by_value(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, """
+        OPENROUTER_API_KEY=sk-or-v1-test
+        OPENAI_API_KEY=sk-a-very-secret-value
+        """)
+    res = agi_secrets.resolve(tmp_path)
+    problems, notes = agi_secrets.check(res)
+    blob = "\n".join(problems + notes)
+
+    assert not problems, "an optional key can never be a problem either way"
+    assert "OPENAI_API_KEY is set" in blob
+    assert str(len("sk-a-very-secret-value")) in blob, "the length is the proof"
+    assert "sk-a-very-secret-value" not in blob, "the VALUE must never be printed"
+
+
+def test_an_optional_key_that_is_absent_says_so_and_is_not_a_failure(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, """
+        OPENROUTER_API_KEY=sk-or-v1-test
+        """)
+    res = agi_secrets.resolve(tmp_path)
+    problems, notes = agi_secrets.check(res)
+    assert not problems
+    assert any("OPENAI_API_KEY is not set" in n for n in notes)

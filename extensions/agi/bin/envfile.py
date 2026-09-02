@@ -240,6 +240,20 @@ def check(res: Resolution) -> tuple[list[str], list[str]]:
         value = env.get(key, "")
         if not value:
             problems.append(f"{key} is missing or empty in {res.env_file}")
+    # Optional keys are reported as PRESENT/absent, never as problems, and
+    # never by value -- the name and the length are enough to answer "did the
+    # key I just wrote land?" without putting a secret on a terminal that is
+    # very likely being screen-shared or logged. `OPENROUTER_PROVISIONING_KEY`
+    # is the case this was added for (goal:g1.11): it is optional by design, so
+    # `--check` said nothing about it and there was no way to confirm a write
+    # short of reading the file.
+    for key in res.optional_keys:
+        value = env.get(key, "")
+        if value:
+            notes.append(f"{key} is set ({len(value)} chars)")
+        else:
+            notes.append(f"{key} is not set (optional)")
+
     for key in res.forbidden_keys:
         if env.get(key):
             problems.append(
