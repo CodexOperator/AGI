@@ -287,6 +287,20 @@ def main() -> int:
             pending.append(ln.node.id)
     out_lines.append(f"- pending tasks: {len(pending)} (see nodes/task/)")
 
+    # goal:g1.10 — hand every agent the declared commands rather than expecting
+    # it to remember them. Placed BEFORE the ASCII view because both injectors
+    # truncate at 80 lines and a command an agent never sees is a command it
+    # will reinvent from memory, which is the drift this node exists to end.
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import commands as _commands
+        cmd_lines = _commands.render_for_injection(PROJECT_ROOT)
+        if cmd_lines:
+            out_lines.extend(["", *cmd_lines])
+    except Exception as exc:
+        print(f"warn: could not render declared commands: "
+              f"{type(exc).__name__}: {exc}", file=sys.stderr)
+
     out_lines.extend([
         "",
         "## ASCII view (≤200 lines)",
