@@ -10,7 +10,7 @@ parents:
   - goal:g6
 seeds:
   - exp:noncode-surface-census
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

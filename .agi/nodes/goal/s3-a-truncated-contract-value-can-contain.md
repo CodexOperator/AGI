@@ -7,7 +7,7 @@ id: "goal:s3"
 mint_id: 99dbc70857fd4bccb9fa9ddb8014f4d0
 origin: goals-doc
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - root

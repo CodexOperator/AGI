@@ -10,7 +10,7 @@ parents:
   - goal:g8
 seeds:
   - build:skills-agi-SKILL.md@v2
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

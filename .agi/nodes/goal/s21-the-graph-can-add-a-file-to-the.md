@@ -8,7 +8,7 @@ mint_id: 6349aa237a354f869360370076fdcdb5
 origin: goals-doc
 parents: []
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - root

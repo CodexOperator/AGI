@@ -7,7 +7,7 @@ id: "goal:s10"
 mint_id: 32ab6af9735040b6bc3242f903cc5ba8
 origin: goals-doc
 seeds: []
-status: active
+status: retired
 tags:
   - goal
   - root
@@ -49,3 +49,32 @@ Two independent fixes, and both are cheap:
 
 Do (2) regardless of (1). Deleting the worktree removes today's 29k; it does not
 stop the next stale tree from being swept in.
+
+## Retired 2026-09-02 — the premise is gone, the residual is `goal:s25`
+
+**Checked rather than assumed, which is what this goal asked for in the first
+place.** `~/.hermes/agi-tree` holds **0 `.md` files and 0 `-extend*` nodes**;
+`.claude/worktrees/wonderful-lamport-51c9a9/` is not in `git worktree list` and
+does not exist. The 29,706-file mass this goal was written about is not on disk
+anywhere. Fix (1) happened, by whatever route.
+
+**Fix (2) did not, and it is the half that was never about today's 29k.**
+`evidence_gate.build_corpus()` still takes a directory and `rglob`s it, so it
+still resolves whatever it is handed. This goal said "do (2) regardless of (1)"
+and it was right — deleting a stale tree removes today's fuel, not the hazard.
+That residual is minted as **`goal:s25`** rather than kept alive here, because
+this goal's title names a condition that is now false, and a goal whose premise
+has evaporated cannot steer work honestly.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Retired on measurement, not on age. The sweep's rule this session was "horizon
+unless provably moot", and this is the only one of 33 that cleared that bar:
+its title asserts a file count and the file count is zero.
+
+The judgement worth recording is that retiring it nearly lost a live defect.
+This goal carried two fixes and only the first is moot. Marking it retired and
+moving on would have deleted `build_corpus`'s missing guard from the tracker
+entirely -- the goal's own closing line, "do (2) regardless of (1)", warning
+against exactly the thing retiring it would do. Splitting the residual into
+`goal:s25` is what makes the retirement honest rather than tidy.
+<!-- THOUGHT:END -->

@@ -12,7 +12,7 @@ seeds:
   - hyp:level3-node-anatomy
   - idea:engine-agi-algos
   - idea:engine-level3
-status: active
+status: horizon
 tags:
   - goal
   - subgoal

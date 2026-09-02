@@ -10,7 +10,7 @@ parents:
   - goal:g7
 seeds:
   - exp:integrity-detection-r1
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
