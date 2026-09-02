@@ -21,7 +21,7 @@ session only and the next director replaces it wholesale.
 owner's instruction to use cheap tokens liberally. **Budget:** max 10
 iterations, max 8 kids per iteration. Six iterations used (101–106).
 
-**`outcome_coverage` dipped 0.277 → 0.270 and that is expected, not a
+**`outcome_coverage` dipped 0.277 → 0.266 and that is expected, not a
 regression.** It is mvps per hypothesis; this session minted hypotheses and
 verdicts without minting mvps, so the denominator grew. `evidence_fraction` —
 the metric that only moves when experiments actually run — went **up**.
@@ -46,7 +46,7 @@ Phase A was not a detour — it is also the prerequisite for the next session.
 ### Phase C — the viewport ✅ (space + time + live all landed)
 
 - [x] **iter-105** — `bin/viewport.py`. All three axes the owner chose.
-- [~] **iter-106** — chains on `g9.4`, `s31`, `g4.8`. In flight at handoff.
+- [x] **iter-106** — chains on `g9.4`, `s31`, `g4.8`. `g4.8` item 3 measured.
 
 ### Phase D — reserve
 
@@ -128,14 +128,7 @@ node (= `unevidenced_decisive_verdicts`) and 5 nodes under agents in iter-104.
 
 ## §3 🔴 Where it stopped, and the exact next command
 
-Iteration 106's three parents were in flight when this was written. Read their
-reports first:
-
-```bash
-for a in .agi/sessions/iter-106/a00-*/; do echo "== $a"; cat "$a/output.log"; done
-```
-
-Then the next real work is **`goal:g13`'s write half** — `write.py`. The read
+Iterations 101–106 are committed, grid-versioned and green. The next real work is **`goal:g13`'s write half** — `write.py`. The read
 half landed; `node_writer.write_node` is the starting point, and `goal:s31` is
 the first thing it should fix.
 
@@ -159,7 +152,12 @@ python3 extensions/agi/bin/dispatch.py "$PWD" 107 --tier parent --target goal:g1
    both cases **the kid's node had already landed** and was reviewable. The
    2026-08-31 field note (check the filesystem before resuming) paid for itself
    twice today. Back off when running >4 concurrent pi agents.
-5. **gitnexus reported `g9.4` as `active` when it was `horizon`.** It is a
+5. **A parent's REPORT is not its artefact.** The `g4.1` verdict parent
+   reported writing `evidence_runs: [...]`; the field was not in the file.
+   `proved` @0.99 sat unevidenced. Caught by `metrics.py`
+   (`unevidenced_decisive_verdicts` 1 → 2), not by any report. Check the node,
+   not the summary — which is the parent tier's own job description, one tier up.
+6. **gitnexus reported `g9.4` as `active` when it was `horizon`.** It is a
    semantic search, not an oracle. Confirm with `grep`.
 
 ## §5 Known-good verification sequence
