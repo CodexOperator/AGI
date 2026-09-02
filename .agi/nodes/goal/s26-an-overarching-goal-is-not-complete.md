@@ -7,7 +7,7 @@ id: "goal:s26"
 mint_id: 46d3da15cddd4baaae02af095551cd78
 origin: goals-doc
 seeds: []
-status: horizon
+status: complete
 tags:
   - goal
   - root

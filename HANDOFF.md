@@ -247,10 +247,10 @@ runtime     pi, live.  parent qwen/qwen3.8-27b  |  kid deepseek/deepseek-v4-flas
 crons       FROZEN — crons_live: false. Unchanged. Do not re-enable.
 PUSHED      NO — several commits ahead. Push by hand when ready.
 
-node_count  866      active 859   deprecated 8    goals 102
-outcome_coverage 0.284   evidence_fraction 0.211   unevidenced_decisive 1
-goals: active 9  horizon 65  retired 2  complete 27
-tests       1189 pass
+node_count  869      active 862   deprecated 7    goals 103
+outcome_coverage 0.280   evidence_fraction 0.211   unevidenced_decisive 1
+goals: active 9  horizon 62  retired 2  complete 30
+tests       1200 pass
 ```
 
 ## 1. The session's plan, and where each item stands
@@ -263,7 +263,8 @@ tests       1189 pass
 | 3 | First deepseek kid, g4.6 falsifier 4 re-measured | ✅ `383ed2107` |
 | 4a | **The parent brief** (`goal:g1.9`) — `bin/brief.py` | ✅ this commit |
 | 4b | **Live parent run** — qwen parent spawning deepseek kids | ✅ PROVEN |
-| 5 | `goal:s23` + `goal:s25` + `goal:s26` (+ `goal:s27`) | ⬜ NEXT |
+| 5 | `goal:s23` + `goal:s25` + `goal:s26` — all three built | ✅ complete |
+| — | `goal:s27` — needs an owner decision before it can be built | ⬜ BLOCKED |
 
 ## 2. What landed, in one line each
 
@@ -308,18 +309,24 @@ pass `cli.py done`. It lands in `scoring_hypothesis_count`, so **running a
 parent at all lowers `outcome_coverage`.** Filed as `goal:s27`, deliberately
 undecided between three candidate artefacts.
 
-**5 — four goals, all `horizon`, all specified with falsifiers:**
+**5 — three built and `complete`, one blocked on the owner:**
 
-- **`goal:s23`** — a deprecated node still reaches injected context. Measured:
-  `build:TODO.md` is deprecated, moved to `.agi/nodes/deprecated/`, and still
-  sits at `INJECTION.md:85`. **Fix the render/chain-selection path, not the
-  loader** — four readers depend on deprecated nodes still loading.
-- **`goal:s25`** — `evidence_gate.build_corpus` rglobs whatever directory it is
-  handed. Split out of `goal:s10` when that retired.
-- **`goal:s26`** — an overarching goal must not be `complete` while its
-  subgoals are live. Warning in `snapshot-goals.py`, not a hard failure.
-- **`goal:s27`** — the parent-scaffold defect above. Needs an owner decision
-  on what a parent's session artefact is before it can be built.
+- ✅ **`goal:s23`** — `metrics.deprecated_node_ids` (one definition, beside
+  `node_lifecycle_stats`) plus a `_LiveOnly` **view** in `render-context.py`.
+  A view, not `Graph.remove_node`, because `g` is still read whole a few lines
+  later for `by_type` and `find_chains`. `build:TODO.md` is out of the map;
+  7 retired nodes load and do not render.
+- ✅ **`goal:s25`** — `build_corpus` raises `CorpusRootError` on a directory
+  containing a `nodes/` child. Narrow on purpose: a project root is the one
+  confusion that has actually happened. A missing dir still returns empty.
+- ✅ **`goal:s26`** — `warn_premature_complete` in `snapshot-goals.py`, run on
+  every `--render`. A **warning**, never a failure: a hard error would make
+  retiring a tree bottom-up unrepresentable.
+- ⬜ **`goal:s27`** — BLOCKED, and deliberately. Needs the owner to choose what
+  a parent's session artefact is: **no node** (needs a second completion shape,
+  which `goal:g4.6` forbids), **a `doc`** (one line in `_node_type_for`,
+  recommended), or **a first-class `review` type** (most expressive, new schema
+  + spawn rule + every reader).
 
 **Three of those four are the same shape**, and it is worth naming: lifecycle
 and scaffolding bookkeeping keeps leaking into the primary metric. `goal:g5`

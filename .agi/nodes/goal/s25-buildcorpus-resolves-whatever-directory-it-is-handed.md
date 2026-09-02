@@ -7,7 +7,7 @@ id: "goal:s25"
 mint_id: c205acee53484885b8e5ae817e8f6fa8
 origin: goals-doc
 seeds: []
-status: horizon
+status: complete
 tags:
   - goal
   - root

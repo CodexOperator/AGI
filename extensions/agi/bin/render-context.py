@@ -61,6 +61,9 @@ from graph_core import Node
 from graph_core.edge import Edge
 from graph_core.graph import Graph
 from graph_core.loader import load_directory
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location('metrics_mod', Path(__file__).resolve().parent / 'metrics.py')
+metrics_mod = _ilu.module_from_spec(_spec); _spec.loader.exec_module(metrics_mod)
 from renderers import build_representation, render_ascii
 
 # Sibling script: one definition of what the loop is scored on, shared so the
@@ -75,6 +78,33 @@ from metrics import (  # noqa: E402
 )
 
 # Detect sqlite config for optional DB-backed loading
+
+class _LiveOnly:
+    """A read-only view of a Graph with retired nodes hidden. `goal:s23`.
+
+    A view rather than `Graph.remove_node`, because `g` is still needed whole
+    a few lines below -- `by_type` counts and `find_chains` both read it, and
+    mutating it here would silently change what the map REPORTS as well as
+    what it draws. `build_representation` touches exactly three members, so
+    the view is three members wide.
+    """
+
+    def __init__(self, graph, hidden: frozenset):
+        self._g, self._hidden = graph, hidden
+
+    @property
+    def node_ids(self):
+        return self._g.node_ids - self._hidden
+
+    @property
+    def edges(self):
+        return (e for e in self._g.edges
+                if e.source_id not in self._hidden and e.target_id not in self._hidden)
+
+    def get_node(self, node_id):
+        return None if node_id in self._hidden else self._g.get_node(node_id)
+
+
 def _load_graph_sqlite(nodes_dir: Path) -> tuple[Graph, list]:
     """Load graph via SQLiteBackend if persistence.type=sqlite, else None."""
     cfg_path = config_path(PROJECT_ROOT)
@@ -120,8 +150,25 @@ def main() -> int:
                 if parent_node is not None:
                     parent_node.children.add(ln.node.id)
 
-    rep = build_representation(g)
+    # goal:s23 — LOAD retired nodes, do not RENDER them. The two are different
+    # operations and collapsing either way breaks something real:
+    #   * loading must keep them — `stitch.py`, `level3.py`, `node_writer.py`
+    #     and `zoom.py` read `nodes/deprecated/` deliberately, and a reader
+    #     that stops seeing a retired node fails quietly and in its own way
+    #     (orphaned engine file, re-minted duplicate, unresolvable edge).
+    #   * injecting them must stop — context is the scarcest thing an agent
+    #     has, and a retired node in the map is weight every agent carries for
+    #     the rest of the project's life to describe work deliberately not
+    #     being done.
+    # Measured before the fix: `build:TODO.md` was deprecated AND moved to
+    # `.agi/nodes/deprecated/` and still sat at INJECTION.md line 85.
+    # This is also why no new `legacy` status was minted — `deprecated` already
+    # meant exactly this; only the renderer had never honoured it.
+    retired = metrics_mod.deprecated_node_ids(nodes_dir)
+    rep = build_representation(_LiveOnly(g, retired) if retired else g)
     ascii_out = render_ascii(rep)
+    if retired:
+        print(f"map: {len(retired)} retired node(s) loaded but not rendered (goal:s23)")
     lines = ascii_out.splitlines()
     print(f"ASCII rendering: {len(lines)} lines")
     if len(lines) > 200:

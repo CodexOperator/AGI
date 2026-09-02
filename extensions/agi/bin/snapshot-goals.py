@@ -817,6 +817,60 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
     return preamble, goals
 
 
+#: Goal statuses that mean "still being pursued". A root carrying one of these
+#: below it has not finished, whatever its own text says.
+LIVE_GOAL_STATUSES = ("active", "horizon")
+
+
+def warn_premature_complete(existing: dict) -> list[tuple]:
+    """goal:s26 — an overarching goal is not `complete` while its subgoals live.
+
+    Returns the offending `(root_gid, child_gid, child_status)` triples and
+    prints one warning per pair. **A warning, never a failure.** A hard error
+    would make a legitimate intermediate state unrepresentable — retiring a
+    tree bottom-up, one commit per goal — and `goal:g5`'s own invariant says a
+    project must stay legitimate at every depth.
+
+    Load-bearing rather than cosmetic since 2026-09-02: `complete` now SCORES
+    (`metrics.SCORING_GOAL_STATUSES`), so a premature `complete` on a root
+    moves `outcome_coverage` for a bookkeeping reason. That is the defect
+    `goal:g5`'s revision removed, re-entering by another door.
+
+    Reads `parents:` because that is where a subgoal declares its root. It
+    deliberately produces **no count any metric consults** — a number derived
+    from this edge is a fresh gaming surface, which `goal:g3` and `goal:g4.5`
+    both name.
+    """
+    status_of, kind_of, gid_of = {}, {}, {}
+    for nid, fm in existing.items():
+        if str(fm.get("type") or "") != "goal":
+            continue
+        st = fm.get("status")
+        status_of[nid] = st.strip() if isinstance(st, str) and st.strip() else "active"
+        kind_of[nid] = str(fm.get("goal_kind") or "")
+        gid_of[nid] = str(fm.get("goal_id") or nid)
+
+    offenders = []
+    for nid, fm in existing.items():
+        if nid not in status_of:
+            continue
+        raw = fm.get("parents")
+        parents = [x.strip() for x in raw if isinstance(x, str) and x.strip()] \
+            if isinstance(raw, (list, tuple)) else []
+        if status_of[nid] not in LIVE_GOAL_STATUSES:
+            continue
+        for par in parents:
+            if status_of.get(par) == "complete":
+                offenders.append((gid_of[par], gid_of[nid], status_of[nid]))
+
+    for root, child, st in sorted(offenders):
+        print(f"WARN: goal {root} is `complete` but subgoal {child} is "
+              f"`{st}` — an overarching goal is not complete while its "
+              f"subgoals are live (goal:s26)", file=sys.stderr)
+    return offenders
+
+
+
 def cmd_render(check: bool, strict: bool = False,
                strict_goals: bool = False) -> int:
     """Write `GOALS.md` from the nodes, or (with `check`) prove they agree.
@@ -851,6 +905,7 @@ def cmd_render(check: bool, strict: bool = False,
         return 1
     GOALS_MD.write_text(rendered, encoding="utf-8")
     print(f"rendered: {len(goals)} goal(s) + preamble -> {GOALS_MD}")
+    warn_premature_complete(existing)   # goal:s26
     if unresolved and strict:
         print(f"ERR: {unresolved} unresolved parent reference(s) (--strict)",
               file=sys.stderr)

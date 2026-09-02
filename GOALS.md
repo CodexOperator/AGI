@@ -6559,7 +6559,7 @@ node is invalidated — the rule gates new spawns, and the corpus's current
 `goal -> mvp` edges stay resolvable as prior art. `[cron].md` still spawns. The
 kid contract and the gate agree, checked by a test that reads both.
 
-## S23 — A deprecated node still reaches injected context — status: horizon
+## S23 — A deprecated node still reaches injected context — status: complete
 
 **Measured 2026-09-02, during the goal sweep.** `build:TODO.md` and
 `idea:engine-todo` were marked `status: deprecated` and moved to
@@ -6650,7 +6650,7 @@ case**, and the count moving is not the result: this project has already
 watched a sweep that undid no work move the primary metric by 0.038, which is
 why `goal:g5` had to be revised before this could safely run at all.
 
-## S25 — `build_corpus` resolves whatever directory it is handed — status: horizon
+## S25 — `build_corpus` resolves whatever directory it is handed — status: complete
 
 **`goal:s10`'s second fix, which that goal said to do "regardless of (1)" and
 which never landed.** Split out on 2026-09-02 when S10 retired: its title
@@ -6681,7 +6681,7 @@ Call `build_corpus` on a project root containing stray `.md` files with `id:`
 frontmatter outside `nodes/`. It refuses, or returns only the `nodes/` ids —
 never the union. Then confirm the three live callers still pass.
 
-## S26 — An overarching goal is not `complete` while its subgoals are live — status: horizon
+## S26 — An overarching goal is not `complete` while its subgoals are live — status: complete
 
 **The owner's rule, stated during the 2026-09-02 sweep, and it caught a real
 misclassification in the act.** The sweep's recommendation was to mark
