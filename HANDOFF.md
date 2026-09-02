@@ -29,22 +29,22 @@ phase A is not a detour — it is the same work, paid once.
 
 ### Phase A — the tiers actually stand (iters 1–2)
 
-- [ ] **iter-1 — `goal:s28` closed for real, with a test behind it.** `NEXT`
+- [x] **iter-101 — `goal:s28` closed for real, with a test behind it.** DONE
       The manifest merge shipped in `b8cb2ec05` and
       `grep -c manifest extensions/agi/tests/test_dispatch.py` returns **0**.
       s28's falsifier (spawn parent → 2 kids → assert 3 agents with
       `tier: parent` intact; then `post_wire` admits the parent via
       `owns_all_complete`) is unexecuted. Also `goal:g4.8` item 3:
       `spawn.parallel` does not bound grandchildren.
-- [ ] **iter-2 — `goal:g4.7` + `goal:g4.1`.** Healing for every harness;
+- [x] **iter-102 — `goal:g4.7` + `goal:g4.1` opened.** DONE Healing for every harness;
       measure worktree-per-kid against ownership-in-the-brief. Direct prep for
       the worktree/parallel-loops session that follows this one.
 
 ### Phase B — `goal:g13`, one read/write path (iters 3–5)
 
-- [ ] **iter-3 — exploratory, wide.** Chains on g13's three open questions.
+- [x] **iter-103 — exploratory, wide. `goal:g4.1` DISCHARGED.** Chains on g13's three open questions.
       **These are BANKED for the owner, not decided by the director** (see §6).
-- [ ] **iter-4 — `read.py`.** One parse, one failure semantics. Today's defect
+- [~] **iter-104 — `read.py`. IN FLIGHT.** One parse, one failure semantics. Today's defect
       is not divergent parsing, it is divergent *failure*: malformed input
       raises / skips / returns `{}` / returns `None` / vanishes, depending
       which of the readers you reached. None of those was chosen.
