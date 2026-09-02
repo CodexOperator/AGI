@@ -132,54 +132,71 @@ Three things follow, each already half-true somewhere in this repo:
    schema prose restated in `CLAUDE.md` and `SKILL.md`, whose links are to
    marked *regions* rather than whole files.
 
-**Three questions this opens and deliberately does not answer.** Each must be
-settled before any of it is built, and each is cheap to state now and expensive
-to discover later:
+**Three questions this opened, answered by the owner on 2026-09-02.** Each was
+a place where a decision this project had already paid for collided with the
+marker shape. All three are now binding on the build, and the chain falsifies
+them rather than re-opening them:
 
-- **Where does `THOUGHT` live?** It is authored, durable, and today it lives in
-  the body. If the body is a marker, thought needs a home — and frontmatter is
-  ruled out already, because `write_frontmatter` flattens newlines and would
-  destroy it silently.
-- **What is a goal node's linked file?** `goal:g6.9` established that
-  `GOALS.md` is rendered *from* goal node bodies. A live-linked body points the
-  arrow the other way. One of the two has to give, and G6.9 was paid for.
-- **What does a link to a missing file do?** A deprecated node whose file is
-  gone must not fail quietly — that is precisely the divergent-failure-semantics
-  defect this goal was written about, reappearing inside its own fix.
+- **`THOUGHT` stays in the node body.** A node file carries a marker *and*
+  exactly one authored region, and they coexist — the marker says where the
+  data is, the thought says why this version differs. Nothing migrates,
+  `goal:g2.11` is untouched, and the grid keeps versioning thought for free
+  because it already snapshots `node.md` per version. The alternatives were a
+  third grid tree entry (clean, but thought stops being visible in the working
+  tree and every reader grows an entry) and the head of the linked file (which
+  puts an authored region inside a file generators rewrite — the exact
+  `goal:g2.10` failure mode that left 8,034 fields reading `TODO(model)`).
+- **A goal node links to itself.** `link_ref: self` — the body *is* the data,
+  stated uniformly rather than as an absent field. `goal:g6.9` stands untouched
+  and `GOALS.md` keeps rendering *from* goal bodies. This is deliberately an
+  exception with a name instead of a hole: a reader never branches on
+  `type == goal`, it resolves `self` like any other link, so the one path in
+  and one path out survives the exception intact.
+- **A link to a missing file raises where a caller can act, and is counted
+  where it cannot.** A single-node read raises `MissingLink`. A bulk corpus
+  scan returns a typed sentinel and increments a `broken_links` metric, in the
+  same shape as `unevidenced_decisive_verdicts`. This is the goal's founding
+  finding applied to itself: the defect was never divergent *parsing*, it was
+  divergent *failure semantics*, so the answer is not one behaviour everywhere
+  but two behaviours **chosen** — loud where a caller can fix it, survivable
+  where one bad node must not kill a scan of 893.
 
-**Scope, at the owner's direction: nothing here is built this session.** The
-read and write paths are not to be touched until the parent and kid tiers are
-both properly standing, because this interface is what they will both call and
-designing it against a half-built caller is how it acquires a caller-shaped
-seam.
+**The scope gate is now open.** The original direction was that nothing here
+gets built until the parent and kid tiers are both properly standing, because
+this interface is what they will both call and designing it against a
+half-built caller is how it acquires a caller-shaped seam. That condition is
+met: the manifest race is fixed and verified at eight concurrent agents, two
+concurrent parents ran without collision, and the read half landed with the
+canonical reader keeping its own contract. **`write.py` is the next thing
+built**, with the three answers above as its inputs rather than as questions it
+has to stop and ask.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version records the owner's board, and the board answers a question the
-previous version could only pose. v3 said "one way in and one way out" and then
-described the current mess; it had no picture of what the unified thing looks
-like. Now there is one: three modules, two of them helpers, and a summary
-sentence that doubles as an acceptance test — if you need a third thing to
-develop against, the seam is wrong.
+The previous version's three open questions are answered, and the scope gate
+that held the build back is open. Those are the only two changes, and they are
+the same change: the questions were the reason not to build, and the gate was
+the reason not to answer them yet.
 
-The genuinely new claim is that a node body is a marker rather than data. That
-was not in any previous version and it is not a detail: it converts this goal
-from "route the existing calls through one door" into "change what a node file
-holds". It is also the reason the goal now names `goal:g2.2` as load-bearing
-rather than adjacent — the IO map stops being a contract annotation and becomes
-the linkage table the read path resolves through.
+Each answer keeps a paid-for decision rather than trading it away, which is
+why none of them is the "clean" option. `THOUGHT` stays in the body because
+moving it buys separation and costs visibility, and `goal:g2.10` already
+measured what happens when an authored region lives somewhere a generator
+writes. A goal links to itself because `goal:g6.9`'s render direction was paid
+for and `link_ref: self` keeps it without making the reader branch on node
+type — an exception with a name resolves through one path; an absent field is
+a hole every caller handles differently, which is the defect this goal exists
+to remove. Missing links raise on a single read and are counted on a bulk one
+because the founding finding was that divergent failure semantics are
+accidents, and two *chosen* behaviours are not the same thing as several
+accidental ones.
 
-The three open questions are recorded unanswered on purpose. Each one is a
-place where an existing, paid-for decision collides with the new shape —
-`THOUGHT`'s home, `goal:g6.9`'s render direction, and this goal's own founding
-finding about failure semantics. Writing them down now costs three paragraphs;
-discovering the second one mid-migration would cost the `GOALS.md` round trip.
+Recording the answers here rather than in the chain is deliberate and is not
+the `goal:s17` second-copy hazard: these are decisions the chain must falsify
+against, not measurements the chain produced. The count of readers still lives
+in the chain and still does not appear anywhere in this node.
 
-Scope note added at the owner's direction: not this session. The interface is
-what parents and kids will both call, and it should not be designed while only
-one of those callers exists.
-
-Still no mvp seeded, and still for `goal:s22`'s reason — a board is not a
-design brief, and this goal earns one through a hypothesis -> experiment ->
-verdict chain like every other. Recording the shape does not shortcut that; it
-gives the chain something specific to falsify.
+Still no mvp seeded, and still for `goal:s22`'s reason — a board plus three
+answered questions is a sharper design brief than a board alone, and it is
+still not a chain. `write.py` earns its mvp through hypothesis -> experiment ->
+verdict like everything else.
 <!-- THOUGHT:END -->
