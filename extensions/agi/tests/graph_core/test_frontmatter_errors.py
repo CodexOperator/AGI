@@ -58,3 +58,86 @@ def test_dir_load_continues_after_multiple_errors(tmp_path: Path) -> None:
     assert len(result.nodes) == 2
     assert len(result.errors) == 2
     assert {e.path.name for e in result.errors} == {"bad1.md", "bad2.json"}
+
+
+# ---------------------------------------------------------------------------
+# goal:g13 — one failure class, both entry points.
+#
+# `FrontmatterError` is documented as "Raised when a node file cannot be
+# parsed". Before this, malformed YAML escaped as `yaml.parser.ParserError`
+# and malformed JSON as `json.JSONDecodeError`, so the single `except
+# FrontmatterError` this module's contract offers did not hold. Measured
+# 2026-09-02 across six independent parsers in this tree: four different
+# failure semantics, and this was the only one that contradicted its OWN
+# documented contract rather than merely differing from its neighbours.
+# ---------------------------------------------------------------------------
+
+import json as _json          # noqa: E402
+import pytest as _pytest      # noqa: E402
+import yaml as _yaml          # noqa: E402
+
+from graph_core.persistence.frontmatter import (  # noqa: E402
+    FrontmatterError,
+    load_node_file,
+)
+
+
+@_pytest.mark.parametrize("bad_yaml", [
+    "---\nid: [unclosed\n---\nbody\n",
+    "---\nid: 'unterminated\n---\nbody\n",
+    "---\na: b\n c: d\n---\nbody\n",
+])
+def test_malformed_yaml_raises_frontmatter_error_not_a_yaml_error(tmp_path, bad_yaml):
+    p = tmp_path / "n.md"
+    p.write_text(bad_yaml)
+    with _pytest.raises(FrontmatterError):
+        load_node_file(p)
+
+
+def test_malformed_json_raises_frontmatter_error_not_a_decode_error(tmp_path):
+    p = tmp_path / "n.json"
+    p.write_text("{not json")
+    with _pytest.raises(FrontmatterError):
+        load_node_file(p)
+
+
+def test_the_underlying_cause_is_preserved_for_debugging(tmp_path):
+    """One class to catch, but the original error is still reachable via
+    `__cause__` -- collapsing the taxonomy must not destroy the diagnosis."""
+    p = tmp_path / "n.md"
+    p.write_text("---\nid: [unclosed\n---\nbody\n")
+    with _pytest.raises(FrontmatterError) as ei:
+        load_node_file(p)
+    assert isinstance(ei.value.__cause__, _yaml.YAMLError)
+
+    j = tmp_path / "n.json"
+    j.write_text("{not json")
+    with _pytest.raises(FrontmatterError) as ej:
+        load_node_file(j)
+    assert isinstance(ej.value.__cause__, _json.JSONDecodeError)
+
+
+def test_every_malformed_shape_fails_in_exactly_one_class(tmp_path):
+    """The contract, stated as a single assertion: nothing a caller can put in
+    this file escapes `except FrontmatterError`."""
+    shapes = {
+        "no frontmatter":   ("n1.md", "just a body\n"),
+        "unterminated":     ("n2.md", "---\nid: x\nno close\n"),
+        "malformed YAML":   ("n3.md", "---\nid: [unclosed\n---\nb\n"),
+        "list not mapping": ("n4.md", "---\n- a\n- b\n---\nb\n"),
+        "empty":            ("n5.md", ""),
+        "bad json":         ("n6.json", "{nope"),
+        "json not object":  ("n7.json", "[1,2]"),
+    }
+    for label, (name, text) in shapes.items():
+        p = tmp_path / name
+        p.write_text(text)
+        try:
+            load_node_file(p)
+        except FrontmatterError:
+            pass
+        except Exception as e:                      # noqa: BLE001
+            raise AssertionError(
+                f"{label}: leaked {type(e).__module__}.{type(e).__name__} "
+                f"past FrontmatterError"
+            ) from e

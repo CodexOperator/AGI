@@ -66,7 +66,17 @@ def _parse_md(text: str, suffix: str, want_body: bool) -> NodeFile:
     if close_idx is None:
         raise FrontmatterError("md file missing closing '---'")
     yaml_text = "\n".join(lines[1:close_idx])
-    fm = yaml.safe_load(yaml_text) or {}
+    # goal:g13 — ONE failure class. `FrontmatterError` is documented as
+    # "raised when a node file cannot be parsed", and a bare `yaml.YAMLError`
+    # escaping it made that false: a caller writing `except FrontmatterError`
+    # -- which is the whole contract this module offers -- crashed on
+    # malformed YAML instead. Measured 2026-09-02 across six parsers; this is
+    # the only one whose failure mode was self-contradictory rather than
+    # merely different from its neighbours.
+    try:
+        fm = yaml.safe_load(yaml_text) or {}
+    except yaml.YAMLError as e:
+        raise FrontmatterError(f"malformed YAML frontmatter: {e}") from e
     if not isinstance(fm, dict):
         raise FrontmatterError(f"frontmatter must be a mapping, got {type(fm).__name__}")
     if want_body:
@@ -81,7 +91,14 @@ def _parse_md(text: str, suffix: str, want_body: bool) -> NodeFile:
 
 
 def _parse_json(text: str, suffix: str, want_body: bool) -> NodeFile:
-    obj = json.loads(text)
+    # goal:g13 — the same wrap as `_parse_md`, for the same reason. The
+    # adoption-delta chain only exercised `.md` shapes and said so; the `.json`
+    # branch leaked `json.JSONDecodeError` past `except FrontmatterError`
+    # identically. Both entry points now fail in exactly one class.
+    try:
+        obj = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise FrontmatterError(f"malformed JSON node file: {e}") from e
     if not isinstance(obj, dict):
         raise FrontmatterError("json node must be a top-level object")
     fm = obj.get("frontmatter", {})
