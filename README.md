@@ -15,9 +15,13 @@ A unified repository housing **graph algorithms** and the **research loop harnes
 | `extensions/agi-bridge/` | TypeScript pi extension — hooks `before_agent_start`, refreshes `INJECTION.md` per agent turn |
 | `skills/agi/SKILL.md` | The Claude/agent skill that drives loop iterations |
 | `TODO.md` | Persistent register of deferred work (DB-only state migration, ASCII renderer unification, metric overhaul, …) |
-| `HANDOFF.md` | **Start here on a new machine.** Bootstrap from zero, current state, pending actions, known bugs. |
+| `QUICKSTART.md` | **Start here on a new machine.** Bootstrap from zero: clone, deps, CLI/skill/hook install, the safety rail, one iteration of the loop. |
+| `HANDOFF.md` | The **current session's** state and next action — one section, always current. Replaced wholesale each session; earlier ones are in the grid. |
+| `GOALS.md` | What the project is committed to. Rendered from `.agi/nodes/goal/` — **edit the goal node, never this file.** The project tracker. |
 
-> ⚠️ **Before running the loop in any project, read `TODO.md` → H0.** A stale project-local `bin/snapshot-build-site.py` can silently delete that project's entire node corpus. `HANDOFF.md` §1 has the one-line check.
+> ⚠️ **Before running the loop in any project, read `QUICKSTART.md` §1.** A stale project-local `.agi/bin/snapshot-build-site.py` can silently delete that project's entire node corpus — confirmed, 29,264 files. That section has the one-line check.
+>
+> `TODO.md` is **retired** (`build:TODO.md` is `status: deprecated`); it is an archive of how defects were found and closed, not a work queue.
 
 ## The working rule
 

@@ -19,8 +19,9 @@ type: goal
 **The owner's rule, 2026-09-02.** A build node may be parented **only** by:
 
 ```
-parents: [mvp:<id>]                    a NEW build node, specified by an mvp
-parents: [build:<id>, goal:<id>]       a NEW VERSION of an existing build node
+parents: [mvp:<id>]                 a file specified by an mvp that argued for it
+parents: [build:<id>, goal:<id>]    a file DESCENDED from an existing build node,
+                                    with the goal that motivated the change
 ```
 
 **A goal alone must never mint a build node.** It can motivate a new version of
@@ -33,10 +34,27 @@ existing"*, so a goal may extend it — and only it.
 build node with an mvp behind it is a file someone argued for; one without is a
 file someone wrote.
 
-**Why both halves of `[build, goal]`.** The `build` parent says *which* file
-this is a new version of; the `goal` says *why this version differs*, which is
-the one thing a diff cannot tell you. A lone `build` parent is a version with
-no motive.
+**Why both halves of `[build, goal]`.** The `build` parent says *what this
+descends from*; the `goal` says *why it differs*, which is the one thing a diff
+cannot tell you. A lone `build` parent is a change with no motive.
+
+### "Descended from" is wider than "new version of", and that was a correction
+
+**v1 of this goal wrote the second shape up as "a NEW VERSION of an existing
+build node". That was narrower than the owner's rule**, which said only
+*"parented by an MVP node OR (existing build node AND goal node)"* — a
+statement about parentage, not about versioning.
+
+The distinction became load-bearing within two commits. `QUICKSTART.md` was
+**split out of** `HANDOFF.md` on 2026-09-02: a genuinely new node, not a new
+version of the old one, whose content nonetheless came from `build:HANDOFF.md`
+and whose motive is `goal:s30`. Under v1's framing there was no legal shape for
+it — it is not mvp-specified, and it is not a version. Under the owner's rule it
+is obvious: it descends from that build node, and a goal says why.
+
+So `[build, goal]` covers **both** an edit in place (a version, per
+`goal:g6.3`) and a new file derived from an existing one. The gate never needed
+changing; only this description did.
 
 ## It needed a new kind of rule, and that is the interesting part
 
