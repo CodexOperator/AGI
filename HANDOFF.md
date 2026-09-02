@@ -7,21 +7,26 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 893 | **906** |
+| active nodes | 893 | **910** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.266 | 0.258 |
-| `evidence_fraction` | 0.250 | **0.297** |
-| `decisive_evidence_fraction` | 0.955 | **0.967** |
+| `outcome_coverage` (primary) | 0.266 | 0.256 ⚠ |
+| `evidence_fraction` | 0.250 | **0.308** |
+| `decisive_evidence_fraction` | 0.955 | **0.969** |
 | unevidenced decisive | 1 | 1 |
 | goals active / horizon / complete | 12 / 62 / 34 | **13** / 62 / 34 |
-| tests | 1250 | **1301** |
+| tests | 1250 | **1312** |
 | goals | 110 | **111** |
 | unpushed | 0 | 0 |
 
-`outcome_coverage` dipping 0.266 → 0.264 is the expected shape, not a
-regression: iter-107 minted a hypothesis without minting an mvp, so the
-denominator grew. `evidence_fraction` — the metric that only moves when
-experiments actually run — went up.
+⚠ **`outcome_coverage` has fallen every iteration this session, 0.266 →
+0.256, and that is now worth acting on rather than explaining away.** It is
+mvps per hypothesis; five iterations minted five hypotheses and zero mvps, so
+the denominator grew five times and the numerator never did. The individual
+explanation was right each time and the cumulative trend is still a real
+signal: **the primary metric is the one being neglected while two secondary
+ones improve.** `evidence_fraction` 0.250 → 0.308 and
+`decisive_evidence_fraction` 0.955 → 0.969 say the work is evidenced; the
+primary says it is not being *closed*. iter-112 is reordered to close it.
 
 **Runtime:** pi — `deepseek/deepseek-v4-flash` kids under `qwen/qwen3.8-27b`
 parents. **Budget this session: iterations 107–116 (ten).** Director is the
@@ -53,10 +58,12 @@ direction and displaced `write.py` from the front of the queue.
       write half. Plus **iter-109b**, a self-correction (see §4).
 - [x] **iter-110** — `goal:s31`. A scaffold is born valid; no agent touches
       frontmatter. Falsifier passed against the real schemas.
-- [ ] **iter-111 (next)** — `goal:g1.10`, `.geometry/commands.md`.
-- [ ] **iter-112–113** — `goal:g13.1`, edit mode.
-- [ ] **iter-114** — `goal:g4.7`, wire `restart()`.
-- [ ] **iter-115** — `goal:g3`/`g5`, close chains to mvp.
+- [x] **iter-111** — `goal:g1.10`, `.geometry/commands.md` + `[command]`
+      schema + `bin/commands.py`, rendered into `INJECTION.md`.
+- [ ] **iter-112 (next)** — `goal:g3`/`g5`, close this session's chains to
+      mvp. **Reordered ahead of edit mode: see the ⚠ below.**
+- [ ] **iter-113–114** — `goal:g13.1`, edit mode.
+- [ ] **iter-115** — `goal:g4.7`, wire `restart()`.
 - [ ] **iter-116** — reserve.
 
 ### The concurrency number, settled
@@ -226,22 +233,50 @@ required: []`.
 
 🔴 **Corpus census: 115 of 900 nodes invalid.** Not repaired — see §6.
 
+### ✅ iter-111 — `goal:g1.10`, commands declared not memorised
+
+`.geometry/commands.md` (11 commands, two workflows) + `[command]` schema +
+`bin/commands.py`, minted by copying `crons.md`'s proven shape. Rendered into
+`INJECTION.md` by the normal `--smoke` path, so **every agent is handed the
+commands** rather than remembering them — that second reader is what makes the
+node legal under `goal:g10.2`.
+
+**The claim proved itself on first contact:** `grid-commit` was declared as
+`grid.py --all`; the real command is `grid.py commit --all`. That string sat
+*correct* in `HANDOFF.md` and `CLAUDE.md` for months. Declaring it made writing
+it wrong catchable. **Prose is read and believed; a command table is run.**
+
+Two more defects fell out: the renderer called an unordered set "in this
+order" (a false instruction bound for every agent — fixed with an `ordered`
+schema field), and a silent `except` reported a present, parseable node as
+absent.
+
+🔵 **The four prose copies are NOT deleted** — this made a fifth that happens
+to be executable. Deleting them means making the prose *derive*, which is the
+next increment.
+
+```bash
+python3 extensions/agi/bin/commands.py list
+python3 extensions/agi/bin/commands.py run links
+```
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-Phase 0 and iterations 107–110 are committed, grid-versioned, pushed, green at
-1301 tests.
+Phase 0 and iterations 107–111 are committed, grid-versioned, pushed, green at
+1312 tests.
 
-**Next is iter-111: `goal:g1.10`** — the engine's standard commands declared in
-a node rather than memorised. The shape is already built and running:
-`.geometry/crons.md`. Copy it — a `.geometry/commands.md`, a `[command]` schema
-beside `[cron]`, one resolver. Scope is narrow by the owner's own words: *"not
-a command for every custom test call, just the commands used during standard
-workflows"*.
+**Next is iter-112: close this session's chains to mvp** (`goal:g3`/`goal:g5`).
+Reordered ahead of edit mode because the primary metric has fallen every
+iteration — see the ⚠ in §0. Five hypotheses were minted and no mvp; several of
+them produced running, tested code that plausibly *is* an mvp, and the honest
+move is to check that against `[mvp].md` rather than to keep explaining the
+dip. **If the work does not meet the bar, mint nothing** — a minted mvp that
+does not clear the schema is metric-gaming with extra steps.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 -m pytest extensions/agi/tests/ -q       # 1301 green
-python3 extensions/agi/bin/write.py schema       # 115 invalid, dry
+python3 extensions/agi/bin/commands.py list      # what the graph declares
+python3 extensions/agi/bin/commands.py run tests # 1312 green
 ```
 
 ## §4 Traps hit this session
