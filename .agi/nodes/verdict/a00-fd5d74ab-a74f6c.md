@@ -4,11 +4,12 @@ mint_id: 9f9f7079d5dc4660ba72262fb3d9c923
 type: verdict
 parents:
   - experiment:a00-835be6bd-6cdd82
-scaffold_hash: 34d4184288c1664e
-verdict: inconclusive_lean_proved:55
 confidence: 0.55
+edited_by: director
+scaffold_hash: 34d4184288c1664e
+thought_session: iter-115
+verdict: inconclusive_lean_proved:55
 ---
-
 
 # verdict:a00-fd5d74ab-a74f6c
 
@@ -44,3 +45,5 @@ inconclusive_lean_proved:55
 
 ## Agent Notes
 Inline reaper detects dead pids via adapter is_alive (green suite, 1221 pass). Restart unwired, timeout healing deferred, heal.py not reduced. Broader hypothesis unproven — partial detection proof only.
+
+goal:g4.7 update, iter-115: the reason this verdict reads 55 -- adapter.restart() defined and never called -- is addressed by experiment:restart-wired-filesystem-first and verdict:the-reaper-can-heal-now. This verdict is NOT re-scored: its 55 describes what iteration 104 measured and remains accurate for that run.

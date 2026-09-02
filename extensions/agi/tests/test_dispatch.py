@@ -335,3 +335,128 @@ def test_an_admitted_slot_leaves_the_unadmitted_list_empty(tmp_path):
     m = d._merge_manifest(tmp_path, {"iter": 107, "started_at": 1, "agents": []},
                           [_rec("a00-live", "kid")])
     assert m["unadmitted"] == []
+
+
+# ---------------------------------------------------------------------------
+# goal:g4.7 -- restart is wired, and the ORDER of the two checks is the design.
+#
+# `restart()` was defined and never called ("reserved for a future iteration"),
+# which is why its verdict sat at inconclusive_lean_proved:55. Wiring it needed
+# one thing decided first: a dead pid is not the same fact as lost work.
+# ---------------------------------------------------------------------------
+
+
+class _FakeAdapter:
+    def __init__(self, pid=None):
+        self.pid = pid
+        self.calls = []
+
+    def is_alive(self, pid):
+        return False
+
+    def restart(self, **kw):
+        self.calls.append(kw)
+        return self.pid
+
+
+def _reap_project(tmp_path):
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "sessions").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    return graph
+
+
+def test_a_kid_that_died_after_writing_its_node_is_not_restarted(tmp_path, monkeypatch):
+    """The 2026-08-31 field note, made structural.
+
+    Kids routinely die AFTER their node landed, losing only the report.
+    Respawning would redo finished work and hand a second agent the same
+    scaffolded node.
+    """
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+
+    monkeypatch.setattr(d, "spawn_budget", d.spawn_budget)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid"},
+                      "a00", 999, cap=5, cfg={})
+
+    assert out["record"]["status"] == "done-unreported"
+    assert adapter.calls == [], "a completed kid must never be respawned"
+    assert "only the report was lost" in out["record"]["fail_reason"]
+
+
+def test_an_incomplete_kid_is_restarted_once_and_counted(tmp_path, monkeypatch):
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: False)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid"},
+                      "a00", 999, cap=5, cfg={})
+
+    assert out["record"]["status"] == "running"
+    assert out["record"]["pid"] == 4242
+    assert out["record"]["restart_count"] == 1
+    assert len(adapter.calls) == 1
+
+
+def test_restarts_are_bounded_by_config(tmp_path, monkeypatch):
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: False)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "restart_count": 1},
+                      "a00", 999, cap=5, cfg={"reaper": {"max_restarts": 1}})
+
+    assert out["record"]["status"] == "failed"
+    assert adapter.calls == [], "a restart budget that does not bound is not a budget"
+
+
+def test_a_restart_is_admitted_through_the_spawn_budget(tmp_path, monkeypatch):
+    """A restart is a new process. A recovery path that ignores the
+    concurrency bound can cause the outage it is recovering from."""
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: False)
+
+    # Fill the budget with a live lease, then try to reap.
+    held = d.spawn_budget.acquire(graph, 1, "occupant")
+    d.spawn_budget.commit(held, os.getpid())
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1"}, "a00", 999, cap=1, cfg={})
+
+    assert out["record"]["status"] == "failed"
+    assert "budget full" in out["message"]
+    assert adapter.calls == []
+
+
+def test_an_unavailable_restart_fails_the_agent_rather_than_raising(tmp_path, monkeypatch):
+    """The claude-code adapter raises NotImplementedError. A reaper that dies
+    on it takes the whole dispatch with it."""
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: False)
+
+    class _NoRestart(_FakeAdapter):
+        def restart(self, **kw):
+            raise NotImplementedError("claude-code harness")
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", _NoRestart(),
+                      {"node_id": "hypothesis:h1"}, "a00", 999, cap=5, cfg={})
+    assert out["record"]["status"] == "failed"
+    assert "restart unavailable" in out["record"]["fail_reason"]
