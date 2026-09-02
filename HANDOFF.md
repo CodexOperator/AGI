@@ -5,156 +5,213 @@ session only and the next director replaces it wholesale.
 
 ## §0 State block
 
-| | |
-|---|---|
-| baseline taken | 2026-09-02, `driver.sh --smoke --max-iters 1` |
-| nodes | 876 total = 869 active + 7 deprecated |
-| primary | `outcome_coverage` = **0.277** |
-| evidence_fraction | 0.225 (25 / 111 asserting) |
-| decisive_evidence_fraction | 0.95 · unevidenced decisive = **1** |
-| thought_coverage | 0.082 (72 nodes) |
-| goals | 10 active · 61 horizon · 33 complete · 2 retired |
-| unattributed_nodes | 591 |
-| unpushed | 0 |
-| runtime | **pi** — `spawn.harness: pi`, deepseek-v4-flash kids under qwen3.8-27b parents |
-| director | this chat. Parents are subagents; the director reviews deltas, not every node. |
-| budget | owner-set: **max 10 iterations, max 8 kids per iteration**. Use cheap tokens liberally. |
+| | baseline (session start) | now |
+|---|---|---|
+| active nodes | 869 | **887** |
+| deprecated | 7 | 7 |
+| `outcome_coverage` (primary) | 0.277 | 0.270 |
+| `evidence_fraction` | 0.225 | **0.235** |
+| `decisive_evidence_fraction` | 0.95 | 0.905 |
+| unevidenced decisive | 1 | 1 |
+| goals active / horizon / complete | 10 / 61 / 33 | 10 / 61 / 34 |
+| tests | 1221 | **1250** |
+| unpushed | 0 | 0 (cron pushes) |
 
-## §1 The plan — 10 iterations in three phases
+**Runtime:** pi — deepseek-v4-flash kids under qwen3.8-27b parents, per the
+owner's instruction to use cheap tokens liberally. **Budget:** max 10
+iterations, max 8 kids per iteration. Six iterations used (101–106).
 
-Owner's ordering decision, taken 2026-09-02: **honour `goal:g13`'s own scope
-note** ("not until parent and kid tiers are both properly standing") rather
-than override it. The tier plumbing is *also* next session's prerequisite, so
-phase A is not a detour — it is the same work, paid once.
+**`outcome_coverage` dipped 0.277 → 0.270 and that is expected, not a
+regression.** It is mvps per hypothesis; this session minted hypotheses and
+verdicts without minting mvps, so the denominator grew. `evidence_fraction` —
+the metric that only moves when experiments actually run — went **up**.
 
-### Phase A — the tiers actually stand (iters 1–2)
+## §1 The plan, and where it got to
 
-- [x] **iter-101 — `goal:s28` closed for real, with a test behind it.** DONE
-      The manifest merge shipped in `b8cb2ec05` and
-      `grep -c manifest extensions/agi/tests/test_dispatch.py` returns **0**.
-      s28's falsifier (spawn parent → 2 kids → assert 3 agents with
-      `tier: parent` intact; then `post_wire` admits the parent via
-      `owns_all_complete`) is unexecuted. Also `goal:g4.8` item 3:
-      `spawn.parallel` does not bound grandchildren.
-- [x] **iter-102 — `goal:g4.7` + `goal:g4.1` opened.** DONE Healing for every harness;
-      measure worktree-per-kid against ownership-in-the-brief. Direct prep for
-      the worktree/parallel-loops session that follows this one.
+Owner's ordering call: **honour `goal:g13`'s own scope note** (do not touch the
+read/write path until the parent and kid tiers stand) rather than override it.
+Phase A was not a detour — it is also the prerequisite for the next session.
 
-### Phase B — `goal:g13`, one read/write path (iters 3–5)
+### Phase A — the tiers stand ✅
 
-- [x] **iter-103 — exploratory, wide. `goal:g4.1` DISCHARGED.** Chains on g13's three open questions.
-      **These are BANKED for the owner, not decided by the director** (see §6).
-- [~] **iter-104 — `read.py`. IN FLIGHT.** One parse, one failure semantics. Today's defect
-      is not divergent parsing, it is divergent *failure*: malformed input
-      raises / skips / returns `{}` / returns `None` / vanishes, depending
-      which of the readers you reached. None of those was chosen.
-- [ ] **iter-5 — `render.py` + `write.py`.** Route existing callers through
-      the one door. `node_writer.write_node` is the write half's starting point.
+- [x] **iter-101** — `goal:s28` closed. Manifest race found and fixed.
+- [x] **iter-102** — two concurrent parents, no collision. `g4.1`/`g4.7` opened.
 
-### Phase C — the viewport (iters 6–8)
+### Phase B — `goal:g13`, one read/write path ◐
 
-Owner picked **three axes**, not four. Chain-walk was explicitly not selected.
+- [x] **iter-103** — wide exploration. **`goal:g4.1` measured and settled.**
+- [x] **iter-104** — read half: the canonical reader now keeps its contract.
+- [ ] **iter-107 (next)** — `write.py`. Not started. See §3.
 
-- [ ] **iter-6 — space.** Pan/zoom a viewport across a graph bigger than the
-      screen. `--level 1..5`, the same axis as everywhere else.
-- [ ] **iter-7 — time.** Step through iterations and grid versions; scrub
-      backward and watch the graph change.
-- [ ] **iter-8 — live.** Agents as spiders on the web, where they are actually
-      working, refreshing during a run.
+### Phase C — the viewport ✅ (space + time + live all landed)
 
-### Phase D — reserve (iters 9–10)
+- [x] **iter-105** — `bin/viewport.py`. All three axes the owner chose.
+- [~] **iter-106** — chains on `g9.4`, `s31`, `g4.8`. In flight at handoff.
 
-- [ ] **iter-9** — whatever phases A–C surfaced. Held deliberately empty.
-- [ ] **iter-10** — goal sweep, metric delta, and the handoff that hands the
-      worktree + parallel-parent-loops session its starting line.
+### Phase D — reserve
+
+- [ ] **iter-108–110** — held. `g4.8` and `s31` are the obvious candidates.
 
 ## §2 What landed
 
-- **iter-101 — `goal:s28` complete.** Parent `a00-dea93ac5` (qwen) spawned a
-  deepseek kid, then **falsified two of its own kid's claims with live runs**
-  and corrected the node in place. Clauses 1–2 of the falsifier held live.
-  Clause 3 had never been run: `b8cb2ec05` shipped the merge with zero tests.
-  It was not atomic — the `rename` was, the read-merge-write cycle was not, and
-  `.manifest.json.tmp` was a **fixed shared name**. Director reproduced entry
-  loss at **6/6 runs, 6–7 of 8 kids**. Fixed with `flock` + re-read under lock
-  + unique `mkstemp`. Six tests now carry the falsifier. Suite green at 1221.
-- **`goal:g9.7` minted** — one render, two readers.
-- **Concurrent dispatch verified live** in iter-102: two parents dispatched
-  3s apart, both present in the manifest. Before the fix the second would have
-  erased the first.
+### 🔴 The manifest race — the one that would have broken next session
 
-### 🔬 Phase B evidence, measured by the director 2026-09-02 (read-only)
+`goal:s28` was `active` with its fix already shipped in `b8cb2ec05`. That fix
+had **zero tests** (`grep -c manifest tests/test_dispatch.py` → `0`), so its
+third falsifier clause had never been run. It did not hold.
 
-**`goal:g13`'s core claim, confirmed and quantified.** Six independent node
-parsers, **four different failure semantics**, on identical malformed input:
+The `rename` was atomic; the **read-merge-write cycle around it was not**, and
+`.manifest.json.tmp` was a *fixed shared name*. Two dispatches overlapping →
+one renames the file out from under the other, which dies `FileNotFoundError`
+**after `Popen` has already run**. That is a spawned agent nothing tracks:
+`heal.py` cannot time it out, `post_wire` cannot wire its node. `goal:g7`
+failing at the instant of spawn.
 
-| parser | no frontmatter | unterminated | malformed YAML | not a mapping | empty |
-|---|---|---|---|---|---|
-| `graph_core.load_node_file` | raise `FrontmatterError` | raise | **raise `yaml.ParserError`** | raise | raise |
-| `benchmark._parse_frontmatter` | **OK tuple** | **OK tuple** | **OK tuple** | **OK tuple** | **OK tuple** |
-| `crons._parse_frontmatter` | raise `CronsError` | raise | raise | raise | raise |
-| `envfile._parse_frontmatter` | raise `SecretsError` | raise | raise | raise | raise |
-| `stitch._parse_frontmatter` | `None` | `None` | `None` | `None` | `None` |
-| `backfill.read_node` | `None` | `None` | `None` | `None` | `None` |
+Measured before the fix, 8 concurrent dispatches × 6 runs: **6/6 runs lost
+entries, typically 6–7 of 8.** Fixed with `flock` around the whole cycle, a
+re-read under that lock, and a unique `mkstemp` name. Six tests carry the
+falsifier now.
 
-Two findings sharper than the goal text:
+**Verified live at the exact scale that broke it:** iteration 103 ran 4 parents
++ 4 kids into one manifest — 8 agents, zero lost.
 
-1. **`benchmark.py` never fails and is not YAML.** It is a hand-rolled
-   `partition(":")` loop. On a real node it returns `parents=''`, `tags=''`,
-   injects a junk key `'- goal'` from the list item `- goal:g9`, and leaves
-   quotes on (`id == '"goal:g9.7"'`, which never compares equal to
-   `goal:g9.7`). Every list-valued field in the corpus is silently destroyed.
-2. **The canonical reader breaks its own contract.** `FrontmatterError` is
-   documented as *"Raised when a node file cannot be parsed"*, but malformed
-   YAML leaks `yaml.parser.ParserError`. A caller writing
-   `except FrontmatterError` crashes. **Deliberately left unfixed** — which
-   semantics *should* win is `goal:g13`'s central decision and the director
-   must not pre-empt it. The leak is a defect under any choice; the choice is
-   the owner's.
+### ✅ `goal:g4.1` settled after sitting open since 2026-08-22
+
+A kid ran 10 trials (5 warm, 5 cold with the page cache dropped between).
+**`git worktree add --detach` costs 0.09s warm, 0.80s cold** on this 133MB
+repo — 56× and 19× inside the hypothesis bounds. Two kids: **0.19s**, against
+the 2–5 minutes one collision costs to diagnose. Chain closed
+`goal → hypothesis → experiment → verdict: proved` @0.99, evidence resolving to
+a real node, no self-citation. **Worktree-per-kid is not a close call.**
+
+### ✅ `goal:g13` read half — the canonical reader keeps its own contract
+
+Six independent parsers measured, **four different failure semantics**. Two
+findings sharper than the goal text:
+
+- **`benchmark.py` never fails and is not YAML.** A hand-rolled
+  `partition(":")` loop: returns `parents=''`, `tags=''`, injects a junk
+  `'- goal'` key, leaves quotes on `id`. Every list field silently destroyed.
+- **`graph_core.persistence.frontmatter` contradicted itself.**
+  `FrontmatterError` is documented as *"raised when a node file cannot be
+  parsed"*, but malformed YAML leaked `yaml.ParserError` — and malformed JSON
+  leaked `json.JSONDecodeError`, which no chain had found because they only
+  tested `.md`. **Both wrapped**, `__cause__` preserved and asserted.
+
+### ✅ The viewport — `bin/viewport.py`
+
+`goal:g9.4` built under `goal:g9.7`'s constraint. **One frame stream, two
+formatters.** `render_human` and `render_llm` take identical arguments and read
+only `Frame` fields, so there is no way to change what a human sees without
+changing what a kid is handed.
+
+```bash
+python3 extensions/agi/bin/viewport.py                    # interactive
+python3 extensions/agi/bin/viewport.py --emit both        # both views, one stream
+python3 extensions/agi/bin/viewport.py --verify           # g9.7's falsifier
+python3 extensions/agi/bin/viewport.py --live --iter iter-104 --anchor goal:g13 --depth 5
+```
+
+Keys: arrows/hjkl pan · `+`/`-` depth · `[`/`]` time · `a` live · `q` quit.
+
+Cross-validates against `metrics.py` on two independent numbers: 1 damaged
+node (= `unevidenced_decisive_verdicts`) and 5 nodes under agents in iter-104.
+
+### 🆕 `goal:g9.7` and `goal:s31` minted
+
+- **`g9.7`** — one render, two readers. Your constraint, now a falsifiable goal.
+- **`s31`** — a scaffolded node ships schema-invalid. `[hypothesis].md` requires
+  `title` + `testable_claim`; `node_writer` seeds neither; the kid is *correctly*
+  forbidden from touching frontmatter (it would break `scaffold_hash`, which is
+  how completion is detected). **The node cannot become valid by anyone doing
+  their job as briefed.** Deliberately not scheduled ahead of `g13`.
 
 ## §3 🔴 Where it stopped, and the exact next command
 
-Baseline is taken and the plan is fixed. Nothing dispatched yet.
+Iteration 106's three parents were in flight when this was written. Read their
+reports first:
 
 ```bash
-cd /home/ubuntu/work/agi && python3 extensions/agi/bin/dispatch.py agi 1 --tier parent
+for a in .agi/sessions/iter-106/a00-*/; do echo "== $a"; cat "$a/output.log"; done
+```
+
+Then the next real work is **`goal:g13`'s write half** — `write.py`. The read
+half landed; `node_writer.write_node` is the starting point, and `goal:s31` is
+the first thing it should fix.
+
+```bash
+python3 extensions/agi/bin/dispatch.py "$PWD" 107 --tier parent --target goal:g13 --level small
 ```
 
 ## §4 Traps hit this session
 
-_(none yet)_
+1. **A fix with no test is an assertion, not a fix.** `b8cb2ec05` claimed
+   atomicity in a commit message. Nothing executed it. It was wrong.
+2. **`grep` for an expected glyph hides a crash.** The viewport's default view
+   crashed on `Graph.node_ids` (a set attribute, not a method) and the smoke
+   check passed, because absent output and a traceback look identical to
+   `grep`. Check the exit code.
+3. **Breadth-first is wrong for a tree view.** It emits every depth-0 node then
+   every depth-1 node, so indentation describes a nesting the order
+   contradicts. Found by *looking at the output*, not by a test.
+4. **Parents hang, and rate limits bite.** Two parents died — one silently past
+   its 20-min timeout, one on `Upstream error from Reka: Too many requests`. In
+   both cases **the kid's node had already landed** and was reviewable. The
+   2026-08-31 field note (check the filesystem before resuming) paid for itself
+   twice today. Back off when running >4 concurrent pi agents.
+5. **gitnexus reported `g9.4` as `active` when it was `horizon`.** It is a
+   semantic search, not an oracle. Confirm with `grep`.
 
 ## §5 Known-good verification sequence
 
 ```bash
-bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must NOT drop from 876
-python3 -m pytest extensions/agi/tests/ -q
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must NOT drop from 887
+python3 -m pytest extensions/agi/tests/ -q              # 1250 passing
+python3 extensions/agi/bin/viewport.py --verify         # goal:g9.7's invariant
+python3 extensions/agi/bin/snapshot-goals.py --render --check
 python3 extensions/agi/bin/grid.py commit --all
 ```
 
-## §6 🔵 BANKED for the owner — do not decide these without them
+## §6 🔵 BANKED for you — decisions I deliberately did not make
 
-The owner granted director authority for calls "small enough that they aren't
-too structurally foundational" and asked that the big ones be banked for the
-morning. These are the big ones. All three are `goal:g13`'s own open questions,
-and each is a place where a decision this project already paid for collides
-with the new shape:
+**`goal:g13`'s three open questions.** Iteration 103's chain built argument on
+these; none is decided. Each is a place where a decision this project already
+paid for collides with the "node body is a marker, not data" shape:
 
-1. **Where does `THOUGHT` live** once a node body is a marker rather than
-   data? It is authored and durable; frontmatter is ruled out already, because
-   `write_frontmatter` flattens newlines and would destroy it silently.
-2. **What is a goal node's linked file?** `goal:g6.9` established that
-   `GOALS.md` renders *from* goal node bodies. A live-linked body points the
-   arrow the other way. One of the two has to give, and G6.9 was paid for.
+1. **Where does `THOUGHT` live** once a body is a marker? Authored, durable,
+   and frontmatter is ruled out — `write_frontmatter` flattens newlines and
+   would destroy it silently.
+2. **What is a goal node's linked file?** `goal:g6.9` made `GOALS.md` render
+   *from* goal bodies. A live-linked body points the arrow the other way. One
+   of the two has to give, and G6.9 was paid for.
 3. **What does a link to a missing file do?** A deprecated node whose file is
-   gone must not fail quietly — that is exactly the divergent-failure-semantics
-   defect g13 was written about, reappearing inside its own fix.
+   gone must not fail quietly — the exact defect g13 was written about,
+   reappearing inside its own fix.
 
-Iteration 3 exists to build the *argument* on each — chains, not conclusions —
-so the owner reads options with evidence rather than a director's guess.
+**Two smaller ones, yours because they are yours:**
 
-**New invariant to mint, not yet in any goal:** the human viewport and the LLM
-injection view are the **same render**. The owner's words: *"the same view as
-you'd want to present to an LLM, so we can iterate on it as I use it."* That
-fuses `goal:g9.4` with `goal:g13`'s read path and it is the reason the viewport
-comes after the unification rather than beside it.
+4. **`goals_active` is 10 against `cc_dispatch.max_goals_active: 9`.** I marked
+   `g9.4` active because it is genuinely being worked, rather than silently
+   raising your cap. Either raise it to 10 or retire one — `g3`, `g5` and `g7`
+   are overarching and arguably permanent residents, which may mean the cap
+   should count only subgoals.
+5. **Should the viewport replace `INJECTION.md`'s renderer outright?** `g9.7`'s
+   falsifier is currently proven *within* `viewport.py`. Making `render-context.py`
+   and `zoom.py` call `frame_stream` too is the real prize — it would delete
+   4 of the 5 remaining render paths — but it changes what every kid is handed,
+   so it should be your call, not one made overnight.
+
+## §7 Next session: worktree branching + parallel parent/kid loops
+
+Everything that session needs is now measured or fixed:
+
+- **Concurrency is safe.** The manifest survives 8 concurrent agents.
+- **Worktrees are cheap.** 0.09s warm — the cost objection in `g4.1` is dead.
+- **The reaper exists but is half-wired.** A kid built `_reaper_phase` +
+  adapter `is_alive`/`restart`; `restart()` is defined and **never called**
+  (`dispatch.py`, "reserved for a future iteration"). Its verdict is honestly
+  `inconclusive_lean_proved:55` because of exactly that.
+- **`goal:g4.8` item 3 is still open:** `spawn.parallel` does not bound
+  *grandchildren*. N parents × M kids is an unbounded population against one
+  tree. Fix that before running many loops at once, or the worktree win gets
+  spent on process explosion.
