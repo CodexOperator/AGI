@@ -7,14 +7,14 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 893 | **903** |
+| active nodes | 893 | **906** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.266 | 0.260 |
-| `evidence_fraction` | 0.250 | **0.286** |
-| `decisive_evidence_fraction` | 0.955 | **0.964** |
+| `outcome_coverage` (primary) | 0.266 | 0.258 |
+| `evidence_fraction` | 0.250 | **0.297** |
+| `decisive_evidence_fraction` | 0.955 | **0.967** |
 | unevidenced decisive | 1 | 1 |
 | goals active / horizon / complete | 12 / 62 / 34 | **13** / 62 / 34 |
-| tests | 1250 | **1295** |
+| tests | 1250 | **1301** |
 | goals | 110 | **111** |
 | unpushed | 0 | 0 |
 
@@ -51,9 +51,9 @@ direction and displaced `write.py` from the front of the queue.
       against the live API, verified end to end. Key is IN and working.
 - [x] **iter-109** — `write.py` + `node_writer.update_node`, `goal:g13`'s
       write half. Plus **iter-109b**, a self-correction (see §4).
-- [ ] **iter-110 (next)** — `goal:s31`, first defect fixed *through* the new
-      write path.
-- [ ] **iter-111** — `goal:g1.10`, `.geometry/commands.md`.
+- [x] **iter-110** — `goal:s31`. A scaffold is born valid; no agent touches
+      frontmatter. Falsifier passed against the real schemas.
+- [ ] **iter-111 (next)** — `goal:g1.10`, `.geometry/commands.md`.
 - [ ] **iter-112–113** — `goal:g13.1`, edit mode.
 - [ ] **iter-114** — `goal:g4.7`, wire `restart()`.
 - [ ] **iter-115** — `goal:g3`/`g5`, close chains to mvp.
@@ -200,26 +200,48 @@ declared `self` from a defaulted one exactly so that stays checkable. A node
 body is still a payload, not a marker; this built the mechanism a marker would
 need.
 
+### ✅ iter-110 — `goal:s31`, scaffolds are born valid
+
+The vice was two correct rules composing into a contradiction: the scaffold
+owns frontmatter, the kid is told not to touch it, so a required field the
+writer didn't supply **could not be added by anyone doing their job as
+briefed**.
+
+The three candidate shapes in the goal were never alternatives — each handles a
+different class of field, and all three together are what "born valid" means:
+
+1. **Seed** what the engine derives — `title` from the slug, a real value,
+   never a placeholder.
+2. **Lift** what only the kid holds out of the **body** at completion, through
+   `update_node`. The kid writes prose under a briefed heading and **never
+   touches frontmatter**.
+3. **Report** what neither can supply, as `SCHEMA-WARNING` on stderr.
+
+Safe because **`scaffold_hash` hashes the BODY** — asserted with two identical
+scaffolds under schemas differing only in whether `title` is required.
+
+Falsifier, real schemas, no parent intervention: `is_complete` False untouched
+→ True filled → **still True after the frontmatter fill**, and `FINAL missing
+required: []`.
+
+🔴 **Corpus census: 115 of 900 nodes invalid.** Not repaired — see §6.
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-Phase 0 and iterations 107, 108, 109, 109b are committed, grid-versioned,
-pushed, green at 1295 tests.
+Phase 0 and iterations 107–110 are committed, grid-versioned, pushed, green at
+1301 tests.
 
-**Next is iter-110: `goal:s31`** — a scaffolded node ships schema-invalid.
-`[hypothesis].md` requires `title` + `testable_claim`; `node_writer` seeds
-neither; the kid is *correctly* forbidden from touching frontmatter. **The node
-cannot become valid by anyone doing their job as briefed.** It is now fixable
-*through* `update_node` rather than by hand, which makes it the write half's
-first real consumer.
-
-The constraint that makes the fix safe is already measured: **`scaffold_hash`
-hashes the BODY, not the frontmatter**, so seeding schema-required fields
-cannot break completion detection.
+**Next is iter-111: `goal:g1.10`** — the engine's standard commands declared in
+a node rather than memorised. The shape is already built and running:
+`.geometry/crons.md`. Copy it — a `.geometry/commands.md`, a `[command]` schema
+beside `[cron]`, one resolver. Scope is narrow by the owner's own words: *"not
+a command for every custom test call, just the commands used during standard
+workflows"*.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 -m pytest extensions/agi/tests/ -q          # 1295 green
-python3 extensions/agi/bin/write.py links           # 905 resolved, 0 broken
+python3 -m pytest extensions/agi/tests/ -q       # 1301 green
+python3 extensions/agi/bin/write.py schema       # 115 invalid, dry
 ```
 
 ## §4 Traps hit this session
@@ -265,7 +287,19 @@ python3 extensions/agi/bin/grid.py commit --all
 
 **New this session, and the first thing to settle when the owner returns:**
 
-0. **`goal:g1.11`'s batching granularity.** One minted key per spawn, per
+0. 🔴 **Backfill the 115 schema-invalid nodes?** `write.py schema --fix` exists
+   and has only ever been run **dry**. It would fill **`title` x86** and
+   **`testable_claim` x5** — 91 field-instances, ~91 nodes, ~91 grid versions —
+   and would leave `testable_claim` x51, `scale` x7, `next_edges` x3 and
+   `confidence` x1 absent rather than invent them. Reversible (git + grid) and
+   probably right, since `title` is what every renderer keys on. Not done: it
+   is a hundred nodes of churn nobody asked for. **One command either way.**
+
+1. ~~`goal:g1.11`'s batching granularity~~ — **SETTLED** by
+   `verdict:per-spawn-beats-batching`: per spawn, because the cost that
+   motivated batching measured 0.77s and per-slot cannot answer "which agent".
+   Left here struck through rather than deleted, so the record shows it was
+   asked and answered rather than dropped. One minted key per spawn, per
    `ceil(max_live / 3)` batch, or one per slot minted at loop start? All three
    were named by the owner and none chosen. **Leading candidate: per slot** —
    `spawn_budget` already owns a bounded set of slots, so a lease and a key
