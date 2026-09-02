@@ -1494,7 +1494,14 @@ sessions is **G10.1**'s job.
   break, and assert the quoted fragment is a verbatim substring of the payload
   rather than that it merely looks right.
 
-## 6. How to write into this file
+## 6. How to write into this file — 🔴 SUPERSEDED BY `goal:g11`, DO NOT RUN
+
+> **Retracted in the 2026-08-29b section above, which holds the current recipe.**
+> Kept as written because it is what this session did, not what to do now. The
+> block below calls **`grid.py checkout --all`, which is a NEVER-RUN command**
+> — there is no staged copy left for it to materialise, and it silently
+> reverted uncommitted work twice in one session (`goal:g4.1`).
+> `publish-engine.sh` is retired for the same reason: nothing to publish into.
 
 `HANDOFF.md` is `build:HANDOFF.md`, `build_kind: prose`. **Edit the payload.**
 The `BUILD-CONTRACT` block and the derived prose around it are regenerated on

@@ -12,6 +12,7 @@ seeds:
   - goal:g4.3
   - goal:g4.4
   - goal:g4.5
+  - goal:g4.8
   - idea:engine-agi-bridge-index
   - idea:engine-dispatch
   - idea:engine-heal

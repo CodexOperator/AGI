@@ -70,20 +70,86 @@ served — the maps are *inherited contract slices attached to nodes*, which is 
 different object from an index of symbols, and only one of them survives a
 `stitch.py --from-grid` of a historical version.
 
+## Two jobs added 2026-09-02: the IO map is the linkage, and the propagator
+
+**The map stops being an annotation and becomes the table the read path
+resolves through.** `goal:g13` records the owner's design for one read path and
+one write path, and it rests on a node body being a **live link to a file**
+rather than stored bytes. The declaration of *which file* is IO-map content:
+standardized, configured, one shape for every node type. `payload_ref` is the
+prototype — a build node already links rather than copies — and this widens it
+from one type to all of them.
+
+**Second job: the map is what says where a change propagates *to*.** With the
+linkage declared, a rename or a reference update is mechanically decidable —
+the map names every place that fact appears, and `goal:g13`'s write path is
+what executes the edit as a kid or parent finishes its node. **The division is
+exact and worth holding: this goal owns the links, G13 owns the traversal.**
+Nothing is retyped by a model.
+
+**The motivating measurement is this session's own.** Renaming `phasing-out` to
+`retired` — a change with **zero semantic content** — costs a `status` regex, a
+pass over 28 goal nodes, and hand-edits to `CLAUDE.md`, `SKILL.md` and the
+schema file. A schema is declared once in `.agi/context/schemas/[name].md` and
+then *restated in prose* in the two documents every agent reads: the lifecycle
+states, the verdict taxonomy, the retirement convention, the type list. Three
+copies of one fact, two hand-maintained, nothing comparing them. **The same
+argument the design ethic makes about spawn briefs applies to renames: code
+should spend the tokens, not a model.**
+
+### The hard part is sub-file granularity, and the precedent is already here
+
+Whole-file linking is the easy case and `payload_ref` already solves it. Schema
+prose is the hard case: `CLAUDE.md` and `SKILL.md` are mostly hand-written and
+only *contain* derived paragraphs, so the link is to a **region of a file**, not
+a file. Two ways out, and only one of them is cheap:
+
+- **Marked regions, which this repo has already paid for and proven.**
+  `BUILD-CONTRACT:BEGIN/END` and `THOUGHT:BEGIN/END` are exactly "a span of one
+  file owned by a different writer, surviving regeneration of everything around
+  it." Generalizing that convention is the robust form of "symlink text inside
+  another file" — the two halves already coexist in every build node, with the
+  ownership rule enforced and understood.
+- **Make the whole document derived**, the way `goal:g6.9` made `GOALS.md`
+  derived with a byte-identical `--render --check`. Correct, proven, and far
+  too heavy for a document that is 95% authored prose.
+
+The acceptance test is G6.9's, narrowed to a span: the marked region re-renders
+from the schema, and a `--check` fails when the two disagree.
+
+This also sharpens the stopgap warning above rather than softening it. An index
+of symbols cannot do either job: it is rebuilt from the current tree, so it
+knows no node, no link, and nothing to propagate *to*.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Added 2026-09-01 at the owner's direction, after they asked to "graph the code
-asap" and correctly recalled that an IO map goal already existed rather than
-letting a second one be seeded. Recorded here instead of as a new goal for
-exactly that reason: a fresh goal would have split one intent across two ids,
-and the failure mode this repo already knows is `goal:g4.3` — a goal whose
-framing quietly steers every kid working under it.
+This version gives the IO map two jobs it did not have, both arriving from the
+owner's read/write board on 2026-09-02, and both changing what kind of object
+the map is. v2 described a map as an inherited contract *slice* — annotation
+hanging off a node, read by humans and by `stitch.py --verify`. The linkage job
+makes it structural: if a node body is a live link, the map is what the read
+path dereferences, and an absent map means an unreadable node rather than a
+thinner one.
 
-The paragraph warning against the stopgap becoming the design is the load-
-bearing one. Gitnexus answers structural questions well enough that deferring
-to it is the path of least resistance, and the difference that matters is not
-capability but *attachment*: an index is rebuilt from the current tree, while
-an IO map is a slice inherited by a node and versioned with it. A graph that
-cannot be materialised at version N is not this goal's object.
+The propagation job was recorded here rather than in a new goal for the same
+reason the gitnexus section was: it is the IO map's object, and a second id
+would split one intent. What made it statable now is a measurement rather than
+an argument — the `retired` rename in flight this session is a change with no
+semantic content that still costs a corpus pass plus three hand-edited
+documents.
 
-No status change. The judgement half and the S3 ordering are untouched.
+It was first drafted into `goal:g10.2` and moved here at the owner's
+correction, which was right and is worth recording because the wrong placement
+was plausible: G10.2 is about the *shape* of the hypergraph, while propagation
+is a link (this goal) plus a traversal (`goal:g13`'s write path). The sub-file
+question is the owner's too — whether text can be linked inside another file
+robustly — and the answer turned out to be already in the repo rather than
+needing invention: `BUILD-CONTRACT` and `THOUGHT` are marked regions with a
+different owner from the prose around them, surviving regeneration, working
+today.
+
+Deliberately not restated: G13's three open questions. They are decisions that
+constrain this map's shape and they belong to the goal that raised them; a copy
+here would be exactly the drift `goal:s17` names.
+
+No status change, and the S3 ordering for the judgement half is untouched.
 <!-- THOUGHT:END -->
