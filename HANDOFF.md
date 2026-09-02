@@ -230,6 +230,135 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 
 ---
 
+# SESSION HANDOFF — 2026-09-02: LIVE SCRATCHPAD (session in progress)
+
+> **🔴 This section is being written DURING the session, not after it.** The
+> owner asked for it as a scratchpad so a fresh session can pick the work up
+> cold at any point. Treat it as current state, not as a report — the last
+> iteration listed may be half-done.
+>
+> **If you are a fresh session: read §0, then §3 "where it stopped".**
+
+## 0. State
+
+```
+repo        /home/ubuntu/work/agi   ONE repo: source + .agi/ graph + refs/grid/*
+runtime     pi, live.  parent qwen/qwen3.8-27b  |  kid deepseek/deepseek-v4-flash
+crons       FROZEN — crons_live: false. Unchanged. Do not re-enable.
+PUSHED      NO — several commits ahead. Push by hand when ready.
+
+node_count  866      active 859   deprecated 8    goals 102
+outcome_coverage 0.284   evidence_fraction 0.211   unevidenced_decisive 1
+goals: active 9  horizon 65  retired 2  complete 27
+tests       1189 pass
+```
+
+## 1. The session's plan, and where each item stands
+
+| # | Work | State |
+|---|---|---|
+| 0 | deepseek kid model + qwen parent; G13 board, G2.2, G4.8 recorded | ✅ `bd42d8c0b` |
+| 1 | **G5 built** — `complete` scores, retired does not | ✅ `cdff3b60d` |
+| 2 | **The goal sweep** — 41 active → 9 | ✅ `3c8435271` |
+| 3 | First deepseek kid, g4.6 falsifier 4 re-measured | ✅ `383ed2107` |
+| 4a | **The parent brief** (`goal:g1.9`) — `bin/brief.py` | ✅ this commit |
+| 4b | **Live parent run** — qwen parent spawning deepseek kids | ⬜ NEXT |
+| 5 | `goal:s23` + `goal:s25` + `goal:s26` | ⬜ not started |
+
+## 2. What landed, in one line each
+
+- **`goal:g5` is built.** `SCORING_GOAL_STATUSES = {active, horizon, complete}`,
+  `RETIRED_GOAL_STATUSES = {retired, phasing-out}`. `outcome_coverage`
+  0.232 → 0.284. **`phasing-out` renamed to `retired`; the old spelling stays
+  accepted permanently.**
+- **Retirement cannot launder the ratio.** A hypothesis under a retired goal
+  that never reached an mvp **stays in the denominator**. Without this, a sweep
+  raises the metric for free. `retired_open_hypotheses` makes the spared set
+  visible.
+- **The sweep ran and the metric did not move** — 0.284 before and after. That
+  is iteration 1's falsifier, measured live rather than in a fixture.
+- **`bin/brief.py`** — one assembler, tier-parameterized, taxonomy derived from
+  `evidence_gate.VERDICT_HELP`. `pi_adapter` now holds no brief text at all and
+  a test asserts it stays that way.
+
+## 3. 🔴 Where it stopped, and exactly what to do next
+
+**4b — the live parent run. Nothing has been spawned at `--tier parent` yet
+since the brief landed.**
+
+```bash
+cd /home/ubuntu/work/agi
+bash extensions/agi/driver.sh --smoke --max-iters 1        # baseline; count must not drop
+python3 -m pytest extensions/agi/tests/ -q                 # 1189 pass
+bash extensions/agi/driver.sh --max-iters 1 --tier parent --target <node-id>
+```
+
+**⚠️ `driver.sh` may not forward `--tier`.** `dispatch.py` has taken `--tier`
+since `goal:g4.6`; whether the driver passes it through is **unverified** — check
+before assuming the flag reached the spawn. If it does not, call `dispatch.py`
+directly.
+
+**What the run must show, and none of it is optional:**
+
+1. The parent's argv carries `--model qwen/qwen3.8-27b` and the kid's carries
+   `--model deepseek/deepseek-v4-flash`. **Verify by inspecting the spawned
+   command, not by assuming** — `pi_adapter.model_args` raises rather than
+   falling back across tiers, and that guard is the only thing between real
+   tiering and a run where everything quietly used one model and still looked
+   correct (`goal:g4.8` falsifier, last clause).
+2. The parent spawns via `dispatch.py --tier kid`, not by any other route.
+3. No more than `spawn.parallel` kids at once. **`spawn.parallel` does NOT bound
+   grandchildren** (`experiment:a00-763e629b-5c04ad`) — the brief says so, and
+   a bound stated only in a brief is one a parent can ignore. Enforcing it at
+   the spawn site is `goal:g4.8`'s job and is **not built**.
+4. The owner's instruction: **the parent runs its own review gate, and the
+   director reviews every node again by hand.**
+
+**5 — three goals, all `horizon`, all specified with falsifiers:**
+
+- **`goal:s23`** — a deprecated node still reaches injected context. Measured:
+  `build:TODO.md` is deprecated, moved to `.agi/nodes/deprecated/`, and still
+  sits at `INJECTION.md:85`. **Fix the render/chain-selection path, not the
+  loader** — four readers depend on deprecated nodes still loading.
+- **`goal:s25`** — `evidence_gate.build_corpus` rglobs whatever directory it is
+  handed. Split out of `goal:s10` when that retired.
+- **`goal:s26`** — an overarching goal must not be `complete` while its
+  subgoals are live. Warning in `snapshot-goals.py`, not a hard failure.
+
+## 4. 🔴 Traps from this session
+
+- **A test can re-implement the thing it tests and pass 11/11.** The deepseek
+  kid's `B2` was a hand-copy of `post_wire.py:319` rather than a call to it;
+  delete that line and its test still passed. **Read the kid's artifact, not
+  its report.** Found only because three line numbers in the report disagreed
+  with the tree — small factual slips are signal.
+- **A spec can contradict its own falsifier and nothing notices** while no data
+  has the shape that would tell them apart. `goal:g5`'s sub-case 2 and its
+  falsifier said opposite things about the same nodes for a day, and the
+  reading that "looked right" would have armed a metric exploit in the very
+  next iteration.
+- **Retiring a goal can silently delete a live defect.** `goal:s10` carried two
+  fixes; only one was moot. Its own closing line warned against exactly that.
+  **Before retiring, check whether the goal carries anything still true.**
+- **A proposed new state may already exist.** `legacy` was going to be minted;
+  `deprecated` already means it and the renderer simply ignores it. Two
+  definitions of one fact is `goal:s17` / `goal:g2.5` / `goal:g7.4` again.
+- **`grid.py commit --all` says `N error(s) (missing mint_id)`** for
+  hand-written nodes. It has read 0 all session. Read that line.
+
+## 5. Known-good verification sequence
+
+```bash
+cd /home/ubuntu/work/agi
+bash extensions/agi/driver.sh --smoke --max-iters 1              # count must not drop
+python3 -m pytest extensions/agi/tests/ -q                       # 1189 pass
+python3 extensions/agi/bin/snapshot-goals.py --render --check    # byte-identical, exit 0
+python3 extensions/agi/bin/grid.py commit --all                  # 0 error(s)
+python3 extensions/agi/bin/crons.py show                         # crons_live: False
+```
+
+---
+
 # SESSION HANDOFF — 2026-09-01: the spawn silo, named and half-closed
 
 > **Read this section first.** It supersedes 2026-08-31 below wherever they

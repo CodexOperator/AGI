@@ -260,6 +260,13 @@ def main() -> int:
                 scaffold=scaffold_info,
                 cli_py=CLI_PY,
                 skill_prompt=PLUGIN_ROOT / "lib" / "agent-prompt.md",
+                # goal:g1.9 / goal:g4.8 -- a parent brief needs the spawn
+                # command, its aim, and the concurrency bound. A kid brief
+                # ignores all three; passing them unconditionally keeps the
+                # call site tier-blind, which is the point of the assembler.
+                dispatch_py=Path(__file__).resolve(),
+                target=target,
+                parallel=adapters.parallelism(cfg),
             )
             spawn_env = adapter.child_env(harness=harness, base=scrubbed_env())
         except (KeyError, NotImplementedError) as exc:
