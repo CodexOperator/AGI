@@ -583,10 +583,23 @@ def update_node(
         return res
 
     if validate:
-        problem = _schema_problem(root, res.node_type, fm, announce=announce)
-        if problem:
+        # Judge the DELTA, not the state. An update is rejected for fields it
+        # BREAKS, never for fields that were already missing when it arrived.
+        #
+        # Rejecting on state was the first version and it would have been a
+        # live regression the moment real writers routed through here: 115
+        # nodes in this corpus are already schema-invalid (`goal:s31`), so
+        # `cli.py done` recording a verdict on one of them would have been
+        # refused for a defect it did not cause and could not fix. A gate that
+        # punishes the wrong write teaches callers to pass `validate=False`,
+        # which is how a gate stops existing.
+        before = set(missing_required(root, res.node_type, nf.frontmatter, node_id))
+        after = missing_required(root, res.node_type, fm, node_id)
+        broke = [k for k in after if k not in before]
+        if broke:
             res.status = REJECTED
-            res.reason = problem
+            res.reason = (f"{res.node_type} requires {', '.join(sorted(broke))}; "
+                          f"an update may not REMOVE a required field")
             return res
 
     text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + new_body
@@ -714,19 +727,7 @@ def seed_required(root, node_type, fm, slug) -> list[str]:
     return missing_required(root, node_type, fm)
 
 
-def _schema_problem(root, node_type, fm, announce=False) -> str | None:
-    """Why this frontmatter is not a legal `node_type`, or None.
 
-    Checks the type's `validation.required` keys and nothing else. The spawn
-    gate is deliberately not re-run: it decides whether a node may be CREATED
-    with these parents, and re-litigating that on every field edit would make
-    the 216 grandfathered build nodes unwritable (`goal:s29`).
-    """
-    missing = missing_required(root, node_type, fm)
-    if missing:
-        return (f"{node_type} requires {', '.join(sorted(missing))}; an update "
-                f"may not leave a node schema-invalid")
-    return None
 
 
 #: Headings a body may use to state a schema-required field, lowercased.

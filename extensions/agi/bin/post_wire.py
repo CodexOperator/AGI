@@ -160,6 +160,51 @@ def _write_node(path: Path, fm: dict, body: str) -> None:
     write_frontmatter(path, fm, body)
 
 
+def _update_via_writer(root, node_id, path, original_fm, fm,
+                       original_body, body) -> None:
+    """Route one wire through `node_writer.update_node` (`goal:g13`).
+
+    `post_wire` reads a node, mutates a dict, and writes the whole thing back.
+    `update_node` takes a **delta**, so the delta is computed here by diffing
+    the mutated frontmatter against what was read -- rather than by listing the
+    keys this function believes it changed. That distinction is load-bearing:
+    `evidence_gate.stamp()` writes keys this call site does not name, and a
+    hand-listed delta would silently drop exactly the demotion stamps the gate
+    exists to record.
+
+    Three things the caller gains by going through the gate instead of
+    `write_frontmatter` directly:
+
+    1. An authored `THOUGHT` cannot be lost, on the one path that rewrites a
+       body (it appends `## Agent Notes`).
+    2. An update that changes nothing writes nothing. This path runs on every
+       completed node every iteration, so an unconditional rewrite would mint
+       a grid version per node per iteration and *versions record change, not
+       time* would stop being true.
+    3. An edit that would REMOVE a required field is refused; one that merely
+       arrives at an already-invalid node is not (`goal:s31` left 115 of
+       those, and refusing to record their verdicts would punish the wrong
+       write).
+
+    Falls back to the direct serializer on rejection, with a report. A wire
+    that cannot be recorded is worse than one recorded outside the gate --
+    `goal:g7`'s invariant is that nothing the loop produces is silently lost,
+    and it outranks this one.
+    """
+    unset = [k for k in original_fm if k not in fm]
+    changed = {k: v for k, v in fm.items()
+               if k not in original_fm or original_fm[k] != v}
+    new_body = None if body == original_body else body
+    if not changed and not unset and new_body is None:
+        return
+    res = node_writer.update_node(root, node_id, set_fm=changed,
+                                  unset_fm=unset, body=new_body)
+    if res.status == node_writer.REJECTED:
+        print(f"warn: gated write refused for {node_id} ({res.reason}); "
+              f"writing directly so the wire is not lost", file=sys.stderr)
+        _write_node(path, fm, body)
+
+
 def _merged_agent(iter_dir: Path, entry: dict) -> dict:
     """Dispatch-time record overlaid with what the kid actually reported.
 
@@ -351,6 +396,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
             content = node_path.read_text(encoding="utf-8")
             try:
                 fm, body = _read_frontmatter(content)
+                original_fm, original_body = dict(fm), body
             except MalformedNode as exc:
                 # Skip WITH a report, never write. Writing back what we could
                 # not read is what re-headered the node and minted it a new
@@ -383,7 +429,8 @@ def cmd_wire(args: argparse.Namespace) -> int:
             # twice on every kid for as long as both writers have existed.
             if notes and notes.strip() not in body:
                 body = body.rstrip() + f"\n\n## Agent Notes\n{notes}\n"
-            _write_node(node_path, fm, body)
+            _update_via_writer(root, node_id, node_path,
+                               original_fm, fm, original_body, body)
             updated_nodes.append(node_id)
         else:
             # No file yet — create a minimal verdict node. Its slug is the
@@ -445,7 +492,9 @@ def cmd_wire(args: argparse.Namespace) -> int:
                     if node_id not in next_edges:
                         next_edges.append(node_id)
                         pfm["next_edges"] = next_edges
-                        _write_node(parent_path, pfm, pbody)
+                        _update_via_writer(root, parent, parent_path,
+                                           {"next_edges": None}, pfm,
+                                           pbody, pbody)
                         added_edges.append(f"{parent} -> {node_id} [{strategy}]")
                         # Also update graph in memory for downstream use
                         if g.has_node(parent) and g.has_node(node_id):

@@ -197,7 +197,8 @@ def cmd_done(args: argparse.Namespace) -> int:
         node_file = _find_node_file(root, args.node_id)
         if node_file and node_file.exists():
             _append_verdict_to_node(node_file, verdict, args.confidence, args.notes,
-                                    args.next_edge, gate)
+                                    args.next_edge, gate, root=root,
+                                    node_id=args.node_id)
             # goal:s31 -- the completion half. A scaffold is born with what the
             # engine can derive from a slug; the rest is content only the kid
             # has, and the kid wrote it into the BODY because a kid writing
@@ -448,46 +449,57 @@ def cmd_reclaim(args: argparse.Namespace) -> int:
 
 
 def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, notes: str,
-                            next_edge: str | None = None, gate=None) -> None:
-    """Add verdict frontmatter fields to an existing node file."""
-    content = node_file.read_text()
-    if "---" not in content:
-        return
-    parts = content.split("---", 2)
-    if len(parts) < 3:
-        return
-    fm, body = parts[1], parts[2]
-    # Add verdict fields to frontmatter
-    fm_lines = fm.strip().splitlines()
-    # Remove any existing verdict/confidence lines
-    fm_lines = [l for l in fm_lines
-                if not l.startswith(("verdict:", "confidence:", "next_edges:",
-                                     "demoted_from:", "demote_reason:", "evidence_gate:"))]
-    # Demote the `status:` shadow in lockstep. This path rewrites raw lines
-    # rather than a dict, so it cannot call evidence_gate.stamp() — but it
-    # must enforce the same invariant: after a demotion nothing in the
-    # frontmatter still reads 'proved'/'disproved'. Only a decisive value is
-    # touched, so a task's `status: pending` is never clobbered.
-    if gate is not None and gate.demoted:
-        fm_lines = [
-            f"status: {verdict}"
-            if l.startswith("status:")
-            and evidence_gate.is_decisive_shadow(l.split(":", 1)[1].strip().strip("\"'"))
-            else l
-            for l in fm_lines
-        ]
-    fm_lines.append(f"verdict: {verdict}")
-    fm_lines.append(f"confidence: {confidence}")
+                            next_edge: str | None = None, gate=None,
+                            root: Path | None = None,
+                            node_id: str | None = None) -> None:
+    """Add verdict frontmatter fields to an existing node file.
+
+    `root`/`node_id` are how this reaches `node_writer.update_node`; both
+    default from `node_file` so the older two-positional call still works, and
+    the tests that predate `goal:g13` keep passing unchanged.
+    """
+    if node_id is None:
+        node_id = f"{node_file.parent.name}:{node_file.stem}"
+    if root is None:
+        # <root>/nodes/<type>/<slug>.md, or the deprecated tree one deeper.
+        root = node_file.parent.parent.parent
+        if root.name == "deprecated":
+            root = root.parent
+    # goal:g13 — through the one gated in-place writer, not by hand.
+    #
+    # This function used to do line surgery on raw frontmatter: split on
+    # `---`, filter out lines by string prefix, append new ones, rejoin. That
+    # is a YAML writer built out of `str.startswith`, and it could not call
+    # `evidence_gate.stamp()` because it never had a dict to stamp — which is
+    # why the status-shadow demotion below had to be reimplemented against
+    # text. Now there is a dict, so the shared routine does it.
+    set_fm = {"verdict": verdict, "confidence": confidence}
     if gate is not None:
         if gate.demoted:
-            fm_lines.append(f"demoted_from: {gate.original}")
-            fm_lines.append(f"demote_reason: {gate.reason}")
+            set_fm["demoted_from"] = gate.original
+            set_fm["demote_reason"] = gate.reason
         if gate.bypassed:
-            fm_lines.append("evidence_gate: bypassed")
+            set_fm["evidence_gate"] = "bypassed"
     if next_edge:
-        fm_lines.append(f"next_edges: [{next_edge}]")
-    new_fm = "---\n" + "\n".join(fm_lines) + "\n---"
-    node_file.write_text(new_fm + "\n" + body)
+        set_fm["next_edges"] = [next_edge]
+
+    # The status shadow, demoted in lockstep: after a demotion nothing in the
+    # frontmatter may still read 'proved'/'disproved'. Only a decisive value is
+    # touched, so a task's `status: pending` is never clobbered.
+    if gate is not None and gate.demoted:
+        try:
+            from graph_core.persistence import frontmatter as _fmr
+            current = _fmr.load_node_file(node_file).frontmatter.get("status")
+        except Exception:
+            current = None
+        if current is not None and evidence_gate.is_decisive_shadow(
+                str(current).strip().strip("\"'")):
+            set_fm["status"] = verdict
+
+    res = node_writer.update_node(root, node_id, set_fm=set_fm)
+    if res.status == node_writer.REJECTED:
+        print(f"warn: could not record the verdict on {node_id}: {res.reason}",
+              file=sys.stderr)
     # Notes go under the SAME heading `post_wire` uses, and only when the body
     # does not already carry them.
     #

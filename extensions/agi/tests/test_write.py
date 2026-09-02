@@ -270,3 +270,116 @@ def test_the_resolver_has_no_type_branch_in_its_executable_lines():
     assert offenders == [], (
         f"the resolver branches on node type: {offenders}. `link_ref: self` is "
         f"an exception WITH A NAME; a type check turns it back into a hole.")
+
+
+# --------------------------------------------------------------------------
+# goal:g13 / mvp:route-every-writer-through-update-node — the writers route
+# through the gate now, and these are the invariants that made that safe.
+# --------------------------------------------------------------------------
+
+def test_an_update_is_judged_on_the_delta_not_the_state(project):
+    """An update is rejected for fields it BREAKS, never for fields already
+    missing when it arrived.
+
+    Rejecting on state would have been a live regression the moment real
+    writers routed through here: 115 nodes in this corpus are already
+    schema-invalid (`goal:s31`), so recording a verdict on one would have been
+    refused for a defect it did not cause and could not fix. A gate that
+    punishes the wrong write teaches callers to pass `validate=False`, which
+    is how a gate stops existing.
+    """
+    _node(project, "hypothesis:invalid",
+          ['id: "hypothesis:invalid"', "type: hypothesis", "mint_id: abc123"],
+          "body\n")   # no title, no testable_claim — already invalid
+    (project / "context" / "schemas").mkdir(parents=True, exist_ok=True)
+    (project / "context" / "schemas" / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nvalidation:\n  required: [id, type, mint_id, "
+        "title, testable_claim]\nspawn:\n  allowed_parents: [goal]\n"
+        "  min_parents: 1\n  max_parents: 2\n---\n\nbody\n")
+
+    ok = node_writer.update_node(project, "hypothesis:invalid",
+                                 set_fm={"verdict": "pending"})
+    assert ok.status == node_writer.UPDATED, (
+        "an unrelated edit to an already-invalid node must go through")
+
+    _node(project, "hypothesis:valid",
+          ['id: "hypothesis:valid"', "type: hypothesis", "mint_id: abc",
+           'title: "t"', 'testable_claim: "c"'], "body\n")
+    bad = node_writer.update_node(project, "hypothesis:valid",
+                                  unset_fm=["title"])
+    assert bad.status == node_writer.REJECTED
+    assert "may not REMOVE" in bad.reason
+
+
+def _post_wire():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pw", BIN / "post_wire.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_post_wire_computes_its_delta_by_diffing_not_by_listing(project):
+    """`evidence_gate.stamp()` writes keys the call site does not name.
+
+    A hand-listed delta would silently drop exactly the demotion stamps the
+    gate exists to record, which is why the diff is against the frontmatter as
+    read rather than against a list of fields this code believes it changed.
+    """
+    _node(project, "hypothesis:h1",
+          ['id: "hypothesis:h1"', "type: hypothesis", "mint_id: abc",
+           'title: "t"', 'testable_claim: "c"'], "body\n")
+    pw = _post_wire()
+
+    original = {"id": "hypothesis:h1", "type": "hypothesis", "mint_id": "abc",
+                "title": "t", "testable_claim": "c"}
+    mutated = dict(original)
+    mutated["verdict"] = "inconclusive_lean_proved:50"
+    mutated["demoted_from"] = "proved"          # a key the call site never names
+    mutated["demote_reason"] = "no evidence"
+
+    pw._update_via_writer(project, "hypothesis:h1",
+                          project / "nodes/hypothesis/h1.md",
+                          original, mutated, "body\n", "body\n")
+
+    text = (project / "nodes/hypothesis/h1.md").read_text()
+    assert "demoted_from: proved" in text, "a stamp the call site never named was dropped"
+    assert "demote_reason: no evidence" in text
+
+
+def test_post_wire_writes_nothing_when_nothing_changed(project):
+    """This path runs on every completed node every iteration. An
+    unconditional rewrite would mint a grid version per node per iteration and
+    *versions record change, not time* would stop being true."""
+    path = _node(project, "hypothesis:h1",
+                 ['id: "hypothesis:h1"', "type: hypothesis", "mint_id: abc",
+                  'title: "t"', 'testable_claim: "c"'], "body\n")
+    mtime = path.stat().st_mtime_ns
+    same = {"id": "hypothesis:h1", "type": "hypothesis", "mint_id": "abc",
+            "title": "t", "testable_claim": "c"}
+
+    _post_wire()._update_via_writer(project, "hypothesis:h1", path,
+                                    same, dict(same), "body\n", "body\n")
+    assert path.stat().st_mtime_ns == mtime
+
+
+def test_a_refused_gated_write_still_records_the_wire(project, capsys):
+    """`goal:g7` outranks `goal:g13`: a wire that cannot be recorded is worse
+    than one recorded outside the gate."""
+    path = _node(project, "hypothesis:h1",
+                 ['id: "hypothesis:h1"', "type: hypothesis", "mint_id: abc",
+                  'title: "t"', 'testable_claim: "c"'], "body\n")
+    pw = _post_wire()
+    original = {"id": "hypothesis:h1", "type": "hypothesis", "mint_id": "abc",
+                "title": "t", "testable_claim": "c"}
+    mutated = dict(original)
+    mutated["verdict"] = "pending"
+
+    # Force the gate to refuse.
+    pw.node_writer.update_node = lambda *a, **k: node_writer.NodeWrite(
+        node_id="hypothesis:h1", status=node_writer.REJECTED, reason="forced")
+
+    pw._update_via_writer(project, "hypothesis:h1", path,
+                          original, mutated, "body\n", "body\n")
+    assert "verdict: pending" in path.read_text(), "the wire was lost"
+    assert "writing directly so the wire is not lost" in capsys.readouterr().err
