@@ -231,9 +231,16 @@ def test_set_link_goes_through_the_gated_writer(project, monkeypatch):
           ['id: "hypothesis:h1"', "type: hypothesis", "mint_id: abc123",
            'title: "t"', 'testable_claim: "c"'], "body\n")
 
+    # Patch on `write.node_writer` -- the exact object `write` calls through --
+    # not on this file's own `node_writer` name. Other test modules load
+    # engine modules by file path (`spec_from_file_location`), which creates
+    # SEPARATE module objects, so "the same import" is not guaranteed to be
+    # the same object once the whole suite runs in one process. Patching the
+    # caller's own reference is correct either way; patching a name that
+    # happens to resolve to it usually is, and this one stopped.
     calls = []
-    real = node_writer.update_node
-    monkeypatch.setattr(node_writer, "update_node",
+    real = write.node_writer.update_node
+    monkeypatch.setattr(write.node_writer, "update_node",
                         lambda *a, **kw: (calls.append((a, kw)), real(*a, **kw))[1])
 
     write.set_link(project, "hypothesis:h1", write.SELF)
@@ -363,7 +370,7 @@ def test_post_wire_writes_nothing_when_nothing_changed(project):
     assert path.stat().st_mtime_ns == mtime
 
 
-def test_a_refused_gated_write_still_records_the_wire(project, capsys):
+def test_a_refused_gated_write_still_records_the_wire(project, capsys, monkeypatch):
     """`goal:g7` outranks `goal:g13`: a wire that cannot be recorded is worse
     than one recorded outside the gate."""
     path = _node(project, "hypothesis:h1",
@@ -375,9 +382,16 @@ def test_a_refused_gated_write_still_records_the_wire(project, capsys):
     mutated = dict(original)
     mutated["verdict"] = "pending"
 
-    # Force the gate to refuse.
-    pw.node_writer.update_node = lambda *a, **k: node_writer.NodeWrite(
-        node_id="hypothesis:h1", status=node_writer.REJECTED, reason="forced")
+    # Force the gate to refuse. Via `monkeypatch`, NOT by assigning on the
+    # module: `pw.node_writer` IS the imported `node_writer` module object, so
+    # a bare assignment leaks into every test that runs afterwards. The first
+    # version did that and broke a test in another file that passed in
+    # isolation -- visible only in full-suite order, which is the worst place
+    # for a failure to first appear.
+    monkeypatch.setattr(pw.node_writer, "update_node",
+                        lambda *a, **k: node_writer.NodeWrite(
+                            node_id="hypothesis:h1",
+                            status=node_writer.REJECTED, reason="forced"))
 
     pw._update_via_writer(project, "hypothesis:h1", path,
                           original, mutated, "body\n", "body\n")
