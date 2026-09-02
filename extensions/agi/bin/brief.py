@@ -110,7 +110,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
 
 
 def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
-            target: str | None, parallel: int) -> list[str]:
+            target: str | None, parallel: int, max_live: int = 1) -> list[str]:
     """A loop, not a node. `goal:g4.8`.
 
     Three things a parent needs that a kid does not, and each is here because
@@ -121,12 +121,15 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        the loop, which is the failure `goal:g4.6`'s invariant names.
     2. **The review gate**, including that it is enforced in code and that a
        bypass is not a shortcut it may take.
-    3. **The serialization rule.** `spawn.parallel` does NOT bound
-       grandchildren (`experiment:a00-763e629b-5c04ad`), so a parent's own
-       spawns are an unbounded population unless the parent applies the limit
-       again. **This is stated here AND must be enforced at the spawn site** --
-       a bound that lives only in a brief is a bound a parent can ignore, and
-       `goal:g4.8` owns making it structural.
+    3. **The serialization rule, which is now enforced rather than requested.**
+       `spawn.parallel` does NOT bound grandchildren
+       (`experiment:a00-763e629b-5c04ad`), so a parent's own spawns were an
+       unbounded population as long as the limit lived only in this text. As
+       of `goal:g4.8` item 3 the tree carries a lease per live agent and
+       `dispatch.py` refuses admission past `spawn.max_live` -- so a parent
+       that ignores the rule gets **refused slots**, not extra processes. The
+       sentence stays in the brief because a parent that knows the bound plans
+       around it instead of discovering it as an unexplained failure.
     4. **What its artefact is** (`goal:s27`). A parent authors no node. It is
        responsible for its kids' nodes, so it signals done with `--owns` and
        puts its review into those nodes' `THOUGHT` blocks -- which is honest
@@ -151,9 +154,12 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"     python3 {dispatch_py} <project> {iter_n} --tier kid --target <node-id>\n"
         f"   Never construct a spawn command yourself and never call the model\n"
         f"   API directly -- one spawn path, harness chosen by config.\n"
-        f"2. AT MOST {parallel} kid(s) running at once. `spawn.parallel` bounds\n"
-        f"   YOUR spawns only; it does not bound the kids you spawn, so you must\n"
-        f"   apply this limit yourself. Serialize beyond it.\n"
+        f"2. AT MOST {parallel} kid(s) running at once, and AT MOST {max_live}\n"
+        f"   agent(s) alive ANYWHERE in this tree -- you and every other parent\n"
+        f"   and kid count against the same {max_live}. That second bound is\n"
+        f"   enforced in code, not requested: a slot past it is REFUSED and\n"
+        f"   logged as `unadmitted` in the manifest, never queued. So serialize\n"
+        f"   your kids rather than firing them all and hoping.\n"
         f"3. REVIEW every node a kid writes, before anything is recorded:\n"
         f"   - the `parents:` link resolves to a node that exists\n"
         f"   - the verdict is one of: {evidence_gate.VERDICT_HELP}\n"
@@ -196,7 +202,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
 
 def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              dispatch_py: str | Path = "", scaffold: dict | None = None,
-             target: str | None = None, parallel: int = 1) -> list[str]:
+             target: str | None = None, parallel: int = 1,
+             max_live: int = 1) -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
     Returns segments rather than one string so a harness can spell them
@@ -218,7 +225,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     if tier == "parent":
         return _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                        dispatch_py=str(dispatch_py), target=target,
-                       parallel=parallel)
+                       parallel=parallel, max_live=max_live)
     return _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold)
 

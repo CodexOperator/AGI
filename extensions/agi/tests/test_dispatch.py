@@ -282,3 +282,56 @@ def test_no_shared_temp_file_name_is_left_behind(tmp_path):
     assert not (tmp_path / ".manifest.json.tmp").exists()
     leftovers = [p.name for p in tmp_path.iterdir() if p.name.endswith(".tmp")]
     assert leftovers == [], f"temp files left behind: {leftovers}"
+
+
+# ---------------------------------------------------------------------------
+# goal:g4.8 item 3 -- the manifest records slots the budget refused.
+#
+# An unadmitted slot has no pid and no process. It must be visible (a slot
+# that silently did not spawn is indistinguishable from one that spawned and
+# died -- the same invisibility the manifest race produced) and it must NOT
+# appear in `agents`, because everything that polls `agents` for liveness
+# would then go looking for a corpse that was never born.
+# ---------------------------------------------------------------------------
+
+
+def test_unadmitted_slots_are_recorded_apart_from_agents(tmp_path):
+    d = _load_dispatch()
+    base = {"iter": 107, "started_at": 1, "agents": []}
+    refused = {"id": "a03-beef", "tier": "kid", "status": "unadmitted",
+               "reason": "spawn budget full (5/5)"}
+
+    m = d._merge_manifest(tmp_path, base, [_rec("a00-live", "kid")],
+                          unadmitted=[refused])
+
+    assert [a["id"] for a in m["agents"]] == ["a00-live"]
+    assert [a["id"] for a in m["unadmitted"]] == ["a03-beef"]
+    assert all(a.get("status") != "unadmitted" for a in m["agents"]), (
+        "a slot that never spawned must not be polled for liveness")
+
+
+def test_unadmitted_entries_merge_by_id_across_dispatches(tmp_path):
+    """Same merge discipline as `agents` -- a re-dispatch updates, never twins."""
+    d = _load_dispatch()
+    base = {"iter": 107, "started_at": 1, "agents": []}
+    refused = {"id": "a03-beef", "status": "unadmitted", "reason": "full (5/5)"}
+
+    d._merge_manifest(tmp_path, base, [], unadmitted=[refused])
+    d._merge_manifest(tmp_path, base, [], unadmitted=[{"id": "a04-cafe",
+                                                       "status": "unadmitted"}])
+    m = d._merge_manifest(tmp_path, base, [],
+                          unadmitted=[dict(refused, reason="full (3/3)")])
+
+    by_id = {a["id"]: a for a in m["unadmitted"]}
+    assert set(by_id) == {"a03-beef", "a04-cafe"}
+    assert by_id["a03-beef"]["reason"] == "full (3/3)"
+
+
+def test_an_admitted_slot_leaves_the_unadmitted_list_empty(tmp_path):
+    """The common case writes the key rather than omitting it, so a reader
+    never has to distinguish 'nothing refused' from 'this dispatch predates
+    the bound'."""
+    d = _load_dispatch()
+    m = d._merge_manifest(tmp_path, {"iter": 107, "started_at": 1, "agents": []},
+                          [_rec("a00-live", "kid")])
+    assert m["unadmitted"] == []

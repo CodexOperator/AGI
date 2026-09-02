@@ -54,7 +54,17 @@ def build_command(
     scaffold: dict | None = None,
     cli_py: str | Path = "",
     skill_prompt: Path | None = None,
+    dispatch_py: str | Path = "",
+    target: str | None = None,
+    parallel: int = 1,
+    max_live: int = 1,
 ) -> list[str]:
+    # The full pi_adapter signature, deliberately, even though every call
+    # raises. Accepting fewer keywords than the caller passes turns the
+    # designed `NotImplementedError` -- which dispatch.py catches and reports
+    # as a config error naming the harness -- into an uncaught `TypeError`
+    # traceback from inside an adapter. The stub has to be reachable to be a
+    # stub.
     raise NotImplementedError(_MSG)
 
 
@@ -81,6 +91,7 @@ def restart(
     dispatch_py: str | Path = "",
     target: str | None = None,
     parallel: int = 1,
+    max_live: int = 1,
     agent_record: dict | None = None,
 ) -> int | None:
     """Stub — not implemented for claude-code harness."""

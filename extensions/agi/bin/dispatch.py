@@ -43,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
+import spawn_budget  # noqa: E402
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
 config_path = locations.config_path
@@ -156,7 +157,8 @@ def _manifest_lock(iter_dir: Path):
         os.close(fd)
 
 
-def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict]) -> dict:
+def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict],
+                    unadmitted: list[dict] | None = None) -> dict:
     """Re-read the manifest under lock, merge `new_records` by id, write it.
 
     The re-read is the fix, not the lock alone: this invocation's own view of
@@ -165,20 +167,29 @@ def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict]) -> dict
     what was there when the run started. Merge is by agent `id`, so a
     re-dispatch (healing) updates in place instead of duplicating — the
     behaviour `goal:s28` established, now applied to the authoritative copy.
+
+    `unadmitted` is merged the same way and into its own list (`goal:g4.8`).
+    It is kept apart from `agents` deliberately: an unadmitted slot has no pid
+    and no process, so anything that polls `agents` for liveness — `heal.py`,
+    `_reaper_phase` — must not find it there and go looking for a corpse that
+    was never born.
     """
     manifest_path = iter_dir / "manifest.json"
     with _manifest_lock(iter_dir):
         merged = dict(base)
         agents: list[dict] = []
+        prior_unadmitted: list[dict] = []
         if manifest_path.exists():
             try:
                 old = json.loads(manifest_path.read_text())
                 agents = old.get("agents", [])
+                prior_unadmitted = old.get("unadmitted", [])
                 merged["started_at"] = old.get("started_at", merged.get("started_at"))
             except (json.JSONDecodeError, OSError):
                 print(f"warn: corrupt manifest at {manifest_path}, starting fresh",
                       file=sys.stderr)
                 agents = []
+                prior_unadmitted = []
         by_id = {a.get("id"): i for i, a in enumerate(agents) if a.get("id")}
         for rec in new_records:
             idx = by_id.get(rec.get("id"))
@@ -188,6 +199,17 @@ def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict]) -> dict
             else:
                 agents[idx] = rec
         merged["agents"] = agents
+
+        skipped = list(prior_unadmitted)
+        skipped_by_id = {a.get("id"): i for i, a in enumerate(skipped) if a.get("id")}
+        for rec in unadmitted or []:
+            idx = skipped_by_id.get(rec.get("id"))
+            if idx is None:
+                skipped_by_id[rec.get("id")] = len(skipped)
+                skipped.append(rec)
+            else:
+                skipped[idx] = rec
+        merged["unadmitted"] = skipped
         # A unique temp name in the same directory. The previous fixed
         # `.manifest.json.tmp` was shared, so one dispatch renamed the file
         # out from under another and the loser died with FileNotFoundError --
@@ -264,6 +286,10 @@ def main() -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 1
     n = adapters.parallelism(cfg)
+    # goal:g4.8 item 3 — the bound that survives a tier. `n` is this
+    # invocation's slot count; `cap` is the whole tree's live population, and
+    # a parent's own dispatch hits the same leases this one does.
+    cap = spawn_budget.max_live(cfg)
     big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
@@ -313,6 +339,11 @@ def main() -> int:
     # Records created by THIS invocation. The authoritative merge happens once,
     # at the end, under lock and against a fresh read -- see `_merge_manifest`.
     new_records: list[dict] = []
+    # goal:g4.8 item 3 — slots the budget refused. Recorded rather than
+    # dropped: a slot that silently did not spawn is indistinguishable from
+    # one that spawned and died, which is the same invisibility the manifest
+    # race produced.
+    unadmitted: list[dict] = []
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
@@ -330,6 +361,28 @@ def main() -> int:
         sess_dir = iter_dir / agent_id
         sess_dir.mkdir(parents=True, exist_ok=True)
 
+        # goal:g4.8 item 3 — admission BEFORE any work is done for this slot.
+        # Taken here rather than immediately before `Popen` so a refused slot
+        # costs no zoom render and leaves no orphan scaffold behind; the lease
+        # is released on every path below that gives up on spawning.
+        lease = spawn_budget.acquire(
+            root, cap, agent_id, tier=args.tier, iter_n=args.iter_n)
+        if lease is None:
+            live = spawn_budget.live_count(root)
+            print(f"unadmitted {agent_id} slot={slot}: spawn budget full "
+                  f"({live}/{cap} live tree-wide) — skipping, not waiting",
+                  file=sys.stderr)
+            unadmitted.append({
+                "id": agent_id,
+                "slot": slot,
+                "tier": args.tier,
+                "target": target,
+                "status": "unadmitted",
+                "reason": f"spawn budget full ({live}/{cap})",
+                "at": int(time.time()),
+            })
+            continue
+
         zoom_cmd = zoom_command(root, args.iter_n, agent_id, level, target)
         try:
             ctx_path = subprocess.run(
@@ -342,6 +395,7 @@ def main() -> int:
             # instead of surfacing a CalledProcessError traceback.
             print(f"ERR: no context for target {target!r} at level {level}: "
                   f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            spawn_budget.release(lease)
             return 1
 
         # Scaffold a node file before agent starts — agent fills body only
@@ -382,6 +436,7 @@ def main() -> int:
                 dispatch_py=Path(__file__).resolve(),
                 target=target,
                 parallel=adapters.parallelism(cfg),
+                max_live=cap,
             )
             spawn_env = adapter.child_env(harness=harness, base=scrubbed_env())
         except (KeyError, NotImplementedError) as exc:
@@ -390,18 +445,31 @@ def main() -> int:
             # than surfacing a traceback from inside an adapter.
             print(f"ERR: harness {harness_name!r} cannot spawn tier "
                   f"{args.tier!r}: {exc}", file=sys.stderr)
+            spawn_budget.release(lease)
             return 1
         log_file = sess_dir / "output.log"
-        with open(log_file, "wb") as logf:
-            proc = subprocess.Popen(
-                spawn_args,
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                start_new_session=True,
-                cwd=str(root),
-                env=spawn_env,
-            )
+        try:
+            with open(log_file, "wb") as logf:
+                proc = subprocess.Popen(
+                    spawn_args,
+                    stdout=logf,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
+                    start_new_session=True,
+                    cwd=str(root),
+                    env=spawn_env,
+                )
+        except BaseException:
+            # Nothing was started, so nothing holds the slot. Give it back
+            # now rather than leaving it to expire with this process.
+            spawn_budget.release(lease)
+            raise
+        # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
+        # Until this line the reservation is held by THIS process; after it,
+        # by the agent. That is what makes the bound survive a dispatcher
+        # dying mid-spawn without either leaking a slot or freeing a live
+        # agent's.
+        spawn_budget.commit(lease, proc.pid)
         agent_record = {
             "id": agent_id,
             "slot": slot,
@@ -441,8 +509,12 @@ def main() -> int:
     # at_all` keeps seeing a named session artefact rather than a variable
     # hiding its target — the assertion was right and the old bare `tmp` name
     # was what defeated it.
-    manifest = _merge_manifest(iter_dir, manifest, new_records)
+    manifest = _merge_manifest(iter_dir, manifest, new_records,
+                               unadmitted=unadmitted)
     print(f"manifest: {manifest_path}")
+    if unadmitted:
+        print(f"budget: {len(unadmitted)} of {len(targets)} slot(s) unadmitted "
+              f"at cap {cap} — see manifest.unadmitted", file=sys.stderr)
 
     # goal:g4.7 — inline reaper phase. After spawn, poll agent pids via
     # adapter.is_alive() and mark dead agents. This replaces heal.py's

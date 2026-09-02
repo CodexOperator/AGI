@@ -75,17 +75,26 @@ def test_verdict_taxonomy_is_derived_not_retyped(monkeypatch):
 
 
 def test_parent_brief_carries_the_grandchild_bound():
-    """`spawn.parallel` does NOT bound grandchildren
-    (`experiment:a00-763e629b-5c04ad`), so a parent's own spawns are an
-    unbounded population unless the parent applies the limit again.
+    """The brief states BOTH bounds and says which one is enforced.
 
-    Asserted here because the brief is where it is currently stated. It is
-    NOT sufficient — `goal:g4.8` owns enforcing it at the spawn site, since a
-    bound that lives only in a brief is one a parent can ignore.
+    `spawn.parallel` bounds one invocation's slots and never bounded
+    grandchildren (`experiment:a00-763e629b-5c04ad`). As of `goal:g4.8` item 3
+    the tree-wide population is enforced at the spawn site by
+    `spawn_budget`, so this brief text is no longer the only thing standing
+    between a parent and an unbounded population — see
+    `test_spawn_budget.py`.
+
+    It still has to say so. A parent that knows the bound plans around it;
+    one that does not meets it as an unexplained refusal, which is a worse
+    failure than the request it replaced.
     """
-    parent = _text("parent", dispatch_py="/x/d.py", target="t:1", parallel=3)
-    assert "3" in parent
-    assert "does not bound" in parent.lower()
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1", parallel=3,
+                   max_live=7)
+    assert "3" in parent, "the per-invocation slot count"
+    assert "7" in parent, "the tree-wide live-agent cap"
+    assert "enforced in code" in parent.lower()
+    assert "unadmitted" in parent.lower(), (
+        "the brief must name what a refused slot looks like in the manifest")
 
 
 def test_parent_brief_forbids_committing_and_bypassing():
