@@ -4,6 +4,11 @@
 # widens it to `.env*` in a hurry would otherwise untrack the template too,
 # and the graph would lose the one half of this pair it is supposed to hold.
 .env
+# The swap file the documented one-liner for setting a secret renames
+# into place. It exists for milliseconds, and it holds the value while
+# it does -- so it is ignored explicitly rather than relying on nobody
+# running `git status` inside that window.
+.env.swap
 !.env.example
 
 .gitnexus
