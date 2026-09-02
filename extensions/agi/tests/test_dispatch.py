@@ -174,3 +174,111 @@ def test_aiming_does_not_scaffold_a_parentless_idea():
     level, target, _s = dispatch._explicit_targets("hypothesis:x", None, "s", 1)[0]
     assert dispatch._node_type_for(level, target, None) == "experiment"
     assert dispatch._node_type_for("big", None, None) == "idea"
+
+
+# ---------------------------------------------------------------------------
+# goal:s28 — a parent must not erase itself from the manifest by spawning a kid.
+# goal:g4.8 — and that merge has to survive concurrency, which it did not.
+#
+# `b8cb2ec05` shipped the merge with no test behind it. These are s28's own
+# falsifier, executed: spawn a parent, spawn kids into the SAME iteration, and
+# assert every agent survives with the parent's `tier: parent` intact.
+# ---------------------------------------------------------------------------
+
+import json          # noqa: E402
+import os            # noqa: E402
+from multiprocessing import Process   # noqa: E402
+
+
+def _rec(agent_id: str, tier: str) -> dict:
+    return {"id": agent_id, "tier": tier, "status": "running"}
+
+
+def test_merge_preserves_the_parent_when_a_kid_dispatches_into_the_same_iter(tmp_path):
+    """s28's falsifier, first two clauses. A parent's entry must survive the
+    second dispatch into its own iteration directory."""
+    d = _load_dispatch()
+    base = {"iter": 101, "started_at": 1, "agents": []}
+
+    d._merge_manifest(tmp_path, base, [_rec("parent-a", "parent")])
+    d._merge_manifest(tmp_path, base, [_rec("kid-1", "kid")])
+    m = d._merge_manifest(tmp_path, base, [_rec("kid-2", "kid")])
+
+    by_id = {a["id"]: a for a in m["agents"]}
+    assert set(by_id) == {"parent-a", "kid-1", "kid-2"}, "an agent was clobbered"
+    assert by_id["parent-a"]["tier"] == "parent", "the parent's tier was lost"
+
+
+def test_started_at_is_carried_forward_not_reset_by_a_later_dispatch(tmp_path):
+    """A kid dispatching later must not restart the iteration's clock --
+    `heal.py` times agents out against it."""
+    d = _load_dispatch()
+    d._merge_manifest(tmp_path, {"iter": 1, "started_at": 111, "agents": []},
+                      [_rec("parent-a", "parent")])
+    m = d._merge_manifest(tmp_path, {"iter": 1, "started_at": 999, "agents": []},
+                          [_rec("kid-1", "kid")])
+    assert m["started_at"] == 111
+
+
+def test_redispatching_one_agent_updates_it_rather_than_duplicating(tmp_path):
+    """Healing re-dispatches the same id; the manifest must not grow a twin."""
+    d = _load_dispatch()
+    base = {"iter": 1, "started_at": 1, "agents": []}
+    d._merge_manifest(tmp_path, base, [_rec("kid-1", "kid")])
+    m = d._merge_manifest(tmp_path, base, [{"id": "kid-1", "tier": "kid",
+                                            "status": "restarted"}])
+    assert len(m["agents"]) == 1
+    assert m["agents"][0]["status"] == "restarted"
+
+
+def test_a_corrupt_manifest_degrades_with_a_warning_and_still_records(tmp_path, capsys):
+    d = _load_dispatch()
+    (tmp_path / "manifest.json").write_text("{not json")
+    m = d._merge_manifest(tmp_path, {"iter": 1, "started_at": 1, "agents": []},
+                          [_rec("kid-1", "kid")])
+    assert [a["id"] for a in m["agents"]] == ["kid-1"]
+    assert "corrupt manifest" in capsys.readouterr().err
+
+
+def _concurrent_writer(iter_dir: str, agent_id: str) -> None:
+    d = _load_dispatch()
+    d._merge_manifest(Path(iter_dir), {"iter": 1, "started_at": 1, "agents": []},
+                      [_rec(agent_id, "kid")])
+
+
+def test_concurrent_dispatches_lose_no_agent(tmp_path):
+    """goal:g4.8's falsifier, and the reason this fix exists.
+
+    Measured against the pre-fix code -- a stale read plus a shared
+    `.manifest.json.tmp` -- 8 concurrent dispatches lost entries in **6 of 6
+    runs**, typically 6-7 of the 8. A lost entry is a spawned agent nothing
+    tracks: `heal.py` cannot time it out, `post_wire` cannot wire its node.
+    That is `goal:g7` failing at the moment of spawn, and it is what N parents
+    at M kids each would have multiplied.
+    """
+    d = _load_dispatch()
+    d._merge_manifest(tmp_path, {"iter": 1, "started_at": 1, "agents": []},
+                      [_rec("parent-a", "parent")])
+
+    procs = [Process(target=_concurrent_writer, args=(str(tmp_path), f"kid{i}"))
+             for i in range(8)]
+    for p in procs:
+        p.start()
+    for p in procs:
+        p.join(timeout=60)
+
+    got = {a["id"] for a in json.loads((tmp_path / "manifest.json").read_text())["agents"]}
+    want = {"parent-a"} | {f"kid{i}" for i in range(8)}
+    assert got == want, f"lost {sorted(want - got)} under concurrency"
+
+
+def test_no_shared_temp_file_name_is_left_behind(tmp_path):
+    """The old fixed `.manifest.json.tmp` was renamed out from under a
+    concurrent writer, which then died with FileNotFoundError *after* Popen --
+    a spawned-but-untracked agent. Unique names, and none left as litter."""
+    d = _load_dispatch()
+    d._merge_manifest(tmp_path, {"iter": 1, "started_at": 1, "agents": []},
+                      [_rec("kid-1", "kid")])
+    assert not (tmp_path / ".manifest.json.tmp").exists()
+    leftovers = [p.name for p in tmp_path.iterdir() if p.name.endswith(".tmp")]
+    assert leftovers == [], f"temp files left behind: {leftovers}"

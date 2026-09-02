@@ -112,3 +112,6 @@ The graph_build_time_ms metric is at 0.03-0.04ms (lru_cache warm load).
   pipeline_stage, pipeline_phase, template_stage
 - Graph connectivity: tag-based relates_to + script→pipeline operates_on bridges
 - Cold build: ~3.8ms (non-benchmarked path)
+
+## Open (thoughtgraph)
+- [ ] goal:s28 follow-up: manifest merge in dispatch.py is a non-atomic read-modify-write cycle. Process-level race test (8 concurrent workers, exact sequence) lost 1/8 entries in 3/6 runs, plus a FileNotFoundError crash from the shared fixed tmp name `.manifest.json.tmp` — in real dispatch that crash means a spawned-but-untracked agent (Popen ran, manifest entry never landed, heal cannot see it). Fix direction: flock on a lockfile around the read-merge-write, or per-agent manifest files. Measured 2026-09-02, iter 101, parent a00-dea93ac5.

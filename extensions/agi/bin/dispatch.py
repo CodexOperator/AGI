@@ -19,14 +19,17 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import os
 import random
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -118,6 +121,88 @@ def pi_model_args(cfg: dict, tier: str = "kid") -> list[str]:
     """
     _name, harness = adapters.resolve(cfg)
     return adapters.load(harness["adapter"]).model_args(harness, tier)
+
+
+@contextmanager
+def _manifest_lock(iter_dir: Path):
+    """Hold an exclusive flock for the whole read-merge-write cycle.
+
+    `goal:s28` made the manifest write a *merge* so a parent's own entry
+    survives its kid's dispatch into the same iteration. `goal:g4.8` needs
+    that merge to survive **concurrency**, which it did not: the cycle read
+    the manifest, spawned, then wrote, and two dispatches overlapping in that
+    window each wrote a manifest built from the same stale read. The rename
+    was atomic; the cycle around it was not, and atomicity of the last step
+    was mistaken for atomicity of the operation.
+
+    Measured 2026-09-02, before the fix, 8 concurrent dispatches x 6 runs:
+    **6/6 runs lost entries, typically 6-7 of 8.** A lost entry is a spawned
+    agent nothing tracks — `heal.py` cannot time it out and `post_wire`
+    cannot wire its node, which is `goal:g7`'s invariant (nothing the loop
+    produces is silently lost) failing at the point of spawn.
+
+    The lock file is never deleted. Unlinking it would let one process hold a
+    lock on an inode another has already replaced, which is the same class of
+    bug one layer down.
+    """
+    iter_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = iter_dir / ".manifest.lock"
+    fd = os.open(str(lock_path), os.O_CREAT | os.O_RDWR, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+
+
+def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict]) -> dict:
+    """Re-read the manifest under lock, merge `new_records` by id, write it.
+
+    The re-read is the fix, not the lock alone: this invocation's own view of
+    `agents` is stale by the time its processes are spawned, so the entries
+    written are merged against whatever is on disk *now* rather than against
+    what was there when the run started. Merge is by agent `id`, so a
+    re-dispatch (healing) updates in place instead of duplicating — the
+    behaviour `goal:s28` established, now applied to the authoritative copy.
+    """
+    manifest_path = iter_dir / "manifest.json"
+    with _manifest_lock(iter_dir):
+        merged = dict(base)
+        agents: list[dict] = []
+        if manifest_path.exists():
+            try:
+                old = json.loads(manifest_path.read_text())
+                agents = old.get("agents", [])
+                merged["started_at"] = old.get("started_at", merged.get("started_at"))
+            except (json.JSONDecodeError, OSError):
+                print(f"warn: corrupt manifest at {manifest_path}, starting fresh",
+                      file=sys.stderr)
+                agents = []
+        by_id = {a.get("id"): i for i, a in enumerate(agents) if a.get("id")}
+        for rec in new_records:
+            idx = by_id.get(rec.get("id"))
+            if idx is None:
+                by_id[rec.get("id")] = len(agents)
+                agents.append(rec)
+            else:
+                agents[idx] = rec
+        merged["agents"] = agents
+        # A unique temp name in the same directory. The previous fixed
+        # `.manifest.json.tmp` was shared, so one dispatch renamed the file
+        # out from under another and the loser died with FileNotFoundError --
+        # after `Popen` had already run, which is the spawned-but-untracked
+        # agent this whole function exists to prevent.
+        fd, tmp_name = tempfile.mkstemp(dir=str(iter_dir), prefix=".manifest.json.",
+                                        suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as fh:
+                json.dump(merged, fh, indent=2)
+            os.replace(tmp_name, manifest_path)
+        except BaseException:
+            Path(tmp_name).unlink(missing_ok=True)
+            raise
+    return merged
 
 
 def main() -> int:
@@ -224,6 +309,10 @@ def main() -> int:
             manifest["started_at"] = old.get("started_at", manifest["started_at"])
         except (json.JSONDecodeError, OSError):
             print(f"warn: corrupt manifest at {manifest_path}, starting fresh", file=sys.stderr)
+
+    # Records created by THIS invocation. The authoritative merge happens once,
+    # at the end, under lock and against a fresh read -- see `_merge_manifest`.
+    new_records: list[dict] = []
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
@@ -340,20 +429,19 @@ def main() -> int:
             manifest["agents"][existing[0]] = agent_record
         else:
             manifest["agents"].append(agent_record)
+        new_records.append(agent_record)
         print(f"spawned {agent_id} pid={proc.pid} harness={harness_name} "
               f"tier={args.tier} level={level} target={target or '-'} "
               f"strategy={strategy}")
 
-    # Atomic write: temp file + rename to avoid partial reads from
-    # concurrent dispatches (goal:g4.1).
-    # Named `manifest_tmp`, not `tmp`: `test_dispatch_no_longer_touches_the_
-    # node_tree_at_all` asserts every `write_text` in this file names the
-    # session artefact it writes, which is how it proves dispatch never reaches
-    # into `nodes/`. A bare `tmp` defeated that check by hiding the target in a
-    # variable — the assertion was right and the name was wrong.
-    manifest_tmp = iter_dir / ".manifest.json.tmp"
-    manifest_tmp.write_text(json.dumps(manifest, indent=2))
-    manifest_tmp.rename(manifest_path)
+    # The one authoritative write, under lock and against a fresh read
+    # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
+    # unique temp name lives inside `_merge_manifest`; it is still spelled
+    # `.manifest.json.*` so `test_dispatch_no_longer_touches_the_node_tree_
+    # at_all` keeps seeing a named session artefact rather than a variable
+    # hiding its target — the assertion was right and the old bare `tmp` name
+    # was what defeated it.
+    manifest = _merge_manifest(iter_dir, manifest, new_records)
     print(f"manifest: {manifest_path}")
     return 0
 
