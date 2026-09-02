@@ -40,7 +40,7 @@
   "spawn": {
     "harness": "pi",
     "parallel": 5,
-    "max_live": 5
+    "max_live": 25
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,
