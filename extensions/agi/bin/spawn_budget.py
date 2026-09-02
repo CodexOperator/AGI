@@ -78,6 +78,9 @@ class Lease:
     agent_id: str
     holder_pid: int
     agent_pid: int | None = None
+    #: Hash of the credential minted for this slot, if any (`goal:g1.11`).
+    #: The hash, never the secret — see `attach_credential`.
+    key_hash: str | None = None
 
 
 @contextmanager
@@ -148,21 +151,53 @@ def _read_leases(root: Path) -> list[tuple[Path, dict]]:
     return out
 
 
-def _sweep_locked(root: Path) -> list[dict]:
-    """Delete dead leases, return the live ones. Caller holds the lock."""
+def _sweep_locked(root: Path) -> tuple[list[dict], list[str]]:
+    """Delete dead leases. Returns `(live, hashes_to_revoke)`.
+
+    Caller holds the lock. The credential hashes of reclaimed leases are
+    *returned* rather than revoked here, because revoking is a network call
+    with a 30s timeout and doing it under this lock would block every other
+    spawner in the tree behind one unreachable API (`goal:g1.11`).
+    """
     live: list[dict] = []
+    orphaned: list[str] = []
     for path, rec in _read_leases(root):
         if _lease_is_live(rec):
             live.append(rec)
         else:
+            key_hash = rec.get("key_hash")
+            if key_hash:
+                orphaned.append(str(key_hash))
             path.unlink(missing_ok=True)
-    return live
+    return live, orphaned
+
+
+def _revoke_all(root: Path, hashes: list[str]) -> None:
+    """Revoke reclaimed credentials, outside the lock, never fatally.
+
+    Import is local so `spawn_budget` keeps working — and keeps bounding — on
+    a box with no provisioning key and no network. The TTL on every minted key
+    is what makes a failure here survivable rather than a leak.
+    """
+    if not hashes:
+        return
+    try:
+        import provisioning
+    except Exception:
+        return
+    for key_hash in hashes:
+        try:
+            provisioning.revoke(key_hash, root)
+        except Exception:
+            pass
 
 
 def live_agents(root: Path) -> list[dict]:
     """Live leases, after reclaiming dead ones. Takes the lock itself."""
     with _budget_lock(root):
-        return _sweep_locked(root)
+        live, orphaned = _sweep_locked(root)
+    _revoke_all(root, orphaned)
+    return live
 
 
 def live_count(root: Path) -> int:
@@ -178,21 +213,46 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
     """
     root = Path(root)
     with _budget_lock(root):
-        live = _sweep_locked(root)
+        live, orphaned = _sweep_locked(root)
         if len(live) >= cap:
-            return None
-        holder = os.getpid()
-        rec = {
-            "agent_id": agent_id,
-            "tier": tier,
-            "iter": iter_n,
-            "holder_pid": holder,
-            "agent_pid": None,
-            "reserved_at": int(time.time()),
-        }
-        path = budget_dir(root) / f"{agent_id}.lease"
-        _write_lease(path, rec)
-        return Lease(path=path, agent_id=agent_id, holder_pid=holder)
+            admitted = None
+        else:
+            holder = os.getpid()
+            rec = {
+                "agent_id": agent_id,
+                "tier": tier,
+                "iter": iter_n,
+                "holder_pid": holder,
+                "agent_pid": None,
+                "reserved_at": int(time.time()),
+            }
+            path = budget_dir(root) / f"{agent_id}.lease"
+            _write_lease(path, rec)
+            admitted = Lease(path=path, agent_id=agent_id, holder_pid=holder)
+    # Outside the lock: a refused admission still pays back whatever the sweep
+    # reclaimed, so a tree that filled up with dead agents cleans itself on the
+    # very call that noticed.
+    _revoke_all(root, orphaned)
+    return admitted
+
+
+def attach_credential(lease: Lease, key_hash: str) -> None:
+    """Record which minted credential this lease owns (`goal:g1.11`).
+
+    The lease is already the object whose liveness governs the slot, so it is
+    the right place to hang the key: reclaiming the slot and revoking the key
+    become one event rather than two that can disagree. **Only the hash is
+    stored — never the secret.** The lease file is ordinary session scratch,
+    and a credential written there would outlive the process it was issued for,
+    which is the whole thing this feature removes.
+    """
+    lease.key_hash = key_hash
+    try:
+        rec = json.loads(lease.path.read_text())
+    except (json.JSONDecodeError, OSError):
+        rec = {"agent_id": lease.agent_id, "holder_pid": lease.holder_pid}
+    rec["key_hash"] = key_hash
+    _write_lease(lease.path, rec)
 
 
 def commit(lease: Lease, agent_pid: int) -> None:
@@ -208,14 +268,20 @@ def commit(lease: Lease, agent_pid: int) -> None:
 
 
 def release(lease: Lease) -> None:
-    """Give a slot back explicitly.
+    """Give a slot back explicitly, revoking its credential if it has one.
 
     Only needed when a reservation is abandoned without a process ever being
     started — a zoom failure, a config error, a raised adapter. Everything
     else is reclaimed by liveness, so this is an optimisation, never a
-    correctness requirement.
+    correctness requirement. The credential is revoked here rather than left to
+    the next sweep, because an abandoned slot's key was issued and never used,
+    and that is the cheapest possible moment to take it back.
     """
     lease.path.unlink(missing_ok=True)
+    if lease.key_hash:
+        # budget_dir is <root>/sessions/.spawn-budget, so the project root is
+        # two levels up from the lease file's directory.
+        _revoke_all(lease.path.parent.parent.parent, [lease.key_hash])
 
 
 def _write_lease(path: Path, rec: dict) -> None:

@@ -40,7 +40,12 @@
   "spawn": {
     "harness": "pi",
     "parallel": 5,
-    "max_live": 25
+    "max_live": 25,
+    "credential": {
+      "provider": "openrouter",
+      "per_spawn_limit_usd": 0.25,
+      "ttl_minutes": 60
+    }
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,

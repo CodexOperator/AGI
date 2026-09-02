@@ -5,6 +5,8 @@ goal_kind: subgoal
 heading_level: 3
 id: "goal:g1.11"
 mint_id: 9d41f7ac6b2e4d0fa5c38e71b04d29f6
+next_edges:
+  - hypothesis:per-spawn-keys-cost-under-a-second
 origin: goals-doc
 parents:
   - goal:g1
@@ -60,9 +62,17 @@ the start of the loop. They trade the same two things against each other:
   of a bounded set of slots — **a lease and a key are the same object at
   different layers**, and that is the strongest argument for this shape.
 
-The decision is not made here. It is the first thing the chain under this goal
-should measure, and the measurement is cheap: mint latency and failure rate
-against the real API, at each granularity.
+**Settled 2026-09-02 by `verdict:per-spawn-beats-batching`: per spawn.** The
+cost that motivated batching was measured at **0.77s mean per mint**, with ten
+concurrent mints completing in 0.92s wall — 0.06% of the 20-minute agent
+timeout it gates, and no rate limiting at the concurrency this engine reaches.
+Batching is a cost optimisation and nothing else, so a measurement decides it.
+
+Two things then agreed rather than one. Per-slot **cannot** satisfy requirement
+5 below, because a slot is occupied by a succession of agents and its key names
+the slot; and per-spawn needed no new bookkeeping, because `spawn_budget`'s
+lease is already per-agent and already reclaimed by liveness. The credential
+hangs on the lease, so reclaiming the slot and revoking the key are one event.
 
 ## What has to exist
 
@@ -115,12 +125,25 @@ config-maxxing. The owner's framing for G1 is that everything is declared and
 nothing is improvised; a credential picked up from the ambient environment is
 the last big improvisation in a spawn.
 
-The batching question is recorded unanswered on purpose, the same way
-`goal:g13`'s three questions were. The owner named three candidate
-granularities and did not pick one, and picking one here — before mint latency
-against the real API is measured — would bake a guess into a goal, which is
-the shape `goal:s17` warns about. The lease-and-key-are-one-object argument is
-recorded as the leading candidate rather than as the decision.
+The batching question was recorded unanswered in v1 and is answered in this
+version, within the same session — which is the sequence the rule was for, not
+a failure of it. v1 refused to pick before mint latency was measured; the
+measurement took four minutes and decided it. **The candidate framing is left
+standing above the answer on purpose**, because a goal that shows only the
+conclusion cannot be re-argued, and the per-slot case was strong enough that a
+later reader deserves to see why it lost rather than being told it did.
+
+What actually settled it was not the latency alone. Per-slot fails requirement
+5 — a slot outlives the agents in it, so its key names the wrong thing — and
+that would have held even at 3s per mint. The honest counterfactual is
+recorded in `verdict:per-spawn-beats-batching`: had latency been high, the
+answer would have been "batching costs a stated requirement, so drop the
+requirement or pay the latency", never a silent trade.
+
+The leading-candidate note in v1 said a lease and a key are the same object at
+two layers. That turned out to be the right intuition attached to the wrong
+granularity: a lease is per-**agent**, not per-slot, so the argument was always
+an argument for per-spawn and v1 misread its own reasoning.
 
 The last falsifier clause is the one most likely to be dropped under pressure
 and is therefore stated first-class: the loop must still run with no
