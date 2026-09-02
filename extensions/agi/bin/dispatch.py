@@ -205,6 +205,11 @@ def main() -> int:
     else:
         targets = _pick_targets(root, n)
 
+    # goal:s28 — merge into existing manifest rather than overwriting.
+    # A parent dispatch into the same iter dir must not clobber its own
+    # entry (or any other agent's). Read old manifest first; new agents
+    # are merged in by agent id. Write atomically via temp file + rename.
+    manifest_path = iter_dir / "manifest.json"
     manifest = {
         "iter": args.iter_n,
         "started_at": int(time.time()),
@@ -212,6 +217,13 @@ def main() -> int:
         "agents": [],
         "pipeline_template": pipeline_template,
     }
+    if manifest_path.exists():
+        try:
+            old = json.loads(manifest_path.read_text())
+            manifest["agents"] = old.get("agents", [])
+            manifest["started_at"] = old.get("started_at", manifest["started_at"])
+        except (json.JSONDecodeError, OSError):
+            print(f"warn: corrupt manifest at {manifest_path}, starting fresh", file=sys.stderr)
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
@@ -321,13 +333,23 @@ def main() -> int:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
-        manifest["agents"].append(agent_record)
+        # goal:s28 — merge by agent id rather than append.
+        # When re-dispatching the same agent (e.g. healing), update in place.
+        existing = [i for i, a in enumerate(manifest["agents"]) if a.get("id") == agent_id]
+        if existing:
+            manifest["agents"][existing[0]] = agent_record
+        else:
+            manifest["agents"].append(agent_record)
         print(f"spawned {agent_id} pid={proc.pid} harness={harness_name} "
               f"tier={args.tier} level={level} target={target or '-'} "
               f"strategy={strategy}")
 
-    (iter_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
-    print(f"manifest: {iter_dir / 'manifest.json'}")
+    # Atomic write: temp file + rename to avoid partial reads from
+    # concurrent dispatches (goal:g4.1).
+    tmp = iter_dir / ".manifest.json.tmp"
+    tmp.write_text(json.dumps(manifest, indent=2))
+    tmp.rename(manifest_path)
+    print(f"manifest: {manifest_path}")
     return 0
 
 
