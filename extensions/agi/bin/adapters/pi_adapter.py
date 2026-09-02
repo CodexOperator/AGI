@@ -127,3 +127,84 @@ def build_command(
         args.extend(["--append-system-prompt", f"@{skill_prompt}"])
     args.append(brief.closing_line(tier, agent_id, iter_n))
     return args
+
+
+def is_alive(pid: int) -> bool:
+    """Is the process with `pid` still running?
+
+    `os.kill(pid, 0)` sends no signal; it only checks existence. Same pattern
+    as `heal.py._pid_alive`, now part of the adapter interface so dispatch.py
+    can detect dead agents without importing heal.py (goal:g4.7).
+    """
+    try:
+        import os
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+
+def restart(
+    *,
+    harness: dict,
+    tier: str,
+    context_file: str,
+    agent_id: str,
+    iter_n: int,
+    sess_dir: Path,
+    scaffold: dict | None = None,
+    cli_py: str | Path = "",
+    skill_prompt: Path | None = None,
+    dispatch_py: str | Path = "",
+    target: str | None = None,
+    parallel: int = 1,
+    agent_record: dict | None = None,
+) -> int | None:
+    """Re-spawn a dead agent. Returns new pid, or None on failure.
+
+    Same signature as `build_command` plus `agent_record` for logging. Rebuilds
+    the identical argv and spawns in the same session directory, appending to
+    the existing log. Designed for the inline reaper (goal:g4.7): detects dead
+    agents, re-spawns them with the same context, and returns the new pid.
+    """
+    import json
+    import os
+    import shlex
+    import subprocess
+    import time
+
+    args = build_command(
+        harness=harness, tier=tier, context_file=context_file,
+        agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
+        scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
+        dispatch_py=dispatch_py, target=target, parallel=parallel,
+    )
+    log_file = sess_dir / "output.log"
+    env = child_env(harness=harness, base=dict(os.environ))
+    try:
+        with open(log_file, "ab") as logf:
+            proc = subprocess.Popen(
+                args,
+                stdout=logf,
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL,
+                start_new_session=True,
+                cwd=str(sess_dir.parent.parent.parent),
+                env=env,
+            )
+    except OSError as exc:
+        print(f"restart failed for {agent_id}: {exc}", file=import_sys_stderr())
+        return None
+    new_pid = proc.pid
+    if agent_record is not None:
+        agent_record["pid"] = new_pid
+        agent_record["status"] = "restarted"
+        agent_record["restarted_at"] = int(time.time())
+        (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+    return new_pid
+
+
+def import_sys_stderr():
+    """Lazy import to keep top-level scope clean."""
+    import sys
+    return sys.stderr

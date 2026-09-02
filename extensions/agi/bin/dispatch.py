@@ -443,7 +443,90 @@ def main() -> int:
     # was what defeated it.
     manifest = _merge_manifest(iter_dir, manifest, new_records)
     print(f"manifest: {manifest_path}")
+
+    # goal:g4.7 — inline reaper phase. After spawn, poll agent pids via
+    # adapter.is_alive() and mark dead agents. This replaces heal.py's
+    # out-of-process pid monitoring with an inline pass that detects and
+    # records failure before the loop exits.
+    _reaper_phase(
+        root=root,
+        iter_dir=iter_dir,
+        adapter=adapter,
+        timeout_s=int(manifest.get("timeout_seconds", 600)),
+        max_wait_s=30,
+    )
+
     return 0
+
+
+def _reaper_phase(
+    root: Path,
+    iter_dir: Path,
+    adapter: object,
+    timeout_s: int = 600,
+    max_wait_s: int = 30,
+) -> None:
+    """Poll agent pids inline after spawn. Detect dead agents, mark failed.
+
+    `goal:g4.7`. Runs inside dispatch.py's main() after all agents are
+    spawned, replacing heal.py's out-of-process polling with an inline pass.
+    Uses `adapter.is_alive(pid)` so detection works across any harness.
+
+    This is intentionally simpler than heal.py's full recovery — no healer
+    subagent spawn, no SIGKILL cascade. It detects pid-gone-without-completion
+    and records it, which is the edge case heal.py adds the most value for.
+    Full restart via `adapter.restart(...)` is reserved for a future iteration.
+    """
+    import json
+    import time
+
+    TERMINAL = {"done", "pending", "hung-healed", "failed"}
+    deadline = time.time() + max_wait_s
+
+    while time.time() < deadline:
+        manifest_path = iter_dir / "manifest.json"
+        if not manifest_path.exists():
+            break
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except (json.JSONDecodeError, OSError):
+            break
+
+        all_terminal = True
+        updated = False
+        for entry in manifest.get("agents", []):
+            agent_id = entry.get("id", "")
+            agent_json_path = iter_dir / agent_id / "agent.json"
+            if not agent_json_path.exists():
+                continue
+            try:
+                rec = json.loads(agent_json_path.read_text())
+            except (json.JSONDecodeError, OSError):
+                continue
+            status = rec.get("status", "running")
+            if status in TERMINAL:
+                continue
+            if status != "running":
+                continue
+            all_terminal = False
+
+            pid = int(rec.get("pid", 0))
+            if pid > 0 and not adapter.is_alive(pid):
+                rec["status"] = "failed"
+                rec["finished_at"] = int(time.time())
+                rec["fail_reason"] = f"pid {pid} disappeared (detected by inline reaper)"
+                agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
+                entry["status"] = "failed"
+                updated = True
+                print(f"reaper: agent {agent_id} marked failed (pid {pid} gone)")
+
+        if updated:
+            manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
+        if all_terminal:
+            break
+        time.sleep(5)
+
+    print("reaper: finished")
 
 
 def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple[str, str | None, str]]:

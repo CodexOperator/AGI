@@ -60,3 +60,28 @@ def build_command(
 
 def child_env(*, harness: dict, base: dict[str, str]) -> dict[str, str]:
     raise NotImplementedError(_MSG)
+
+
+def is_alive(pid: int) -> bool:
+    """Stub — not implemented for claude-code harness."""
+    raise NotImplementedError(_MSG)
+
+
+def restart(
+    *,
+    harness: dict,
+    tier: str,
+    context_file: str,
+    agent_id: str,
+    iter_n: int,
+    sess_dir: Path,
+    scaffold: dict | None = None,
+    cli_py: str | Path = "",
+    skill_prompt: Path | None = None,
+    dispatch_py: str | Path = "",
+    target: str | None = None,
+    parallel: int = 1,
+    agent_record: dict | None = None,
+) -> int | None:
+    """Stub — not implemented for claude-code harness."""
+    raise NotImplementedError(_MSG)

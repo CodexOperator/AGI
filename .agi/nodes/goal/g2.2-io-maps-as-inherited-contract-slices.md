@@ -9,7 +9,7 @@ origin: goals-doc
 parents:
   - goal:g2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
