@@ -110,6 +110,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        again. **This is stated here AND must be enforced at the spawn site** --
        a bound that lives only in a brief is a bound a parent can ignore, and
        `goal:g4.8` owns making it structural.
+    4. **What its artefact is** (`goal:s27`). A parent authors no node. It is
+       responsible for its kids' nodes, so it signals done with `--owns` and
+       puts its review into those nodes' `THOUGHT` blocks -- which is honest
+       rather than a workaround, because a parent's edit to a kid's node IS a
+       new version of it, and the thought is by definition the reasoning
+       behind the version.
+
+       **Named as a stopgap in the brief itself**, deliberately. Once a
+       session is linked to the versions it produced (`goal:g2.7`,
+       `goal:g10.1`), a parent's full review reaches a reader through the
+       node's high-LOD view and never needs compressing into prose. Telling
+       the parent that now costs one sentence and stops the compression from
+       being mistaken for the design.
     """
     aim = target or "(pick from the injected map)"
     return [
@@ -135,7 +148,28 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   with it is not review -- read the kid's ARTIFACT, not its report.\n"
         f"4. DO NOT bypass the gate. `--no-evidence-gate` stamps the node\n"
         f"   `evidence_gate: bypassed` and marks it unreviewed.\n"
-        f"5. DO NOT commit, push, or sync. Automation owns all remote traffic.",
+        f"5. DO NOT commit, push, or sync. Automation owns all remote traffic.\n"
+        f"6. SIGNAL DONE when every kid is finished:\n"
+        f"     python3 {cli_py} done {iter_n} {agent_id} --verdict pending \\\n"
+        f"       --owns <kid-node-id> [<kid-node-id> ...]\n"
+        f"   `--owns`, NOT `--node-id`. You author no node of your own.",
+        "YOUR ARTEFACT IS YOUR KIDS' NODES. You are responsible for them the "
+        "way a parent is responsible for its children, not for some separate "
+        "object of your own. Nothing is scaffolded for you and nothing should "
+        "be.\n"
+        "So put your review WHERE THE WORK IS: edit a kid's node in place, and "
+        "write why the node now says what it says into that node's THOUGHT "
+        "block:\n"
+        "  <!-- THOUGHT:BEGIN -->\n"
+        "  why this version differs from the previous one\n"
+        "  <!-- THOUGHT:END -->\n"
+        "Your edit IS a new version of that node, so the thought describing it "
+        "is legitimately yours. Rewrite it from scratch; never append. Never "
+        "fabricate one — absent means empty.\n"
+        "This is a stopgap and is meant to be: once sessions are linked to the "
+        "versions they produced (goal:g2.7, goal:g10.1), your full review "
+        "reaches a reader through the node's high-LOD view and stops needing "
+        "to be compressed into prose at all.",
         "Read `struggles:` and `caveats:` in a kid's report BEFORE reading its "
         "node. They are one line each and they are the cheapest signal in this "
         "system -- on 2026-09-01 those two lines surfaced five defects that the "

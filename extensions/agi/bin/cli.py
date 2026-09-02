@@ -176,6 +176,8 @@ def cmd_done(args: argparse.Namespace) -> int:
     rec["confidence"] = args.confidence
     rec["node_id"] = args.node_id
     rec["parent"] = args.parent
+    if args.owns:
+        rec["owns"] = list(args.owns)   # goal:s27 — a parent's real artefact
     rec["notes"] = args.notes
     # Record the *references*, not the resolved count. Writing the count back
     # would be self-defeating under goal:g7.3: the node would come back out of
@@ -515,6 +517,13 @@ def main() -> int:
     p_done.add_argument("--parent", default=None)
     p_done.add_argument("--notes", default="")
     p_done.add_argument("--next-edge", default=None)
+    p_done.add_argument(
+        "--owns", nargs="+", default=None, metavar="NODE_ID",
+        help="goal:s27 — the kid node ids this agent is responsible for. A "
+             "PARENT passes these instead of --node-id: it authors nothing of "
+             "its own, so its completion is its kids' completion, propagated. "
+             "Review prose belongs in those nodes' THOUGHT blocks until "
+             "session linking lands (goal:g2.7, goal:g10.1).")
     p_done.add_argument(
         "--evidence-runs", nargs="+", default=None, metavar="NODE_ID",
         help="node ids of the backing experiment runs, e.g. --evidence-runs "

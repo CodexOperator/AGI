@@ -247,10 +247,10 @@ runtime     pi, live.  parent qwen/qwen3.8-27b  |  kid deepseek/deepseek-v4-flas
 crons       FROZEN — crons_live: false. Unchanged. Do not re-enable.
 PUSHED      NO — several commits ahead. Push by hand when ready.
 
-node_count  869      active 862   deprecated 7    goals 103
-outcome_coverage 0.280   evidence_fraction 0.211   unevidenced_decisive 1
-goals: active 9  horizon 62  retired 2  complete 30
-tests       1200 pass
+node_count  871      active 864   deprecated 7    goals 104
+outcome_coverage ~0.28  evidence_fraction 0.211   unevidenced_decisive 1
+goals: active 10  horizon 61  retired 2  complete 31
+tests       1208 pass
 ```
 
 ## 1. The session's plan, and where each item stands
@@ -264,7 +264,8 @@ tests       1200 pass
 | 4a | **The parent brief** (`goal:g1.9`) — `bin/brief.py` | ✅ this commit |
 | 4b | **Live parent run** — qwen parent spawning deepseek kids | ✅ PROVEN |
 | 5 | `goal:s23` + `goal:s25` + `goal:s26` — all three built | ✅ complete |
-| — | `goal:s27` — needs an owner decision before it can be built | ⬜ BLOCKED |
+| 6 | **`goal:s27` decided and built** — a parent authors nothing | ✅ complete |
+| — | 🔴 `goal:s28` — a parent erases itself from the manifest | ⬜ **ACTIVE, NEXT** |
 
 ## 2. What landed, in one line each
 
@@ -322,11 +323,31 @@ undecided between three candidate artefacts.
 - ✅ **`goal:s26`** — `warn_premature_complete` in `snapshot-goals.py`, run on
   every `--render`. A **warning**, never a failure: a hard error would make
   retiring a tree bottom-up unrepresentable.
-- ⬜ **`goal:s27`** — BLOCKED, and deliberately. Needs the owner to choose what
-  a parent's session artefact is: **no node** (needs a second completion shape,
-  which `goal:g4.6` forbids), **a `doc`** (one line in `_node_type_for`,
-  recommended), or **a first-class `review` type** (most expressive, new schema
-  + spawn rule + every reader).
+- ✅ **`goal:s27`** — decided by the owner, and the answer was not on my menu:
+  **a parent is not nodeless, it is responsible for its kids' nodes**, the way
+  a real parent is responsible for its children. No scaffold at
+  `tier == "parent"`; `cli.py done --owns <kid-node-id> ...`;
+  `completion.owns_all_complete`; review prose into the kids' `THOUGHT` blocks.
+  **Named a stopgap in the brief itself** — the destination is `goal:g2.7` /
+  `goal:g10.1` session linking, where a review reaches a reader through the
+  node's high-LOD view instead of being compressed into prose.
+
+## 3b. 🔴 START HERE — `goal:s28`, which invalidates part of what iter 6 shipped
+
+**A parent that spawns a kid erases itself from `manifest.json`.**
+`dispatch.py:329` writes the manifest wholesale, and a parent shelling out to
+`dispatch.py --tier kid` is a second dispatch into the same iteration dir.
+Measured after one parent + one kid: `agents in manifest: ['a00-f0fd9669/kid']`.
+
+**Consequence:** `post_wire`'s parent-admission branch (`owns_all_complete`) is
+correct and **never runs**, because `post_wire` iterates `manifest["agents"]`.
+The parent's `owns` is written faithfully to its `agent.json` and read by
+nothing — the same four-hop marshalling failure that dropped every pi verdict,
+one tier up. `heal.py` cannot monitor a parent either.
+
+**Fix: merge, do not overwrite**, keyed by agent id, atomically (temp file +
+rename) because two dispatches can race. That race is `goal:g4.1` arriving one
+level up, first concrete instance.
 
 **Three of those four are the same shape**, and it is worth naming: lifecycle
 and scaffolding bookkeeping keeps leaking into the primary metric. `goal:g5`

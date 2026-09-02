@@ -315,11 +315,25 @@ def cmd_wire(args: argparse.Namespace) -> int:
         # `completion.py` died on a provider 403 immediately after, was marked
         # failed, and produced `nodes updated: 0` -- the loss this check
         # prevents, suffered by the change that prevents it.
+        owns = agent.get("owns") or []
         finished = agent.get("status") == "done"
         if not finished and node_id and completion.is_complete(root, node_id):
             finished = True
             admitted_by_graph.append(f"{agent['id']}: {node_id}")
+        # goal:s27 -- a parent authors no node, so the graph event that means
+        # "this agent finished" is its KIDS' nodes acquiring content. Same
+        # predicate, applied to what the parent is responsible for.
+        if not finished and not node_id and completion.owns_all_complete(root, owns):
+            finished = True
+            admitted_by_graph.append(f"{agent['id']}: owns {', '.join(owns)}")
         if not finished:
+            continue
+        # A parent's record carries no verdict to wire and no node to update.
+        # It is not skipped-with-an-error: it did its job, and its job left
+        # its marks on its kids' nodes rather than on one of its own.
+        if not node_id and owns:
+            admitted_by_graph.append(
+                f"{agent['id']}: parent, owns {len(owns)} node(s), nothing to wire")
             continue
         verdict = agent.get("verdict")
         confidence = agent.get("confidence", 0.5)
