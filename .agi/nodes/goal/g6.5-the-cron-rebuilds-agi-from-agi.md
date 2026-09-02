@@ -9,7 +9,7 @@ origin: goals-doc
 parents:
   - goal:g6
 seeds: []
-status: phasing-out
+status: retired
 tags:
   - goal
   - subgoal

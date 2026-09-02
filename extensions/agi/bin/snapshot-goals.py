@@ -33,7 +33,13 @@ ORIGIN = "goals-doc"
 # `horizon` = declared and committed to, but deliberately not being worked yet.
 # It is what lets L5 goal rotation distinguish queued goals from active ones
 # when `cc_dispatch.max_goals_active` is below the number of declared goals.
-KNOWN_STATUSES = {"active", "horizon", "phasing-out", "complete"}
+# `retired` is canonical (goal:g5, renamed 2026-09-02). `phasing-out` is the
+# legacy spelling and stays accepted forever, not through one migration
+# window: projects predating the rename carry it, and this set only decides
+# whether to WARN. Dropping it would print a spurious warning on every goal in
+# every such project — the S11 sequence's reader-accepts-both step, made
+# permanent because there is no second writer to migrate them.
+KNOWN_STATUSES = {"active", "horizon", "retired", "phasing-out", "complete"}
 # Default only. `goal_body_cap` in the project config overrides it and `0`
 # disables capping entirely — see `body_cap()` / `cap_body()` and goal:s12,
 # which separates "silent truncation is always wrong" (a bug, fixed

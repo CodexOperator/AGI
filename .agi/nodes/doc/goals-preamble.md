@@ -41,9 +41,16 @@ with `snapshot-goals.py --render --check`, which exits 0 only on a
 byte-identical round trip.
 
 **Goal lifecycle:** `active` (being worked) · `horizon` (declared and committed
-to, not yet being worked) · `phasing-out` (retiring) · `complete`. Retire by
-marking the section `status: phasing-out` and **deprecating — never deleting**
-its seed node; retired chains remain prior art.
+to, not yet being worked) · `retired` (stopped making sense) · `complete`
+(achieved). Retire by marking the section `status: retired` and **deprecating —
+never deleting** its seed node; retired chains remain prior art. `phasing-out`
+is the legacy spelling of `retired` and stays accepted permanently.
+
+**`complete` and `retired` score differently, and that is why both exist.** A
+completed goal's chains keep scoring — finishing must never look like
+regression. A retired goal's *closed* chains leave the score while staying in
+the graph; a hypothesis that never reached an mvp stays in the denominator, so
+retiring in bulk cannot inflate the primary metric.
 
 **Three kinds of goal, all first-class nodes.** This is where new work gets
 recorded — a defect or an idea belongs here, not in a second document.

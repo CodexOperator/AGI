@@ -207,7 +207,7 @@ at every `apply`, never caching it, for exactly this reason.
 
 - Goal ids are never renumbered. A gap beats a renumber; nodes reference goals
   by id.
-- Retire a goal by marking it `phasing-out` and **deprecating — never deleting**
+- Retire a goal by marking it `retired` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
 - **Retire a node with `status: deprecated` and move it to
   `.agi/nodes/deprecated/<type>/`** — same per-type split, one level down.
