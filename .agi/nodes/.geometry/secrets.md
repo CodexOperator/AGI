@@ -27,6 +27,7 @@ mint_id: eba3708aa2ce4642a394a3646f6e2a26
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
+  - OPENROUTER_PROVISIONING_KEY
 parents:
   - goal:g1.8
   - goal:g10.2
@@ -82,6 +83,26 @@ environment `dispatch.py` then filters — so a key set here would be re-added a
 exactly the layer where nothing checks. `envfile.py` enforces the three
 `ANTHROPIC_*` names regardless of what this node says, so editing the list
 above cannot lower the floor.
+
+## `OPENROUTER_PROVISIONING_KEY` is a different kind of key, and is optional
+
+**It mints and revokes runtime keys; it is not one.** `OPENROUTER_API_KEY`
+buys inference. A provisioning key calls OpenRouter's key-management API, so it
+can create keys, revoke them, set per-key credit limits and read spend. Losing
+it is strictly worse than losing a runtime key, which is why three things
+follow rather than being a matter of taste:
+
+- **It is `optional`, permanently.** The loop must run without it — a project
+  with no provisioning key uses the one runtime key it has and nothing
+  degrades except per-spawn isolation. Making it required would turn a
+  hardening feature into a hard dependency for every clone.
+- **It is never handed to a child process.** `OPENROUTER_API_KEY` is inherited
+  by every pi agent by design; this one must not be. A kid that can mint keys
+  can mint keys with no limit, and a kid that can revoke them can end the run.
+  The scrub list that protects the Claude subscription is the shape to copy.
+- **The keys it mints are the things that get spent.** Short-lived, credit-
+  capped, one per spawn or per batch, revoked at the end of the loop. That is
+  `goal:g1.11` and it is what this key exists for.
 
 ## What reads this
 

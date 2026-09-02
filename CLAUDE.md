@@ -168,6 +168,40 @@ things a graph cannot say, like "the run is half done and the next command is
 this". Anything that is a commitment belongs in a goal node. Work recorded only
 here is work the graph does not know about.
 
+## Delegated authority — when the owner steps away mid-run
+
+The owner hands the director authority for the rest of an iteration budget and
+leaves. **Codified here on 2026-09-02 because it had been re-negotiated at the
+start of every such run**, which is motion spent on operations rather than
+work — the thing this project's whole design is against.
+
+**The standing terms, once authority is handed over:**
+
+1. **Keep working to the end of the declared iteration budget.** Authority is
+   over the budget, not over "until something is unclear". A run that stops on
+   the first ambiguity has returned the authority it was given.
+2. **Bank, do not block.** A decision that genuinely needs the owner goes in
+   `HANDOFF.md` **§6 BANKED** with the options and a recommendation, and the
+   run continues on everything that does not depend on it. Blocking is for a
+   step that would be unsafe or useless under *every* assumption — which is
+   rare, and is not the same as "I would rather be told".
+3. **Decide and document, in the graph.** A judgement call is made, recorded
+   in the node's `THOUGHT` block as a deviation with its reason, and left for
+   verdict writers to weigh. An undocumented judgement call is the one thing
+   this arrangement cannot absorb.
+4. **`HANDOFF.md` stays live throughout.** Written *during* the work. The
+   owner returns to it cold and it is the only thing that has to be current.
+5. **Push after every iteration** while crons are off, so an interrupted run
+   leaves nothing stranded on the box.
+6. **Two things authority never covers**, regardless: an irreversible or
+   destructive operation outside the loop's own commits (force-pushing a
+   shared branch, `git rm` on nodes, rewriting published history), and
+   spending on a provider or scale the owner did not name. Bank those.
+
+**Scope creep is the failure mode to watch, not idleness.** The budget is the
+limit and the active goals are the field; a run that invents new goals to fill
+its remaining iterations has spent the owner's tokens on the director's ideas.
+
 ## Editing the engine — one commit
 
 **Before `goal:g11`:** an engine change was `grid.py checkout --all`, edit
