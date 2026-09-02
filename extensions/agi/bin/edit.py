@@ -65,6 +65,11 @@ PROVENANCE_SESSION = "thought_session"
 #: brief forbids touching, and edit mode is not a loophole in that rule.
 PROTECTED = frozenset({"id", "mint_id", "type", "scaffold_hash"})
 
+#: The one heading body notes live under. Shared with `post_wire` and
+#: `cli.py done`, which both already write it -- a second spelling here would
+#: be the duplicate-heading defect this constant exists to prevent.
+NOTES_HEADING = "## Agent Notes"
+
 
 class EditError(RuntimeError):
     """A verb was asked for that cannot be performed."""
@@ -158,6 +163,17 @@ VERBS = {
     "note": verb_note,
 }
 
+#: How many arguments each verb takes. The LAST one always absorbs the rest of
+#: the chunk, because prose verbs (`thought`, `note`) take a sentence and a
+#: sentence contains spaces.
+#:
+#: Found by dogfooding, immediately: `parse_script` originally split every
+#: chunk with `maxsplit=2`, which is right for `set k v` and wrong for
+#: everything else -- `note some prose here` arrived as three arguments to a
+#: two-argument verb and errored. A fixed split is a parser that assumes every
+#: verb has the same shape.
+ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1}
+
 
 def _coerce(value: str):
     """`"3"` -> 3, `"true"` -> True, `"[a, b]"` -> list. Strings otherwise.
@@ -207,10 +223,17 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     """
     out: list[tuple[str, list[str]]] = []
     for chunk in str(text).split("&&"):
-        parts = chunk.strip().split(None, 2)
-        if not parts:
+        stripped = chunk.strip()
+        if not stripped:
             continue
-        out.append((parts[0], parts[1:]))
+        name = stripped.split(None, 1)[0]
+        # Split by the verb's OWN arity, so the last argument absorbs the rest
+        # of the chunk. `set k v` takes two; `note <a whole sentence>` takes
+        # one that happens to contain spaces.
+        rest = stripped[len(name):].strip()
+        arity = ARITY.get(name, 1)
+        args = rest.split(None, arity - 1) if rest else []
+        out.append((name, args))
     return out
 
 
@@ -255,7 +278,17 @@ def _compose_body(root, edit: Edit) -> str:
     body = fm_reader.load_node_file(path).body
 
     if edit.body_append and edit.body_append.strip() not in body:
-        body = body.rstrip() + f"\n\n## Agent Notes\n{edit.body_append}\n"
+        # Append UNDER an existing heading rather than adding a second one.
+        # The first version checked only whether the text was already present,
+        # so a node that `post_wire` had already given a `## Agent Notes`
+        # section got a second heading -- found on the first real use, against
+        # a live node that had one.
+        note = edit.body_append.rstrip()
+        if NOTES_HEADING in body:
+            head, sep, tail = body.rpartition(NOTES_HEADING)
+            body = head + sep + tail.rstrip() + f"\n\n{note}\n"
+        else:
+            body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
 
     if edit.thought:
         block = (node_writer._THOUGHT_RE.pattern and

@@ -565,6 +565,8 @@ def main() -> int:
         adapter=adapter,
         timeout_s=int(manifest.get("timeout_seconds", 600)),
         max_wait_s=30,
+        cap=cap,
+        cfg=cfg,
     )
 
     return 0
@@ -576,6 +578,8 @@ def _reaper_phase(
     adapter: object,
     timeout_s: int = 600,
     max_wait_s: int = 30,
+    cap: int = 1,
+    cfg: dict | None = None,
 ) -> None:
     """Poll agent pids inline after spawn. Detect dead agents, mark failed.
 
@@ -583,10 +587,22 @@ def _reaper_phase(
     spawned, replacing heal.py's out-of-process polling with an inline pass.
     Uses `adapter.is_alive(pid)` so detection works across any harness.
 
-    This is intentionally simpler than heal.py's full recovery — no healer
-    subagent spawn, no SIGKILL cascade. It detects pid-gone-without-completion
-    and records it, which is the edge case heal.py adds the most value for.
-    Full restart via `adapter.restart(...)` is reserved for a future iteration.
+    **Restart is wired now (`goal:g4.7`), and the order of the two checks is
+    the whole design.** A dead pid is not the same fact as lost work:
+
+    1. **Check the filesystem first.** Kids routinely die *after* their node
+       file landed, losing only the report. The 2026-08-31 field note
+       ("check the filesystem before resuming") paid for itself twice in one
+       session. Such an agent is recorded `done-unreported` and is **not**
+       restarted — respawning it would re-do finished work and, worse, hand a
+       second agent the same scaffolded node.
+    2. **Only then restart**, bounded by `reaper.max_restarts` (default 1) and
+       admitted through the same `spawn_budget` lease as any other spawn. A
+       restart is a new process; a recovery path that ignores the concurrency
+       bound is a recovery path that can cause the outage it is recovering
+       from.
+
+    Still simpler than heal.py: no healer subagent, no SIGKILL cascade.
     """
     import json
     import time
@@ -623,13 +639,15 @@ def _reaper_phase(
 
             pid = int(rec.get("pid", 0))
             if pid > 0 and not adapter.is_alive(pid):
-                rec["status"] = "failed"
-                rec["finished_at"] = int(time.time())
-                rec["fail_reason"] = f"pid {pid} disappeared (detected by inline reaper)"
+                outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
+                                    cap=cap, cfg=cfg)
+                rec.update(outcome["record"])
                 agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
-                entry["status"] = "failed"
+                entry["status"] = rec["status"]
+                if rec.get("pid"):
+                    entry["pid"] = rec["pid"]
                 updated = True
-                print(f"reaper: agent {agent_id} marked failed (pid {pid} gone)")
+                print(f"reaper: {outcome['message']}")
 
         if updated:
             manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
@@ -638,6 +656,91 @@ def _reaper_phase(
         time.sleep(5)
 
     print("reaper: finished")
+
+
+def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+    """Decide what a dead agent's death means. Returns `{record, message}`.
+
+    **The filesystem is consulted before the restart, and that ordering is the
+    load-bearing part** (`goal:g4.7`). A kid that died after writing its node
+    lost only its report; respawning it would redo finished work and hand a
+    second agent the same scaffolded node.
+    """
+    import completion
+
+    node_id = rec.get("node_id") or ""
+    if node_id:
+        try:
+            if completion.is_complete(root, node_id):
+                return {
+                    "record": {
+                        "status": "done-unreported",
+                        "finished_at": int(time.time()),
+                        "fail_reason": (
+                            f"pid {pid} disappeared, but {node_id} is complete "
+                            f"— the work landed and only the report was lost"),
+                    },
+                    "message": (f"agent {agent_id} died with {node_id} already "
+                                f"complete — NOT restarted"),
+                }
+        except Exception as exc:
+            # An unreadable node is not evidence of completion. Fall through to
+            # the restart path and say why, rather than guessing either way.
+            print(f"reaper: could not check {node_id}: {exc}", file=sys.stderr)
+
+    restarts = int(rec.get("restart_count", 0))
+    max_restarts = int(((cfg or {}).get("reaper") or {}).get("max_restarts", 1))
+    failed = {
+        "status": "failed",
+        "finished_at": int(time.time()),
+        "fail_reason": f"pid {pid} disappeared (detected by inline reaper)",
+    }
+    if restarts >= max_restarts:
+        return {"record": failed,
+                "message": (f"agent {agent_id} failed (pid {pid} gone, "
+                            f"{restarts}/{max_restarts} restarts used)")}
+
+    # A restart is a new process and must be admitted like one. A recovery
+    # path that ignores the concurrency bound can cause the outage it is
+    # recovering from.
+    lease = spawn_budget.acquire(root, cap, f"{agent_id}-r{restarts + 1}",
+                                 tier=rec.get("tier", "kid"))
+    if lease is None:
+        return {"record": failed,
+                "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "
+                            f"budget full, not restarted)")}
+
+    try:
+        new_pid = adapter.restart(
+            harness=rec.get("harness_spec") or {},
+            tier=rec.get("tier", "kid"),
+            context_file=rec.get("context_file", ""),
+            agent_id=agent_id,
+            iter_n=int(rec.get("iter", 0) or 0),
+            sess_dir=Path(iter_dir) / agent_id,
+            target=rec.get("target"),
+            agent_record=rec,
+        )
+    except (NotImplementedError, Exception) as exc:   # noqa: B014
+        spawn_budget.release(lease)
+        return {"record": dict(failed, fail_reason=f"{failed['fail_reason']}; "
+                               f"restart unavailable: {exc}"),
+                "message": f"agent {agent_id} failed; restart unavailable ({exc})"}
+
+    if not new_pid:
+        spawn_budget.release(lease)
+        return {"record": failed,
+                "message": f"agent {agent_id} failed (restart returned no pid)"}
+
+    spawn_budget.commit(lease, new_pid)
+    return {
+        "record": {"status": "running", "pid": new_pid,
+                   "restart_count": restarts + 1,
+                   "restarted_at": int(time.time()),
+                   "fail_reason": f"pid {pid} disappeared; restarted"},
+        "message": (f"agent {agent_id} restarted as pid {new_pid} "
+                    f"({restarts + 1}/{max_restarts})"),
+    }
 
 
 def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple[str, str | None, str]]:

@@ -173,3 +173,45 @@ def test_an_unknown_verb_names_the_known_ones(project):
     with pytest.raises(edit.EditError) as exc:
         edit.apply_verb(edit.Edit("hypothesis:h1"), "frobnicate", [])
     assert "set" in str(exc.value) and "link" in str(exc.value)
+
+
+def test_a_prose_verb_takes_a_whole_sentence(project):
+    """Found by dogfooding on the first real use.
+
+    `parse_script` originally split every chunk with `maxsplit=2` — right for
+    `set k v`, wrong for everything else: `note some prose here` arrived as
+    three arguments to a two-argument verb and errored. A fixed split is a
+    parser that assumes every verb has the same shape.
+    """
+    calls = edit.parse_script("note this is a whole sentence, with commas")
+    assert calls == [("note", ["this is a whole sentence, with commas"])]
+
+    calls = edit.parse_script("set confidence 0.9 && thought why it changed now")
+    assert calls == [("set", ["confidence", "0.9"]),
+                     ("thought", ["why it changed now"])]
+
+
+def test_every_verb_declares_its_arity():
+    """A verb with no declared arity would silently get 1, which is the right
+    default and the wrong thing to rely on."""
+    assert set(edit.ARITY) == set(edit.VERBS)
+
+
+def test_a_note_appends_under_an_existing_heading_rather_than_adding_a_second(project):
+    """Found on the first real use, against a live node.
+
+    `post_wire` and `cli.py done` both already write `## Agent Notes`. The
+    first version of the idempotency check tested only whether the TEXT was
+    present, so a node that already had the section got a second heading.
+    """
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    path.write_text(path.read_text().rstrip()
+                    + "\n\n## Agent Notes\nan earlier note\n")
+
+    e = edit.Edit("hypothesis:h1")
+    edit.verb_note(e, "a later note")
+    edit.submit(project, e, actor="t")
+
+    text = path.read_text()
+    assert text.count("## Agent Notes") == 1, "a second heading was added"
+    assert "an earlier note" in text and "a later note" in text
