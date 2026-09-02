@@ -29,6 +29,7 @@ SMOKE=false
 NO_HEAL=false
 TARGET=""
 LEVEL=""
+TIER=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -38,6 +39,7 @@ while [[ $# -gt 0 ]]; do
     --no-heal) NO_HEAL=true; shift ;;
     --target) TARGET="$2"; shift 2 ;;
     --level) LEVEL="$2"; shift 2 ;;
+    --tier) TIER="$2"; shift 2 ;;
     -h|--help)
       cat <<HELP
 agi-tree driver — thoughtgraph loop for agi
@@ -49,6 +51,8 @@ OPTIONS:
   --no-heal          Skip healer monitoring (debug)
   --target ID        Aim every slot at node ID (default: attractiveness scoring)
   --level L          Zoom level for --target: big|small|auto (default small)
+  --tier T           Spawn tier: kid|parent (default kid). Selects the model
+                     from harnesses.<h>.models[T] AND the brief from brief.py.
 
 PROJECT ROOT:
   Auto-detected by walking up from \$PWD looking for
@@ -166,6 +170,11 @@ iter_run() {
   DISPATCH_ARGS=()
   [[ -n "$TARGET" ]] && DISPATCH_ARGS+=(--target "$TARGET")
   [[ -n "$LEVEL" ]] && DISPATCH_ARGS+=(--level "$LEVEL")
+  # goal:g4.8 -- `dispatch.py` has taken --tier since goal:g4.6 and the driver
+  # never passed it, so the parent tier was unreachable from the documented
+  # entry point: `driver.sh --tier parent` silently spawned a kid, on the kid
+  # model, with the kid brief. Found 2026-09-02 by checking before trusting it.
+  [[ -n "$TIER" ]] && DISPATCH_ARGS+=(--tier "$TIER")
   python3 "$PLUGIN_ROOT/bin/dispatch.py" "$PROJECT_ROOT" "$n" \
     "${DISPATCH_ARGS[@]+"${DISPATCH_ARGS[@]}"}" 2>&1 | tee -a "$LOG"
 

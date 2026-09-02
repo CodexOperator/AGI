@@ -262,8 +262,8 @@ tests       1189 pass
 | 2 | **The goal sweep** — 41 active → 9 | ✅ `3c8435271` |
 | 3 | First deepseek kid, g4.6 falsifier 4 re-measured | ✅ `383ed2107` |
 | 4a | **The parent brief** (`goal:g1.9`) — `bin/brief.py` | ✅ this commit |
-| 4b | **Live parent run** — qwen parent spawning deepseek kids | ⬜ NEXT |
-| 5 | `goal:s23` + `goal:s25` + `goal:s26` | ⬜ not started |
+| 4b | **Live parent run** — qwen parent spawning deepseek kids | ✅ PROVEN |
+| 5 | `goal:s23` + `goal:s25` + `goal:s26` (+ `goal:s27`) | ⬜ NEXT |
 
 ## 2. What landed, in one line each
 
@@ -281,40 +281,34 @@ tests       1189 pass
   `evidence_gate.VERDICT_HELP`. `pi_adapter` now holds no brief text at all and
   a test asserts it stays that way.
 
-## 3. 🔴 Where it stopped, and exactly what to do next
+## 3. ✅ 4b LANDED — the tiering works, end to end
 
-**4b — the live parent run. Nothing has been spawned at `--tier parent` yet
-since the brief landed.**
+`driver.sh --tier parent --target goal:g4.8`. **`driver.sh` did NOT forward
+`--tier`** (found by checking, not assuming — the parent tier was unreachable
+from the documented entry point and silently spawned a kid). Fixed; the flag is
+now a one-line pass-through.
 
-```bash
-cd /home/ubuntu/work/agi
-bash extensions/agi/driver.sh --smoke --max-iters 1        # baseline; count must not drop
-python3 -m pytest extensions/agi/tests/ -q                 # 1189 pass
-bash extensions/agi/driver.sh --max-iters 1 --tier parent --target <node-id>
+Verified from the persisted `agent.json.command`, not from assumption:
+
+```
+parent  a00-a54f694b  tier=parent  qwen/qwen3.8-27b            parent brief; NO kid text
+  └─kid a00-8d238338  tier=kid     deepseek/deepseek-v4-flash  kid brief;    NO parent leak
 ```
 
-**⚠️ `driver.sh` may not forward `--tier`.** `dispatch.py` has taken `--tier`
-since `goal:g4.6`; whether the driver passes it through is **unverified** — check
-before assuming the flag reached the spawn. If it does not, call `dispatch.py`
-directly.
+The parent spawned that kid **itself**, via `dispatch.py --tier kid --target
+goal:g4.8`, reviewed its node, accepted it, and flagged two real cosmetic
+defects in it. That is `goal:g4.8` falsifier clauses 1 and 2, live. **Clauses
+3 and 4 remain open** — one parent, one kid, so nothing exercised the
+concurrency bound or the collision surface.
 
-**What the run must show, and none of it is optional:**
+🔴 **The parent found a defect nobody had anticipated, in its `struggles:`
+line:** dispatch scaffolds an authored node for EVERY tier, so a parent whose
+brief says "you do not write the node yourself" must author a `hypothesis` to
+pass `cli.py done`. It lands in `scoring_hypothesis_count`, so **running a
+parent at all lowers `outcome_coverage`.** Filed as `goal:s27`, deliberately
+undecided between three candidate artefacts.
 
-1. The parent's argv carries `--model qwen/qwen3.8-27b` and the kid's carries
-   `--model deepseek/deepseek-v4-flash`. **Verify by inspecting the spawned
-   command, not by assuming** — `pi_adapter.model_args` raises rather than
-   falling back across tiers, and that guard is the only thing between real
-   tiering and a run where everything quietly used one model and still looked
-   correct (`goal:g4.8` falsifier, last clause).
-2. The parent spawns via `dispatch.py --tier kid`, not by any other route.
-3. No more than `spawn.parallel` kids at once. **`spawn.parallel` does NOT bound
-   grandchildren** (`experiment:a00-763e629b-5c04ad`) — the brief says so, and
-   a bound stated only in a brief is one a parent can ignore. Enforcing it at
-   the spawn site is `goal:g4.8`'s job and is **not built**.
-4. The owner's instruction: **the parent runs its own review gate, and the
-   director reviews every node again by hand.**
-
-**5 — three goals, all `horizon`, all specified with falsifiers:**
+**5 — four goals, all `horizon`, all specified with falsifiers:**
 
 - **`goal:s23`** — a deprecated node still reaches injected context. Measured:
   `build:TODO.md` is deprecated, moved to `.agi/nodes/deprecated/`, and still
@@ -324,6 +318,14 @@ directly.
   handed. Split out of `goal:s10` when that retired.
 - **`goal:s26`** — an overarching goal must not be `complete` while its
   subgoals are live. Warning in `snapshot-goals.py`, not a hard failure.
+- **`goal:s27`** — the parent-scaffold defect above. Needs an owner decision
+  on what a parent's session artefact is before it can be built.
+
+**Three of those four are the same shape**, and it is worth naming: lifecycle
+and scaffolding bookkeeping keeps leaking into the primary metric. `goal:g5`
+(finished goals stopped scoring), `goal:s26` (premature `complete` scores), and
+`goal:s27` (parent reports score as unconverted hypotheses) are one pattern
+seen three times in one session.
 
 ## 4. 🔴 Traps from this session
 
@@ -345,6 +347,13 @@ directly.
   definitions of one fact is `goal:s17` / `goal:g2.5` / `goal:g7.4` again.
 - **`grid.py commit --all` says `N error(s) (missing mint_id)`** for
   hand-written nodes. It has read 0 all session. Read that line.
+- **A flag the dispatcher accepts is not a flag the driver forwards.**
+  `--tier` existed in `dispatch.py` since `goal:g4.6` and `driver.sh` dropped
+  it silently, so `--tier parent` spawned a kid on the kid model. Check
+  pass-through before trusting an entry point.
+- **Read `struggles:` — twice this session it beat the review it came with.**
+  The parent's line found `goal:s27`; the kid's line quality is why its
+  overclaim in iter 3 got caught.
 
 ## 5. Known-good verification sequence
 

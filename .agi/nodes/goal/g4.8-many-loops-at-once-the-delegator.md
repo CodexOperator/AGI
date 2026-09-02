@@ -5,6 +5,8 @@ goal_kind: subgoal
 heading_level: 3
 id: "goal:g4.8"
 mint_id: 208dc260a25e43959230e94a54785f05
+next_edges:
+  - hypothesis:a00-a54f694b-b20b78
 origin: goals-doc
 parents:
   - goal:g4
