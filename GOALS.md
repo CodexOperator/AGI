@@ -754,6 +754,57 @@ served — the maps are *inherited contract slices attached to nodes*, which is 
 different object from an index of symbols, and only one of them survives a
 `stitch.py --from-grid` of a historical version.
 
+## Two jobs added 2026-09-02: the IO map is the linkage, and the propagator
+
+**The map stops being an annotation and becomes the table the read path
+resolves through.** `goal:g13` records the owner's design for one read path and
+one write path, and it rests on a node body being a **live link to a file**
+rather than stored bytes. The declaration of *which file* is IO-map content:
+standardized, configured, one shape for every node type. `payload_ref` is the
+prototype — a build node already links rather than copies — and this widens it
+from one type to all of them.
+
+**Second job: the map is what says where a change propagates *to*.** With the
+linkage declared, a rename or a reference update is mechanically decidable —
+the map names every place that fact appears, and `goal:g13`'s write path is
+what executes the edit as a kid or parent finishes its node. **The division is
+exact and worth holding: this goal owns the links, G13 owns the traversal.**
+Nothing is retyped by a model.
+
+**The motivating measurement is this session's own.** Renaming `phasing-out` to
+`retired` — a change with **zero semantic content** — costs a `status` regex, a
+pass over 28 goal nodes, and hand-edits to `CLAUDE.md`, `SKILL.md` and the
+schema file. A schema is declared once in `.agi/context/schemas/[name].md` and
+then *restated in prose* in the two documents every agent reads: the lifecycle
+states, the verdict taxonomy, the retirement convention, the type list. Three
+copies of one fact, two hand-maintained, nothing comparing them. **The same
+argument the design ethic makes about spawn briefs applies to renames: code
+should spend the tokens, not a model.**
+
+### The hard part is sub-file granularity, and the precedent is already here
+
+Whole-file linking is the easy case and `payload_ref` already solves it. Schema
+prose is the hard case: `CLAUDE.md` and `SKILL.md` are mostly hand-written and
+only *contain* derived paragraphs, so the link is to a **region of a file**, not
+a file. Two ways out, and only one of them is cheap:
+
+- **Marked regions, which this repo has already paid for and proven.**
+  `BUILD-CONTRACT:BEGIN/END` and `THOUGHT:BEGIN/END` are exactly "a span of one
+  file owned by a different writer, surviving regeneration of everything around
+  it." Generalizing that convention is the robust form of "symlink text inside
+  another file" — the two halves already coexist in every build node, with the
+  ownership rule enforced and understood.
+- **Make the whole document derived**, the way `goal:g6.9` made `GOALS.md`
+  derived with a byte-identical `--render --check`. Correct, proven, and far
+  too heavy for a document that is 95% authored prose.
+
+The acceptance test is G6.9's, narrowed to a span: the marked region re-renders
+from the schema, and a `--check` fails when the two disagree.
+
+This also sharpens the stopgap warning above rather than softening it. An index
+of symbols cannot do either job: it is rebuilt from the current tree, so it
+knows no node, no link, and nothing to propagate *to*.
+
 ### G2.3 — `graph_builder` becomes data-source-agnostic and cold-builds fast — status: horizon
 
 `agi_algos/graph_builder.py` is the code-intelligence layer and the natural
@@ -1779,6 +1830,66 @@ Kill a kid mid-run on **each** configured harness. Each is detected, restarted
 with its context intact, and closed out — by the same code, with the only
 harness-specific part living in that harness's adapter. Today only one harness
 can be tested at all, which is itself the finding.
+
+### G4.8 — Many loops at once; the delegator is the director — status: active
+
+**Several parents each running their own loop, concurrently, against different
+regions of the graph, with the delegator holding intent and reviewing across
+them.** `goal:g4` already names three tiers and says the delegator "coordinates
+several parent/kid groups" — that sentence has never been true. Today there is
+one loop, one slot, and the delegator *is* the parent by hand, which is how
+every iteration in this project has actually run.
+
+**This is the concurrency goal, and it is deliberately not `goal:g4.4`.** G4.4
+is about *specialisation by territory* — many small models each owning a region,
+fine-tuned once the territory is stable, gated on **G10**. This goal is about
+*running more than one loop at a time at all*, with the generalist models that
+exist today. Splitting them matters because G4.4's dependencies are far out and
+this one's are all in flight; folding them together would park a near-term
+capability behind a horizon.
+
+## What has to exist
+
+1. **A parent brief.** `dispatch.py --tier parent` already spawns and already
+   selects `harnesses.<h>.models.parent`, so the model tiering is done. What a
+   parent gets handed is the **kid** brief, so it writes one node and stops
+   while appearing to have run a loop. `goal:g1.9` owns the assembler; a parent
+   brief written by hand here would be exactly the hand-maintained contract
+   copy g1.9 exists to delete.
+2. **Completion as a graph event.** A parent cannot run a loop without knowing
+   its kids finished, and today "done" is `heal.py` polling a pid — the pi
+   process model wearing a general name. `goal:g4.6`'s fourth falsifier.
+3. **A concurrency bound that survives a tier.** `spawn.parallel` does **not**
+   bound grandchildren (`experiment:a00-763e629b-5c04ad`): a parent's own
+   spawns are a fresh, unbounded population. N parents at M kids each is N×M
+   processes against one working tree, and the limit has to be enforced where
+   spawning happens rather than stated in a brief a parent may ignore.
+4. **Kids that do not collide.** `goal:g4.1` — parallel kids share one working
+   tree. Unfixed, and it is the failure this goal multiplies rather than
+   introduces.
+5. **Review that scales past reading everything.** The delegator's whole value
+   is holding intent across loops; if directing N parents costs N times reading
+   every node, the tier has bought nothing. Parents review kids and report
+   deltas; the delegator reviews parents.
+
+## The objective function is `goal:g4.4`'s, and it applies here first
+
+**Functional output per token spent** — not quality alone, not cost alone. A
+director on the largest model earns its cost only by multiplying what the tiers
+below produce. This goal is where that ratio first becomes measurable, because
+one loop cannot exhibit it.
+
+## Falsifier
+
+Two parents run concurrently on the parent model against disjoint targets,
+each spawning kids on the kid model, and both complete. Requirements, all four
+of which must hold or the run proves nothing: no kid's node is lost or
+overwritten by another loop's kid; the total live process count never exceeds
+the declared bound; each parent's review gate demotes at least one unevidenced
+verdict without the delegator intervening; and the delegator's own token spend
+is **sub-linear** in the number of loops. Model tiering is verified by
+inspection of the spawned commands, not assumed — a parent silently running on
+the kid model would pass every other clause.
 
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: active
 
@@ -4856,6 +4967,72 @@ interface with no caller knowing about `deprecated/`.
 is *told*, this one about what an agent may *do*; merging them would lose the
 distinction that makes either checkable. **Feeds `goal:g10`**, the hypergraph:
 G10 is the structure, this is the aperture onto it.
+
+## The shape, from the owner's board (2026-09-02)
+
+**Three modules, and two of them are helpers.** `render.py` — possibly named
+`engine.py` — owns every read and every write. `read.py` and `write.py` are its
+helpers and nothing else calls them. **Exactly one path in, exactly one path
+out**, which is the invariant at the top of this goal restated as a file
+listing rather than as an intention. The owner's summary is the acceptance
+test: *"`read.py` and `write.py` is all you need to develop moving forward."*
+
+Two entry conditions reach the same destination, and naming both is what makes
+the interface complete rather than a read API with a write API bolted on:
+
+- **Code does not exist yet.** `snapshot-goals.py` runs, node bodies update,
+  the node renders. This is today's generator direction, and it is the half
+  that already works.
+- **Code exists.** `read.py` reads it into a rendered node; `write.py` writes
+  the rendered node back to node data, and back out to the code itself. The
+  loop `read -> render -> write -> render` closes, and every arrow on it is
+  one of the two helpers.
+
+## A node body is a marker, not a payload
+
+**The load-bearing consequence, and the one that changes what a node file
+*is*.** A node body is not stored data. It is the **live-linked, live-streamed
+content of the file the node points at**, resolved through the IO map
+(`goal:g2.2`) at read time. What is stored on disk is a blank field or an empty
+marked line — a placeholder that tells the read operation *where the body goes*,
+nothing more.
+
+Three things follow, each already half-true somewhere in this repo:
+
+1. **`payload_ref` is the prototype.** A build node already links a file rather
+   than copying it, and `grid.py` already versions node and payload as one
+   tree. This generalizes that from one node type to every node type, so it is
+   a widening of a proven mechanism rather than a new one.
+2. **`goal:g2.2` gains the linkage itself.** Which file a node is linked to
+   becomes IO-map content — declared and configured, not hardcoded per type.
+3. **Propagation becomes deterministic, and the write path is what runs it.**
+   With the link declared, a rename or a reference update is one traversal:
+   the map (`goal:g2.2`) names every place the fact appears, `write.py` edits
+   them as a kid or parent finishes its node. **The map owns the links; this
+   goal owns the traversal.** No model retypes a reference — including the
+   schema prose restated in `CLAUDE.md` and `SKILL.md`, whose links are to
+   marked *regions* rather than whole files.
+
+**Three questions this opens and deliberately does not answer.** Each must be
+settled before any of it is built, and each is cheap to state now and expensive
+to discover later:
+
+- **Where does `THOUGHT` live?** It is authored, durable, and today it lives in
+  the body. If the body is a marker, thought needs a home — and frontmatter is
+  ruled out already, because `write_frontmatter` flattens newlines and would
+  destroy it silently.
+- **What is a goal node's linked file?** `goal:g6.9` established that
+  `GOALS.md` is rendered *from* goal node bodies. A live-linked body points the
+  arrow the other way. One of the two has to give, and G6.9 was paid for.
+- **What does a link to a missing file do?** A deprecated node whose file is
+  gone must not fail quietly — that is precisely the divergent-failure-semantics
+  defect this goal was written about, reappearing inside its own fix.
+
+**Scope, at the owner's direction: nothing here is built this session.** The
+read and write paths are not to be touched until the parent and kid tiers are
+both properly standing, because this interface is what they will both call and
+designing it against a half-built caller is how it acquires a caller-shaped
+seam.
 
 ## S1 — Retire `bin/` as a directory name — status: active
 

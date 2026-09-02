@@ -86,29 +86,99 @@ is *told*, this one about what an agent may *do*; merging them would lose the
 distinction that makes either checkable. **Feeds `goal:g10`**, the hypergraph:
 G10 is the structure, this is the aperture onto it.
 
+## The shape, from the owner's board (2026-09-02)
+
+**Three modules, and two of them are helpers.** `render.py` — possibly named
+`engine.py` — owns every read and every write. `read.py` and `write.py` are its
+helpers and nothing else calls them. **Exactly one path in, exactly one path
+out**, which is the invariant at the top of this goal restated as a file
+listing rather than as an intention. The owner's summary is the acceptance
+test: *"`read.py` and `write.py` is all you need to develop moving forward."*
+
+Two entry conditions reach the same destination, and naming both is what makes
+the interface complete rather than a read API with a write API bolted on:
+
+- **Code does not exist yet.** `snapshot-goals.py` runs, node bodies update,
+  the node renders. This is today's generator direction, and it is the half
+  that already works.
+- **Code exists.** `read.py` reads it into a rendered node; `write.py` writes
+  the rendered node back to node data, and back out to the code itself. The
+  loop `read -> render -> write -> render` closes, and every arrow on it is
+  one of the two helpers.
+
+## A node body is a marker, not a payload
+
+**The load-bearing consequence, and the one that changes what a node file
+*is*.** A node body is not stored data. It is the **live-linked, live-streamed
+content of the file the node points at**, resolved through the IO map
+(`goal:g2.2`) at read time. What is stored on disk is a blank field or an empty
+marked line — a placeholder that tells the read operation *where the body goes*,
+nothing more.
+
+Three things follow, each already half-true somewhere in this repo:
+
+1. **`payload_ref` is the prototype.** A build node already links a file rather
+   than copying it, and `grid.py` already versions node and payload as one
+   tree. This generalizes that from one node type to every node type, so it is
+   a widening of a proven mechanism rather than a new one.
+2. **`goal:g2.2` gains the linkage itself.** Which file a node is linked to
+   becomes IO-map content — declared and configured, not hardcoded per type.
+3. **Propagation becomes deterministic, and the write path is what runs it.**
+   With the link declared, a rename or a reference update is one traversal:
+   the map (`goal:g2.2`) names every place the fact appears, `write.py` edits
+   them as a kid or parent finishes its node. **The map owns the links; this
+   goal owns the traversal.** No model retypes a reference — including the
+   schema prose restated in `CLAUDE.md` and `SKILL.md`, whose links are to
+   marked *regions* rather than whole files.
+
+**Three questions this opens and deliberately does not answer.** Each must be
+settled before any of it is built, and each is cheap to state now and expensive
+to discover later:
+
+- **Where does `THOUGHT` live?** It is authored, durable, and today it lives in
+  the body. If the body is a marker, thought needs a home — and frontmatter is
+  ruled out already, because `write_frontmatter` flattens newlines and would
+  destroy it silently.
+- **What is a goal node's linked file?** `goal:g6.9` established that
+  `GOALS.md` is rendered *from* goal node bodies. A live-linked body points the
+  arrow the other way. One of the two has to give, and G6.9 was paid for.
+- **What does a link to a missing file do?** A deprecated node whose file is
+  gone must not fail quietly — that is precisely the divergent-failure-semantics
+  defect this goal was written about, reappearing inside its own fix.
+
+**Scope, at the owner's direction: nothing here is built this session.** The
+read and write paths are not to be touched until the parent and kid tiers are
+both properly standing, because this interface is what they will both call and
+designing it against a half-built caller is how it acquires a caller-shaped
+seam.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version stops the goal from carrying a count at all. v1 listed seven
-modules from memory; v2 replaced that with the hypothesis's measured five; the
-experiment then made it four, because `metrics._parse_frontmatter` no longer
-exists and metrics now routes through `graph_core.loader.load_directory`. Two
-corrections to one paragraph in two nodes is the signal — a goal that restates
-its chain's measurements is a second copy that drifts, which is the exact
-antipattern `goal:s17` names. The chain holds the numbers; the goal holds the
-shape.
+This version records the owner's board, and the board answers a question the
+previous version could only pose. v3 said "one way in and one way out" and then
+described the current mess; it had no picture of what the unified thing looks
+like. Now there is one: three modules, two of them helpers, and a summary
+sentence that doubles as an acceptance test — if you need a third thing to
+develop against, the seam is wrong.
 
-What survived all three versions, and is the actual finding: the parsers agree
-on frontmatter everywhere and disagree on failure. That is a better problem
-than the one this goal was written about, and it only surfaced because the
-owner required recon before a design brief (`goal:s22`).
+The genuinely new claim is that a node body is a marker rather than data. That
+was not in any previous version and it is not a detail: it converts this goal
+from "route the existing calls through one door" into "change what a node file
+holds". It is also the reason the goal now names `goal:g2.2` as load-bearing
+rather than adjacent — the IO map stops being a contract annotation and becomes
+the linkage table the read path resolves through.
 
-Minted as a long-term goal at the owner's direction, having been intended "for
-a while" and only becoming statable once `goal:g4.6` showed what unification
-actually costs: one config entry and one file.
+The three open questions are recorded unanswered on purpose. Each one is a
+place where an existing, paid-for decision collides with the new shape —
+`THOUGHT`'s home, `goal:g6.9`'s render direction, and this goal's own founding
+finding about failure semantics. Writing them down now costs three paragraphs;
+discovering the second one mid-migration would cost the `GOALS.md` round trip.
 
-Deliberately NOT seeded with an mvp. The owner's instruction is that a
-long-term goal earns its design brief through a full
-hypothesis -> experiment -> verdict chain first, and this is the first goal
-held to that rule — see `goal:s22`, which makes the rule mechanical rather than
-remembered. Writing a design brief here now would be the exact shortcut s22
-exists to close, in the goal that motivated closing it.
+Scope note added at the owner's direction: not this session. The interface is
+what parents and kids will both call, and it should not be designed while only
+one of those callers exists.
+
+Still no mvp seeded, and still for `goal:s22`'s reason — a board is not a
+design brief, and this goal earns one through a hypothesis -> experiment ->
+verdict chain like every other. Recording the shape does not shortcut that; it
+gives the chain something specific to falsify.
 <!-- THOUGHT:END -->
