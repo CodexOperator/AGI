@@ -7,13 +7,13 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 869 | **887** |
+| active nodes | 869 | **891** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.277 | 0.270 |
-| `evidence_fraction` | 0.225 | **0.235** |
-| `decisive_evidence_fraction` | 0.95 | 0.905 |
+| `outcome_coverage` (primary) | 0.277 | 0.266 |
+| `evidence_fraction` | 0.225 | **0.250** |
+| `decisive_evidence_fraction` | 0.95 | **0.955** |
 | unevidenced decisive | 1 | 1 |
-| goals active / horizon / complete | 10 / 61 / 33 | 10 / 61 / 34 |
+| goals active / horizon / complete | 10 / 61 / 33 | 10 / 62 / 34 |
 | tests | 1221 | **1250** |
 | unpushed | 0 | 0 (cron pushes) |
 
@@ -165,7 +165,7 @@ python3 extensions/agi/bin/dispatch.py "$PWD" 107 --tier parent --target goal:g1
 ## §5 Known-good verification sequence
 
 ```bash
-bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must NOT drop from 887
+bash extensions/agi/driver.sh --smoke --max-iters 1     # node count must NOT drop from 891
 python3 -m pytest extensions/agi/tests/ -q              # 1250 passing
 python3 extensions/agi/bin/viewport.py --verify         # goal:g9.7's invariant
 python3 extensions/agi/bin/snapshot-goals.py --render --check
