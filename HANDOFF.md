@@ -70,7 +70,47 @@ Owner picked **three axes**, not four. Chain-walk was explicitly not selected.
 
 ## §2 What landed
 
-_(nothing yet — session just started)_
+- **iter-101 — `goal:s28` complete.** Parent `a00-dea93ac5` (qwen) spawned a
+  deepseek kid, then **falsified two of its own kid's claims with live runs**
+  and corrected the node in place. Clauses 1–2 of the falsifier held live.
+  Clause 3 had never been run: `b8cb2ec05` shipped the merge with zero tests.
+  It was not atomic — the `rename` was, the read-merge-write cycle was not, and
+  `.manifest.json.tmp` was a **fixed shared name**. Director reproduced entry
+  loss at **6/6 runs, 6–7 of 8 kids**. Fixed with `flock` + re-read under lock
+  + unique `mkstemp`. Six tests now carry the falsifier. Suite green at 1221.
+- **`goal:g9.7` minted** — one render, two readers.
+- **Concurrent dispatch verified live** in iter-102: two parents dispatched
+  3s apart, both present in the manifest. Before the fix the second would have
+  erased the first.
+
+### 🔬 Phase B evidence, measured by the director 2026-09-02 (read-only)
+
+**`goal:g13`'s core claim, confirmed and quantified.** Six independent node
+parsers, **four different failure semantics**, on identical malformed input:
+
+| parser | no frontmatter | unterminated | malformed YAML | not a mapping | empty |
+|---|---|---|---|---|---|
+| `graph_core.load_node_file` | raise `FrontmatterError` | raise | **raise `yaml.ParserError`** | raise | raise |
+| `benchmark._parse_frontmatter` | **OK tuple** | **OK tuple** | **OK tuple** | **OK tuple** | **OK tuple** |
+| `crons._parse_frontmatter` | raise `CronsError` | raise | raise | raise | raise |
+| `envfile._parse_frontmatter` | raise `SecretsError` | raise | raise | raise | raise |
+| `stitch._parse_frontmatter` | `None` | `None` | `None` | `None` | `None` |
+| `backfill.read_node` | `None` | `None` | `None` | `None` | `None` |
+
+Two findings sharper than the goal text:
+
+1. **`benchmark.py` never fails and is not YAML.** It is a hand-rolled
+   `partition(":")` loop. On a real node it returns `parents=''`, `tags=''`,
+   injects a junk key `'- goal'` from the list item `- goal:g9`, and leaves
+   quotes on (`id == '"goal:g9.7"'`, which never compares equal to
+   `goal:g9.7`). Every list-valued field in the corpus is silently destroyed.
+2. **The canonical reader breaks its own contract.** `FrontmatterError` is
+   documented as *"Raised when a node file cannot be parsed"*, but malformed
+   YAML leaks `yaml.parser.ParserError`. A caller writing
+   `except FrontmatterError` crashes. **Deliberately left unfixed** — which
+   semantics *should* win is `goal:g13`'s central decision and the director
+   must not pre-empt it. The leak is a defect under any choice; the choice is
+   the owner's.
 
 ## §3 🔴 Where it stopped, and the exact next command
 
