@@ -203,6 +203,10 @@ def test_adding_a_harness_touches_only_config_and_one_file():
         "    return ['third', kw['tier'], kw['agent_id']]\n"
         "def child_env(*, harness, base):\n"
         "    return base\n"
+        "def is_alive(pid):\n"
+        "    return True\n"
+        "def restart(**kw):\n"
+        "    return None\n"
     )
     try:
         cfg = {"harnesses": {"thirdparty": {"adapter": "thirdparty",

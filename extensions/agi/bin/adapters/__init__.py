@@ -6,17 +6,18 @@ third harness meant editing shared code and inventing a third config shape.
 `goal:g4.3` had asked for "a runtime flag, not a parallel code path" since the
 beginning; what was missing was somewhere for the flag to point.
 
-**An adapter owns exactly two questions:**
+**An adapter owns exactly three questions, now that `goal:g4.7` is active:**
 
     build_command(...) -> list[str]      the argv that starts one agent
     child_env(...)     -> dict[str,str]  the environment that argv runs in
+    is_alive(pid)      -> bool           "is the process still running"
+    restart(...)       -> int | None     "re-spawn the agent; return new pid"
 
-Anything a third function would need is either shared -- and belongs in
-`dispatch.py` with every other harness -- or is `goal:g4.7`'s ("is this agent
-alive", "restart it"), which is deliberately **not** part of this interface
-yet. Its absence is a decision, not an oversight: a richer adapter is how a
-"unified" path grows a private copy of the loop inside each harness, which is
-the failure the invariant names.
+`restart` receives the same keyword arguments as `build_command`, plus the
+original `agent_record` dict, so the adapter can rebuild an identical argv
+from what was stored at spawn time. A harness that cannot restart (e.g. the
+claude-code stub) raises `NotImplementedError` and dispatch falls through to
+marking the agent failed.
 
 `load(name)` is the whole dispatch mechanism. There is no registry to keep in
 sync -- the module name comes from config, so adding a harness is one config
@@ -31,7 +32,7 @@ from types import ModuleType
 
 #: Adapters must define these. Checked at load, so a malformed adapter fails
 #: when it is selected rather than when it is first spawned through.
-REQUIRED = ("build_command", "child_env")
+REQUIRED = ("build_command", "child_env", "is_alive", "restart")
 
 
 class AdapterError(RuntimeError):

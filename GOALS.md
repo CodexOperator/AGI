@@ -567,7 +567,7 @@ irreducible manual step — but *knowing which keys, and being told when one is
 missing* is not irreducible, and is exactly the class of "repeated, mechanical,
 therefore script it" that G1 exists to close.
 
-### G1.9 — One brief, assembled by the engine, never typed per spawn — status: active
+### G1.9 — One brief, assembled by the engine, never typed per spawn — status: horizon
 
 **A parent should name the target and the tier, and nothing else.** Today
 `SKILL.md` tells it to hand-assemble a self-contained prompt per kid, listing
@@ -706,7 +706,7 @@ What has to be true:
   symbol coverage of all twelve `bin/*.py`, which is the half of the engine
   where every 2026-08 change landed.
 
-### G2.2 — IO maps as inherited contract slices — status: active
+### G2.2 — IO maps as inherited contract slices — status: horizon
 
 Every node declares required inputs and promised outputs, each with a how/why,
 a performance note and a security note; the maps re-derive when neighbours
@@ -7141,3 +7141,85 @@ session can still bootstrap from zero (`QUICKSTART.md` intact), still knows
 what the project is committed to (`GOALS.md` intact), and can still recover any
 previous session (`grid.py payload build:HANDOFF.md --version N`). If any of
 the three fails, standing content is still leaking into the replaced file.
+
+## S31 — A scaffolded node ships schema-invalid, and the brief forbids the kid from fixing it — status: active
+
+**Found by a parent, in its `struggles:` line, on the 2026-09-02 iteration-103
+run. Fifth time this session that field beat the review it came attached to.**
+Quoted verbatim:
+
+> scaffold omits the schema-required title+testable_claim, and the kid was told
+> to leave frontmatter alone, so scaffolded hypotheses ship malformed until a
+> parent backfills
+
+Confirmed in two commands. `.agi/context/schemas/[hypothesis].md` declares:
+
+```
+required: [id, type, mint_id, title, testable_claim]
+```
+
+and `node_writer.py` seeds neither `title` nor `testable_claim`. Every
+hypothesis this loop has ever scaffolded is therefore **born violating its own
+schema**. Iteration 102's two nodes carry `id`, `mint_id`, `type`, `parents`,
+`scaffold_hash`, `verdict`, `confidence` — and no `title`.
+
+## The vice, and it is a vice rather than a bug
+
+Two rules that are individually correct compose into a contradiction:
+
+1. **The scaffold owns frontmatter.** `node_writer.write_node` is the one gated
+   write routine, and it stamps `scaffold_hash` so `completion.is_complete` can
+   tell a filled node from an untouched one.
+2. **The kid is told to leave frontmatter alone** — correctly, because a kid
+   editing `scaffold_hash` would break the completion check that decides
+   whether it finished.
+
+So the field is required, the writer does not supply it, and the one agent
+holding the content is forbidden from adding it. **The node cannot become valid
+by anyone doing their job as briefed.** It becomes valid only when a parent
+notices and backfills — which is unbriefed, unenforced, and happened once,
+because one parent was attentive enough to check the schema.
+
+## Why it matters beyond tidiness
+
+**`title` is what every human-facing renderer reads.** `snapshot-goals.py`,
+`dashboard.py` and the injected map all key on it. A corpus where most
+hypotheses have no title is a corpus that renders as a wall of opaque ids —
+which is `goal:g9`'s complaint, arriving from a direction G9 never looked.
+`goal:g9.7` makes it sharper: the view a human tunes is the view an agent is
+handed, so a missing title degrades *both* readers at once.
+
+**And it is silent.** Nothing validates a node against its schema at write
+time. `spawn_gate` enforces `parent_shapes` at creation; no equivalent
+enforces `required`. The corpus has been accumulating invalid nodes with no
+signal, which is the `goal:g7` failure mode (nothing silently lost) wearing a
+different hat: nothing is lost, something is silently *never valid*.
+
+## What the fix has to respect
+
+**Do not solve it by telling kids to write frontmatter.** That re-opens the
+`scaffold_hash` hazard rule 2 exists to prevent, and swaps a silent invalid
+node for a silently broken completion check — a strictly worse trade.
+
+The candidate shapes, undecided and deliberately left so:
+
+- **Seed the required fields at scaffold time** from what dispatch already
+  knows (target, tier, goal), leaving a placeholder the kid's body content
+  displaces. Cheapest, and it puts the field where the schema says it belongs.
+- **Let the write path derive `title` from the body's first heading** on
+  completion, so the kid supplies it without touching frontmatter.
+- **Validate `required` at write time and fail loudly**, which fixes nothing by
+  itself but converts a silent defect into a visible one.
+
+The first two are `goal:g13`'s territory — one write path that knows what a
+node type requires — and this goal should be settled *inside* that work rather
+than patched ahead of it, because a patch here is one more caller agreeing by
+convention with a schema it does not read.
+
+## Falsifier
+
+Scaffold a hypothesis through the normal dispatch path and validate the
+resulting file against `[hypothesis].md`'s `required` list with no parent
+intervention. It passes. Then confirm `completion.is_complete` still
+distinguishes the untouched scaffold from a filled one — the fix must not buy
+validity with the completion check.
