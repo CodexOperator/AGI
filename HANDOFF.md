@@ -247,10 +247,10 @@ runtime     pi, live.  parent qwen/qwen3.8-27b  |  kid deepseek/deepseek-v4-flas
 crons       FROZEN — crons_live: false. Unchanged. Do not re-enable.
 PUSHED      NO — several commits ahead. Push by hand when ready.
 
-node_count  871      active 864   deprecated 7    goals 104
-outcome_coverage ~0.28  evidence_fraction 0.211   unevidenced_decisive 1
-goals: active 10  horizon 61  retired 2  complete 31
-tests       1208 pass
+node_count  874      active 867   deprecated 7    goals 105
+outcome_coverage ~0.28  evidence_fraction ~0.21   unevidenced_decisive 1
+goals: active 10  horizon 61  retired 2  complete 32
+tests       1215 pass
 ```
 
 ## 1. The session's plan, and where each item stands
@@ -265,7 +265,7 @@ tests       1208 pass
 | 4b | **Live parent run** — qwen parent spawning deepseek kids | ✅ PROVEN |
 | 5 | `goal:s23` + `goal:s25` + `goal:s26` — all three built | ✅ complete |
 | 6 | **`goal:s27` decided and built** — a parent authors nothing | ✅ complete |
-| — | 🔴 `goal:s28` — a parent erases itself from the manifest | ⬜ **ACTIVE, NEXT** |
+| 7 | `goal:s28` fixed by a kid; `goal:s29` build-parent rule | ✅ complete |
 
 ## 2. What landed, in one line each
 
@@ -332,7 +332,7 @@ undecided between three candidate artefacts.
   `goal:g10.1` session linking, where a review reaches a reader through the
   node's high-LOD view instead of being compressed into prose.
 
-## 3b. 🔴 START HERE — `goal:s28`, which invalidates part of what iter 6 shipped
+## 3b. `goal:s28` — FIXED by a kid, with two review findings worth keeping
 
 **A parent that spawns a kid erases itself from `manifest.json`.**
 `dispatch.py:329` writes the manifest wholesale, and a parent shelling out to
@@ -345,9 +345,35 @@ The parent's `owns` is written faithfully to its `agent.json` and read by
 nothing — the same four-hop marshalling failure that dropped every pi verdict,
 one tier up. `heal.py` cannot monitor a parent either.
 
-**Fix: merge, do not overwrite**, keyed by agent id, atomically (temp file +
-rename) because two dispatches can race. That race is `goal:g4.1` arriving one
-level up, first concrete instance.
+**Fixed** in `dispatch.py`: the manifest is read before the new one is built,
+`started_at` preserved, agents merged by `id` (update-in-place on re-dispatch),
+corrupt manifest degrades to fresh with a warning, write via
+`.manifest.json.tmp` + `rename`. Verdict demoted `proved` ->
+`inconclusive_lean_proved:85`: verified by reading and by simulation, never by
+a live parent-plus-two-kids run — and prediction 2 (that `owns_all_complete`
+now actually executes) is the whole point and was never observed. **That live
+run is the cheapest open item in the repo.**
+
+🔴 **Two findings from the review, both mine rather than the kid's:**
+
+1. **The kid broke a test and did not notice** — it ran its own scratch test,
+   never `pytest extensions/agi/tests/`. The kid brief now requires the suite.
+2. **The kid ran `git add -A` and committed 37 lines of a `CLAUDE.md` section
+   the director had mid-edit** (`b8cb2ec05`). `SKILL.md` forbids kids
+   committing, the parent brief forbids it, and `brief.py::_kid` did not say
+   it — `goal:g1.9`'s argument arriving as a live incident four iterations
+   after I built the assembler and left the prohibition out. Fixed, with tests.
+
+## 3c. `goal:s29` — where a build node may come from
+
+`parents: [mvp]` for a new file, `parents: [build, goal]` for a new version,
+nothing else. **A goal alone never mints a build node.** Needed a new gate
+primitive: `spawn.parent_shapes`, an OR across whole shapes, because
+`allowed_parents` is a flat set and widening it to cover both shapes
+necessarily permits their mixtures — including the lone goal being forbidden.
+All six shapes asserted. **216 existing build nodes grandfathered**: the gate
+is creation-time only and `level3.py` never calls it. **Residual: the level3
+rescan was reasoned from grep, not run.**
 
 **Three of those four are the same shape**, and it is worth naming: lifecycle
 and scaffolding bookkeeping keeps leaking into the primary metric. `goal:g5`

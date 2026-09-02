@@ -246,3 +246,70 @@ def test_no_harness_name_reaches_the_parent_completion_path():
     names |= {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)}
     for banned in ("pi", "claude", "harness", "pid", "poll"):
         assert banned not in names, f"{banned!r} leaked into the completion path"
+
+
+# ------------------- goal:s29 — where a build node may come from
+
+
+def _rules():
+    import spawn_gate as sg
+    return sg, sg.load_spawn_rules(
+        Path(__file__).resolve().parents[3] / ".agi/context/schemas")
+
+
+def test_build_schema_declares_exactly_two_parent_shapes():
+    sg, rules = _rules()
+    s = rules.get("build")
+    assert not s.error, s.error
+    for variant in ("code", "prose"):
+        r = s.variants[variant]
+        assert r.parent_shapes == (("mvp",), ("build", "goal")), variant
+        assert sorted(r.allowed_parents) == ["build", "goal", "mvp"]
+
+
+def test_parent_shapes_is_an_or_across_whole_shapes_not_an_and():
+    """`min_parents_by_type` is an AND across kinds; this is an OR across
+    shapes. `build`'s rule is genuinely a disjunction — one mvp, OR a build
+    and a goal together — and neither half alone."""
+    sg, _ = _rules()
+    block = {
+        "allowed_parents": ["mvp", "build", "goal"],
+        "min_parents": 1, "max_parents": 2,
+        "parent_shapes": [["mvp"], ["build", "goal"]],
+    }
+    rule, err = sg._parse_rule(block)
+    assert not err, err
+    assert rule.parent_shapes == (("mvp",), ("build", "goal"))
+
+
+def test_a_shape_naming_a_disallowed_type_is_refused():
+    """Same discipline as `min_parents_by_type`: a schema declaring a rule
+    nobody can satisfy rejects its whole type forever, loudly and uselessly."""
+    sg, _ = _rules()
+    rule, err = sg._parse_rule({
+        "allowed_parents": ["mvp"], "min_parents": 1, "max_parents": 2,
+        "parent_shapes": [["mvp"], ["build", "goal"]],
+    })
+    assert rule is None and "allowed_parents does not permit" in err
+
+
+def test_a_shape_outside_the_min_max_bounds_is_refused():
+    sg, _ = _rules()
+    rule, err = sg._parse_rule({
+        "allowed_parents": ["mvp", "build", "goal"],
+        "min_parents": 1, "max_parents": 1,
+        "parent_shapes": [["build", "goal"]],
+    })
+    assert rule is None and "outside spawn.min_parents" in err
+
+
+def test_absent_parent_shapes_leaves_every_other_type_alone():
+    """Empty tuple = no shape restriction. Every type that does not declare
+    `parent_shapes` must behave exactly as before."""
+    sg, rules = _rules()
+    rule, err = sg._parse_rule({
+        "allowed_parents": ["goal"], "min_parents": 1, "max_parents": 2})
+    assert not err and rule.parent_shapes == ()
+    hyp = rules.get("hypothesis")
+    if hyp and hyp.flat:
+        assert hyp.flat.parent_shapes == ()

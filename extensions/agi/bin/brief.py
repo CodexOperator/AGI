@@ -62,7 +62,24 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
     """
     segs = [
         f"You are agent {agent_id} on iteration {iter_n}. "
-        f"Your job: fill in the scaffolded node file below, then signal done."
+        f"Your job: fill in the scaffolded node file below, then signal done.",
+        # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
+        # and swept up 37 lines of a CLAUDE.md section the director had
+        # mid-edit. It was not the kid's fault: `SKILL.md` forbids kids from
+        # committing, the parent brief forbids it, and THIS brief did not say
+        # it. That is `goal:g1.9`'s whole argument arriving as an incident --
+        # a rule enforced in three documents and absent from the one string the
+        # agent actually receives.
+        "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
+        "Automation owns all remote traffic and the parent owns commits. "
+        "`git add -A` is especially forbidden: other agents and the director "
+        "have uncommitted work in this tree, and it WILL be swept into your "
+        "commit. If you see unexpected files, report them in one line and "
+        "leave them exactly where they are.",
+        "RUN THE REPO TEST SUITE before you report, if you changed any code: "
+        "`python3 -m pytest extensions/agi/tests/ -q`. Your own scratch test "
+        "passing is not the same claim. A failing assertion you did not expect "
+        "is usually the assertion working.",
     ]
     if scaffold:
         parent = (scaffold.get("parent") or "").strip()

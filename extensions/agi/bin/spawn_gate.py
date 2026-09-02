@@ -128,6 +128,13 @@ class Rule:
     #: verdict plus one outcome is a different shape from two outcomes.
     #: Empty tuple means the type declares no per-type floor.
     min_parents_by_type: tuple = ()
+    #: Exact permitted parent-type multisets, as sorted tuples. Where
+    #: `min_parents_by_type` is an AND across kinds, this is an **OR across
+    #: whole shapes** -- `build` needs it because its rule is genuinely a
+    #: disjunction: one `mvp`, OR one `build` and one `goal` together, and
+    #: neither of those halves alone. Empty tuple = no shape restriction, so
+    #: every type that does not declare it is unaffected.
+    parent_shapes: tuple = ()
 
 
 @dataclass
@@ -275,6 +282,49 @@ def _parse_min_by_type(raw, allowed: frozenset, max_p: int) -> tuple[tuple, str]
     return tuple(sorted(out.items())), ""
 
 
+def _parse_parent_shapes(raw, allowed: frozenset, min_p: int, max_p: int) -> tuple[tuple, str]:
+    """Parse `spawn.parent_shapes`, refusing any shape nobody can satisfy.
+
+    Same discipline as `_parse_min_by_type` and for the same reason: a schema
+    that declares an impossible rule rejects every node of its type forever,
+    loudly but uselessly, and the failure surfaces at the first spawn rather
+    than at the edit that caused it.
+
+    Each shape is a list of parent TYPE names. A node satisfies the rule when
+    its parents' types, as a sorted multiset, equal one of them exactly --
+    exact rather than superset, because "one mvp" and "one mvp plus a goal"
+    are different claims about where a build node came from, and permitting
+    the second silently would make the first unenforceable.
+    """
+    if raw is None:
+        return (), ""
+    if not isinstance(raw, (list, tuple)) or not raw:
+        return (), "spawn.parent_shapes must be a non-empty list of type lists"
+    shapes = []
+    for entry in raw:
+        if not isinstance(entry, (list, tuple)) or not entry:
+            return (), f"spawn.parent_shapes entry {entry!r} must be a non-empty list"
+        types = tuple(sorted(canonical_type(x) for x in entry))
+        if any(not x for x in types):
+            return (), f"spawn.parent_shapes entry {entry!r} has an unusable type name"
+        bad = [x for x in types if x not in allowed]
+        if bad:
+            return (), (
+                f"spawn.parent_shapes entry {list(entry)!r} names "
+                f"{sorted(set(bad))}, which spawn.allowed_parents does not "
+                f"permit ({sorted(allowed)})"
+            )
+        if not (min_p <= len(types) <= max_p):
+            return (), (
+                f"spawn.parent_shapes entry {list(entry)!r} has {len(types)} "
+                f"parent(s), outside spawn.min_parents={min_p}..max_parents={max_p}"
+            )
+        if types not in shapes:
+            shapes.append(types)
+    return tuple(shapes), ""
+
+
+
 def _parse_rule(block, variant: str = "") -> tuple[Rule | None, str]:
     if not isinstance(block, dict):
         return None, "spawn block is not a mapping"
@@ -294,11 +344,17 @@ def _parse_rule(block, variant: str = "") -> tuple[Rule | None, str]:
     if err:
         return None, err
 
+    shapes, err = _parse_parent_shapes(
+        block.get("parent_shapes"), allowed_set, min_p, max_p)
+    if err:
+        return None, err
+
     return Rule(
         allowed_parents=allowed_set,
         min_parents=min_p,
         max_parents=max_p,
         min_parents_by_type=by_type,
+        parent_shapes=shapes,
         variant=variant,
     ), ""
 
@@ -721,6 +777,35 @@ def check_spawn(
                 + ", ".join(f"{t}>={n}" for t, n in rule.min_parents_by_type)
                 + "}"
             )
+
+        # 5. parent_shapes — an OR across whole shapes, where the rule above is
+        #    an AND across kinds. `build` is the type that needs it: a build
+        #    node comes from ONE mvp, or from an existing build node together
+        #    with the goal that motivated the new version — and neither half
+        #    alone. `allowed_parents` cannot say that; it would also permit a
+        #    lone goal, which must not mint a build node out of nothing.
+        if rule.parent_shapes:
+            got = tuple(sorted(type_index.get(pid, "") for pid in plist))
+            if got not in rule.parent_shapes:
+                res.status = REJECTED
+                pretty = " or ".join(
+                    "[" + ", ".join(s) + "]" for s in rule.parent_shapes)
+                res.reason = (
+                    f"rule 'parent_shapes' from {schema.source}: {shape} has "
+                    f"parents [{', '.join(got)}], which is not one of {pretty}"
+                )
+                res.fix = (
+                    f"give {res.node_id} one of: {pretty}. For a build node "
+                    "that means EITHER the mvp that specifies it, OR the build "
+                    "node this is a new version of together with the goal that "
+                    "motivated the change. A goal alone cannot mint a build "
+                    "node — it can only motivate a new version of one that has "
+                    "already earned its place (goal:g6.3, goal:s29)."
+                )
+                _reject_message(res, shape, schema)
+                return res
+            res.applied.append(
+                "parent_shapes=[" + ", ".join(got) + "]")
 
     res.status = APPROVED
     res.messages.append(

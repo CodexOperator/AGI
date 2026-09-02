@@ -166,3 +166,21 @@ def test_kid_brief_is_untouched_by_the_parent_artefact_change():
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "--owns" not in kid
     assert "--node-id experiment:x" in kid
+
+
+def test_kid_brief_forbids_git_and_requires_the_suite():
+    """A kid ran `git add -A` on 2026-09-02 and committed 37 lines of the
+    director's in-flight `CLAUDE.md` edit. `SKILL.md` forbade it, the parent
+    brief forbade it, and the kid brief — the only text the agent actually
+    receives — did not. `goal:g1.9`'s argument, as an incident."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "DO NOT run git" in kid
+    assert "git add -A" in kid
+    assert "pytest" in kid
+
+
+def test_both_tiers_are_told_not_to_commit():
+    """The rule is tier-independent; only the reason differs."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "commit" in kid.lower() and "commit" in parent.lower()

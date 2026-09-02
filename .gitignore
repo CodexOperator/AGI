@@ -55,3 +55,6 @@ htmlcov/
 .venv/
 venv/
 .DS_Store
+
+# pi harness run log, written into the graph dir by a kid (goal:s28 session)
+.agi/autoresearch.jsonl

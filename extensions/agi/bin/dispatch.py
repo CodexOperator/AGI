@@ -346,9 +346,14 @@ def main() -> int:
 
     # Atomic write: temp file + rename to avoid partial reads from
     # concurrent dispatches (goal:g4.1).
-    tmp = iter_dir / ".manifest.json.tmp"
-    tmp.write_text(json.dumps(manifest, indent=2))
-    tmp.rename(manifest_path)
+    # Named `manifest_tmp`, not `tmp`: `test_dispatch_no_longer_touches_the_
+    # node_tree_at_all` asserts every `write_text` in this file names the
+    # session artefact it writes, which is how it proves dispatch never reaches
+    # into `nodes/`. A bare `tmp` defeated that check by hiding the target in a
+    # variable — the assertion was right and the name was wrong.
+    manifest_tmp = iter_dir / ".manifest.json.tmp"
+    manifest_tmp.write_text(json.dumps(manifest, indent=2))
+    manifest_tmp.rename(manifest_path)
     print(f"manifest: {manifest_path}")
     return 0
 

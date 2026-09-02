@@ -24,16 +24,76 @@ spawn:
   discriminator: build_kind
   variants:
     code:
-      allowed_parents: [idea, goal, verdict, mvp, build]
+      allowed_parents: [mvp, build, goal]
       min_parents: 1
       max_parents: 2
+      parent_shapes:
+        - [mvp]
+        - [build, goal]
     prose:
-      allowed_parents: [idea, goal, verdict, mvp, build]
+      allowed_parents: [mvp, build, goal]
       min_parents: 1
       max_parents: 2
+      parent_shapes:
+        - [mvp]
+        - [build, goal]
 ---
 
 # build
+
+## Where a build node may come from (2026-09-02)
+
+**Two shapes, and nothing else:**
+
+```
+parents: [mvp:<id>]                    a NEW build node, specified by an mvp
+parents: [build:<id>, goal:<id>]       a NEW VERSION of an existing build node
+```
+
+`parent_shapes` in the `spawn:` block above is an **OR across whole shapes**,
+which `allowed_parents` alone cannot express — a flat allow-list would also
+permit a lone `goal`, and **a goal must not be able to mint a build node out of
+nothing.** A goal can only motivate a new version of a file that already
+exists.
+
+**Why an mvp for a new build node.** An `mvp` states the minimum a subsequent
+`build` must satisfy plus its falsifier (`[mvp].md`, revised 2026-09-01). A
+build node with an mvp behind it is a file somebody argued for; one without is
+a file somebody wrote.
+
+**Why `[build, goal]` for a version, and both halves.** The `build` parent says
+*which* file this is a new version of. The `goal` says *why this version
+differs* — which is the one thing a diff cannot tell you. Neither alone is
+enough: a lone `build` parent is a version with no motive, and a lone `goal` is
+the mint-from-nothing case above.
+
+**This composes with the version rule rather than replacing it.** A version is
+a grid commit, not a second node file (`goal:g6.3`) — you edit the build node in
+place and `grid.py commit --all` records it. What this shape governs is the
+node's `parents:` when a goal is the reason for the edit: the goal joins the
+lineage, so the grid history answers "why" as well as "what".
+
+### The existing corpus is grandfathered, deliberately
+
+**216 build nodes predate this rule** — 192 parented by an `idea` (the
+`level3.py` census parent), 19 with no parents at all, 5 by a goal. **None of
+them is retro-invalid.** Their empirical worth is established by the fact that
+they exist and the engine runs on them; re-deriving an mvp for each would be
+archaeology, not evidence.
+
+Two mechanical facts make the grandfathering real rather than a promise:
+
+- **`spawn_gate` is creation-time only.** It does not touch history — it
+  already tolerates 51 nodes in this corpus that violate `min_parents`.
+- **`level3.py` does not route through `node_writer`/`spawn_gate` at all**, so
+  the rescan that re-mints all 216 build nodes with their census parents is
+  unaffected by this change. Checked before making it, because tightening a
+  schema that a generator wrote through would have broken every scan.
+
+`idea` and `verdict` were dropped from `allowed_parents` for the same reason
+they are not in either shape: they were the census-era answer, and the census
+is the thing being grandfathered rather than continued.
+
 
 One file of the engine, as a node. `payload_ref` names where the bytes belong
 in the engine tree; since G6.3 the bytes themselves live in the node's grid
