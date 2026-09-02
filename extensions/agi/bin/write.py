@@ -246,15 +246,22 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", nargs="?", default="links", choices=["links"])
+    ap.add_argument("action", nargs="?", default="links",
+                    choices=["links", "schema"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--broken", action="store_true", help="list broken links only")
+    ap.add_argument("--fix", action="store_true",
+                    help="schema: actually backfill derivable fields "
+                         "(default is a dry run)")
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+
+    if args.action == "schema":
+        return _schema_report(root, fix=args.fix)
 
     resolved, broken = resolve_many(root, _iter_corpus(root))
     by_source: dict[str, int] = {}
@@ -268,6 +275,72 @@ def main(argv: list[str] | None = None) -> int:
     for sentinel in broken:
         print(f"  BROKEN {sentinel.node_id} -> {sentinel.ref} ({sentinel.path})")
     return 1 if broken and args.broken else 0
+
+
+def _schema_report(root, fix: bool = False) -> int:
+    """Which nodes violate their type's `required` list, and optionally fix them.
+
+    `goal:s31` closed the *new-node* half: a scaffold is now born with every
+    required field this engine can derive, and says so when it cannot. This is
+    the **existing corpus**, which accumulated invalid nodes for as long as
+    nothing validated at write time.
+
+    Dry by default and loudly so. A backfill rewrites hundreds of nodes and
+    mints a grid version for each; that is reversible but it is not the
+    director's call to make silently, and the report is the useful half either
+    way.
+
+    Only ever fills what can be DERIVED — `title` from the slug, and any field
+    a body states under its own heading. A field nothing can supply stays
+    missing and stays counted, because inventing one would put exactly the
+    `TODO(model)` placeholder into the corpus that `goal:g2.10` spent 8,034
+    fields teaching this project to fear.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    nodes_dir = Path(root) / "nodes"
+    by_type: dict[str, list[tuple[str, list[str]]]] = {}
+    for path in sorted(nodes_dir.rglob("*.md")):
+        if path.name.startswith("."):
+            continue
+        ntype = node_writer.canonical_node_type(path.parent.name)
+        required = node_writer.required_fields(root, ntype)
+        if not required:
+            continue
+        try:
+            nf = fm_reader.load_node_file(path)
+        except Exception:
+            continue
+        node_id = str(nf.frontmatter.get("id") or f"{ntype}:{path.stem}")
+        missing = node_writer.missing_required(root, ntype, nf.frontmatter, node_id)
+        if missing:
+            by_type.setdefault(ntype, []).append((node_id, missing))
+
+    total = sum(len(v) for v in by_type.values())
+    print(f"schema: {total} node(s) missing a required field")
+    for ntype, entries in sorted(by_type.items(), key=lambda kv: -len(kv[1])):
+        fields: dict[str, int] = {}
+        for _nid, missing in entries:
+            for name in missing:
+                fields[name] = fields.get(name, 0) + 1
+        summary = ", ".join(f"{k}x{v}" for k, v in sorted(fields.items()))
+        print(f"  {ntype:14} {len(entries):4}   {summary}")
+
+    if not fix:
+        if total:
+            print("dry run — re-run with --fix to backfill derivable fields")
+        return 0
+
+    fixed = still = 0
+    for entries in by_type.values():
+        for node_id, _missing in entries:
+            res = node_writer.derive_required_from_body(root, node_id)
+            if res.status == node_writer.UPDATED:
+                fixed += 1
+            else:
+                still += 1
+    print(f"schema: backfilled {fixed}, {still} still incomplete")
+    return 0
 
 
 if __name__ == "__main__":

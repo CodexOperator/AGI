@@ -302,6 +302,10 @@ class NodeWrite:
     path: Path | None = None
     gate: "spawn_gate.SpawnResult | None" = None
     reason: str = ""
+    #: goal:s31 -- schema-required fields this write could not supply. Empty
+    #: is the healthy value; a non-empty list is a node that is valid-shaped
+    #: but incomplete, and the caller is told rather than left to find out.
+    missing_required: list = field(default_factory=list)
 
     @property
     def written(self) -> bool:
@@ -442,6 +446,20 @@ def write_node(
         "scaffold_hash": scaffold_hash(scaffold_body),
     }
     fm.update(extra_fm or {})
+    # goal:s31 -- fill what the schema requires and this routine can derive,
+    # BEFORE the file is written, so a scaffold is born valid rather than
+    # waiting for a parent to notice. Safe because `scaffold_hash` hashes the
+    # BODY: seeding frontmatter cannot move it, so completion detection is
+    # untouched. Anything still missing is named on stderr -- the goal's third
+    # candidate shape, which fixes nothing by itself but converts a silent
+    # defect into a visible one.
+    still_missing = seed_required(root, ntype, fm, slug)
+    if still_missing and announce:
+        print(f"SCHEMA-WARNING {node_id} scaffolded without "
+              f"{', '.join(sorted(still_missing))} — required by "
+              f"[{ntype}].md and not derivable at scaffold time (goal:s31)",
+              file=sys.stderr)
+    res.missing_required = list(still_missing)
     spawn_gate.stamp(fm, gate)
 
     text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + scaffold_body
@@ -584,28 +602,214 @@ def update_node(
     return res
 
 
+# ---------------------------------------------------------------------------
+# goal:s31 -- a scaffolded node ships schema-invalid.
+#
+# `[hypothesis].md` declares `required: [id, type, mint_id, title,
+# testable_claim]`. `write_node` seeded neither `title` nor `testable_claim`,
+# and the kid that holds the content is CORRECTLY forbidden from touching
+# frontmatter. So the field was required, the writer did not supply it, and the
+# one agent who could was told not to: **the node could not become valid by
+# anyone doing their job as briefed.** Every hypothesis this loop ever
+# scaffolded was born violating its own schema, silently.
+#
+# The goal names the trap in the obvious fix: do NOT solve this by telling kids
+# to write frontmatter. That re-opens the `scaffold_hash` hazard and trades a
+# silent invalid node for a silently broken completion check.
+#
+# What is safe, and is what this does: **`scaffold_hash` hashes the BODY**, so
+# seeding frontmatter cannot affect completion detection at all. Two of the
+# goal's three candidate shapes, together:
+#
+#   1. Seed at scaffold time what can be DERIVED (`title` from the slug -- a
+#      real, human-readable value, never a placeholder; the `[experiment]`
+#      schema already warns that declaring a field nothing writes invites
+#      someone to write `TODO(model)` into it).
+#   2. Validate `required` at write time and say what is still missing, so a
+#      field nothing can derive becomes a visible defect rather than a silent
+#      one.
+#
+# And the whole thing reads the schema through `schema_registry`, not through a
+# hand-kept list -- the goal's own objection to patching this was that it would
+# add "one more caller that agrees with the schema by convention".
+# ---------------------------------------------------------------------------
+
+#: Fields this module knows how to derive without a model. Everything else
+#: required-but-absent is reported, never invented.
+def _derive_title(slug: str) -> str:
+    """A human-readable title from a slug. A real value, not a placeholder.
+
+    `title` is what every human-facing renderer keys on -- `snapshot-goals.py`,
+    `dashboard.py`, the injected map. A corpus of untitled nodes renders as a
+    wall of opaque ids, which is `goal:g9`'s complaint arriving from a
+    direction G9 never looked.
+    """
+    words = str(slug).replace("_", "-").split("-")
+    words = [w for w in words if w]
+    if not words:
+        return str(slug)
+    return " ".join([words[0].capitalize(), *words[1:]])
+
+
+def required_fields(root, node_type) -> list[str]:
+    """The type's `validation.required` list, read from the schema registry.
+
+    Through the registry rather than a local table, because `goal:s31`'s whole
+    objection to a local patch is that it would be one more caller agreeing
+    with the schema by convention instead of reading it.
+    """
+    try:
+        from schema_registry import load_schemas_from_dir, parse_rules
+    except Exception:
+        return []
+    try:
+        reg = load_schemas_from_dir(Path(root) / "context" / "schemas")
+        schema = reg.get(canonical_node_type(node_type))
+        if schema is None:
+            return []
+        return list(parse_rules(schema.frontmatter).get("required") or [])
+    except Exception:
+        return []
+
+
+def missing_required(root, node_type, fm, node_id="") -> list[str]:
+    """Which required fields this frontmatter is actually missing.
+
+    Delegates to `schema_registry.validate` rather than testing truthiness,
+    because the registry's rule is `None` or an empty STRING -- and an empty
+    LIST is present and legal. A first version here used `not fm.get(k)` and
+    reported 86 goal nodes as invalid for carrying `seeds: []`, which is
+    exactly what a goal with no seeds is supposed to carry.
+
+    That mistake is `goal:s31`'s own thesis turned on its author: the objection
+    to patching this locally was that a local patch "agrees with the schema by
+    convention" instead of reading it, and a hand-rolled emptiness test is that
+    disagreement in miniature.
+    """
+    required = required_fields(root, node_type)
+    if not required:
+        return []
+    try:
+        from schema_registry import validate
+        errors = validate(str(node_id or fm.get("id") or ""),
+                          canonical_node_type(node_type), fm,
+                          {"required": required})
+        return [e.field for e in errors]
+    except Exception:
+        return [k for k in required
+                if fm.get(k) is None
+                or (isinstance(fm.get(k), str) and not fm[k].strip())]
+
+
+def seed_required(root, node_type, fm, slug) -> list[str]:
+    """Fill what can be derived; return what is still missing.
+
+    Mutates `fm` in place. Only ever ADDS a field that is absent or empty --
+    a value already present is never overwritten, because a caller that
+    supplied one knows more than a derivation does.
+    """
+    for name in list(missing_required(root, node_type, fm)):
+        if name == "title":
+            fm["title"] = _derive_title(slug)
+    return missing_required(root, node_type, fm)
+
+
 def _schema_problem(root, node_type, fm, announce=False) -> str | None:
     """Why this frontmatter is not a legal `node_type`, or None.
 
-    Checks only what an UPDATE can break -- the type's `validation.required`
-    keys. The spawn gate is deliberately not re-run: it decides whether a node
-    may be CREATED with these parents, and re-litigating that on every field
-    edit would make the 216 grandfathered build nodes unwritable
-    (`goal:s29`).
+    Checks the type's `validation.required` keys and nothing else. The spawn
+    gate is deliberately not re-run: it decides whether a node may be CREATED
+    with these parents, and re-litigating that on every field edit would make
+    the 216 grandfathered build nodes unwritable (`goal:s29`).
     """
-    try:
-        rules, _index = spawn_gate.gate_for_root(root)
-    except Exception:
-        return None
-    if announce:
-        spawn_gate.announce_schema_errors(rules)
-    rule = (rules or {}).get(node_type) if isinstance(rules, dict) else None
-    required = []
-    if isinstance(rule, dict):
-        required = ((rule.get("validation") or {}).get("required")
-                    or rule.get("required") or [])
-    missing = [k for k in required if not fm.get(k)]
+    missing = missing_required(root, node_type, fm)
     if missing:
         return (f"{node_type} requires {', '.join(sorted(missing))}; an update "
                 f"may not leave a node schema-invalid")
     return None
+
+
+#: Headings a body may use to state a schema-required field, lowercased.
+#: `testable_claim` is the one `[hypothesis].md` requires and no scaffold can
+#: derive -- the kid holds that content and writes it into the body, which is
+#: exactly where a kid is supposed to write.
+_BODY_SECTIONS = {
+    "testable_claim": ("testable claim", "claim"),
+    "title": ("title",),
+}
+
+
+def _section_text(body: str, headings: tuple[str, ...]) -> str | None:
+    """The first paragraph under any of `headings`, or None.
+
+    Markdown-heading driven rather than regex-over-the-whole-body, because a
+    body is prose and the heading is the only structural promise a brief
+    actually makes to a kid.
+    """
+    lines = (body or "").splitlines()
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith("#"):
+            continue
+        title = stripped.lstrip("#").strip().lower().rstrip(":")
+        if title not in headings:
+            continue
+        para: list[str] = []
+        for follow in lines[i + 1:]:
+            if follow.strip().startswith("#"):
+                break
+            if not follow.strip():
+                if para:
+                    break
+                continue
+            para.append(follow.strip())
+        if para:
+            return " ".join(para)
+    return None
+
+
+def derive_required_from_body(root, node_id, announce=False) -> NodeWrite:
+    """Fill schema-required fields from the body a kid just wrote (`goal:s31`).
+
+    The completion half of the fix. A scaffold is born with everything this
+    engine can derive from a slug; **the rest is content only the kid has**,
+    and the kid writes it into the body because a kid writing frontmatter is
+    the trade `goal:s31` explicitly forbids -- it would swap a silent invalid
+    node for a silently broken completion check.
+
+    So the kid writes prose under the heading its brief asked for, and this
+    lifts it into the field the schema requires, through `update_node` and
+    therefore through the gate. Nothing is invented: a field with no matching
+    section stays missing and stays reported.
+    """
+    root = Path(root)
+    path = find_node_file(root, node_id)
+    if path is None:
+        res = NodeWrite(node_id=str(node_id), status=REJECTED,
+                        reason=f"no node file for {node_id}")
+        return res
+
+    from graph_core.persistence import frontmatter as fm_reader
+    try:
+        nf = fm_reader.load_node_file(path)
+    except Exception as exc:
+        return NodeWrite(node_id=str(node_id), status=REJECTED, path=path,
+                         reason=f"{node_id} could not be parsed: {exc}")
+
+    ntype = canonical_node_type(nf.frontmatter.get("type") or path.parent.name)
+    set_fm = {}
+    for name in missing_required(root, ntype, nf.frontmatter, node_id):
+        text = _section_text(nf.body, _BODY_SECTIONS.get(name, ()))
+        if text:
+            set_fm[name] = text
+        elif name == "title":
+            # The same derivation a new scaffold gets, applied to a node that
+            # predates it. Still a real value from the node's own address, not
+            # a placeholder -- and `title` is the field every human-facing
+            # renderer keys on, so an absent one degrades the human view and
+            # the agent view together (`goal:g9.7`).
+            set_fm["title"] = _derive_title(path.stem)
+    if not set_fm:
+        return NodeWrite(node_id=str(node_id), status=UNCHANGED, path=path,
+                         node_type=ntype, reason="nothing derivable from the body")
+    return update_node(root, node_id, set_fm=set_fm, announce=announce)

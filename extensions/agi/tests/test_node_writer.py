@@ -464,3 +464,122 @@ def test_cli_scaffold_still_writes_through_the_shared_routine(project):
     assert "type: vision" in text
     rec = json.loads((ad / "agent.json").read_text())
     assert rec["scaffolded_node"] == "vision:ap"
+
+
+# ---------------------------------------------------------------------------
+# goal:s31 — a scaffolded node ships schema-invalid.
+#
+# `[hypothesis].md` requires title + testable_claim; write_node seeded neither;
+# the kid holding the content is CORRECTLY forbidden from touching frontmatter.
+# The node could not become valid by anyone doing their job as briefed.
+#
+# The fix must not buy validity with the completion check — `scaffold_hash`
+# hashes the BODY, which is what makes seeding frontmatter safe at all, and
+# `test_seeding_required_fields_does_not_move_the_scaffold_hash` is the clause
+# of s31's falsifier that says so.
+# ---------------------------------------------------------------------------
+
+import sys as _sys                                              # noqa: E402
+from pathlib import Path as _Path                               # noqa: E402
+
+_sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "src"))
+
+import node_writer as _nw                                       # noqa: E402
+
+
+def _schema_project(tmp_path, required):
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    schemas = graph / "context" / "schemas"
+    schemas.mkdir(parents=True)
+    (schemas / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nvalidation:\n  required: ["
+        + ", ".join(required) + "]\nspawn:\n  allowed_parents: [goal]\n"
+        "  min_parents: 1\n  max_parents: 2\n---\n\nbody\n")
+    return graph
+
+
+def test_required_fields_are_read_from_the_registry_not_a_local_table(tmp_path):
+    """s31's own objection to a local patch: it would be one more caller
+    agreeing with the schema by convention instead of reading it."""
+    graph = _schema_project(tmp_path, ["id", "type", "mint_id", "title",
+                                       "testable_claim"])
+    assert _nw.required_fields(graph, "hypothesis") == [
+        "id", "type", "mint_id", "title", "testable_claim"]
+
+
+def test_a_scaffold_is_born_with_a_real_title_not_a_placeholder(tmp_path):
+    """`title` is what every human-facing renderer keys on. A placeholder
+    would be the `TODO(model)` shape the [experiment] schema warns about."""
+    graph = _schema_project(tmp_path, ["id", "type", "mint_id", "title"])
+    res = _nw.write_node(graph, "hypothesis", "shared-lease-bounds-the-tree",
+                         parents=["goal:g1"], announce=False)
+    assert res.status == _nw.WRITTEN
+    text = res.path.read_text()
+    assert "title: Shared lease bounds the tree" in text
+    assert "TODO" not in text
+
+
+def test_a_field_that_cannot_be_derived_is_reported_not_invented(tmp_path, capsys):
+    graph = _schema_project(tmp_path, ["id", "type", "mint_id", "title",
+                                       "testable_claim"])
+    res = _nw.write_node(graph, "hypothesis", "some-claim", parents=["goal:g1"],
+                         announce=True)
+    assert res.missing_required == ["testable_claim"]
+    assert "SCHEMA-WARNING" in capsys.readouterr().err
+    assert "testable_claim" not in res.path.read_text(), (
+        "an underivable field must stay absent, never be invented")
+
+
+def test_seeding_required_fields_does_not_move_the_scaffold_hash(tmp_path):
+    """s31's falsifier, second clause: the fix must not buy validity with the
+    completion check. `scaffold_hash` hashes the BODY, so frontmatter cannot
+    move it — asserted rather than assumed."""
+    bare = _schema_project(tmp_path / "bare", ["id", "type", "mint_id"])
+    full = _schema_project(tmp_path / "full", ["id", "type", "mint_id", "title"])
+
+    a = _nw.write_node(bare, "hypothesis", "same-slug", parents=["goal:g1"],
+                       announce=False)
+    b = _nw.write_node(full, "hypothesis", "same-slug", parents=["goal:g1"],
+                       announce=False)
+
+    def _hash_of(path):
+        for line in path.read_text().splitlines():
+            if line.startswith("scaffold_hash:"):
+                return line.split(":", 1)[1].strip()
+        return None
+
+    assert "title:" not in a.path.read_text()
+    assert "title:" in b.path.read_text()
+    assert _hash_of(a.path) == _hash_of(b.path), (
+        "seeding frontmatter moved the scaffold hash — completion detection "
+        "would break, which is the trade s31 forbids")
+
+
+def test_the_completion_half_lifts_a_claim_out_of_the_body(tmp_path):
+    """The kid writes prose under the heading its brief asked for; the write
+    path lifts it into the required field. The kid never touches frontmatter."""
+    graph = _schema_project(tmp_path, ["id", "type", "mint_id", "title",
+                                       "testable_claim"])
+    res = _nw.write_node(graph, "hypothesis", "bounded", parents=["goal:g1"],
+                         announce=False)
+    res.path.write_text(res.path.read_text().replace(
+        "\n# hypothesis:bounded\n",
+        "\n# hypothesis:bounded\n\n### Testable claim\n\n"
+        "The live population never exceeds the declared bound.\n"))
+
+    filled = _nw.derive_required_from_body(graph, "hypothesis:bounded")
+    assert filled.status == _nw.UPDATED
+    assert ("testable_claim: The live population never exceeds the declared bound."
+            in res.path.read_text())
+
+
+def test_the_completion_half_invents_nothing_when_the_section_is_absent(tmp_path):
+    graph = _schema_project(tmp_path, ["id", "type", "mint_id", "title",
+                                       "testable_claim"])
+    _nw.write_node(graph, "hypothesis", "empty", parents=["goal:g1"],
+                   announce=False)
+    filled = _nw.derive_required_from_body(graph, "hypothesis:empty")
+    assert filled.status == _nw.UNCHANGED
+    assert "testable_claim" not in (graph / "nodes/hypothesis/empty.md").read_text()
