@@ -186,3 +186,63 @@ def test_the_live_only_view_hides_nodes_without_mutating_the_graph():
     # the underlying graph is untouched — this is a view, not a removal
     assert g.node_ids == {"idea:a", "build:dead"}
     assert g.edge_count == 1
+
+
+# ------------------------- goal:s27 — a parent's completion is its kids'
+
+
+def _completion():
+    # Plain import: `BIN` is on sys.path, and loading it through
+    # `importlib.util` without registering it in `sys.modules` leaves
+    # `cls.__module__` unresolvable, which breaks `dataclasses` inside
+    # `node_writer` — a real failure this test hit and a good reason to prefer
+    # the ordinary import wherever the module name is importable.
+    import completion
+    return completion
+
+
+def _scaffolded(root: Path, nid: str, filled: bool):
+    """Write a node that is either an untouched scaffold or real work."""
+    c = _completion()
+    d = root / "nodes" / nid.split(":", 1)[0]
+    d.mkdir(parents=True, exist_ok=True)
+    body = c.scaffold_body_for(nid) if not filled else "\n# real work the kid did\n"
+    (d / f"{nid.split(':')[-1]}.md").write_text(
+        f"---\nid: {nid}\ntype: {nid.split(':', 1)[0]}\n---\n{body}")
+
+
+def test_a_parent_is_complete_when_all_its_kids_are(tmp_path):
+    c = _completion()
+    _scaffolded(tmp_path, "experiment:k1", filled=True)
+    _scaffolded(tmp_path, "experiment:k2", filled=True)
+    assert c.owns_all_complete(tmp_path, ["experiment:k1", "experiment:k2"])
+
+
+def test_a_parent_is_not_complete_while_one_kid_is_unfilled(tmp_path):
+    c = _completion()
+    _scaffolded(tmp_path, "experiment:k1", filled=True)
+    _scaffolded(tmp_path, "experiment:k2", filled=False)
+    assert not c.owns_all_complete(tmp_path, ["experiment:k1", "experiment:k2"])
+
+
+def test_owning_nothing_is_not_complete(tmp_path):
+    """A parent that spawned nothing did not finish its loop, it failed to
+    start one. Returning True here would make the most common parent failure
+    indistinguishable from success — the shape that hid the dropped-verdict
+    bug for the whole life of the pi runtime."""
+    c = _completion()
+    assert not c.owns_all_complete(tmp_path, [])
+    assert not c.owns_all_complete(tmp_path, None)
+    assert not c.owns_all_complete(tmp_path, ["   "])
+
+
+def test_no_harness_name_reaches_the_parent_completion_path():
+    """`goal:g4.6`'s invariant. Tier is first-class in this engine; a harness
+    name is not. Branching on the first is not what that goal forbids."""
+    import ast
+    src = (BIN / "completion.py").read_text()
+    tree = ast.parse(src)
+    names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+    names |= {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)}
+    for banned in ("pi", "claude", "harness", "pid", "poll"):
+        assert banned not in names, f"{banned!r} leaked into the completion path"

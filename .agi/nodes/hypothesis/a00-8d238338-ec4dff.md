@@ -1,14 +1,15 @@
 ---
-id: hypothesis:a00-8d238338-ec4dff
+confidence: 0.0
+id: "hypothesis:a00-8d238338-ec4dff"
 mint_id: 1bc9bd353ec44374b69b3b30fa9666e0
-type: hypothesis
+next_edges:
+  - experiment:a00-f0fd9669-ce583f
 parents:
   - goal:g4.8
 scaffold_hash: 3ae0dcace5c11e52
+type: hypothesis
 verdict: pending
-confidence: 0.0
 ---
-
 
 # hypothesis:a00-8d238338-ec4dff
 

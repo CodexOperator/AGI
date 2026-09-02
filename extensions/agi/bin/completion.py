@@ -91,6 +91,33 @@ def is_complete(root: Path, node_id: str) -> bool:
             != node_writer.scaffold_hash(scaffold_body_for(node_id)))
 
 
+def owns_all_complete(root: Path, node_ids) -> bool:
+    """True when every node an agent is responsible for is complete. `goal:s27`.
+
+    **A parent's completion is its kids' completion, propagated.** The owner's
+    framing, and it is better than the alternatives it replaced: a parent is
+    not nodeless, it is responsible for its children's nodes the way a real
+    parent is responsible for its children rather than for some separate
+    object of its own.
+
+    That keeps completion a **graph event** on the same terms as
+    `is_complete` — every id here is checked by the same predicate, with no
+    pid, no `agent.json` and no harness name anywhere in the decision. Tier is
+    a first-class concept in this engine; a harness name is not. Branching on
+    the first is not the thing `goal:g4.6` forbids.
+
+    **Empty is not complete.** A parent that spawned nothing and reviewed
+    nothing has not finished its loop — it failed to start one. Returning True
+    for an empty list would make the most common parent failure mode
+    indistinguishable from success, which is exactly the shape of defect that
+    hid the dropped-verdict bug for the whole life of the pi runtime.
+    """
+    ids = [n for n in (node_ids or []) if isinstance(n, str) and n.strip()]
+    if not ids:
+        return False
+    return all(is_complete(root, n.strip()) for n in ids)
+
+
 if __name__ == "__main__":
     # `completion.py <project_root> <node_id>` -> 0 complete, 1 not, 2 no node
     import locations

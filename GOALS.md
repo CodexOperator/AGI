@@ -6733,7 +6733,7 @@ complete every subgoal, re-render: the warning is gone. Then mark a
 **short-term** goal `complete` with no subgoals at all — no warning, because
 the rule is about roots with live children and nothing else.
 
-## S27 — Dispatch scaffolds an authored node for every tier, including the one that must not author — status: horizon
+## S27 — Dispatch scaffolds an authored node for every tier, including the one that must not author — status: complete
 
 **Found by the parent itself, in its `struggles:` line, on the first
 parent-tier run this project ever completed (2026-09-02).** Quoted verbatim,
@@ -6785,6 +6785,67 @@ carrying `type: hypothesis`.
 belongs to the owner, and this goal exists to put it in front of them rather
 than to have it made silently by whoever next runs a parent.
 
+## Decided and built 2026-09-02 — and the owner's framing beat all three options
+
+**None of the three candidates was right, because all three asked the wrong
+question.** They asked what object a parent authors. The owner's answer:
+
+> Parents aren't nodeless, they are directly responsible for their kids' nodes
+> just like real parents.
+
+**A parent's artefact IS its kids' nodes.** That dissolves the problem instead
+of trading it: no new type, no second completion shape, no lost provenance, and
+the metric artefact disappears because nothing is authored to land in the
+denominator.
+
+**Completion follows from it and stays a graph event.** A kid fills its
+scaffold and runs `cli.py done`; the parent propagates once every kid is
+finished. `completion.owns_all_complete(root, ids)` is `is_complete` applied to
+each id — no pid, no `agent.json`, no harness name in the decision. Tier is
+first-class in this engine and a harness name is not, so branching on the
+former is not what `goal:g4.6` forbids. **Owning nothing is not complete**: a
+parent that spawned nothing failed to start its loop, and returning True there
+would make the commonest parent failure indistinguishable from success — the
+exact shape that hid the dropped-verdict bug for the whole life of the pi
+runtime.
+
+Five changes: `dispatch.py` skips the scaffold at `tier == "parent"`;
+`cli.py done` takes `--owns <node-id> ...` instead of `--node-id`;
+`completion.owns_all_complete`; `post_wire` admits a parent by its kids and
+wires nothing for it; `brief.py` tells the parent all of this.
+
+## 🔴 The caveat this must not lose: review prose is parked, not homed
+
+**Where a parent's review goes today: the kid node's `THOUGHT` block.** That is
+honest rather than a workaround — a parent's edit to a kid's node *is* a new
+version of it, and a thought is by definition the reasoning behind a version.
+The parent may fill or refine body and thought on the nodes it owns.
+
+**It is a stopgap and the brief says so in the brief itself**, so the
+compression is never mistaken for the design. The owner's requirement, recorded
+verbatim in intent:
+
+> once we have webhooks and custom session recording ... the review prose can
+> go somewhere. It would go in the higher-LOD view for a given node ... with
+> the webhooks and session ID'd API calls it would be trivial to attach
+> appropriate kid and parent sessions and even turns to appropriate nodes.
+> Least adaptation.
+
+So the destination is **`goal:g2.7`** (the finest zoom is the chat that
+produced the version) and **`goal:g10.1`** (chats are thoughts, so chats are
+nodes), surfaced through **`goal:g10.2`**'s LOD axis. `thought_session:` is
+already reserved in frontmatter for exactly this and nothing writes it yet.
+
+**Two sub-thought fields — one kid, one parent — were considered and
+rejected by the owner** as "wasted context details". The reasoning holds
+independently: session linking attaches *turns* to versions, at which point a
+hand-split field is a coarser copy of something the graph already knows
+precisely. Splitting now would build the thing session linking makes redundant.
+
+**Until then, settle for the parent's report plus the node thought blocks.**
+That is the whole interim contract, stated so the next reader knows it is a
+floor and not a ceiling.
+
 ## Falsifier
 
 Spawn a parent. It completes without authoring anything typed `hypothesis`,
@@ -6792,3 +6853,73 @@ Spawn a parent. It completes without authoring anything typed `hypothesis`,
 the run; and the parent's review is still recoverable from the graph
 afterwards. All three, or the fix has traded a metric artefact for lost
 provenance.
+
+**Status: first two clauses satisfied in code and under test** (no scaffold at
+`tier == "parent"`, nothing authored, so nothing reaches the denominator).
+**The third is satisfied only by convention** — the brief instructs the parent
+to write into its kids' `THOUGHT` blocks, and nothing enforces that it did. A
+parent that reviews silently loses its reasoning, and no test can currently
+tell that from a parent that had nothing to say. That gap closes with session
+linking, not before, and it is the honest reason this goal ships `complete`
+with a named residual rather than pretending the third clause is mechanical.
+
+## S28 — A parent erases itself from the iteration manifest by spawning a kid — status: active
+
+**Found by the parent, in its `struggles:` line, on the second parent-tier run
+(2026-09-02). Third time this session that field beat the review it came
+attached to.** Quoted verbatim:
+
+> dispatch.py rewrites the whole iter manifest each call, so spawning my kid
+> dropped my own parent entry from manifest.json — the system tracked only the
+> kid, not me; I closed my session by hand via cli.py done instead
+
+Confirmed in one command. After a parent spawned one kid:
+
+```
+agents in manifest: ['a00-f0fd9669/kid']      # the parent is gone
+```
+
+`dispatch.py:329` writes `manifest.json` **wholesale** from the agents of that
+one invocation. It was written when a dispatch was the only dispatch in an
+iteration. A parent shelling out to `dispatch.py --tier kid` is a *second*
+dispatch into the *same* iteration directory, and the second write clobbers the
+first.
+
+## 🔴 It makes `goal:s27`'s completion path unreachable
+
+This is the part that matters and it is not cosmetic. `post_wire` iterates
+`manifest["agents"]`. The parent-admission branch added for `goal:s27` —
+
+```python
+if not finished and not node_id and completion.owns_all_complete(root, owns):
+```
+
+— is **correct and never runs**, because the parent is no longer in the list
+`post_wire` is iterating. `owns` is written faithfully to the parent's own
+`agent.json` (verified: `owns=['experiment:a00-f0fd9669-ce583f']`) and nothing
+reads it. **A parent's completion is currently recorded and discarded**, which
+is precisely the four-hop marshalling failure that dropped every pi verdict for
+the life of the pi runtime — same shape, one tier up.
+
+`heal.py` is affected the same way: it cannot monitor, time out or restart an
+agent that is not in the manifest.
+
+## What the fix has to be, and the constraint it must respect
+
+**Merge, do not overwrite.** A dispatch into an existing iteration directory
+must union its agents into the manifest rather than replace them, keyed by
+agent id so a re-dispatch of the same agent updates rather than duplicates.
+
+**The constraint:** two dispatches can race. A parent may spawn kids while
+another dispatch is writing, so read-modify-write needs to be atomic — write to
+a temp file and rename, at minimum. This is `goal:g4.1`'s territory (parallel
+kids share one working tree) arriving one level up, and it is the first
+concrete instance of it that is not hypothetical.
+
+## Falsifier
+
+Spawn a parent; have it spawn two kids; assert the manifest contains **three**
+agents with the parent's `tier: parent` entry intact. Then run `post_wire` and
+assert the parent is admitted via `owns_all_complete` — the branch executing at
+all is the real test, since today it cannot. Finally, spawn two kids
+concurrently from one parent and assert no agent entry is lost.

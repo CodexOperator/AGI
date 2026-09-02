@@ -244,9 +244,23 @@ def main() -> int:
             return 1
 
         # Scaffold a node file before agent starts — agent fills body only
-        scaffold_info = _scaffold_node_for_agent(root, args.iter_n, agent_id, level, target, role)
-        if scaffold_info:
-            print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
+        # goal:s27 -- a parent authors nothing of its own. Its artefact is the
+        # kids' nodes it is responsible for, the way a real parent is
+        # responsible for its children rather than for a separate object.
+        # Scaffolding used to run for EVERY tier, so a parent briefed "you do
+        # not write the node yourself" had to author a `hypothesis` anyway to
+        # pass `cli.py done` -- and that report then counted in
+        # `scoring_hypothesis_count`, so running a parent LOWERED
+        # `outcome_coverage` (measured 0.284 -> 0.280 on the first parent run).
+        if args.tier == "parent":
+            scaffold_info = None
+            print("tier=parent: no scaffold — a parent's artefact is its kids' "
+                  "nodes (goal:s27)")
+        else:
+            scaffold_info = _scaffold_node_for_agent(
+                root, args.iter_n, agent_id, level, target, role)
+            if scaffold_info:
+                print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
 
         # Spawn pi (detached). Output -> sess_dir/output.log
         try:

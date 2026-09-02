@@ -134,3 +134,35 @@ def test_the_adapter_holds_no_brief_text_of_its_own():
     for phrase in ("fill in the scaffolded", "Your job:", "--tier kid",
                    "Begin iteration"):
         assert phrase not in src, f"brief content leaked back into the adapter: {phrase!r}"
+
+
+# ---------------------------------- goal:s27 — a parent's artefact is its kids
+
+
+def test_parent_signals_done_with_owns_not_node_id():
+    """The owner's reframing: a parent is not nodeless, it is responsible for
+    its children's nodes. So its completion is theirs, propagated."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "--owns" in parent
+    assert "--node-id" not in parent.replace("`--owns`, NOT `--node-id`", "")
+
+
+def test_parent_brief_sends_review_prose_to_the_kids_thought_block():
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "THOUGHT:BEGIN" in parent
+    assert "never append" in parent.lower()
+    assert "absent means empty" in parent.lower()
+
+
+def test_parent_brief_names_the_thought_stopgap_as_temporary():
+    """Recorded in the brief on purpose, so the compression is not mistaken
+    for the design: session linking is where a full review belongs."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "goal:g2.7" in parent and "goal:g10.1" in parent
+    assert "stopgap" in parent.lower()
+
+
+def test_kid_brief_is_untouched_by_the_parent_artefact_change():
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "--owns" not in kid
+    assert "--node-id experiment:x" in kid
