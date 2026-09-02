@@ -7,14 +7,14 @@ session only and the next director replaces it wholesale.
 
 | | baseline (session start) | now |
 |---|---|---|
-| active nodes | 893 | **897** |
+| active nodes | 893 | **903** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.266 | 0.264 |
-| `evidence_fraction` | 0.250 | **0.262** |
-| `decisive_evidence_fraction` | 0.955 | **0.958** |
+| `outcome_coverage` (primary) | 0.266 | 0.260 |
+| `evidence_fraction` | 0.250 | **0.286** |
+| `decisive_evidence_fraction` | 0.955 | **0.964** |
 | unevidenced decisive | 1 | 1 |
 | goals active / horizon / complete | 12 / 62 / 34 | **13** / 62 / 34 |
-| tests | 1250 | **1267** |
+| tests | 1250 | **1295** |
 | goals | 110 | **111** |
 | unpushed | 0 | 0 |
 
@@ -47,12 +47,12 @@ direction and displaced `write.py` from the front of the queue.
 - [x] **Phase 0** — G13's three answers into the graph; pushed.
 - [x] **iter-107** — `goal:g4.8` item 3: a concurrency bound that survives a
       tier. Built, measured, pushed. **Cap now 25 tree-wide** (owner's call).
-- [ ] **iter-108 (next)** — `goal:g1.11`, a fresh credit-capped provider key
-      per spawn. Minted this session at the owner's direction and moved to the
-      front of the queue. **Buildable now: the loop must run with the key
-      absent, so nothing waits on the owner.**
-- [ ] **iter-109** — `write.py`, `goal:g13`'s write half.
-- [ ] **iter-110** — `goal:s31`, first defect fixed *through* the new write path.
+- [x] **iter-108** — `goal:g1.11`, per-spawn credentials. Built, measured
+      against the live API, verified end to end. Key is IN and working.
+- [x] **iter-109** — `write.py` + `node_writer.update_node`, `goal:g13`'s
+      write half. Plus **iter-109b**, a self-correction (see §4).
+- [ ] **iter-110 (next)** — `goal:s31`, first defect fixed *through* the new
+      write path.
 - [ ] **iter-111** — `goal:g1.10`, `.geometry/commands.md`.
 - [ ] **iter-112–113** — `goal:g13.1`, edit mode.
 - [ ] **iter-114** — `goal:g4.7`, wire `restart()`.
@@ -145,26 +145,81 @@ Inspect the live population any time:
 python3 extensions/agi/bin/spawn_budget.py status
 ```
 
+### ✅ iter-108 — `goal:g1.11`, one minted key per spawn
+
+Every agent inherited one long-lived `OPENROUTER_API_KEY` and that key was the
+whole balance. Now a spawn gets a key that did not exist before it and does not
+outlive it, with **three independent limits because a cleanup step is not a
+safety property**: a credit cap ($0.25), a TTL (60 min), and revocation when
+the lease is reclaimed. A director killed mid-loop leaks keys that expire on
+their own.
+
+The credential hangs on `spawn_budget`'s lease — already per-agent, already
+reclaimed by liveness — so **reclaiming the slot and revoking the key are one
+event**. Only the hash is stored; the secret goes to the child env and nowhere
+else.
+
+**Measured against the live API:** mint 0.760s mean / 0.859s max (10 serial);
+**10 concurrent mints in 0.919s wall**; 20 concurrent revokes in 2.781s; 30/30
+ok, 0 leaked. That settled the banked granularity question — **per spawn**,
+because batching is a cost optimisation and the cost is 0.06% of the 20-minute
+timeout it gates, and per-slot cannot answer "which agent" since a slot
+outlives the agents in it.
+
+**Live end-to-end** (stub harness, `--tier parent` so nothing entered the
+graph): key minted as `agi-iter908-parent-a00-245fe1f5`, injected as
+`OPENROUTER_API_KEY`, **provisioning key absent from the child's environment
+read out of the process itself**, hash on the lease, auto-revoked when the
+agent died, no `sk-or-` string anywhere on disk.
+
+```bash
+python3 extensions/agi/bin/provisioning.py status
+python3 extensions/agi/bin/provisioning.py reap        # dry run; --yes to act
+```
+
+### ✅ iter-109 — `goal:g13`'s write half
+
+`goal:g13` names five operations. **Edit-in-place had no routine**, so every
+fix and retag in this project's history was a hand edit — `goal:g13.1`'s
+"completely stray and untraceable commit". `node_writer.update_node` is that
+routine, and it **cannot destroy the authored `THOUGHT` region** —
+`goal:g2.10` made impossible rather than discouraged. Tested by replacing
+bodies outright.
+
+`bin/write.py` is the link layer: `link_ref` generalises `payload_ref`, `self`
+means the body is its own data, a single read of a missing link **raises**, a
+bulk scan returns a **typed sentinel** and counts it in `broken_links`.
+
+```
+links: 905 resolved, 0 broken
+  declared 0 · payload_ref 220 · defaulted 685
+```
+
+🔵 **`declared: 0` — the corpus is NOT migrated.** The resolver distinguishes a
+declared `self` from a defaulted one exactly so that stays checkable. A node
+body is still a payload, not a marker; this built the mechanism a marker would
+need.
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-Phase 0, iter-107 and `goal:g1.11`'s groundwork are committed,
-grid-versioned, pushed, green at 1267 tests.
+Phase 0 and iterations 107, 108, 109, 109b are committed, grid-versioned,
+pushed, green at 1295 tests.
 
-**Next is iter-108: `goal:g1.11`** — the minting module. It is buildable with
-no provisioning key present, because "the loop still runs with the key absent"
-is one of the goal's own falsifier clauses. Start with `envfile.py`'s reader
-(never `os.environ` directly) and wire issuance to `spawn_budget`'s lease, on
-the argument that a lease and a key are the same object at two layers.
+**Next is iter-110: `goal:s31`** — a scaffolded node ships schema-invalid.
+`[hypothesis].md` requires `title` + `testable_claim`; `node_writer` seeds
+neither; the kid is *correctly* forbidden from touching frontmatter. **The node
+cannot become valid by anyone doing their job as briefed.** It is now fixable
+*through* `update_node` rather than by hand, which makes it the write half's
+first real consumer.
 
-**Then iter-109: `write.py`**, `goal:g13`'s write half — the thing `goal:s31`,
-`goal:g1.10` and `goal:g13.1` all wait on, with its three design inputs now
-settled in the goal node (see §2). `node_writer.write_node` is the starting
-point, and `scaffold_hash` hashes the BODY not the frontmatter, so seeding
-schema-required fields cannot break completion detection.
+The constraint that makes the fix safe is already measured: **`scaffold_hash`
+hashes the BODY, not the frontmatter**, so seeding schema-required fields
+cannot break completion detection.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/envfile.py --check    # is the provisioning key in yet?
+python3 -m pytest extensions/agi/tests/ -q          # 1295 green
+python3 extensions/agi/bin/write.py links           # 905 resolved, 0 broken
 ```
 
 ## §4 Traps hit this session
@@ -178,7 +233,17 @@ python3 extensions/agi/bin/envfile.py --check    # is the provisioning key in ye
    commit body (`kept out of  so nothing that polls...`). Not amended — force-
    pushing `master` to fix one word is worse than the word. **Use `-F -` with a
    heredoc for any message containing backticks.**
-3. **A test asserting a brief's wording is a test of the design, and it broke
+3. 🔴 **A `grep` proved the wrong thing, and I published the wrong claim
+   before checking it.** The iter-109 experiment node said *"there is no
+   `type == goal` branch in `write.py` — `grep` confirms the string does not
+   appear"*. Running it returns **1**: the phrase is in the module docstring,
+   stating the invariant it was meant to verify. **The invariant held; the
+   evidence did not.** Same class as trap 1 — the tool answered a different
+   question and the answer looked like the one wanted. Replaced with an `ast`
+   test that excludes string constants. Corrected in iter-109b rather than
+   quietly repaired, because a wrong evidence line silently fixed is the exact
+   shape the evidence gate exists to prevent.
+4. **A test asserting a brief's wording is a test of the design, and it broke
    correctly.** `test_parent_brief_carries_the_grandchild_bound` asserted the
    string `"does not bound"`. Its own docstring said the brief was *not
    sufficient* and that `goal:g4.8` owned enforcing it at the spawn site — so
