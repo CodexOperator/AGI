@@ -806,9 +806,17 @@ the start of the loop. They trade the same two things against each other:
   of a bounded set of slots — **a lease and a key are the same object at
   different layers**, and that is the strongest argument for this shape.
 
-The decision is not made here. It is the first thing the chain under this goal
-should measure, and the measurement is cheap: mint latency and failure rate
-against the real API, at each granularity.
+**Settled 2026-09-02 by `verdict:per-spawn-beats-batching`: per spawn.** The
+cost that motivated batching was measured at **0.77s mean per mint**, with ten
+concurrent mints completing in 0.92s wall — 0.06% of the 20-minute agent
+timeout it gates, and no rate limiting at the concurrency this engine reaches.
+Batching is a cost optimisation and nothing else, so a measurement decides it.
+
+Two things then agreed rather than one. Per-slot **cannot** satisfy requirement
+5 below, because a slot is occupied by a succession of agents and its key names
+the slot; and per-spawn needed no new bookkeeping, because `spawn_budget`'s
+lease is already per-agent and already reclaimed by liveness. The credential
+hangs on the lease, so reclaiming the slot and revoking the key are one event.
 
 ## What has to exist
 

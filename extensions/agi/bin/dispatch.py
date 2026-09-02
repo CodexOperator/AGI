@@ -43,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
+import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
@@ -66,6 +67,11 @@ ENV_VARS_TO_SCRUB = (
     "CLAUDE_CODE_DISABLE_CRON",
     "CLAUDE_AGENT_SDK_VERSION",
     "CLAUDECODE",
+    # goal:g1.11 -- the key that MINTS keys is never handed to a child. A kid
+    # holding it could mint uncapped keys or revoke the ones the run depends
+    # on, which is strictly worse than the subscription leak the names above
+    # close. Same mechanism, one more name.
+    provisioning.PROVISIONING_KEY_VAR,
 )
 
 
@@ -290,6 +296,15 @@ def main() -> int:
     # invocation's slot count; `cap` is the whole tree's live population, and
     # a parent's own dispatch hits the same leases this one does.
     cap = spawn_budget.max_live(cfg)
+    # goal:g1.11 -- per-spawn credentials, when this project can issue them.
+    # Absence is a supported state: with no provisioning key every agent
+    # inherits the shared runtime key exactly as before, and nothing here
+    # changes shape.
+    cred_limit, cred_ttl = provisioning.settings(cfg)
+    issuing = provisioning.available(root)
+    if issuing:
+        print(f"credentials: minting per spawn, limit=${cred_limit} "
+              f"ttl={cred_ttl}min")
     big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
@@ -439,6 +454,30 @@ def main() -> int:
                 max_live=cap,
             )
             spawn_env = adapter.child_env(harness=harness, base=scrubbed_env())
+            # goal:g1.11 -- mint AFTER the brief is assembled and BEFORE the
+            # process exists, so a key is never issued for a slot that then
+            # fails to spawn for some other reason. The secret goes into the
+            # child environment and nowhere else: not the lease, not the
+            # manifest, not the log. Only the hash is recorded, and it is
+            # recorded on the lease, because the lease's liveness is already
+            # what governs the slot -- so reclaiming the slot and revoking the
+            # key are one event rather than two that can disagree.
+            if issuing:
+                minted = provisioning.mint(
+                    iter_n=args.iter_n, agent_id=agent_id, tier=args.tier,
+                    limit_usd=cred_limit, ttl_minutes=cred_ttl, root=root)
+                if minted is not None:
+                    spawn_env[provisioning.RUNTIME_KEY_VAR] = minted.secret
+                    spawn_budget.attach_credential(lease, minted.key_hash)
+        except provisioning.ProvisioningError as exc:
+            # A mint that FAILS with a provisioning key present is a real
+            # fault, not a reason to quietly fall back to the shared key --
+            # falling back would spend the balance this feature exists to
+            # protect, while reporting success.
+            print(f"ERR: could not mint a credential for {agent_id}: {exc}",
+                  file=sys.stderr)
+            spawn_budget.release(lease)
+            return 1
         except (KeyError, NotImplementedError) as exc:
             # A tier with no model, or a declared-but-unimplemented harness.
             # Both are config errors and both must name what is missing rather
