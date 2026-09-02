@@ -7,6 +7,7 @@ id: "goal:g4.8"
 mint_id: 208dc260a25e43959230e94a54785f05
 next_edges:
   - hypothesis:a00-a54f694b-b20b78
+  - hypothesis:shared-lease-bounds-the-tree
 origin: goals-doc
 parents:
   - goal:g4
@@ -45,11 +46,20 @@ capability behind a horizon.
 2. **Completion as a graph event.** A parent cannot run a loop without knowing
    its kids finished, and today "done" is `heal.py` polling a pid — the pi
    process model wearing a general name. `goal:g4.6`'s fourth falsifier.
-3. **A concurrency bound that survives a tier.** `spawn.parallel` does **not**
-   bound grandchildren (`experiment:a00-763e629b-5c04ad`): a parent's own
-   spawns are a fresh, unbounded population. N parents at M kids each is N×M
-   processes against one working tree, and the limit has to be enforced where
-   spawning happens rather than stated in a brief a parent may ignore.
+3. ~~**A concurrency bound that survives a tier.**~~ **Built, iter-107.**
+   `spawn.parallel` does not bound grandchildren
+   (`experiment:a00-763e629b-5c04ad`), and a parent carefully *enforcing* the
+   number does not either (`experiment:a00-5f927203-8a66a2`, disproved) —
+   because a limit expressed as a number is one each spawner reads its own
+   copy of. `bin/spawn_budget.py` puts it in shared state instead: one lease
+   per live agent, taken under a lock at the spawn site, reclaimed by liveness.
+   A parent gets its kids by running `dispatch.py` again, so **the same
+   admission path entered twice is the whole mechanism** — there is no separate
+   grandchild path to bound. Measured at caps 1/3/5 against five independent
+   spawners opening five slots each: peak equals cap, never exceeds it, where
+   the same rig unbounded peaks at 24 of 25
+   (`verdict:the-bound-is-structural-now`). This closes **falsifier clause 2
+   only**; the other three are untouched.
 4. **Kids that do not collide.** `goal:g4.1` — parallel kids share one working
    tree. Unfixed, and it is the failure this goal multiplies rather than
    introduces.
