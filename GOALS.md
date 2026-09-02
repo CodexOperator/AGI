@@ -6929,8 +6929,9 @@ concurrently from one parent and assert no agent entry is lost.
 **The owner's rule, 2026-09-02.** A build node may be parented **only** by:
 
 ```
-parents: [mvp:<id>]                    a NEW build node, specified by an mvp
-parents: [build:<id>, goal:<id>]       a NEW VERSION of an existing build node
+parents: [mvp:<id>]                 a file specified by an mvp that argued for it
+parents: [build:<id>, goal:<id>]    a file DESCENDED from an existing build node,
+                                    with the goal that motivated the change
 ```
 
 **A goal alone must never mint a build node.** It can motivate a new version of
@@ -6943,10 +6944,27 @@ existing"*, so a goal may extend it — and only it.
 build node with an mvp behind it is a file someone argued for; one without is a
 file someone wrote.
 
-**Why both halves of `[build, goal]`.** The `build` parent says *which* file
-this is a new version of; the `goal` says *why this version differs*, which is
-the one thing a diff cannot tell you. A lone `build` parent is a version with
-no motive.
+**Why both halves of `[build, goal]`.** The `build` parent says *what this
+descends from*; the `goal` says *why it differs*, which is the one thing a diff
+cannot tell you. A lone `build` parent is a change with no motive.
+
+### "Descended from" is wider than "new version of", and that was a correction
+
+**v1 of this goal wrote the second shape up as "a NEW VERSION of an existing
+build node". That was narrower than the owner's rule**, which said only
+*"parented by an MVP node OR (existing build node AND goal node)"* — a
+statement about parentage, not about versioning.
+
+The distinction became load-bearing within two commits. `QUICKSTART.md` was
+**split out of** `HANDOFF.md` on 2026-09-02: a genuinely new node, not a new
+version of the old one, whose content nonetheless came from `build:HANDOFF.md`
+and whose motive is `goal:s30`. Under v1's framing there was no legal shape for
+it — it is not mvp-specified, and it is not a version. Under the owner's rule it
+is obvious: it descends from that build node, and a goal says why.
+
+So `[build, goal]` covers **both** an edit in place (a version, per
+`goal:g6.3`) and a new file derived from an existing one. The gate never needed
+changing; only this description did.
 
 ## It needed a new kind of rule, and that is the interesting part
 
@@ -6996,3 +7014,51 @@ confirm the 216 census-parented build nodes still re-derive unchanged.
 `level3.py` was confirmed by grep to make no call into `node_writer` or
 `spawn_gate`, which is why the change is safe, but a full rescan has not been
 executed since. That is the residual and it is cheap to close.
+
+## S30 — `HANDOFF.md` is replaced each session, so standing content cannot live in it — status: complete
+
+**Two rules, and the second follows from the first by necessity.**
+
+1. **The director replaces `HANDOFF.md`'s session section wholesale**, on their
+   first substantive action — no reading it first, no appending, no asking.
+   The one exception is when the user asks to *check* the handoff, which is a
+   question about the previous session.
+2. **Therefore nothing that is true across sessions may live in it.** Standing
+   instructions inside a file the next director deletes are standing
+   instructions with a countdown on them.
+
+**Replacing is safe here as a measured property of this file, not a general
+licence.** `HANDOFF.md` is `build:HANDOFF.md` with `payload_ref: HANDOFF.md`,
+so `grid.py commit --all` versions the payload alongside the node: at the time
+of writing, **55 versions, and v40 materialises in full** via `grid.py payload
+build:HANDOFF.md --version 40`. Nothing is lost by replacing, so accumulating
+charges every future cold session for superseded state and buys nothing — the
+principle this repo already applies to itself, that git history is the archive
+rather than a to-do list to keep re-adding to.
+
+**The previous rule was the opposite and it was wrong.** "Old sections are
+archive and stay" is accumulate-forever; the file reached **1,723 lines with
+six session sections, five superseded**, in the document every cold session
+opens first.
+
+## What moved, and why it had to
+
+`QUICKSTART.md` — the `bin/*.py` safety rail, cloning and installing on a new
+machine, the one-iteration diagram, the glossary. **Keeping it in `HANDOFF.md`
+became a live hazard the moment replacement became the default:** the first
+director to follow rule 1 correctly would have deleted the install guide along
+with the previous session's state. The split is not tidiness, it is removing a
+trap that the new rule created.
+
+`README.md` pointed at `HANDOFF.md` as *"Start here on a new machine"* and now
+points at `QUICKSTART.md`. `skills/agi/SKILL.md` had no mention of
+`HANDOFF.md` at all, which is part of why the convention drifted far enough to
+need this goal.
+
+## Falsifier
+
+Delete `HANDOFF.md`'s session section and write a new one. Afterwards: a fresh
+session can still bootstrap from zero (`QUICKSTART.md` intact), still knows
+what the project is committed to (`GOALS.md` intact), and can still recover any
+previous session (`grid.py payload build:HANDOFF.md --version N`). If any of
+the three fails, standing content is still leaking into the replaced file.

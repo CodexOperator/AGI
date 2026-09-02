@@ -61,7 +61,8 @@ minus the clone step it doesn't need to take against itself.
 | `.agi/context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
 | `.agi/config.json` | Project marker + loop tuning. Its presence is what makes the enclosing repo a project. (The legacy name, `agi-tree.config.json` at the repo root instead of inside `.agi/`, still resolves.) |
 | `refs/grid/*` | Per-node version history, in this repo's own ref namespace. See Git grid below. |
-| `HANDOFF.md` | The director's **live scratchpad**, newest section first. Written *during* a session, not after it. See below. |
+| `HANDOFF.md` | The director's **live scratchpad** — one session, replaced wholesale each time. Written *during* the work, not after. See below. |
+| `QUICKSTART.md` | Standing bootstrap: clone, deps, install, the safety rail, one iteration. Split out of `HANDOFF.md` on 2026-09-02 so a director replacing the handoff cannot destroy the install guide. |
 | `CLAUDE.md`, `AGENTS.md` | This file, read by every agent. `AGENTS.md` is a symlink to it — one document, two names agents look for it under. |
 
 **The table above is the graph's footprint, not the whole repo** — `agi` also
@@ -139,10 +140,14 @@ that resumes cold. Trimmed to the bootstrap plus one live section on
 2026-09-02. This is the same principle the repo already applies to its own
 history: *git history is the archive, not a to-do list to keep re-adding to.*
 
-**What is NOT session content, and stays:** the bootstrap half — the
-`bin/*.py` safety rail, cloning and installing on a new machine, and the
-one-iteration diagram. That is an install guide and it assumes nothing exists
-locally, which is a different job from carrying state between sessions.
+**Standing instructions do not belong in this file at all.** The bootstrap —
+the `bin/*.py` safety rail, cloning and installing on a new machine, the
+one-iteration diagram, the glossary — moved to **`QUICKSTART.md`** on
+2026-09-02. Keeping it here was a live hazard once replacement became the
+default: the first director to follow the rule correctly would have deleted the
+install guide along with the previous session's state. **Anything that is true
+across sessions goes in `QUICKSTART.md`, `CLAUDE.md` or a goal node — never
+here.**
 
 ### What a live section owes a cold reader
 

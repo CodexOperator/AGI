@@ -1,239 +1,13 @@
-# HANDOFF — agi, for a fresh session on a new machine
+# HANDOFF — agi
 
-> Two halves, and only one of them persists.
+> **One session's state, and nothing else.** Bootstrap and install live in
+> `QUICKSTART.md`; what the project is committed to lives in `GOALS.md`.
 >
-> **The bootstrap (§1-§3) is standing content.** Assumes **nothing** exists
-> locally: no clone, no deps, no CLI, no auth.
->
-> **The SESSION HANDOFF below is replaced wholesale by each director**, not
-> appended to. Exactly one session section exists at a time. Prior ones live in
-> the grid — `grid.py payload build:HANDOFF.md --version N` — and in git, so
-> nothing is lost by replacing and accumulating would cost every future session
-> context for no gain. Trimmed 2026-09-02 from 1,723 lines and six sections.
-
-**Where the knowledge actually lives, so this file does not restate it:**
-
-| Question | Read |
-|---|---|
-| What is agi, and why is it shaped this way? | `skills/agi/SKILL.md` |
-| What is committed to, and what is being worked on now? | `GOALS.md` (rendered from `nodes/goal/`) |
-| What does the repo contain, and how do I run the loop? | `<tree>/CLAUDE.md` |
-| What does any given engine file do? | its build node — `nodes/build/*.md`, one per file |
-| What happened THIS session, and what is next? | the **SESSION HANDOFF** section below — there is exactly one, and it is current |
-| What happened in an EARLIER session? | `grid.py payload build:HANDOFF.md --version N`. Prior sessions are not kept in this file. |
-
----
-
-## 1. 🔴 READ THIS BEFORE RUNNING THE LOOP IN ANY PROJECT
-
-**This is a live, unfixed defect — not history.** `driver.sh` still prefers a
-*project-local* script over the engine's own:
-
-```
-driver.sh:91   [[ -x "$PROJECT_ROOT/bin/snapshot-build-site.py" ]] && SNAPSHOT_PY=...
-driver.sh:99   [[ -x "$PROJECT_ROOT/bin/render-context.py"      ]] && RENDER_PY=...
-```
-
-Some projects ship a **stale** `snapshot-build-site.py` beginning with
-`shutil.rmtree(NODES_DIR)`. Running the loop there deletes the entire node
-corpus. **Exit code 0, no warning, nothing printed.** Confirmed blast: one
-project went from 29,422 node files to 158 in a single `--smoke` run.
-
-The engine's own script is safe — incremental upsert, and it prunes only nodes
-carrying `origin: build-site`.
-
-**Audit before the first run in any project:**
-
-```bash
-ls <project>/bin/*.py 2>/dev/null && grep -n "rmtree" <project>/bin/*.py
-```
-
-Anything that prints, rename it so the engine's version wins:
-
-```bash
-mv <project>/bin/snapshot-build-site.py <project>/bin/snapshot-build-site.py.STALE-DO-NOT-USE
-```
-
-**General rule: treat any project-local `bin/*.py` as stale until proven
-otherwise.** The override mechanism is itself the defect; making it opt-in is
-still open. `agi-tree` deleted its `bin/` entirely for this reason (goal S1).
-
----
-
-## 2. Bootstrap on a new machine
-
-### 2a. Clone
-
-`CodexOperator/agi` is **private**, default branch `master`. Authenticate with
-`gh auth login` or an SSH key, then:
-
-```bash
-git clone git@github.com:CodexOperator/agi.git ~/work/agi
-```
-
-### 2b. Dependencies
-
-```bash
-python3 -m pip install --user pyyaml pytest
-```
-
-Optional, only for specific paths: `gensim` + `umap-learn` (embeddings),
-`ollama` (local models — the driver prints a harmless `ERR:` line without it).
-
-### 2c. Install the CLI, skill and hook
-
-One-time, global, symlinks only — no project ever carries its own copy:
-
-```bash
-ln -s ~/work/agi/extensions/agi/driver.sh   ~/.local/bin/agi
-ln -s ~/work/agi/skills/agi                 ~/.claude/skills/agi
-```
-
-Ensure `~/.local/bin` is on `PATH`. For Claude Code, register
-`extensions/agi/hooks/cc-session-start.sh` as a `SessionStart` hook in
-`~/.claude/settings.json` — it is a silent no-op outside a project, so it is
-safe to register globally.
-
-### 2d. Verify
-
-```bash
-cd ~/work/agi && python3 -m pytest extensions/agi/tests/ -q   # 861 passed, 1 skipped
-which agi && readlink -f "$(which agi)"                        # -> extensions/agi/driver.sh
-agi --help | head -2
-```
-
----
-
-## 3. The loop, one iteration
-
-```
-driver.sh
-  ├─ snapshot-goals.py        GOALS.md <- nodes/goal/   (the nodes are the source)
-  ├─ snapshot-build-site.py   rebuild origin:build-site nodes from context/plans/build-site.md
-  ├─ render-context.py        graph -> context/INJECTION.md (bounded ASCII map)
-  ├─ metrics.py               emit METRIC lines   (benchmark.py also exists; see G-goals)
-  ├─ dispatch.py              spawn N pi kids; scrubs ANTHROPIC_*/CLAUDE_CODE_* from child env
-  ├─ heal.py                  poll manifests, kill hung kids, respawn with the tail of their log
-  ├─ post_wire.py             wire edges after kids finish
-  └─ cli.py status            report
-```
-
-`--smoke` stops after metrics: snapshot + render + metrics, no dispatch, no spend.
-
-**The chain, goal to convergence** — nine types, and the last two are new as of
-2026-08-27:
-
-```
-goal -> idea -> hypothesis -> experiment -> verdict -> mvp -> outcome
-        -> bigger_outcome -> overview -> vision
-```
-
-`vision --proposes_goals--> goal` closes the loop **across seasons** and is
-declared non-traversable, so the type graph stays acyclic.
-
-Everything else about running it — verdict taxonomy, zoom, the evidence gate,
-model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
-`skills/agi/SKILL.md` and is deliberately not repeated here.
-
----
-
-## 4. Glossary (only terms not defined in SKILL.md)
-
-- **PLUGIN_ROOT** — the engine directory, `extensions/agi/`. Resolved from `$BASH_SOURCE`.
-- **PROJECT_ROOT** — the graph repo: holds `agi-tree.config.json`, `nodes/`, `context/`, `sessions/`. From `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) or by walking up from cwd.
-- **Capillary DAG** — the chain shape above: many thin chains, not one thick trunk.
-
----
-
-# ITER-9 SWEEP — worked 2026-09-01. Status per item.
-
-> Opened as a deferred list mid-session, then worked. Each item records what
-> was found, not just what was decided.
-
-1. ✅ **`post_wire._read_frontmatter` — FIXED.** Both branches were unsafe and
-   the quiet one was worse. *Two markers + bad YAML* raised uncaught, and
-   `post_wire` is in the loop's critical path, so one malformed node lost the
-   **whole iteration's wiring**. *No closing marker* returned `{}` + the entire
-   file, which `cmd_wire` then WROTE BACK — verified: the node was re-headered
-   with a **freshly minted `mint_id`** and its real one demoted into the body,
-   inventing an identity and orphaning a grid ref. Now one catchable
-   `MalformedNode` class covering unclosed / unparseable / non-mapping, and
-   both call sites **skip with a report and never write**. A file with no
-   frontmatter at all is still legitimate and still returns `({}, text)` — that
-   distinction is the fix.
-2. ✅ **Healer contract — FIXED** (`4d00b7927`). `heal.py` told healers to
-   commit; one obeyed and produced `7b57b5955`. Contract now matches the kid's.
-   `-p` added for consistency. **Still open and worth knowing:** that commit
-   stands, authored as the repo owner, and its justification is self-refuting —
-   it claims pi hangs without `-p`, while five kids succeeded without it that
-   day and the healer that wrote the claim ran without it. **The real cause of
-   `a00-df2af9f7`'s hang is still unknown.**
-3. ✅ **Evidence-gate self-citation — FIXED.** `evidence_runs: [<my own id>]`
-   resolved and bought a decisive verdict — `goal:g7.3`'s hole one substitution
-   later. Now: an `experiment` may cite itself (it IS the run); every other type
-   may not. `self_id=None` preserves historical behaviour exactly, so no
-   existing node is retroactively demoted.
-4. ✅ **262 orphaned grid refs — DIAGNOSED, not ongoing.** Two historical
-   scars: **185** are `type: level3`, from the level3→build rename that changed
-   mint ids rather than only addresses (exactly what `goal:g2.5` exists to
-   prevent, and it predates mint-id stability); **76** are chain nodes whose
-   ids are gone from the corpus, named `exp:…-r1-extend3` /
-   `verdict:…-r1-extend1` — the 2000-hop shortcut-cycle era that was cleaned
-   up. 1 was re-minted. **Nothing is producing new orphans.** Reattaching them
-   is a migration, not a sweep item.
-5. ✅ **`evidence_fraction` was never the problem — the interface was.**
-   `--evidence-runs` was absent from the `done` template, so a kid could not
-   supply evidence without discovering an undocumented flag. Measured after the
-   fix: both verdicts written since carry `evidence_runs: 1`; the one written
-   before carries 0. The metric was correct throughout.
-6. ⏸ **15 duplicate basenames** across type directories, one repeated 7 times.
-   Basename-keyed tooling is silently wrong (a kid hit it as 37 phantom
-   disagreements). Left alone: renaming node files changes addresses, and the
-   right fix is for readers to key on relative path or mint id — `goal:g13`'s
-   territory, not a rename pass.
-7. ✅ **`benchmark.py` import-time `sys.exit(1)` — FIXED.** An unguarded
-   `except ImportError: sys.exit(1)` at module scope killed any process that
-   merely imported it; it took out a kid's first run mid-experiment. `ollama`
-   is now required at call time via `require_ollama()`, not at import.
-8. ⏳ **The goal sweep: 49 -> 40 active. NOT DONE — the cap is 3.**
-   Nine reclassified on mechanical falsifiers (G11, G11.1, G4.6, G3.1, S5, S8,
-   S17, S22 complete; G6.5 phasing-out), each with a rewritten `THOUGHT`.
-   Forty remain and most are genuinely open; the next pass is judgement, not
-   greps. One list item was a **phantom carried across three handoffs** —
-   "goal:S16 still carries `status: proved`" is a fenced code block
-   *illustrating* the bug S16 describes, found by an unanchored grep.
-
-9. 🔴 **`outcome_coverage` penalises finishing — fix before the next sweep.**
-   `metrics.py:483` `SCORING_GOAL_STATUSES = {"active", "horizon"}` excludes
-   `complete` and `phasing-out` alike, so today's sweep dropped the primary
-   metric **0.27 -> 0.232** with no work undone and no node removed. A metric
-   that falls when you finish teaches you not to finish, and this project has
-   sat at 49 active against a cap of 3 for three sessions.
-
-   **The fix is a semantics split, not a constant change** — specified on
-   `goal:g5`, which owns "status is a field the engine acts on" and whose own
-   text is the defect:
-   - **`complete`** = achieved. Chains are valid and still extendable, so the
-     evidence **stays in the metric**. Success must not read as regression.
-   - **retired** (`phasing-out`) = folded into another goal, achieved
-     incidentally, or no longer worth pursuing. Results leave the score.
-   - A chain that **concluded "retire this goal"** is excluded — it produced
-     evidence for *stopping*, which is a decision about the graph, not a
-     contribution to it. Counting it would reward abandonment.
-   - A goal **retired before any chain closed** is ignored in BOTH terms of
-     the ratio, rather than counting as an unconverted hypothesis.
-
-   Naming is the only real gap: `phasing-out` already means retired
-   (`CLAUDE.md` documents retirement that way). Renaming costs a `status`
-   regex plus a corpus pass — do it with the change, not before.
-
-10. ⚠️ **`npx gitnexus analyze` writes 102 lines into `CLAUDE.md`.** It
-    appends a `<!-- gitnexus:start -->` block of **MUST** directives telling
-    agents to call GitNexus **MCP** tools — which pi kids have no client for —
-    and to query "instead of grepping", which `skills/agi/SKILL.md`
-    deliberately does not claim after a measured query returned an unrelated
-    symbol. Reverted before the 2026-09-01 push. **Re-check `git status` after
-    every `analyze`**; it edits the one document every agent reads first.
+> **This file is REPLACED wholesale by each director**, not appended to —
+> exactly one session section exists at a time. Prior sessions are in the grid,
+> `grid.py payload build:HANDOFF.md --version N`, and in git, so nothing is
+> lost by replacing and accumulating would charge every future cold session for
+> superseded state. See `CLAUDE.md` for the rule.
 
 ---
 
@@ -254,10 +28,10 @@ runtime     pi, live.  parent qwen/qwen3.8-27b  |  kid deepseek/deepseek-v4-flas
 crons       FROZEN — crons_live: false. Unchanged. Do not re-enable.
 PUSHED      NO — several commits ahead. Push by hand when ready.
 
-node_count  874      active 867   deprecated 7    goals 105
+node_count  876      active 869   deprecated 7    goals 106
 outcome_coverage ~0.28  evidence_fraction ~0.21   unevidenced_decisive 1
-goals: active 10  horizon 61  retired 2  complete 32
-tests       1215 pass
+goals: active 10  horizon 61  retired 2  complete 33
+tests       1215 pass    PUSHED: yes (crons frozen; pushed by hand)
 ```
 
 ## 1. The session's plan, and where each item stands
@@ -273,6 +47,7 @@ tests       1215 pass
 | 5 | `goal:s23` + `goal:s25` + `goal:s26` — all three built | ✅ complete |
 | 6 | **`goal:s27` decided and built** — a parent authors nothing | ✅ complete |
 | 7 | `goal:s28` fixed by a kid; `goal:s29` build-parent rule | ✅ complete |
+| 8 | `goal:s30` — handoff replaced each session; `QUICKSTART.md` split out | ✅ complete |
 
 ## 2. What landed, in one line each
 
@@ -370,6 +145,17 @@ run is the cheapest open item in the repo.**
    committing, the parent brief forbids it, and `brief.py::_kid` did not say
    it — `goal:g1.9`'s argument arriving as a live incident four iterations
    after I built the assembler and left the prohibition out. Fixed, with tests.
+
+## 3d. `goal:s30` — this file is replaced; standing content moved out
+
+`QUICKSTART.md` now holds the bootstrap (safety rail, clone/deps/install, the
+one-iteration diagram, glossary). It had to move: **replacement-by-default
+turns any standing instruction left here into one with a deletion date.**
+`README.md` and `SKILL.md` repointed.
+
+`build:QUICKSTART.md` was created through `node_writer.write_node` with
+`parents: [build:HANDOFF.md, goal:s30]` — the first node minted under
+`goal:s29`, and the gate approved it on `parent_shapes=[build, goal]`.
 
 ## 3c. `goal:s29` — where a build node may come from
 

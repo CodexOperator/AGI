@@ -364,6 +364,11 @@ nothing — it had reached 1,723 lines and six sections before this rule.
 **`GOALS.md` is the project tracker; this is only the bridge between sessions.**
 Anything that is a commitment is a goal node. Keep it thin.
 
+**Nothing that is true across sessions goes in it.** Bootstrap and install live
+in `QUICKSTART.md`, split out on 2026-09-02 precisely because replacement is the
+default: standing instructions inside a file the next director deletes are
+standing instructions with a countdown on them.
+
 ## Long runs
 
 ```bash
