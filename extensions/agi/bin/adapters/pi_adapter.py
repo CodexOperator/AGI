@@ -26,6 +26,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import brief
+
 NAME = "pi"
 
 #: Fallback only. `harness["bin"]`, then $PI_BIN, then this.
@@ -100,6 +102,9 @@ def build_command(
     scaffold: dict | None = None,
     cli_py: str | Path = "",
     skill_prompt: Path | None = None,
+    dispatch_py: str | Path = "",
+    target: str | None = None,
+    parallel: int = 1,
 ) -> list[str]:
     """The argv that starts one pi agent."""
     args = [resolve_bin(harness)]
@@ -107,44 +112,18 @@ def build_command(
     # Headless: process the prompt and exit. Without this flag the prompt is
     # fed to the interactive TUI, which hangs forever off a TTY (empty log).
     args += ["-p"]
-    args += [
-        "--append-system-prompt", f"@{context_file}",
-        "--append-system-prompt", (
-            f"You are agent {agent_id} on iteration {iter_n}. "
-            f"Your job: fill in the scaffolded node file below, then signal done."
-        ),
-    ]
-    if scaffold:
-        parent = (scaffold.get("parent") or "").strip()
-        parent_arg = f" --parent {parent}" if parent else ""
-        parent_line = f"Parent: {parent}" if parent else "Parent: (none — parentless node)"
-        args.extend([
-            "--append-system-prompt", (
-                f"SCAFFOLDED NODE FILE: {scaffold['path']}\n"
-                f"Node type: {scaffold['node_type']}  "
-                f"Node ID: {scaffold['node_id']}  "
-                f"{parent_line}\n"
-                f"FILL IN the body of that file. Leave frontmatter alone --\n"
-                f"`cli.py done` writes `verdict`, `confidence` and\n"
-                f"`evidence_runs` into it for you. Seeing those keys on a node\n"
-                f"is not a request to maintain them by hand.\n"
-                f"When done, run: python3 {cli_py} done {iter_n} {agent_id} "
-                f"--verdict <state> --confidence <0..1> --node-id {scaffold['node_id']}"
-                f"{parent_arg}"
-                f" --evidence-runs <backing-node-id> [...]"
-            ),
-        ])
-    else:
-        args.extend([
-            "--append-system-prompt", (
-                f"When complete, run: python3 {cli_py} done {iter_n} {agent_id} "
-                f"--verdict <state> --confidence <0..1> --node-id <id> --parent <parent>"
-            ),
-        ])
+    args += ["--append-system-prompt", f"@{context_file}"]
+    # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
+    # This adapter decides only how to SPELL a segment on pi's command line.
+    # It used to inline the kid brief here, which is why `--tier parent`
+    # selected the parent model correctly and then handed it a kid's job.
+    for seg in brief.assemble(
+        tier=tier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
+        dispatch_py=dispatch_py, scaffold=scaffold, target=target,
+        parallel=parallel,
+    ):
+        args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
         args.extend(["--append-system-prompt", f"@{skill_prompt}"])
-    args.append(
-        f"Begin iteration {iter_n} as agent {agent_id}. "
-        f"Read your zoom context, do the work, signal done."
-    )
+    args.append(brief.closing_line(tier, agent_id, iter_n))
     return args
