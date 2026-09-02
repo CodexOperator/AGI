@@ -99,7 +99,7 @@ Everything is reachable globally, by symlink, with no second copy anywhere:
 One skill, one source. The hook is a silent no-op outside a project, which is
 what makes registering it globally safe.
 
-## `HANDOFF.md` is a scratchpad, not a report
+## `HANDOFF.md` is a scratchpad, not a report — and the director replaces it
 
 **Write it as you work, not when you finish.** It is the one file a cold
 session can open and resume from, so it has to be current at every moment —
@@ -107,27 +107,55 @@ including the moment a session dies without a summary. A handoff written at the
 end is a handoff that does not exist for every run that ends badly, which is
 exactly when it is needed.
 
-**The director opens a fresh section at the TOP of the file, on their first
-substantive action of the session, and edits it in place all session long.**
-Newest first, so a reader hits current state before history. The heading carries
-the date and a one-line characterisation:
+### The director REPLACES the session content. It does not append to it.
+
+**Default, no permission needed, no asking:** on your first substantive action
+as director, **delete the previous session section and write your own in its
+place.** Do not read it first, do not extend it, do not preserve it "just in
+case". One session's handoff at a time.
+
+**The only exception: when the user asks you to check the handoff.** Then read
+what is there before touching it — they are asking about the previous session,
+not the current one.
+
+**Erasing is safe here, and that is a measured property of this file rather
+than a general licence.** `HANDOFF.md` is `build:HANDOFF.md` with
+`payload_ref: HANDOFF.md`, so `grid.py commit --all` versions the payload
+alongside the node. Every prior handoff is one command away:
+
+```bash
+python3 extensions/agi/bin/grid.py versions build:HANDOFF.md
+python3 extensions/agi/bin/grid.py payload  build:HANDOFF.md --version N
+```
+
+At the time this rule was written there were **55 versions**, and v40
+materialised in full. Plus ordinary git history. **Nothing is lost by
+replacing, so accumulating costs context and buys nothing.**
+
+**Accumulating was the previous rule and it was wrong.** It said old sections
+are archive and stay; the file reached **1,723 lines with six session
+sections**, of which five were superseded — and it is read by every session
+that resumes cold. Trimmed to the bootstrap plus one live section on
+2026-09-02. This is the same principle the repo already applies to its own
+history: *git history is the archive, not a to-do list to keep re-adding to.*
+
+**What is NOT session content, and stays:** the bootstrap half — the
+`bin/*.py` safety rail, cloning and installing on a new machine, and the
+one-iteration diagram. That is an install guide and it assumes nothing exists
+locally, which is a different job from carrying state between sessions.
+
+### What a live section owes a cold reader
+
+In this order: **§0 the state block** (counts, runtime, models, whether
+anything is unpushed), **§1 the plan with each item marked done/next/blocked**,
+**§2 what landed in one line each**, **§3 🔴 where it stopped and the exact
+next command**, **§4 traps hit this session**, **§5 the known-good verification
+sequence.** Mark the next action so plainly that a fresh session does not have
+to infer it.
 
 ```
 # SESSION HANDOFF — 2026-09-02: LIVE SCRATCHPAD (session in progress)
 ```
-
-What a live section owes a cold reader, in this order: **§0 the state block**
-(counts, runtime, models, whether anything is unpushed), **§1 the plan with each
-item marked done/next/blocked**, **§2 what landed in one line each**, **§3
-🔴 where it stopped and the exact next command**, **§4 traps hit this session**,
-**§5 the known-good verification sequence.** Mark the next action so plainly
-that a fresh session does not have to infer it.
-
-**Old sections are archive and stay.** Never rewrite one to match what you later
-learned — a superseded section is the frame that produced the work under it, the
-same reason `goal:g4.3` keeps its retired text. When a later section contradicts
-an earlier one, say so in the later one and mark the earlier one superseded in
-place.
 
 **Keep it thin. `GOALS.md` is the tracker, not this.** Active goals are how
 projects are tracked; `HANDOFF.md` is only the session-to-session bridge — the
