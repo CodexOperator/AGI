@@ -123,8 +123,15 @@ def test_dispatch_no_longer_touches_the_node_tree_at_all():
     text = (BIN / "dispatch.py").read_text()
     writes = [ln.strip() for ln in text.splitlines() if ".write_text(" in ln]
     assert writes, "expected the manifest/agent.json writes to still be here"
+    # `manifest_tmp` is the atomic-write idiom added by goal:s28: the manifest
+    # goes to `.manifest.json.tmp` and is renamed, so two dispatches into one
+    # iteration cannot leave a partial read. The variable is named for what it
+    # holds precisely so this check can still see the target — an earlier bare
+    # `tmp` hid it and failed here, which is the assertion working rather than
+    # a false positive.
+    session_artefacts = ("agent.json", "manifest.json", "manifest_tmp")
     for ln in writes:
-        assert "agent.json" in ln or "manifest.json" in ln, ln
+        assert any(a in ln for a in session_artefacts), ln
 
 
 @pytest.mark.parametrize("writer", WRITERS)

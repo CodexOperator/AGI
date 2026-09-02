@@ -295,6 +295,17 @@ at every `apply`, never caching it, for exactly this reason.
   changed just because the payload now lives directly in the tracked source
   tree instead of a staged copy. The `THOUGHT` region is the authored half and
   is durable.
+- **A build node has exactly two legal origins (`goal:s29`).** Either
+  `parents: [mvp:<id>]` — a new file, specified by an mvp that states what it
+  must satisfy — or `parents: [build:<id>, goal:<id>]` — a **new version** of a
+  file that already exists, with the goal that motivated it. **A goal alone
+  never mints a build node**; an existing build node has already proved its
+  worth by existing, so a goal may extend it and only it. Enforced by
+  `spawn.parent_shapes` in `.agi/context/schemas/[build].md`, which is an OR
+  across whole shapes (`allowed_parents` is a flat set and would also permit
+  the lone goal this forbids). **The 216 pre-existing build nodes are
+  grandfathered** — the gate is creation-time only and `level3.py` does not
+  route through it.
 - **Two identifiers, two jobs.** A node's **mint id** is assigned once and never
   changes — it is what grid refs and provenance key on. Its **address** is
   derived from tags and is expected to change on every retag or regroup — it is
