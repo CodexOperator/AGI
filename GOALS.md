@@ -36,9 +36,16 @@ with `snapshot-goals.py --render --check`, which exits 0 only on a
 byte-identical round trip.
 
 **Goal lifecycle:** `active` (being worked) · `horizon` (declared and committed
-to, not yet being worked) · `phasing-out` (retiring) · `complete`. Retire by
-marking the section `status: phasing-out` and **deprecating — never deleting**
-its seed node; retired chains remain prior art.
+to, not yet being worked) · `retired` (stopped making sense) · `complete`
+(achieved). Retire by marking the section `status: retired` and **deprecating —
+never deleting** its seed node; retired chains remain prior art. `phasing-out`
+is the legacy spelling of `retired` and stays accepted permanently.
+
+**`complete` and `retired` score differently, and that is why both exist.** A
+completed goal's chains keep scoring — finishing must never look like
+regression. A retired goal's *closed* chains leave the score while staying in
+the graph; a hypothesis that never reached an mvp stays in the denominator, so
+retiring in bulk cannot inflate the primary metric.
 
 **Three kinds of goal, all first-class nodes.** This is where new work gets
 recorded — a defect or an idea belongs here, not in a second document.
@@ -1962,6 +1969,52 @@ in both terms.
 marking `phasing-out`. Renaming it to `retired` would read better and costs a
 `status` regex plus a corpus pass — worth doing with the change, not before it.
 
+## Landed 2026-09-02 — both halves, and the third clause the revision needed
+
+`SCORING_GOAL_STATUSES` is now `{active, horizon, complete}` and
+`RETIRED_GOAL_STATUSES` is `{retired, phasing-out}`. Measured on the live
+corpus at the moment of the change: **`outcome_coverage` 0.232 -> 0.284**, from
+27 `complete` goals whose chains had been excluded for no reason anyone had
+decided. That is more than the 0.038 the 2026-09-01 sweep cost.
+
+**The third clause is the one the revision above did not state, and without it
+the fix would have armed a worse metric than it repaired.** The revision's
+sub-case 2 and its own falsifier contradicted each other — the body said a
+retired goal's unconverted hypotheses "should not appear in either side of the
+ratio", the falsifier said "the ratio must be unchanged in both terms". The
+owner resolved it on the narrow reading, and the resolution is a rule:
+
+> **Retirement can only ever remove a *closed* chain, never bare denominator
+> weight.** A hypothesis under a retired goal that never reached an mvp stays
+> in the denominator.
+
+Without it, retiring goals in bulk — which is exactly what a goal sweep does —
+raises `outcome_coverage` for free, and nothing in the metric can tell that
+apart from honest retirement. This project has already paid once for a gameable
+primary metric (`goal:g3`); it did not need a second one wearing a lifecycle
+field as a disguise. `retired_open_hypotheses` is emitted so the spared set is
+visible rather than implicit.
+
+Implementation note worth keeping: "on a closed chain" is computed by walking
+**up** from every `mvp` through `parents`, stopping at goals. `parents` is the
+edge direction stored on disk, so this needs no inverted index and no second
+traversal order to keep in sync.
+
+**The rename shipped with it**, as this goal said it should. `retired` is
+canonical in the schema regex, `snapshot-goals.py`, `metrics.py`, `CLAUDE.md`,
+`SKILL.md`, the goals preamble node, and the one live node carrying it
+(`goal:g6.5`). **`phasing-out` stays accepted permanently, not for a migration
+window** — projects predating the rename carry it, and a reader that stopped
+recognising it would silently start scoring their retired chains.
+
+`goals_retired` also stopped counting `complete`, which was the same collapse
+`SCORING_GOAL_STATUSES` made, in the reporting layer. `goals_complete` is now
+its own line.
+
+**Five falsifier tests, all fixtures.** Every clause was unobservable on the
+live corpus the day it shipped — 1 retired goal, 0 hypotheses beneath it — so
+there was nothing to measure them against until a sweep creates the shape.
+
 ### G5.1 — A goal too saturated with intent gets broken up — status: horizon
 
 **The failure this exists to catch is visible right now in this file.** Goals
@@ -2252,7 +2305,7 @@ attempt survives as prior art (G9.5's rejected-draft case).
 Depends on G6.3 for versioning and on G9.5 for the session→version link, without
 which a branch point cannot be identified after the fact.
 
-### G6.5 — The cron rebuilds agi from agi-tree, then commits and pushes it — status: phasing-out
+### G6.5 — The cron rebuilds agi from agi-tree, then commits and pushes it — status: retired
 
 **The shape being committed to: `agi-tree` is the development environment,
 `agi` is the shippable package.** Work happens in the graph; the engine repo is

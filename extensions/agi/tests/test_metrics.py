@@ -287,10 +287,13 @@ def _goal(root, gid, status):
 
 
 def test_retired_goal_chains_stop_scoring_but_stay_attributable(project):
-    """goal:g5 — `complete`/`phasing-out` chains keep their nodes and lose
-    their score. Retiring a goal must not look like deleting its work."""
+    """goal:g5 — a *retired* goal's chains keep their nodes and lose their
+    score. Retiring a goal must not look like deleting its work.
+
+    Used `complete` as the retired status until 2026-09-02, when the two
+    states were split: `complete` now scores and only `retired` does not."""
     _goal(project, "g1", "active")
-    _goal(project, "g2", "complete")
+    _goal(project, "g2", "retired")
     _node(project, "hypothesis", "live", parents=["goal:g1"])
     _node(project, "mvp", "live-m", parents=["hypothesis:live"])
     _node(project, "hypothesis", "dead", parents=["goal:g2"])
@@ -331,7 +334,7 @@ def test_unattributed_nodes_keep_scoring(project):
 def test_node_shared_with_a_live_goal_still_scores(project):
     """Retired only when *every* goal it answers to is retired."""
     _goal(project, "g1", "active")
-    _goal(project, "g2", "complete")
+    _goal(project, "g2", "retired")
     _node(project, "hypothesis", "shared", parents=["goal:g1", "goal:g2"])
     m = metrics.compute(project)
     assert m["scoring_hypothesis_count"] == 1
@@ -343,9 +346,120 @@ def test_goal_status_counts_are_emitted(project):
     _goal(project, "g2", "horizon")
     _goal(project, "g3", "complete")
     _goal(project, "g4", "phasing-out")
+    _goal(project, "g5", "retired")
     m = metrics.compute(project)
-    assert (m["goals_active"], m["goals_horizon"], m["goals_retired"]) == (1, 1, 2)
-    assert m["goal_count"] == 4
+    # goal:g5 — `goals_retired` used to include `complete`, the same collapse
+    # SCORING_GOAL_STATUSES made. A finished goal is not a retired one.
+    assert (m["goals_active"], m["goals_horizon"]) == (1, 1)
+    assert m["goals_complete"] == 1
+    assert m["goals_retired"] == 2          # phasing-out (legacy) + retired
+    assert m["goal_count"] == 5
+
+
+# ------------------------------- goal:g5 falsifier: complete vs retired
+# The goal's own revision (2026-09-01) states three clauses and this is each
+# of them as a test. All three were unobservable on the live corpus the day
+# they were written -- 1 retired goal, 0 hypotheses under it -- so fixtures
+# are the only place they can be checked before a sweep creates the shape.
+
+
+def test_completing_a_goal_does_not_move_the_metric(project):
+    """Clause 1, and the defect that forced the revision.
+
+    Marking a goal with a closed hypothesis->mvp chain `complete` must leave
+    `outcome_coverage` exactly where it was. Measured on 2026-09-01: a sweep
+    marked nine goals complete/retired on falsifiers and coverage fell
+    0.27 -> 0.232 with no work undone. A metric that drops when you finish
+    teaches you not to finish.
+    """
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    before = metrics.compute(project)["outcome_coverage"]
+
+    _goal(project, "g1", "complete")        # same gid, rewritten status
+    after = metrics.compute(project)
+
+    assert after["outcome_coverage"] == before
+    assert (after["scoring_mvp_count"], after["scoring_hypothesis_count"]) == (1, 1)
+    assert after["retired_goal_nodes"] == 0
+
+
+def test_retiring_a_goal_removes_its_closed_chain_from_both_terms(project):
+    """Clause 2. A chain that concluded "retire this goal" produced evidence
+    *for stopping* -- a decision about the graph, not a contribution to it.
+    Counting it would reward abandoning goals, so it leaves numerator and
+    denominator together."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "keep", parents=["goal:g1"])
+    _node(project, "mvp", "keep-m", parents=["hypothesis:keep"])
+    _goal(project, "g2", "active")
+    _node(project, "hypothesis", "drop", parents=["goal:g2"])
+    _node(project, "mvp", "drop-m", parents=["hypothesis:drop"])
+    assert metrics.compute(project)["scoring_mvp_count"] == 2
+
+    _goal(project, "g2", "retired")
+    m = metrics.compute(project)
+
+    assert (m["scoring_mvp_count"], m["scoring_hypothesis_count"]) == (1, 1)
+    assert m["retired_goal_nodes"] == 2     # both, still in the graph
+    assert m["mvp_count"] == 2              # descriptive total untouched
+
+
+def test_retiring_a_goal_with_no_chain_changes_nothing(project):
+    """Clause 3, narrow reading (the owner's, 2026-09-02): "no closed chain"
+    means no chain at all. Nothing to include or exclude, so both terms of
+    the ratio are untouched."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    _goal(project, "g2", "active")          # bare goal, no nodes under it
+    before = metrics.compute(project)
+
+    _goal(project, "g2", "retired")
+    after = metrics.compute(project)
+
+    assert after["outcome_coverage"] == before["outcome_coverage"]
+    assert after["scoring_mvp_count"] == before["scoring_mvp_count"]
+    assert after["scoring_hypothesis_count"] == before["scoring_hypothesis_count"]
+
+
+def test_retiring_cannot_launder_unconverted_hypotheses_out_of_the_ratio(project):
+    """The anti-gaming clause, and the reason this is not a one-constant fix.
+
+    A hypothesis under a retired goal that never reached an mvp STAYS in the
+    denominator. Without this, retiring goals in bulk -- which is exactly what
+    a goal sweep does -- would raise `outcome_coverage` for free, and nothing
+    in the metric could tell that apart from honest retirement.
+    """
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    _goal(project, "g2", "active")
+    for i in range(3):                      # dead weight: never converted
+        _node(project, "hypothesis", f"open{i}", parents=["goal:g2"])
+    before = metrics.compute(project)
+    assert before["scoring_hypothesis_count"] == 4
+
+    _goal(project, "g2", "retired")
+    after = metrics.compute(project)
+
+    assert after["scoring_hypothesis_count"] == 4, "open hypotheses must not leave"
+    assert after["outcome_coverage"] == before["outcome_coverage"]
+    assert after["retired_open_hypotheses"] == 3
+    assert after["retired_goal_nodes"] == 0
+
+
+def test_legacy_phasing_out_still_reads_as_retired(project):
+    """`phasing-out` is the pre-2026-09-02 spelling and stays accepted
+    permanently -- a reader that stopped recognising it would silently start
+    scoring the retired chains of every project that predates the rename."""
+    _goal(project, "g1", "phasing-out")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    m = metrics.compute(project)
+    assert (m["scoring_mvp_count"], m["scoring_hypothesis_count"]) == (0, 0)
+    assert m["retired_goal_nodes"] == 2
 
 
 def test_exceeding_max_goals_active_warns_but_does_not_refuse(project, capsys):
@@ -427,9 +541,17 @@ def test_lifecycle_count_is_not_goal_attribution(project):
     """`retired_goal_nodes` counts nodes whose every answering goal is
     retired — attribution, and a node is caught by it without anyone touching
     it. `deprecated_node_count` counts the node's own declared status. Two
-    different questions; reusing one for the other makes both unreadable."""
-    _goal(project, "g1", "complete")
-    _node(project, "hypothesis", "under-dead-goal", parents=["goal:g1"])
+    different questions; reusing one for the other makes both unreadable.
+
+    Two fixture changes on 2026-09-02, both to keep this testing the
+    distinction rather than goal:g5's new rules. `complete` -> `retired`,
+    because `complete` now scores and produces no retired-by-attribution node
+    at all. And `hypothesis` -> `experiment`, because an *unconverted*
+    hypothesis under a retired goal is deliberately spared and stays in the
+    denominator (the anti-gaming clause) -- so it would not be counted here
+    either, for a reason that has nothing to do with what this test asks."""
+    _goal(project, "g1", "retired")
+    _node(project, "experiment", "under-dead-goal", parents=["goal:g1"])
     _node(project, "build", "self-retired", "status: deprecated")
     m = metrics.compute(project)
     assert m["retired_goal_nodes"] == 1        # attribution only

@@ -90,29 +90,80 @@ in both terms.
 marking `phasing-out`. Renaming it to `retired` would read better and costs a
 `status` regex plus a corpus pass — worth doing with the change, not before it.
 
+## Landed 2026-09-02 — both halves, and the third clause the revision needed
+
+`SCORING_GOAL_STATUSES` is now `{active, horizon, complete}` and
+`RETIRED_GOAL_STATUSES` is `{retired, phasing-out}`. Measured on the live
+corpus at the moment of the change: **`outcome_coverage` 0.232 -> 0.284**, from
+27 `complete` goals whose chains had been excluded for no reason anyone had
+decided. That is more than the 0.038 the 2026-09-01 sweep cost.
+
+**The third clause is the one the revision above did not state, and without it
+the fix would have armed a worse metric than it repaired.** The revision's
+sub-case 2 and its own falsifier contradicted each other — the body said a
+retired goal's unconverted hypotheses "should not appear in either side of the
+ratio", the falsifier said "the ratio must be unchanged in both terms". The
+owner resolved it on the narrow reading, and the resolution is a rule:
+
+> **Retirement can only ever remove a *closed* chain, never bare denominator
+> weight.** A hypothesis under a retired goal that never reached an mvp stays
+> in the denominator.
+
+Without it, retiring goals in bulk — which is exactly what a goal sweep does —
+raises `outcome_coverage` for free, and nothing in the metric can tell that
+apart from honest retirement. This project has already paid once for a gameable
+primary metric (`goal:g3`); it did not need a second one wearing a lifecycle
+field as a disguise. `retired_open_hypotheses` is emitted so the spared set is
+visible rather than implicit.
+
+Implementation note worth keeping: "on a closed chain" is computed by walking
+**up** from every `mvp` through `parents`, stopping at goals. `parents` is the
+edge direction stored on disk, so this needs no inverted index and no second
+traversal order to keep in sync.
+
+**The rename shipped with it**, as this goal said it should. `retired` is
+canonical in the schema regex, `snapshot-goals.py`, `metrics.py`, `CLAUDE.md`,
+`SKILL.md`, the goals preamble node, and the one live node carrying it
+(`goal:g6.5`). **`phasing-out` stays accepted permanently, not for a migration
+window** — projects predating the rename carry it, and a reader that stopped
+recognising it would silently start scoring their retired chains.
+
+`goals_retired` also stopped counting `complete`, which was the same collapse
+`SCORING_GOAL_STATUSES` made, in the reporting layer. `goals_complete` is now
+its own line.
+
+**Five falsifier tests, all fixtures.** Every clause was unobservable on the
+live corpus the day it shipped — 1 retired goal, 0 hypotheses beneath it — so
+there was nothing to measure them against until a sweep creates the shape.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version reverses a decision the previous one made, on evidence the
-previous one could not have had.
+This version is the previous one built, plus one rule the previous one was
+missing and would have been harmed by shipping without.
 
-v1 said retired AND complete goals should stop scoring, and that shipped as
-`SCORING_GOAL_STATUSES = {active, horizon}`. It reads sensibly — score work in
-flight — and it was wrong about half of its scope. The 2026-09-01 goal sweep is
-what showed it: nine goals reclassified on falsifiers, no work undone, no node
-removed, and `outcome_coverage` fell 0.27 -> 0.232. A metric that drops when you
-finish things teaches you not to finish them, and this project has left 49 goals
-`active` against a cap of 3 for three sessions.
+v2 wrote the correction and stopped there: `complete` must keep scoring,
+retired must not, with two sub-cases and a falsifier. Building it exposed that
+the sub-cases and the falsifier disagree in writing. Sub-case 2 says a retired
+goal's unconverted hypotheses "should not appear in either side of the ratio";
+the falsifier says "the ratio must be unchanged in both terms". Those are
+opposite instructions about the same nodes, and v2 could not see it because
+nothing in the corpus had that shape -- one retired goal, no hypotheses under
+it, so both readings computed the same number.
 
-The distinction is the owner's and it is sharper than "retired vs not": a
-COMPLETE goal still parents chains that exist and can be extended, so its
-evidence is permanent corpus; a RETIRED goal's chains led to the conclusion
-that the goal was not worth pursuing, so their output is a decision about the
-graph rather than a contribution to it. Hence the two sub-cases — a
-concluded-in-retirement chain is excluded rather than merely unattributed, and
-a goal retired before any chain closed leaves both terms of the ratio alone
-instead of counting as an unconverted hypothesis.
+The owner took the narrow reading, and it turns the ambiguity into the sharpest
+rule in the goal: retirement can only ever remove a CLOSED chain. The reason is
+not aesthetic. Iteration 2 of this session is a sweep that retires goals in
+bulk; under the other reading that sweep would have raised the primary metric
+for free, and the fix intended to stop the metric punishing finishing would
+have started it rewarding abandonment instead. Same defect, opposite sign,
+shipped by the commit that repaired the first one.
 
-Recorded here rather than as a new S-goal deliberately: the active count is
-40 against a cap of 3 and adding a goal to fix the goal-scoring rule would be
-the wrong shape. G5 already owns "status is a field the engine acts on", and
-this is that sentence being wrong.
+Recorded as a landing section rather than a rewrite of the revision above,
+because the revision's reasoning is what produced the work and a reader needs
+to see the frame that had the contradiction in it -- the same reason
+`goal:g4.3` keeps its superseded text.
+
+The measurement is stated where it can be checked: 0.232 -> 0.284 on the live
+corpus at the moment of the change, from 27 `complete` goals. The five tests
+are all fixtures and the goal says so plainly, because "tested" and "observed"
+are different claims and this one is only the first.
 <!-- THOUGHT:END -->

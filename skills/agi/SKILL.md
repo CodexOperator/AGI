@@ -138,7 +138,7 @@ out. If the project needs an engine clone, that clone sits gitignored beside
 ```
 fantasia/
   <game source>
-  GOALS.md                        long-term goals: active | horizon | phasing-out | complete — repo root, deliberately
+  GOALS.md                        long-term goals: active | horizon | retired | complete — repo root, deliberately
   .agi/
     config.json                   metrics, dispatch, timeouts
     nodes/<type>/*.md             the graph — frontmatter + body
@@ -161,9 +161,11 @@ you get the engine's own. That is what lets the engine improve itself from
 inside a project that is using it, and nothing branches on a project's name to
 make it true (**goal:g8.2**) — it falls out of the filesystem.
 
-**Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `phasing-out` and **deprecating — never deleting** its seed node; retired chains remain prior art.
+**Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
-**Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `phasing-out` (retiring), `complete`. `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph.
+**Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `retired` (stopped making sense), `complete` (achieved). `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph. `phasing-out` is the legacy spelling of `retired` and stays accepted permanently, for projects that predate the 2026-09-02 rename.
+
+**`retired` and `complete` score differently, and that is the point of having both.** A `complete` goal was achieved: its chains are real, still extendable, and **keep scoring** — finishing must never look like regression. A `retired` goal stopped making sense: its closed chains leave the score while staying in the graph and staying attributable. Retirement can only ever remove a *closed* chain — a hypothesis that never reached an mvp stays in the denominator, so retiring goals in bulk cannot inflate `outcome_coverage` (goal:g5).
 
 The engine clone is never committed into the project it sits beside. **One** gitignore entry does it:
 

@@ -5,7 +5,7 @@ fields:
   title: {type: str}
   goal_id: {type: str}        # G7 | S4 | G7.2 -- never renumbered
   goal_kind: {type: str}      # THE DISCRIMINATOR: long-term | short-term | subgoal
-  status: {type: str}         # active | horizon | phasing-out | complete
+  status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
   origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
   seeds: {type: list}         # node ids seeded from this goal
   parents: {type: list}       # subgoal only: exactly one goal
@@ -20,7 +20,7 @@ validation:
   regex:
     goal_id: '^[GS]\d+(\.\d+)*$'
     goal_kind: '^(long-term|short-term|subgoal)$'
-    status: '^(active|horizon|phasing-out|complete)$'
+    status: '^(active|horizon|retired|phasing-out|complete)$'
 spawn:
   discriminator: goal_kind
   variants:
@@ -91,11 +91,19 @@ therefore lists `goal:long-term` and `goal:short-term`, not `goal`.
 
 - **Goal ids are never renumbered.** A gap beats a renumber. Not checkable
   from one node, so it is not in `validation:`.
-- **Retire by marking `phasing-out` and deprecating the seed node — never
-  delete.** `phasing-out` is accepted by the `status` regex although the
-  corpus has none today (10 `complete`, 25 `horizon`, 40 `active`); it is part
-  of the declared four-state lifecycle and dropping it would make the
-  documented retirement path fail validation.
+- **Retire by marking `retired` and deprecating the seed node — never
+  delete.** Renamed from `phasing-out` on 2026-09-02 (goal:g5): the lifecycle
+  already meant "retired" and every document already said so, while the field
+  said something else. **`phasing-out` stays in the `status` regex
+  permanently**, not for one migration window — projects predating the rename
+  carry it, and a reader that stopped accepting it would fail their goals
+  validation rather than reading them as retired.
+- **`retired` and `complete` are not the same state and must not be scored
+  alike.** `complete` = achieved; its chains stay in the corpus and keep
+  scoring. `retired` = stopped making sense; its closed chains leave the
+  score while staying in the graph. Collapsing them made `outcome_coverage`
+  fall 0.27 -> 0.232 on a sweep that undid no work — see `metrics.py ::
+  SCORING_GOAL_STATUSES`.
 
 ## The `THOUGHT` block (goal:g2.11)
 

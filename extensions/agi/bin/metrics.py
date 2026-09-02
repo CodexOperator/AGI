@@ -477,27 +477,58 @@ def primary_metric_name(cfg: dict) -> str:
     return name.strip()
 
 
-#: Goal states whose chains still accrue score. `phasing-out` and `complete`
-#: are deliberately absent (goal:g5): a retired goal's chains stay in the
-#: graph and stay attributable, they just stop moving the number.
-SCORING_GOAL_STATUSES = frozenset({"active", "horizon"})
+#: Goal states whose chains still accrue score.
+#:
+#: **`complete` is here, and its absence was a live defect** (goal:g5,
+#: revised 2026-09-01). The original rule collapsed `complete` and retired
+#: into one non-scoring bucket, and the collapse was measured on 2026-09-01:
+#: a sweep marked nine goals `complete`/retired on falsifiers and
+#: `outcome_coverage` fell 0.27 -> 0.232 with no work undone and no node
+#: removed. **The metric penalised finishing**, which is a disincentive
+#: against the goal sweep this project needs.
+#:
+#: The two states mean different things:
+#:   - `complete` — achieved. Its chains are real, still extendable, and its
+#:     evidence is permanent corpus. Completing must never look like
+#:     regression.
+#:   - retired — the goal stopped making sense. Its results are not useful to
+#:     the corpus as a whole, so they leave the score (but stay in the graph
+#:     and stay attributable).
+SCORING_GOAL_STATUSES = frozenset({"active", "horizon", "complete"})
+
+#: Goal states that stop accruing score. `retired` is canonical;
+#: `phasing-out` is the legacy spelling and is accepted forever — projects
+#: predating the rename carry it, and a reader that stops recognising it
+#: would silently start scoring their retired chains.
+RETIRED_GOAL_STATUSES = frozenset({"retired", "phasing-out"})
 
 
 def goal_attribution(nodes_dir: Path) -> dict:
     """Map every node to the goals it descends from, and score accordingly.
 
     goal:g5 — `status` is a field the engine acts on, not a human
-    convention. Two things follow from that and both are here:
+    convention. Three things follow from that and all three are here:
 
-    1. A node under a `phasing-out` or `complete` goal is **excluded from
-       the primary metric** but **kept attributable** — it is still in the
-       graph, still reachable, still counted in the descriptive totals.
-       Retiring a goal must not look like deleting its work.
+    1. A node under a **retired** goal is **excluded from the primary
+       metric** but **kept attributable** — still in the graph, still
+       reachable, still counted in the descriptive totals. Retiring must not
+       look like deleting. A node under a `complete` goal keeps scoring; see
+       `SCORING_GOAL_STATUSES` for why that distinction was worth a revision.
     2. A node under no goal at all keeps scoring. That is deliberate and
        conservative: most of this corpus predates goal nodes, and silently
        zeroing it would be a metric change disguised as a lifecycle rule.
        Attribution is a reason to *exclude*, never the only reason to
        include.
+    3. **Retirement can only ever remove a closed chain, never bare
+       denominator weight.** A hypothesis under a retired goal that never
+       reached an mvp stays in the denominator. This is the anti-gaming
+       clause and it is the whole reason the rule is not one constant: if
+       retiring a goal could drop its unconverted hypotheses, then retiring
+       goals in bulk — which is exactly what a sweep does — would raise
+       `outcome_coverage` for free, and nothing in the metric could tell that
+       apart from honest retirement. This project has already paid once for a
+       gameable primary metric (goal:g3); it does not need a second one
+       wearing a lifecycle field as a disguise.
 
     Returns counts, not opinions — `compute` decides what to do with them.
     """
@@ -532,8 +563,25 @@ def goal_attribution(nodes_dir: Path) -> dict:
             stack.extend(parents.get(cur, ()))
         return found
 
+    # Nodes on a chain that reached an mvp. Computed by walking UP from every
+    # mvp rather than down from every hypothesis: `parents` is the edge
+    # direction stored on disk, so this needs no inverted index and no second
+    # traversal order to keep in sync. Stops at goals — a goal is not "on" its
+    # own chain, and walking through one would join every chain under it.
+    closed_chain: set = set()
+    for nid, ntype in types.items():
+        if ntype != "mvp":
+            continue
+        stack = [nid]
+        while stack:
+            cur = stack.pop()
+            if cur in closed_chain or cur in statuses:
+                continue
+            closed_chain.add(cur)
+            stack.extend(parents.get(cur, ()))
+
     scoring_mvp = scoring_hyp = 0
-    retired_nodes = unattributed = 0
+    retired_nodes = retired_open_hyp = unattributed = 0
     for nid, ntype in types.items():
         if ntype == "goal":
             continue
@@ -544,6 +592,13 @@ def goal_attribution(nodes_dir: Path) -> dict:
         # shared with a live goal still earns its keep.
         scores = (not gs) or any(statuses.get(g) in SCORING_GOAL_STATUSES for g in gs)
         if not scores:
+            # Clause 3. An mvp is on a closed chain by definition, so this
+            # only ever spares a hypothesis that never converted — the one
+            # thing retirement must not be able to launder out of the ratio.
+            if nid not in closed_chain and ntype == "hypothesis":
+                retired_open_hyp += 1
+                scoring_hyp += 1
+                continue
             retired_nodes += 1
             continue
         if ntype == "mvp":
@@ -559,10 +614,15 @@ def goal_attribution(nodes_dir: Path) -> dict:
         "scoring_mvp_count": scoring_mvp,
         "scoring_hypothesis_count": scoring_hyp,
         "retired_goal_nodes": retired_nodes,
+        "retired_open_hypotheses": retired_open_hyp,
         "unattributed_nodes": unattributed,
         "goals_active": by_status.get("active", 0),
         "goals_horizon": by_status.get("horizon", 0),
-        "goals_retired": by_status.get("phasing-out", 0) + by_status.get("complete", 0),
+        # goal:g5 — `goals_retired` counted `complete` too, which is the same
+        # collapse `SCORING_GOAL_STATUSES` used to make. Reporting a finished
+        # goal as retired is how the number stopped meaning anything.
+        "goals_retired": sum(by_status.get(s, 0) for s in RETIRED_GOAL_STATUSES),
+        "goals_complete": by_status.get("complete", 0),
         "goal_count": len(statuses),
     }
 
