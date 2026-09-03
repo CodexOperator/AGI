@@ -108,7 +108,16 @@ python3 extensions/agi/bin/commands.py run tests     # 1371
    parents on one node** — the same-target fan-out the owner already ruled
    against. Set `spawn.parallel: 2` for the rest of this session and dispatch
    one `dispatch.py` call per target. Restore or re-decide at session end.
-3. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
+4. 🔴 **pi parents/kids write `verdict: proved` straight into node files with
+   no `evidence_runs`, no `edited_by`, no `evidence_gate` stamp — the gate is
+   never consulted.** `unevidenced_decisive_verdicts` 6 → 7 → **10** across
+   waves 2–3. The gate lives only on `cli.py done` / `post_wire.py`; a direct
+   file write walks past it. Six session-new nodes confirmed (e.g.
+   `the-falsifier-and-the-corpus-census.md`, `scaffolds-are-born-valid-now.md`,
+   `a01-de655bfd`). Fix belongs on the *read/commit* path (`goal:g7`), not in
+   more brief text. Also: **9 mvps minted in wave 3** — audit against
+   `[mvp].md`'s forward-pointing rule before trusting `mvp_count` 39 → 48.
+5. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
    this session uses 1006+. Loop-scoped numbering (L1.10) is still unbuilt.
 
 ## §5 Known-good verification sequence
