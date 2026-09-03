@@ -1,11 +1,11 @@
 ---
-id: "hyp:a00-a4ab8de0-bbc27a"
+id: hyp:a00-a4ab8de0-bbc27a
 mint_id: faa611149b424015a29f3ca6447132a4
-next_edges: []
-parents: []
 type: hypothesis
+parents: []
+next_edges: []
+title: A00 a4ab8de0 bbc27a
 ---
-
 # hyp:a00-a4ab8de0-bbc27a
 ## Hypothesis
 

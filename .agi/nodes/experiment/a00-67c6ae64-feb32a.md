@@ -4,13 +4,13 @@ mint_id: 72ffcb94678c43b2b2241c4cf39996b3
 type: experiment
 parents:
   - hypothesis:a00-2278675f-5a913a
-scaffold_hash: 12e5cf04ff9a13d1
-verdict: inconclusive_lean_proved:50
 confidence: 0.5
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+scaffold_hash: 12e5cf04ff9a13d1
+title: A00 67c6ae64 feb32a
+verdict: inconclusive_lean_proved:50
 ---
-
 
 # experiment:a00-67c6ae64-feb32a
 

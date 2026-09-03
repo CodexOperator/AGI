@@ -1,19 +1,19 @@
 ---
-confidence: 0.7
-evidence_runs: 0
-id: "hypothesis:a00-9bae6ee8-52d7f5"
+id: hypothesis:a00-9bae6ee8-52d7f5
 mint_id: d7bc277d95384e9b969219b34fa4aa5a
+type: hypothesis
+parents:
+  - goal:g4.6
 next_edges:
   - experiment:a00-40bc8d0a-f0690e
   - experiment:a00-63cb3c4e-6adaa7
-parents:
-  - goal:g4.6
-type: hypothesis
+confidence: 0.7
+evidence_runs: 0
+title: A00 9bae6ee8 52d7f5
 verdict: pending
 wired_at: 1788239113
 wired_from: a00-9bae6ee8
 ---
-
 # hypothesis:a00-9bae6ee8-52d7f5
 
 ## Hypothesis

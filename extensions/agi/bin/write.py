@@ -310,13 +310,84 @@ def _compose_body(root, edit: Edit) -> str:
     return body
 
 
+def create(root, node_type: str, slug: str, parents: list[str], *,
+           set_fm: dict | None = None, payload: str | None = None,
+           actor: str = "", session: str = "", bypass: bool = False):
+    """Mint a node — and, for a build node, the file it points at.
+
+    **This is `write.py`'s other half, and its absence was the hole that made
+    the rename honest** (`goal:g13.1`, L1.07). The verb layer could revise any
+    node and mint none, so a director needing a standalone or build node still
+    hand-wrote a file: the exact undeclared write the module exists to end.
+    `dispatch.py` had a creation path via `cli.py scaffold`, but that one is
+    wired to an agent's `agent.json` bookkeeping and is not usable by a human.
+
+    **It reuses `node_writer.write_node` rather than reimplementing it.** That
+    routine runs the spawn gate *before* touching the filesystem, mints the
+    `mint_id`, and canonicalises the type. A second creation path that skipped
+    any of those would be a bypass wearing the name of a front end — the same
+    thing `submit` refuses to be on the update side.
+
+    `payload` creates the source file if it is absent and records it as
+    `link_ref`, so "a new node and, if needed, the code file behind it" is one
+    operation. An existing file is **never overwritten** — it is linked.
+    """
+    extra = dict(set_fm or {})
+    created_file = None
+    if payload:
+        # Delegated, not done here: this module's guard is that it performs no
+        # file write at all, and `node_writer` already owns writing the files
+        # behind nodes. See `node_writer.ensure_payload`.
+        created_file = node_writer.ensure_payload(root, payload)
+        extra[links.LINK_FIELD] = str(payload)
+
+    res = node_writer.write_node(root, node_type, slug, parents,
+                                 extra_fm=extra or None, bypass=bypass)
+    if res.rejected or not res.written:
+        if created_file is not None:
+            # A rejected spawn must leave nothing behind, on either side.
+            # `write_node` already guarantees that for the node; the file is
+            # this function's to clean up, and forgetting would leave an empty
+            # source file with no node behind it — precisely the gitignored
+            # staging window `goal:g11` removed.
+            created_file.unlink(missing_ok=True)
+        return res, None
+
+    # Provenance goes on through the same routine every other edit uses, so a
+    # created node is not a node with a weaker record than an edited one.
+    if actor or session:
+        stamp = Edit(node_id=res.node_id)
+        if actor:
+            stamp.set_fm[PROVENANCE_ACTOR] = actor
+        if session:
+            stamp.set_fm[PROVENANCE_SESSION] = session
+        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm)
+    return res, created_file
+
+
 def main(argv: list[str] | None = None) -> int:
-    """`edit.py <node-id> "set k v && link self && thought why"`"""
+    """`write.py <node-id> "set k v && link self && thought why"`
+
+    or `write.py create <type> <slug> --parent <id> [--payload PATH]`.
+    """
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("node_id")
-    ap.add_argument("script", help='verbs joined by "&&"')
+    ap.add_argument("node_id",
+                    help='a node id, or "create" to mint one')
+    ap.add_argument("script", nargs="?", default=None,
+                    help='verbs joined by "&&"; with `create`, the node type')
+    ap.add_argument("slug", nargs="?", default=None,
+                    help="with `create`: the new node's slug")
+    ap.add_argument("--parent", dest="parents", action="append", default=[],
+                    help="with `create`: repeatable; the SCHEMA decides how "
+                         "many are legal, not argparse")
+    ap.add_argument("--payload", default=None,
+                    help="with `create`: source file to link, created if absent")
+    ap.add_argument("--set", dest="sets", action="append", default=[],
+                    help="with `create`: extra frontmatter, k=v, repeatable")
+    ap.add_argument("--no-spawn-gate", action="store_true",
+                    help="bypass the spawn gate, loudly")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--actor", default="", help="who is making this edit")
     ap.add_argument("--session", default="",
@@ -324,6 +395,52 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true",
                     help="print the accumulated edit and write nothing")
     args = ap.parse_args(argv)
+
+    if args.node_id == "create":
+        root = locations.find_project_root(Path(args.root).resolve())
+        if root is None:
+            print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
+            return 1
+        if not args.script or not args.slug:
+            print("ERR: create needs a type and a slug: "
+                  'write.py create <type> <slug> --parent <id>', file=sys.stderr)
+            return 2
+        set_fm = {}
+        for pair in args.sets:
+            if "=" not in pair:
+                print(f"ERR: --set expects k=v, got {pair!r}", file=sys.stderr)
+                return 2
+            k, v = pair.split("=", 1)
+            set_fm[k.strip()] = _coerce(v.strip())
+        if args.dry_run:
+            print(f"create {args.script}:{args.slug}")
+            print(f"  parents  {args.parents or '(none)'}")
+            if args.payload:
+                print(f"  payload  {args.payload}")
+            for k, v in set_fm.items():
+                print(f"  set      {k} = {v!r}")
+            return 0
+        res, made = create(root, args.script, args.slug, args.parents,
+                           set_fm=set_fm, payload=args.payload,
+                           actor=args.actor, session=args.session,
+                           bypass=args.no_spawn_gate)
+        if res.rejected:
+            print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
+                  f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",
+                  file=sys.stderr)
+            return 2
+        if not res.written:
+            print(f"SKIP: {res.path} already exists", file=sys.stderr)
+            return 0
+        print(f"created: {res.node_id} -> {res.path}")
+        if made is not None:
+            print(f"created: {made} (empty; the node points at it)")
+        return 0
+
+    if not args.script:
+        print("ERR: a script is required: "
+              'write.py <node-id> "set k v && thought why"', file=sys.stderr)
+        return 2
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:

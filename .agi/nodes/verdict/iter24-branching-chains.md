@@ -1,17 +1,17 @@
 ---
-confidence: 1.0
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "verdict:iter24-branching-chains"
+id: verdict:iter24-branching-chains
 mint_id: 0ad88873d82f4cbabffc455762d29e5f
-next_edges: []
+type: verdict
 parents:
   - hyp:iter24-branching-chains
-type: verdict
-verdict: "inconclusive_lean_proved:50"
+next_edges: []
+confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+evidence_runs: []
+title: Iter24 branching chains
+verdict: inconclusive_lean_proved:50
 ---
-
 ## Evidence
 
 Branching chains confirmed via manual DFS trace:

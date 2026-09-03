@@ -1,16 +1,16 @@
 ---
-confidence: 0.5
-evidence_runs: 0
 id: hypothesis:a01-92759282-8e21ce
 mint_id: 8b2fd0a5a6724b09bf44c02d4b600ee0
-parents:
-- idea:domain-graph-core
 type: hypothesis
+parents:
+  - idea:domain-graph-core
+confidence: 0.5
+evidence_runs: 0
+title: A01 92759282 8e21ce
 verdict: pending
 wired_at: 1788197591
 wired_from: a01-92759282
 ---
-
 
 
 # hypothesis:a01-92759282-8e21ce

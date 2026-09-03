@@ -4,14 +4,14 @@ mint_id: f5d2f86a88d14b7293587c8a60f9fa20
 type: experiment
 parents:
   - hypothesis:a00-8d238338-ec4dff
-scaffold_hash: f720534d2faa8ba7
-verdict: disproved
 confidence: 0.95
 evidence_runs:
   - experiment:a00-5f927203-8a66a2
   - experiment:a00-f0fd9669-ce583f
+scaffold_hash: f720534d2faa8ba7
+title: A00 5f927203 8a66a2
+verdict: disproved
 ---
-
 
 # experiment:a00-5f927203-8a66a2
 

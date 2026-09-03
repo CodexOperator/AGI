@@ -1,11 +1,11 @@
 ---
-id: "hyp:a00-a8357dc5-08d530"
+id: hyp:a00-a8357dc5-08d530
 mint_id: 8a53ff0914ff4ddb97f08c02a0716ec5
-next_edges: []
-parents: []
 type: hypothesis
+parents: []
+next_edges: []
+title: A00 a8357dc5 08d530
 ---
-
 # hyp:a00-a8357dc5-08d530
 ## Hypothesis
 

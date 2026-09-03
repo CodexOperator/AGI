@@ -4,15 +4,15 @@ mint_id: 229215c311a14baebc79b240d7ad844b
 type: experiment
 parents:
   - hypothesis:s28-manifest-merge
-scaffold_hash: ef3d55899ab3e6d4
-demote_reason: "no evidence_runs; predictions verified against a simulation of the dispatch lifecycle, not a live multi-tier run"
-demoted_from: proved
-verdict: "inconclusive_lean_proved:85"
 confidence: 0.85
+demote_reason: no evidence_runs; predictions verified against a simulation of the dispatch lifecycle, not a live multi-tier run
+demoted_from: proved
 evidence_runs:
   - experiment:a00-fda1c0d5-1f0a3a
+scaffold_hash: ef3d55899ab3e6d4
+title: A00 fda1c0d5 1f0a3a
+verdict: inconclusive_lean_proved:85
 ---
-
 
 # experiment:a00-fda1c0d5-1f0a3a
 

@@ -1,11 +1,11 @@
 ---
-id: "hyp:a00-e07eb43f-0ae7b3"
+id: hyp:a00-e07eb43f-0ae7b3
 mint_id: 67fb39923f7144ccb382b9ae6506eae0
-next_edges: []
-parents: []
 type: hypothesis
+parents: []
+next_edges: []
+title: A00 e07eb43f 0ae7b3
 ---
-
 # hyp:a00-e07eb43f-0ae7b3
 ## Hypothesis
 

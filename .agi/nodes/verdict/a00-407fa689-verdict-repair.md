@@ -1,22 +1,22 @@
 ---
+id: verdict:a00-407fa689-verdict-repair
+mint_id: 2d78d95e879f43188ee27c83e514c5d4
+type: verdict
+parents:
+  - hyp:a00-407fa689-verdict-repair
 confidence: 0.6
 contradicts: []
 evidence_runs:
   - exp-a00-407fa689-verdict-repair
-id: "verdict:a00-407fa689-verdict-repair"
-mint_id: 2d78d95e879f43188ee27c83e514c5d4
-parents:
-  - hyp:a00-407fa689-verdict-repair
 supports:
   - verdict:a00-407fa689-verdict-pareto
 tags:
   - chain-extension
   - repair
   - structural-bias
-type: verdict
-verdict: "inconclusive_lean_proved:60"
+title: A00 407fa689 verdict repair
+verdict: inconclusive_lean_proved:60
 ---
-
 # verdict:a00-407fa689-verdict-repair
 
 ## Summary

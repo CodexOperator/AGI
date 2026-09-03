@@ -1,14 +1,15 @@
 ---
+id: hyp:a00-c2ec59b7-b391d9
+mint_id: c66c4a7edb9547e781a591912666ba3e
+type: hypothesis
+parents:
+  - idea:domain-renderers
 confidence: 0.85
 contradicts:
   - hypothesis:domain-renderers-ordering
 domain: renderers
 evidence_runs:
   - exp:a00-c2ec59b7-b391d9
-id: "hyp:a00-c2ec59b7-b391d9"
-mint_id: c66c4a7edb9547e781a591912666ba3e
-parents:
-  - idea:domain-renderers
 spawns: []
 status: completed
 tags:
@@ -17,9 +18,9 @@ tags:
   - isomorphism
   - topology
   - descendant-overlap
-type: hypothesis
+testable_claim: Nodes that share more common descendants in the capillary DAG graph will be rendered closer together in the ASCII renderer output.
+title: A00 c2ec59b7 b391d9
 ---
-
 # hyp:a00-c2ec59b7-b391d9
 ## Hypothesis: ASCII Render Proximity Isomorphic to Descendant Overlap
 

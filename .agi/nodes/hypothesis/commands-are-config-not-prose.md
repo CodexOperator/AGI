@@ -2,16 +2,16 @@
 id: hypothesis:commands-are-config-not-prose
 mint_id: bb68183002e6441b83856d5ee1f211fc
 type: hypothesis
-title: Commands are config not prose
 parents:
   - goal:g1.10
 next_edges:
   - experiment:the-table-runs-and-caught-a-bug
-scaffold_hash: 7e09937831345e6e
-verdict: pending
 confidence: 0.85
+scaffold_hash: 7e09937831345e6e
+testable_claim: "A command table declared as a `.geometry` node, with one resolver, is strictly better than prose in a way that is **observable rather than aesthetic**: the table is executable, so a wrong command in it *fails* instead of being read and believed; and it is injectable, so an agent is **handed** the commands rather than remembering them."
+title: Commands are config not prose
+verdict: pending
 ---
-
 # hypothesis:commands-are-config-not-prose
 
 ## Hypothesis

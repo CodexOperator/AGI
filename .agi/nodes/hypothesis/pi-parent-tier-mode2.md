@@ -1,16 +1,16 @@
 ---
-confidence: 0.5
-evidence_runs: 0
-id: "hypothesis:pi-parent-tier-mode2"
+id: hypothesis:pi-parent-tier-mode2
 mint_id: 4ae522af783740e5ab495720b5992e25
-next_edges:
-  - experiment:a00-763e629b-5c04ad
+type: hypothesis
 parents:
   - goal:g4.3
-type: hypothesis
+next_edges:
+  - experiment:a00-763e629b-5c04ad
+confidence: 0.5
+evidence_runs: 0
+title: Pi parent tier mode2
 verdict: pending
 ---
-
 # hypothesis:pi-parent-tier-mode2
 
 ## Hypothesis

@@ -1,17 +1,18 @@
 ---
-evidence_runs: [experiment:a00-788f8d7f-f11472]
-id: "experiment:a00-788f8d7f-f11472"
+id: experiment:a00-788f8d7f-f11472
 mint_id: e6abba767d8e424cb29eba9e438e00d3
+type: experiment
 parents:
   - hypothesis:a00-0d182e77-3f4501
+confidence: 0.9
+evidence_runs:
+  - experiment:a00-788f8d7f-f11472
 scaffold_hash: 2e127f8f500cab2a
-type: experiment
+title: A00 788f8d7f f11472
+verdict: proved
 wired_at: 1788245310
 wired_from: a00-788f8d7f
-verdict: proved
-confidence: 0.9
 ---
-
 
 
 # experiment:a00-788f8d7f-f11472

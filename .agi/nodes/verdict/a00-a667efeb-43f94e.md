@@ -1,17 +1,17 @@
 ---
-confidence: 0.85
-evidence_runs: 1
-id: "verdict:a00-a667efeb-43f94e"
+id: verdict:a00-a667efeb-43f94e
 mint_id: 4fced004ecda4f679b11c79c633f0866
+type: verdict
 parents:
   - experiment:a00-a10998e3-ca0b99
+confidence: 0.85
+evidence_runs: 1
 scaffold_hash: f81f04e561adacb7
-type: verdict
+title: A00 a667efeb 43f94e
 verdict: proved
 wired_at: 1788276225
 wired_from: a00-a667efeb
 ---
-
 # verdict:a00-a667efeb-43f94e
 
 ## Verdict

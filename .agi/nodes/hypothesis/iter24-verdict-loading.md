@@ -1,21 +1,21 @@
 ---
-confidence: 1.0
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "hyp:iter24-verdict-loading"
+id: hyp:iter24-verdict-loading
 mint_id: c073cc094eee4c06a9b28e1fcfdb4b2d
-next_edges: []
+type: hypothesis
 parents:
   - idea:domain-chain-engine
+next_edges: []
+confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+evidence_runs: []
 tags:
   - topological-queries
   - loader
   - iter-24
-type: hypothesis
-verdict: "inconclusive_lean_proved:50"
+title: Iter24 verdict loading
+verdict: inconclusive_lean_proved:50
 ---
-
 # hyp:iter24-verdict-loading
 ## Verdict: PROVED
 

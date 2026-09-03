@@ -1,20 +1,20 @@
 ---
+id: experiment:a00-f0fd9669-ce583f
+mint_id: 5da00a4259ca48c28b7f4c4e4e5d19f8
+type: experiment
+parents:
+  - hypothesis:a00-8d238338-ec4dff
 confidence: 0.8
 demote_reason: "parent review: disproof is a static code trace, not the live N-parent run the hypothesis specified; N=1 carve-out keeps the claim from being universally disproved. Strong lean, not a decisive verdict."
 demoted_from: disproved
 evidence_runs:
   - experiment:a00-f0fd9669-ce583f
-id: "experiment:a00-f0fd9669-ce583f"
-mint_id: 5da00a4259ca48c28b7f4c4e4e5d19f8
-parents:
-  - hypothesis:a00-8d238338-ec4dff
 scaffold_hash: 43c9f68d9de2b4cc
-type: experiment
-verdict: "inconclusive_lean_disproved:80"
+title: A00 f0fd9669 ce583f
+verdict: inconclusive_lean_disproved:80
 wired_at: 1788320203
 wired_from: a00-f0fd9669
 ---
-
 # experiment:a00-f0fd9669-ce583f
 
 ## Experiment

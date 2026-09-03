@@ -2,16 +2,16 @@
 id: hypothesis:born-valid-without-touching-frontmatter
 mint_id: 3dd69140a6b54dea81b410193c611bd5
 type: hypothesis
-title: Born valid without touching frontmatter
 parents:
   - goal:s31
 next_edges:
   - experiment:the-falsifier-and-the-corpus-census
-scaffold_hash: 2b25f5e175a1dd7f
-verdict: pending
 confidence: 0.85
+scaffold_hash: 2b25f5e175a1dd7f
+testable_claim: "A scaffold can be born schema-valid without any agent touching frontmatter, by splitting the required fields into two populations: those the **engine can derive** at write time, seeded before the file is written; and those only the **kid holds**, written by the kid into the *body* under the heading its brief asks for and lifted into frontmatter at completion by the gated write path. Nothing is invented for a field in neither population — it stays absent and stays reported."
+title: Born valid without touching frontmatter
+verdict: pending
 ---
-
 # hypothesis:born-valid-without-touching-frontmatter
 
 ## Hypothesis

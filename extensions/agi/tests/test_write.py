@@ -215,3 +215,90 @@ def test_a_note_appends_under_an_existing_heading_rather_than_adding_a_second(pr
     text = path.read_text()
     assert text.count("## Agent Notes") == 1, "a second heading was added"
     assert "an earlier note" in text and "a later note" in text
+
+
+# --------------------------------------------------------------------------
+# L1.07 — `create`: the half that was missing when `edit` became `write`
+# --------------------------------------------------------------------------
+
+def _schemas(graph: Path):
+    """Minimal schema set so the spawn gate has rules to enforce."""
+    d = graph / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nvalidation:\n  required: [id, type, mint_id]\n"
+        "spawn:\n  allowed_parents: [goal, idea]\n  min_parents: 1\n"
+        "  max_parents: 2\n---\n\nbody\n")
+    (d / "[experiment].md").write_text(
+        "---\nname: experiment\nvalidation:\n  required: [id, type, mint_id]\n"
+        "spawn:\n  allowed_parents: [hypothesis]\n  min_parents: 1\n"
+        "  max_parents: 1\n---\n\nbody\n")
+    (graph / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (graph / "nodes" / "goal" / "g1.md").write_text(
+        '---\nid: "goal:g1"\ntype: goal\nmint_id: g1mint\ntitle: "G"\n'
+        'status: active\n---\n\nbody\n')
+    return d
+
+
+def test_create_mints_a_node_through_the_gate(project):
+    _schemas(project)
+    res, made = write.create(project, "hypothesis", "new-one", ["goal:g1"])
+    assert res.written and not res.rejected
+    assert made is None, "no payload was asked for"
+    text = Path(res.path).read_text()
+    assert "hypothesis:new-one" in text
+    assert "mint_id:" in text, "creation must mint an id (goal:s14)"
+
+
+def test_create_is_refused_by_the_spawn_gate_like_any_other_spawn(project):
+    """🔴 A second creation path that skipped the gate would be a bypass
+    wearing the name of a front end — the same thing `submit` refuses to be
+    on the update side."""
+    _schemas(project)
+    res, made = write.create(project, "experiment", "bad", ["goal:g1"])
+    assert res.rejected, "experiment may not be parented by a goal"
+    assert made is None
+    assert not (project / "nodes" / "experiment" / "bad.md").exists(), (
+        "a rejected spawn must leave no node behind")
+
+
+def test_create_makes_the_payload_file_and_links_it(project, tmp_path):
+    _schemas(project)
+    res, made = write.create(project, "hypothesis", "with-payload", ["goal:g1"],
+                             payload="src/brand_new.py")
+    assert res.written
+    assert made is not None and made.exists(), "the source file was not created"
+    assert "brand_new.py" in Path(res.path).read_text()
+
+
+def test_create_never_overwrites_an_existing_payload(project, tmp_path):
+    _schemas(project)
+    existing = tmp_path / "src" / "already.py"
+    existing.parent.mkdir(parents=True, exist_ok=True)
+    existing.write_text("# precious\n")
+    res, made = write.create(project, "hypothesis", "links-existing", ["goal:g1"],
+                             payload="src/already.py")
+    assert res.written
+    assert made is None, "an existing file is linked, never re-created"
+    assert existing.read_text() == "# precious\n"
+
+
+def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
+    """Otherwise a rejection leaves an empty source file with no node behind
+    it — precisely the gitignored staging window `goal:g11` removed."""
+    _schemas(project)
+    res, made = write.create(project, "experiment", "doomed", ["goal:g1"],
+                             payload="src/orphan.py")
+    assert res.rejected
+    assert made is None
+    assert not (tmp_path / "src" / "orphan.py").exists(), (
+        "a rejected spawn left an orphaned source file")
+
+
+def test_a_created_node_carries_the_same_provenance_as_an_edited_one(project):
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "provenanced", ["goal:g1"],
+                          actor="director", session="L1.07")
+    text = Path(res.path).read_text()
+    assert "edited_by: director" in text
+    assert "thought_session: L1.07" in text
