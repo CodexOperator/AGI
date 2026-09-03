@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-03: LIVE SCRATCHPAD (loop L1, paused after 01)
+# SESSION HANDOFF — 2026-09-03: LIVE SCRATCHPAD (loop L1, in progress — 02 done)
 
 Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
 session only and the next director replaces it wholesale.
@@ -12,18 +12,26 @@ until then the commit subject carries it by hand.
 
 | | baseline (post-116) | now |
 |---|---|---|
-| active nodes | 922 | **922** |
+| active nodes | 922 | **926** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.300 | 0.300 |
+| `outcome_coverage` (primary) | 0.300 | 0.293 ⬇ |
 | `broken_links` | 0 | **0** |
 | goals active / cap | 13 / 9 ⚠ | **13 / 15** ✅ |
-| tests | 1335 | **1340** |
-| unpushed | 0 | see §3 |
+| tests | 1335 | **1346** |
+| unpushed | 0 | **0** |
 
-**OpenRouter, measured live this session:** `$20.00` total credits,
-`$4.43` used, **`$15.57` remaining**. Per-key cap is now `$5.00`, so the
-balance is **three keys deep, not twenty**. The owner's ruling stands: if it
-runs out, stop the experiment where it got to and call it data.
+**The primary dipped, and it is honest.** L1.02 minted three hypotheses and
+closed no chain. Same dynamic as iterations 107–111 last session: hypotheses
+lead, mvps lag, coverage recovers when the chains close. Do not "fix" it by
+minting mvps for work already done.
+
+**OpenRouter, measured live:** `$20.00` total, **`$15.51` remaining**.
+L1.02 cost **$0.052** for three kids. Per-key cap `$5.00`, so the balance is
+**three keys deep, not twenty**. The owner's ruling stands: if it runs out,
+stop the experiment where it got to and call it data.
+
+🔵 **`spawn.parallel` is currently `1`** — dropped from 5 for L1.02's clean
+attribution measurement. L1.03 is where it ramps to 8.
 
 **Runtime:** pi — `deepseek/deepseek-v4-flash` kids under `qwen/qwen3.8-27b`
 parents. No pi agent dispatched yet this loop; L1.01 was engine-primitive work.
@@ -41,8 +49,10 @@ Concurrency ramps deliberately; **nothing ramps past a cap that has not
 survived a live run.**
 
 - [x] **L1.01** — config, the `write`/`links` rename, the workspace probe.
-- [ ] **L1.02** — 🔴 `mvp:a-live-loop-on-minted-keys`. **NEXT.** Runs alone.
-- [ ] **L1.03** — `mvp:the-bound-under-real-agents`, cap 8.
+- [x] **L1.02** — first live agents on minted keys. **The mvp is not closed:**
+      Part A was *disproved and then fixed*; Part B (provisioning-absent
+      fallback) has still never been run live.
+- [ ] **L1.03** — `mvp:the-bound-under-real-agents`, cap 8. **NEXT.**
 - [ ] **L1.04** — viewport `--emit llm` reaches INJECTION parity.
 - [ ] **L1.05** — INJECTION.md retired, 4 render paths deleted. Cap 12.
 - [ ] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
@@ -108,22 +118,53 @@ Both renames used `git mv`; no build node exists for either file yet, so
 `level3.py` will mint them under the new names at the next scan and there is
 no `payload_ref` churn.
 
+## §2b What landed in L1.02 — a disproof worth more than the feature
+
+**pi does not read `OPENROUTER_API_KEY`.** Its `auth.json` uses the
+`"!command"` indirection and points at `bin/env-get.sh`, which sourced `.env`
+unconditionally. So `dispatch.py` minted a capped, expiring, per-agent
+credential, injected it correctly — verified from `/proc/<pid>/environ`, not
+from our own logs — and pi looked straight past it at the shared key.
+
+```
+iter-1002  both minted keys usage=0   shared key 4.433 -> 4.455 DURING the run
+iter-1003  agi-iter1003-kid-a00 usage=0.0021   shared 4.4687 (pre-run, unchanged)
+```
+
+`goal:g1.11` was decorative end to end, and `env-get.sh` had **zero tests**.
+**A stub that reads `$OPENROUTER_API_KEY` proves the injection happened; it
+cannot prove the harness reads what was injected.** Recorded as `disproved`
+in `experiment:per-spawn-keys-were-never-used`, not softened.
+
+🔴 **Second defect, mine, from L1.01.** `GET /keys` is scoped to the *default*
+workspace and does not say so. Keys minted into `agi` were invisible to
+`list_keys`, so `status` said `engine_minted=0` with two keys live and
+`reap_orphans` revoked nothing while truthfully reporting "0 orphaned" about
+the wrong set. **The safety move made the backstop strictly worse for ~40
+minutes** — old hazard: revoking too much; new one: revoking nothing, silently.
+
+**What held:** injection, the provisioning-key scrub (0 occurrences in a kid),
+revoke-on-reclaim live for the first time, and 0 outstanding keys afterwards.
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-**Paused after the L1.01 commit at the owner's request (client restart).**
-
-Verify state, then start L1.02 — the live minted-key run, which runs alone:
+L1.02 is committed, grid-versioned and pushed. **Next is L1.03** —
+`mvp:the-bound-under-real-agents`, `goal:g4.8` clauses 1, 3, 4, at cap 8.
 
 ```bash
 cd /home/ubuntu/work/agi
-git status --short                                    # expect clean
 python3 extensions/agi/bin/provisioning.py status     # expect 0 outstanding
-python3 extensions/agi/bin/provisioning.py list       # ws= column is new
+python3 extensions/agi/bin/spawn_budget.py status     # expect 0/25 live
+# then raise spawn.parallel 1 -> 8 in .agi/config.json and dispatch
 ```
 
-L1.02 discharges `mvp:a-live-loop-on-minted-keys`: **no pi agent has ever
-authenticated with a key that did not exist before it.** Everything about the
-credential path is proved against stubs and sleeping interpreters.
+**Two things L1.02 left open and L1.03 must not skip past:**
+
+1. **Part B has never run** — the loop with `OPENROUTER_PROVISIONING_KEY`
+   unset, falling back to the shared key. Cheap, and it is half of
+   `goal:g1.11`'s falsifier: a hardening feature that becomes a hard
+   dependency has made the project more fragile while calling itself hardened.
+2. **`spawn.parallel` is 1.** Restore deliberately as part of the ramp.
 
 ## §4 Traps hit this session
 
@@ -150,6 +191,19 @@ credential path is proved against stubs and sleeping interpreters.
 3. **`commands.load()` needs the graph root (`.agi`), not the repo root.**
    Passing the repo root returns `0 commands` with no error — it looks like an
    empty table rather than a wrong argument.
+4. 🔴 **A mock of the counterparty can only confirm what its author believed
+   the counterparty does.** The whole of §2b. The seam — 30 lines of bash where
+   the engine's credential meets the harness's auth — had no tests, while its
+   docstring described a *different* hazard (cwd anchoring) in detail.
+5. **`pgrep -af "cli.js"` does not find pi.** The process is named `pi`. I
+   concluded "both kids have exited" while one had four minutes left to run,
+   and nearly wrote that into a node.
+6. **Piping a long background command through `tail` hides it until it ends.**
+   Two runs produced no interim output at all. Redirect to a file instead.
+7. **Usage figures lag slightly but attribution does not.** The shared key's
+   number kept moving for a minute after a kid died; the *split* between keys
+   was correct immediately. Compare keys against each other, not against wall
+   clock.
 
 ## §5 Known-good verification sequence
 
