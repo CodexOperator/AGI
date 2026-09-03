@@ -1,22 +1,23 @@
 ---
+id: goal:g1.5
+mint_id: 67a1f5899e6243c6ac470ca5d2a8e758
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: l1.09-execution-parent
 goal_id: G1.5
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.5"
-mint_id: 67a1f5899e6243c6ac470ca5d2a8e758
 origin: goals-doc
-parents:
-  - goal:g1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: L1.09
 title: "G1.5: `init` leaves nothing to install by hand"
-type: goal
 ---
-
 **Setting up a project is currently two manual steps and a memory test.** The
 cron half of this is now largely satisfied; the other two are not:
 
@@ -63,3 +64,6 @@ Falsifier: clone the repo to an empty machine, run the one command, and check
 that `git fetch` brings the grid down and the crontab shows the managed
 `agi-crons` block with all four jobs. If either needs a second command, this
 is not done.
+
+## Agent Notes
+L1.09 (2026-09-03): the cavekit build-site's `hyp:graph-core-r10` -- one command that turns an empty directory into a valid graph root (skeleton, a minimal example node and schema, idempotent re-run, one summary of created paths) -- is the scaffolding half this goal already owes; recorded here rather than as a new goal, and the hypothesis is deprecated with its cohort (goal:s18).
