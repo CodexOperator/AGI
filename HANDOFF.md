@@ -86,9 +86,21 @@ further slots cleanly ("skipping, not waiting"). Parents spawned kids
 (`tier=kid` leases appeared under parent iters). Logs:
 `.agi/sessions/L1-logs/p-*.log`, sampler `samples.log` (30s cadence).
 
-Next: when leases drain, `smoke` (count must not drop), `links`, check
-`unevidenced_decisive_verdicts`, commit nodes, `grid-commit`, push, redispatch
-`goal:g4.8`.
+**Waves 2–4 landed and pushed** (commits `L1.08b`–`L1.08e`): 44 pi parents,
+active 940 → **1023**, `mvp_count` 39 → 47, primary 0.271 → 0.247, tests
+1381, 0 broken links. **Wave 5 (s18, g13, g4.1, g10.1 + two director
+hypotheses) died at 403 — OpenRouter workspace weekly budget exceeded** (§6).
+
+**Pivot at 21:40:** the engine's `claude-code` harness is declared but
+**unimplemented** (`goal:g4.6`), so four CC subagents run directly, disjoint
+domains, no git: (1) implement the `claude_code` adapter, `adapters/`;
+(2) evidence gate on the commit path, `evidence_gate.py`/`grid.py`/
+`post_wire.py`; (3) audit the 9 wave-3 mvps, `metrics.py`; (4) s18 mining
+survey → `.agi/sessions/L1.09-mining/report.md`, read-only.
+
+Next, as each returns: check `caveats:`/`struggles:` first, verify the node
+file on disk, `run tests`, commit **immediately** (trap 5), `grid-commit`,
+push. Then act on the s18 survey (L1.09) and the L1.10 items.
 
 ```bash
 cd /home/ubuntu/work/agi
@@ -117,7 +129,20 @@ python3 extensions/agi/bin/commands.py run tests     # 1371
    `a01-de655bfd`). Fix belongs on the *read/commit* path (`goal:g7`), not in
    more brief text. Also: **9 mvps minted in wave 3** — audit against
    `[mvp].md`'s forward-pointing rule before trusting `mvp_count` 39 → 48.
-5. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
+5. 🔴 **Two director nodes minted via `write.py create` vanished, uncommitted,
+   while pi parents were live.** Not smoke (re-minted and smoke'd: survives),
+   not in git, not in the grid — they were untracked files and something in
+   the wave ran a git operation that dropped untracked files. One kid record
+   (`iter-1009/a01-dd74693c`, a `goal:g4.1` kid) mentions `git
+   clean|stash|checkout`. **This is `goal:g4.1`'s thesis observed live.**
+   Rule for the rest of the session: **commit immediately after minting**;
+   never leave a node untracked across a wave.
+6. **`test_mint_refuses_to_hand_out_a_key_with_no_ttl` fails whenever engine
+   keys are outstanding** (16 live keys visible). Passed at baseline with 0
+   outstanding. `provisioning.py` unchanged since L1.02, so this is a
+   non-hermetic test hitting the real account, not a regression. Confirm after
+   full drain; belongs to `goal:g1.11`.
+7. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
    this session uses 1006+. Loop-scoped numbering (L1.10) is still unbuilt.
 
 ## §5 Known-good verification sequence
@@ -136,7 +161,19 @@ python3 extensions/agi/bin/commands.py run grid-commit
 
 ## §6 BANKED for the owner
 
-_(empty — nothing yet needs a decision the grant does not already cover)_
+1. 🔴 **OpenRouter workspace `agi` has a `$10.00/week` budget and it is
+   EXCEEDED as of ~21:22.** Every wave-5 parent died on
+   `403 Workspace weekly budget of $10.00 exceeded. Contact your org admin.`
+   before spawning a kid. The real ceiling was never $15.43 (account balance)
+   nor $5 (per-key cap) — it was a **third limit nothing in the engine reads**.
+   Waves 2–4 (≈44 parents + their kids) cost ≈$10; a parent key reads
+   `used≈$0.05–0.15`, a kid `≈$0.015`. **Owner action: raise the workspace
+   weekly budget in OpenRouter org settings** (outside director authority —
+   a provider spend setting). Until then pi dispatch is dead; the director
+   fell back to the engine's `claude-code` harness for the remaining targets.
+   **Engine follow-up (`goal:g1.11`):** `provisioning.py` should read the
+   workspace budget and refuse to mint when the next key cannot be funded,
+   instead of letting a whole wave die at 403 after minting.
 
 ## §7 Standing hazards carried forward
 
