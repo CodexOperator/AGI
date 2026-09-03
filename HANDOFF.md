@@ -12,12 +12,12 @@ until then the commit subject carries it by hand.
 
 | | baseline (post-116) | now |
 |---|---|---|
-| active nodes | 922 | **938** |
+| active nodes | 922 | **940** |
 | deprecated | 7 | **8** |
 | `outcome_coverage` (primary) | 0.300 | 0.273 ⬇ |
 | `broken_links` | 0 | **0** |
 | goals active / cap | 13 / 9 ⚠ | **13 / 15** ✅ |
-| tests | 1335 | **1357** |
+| tests | 1335 | **1371** |
 | unpushed | 0 | **0** |
 
 **The primary is falling, and it is honest.** 14 hypotheses minted, no chain
@@ -56,12 +56,12 @@ survived a live run.**
 - [x] **L1.04** — the briefing extracted; `INJECTION.md` byte-identical.
 - [x] **L1.05** — `render-context.py` retired. **One render path, not four** —
       see §2e; I over-promised that number in the plan.
-- [ ] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
-      **NEXT.**
-- [ ] **L1.07** — `write.py create`; schema backfill rides along. Cap 16.
+- [x] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
+- [x] **L1.07** — `write create`, the schema backfill (118 → 62), **and a bug
+      of mine that reached a push** — see §2f.
 - [ ] **L1.08** — parent-spawns-kid live; per-agent grid scratchpad;
-      **the removal guard** (`goal:g3` extended: deprecation cannot raise the
-      primary). Cap 20. **The guard must land before L1.09.**
+      **the removal guard**. Cap 20. **NEXT.**
+
 - [ ] **L1.09** — WIDE. Cavekit exit + legacy sweep. Cap 25.
 - [ ] **L1.10** — webhook / direct model calls with session id → chat-to-node
       linking (`goal:g10.1`, `goal:g2.7`); engine-commit pinning; loop-scoped
@@ -223,17 +223,55 @@ looked plausible. Nothing raised.
 `renderers/ascii` is orphaned but keeps its tests; `zoom.py`'s renderers build
 *kid* context and deserve their own falsifier. Five → four.
 
+## §2f L1.06–07 — the router, `create`, and a bug I pushed
+
+`agi <verb>` works, and **the router has no verb list**: any bare first word
+is delegated to `commands.py`, so adding `agi <anything>` is a node edit. Four
+`see` commands declared — `view` (live, spiders), `view-llm` (what a kid is
+handed), `view-both`, `write`.
+
+`write create` mints a node **and the source file behind it**, reusing
+`node_writer.write_node` so the spawn gate runs before anything is written.
+The payload write lives in `node_writer.ensure_payload`, because `write.py`
+holds a mechanically-checked *no file write at all* invariant and weakening it
+would trade a strong property for a comment.
+
+**Schema backfill: 118 → 62.** The remaining 62 (`testable_claim`×51,
+`scale`×7, `next_edges`×3, `confidence`×1) are exactly the set the last
+session predicted needs `goal:g1.9`. Nothing was invented.
+
+### 🔴 I pushed a commit that broke `agi <verb>`
+
+One `write.py command:commands 'thought …'` wrote the node's nested
+`commands:` mapping back as a **Python dict repr in a quoted string**.
+`commands.load` raised, every `agi <verb>` died, and `INJECTION.md` lost its
+command section. Cause: `render_frontmatter` handled list/bool/None and every
+other type fell to `str(v)` — a latent bug since forever, unreachable until
+`[command]` introduced the first nested mapping.
+
+**How it got out: the suite ran green *before* the edit, and the edit shared a
+shell command with the commit.** Running tests before your last edit is
+indistinguishable from not running them. Same shape as the three vacuous
+guards earlier this loop. Fixed, mutation-checked, and recorded as
+`experiment:the-serializer-ate-the-command-node`.
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-L1.05 is committed, grid-versioned and pushed. **Next is L1.06** — the
-`agi <verb>` router, so `agi view` / `agi view-llm` / `agi write` work from
-inside the repo. `driver.sh` is flags-only today and `agi view` errors.
+L1.07 is committed, grid-versioned and pushed. **Next is L1.08** — the
+removal guard, which **must land before L1.09's cavekit sweep**, plus the
+first live parent-spawns-kid run at cap 20.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/commands.py list      # 11 declared, none is a view
-bash extensions/agi/driver.sh --smoke --max-iters 1
+python3 extensions/agi/bin/commands.py run smoke      # 940 active, must not drop
+python3 extensions/agi/bin/provisioning.py status     # expect 0 outstanding
 ```
+
+**The removal guard is the gate on L1.09.** Deprecating the 168 build-site
+nodes removes 61 unclosed hypotheses from `outcome_coverage`'s denominator,
+which raises the primary for free. `goal:g3` says added motion cannot move
+scoring; nothing yet says the same about removal. Owner approved
+guard-then-retire.
 
 ## §4 Traps hit this session
 
