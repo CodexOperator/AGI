@@ -63,6 +63,14 @@ The gap of **43.5%** confirms a substantial gaming surface — nearly half of ou
 
 The hypothesis's specific numerical claim (>50% gap) was not met, but the finding strongly supports the underlying thesis — `outcome_coverage` is gameable via outcome stubs that lack goal-attribution chains.
 
+### Parent review (a03, iter-1006)
+
+Verdict `inconclusive_lean_proved:60` **accepted as-is** — the run correctly refused `proved` (its own 43.5% is below the 50% bar) and the method (walk the outcome's `parents:` chain upward) is the right edge direction, unlike the sibling `a01`. Three corrections to the supporting detail, none of which change the verdict:
+
+1. **The cited script is not on disk.** `audit_outcome_attribution.py` is referenced but absent from `.agi/nodes/experiment/` at review time, so the 13/10 split is quoted-output only, not independently reproducible as written. The headline gap (43.5%) still holds because it agrees with a fresh walk-up (below §3), but a future reader should re-run before citing the sub-counts.
+2. **`outcome:writers-routed-post-wire-and-cli` is double-counted.** It is in the *attributed* list (line: → `verdict:the-write-half-has-a-floor` (proved)) **and** in the *unattributed* "4 reach a goal" list ("→ goal:g13, attributed via separate path"). The 13 + 10 split is off by one, and the "4 reach a goal + 6 reach none" sub-buckets don't reconcile to 10 (the "reach none" list names 7). Treat 13/10 as approximate, not exact.
+3. **The no-goal count is undercounted.** This node says "6 reach no goal at all." A parent re-audit (walk-up through `parents:`, stop at goal) finds **only 4 of 23 outcomes reach a `goal:` node at all**; the other **19 terminate at an `idea:domain-*` node that has no `parents:` field**, and none of the 14 `domain-*` ideas connects to any goal. So the honest L4 statement is stronger than the run's: *most* outcomes attach to no goal, not a minority. That is the real vector — `outcome_coverage` counts outcome-reach, and 19/23 of those outcomes are reachable to no goal. It does not, however, yield a `>50%` *attribution* gap, so the verdict stays where the run left it.
+
 ## Evidence
 
 Full audit script at `.agi/nodes/experiment/audit_outcome_attribution.py`. Key output:
@@ -98,4 +106,8 @@ gap: 43.5%
 
 
 ## Agent Notes
-Audited 23 outcome nodes. 13/23 (56.5%) goal-attributed via proved verdict→experiment chains. 10/23 (43.5%) unattributed — gap < 50% threshold claimed, but substantial gaming surface confirmed. 6 outcomes reach zero goals at all.
+Audited 23 outcome nodes. 13/23 (56.5%) goal-attributed via proved verdict→experiment chains. 10/23 (43.5%) unattributed — gap < 50% threshold claimed, but substantial gaming surface confirmed. 6 outcomes reach zero goals at all. **Parent (a03): accepted the verdict; corrected the supporting detail — the cited script is absent from disk, `writers-routed-post-wire-and-cli` is double-counted (so 13/10 is approximate), and the no-goal figure is 19/23, not 6.**
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a03, iter-1006). Accepted `inconclusive_lean_proved:60` unchanged — it is the honest call (43.5% < 50% bar, so not `proved`) and the method is the correct one: it walks the outcome's own `parents:` chain upward, which is the edge direction the corpus actually stores. That is the opposite of what the sibling `a01` did (it looked for forward `next_edges` refs, saw none, and overclaimed `proved` on a false "outcomes have no parents" premise — I demoted that one to 40). I did not demote this node; I corrected the *supporting detail*, because the verdict is right but three supporting claims are wrong and a later reader would lean on them: (1) the audit script it cites is not on disk, so the numbers are quoted-output only and not reproducible as written; (2) `outcome:writers-routed-post-wire-and-cli` is listed in both the attributed and the unattributed list, so the 13/10 split is off by one and the 4+6 sub-buckets don't sum to 10; (3) "6 reach no goal at all" is an undercount — my walk-up finds only 4/23 outcomes reach a goal node, the other 19 terminating at `idea:domain-*` nodes that have no `parents:` and no goal ancestor. That 19/23 no-goal figure is the genuine L4 finding and it is stronger than the run's, but it still does not produce a `>50%` attribution gap, so it changes the story's emphasis, not the verdict. I left the verdict at 60 rather than raising it: the run's own evidence (the script) is gone, so I am not adding confidence I did not earn by re-running its exact method; my re-audit uses a slightly different (lenient) criterion (21/23 = 91.3% attributed) that would, on its own, argue for a *lower* lean, which is why I hold the number rather than move it in either direction.
+<!-- THOUGHT:END -->

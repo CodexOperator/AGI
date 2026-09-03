@@ -7,10 +7,20 @@ parents:
 next_edges: []
 confidence: 0.0
 scaffold_hash: aee6667a33947786
-title: A00 33edc7cc b6c1cf
+title: Unattributed hypotheses inflate the outcome_coverage denominator
 verdict: pending
 ---
 # hypothesis:a00-33edc7cc-b6c1cf
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-b9579b51, iter-1006). The kid left the auto-scaffold title
+("A00 33edc7cc b6c1cf"); set it to state the actual claim. Verified the one
+figure the hypothesis relies on: metrics.py reports unattributed_nodes=596 over
+active_node_count=973 (61%), matching the kid's 596/974 (off by one, the corpus
+moved). Final file confirmed clean of the literal-`\n` mangling the kid's
+`struggles:` line describes — that was its first write attempt, self-corrected
+before done. Pending, no experiment run, exactly as the kid's caveat states.
+<!-- THOUGHT:END -->
 
 ## Hypothesis
 
