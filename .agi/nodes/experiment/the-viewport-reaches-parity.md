@@ -6,12 +6,14 @@ parents:
   - hypothesis:the-briefing-is-the-missing-half
 next_edges: []
 confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director
 evidence_runs: 1
 scaffold_hash: c6d51a69d6c7149a
 thought_session: L1.07
 title: The briefing extracted, INJECTION.md byte-identical, and the viewport at full section parity
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:the-viewport-reaches-parity
 

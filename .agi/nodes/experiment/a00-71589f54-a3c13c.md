@@ -6,9 +6,11 @@ parents:
   - hypothesis:a00-003fffb0-388249
 next_edges: []
 confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 scaffold_hash: 96df5d41508227c2
 title: Token-size analytical measurement of parent-summary vs kid-node compression
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:a00-71589f54-a3c13c
 

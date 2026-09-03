@@ -6,12 +6,14 @@ parents:
   - hypothesis:a03-280a21b7-6d6841
 next_edges: []
 confidence: 0.9
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director
 evidence_runs: 2
 scaffold_hash: 44f393af23837334
 thought_session: L1.07
 title: Eight real pi agents against the tree-wide bound — and the cost of aiming them all at one node
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:the-bound-at-eight-real-agents
 

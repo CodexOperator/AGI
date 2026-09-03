@@ -6,12 +6,14 @@ parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
 confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
+demoted_from: disproved
 edited_by: director
 evidence_runs: 2
 scaffold_hash: e3c279cc48922f53
 thought_session: L1.07
 title: The first live pi agents on minted keys — and the keys were never used
-verdict: disproved
+verdict: inconclusive_lean_disproved:50
 ---
 # experiment:per-spawn-keys-were-never-used
 

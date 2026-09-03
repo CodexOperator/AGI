@@ -6,12 +6,14 @@ parents:
   - hypothesis:the-briefing-is-the-missing-half
 next_edges: []
 confidence: 0.9
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director
 evidence_runs: 1
 scaffold_hash: 5de2d0901f862a85
 thought_session: L1.07
 title: render-context.py retired — and the two invariants that came off with it, both silently
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:the-renderer-retired-and-what-it-took-with-it
 

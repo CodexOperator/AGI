@@ -6,9 +6,11 @@ parents:
   - hypothesis:a05-bc3ad321-131bbc
 next_edges: []
 confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 scaffold_hash: c1a784b1204768a0
 title: Parent-tier agent detects unevidenced verdict — two independent trials
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:a00-521484bb-c1dd5f
 

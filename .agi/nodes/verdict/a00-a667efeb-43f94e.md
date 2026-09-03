@@ -5,10 +5,12 @@ type: verdict
 parents:
   - experiment:a00-a10998e3-ca0b99
 confidence: 0.85
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 evidence_runs: 1
 scaffold_hash: f81f04e561adacb7
 title: A00 a667efeb 43f94e
-verdict: proved
+verdict: inconclusive_lean_proved:50
 wired_at: 1788276225
 wired_from: a00-a667efeb
 ---

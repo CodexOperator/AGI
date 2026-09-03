@@ -6,9 +6,11 @@ parents:
   - experiment:the-serializer-ate-the-command-node
 next_edges: []
 confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 scaffold_hash: 65161c4c61105e44
 title: A serializer str(v) fallback destroys nested mappings silently
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # verdict:a00-e3daad09-469593
 
