@@ -51,10 +51,14 @@ Full director authority for the run. Explicitly authorized, on the record:
 ## §1 The plan
 
 - [x] **L1.01–L1.07** — prior session. See grid for detail.
-- [ ] **L1.08** — the removal guard (`goal:g3` symmetry: removal cannot move
-      scoring either). **In flight, PARENT-A.** Gates L1.09.
-- [ ] **L1.08b** — live scale: parent-spawns-kid, cap 8→16→25, `goal:g4.8`
-      clauses 2 & 3. **In flight, PARENT-D.**
+- [x] **L1.08** — the removal guard landed (`L1.08`), then held for real in
+      L1.09 (`deprecation_score_delta=-0.102` withheld).
+- [x] **L1.08b** — live scale: parent tier ran live on pi (44 parents, waves
+      2–4), **cap 25 reached and held**, budget refused overflow cleanly;
+      parent-spawns-kid observed on both harnesses. `goal:g4.8` clause 2 (a
+      parent demoting unaided) was **not** separately observed — the
+      commit-path gate now makes it moot at acceptance. Clause 3 (spend): a
+      pi parent key read $0.05–0.15, a kid $0.015; a CC kid ~$0.30.
 - [x] **L1.09** — **DONE, commit `L1.09`.** 159 build-site nodes deprecated
       in one atomic pass with per-node dispositions, 29 verdicts by citation,
       kits + plan deleted, 7 build nodes deprecated, `goal:s32` (embeddings
@@ -65,7 +69,11 @@ Full director authority for the run. Explicitly authorized, on the record:
       `CLAUDE.md` rows) dispatched to a cleanup agent.
 - [ ] **L1.10** — chat-to-node linking (`goal:g10.1`, `goal:g2.7`),
       engine-commit pinning (`goal:g8.1`), loop-scoped iteration numbering.
-      Design recon in flight (PARENT-E).
+      **In flight via engine CC parents:** `iter-1039` (loop-scoped ids,
+      `hypothesis:loop-scoped-iteration-ids-cannot-clobber` under g7),
+      `iter-1041` (g10.1). `iter-1040` = attractor-filter follow-up
+      (`hypothesis:attractor-list-must-hide-deprecated-ideas` under g9.7).
+      g8.1 dispatch waits for 1039 to drain (subscription rate limit).
 
 ## §2 Concurrency discipline this session
 
