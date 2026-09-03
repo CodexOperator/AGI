@@ -5,13 +5,14 @@ type: experiment
 parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
-scaffold_hash: e3c279cc48922f53
-title: "The first live pi agents on minted keys — and the keys were never used"
-verdict: disproved
 confidence: 1.0
+edited_by: director
 evidence_runs: 2
+scaffold_hash: e3c279cc48922f53
+thought_session: L1.07
+title: The first live pi agents on minted keys — and the keys were never used
+verdict: disproved
 ---
-
 # experiment:per-spawn-keys-were-never-used
 
 ## Experiment
