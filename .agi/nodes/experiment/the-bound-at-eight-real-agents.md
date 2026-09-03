@@ -5,13 +5,14 @@ type: experiment
 parents:
   - hypothesis:a03-280a21b7-6d6841
 next_edges: []
-scaffold_hash: 44f393af23837334
-title: "Eight real pi agents against the tree-wide bound — and the cost of aiming them all at one node"
-verdict: proved
 confidence: 0.9
+edited_by: director
 evidence_runs: 2
+scaffold_hash: 44f393af23837334
+thought_session: L1.07
+title: Eight real pi agents against the tree-wide bound — and the cost of aiming them all at one node
+verdict: proved
 ---
-
 # experiment:the-bound-at-eight-real-agents
 
 ## Experiment

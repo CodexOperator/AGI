@@ -148,6 +148,33 @@ python3 extensions/agi/bin/spawn_budget.py status    # expect 0/25 live
    concluded "both kids exited" while one had four minutes left.
 7. **Piping a long background command through `tail` hides it until it ends.**
    Redirect to a file instead.
+8. 🔴 **I authored node bodies with a plain file write instead of `write.py`,
+   which is the exact untraceable write `goal:g13.1` exists to end.** Caught by
+   the owner asking. Audited: **4 of 5 experiment nodes I wrote this loop had
+   no `edited_by`** — only the one minted through `write create` did. Stamped
+   afterwards via the write path, and `write.py` preserved every `THOUGHT`
+   block, which is the guarantee working.
+
+   **Use `agi write` / `write.py` for node bodies. It is not muscle memory yet
+   and that is precisely why it needs saying here.**
+
+## §4b The grid question, answered by measurement
+
+The owner asked whether the grid snapshots a new node version when the write
+path is bypassed. **It does — the grid does not care how the bytes got there.**
+
+- `grid.py commit --all` diffs the *tree* (`node.md` + payload) against the
+  last ref. A plain file write produces a version exactly like a gated one.
+  Verified: `build:HANDOFF.md` went **v75 → v76** carrying bytes written with
+  an ordinary file write, and `grid.py payload build:HANDOFF.md` returns them
+  byte-identical.
+- **What is lost by bypassing is provenance, not history.** No `edited_by`, no
+  `thought_session`, no schema validation, no gate. The version exists; it just
+  cannot say who made it or why.
+
+**And for `HANDOFF.md` specifically, a direct file write is correct.** It is
+`build:HANDOFF.md`'s *payload*, and `CLAUDE.md` is explicit — edit the payload,
+never the node body. `write.py` is for node frontmatter and bodies.
 
 ## §5 Known-good verification sequence
 

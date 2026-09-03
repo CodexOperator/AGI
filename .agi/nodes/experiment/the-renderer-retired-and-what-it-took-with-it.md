@@ -5,13 +5,14 @@ type: experiment
 parents:
   - hypothesis:the-briefing-is-the-missing-half
 next_edges: []
-scaffold_hash: 5de2d0901f862a85
-title: "render-context.py retired — and the two invariants that came off with it, both silently"
-verdict: proved
 confidence: 0.9
+edited_by: director
 evidence_runs: 1
+scaffold_hash: 5de2d0901f862a85
+thought_session: L1.07
+title: render-context.py retired — and the two invariants that came off with it, both silently
+verdict: proved
 ---
-
 # experiment:the-renderer-retired-and-what-it-took-with-it
 
 ## Experiment
