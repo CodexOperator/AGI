@@ -200,7 +200,12 @@ if [[ "$need_rebuild" == "true" ]]; then
   # Plugin scripts are canonical; project-local copies override if present.
   SNAPSHOT_PY="$PLUGIN_ROOT/bin/snapshot-build-site.py"
   [[ -x "$PROJECT_ROOT/bin/snapshot-build-site.py" ]] && SNAPSHOT_PY="$PROJECT_ROOT/bin/snapshot-build-site.py"
-  RENDER_PY="$PLUGIN_ROOT/bin/render-context.py"
+  # bin/inject.py replaced bin/render-context.py on 2026-09-03 (L1.05): the
+  # injected map now comes from the viewport's frame stream, so what a session
+  # is handed and what `viewport.py --emit llm` shows are the same thing. The
+  # old project-local name is still honoured for a project that ships one.
+  RENDER_PY="$PLUGIN_ROOT/bin/inject.py"
+  [[ -x "$PROJECT_ROOT/bin/inject.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/inject.py"
   [[ -x "$PROJECT_ROOT/bin/render-context.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/render-context.py"
   [[ -f "$SNAPSHOT_PY" ]] && AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$SNAPSHOT_PY" >/dev/null 2>&1 || true
   [[ -f "$RENDER_PY" ]] && AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" >/dev/null 2>&1 || true

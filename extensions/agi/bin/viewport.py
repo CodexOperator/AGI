@@ -121,12 +121,31 @@ def _title_of(node, fm: dict) -> str:
 
 
 def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
-                 agents_at: dict | None = None) -> list[Frame]:
+                 agents_at: dict | None = None,
+                 hide_deprecated: bool = False) -> list[Frame]:
     """Walk the graph once from `anchor` and emit frames in display order.
 
     Ordering is `(depth, node_id)` and is deterministic: two runs over an
     unchanged corpus emit byte-identical streams, which is what makes
     `--verify` meaningful and what lets the time axis diff two points.
+
+    ## `hide_deprecated` — two consumers that genuinely want opposite things
+
+    The human viewport **shows** retired nodes on purpose: this file's own
+    contract is to render the graph's damage rather than a flattering picture
+    of it, and deprecated mass is part of that picture. Default `False`.
+
+    The **injected map must hide them** (`goal:s23`): an agent handed a
+    retired node as a live chain head will extend it, which is the whole
+    reason retirement exists. `render-context.py` did this with a `_LiveOnly`
+    graph view, and when `inject.py` replaced it on 2026-09-03 the filter was
+    dropped — the map looked correct only because the one retired build node
+    happened to sit outside depth 3 of any root. Anchoring on its parent
+    showed it immediately.
+
+    A view, never a removal: `g` keeps every node, and `by_type` counts still
+    include retired ones exactly as they did before — the numbers describe the
+    corpus, the tree describes what is live to work on.
     """
     agents_at = agents_at or {}
     if anchor and not g.has_node(anchor):
@@ -143,8 +162,18 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
     # Caught by reading the first default render rather than by a test, which
     # is the argument for `goal:g9` in one line -- a view nobody looks at is
     # a view that can be wrong for free.
+    def _retired(nid: str) -> bool:
+        return str((fm_by_id.get(nid) or {}).get("status") or "").strip().lower() \
+            == "deprecated"
+
     def walk(nid: str, depth: int) -> None:
         if nid in seen or depth > max_depth:
+            return
+        if hide_deprecated and _retired(nid):
+            # Hidden WITH its subtree: a live node reached only through a
+            # retired parent is not a live chain head either, and `_LiveOnly`
+            # dropped incident edges for the same reason.
+            seen.add(nid)
             return
         seen.add(nid)
         node = g.get_node(nid)

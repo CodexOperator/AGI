@@ -110,16 +110,42 @@ class Briefing:
     command_lines: list = field(default_factory=list)
 
 
+def successors(g, nid: str) -> list:
+    """Node ids reachable in one hop, **whichever way this graph stores that.**
+
+    🔴 This project has two live graph representations and they disagree about
+    where adjacency lives. `load_directory` builds explicit `Edge` objects and
+    answers `edges_from`; `zoom._load_wired_graph` builds none at all and
+    hangs `children` sets on the nodes.
+
+    Measured 2026-09-03: a descendant count written against only the first
+    returned **0 for every idea** on the second — so the attractor list, which
+    is what an agent reads to choose a target, came out all zeros in
+    alphabetical order and looked like a plausible list. Nothing raised. A
+    briefing that silently reports zeros is worse than one that fails, because
+    the loop keeps running on it.
+    """
+    if hasattr(g, "edges_from"):
+        try:
+            out = [getattr(e, "target", None) for e in g.edges_from(nid)]
+            out = [t for t in out if t]
+            if out:
+                return out
+        except Exception:                                        # noqa: BLE001
+            pass
+    node = g.get_node(nid) if hasattr(g, "get_node") else None
+    return sorted(getattr(node, "children", ()) or ()) if node else []
+
+
 def count_descendants(g, root: str) -> int:
-    """BFS descendant count. Lifted from `render-context.py` unchanged."""
+    """BFS descendant count, over whichever adjacency the graph actually has."""
     seen = {root}
     stack = [root]
     n = 0
     while stack:
         cur = stack.pop()
-        for e in g.edges_from(cur) if hasattr(g, "edges_from") else []:
-            tgt = getattr(e, "target", None)
-            if tgt and tgt not in seen:
+        for tgt in successors(g, cur):
+            if tgt not in seen:
                 seen.add(tgt)
                 stack.append(tgt)
                 n += 1
@@ -142,7 +168,23 @@ def build(root: Path, g, loaded=None, *, descendants_fn=None,
         by_type[n.type] = by_type.get(n.type, 0) + 1
     b.by_type = by_type
     b.node_count = len(g) if hasattr(g, "__len__") else len(by_type)
-    b.edge_count = getattr(g, "edge_count", 0)
+
+    # `edge_count` is maintained by one loader and left at 0 by another, and
+    # the difference is invisible until a briefing says `edges: 0` about a
+    # graph with 866 of them (measured 2026-09-03, L1.05). Counting the
+    # iterator when the counter says zero costs one pass and makes the number
+    # a property of the graph rather than of which loader built it.
+    b.edge_count = int(getattr(g, "edge_count", 0) or 0)
+    if not b.edge_count:
+        try:
+            b.edge_count = sum(1 for _ in getattr(g, "edges", ()))
+        except Exception:                                        # noqa: BLE001
+            b.edge_count = 0
+    if not b.edge_count:
+        # No Edge objects at all — count the adjacency the nodes carry, which
+        # is the only place this representation keeps it.
+        b.edge_count = sum(len(getattr(n, "children", ()) or ())
+                           for n in getattr(g, "nodes", []))
 
     try:
         import metrics as _m

@@ -157,35 +157,69 @@ def test_deprecated_node_ids_is_the_single_definition(tmp_path):
     assert stats["deprecated_node_count"] == 1
 
 
-def test_the_live_only_view_hides_nodes_without_mutating_the_graph():
+def test_the_injected_map_hides_retired_nodes_without_mutating_the_graph():
     """`goal:s23`'s falsifier, both halves in one test: the map loses the
     retired node while the graph it was built from keeps it, because
-    `by_type` counts and `find_chains` still read `g` a few lines later."""
+    `by_type` counts and `find_chains` still read `g` a few lines later.
+
+    🔴 **Retargeted 2026-09-03 (L1.05).** This used to exercise
+    `render-context.py`'s `_LiveOnly` graph view. That file was retired and
+    `inject.py` took over, and the filter did not come with it — the map
+    looked correct only because the single retired build node happened to sit
+    outside depth 3 of any root. Anchoring on its parent showed it at once.
+
+    The invariant is the map's, not any one class's, so the test follows the
+    invariant to whatever now implements it: `frame_stream(hide_deprecated=)`.
+    The human viewport deliberately does the opposite and shows retired mass,
+    which is why this is a flag and not a default.
+    """
     import importlib.util
     src = BIN.parent / "src"
     sys.path.insert(0, str(src))
-    from graph_core.graph import Graph
-    from graph_core.node import Node
-    from graph_core.edge import Edge
 
-    spec = importlib.util.spec_from_file_location("rc_mod", BIN / "render-context.py")
-    rc = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(rc)
+    spec = importlib.util.spec_from_file_location("vp_mod", BIN / "viewport.py")
+    vp = importlib.util.module_from_spec(spec)
+    sys.modules["vp_mod"] = vp
+    spec.loader.exec_module(vp)
 
-    g = Graph()
-    for nid in ("idea:a", "build:dead"):
-        g.add_node(Node(id=nid, type=nid.split(":")[0]))
-    g.add_edge(Edge(source_id="idea:a", target_id="build:dead", relation="spawns"))
+    class _N:
+        def __init__(self, nid, ntype, children=()):
+            self.id, self.type = nid, ntype
+            self.children, self.parents = set(children), set()
 
-    view = rc._LiveOnly(g, frozenset({"build:dead"}))
-    assert view.node_ids == {"idea:a"}
-    assert list(view.edges) == []          # incident edge hidden with its node
-    assert view.get_node("build:dead") is None
-    assert view.get_node("idea:a") is not None
+    class _G:
+        def __init__(self, nodes):
+            self._n = {n.id: n for n in nodes}
+        @property
+        def nodes(self): return list(self._n.values())
+        def __len__(self): return len(self._n)
+        def has_node(self, nid): return nid in self._n
+        def get_node(self, nid): return self._n.get(nid)
 
-    # the underlying graph is untouched — this is a view, not a removal
-    assert g.node_ids == {"idea:a", "build:dead"}
-    assert g.edge_count == 1
+    g = _G([_N("idea:a", "idea", ["build:dead", "build:live"]),
+            _N("build:dead", "build", ["verdict:under-dead"]),
+            _N("verdict:under-dead", "verdict"),
+            _N("build:live", "build")])
+    fm = {"idea:a": {"title": "A", "status": "active"},
+          "build:dead": {"title": "Dead", "status": "deprecated"},
+          "verdict:under-dead": {"title": "Below", "status": "active"},
+          "build:live": {"title": "Live", "status": "active"}}
+
+    hidden = [f.node_id for f in
+              vp.frame_stream(g, fm, "idea:a", 3, hide_deprecated=True)]
+    assert "build:dead" not in hidden, "a retired node reached the injected map"
+    assert "verdict:under-dead" not in hidden, (
+        "a node reachable only through a retired parent is not a live head")
+    assert hidden == ["idea:a", "build:live"]
+
+    # The human viewport shows retired mass on purpose -- damage, not a
+    # flattering picture. Same stream, different scope.
+    shown = [f.node_id for f in vp.frame_stream(g, fm, "idea:a", 3)]
+    assert "build:dead" in shown
+
+    # A view, never a removal: the graph is untouched either way.
+    assert len(g) == 4
+    assert g.get_node("build:dead") is not None
 
 
 # ------------------------- goal:s27 — a parent's completion is its kids'
