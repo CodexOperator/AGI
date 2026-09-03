@@ -21,11 +21,11 @@ commands:
     about: "version every changed node and its payload"
     workflow: verify
   links:
-    argv: ["python3", "<engine>/extensions/agi/bin/write.py", "links"]
+    argv: ["python3", "<engine>/extensions/agi/bin/links.py", "links"]
     about: "goal:g13 — every node's link resolves; broken_links must be 0"
     workflow: read
   schema:
-    argv: ["python3", "<engine>/extensions/agi/bin/write.py", "schema"]
+    argv: ["python3", "<engine>/extensions/agi/bin/links.py", "schema"]
     about: "goal:s31 — which nodes violate their type's required list (dry)"
     workflow: read
   budget:

@@ -115,6 +115,71 @@ def test_reap_only_ever_touches_keys_this_engine_minted(monkeypatch):
 
 
 # --------------------------------------------------------------------------
+# goal:g1.11 — the workspace a key is minted into (2026-09-03)
+# --------------------------------------------------------------------------
+
+def test_workspace_is_read_from_config_and_absent_means_absent():
+    """Unset must be None, not "" — the mint call omits the field entirely."""
+    assert provisioning.workspace({}) is None
+    assert provisioning.workspace({"spawn": {"credential": {}}}) is None
+    assert provisioning.workspace(
+        {"spawn": {"credential": {"workspace_id": "  "}}}) is None
+    assert provisioning.workspace(
+        {"spawn": {"credential": {"workspace_id": "ws-123"}}}) == "ws-123"
+
+
+def test_settings_signature_is_unchanged_by_the_workspace_addition():
+    """`workspace` is a sibling reader precisely so this tuple keeps its shape."""
+    assert provisioning.settings(
+        {"spawn": {"credential": {"per_spawn_limit_usd": 5.0,
+                                  "ttl_minutes": 60,
+                                  "workspace_id": "ws-123"}}}) == (5.0, 60)
+
+
+def test_mint_sends_workspace_id_only_when_one_is_configured(monkeypatch):
+    """Sending `null` is not the same as omitting: omission keeps the default."""
+    sent: list[dict] = []
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        sent.append(payload or {})
+        return 201, {"key": "sk-fake", "data": {
+            "hash": "h-fake", "expires_at": "2099-01-01T00:00:00Z"}}
+
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+
+    provisioning.mint(iter_n=1, agent_id="a00", workspace_id="ws-123")
+    assert sent[-1]["workspace_id"] == "ws-123"
+
+    provisioning.mint(iter_n=1, agent_id="a00", workspace_id=None)
+    assert "workspace_id" not in sent[-1], (
+        "unset must omit the field, so an unconfigured project is unchanged")
+
+
+def test_the_reaper_will_not_cross_a_workspace_boundary(monkeypatch):
+    """The `agi` / `agi-` near miss, closed on a second independent ground.
+
+    The owner's own long-lived key is named `agi` and lives in the default
+    workspace. One missing hyphen in the name filter would have revoked it;
+    the workspace filter has to fail at the same time for that to happen.
+    """
+    monkeypatch.setattr(provisioning, "list_keys", lambda root=None: [
+        {"name": "agi-iter1-kid-a00", "hash": "h-ours", "workspace_id": "ws-agi"},
+        {"name": "agi-iter1-kid-a01", "hash": "h-elsewhere",
+         "workspace_id": "ws-default"},
+        {"name": "agi", "hash": "h-owner", "workspace_id": "ws-default"},
+    ])
+    reaped = provisioning.reap_orphans(dry_run=True, workspace_id="ws-agi")
+    assert reaped == ["agi-iter1-kid-a00"], (
+        "only a key that is BOTH engine-named and in the declared workspace")
+
+    # And with no workspace declared, behaviour is exactly what it was.
+    assert provisioning.reap_orphans(dry_run=True) == [
+        "agi-iter1-kid-a00", "agi-iter1-kid-a01"]
+
+
+# --------------------------------------------------------------------------
 # The secret never reaches disk
 # --------------------------------------------------------------------------
 

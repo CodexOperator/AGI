@@ -136,6 +136,20 @@ def settings(cfg: dict) -> tuple[float, int]:
     return limit, ttl
 
 
+def workspace(cfg: dict) -> str | None:
+    """`spawn.credential.workspace_id`, or None to use the account default.
+
+    Deliberately a **separate reader rather than a third slot in `settings`**:
+    that tuple has callers, and widening it would break them to carry a value
+    most projects never set. Absent means absent — the mint call omits the
+    field entirely rather than sending null, so an unconfigured project keeps
+    the exact behaviour it had before this existed.
+    """
+    cred = ((cfg.get("spawn") or {}).get("credential") or {})
+    ws = str(cred.get("workspace_id") or "").strip()
+    return ws or None
+
+
 def _call(method: str, url: str, key: str, payload: dict | None = None,
           timeout: int = 30) -> tuple[int, dict]:
     body = json.dumps(payload).encode() if payload is not None else None
@@ -166,6 +180,7 @@ def key_name(iter_n: int | str, agent_id: str, tier: str = "kid") -> str:
 def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
          limit_usd: float = DEFAULT_LIMIT_USD,
          ttl_minutes: int = DEFAULT_TTL_MINUTES,
+         workspace_id: str | None = None,
          root: Path | str | None = None) -> MintedKey | None:
     """Issue one capped, expiring runtime key. None if issuance is unavailable.
 
@@ -185,11 +200,26 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     expires_at = expires.isoformat().replace("+00:00", "Z")
     name = key_name(iter_n, agent_id, tier)
 
-    status, body = _call("POST", API_BASE, prov, {
+    # goal:g1.11 / 2026-09-03 — `workspace_id` is honoured on create, asserted
+    # against the live API before this line was written (201, and the returned
+    # object carried the id back). It is omitted rather than sent as null when
+    # unset, so a project that declares no workspace keeps the previous
+    # behaviour exactly: the key lands in the provisioning key's default.
+    #
+    # This is a *safety* property, not tidiness. `reap_orphans` matches the
+    # name prefix `agi-`, and the owner's own long-lived key is named `agi` —
+    # one hyphen between a cleanup routine and revoking the key the project
+    # runs on. Minting into a dedicated workspace makes the two sets disjoint
+    # by construction instead of by string comparison.
+    payload = {
         "name": name,
         "limit": limit_usd,
         "expires_at": expires_at,
-    })
+    }
+    if workspace_id:
+        payload["workspace_id"] = workspace_id
+
+    status, body = _call("POST", API_BASE, prov, payload)
     if status != 201:
         raise ProvisioningError(
             f"mint failed for {name}: HTTP {status} {body.get('error', body)}")
@@ -244,12 +274,21 @@ def list_keys(root: Path | str | None = None) -> list[dict]:
 
 def reap_orphans(root: Path | str | None = None,
                  live_hashes: set[str] | None = None,
-                 dry_run: bool = False) -> list[str]:
+                 dry_run: bool = False,
+                 workspace_id: str | None = None) -> list[str]:
     """Revoke engine-minted keys no live lease claims. Returns the names hit.
 
     The backstop for a director that died without sweeping. It only ever
     touches keys whose name carries `NAME_PREFIX`, so a key a human made by
     hand is never in scope no matter what else is true.
+
+    **Two independent filters, on purpose (2026-09-03).** The name prefix was
+    the only one, and it is one character wide: the owner's own long-lived key
+    is named `agi`, this matches `agi-`, and a single missing hyphen would
+    have revoked the key the project runs on. When a workspace is declared,
+    a key must ALSO live in it to be reapable — so the owner's key, which sits
+    in the default workspace, is out of scope on a second, independent ground.
+    Two filters that fail differently beat one filter checked twice.
     """
     live = live_hashes or set()
     reaped: list[str] = []
@@ -257,6 +296,8 @@ def reap_orphans(root: Path | str | None = None,
         name = str(rec.get("name") or "")
         key_hash = rec.get("hash")
         if not name.startswith(f"{NAME_PREFIX}-") or not key_hash:
+            continue
+        if workspace_id and str(rec.get("workspace_id") or "") != workspace_id:
             continue
         if key_hash in live:
             continue
@@ -292,7 +333,7 @@ def main(argv: list[str] | None = None) -> int:
         for rec in list_keys(args.root):
             print(f"{rec.get('name')!r:50} limit={rec.get('limit')} "
                   f"used={rec.get('usage')} expires={rec.get('expires_at')} "
-                  f"disabled={rec.get('disabled')}")
+                  f"disabled={rec.get('disabled')} ws={rec.get('workspace_id')}")
         return 0
 
     # reap
@@ -302,10 +343,19 @@ def main(argv: list[str] | None = None) -> int:
 
     root = locations.find_project_root(Path(args.root).resolve())
     live = set()
+    cred_ws = None
     if root is not None:
         live = {rec.get("key_hash") for rec in spawn_budget.live_agents(root)
                 if rec.get("key_hash")}
-    reaped = reap_orphans(args.root, live_hashes=live, dry_run=not args.yes)
+        # Scope the reaper to the declared workspace, so the CLI carries the
+        # same second filter the library does rather than only the caller who
+        # remembers to pass it.
+        try:
+            cred_ws = workspace(locations.load_config(root))
+        except Exception:
+            cred_ws = None
+    reaped = reap_orphans(args.root, live_hashes=live, dry_run=not args.yes,
+                          workspace_id=cred_ws)
     verb = "would revoke" if not args.yes else "revoked"
     print(f"provisioning: {verb} {len(reaped)} orphaned key(s); "
           f"{len(live)} held by a live lease")

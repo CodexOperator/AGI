@@ -480,10 +480,10 @@ def evidence_stats(nodes_dir: Path) -> dict:
 
 
 def _broken_links(nodes_dir) -> int:
-    """`write.count_broken_links`, defensively.
+    """`links.count_broken_links`, defensively.
 
     Imported here rather than at module scope so a project whose checkout
-    predates `write.py` still computes every other metric. A metrics run that
+    predates `links.py` still computes every other metric. A metrics run that
     dies because one counter is unavailable would take the whole `--smoke`
     gate with it, and that gate is what verifies the node count did not drop.
 
@@ -493,8 +493,8 @@ def _broken_links(nodes_dir) -> int:
     to remove, and it would be a poor joke to build one into the counter.
     """
     try:
-        import write
-        return write.count_broken_links(Path(nodes_dir).parent)
+        import links
+        return links.count_broken_links(Path(nodes_dir).parent)
     except Exception as exc:
         print(f"METRIC_WARNING broken_links_unavailable={type(exc).__name__}: "
               f"{exc}", file=sys.stderr)
@@ -763,16 +763,26 @@ def emit(root: Path, out=None) -> dict:
     # does not refuse to run: the config value is a commitment about focus,
     # and the honest response to breaking it is to say so every iteration,
     # not to block work that is already in flight.
+    #
+    # **Reworded 2026-09-03, on the owner's reading of what `active` means.**
+    # It used to say a goal marked `active` "claims to be in flight". That is
+    # not how this project uses the marker: a long-term goal is *always*
+    # arguably active, and what `active` actually does is **select which goals
+    # chain-building aims at**. So the cap is a focus budget, not an
+    # in-flight census, and the warning now says which of those it is —
+    # otherwise the honest response to it is to mislabel real goals `horizon`
+    # to silence a number, which is the field losing information a second way.
     max_active = (cfg.get("cc_dispatch") or {}).get("max_goals_active")
     active = m.get("goals_active", 0)
     if isinstance(max_active, int) and max_active > 0 and active > max_active:
         print(
             f"!! METRIC-WARNING goals_active={active} exceeds "
-            f"cc_dispatch.max_goals_active={max_active}. Every goal marked "
-            "`active` claims to be in flight; when most of them are not, the "
-            "field stops distinguishing anything and the backlog becomes "
-            "invisible. Move the ones you are not working to `horizon` — that "
-            "is what `horizon` is for (goal:g5).",
+            f"cc_dispatch.max_goals_active={max_active}. `active` selects "
+            "what chain-building aims at, so this cap is a FOCUS BUDGET: past "
+            "it, kids spread across more goals than a run can move, and no "
+            "single chain gets enough hops to close. Either raise the cap "
+            "deliberately or move goals you are not aiming at to `horizon` — "
+            "which parks a commitment without retiring it (goal:g5).",
             file=sys.stderr,
         )
         print(f"METRIC_WARNING goal_rotation={active}/{max_active}", file=out)
