@@ -5404,6 +5404,24 @@ canonical reader keeping its own contract. **`write.py` is the next thing
 built**, with the three answers above as its inputs rather than as questions it
 has to stop and ask.
 
+## Agent Notes
+### The symmetry this goal is actually asking for (owner, 2026-09-03)
+
+**The read and write paths must treat a build node and a non-build node exactly the same.** That is the shape of the finished thing, and stating it makes the remaining work concrete.
+
+**Read.** The same path that reads a non-build nodes body and renders it also reads a build nodes payload and renders it **as that nodes body**, live, in one coherent render. A reader never branches on whether the body happens to live in the node file or in a file the node points at.
+
+**Write.** The same, in reverse. A write goes either to the linked body section inside the node, or to the linked body section in the payload file. **The engine decides which; the caller never does.** `links.py` already carries the primitive -- `link_ref` generalises `payload_ref` and `self` means the body is its own data -- but `declared: 0` across the corpus: today a node body is still a payload rather than a marker, so the two cases are only *representationally* unified, not behaviourally.
+
+**The end state is a tool budget, and it is the real success criterion.** When the `agi` skill is invoked, exactly **two** disk-interaction tools should be available:
+
+1. **render viewport** -- at a target node section and level of detail, at a target node whole, or at a target graph section at a given zoom level.
+2. **write** -- to a new or an existing node.
+
+Everything else an agent needs from the local system it should not have. Non-disk tools -- web access and the like -- are unaffected; this is a limit on filesystem reach, not on capability. An agent that can `cat`, `sed` and `grep` its way around the graph will, and every such path is one the engine cannot version, gate, or attribute.
+
+**Deliberately open: how to organise this against the grid and session tracking.** A payload-backed body and a node-backed body must produce the same kind of grid version and the same session linkage, or the unification is cosmetic. This is named as an open design question rather than a decided one, and the owner has flagged it as a **good candidate for fanning out several parallel chains to explore competing solutions** -- one of the few goals in this tree where the direction is genuinely not obvious yet, which is the condition `goal:g4.1` names for aiming concurrent agents at a single target.
+
 ### G13.1 — Edit mode: a modal shell over the read and write paths, so a human edit is an engine action — status: active
 
 **The write-side counterpart of the viewport, and the reason it is a separate
