@@ -1,258 +1,328 @@
 #!/usr/bin/env python3
-"""write.py — the link layer of `goal:g13`'s one write path.
+"""write.py — named node operations, drivable by a human or by an agent.
 
-`goal:g13` says a node body is **a marker, not a payload**: what a node asserts
-lives in a file the node points at, resolved at read time, and what sits in the
-node file is a placeholder saying *where the body goes*. `payload_ref` on build
-nodes is the prototype — a node that links a file rather than copying it, with
-`grid.py` already versioning node and payload as one tree. This module
-generalises that from one node type to every node type.
+**Renamed from `edit.py` on 2026-09-03, at the owner's call**, because "edit"
+named half of what this is: a verb here either revises an existing node or
+mints a new one, and both are *writes*. The old name would have made `create`
+read as an exception to the module it lives in. The link layer that used to
+hold this filename is now `links.py`, which is what it always was — `link_ref`
+resolution and the `broken_links` count, not the write path.
 
-**Three questions the goal recorded unanswered, answered by the owner on
-2026-09-02, and this module is where all three become code:**
+`goal:g13.1`. A hand edit to a node is currently an **undeclared write**: it
+bypasses `node_writer`, the `scaffold_hash` stamp, the evidence gate and schema
+validation, and nothing records that a human changed the node or why. The
+owner's framing — *"a completely stray and untraceable commit from my end"*.
 
-1. **`THOUGHT` stays in the node body.** A node file carries a marker *and*
-   exactly one authored region and they coexist, so nothing here moves, hides
-   or rewrites a thought. Enforcement lives one layer down, in
-   `node_writer.update_node`, which carries the authored region across any
-   body it is handed — this module never writes a body at all.
-2. **A goal node links to itself** — `link_ref: self`. The body *is* the data,
-   said uniformly rather than as an absent field, so `goal:g6.9` stands and
-   `GOALS.md` keeps rendering *from* goal bodies. **A reader never branches on
-   `type == goal`;** it resolves `self` like any other link. That is the whole
-   difference between an exception with a name and a hole.
-3. **A missing link raises where a caller can act and is counted where it
-   cannot.** `resolve` raises `MissingLink`; `resolve_many` returns a typed
-   `MissingLinkSentinel` per node and a count. This is `goal:g13`'s founding
-   finding applied to itself — the defect was never divergent *parsing*, it was
-   divergent *failure semantics*, so the fix is not one behaviour everywhere
-   but **two chosen** behaviours: loud where a caller can fix it, survivable
-   where one bad node must not kill a scan of nine hundred.
+This module is the **verb layer**, and it is deliberately built before the
+modal shell rather than inside it.
 
-## Declared self vs defaulted self
+## Why the verbs come first
 
-`link_ref: self` and no `link_ref` at all both resolve to the node's own body,
-and the resolver reports **which of the two it got**. That distinction is the
-same one `envfile.Resolution.from_node` makes for the same reason: *"the graph
-said so"* and *"the fallback guessed"* are not the same claim, and a migration
-cannot tell what is done from what was never started unless the two are
-distinguishable.
+The goal's design has two callers and insists they are the same operations:
+
+- **For a human**, a modal shell binds keys to verbs, re-renders, and submits.
+- **For an LLM**, the whole session serialises into one `&&`-joined command.
+  That is not a lesser path — it is *the same operations with the interaction
+  removed*.
+
+**A keystroke an agent cannot spell is a verb that exists only for humans**,
+which splits the write path exactly as `goal:g9.7` forbids splitting the read
+path. So the nameable set is the thing with a right and a wrong answer, and
+the shell is skin over it. Building the shell first would have produced verbs
+shaped by keybindings.
+
+## It writes nothing itself
+
+Every verb ends in `node_writer.update_node`. **There is no file write in this
+module**, asserted by a test that parses it rather than greps it — the same
+invariant `viewport.py` holds on the read side, and the same lesson from this
+session that a `grep` for a concept cannot tell prose from code.
+
+If a change can be made here that `write.py` cannot make, edit mode has become
+a bypass rather than a front end, which is the stray untraceable write it was
+built to eliminate.
+
+## Provenance is the payoff
+
+An edit records **who** and **why**: `edited_by` and `thought_session`, the
+latter reserved in frontmatter since `goal:g2.7`/`goal:g10.1` with nothing
+writing it until now. An edit mode that produces an untraceable change has
+delivered the convenience and none of the reason.
 """
 from __future__ import annotations
 
+import os
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import node_writer  # noqa: E402
+import links  # noqa: E402
 
-#: The value that means "this node's body is its own data".
-SELF = "self"
+#: Frontmatter keys this module stamps on every submitted edit.
+PROVENANCE_ACTOR = "edited_by"
+PROVENANCE_SESSION = "thought_session"
 
-#: The field this module owns. `payload_ref` is read as its predecessor so the
-#: 222 build nodes that already carry one are linked without being rewritten —
-#: they proved the mechanism and do not have to be migrated to keep it.
-LINK_FIELD = "link_ref"
-LEGACY_LINK_FIELD = "payload_ref"
+#: Keys no verb may touch, whatever a caller asks. `id` and `mint_id` are
+#: identity (`goal:g2.5`: a mint id is assigned once and never changes), and
+#: `scaffold_hash` is how completion is detected — the exact field the kid
+#: brief forbids touching, and edit mode is not a loophole in that rule.
+PROTECTED = frozenset({"id", "mint_id", "type", "scaffold_hash"})
 
-#: How the link was determined, reported alongside every resolution.
-FROM_NODE = "declared"      # the node says `link_ref:`
-FROM_LEGACY = "payload_ref"  # the node says `payload_ref:`
-FROM_DEFAULT = "defaulted"   # the node says neither; the body is the data
-
-
-class MissingLink(Exception):
-    """A node links a file that is not there.
-
-    Raised only by `resolve`, the single-node path, where a caller is in a
-    position to do something about it. Bulk scans get a sentinel instead —
-    see the module docstring.
-    """
-
-    def __init__(self, node_id: str, ref: str, path: Path):
-        self.node_id = node_id
-        self.ref = ref
-        self.path = path
-        super().__init__(
-            f"{node_id} links {ref!r}, which does not exist at {path}. "
-            f"A deprecated node whose file is gone must not fail quietly "
-            f"(goal:g13); either restore the file or clear its {LINK_FIELD}."
-        )
+#: The one heading body notes live under. Shared with `post_wire` and
+#: `cli.py done`, which both already write it -- a second spelling here would
+#: be the duplicate-heading defect this constant exists to prevent.
+NOTES_HEADING = "## Agent Notes"
 
 
-@dataclass(frozen=True)
-class MissingLinkSentinel:
-    """What a bulk scan gets instead of content, and instead of an exception.
+class EditError(RuntimeError):
+    """A verb was asked for that cannot be performed."""
 
-    Typed rather than `None` on purpose: `None` is what three of the six
-    readers `goal:g13` surveyed already returned, and it is indistinguishable
-    from an empty body. A reader that mistakes this for content gets a
-    `TypeError`, which is the loudest failure available to something that must
-    not raise.
+
+@dataclass
+class Edit:
+    """One accumulated, unsubmitted change to a node.
+
+    Verbs mutate this; **`submit` is the only thing that writes**. That split
+    is what makes the modal shell and the `&&`-serialised form the same
+    operations: both accumulate, both submit once.
     """
 
     node_id: str
-    ref: str
-    path: Path
-
-    def __bool__(self) -> bool:
-        return False
-
-
-@dataclass(frozen=True)
-class Link:
-    """One node's link, resolved. `content` is the body the node asserts."""
-
-    node_id: str
-    ref: str
-    source: str            # FROM_NODE | FROM_LEGACY | FROM_DEFAULT
-    path: Path | None      # None when the link is `self`
-    content: str
+    set_fm: dict = field(default_factory=dict)
+    unset_fm: list = field(default_factory=list)
+    body_append: str = ""
+    thought: str = ""
 
     @property
-    def is_self(self) -> bool:
-        return self.ref == SELF
+    def empty(self) -> bool:
+        return not (self.set_fm or self.unset_fm or self.body_append
+                    or self.thought)
 
 
-def link_ref(frontmatter: dict) -> tuple[str, str]:
-    """`(ref, source)` for one node's frontmatter. Never raises.
+# --------------------------------------------------------------------------
+# The verbs. Each is nameable, each takes strings, each is spellable by an
+# agent on a command line. That is the constraint, not a coincidence.
+# --------------------------------------------------------------------------
 
-    Resolution order, and each step is a decision rather than a fallback:
+def verb_set(edit: Edit, key: str, value: str) -> Edit:
+    """`set <key> <value>` — one frontmatter field."""
+    if key in PROTECTED:
+        raise EditError(
+            f"{key!r} is identity or completion state and no verb may set it. "
+            f"A mint id is assigned once (goal:g2.5); scaffold_hash is how "
+            f"completion is detected, and edit mode is not a loophole in the "
+            f"rule the kid brief already follows.")
+    edit.set_fm[key] = _coerce(value)
+    return edit
 
-    1. `link_ref:` — what this module owns.
-    2. `payload_ref:` — the prototype, read so build nodes are already linked.
-    3. `self` — the body is the data, reported as **defaulted** so a migration
-       can tell an untouched node from one that has declared itself.
+
+def verb_unset(edit: Edit, key: str) -> Edit:
+    """`unset <key>` — drop a frontmatter field."""
+    if key in PROTECTED:
+        raise EditError(f"{key!r} may not be unset — see `set`.")
+    edit.unset_fm.append(key)
+    return edit
+
+
+def verb_link(edit: Edit, ref: str) -> Edit:
+    """`link <ref|self>` — declare what this node's body points at.
+
+    `goal:g13`'s field, reached through the same accumulate-then-submit path
+    as everything else rather than through `links.set_link`, so a linked edit
+    and a field edit submit as one operation instead of two.
     """
-    ref = (frontmatter.get(LINK_FIELD) or "").strip()
-    if ref:
-        return ref, FROM_NODE
-    legacy = (frontmatter.get(LEGACY_LINK_FIELD) or "").strip()
-    if legacy:
-        return legacy, FROM_LEGACY
-    return SELF, FROM_DEFAULT
+    edit.set_fm[links.LINK_FIELD] = ref
+    return edit
 
 
-def link_path(root, ref: str) -> Path | None:
-    """Where `ref` resolves on disk, or None for `self`.
+def verb_thought(edit: Edit, text: str) -> Edit:
+    """`thought <text>` — rewrite the authored region.
 
-    Against `locations.source_root` — the repo enclosing `.agi/` — because
-    that is where `payload_ref` already resolves and this generalises that
-    field rather than inventing a second base (`goal:g11`).
+    Rewritten from scratch, never appended to: the thought says why THIS
+    version differs from the previous one (`goal:g2.11`). **Absent means
+    empty** — a caller that passes nothing leaves the existing thought alone
+    rather than clearing it, because a fabricated or destroyed thought reads
+    as evidence either way.
     """
-    if ref == SELF:
+    edit.thought = text
+    return edit
+
+
+def verb_note(edit: Edit, text: str) -> Edit:
+    """`note <text>` — append to the body under `## Agent Notes`.
+
+    The one body operation. Dropping to `$EDITOR` for prose is legitimate and
+    is the shell's job; hand-editing frontmatter is the thing being replaced.
+    """
+    edit.body_append = text
+    return edit
+
+
+VERBS = {
+    "set": verb_set,
+    "unset": verb_unset,
+    "link": verb_link,
+    "thought": verb_thought,
+    "note": verb_note,
+}
+
+#: How many arguments each verb takes. The LAST one always absorbs the rest of
+#: the chunk, because prose verbs (`thought`, `note`) take a sentence and a
+#: sentence contains spaces.
+#:
+#: Found by dogfooding, immediately: `parse_script` originally split every
+#: chunk with `maxsplit=2`, which is right for `set k v` and wrong for
+#: everything else -- `note some prose here` arrived as three arguments to a
+#: two-argument verb and errored. A fixed split is a parser that assumes every
+#: verb has the same shape.
+ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1}
+
+
+def _coerce(value: str):
+    """`"3"` -> 3, `"true"` -> True, `"[a, b]"` -> list. Strings otherwise.
+
+    A command line hands over strings; frontmatter is typed, and a schema's
+    `types:` block will reject `confidence: "0.9"`. Coercion belongs here
+    rather than in every caller.
+    """
+    if not isinstance(value, str):
+        return value
+    text = value.strip()
+    low = text.lower()
+    if low in {"true", "false"}:
+        return low == "true"
+    if low in {"none", "null"}:
         return None
-    return Path(locations.source_root(root)) / ref
+    if text.startswith("[") and text.endswith("]"):
+        inner = text[1:-1].strip()
+        return [_coerce(p.strip()) for p in inner.split(",")] if inner else []
+    try:
+        return int(text)
+    except ValueError:
+        pass
+    try:
+        return float(text)
+    except ValueError:
+        return text
 
 
-def resolve(root, node_id: str, frontmatter: dict, body: str) -> Link:
-    """One node's content. **Raises `MissingLink`** if its file is gone.
+def apply_verb(edit: Edit, name: str, args: list[str]) -> Edit:
+    """Run one named verb. The single entry both callers reach."""
+    fn = VERBS.get(name)
+    if fn is None:
+        raise EditError(f"no verb {name!r}. Known: {', '.join(sorted(VERBS))}")
+    try:
+        return fn(edit, *args)
+    except TypeError as exc:
+        raise EditError(f"{name}: wrong arguments ({exc})") from exc
 
-    The single-node path, where the caller asked about this node specifically
-    and can act on the answer.
+
+def parse_script(text: str) -> list[tuple[str, list[str]]]:
+    """`"set status active && link self"` -> a list of verb calls.
+
+    The `&&`-serialised form the owner described: an agent's whole edit
+    session as one command. Separated on `&&` and never handed to a shell —
+    the string is data here, exactly as `commands.py` keeps argv a list.
     """
-    ref, source = link_ref(frontmatter)
-    if ref == SELF:
-        return Link(node_id=node_id, ref=SELF, source=source, path=None,
-                    content=body)
-    path = link_path(root, ref)
-    if path is None or not path.is_file():
-        raise MissingLink(node_id, ref, path if path else Path(ref))
-    return Link(node_id=node_id, ref=ref, source=source, path=path,
-                content=path.read_text(encoding="utf-8"))
+    out: list[tuple[str, list[str]]] = []
+    for chunk in str(text).split("&&"):
+        stripped = chunk.strip()
+        if not stripped:
+            continue
+        name = stripped.split(None, 1)[0]
+        # Split by the verb's OWN arity, so the last argument absorbs the rest
+        # of the chunk. `set k v` takes two; `note <a whole sentence>` takes
+        # one that happens to contain spaces.
+        rest = stripped[len(name):].strip()
+        arity = ARITY.get(name, 1)
+        args = rest.split(None, arity - 1) if rest else []
+        out.append((name, args))
+    return out
 
 
-def resolve_many(root, nodes) -> tuple[list[Link], list[MissingLinkSentinel]]:
-    """`(resolved, broken)` over many nodes. **Never raises for a broken link.**
+def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
+    """Write the accumulated edit. **The only thing in this module that writes.**
 
-    `nodes` is an iterable of `(node_id, frontmatter, body)`. One node whose
-    file is gone must not end a scan of the corpus — that is the *survivable*
-    half of the two chosen behaviours, and the sentinel plus the returned list
-    is what keeps it from also being silent.
+    Returns `node_writer`'s own result object, so a caller sees `UPDATED`,
+    `UNCHANGED` or `REJECTED` and the reason — the same statuses every other
+    writer path reports.
     """
-    resolved: list[Link] = []
-    broken: list[MissingLinkSentinel] = []
-    for node_id, frontmatter, body in nodes:
-        try:
-            resolved.append(resolve(root, node_id, frontmatter, body))
-        except MissingLink as exc:
-            broken.append(MissingLinkSentinel(node_id=exc.node_id, ref=exc.ref,
-                                              path=exc.path))
-    return resolved, broken
+    if edit.empty:
+        raise EditError(f"nothing to submit for {edit.node_id}")
+
+    set_fm = dict(edit.set_fm)
+    set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
+    if session:
+        set_fm[PROVENANCE_SESSION] = session
+
+    body = None
+    if edit.body_append or edit.thought:
+        body = _compose_body(root, edit)
+
+    return node_writer.update_node(root, edit.node_id, set_fm=set_fm,
+                                   unset_fm=edit.unset_fm, body=body)
 
 
-def count_broken_links(root) -> int:
-    """`broken_links` for `metrics.py`. Zero is the healthy value.
-
-    Same shape as `unevidenced_decisive_verdicts`: a number that should be 0,
-    where nonzero names a specific repairable defect rather than a mood.
-    """
-    _resolved, broken = resolve_many(root, _iter_corpus(root))
-    return len(broken)
+def _default_actor() -> str:
+    return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
 
 
-def _iter_corpus(root):
-    """Every live and deprecated node as `(id, frontmatter, body)`.
+def _compose_body(root, edit: Edit) -> str:
+    """The node's body with the note appended and the thought replaced.
 
-    Reads the deprecated tree too, live-first, because a reader that stops
-    seeing a retired node fails quietly and in its own way — which is the
-    documented hazard this whole goal exists to remove, and it would be a poor
-    joke to reintroduce it inside the fix.
+    Read through the canonical reader, not by splitting on `---`. This module
+    exists because hand-rolled node surgery is the problem.
     """
     from graph_core.persistence import frontmatter as fm_reader
 
-    nodes_dir = Path(root) / "nodes"
-    if not nodes_dir.is_dir():
-        return
-    for path in sorted(nodes_dir.rglob("*.md")):
-        if path.name.startswith("."):
-            continue
-        try:
-            nf = fm_reader.load_node_file(path)
-        except Exception:
-            # A node that will not parse is the READ half's problem and is
-            # already counted there. Skipping it here keeps this metric about
-            # links and nothing else.
-            continue
-        node_id = str(nf.frontmatter.get("id") or path.stem)
-        yield node_id, nf.frontmatter, nf.body
-
-
-def set_link(root, node_id: str, ref: str) -> Path:
-    """Declare a node's link, through the one gated write routine.
-
-    Goes through `node_writer` rather than editing the file, because
-    `goal:s17`'s whole point is that there is one routine that writes a node
-    and everything else reaches it. Writing `link_ref` by hand here would make
-    this module the second write path in the goal that exists to remove them.
-    """
-    path = node_writer.find_node_file(root, node_id)
+    path = node_writer.find_node_file(root, edit.node_id)
     if path is None:
-        raise MissingLink(node_id, ref, Path(str(node_id)))
-    if ref != SELF:
-        target = link_path(root, ref)
-        if target is None or not target.is_file():
-            raise MissingLink(node_id, ref, target if target else Path(ref))
-    result = node_writer.update_node(root, node_id, set_fm={LINK_FIELD: ref})
-    if result.status == node_writer.REJECTED:
-        raise ValueError(f"could not link {node_id}: {result.reason}")
-    return path
+        raise EditError(f"no node file for {edit.node_id}")
+    body = fm_reader.load_node_file(path).body
+
+    if edit.body_append and edit.body_append.strip() not in body:
+        # Append UNDER an existing heading rather than adding a second one.
+        # The first version checked only whether the text was already present,
+        # so a node that `post_wire` had already given a `## Agent Notes`
+        # section got a second heading -- found on the first real use, against
+        # a live node that had one.
+        note = edit.body_append.rstrip()
+        if NOTES_HEADING in body:
+            head, sep, tail = body.rpartition(NOTES_HEADING)
+            body = head + sep + tail.rstrip() + f"\n\n{note}\n"
+        else:
+            body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
+
+    if edit.thought:
+        block = (node_writer._THOUGHT_RE.pattern and
+                 "<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+                 "regenerating scans. The reasoning behind THIS version. -->\n"
+                 f"{edit.thought}\n<!-- THOUGHT:END -->")
+        existing = node_writer.extract_thought(body)
+        if existing:
+            body = body.replace(existing, block)
+        else:
+            body = body.rstrip() + "\n\n" + block + "\n"
+    return body
 
 
 def main(argv: list[str] | None = None) -> int:
-    """`write.py links [--broken]` — report the corpus's link state."""
+    """`edit.py <node-id> "set k v && link self && thought why"`"""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", nargs="?", default="links",
-                    choices=["links", "schema"])
+    ap.add_argument("node_id")
+    ap.add_argument("script", help='verbs joined by "&&"')
     ap.add_argument("--root", default=".", help="any path inside the project")
-    ap.add_argument("--broken", action="store_true", help="list broken links only")
-    ap.add_argument("--fix", action="store_true",
-                    help="schema: actually backfill derivable fields "
-                         "(default is a dry run)")
+    ap.add_argument("--actor", default="", help="who is making this edit")
+    ap.add_argument("--session", default="",
+                    help="the session that produced it (thought_session)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print the accumulated edit and write nothing")
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
@@ -260,87 +330,34 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
 
-    if args.action == "schema":
-        return _schema_report(root, fix=args.fix)
+    edit = Edit(node_id=args.node_id)
+    try:
+        for name, verb_args in parse_script(args.script):
+            apply_verb(edit, name, verb_args)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
 
-    resolved, broken = resolve_many(root, _iter_corpus(root))
-    by_source: dict[str, int] = {}
-    for link in resolved:
-        by_source[link.source] = by_source.get(link.source, 0) + 1
-
-    if not args.broken:
-        print(f"links: {len(resolved)} resolved, {len(broken)} broken")
-        for source in (FROM_NODE, FROM_LEGACY, FROM_DEFAULT):
-            print(f"  {source:12} {by_source.get(source, 0)}")
-    for sentinel in broken:
-        print(f"  BROKEN {sentinel.node_id} -> {sentinel.ref} ({sentinel.path})")
-    return 1 if broken and args.broken else 0
-
-
-def _schema_report(root, fix: bool = False) -> int:
-    """Which nodes violate their type's `required` list, and optionally fix them.
-
-    `goal:s31` closed the *new-node* half: a scaffold is now born with every
-    required field this engine can derive, and says so when it cannot. This is
-    the **existing corpus**, which accumulated invalid nodes for as long as
-    nothing validated at write time.
-
-    Dry by default and loudly so. A backfill rewrites hundreds of nodes and
-    mints a grid version for each; that is reversible but it is not the
-    director's call to make silently, and the report is the useful half either
-    way.
-
-    Only ever fills what can be DERIVED — `title` from the slug, and any field
-    a body states under its own heading. A field nothing can supply stays
-    missing and stays counted, because inventing one would put exactly the
-    `TODO(model)` placeholder into the corpus that `goal:g2.10` spent 8,034
-    fields teaching this project to fear.
-    """
-    from graph_core.persistence import frontmatter as fm_reader
-
-    nodes_dir = Path(root) / "nodes"
-    by_type: dict[str, list[tuple[str, list[str]]]] = {}
-    for path in sorted(nodes_dir.rglob("*.md")):
-        if path.name.startswith("."):
-            continue
-        ntype = node_writer.canonical_node_type(path.parent.name)
-        required = node_writer.required_fields(root, ntype)
-        if not required:
-            continue
-        try:
-            nf = fm_reader.load_node_file(path)
-        except Exception:
-            continue
-        node_id = str(nf.frontmatter.get("id") or f"{ntype}:{path.stem}")
-        missing = node_writer.missing_required(root, ntype, nf.frontmatter, node_id)
-        if missing:
-            by_type.setdefault(ntype, []).append((node_id, missing))
-
-    total = sum(len(v) for v in by_type.values())
-    print(f"schema: {total} node(s) missing a required field")
-    for ntype, entries in sorted(by_type.items(), key=lambda kv: -len(kv[1])):
-        fields: dict[str, int] = {}
-        for _nid, missing in entries:
-            for name in missing:
-                fields[name] = fields.get(name, 0) + 1
-        summary = ", ".join(f"{k}x{v}" for k, v in sorted(fields.items()))
-        print(f"  {ntype:14} {len(entries):4}   {summary}")
-
-    if not fix:
-        if total:
-            print("dry run — re-run with --fix to backfill derivable fields")
+    if args.dry_run:
+        print(f"{edit.node_id}:")
+        for k, v in edit.set_fm.items():
+            print(f"  set    {k} = {v!r}")
+        for k in edit.unset_fm:
+            print(f"  unset  {k}")
+        if edit.thought:
+            print(f"  thought ({len(edit.thought)} chars)")
+        if edit.body_append:
+            print(f"  note    ({len(edit.body_append)} chars)")
         return 0
 
-    fixed = still = 0
-    for entries in by_type.values():
-        for node_id, _missing in entries:
-            res = node_writer.derive_required_from_body(root, node_id)
-            if res.status == node_writer.UPDATED:
-                fixed += 1
-            else:
-                still += 1
-    print(f"schema: backfilled {fixed}, {still} still incomplete")
-    return 0
+    try:
+        res = submit(root, edit, actor=args.actor, session=args.session)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
+    print(f"{res.status}: {edit.node_id}"
+          + (f" — {res.reason}" if res.reason else ""))
+    return 1 if res.status == node_writer.REJECTED else 0
 
 
 if __name__ == "__main__":

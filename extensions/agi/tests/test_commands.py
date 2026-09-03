@@ -157,6 +157,91 @@ def test_every_declared_command_points_at_something_that_exists():
     assert missing == [], f"declared commands point at missing files: {missing}"
 
 
+def _declared_subcommands(script: Path) -> set[str] | None:
+    """Every subcommand `script` accepts, or None if it declares none statically.
+
+    Two argparse styles are in use in `bin/` and both have to be read:
+    `sub.add_parser("commit")` (grid.py, crons.py) and
+    `add_argument("action", choices=[...])` (provisioning.py, links.py).
+    """
+    import ast
+
+    try:
+        tree = ast.parse(script.read_text())
+    except (OSError, SyntaxError):
+        return None
+
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr == "add_parser":
+            if node.args and isinstance(node.args[0], ast.Constant) \
+                    and isinstance(node.args[0].value, str):
+                found.add(node.args[0].value)
+        elif node.func.attr == "add_argument":
+            for kw in node.keywords:
+                if kw.arg == "choices" and isinstance(kw.value, (ast.List, ast.Tuple)):
+                    found.update(e.value for e in kw.value.elts
+                                 if isinstance(e, ast.Constant)
+                                 and isinstance(e.value, str))
+    return found or None
+
+
+@real_only
+def test_every_declared_command_accepts_its_own_subcommand():
+    """The file existing is not the command working, and the gap is real.
+
+    On 2026-09-03 `write.py` was renamed to `links.py` and a new `write.py`
+    took its place. `links` and `schema` were declared as `write.py links` /
+    `write.py schema`, and both broke instantly — but the existence test above
+    stayed green the whole time, because it only asks whether *a file by that
+    name* exists, and one did. It was the wrong file.
+
+    **The obvious probe does not work, and the reason is worth recording.**
+    Shelling out to `script.py <sub> --help` and checking the exit code passes
+    even when `<sub>` is nonsense: argparse handles `--help` first and exits
+    0, so the new `write.py` cheerfully absorbed `links` as its `node_id`
+    positional and printed its own help. That version of this test was written,
+    run against the reintroduced bug, and **passed** — which is the only reason
+    it is not still here. A guard is not a guard until it has failed once on
+    purpose.
+
+    So this reads the script instead of running it: every subcommand argparse
+    declares, by either style, must contain the one the node declares.
+    """
+    broken = []
+    for name, cmd in commands.load(REAL_ROOT).items():
+        target = next((a for a in cmd.argv if a.endswith(".py")), None)
+        if target is None:
+            continue
+        i = cmd.argv.index(target)
+        sub = cmd.argv[i + 1:i + 2]
+        # Only meaningful for a command declared WITH a subcommand; a bare
+        # `script.py` is already covered by the existence test above.
+        if not sub or sub[0].startswith("-"):
+            continue
+        accepted = _declared_subcommands(Path(target))
+        # `None` — the script declares NO subcommand vocabulary — is a
+        # failure, not a skip, and that distinction is the whole test. The
+        # second version of this guard skipped it and stayed green on the real
+        # bug for the second time: the new `write.py` takes two bare
+        # positionals and declares no choices at all, so "nothing to check
+        # against" was indistinguishable from "accepts anything". Every one of
+        # the six commands in this table that carries a subcommand points at a
+        # script that declares its vocabulary, so requiring one costs nothing
+        # and is exactly the property that broke.
+        if accepted is None:
+            broken.append((name, f"{Path(target).name} {sub[0]}",
+                           ["<script declares no subcommands>"]))
+        elif sub[0] not in accepted:
+            broken.append((name, f"{Path(target).name} {sub[0]}",
+                           sorted(accepted)))
+    assert broken == [], (
+        "declared commands whose script does not accept their subcommand:\n"
+        + "\n".join(f"  {n}: `{c}` — accepts {a}" for n, c, a in broken))
+
+
 @real_only
 def test_the_declaration_stays_small():
     """The owner's scope, enforced: *not a command for every custom test call,

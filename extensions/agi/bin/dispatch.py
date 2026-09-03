@@ -301,10 +301,12 @@ def main() -> int:
     # inherits the shared runtime key exactly as before, and nothing here
     # changes shape.
     cred_limit, cred_ttl = provisioning.settings(cfg)
+    cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
     if issuing:
         print(f"credentials: minting per spawn, limit=${cred_limit} "
-              f"ttl={cred_ttl}min")
+              f"ttl={cred_ttl}min"
+              + (f" workspace={cred_ws}" if cred_ws else " workspace=(default)"))
     big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
@@ -465,7 +467,8 @@ def main() -> int:
             if issuing:
                 minted = provisioning.mint(
                     iter_n=args.iter_n, agent_id=agent_id, tier=args.tier,
-                    limit_usd=cred_limit, ttl_minutes=cred_ttl, root=root)
+                    limit_usd=cred_limit, ttl_minutes=cred_ttl,
+                    workspace_id=cred_ws, root=root)
                 if minted is not None:
                     spawn_env[provisioning.RUNTIME_KEY_VAR] = minted.secret
                     spawn_budget.attach_credential(lease, minted.key_hash)

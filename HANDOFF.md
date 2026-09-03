@@ -1,286 +1,195 @@
-# SESSION HANDOFF — 2026-09-02b: COMPLETE (10 iterations, 107–116)
+# SESSION HANDOFF — 2026-09-03: LIVE SCRATCHPAD (loop L1, paused after 01)
 
 Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
 session only and the next director replaces it wholesale.
 
+**Loop-scoped numbering starts here.** This session is **loop L1**; its
+iterations are `L1.01`…`L1.10`. The global `iter-NNN` series ended at 116.
+Making that split real in `sessions/` and in commit subjects is L1.10's job —
+until then the commit subject carries it by hand.
+
 ## §0 State block
 
-| | baseline | now |
+| | baseline (post-116) | now |
 |---|---|---|
-| active nodes | 893 | **922** |
+| active nodes | 922 | **922** |
 | deprecated | 7 | 7 |
-| **`outcome_coverage` (primary)** | 0.266 | **0.300** |
-| `evidence_fraction` | 0.250 | **0.328** |
-| `decisive_evidence_fraction` | 0.955 | **0.972** |
-| `broken_links` (new) | — | **0** |
-| `mvp_count` | 33 | **39** |
-| `thought_coverage` | 0.099 | **0.127** |
-| unevidenced decisive | 1 | 1 |
-| goals active / horizon / complete | 12 / 62 / 34 | **13** / 62 / 34 |
-| goals | 110 | **111** |
-| tests | 1250 | **1335** |
-| unpushed | 0 | **0** |
+| `outcome_coverage` (primary) | 0.300 | 0.300 |
+| `broken_links` | 0 | **0** |
+| goals active / cap | 13 / 9 ⚠ | **13 / 15** ✅ |
+| tests | 1335 | **1340** |
+| unpushed | 0 | see §3 |
 
-**Every primary and secondary metric moved up.** The primary *fell* for the
-first five iterations (0.266 → 0.256) because hypotheses were minted and mvps
-were not; iter-112 closed that honestly and it ended at 0.300.
+**OpenRouter, measured live this session:** `$20.00` total credits,
+`$4.43` used, **`$15.57` remaining**. Per-key cap is now `$5.00`, so the
+balance is **three keys deep, not twenty**. The owner's ruling stands: if it
+runs out, stop the experiment where it got to and call it data.
 
-**Runtime:** pi is configured — `deepseek/deepseek-v4-flash` kids under
-`qwen/qwen3.8-27b` parents. **The director acted as parent throughout and no pi
-agent was dispatched**: every iteration this session was engine-primitive work,
-where a cheap kid would have been the wrong instrument.
+**Runtime:** pi — `deepseek/deepseek-v4-flash` kids under `qwen/qwen3.8-27b`
+parents. No pi agent dispatched yet this loop; L1.01 was engine-primitive work.
 
 ### 🔴 Crons are still OFF — push by hand
-
-`.geometry/crons.md` has `crons_live: false`, off since the `goal:g11`
-migration freeze. Everything below is pushed, but nothing pushes automatically.
 
 ```bash
 git -C /home/ubuntu/work/agi push origin master
 ```
 
-### 🔵 The provisioning key is live
+## §1 The plan, and where it is
 
-`OPENROUTER_PROVISIONING_KEY` is set (73 chars) and per-spawn credentials are
-armed: `spawn.parallel: 5`, `spawn.max_live: 25`, `$0.25` and 60 min per key.
-**0 engine-minted keys outstanding.**
+The owner granted director authority for a 10-iteration budget on 2026-09-03.
+Concurrency ramps deliberately; **nothing ramps past a cap that has not
+survived a live run.**
 
-```bash
-python3 extensions/agi/bin/provisioning.py status
-python3 extensions/agi/bin/provisioning.py reap     # dry; --yes to act
-```
+- [x] **L1.01** — config, the `write`/`links` rename, the workspace probe.
+- [ ] **L1.02** — 🔴 `mvp:a-live-loop-on-minted-keys`. **NEXT.** Runs alone.
+- [ ] **L1.03** — `mvp:the-bound-under-real-agents`, cap 8.
+- [ ] **L1.04** — viewport `--emit llm` reaches INJECTION parity.
+- [ ] **L1.05** — INJECTION.md retired, 4 render paths deleted. Cap 12.
+- [ ] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
+- [ ] **L1.07** — `write.py create`; schema backfill rides along. Cap 16.
+- [ ] **L1.08** — parent-spawns-kid live; per-agent grid scratchpad;
+      **the removal guard** (`goal:g3` extended: deprecation cannot raise the
+      primary). Cap 20. **The guard must land before L1.09.**
+- [ ] **L1.09** — WIDE. Cavekit exit + legacy sweep. Cap 25.
+- [ ] **L1.10** — webhook / direct model calls with session id → chat-to-node
+      linking (`goal:g10.1`, `goal:g2.7`); engine-commit pinning; loop-scoped
+      iteration numbering.
 
-## §1 The plan, and what it came to
+## §2 What landed in L1.01
 
-All ten ran. Two were reordered mid-session; the reasons are in §2.
+### Config, on the owner's direction
 
-- [x] **Phase 0** — `goal:g13`'s three open questions, answered by the owner.
-- [x] **107** — `goal:g4.8` item 3: a concurrency bound that survives a tier.
-- [x] **108** — `goal:g1.11`: a minted, capped, expiring key per spawn.
-- [x] **109 + 109b** — `goal:g13`'s write half; and a self-correction.
-- [x] **110** — `goal:s31`: a scaffold is born valid.
-- [x] **111** — `goal:g1.10`: `.geometry/commands.md`.
-- [x] **112** — five mvps, from what five verdicts said they had *not* proved.
-- [x] **113** — both hand-rolled writers routed through the gate.
-- [x] **114** — `goal:g13.1`'s verb layer.
-- [x] **115** — `goal:g4.7`'s `restart()`, wired.
-- [x] **116** — the modal-shell mvp; this handoff.
+`per_spawn_limit_usd` **0.25 → 5.00**. `max_goals_active` **9 → 15**.
 
-## §2 What landed
+The goals cap moved because the owner corrected what `active` *means*:
+it is a **focus budget** — which long-term goals chain-building aims at — not
+a census of what is in flight. `metrics.py`'s warning said the opposite and
+would have been "fixed" by relabelling four real goals `horizon`, which is the
+field losing information a second way. Reworded, not just re-capped. This
+settles banked decision 3 from the previous session. Recorded on `goal:g5`.
 
-### `goal:g4.8` — the bound is structural (107)
+### Keys mint into the `agi` workspace — a safety change, not tidiness
 
-`spawn.parallel` bounds one invocation's slots and **never bounded
-grandchildren**: a parent gets kids by running `dispatch.py` again, which reads
-its own copy of the same number. A parent carefully *enforcing* the number does
-not help either — `experiment:a00-5f927203-8a66a2` disproved that. **A limit
-expressed as a number cannot be global.**
-
-`bin/spawn_budget.py` puts it in shared state: one lease per live agent, taken
-under a lock at the spawn site, **reclaimed by liveness** so `kill -9` cannot
-shrink the budget permanently.
-
-| cap | admitted | peak live |
-|---|---|---|
-| 1 / 3 / 5 | 2 / 5 / 10 | **1 / 3 / 5** |
-| 999 (control = pre-fix) | 25 | **24** |
-
-Peak *equals* cap every time — on the boundary, not passing by starvation.
-
-### `goal:g1.11` — one minted key per spawn (108)
-
-Three independent limits, **because a cleanup step is not a safety property**:
-a credit cap, a TTL, and revocation when the lease is reclaimed. The credential
-hangs on `spawn_budget`'s lease, so reclaiming the slot and revoking the key
-are **one event**.
-
-Measured live: mint **0.760s** mean, 10 concurrent in **0.919s** wall, 20
-revocations in 2.781s, 30/30 ok, 0 leaked. That settled the banked granularity
-question — **per spawn**: batching is a cost optimisation, the cost is 0.06% of
-the timeout it gates, and per-slot cannot answer *which agent*.
-
-🔴 **Trap, asserted in a live test:** `expires_in_seconds` is accepted with a
-`201` and **silently ignored**, producing a key with no TTL from a call that
-looked like it worked. Only `expires_at` is honoured.
-
-🔴 **Near miss:** the owner's own long-lived key is named `agi`. `reap_orphans`
-matches `agi-` **with the hyphen**. One character separated a cleanup routine
-from revoking the key the project runs on.
-
-### `goal:g13` — the write half (109, 113)
-
-**Edit-in-place had no routine.** Every fix and retag in this project's history
-was a hand edit — `goal:g13.1`'s "completely stray and untraceable commit".
-`node_writer.update_node` is that routine, and it **cannot destroy the authored
-`THOUGHT`** (`goal:g2.10` made impossible rather than discouraged).
-
-`bin/write.py` is the link layer: `link_ref` generalises `payload_ref`, `self`
-means the body is its own data, a single read of a missing link **raises**, a
-bulk scan returns a **typed sentinel** counted in `broken_links`.
-
-iter-113 routed both hand-rolled writers through it, which needed one semantic
-fix first: **the gate judges the delta, not the state.** Rejecting on state
-would have refused verdicts on the 115 already-invalid nodes — and a gate that
-punishes the wrong write teaches callers to pass `validate=False`, which is how
-a gate stops existing.
-
-`goal:g7` outranks `goal:g13`: a refused gated write **falls back loudly**
-rather than dropping a wire.
+Probed against the live API **before** writing the code: `POST /keys` accepts
+`workspace_id`, returns it on the created object, and a probe key landed in
+the right workspace and was revoked. Both workspaces exist:
 
 ```
-links: 927 resolved, 0 broken · declared 0 · payload_ref 220 · defaulted 707
+72750376-2d45-452e-8273-197fdaabae95  agi       ← keys mint here now
+7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0  default   ← the owner's own `agi` key
 ```
 
-🔵 **`declared: 0` — the corpus is not migrated.** A node body is still a
-payload, not a marker.
+🔴 **Why this is safety.** `reap_orphans` matches the name prefix `agi-`, and
+the owner's long-lived key is named `agi`. One character separated the reaper
+from the key the project runs on. The reaper now also requires a key to be
+**in the declared workspace**, so those two sets are disjoint by construction
+rather than by string comparison — **two filters that fail differently**.
+The owner's key is in `default` and is out of scope on both grounds.
 
-### `goal:s31` — scaffolds are born valid (110)
+`provisioning.workspace(cfg)` is a **sibling reader, not a third slot in
+`settings()`** — that tuple has callers. Unset omits the field entirely rather
+than sending null, so an unconfigured project is byte-identical to before.
 
-Two correct rules composed into a contradiction: the scaffold owns frontmatter,
-the kid is told not to touch it, so a required field the writer didn't supply
-**could not be added by anyone doing their job as briefed**.
+### The latency question is closed
 
-The goal's three candidate shapes were never alternatives — each handles a
-different class of field. **Seed** what the engine derives (`title` from the
-slug, never a placeholder), **lift** what only the kid holds out of the body at
-completion, **report** what neither can supply. Safe because `scaffold_hash`
-hashes the **body** — asserted, not assumed.
+Mint is **0.760s** mean. The owner ruled it acceptable: inference already eats
+1–3s, so a fraction of a second hides inside noise the run already has.
+Recorded on `mvp:a-live-loop-on-minted-keys`.
 
-🔴 **A census bug I made and caught:** the first count said 203 invalid nodes,
-led by `goal: seeds x86`. The check was `not fm.get(k)`, and `seeds: []` is
-what a goal with no seeds correctly carries. **Corrected: 115.** It is
-`goal:s31`'s own thesis committed by its implementer — a hand-rolled predicate
-agreeing with the schema by convention instead of reading it.
+### `edit.py` → `write.py`, and `write.py` → `links.py`
 
-### `goal:g1.10` — commands declared, not memorised (111)
+The owner's call, and the right one: a verb here either revises a node or
+mints one, and both are **writes** — `create` would have read as an exception
+to the module it lives in. The old `write.py` never wrote anything; it is
+`link_ref` resolution and the `broken_links` count, so it is now `links.py`.
+Two honest names beat one name doing two jobs.
 
-`.geometry/commands.md` + `[command]` schema + `bin/commands.py`, rendered into
-`INJECTION.md` so **every agent is handed the commands**.
-
-**The claim proved itself on first contact:** `grid-commit` was declared as
-`grid.py --all`; the real command is `grid.py commit --all`. That string sat
-*correct* in `HANDOFF.md` and `CLAUDE.md` for months. **Prose is read and
-believed; a command table is run.**
-
-🔵 The four prose copies are **not** deleted — this made a fifth that happens
-to be executable. `mvp:prose-derives-from-the-command-node` is the fix.
-
-### Five mvps, from five verdicts' own limits (112)
-
-`outcome_coverage` fell every iteration for five iterations. The fix was *not*
-minting mvps for work already done — `[mvp].md` is explicit that an mvp is
-**design pointing forward**, and the corpus said so before anyone decided it
-(`source_files` 0/26, `tests_pass` 0/26). So the honest mvps are the gaps each
-verdict named in its own "what is NOT proved" section. **primary 0.256 →
-0.295**, because five chains closed where they were actually open.
-
-### `goal:g13.1` — the verb layer (114)
-
-Stated as a falsifiable claim about **build order**, with a disproof condition:
-a verb that only makes sense with a cursor. Five verbs later, none appeared —
-**the negative result is the proof**. `bin/edit.py` has **no file write**
-(AST-checked, not grepped). `thought_session` gets its first writer, reserved
-since `goal:g2.7` with nothing writing it.
-
-### `goal:g4.7` — restart wired (115)
-
-`adapter.restart()` was defined and never called, which is the honest reason
-`verdict:a00-fd5d74ab-a74f6c` sat at 55. Now called, behind a decision table
-whose **order is the design**: `completion.is_complete` is checked **before**
-any restart, because kids die after their node lands and respawning one would
-hand a second agent the same scaffolded node. That ordering came from a field
-note, not from reasoning about the code.
-
-**The old verdict keeps its 55.** It describes what iteration 104 measured.
+Both renames used `git mv`; no build node exists for either file yet, so
+`level3.py` will mint them under the new names at the next scan and there is
+no `payload_ref` churn.
 
 ## §3 🔴 Where it stopped, and the exact next command
 
-Everything is committed, grid-versioned, pushed. **1335 tests green, 922 active
-nodes, 0 broken links, 0 outstanding minted keys, 0 unpushed commits.**
+**Paused after the L1.01 commit at the owner's request (client restart).**
 
-**The next session's work is already in the graph as six open mvps** — put
-there deliberately, so it survives this file being replaced:
-
-| mvp | what it discharges |
-|---|---|
-| `a-live-loop-on-minted-keys` | **run first** — no pi agent has ever used a minted key |
-| `the-bound-under-real-agents` | `goal:g4.8` clauses 1, 3, 4, at cap 25 |
-| `the-modal-shell-over-the-verbs` | `goal:g13.1`'s other half |
-| `the-corpus-becomes-schema-valid` | the 115, minus 62 that need `goal:g1.9` |
-| `prose-derives-from-the-command-node` | delete the four copies for real |
-| `route-every-writer-through-update-node` | mostly done in 113; falsifier not run |
-
-**Start with the two live runs, in that order and not together** — both are at
-an untested concurrency and share a novel credential path, so running them
-together means a failure cannot be attributed to either.
+Verify state, then start L1.02 — the live minted-key run, which runs alone:
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/commands.py list          # what the graph declares
-python3 extensions/agi/bin/provisioning.py status    # armed, 0 outstanding
-python3 extensions/agi/bin/dispatch.py "$PWD" 117 --tier parent --target goal:g13 --level small
+git status --short                                    # expect clean
+python3 extensions/agi/bin/provisioning.py status     # expect 0 outstanding
+python3 extensions/agi/bin/provisioning.py list       # ws= column is new
 ```
+
+L1.02 discharges `mvp:a-live-loop-on-minted-keys`: **no pi agent has ever
+authenticated with a key that did not exist before it.** Everything about the
+credential path is proved against stubs and sleeping interpreters.
 
 ## §4 Traps hit this session
 
-1. 🔴 **A `grep` proved the wrong thing and I published the claim.** An
-   experiment node said *"`grep` confirms `type == goal` does not appear"*. It
-   returns 1 — the phrase is in the docstring stating the invariant. The
-   invariant held; the evidence did not. Replaced with an `ast` test and
-   **corrected in a follow-up commit rather than quietly repaired.**
-2. **A background `pytest` reported exit 0 with an empty output file while the
-   suite was red.** Re-run in the foreground before trusting a green.
-3. **Backticks in `git commit -m` are command substitution.** They ate a word
-   from the iter-107 message. Use `-F -` with a heredoc.
-4. 🔴 **`sys.modules` reassignment makes "the same import" two objects.**
-   `test_completion.py` and `test_evidence_gate.py` load modules by path and
-   reassign `sys.modules[name]`, so a test patching its own `node_writer` name
-   and a module calling through its own reference diverged. Visible **only in
-   full-suite order** — both narrower runs were green. **Patch the object the
-   caller actually calls through.**
-5. **A leaked monkeypatch.** Assigning on a module instead of via `monkeypatch`
-   leaks a stub into every later test.
-6. **Clean-fixture tests miss real-node defects.** `edit.py` met the live corpus
-   one iteration after being built and had two: a fixed-arity script parser,
-   and a note that added a second `## Agent Notes` heading to a node that
-   already had one.
-7. **A hand-rolled emptiness check is not the schema's.** `not fm.get(k)` calls
-   `seeds: []` missing; the registry's rule is `None` or an empty *string*.
+1. 🔴 **I wrote the same guard three times and the first two were vacuous.**
+   The rename broke `links` and `schema` (declared as `write.py links`), and
+   the existing test stayed green because it only checks the *file* exists —
+   and a file by that name did. It was the wrong file.
+   - **v1** shelled out to `script.py <sub> --help` and checked the exit code.
+     argparse handles `--help` first and exits **0**, so the new `write.py`
+     absorbed `links` as a positional and printed its own help. Passed on the
+     bug.
+   - **v2** read the script with `ast` but treated "declares no subcommands"
+     as a skip. The new `write.py` declares none, so it skipped the one case
+     it existed for. Passed on the bug.
+   - **v3** treats that absence as the failure. Fails on the bug, passes clean.
+
+   **The lesson is the method, not the bug: a guard is not a guard until it
+   has failed once on purpose.** Reintroduce the defect and watch it go red.
+   Both dead ends are recorded in the test's own docstring so the next reader
+   does not re-propose v1.
+2. **The declared command table caught the rename before any human did** —
+   `goal:g1.10` earning its keep a second time. Prose copies stayed wrong and
+   silent; the runnable one failed immediately.
+3. **`commands.load()` needs the graph root (`.agi`), not the repo root.**
+   Passing the repo root returns `0 commands` with no error — it looks like an
+   empty table rather than a wrong argument.
 
 ## §5 Known-good verification sequence
 
-Declared in the graph now — `commands.py list` prints it, in order:
-
 ```bash
-python3 extensions/agi/bin/commands.py run smoke        # node count must NOT drop from 922
-python3 extensions/agi/bin/commands.py run tests        # 1335 passing
+python3 extensions/agi/bin/commands.py run smoke     # 922 active, must NOT drop
+python3 extensions/agi/bin/commands.py run tests     # 1340 passing
 python3 extensions/agi/bin/commands.py run goals-check
 python3 extensions/agi/bin/commands.py run viewport-verify
-python3 extensions/agi/bin/commands.py run links        # 927 resolved, 0 broken
+python3 extensions/agi/bin/commands.py run links     # 927 resolved, 0 broken
 python3 extensions/agi/bin/commands.py run grid-commit
 ```
 
 ## §6 🔵 BANKED — decisions deliberately not made
 
-1. 🔴 **Backfill the 115 schema-invalid nodes?** `write.py schema --fix` has
-   only run dry. Would fill **`title` x86** and **`testable_claim` x5**; would
-   leave 62 absent rather than invent them. Reversible, probably right, ~91
-   nodes of churn nobody asked for. One command either way.
-2. **Should the viewport replace `INJECTION.md`'s renderer?** Carried from last
-   session. Would delete 4 of 5 render paths — the real prize — but it changes
-   what every kid is handed.
-3. **`goals_active` is 13 against a cap of 9.** The open question is *how* it
-   should count: `g3`, `g5`, `g7` are arguably permanent residents rather than
-   in-flight work.
-4. ~~`goal:g1.11`'s batching granularity~~ — **SETTLED**: per spawn.
+1. **Backfill the 115 schema-invalid nodes.** Unchanged, and now **scheduled**
+   rather than banked: it rides along in L1.07 and widens in L1.09. The owner
+   approved it explicitly.
+2. ~~Viewport replaces `INJECTION.md`~~ — **SETTLED: yes.** L1.04 + L1.05.
+   Measured gap: `--emit llm` is 45 lines against `INJECTION.md`'s 271, so it
+   is *finish the emit, then delete four render paths*, not a swap.
+3. ~~`goals_active` counting~~ — **SETTLED: it is a focus budget.** Cap 15.
+4. ~~`goal:g1.11` batching granularity~~ — **SETTLED: per spawn** (prior run).
 
 ## §7 Standing hazards
 
-- **Neither live run has happened.** The bound, the credentials and the reaper
-  are all proved against sleeping interpreters and fake adapters. A `SIGSTOP`ped
-  agent is alive to `os.kill(pid, 0)` and holds its slot indefinitely — correct,
-  and still a surprise at cap 25.
-- **25 concurrent pi agents is well past the ~4 where rate-limit deaths were
-  measured.** The credit cap is what makes trying it a bounded decision.
+- **The two live runs still have not happened.** The bound, the credentials
+  and the reaper are proved against sleeping interpreters and fake adapters. A
+  `SIGSTOP`ped agent is alive to `os.kill(pid, 0)` and holds its slot forever —
+  correct, and still a surprise at cap 25.
+- **$15.57 is the real ceiling**, not the `$5` per-key cap. Three keys at full
+  cap is the balance. `spawn_budget` and the reaper know about per-key limits
+  and **nothing knows about the account balance.**
+- 🔴 **L1.09 has two ordering constraints that are load-bearing.**
+  `snapshot-build-site.py` **deletes every `origin: build-site` node it does
+  not re-derive** — so kits are removed *after* their 168 nodes are deprecated,
+  never before (H0i). And a `payload_ref` is dropped *before* its file is
+  deleted, or `broken_links` leaves 0.
+- **`TODO.md` is already `status: deprecated`** — the 2026-09-02 timestamp is
+  the retirement stamp, not an agent writing to it. Nothing uses it as a
+  scratchpad. Mine it for unminted content in L1.09, then delete the file.
 - **A parent's REPORT is not its artefact.** Check the node file.
-- **A fix with no test is an assertion.**
+- **A fix with no test is an assertion** — and per §4, a test that has never
+  failed on purpose is closer to an assertion than it looks.
