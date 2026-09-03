@@ -39,7 +39,7 @@
   },
   "spawn": {
     "harness": "pi",
-    "parallel": 8,
+    "parallel": 2,
     "max_live": 25,
     "credential": {
       "provider": "openrouter",
