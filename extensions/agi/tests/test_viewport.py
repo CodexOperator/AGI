@@ -281,3 +281,105 @@ def test_the_module_contains_no_write_surface():
     for forbidden in ('"w"', "'w'", ".write_text(", ".mkdir(", "os.remove",
                       "shutil.rmtree", "git commit", "git checkout"):
         assert forbidden not in src, f"viewport must not write: found {forbidden}"
+
+
+# --------------------------------------------------------------------------
+# L1.04 — the briefing. goal:g9.7 applied to everything that is NOT a frame.
+# --------------------------------------------------------------------------
+
+def _brief():
+    """A Briefing built by hand, so these tests need no project on disk."""
+    import importlib.util as _ilu
+    spec = _ilu.spec_from_file_location("briefing", BIN / "briefing.py")
+    m = _ilu.module_from_spec(spec)
+    sys.modules["briefing"] = m
+    spec.loader.exec_module(m)
+    b = m.Briefing()
+    b.node_count = 42
+    b.edge_count = 17
+    b.by_type = {"goal": 2, "hypothesis": 2}
+    b.primary = "outcome_coverage"
+    b.coverage = 0.375
+    b.attractors = [("idea:x", 5)]
+    return m, b
+
+
+def test_the_llm_view_carries_the_rules_a_kid_is_judged_on(graph, fm):
+    """🔴 Measured 2026-09-03: `--emit llm` was 45 lines to INJECTION.md's 271.
+
+    The missing 226 were the entire contract — the metric, the taxonomy, the
+    chain rules, the declared commands. A "view of what an LLM sees" that
+    omits the rules is not a view of what an LLM sees, and it is why the
+    viewport could not replace the renderer.
+    """
+    _m, b = _brief()
+    frames = V.frame_stream(graph, fm, "goal:a", 3)
+    llm = V.render_llm(frames, 0, 0, 50, 300, brief=b)
+
+    for section in ("## graph snapshot", "## verdict taxonomy",
+                    "## chain rules", "## attractive ideas"):
+        assert section in llm, f"the llm view omits {section}"
+    assert "evidence_runs >= 1" in llm, "the evidence rule must reach the kid"
+    assert "chain length is never a target" in llm
+
+
+def test_both_readers_are_told_the_same_facts(graph, fm):
+    """The briefing is ONE object rendered twice, never two computations."""
+    _m, b = _brief()
+    frames = V.frame_stream(graph, fm, "goal:a", 3)
+    llm = V.render_llm(frames, 0, 0, 50, 300, brief=b)
+    human = "\n".join(V.render_human(frames, 0, 0, 50, 300, brief=b))
+
+    for needle in ("42", "outcome_coverage", "0.375"):
+        assert needle in llm and needle in human, (
+            f"{needle!r} must reach both readers or they disagree about one graph")
+
+
+def test_the_briefing_never_disturbs_the_frame_order(graph, fm):
+    """🔴 The regression this nearly shipped with.
+
+    `_verify` extracted node ids from "any line containing a backtick". The
+    briefing is full of backticks — `metric_primary`, the verdict taxonomy,
+    every declared command — so adding it turned the verifier's own input into
+    noise. A verifier that silently starts measuring different lines has
+    stopped verifying, which is worse than one that fails.
+    """
+    _m, b = _brief()
+    frames = V.frame_stream(graph, fm, "goal:a", 3)
+    llm = V.render_llm(frames, 0, 0, 50, 300, brief=b)
+
+    ids = [mm.group(1) for mm in
+           (V._FRAME_LINE.match(ln) for ln in llm.splitlines()) if mm]
+    assert ids == [f.node_id for f in frames]
+
+    naive = [ln.split("`")[1] for ln in llm.splitlines() if "`" in ln]
+    assert naive != ids, (
+        "if the naive match still works, this test is not testing anything")
+
+
+def test_no_briefing_is_a_supported_state(graph, fm):
+    """A viewport that can draw the graph beats one that refuses to start."""
+    frames = V.frame_stream(graph, fm, "goal:a", 3)
+    llm = V.render_llm(frames, 0, 0, 50, 300, brief=None)
+    assert "## chain rules" not in llm
+    ids = [mm.group(1) for mm in
+           (V._FRAME_LINE.match(ln) for ln in llm.splitlines()) if mm]
+    assert ids == [f.node_id for f in frames]
+
+
+def test_the_compact_projection_states_the_same_numbers(graph, fm):
+    """to_compact drops the rules text, never the facts."""
+    m, b = _brief()
+    compact = "\n".join(m.to_compact(b))
+    full = "\n".join(m.to_markdown(b))
+    for needle in ("42", "0.375", "outcome_coverage"):
+        assert needle in compact and needle in full
+
+
+def test_a_gameable_primary_is_named_as_invalid_in_the_briefing():
+    """Never hand agents a target the engine itself rejects."""
+    m, b = _brief()
+    b.primary = "longest_chain_length"
+    b.primary_is_gameable = True
+    out = "\n".join(m.to_markdown(b))
+    assert "not a valid" in out and "gameable" in out
