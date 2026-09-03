@@ -317,6 +317,126 @@ def test_shadow_verdict_fields_matches_what_stamp_rewrites():
     assert eg.shadow_verdict_fields(None) == []
 
 
+# --------------------------------------------- the commit path (on-disk gate)
+#
+# hypothesis:gate-must-sit-on-the-commit-path. The pure half; the fixture
+# half (a real git repo, `grid.cmd_commit`) lives in `test_grid.py`.
+
+
+@pytest.mark.parametrize("verdict", ["pending", "inconclusive_lean_proved:60",
+                                     "inconclusive_lean_disproved:40"])
+def test_gate_on_disk_ignores_honest_uncertainty(verdict):
+    assert eg.gate_on_disk({"verdict": verdict}, corpus=frozenset()) is None
+
+
+def test_gate_on_disk_ignores_a_missing_or_non_string_verdict():
+    assert eg.gate_on_disk({}, corpus=frozenset()) is None
+    assert eg.gate_on_disk({"verdict": None}, corpus=frozenset()) is None
+    assert eg.gate_on_disk({"verdict": 1}, corpus=frozenset()) is None
+
+
+def test_gate_on_disk_passes_an_evidenced_decisive_verdict():
+    fm = {"id": "verdict:v", "type": "verdict", "verdict": "proved",
+          "evidence_runs": ["exp:r1"]}
+    assert eg.gate_on_disk(fm, corpus=frozenset({"exp:r1"})) is None
+
+
+def test_gate_on_disk_honours_the_bypass_stamp():
+    fm = {"verdict": "proved", "evidence_gate": "bypassed"}
+    assert eg.gate_on_disk(fm, corpus=frozenset()) is None
+
+
+@pytest.mark.parametrize("decisive", ["proved", "disproved"])
+def test_gate_on_disk_demotes_and_tags_the_commit_path(decisive):
+    res = eg.gate_on_disk({"verdict": decisive}, corpus=frozenset())
+    assert res is not None and res.demoted and not res.rejected
+    assert res.verdict == eg.DEMOTION[decisive]
+    assert res.original == decisive
+    assert eg.COMMIT_PATH_TAG in res.reason
+
+
+def test_gate_on_disk_folds_a_taxonomy_violation_into_a_demotion():
+    """A writer path rejects `[synthetic]`; on disk it is demoted, and the
+    reason still names the violation so it is not read as mere absence."""
+    res = eg.gate_on_disk({"verdict": "proved", "evidence_runs": ["synthetic"]},
+                          corpus=frozenset())
+    assert res.demoted and not res.rejected
+    assert res.verdict == "inconclusive_lean_proved:50"
+    assert "taxonomy violation" in res.reason
+    assert res.taxonomy_violations == ["synthetic"]
+
+
+def test_gate_on_disk_keeps_the_self_citation_asymmetry():
+    exp = {"id": "experiment:x", "type": "experiment", "verdict": "proved",
+           "evidence_runs": ["experiment:x"]}
+    ver = {"id": "verdict:v", "type": "verdict", "verdict": "proved",
+           "evidence_runs": ["verdict:v"]}
+    corpus = frozenset({"experiment:x", "verdict:v"})
+    assert eg.gate_on_disk(exp, corpus) is None
+    assert eg.gate_on_disk(ver, corpus).demoted
+
+
+def test_demotion_fields_are_stamps_keys_minus_evidence_runs():
+    fm = {"verdict": "proved", "status": "proved", "evidence_runs": 2,
+          "confidence": 0.9}
+    res = eg.gate_on_disk(fm, corpus=frozenset())
+    delta = eg.demotion_fields(fm, res)
+    assert set(delta) == {"verdict", "demoted_from", "demote_reason", "status"}
+    assert delta["verdict"] == delta["status"] == "inconclusive_lean_proved:50"
+    assert delta["demoted_from"] == "proved"
+    assert "evidence_runs" not in delta          # the author's value survives
+    assert "confidence" not in delta             # nothing else is touched
+    assert fm["verdict"] == "proved"             # the input dict is not mutated
+
+
+def test_demotion_fields_leave_a_lifecycle_status_out():
+    fm = {"verdict": "proved", "status": "active"}
+    delta = eg.demotion_fields(fm, eg.gate_on_disk(fm, corpus=frozenset()))
+    assert "status" not in delta
+
+
+def test_read_frontmatter_text_reads_the_way_the_metric_reads():
+    assert eg.read_frontmatter_text("---\nid: x\nverdict: proved\n---\nbody") == \
+        {"id": "x", "verdict": "proved"}
+    assert eg.read_frontmatter_text("no frontmatter") is None
+    assert eg.read_frontmatter_text("---\nid: x\nnever closed") is None
+    assert eg.read_frontmatter_text("---\nparents: [unclosed\n---\n") is None
+    assert eg.read_frontmatter_text("---\n- a list\n---\n") is None
+
+
+@pytest.mark.parametrize("line,hit", [
+    ("verdict: proved", True),
+    ("verdict: disproved", True),
+    ('verdict: "proved"', True),
+    ("verdict:   proved   # says who", True),
+    ("verdict: pending", False),
+    ("verdict: inconclusive_lean_proved:50", False),
+    ("demoted_from: proved", False),
+    ("  verdict: proved", False),        # nested, not a top-level key
+])
+def test_decisive_line_prefilter(line, hit):
+    assert bool(eg.DECISIVE_LINE_RE.search(f"id: x\n{line}\ntype: verdict\n")) is hit
+
+
+def test_enforce_on_disk_dry_run_writes_nothing(tmp_path, capsys):
+    d = tmp_path / "nodes" / "verdict"
+    d.mkdir(parents=True)
+    p = d / "v1.md"
+    p.write_text('---\nid: "verdict:v1"\ntype: verdict\nverdict: proved\n---\nbody\n')
+    before = p.read_bytes()
+    found = eg.enforce_on_disk(tmp_path, dry_run=True)
+    assert [(f.node_id, f.original, f.verdict, f.written) for f in found] == \
+        [("verdict:v1", "proved", "inconclusive_lean_proved:50", False)]
+    assert p.read_bytes() == before
+    out = capsys.readouterr()
+    assert "would demote verdict:v1" in out.err
+    assert "EVIDENCE-GATE DEMOTED" not in out.out     # the loop.log marker stays honest
+
+
+def test_enforce_on_disk_empty_tree_is_a_noop(tmp_path):
+    assert eg.enforce_on_disk(tmp_path) == []
+
+
 # ------------------------------------------------------------ cli.py done
 
 

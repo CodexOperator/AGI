@@ -18,8 +18,13 @@ Design notes (why this shape — see TODO.md H10):
     design and loaders/renderers stay oblivious.
   - `git clone` does not fetch custom refs by default. `grid.py init` adds the
     fetch refspec to origin so a fresh machine gets the grid with `git fetch`.
-  - No dependencies beyond git and stdlib. Frontmatter id is parsed with a
-    regex, not yaml, so this file runs anywhere.
+  - No dependencies beyond git and stdlib for the grid itself. Frontmatter id
+    is parsed with a regex, not yaml, so this file runs anywhere. The one
+    exception is deliberate: the non-session `commit` path runs the evidence
+    gate over the files it is about to version (`evidence_gate.enforce_on_disk`,
+    which needs yaml and `node_writer` — imported there, not here), because a
+    node's bytes are ACCEPTED at commit and that is the one place every write
+    path passes (hypothesis:gate-must-sit-on-the-commit-path, goal:g7).
   - **Two roots, two jobs (goal:g11).** Callers hand this file the GRAPH root
     (`<repo>/.agi`). Node files are found under it; every git invocation runs
     against `repo_root()` of it, because that is where `refs/grid/*` and the
@@ -58,6 +63,7 @@ from pathlib import Path
 # goal:g11 — one resolver for every path. Plain sibling import; every entry
 # point under `bin/` already has this directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import evidence_gate  # noqa: E402
 import locations  # noqa: E402
 
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
@@ -716,6 +722,20 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
+    # hypothesis:gate-must-sit-on-the-commit-path (goal:g7) -- the evidence
+    # gate, at the point of acceptance. A writer that records a verdict through
+    # `cli.py done` or `post_wire` meets the gate there; one that writes the
+    # file directly meets it HERE, before the bytes become a version. Runs over
+    # every file about to be committed; rewrites only a decisive verdict nothing
+    # backs (demoted in place, node kept), so a passing node is byte-identical
+    # and the unchanged-check below still sees it as unchanged.
+    #
+    # Session (D3) drafts are not gated: a draft is a node under review, not an
+    # accepted one, and the gate belongs on acceptance.
+    demoted = 0
+    if not session:
+        demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
+                      if d.written)
     id_index = None if session else build_id_index(root)
     engine_root = engine_root or default_engine_root()
     written = 0
@@ -761,7 +781,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             written += 1
             print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
     print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
-          f"{payloads} with payload, {payload_missing} payload(s) unresolved")
+          f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
+          f"{demoted} demoted by the evidence gate")
 
 
 def _resolve_read_ref(root: Path, path: Path, node_id: str) -> str | None:

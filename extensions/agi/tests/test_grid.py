@@ -1154,3 +1154,250 @@ def test_ensure_repo_names_the_repo_not_the_graph_dir(tmp_path, capsys):
         grid.ensure_repo(graph)
     assert str(tmp_path / "proj") in str(exc.value)
     assert str(graph) not in str(exc.value)
+
+
+# --------------------------------------------- evidence gate on the commit path
+#
+# hypothesis:gate-must-sit-on-the-commit-path (goal:g7). The falsifier the
+# hypothesis names, as code: hand-write a `proved` verdict with no evidence
+# into a fixture node, run the commit path, assert it comes out demoted. Remove
+# the `enforce_on_disk` call from `cmd_commit` and the first test goes red.
+
+import yaml  # noqa: E402
+
+MINT_E1 = "e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1"
+MINT_V1 = "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1"
+MINT_V2 = "f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2"
+THOUGHT = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+           "regenerating scans. The reasoning behind THIS version. -->\n"
+           "why this version\n<!-- THOUGHT:END -->\n")
+
+
+def _hand_written(root, ntype, slug, mint_id, extra="", body="body\n"):
+    """A node written the way a pi kid writes one: straight to disk, past
+    every writer path. `extra` is raw frontmatter text."""
+    d = root / "nodes" / ntype
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{slug}.md"
+    p.write_text(f'---\nid: "{ntype}:{slug}"\nmint_id: {mint_id}\n'
+                 f"type: {ntype}\n{extra}---\n\n{body}")
+    return p
+
+
+def _fm(path):
+    return yaml.safe_load(path.read_text().split("---", 2)[1])
+
+
+def _tip_node_md(root, node_id) -> str:
+    """`node.md` as the grid holds it at the node's tip."""
+    node_file = grid.build_id_index(root).get(node_id)
+    ref = grid._resolve_read_ref(root, node_file, node_id)
+    return grid.read_tree_entry(root, ref, grid.NODE_ENTRY)[1].decode()
+
+
+@pytest.fixture()
+def gated_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    _hand_written(tmp_path, "experiment", "e1", MINT_E1)   # a real run to cite
+    grid.cmd_init(tmp_path)
+    return tmp_path
+
+
+def test_commit_path_demotes_a_hand_written_unevidenced_proved(gated_project, capsys):
+    """THE falsifier. A `proved` that reached the commit with nothing behind it
+    comes out demoted, stamped, kept -- and the overclaim never becomes a
+    version."""
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nconfidence: 0.9\n", body="body\n\n" + THOUGHT)
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+
+    fm = _fm(p)
+    assert fm["verdict"] == "inconclusive_lean_proved:50"
+    assert fm["demoted_from"] == "proved"
+    assert grid.evidence_gate.COMMIT_PATH_TAG in fm["demote_reason"]
+    assert "proved" not in (fm["verdict"], fm.get("status"))
+    assert fm["confidence"] == 0.9                       # nothing else touched
+    assert THOUGHT.strip() in p.read_text()              # body untouched, THOUGHT kept
+
+    # What the grid accepted is the demoted node: v1 IS the demotion, there is
+    # no earlier version carrying the overclaim.
+    assert versions(gated_project, "verdict:v1") == 1
+    tip = _tip_node_md(gated_project, "verdict:v1")
+    assert "verdict: inconclusive_lean_proved:50" in tip
+    assert "verdict: proved" not in tip
+
+    out = capsys.readouterr()
+    assert "EVIDENCE-GATE DEMOTED proved -> inconclusive_lean_proved:50" in out.out
+    assert "1 demoted by the evidence gate" in out.out
+
+
+def test_commit_path_leaves_an_evidenced_proved_byte_identical(gated_project, capsys):
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nevidence_runs:\n  - experiment:e1\n")
+    before = p.read_bytes()
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert p.read_bytes() == before
+    assert "verdict: proved" in _tip_node_md(gated_project, "verdict:v1")
+    assert "0 demoted by the evidence gate" in capsys.readouterr().out
+
+
+def test_commit_path_is_idempotent_after_a_demotion(gated_project):
+    """A demoted node is no longer decisive, so the next commit has nothing to
+    do -- no second rewrite, no second version. Versions record change."""
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1, "verdict: proved\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    after_first = p.read_bytes()
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert p.read_bytes() == after_first
+    assert versions(gated_project, "verdict:v1") == 1
+
+
+@pytest.mark.parametrize("verdict", ["pending", "inconclusive_lean_proved:60",
+                                     "inconclusive_lean_disproved:40"])
+def test_commit_path_leaves_honest_uncertainty_alone(gated_project, verdict):
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1, f"verdict: {verdict}\n")
+    before = p.read_bytes()
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert p.read_bytes() == before
+
+
+def test_commit_path_honours_the_bypass_stamp(gated_project):
+    """`evidence_gate: bypassed` is the reviewed, loud escape hatch the writer
+    paths honour; the commit path honours the same stamp."""
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nevidence_gate: bypassed\n")
+    before = p.read_bytes()
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert p.read_bytes() == before
+
+
+def test_session_commit_does_not_gate_a_draft(gated_project):
+    """A D3 draft is a node under review, not an accepted one."""
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1, "verdict: proved\n")
+    before = p.read_bytes()
+    grid.cmd_commit(gated_project, [str(p)], do_all=False, session=("1", "a1"))
+    assert p.read_bytes() == before
+
+
+def test_commit_path_demotes_the_status_shadow_in_lockstep(gated_project):
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nstatus: proved\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    fm = _fm(p)
+    assert fm["status"] == fm["verdict"] == "inconclusive_lean_proved:50"
+
+
+def test_commit_path_never_touches_a_lifecycle_status(gated_project):
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nstatus: active\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert _fm(p)["status"] == "active"
+
+
+def test_commit_path_demotes_a_bare_int_and_keeps_the_attestation_visible(gated_project):
+    """goal:g7.3: `evidence_runs: 2` certifies nothing, so the verdict is
+    demoted -- but the count the author wrote stays on the node. The commit
+    path reviews bytes it did not write; `stamp`'s overwrite-with-0 would
+    destroy the only record of what was claimed."""
+    p = _hand_written(gated_project, "experiment", "x1", MINT_V1,
+                      "verdict: disproved\nevidence_runs: 2\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    fm = _fm(p)
+    assert fm["verdict"] == "inconclusive_lean_disproved:50"
+    assert fm["demoted_from"] == "disproved"
+    assert fm["evidence_runs"] == 2
+
+
+def test_commit_path_demotes_a_dangling_citation_and_keeps_it(gated_project):
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nevidence_runs:\n  - experiment:deleted\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    fm = _fm(p)
+    assert fm["verdict"] == "inconclusive_lean_proved:50"
+    assert fm["evidence_runs"] == ["experiment:deleted"]   # the typo a reviewer fixes
+
+
+def test_commit_path_demotes_a_taxonomy_violation_rather_than_leaving_it(gated_project):
+    """A writer path REJECTS `[synthetic]` -- nothing is written. On disk the
+    bytes are already written, so the only honest move is the demotion, with
+    the violation named in the reason."""
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nevidence_runs:\n  - synthetic\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    fm = _fm(p)
+    assert fm["verdict"] == "inconclusive_lean_proved:50"
+    assert "taxonomy violation" in fm["demote_reason"]
+    assert "synthetic" in fm["demote_reason"]
+
+
+def test_commit_path_self_citation_rule_matches_the_writer_paths(gated_project):
+    """An experiment IS its own run and may cite itself; a verdict judges runs
+    and may not. Same asymmetry as `cli.py done` and `post_wire`."""
+    e = _hand_written(gated_project, "experiment", "x1", MINT_V1,
+                      "verdict: proved\nevidence_runs:\n  - experiment:x1\n")
+    v = _hand_written(gated_project, "verdict", "v1", MINT_V2,
+                      "verdict: proved\nevidence_runs:\n  - verdict:v1\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert _fm(e)["verdict"] == "proved"
+    assert _fm(v)["verdict"] == "inconclusive_lean_proved:50"
+
+
+def test_commit_of_named_files_resolves_against_the_whole_corpus(gated_project):
+    """`commit FILE` gates FILE, but `evidence_runs` resolves against every
+    node on disk -- a verdict committed alone still cites a run that is not
+    being committed with it."""
+    p = _hand_written(gated_project, "verdict", "v1", MINT_V1,
+                      "verdict: proved\nevidence_runs:\n  - experiment:e1\n")
+    before = p.read_bytes()
+    grid.cmd_commit(gated_project, [str(p)], do_all=False, session=None)
+    assert p.read_bytes() == before
+    assert versions(gated_project, "verdict:v1") == 1
+
+
+def test_commit_path_never_deletes_or_moves_a_node(gated_project):
+    _hand_written(gated_project, "verdict", "v1", MINT_V1, "verdict: proved\n")
+    _hand_written(gated_project, "verdict", "v2", MINT_V2, "verdict: proved\nevidence_runs: [x]\n")
+    before = sorted((gated_project / "nodes").rglob("*.md"))
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert sorted((gated_project / "nodes").rglob("*.md")) == before
+
+
+def test_commit_path_leaves_an_unparseable_node_alone_and_keeps_going(gated_project, capsys):
+    """Per-node, never batch-aborting: one node the gate cannot read is
+    reported and left as it is, and every other node is still gated and
+    committed."""
+    bad = gated_project / "nodes" / "verdict" / "bad.md"
+    bad.parent.mkdir(parents=True, exist_ok=True)
+    bad.write_text('---\nid: "verdict:bad"\nmint_id: ' + MINT_V2 +
+                   "\nverdict: proved\nparents: [unclosed\n---\nbody\n")
+    before = bad.read_bytes()
+    good = _hand_written(gated_project, "verdict", "v1", MINT_V1, "verdict: proved\n")
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    assert bad.read_bytes() == before
+    assert _fm(good)["verdict"] == "inconclusive_lean_proved:50"
+    assert "cannot parse" in capsys.readouterr().err
+
+
+def test_commit_path_drives_the_metric_to_zero(gated_project):
+    """The number the hypothesis was minted over. `metrics.evidence_stats`
+    reads the same corpus with the same two functions the gate resolves with,
+    so what the gate demotes is exactly what the metric counted."""
+    spec_m = importlib.util.spec_from_file_location(
+        "metrics", Path(__file__).resolve().parents[1] / "bin" / "metrics.py")
+    metrics = importlib.util.module_from_spec(spec_m)
+    spec_m.loader.exec_module(metrics)
+    nodes = gated_project / "nodes"
+
+    _hand_written(gated_project, "verdict", "v1", MINT_V1, "verdict: proved\n")
+    _hand_written(gated_project, "experiment", "x1", MINT_V2,
+                  "verdict: disproved\nevidence_runs: 3\n")
+    _hand_written(gated_project, "verdict", "v2", "a2" * 16,
+                  "verdict: proved\nevidence_runs:\n  - experiment:e1\n")
+    _hand_written(gated_project, "verdict", "v3", "a3" * 16, "verdict: pending\n")
+    assert metrics.evidence_stats(nodes)["unevidenced_decisive_verdicts"] == 2
+
+    grid.cmd_commit(gated_project, [], do_all=True, session=None)
+    stats = metrics.evidence_stats(nodes)
+    assert stats["unevidenced_decisive_verdicts"] == 0
+    assert stats["decisive_verdicts"] == 1          # the evidenced one survives
