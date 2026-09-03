@@ -194,9 +194,44 @@ def count_broken_links(root) -> int:
 
     Same shape as `unevidenced_decisive_verdicts`: a number that should be 0,
     where nonzero names a specific repairable defect rather than a mood.
+
+    🔴 **A retired node's missing payload is not damage, and reconciling that
+    took until 2026-09-03 because no build node had ever been retired.**
+    `build:bin-render-context` was deprecated and its file deleted — the
+    documented end state of retirement, with every byte still in the node's
+    grid ref. `broken_links` went to 1 and stayed there, which would have made
+    a standing invariant permanently red for doing the right thing.
+
+    Worse, the schema will not let the contradiction be edited away: `[build]`
+    **requires** `payload_ref`, so the write gate correctly refuses to remove
+    it from a deprecated node. The field must keep naming a path that is
+    deliberately gone.
+
+    So the rule is: **damage is a broken link on a LIVE node.** A deprecated
+    node's unresolvable payload is reported separately by `broken_by_status`
+    and excluded here, because an alarm that cannot be cleared by correct
+    action stops being read.
     """
-    _resolved, broken = resolve_many(root, _iter_corpus(root))
-    return len(broken)
+    live, _retired = broken_by_status(root)
+    return len(live)
+
+
+def broken_by_status(root) -> tuple[list, list]:
+    """`(broken_on_live_nodes, broken_on_deprecated_nodes)`.
+
+    Both halves are returned rather than one, so "we retired 40 build nodes"
+    is visible as a number instead of vanishing into an exclusion.
+    """
+    live_broken, retired_broken = [], []
+    for nid, fm, body in _iter_corpus(root):
+        try:
+            resolve(root, nid, fm, body)
+        except MissingLink as exc:
+            if str(fm.get("status") or "").strip().lower() == "deprecated":
+                retired_broken.append(exc)
+            else:
+                live_broken.append(exc)
+    return live_broken, retired_broken
 
 
 def _iter_corpus(root):
@@ -274,13 +309,23 @@ def main(argv: list[str] | None = None) -> int:
     for link in resolved:
         by_source[link.source] = by_source.get(link.source, 0) + 1
 
+    # Split the same way the metric does, and SHOW the retired count rather
+    # than quietly excluding it — an exclusion nobody can see is how an
+    # invariant rots into a number that is always green.
+    live_broken, retired_broken = broken_by_status(root)
+
     if not args.broken:
-        print(f"links: {len(resolved)} resolved, {len(broken)} broken")
+        print(f"links: {len(resolved)} resolved, {len(live_broken)} broken"
+              + (f" ({len(retired_broken)} retired payload(s), not damage)"
+                 if retired_broken else ""))
         for source in (FROM_NODE, FROM_LEGACY, FROM_DEFAULT):
             print(f"  {source:12} {by_source.get(source, 0)}")
-    for sentinel in broken:
+    for sentinel in live_broken:
         print(f"  BROKEN {sentinel.node_id} -> {sentinel.ref} ({sentinel.path})")
-    return 1 if broken and args.broken else 0
+    for sentinel in retired_broken:
+        print(f"  retired {sentinel.node_id} -> {sentinel.ref} "
+              f"(deprecated; bytes in the grid ref)")
+    return 1 if live_broken and args.broken else 0
 
 
 def _schema_report(root, fix: bool = False) -> int:

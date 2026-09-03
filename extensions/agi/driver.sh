@@ -124,8 +124,19 @@ iter_run() {
       python3 "$SNAPSHOT_PY" 2>&1 | tee -a "$LOG"
   fi
 
-  # 2. Render context → INJECTION.md
-  local RENDER_PY="$PLUGIN_ROOT/bin/render-context.py"
+  # 2. Render context → INJECTION.md, from the viewport's own frame stream.
+  #
+  # `bin/inject.py` replaced `bin/render-context.py` on 2026-09-03 (L1.05).
+  # The map a session is handed is now, by construction, the thing
+  # `viewport.py --emit llm` shows — before this, the injected map came from a
+  # fourth tree renderer no human ever looked at.
+  #
+  # The project-root override is KEPT, and so is the rail around it: a stale
+  # `<project>/bin/*.py` silently shadows the engine's own and has wiped a
+  # node corpus once (H0/H0b, S1). Both names are checked so a project that
+  # still ships the old script keeps rendering rather than silently stopping.
+  local RENDER_PY="$PLUGIN_ROOT/bin/inject.py"
+  [[ -x "$PROJECT_ROOT/bin/inject.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/inject.py"
   [[ -x "$PROJECT_ROOT/bin/render-context.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/render-context.py"
   if [[ -f "$RENDER_PY" ]]; then
     AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \

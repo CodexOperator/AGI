@@ -1,4 +1,11 @@
-"""Tests for bin/render-context.py — what the generated map *teaches*.
+"""Tests for bin/inject.py — what the generated map *teaches*.
+
+Renamed from `test_render_context.py` on 2026-09-03 (L1.05) when
+`render-context.py` was retired and `inject.py` took over writing
+`INJECTION.md` from the viewport's frame stream. **The tests were
+retargeted rather than deleted**: what the map teaches is a property of
+the map, not of whichever renderer draws it, and a swap of producers is
+exactly when that property is most likely to be lost quietly.
 
 `context/INJECTION.md` is read by every agent in every session, so its wording
 is engine behaviour, not documentation. It used to say "longest-chain attracts"
@@ -19,7 +26,7 @@ from pathlib import Path
 import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
-RENDER = BIN / "render-context.py"
+RENDER = BIN / "inject.py"
 
 #: Lines the CC hook and the pi bridge each inject. Anything below is unread.
 INJECT_BUDGET = 80
@@ -107,7 +114,15 @@ def test_rules_survive_the_injection_budget(project):
                     "## verdict taxonomy",
                     "## big-vs-small decision"):
         assert heading in injected, f"{heading} fell below line {INJECT_BUDGET}"
-    assert lines.index("## chain rules") < lines.index("## ASCII view (≤200 lines)")
+
+    # The rules must precede the tree, because both injectors truncate and a
+    # rule below the cut is a rule nobody reads. The heading moved from
+    # "## ASCII view" to "## the graph" when inject.py replaced the ASCII
+    # renderer with the viewport's frame stream (L1.05); the ORDERING is the
+    # property, and it is the reason briefing.to_markdown is prepended rather
+    # than appended.
+    tree_heading = next(h for h in lines if h.startswith("## the graph"))
+    assert lines.index("## chain rules") < lines.index(tree_heading)
 
 
 def test_evidence_gate_rule_is_stated(project):

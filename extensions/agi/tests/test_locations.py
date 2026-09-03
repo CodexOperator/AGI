@@ -499,7 +499,10 @@ CWD_RESOLVERS = {
     "spawn_gate.py": "import spawn_gate\nRESOLVED = spawn_gate._find_root()",
     # Hyphenated filenames are not importable; these expose the root as a
     # module-level PROJECT_ROOT instead of a function.
-    "render-context.py": '_m = _by_path("render-context.py")\nRESOLVED = _m.PROJECT_ROOT',
+    # `render-context.py` was retired 2026-09-03 (L1.05); `inject.py` writes
+    # the map now and is importable, so it exposes its resolution as a
+    # function rather than a module-level constant.
+    "inject.py": "import inject\nRESOLVED = inject.project_root()",
     "snapshot-build-site.py": '_m = _by_path("snapshot-build-site.py")\nRESOLVED = _m.PROJECT_ROOT',
     "snapshot-goals.py": '_m = _by_path("snapshot-goals.py")\nRESOLVED = _m.PROJECT_ROOT',
 }
@@ -563,7 +566,7 @@ def test_entry_point_resolves_the_same_root_from_repo_and_graph_dir(entry, tmp_p
     holds no config at all, so a resolver that only knows the legacy marker
     names either exits (`cli.py`, `metrics.py`, `spawn_gate.py`, `post_wire.py`,
     `benchmark.py`) or — worse — silently answers `os.getcwd()`
-    (`render-context.py`, `snapshot-build-site.py`). The second shape is the
+    (`inject.py`, `snapshot-build-site.py`). The second shape is the
     one that matters: it aims a generator at `<repo>/nodes` instead of
     `<repo>/.agi/nodes` with nothing raised, which is exactly how level3.py
     minted 3,098 files into its own input set the hour G11 landed.
