@@ -12,12 +12,12 @@ until then the commit subject carries it by hand.
 
 | | baseline (post-116) | now |
 |---|---|---|
-| active nodes | 922 | **936** |
-| deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.300 | 0.275 ⬇ |
+| active nodes | 922 | **938** |
+| deprecated | 7 | **8** |
+| `outcome_coverage` (primary) | 0.300 | 0.273 ⬇ |
 | `broken_links` | 0 | **0** |
 | goals active / cap | 13 / 9 ⚠ | **13 / 15** ✅ |
-| tests | 1335 | **1346** |
+| tests | 1335 | **1357** |
 | unpushed | 0 | **0** |
 
 **The primary is falling, and it is honest.** 14 hypotheses minted, no chain
@@ -53,9 +53,11 @@ survived a live run.**
       fallback) has still never been run live.
 - [x] **L1.03** — the bound at 8 + `goal:g1.11` Part B. **The mvp is not
       closed:** cap 25 and clauses 2/3 are untouched.
-- [ ] **L1.04** — viewport `--emit llm` reaches INJECTION parity. **NEXT.**
-- [ ] **L1.05** — INJECTION.md retired, 4 render paths deleted. Cap 12.
+- [x] **L1.04** — the briefing extracted; `INJECTION.md` byte-identical.
+- [x] **L1.05** — `render-context.py` retired. **One render path, not four** —
+      see §2e; I over-promised that number in the plan.
 - [ ] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
+      **NEXT.**
 - [ ] **L1.07** — `write.py create`; schema backfill rides along. Cap 16.
 - [ ] **L1.08** — parent-spawns-kid live; per-agent grid scratchpad;
       **the removal guard** (`goal:g3` extended: deprecation cannot raise the
@@ -184,21 +186,54 @@ works; lift does not.** Not cosmetic: `a05` carried the most valuable claim in
 the batch — `goal:g4.8` clause 2, the never-observed one — under a title that
 read like noise, and selecting by title is what every renderer and zoom does.
 
+## §2d L1.04 — the briefing was the whole gap
+
+The banked "should the viewport replace the renderer?" was carried across two
+sessions as *reconcile two tree renderers*. It was not. The 226-line gap was
+**entirely non-frame material** — the metric, the taxonomy, the chain rules,
+the attractors, the commands. All nine sections now live in `bin/briefing.py`,
+which both callers compose. **`INJECTION.md` came out byte-identical**, which
+is what proved it a move rather than a rewrite.
+
+## §2e L1.05 — the retirement, and two invariants that came off silently
+
+`bin/inject.py` composes the briefing over `viewport.frame_stream`, so the map
+a session is handed *is* `viewport --emit llm`. `render-context.py` deprecated,
+moved to `deprecated/build/`, payload deleted (recoverable v5–v13, **not** v1).
+
+🔴 **The map started showing retired nodes.** `_LiveOnly` was a class in the
+deleted file, so `goal:s23` went with it. `grep -c` on the map said `0` — that
+was **luck**; the node sat outside depth 3. Anchoring the viewport at its
+parent showed it instantly. Now `frame_stream(hide_deprecated=)`, a flag not a
+default, because the human viewport shows retired mass *on purpose*.
+
+🔴 **`broken_links` had never met a retired payload.** Deprecating a build node
+and deleting its file — the documented end state — drove it 0 → 1 permanently,
+and `[build]` requires `payload_ref` so the gate correctly refuses to remove
+it. Damage now means *a broken link on a live node*; retired payloads are
+counted and printed, never silently excluded.
+
+**Also two silent zeros:** `briefing.py` was written against one graph
+representation and used with another, so `edges: 0` on a graph with 869, and
+**every idea reported 0 descendants** — the attractor list, which is what an
+agent reads to pick a target, came out all zeros in alphabetical order and
+looked plausible. Nothing raised.
+
+**Scope, honestly: I planned "delete 4 of 5 render paths" and delivered one.**
+`renderers/ascii` is orphaned but keeps its tests; `zoom.py`'s renderers build
+*kid* context and deserve their own falsifier. Five → four.
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-L1.03 is committed, grid-versioned and pushed. **Next is L1.04** — engine
-work, no kids: bring `viewport.py --emit llm` up to `INJECTION.md` parity.
+L1.05 is committed, grid-versioned and pushed. **Next is L1.06** — the
+`agi <verb>` router, so `agi view` / `agi view-llm` / `agi write` work from
+inside the repo. `driver.sh` is flags-only today and `agi view` errors.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/viewport.py --emit llm | wc -l   # 45
-wc -l .agi/context/INJECTION.md                             # 271
-python3 extensions/agi/bin/commands.py run viewport-verify
+python3 extensions/agi/bin/commands.py list      # 11 declared, none is a view
+bash extensions/agi/driver.sh --smoke --max-iters 1
 ```
-
-The gap is not structure — it is the rules header, the stats block and the
-command table that `render-context.py` adds and the viewport does not.
-**L1.05 deletes four render paths once this lands**, so parity is the gate.
 
 ## §4 Traps hit this session
 
