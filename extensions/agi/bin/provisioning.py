@@ -57,6 +57,7 @@ import datetime
 import json
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -66,6 +67,10 @@ import envfile  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
+#: Workspace listing. `GET /keys` is scoped to ONE workspace (the default
+#: unless asked otherwise), so enumerating everything means enumerating
+#: workspaces first -- see `list_all_keys`.
+WORKSPACES_BASE = "https://openrouter.ai/api/v1/workspaces"
 
 #: The env var holding the key that mints keys. Declared in
 #: `.geometry/secrets.md` as optional, and scrubbed from every child.
@@ -260,16 +265,64 @@ def revoke(key_hash: str, root: Path | str | None = None) -> bool:
     return status == 200
 
 
-def list_keys(root: Path | str | None = None) -> list[dict]:
-    """Every key the provisioning key can see. Empty when unavailable."""
+def list_keys(root: Path | str | None = None,
+              workspace_id: str | None = None) -> list[dict]:
+    """Every key the provisioning key can see, in ONE workspace at a time.
+
+    🔴 **`GET /keys` is scoped to the default workspace, and says nothing
+    about it.** Measured 2026-09-03, the hard way: keys minted into the `agi`
+    workspace were invisible here, so `status` reported `engine_minted=0`
+    while two live keys were outstanding and `reap_orphans` — which iterates
+    exactly this list — could not see them to revoke them.
+
+    That is worse than the hazard the workspace was introduced to fix. The
+    original risk was a reaper revoking *too much*; this was a reaper revoking
+    **nothing**, silently, while reporting success. A safety mechanism that
+    cannot see the objects it guards is not a weaker safety mechanism, it is
+    an absent one wearing the name of a present one.
+
+    So the workspace is passed explicitly, and every caller that cares about
+    engine-minted keys passes the declared one.
+    """
     prov = _read_provisioning_key(root)
     if prov is None:
         return []
-    status, body = _call("GET", API_BASE, prov)
+    url = API_BASE
+    if workspace_id:
+        url = f"{API_BASE}?workspace_id={urllib.parse.quote(workspace_id)}"
+    status, body = _call("GET", url, prov)
     if status != 200:
         raise ProvisioningError(f"list failed: HTTP {status} {body.get('error', body)}")
     data = body.get("data")
     return data if isinstance(data, list) else []
+
+
+def list_all_keys(root: Path | str | None = None) -> list[dict]:
+    """Every key in every workspace this provisioning key can reach.
+
+    The only honest answer to "what has this engine left behind", now that
+    "all keys" and "the keys `GET /keys` returns" are known to differ.
+    """
+    prov = _read_provisioning_key(root)
+    if prov is None:
+        return []
+    status, body = _call("GET", WORKSPACES_BASE, prov)
+    if status != 200:
+        # Fall back to the default workspace rather than raising: a caller
+        # asking "what is outstanding" is better served by a partial answer
+        # than by an exception, PROVIDED it is not told the partial answer is
+        # complete. Callers that need certainty pass an explicit workspace.
+        return list_keys(root)
+    seen: dict[str, dict] = {}
+    for ws in (body.get("data") or []):
+        ws_id = ws.get("id")
+        if not ws_id:
+            continue
+        for rec in list_keys(root, workspace_id=ws_id):
+            h = rec.get("hash")
+            if h:
+                seen[h] = rec
+    return list(seen.values())
 
 
 def reap_orphans(root: Path | str | None = None,
@@ -289,10 +342,21 @@ def reap_orphans(root: Path | str | None = None,
     a key must ALSO live in it to be reapable — so the owner's key, which sits
     in the default workspace, is out of scope on a second, independent ground.
     Two filters that fail differently beat one filter checked twice.
+
+    🔴 **The listing must be scoped to the same workspace, and forgetting that
+    made this function a no-op for one live run (2026-09-03).** `GET /keys`
+    returns the *default* workspace; the keys being reaped are not in it. The
+    first version of this filtered a list that could never contain a match, so
+    it reported "0 orphaned keys" — truthfully, about the wrong set — while
+    two minted keys sat outstanding. `list_all_keys` is the fallback when no
+    workspace is declared, so "reap everything this engine made" stays
+    answerable rather than silently meaning "reap the default workspace".
     """
     live = live_hashes or set()
     reaped: list[str] = []
-    for rec in list_keys(root):
+    listing = (list_keys(root, workspace_id=workspace_id) if workspace_id
+               else list_all_keys(root))
+    for rec in listing:
         name = str(rec.get("name") or "")
         key_hash = rec.get("hash")
         if not name.startswith(f"{NAME_PREFIX}-") or not key_hash:
@@ -323,14 +387,21 @@ def main(argv: list[str] | None = None) -> int:
               f"the loop falls back to the shared {RUNTIME_KEY_VAR}")
         return 0
 
+    # Both of these enumerate EVERY workspace. `status` reporting
+    # `engine_minted=0` while two keys were live is exactly the failure this
+    # command exists to prevent, and it happened (2026-09-03) because the
+    # default listing is one workspace wide and does not say so.
     if args.action == "status":
-        keys = list_keys(args.root)
+        keys = list_all_keys(args.root)
         mine = [k for k in keys if str(k.get("name") or "").startswith(f"{NAME_PREFIX}-")]
         print(f"provisioning: available  keys_visible={len(keys)}  engine_minted={len(mine)}")
+        for k in mine:
+            print(f"  outstanding: {k.get('name')} used={k.get('usage')} "
+                  f"expires={k.get('expires_at')}")
         return 0
 
     if args.action == "list":
-        for rec in list_keys(args.root):
+        for rec in list_all_keys(args.root):
             print(f"{rec.get('name')!r:50} limit={rec.get('limit')} "
                   f"used={rec.get('usage')} expires={rec.get('expires_at')} "
                   f"disabled={rec.get('disabled')} ws={rec.get('workspace_id')}")

@@ -304,3 +304,74 @@ def test_an_optional_key_that_is_absent_says_so_and_is_not_a_failure(tmp_path):
     problems, notes = agi_secrets.check(res)
     assert not problems
     assert any("OPENAI_API_KEY is not set" in n for n in notes)
+
+
+# --------------------------------------------------------------------------
+# env-get.sh — pi's auth.json indirection (goal:g1.8, goal:g1.11)
+#
+# This script had NO tests, which is why the defect below shipped and survived
+# an entire session of work built on top of it.
+# --------------------------------------------------------------------------
+
+ENV_GET = (Path(__file__).resolve().parent.parent / "bin" / "env-get.sh")
+
+
+def _run_env_get(var, env_file, extra_env=None):
+    import os
+    import subprocess
+    env = dict(os.environ)
+    # Start from a clean slate for the variable under test, so a value leaking
+    # in from the developer's own shell cannot make this pass.
+    env.pop(var, None)
+    env.update(extra_env or {})
+    return subprocess.run([str(ENV_GET), var, str(env_file)],
+                          capture_output=True, text=True, env=env, timeout=60)
+
+
+def test_env_get_falls_back_to_the_file_when_nothing_is_injected(tmp_path):
+    envf = tmp_path / ".env"
+    envf.write_text("OPENROUTER_API_KEY=sk-from-the-file\n")
+    proc = _run_env_get("OPENROUTER_API_KEY", envf)
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout == "sk-from-the-file", "no trailing newline, ever"
+
+
+def test_env_get_prefers_an_injected_value_over_the_file(tmp_path):
+    """🔴 goal:g1.11's whole mechanism, and it was broken end to end.
+
+    `dispatch.py` mints a capped, expiring key per spawn and injects it into
+    the child's environment. pi does not read that variable — its auth.json
+    shells out to `env-get.sh`, which read `.env` unconditionally. So every
+    kid authenticated with the shared long-lived key while its own minted key
+    sat unused: measured in the first live run as two minted keys at
+    `usage=0` with all spend on the shared key.
+
+    Proved against a stub, the mechanism looked fine — a stub that dumps its
+    environment shows the injection happened. It cannot show that the harness
+    *reads* what was injected.
+    """
+    envf = tmp_path / ".env"
+    envf.write_text("OPENROUTER_API_KEY=sk-shared-long-lived\n")
+    proc = _run_env_get("OPENROUTER_API_KEY", envf,
+                        {"OPENROUTER_API_KEY": "sk-minted-for-this-spawn"})
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout == "sk-minted-for-this-spawn", (
+        "the injected per-spawn key must win over the shared file value, or "
+        "per-spawn credentials are decorative")
+
+
+def test_env_get_ignores_an_empty_injected_value_and_uses_the_file(tmp_path):
+    """Empty is not a credential. An exported-but-blank var must not shadow."""
+    envf = tmp_path / ".env"
+    envf.write_text("OPENROUTER_API_KEY=sk-from-the-file\n")
+    proc = _run_env_get("OPENROUTER_API_KEY", envf, {"OPENROUTER_API_KEY": ""})
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout == "sk-from-the-file"
+
+
+def test_env_get_still_fails_loudly_when_the_value_is_nowhere(tmp_path):
+    envf = tmp_path / ".env"
+    envf.write_text("SOMETHING_ELSE=1\n")
+    proc = _run_env_get("OPENROUTER_API_KEY", envf)
+    assert proc.returncode != 0
+    assert "OPENROUTER_API_KEY" in proc.stderr

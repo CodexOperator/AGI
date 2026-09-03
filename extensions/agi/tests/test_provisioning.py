@@ -104,11 +104,14 @@ def test_a_key_name_carries_the_iteration_and_the_agent():
 
 def test_reap_only_ever_touches_keys_this_engine_minted(monkeypatch):
     """A key a human made by hand is never in scope, whatever else is true."""
-    monkeypatch.setattr(provisioning, "list_keys", lambda root=None: [
+    rows = [
         {"name": "agi-iter108-kid-a00", "hash": "h-mine"},
         {"name": "my-personal-key", "hash": "h-theirs"},
         {"name": "agi-iter108-kid-a01", "hash": "h-live"},
-    ])
+    ]
+    monkeypatch.setattr(provisioning, "list_keys",
+                        lambda root=None, workspace_id=None: rows)
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: rows)
     reaped = provisioning.reap_orphans(live_hashes={"h-live"}, dry_run=True)
     assert reaped == ["agi-iter108-kid-a00"], (
         "a hand-made key must never be reaped, and a live lease's key is held")
@@ -164,12 +167,21 @@ def test_the_reaper_will_not_cross_a_workspace_boundary(monkeypatch):
     workspace. One missing hyphen in the name filter would have revoked it;
     the workspace filter has to fail at the same time for that to happen.
     """
-    monkeypatch.setattr(provisioning, "list_keys", lambda root=None: [
+    rows = [
         {"name": "agi-iter1-kid-a00", "hash": "h-ours", "workspace_id": "ws-agi"},
         {"name": "agi-iter1-kid-a01", "hash": "h-elsewhere",
          "workspace_id": "ws-default"},
         {"name": "agi", "hash": "h-owner", "workspace_id": "ws-default"},
-    ])
+    ]
+    # `list_keys` is workspace-scoped by the API, so the stub must be too --
+    # the bug this guards against was exactly a listing that could not contain
+    # the keys being looked for.
+    monkeypatch.setattr(
+        provisioning, "list_keys",
+        lambda root=None, workspace_id=None: (
+            rows if workspace_id is None
+            else [r for r in rows if r["workspace_id"] == workspace_id]))
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: rows)
     reaped = provisioning.reap_orphans(dry_run=True, workspace_id="ws-agi")
     assert reaped == ["agi-iter1-kid-a00"], (
         "only a key that is BOTH engine-named and in the declared workspace")
@@ -292,3 +304,50 @@ def test_mint_refuses_to_hand_out_a_key_with_no_ttl(monkeypatch):
     leftover = [k for k in provisioning.list_keys(ROOT)
                 if "pytest-nottl" in str(k.get("name"))]
     assert leftover == [], "the refused key was revoked, not leaked"
+
+
+def test_list_keys_asks_for_the_workspace_it_was_given(monkeypatch):
+    """🔴 `GET /keys` is scoped to ONE workspace and does not say so.
+
+    Measured 2026-09-03: keys minted into the `agi` workspace were invisible
+    to the default listing, so `status` reported `engine_minted=0` while two
+    live keys were outstanding, and `reap_orphans` — which iterates that same
+    listing — could not see them to revoke them. A safety mechanism that
+    cannot see the objects it guards is not a weaker one; it is an absent one
+    wearing the name of a present one.
+    """
+    seen: list[str] = []
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        seen.append(url)
+        return 200, {"data": []}
+
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+
+    provisioning.list_keys(workspace_id="ws-agi")
+    assert "workspace_id=ws-agi" in seen[-1], (
+        "an unscoped listing silently answers about the wrong workspace")
+
+    provisioning.list_keys()
+    assert "workspace_id" not in seen[-1], "unscoped stays unscoped"
+
+
+def test_list_all_keys_unions_every_workspace(monkeypatch):
+    """"What has this engine left behind" must not mean "in one workspace"."""
+    def fake_call(method, url, key, payload=None, timeout=30):
+        if url.startswith(provisioning.WORKSPACES_BASE):
+            return 200, {"data": [{"id": "ws-a"}, {"id": "ws-b"}]}
+        if "ws-a" in url:
+            return 200, {"data": [{"name": "agi-1", "hash": "h1"}]}
+        if "ws-b" in url:
+            return 200, {"data": [{"name": "agi-2", "hash": "h2"}]}
+        return 200, {"data": []}
+
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+
+    names = sorted(k["name"] for k in provisioning.list_all_keys())
+    assert names == ["agi-1", "agi-2"]
