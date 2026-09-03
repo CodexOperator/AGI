@@ -1,24 +1,25 @@
 ---
-confidence: 0.8
-goal_id: G13
-goal_kind: long-term
-heading_level: 2
-id: "goal:g13"
+id: goal:g13
 mint_id: fe31c846128c479d8687ea6b4c042547
+type: goal
 next_edges:
   - goal:g13.1
   - hypothesis:a00-5b27ca07-438c0a
   - hypothesis:a00-6b4ad6b2-a60b78
+confidence: 0.8
+edited_by: owner
+goal_id: G13
+goal_kind: long-term
+heading_level: 2
 origin: goals-doc
 seeds: []
 status: active
 tags:
   - goal
   - long-term
+thought_session: L1.07
 title: One read/write path for nodes — an LLM-native node interface
-type: goal
 ---
-
 **One way in and one way out of the graph.** Every operation an agent performs
 on a node — create it, create the file behind it, edit it in place, read it,
 read its history — should go through a single interface, turn-by-turn and
@@ -172,31 +173,23 @@ built**, with the three answers above as its inputs rather than as questions it
 has to stop and ask.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The previous version's three open questions are answered, and the scope gate
-that held the build back is open. Those are the only two changes, and they are
-the same change: the questions were the reason not to build, and the gate was
-the reason not to answer them yet.
-
-Each answer keeps a paid-for decision rather than trading it away, which is
-why none of them is the "clean" option. `THOUGHT` stays in the body because
-moving it buys separation and costs visibility, and `goal:g2.10` already
-measured what happens when an authored region lives somewhere a generator
-writes. A goal links to itself because `goal:g6.9`'s render direction was paid
-for and `link_ref: self` keeps it without making the reader branch on node
-type — an exception with a name resolves through one path; an absent field is
-a hole every caller handles differently, which is the defect this goal exists
-to remove. Missing links raise on a single read and are counted on a bulk one
-because the founding finding was that divergent failure semantics are
-accidents, and two *chosen* behaviours are not the same thing as several
-accidental ones.
-
-Recording the answers here rather than in the chain is deliberate and is not
-the `goal:s17` second-copy hazard: these are decisions the chain must falsify
-against, not measurements the chain produced. The count of readers still lives
-in the chain and still does not appear anywhere in this node.
-
-Still no mvp seeded, and still for `goal:s22`'s reason — a board plus three
-answered questions is a sharper design brief than a board alone, and it is
-still not a chain. `write.py` earns its mvp through hypothesis -> experiment ->
-verdict like everything else.
+Owner addition, 2026-09-03, and it turns this goal from a direction into a testable end state. The body now names the symmetry -- read and write must treat a build node and a non-build node identically, with the engine choosing whether a body lives in the node or in the payload file and the caller never knowing -- and, more usefully, it names a SUCCESS CRITERION that can be checked rather than argued about: when the agi skill is invoked, exactly two disk-interaction tools exist, render viewport and write. That is falsifiable in a way "one read/write path" was not. A third filesystem tool in the skill is a failure of this goal, visibly, without anyone having to judge whether a path is sufficiently unified. Status stays active: it already was, and the owner confirmed no change is needed. What changed is scope clarity, not commitment. Two things are deliberately left open rather than decided here. First, how a payload-backed body and a node-backed body produce the SAME kind of grid version and session linkage -- if they do not, the unification is cosmetic, and that is a design question this session did not answer. Second, the owner has flagged this as one of the few goals in the tree where fanning out several parallel chains is actually warranted, because the direction is genuinely not obvious. goal:g4.1 records the general rule -- same-target concurrency is for open-ended goals and most goals here are clear-cut -- and this is named as an exception to it. Recorded via note through write.py rather than by editing the node file, after the owner caught me doing the latter earlier in this loop; GOALS.md re-rendered and round-trips byte-identical across 111 goals.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+### The symmetry this goal is actually asking for (owner, 2026-09-03)
+
+**The read and write paths must treat a build node and a non-build node exactly the same.** That is the shape of the finished thing, and stating it makes the remaining work concrete.
+
+**Read.** The same path that reads a non-build nodes body and renders it also reads a build nodes payload and renders it **as that nodes body**, live, in one coherent render. A reader never branches on whether the body happens to live in the node file or in a file the node points at.
+
+**Write.** The same, in reverse. A write goes either to the linked body section inside the node, or to the linked body section in the payload file. **The engine decides which; the caller never does.** `links.py` already carries the primitive -- `link_ref` generalises `payload_ref` and `self` means the body is its own data -- but `declared: 0` across the corpus: today a node body is still a payload rather than a marker, so the two cases are only *representationally* unified, not behaviourally.
+
+**The end state is a tool budget, and it is the real success criterion.** When the `agi` skill is invoked, exactly **two** disk-interaction tools should be available:
+
+1. **render viewport** -- at a target node section and level of detail, at a target node whole, or at a target graph section at a given zoom level.
+2. **write** -- to a new or an existing node.
+
+Everything else an agent needs from the local system it should not have. Non-disk tools -- web access and the like -- are unaffected; this is a limit on filesystem reach, not on capability. An agent that can `cat`, `sed` and `grep` its way around the graph will, and every such path is one the engine cannot version, gate, or attribute.
+
+**Deliberately open: how to organise this against the grid and session tracking.** A payload-backed body and a node-backed body must produce the same kind of grid version and the same session linkage, or the unification is cosmetic. This is named as an open design question rather than a decided one, and the owner has flagged it as a **good candidate for fanning out several parallel chains to explore competing solutions** -- one of the few goals in this tree where the direction is genuinely not obvious yet, which is the condition `goal:g4.1` names for aiming concurrent agents at a single target.

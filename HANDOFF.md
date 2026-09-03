@@ -260,6 +260,30 @@ The owner had these possibly reversed. Correct, from `CLAUDE.md`:
   (`frame_stream(hide_deprecated=True)`), so an agent cannot pick one as a live
   chain head. The human viewport still shows them on purpose, as damage.
 
+### `goal:g13` gained a testable end state (owner, 2026-09-03)
+
+Body updated via `write.py note`, `GOALS.md` re-rendered, 111 goals round-trip
+byte-identical. Status stays **active** — no change needed.
+
+**The symmetry:** read and write must treat build and non-build nodes
+identically. One render path reads a non-build body *and* a build node's
+payload and presents both as bodies, live. Write is the mirror — to the linked
+body section in the node, or in the payload file, **and the engine decides
+which, never the caller.** `links.py` has the primitive (`link_ref`, `self`)
+but `declared: 0`, so today the two cases are only representationally unified.
+
+**The success criterion, which is the useful part:** when the `agi` skill is
+invoked, exactly **two** disk-interaction tools exist — *render viewport* (node
+section/LOD, whole node, or graph section at a zoom level) and *write* (new or
+existing node). A third filesystem tool is a visible failure, no judgement
+call. Non-disk tools (web, etc.) are unaffected.
+
+**Open, deliberately:** how a payload-backed body and a node-backed body
+produce the *same* kind of grid version and session linkage — if they don't,
+the unification is cosmetic. **The owner flagged this as one of the few goals
+where fanning out parallel chains is warranted**, because the direction is
+genuinely not obvious. That is the stated exception to `goal:g4.1`'s rule.
+
 ### 🔴 The ordering constraint that is load-bearing
 
 `snapshot-build-site.py` **deletes every `origin: build-site` node it does not
