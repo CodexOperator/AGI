@@ -98,6 +98,46 @@ domains, no git: (1) implement the `claude_code` adapter, `adapters/`;
 `post_wire.py`; (3) audit the 9 wave-3 mvps, `metrics.py`; (4) s18 mining
 survey → `.agi/sessions/L1.09-mining/report.md`, read-only.
 
+**(3) landed — `L1.08f`:** 7 of 9 wave-3 mvps forward, **2 backward**
+(`a00-e284d9f5`, `a00-eeaa5239` — bodies verify shipped code). `metrics.py`
+now excludes an mvp from `scoring_mvp_count` only when it has **no**
+`source_files`/`payload_ref`/build child **and** its body matches
+verified-in-tree language; emits `backward_mvp_count`. Primary 0.245 → 0.234.
+Caveat on record: the language half is a regex heuristic (2/48 hits, 0 false
+positives today) — a future backward mvp phrased differently slips through.
+Also learned: `write.py set` is `set field value` (space), and
+`evidence_runs` must be a **list of node ids** — a bare int scores 0
+(`goal:g7.3`).
+
+**(2) landed — `L1.08g`:** the evidence gate now runs inside `grid.py commit`
+(`evidence_gate.enforce_on_disk`), demoting at acceptance; corpus **11 → 0**.
+`evidence_gate.py enforce [--dry-run]` runs it standalone. Caveat: 6 of the
+11 were the *previous* director's experiments with a bare-int `evidence_runs`;
+left demoted (banked, §6 item 2). `verify` runs `smoke` before `grid-commit`,
+so smoke's metric line lags one gate pass — reorder later if it bites.
+
+**(1) landed — `L1.08h`:** `claude-code` harness implemented (`goal:g4.6`),
+two CC kids spawned live through `dispatch.py --harness claude-code`, budget
+returned to 0. Adapter costs: ~$0.30/kid on sonnet. Caveats banked:
+`dispatch.py` mints an OpenRouter key for every CC kid that never uses it;
+`_reap_one` restarts on the CLI default model; `cc-session-start.sh` was
+mode 644 (fixed: `chmod +x`, committed).
+
+**(4) landed — survey at `.agi/sessions/L1.09-mining/report.md`** (36 KB;
+the harness refused the agent's file write, director extracted it from the
+transcript). Headlines: cohort is **159**, not 168; 5 of 7 domains are
+already real code under `extensions/agi/src/`; **0 vacuous** chains; ~30
+`CLOSE-BY-CITATION`; environment-indexers has zero code and a hollow R1;
+attractor replacement already exists (`idea:engine-*`, `origin:
+engine-decomp`); **§E: retirement must be ONE atomic pass** or
+`snapshot-build-site.py` resurrects deprecated nodes. **L1.09 execution
+agent dispatched 21:57** on that plan; commit the instant it reports.
+
+**CC parents through the engine, live:** `iter-1037` (g4.1 ×2), `iter-1038`
+(g13 ×2), `--harness claude-code`. Poll with `spawn_budget.py status` and
+`pgrep -fc "claude -p"` — no notification arrives for engine-dispatched
+parents.
+
 Next, as each returns: check `caveats:`/`struggles:` first, verify the node
 file on disk, `run tests`, commit **immediately** (trap 5), `grid-commit`,
 push. Then act on the s18 survey (L1.09) and the L1.10 items.
@@ -174,6 +214,13 @@ python3 extensions/agi/bin/commands.py run grid-commit
    **Engine follow-up (`goal:g1.11`):** `provisioning.py` should read the
    workspace budget and refuse to mint when the next key cannot be funded,
    instead of letting a whole wave die at 403 after minting.
+2. **Six of the previous director's experiment nodes were demoted by the new
+   commit-path gate** because their `evidence_runs` was a bare int
+   (`goal:g7.3` scores that 0). They ran real experiments. Options: (a) leave
+   demoted — honest about the record, loses nothing; (b) restore each with
+   `write.py experiment:<id> 'set evidence_runs [experiment:<id>]'` —
+   self-citation, which an earlier session called a gate hole. **Recommend
+   (a)** unless the owner wants the metric back; the grid holds v(n-1).
 
 ## §7 Standing hazards carried forward
 
