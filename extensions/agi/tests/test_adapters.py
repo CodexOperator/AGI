@@ -69,14 +69,19 @@ def test_incomplete_adapter_is_rejected_at_load_not_at_spawn():
         src.unlink()
 
 
-def test_declared_but_unimplemented_harness_raises_where_the_work_goes():
-    """The claude-code stub exists so its config entry resolves to something
-    honest rather than reading like a typo."""
+def test_the_second_harness_is_implemented_not_a_stub():
+    """Until 2026-09-03 `claude_code_adapter` was a stub that raised
+    `NotImplementedError` from every function, so `--harness claude-code`
+    resolved to something honest and then refused to spawn. It is the second
+    real harness now; its own facts live in `test_claude_code_adapter.py`.
+    This guards only the seam: the config name loads a module that does not
+    raise where the work used to go."""
     mod = adapters.load("claude_code")
-    with pytest.raises(NotImplementedError) as exc:
-        mod.build_command(harness={}, tier="kid", context_file="c",
-                          agent_id="a", iter_n=1, sess_dir=Path("/tmp"))
-    assert "goal:g4.6" in str(exc.value)
+    assert mod.NAME == "claude-code"
+    assert mod.is_alive(__import__("os").getpid())
+    # Behaviour, not a grep: the stub raised from here.
+    assert mod.child_env(harness={}, base={"PATH": "/bin"})["PATH"] == "/bin"
+    assert mod.model_args({"models": {"kid": "m"}}, "kid") == ["--model", "m"]
 
 
 # ------------------------------------------------------------ config resolve
