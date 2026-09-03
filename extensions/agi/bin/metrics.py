@@ -568,22 +568,55 @@ def goal_attribution(nodes_dir: Path) -> dict:
        zeroing it would be a metric change disguised as a lifecycle rule.
        Attribution is a reason to *exclude*, never the only reason to
        include.
-    3. **Retirement can only ever remove a closed chain, never bare
-       denominator weight.** A hypothesis under a retired goal that never
-       reached an mvp stays in the denominator. This is the anti-gaming
-       clause and it is the whole reason the rule is not one constant: if
-       retiring a goal could drop its unconverted hypotheses, then retiring
-       goals in bulk — which is exactly what a sweep does — would raise
+    3. **Removal can only ever take a closed chain out of the ratio, never
+       bare denominator weight.** A hypothesis that never reached an mvp
+       stays in the denominator no matter how it leaves. This is the
+       anti-gaming clause and it is the whole reason the rule is not one
+       constant: if removal could drop unconverted hypotheses, then removing
+       in bulk — which is exactly what a sweep does — would raise
        `outcome_coverage` for free, and nothing in the metric could tell that
-       apart from honest retirement. This project has already paid once for a
+       apart from honest cleanup. This project has already paid once for a
        gameable primary metric (goal:g3); it does not need a second one
        wearing a lifecycle field as a disguise.
+
+    **A node leaves scoring for two reasons, and clause 3 covers both
+    (goal:g3, L1.08).** goal:g5 wrote clause 3 for goal *retirement*, the
+    only removal that existed then. `status: deprecated` is the second, and
+    it was unguarded: deprecation is removal at the node instead of at the
+    goal, and *removal must obey the same law as addition* — it cannot move
+    the primary on its own. The hole was not theoretical. This corpus carries
+    61 `origin: build-site` hypotheses and **zero** build-site mvps; 52 of the
+    61 never reached a verdict. Deprecating that generated set — the whole
+    point of the cleanup L1.09 does — would have dropped up to 61 nodes out
+    of the denominator and nothing at all out of the numerator:
+    `outcome_coverage` 0.271 -> 0.470, earned by deleting nothing and proving
+    nothing. Under the guard it moves by 0.000, and
+    `deprecation_score_delta` reports the 0.199 that was refused.
+
+    **"Closed" is measured against the mvps that are themselves leaving, not
+    against every mvp**, and that pairing is what makes the clause hold under
+    deprecation. Goal retirement never needed it: retirement applies to a
+    whole subtree, so a chain's mvp and its hypothesis always left together.
+    Deprecation is per node and couples nothing — deprecating a hypothesis
+    whose mvp stays live would drop the denominator while the numerator kept
+    the credit, which is the same free lift by a shorter route. Nine of this
+    corpus's build-site hypotheses are exactly that shape. So a hypothesis
+    may leave only when the mvp that closed it is leaving too; while its mvp
+    is still being counted for it, the hypothesis is still open as far as
+    scoring is concerned.
+
+    The residual, stated rather than hidden: a *set* of removed nodes can
+    still raise the ratio if many hypotheses share one leaving mvp
+    (removing 5 hypotheses and 1 mvp beats the corpus ratio). That case is
+    shared with goal:g5's own clause 3 and is not introduced here; the
+    per-chain rule bounds it, it does not eliminate it.
 
     Returns counts, not opinions — `compute` decides what to do with them.
     """
     statuses: dict[str, str] = {}
     parents: dict[str, list] = {}
     types: dict[str, str] = {}
+    deprecated: set[str] = set()
 
     for _nf, fm in _iter_frontmatter(nodes_dir):
         nid = fm.get("id")
@@ -594,8 +627,13 @@ def goal_attribution(nodes_dir: Path) -> dict:
         raw = fm.get("parents")
         parents[nid] = [p.strip() for p in raw if isinstance(p, str) and p.strip()] \
             if isinstance(raw, (list, tuple)) else []
+        st = fm.get("status")
+        # Same predicate as `deprecated_node_ids`, over an iteration this
+        # function is already making. One definition of "retired node", two
+        # readers of it — not two definitions (goal:s17).
+        if isinstance(st, str) and st.strip().lower() == DEPRECATED_STATUS:
+            deprecated.add(nid)
         if types[nid] == "goal":
-            st = fm.get("status")
             statuses[nid] = st.strip() if isinstance(st, str) and st.strip() else "active"
 
     def goals_of(nid: str) -> set:
@@ -612,14 +650,33 @@ def goal_attribution(nodes_dir: Path) -> dict:
             stack.extend(parents.get(cur, ()))
         return found
 
-    # Nodes on a chain that reached an mvp. Computed by walking UP from every
-    # mvp rather than down from every hypothesis: `parents` is the edge
-    # direction stored on disk, so this needs no inverted index and no second
-    # traversal order to keep in sync. Stops at goals — a goal is not "on" its
-    # own chain, and walking through one would join every chain under it.
+    # Pass 1 — who would leave scoring, before the open-hypothesis clause is
+    # applied. Two independent reasons: every goal it answers to is retired
+    # (goal:g5), or it declares its own retirement (`status: deprecated`).
+    # For an **mvp** this answer is already final, because the sparing clause
+    # only ever applies to a hypothesis — which is what lets pass 2 ask "is
+    # the mvp that closed this chain leaving too?" without a fixpoint.
+    goals_cache: dict[str, set] = {}
+    leaving: dict[str, bool] = {}
+    for nid, ntype in types.items():
+        if ntype == "goal":
+            continue
+        gs = goals_of(nid)
+        goals_cache[nid] = gs
+        # Retired only when every goal it answers to is retired. A node
+        # shared with a live goal still earns its keep.
+        goal_ok = (not gs) or any(statuses.get(g) in SCORING_GOAL_STATUSES for g in gs)
+        leaving[nid] = (not goal_ok) or (nid in deprecated)
+
+    # Nodes on a chain that reached an mvp **which is itself leaving**.
+    # Computed by walking UP from those mvps rather than down from every
+    # hypothesis: `parents` is the edge direction stored on disk, so this
+    # needs no inverted index and no second traversal order to keep in sync.
+    # Stops at goals — a goal is not "on" its own chain, and walking through
+    # one would join every chain under it.
     closed_chain: set = set()
     for nid, ntype in types.items():
-        if ntype != "mvp":
+        if ntype != "mvp" or not leaving.get(nid, False):
             continue
         stack = [nid]
         while stack:
@@ -631,24 +688,37 @@ def goal_attribution(nodes_dir: Path) -> dict:
 
     scoring_mvp = scoring_hyp = 0
     retired_nodes = retired_open_hyp = unattributed = 0
+    deprecated_excluded = deprecated_open_hyp = 0
     for nid, ntype in types.items():
         if ntype == "goal":
             continue
-        gs = goals_of(nid)
+        gs = goals_cache[nid]
         if not gs:
             unattributed += 1
-        # Retired only when every goal it answers to is retired. A node
-        # shared with a live goal still earns its keep.
-        scores = (not gs) or any(statuses.get(g) in SCORING_GOAL_STATUSES for g in gs)
-        if not scores:
-            # Clause 3. An mvp is on a closed chain by definition, so this
-            # only ever spares a hypothesis that never converted — the one
-            # thing retirement must not be able to launder out of the ratio.
-            if nid not in closed_chain and ntype == "hypothesis":
-                retired_open_hyp += 1
+        if leaving[nid]:
+            # Clause 3. A leaving mvp is on its own closed chain by
+            # definition, so this only ever spares a hypothesis whose mvp is
+            # not leaving with it — the one thing removal must not be able to
+            # launder out of the ratio.
+            spared = ntype == "hypothesis" and nid not in closed_chain
+            # Which reason is reported when both apply: goal retirement, the
+            # older and coarser one. The buckets partition the leaving set so
+            # they can be summed; `deprecation_score_delta` needs the
+            # deprecation-only count, because a node the goal rule already
+            # holds is not a node this guard is holding.
+            goal_retired = not ((not gs) or
+                                any(statuses.get(g) in SCORING_GOAL_STATUSES
+                                    for g in gs))
+            if spared:
                 scoring_hyp += 1
-                continue
-            retired_nodes += 1
+                if goal_retired:
+                    retired_open_hyp += 1
+                else:
+                    deprecated_open_hyp += 1
+            elif goal_retired:
+                retired_nodes += 1
+            else:
+                deprecated_excluded += 1
             continue
         if ntype == "mvp":
             scoring_mvp += 1
@@ -664,6 +734,14 @@ def goal_attribution(nodes_dir: Path) -> dict:
         "scoring_hypothesis_count": scoring_hyp,
         "retired_goal_nodes": retired_nodes,
         "retired_open_hypotheses": retired_open_hyp,
+        # goal:g3 / L1.08 — the deprecation half of clause 3, reported so the
+        # guard is auditable rather than implicit. `deprecated_open_hypotheses`
+        # is what the guard is holding in the denominator right now;
+        # `deprecated_excluded_nodes` is what deprecation did legitimately
+        # remove from scoring. Mirrors `retired_open_hypotheses` /
+        # `retired_goal_nodes`, and the four buckets partition the leaving set.
+        "deprecated_open_hypotheses": deprecated_open_hyp,
+        "deprecated_excluded_nodes": deprecated_excluded,
         "unattributed_nodes": unattributed,
         "goals_active": by_status.get("active", 0),
         "goals_horizon": by_status.get("horizon", 0),
@@ -685,6 +763,40 @@ def outcome_coverage(mvp_count: int, hypothesis_count: int) -> float:
     and the METRIC lines can never disagree about what the loop is scored on.
     """
     return mvp_count / max(hypothesis_count, 1)
+
+
+def deprecation_score_delta(attr: dict) -> float:
+    """What the guard is refusing to hand deprecation. **Never positive.**
+
+    `outcome_coverage` as computed, minus `outcome_coverage` with the
+    deprecation guard removed — that is, with every deprecated hypothesis the
+    guard is holding simply dropped from the denominator. It is `0.0` when
+    nothing is being held and negative by exactly the free lift a cleanup
+    would otherwise have collected.
+
+    **Read the sign as the law, not as a loss.** goal:g3 says added motion
+    cannot move the score; the same sentence has to be true of removal, or
+    the cheapest way to raise the primary is to delete the evidence against
+    it. A number that can only be `<= 0` is that law made checkable every
+    run: the guard cannot pay out, only refuse.
+
+    Not clamped, because it cannot need clamping. The two ratios share a
+    numerator, and the unguarded denominator is the guarded one minus a
+    non-negative count, so the unguarded ratio is >= the guarded one for
+    every possible corpus — `max(..., 1)` included. The `<= 0` is arithmetic,
+    not a check that happens to pass.
+
+    Reported against `outcome_coverage` specifically, and named for it in
+    spirit if not in letter: `metric_primary` is configurable, but this is
+    the metric the guard is written to protect, and a delta that silently
+    re-pointed at whatever the config named would answer a different question
+    each time it moved.
+    """
+    mvps = attr["scoring_mvp_count"]
+    held = attr["deprecated_open_hypotheses"]
+    guarded = outcome_coverage(mvps, attr["scoring_hypothesis_count"])
+    unguarded = outcome_coverage(mvps, attr["scoring_hypothesis_count"] - held)
+    return round(guarded - unguarded, 3)
 
 
 def compute(root: Path) -> dict:
@@ -717,6 +829,7 @@ def compute(root: Path) -> dict:
         "edge_count": g.edge_count,
     }
     m.update(attr)
+    m["deprecation_score_delta"] = deprecation_score_delta(attr)
     # goal:g7.10 — node-level retirement, kept apart from `retired_goal_nodes`
     # above (that one is goal attribution; this one is the node's own status).
     m.update(node_lifecycle_stats(root / "nodes", m["node_count"]))
