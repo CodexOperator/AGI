@@ -1,22 +1,23 @@
 ---
+id: goal:g4.1
+mint_id: 0ce6a836334e430a9f4a0f59c37ec82a
+type: goal
+parents:
+  - goal:g4
 confidence: 1.0
+edited_by: owner
 goal_id: G4.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.1"
-mint_id: 0ce6a836334e430a9f4a0f59c37ec82a
 origin: goals-doc
-parents:
-  - goal:g4
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
+thought_session: L1.07
 title: "G4.1: Parallel kids share one working tree and collide"
-type: goal
 ---
-
 Observed live 2026-08-22, by both kids of the same iteration independently.
 Two kids doing **engine** work ran concurrently in one checkout: one was
 rewriting `evidence_gate.py`, `metrics.py`, `cli.py` and `post_wire.py` while
@@ -114,23 +115,5 @@ this node** — a half-chosen answer here would be built into both runtimes at
 once via `goal:g4.3`, and would be expensive to reverse.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Two additions, one factual and one structural.
-
-The factual one is the third live collision, which is what turned three
-anecdotes into a pattern this node had not stated: all three came from a
-whole-tree command (`grid.py checkout --all`, twice, and now `git commit -A`),
-and none came from two agents editing the same file. That inverts the goal's
-own framing — it opens by describing concurrent *edits* and lists
-file-ownership as the leading mitigation, when file ownership has never been
-the thing that failed. The options list is left intact rather than rewritten,
-because the measurement it asks for still has not been made and reordering it
-on one more data point would be the same overclaiming this repo keeps
-catching.
-
-The structural one is the owner's sequencing decision plus an honest record
-that the goal predates the hierarchy. Written as four questions rather than a
-recommendation on purpose: the owner asked for the uncertainty to be recorded,
-not resolved, and `goal:g4.3`'s dispatcher would bake whichever answer exists
-into both runtimes at once. Naming the questions is what makes the later
-brainstorm cheap; guessing now is what would make it expensive.
+Owner direction, 2026-09-03: this goal is the PREREQUISITE for how concurrency is meant to be used, and L1.03 measured why. At spawn.parallel 8 aimed with a single --target, six of eight kids wrote substantially the same hypothesis -- every slot got the same 2-hop subtree and independently picked its most salient open thread, because none can see the others work in flight. So spawn.parallel is a THROUGHPUT knob, not a coverage knob. The owner intent was never one target: it is several chains built simultaneously, whole sections of graph at a time -- parallel experiment -> mvp -> build chains. That is what worktree-per-kid is for, and it is the real gate on ramping past 8: without isolation, concurrent agents touching the same node or the same source file break each other work. WHEN SAME-TARGET CONCURRENCY IS RIGHT: when a goal is genuinely open-ended and the point is to explore competing options. The owner read of this tree is that the vast majority of goals do not need it -- they are clear-cut feature goals where the direction is already obvious and the chain just needs standard validation, straight through to a node edit, or verdict -> mvp -> new node. A handful may benefit from exploratory fan-out; most will not. Aiming every slot at one target should therefore be the exception a director chooses, not the default a run falls into.
 <!-- THOUGHT:END -->

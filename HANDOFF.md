@@ -1,39 +1,40 @@
-# SESSION HANDOFF — 2026-09-03: LIVE SCRATCHPAD (loop L1, in progress — 02 done)
+# SESSION HANDOFF — 2026-09-03: loop L1 STOPPED AFTER 07 (of 10)
 
 Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
 session only and the next director replaces it wholesale.
 
-**Loop-scoped numbering starts here.** This session is **loop L1**; its
-iterations are `L1.01`…`L1.10`. The global `iter-NNN` series ended at 116.
-Making that split real in `sessions/` and in commit subjects is L1.10's job —
-until then the commit subject carries it by hand.
+**Loop-scoped numbering.** This session is **loop L1**; iterations `L1.01`…`L1.07`
+ran. The global `iter-NNN` series ended at 116. Making the split real in
+`sessions/` and in commit subjects was L1.10's job and **did not happen** —
+commit subjects carry it by hand for now.
 
 ## §0 State block
 
-| | baseline (post-116) | now |
+| | start (post-116) | now |
 |---|---|---|
 | active nodes | 922 | **940** |
 | deprecated | 7 | **8** |
-| `outcome_coverage` (primary) | 0.300 | 0.273 ⬇ |
+| `outcome_coverage` (primary) | 0.300 | **0.271** ⬇ |
+| `evidence_fraction` | 0.328 | 0.317 |
+| `mvp_count` | 39 | 39 |
 | `broken_links` | 0 | **0** |
+| schema-invalid nodes | 118 | **62** |
 | goals active / cap | 13 / 9 ⚠ | **13 / 15** ✅ |
 | tests | 1335 | **1371** |
 | unpushed | 0 | **0** |
 
-**The primary is falling, and it is honest.** 14 hypotheses minted, no chain
-closed. Same dynamic as iterations 107–111 last session: hypotheses lead, mvps
-lag, coverage recovers when the chains close. **Do not "fix" it** by minting
-mvps for work already done — that was tried and `[mvp].md` forbids it.
+**The primary fell 0.300 → 0.271 and that is honest.** 18 nodes were added,
+mostly hypotheses and experiments, and **no chain closed** — `mvp_count` is
+unchanged at 39. Hypotheses lead, mvps lag. **Do not "fix" it** by minting
+mvps for work already done; `[mvp].md` is explicit that an mvp points forward,
+and the corpus proved it (`source_files` 0/26).
 
-**OpenRouter, measured live:** `$20.00` total, **`$15.43` remaining**.
-L1.02 + L1.03 cost **$0.14** for 12 kids. Per-key cap `$5.00`, so the balance
-is three keys deep, not twenty. The owner's ruling stands: if it runs out,
-stop the experiment where it got to and call it data.
+**OpenRouter:** `$20.00` total, **`$15.43` remaining**. This loop spent
+**$0.14** for 12 live kids. Per-key cap `$5.00`, so the balance is three keys
+deep, not twenty. Nothing knows about the account balance — not `spawn_budget`,
+not the reaper.
 
-🔵 **`spawn.parallel` is `8`.** Ramp so far: 5 → 2 → 1 (attribution) → 8.
-
-**Runtime:** pi — `deepseek/deepseek-v4-flash` kids under `qwen/qwen3.8-27b`
-parents. No pi agent dispatched yet this loop; L1.01 was engine-primitive work.
+🔵 **`spawn.parallel` is `8`.** Ramp this loop: 5 → 2 → 1 (attribution) → 8.
 
 ### 🔴 Crons are still OFF — push by hand
 
@@ -41,316 +42,219 @@ parents. No pi agent dispatched yet this loop; L1.01 was engine-primitive work.
 git -C /home/ubuntu/work/agi push origin master
 ```
 
-## §1 The plan, and where it is
+## §1 The plan, and where it stopped
 
-The owner granted director authority for a 10-iteration budget on 2026-09-03.
-Concurrency ramps deliberately; **nothing ramps past a cap that has not
-survived a live run.**
-
-- [x] **L1.01** — config, the `write`/`links` rename, the workspace probe.
-- [x] **L1.02** — first live agents on minted keys. **The mvp is not closed:**
-      Part A was *disproved and then fixed*; Part B (provisioning-absent
-      fallback) has still never been run live.
-- [x] **L1.03** — the bound at 8 + `goal:g1.11` Part B. **The mvp is not
-      closed:** cap 25 and clauses 2/3 are untouched.
+- [x] **L1.01** — config ($5/key, goals cap 15), `edit`→`write`, `write`→`links`,
+      keys mint into the `agi` workspace.
+- [x] **L1.02** — first live agents on minted keys. **Part A disproved, then fixed.**
+- [x] **L1.03** — the bound at 8 + `goal:g1.11` Part B. Cap 25 still untouched.
 - [x] **L1.04** — the briefing extracted; `INJECTION.md` byte-identical.
-- [x] **L1.05** — `render-context.py` retired. **One render path, not four** —
-      see §2e; I over-promised that number in the plan.
-- [x] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
-- [x] **L1.07** — `write create`, the schema backfill (118 → 62), **and a bug
-      of mine that reached a push** — see §2f.
-- [ ] **L1.08** — parent-spawns-kid live; per-agent grid scratchpad;
-      **the removal guard**. Cap 20. **NEXT.**
+- [x] **L1.05** — `render-context.py` retired. **One render path, not four.**
+- [x] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `view-both` / `write`.
+- [x] **L1.07** — `write create`; schema backfill 118 → 62; **a serializer bug
+      of mine that reached a push**.
+- [ ] **L1.08** — 🔴 **the removal guard. NEXT, and it gates L1.09.**
+- [ ] **L1.09** — the wide run: cavekit exit + legacy sweep. See §6.
+- [ ] **L1.10** — webhook / session-id → chat-to-node linking (`goal:g10.1`,
+      `goal:g2.7`); engine-commit pinning; loop-scoped iteration numbering.
 
-- [ ] **L1.09** — WIDE. Cavekit exit + legacy sweep. Cap 25.
-- [ ] **L1.10** — webhook / direct model calls with session id → chat-to-node
-      linking (`goal:g10.1`, `goal:g2.7`); engine-commit pinning; loop-scoped
-      iteration numbering.
+## §2 What landed
 
-## §2 What landed in L1.01
+**L1.01 — the workspace is a safety change, not tidiness.** Keys mint into
+workspace `72750376-…` (`agi`); the owner's own long-lived key named `agi`
+sits in `default`. `reap_orphans` matched the prefix `agi-`, so **one character
+separated the reaper from the key the project runs on**. It now requires the
+workspace too — two filters that fail differently. `active` is a **focus
+budget**, not an in-flight census (owner's ruling); `metrics.py` said the
+opposite and now says so correctly.
 
-### Config, on the owner's direction
+**L1.02 — per-spawn keys were decorative, end to end.** pi does not read
+`OPENROUTER_API_KEY`; its `auth.json` shells out to `env-get.sh`, which read
+`.env` unconditionally. Minted keys sat at `usage=0` while spend landed on the
+shared key. `env-get.sh` had **zero tests**. *A stub that reads
+`$OPENROUTER_API_KEY` proves the injection happened; it cannot prove the
+harness reads what was injected.* Fixed — attribution is now proved by a bill.
 
-`per_spawn_limit_usd` **0.25 → 5.00**. `max_goals_active` **9 → 15**.
+**L1.03 — the bound holds at 8.** Peak leases 8, peak pi procs 8, over 113
+samples. All 8 nodes written, none lost (`goal:s28`'s hazard did not fire).
+`goal:g1.11`'s falsifier is now complete in both halves.
 
-The goals cap moved because the owner corrected what `active` *means*:
-it is a **focus budget** — which long-term goals chain-building aims at — not
-a census of what is in flight. `metrics.py`'s warning said the opposite and
-would have been "fixed" by relabelling four real goals `horizon`, which is the
-field losing information a second way. Reworded, not just re-capped. This
-settles banked decision 3 from the previous session. Recorded on `goal:g5`.
+**L1.04 — the briefing was the whole viewport gap.** Nine sections, now in
+`bin/briefing.py`. `INJECTION.md` came out **byte-identical**, which is what
+proved it a move rather than a rewrite.
 
-### Keys mint into the `agi` workspace — a safety change, not tidiness
+**L1.05 — `render-context.py` retired**, node deprecated and moved, payload
+deleted (recoverable v5–v13, *not* v1). Two invariants came off silently with
+it; both restored — see §4.
 
-Probed against the live API **before** writing the code: `POST /keys` accepts
-`workspace_id`, returns it on the created object, and a probe key landed in
-the right workspace and was revoked. Both workspaces exist:
+**L1.06 — `agi <verb>` works and the router has no verb list.** Any bare first
+word is delegated to `commands.py`, so adding `agi <anything>` is a node edit.
 
-```
-72750376-2d45-452e-8273-197fdaabae95  agi       ← keys mint here now
-7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0  default   ← the owner's own `agi` key
-```
-
-🔴 **Why this is safety.** `reap_orphans` matches the name prefix `agi-`, and
-the owner's long-lived key is named `agi`. One character separated the reaper
-from the key the project runs on. The reaper now also requires a key to be
-**in the declared workspace**, so those two sets are disjoint by construction
-rather than by string comparison — **two filters that fail differently**.
-The owner's key is in `default` and is out of scope on both grounds.
-
-`provisioning.workspace(cfg)` is a **sibling reader, not a third slot in
-`settings()`** — that tuple has callers. Unset omits the field entirely rather
-than sending null, so an unconfigured project is byte-identical to before.
-
-### The latency question is closed
-
-Mint is **0.760s** mean. The owner ruled it acceptable: inference already eats
-1–3s, so a fraction of a second hides inside noise the run already has.
-Recorded on `mvp:a-live-loop-on-minted-keys`.
-
-### `edit.py` → `write.py`, and `write.py` → `links.py`
-
-The owner's call, and the right one: a verb here either revises a node or
-mints one, and both are **writes** — `create` would have read as an exception
-to the module it lives in. The old `write.py` never wrote anything; it is
-`link_ref` resolution and the `broken_links` count, so it is now `links.py`.
-Two honest names beat one name doing two jobs.
-
-Both renames used `git mv`; no build node exists for either file yet, so
-`level3.py` will mint them under the new names at the next scan and there is
-no `payload_ref` churn.
-
-## §2b What landed in L1.02 — a disproof worth more than the feature
-
-**pi does not read `OPENROUTER_API_KEY`.** Its `auth.json` uses the
-`"!command"` indirection and points at `bin/env-get.sh`, which sourced `.env`
-unconditionally. So `dispatch.py` minted a capped, expiring, per-agent
-credential, injected it correctly — verified from `/proc/<pid>/environ`, not
-from our own logs — and pi looked straight past it at the shared key.
-
-```
-iter-1002  both minted keys usage=0   shared key 4.433 -> 4.455 DURING the run
-iter-1003  agi-iter1003-kid-a00 usage=0.0021   shared 4.4687 (pre-run, unchanged)
-```
-
-`goal:g1.11` was decorative end to end, and `env-get.sh` had **zero tests**.
-**A stub that reads `$OPENROUTER_API_KEY` proves the injection happened; it
-cannot prove the harness reads what was injected.** Recorded as `disproved`
-in `experiment:per-spawn-keys-were-never-used`, not softened.
-
-🔴 **Second defect, mine, from L1.01.** `GET /keys` is scoped to the *default*
-workspace and does not say so. Keys minted into `agi` were invisible to
-`list_keys`, so `status` said `engine_minted=0` with two keys live and
-`reap_orphans` revoked nothing while truthfully reporting "0 orphaned" about
-the wrong set. **The safety move made the backstop strictly worse for ~40
-minutes** — old hazard: revoking too much; new one: revoking nothing, silently.
-
-**What held:** injection, the provisioning-key scrub (0 occurrences in a kid),
-revoke-on-reclaim live for the first time, and 0 outstanding keys afterwards.
-
-## §2c What landed in L1.03 — the bound holds, and a warning about the ramp
-
-**Part B ran.** With the provisioning key removed from `.env`: `available()`
-False, dispatch exit 0, the minting line **absent** (skipped, not failed),
-zero `OPENROUTER_*` vars in the kid's environ, zero minted keys, shared-key
-usage moving. `goal:g1.11`'s falsifier is complete in both halves.
-
-**The bound at 8**, sampled every 2s because a peak is invisible in an end
-state:
-
-```
-PEAK leases=8  pi_procs=8   over 113 samples / ~226s
-manifest 8 agents, 0 unadmitted · nodes 926 -> 935, exactly +9
-8 distinct keys, 8 distinct bills, 0 outstanding afterwards
-```
-
-Peak **equals** cap — on the boundary, same signature as the synthetic 1/3/5.
-
-### 🔴 Concurrency at one target buys duplicates, not coverage
-
-**Six of eight kids wrote the same hypothesis.** Every slot was aimed with the
-same `--target` and `--level`, so all eight got the same 2-hop subtree and
-independently picked its most salient open thread. **`spawn.parallel` is a
-throughput knob, not a coverage knob** — the marginal kid re-derives what the
-previous kid is deriving *right now*, because none can see the others in
-flight. This gets worse at 16 and 25.
-
-**Implication for the ramp:** raising the cap without target diversity buys
-duplicate tokens. Observe once more at 16 before deciding whether to fix it.
-
-### 🔴 `goal:s31`'s "lift" fails ~33% and it hides the best node
-
-4 of 12 kid nodes this session shipped a placeholder title and empty
-`testable_claim` while the claim sat in the body two lines below. **Seed
-works; lift does not.** Not cosmetic: `a05` carried the most valuable claim in
-the batch — `goal:g4.8` clause 2, the never-observed one — under a title that
-read like noise, and selecting by title is what every renderer and zoom does.
-
-## §2d L1.04 — the briefing was the whole gap
-
-The banked "should the viewport replace the renderer?" was carried across two
-sessions as *reconcile two tree renderers*. It was not. The 226-line gap was
-**entirely non-frame material** — the metric, the taxonomy, the chain rules,
-the attractors, the commands. All nine sections now live in `bin/briefing.py`,
-which both callers compose. **`INJECTION.md` came out byte-identical**, which
-is what proved it a move rather than a rewrite.
-
-## §2e L1.05 — the retirement, and two invariants that came off silently
-
-`bin/inject.py` composes the briefing over `viewport.frame_stream`, so the map
-a session is handed *is* `viewport --emit llm`. `render-context.py` deprecated,
-moved to `deprecated/build/`, payload deleted (recoverable v5–v13, **not** v1).
-
-🔴 **The map started showing retired nodes.** `_LiveOnly` was a class in the
-deleted file, so `goal:s23` went with it. `grep -c` on the map said `0` — that
-was **luck**; the node sat outside depth 3. Anchoring the viewport at its
-parent showed it instantly. Now `frame_stream(hide_deprecated=)`, a flag not a
-default, because the human viewport shows retired mass *on purpose*.
-
-🔴 **`broken_links` had never met a retired payload.** Deprecating a build node
-and deleting its file — the documented end state — drove it 0 → 1 permanently,
-and `[build]` requires `payload_ref` so the gate correctly refuses to remove
-it. Damage now means *a broken link on a live node*; retired payloads are
-counted and printed, never silently excluded.
-
-**Also two silent zeros:** `briefing.py` was written against one graph
-representation and used with another, so `edges: 0` on a graph with 869, and
-**every idea reported 0 descendants** — the attractor list, which is what an
-agent reads to pick a target, came out all zeros in alphabetical order and
-looked plausible. Nothing raised.
-
-**Scope, honestly: I planned "delete 4 of 5 render paths" and delivered one.**
-`renderers/ascii` is orphaned but keeps its tests; `zoom.py`'s renderers build
-*kid* context and deserve their own falsifier. Five → four.
-
-## §2f L1.06–07 — the router, `create`, and a bug I pushed
-
-`agi <verb>` works, and **the router has no verb list**: any bare first word
-is delegated to `commands.py`, so adding `agi <anything>` is a node edit. Four
-`see` commands declared — `view` (live, spiders), `view-llm` (what a kid is
-handed), `view-both`, `write`.
-
-`write create` mints a node **and the source file behind it**, reusing
-`node_writer.write_node` so the spawn gate runs before anything is written.
-The payload write lives in `node_writer.ensure_payload`, because `write.py`
-holds a mechanically-checked *no file write at all* invariant and weakening it
-would trade a strong property for a comment.
-
-**Schema backfill: 118 → 62.** The remaining 62 (`testable_claim`×51,
-`scale`×7, `next_edges`×3, `confidence`×1) are exactly the set the last
-session predicted needs `goal:g1.9`. Nothing was invented.
-
-### 🔴 I pushed a commit that broke `agi <verb>`
-
-One `write.py command:commands 'thought …'` wrote the node's nested
-`commands:` mapping back as a **Python dict repr in a quoted string**.
-`commands.load` raised, every `agi <verb>` died, and `INJECTION.md` lost its
-command section. Cause: `render_frontmatter` handled list/bool/None and every
-other type fell to `str(v)` — a latent bug since forever, unreachable until
-`[command]` introduced the first nested mapping.
-
-**How it got out: the suite ran green *before* the edit, and the edit shared a
-shell command with the commit.** Running tests before your last edit is
-indistinguishable from not running them. Same shape as the three vacuous
-guards earlier this loop. Fixed, mutation-checked, and recorded as
-`experiment:the-serializer-ate-the-command-node`.
+**L1.07 — `write create`** mints a node and the file behind it, through the
+spawn gate. **Schema backfill 118 → 62**; the remaining 62 (`testable_claim`×51,
+`scale`×7, `next_edges`×3, `confidence`×1) are exactly the set that needs
+`goal:g1.9`. Nothing was invented.
 
 ## §3 🔴 Where it stopped, and the exact next command
 
-L1.07 is committed, grid-versioned and pushed. **Next is L1.08** — the
-removal guard, which **must land before L1.09's cavekit sweep**, plus the
-first live parent-spawns-kid run at cap 20.
+Everything is committed, grid-versioned and pushed. Working tree clean.
+
+**L1.08 is the removal guard, and it is a gate, not a nicety.** Deprecating
+the 168 `origin: build-site` nodes removes **52 unclosed hypothesis chains**
+from `outcome_coverage`'s denominator, which raises the primary for free.
+`goal:g3` says *added motion* cannot move scoring; nothing yet says the same
+about *removal*. The owner approved **guard first, then retire**.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/commands.py run smoke      # 940 active, must not drop
-python3 extensions/agi/bin/provisioning.py status     # expect 0 outstanding
+python3 extensions/agi/bin/commands.py run smoke     # 940 active, must NOT drop
+python3 extensions/agi/bin/commands.py run tests     # 1371
+python3 extensions/agi/bin/provisioning.py status    # expect 0 outstanding
+python3 extensions/agi/bin/spawn_budget.py status    # expect 0/25 live
 ```
-
-**The removal guard is the gate on L1.09.** Deprecating the 168 build-site
-nodes removes 61 unclosed hypotheses from `outcome_coverage`'s denominator,
-which raises the primary for free. `goal:g3` says added motion cannot move
-scoring; nothing yet says the same about removal. Owner approved
-guard-then-retire.
 
 ## §4 Traps hit this session
 
-1. 🔴 **I wrote the same guard three times and the first two were vacuous.**
-   The rename broke `links` and `schema` (declared as `write.py links`), and
-   the existing test stayed green because it only checks the *file* exists —
-   and a file by that name did. It was the wrong file.
-   - **v1** shelled out to `script.py <sub> --help` and checked the exit code.
-     argparse handles `--help` first and exits **0**, so the new `write.py`
-     absorbed `links` as a positional and printed its own help. Passed on the
-     bug.
-   - **v2** read the script with `ast` but treated "declares no subcommands"
-     as a skip. The new `write.py` declares none, so it skipped the one case
-     it existed for. Passed on the bug.
-   - **v3** treats that absence as the failure. Fails on the bug, passes clean.
-
-   **The lesson is the method, not the bug: a guard is not a guard until it
-   has failed once on purpose.** Reintroduce the defect and watch it go red.
-   Both dead ends are recorded in the test's own docstring so the next reader
-   does not re-propose v1.
-2. **The declared command table caught the rename before any human did** —
-   `goal:g1.10` earning its keep a second time. Prose copies stayed wrong and
-   silent; the runnable one failed immediately.
-3. **`commands.load()` needs the graph root (`.agi`), not the repo root.**
-   Passing the repo root returns `0 commands` with no error — it looks like an
-   empty table rather than a wrong argument.
-4. 🔴 **A mock of the counterparty can only confirm what its author believed
-   the counterparty does.** The whole of §2b. The seam — 30 lines of bash where
-   the engine's credential meets the harness's auth — had no tests, while its
-   docstring described a *different* hazard (cwd anchoring) in detail.
-5. **`pgrep -af "cli.js"` does not find pi.** The process is named `pi`. I
-   concluded "both kids have exited" while one had four minutes left to run,
-   and nearly wrote that into a node.
-6. **Piping a long background command through `tail` hides it until it ends.**
-   Two runs produced no interim output at all. Redirect to a file instead.
-7. **Usage figures lag slightly but attribution does not.** The shared key's
-   number kept moving for a minute after a kid died; the *split* between keys
-   was correct immediately. Compare keys against each other, not against wall
-   clock.
+1. 🔴 **Four times, a check ran, passed, and was not measuring the thing that
+   broke.** The command-subcommand guard (three attempts: `--help` exits 0
+   regardless; then `ast` but skipping the one case it existed for);
+   `viewport._verify` matching "any line with a backtick" once the briefing
+   filled the output with backticks; and the two below. **The only defence
+   that worked: reintroduce the defect and watch it go red.** Do that every
+   time; a guard that has never failed on purpose is not a guard.
+2. 🔴 **I pushed a commit that broke `agi <verb>`.** One `write.py` edit on
+   `command:commands` wrote its nested `commands:` mapping back as a Python
+   dict repr in a string, because `render_frontmatter` fell through to
+   `str(v)` for any type it did not name. Latent for months — no node had a
+   nested mapping until `[command]` existed. **It escaped because I ran the
+   suite, then made the edit, then committed in one shell command.** Running
+   tests before your last edit is indistinguishable from not running them.
+3. 🔴 **A rewrite carries visible behaviour across and drops invariants
+   implemented elsewhere.** Retiring `render-context.py` took `_LiveOnly`
+   with it, so the injected map started showing deprecated nodes
+   (`goal:s23`). `grep -c` on the map said `0` — **luck**, the node sat
+   outside depth 3. Anchoring the viewport at its parent showed it at once.
+4. 🔴 **`broken_links` had never met a retired payload.** Deprecating a build
+   node and deleting its file — the documented end state — drove the metric
+   permanently to 1, and `[build]` *requires* `payload_ref` so the gate
+   correctly refuses to remove it. Damage now means a broken link on a **live**
+   node; retired payloads are counted and printed, never silently excluded.
+5. **`briefing.py` was written against one graph representation and used with
+   another.** `load_directory` answers `edges_from`; `zoom._load_wired_graph`
+   builds no edges and hangs `children` on nodes. Result: `edges: 0` on a graph
+   with 869, and **every idea reporting 0 descendants** — the attractor list
+   came out all zeros in alphabetical order and looked plausible.
+6. **`pgrep -af "cli.js"` does not find pi.** The process is named `pi`. I
+   concluded "both kids exited" while one had four minutes left.
+7. **Piping a long background command through `tail` hides it until it ends.**
+   Redirect to a file instead.
 
 ## §5 Known-good verification sequence
 
 ```bash
-python3 extensions/agi/bin/commands.py run smoke     # 922 active, must NOT drop
-python3 extensions/agi/bin/commands.py run tests     # 1340 passing
+python3 extensions/agi/bin/commands.py run smoke     # 940 active, must NOT drop
+python3 extensions/agi/bin/commands.py run tests     # 1371 passing
 python3 extensions/agi/bin/commands.py run goals-check
 python3 extensions/agi/bin/commands.py run viewport-verify
-python3 extensions/agi/bin/commands.py run links     # 927 resolved, 0 broken
+python3 extensions/agi/bin/commands.py run links     # 943 resolved, 0 broken
 python3 extensions/agi/bin/commands.py run grid-commit
 ```
 
-## §6 🔵 BANKED — decisions deliberately not made
+`agi <verb>` also works now: `agi smoke`, `agi links`, `agi view`,
+`agi view-llm`, `agi write <id> "<script>"`, `agi write create <type> <slug>`.
 
-1. **Backfill the 115 schema-invalid nodes.** Unchanged, and now **scheduled**
-   rather than banked: it rides along in L1.07 and widens in L1.09. The owner
-   approved it explicitly.
-2. ~~Viewport replaces `INJECTION.md`~~ — **SETTLED: yes.** L1.04 + L1.05.
-   Measured gap: `--emit llm` is 45 lines against `INJECTION.md`'s 271, so it
-   is *finish the emit, then delete four render paths*, not a swap.
-3. ~~`goals_active` counting~~ — **SETTLED: it is a focus budget.** Cap 15.
-4. ~~`goal:g1.11` batching granularity~~ — **SETTLED: per spawn** (prior run).
+## §6 🔵 Owner direction for L1.09 — recorded 2026-09-03, not yet acted on
+
+### Concurrency goes ACROSS targets, not at one
+
+L1.03 measured the failure: at cap 8 aimed with one `--target`, **six of eight
+kids wrote substantially the same hypothesis**. The owner's intent was never
+one target — it is **several chains built simultaneously**, whole sections of
+graph at a time: parallel `experiment → mvp → build` chains.
+
+**That is why `goal:g4.1` (worktree-per-kid) matters** and is the real
+prerequisite: without isolation, concurrent agents touching the same node or
+the same file break each other's work.
+
+**When same-target concurrency IS right:** when a goal is genuinely open-ended
+and the point is to explore different options. **The owner's read of this
+tree: the vast majority of goals do not need that.** They are clear-cut
+feature goals where the direction is already obvious and the chain just needs
+standard validation — straight through to a node edit, or verdict → mvp → new
+node. A handful may benefit from exploratory fan-out; most will not.
+
+### The build sites: mine them before retiring them
+
+**The corpus, measured:**
+
+| type | n | note |
+|---|---|---|
+| task | 91 | |
+| hypothesis | 61 | **52 never reach a verdict** — only 9 do |
+| idea | 8 | the `Domain: …` roots — **these are the top attractors** |
+| goal | 5 | already real goals, see below |
+| build / experiment / mvp | 1 each | |
+
+The 5 build-site **goals** already exist as goals:
+
+```
+S18  horizon   Absorb cavekit references before cavekit retires   <- the owner's ask, already a goal
+S21  horizon   The graph can add a file but can never remove one
+G7.8 horizon   A generator mints parent ids it never checks exist
+S6   complete  Strip agi-tree to the graph and its inputs
+G11.1 complete Nine Python files still declare their own ancestor walk
+```
+
+**The owner's instructions, in order:**
+
+1. **Go through the build sites and see which carry descriptions that belong
+   in a goal.** Move those into goals rather than losing them.
+2. **Before deprecating anything that describes a stale shape, confirm an
+   equivalent goal already exists and is being built.** `goal:s18` is that
+   goal for the cavekit half and is currently `horizon`.
+3. **Then walk the hypothesis chains those sites spawned and spend iterations
+   closing them** — *unless another part of the graph already contains every
+   piece that chain was trying to establish*, in which case say so and close
+   it that way. **52 open chains** is the number.
+
+### Deprecate vs retire — the mechanics, since the owner asked
+
+The owner had these possibly reversed. Correct, from `CLAUDE.md`:
+
+- **`retired` is a GOAL status** (`active | horizon | retired | complete`). A
+  retired goal's *closed* chains leave the score but stay in the graph and
+  stay attributable. Retiring cannot inflate `outcome_coverage`, because only
+  a closed chain can leave the denominator (`goal:g5`).
+- **`deprecated` is a NODE status**, and the node **moves to
+  `.agi/nodes/deprecated/<type>/`**. Never `git rm` — a node's grid ref
+  outlives its file, so deleting decouples the ref instead of shrinking it.
+- **The owner's actual want is satisfied by deprecation.** As of L1.05 the
+  injected map **hides deprecated nodes and their subtrees**
+  (`frame_stream(hide_deprecated=True)`), so an agent cannot pick one as a live
+  chain head. The human viewport still shows them on purpose, as damage.
+
+### 🔴 The ordering constraint that is load-bearing
+
+`snapshot-build-site.py` **deletes every `origin: build-site` node it does not
+re-derive on that run.** So the kits are removed *after* their nodes are
+deprecated, **never before** (H0i). And a `payload_ref` is dropped before its
+file is deleted, or `broken_links` leaves 0.
+
+**Deprecating the 8 `Domain: …` ideas would gut the attractor list** —
+`idea:domain-graph-core` alone has 68 descendants and heads the list every
+agent is handed. Decide what replaces it before removing it.
 
 ## §7 Standing hazards
 
-- **The two live runs still have not happened.** The bound, the credentials
-  and the reaper are proved against sleeping interpreters and fake adapters. A
-  `SIGSTOP`ped agent is alive to `os.kill(pid, 0)` and holds its slot forever —
-  correct, and still a surprise at cap 25.
-- **$15.57 is the real ceiling**, not the `$5` per-key cap. Three keys at full
-  cap is the balance. `spawn_budget` and the reaper know about per-key limits
-  and **nothing knows about the account balance.**
-- 🔴 **L1.09 has two ordering constraints that are load-bearing.**
-  `snapshot-build-site.py` **deletes every `origin: build-site` node it does
-  not re-derive** — so kits are removed *after* their 168 nodes are deprecated,
-  never before (H0i). And a `payload_ref` is dropped *before* its file is
-  deleted, or `broken_links` leaves 0.
-- **`TODO.md` is already `status: deprecated`** — the 2026-09-02 timestamp is
-  the retirement stamp, not an agent writing to it. Nothing uses it as a
-  scratchpad. Mine it for unminted content in L1.09, then delete the file.
+- **Cap 25 has never run.** The bound is proved at 8. `goal:g4.8` clause 2 (a
+  parent demoting an unevidenced verdict unaided) and clause 3 (delegator
+  spend sub-linear) are **never observed** — clause 2 is what distinguishes a
+  parent tier from a spawn fan-out.
+- **No parent-spawns-kid run has ever happened live.** `brief.py` gives a
+  parent the spawn primitive and `spawn_budget` bounds grandchildren; neither
+  has met a real parent.
+- **$15.43 is the real ceiling**, not the $5 per-key cap. Nothing in the
+  engine knows the account balance.
 - **A parent's REPORT is not its artefact.** Check the node file.
-- **A fix with no test is an assertion** — and per §4, a test that has never
-  failed on purpose is closer to an assertion than it looks.
+- **A fix with no test is an assertion — and a test that has never failed on
+  purpose is closer to an assertion than it looks.** See §4.1.

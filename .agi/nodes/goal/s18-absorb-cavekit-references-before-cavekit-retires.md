@@ -1,10 +1,12 @@
 ---
+id: goal:s18
+mint_id: 308859ad381e4981b087e3c947928cab
+type: goal
 confidence: 1.0
+edited_by: owner
 goal_id: S18
 goal_kind: short-term
 heading_level: 2
-id: "goal:s18"
-mint_id: 308859ad381e4981b087e3c947928cab
 origin: goals-doc
 seeds: []
 status: horizon
@@ -12,10 +14,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: L1.07
 title: "S18: Absorb cavekit references before cavekit retires"
-type: goal
 ---
-
 Cavekit was the bootstrap that seeded this graph and is being phased out.
 The graph still leans on it in three ways, and **the retirement order matters
 more than the retirement**.
@@ -47,3 +48,7 @@ Sequence, and it is not negotiable:
 4. Only then deprecate the nodes -- and **never** delete the input.
 
 Pairs with **S11** (same rename hazard, same sequence) and **G7**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Owner direction, 2026-09-03, and it changes the shape of this goal from "absorb references" to "mine the sites, then close what they started". Measured corpus: 168 origin: build-site nodes -- 91 task, 61 hypothesis, 8 idea, 5 goal, 1 each build/experiment/mvp. Of the 61 hypotheses, only 9 reach a verdict: FIFTY-TWO OPEN CHAINS. The instruction, in order. (1) Go through the build sites and find descriptions that belong in a goal; move those into goals rather than losing them when the sites go. (2) Before deprecating anything describing a stale shape, confirm an equivalent goal already exists AND is being built -- this goal is that goal for the cavekit half, and it is currently horizon, not active. (3) Then walk the 52 open hypothesis chains and spend iterations closing them, UNLESS another part of the graph already contains every piece a given chain was trying to establish, in which case close it on that ground and say so. TWO CONSTRAINTS THAT ARE LOAD-BEARING. snapshot-build-site.py deletes every origin: build-site node it does not re-derive on that run, so kits are removed AFTER their nodes are deprecated, never before (H0i). And the 8 Domain: ... ideas are the top attractors -- idea:domain-graph-core alone has 68 descendants and heads the list every agent is handed -- so deprecating them guts target selection unless something replaces it first. ON THE MECHANISM the owner asked about: deprecation is the right tool and does what was wanted. `retired` is a GOAL status; `deprecated` is a NODE status and moves the file to nodes/deprecated/<type>/. Since L1.05 the injected map hides deprecated nodes and their subtrees, so an agent cannot pick one as a live chain head, while the human viewport still shows them as damage.
+<!-- THOUGHT:END -->
