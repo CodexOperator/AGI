@@ -581,3 +581,219 @@ def test_lifecycle_counts_reach_the_metric_lines(project):
     text = buf.getvalue()
     assert "METRIC deprecated_node_count=1" in text
     assert "METRIC active_node_count=0" in text
+
+
+# ------------------------------- goal:g3 falsifier: the removal guard (L1.08)
+#
+# goal:g5 taught the metric that retiring a GOAL cannot raise the score.
+# Nothing said the same about deprecating a NODE, and deprecation is the other
+# removal: it takes nodes out of the graph's live half one at a time instead of
+# a subtree at a time. Removal must obey the same law as addition -- it cannot
+# move the primary on its own.
+#
+# The hole was measured, not imagined. This corpus carries 61 `origin:
+# build-site` hypotheses and zero build-site mvps, 52 of them never reaching a
+# verdict. The cleanup that deprecates them would have moved `outcome_coverage`
+# 0.271 -> 0.470 for free. Fixtures, not corpus counts, because another parent
+# is minting nodes concurrently and any assertion on 940 or 0.271 would flake.
+
+
+def test_deprecating_unconverted_hypotheses_cannot_raise_the_primary(project):
+    """The falsifier, and the whole reason this guard exists.
+
+    A deprecated hypothesis that never reached an mvp STAYS in the
+    denominator. Without this, the cheapest way to raise the primary is to
+    deprecate the evidence against it -- and nothing in the metric could tell
+    that apart from honest cleanup.
+    """
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    _goal(project, "g2", "active")
+    for i in range(3):                      # dead weight: never converted
+        _node(project, "hypothesis", f"open{i}", parents=["goal:g2"])
+    before = metrics.compute(project)
+    assert (before["scoring_mvp_count"], before["scoring_hypothesis_count"]) == (1, 4)
+
+    for i in range(3):                      # retire in place, same ids
+        _node(project, "hypothesis", f"open{i}", "status: deprecated",
+              parents=["goal:g2"])
+    after = metrics.compute(project)
+
+    assert after["scoring_hypothesis_count"] == 4, "open hypotheses must not leave"
+    assert after["outcome_coverage"] == before["outcome_coverage"]
+    assert after["deprecated_open_hypotheses"] == 3
+    assert after["deprecated_excluded_nodes"] == 0
+    # ...and the deprecation is real, not a no-op the guard is hiding
+    assert after["deprecated_node_count"] == 3
+    assert after["node_count"] == before["node_count"]
+
+
+def test_deprecating_a_closed_chain_removes_both_terms(project):
+    """The legitimate half. A chain that actually reached an mvp may leave
+    scoring, exactly as goal retirement lets one leave -- numerator and
+    denominator together, never one without the other."""
+    _goal(project, "g1", "active")
+    for tag in ("keep", "drop"):
+        _node(project, "hypothesis", tag, parents=["goal:g1"])
+        _node(project, "mvp", f"{tag}-m", parents=[f"hypothesis:{tag}"])
+    assert metrics.compute(project)["outcome_coverage"] == 1.0
+
+    _node(project, "hypothesis", "drop", "status: deprecated", parents=["goal:g1"])
+    _node(project, "mvp", "drop-m", "status: deprecated", parents=["hypothesis:drop"])
+    m = metrics.compute(project)
+
+    assert (m["scoring_mvp_count"], m["scoring_hypothesis_count"]) == (1, 1)
+    assert m["deprecated_excluded_nodes"] == 2
+    assert m["deprecated_open_hypotheses"] == 0
+    assert m["mvp_count"] == 2               # descriptive total untouched
+
+
+def test_a_hypothesis_whose_mvp_still_scores_is_held(project):
+    """The pairing clause, and the case goal retirement never had to face.
+
+    Retirement takes a whole subtree, so a chain's mvp and hypothesis always
+    left together. Deprecation couples nothing: deprecate the hypothesis,
+    leave the mvp live, and the denominator drops while the numerator keeps
+    the credit. Same free lift by a shorter route, so "closed" is measured
+    against the mvps that are leaving too.
+    """
+    _goal(project, "g1", "active")
+    for tag in ("a", "b"):
+        _node(project, "hypothesis", tag, parents=["goal:g1"])
+        _node(project, "mvp", f"{tag}-m", parents=[f"hypothesis:{tag}"])
+    before = metrics.compute(project)
+
+    _node(project, "hypothesis", "b", "status: deprecated", parents=["goal:g1"])
+    after = metrics.compute(project)          # mvp:b-m deliberately left live
+
+    assert after["scoring_mvp_count"] == 2
+    assert after["scoring_hypothesis_count"] == 2, "its mvp still scores for it"
+    assert after["outcome_coverage"] == before["outcome_coverage"]
+    assert after["deprecated_open_hypotheses"] == 1
+
+
+def test_deprecating_an_mvp_lowers_the_score_and_that_is_allowed(project):
+    """Score-neutral at worst, never score-positive. Discarding a real mvp is
+    the one direction removal is free to move the primary in."""
+    _goal(project, "g1", "active")
+    for tag in ("a", "b"):
+        _node(project, "hypothesis", tag, parents=["goal:g1"])
+        _node(project, "mvp", f"{tag}-m", parents=[f"hypothesis:{tag}"])
+    assert metrics.compute(project)["outcome_coverage"] == 1.0
+
+    _node(project, "mvp", "b-m", "status: deprecated", parents=["hypothesis:b"])
+    m = metrics.compute(project)
+
+    assert (m["scoring_mvp_count"], m["scoring_hypothesis_count"]) == (1, 2)
+    assert m["outcome_coverage"] == 0.5
+    assert m["deprecated_excluded_nodes"] == 1
+
+
+def test_deprecation_score_delta_reports_the_refused_lift(project):
+    """The guard is auditable, not implicit: the delta is exactly what
+    deprecation would have collected had the guard not held."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h1", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h1"])
+    _node(project, "hypothesis", "h2", parents=["goal:g1"])
+    for i in range(2):
+        _node(project, "hypothesis", f"d{i}", "status: deprecated",
+              parents=["goal:g1"])
+    m = metrics.compute(project)
+
+    assert (m["scoring_mvp_count"], m["scoring_hypothesis_count"]) == (1, 4)
+    assert m["deprecated_open_hypotheses"] == 2
+    # held:  1/4 = 0.25   unguarded: 1/(4-2) = 0.5   delta: -0.25
+    assert m["deprecation_score_delta"] == -0.25
+
+
+def test_deprecation_score_delta_is_zero_when_nothing_is_held(project):
+    """0 and "not computed" must not look the same, and a graph with no
+    deprecated hypotheses is the ordinary case -- it reads 0.0, every run."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    _node(project, "build", "retired-file", "status: deprecated")
+    m = metrics.compute(project)
+    assert m["deprecation_score_delta"] == 0.0
+    assert m["deprecated_open_hypotheses"] == 0
+    assert m["deprecated_excluded_nodes"] == 1
+
+
+def test_deprecation_score_delta_is_never_positive(project):
+    """The law, asserted over every shape the guard can meet at once: a
+    closed chain, an open hypothesis, a live chain, a deprecated mvp and a
+    deprecated non-scoring node. `<= 0` is arithmetic here -- the two ratios
+    share a numerator and the unguarded denominator is the smaller one -- so
+    a positive reading means the definition drifted, not that a corpus got
+    unlucky."""
+    _goal(project, "g1", "active")
+    _goal(project, "g2", "retired")
+    _node(project, "hypothesis", "live", parents=["goal:g1"])
+    _node(project, "mvp", "live-m", parents=["hypothesis:live"])
+    _node(project, "hypothesis", "gone", "status: deprecated", parents=["goal:g1"])
+    _node(project, "mvp", "gone-m", "status: deprecated", parents=["hypothesis:gone"])
+    _node(project, "hypothesis", "open", "status: deprecated", parents=["goal:g1"])
+    _node(project, "hypothesis", "retired-open", parents=["goal:g2"])
+    _node(project, "experiment", "e", "status: deprecated", parents=["goal:g1"])
+    m = metrics.compute(project)
+    assert m["deprecation_score_delta"] <= 0.0
+    # the four leaving-buckets partition the leaving set, so they can be summed
+    assert m["deprecated_open_hypotheses"] == 1
+    assert m["deprecated_excluded_nodes"] == 3    # gone, gone-m, e
+    assert m["retired_open_hypotheses"] == 1
+    assert m["retired_goal_nodes"] == 0
+
+
+def test_goal_retirement_takes_priority_over_deprecation_in_the_buckets(project):
+    """A node can be both. It is reported once, under the older and coarser
+    reason, so the buckets stay a partition -- and so the delta counts only
+    what THIS guard is holding: a hypothesis goal:g5 already holds is not a
+    hypothesis deprecation could have laundered."""
+    _goal(project, "g1", "retired")
+    _node(project, "hypothesis", "both", "status: deprecated", parents=["goal:g1"])
+    m = metrics.compute(project)
+    assert m["retired_open_hypotheses"] == 1
+    assert m["deprecated_open_hypotheses"] == 0
+    assert m["deprecation_score_delta"] == 0.0
+    assert m["scoring_hypothesis_count"] == 1
+
+
+def test_the_build_site_cleanup_shape_moves_the_primary_by_zero(project):
+    """L1.09 in miniature: many generated hypotheses, no mvps of their own,
+    deprecated wholesale. This is the shape the guard was written for -- the
+    real set is 61 hypotheses and 0 mvps -- and the assertion is that the
+    cleanup is worth exactly 0.000 of score."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "real", parents=["goal:g1"])
+    _node(project, "mvp", "real-m", parents=["hypothesis:real"])
+    _goal(project, "g2", "active")
+    for i in range(5):
+        _node(project, "hypothesis", f"gen{i}", "origin: build-site",
+              parents=["goal:g2"])
+    before = metrics.compute(project)
+    assert before["outcome_coverage"] == 0.167          # 1/6
+
+    for i in range(5):
+        _node(project, "hypothesis", f"gen{i}",
+              "origin: build-site\nstatus: deprecated", parents=["goal:g2"])
+    after = metrics.compute(project)
+
+    assert after["outcome_coverage"] == before["outcome_coverage"]
+    assert after["deprecated_open_hypotheses"] == 5
+    # and the size of what was refused is on the record: 1/6 -> 1/1
+    assert after["deprecation_score_delta"] == -0.833
+
+
+def test_deprecation_guard_counts_reach_the_metric_lines(project):
+    """A guard nobody can read from the METRIC lines is a guard nobody
+    audits."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", "status: deprecated", parents=["goal:g1"])
+    buf = io.StringIO()
+    metrics.emit(project, out=buf)
+    text = buf.getvalue()
+    assert "METRIC deprecated_open_hypotheses=1" in text
+    assert "METRIC deprecated_excluded_nodes=0" in text
+    assert "METRIC deprecation_score_delta=0.0" in text
