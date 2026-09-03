@@ -57,7 +57,7 @@ minus the clone step it doesn't need to take against itself.
 | `extensions/`, `skills/`, `src/` | The live source. Edited directly — there is no staged copy to check out. |
 | `.agi/nodes/` | The graph. The persistent thoughts. Committed. |
 | `GOALS.md` | **Derived** — `snapshot-goals.py --render` writes it from `.agi/nodes/goal/`, to the repo root. Read it first; author in the goal node. |
-| `.agi/context/kits/`, `.agi/context/plans/build-site.md` | Generator inputs for the 159 `origin: build-site` nodes. See the warning below. |
+| *(retired 2026-09-03, L1.09)* `.agi/context/kits/`, `.agi/context/plans/build-site.md` | Were the generator inputs for the 159 `origin: build-site` nodes. Deleted in one atomic pass with the nodes deprecated (`.agi/nodes/deprecated/`); `snapshot-build-site.py` is now a permanent no-op here. Never recreate them. |
 | `.agi/context/schemas/` | Node-type schemas. `schema_registry` reads `[name].md` as active. |
 | `.agi/config.json` | Project marker + loop tuning. Its presence is what makes the enclosing repo a project. (The legacy name, `agi-tree.config.json` at the repo root instead of inside `.agi/`, still resolves.) |
 | `refs/grid/*` | Per-node version history, in this repo's own ref namespace. See Git grid below. |
@@ -274,10 +274,11 @@ closes `goal:g6.1`'s open loop; it isn't narrowed, it no longer applies.
   safe version. A stale one has already wiped `nodes/` once (H0/H0b — confirmed
   29k-node data loss). Don't recreate a `bin/` directory there (S1).
 - **`snapshot-build-site.py` deletes every `origin: build-site` node it does
-  not re-derive on that run.** So deleting or emptying `.agi/context/kits/` or
-  `.agi/context/plans/build-site.md` silently prunes the 159 nodes derived
-  from them on the next loop run. Retire them by deprecating the nodes first,
-  never by deleting the input (H0i).
+  not re-derive on that run, and resurrects any deprecated one whose kit
+  entry still exists.** That is why the build-site cohort was retired in ONE
+  atomic pass on 2026-09-03 (L1.09): all 159 nodes deprecated, then the kits
+  and plan deleted in the same commit. With no `build-site.md` the script
+  short-circuits permanently. Do not recreate the inputs (H0i).
 
 ## Git grid
 
