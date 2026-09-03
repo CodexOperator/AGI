@@ -31,6 +31,34 @@ TARGET=""
 LEVEL=""
 TIER=""
 
+# ---------------------------------------------------------------------------
+# Verb router (goal:g1.10, L1.06). `agi <verb> [args]` runs a command the GRAPH
+# declares, not one this script hardcodes.
+#
+# The whole point is that the verb list is graph content: `.geometry/commands.md`
+# declares it, `commands.py` resolves it, and adding `agi view` is a node edit
+# rather than a change here. A `case` arm per verb would put the list back in
+# the shell -- a fifth prose copy of the command table, which is exactly the
+# drift `goal:g1.10` measured and ended.
+#
+# A bare first word that is not a flag IS a verb. Flags keep working untouched,
+# so `agi --max-iters 5` and `agi view` are both valid and neither knows about
+# the other.
+# ---------------------------------------------------------------------------
+if [[ $# -gt 0 && "$1" != -* ]]; then
+  VERB="$1"; shift
+  ROOT_FOR_VERB="$(find_project_root "$PWD" 2>/dev/null)" || {
+    echo "ERR: \`agi $VERB\` needs to be run inside a project (no enclosing .agi/)" >&2
+    exit 1
+  }
+  # `--` before the pass-through args, and `--root` before the verb: without
+  # both, argparse in commands.py claims a flag meant for the command --
+  # `agi write <id> <script> --dry-run` died on "unrecognized arguments:
+  # --dry-run", which is the router eating its passenger's mail.
+  exec python3 "$PLUGIN_ROOT/bin/commands.py" --root "$ROOT_FOR_VERB" \
+    run "$VERB" -- "$@"
+fi
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --max-iters) MAX_ITERS="$2"; shift 2 ;;

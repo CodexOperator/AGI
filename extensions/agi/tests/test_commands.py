@@ -252,3 +252,72 @@ def test_the_declaration_stays_small():
         f"{len(table)} commands declared. This is not a shell-alias dumping "
         f"ground — a command that saves one keystroke does not belong; one a "
         f"cold session must be TOLD does (goal:g1.10).")
+
+
+# --------------------------------------------------------------------------
+# L1.06 — the `agi <verb>` router in driver.sh
+# --------------------------------------------------------------------------
+
+DRIVER = Path(__file__).resolve().parent.parent / "driver.sh"
+
+
+def _agi(*args, cwd=None):
+    import subprocess
+    return subprocess.run(["bash", str(DRIVER), *args], capture_output=True,
+                          text=True, timeout=180,
+                          cwd=str(cwd or Path("/home/ubuntu/work/agi")))
+
+
+@real_only
+def test_a_bare_first_word_runs_a_declared_command():
+    """`agi links` must run the command the GRAPH declares.
+
+    The verb list is deliberately NOT a `case` arm per verb in the shell —
+    that would be a fifth prose copy of the command table, which is the exact
+    drift `goal:g1.10` measured and ended. Adding `agi view` is a node edit.
+    """
+    proc = _agi("links")
+    assert proc.returncode == 0, proc.stderr
+    assert "resolved" in proc.stdout
+
+
+@real_only
+def test_flags_still_reach_the_driver_untouched():
+    """The router must not capture the interface it was added beside."""
+    proc = _agi("--help")
+    assert proc.returncode == 0
+    assert "OPTIONS:" in proc.stdout
+    assert "--max-iters" in proc.stdout
+
+
+@real_only
+def test_an_unknown_verb_names_what_is_declared_and_points_at_the_node():
+    proc = _agi("nosuchverb")
+    assert proc.returncode != 0
+    blob = proc.stdout + proc.stderr
+    assert "nosuchverb" in blob
+    assert "links" in blob, "the error must list what IS available"
+    assert "commands.md" in blob, "and say where to add one"
+
+
+@real_only
+def test_pass_through_flags_reach_the_command_not_the_router():
+    """🔴 `agi write <id> <script> --dry-run` died on
+    `unrecognized arguments: --dry-run` — the router eating its passenger's
+    mail. Fixed with `--` before the extras and `--root` before the verb.
+    """
+    proc = _agi("write", "goal:g9.7", "set status active", "--dry-run")
+    assert proc.returncode == 0, proc.stderr
+    assert "goal:g9.7" in proc.stdout
+    assert "unrecognized" not in (proc.stdout + proc.stderr)
+
+
+@real_only
+def test_the_view_commands_are_declared_in_the_graph():
+    """The owner asked for two views: the human one with spiders, and the one
+    an LLM actually receives. Both are commands, so both are discoverable."""
+    table = commands.load(REAL_ROOT)
+    for name in ("view", "view-llm", "write"):
+        assert name in table, f"`agi {name}` is not declared"
+    assert "--live" in table["view"].argv, "the human view is the live one"
+    assert "llm" in table["view-llm"].argv
