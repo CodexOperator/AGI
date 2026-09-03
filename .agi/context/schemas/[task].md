@@ -8,7 +8,7 @@ fields:
   blocked_by: {type: list}     # task ids
   effort: {type: str}          # S | M | L
   tier: {type: int}
-  status: {type: str}          # pending | in_progress | done
+  status: {type: str}          # pending | in_progress | done | deprecated
   origin: {type: str}          # build-site -- generated, do not hand-edit
   parents: {type: list}        # hypothesis ids
   tags: {type: list}
@@ -20,7 +20,7 @@ validation:
     blocked_by: list
   regex:
     effort: '^[SML]$'
-    status: '^(pending|in_progress|done)$'
+    status: '^(pending|in_progress|done|deprecated)$'
 spawn:
   allowed_parents: [hypothesis]
   min_parents: 1
@@ -53,6 +53,17 @@ types written by **agents**, freehand.
 
 `required:` is widened here from `[title, cavekit_req, status]` to the full
 91/91 set — not new rules, just the measurement written down.
+
+## 2026-09-03 (L1.09-cleanup): `status` regex widened to admit `deprecated`
+
+"Already honest" stopped being true the moment the corpus changed under it:
+the entire 91/91 build-site task cohort was retired in L1.09, each one
+rewritten with `status: deprecated` per `CLAUDE.md`'s retirement convention —
+and the pre-existing regex, `^(pending|in_progress|done)$`, had never had to
+admit a fourth value because no task had ever left `pending` through this
+field. Same repair `[idea].md` already carries for the same reason
+(precedent: `idea:engine-todo`), applied here because retirement is a
+cross-type convention, not an idea-only one.
 
 ## Uniform values worth knowing
 

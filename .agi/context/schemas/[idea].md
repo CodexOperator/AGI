@@ -8,7 +8,7 @@ fields:
   next_edges: {type: list}
   tags: {type: list}
   confidence: {type: float}
-  status: {type: str}      # open | active | extended | abandoned
+  status: {type: str}      # open | active | extended | abandoned | deprecated
   origin: {type: str}      # engine-decomp (55) | build-site (7)
   unit_kind: {type: str}   # engine-decomp: what kind of unit this idea covers
   unit_path: {type: str}   # engine-decomp: the path it covers
@@ -19,7 +19,7 @@ validation:
     scale: str
   regex:
     scale: '^(big|small)$'
-    status: '^(open|active|extended|abandoned)$'
+    status: '^(open|active|extended|abandoned|deprecated)$'
 spawn:
   allowed_parents: [goal]
   min_parents: 0
@@ -56,6 +56,14 @@ besides `open` was the one value the regex rejected, and two declared values
 have never been written. Widened to the union rather than narrowed to
 observation — `extended`/`abandoned` describe a real lifecycle and removing
 them would silently make a documented transition illegal.
+
+**2026-09-03 (L1.09-cleanup): added `deprecated`.** Retirement writes
+`status: deprecated` on the node itself — `CLAUDE.md`'s "Retire a node with
+`status: deprecated`" convention — and the regex above rejected it, exactly
+the same repair as this section already describes for `extended`/`abandoned`.
+Caught on `idea:engine-todo`, then measured against the 8 `idea` nodes the
+build-site cohort retirement (L1.09) deprecated: all 8 were schema-invalid
+until this line included the one value retirement itself writes.
 
 ## The `THOUGHT` block (goal:g2.11)
 

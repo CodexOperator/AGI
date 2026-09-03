@@ -112,6 +112,48 @@ def test_a_cycle_does_not_hang_the_descendant_walk():
     assert B.count_descendants(_AdjacencyStyle(nodes), "idea:a") == 1
 
 
+def test_attractors_exclude_deprecated_ideas_even_with_a_big_subtree():
+    """A deprecated idea with a large (also-deprecated) descendant tree must
+    not out-rank a live idea just because nobody re-scored it on retirement
+    -- `viewport.frame_stream`'s `hide_deprecated` already keeps this out of
+    the map (goal:s23); the attractor list read the same adjacency with no
+    such filter.
+    """
+    nodes = [
+        _Node("idea:domain-graph-core", "idea",
+              ["hypothesis:d1", "hypothesis:d2"]),
+        _Node("hypothesis:d1", "hypothesis"),
+        _Node("hypothesis:d2", "hypothesis"),
+        _Node("idea:engine-todo", "idea", ["hypothesis:e1"]),
+        _Node("hypothesis:e1", "hypothesis"),
+    ]
+    fm_by_id = {
+        "idea:domain-graph-core": {"status": "deprecated"},
+        "hypothesis:d1": {"status": "deprecated"},
+        "hypothesis:d2": {"status": "deprecated"},
+    }
+    b = B.build(Path("."), _AdjacencyStyle(nodes), fm_by_id=fm_by_id)
+    ids = [nid for nid, _ in b.attractors]
+    assert "idea:domain-graph-core" not in ids, (
+        "a deprecated idea must not appear in the attractor list at all")
+    assert b.attractors == [("idea:engine-todo", 1)]
+
+
+def test_a_live_idea_ranks_by_its_live_descendants_not_its_deprecated_ones():
+    """A live idea with a mixed live/deprecated descendant tree counts only
+    the live half -- the same exclusion applied one level down from the idea
+    itself, to the descendants it is scored by.
+    """
+    nodes = [
+        _Node("idea:mixed", "idea", ["hypothesis:live", "hypothesis:dead"]),
+        _Node("hypothesis:live", "hypothesis"),
+        _Node("hypothesis:dead", "hypothesis"),
+    ]
+    fm_by_id = {"hypothesis:dead": {"status": "deprecated"}}
+    b = B.build(Path("."), _AdjacencyStyle(nodes), fm_by_id=fm_by_id)
+    assert b.attractors[0] == ("idea:mixed", 1)
+
+
 def test_the_rules_have_exactly_one_home():
     """The chain rules and the taxonomy are module constants, not formatter
     literals — `goal:g1.10`'s lesson applied to the contract itself."""

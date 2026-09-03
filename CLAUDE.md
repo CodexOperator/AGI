@@ -275,10 +275,17 @@ closes `goal:g6.1`'s open loop; it isn't narrowed, it no longer applies.
   29k-node data loss). Don't recreate a `bin/` directory there (S1).
 - **`snapshot-build-site.py` deletes every `origin: build-site` node it does
   not re-derive on that run, and resurrects any deprecated one whose kit
-  entry still exists.** That is why the build-site cohort was retired in ONE
-  atomic pass on 2026-09-03 (L1.09): all 159 nodes deprecated, then the kits
-  and plan deleted in the same commit. With no `build-site.md` the script
-  short-circuits permanently. Do not recreate the inputs (H0i).
+  entry still exists** — the hazard, and why the build-site cohort was
+  retired in ONE atomic pass on 2026-09-03 (L1.09): all 159 nodes deprecated,
+  then the kits and plan deleted in the same commit. **On this project the
+  hazard is moot, not fixed:** with no `build-site.md`, the script's own
+  missing-input guard (`snapshot-build-site.py` L18) prints "no build site …
+  nothing to do" and returns before touching a node — a permanent no-op here,
+  not a rule being followed. H0i still applies to any *other* project that
+  keeps a live `context/kits/` + `context/plans/build-site.md` pair: there,
+  deleting or emptying either one still prunes every `origin: build-site`
+  node on the next loop run. Don't recreate the inputs here either — that
+  would make the hazard live again for nothing.
 
 ## Git grid
 
