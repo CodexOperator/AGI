@@ -18,9 +18,31 @@
 #
 # Prints the value with no trailing newline, on stdout, and nothing else ever.
 # Every diagnostic goes to stderr so a caller can capture stdout blind.
+#
+# 🔴 THE ENVIRONMENT WINS OVER THE FILE, and that ordering is goal:g1.11's
+# whole mechanism rather than a convenience (fixed 2026-09-03, L1.02).
+#
+# `dispatch.py` mints a capped, expiring key per spawn and injects it into the
+# child's environment as OPENROUTER_API_KEY. pi does not read that variable:
+# its auth.json points at THIS SCRIPT, and this script used to read `.env`
+# unconditionally. So every kid authenticated with the shared long-lived key
+# while a minted key sat unused beside it -- the engine minted 2 keys in the
+# first live run and both ended at `usage=0` while spend landed on the shared
+# key. Per-spawn credentials were, end to end, decorative.
+#
+# It was invisible because the mechanism was proved against a stub that dumps
+# its environment. A stub that reads $OPENROUTER_API_KEY proves injection; it
+# cannot prove the harness READS what was injected, and pi does not.
 set -euo pipefail
 
 VAR="${1:?usage: env-get.sh VAR_NAME [ENV_FILE]}"
+
+# Injected wins. Checked before the env file is even resolved, because a
+# spawned agent's credential must not depend on a file lookup succeeding.
+if [[ -n "${!VAR-}" ]]; then
+  printf '%s' "${!VAR}"
+  exit 0
+fi
 
 SCRIPT_REAL="$(readlink -f "${BASH_SOURCE[0]}")"
 PLUGIN_ROOT="$(cd "$(dirname "$SCRIPT_REAL")/.." && pwd)"
