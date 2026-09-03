@@ -152,13 +152,68 @@ def count_descendants(g, root: str) -> int:
     return n
 
 
+def _is_deprecated(fm_by_id: dict, nid: str) -> bool:
+    """`status: deprecated`, read the same way `viewport._retired` reads it."""
+    return str((fm_by_id.get(nid) or {}).get("status") or "").strip().lower() \
+        == "deprecated"
+
+
+def count_live_descendants(g, root: str, fm_by_id: dict) -> int:
+    """`count_descendants`, but a deprecated node contributes nothing to the
+    total.
+
+    `viewport.frame_stream`'s `hide_deprecated` already keeps a retired node
+    out of the map an agent is handed (`goal:s23`); this list is the other
+    thing an agent reads to choose a target, and it walked the same
+    adjacency with no such filter. A deprecated idea with a big deprecated
+    subtree out-ranked live ideas with none, for as long as its subtree was
+    never re-scored down. Traversal still crosses a deprecated node — a live
+    descendant reachable only through one is still real work — it just is
+    not tallied.
+    """
+    seen = {root}
+    stack = [root]
+    n = 0
+    while stack:
+        cur = stack.pop()
+        for tgt in successors(g, cur):
+            if tgt not in seen:
+                seen.add(tgt)
+                stack.append(tgt)
+                if not _is_deprecated(fm_by_id, tgt):
+                    n += 1
+    return n
+
+
+def _fm_status_for_ideas(root: Path) -> dict:
+    """id -> frontmatter for every idea node, live and deprecated.
+
+    Best-effort, mirroring the "a briefing that cannot read X still ranks
+    nodes" rule below: `zoom` and `graph_core` are optional imports here
+    (`root` is `Path(".")` with no `nodes/` in several tests), and a briefing
+    that cannot reach status just cannot exclude deprecated ideas from the
+    count — it does not fail to render.
+    """
+    try:
+        import zoom as _zoom
+        _zoom._add_graph_core_to_path(root)
+        return _zoom._frontmatter_for(root, "idea")
+    except Exception:                                            # noqa: BLE001
+        return {}
+
+
 def build(root: Path, g, loaded=None, *, descendants_fn=None,
-          chain_stats: tuple | None = None) -> Briefing:
+          chain_stats: tuple | None = None, fm_by_id: dict | None = None) -> Briefing:
     """Compute the briefing for `g`.
 
-    `descendants_fn` and `chain_stats` are injectable because the two callers
-    already compute them by different routes and neither should be forced to
-    recompute — but the *presentation* must be shared, which is the point.
+    `descendants_fn`, `chain_stats` and `fm_by_id` are injectable because
+    callers already compute some of them by different routes and neither
+    should be forced to recompute — but the *presentation* must be shared,
+    which is the point. `fm_by_id` defaults to a fresh read from `root`
+    rather than an empty dict: `inject.py` and `viewport.py` both build one
+    already (for `frame_stream`'s own `hide_deprecated`) but neither passes
+    it here, so leaving the default empty would silently reproduce the
+    un-filtered ranking in both of this module's only two callers.
     """
     b = Briefing()
     b.generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -203,9 +258,11 @@ def build(root: Path, g, loaded=None, *, descendants_fn=None,
         b.chain_engine_available = True
         b.chain_count, b.longest_len = chain_stats
 
-    fn = descendants_fn or (lambda nid: count_descendants(g, nid))
+    if fm_by_id is None:
+        fm_by_id = _fm_status_for_ideas(root)
+    fn = descendants_fn or (lambda nid: count_live_descendants(g, nid, fm_by_id))
     attract = [(n.id, fn(n.id)) for n in getattr(g, "nodes", [])
-               if n.type == "idea"]
+               if n.type == "idea" and not _is_deprecated(fm_by_id, n.id)]
     attract.sort(key=lambda x: -x[1])
     b.attractors = attract[:10]
 
