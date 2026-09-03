@@ -55,8 +55,14 @@ Full director authority for the run. Explicitly authorized, on the record:
       scoring either). **In flight, PARENT-A.** Gates L1.09.
 - [ ] **L1.08b** — live scale: parent-spawns-kid, cap 8→16→25, `goal:g4.8`
       clauses 2 & 3. **In flight, PARENT-D.**
-- [ ] **L1.09** — the wide run: cavekit exit + legacy sweep. Survey in flight
-      (PARENT-C); execution waits on the guard.
+- [x] **L1.09** — **DONE, commit `L1.09`.** 159 build-site nodes deprecated
+      in one atomic pass with per-node dispositions, 29 verdicts by citation,
+      kits + plan deleted, 7 build nodes deprecated, `goal:s32` (embeddings
+      gaps, horizon). Guard held: `deprecation_score_delta=-0.102` withheld,
+      primary 0.222 honest. active 913 / deprecated 177 / sum 1090, links 0
+      broken, tests 1452, goals round-trip byte-identical. Follow-ups
+      (briefing attractor filter, `deprecated` in status regexes, stale
+      `CLAUDE.md` rows) dispatched to a cleanup agent.
 - [ ] **L1.10** — chat-to-node linking (`goal:g10.1`, `goal:g2.7`),
       engine-commit pinning (`goal:g8.1`), loop-scoped iteration numbering.
       Design recon in flight (PARENT-E).
