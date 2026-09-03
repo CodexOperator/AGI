@@ -56,6 +56,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -238,8 +239,14 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 # --------------------------------------------------------------------------
 
 def render_human(frames: list[Frame], top: int, left: int,
-                 height: int, width: int, status: str = "") -> list[str]:
-    """The terminal viewport: a window onto a graph larger than the screen."""
+                 height: int, width: int, status: str = "",
+                 brief=None) -> list[str]:
+    """The terminal viewport: a window onto a graph larger than the screen.
+
+    `brief` is the same `Briefing` object `render_llm` receives, rendered
+    compactly — the numbers a human watches change, without the rules text a
+    human reading their own graph does not need restated every frame.
+    """
     lines: list[str] = []
     for f in frames:
         glyph = GLYPH["damaged"] if f.damaged else GLYPH[f.kind]
@@ -250,17 +257,29 @@ def render_human(frames: list[Frame], top: int, left: int,
         lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{v}{spider}{note}")
 
     window = lines[top:top + height]
-    return [ln[left:left + width].ljust(width) for ln in window] + \
-           ([status[:width]] if status else [])
+    out = [ln[left:left + width].ljust(width) for ln in window]
+    if brief is not None:
+        import briefing as _briefing
+        head = [ln[:width] for ln in _briefing.to_compact(brief)]
+        out = head + ["-" * min(width, 80)] + out
+    return out + ([status[:width]] if status else [])
 
 
 def render_llm(frames: list[Frame], top: int, left: int,
-               height: int, width: int, status: str = "") -> str:
+               height: int, width: int, status: str = "",
+               brief=None) -> str:
     """Exactly what a kid is handed for this position.
 
     Same frames, same slice, same order. The markdown wrapper differs because
     the consumer differs -- that is the ONLY thing allowed to differ, and it
     is why this takes the identical arguments as `render_human`.
+
+    `brief` adds the nine briefing sections `INJECTION.md` carries — the
+    metric, the chain rules, the taxonomy, the attractors, the declared
+    commands. Without it this view was **45 lines against INJECTION.md's
+    271**, and the missing 226 were the entire contract a kid's work is judged
+    against. A "view of what an LLM sees" that omits the rules is not a view
+    of what an LLM sees.
     """
     body = []
     for f in frames[top:top + height]:
@@ -276,6 +295,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
     if status:
         head.append(f"> {status}")
         head.append("")
+    if brief is not None:
+        import briefing as _briefing
+        head += [*_briefing.to_markdown(brief), "", "## the graph", ""]
     return "\n".join(head + body) + "\n"
 
 
@@ -465,8 +487,20 @@ def main() -> int:
 
     frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents)
 
+    # goal:g9.7, L1.04 — the briefing is built ONCE and handed to both
+    # formatters, exactly as the frame stream is. Failing to build it is not
+    # fatal: a viewport that can still draw the graph is worth more than one
+    # that refuses to start because the metric config is unreadable.
+    brief = None
+    try:
+        import briefing as _briefing
+        brief = _briefing.build(root, g)
+    except Exception as exc:                                     # noqa: BLE001
+        print(f"viewport: briefing unavailable ({type(exc).__name__}: {exc})",
+              file=sys.stderr)
+
     if args.verify:
-        return _verify(frames, args)
+        return _verify(frames, args, brief)
 
     if args.emit is None and sys.stdout.isatty():
         return interactive(root, g, fm_by_id, args)
@@ -480,33 +514,50 @@ def main() -> int:
             print("HUMAN VIEW".center(args.width))
             print("=" * args.width)
         print("\n".join(render_human(frames, args.top, args.left,
-                                     args.height, args.width, status)))
+                                     args.height, args.width, status, brief)))
     if mode in ("llm", "both"):
         if mode == "both":
             print("\n" + "=" * args.width)
             print("LLM VIEW  — same frames, same slice".center(args.width))
             print("=" * args.width)
         print(render_llm(frames, args.top, args.left,
-                         args.height, args.width, status), end="")
+                         args.height, args.width, status, brief), end="")
     return 0
 
 
-def _verify(frames: list[Frame], args) -> int:
+#: A frame line in the llm view, and ONLY a frame line: `- \`id\` (type) …`.
+#: Matching "any line with a backtick" was correct until the briefing arrived,
+#: at which point `metric_primary`, the verdict taxonomy and every declared
+#: command became false positives. The stricter pattern is the point: a
+#: verifier that silently starts measuring different lines has stopped
+#: verifying (L1.04).
+_FRAME_LINE = re.compile(r"^\s*-\s+`([^`]+)`\s+\(")
+
+
+def _verify(frames: list[Frame], args, brief=None) -> int:
     """`goal:g9.7`'s falsifier, as an executable check.
 
     Both formatters must read the same frames, in the same order, over the
     same slice. The test is not that the two strings match -- they must not,
     the consumers differ -- but that **every node id in one appears in the
     other, in the same order**, and that neither invents or drops a frame.
+
+    Since L1.04 it also checks the **briefing**: both readers are handed the
+    same `Briefing`, so the facts each states must agree. The llm view carries
+    the full contract and the human view a compact projection, and the numbers
+    in the projection have to be the numbers in the contract -- otherwise the
+    two readers are being told different things about the same graph, which is
+    exactly what `goal:g9.7` forbids one layer up.
     """
     top, height = args.top, args.height
     sl = frames[top:top + height]
 
-    human = render_human(frames, top, 0, height, 10_000)
-    llm = render_llm(frames, top, 0, height, 10_000)
+    human = render_human(frames, top, 0, height, 10_000, brief=brief)
+    llm = render_llm(frames, top, 0, height, 10_000, brief=brief)
 
     ok = True
-    llm_ids = [ln.split("`")[1] for ln in llm.splitlines() if "`" in ln]
+    llm_ids = [m.group(1) for m in
+               (_FRAME_LINE.match(ln) for ln in llm.splitlines()) if m]
     if llm_ids != [f.node_id for f in sl]:
         print("FAIL: llm view's node order differs from the frame stream")
         ok = False
@@ -521,8 +572,22 @@ def _verify(frames: list[Frame], args) -> int:
             print(f"FAIL: damage on {f.node_id} is missing from the llm view")
             ok = False
 
+    if brief is not None:
+        # The facts both readers were handed must appear in both renderings.
+        human_blob = "\n".join(human)
+        for label, needle in (("node count", str(brief.node_count)),
+                              ("primary metric", brief.primary),
+                              ("coverage", f"{brief.coverage:.3f}")):
+            if needle not in llm or needle not in human_blob:
+                print(f"FAIL: {label} ({needle!r}) is not in both views")
+                ok = False
+        if "## chain rules" not in llm:
+            print("FAIL: the llm view omits the chain rules a kid is judged on")
+            ok = False
+
     print(f"frames in slice: {len(sl)}   human lines: {len(human_titles)}   "
-          f"llm ids: {len(llm_ids)}")
+          f"llm ids: {len(llm_ids)}   briefing: "
+          f"{'yes' if brief is not None else 'absent'}")
     print("PASS — one stream, two formatters, same nodes in the same order"
           if ok else "FAILED")
     return 0 if ok else 1

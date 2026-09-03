@@ -208,98 +208,29 @@ def main() -> int:
 
     # Build INJECTION.md. Rules first, ASCII last — both injectors truncate at
     # 80 lines, and the rules are the part an agent must not miss.
+    #
+    # The nine briefing sections between the header and the ASCII view are
+    # composed by `briefing.py` rather than written here (L1.04, 2026-09-03).
+    # They used to be literal text in this list, which made this file the sole
+    # owner of the chain rules and the verdict taxonomy -- so `viewport.py`
+    # could not show an agent the same contract without restating it, and a
+    # restated contract drifts. Extracted BEFORE this renderer is deleted, so
+    # the deletion takes nothing with it.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import briefing as _briefing  # noqa: E402
+
+    brief = _briefing.build(
+        PROJECT_ROOT, g, loaded,
+        descendants_fn=lambda nid: _count_descendants(g, nid),
+        chain_stats=(chain_count, longest_len) if _HAS_CHAIN_ENGINE else None,
+    )
+
     out_lines = [
         "# agi-tree INJECTION CONTEXT",
-        f"_generated {datetime.now(timezone.utc).isoformat(timespec='seconds')}_",
+        f"_generated {brief.generated_at}_",
         "",
-        "## graph snapshot",
-        f"- nodes: {len(g)}",
-        f"- edges: {g.edge_count}",
-        "- by type: " + ", ".join(f"{k}={v}" for k, v in sorted(by_type.items())),
+        *_briefing.to_markdown(brief),
     ]
-    if primary in GAMEABLE_METRICS:
-        # Don't hand agents a target the engine itself rejects: name the
-        # misconfiguration and point at the metric they should be moving.
-        out_lines.extend([
-            f"- !! `metric_primary` is `{primary}`, which is **not a valid "
-            f"target** — it is gameable (TODO.md H3). Migrate the config to "
-            f"`{DEFAULT_METRIC_PRIMARY}`.",
-            f"- **score work on `{DEFAULT_METRIC_PRIMARY}`** meanwhile: "
-            f"{coverage:.3f} (mvps per hypothesis)",
-        ])
-    else:
-        out_lines.extend([
-            f"- **scored on `{primary}`** (`metric_primary`) — this is the target",
-            f"- outcome_coverage: {coverage:.3f} "
-            "(mvps per hypothesis; goal-attributable)",
-        ])
-
-    out_lines.extend([
-        "",
-        "## chain diagnostics (descriptive — not targets)",
-    ])
-    if _HAS_CHAIN_ENGINE:
-        out_lines.extend([
-            f"- chain count: {chain_count}",
-            f"- longest chain: {longest_len} hops (via next edges)",
-        ])
-    else:
-        out_lines.append("- unavailable: chain_engine not importable")
-    out_lines.extend([
-        "Hop counts describe the graph's shape; they do not score the work. A",
-        f"rising longest chain against a flat `{DEFAULT_METRIC_PRIMARY}` means hops are",
-        "being padded — agents once drove this stat to 9 chains x 2000 hops carrying",
-        "no signal (TODO.md H3), and that structure is what made chain-finding",
-        "non-terminating (H0c). Read these numbers, never optimise them.",
-        "",
-        "## attractive ideas (descendant count, top 10)",
-    ])
-    for nid, count in idea_attract[:10]:
-        out_lines.append(f"- {nid} :: {count} descendants")
-
-    out_lines.extend([
-        "",
-        "## big-vs-small decision",
-        "Each iteration MUST first answer: **explore a big idea or small idea?**",
-        "- big = fresh chain, broad concept (default 30%)",
-        "- small = extend existing chain mid-way (default 70%)",
-        "",
-        "## verdict taxonomy",
-        "`proved | disproved | inconclusive_lean_proved:N | inconclusive_lean_disproved:N | pending`",
-        "",
-        "## chain rules",
-        "- **chain length is never a target.** Extend a chain only when the next",
-        "  node adds evidence or moves a goal; a short chain that closes a goal",
-        "  beats a long one that closes nothing.",
-        "- attraction is the descendant list above (goal-attributable), not hop count",
-        "- mid-chain join is always allowed; so is starting fresh (see big-vs-small)",
-        "- forks welcome — same idea may spawn multiple hypotheses",
-        "- new ideas spawn from any node type (idea/hypothesis/experiment/verdict)",
-        "- `proved`/`disproved` require `evidence_runs >= 1`; unevidenced verdicts",
-        "  are auto-demoted to `inconclusive_lean_*` by the evidence gate",
-        "",
-        "## next-step suggestions",
-    ])
-    # Suggest pending tasks of small effort first
-    pending = []
-    for ln in loaded:
-        if ln.node.type == "task" and "tier-" in " ".join(ln.node.tags):
-            pending.append(ln.node.id)
-    out_lines.append(f"- pending tasks: {len(pending)} (see nodes/task/)")
-
-    # goal:g1.10 — hand every agent the declared commands rather than expecting
-    # it to remember them. Placed BEFORE the ASCII view because both injectors
-    # truncate at 80 lines and a command an agent never sees is a command it
-    # will reinvent from memory, which is the drift this node exists to end.
-    try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import commands as _commands
-        cmd_lines = _commands.render_for_injection(PROJECT_ROOT)
-        if cmd_lines:
-            out_lines.extend(["", *cmd_lines])
-    except Exception as exc:
-        print(f"warn: could not render declared commands: "
-              f"{type(exc).__name__}: {exc}", file=sys.stderr)
 
     out_lines.extend([
         "",
