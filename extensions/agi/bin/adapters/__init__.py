@@ -15,9 +15,9 @@ beginning; what was missing was somewhere for the flag to point.
 
 `restart` receives the same keyword arguments as `build_command`, plus the
 original `agent_record` dict, so the adapter can rebuild an identical argv
-from what was stored at spawn time. A harness that cannot restart (e.g. the
-claude-code stub) raises `NotImplementedError` and dispatch falls through to
-marking the agent failed.
+from what was stored at spawn time. A harness that cannot restart raises
+`NotImplementedError` and dispatch falls through to marking the agent failed.
+Both shipped adapters -- `pi` and, since 2026-09-03, `claude_code` -- restart.
 
 `load(name)` is the whole dispatch mechanism. There is no registry to keep in
 sync -- the module name comes from config, so adding a harness is one config
