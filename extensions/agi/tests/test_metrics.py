@@ -341,6 +341,26 @@ def test_node_shared_with_a_live_goal_still_scores(project):
     assert m["retired_goal_nodes"] == 0
 
 
+def test_horizon_goal_keeps_scoring(project):
+    """A `horizon` goal is in SCORING_GOAL_STATUSES and its children must
+    score identically to `active`. This is trivially true via the same code
+    path, but no test asserts it -- and a regression that removed `horizon`
+    from the set would silently lose coverage."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    before = metrics.compute(project)
+
+    _goal(project, "g1", "horizon")
+    after = metrics.compute(project)
+
+    assert after["outcome_coverage"] == before["outcome_coverage"]
+    assert (after["scoring_mvp_count"], after["scoring_hypothesis_count"]) == (1, 1)
+    assert after["retired_goal_nodes"] == 0
+    assert after["goals_horizon"] == 1
+    assert after["goals_active"] == 0
+
+
 def test_goal_status_counts_are_emitted(project):
     _goal(project, "g1", "active")
     _goal(project, "g2", "horizon")

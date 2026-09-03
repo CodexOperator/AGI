@@ -11,16 +11,21 @@ session resumes at `L1.08`. Global `iter-NNN` ended at 116.
 
 | | baseline this session | now |
 |---|---|---|
-| active nodes | 940 | 940 |
-| deprecated | 8 | 8 |
-| `outcome_coverage` (primary) | 0.271 | 0.271 |
-| `evidence_fraction` | 0.317 | 0.317 |
+| active nodes | 940 | **982** (after wave 1–2) |
+| deprecated | 8 | 9 |
+| `outcome_coverage` (primary) | 0.271 | **0.224** ⬇ honest: +42 nodes, no chain closed |
+| `evidence_fraction` | 0.317 | 0.320 |
 | `mvp_count` | 39 | 39 |
 | `broken_links` | 0 (1 retired payload, not damage) | 0 |
-| tests | 1371 passing | 1371 |
+| tests | 1371 passing | **1381** |
+| `unevidenced_decisive_verdicts` | 6 | **7** ⚠ one slipped in wave 1–2 |
 | goals active / cap | 13 / 15 | 13 / 15 |
-| budget | 0/25 live | — |
-| unpushed | 0 | — |
+| budget peak | 0/25 live | **25/25, pi=25, held 20:06–20:15** |
+| unpushed | 0 | 0 (pushed after wave 2) |
+
+**Wave 3 dispatched 20:37** — iters `1012`–`1019`, targets g4.8, s18, g7,
+g9.7, g1.10, g13.1, g4.7, g5, two parent slots each. Sampler ends ~21:04;
+restart it if wave 4 runs past.
 
 ### 🔴 Crons are still OFF — push by hand after every iteration
 
