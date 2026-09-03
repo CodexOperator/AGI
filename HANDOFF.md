@@ -12,26 +12,25 @@ until then the commit subject carries it by hand.
 
 | | baseline (post-116) | now |
 |---|---|---|
-| active nodes | 922 | **926** |
+| active nodes | 922 | **936** |
 | deprecated | 7 | 7 |
-| `outcome_coverage` (primary) | 0.300 | 0.293 ⬇ |
+| `outcome_coverage` (primary) | 0.300 | 0.275 ⬇ |
 | `broken_links` | 0 | **0** |
 | goals active / cap | 13 / 9 ⚠ | **13 / 15** ✅ |
 | tests | 1335 | **1346** |
 | unpushed | 0 | **0** |
 
-**The primary dipped, and it is honest.** L1.02 minted three hypotheses and
-closed no chain. Same dynamic as iterations 107–111 last session: hypotheses
-lead, mvps lag, coverage recovers when the chains close. Do not "fix" it by
-minting mvps for work already done.
+**The primary is falling, and it is honest.** 14 hypotheses minted, no chain
+closed. Same dynamic as iterations 107–111 last session: hypotheses lead, mvps
+lag, coverage recovers when the chains close. **Do not "fix" it** by minting
+mvps for work already done — that was tried and `[mvp].md` forbids it.
 
-**OpenRouter, measured live:** `$20.00` total, **`$15.51` remaining**.
-L1.02 cost **$0.052** for three kids. Per-key cap `$5.00`, so the balance is
-**three keys deep, not twenty**. The owner's ruling stands: if it runs out,
+**OpenRouter, measured live:** `$20.00` total, **`$15.43` remaining**.
+L1.02 + L1.03 cost **$0.14** for 12 kids. Per-key cap `$5.00`, so the balance
+is three keys deep, not twenty. The owner's ruling stands: if it runs out,
 stop the experiment where it got to and call it data.
 
-🔵 **`spawn.parallel` is currently `1`** — dropped from 5 for L1.02's clean
-attribution measurement. L1.03 is where it ramps to 8.
+🔵 **`spawn.parallel` is `8`.** Ramp so far: 5 → 2 → 1 (attribution) → 8.
 
 **Runtime:** pi — `deepseek/deepseek-v4-flash` kids under `qwen/qwen3.8-27b`
 parents. No pi agent dispatched yet this loop; L1.01 was engine-primitive work.
@@ -52,8 +51,9 @@ survived a live run.**
 - [x] **L1.02** — first live agents on minted keys. **The mvp is not closed:**
       Part A was *disproved and then fixed*; Part B (provisioning-absent
       fallback) has still never been run live.
-- [ ] **L1.03** — `mvp:the-bound-under-real-agents`, cap 8. **NEXT.**
-- [ ] **L1.04** — viewport `--emit llm` reaches INJECTION parity.
+- [x] **L1.03** — the bound at 8 + `goal:g1.11` Part B. **The mvp is not
+      closed:** cap 25 and clauses 2/3 are untouched.
+- [ ] **L1.04** — viewport `--emit llm` reaches INJECTION parity. **NEXT.**
 - [ ] **L1.05** — INJECTION.md retired, 4 render paths deleted. Cap 12.
 - [ ] **L1.06** — `agi <verb>` router; `view` / `view-llm` / `write` declared.
 - [ ] **L1.07** — `write.py create`; schema backfill rides along. Cap 16.
@@ -146,25 +146,59 @@ minutes** — old hazard: revoking too much; new one: revoking nothing, silently
 **What held:** injection, the provisioning-key scrub (0 occurrences in a kid),
 revoke-on-reclaim live for the first time, and 0 outstanding keys afterwards.
 
+## §2c What landed in L1.03 — the bound holds, and a warning about the ramp
+
+**Part B ran.** With the provisioning key removed from `.env`: `available()`
+False, dispatch exit 0, the minting line **absent** (skipped, not failed),
+zero `OPENROUTER_*` vars in the kid's environ, zero minted keys, shared-key
+usage moving. `goal:g1.11`'s falsifier is complete in both halves.
+
+**The bound at 8**, sampled every 2s because a peak is invisible in an end
+state:
+
+```
+PEAK leases=8  pi_procs=8   over 113 samples / ~226s
+manifest 8 agents, 0 unadmitted · nodes 926 -> 935, exactly +9
+8 distinct keys, 8 distinct bills, 0 outstanding afterwards
+```
+
+Peak **equals** cap — on the boundary, same signature as the synthetic 1/3/5.
+
+### 🔴 Concurrency at one target buys duplicates, not coverage
+
+**Six of eight kids wrote the same hypothesis.** Every slot was aimed with the
+same `--target` and `--level`, so all eight got the same 2-hop subtree and
+independently picked its most salient open thread. **`spawn.parallel` is a
+throughput knob, not a coverage knob** — the marginal kid re-derives what the
+previous kid is deriving *right now*, because none can see the others in
+flight. This gets worse at 16 and 25.
+
+**Implication for the ramp:** raising the cap without target diversity buys
+duplicate tokens. Observe once more at 16 before deciding whether to fix it.
+
+### 🔴 `goal:s31`'s "lift" fails ~33% and it hides the best node
+
+4 of 12 kid nodes this session shipped a placeholder title and empty
+`testable_claim` while the claim sat in the body two lines below. **Seed
+works; lift does not.** Not cosmetic: `a05` carried the most valuable claim in
+the batch — `goal:g4.8` clause 2, the never-observed one — under a title that
+read like noise, and selecting by title is what every renderer and zoom does.
+
 ## §3 🔴 Where it stopped, and the exact next command
 
-L1.02 is committed, grid-versioned and pushed. **Next is L1.03** —
-`mvp:the-bound-under-real-agents`, `goal:g4.8` clauses 1, 3, 4, at cap 8.
+L1.03 is committed, grid-versioned and pushed. **Next is L1.04** — engine
+work, no kids: bring `viewport.py --emit llm` up to `INJECTION.md` parity.
 
 ```bash
 cd /home/ubuntu/work/agi
-python3 extensions/agi/bin/provisioning.py status     # expect 0 outstanding
-python3 extensions/agi/bin/spawn_budget.py status     # expect 0/25 live
-# then raise spawn.parallel 1 -> 8 in .agi/config.json and dispatch
+python3 extensions/agi/bin/viewport.py --emit llm | wc -l   # 45
+wc -l .agi/context/INJECTION.md                             # 271
+python3 extensions/agi/bin/commands.py run viewport-verify
 ```
 
-**Two things L1.02 left open and L1.03 must not skip past:**
-
-1. **Part B has never run** — the loop with `OPENROUTER_PROVISIONING_KEY`
-   unset, falling back to the shared key. Cheap, and it is half of
-   `goal:g1.11`'s falsifier: a hardening feature that becomes a hard
-   dependency has made the project more fragile while calling itself hardened.
-2. **`spawn.parallel` is 1.** Restore deliberately as part of the ramp.
+The gap is not structure — it is the rules header, the stats block and the
+command table that `render-context.py` adds and the viewport does not.
+**L1.05 deletes four render paths once this lands**, so parity is the gate.
 
 ## §4 Traps hit this session
 
