@@ -7,8 +7,8 @@ parents:
   - verdict:scaffolds-are-born-valid-now
 next_edges: []
 scaffold_hash: 879a958ec582a87e
-status: open
-confidence: 0.75
+status: complete
+confidence: 0.8
 ---
 
 # mvp:the-corpus-becomes-schema-valid
@@ -16,8 +16,9 @@ confidence: 0.75
 ## What this must satisfy
 
 `verdict:scaffolds-are-born-valid-now` is true forward and false backward:
-**115 of 900 nodes on disk are still schema-invalid.** `write.py schema --fix`
-exists and has only ever run dry.
+**115 of 900 nodes on disk are still schema-invalid.** The backfill ran in
+`L1.07` (`ab07ec980`) — 118 → 62 invalid, 90 filled — and the command that
+ran it was removed from `write.py` in the same commit.
 
 ### The two populations, and only one is mechanical
 
@@ -53,6 +54,19 @@ unchanged. Every node that carried a `THOUGHT` before still carries the same
 one, byte-identical. `grid.py commit --all` mints a version for each changed
 node and none for the rest.
 
+**Run, and passed, in `L1.07` (`ab07ec980`).** The backfill filled 90
+field-instances (118 → 62 invalid — the census had grown from 115 to 118
+between this node's writing and the run, and the residual still landed on
+the predicted 62, on the predicted set: `testable_claim` x51, `scale` x7,
+`next_edges` x3, `confidence` x1). The node diff of that commit carries a
+net +2 THOUGHT lines across 93 files, so invariant 3 held. The iter-1007
+census reads 71 of 956: the 62 plus nine in-flight kids of the current
+iteration, all still in the non-derivable set. The command itself was
+removed from `write.py` in the same commit — the verb layer's
+mechanically-checked no-file-write invariant is the reason — which is why
+the residual is now reported by `node_writer.missing_required` run over the
+corpus rather than by a standing command.
+
 ### The unreachable half needs a different mechanism
 
 Reaching the 51 means either reading a claim out of unstructured prose — a
@@ -61,14 +75,27 @@ the heading. **The second is cheap and should happen first**, and it is
 `goal:g1.9`'s territory since the brief is assembled, not typed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The falsifier predicts a specific residual rather than success, because "the
-backfill worked" and "the backfill filled everything" are different claims and
-only the first is wanted. A run that produced 0 remaining would mean something
-invented 51 claims.
+Parent review, iteration 1007. The mvp's falsifier was executed and passed
+while this node was open, and this version records that instead of leaving
+an open mvp whose named command no longer exists.
 
-The last section is the actually useful finding buried in this mvp: the
-mechanical fix is the small half. Most of the invalidity is bodies that never
-carried the structure the frontmatter needed, and the durable fix is upstream
-in the brief rather than downstream in a backfill. Recording that here stops
-the backfill from being mistaken for the solution.
+What the review found: `L1.07` (`ab07ec980`) ran the backfill for real —
+118 → 62 invalid, 90 field-instances filled — with the residual landing on
+exactly the set this node predicted. That is the falsifier passing on its
+predicted number rather than on 0, which is the stronger of the two
+outcomes: a run that had produced 0 would mean something invented 51
+claims. The same commit then removed `write.py schema [--fix]`, because
+`write.py` holds a mechanically-checked invariant that it performs no file
+write at all, and carving the backfill an exception would have traded a
+strong mechanical property for a comment. So the tool this mvp's falsifier
+names as standing is gone, and a reader who tried to re-run the falsifier
+would have been met with an argparse error.
+
+`status: open` → `complete`, `confidence` 0.75 → 0.8. The mechanical half
+of the mvp is discharged; the residual (now 71 of 956 with nine in-flight
+kids) is by this node's own terms `goal:g1.9`'s territory — model or
+brief change, not a backfill — and stays reported rather than hidden.
+The 91 → 90 delta (predicted derivable vs filled) is census drift, not a
+miss: three new nodes became invalid between the two runs, and the
+residual — the number the falsifier actually predicts — matched.
 <!-- THOUGHT:END -->
