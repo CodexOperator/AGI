@@ -510,6 +510,7 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
     # into the body -- four kids in a row did, and it lands twice"), and the
     # accusation was false: no kid was writing it, two engine writers were.
     # Re-running `done` after an evidence-gate demotion made it three copies.
+    body = node_file.read_text() if notes else ""
     if notes and notes.strip() not in body:
         with open(node_file, "a") as f:
             f.write(f"\n\n## Agent Notes\n{notes}\n")
