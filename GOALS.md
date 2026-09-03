@@ -441,6 +441,9 @@ that `git fetch` brings the grid down and the crontab shows the managed
 `agi-crons` block with all four jobs. If either needs a second command, this
 is not done.
 
+## Agent Notes
+L1.09 (2026-09-03): the cavekit build-site's `hyp:graph-core-r10` -- one command that turns an empty directory into a valid graph root (skeleton, a minimal example node and schema, idempotent re-run, one summary of created paths) -- is the scaffolding half this goal already owes; recorded here rather than as a new goal, and the hypothesis is deprecated with its cohort (goal:s18).
+
 ### G1.6 — Every action is a one-word command, inside the project — status: horizon
 
 **No more reaching for a file whose path you have to know.** Today an agent runs
@@ -7568,3 +7571,45 @@ resulting file against `[hypothesis].md`'s `required` list with no parent
 intervention. It passes. Then confirm `completion.is_complete` still
 distinguishes the untouched scaffold from a filled one — the fix must not buy
 validity with the completion check.
+
+## S32 — Finish the embeddings pipeline the build-site started — cache, in-graph storage, and a scatter renderer — status: horizon
+
+**Minted 2026-09-03 in L1.09 from the cavekit build-site survey
+(`goal:s18`, `.agi/sessions/L1.09-mining/report.md` §B) — the one new goal that survey found worth
+minting.** Most of the embeddings domain the build-site specified is already
+real code, and a goal that does not say so would get it re-implemented:
+
+- `extensions/agi/src/embeddings/node2vec.py` — per-node Node2Vec,
+  seed-deterministic (`hyp:embeddings-r1`, closed by citation)
+- `extensions/agi/src/embeddings/projection.py` — the UMAP projection
+  (`hyp:embeddings-r2`, proved)
+- coordinate isomorphism with the renderers' shared representation
+  (`hyp:embeddings-r3`, proved)
+- `extensions/agi/src/embeddings/similarity.py` — top-k cosine similarity
+  (`hyp:embeddings-r5`, closed by citation)
+
+Three pieces the build-site scoped were never built, and nothing else in the
+graph reaches for them:
+
+1. **A cache.** Invalidation when the graph changes, portable across a copy of
+   `.agi/`, with a force flag (was `hyp:embeddings-r4`). `graph_core/cache.py`
+   already has the digest-and-invalidate pattern — reuse it; a second cache
+   design is the one-fact-two-definitions shape `goal:s17` names.
+2. **In-graph storage.** An optional toggle that writes a node's vector into
+   the node rather than a sidecar, off by default, with the loader reading it
+   back (was `hyp:embeddings-r7`).
+3. **A scatter renderer.** The 2-D projection drawn through the same
+   representation the ASCII and Mermaid renderers consume (was
+   `hyp:embeddings-r6`). It was blocked on a renderer plugin contract
+   (`hyp:renderers-r7`) that does not exist and is not coming — call it the
+   way `zoom.py` calls the others, directly.
+
+Spawn under `idea:engine-embeddings`, the live `origin: engine-decomp` anchor
+for `extensions/agi/src/embeddings/`, not under the deprecated
+`idea:domain-embeddings`.
+
+Falsifier: a second embed run over an unchanged graph does no model work and
+`--force` does; with the toggle on, a node's frontmatter carries its vector
+and the loader reads it back; the scatter renderer is byte-identical across
+two runs over the same graph and consumes the same representation `ascii.py`
+does.
