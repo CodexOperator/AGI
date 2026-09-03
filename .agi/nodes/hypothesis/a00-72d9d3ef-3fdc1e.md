@@ -1,16 +1,16 @@
 ---
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-id: "hyp:a00-72d9d3ef-3fdc1e"
+id: hyp:a00-72d9d3ef-3fdc1e
 mint_id: 6a645007dfbf4a048e8c0fcb21e0dfd9
+type: hypothesis
+parents: []
 next_edges:
   - verdict:hypothesis_a00-72d9d3ef-3fdc1e
-parents: []
-status: "inconclusive_lean_proved:50"
-type: hypothesis
-verdict: "inconclusive_lean_proved:50"
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+status: inconclusive_lean_proved:50
+title: A00 72d9d3ef 3fdc1e
+verdict: inconclusive_lean_proved:50
 ---
-
 # hyp:a00-72d9d3ef-3fdc1e
 
 ## Hypothesis

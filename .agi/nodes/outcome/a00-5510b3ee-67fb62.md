@@ -4,11 +4,11 @@ mint_id: 5d4a730773974adaa7b67b54c647aa82
 type: outcome
 parents:
   - mvp:a00-8a013aaf-ca2434
-scaffold_hash: 4d1ad36c24dd8644
-verdict: inconclusive_lean_proved:70
 confidence: 0.7
+scaffold_hash: 4d1ad36c24dd8644
+title: A00 5510b3ee 67fb62
+verdict: inconclusive_lean_proved:70
 ---
-
 
 # outcome:a00-5510b3ee-67fb62
 

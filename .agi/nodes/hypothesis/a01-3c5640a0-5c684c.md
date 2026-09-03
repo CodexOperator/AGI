@@ -7,6 +7,7 @@ parents:
 next_edges: []
 confidence: 0.0
 scaffold_hash: 34f0fb318b13290b
+testable_claim: "**Part A — provisioning key present.** A real pi agent dispatched through the engine with a provisioning key set authenticates against OpenRouter using the minted per-spawn key (injected as `OPENROUTER_API_KEY`), completes its assigned dialogue, and the key is revoked when the agent exits. The agent's environment contains no `OPENROUTER_PROVISIONING_KEY`. The run succeeds."
 title: A real pi agent completes a dialogue using a per-spawn OpenRouter key — the last untested falsifier clause
 verdict: pending
 ---

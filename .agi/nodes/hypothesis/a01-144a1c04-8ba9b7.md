@@ -1,16 +1,16 @@
 ---
-confidence: 0.5
-evidence_runs: 0
 id: hypothesis:a01-144a1c04-8ba9b7
 mint_id: 069862672b874e4a8c14d19558c0cecd
-parents:
-- idea:domain-graph-core
 type: hypothesis
+parents:
+  - idea:domain-graph-core
+confidence: 0.5
+evidence_runs: 0
+title: A01 144a1c04 8ba9b7
 verdict: pending
 wired_at: 1788197188
 wired_from: a01-144a1c04
 ---
-
 
 
 # hypothesis:a01-144a1c04-8ba9b7
@@ -35,4 +35,3 @@ Spawn one experiment: implement a `resolve_body(node, graph, depth, visited)` pr
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. -->
 Prior graph-core hypotheses (r1 generic primitives, r10 bootstrap, r11 traversal) stop at flat edges and walking. Recursive bodies are named in the domain seed but no hypothesis tests whether they cost a format change or are free at read time. This one claims free — smallest-possible version of the feature, falsifiable by one prototype + property test.
 <!-- THOUGHT:END -->
-

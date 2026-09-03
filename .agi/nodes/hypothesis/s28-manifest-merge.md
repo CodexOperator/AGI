@@ -1,14 +1,14 @@
 ---
-confidence: 0.9
-evidence_runs: 0
-id: "hypothesis:s28-manifest-merge"
+id: hypothesis:s28-manifest-merge
 mint_id: 663d6a55377a4d31ba4ec21bed8cf4b3
+type: hypothesis
 parents:
   - goal:s28
-type: hypothesis
+confidence: 0.9
+evidence_runs: 0
+title: S28 manifest merge
 verdict: pending
 ---
-
 # hypothesis:s28-manifest-merge
 
 ## Hypothesis

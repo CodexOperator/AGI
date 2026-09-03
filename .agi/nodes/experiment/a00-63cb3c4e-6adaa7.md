@@ -1,20 +1,20 @@
 ---
-confidence: 0.75
-evidence_runs:
-  - experiment:a00-63cb3c4e-6adaa7
-id: "experiment:a00-63cb3c4e-6adaa7"
+id: experiment:a00-63cb3c4e-6adaa7
 mint_id: ea4875a44daf436f86a6dc0a31ea62fd
+type: experiment
 parents:
   - hypothesis:a00-9bae6ee8-52d7f5
-scaffold_hash: 3c0017a0a96f6e78
-type: experiment
-demote_reason: "loop-level admission was re-implemented in the test, not called (B2/C3/D2)"
+confidence: 0.75
+demote_reason: loop-level admission was re-implemented in the test, not called (B2/C3/D2)
 demoted_from: proved
-verdict: "inconclusive_lean_proved:75"
+evidence_runs:
+  - experiment:a00-63cb3c4e-6adaa7
+scaffold_hash: 3c0017a0a96f6e78
+title: A00 63cb3c4e 6adaa7
+verdict: inconclusive_lean_proved:75
 wired_at: 1788317207
 wired_from: a00-63cb3c4e
 ---
-
 # experiment:a00-63cb3c4e-6adaa7
 
 ## Experiment

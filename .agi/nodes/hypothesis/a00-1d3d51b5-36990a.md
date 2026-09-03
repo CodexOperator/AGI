@@ -1,20 +1,20 @@
 ---
-confidence: 0.5
-id: "hyp:a00-1d3d51b5-36990a"
+id: hyp:a00-1d3d51b5-36990a
 mint_id: 9294b410bf484b67986806c56ff50c3c
+type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
+confidence: 0.5
 tags:
   - zoom-level
   - agent-routing
   - A00
+testable_claim: Agents injected with BIG zoom level (whole-graph exploration mode) will spawn ≥3x more new idea or hypothesis nodes per session than agents injected with SMALL zoom level (mid-chain extension mode).
 title: "Zoom-level routing: BIG zoom agents spawn 3x more new ideas than SMALL zoom agents"
-type: hypothesis
 verdict:
 wired_at: 1777664395
 wired_from: a00-1d3d51b5
 ---
-
 # hyp:a00-1d3d51b5-36990a
 
 ## Testable Claim

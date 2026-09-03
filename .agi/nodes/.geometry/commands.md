@@ -4,7 +4,119 @@ mint_id: b7e4f0a91c2d4e8fa63b5d7c8e1f2a04
 type: command
 parents:
   - goal:g1.10
-commands: "{'smoke': {'argv': ['bash', '<engine>/extensions/agi/driver.sh', '--smoke', '--max-iters', '1'], 'about': 'snapshot + render + metrics, no dispatch — verify the node count did not drop', 'workflow': 'verify'}, 'tests': {'argv': ['python3', '-m', 'pytest', '<engine>/extensions/agi/tests/', '-q'], 'about': \"the engine's own suite\", 'workflow': 'verify'}, 'goals-check': {'argv': ['python3', '<engine>/extensions/agi/bin/snapshot-goals.py', '--render', '--check'], 'about': 'GOALS.md and the goal nodes are byte-identical inverses', 'workflow': 'verify'}, 'viewport-verify': {'argv': ['python3', '<engine>/extensions/agi/bin/viewport.py', '--verify'], 'about': 'goal:g9.7 — one render, two readers', 'workflow': 'verify'}, 'grid-commit': {'argv': ['python3', '<engine>/extensions/agi/bin/grid.py', 'commit', '--all'], 'about': 'version every changed node and its payload', 'workflow': 'verify'}, 'links': {'argv': ['python3', '<engine>/extensions/agi/bin/links.py', 'links'], 'about': \"goal:g13 — every node's link resolves; broken_links must be 0\", 'workflow': 'read'}, 'schema': {'argv': ['python3', '<engine>/extensions/agi/bin/links.py', 'schema'], 'about': \"goal:s31 — which nodes violate their type's required list (dry)\", 'workflow': 'read'}, 'budget': {'argv': ['python3', '<engine>/extensions/agi/bin/spawn_budget.py', 'status'], 'about': 'goal:g4.8 — live agents against the tree-wide bound', 'workflow': 'read'}, 'credentials': {'argv': ['python3', '<engine>/extensions/agi/bin/provisioning.py', 'status'], 'about': 'goal:g1.11 — whether per-spawn keys are being issued', 'workflow': 'read'}, 'secrets': {'argv': ['python3', '<engine>/extensions/agi/bin/envfile.py', '--check'], 'about': 'goal:g1.8 — required keys present, forbidden keys absent', 'workflow': 'read'}, 'crons': {'argv': ['python3', '<engine>/extensions/agi/bin/crons.py', 'show'], 'about': 'the crontab the graph declares', 'workflow': 'read'}, 'view': {'argv': ['python3', '<engine>/extensions/agi/bin/viewport.py', '--live'], 'about': 'the live graph, agents drawn as spiders where they are working', 'workflow': 'see'}, 'view-llm': {'argv': ['python3', '<engine>/extensions/agi/bin/viewport.py', '--emit', 'llm'], 'about': 'goal:g9.7 — exactly what a kid is handed, from the same frame stream', 'workflow': 'see'}, 'view-both': {'argv': ['python3', '<engine>/extensions/agi/bin/viewport.py', '--emit', 'both'], 'about': 'human and llm views side by side, from ONE stream', 'workflow': 'see'}, 'write': {'argv': ['python3', '<engine>/extensions/agi/bin/write.py'], 'about': 'goal:g13.1 — named node operations; a hand edit becomes an engine action', 'workflow': 'see'}}"
+commands:
+  smoke:
+    argv:
+      - bash
+      - <engine>/extensions/agi/driver.sh
+      - --smoke
+      - --max-iters
+      - 1
+    about: snapshot + render + metrics, no dispatch — verify the node count did not drop
+    workflow: verify
+  tests:
+    argv:
+      - python3
+      - -m
+      - pytest
+      - <engine>/extensions/agi/tests/
+      - -q
+    about: the engine's own suite
+    workflow: verify
+  goals-check:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/snapshot-goals.py
+      - --render
+      - --check
+    about: GOALS.md and the goal nodes are byte-identical inverses
+    workflow: verify
+  viewport-verify:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/viewport.py
+      - --verify
+    about: goal:g9.7 — one render, two readers
+    workflow: verify
+  grid-commit:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - commit
+      - --all
+    about: version every changed node and its payload
+    workflow: verify
+  links:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - links
+    about: goal:g13 — every node's link resolves; broken_links must be 0
+    workflow: read
+  schema:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - schema
+    about: goal:s31 — which nodes violate their type's required list (dry)
+    workflow: read
+  budget:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/spawn_budget.py
+      - status
+    about: goal:g4.8 — live agents against the tree-wide bound
+    workflow: read
+  credentials:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/provisioning.py
+      - status
+    about: goal:g1.11 — whether per-spawn keys are being issued
+    workflow: read
+  secrets:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/envfile.py
+      - --check
+    about: goal:g1.8 — required keys present, forbidden keys absent
+    workflow: read
+  crons:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/crons.py
+      - show
+    about: the crontab the graph declares
+    workflow: read
+  view:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/viewport.py
+      - --live
+    about: the live graph, agents drawn as spiders where they are working
+    workflow: see
+  view-llm:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/viewport.py
+      - --emit
+      - llm
+    about: goal:g9.7 — exactly what a kid is handed, from the same frame stream
+    workflow: see
+  view-both:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/viewport.py
+      - --emit
+      - both
+    about: human and llm views side by side, from ONE stream
+    workflow: see
+  write:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+    about: goal:g13.1 — named node operations; a hand edit becomes an engine action
+    workflow: see
 edited_by: director
 ordered:
   - verify
@@ -13,9 +125,27 @@ tags:
   - geometry
   - command
   - structural
-thought_session: L1.06
+thought_session: L1.07
 title: Standard command declaration
-workflows: "{'verify': ['smoke', 'tests', 'goals-check', 'viewport-verify', 'grid-commit'], 'read': ['links', 'schema', 'budget', 'credentials', 'secrets', 'crons'], 'see': ['view', 'view-llm', 'view-both', 'write']}"
+workflows:
+  verify:
+    - smoke
+    - tests
+    - goals-check
+    - viewport-verify
+    - grid-commit
+  read:
+    - links
+    - schema
+    - budget
+    - credentials
+    - secrets
+    - crons
+  see:
+    - view
+    - view-llm
+    - view-both
+    - write
 ---
 **The commands the engine cannot run without, declared once.** Every other
 thing a run does is configuration — metrics, dispatch, harnesses, schemas,
@@ -65,5 +195,5 @@ absolute path — machine state `goal:g8.2` keeps out of the graph — appears
 here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Four `see` commands added 2026-09-03 (L1.06), and a router in driver.sh that makes them reachable as `agi <verb>`. The owner asked for two views by name: the dynamic human overview with the spiders, and the view an LLM actually receives, so the exact flow a model faces can be inspected rather than inferred. Both are now commands, which is what makes them discoverable -- INJECTION.md hands every agent the table, so a view nobody was told about becomes a view everybody is handed. `write` joins them because goal:g13.1 verb layer had no operator-facing entry point at all: it existed and nothing typed it. THE ROUTER DELIBERATELY HAS NO VERB LIST. driver.sh treats any bare first word as a declared command and delegates here; a `case` arm per verb would have put the table back in the shell as a fifth prose copy, which is the precise drift this node exists to have ended. Adding `agi <anything>` is a node edit. Flags are untouched: `agi --max-iters 5` and `agi view` are both valid and neither knows about the other.
+roundtrip probe
 <!-- THOUGHT:END -->

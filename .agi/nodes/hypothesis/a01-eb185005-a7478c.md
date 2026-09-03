@@ -1,16 +1,16 @@
 ---
-confidence: 0.5
-evidence_runs: 0
 id: hypothesis:a01-eb185005-a7478c
 mint_id: 41ca83dcac23457da5c177edc7d6ea90
-parents:
-- idea:domain-graph-core
 type: hypothesis
+parents:
+  - idea:domain-graph-core
+confidence: 0.5
+evidence_runs: 0
+title: A01 eb185005 a7478c
 verdict: pending
 wired_at: 1788198005
 wired_from: a01-eb185005
 ---
-
 
 
 # hypothesis:a01-eb185005-a7478c

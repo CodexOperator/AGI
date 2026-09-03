@@ -583,3 +583,78 @@ def test_the_completion_half_invents_nothing_when_the_section_is_absent(tmp_path
     filled = _nw.derive_required_from_body(graph, "hypothesis:empty")
     assert filled.status == _nw.UNCHANGED
     assert "testable_claim" not in (graph / "nodes/hypothesis/empty.md").read_text()
+
+
+# --------------------------------------------------------------------------
+# L1.07 — render_frontmatter and nested mappings
+# --------------------------------------------------------------------------
+
+def test_a_nested_mapping_round_trips_instead_of_becoming_a_repr():
+    """🔴 This destroyed the node the whole command system reads.
+
+    `render_frontmatter` handled list, bool and None, and every other type
+    fell through to `str(v)`. `command:commands` carries a nested `commands:`
+    mapping, so one `write.py ... 'thought ...'` on it wrote back a **Python
+    dict repr inside a quoted string**:
+
+        commands: "{'smoke': {'argv': ['bash', ...
+
+    `commands.load` then raised `'str' object has no attribute 'items'` and
+    every `agi <verb>` stopped working. It was committed and pushed, because
+    the suite had been run *before* that edit and the edit shared a shell
+    command with the commit.
+
+    The bug was old and merely unreachable: nothing had written a node with a
+    nested mapping until `[command]` existed. `str(v)` is the branch that
+    makes losing data look like working.
+    """
+    import yaml
+
+    fm = {
+        "id": "command:commands",
+        "type": "command",
+        "commands": {
+            "smoke": {"argv": ["bash", "driver.sh", "--smoke"],
+                      "about": "no dispatch", "workflow": "verify"},
+            "view": {"argv": ["python3", "viewport.py", "--live"],
+                     "about": "spiders", "workflow": "see"},
+        },
+        "workflows": {"verify": ["smoke"], "see": ["view"]},
+        "empty_map": {},
+    }
+    text = "\n".join(nw.render_frontmatter(fm))
+    back = yaml.safe_load(text)
+
+    assert isinstance(back["commands"], dict), (
+        "a mapping became a scalar — this is the exact regression")
+    assert back["commands"]["smoke"]["argv"] == ["bash", "driver.sh", "--smoke"]
+    assert back["commands"]["view"]["workflow"] == "see"
+    assert back["workflows"] == {"verify": ["smoke"], "see": ["view"]}
+    assert back["empty_map"] == {}
+    assert "{'" not in text, "a Python repr leaked into the frontmatter"
+
+
+def test_a_list_of_mappings_round_trips_too():
+    """The other container this used to flatten. JSON is valid YAML."""
+    import yaml
+
+    fm = {"id": "x:y", "type": "t",
+          "rows": [{"k": 1, "v": "a"}, {"k": 2, "v": "b"}]}
+    back = yaml.safe_load("\n".join(nw.render_frontmatter(fm)))
+    assert back["rows"] == [{"k": 1, "v": "a"}, {"k": 2, "v": "b"}]
+
+
+def test_scalars_and_empty_containers_are_unchanged_by_the_fix():
+    """The fix must not move anything that already worked."""
+    import yaml
+
+    fm = {"id": "x:y", "type": "t", "parents": [], "next_edges": ["a:b"],
+          "flag": True, "nothing": None, "n": 3, "s": "plain"}
+    text = "\n".join(nw.render_frontmatter(fm))
+    back = yaml.safe_load(text)
+    assert back["parents"] == []
+    assert back["next_edges"] == ["a:b"]
+    assert back["flag"] is True
+    assert back["nothing"] is None
+    assert back["n"] == 3 and back["s"] == "plain"
+    assert "flag: true" in text, "bools stay lowercase yaml"

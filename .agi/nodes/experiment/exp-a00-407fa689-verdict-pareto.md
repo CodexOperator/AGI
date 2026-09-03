@@ -1,14 +1,14 @@
 ---
-id: "exp:exp-a00-407fa689-verdict-pareto"
+id: exp:exp-a00-407fa689-verdict-pareto
 mint_id: 38d1f73b6d194e9f9277f5f98fe5adc3
+type: experiment
 parents:
   - hyp:a00-407fa689-3a4948
 tags:
   - chain-extension
   - bias
-type: experiment
+title: Exp a00 407fa689 verdict pareto
 ---
-
 # exp:exp-a00-407fa689-verdict-pareto
 
 ## What Was Tested

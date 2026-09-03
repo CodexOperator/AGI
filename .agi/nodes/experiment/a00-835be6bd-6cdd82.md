@@ -4,11 +4,11 @@ mint_id: c6a24c92338b437fa76e203c716cc3ef
 type: experiment
 parents:
   - hypothesis:a00-2e59d7d4-5497cf
-scaffold_hash: acdcd552d042629a
-verdict: inconclusive_lean_proved:55
 confidence: 0.55
+scaffold_hash: acdcd552d042629a
+title: A00 835be6bd 6cdd82
+verdict: inconclusive_lean_proved:55
 ---
-
 
 # experiment:a00-835be6bd-6cdd82
 

@@ -1,16 +1,16 @@
 ---
-confidence: 0.5
-evidence_runs: 0
 id: hypothesis:a00-652a7e70-1adcde
 mint_id: b1bf250ead2e41bf99d28146a0a26c68
-parents:
-- goal:g4.3
 type: hypothesis
+parents:
+  - goal:g4.3
+confidence: 0.5
+evidence_runs: 0
+title: A00 652a7e70 1adcde
 verdict: pending
 wired_at: 1788204776
 wired_from: a00-652a7e70
 ---
-
 
 
 # hypothesis:a00-652a7e70-1adcde

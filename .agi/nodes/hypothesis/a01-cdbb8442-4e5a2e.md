@@ -1,16 +1,17 @@
 ---
-confidence: 0.5
-id: "hyp:a01-cdbb8442-4e5a2e"
+id: hyp:a01-cdbb8442-4e5a2e
 mint_id: 44500109434e4468bc36836b6c9c0ebc
+type: hypothesis
 parents:
   - idea:domain-graph-core
+confidence: 0.5
 tags:
   - graph-core
   - R11
-type: hypothesis
+testable_claim: "**Claim:** A subscriber plugin can register callbacks for `node_added`, `node_updated`, `node_deleted`, `edge_added`, `edge_deleted` events. When a graph mutation occurs, the bus dispatches the matching event to all registered subscribers within the same load cycle. No subscriber code appears inside graph-core."
+title: A01 cdbb8442 4e5a2e
 verdict: pending
 ---
-
 # graph-core/R11: Graph Change Event Bus
 
 ## Hypothesis

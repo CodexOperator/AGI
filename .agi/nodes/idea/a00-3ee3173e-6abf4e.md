@@ -1,16 +1,16 @@
 ---
-confidence: 0.5
-evidence_runs: 0
 id: idea:a00-3ee3173e-6abf4e
 mint_id: 93dc7459eaca4c4fb2bf3b3509b9a4f7
-parents: []
-scale: big
 type: idea
+parents: []
+confidence: 0.5
+evidence_runs: 0
+scale: big
+title: A00 3ee3173e 6abf4e
 verdict: pending
 wired_at: 1788197188
 wired_from: a00-3ee3173e
 ---
-
 
 
 # idea:a00-3ee3173e-6abf4e

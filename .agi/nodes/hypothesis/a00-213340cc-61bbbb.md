@@ -1,11 +1,11 @@
 ---
-id: "hyp:a00-213340cc-61bbbb"
+id: hyp:a00-213340cc-61bbbb
 mint_id: 71205f2e17f245d8aaa0df86b94459fc
-next_edges: []
-parents: []
 type: hypothesis
+parents: []
+next_edges: []
+title: A00 213340cc 61bbbb
 ---
-
 # hyp:a00-213340cc-61bbbb
 
 ## Hypothesis

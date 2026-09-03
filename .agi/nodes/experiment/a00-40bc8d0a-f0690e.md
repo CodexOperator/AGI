@@ -1,19 +1,19 @@
 ---
-confidence: 0.65
-evidence_runs: 1
-id: "experiment:a00-40bc8d0a-f0690e"
+id: experiment:a00-40bc8d0a-f0690e
 mint_id: d0d380443abb4a099a2faec36f960636
-next_edges:
-  - verdict:a00-ad1d7097-fc613c
+type: experiment
 parents:
   - hypothesis:a00-9bae6ee8-52d7f5
+next_edges:
+  - verdict:a00-ad1d7097-fc613c
+confidence: 0.65
+evidence_runs: 1
 scaffold_hash: 4c52118e15558a66
-type: experiment
-verdict: "inconclusive_lean_proved:65"
+title: A00 40bc8d0a f0690e
+verdict: inconclusive_lean_proved:65
 wired_at: 1788243868
 wired_from: a00-40bc8d0a
 ---
-
 # experiment:a00-40bc8d0a-f0690e
 
 ## Experiment

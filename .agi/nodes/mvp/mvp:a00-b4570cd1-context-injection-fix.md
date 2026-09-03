@@ -1,12 +1,12 @@
 ---
-id: "mvp:a00-b4570cd1-context-injection-fix"
+id: mvp:a00-b4570cd1-context-injection-fix
 mint_id: 0b89be3f58704d34af7d5b0cc0d3b888
-next_edges: []
+type: mvp
 parents:
   - verdict:a00-b4570cd1-0b9427
-type: mvp
+next_edges: []
+title: Mvp:a00 b4570cd1 context injection fix
 ---
-
 **MVP:** Context injection now reports accurate chain state
 
 **Files changed:**

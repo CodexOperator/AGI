@@ -1,14 +1,14 @@
 ---
-id: "exp:exp-a00-407fa689-verdict-repair"
+id: exp:exp-a00-407fa689-verdict-repair
 mint_id: 6790ca32192049f7bbfd5db2151b3e70
+type: experiment
 parents:
   - hyp:a00-407fa689-verdict-repair
 tags:
   - chain-extension
   - repair
-type: experiment
+title: Exp a00 407fa689 verdict repair
 ---
-
 # exp:exp-a00-407fa689-verdict-repair
 
 ## What Was Tested

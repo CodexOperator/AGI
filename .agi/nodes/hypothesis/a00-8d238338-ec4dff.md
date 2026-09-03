@@ -1,16 +1,17 @@
 ---
-confidence: 0.0
-id: "hypothesis:a00-8d238338-ec4dff"
+id: hypothesis:a00-8d238338-ec4dff
 mint_id: 1bc9bd353ec44374b69b3b30fa9666e0
-next_edges:
-  - experiment:a00-f0fd9669-ce583f
+type: hypothesis
 parents:
   - goal:g4.8
+next_edges:
+  - experiment:a00-f0fd9669-ce583f
+confidence: 0.0
 scaffold_hash: 3ae0dcace5c11e52
-type: hypothesis
+testable_claim: With bound `B`, `N` parents each spawning `M` kids, the max concurrent process count across all N×M kids never exceeds `B`, regardless of timing skew between parent spawns.
+title: A00 8d238338 ec4dff
 verdict: pending
 ---
-
 # hypothesis:a00-8d238338-ec4dff
 
 ## Hypothesis

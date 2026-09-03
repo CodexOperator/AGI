@@ -1,22 +1,22 @@
 ---
-confidence: 0.9
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "verdict:session-management-r1-crash-restore"
+id: verdict:session-management-r1-crash-restore
 mint_id: 805c22a959e1469992385a3fcdff332e
-next_edges:
-  - mvp:session-management-r1
+type: verdict
 parents:
   - hyp:session-management-r1
+next_edges:
+  - mvp:session-management-r1
+confidence: 0.9
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+evidence_runs: []
 tags:
   - session-management
   - r1
   - r21g
-type: verdict
-verdict: "inconclusive_lean_proved:50"
+title: Verdict session management r1 crash restore
+verdict: inconclusive_lean_proved:50
 ---
-
 **session-management/r1: PROVED (>= 95%): State preserved across crash**
 
 **Fidelity: 100.0%**

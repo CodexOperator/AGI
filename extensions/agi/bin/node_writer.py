@@ -51,6 +51,7 @@ of them had been fixed.
 """
 from __future__ import annotations
 
+import json
 import hashlib
 import os
 import re
@@ -264,29 +265,72 @@ def _needs_quoting(sval: str) -> bool:
     return sval[0] in "\"'[{&*!|>%@`#-?:,"
 
 
+def _scalar(v) -> str:
+    """One frontmatter scalar, quoted if it needs to be."""
+    if isinstance(v, bool):
+        return str(v).lower()
+    sval = str(v).replace("\n", " ").strip()
+    if _needs_quoting(sval):
+        esc = sval.replace("\\", "\\\\").replace('"', '\\"')
+        sval = f'"{esc}"'
+    return sval
+
+
+def _render_value(key: str, v, indent: str = "") -> list[str]:
+    """One `key: value` entry, recursing into lists and **mappings**.
+
+    🔴 **A mapping used to fall through to `str(v)`, and that destroyed the
+    node the whole command system reads** (2026-09-03, L1.07). `command:commands`
+    carries a nested `commands:` mapping; one `write.py ... 'thought ...'` on it
+    round-tripped the frontmatter through this function and wrote back a
+    **Python dict repr in a quoted string**:
+
+        commands: "{'smoke': {'argv': ['bash', ...
+
+    `commands.load` then raised `'str' object has no attribute 'items'` and
+    every `agi <verb>` stopped working. It was committed and pushed, because
+    the test suite had been run *before* that edit and the edit was in the
+    same shell command as the commit.
+
+    The bug is old and was merely never reachable: nothing had written a node
+    with a nested mapping through this path until `[command]` existed. The
+    lesson is not "be careful with structural nodes" — it is that a serializer
+    silently lossy on a type it does not recognise will eventually meet that
+    type, and `str(v)` is the branch that makes losing data look like working.
+    """
+    if isinstance(v, dict):
+        if not v:
+            return [f"{indent}{key}: {{}}"]
+        out = [f"{indent}{key}:"]
+        for k2 in v:
+            out.extend(_render_value(str(k2), v[k2], indent + "  "))
+        return out
+    if isinstance(v, (list, tuple)):
+        if not v:
+            return [f"{indent}{key}: []"]
+        out = [f"{indent}{key}:"]
+        for i in v:
+            if isinstance(i, (dict, list, tuple)):
+                # A list of containers has no single-line spelling here, and
+                # inventing one would be another silent lossy branch. JSON is
+                # valid YAML and round-trips exactly.
+                out.append(f"{indent}  - {json.dumps(i)}")
+            else:
+                out.append(f"{indent}  -" if i is None
+                           else f"{indent}  - {i}")
+        return out
+    if v is None:
+        return [f"{indent}{key}:"]
+    return [f"{indent}{key}: {_scalar(v)}"]
+
+
 def render_frontmatter(fm: dict) -> list[str]:
     """`fm` -> the lines between the `---` markers. Deterministic."""
     ordered = [k for k in LEADING_KEYS if k in fm]
     ordered += sorted(k for k in fm if k not in LEADING_KEYS)
     lines = []
     for k in ordered:
-        v = fm[k]
-        if isinstance(v, (list, tuple)):
-            if not v:
-                lines.append(f"{k}: []")
-            else:
-                lines.append(f"{k}:")
-                lines.extend("  -" if i is None else f"  - {i}" for i in v)
-        elif isinstance(v, bool):
-            lines.append(f"{k}: {str(v).lower()}")
-        elif v is None:
-            lines.append(f"{k}:")
-        else:
-            sval = str(v).replace("\n", " ").strip()
-            if _needs_quoting(sval):
-                esc = sval.replace("\\", "\\\\").replace('"', '\\"')
-                sval = f'"{esc}"'
-            lines.append(f"{k}: {sval}")
+        lines.extend(_render_value(k, fm[k]))
     return lines
 
 
@@ -359,6 +403,32 @@ def _is_untouched_scaffold(text: str, scaffold_body: str) -> bool:
     if len(parts) < 3:
         return True
     return parts[2].strip() in scaffold_body.strip()
+
+
+def ensure_payload(root, ref: str) -> Path | None:
+    """Create the source file a node will point at, if it is not there yet.
+
+    Returns the path if this call created it, else None. **Never overwrites**:
+    an existing file is linked, not replaced.
+
+    It lives here rather than in `write.py` on purpose. `write.py` holds a
+    mechanically-checked invariant that it performs **no file write at all**
+    (`test_write_py_contains_no_file_write` parses it rather than grepping),
+    and that guard is what keeps the verb layer a front end instead of a
+    second way to change a node. Creating a payload is a legitimate write, so
+    it belongs in the module that already owns writing the files behind nodes
+    — weakening the guard to make room for it would have traded a strong
+    mechanical property for a comment (L1.07).
+    """
+    import locations as _loc
+
+    p = Path(ref)
+    src = p if p.is_absolute() else Path(_loc.source_root(Path(root))) / p
+    if src.exists() or src.is_symlink():
+        return None
+    src.parent.mkdir(parents=True, exist_ok=True)
+    src.write_text("")
+    return src
 
 
 def write_node(

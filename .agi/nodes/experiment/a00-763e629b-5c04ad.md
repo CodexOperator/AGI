@@ -1,16 +1,16 @@
 ---
-confidence: 0.65
-evidence_runs: 0
-id: "experiment:a00-763e629b-5c04ad"
+id: experiment:a00-763e629b-5c04ad
 mint_id: 1b71b2bc83fd4ce0b9d355264b8a495e
+type: experiment
 parents:
   - hypothesis:pi-parent-tier-mode2
-type: experiment
-verdict: "inconclusive_lean_proved:65"
+confidence: 0.65
+evidence_runs: 0
+title: A00 763e629b 5c04ad
+verdict: inconclusive_lean_proved:65
 wired_at: 1788233448
 wired_from: a00-763e629b
 ---
-
 # experiment:a00-763e629b-5c04ad
 
 ## Experiment

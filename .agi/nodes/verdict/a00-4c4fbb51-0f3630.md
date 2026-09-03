@@ -4,13 +4,13 @@ mint_id: f2f5e537d7d54fbd885d47fefae7ec64
 type: verdict
 parents:
   - experiment:a00-67c6ae64-feb32a
-scaffold_hash: 0c3b73c1ac93e855
-verdict: proved
 confidence: 0.99
 evidence_runs:
   - experiment:a00-67c6ae64-feb32a
+scaffold_hash: 0c3b73c1ac93e855
+title: A00 4c4fbb51 0f3630
+verdict: proved
 ---
-
 
 # verdict:a00-4c4fbb51-0f3630
 

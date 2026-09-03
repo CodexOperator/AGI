@@ -1,17 +1,17 @@
 ---
-confidence: 0.65
-evidence_runs: 0
-id: "verdict:a00-ad1d7097-fc613c"
+id: verdict:a00-ad1d7097-fc613c
 mint_id: ef0694396c8d44c9b87452bc971c868b
+type: verdict
 parents:
   - experiment:a00-40bc8d0a-f0690e
+confidence: 0.65
+evidence_runs: 0
 scaffold_hash: f481e68740b99bb5
-type: verdict
-verdict: "inconclusive_lean_proved:65"
+title: A00 ad1d7097 fc613c
+verdict: inconclusive_lean_proved:65
 wired_at: 1788244312
 wired_from: a00-ad1d7097
 ---
-
 # verdict:a00-ad1d7097-fc613c
 
 ## Verdict

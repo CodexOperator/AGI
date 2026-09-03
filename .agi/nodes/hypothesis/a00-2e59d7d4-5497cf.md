@@ -4,11 +4,11 @@ mint_id: 7e356fe1ea9a482cb4cb8e6a9521ea31
 type: hypothesis
 parents:
   - goal:g4.7
-scaffold_hash: 13b1acb9055a093f
-verdict: pending
 confidence: 0.0
+scaffold_hash: 13b1acb9055a093f
+title: A00 2e59d7d4 5497cf
+verdict: pending
 ---
-
 
 # hypothesis:a00-2e59d7d4-5497cf
 

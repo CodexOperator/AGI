@@ -4,13 +4,13 @@ mint_id: b3401f2447384962ad87384e246d2ef6
 type: outcome
 parents:
   - mvp:a00-8a013aaf-ca2434
-scaffold_hash: 811724cff7c00e30
-verdict: "inconclusive_lean_proved:70"
 confidence: 0.7
 evidence_runs:
   - mvp:a00-8a013aaf-ca2434
+scaffold_hash: 811724cff7c00e30
+title: A00 fd594bfd ad6af8
+verdict: inconclusive_lean_proved:70
 ---
-
 
 # outcome:a00-fd594bfd-ad6af8
 

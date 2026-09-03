@@ -1,12 +1,12 @@
 ---
-id: "hyp:a01-6e912754-2c156f"
+id: hyp:a01-6e912754-2c156f
 mint_id: 95465b15ac6f47e8a806d3a13c8ef750
-next_edges: []
+type: hypothesis
 parents:
   - idea:domain-graph-core
-type: hypothesis
+next_edges: []
+title: A01 6e912754 2c156f
 ---
-
 # hyp:a01-6e912754-2c156f
 ## Hypothesis
 

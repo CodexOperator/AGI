@@ -4,13 +4,13 @@ mint_id: 5c8e7f212ba148a9bb8e4829f40ce2b8
 type: verdict
 parents:
   - experiment:a00-fda1c0d5-1f0a3a
-scaffold_hash: f892df19454fe81c
-verdict: inconclusive_lean_proved:80
 confidence: 0.9
 evidence_runs:
   - experiment:a00-fda1c0d5-1f0a3a
+scaffold_hash: f892df19454fe81c
+title: A00 e6e82f19 ca9c59
+verdict: inconclusive_lean_proved:80
 ---
-
 
 # verdict:a00-e6e82f19-ca9c59
 

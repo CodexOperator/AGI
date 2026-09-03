@@ -1,17 +1,17 @@
 ---
-confidence: 0.3
-evidence_runs: 0
-id: "hypothesis:a00-a54f694b-b20b78"
+id: hypothesis:a00-a54f694b-b20b78
 mint_id: 0da1ee1eaf0a4439899f9d9ff006f4e0
+type: hypothesis
 parents:
   - goal:g4.8
+confidence: 0.3
+evidence_runs: 0
 scaffold_hash: e1672140ee32e89f
-type: hypothesis
+title: A00 a54f694b b20b78
 verdict: pending
 wired_at: 1788317997
 wired_from: a00-a54f694b
 ---
-
 # hypothesis:a00-a54f694b-b20b78
 
 ## Parent review — iter 1, goal:g4.8
@@ -62,4 +62,3 @@ Left in place rather than deprecated. Removing it would decide a schema
 question -- what a parent's session artifact IS -- in passing, during the run
 that discovered the question. `goal:s27` owns deciding it.
 <!-- THOUGHT:END -->
-

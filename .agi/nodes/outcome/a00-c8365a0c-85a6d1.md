@@ -1,17 +1,17 @@
 ---
-confidence: 0.7
-evidence_runs: 0
-id: "outcome:a00-c8365a0c-85a6d1"
+id: outcome:a00-c8365a0c-85a6d1
 mint_id: 00f77f2908ec406c8ee3119f3c9fd8d3
+type: outcome
 parents:
   - mvp:unified-spawn-path
+confidence: 0.7
+evidence_runs: 0
 status: open
-type: outcome
-verdict: "inconclusive_lean_proved:70"
+title: A00 c8365a0c 85a6d1
+verdict: inconclusive_lean_proved:70
 wired_at: 1788237714
 wired_from: a00-c8365a0c
 ---
-
 # outcome:a00-c8365a0c-85a6d1
 
 ## Outcome

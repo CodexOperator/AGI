@@ -1,19 +1,19 @@
 ---
-confidence: 0.85
-evidence_runs: 0
-id: "hypothesis:a00-0d182e77-3f4501"
+id: hypothesis:a00-0d182e77-3f4501
 mint_id: e92746414a884a889f27bb02cc92c8ed
-next_edges:
-  - experiment:a00-788f8d7f-f11472
+type: hypothesis
 parents:
   - goal:s22
+next_edges:
+  - experiment:a00-788f8d7f-f11472
+confidence: 0.85
+evidence_runs: 0
 scaffold_hash: 9998df62558bd57b
-type: hypothesis
+title: A00 0d182e77 3f4501
 verdict: pending
 wired_at: 1788244944
 wired_from: a00-0d182e77
 ---
-
 # hypothesis:a00-0d182e77-3f4501
 
 ## Hypothesis

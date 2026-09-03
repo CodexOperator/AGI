@@ -1,19 +1,19 @@
 ---
-confidence: 0.7
-evidence_runs: 1
-id: "verdict:a00-52a8f13a-a156b6"
+id: verdict:a00-52a8f13a-a156b6
 mint_id: 7d335773fb334f1899134e9a8fbd7277
-next_edges:
-  - mvp:a00-8a013aaf-ca2434
+type: verdict
 parents:
   - experiment:a00-00cde6d0-57851d
+next_edges:
+  - mvp:a00-8a013aaf-ca2434
+confidence: 0.7
+evidence_runs: 1
 scaffold_hash: 1fd91137250ee2be
-type: verdict
-verdict: "inconclusive_lean_proved:70"
+title: A00 52a8f13a a156b6
+verdict: inconclusive_lean_proved:70
 wired_at: 1788280172
 wired_from: a00-52a8f13a
 ---
-
 # verdict:a00-52a8f13a-a156b6
 
 ## Verdict
