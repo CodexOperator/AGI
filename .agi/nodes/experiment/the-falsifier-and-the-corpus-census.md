@@ -82,6 +82,11 @@ false positive.
 
 `write.py schema --fix` exists and was run **dry only**:
 
+(Since `L1.07` / `ab07ec980`: the backfill ran for real — 118 → 62
+invalid, 90 filled, residual exactly the set predicted below — and the
+schema command was then removed from `write.py`, whose mechanically-
+checked invariant is that the verb layer performs no file write.)
+
 ```
 WOULD FIX   : title 86, testable_claim 5
 WOULD REMAIN: testable_claim 51, scale 7, next_edges 3, confidence 1
@@ -93,8 +98,10 @@ would stay absent**, because the alternative is inventing them.
 
 ### What this experiment does NOT show
 
-- **Nothing in the corpus was repaired.** Part 3 is a dry run; 115 nodes are
-  still invalid on disk.
+- **Nothing in the corpus was repaired at the time this ran.** Part 3 is a
+  dry run; 115 nodes were still invalid on disk. Since: `L1.07` ran the
+  backfill for real (90 field-instances; residual 62, matching the
+  prediction) and removed the schema command from `write.py`.
 - **Only `title` is derivable at scaffold time.** Every other required field is
   either supplied by a caller's flags or must come from a body.
 - **`_section_text` is heading-driven and shallow.** A kid that states its
@@ -104,20 +111,31 @@ would stay absent**, because the alternative is inventing them.
   schemas but through direct `write_node` calls, not through a spawned agent.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Part 2 records a mistake I made and caught inside the same iteration, and it
-is in the experiment rather than tidied away because the mistake is
-substantively interesting: it is the exact failure mode `goal:s31` names as
-its reason for not wanting a local patch, committed by the person implementing
-the fix for `goal:s31`. A census that over-reported by 88 nodes would also have
-made the backfill look far more valuable than it is.
+Parent review, iteration 1007. The experiment's record of what it ran
+stands untouched — this version only corrects two present-tense claims
+that the tree has since made false, and adds no new finding.
 
-Part 3 is dry on purpose. Rewriting 91 nodes is reversible and probably right,
-but it is a hundred grid versions the owner did not ask for, and the report is
-the useful half either way. Banked rather than done.
+The first census mistake (203 → 115, the falsey `seeds: []`) stays as the
+node's centerpiece. It is still the most instructive part of it: the exact
+failure mode `goal:s31` names as its reason not to want a local patch,
+committed by the person implementing the fix for `goal:s31`.
 
-The fourth limit is the one I most wanted to leave out. 51 of 56 missing
-claims are unreachable by this mechanism, which means the headline "scaffolds
-are born valid" is true for new nodes and does very little for the ones that
-already exist. Saying so here is cheaper than having a later reader discover
-the gap by trusting the fix.
+The corrections: Part 3 named `write.py schema --fix` as a standing tool
+and "What this experiment does NOT show" said nothing had been repaired.
+Both were true on 2026-09-02. On 2026-09-03, `L1.07` (`ab07ec980`) ran
+the backfill for real — 118 → 62 invalid, 90 filled, residual exactly the
+predicted set — and removed the command from `write.py`, because that
+file's no-file-write invariant is mechanically checked. A node that is
+cited as the falsifier of record must not keep naming a tool the next
+reader cannot find and must not keep asserting a state the corpus no
+longer has, so the two sentences carry parenthetical since-notes rather
+than being rewritten: the dry-run numbers were real measurements at the
+time, and the record of what this experiment did is not mine to re-date.
+
+Part 3's dry-run-only decision stands on its own terms. Rewriting ~91
+nodes is reversible and probably right, and it in fact did happen — a
+day later, by the director, with the predicted residual. The bank-then-
+do sequence is the honest reading of this node's caution: the experiment
+said "dry only, banked"; the owner's session then decided the run was
+safe enough to make real.
 <!-- THOUGHT:END -->
