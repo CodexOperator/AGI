@@ -31,7 +31,7 @@ sys.modules["metrics"] = metrics
 spec.loader.exec_module(metrics)
 
 
-def _node(root, ntype, slug, fm_extra="", parents=()):
+def _node(root, ntype, slug, fm_extra="", parents=(), body="body"):
     d = root / "nodes" / ntype.replace("-", "_")
     d.mkdir(parents=True, exist_ok=True)
     lines = ["---", f'id: "{ntype}:{slug}"', f"type: {ntype}"]
@@ -40,7 +40,7 @@ def _node(root, ntype, slug, fm_extra="", parents=()):
         lines += [f"  - {p}" for p in parents]
     if fm_extra:
         lines.append(fm_extra.rstrip())
-    lines += ["---", "", "body", ""]
+    lines += ["---", "", body, ""]
     (d / f"{slug}.md").write_text("\n".join(lines))
 
 
@@ -816,4 +816,126 @@ def test_deprecation_guard_counts_reach_the_metric_lines(project):
     text = buf.getvalue()
     assert "METRIC deprecated_open_hypotheses=1" in text
     assert "METRIC deprecated_excluded_nodes=0" in text
+
+
+# --------------------------------------------------------- backward mvp rule
+#
+# `hypothesis:an-mvp-that-points-backward-is-score-neutral` (goal:g3, L1.08).
+# `[mvp].md` says an mvp points FORWARD -- it names what a future build owes,
+# never what one already delivered. Nine mvps minted 2026-09-03 were audited
+# against that rule; two described a change already made and verified in the
+# live tree rather than one still to be built, and would have raised
+# `outcome_coverage`'s numerator for zero forward-pointing content -- the
+# exact motion goal:g3 forbids. These tests fix the shape in miniature.
+
+_BACKWARD_BODY = (
+    "## Agent Notes\n"
+    "Verified in-tree: the change is live at module.py:42. "
+    "Ran the suite myself: 1382/1382 pass."
+)
+
+
+def test_backward_mvp_is_excluded_from_scoring(project):
+    """The falsifier this rule exists for: an mvp whose body verifies an
+    already-shipped change, with no source_files/payload_ref/build child,
+    must not raise `scoring_mvp_count` -- or the numerator moves for a
+    closure that was never a forward design."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"], body=_BACKWARD_BODY)
+    m = metrics.compute(project)
+
+    assert m["scoring_mvp_count"] == 0
+    assert m["backward_mvp_count"] == 1
+    assert m["mvp_count"] == 1, "descriptive total is untouched -- nothing was deleted"
+    assert m["outcome_coverage"] == 0.0
+
+
+def test_backward_mvp_does_not_spare_its_own_hypothesis(project):
+    """A backward mvp is not 'leaving' -- it is neither deprecated nor under a
+    retired goal, so it cannot invoke clause 3's sparing. Its hypothesis stays
+    fully counted in the denominator, exactly as an unconverted hypothesis
+    would: excluded credit, not excused work."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"], body=_BACKWARD_BODY)
+    m = metrics.compute(project)
+
+    assert m["scoring_hypothesis_count"] == 1
+    assert m["outcome_coverage"] == 0.0
+
+
+def test_a_forward_mvp_with_source_files_is_never_flagged(project):
+    """Condition 1 of the rule (no forward evidence) guards the false
+    positive: an mvp can legitimately quote a sibling's test run while also
+    genuinely pointing forward, if it names its own source_files. The
+    exclusion requires BOTH conditions, not just the language match."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", "source_files:\n  - bin/real_file.py",
+          parents=["hypothesis:h"], body=_BACKWARD_BODY)
+    m = metrics.compute(project)
+
+    assert m["scoring_mvp_count"] == 1
+    assert m["backward_mvp_count"] == 0
+
+
+def test_a_forward_mvp_with_a_build_child_is_never_flagged(project):
+    """The other half of condition 1: a real `build` node naming this mvp as
+    its parent is the mechanical trail `level3.py` leaves when a build was
+    actually minted FOR this mvp -- the strongest forward evidence there is,
+    and it must win over language matching."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"], body=_BACKWARD_BODY)
+    _node(project, "build", "b", parents=["mvp:m"])
+    m = metrics.compute(project)
+
+    assert m["scoring_mvp_count"] == 1
+    assert m["backward_mvp_count"] == 0
+
+
+def test_a_design_mvp_that_merely_mentions_something_existing_is_not_flagged(project):
+    """Condition 2 (the language match) is narrow on purpose. An ordinary
+    forward mvp routinely says something ELSE already exists -- a directory,
+    a field, a sibling module -- without that being a claim about ITS OWN
+    deliverable. `'already exists'` alone must not trip the rule; only a
+    verification-of-shipped-code phrase does."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(
+        project, "mvp", "m", parents=["hypothesis:h"],
+        body=(
+            "## MVP\n"
+            "The `.agi/sessions/` tree already exists and is gitignored, so "
+            "the new resolver (bin/resolve-provenance.py, not yet written) "
+            "needs no new store."
+        ),
+    )
+    m = metrics.compute(project)
+
+    assert m["scoring_mvp_count"] == 1
+    assert m["backward_mvp_count"] == 0
+
+
+def test_backward_mvp_count_defaults_to_zero(project):
+    """0 and 'not computed' must not look the same -- an ordinary graph with
+    no backward mvps reads 0 every run, not an absent key."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"])
+    m = metrics.compute(project)
+    assert m["backward_mvp_count"] == 0
+
+
+def test_backward_mvp_count_reaches_the_metric_lines(project):
+    """A rule nobody can read from the METRIC lines is a rule nobody audits."""
+    _goal(project, "g1", "active")
+    _node(project, "hypothesis", "h", parents=["goal:g1"])
+    _node(project, "mvp", "m", parents=["hypothesis:h"], body=_BACKWARD_BODY)
+    buf = io.StringIO()
+    metrics.emit(project, out=buf)
+    text = buf.getvalue()
+    assert "METRIC backward_mvp_count=1" in text
+    assert "METRIC scoring_mvp_count=0" in text
     assert "METRIC deprecation_score_delta=0.0" in text

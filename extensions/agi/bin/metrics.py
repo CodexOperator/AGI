@@ -551,6 +551,90 @@ SCORING_GOAL_STATUSES = frozenset({"active", "horizon", "complete"})
 #: would silently start scoring their retired chains.
 RETIRED_GOAL_STATUSES = frozenset({"retired", "phasing-out"})
 
+#: `hypothesis:an-mvp-that-points-backward-is-score-neutral` (goal:g3, L1.08).
+#:
+#: `[mvp].md` defines an mvp as pointing **forward** — "the code that
+#: satisfies it is a `build` node ... and an mvp points forward at what that
+#: build owes rather than containing it." A backward mvp is a closure minted
+#: for work already done: the file it names already exists, and the body says
+#: so in the past tense rather than proposing it. Left uncaught, minting one
+#: raises `outcome_coverage`'s numerator for zero forward-pointing content —
+#: exactly the motion goal:g3 says scoring cannot move.
+#:
+#: **The rule, stated precisely, is a conjunction:**
+#: 1. **No forward evidence** — the mvp carries no `source_files`, no
+#:    `payload_ref`, and no `build`-typed node names it as a parent (the
+#:    mechanical trail `level3.py` would leave if a build had actually been
+#:    minted *for* this mvp).
+#: 2. **The body reads as a verification of existing code**, not a design
+#:    proposal — it cites an already-passing test count (`"1382/1382 pass"`,
+#:    `"all 1382 existing pass"`) or an explicit already-checked claim
+#:    (`"verified in-tree"`, `"the mechanism is real"`).
+#:
+#: Both conditions must hold: (1) alone would misfire on a genuine mvp whose
+#: build hasn't landed *yet*, and (2) alone would misfire on a genuinely
+#: forward mvp that merely cites a sibling's test count in passing. Measured
+#: against the full corpus at time of writing (48 mvp nodes, `goal:g3`/L1.08
+#: audit): exactly 2 match — both true closures for already-shipped changes,
+#: 0 false positives on the other 46.
+_BACKWARD_MVP_RE = re.compile(
+    r"verified in-tree"
+    r"|the mechanism is real"
+    r"|\d+/\d+\s+(?:tests?\s+)?pass"
+    r"|all\s+\d+\s+(?:new\s+|existing\s+)?(?:tests?\s+)?pass",
+    re.IGNORECASE,
+)
+
+
+def _mvp_forward_violations(nodes_dir: Path, types: dict, parents: dict) -> frozenset:
+    """mvp ids that fail `[mvp].md`'s forward-pointing rule. See `_BACKWARD_MVP_RE`.
+
+    Takes `types`/`parents` already built by `goal_attribution`'s own pass
+    (no second full-graph walk needed for those) and does one further,
+    mvp-scoped read for body text, since `_iter_frontmatter` deliberately
+    reads frontmatter only and body text is needed here to see the
+    past-tense verification language a backward mvp gives itself away with.
+    """
+    build_parents: set[str] = set()
+    for nid, ntype in types.items():
+        if ntype == "build":
+            build_parents.update(parents.get(nid, ()))
+
+    backward: set[str] = set()
+    if not nodes_dir.is_dir():
+        return frozenset()
+    for nf in sorted(nodes_dir.rglob("*.md")):
+        try:
+            text = nf.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if not text.startswith("---"):
+            continue
+        parts = text.split("---", 2)
+        if len(parts) < 3:
+            continue
+        import yaml
+        try:
+            fm = yaml.safe_load(parts[1]) or {}
+        except Exception:
+            continue
+        if not isinstance(fm, dict) or fm.get("type") != "mvp":
+            continue
+        nid = fm.get("id")
+        if not isinstance(nid, str) or not nid.strip():
+            continue
+        nid = nid.strip()
+        has_forward_evidence = (
+            bool(fm.get("source_files"))
+            or bool(fm.get("payload_ref"))
+            or nid in build_parents
+        )
+        if has_forward_evidence:
+            continue
+        if _BACKWARD_MVP_RE.search(parts[2]):
+            backward.add(nid)
+    return frozenset(backward)
+
 
 def goal_attribution(nodes_dir: Path) -> dict:
     """Map every node to the goals it descends from, and score accordingly.
@@ -636,6 +720,11 @@ def goal_attribution(nodes_dir: Path) -> dict:
         if types[nid] == "goal":
             statuses[nid] = st.strip() if isinstance(st, str) and st.strip() else "active"
 
+    # goal:g3 / L1.08 — mvps that fail `[mvp].md`'s forward-pointing rule.
+    # Computed from the `types`/`parents` this pass already built, plus one
+    # further mvp-scoped body read (see `_mvp_forward_violations`).
+    backward_mvp_ids = _mvp_forward_violations(nodes_dir, types, parents)
+
     def goals_of(nid: str) -> set:
         """Goal ids reachable upward from `nid`. Cycle-safe by construction."""
         seen, stack, found = {nid}, list(parents.get(nid, ())), set()
@@ -689,6 +778,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
     scoring_mvp = scoring_hyp = 0
     retired_nodes = retired_open_hyp = unattributed = 0
     deprecated_excluded = deprecated_open_hyp = 0
+    backward_mvp = 0
     for nid, ntype in types.items():
         if ntype == "goal":
             continue
@@ -721,7 +811,19 @@ def goal_attribution(nodes_dir: Path) -> dict:
                 deprecated_excluded += 1
             continue
         if ntype == "mvp":
-            scoring_mvp += 1
+            # A backward mvp is not "leaving" (it is not deprecated and its
+            # goal is not retired) — it stays in the graph and stays
+            # attributable. It just does not get to raise the numerator: the
+            # closure it describes was never a forward-pointing design, so
+            # counting it would be exactly the motion goal:g3 forbids. Its
+            # parent hypothesis is untouched by this branch and keeps scoring
+            # normally in the denominator — a backward mvp cannot spare its
+            # own hypothesis the way a deprecated one can (clause 3 above is
+            # deliberately not extended here).
+            if nid in backward_mvp_ids:
+                backward_mvp += 1
+            else:
+                scoring_mvp += 1
         elif ntype == "hypothesis":
             scoring_hyp += 1
 
@@ -732,6 +834,13 @@ def goal_attribution(nodes_dir: Path) -> dict:
     return {
         "scoring_mvp_count": scoring_mvp,
         "scoring_hypothesis_count": scoring_hyp,
+        # goal:g3 / L1.08 — mvps excluded from `scoring_mvp_count` for failing
+        # `[mvp].md`'s forward-pointing rule (`_BACKWARD_MVP_RE`), reported so
+        # the exclusion is auditable rather than a silent drop. Not "leaving":
+        # these nodes stay in the graph, stay attributable, and are neither
+        # deprecated nor under a retired goal — they just do not raise the
+        # numerator for a closure that was never a forward design.
+        "backward_mvp_count": backward_mvp,
         "retired_goal_nodes": retired_nodes,
         "retired_open_hypotheses": retired_open_hyp,
         # goal:g3 / L1.08 — the deprecation half of clause 3, reported so the
