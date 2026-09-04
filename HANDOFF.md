@@ -206,7 +206,17 @@ python3 extensions/agi/bin/commands.py run tests     # 1371
    outstanding. `provisioning.py` unchanged since L1.02, so this is a
    non-hermetic test hitting the real account, not a regression. Confirm after
    full drain; belongs to `goal:g1.11`.
-7. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
+7. 🔴 **Nothing enforces `agent_timeout_mins` when parents are launched with
+   `dispatch.py` alone** — `heal.py` runs only under `driver.sh`. Wave-6
+   parents sat at 25/25 for 34 min, the oldest with a 0-byte output log.
+   Director killed every `pi` older than 1800 s; `spawn_budget` released the
+   leases on process death (25 → 10). Next session: run `heal.py <root>
+   <iter>` per dispatch, or fix dispatch to hand the timeout to the reaper.
+8. **pi parents commit scratch into the repo** — `.agi/tmp_*.py`,
+   `_benchmark.py` at the root, and a hand edit to `HANDOFF.md`. Moved to
+   `.agi/sessions/L1-logs/parent-scratch/`. The parent brief should forbid
+   writes outside `.agi/nodes/`, `extensions/`, `src/`, `skills/`, `tests/`.
+9. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
    this session uses 1006+. Loop-scoped numbering (L1.10) is still unbuilt.
 
 ## §5 Known-good verification sequence
