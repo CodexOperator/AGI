@@ -78,6 +78,37 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 
 Models are **fully configurable per tier** (`cc_dispatch.kid_model` and friends). Nothing is hardcoded; run combinations and keep what works. As zoom levels generalize beyond big/small, assign one tier per level, each reviewed at the level above.
 
+## Director economics — dispatch, don't do
+
+**Always prefer using parent+kid combos to investigate, experiment, apply
+follow-up bug-fixes, etc instead of doing the work yourself.** If it takes
+less context to prompt a parent than it does to do the fix yourself, always
+dispatch one or a few of those instead of doing it yourself, even if it means
+going outside of a specific run shape that was planned for the beginning of a
+loop. It's always better to "waste" 1,000 prompt+response tokens via
+subagents for every 1 token of director context wasted doing base-level
+bugfixes, unless it will literally take less context to fix the bug yourself
+than dispatching a parent.
+
+**When running a loop, always try to do bugfixes, edge-case hardening,
+security fixes, optimization, and hazard removals *in* the loop.** Add each
+to the long/medium/short-term goal that is most relevant to that bug and use
+the handoff to track it so it is done by the final iteration. If it needs
+some sort of structural change/refactor or otherwise is not neat enough to
+place under a specific goal, mint it as a fresh short- or medium-term goal,
+whichever is most relevant. Then bank it into the owner-decision section of
+the handoff and leave it alone as you finish the rest of the loop around it
+to the best of your abilities.
+
+Measured on 2026-09-03/04 (loop L1): the director's context was the scarce
+resource every time; pi parents on OpenRouter fixed engine bugs (`write.py`
+scalar types, `commands.py`, the frontmatter parser) for cents, while seven
+CC subagents used as parents burned the subscription to its limit in minutes.
+The mechanism is `dispatch.py <root> <iter> --tier parent --target <node>`
+with the target node's body as the brief — **mint a hypothesis node for the
+bug, commit it, and aim parents at it.** Sixteen hazards that were carried
+across a handoff instead of fixed in-loop became `goal:s34`.
+
 ## Iteration protocol (parent)
 
 One iteration = one node per kid, reviewed and committed by the parent.

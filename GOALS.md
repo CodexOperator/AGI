@@ -2121,6 +2121,13 @@ is **sub-linear** in the number of loops. Model tiering is verified by
 inspection of the spawned commands, not assumed — a parent silently running on
 the kid model would pass every other clause.
 
+### G4.9 — A parent that outlives its timeout is a bug, not a lease — status: active
+
+# goal:g4.9
+
+## Agent Notes
+"Owner ask, 2026-09-04. Measured in loop L1: iter-1075 parents outlived agent_timeout_mins=20 by more than an hour (leases live 10:59 to past 12:10 EDT); the reaper reported 15 stale parents killed in wave 6; _reap_one restarts a kid with harness={} so a restarted kid runs on the CLI default model; manifest.json still says running after agent.json says done. Commit to: (1) a hung or restarted process is visible in spawn_budget status with its age and restart count; (2) a lease older than its timeout is reaped or explained, never silent; (3) restarts carry the original model and tier; (4) manifest and agent.json agree. Each with a red-on-purpose test. Falsifier: hold a fake pi process past the timeout in a fixture project and assert the reaper reports and bounds it."
+
 ## G5 — Goals are a lifecycle the engine reads, not a human convention — status: active
 
 `status:` should be a field the engine acts on: stop accruing score to
@@ -7613,3 +7620,17 @@ Falsifier: a second embed run over an unchanged graph does no model work and
 and the loader reads it back; the scatter renderer is byte-identical across
 two runs over the same graph and consumes the same representation `ascii.py`
 does.
+
+## S33 — The docs say what the tree does now — status: active
+
+# goal:s33
+
+## Agent Notes
+"Owner ask, 2026-09-04. After loop L1 (L1.08 to L1.11) the docs drifted: QUICKSTART.md still describes pre-L1 state (CC-only dispatch, iter-NNN numbering, kits, render-context), CLAUDE.md and skills/agi/SKILL.md carry rules for things that no longer exist or now exist (claude-code harness real, loop-scoped ids real, build-site cohort retired, evidence gate on the commit path, spawn.parallel semantics, workspace weekly budget). Commit to one sweep: every claim in QUICKSTART.md, CLAUDE.md, skills/agi/SKILL.md and HANDOFF.md section 5 is checked against the tree and corrected or deleted, with the commit citing what was stale. Falsifier: a test that greps the docs for retired names (render-context.py, payloads/, grid.py checkout as a live command, context/kits) and fails on any hit outside a sentence that marks it retired."
+
+## S34 — Every hazard carried in a handoff is closed in the loop, not carried again — status: active
+
+# goal:s34
+
+## Agent Notes
+"Owner ask, 2026-09-04: fix ALL the bugs and hazards discovered in loop L1 that were carried in HANDOFF.md section 8 instead of fixed in the loop. The standing rule, now also in the agi skill: bugfixes, edge-case hardening, security fixes, optimization and hazard removals are done IN the loop, attached to the most relevant goal, tracked in the handoff so they close by the final iteration; anything structural gets its own short or medium-term goal and is banked for the owner. The carried list (HANDOFF section 8, rows 1 to 16): 1 provisioning.py ignores the OpenRouter workspace weekly budget; 2 dispatch.py mints an OpenRouter key for every CC kid; 3 _reap_one restarts on the CLI default model; 4 manifest.json says running after done; 5 write.py set string-typed values (fixed in wave 8, verify); 6 backward-mvp regex heuristic; 7 six demoted prior-director experiments; 8 commands.py verify runs smoke before grid-commit; 9 test_mint_refuses_to_hand_out_a_key_with_no_ttl is non-hermetic; 10 claude_code adapter lets parents write HANDOFF.md, CLAUDE.md, run dispatch.py and git; 11 briefs say experiments parent to goals but [experiment].md forbids it; 12 [verdict].md says contradicts, corpus uses contrasts; 13 two mermaid.py; 14 fantasia/agi clone runs the old grid.py; 15 briefing.py re-reads idea status from disk; 16 untracked nodes vanish across a wave. Each row closes with a fix plus a red-on-purpose test, or is moved to a named goal with a reason. Rows 3 and 4 belong to goal:g4.9."

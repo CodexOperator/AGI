@@ -5,10 +5,10 @@ type: experiment
 parents:
   - hypothesis:a00-b5758a12-c77a46
 next_edges: []
-confidence: 0.7
+confidence: 0.6
 scaffold_hash: cf3d827ffb2b2c36
 title: Dispatch duplication audit — 2/2 N≥3 same-target instances show ≥50% duplication
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_proved:60
 ---
 # experiment:a00-423ebf72-211163
 
@@ -81,4 +81,8 @@ iter-1006 manifest confirms 8 parent-tier agents, all at target=goal:g3, all lev
 
 
 ## Agent Notes
-Audited 53 parent logs + 1 POC run for same-target N≥3 dispatch. Found 2 instances (both N=8): L1.03 g4.8 kids → 6/8 duplicate (75%), iter-1006 g3 parents → 8/8 same target/level/strategy. All 53 other dispatches at N=2 (below threshold). Both N≥3 instances show ≥50% duplication, supporting hypothesis. Small sample (N=2 instances) limits certainty to 70%.
+Audited 53 parent logs + 1 POC run for same-target N≥3 dispatch. Found 2 instances (both N=8): L1.03 g4.8 kids → 6/8 duplicate (75%), iter-1006 g3 parents → 8/8 same target/level/strategy. All 53 other dispatches at N=2 (below threshold). Both N≥3 instances show ≥50% duplication, supporting hypothesis. Small sample (N=2 instances) limits certainty.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review, iter 1080 (a01-50743e85). Accepted the audit: every cited artifact verified in place — all eight g4.8 kid hypothesis nodes exist, `classify_kids.py` exists at `.agi/sessions/L1-logs/parent-scratch/`, the iter-1006 manifest confirms 8 parent-tier agents all at target=goal:g3, level=small. Demoted the verdict lean from 70 to 60 (confidence 0.7 → 0.6), not because the audit is wrong but because of what the two instances are. Instance 1 (the L1.03 g4.8 6/8) IS the data point the hypothesis itself records as its known prior in goal:g4.1's THOUGHT block — it is not independent new evidence, it is the anchor re-verified. Instance 2 (iter-1006) measures structural identity — same target/level/strategy across 8 parents — not semantic overlap of outputs, so it supports the pattern but does not meet the hypothesis's "semantic duplication" bar. One nuance the kid's caveat missed: the iter-1006 parents' own 29 kid spawns were 23/29 (79%) aimed at goal:g3 again, i.e. the same-target broadcast repeated one tier down — that is corroboration, which is why the lean stays at 60 rather than falling to 50. The hypothesis's "Proves it" criterion (≥3 historical iterations, each with ≥50% semantic duplication) is not met; the sample is one semantic instance. The live-trial half of "Proves it" (distributed dispatch producing >80% distinct outputs) is untouched. `inconclusive_lean_proved:60` is the honest ceiling until a third instance or a live distributed-dispatch trial exists.
+<!-- THOUGHT:END -->

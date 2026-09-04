@@ -416,3 +416,23 @@ Next director: start at §1 L1.10 — `goal:g10.1` chat-to-node linking and
 `goal:g8.1` engine pinning still have no engine code; four waves of research
 nodes now sit under each. Then §8 rows 1, 3, 10 (provisioning reads the
 workspace budget; reaper restart model; adapter `disallowedTools`).
+
+### Plan for the next session (owner, 12:30 EDT 09-04) — L1.12 onward
+
+- [ ] **`goal:g4.9`** (active, under G4) — hung/over-timeout processes made
+      observable and bounded; `_reap_one` restart model; manifest/agent.json
+      agreement. Start from `iter-1075` (leases outlived the timeout >1 h).
+- [ ] **`goal:s33`** (active) — docs sweep: `QUICKSTART.md` is stale as of
+      these waves; also `CLAUDE.md`, `skills/agi/SKILL.md`, §5 here.
+- [ ] **`goal:s34`** (active) — **fix every carried hazard** (§8 rows 1–16,
+      now in the goal body). Four hypothesis nodes under it already:
+      `provisioning-reads-the-workspace-weekly-budget`,
+      `verify-runs-grid-commit-before-smoke`,
+      `cc-adapter-refuses-git-handoff-and-dispatch`,
+      `cc-kids-do-not-mint-openrouter-keys`.
+- [ ] `goal:g10.1` / `goal:g8.1` engine code (unchanged from §1).
+
+The skill now carries the owner's dispatch-don't-do rule
+(`skills/agi/SKILL.md` "Director economics"). The L1.08 director ran one
+practice iteration on these targets before stopping — see the close-out line
+below.
