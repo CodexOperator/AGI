@@ -14,15 +14,15 @@ blocked_by:
   - task:t-049
   - task:t-053
 cavekit_req: chain-engine/R4
-edited_by: l1.09-execution-parent
+edited_by: exp-a01-30399a10
 effort: M
 origin: build-site
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: iter-1072
+tier: -1
 title: "T-050: Mid-chain join candidate sampling"
 ---
 **Description:** Implement `mid_chain_candidates(chains, config, rng)`. Filter chains shorter than `chain_min_join_length`. With probability `mid_chain_join_prob`, sample a non-tail position; else return the tail. Use a seedable rng for determinism.

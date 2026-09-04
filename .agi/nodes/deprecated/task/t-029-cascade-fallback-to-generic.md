@@ -9,15 +9,15 @@ acceptance_criteria:
 blocked_by:
   - task:t-027
 cavekit_req: schema-registry/R5
-edited_by: l1.09-execution-parent
+edited_by: exp-a01-30399a10
 effort: S
 origin: build-site
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: iter-1072
+tier: -1
 title: "T-029: Cascade fallback to generic with unmatched-files warning (step 4)"
 ---
 **Description:** Final cascade step. Load all files under the unmatched directory as generic nodes. Emit one aggregated warning listing every unmatched file.

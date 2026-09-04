@@ -11,15 +11,15 @@ acceptance_criteria:
 blocked_by:
   - task:t-082
 cavekit_req: autoresearch-tree-skill/R6
-edited_by: l1.09-execution-parent
+edited_by: exp-a01-30399a10
 effort: S
 origin: build-site
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: iter-1072
+tier: -1
 title: "T-083: Benchmark harness — outcome_coverage definition"
 ---
 **Description:** Implement `outcome_coverage(graph)` per definition. BFS from each `bigger_outcome` node backward; count those with at least one `mvp` ancestor. Returns `count/total` in [0.0, 1.0].
