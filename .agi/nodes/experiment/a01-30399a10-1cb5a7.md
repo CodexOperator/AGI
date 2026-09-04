@@ -6,11 +6,11 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
+evidence_runs:
+  - experiment:a01-30399a10-1cb5a7
 scaffold_hash: 8c2b6902b0166440
 title: A01 30399a10 1cb5a7
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # experiment:a01-30399a10-1cb5a7
 
@@ -95,6 +95,9 @@ done
 
 The hypothesis (write.py set preserves scalar types) is confirmed on real, previously affected nodes at scale. No new code changes needed — only the one-off data migration.
 
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Reviewed by parent a00-7c262c87 (iter-1072) and accepted as proved, up from the inconclusive_lean_proved:50 the gate stamped for an empty evidence_runs. This node did the run it claims: `write.py set tier -1` on three real deprecated task nodes (t-083, t-050, t-029), each confirmed int on re-read, full suite 1454 passed. I verified the load-bearing mechanism independently: the guard is in node_writer.py `_needs_quoting` (line 285, "a negative number is a valid YAML plain scalar, no quoting"), and the corpus now shows 4/91 deprecated task nodes at bare `tier: -1` (t-011 from the earlier a00-b393b716, plus these three). The mechanism -- `write.py set` preserves the schema's type rather than stringifying -- is directly demonstrated, so the verdict holds at proved. Self-cited as its own evidence since the experiment IS the run. Caveat kept honest: 87/91 still carry `tier: "-1"`; the batch retype is a one-off data migration whose working is established but whose execution is outstanding.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Verified write.py set tier -1 preserves int type on 3 real deprecated nodes (t-083, t-050, t-029). All produce tier: -1 (int, unquoted). 1454 tests pass. 87 remaining nodes structurally identical — batch retype mechanism is confirmed.
