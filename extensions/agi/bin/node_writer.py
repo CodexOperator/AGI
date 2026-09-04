@@ -257,11 +257,21 @@ def _needs_quoting(sval: str) -> bool:
     every node id in the corpus is written bare and why quoting them here
     would be a gratuitous reformat. `no node: ['x']` is not fine, and that is
     a real `spawn_check_reason` this routine can emit.
+
+    Negative numbers (`-1`, `-42`, `-0.5`) are valid YAML plain scalars and
+    do NOT need quoting, even though they start with `-`. Verified 2026-09-04
+    (iter-1068): `_needs_quoting("-1")` returned True, causing `tier: "-1"`
+    instead of `tier: -1`, a lossy round-trip for negative ints that broke
+    schema validation ([task].md declares `tier: {type: int}`).
     """
     if not sval:
         return False
     if ": " in sval or sval.endswith(":") or " #" in sval:
         return True
+    # Negative number (`-N` or `-N.N`): valid YAML plain scalar, no quoting.
+    # Bare `-` or `- ` would be a block sequence indicator.
+    if sval[0] == "-" and len(sval) > 1 and (sval[1].isdigit() or sval[1] == "."):
+        return False
     return sval[0] in "\"'[{&*!|>%@`#-?:,"
 
 
