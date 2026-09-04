@@ -86,6 +86,9 @@ The graph_build_time_ms metric is at 0.03-0.04ms (lru_cache warm load).
 - cold build path duplicates _cached_build_builder logic — maintenance risk but doesn't affect warm path
 - script→pipeline operates_on bridges link CLI tools to pipeline ecosystem
 
+## Small Wins (each <0.5ms, cumulative ~2-3ms)
+- [ ] Move inline regex compilations to class level: parse_pipelines (4 patterns), parse_codex_modules (6 patterns), parse_templates (4 patterns), parse_scripts (4 patterns). Each compile is negligible but 18 patterns × compilation time adds ~1-2ms to cold build.
+
 ## Deferred (low priority / speculative)
 - Multi-repo graph (belam-codex + machinelearning cross-ref)
 - Embeddings-based semantic search for graph queries
@@ -99,19 +102,13 @@ The graph_build_time_ms metric is at 0.03-0.04ms (lru_cache warm load).
 - sqlite3 backend: high implementation cost, marginal secondary metric gain
 - canvas mapper_batch: raw LLM prompts, not parseable without another LLM
 
-## Current Best (iter 47)
-- 0.04ms (1,665 nodes, 1,700 edges) — lru_cache warm load, ~9,400× vs original 377ms
-- query_time_ms: ~0ms (precomputed BFS paths)
-- ascii_render_lines: 72 (all node types visible in output)
-- Node types: doc_section, code_ref, memory_session, schema_entity, schema_field,
-  decision, lesson, task, goal, agent_role, agent_capability, agent_boundary,
-  canvas_*, knowledge, handoff, handoff_item, gitnexus_def, archive_command,
-  archive_task, codex_module, codex_class, codex_method, codex_function,
-  skill, skill_type, hook_reference, shell_script, script_reference,
-  script_function, script_class, reference, tag, category_*, pipeline,
-  pipeline_stage, pipeline_phase, template_stage
-- Graph connectivity: tag-based relates_to + script→pipeline operates_on bridges
-- Cold build: ~3.8ms (non-benchmarked path)
+## Current Best (iter 1068)
+- 0.03ms warm (1,681 nodes, 1,782 edges) — lru_cache, noise floor
+- Cold build: ~130ms (benchmarked path via _benchmark.py)
+- query_time_ms: ~0.08ms (BFS first→last section, unidirectional)
+- ascii_render_lines: 106 (all node types)
+- Cold build optimized: 146.33ms → 125.95ms (-13.9%) by eliminating build_tag_bridges double-read of 416 decision/lesson/task files. Tags are now collected in `_tag_store` during initial parse and reused rather than re-read from source files.
+- 4.7× noise floor confidence
 
 ## Open (thoughtgraph)
 - [ ] goal:s28 follow-up: manifest merge in dispatch.py is a non-atomic read-modify-write cycle. Process-level race test (8 concurrent workers, exact sequence) lost 1/8 entries in 3/6 runs, plus a FileNotFoundError crash from the shared fixed tmp name `.manifest.json.tmp` — in real dispatch that crash means a spawned-but-untracked agent (Popen ran, manifest entry never landed, heal cannot see it). Fix direction: flock on a lockfile around the read-merge-write, or per-agent manifest files. Measured 2026-09-02, iter 101, parent a00-dea93ac5.

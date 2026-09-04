@@ -70,11 +70,7 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
 3. **Free-form branching is welcome.** Same idea may spawn multiple hypotheses; same hypothesis may spawn multiple experiments. Don't worry about over-branching.
 4. **Verdict taxonomy is finite-state.** Use exactly:
    `proved | disproved | inconclusive_lean_proved:N | inconclusive_lean_disproved:N | pending` (N is integer 0..100).
-5. **Commit your work.** Before signaling done, run:
-   ```
-   git add -A && git -c user.email=auto@autoresearch -c user.name=autoresearch \
-     commit -m "iter-N agent-id: short summary"
-   ```
+5. **Never run git.** `git add -A` and `git commit` are forbidden — parallel agents share one working tree and the loop owns every commit. `cli.py done` handles all versioning. Do not stage, commit, push, pull, stash, checkout, or rebase.
 6. **Signal completion via CLI.** After your last commit:
    ```
    python3 <plugin>/bin/cli.py done <iter_n> <agent_id> \
@@ -91,10 +87,4 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
     - `$PROJECT_ROOT` (your research graph): nodes, kits, schemas, experiments, MVPs, verdicts, project-specific `src/` modules. Default for almost all your work.
     - `$PLUGIN_ROOT` (the autoresearch-tree engine): graph_core, renderers, embeddings, schema_registry, driver.sh, dispatch/heal/zoom/cli, snapshot/render scripts, SKILL.md, agent-prompt.md, SessionStart hook.
     If you improve the **method itself** (rendering, dispatch, healing, schema parsing, embedding pipeline, agent prompt rules, hook behavior) → change files under `$PLUGIN_ROOT` and commit there:
-12. **Never push to any remote, never run sync commands.** Remote sync is automated (`grid.py cron` — the two-cadence pattern). Local commits per rule 5 are your entire git surface; tokens spent on push/pull/sync are waste.
-    ```
-    git -C "$PLUGIN_ROOT/../.." add -A && git -C "$PLUGIN_ROOT/../.." \
-      -c user.email=auto@autoresearch -c user.name=autoresearch \
-      commit -m "engine: <what you improved>"
-    ```
-    If you only added a node, hypothesis, experiment, MVP, or domain insight → commit to `$PROJECT_ROOT` (default). When in doubt, ask yourself: "would another user of this plugin benefit from this change?" If yes → plugin. If no → project.
+12. **Never push to any remote, never run sync commands.** Remote sync is automated (`grid.py cron` — the two-cadence pattern). Agents never commit locally — `cli.py done` is the only versioning step. If you only added a node, hypothesis, experiment, MVP, or domain insight → `$PROJECT_ROOT` scope (default). When in doubt, ask yourself: "would another user of this plugin benefit from this change?" If yes → plugin. If no → project.
