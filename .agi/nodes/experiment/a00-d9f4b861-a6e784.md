@@ -9,8 +9,10 @@ confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
 scaffold_hash: 421293a1a38a2245
-title: A00 d9f4b861 a6e784
-verdict: inconclusive_lean_proved:50
+title: "Scatter renderer built and verified — all 5 hypothesis claims, 1471-test suite green"
+verdict: proved
+evidence_runs:
+  - experiment:a00-d9f4b861-a6e784
 ---
 # experiment:a00-d9f4b861-a6e784
 
@@ -82,6 +84,26 @@ Nodes: 5  Grid: 60×30
 Overlap cells: 0
 ```
 
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent a01-df84d5ee review, iter-1077. Kid's version carried the grid-commit
+demotion (`proved` → `inconclusive_lean_proved:50`, evidence_runs=0) that hit
+all four sibling cache experiments — a systematic artifact: an experiment that
+IS the run never linked itself. Restored `proved` with a self evidence link,
+which the harness explicitly allows ("an experiment may name itself").
+Verified, not agreed: re-ran `pytest extensions/agi/tests/renderers/` (41
+passed) and the full suite (1471 passed, 0 failed — one more than the kid's
+1463, from a sibling agent's concurrent work; the kid's "1 pre-existing
+failure" no longer reproduces). Read scatter.py end to end: coordinate
+normalisation, cell clamping, overlap markers, degenerate cases all as
+claimed; registered in `__init__.py`. Residual gap carried forward, not
+falsification: `embeddings.apply_umap_coords` (the bridge that writes
+`project()` output onto `Representation.tokens`) is referenced by both
+scatter.py's docstring and the pre-existing representation.py docstring but
+implemented nowhere — the renderer reads `.x/.y` and a caller sets them
+manually. That bridge is the remaining step of goal:s32's renderer gap and
+is named here so the next verdict/mvp on this chain can scope it.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Scatter renderer built and tested: scatter.py exists in renderers/, registered in __init__.py, passes 10 dedicated tests + full suite (1463 pass). Overlap resolution with digit/char markers, 200x200 bound clamp, deterministic byte-identical output across runs. Verified all 5 hypothesis claims. Caveat: apply_umap_coords bridge not yet implemented — renderer reads .x/.y directly; caller sets them manually.

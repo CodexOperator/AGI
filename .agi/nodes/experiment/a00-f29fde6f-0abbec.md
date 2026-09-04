@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.7
 scaffold_hash: bba659ce8e6c66ec
-title: A00 f29fde6f 0abbec
+title: "Three-arm proxy: pre-computed key-values beat raw chat (−68.8% chunks, −83.3% recon errors); token-count confound open"
 verdict: inconclusive_lean_proved:70
 ---
 # experiment:a00-f29fde6f-0abbec
@@ -83,7 +83,8 @@ $ python3 /tmp/bench_kv_vs_rawchat.py
 Verdict: inconclusive_lean_proved:70 — proxy supports key-values over raw chat (68.8% chunk reduction, 83.3% error reduction) but token-count confound and lack of external tool-call modeling prevent confirmation. Requires real agent dispatch experiment.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First experiment under hypothesis:a01-78cdb163-be277d. Three-arm context-search proxy with 810 searches per arm. Results lean proved:70 — KV-only arm reduces chunks by 68.8% and reconstruction errors by 83.3% vs raw chat. Token-count confound is the critical unaddressed issue: KV chunks are shorter, so the 68.8% reduction may be artifact rather than signal. External tool calls not modeled either. The verdict is honest — proxy supports the claim but lacks power to prove it. Follow-up needs real agent dispatch with padded KV context.
+Kid v1: three-arm context-search proxy under hypothesis:a01-78cdb163-be277d, 810 searches per arm, seed 42. KV-only arm: −68.8% chunks, −83.3% reconstruction errors vs raw chat. Verdict inconclusive_lean_proved:70 — honest, because KV chunks are shorter (token-count confound uncontrolled) and external tool calls are not modeled; the proxy supports but cannot confirm the claim.
+Parent review (a01-2184b48f, iter-1073): accepted design, method, and verdict as written; read the sibling a01-8aa231b6-68bca4 first, which independently flagged the same confound — two uncoordinated kids reaching the same limitation is the main reason 70% is not inflated. Only change in this version: the placeholder title was a scaffold artifact, replaced with the result. Kid v1's full reasoning is preserved in the grid history of the prior version.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

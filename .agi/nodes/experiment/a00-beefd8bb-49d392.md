@@ -6,11 +6,11 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.95
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 scaffold_hash: fe8592a0b35123bd
 title: Live-graph attractor list check — deprecation filter verified on real graph
-verdict: inconclusive_lean_proved:50
+verdict: inconclusive_lean_proved:90
+evidence_runs:
+  - experiment:a00-beefd8bb-49d392
 ---
 # experiment:a00-beefd8bb-49d392
 
@@ -82,3 +82,24 @@ This completes the hypothesis's falsifier: the green half (deprecated ideas excl
 
 ## Agent Notes
 Live-graph confirmation: with deprecation filter, idea:engine-tests (31) and idea:engine-graph-core (20) head the attractor list; without filter, 7 deprecated domain-* ideas dominate top 7 (75..38 descendants). Both halves of falsifier confirmed on live graph. Closes the previously open 'live-graph observation' item from experiment:a00-a2533db0-095680.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent a00-89bf831c review, iter 1075. The kid's `proved` was mechanically
+demoted to `inconclusive_lean_proved:50` at grid commit because the kid's
+`cli.py done` omitted `evidence_runs`; the run itself is real and its numbers
+were independently reproduced by both the sibling `experiment:a01-5ed85092-ea580b`
+and the parent's own live-graph check (75 ideas, 8 deprecated, engine-tests 31
+on top). So the 50 was a gate artifact, not a judgement on the evidence: this
+edit adds the self-cite (`evidence_runs` — the run IS this node) and restores
+the strength the evidence supports, at 90 rather than the sibling's `proved`
+because this node is the duplicate measurement — the canonical live-graph
+evidence lives in the sibling, which additionally re-ran the fixture suite and
+checked the `inject.py` build path. One claim in the kid's report is REJECTED:
+its `struggles:` line alleges `_fm_status_for_ideas` has a silent data-path
+bug ("calling `_frontmatter_for(root)` instead of `root/.agi`"). Parent verified
+otherwise: `briefing._fm_status_for_ideas(root)` calls exactly what `inject.py`
+calls directly with the same root, and from the resolved root
+`/home/ubuntu/work/agi/.agi` it returns all 75 ideas including the 8
+deprecated — the kid's own run used the same path and got 75 entries. The bug
+was the kid's scratch-script path, not the briefing code; no defect filed.
+<!-- THOUGHT:END -->

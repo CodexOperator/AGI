@@ -24,7 +24,17 @@ SRC = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
+import importlib.machinery
+import importlib.util
+
 import commands  # noqa: E402
+
+_loader = importlib.machinery.SourceFileLoader(
+    "derive_commands", str(BIN / "derive-commands.py"))
+_spec = importlib.util.spec_from_loader(_loader.name, _loader)
+derive_commands = importlib.util.module_from_spec(_spec)
+_loader.exec_module(derive_commands)
+render_commands_table = derive_commands._render_table
 
 NODE = """---
 commands:
@@ -34,6 +44,9 @@ commands:
   tests:
     argv: ["python3", "-m", "pytest", "<root>/tests"]
     about: "the suite"
+  raw-root:
+    argv: ["python3", "-m", "cli", "<root>"]
+    about: "ensure <root> survives in rendered docs"
   broken:
     argv: "not a list"
     about: "a note, not a command"
@@ -63,7 +76,7 @@ def project(tmp_path: Path) -> Path:
 
 def test_commands_resolve_from_the_node(project):
     table = commands.load(project)
-    assert set(table) == {"smoke", "tests"}
+    assert set(table) == {"smoke", "tests", "raw-root"}
     assert table["tests"].about == "the suite"
 
 
@@ -90,6 +103,10 @@ def test_argv_is_a_list_so_nothing_is_reparsed_by_a_shell(project):
     for cmd in commands.load(project).values():
         assert isinstance(cmd.argv, list)
         assert all(isinstance(a, str) for a in cmd.argv)
+        assert isinstance(cmd.raw_argv, list)
+        assert cmd.raw_argv != cmd.argv, (
+            "raw argv must preserve placeholders so derive-commands can render"
+        )
 
 
 def test_an_unknown_command_names_what_is_available(project):
@@ -133,6 +150,15 @@ def test_the_injected_lines_carry_the_runnable_command(project):
     text = "\n".join(commands.render_for_injection(project))
     assert "pytest" in text
     assert "the suite" in text, "the `about` is what makes the list usable"
+
+
+def test_render_table_preserves_placeholders(project):
+    table = render_commands_table(project)
+    assert "<engine>" in table
+    assert "<root>" in table
+    assert "/home/" not in table, (
+        "rendered docs must stay clone-agnostic — literal paths violate goal:g8.2"
+    )
 
 
 # --------------------------------------------------------------------------
