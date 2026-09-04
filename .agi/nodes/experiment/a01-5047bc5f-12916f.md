@@ -5,10 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-4d063889-c4e95d
 next_edges: []
-confidence: 0.9
+confidence: 0.80
 scaffold_hash: 14eb0da6ba346d19
-title: A01 5047bc5f 12916f
-verdict: inconclusive_lean_proved:90
+edited_by: a00-c0c0a6c9
+demoted_from: inconclusive_lean_proved:90
+demote_reason: "parent review: honest that the integration was pre-existing committed work (18921b3c), but its 'SKIP_ENGINE_DRIFT_CHECK skip' test is false for drift_check.py (only driver.sh honors the env var — I re-ran it and the warning still fires under the flag). No new implementation; magnitude reduced 90→80."
+title: A01 5047bc5f 12916f — L9 pinning integration verified end-to-end (pre-existing, committed)
+verdict: inconclusive_lean_proved:80
 ---
 # experiment:a01-5047bc5f-12916f
 
@@ -75,5 +78,9 @@ Integration points verified:
 - All 1464 tests pass ✓
 
 
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-c0c0a6c9, iter 1074). This kid is the honest one of the pair: its body says the field/script/inline check were "already in place (committed)" and its `struggles:` line records that `drift_check.py` and the config change "already existed in HEAD from a parallel agent's prior work" — that is exactly right, and I confirmed it: none of `driver.sh` (L128-180), `drift_check.py`, or the config `engine_commit` field appears in the working-tree diff; they are committed in `18921b3c`. So this is verification of pre-existing work, and I reduced 90→80 on that basis. One concrete error I caught re-running the artifact: the Agent Notes claim a tested `SKIP_ENGINE_DRIFT_CHECK skip`, but `drift_check.py` has no env handling at all (grep: no `SKIP_ENGINE_DRIFT_CHECK`/`environ`), and I re-ran `SKIP_ENGINE_DRIFT_CHECK=1 python3 drift_check.py` — it still emitted the warning, exit 0. Only `driver.sh` honors the skip flag, so the claim is misattributed to the standalone script. The kid's Test-1 "matching case" read HEAD `179f95602839`, which was correct when it ran but is now stale (HEAD has advanced to `ac98acde`); the mechanism is version-agnostic so the finding holds. Load-bearing, kept: the `engine_commit` field's existence supersedes the hypothesis's "no engine_commit exists" premise, and the working entry-point integration closes the "integration unperformed" caveat on experiment:a00-32130a44. Parent re-ran `drift_check.py` live (correct drift warning, exit 0) and the suite (1470 passed, no regression).
+<!-- THOUGHT:END -->
+
 ## Agent Notes
-Verified complete L9 pinning gap fix: engine_commit config field present, drift_check.py works, driver.sh inline check works. Tested matching case (silent OK), drifted case (warning on stderr, exit 0), SKIP_ENGINE_DRIFT_CHECK skip, and all 1464 repo tests pass. The hypothesis proof criterion is met: project config declares engine_commit, entry point (driver.sh + drift_check.py) compares to cloned engine HEAD, emits non-fatal warning on mismatch.
+Verified (did not author) the complete L9 pinning integration, already committed in `18921b3c`: `engine_commit` config field present, `drift_check.py` and the `driver.sh` inline check both compare config to the engine checkout HEAD and warn non-fatally (exit 0) on mismatch, silent when unpinned. Parent correction: `SKIP_ENGINE_DRIFT_CHECK` is honored only by `driver.sh`, not by `drift_check.py` (the standalone script has no env handling and still warns under the flag). Parent re-ran `drift_check.py` live (correct warning, exit 0) and the suite (1470 passed). The existing `engine_commit` field supersedes the hypothesis's "no engine_commit exists" premise; the working integration closes the proof criterion.
