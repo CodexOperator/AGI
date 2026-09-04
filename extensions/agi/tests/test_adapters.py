@@ -212,6 +212,8 @@ def test_adding_a_harness_touches_only_config_and_one_file():
         "    return True\n"
         "def restart(**kw):\n"
         "    return None\n"
+        "def needs_credential(harness):\n"
+        "    return True\n"
     )
     try:
         cfg = {"harnesses": {"thirdparty": {"adapter": "thirdparty",

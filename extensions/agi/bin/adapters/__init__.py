@@ -32,7 +32,7 @@ from types import ModuleType
 
 #: Adapters must define these. Checked at load, so a malformed adapter fails
 #: when it is selected rather than when it is first spawned through.
-REQUIRED = ("build_command", "child_env", "is_alive", "restart")
+REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
 
 class AdapterError(RuntimeError):
@@ -151,3 +151,19 @@ def parallelism(cfg: dict, default: int = 1) -> int:
         return int(spawn["parallel"])
     legacy = cfg.get("agent_dispatch") or {}
     return int(legacy.get("claude_max_parallel", default))
+
+
+def needs_credential(harness: dict) -> bool:
+    """Does this harness require a minted OpenRouter key?
+
+    Delegates to the adapter's `needs_credential()` function, which is
+    REQUIRED on every adapter. The default assumes yes; harnesses that
+    authenticate through their own channel (e.g. Claude Code's subscription
+    auth on disk) return False so dispatch.py does not waste a provisioned
+    key on them.
+    """
+    adapter_name = harness.get("adapter", "")
+    if adapter_name:
+        mod = load(adapter_name)
+        return mod.needs_credential(harness)
+    return True

@@ -50,10 +50,14 @@ Two bounds the harness enforces rather than requests, both config-overridable:
     absent: a kid that spawns Claude Code subagents is a population
     `spawn_budget` cannot see, which is the unbounded-grandchildren failure
     `goal:g4.8` item 3 closed for `dispatch.py` spawns.
-  - **Git write verbs are refused** (`--disallowedTools`). The kid brief says
-    "DO NOT run git"; on 2026-09-02 a kid ran `git add -A && git commit` and
-    swept up a director's mid-edit CLAUDE.md anyway. A rule the harness
-    enforces is worth more than the same rule in three documents.
+  - **Git write verbs, HANDOFF.md/CLAUDE.md writes, and dispatch.py runs are
+    refused** (`--disallowedTools`). The kid brief says "DO NOT run git"; on
+    2026-09-02 a kid ran `git add -A && git commit` and swept up a director's
+    mid-edit CLAUDE.md anyway (`goal:g4.1`). `goal:s34` item 10 extends the
+    same refusal to HANDOFF.md writes, CLAUDE.md writes, and dispatch.py runs
+    -- every hazard carried in a handoff is closed in the loop, not carried
+    again. A rule the harness enforces is worth more than the same rule in
+    three documents.
 
 MCP servers are off by default (`--strict-mcp-config` with none named). The
 director's interactive session may carry trading, calendar and browser
@@ -88,6 +92,11 @@ DEFAULT_TOOLS = ("Bash", "Read", "Edit", "Write", "Glob", "Grep")
 DEFAULT_DISALLOWED_TOOLS = tuple(
     f"Bash(git {verb}:*)"
     for verb in ("commit", "add", "push", "stash", "checkout", "reset", "rm")
+) + (
+    # goal:s34 item 10: refuse HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs
+    "Bash(*HANDOFF.md:*)",
+    "Bash(*CLAUDE.md:*)",
+    "Bash(*dispatch.py:*)",
 )
 
 #: Output formats `claude -p` accepts. `stream-json` is the default because it
@@ -172,6 +181,12 @@ def child_env(*, harness: dict, base: dict[str, str],
     extra = harness.get("env") or {}
     env.update({k: str(v) for k, v in extra.items() if k not in NEVER_HANDED_DOWN})
     return env
+
+
+def needs_credential(harness: dict) -> bool:
+    """Claude Code authenticates through its own credential store on disk;
+    it does not need a minted OpenRouter key."""
+    return False
 
 
 def _root_of(sess_dir: Path) -> Path:

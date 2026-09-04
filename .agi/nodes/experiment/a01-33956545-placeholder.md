@@ -6,14 +6,16 @@ parents:
   - hypothesis:a01-33956545-9fc0bb
 next_edges: []
 confidence: 0.73
-verdict: proved
-link_ref: extensions/agi/tests/test_commands.py::test_render_table_preserves_placeholders
-scaffold_hash: a99c9ac57ec33d59
-title: Derived command tables stay placeholder-safe
+edited_by: director
 evidence_runs:
   - experiment:a01-33956545-placeholder
+link_ref: extensions/agi/tests/test_commands.py::test_render_table_preserves_placeholders
+payload_ref: extensions/agi/tests/test_commands.py
+scaffold_hash: a99c9ac57ec33d59
+thought_session: L1.12
+title: Derived command tables stay placeholder-safe
+verdict: proved
 ---
-
 # experiment:a01-33956545-placeholder
 
 ## Experiment
@@ -55,3 +57,7 @@ Steps:
   `/home/ubuntu/...`.
 - `extensions/agi/tests/test_commands.py::test_render_table_preserves_placeholders`
   asserts `<engine>` / `<root>` visibility and absence of absolute paths.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+"Director hygiene fix at close of L1.12: the kid wrote payload_ref with a ::test-name suffix, which is not a path; links.py counted it broken. The test name it meant is test_render_table_preserves_placeholders."
+<!-- THOUGHT:END -->

@@ -460,3 +460,48 @@ def test_an_unavailable_restart_fails_the_agent_rather_than_raising(tmp_path, mo
                       {"node_id": "hypothesis:h1"}, "a00", 999, cap=5, cfg={})
     assert out["record"]["status"] == "failed"
     assert "restart unavailable" in out["record"]["fail_reason"]
+
+
+def test_the_mint_call_is_guarded_by_needs_credential():
+    """goal:s34 item 2 — the red-on-purpose half of the experiment
+    experiment:a00-d315f97b-8ec39a. The simulation the first draft of this
+    test ran (a local copy of the `if` inside the test body) goes green even
+    after the gate is deleted from dispatch.py, so it proves nothing about
+    dispatch.py. This one reads the ACTUAL mint call site instead: the
+    `provisioning.mint` call in main() must sit inside a condition that
+    consults `adapters.needs_credential`. Delete the gate and this test is
+    red.
+    """
+    import ast
+
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+
+    mint_calls = [
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Attribute)
+        and n.func.attr == "mint"
+        and isinstance(n.func.value, ast.Name)
+        and n.func.value.id == "provisioning"
+    ]
+    assert mint_calls, "provisioning.mint call site missing from dispatch.py"
+
+    # ast.walk gives no parent map; build one so a call can walk up.
+    parents = {child: p for p in ast.walk(tree)
+               for child in ast.iter_child_nodes(p)}
+
+    def guarded(call):
+        p = parents.get(call)
+        while p is not None:
+            if isinstance(p, ast.If):
+                cond_src = ast.unparse(p.test)
+                if "needs_credential" in cond_src:
+                    return True
+            p = parents.get(p)
+        return False
+
+    assert all(guarded(c) for c in mint_calls), (
+        "every provisioning.mint call must be conditioned on "
+        "adapters.needs_credential(harness); removing the gate must fail "
+        "this test")

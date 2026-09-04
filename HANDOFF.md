@@ -442,3 +442,17 @@ at 16 > the focus-budget cap 15; the director raised
 `cc_dispatch.max_goals_active` to 18 so the owner's ask stands unwarned.
 Reversible in one line; park something to `horizon` instead if 16 is too
 many to aim at.
+
+### Close-out 13:45 EDT — practice iteration L1.12 done; this director stops
+
+Dispatched 12:31 at g4.9, s33, s34 and the four s34 hypotheses (iters
+1082–1088, 14 parents, cap 25 held ~30 min). Kids edited `provisioning.py`,
+`dispatch.py`, both adapters in-loop, as the new skill rule asks. Final
+verify through the runner: **tests 1482**, links 0 broken after one hygiene
+fix (a kid wrote `payload_ref` with a `::test` suffix), active **1094** /
+deprecated 181, `unevidenced_decisive_verdicts` 0, primary 0.187 (honest).
+Two experiment nodes had a *second* THOUGHT block appended — collapsed to
+the latest one (kids must rewrite the block, not append; a brief line for
+`goal:s31`/`s33`). ~5 straggler leases (1083/1087/1088) were live at close —
+run §5 and commit their nodes. Next session: §1 plan above, starting with
+`goal:s34` rows and `goal:g4.9`.

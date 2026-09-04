@@ -207,6 +207,11 @@ def restart(
     return new_pid
 
 
+def needs_credential(harness: dict) -> bool:
+    """Pi agents authenticate through a minted OpenRouter key."""
+    return True
+
+
 def import_sys_stderr():
     """Lazy import to keep top-level scope clean."""
     import sys

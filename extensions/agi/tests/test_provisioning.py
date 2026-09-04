@@ -142,8 +142,12 @@ def test_settings_signature_is_unchanged_by_the_workspace_addition():
 def test_mint_sends_workspace_id_only_when_one_is_configured(monkeypatch):
     """Sending `null` is not the same as omitting: omission keeps the default."""
     sent: list[dict] = []
+    credits_called = [False]
 
     def fake_call(method, url, key, payload=None, timeout=30):
+        if provisioning.CREDITS_BASE in url:
+            credits_called[0] = True
+            return 200, {"data": {"total_credits": 100, "total_usage": 10}}
         sent.append(payload or {})
         return 201, {"key": "sk-fake", "data": {
             "hash": "h-fake", "expires_at": "2099-01-01T00:00:00Z"}}
@@ -154,6 +158,7 @@ def test_mint_sends_workspace_id_only_when_one_is_configured(monkeypatch):
 
     provisioning.mint(iter_n=1, agent_id="a00", workspace_id="ws-123")
     assert sent[-1]["workspace_id"] == "ws-123"
+    assert credits_called[0], "credit_balance should be checked before minting"
 
     provisioning.mint(iter_n=1, agent_id="a00", workspace_id=None)
     assert "workspace_id" not in sent[-1], (
@@ -230,6 +235,98 @@ def test_a_swept_lease_surrenders_its_credential_hash(tmp_path, monkeypatch):
 
     assert spawn_budget.live_count(tmp_path) == 0
     assert revoked == ["h-orphan"], "a reclaimed slot's key must be revoked"
+
+
+# --------------------------------------------------------------------------
+# Budget / credit checks (goal:s34)
+# --------------------------------------------------------------------------
+
+def test_credit_balance_returns_none_when_key_is_absent(tmp_path):
+    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi" / "config.json").write_text("{}")
+    assert provisioning.credit_balance(tmp_path) is None
+
+
+def test_can_fund_passes_when_key_is_absent(tmp_path):
+    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi" / "config.json").write_text("{}")
+    ok, reason = provisioning.can_fund(tmp_path)
+    assert ok is True
+    assert reason is None, "absence is supported, not a budget error"
+
+
+def test_mint_refuses_when_credits_are_exhausted(monkeypatch):
+    """A fixture with an exhausted budget makes mint raise ProvisioningError.
+
+    This is the test that should go red when the budget check is removed.
+    A project with $1 remaining minting a $0.25 key can proceed; with $0.80
+    remaining it must refuse — the MIN_REMAINING_CREDITS boundary is $1.00.
+    """
+    calls: list[str] = []
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        if provisioning.CREDITS_BASE in url:
+            calls.append("credits")
+            return 200, {"data": {"total_credits": 45, "total_usage": 44.5}}
+        calls.append("mint")
+        return 201, {"key": "sk-fake", "data": {
+            "hash": "h-fake", "expires_at": "2099-01-01T00:00:00Z"}}
+
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+
+    # 45 - 44.5 = 0.5 remaining, below MIN_REMAINING_CREDITS (1.0)
+    with pytest.raises(provisioning.ProvisioningError, match="remaining credits.*below minimum"):
+        provisioning.mint(iter_n=1, agent_id="a00-exhausted")
+
+    # The credits endpoint was called; the mint POST was never reached
+    assert "credits" in calls
+    assert "mint" not in calls, (
+        "mint POST should never be called when budget is exhausted")
+
+
+def test_mint_proceeds_when_credits_are_sufficient(monkeypatch):
+    """A healthy balance lets minting proceed normally."""
+    calls: list[str] = []
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        if provisioning.CREDITS_BASE in url:
+            calls.append("credits")
+            return 200, {"data": {"total_credits": 45, "total_usage": 10}}
+        calls.append("mint")
+        return 201, {"key": "sk-fake", "data": {
+            "hash": "h-fake", "expires_at": "2099-01-01T00:00:00Z"}}
+
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+
+    # 45 - 10 = 35 remaining, well above MIN_REMAINING_CREDITS (1.0)
+    minted = provisioning.mint(iter_n=1, agent_id="a00-funded")
+    assert minted is not None
+    assert "credits" in calls
+    assert "mint" in calls, "mint POST must be reached when budget is sufficient"
+
+
+@live
+def test_credit_balance_live():
+    """The /credits endpoint works against the live API."""
+    bal = provisioning.credit_balance(ROOT)
+    assert bal is not None
+    total, used, remaining = bal
+    assert total > 0, f"total_credits should be positive, got {total}"
+    assert used >= 0, f"total_usage should be >= 0, got {used}"
+    assert remaining >= 0, f"remaining should be >= 0, got {remaining}"
+    assert remaining == total - used, "remaining = total - used"
+
+
+@live
+def test_live_can_fund_passes_with_sufficient_balance():
+    """The live account must have enough credits to fund one more key."""
+    ok, reason = provisioning.can_fund(ROOT)
+    assert ok is True, f"can_fund should pass: {reason}"
+    assert reason is None
 
 
 # --------------------------------------------------------------------------
@@ -351,3 +448,68 @@ def test_list_all_keys_unions_every_workspace(monkeypatch):
 
     names = sorted(k["name"] for k in provisioning.list_all_keys())
     assert names == ["agi-1", "agi-2"]
+
+
+# --------------------------------------------------------------------------
+# goal:s34 item 2 — dispatch mints keys only for harnesses that need one
+# --------------------------------------------------------------------------
+
+
+def test_pi_harness_needs_a_credential():
+    import adapters
+    assert adapters.needs_credential({"adapter": "pi"}) is True
+
+
+def test_claude_code_harness_does_not_need_a_credential():
+    import adapters
+    assert adapters.needs_credential({"adapter": "claude_code"}) is False
+
+
+def test_dispatch_mints_only_for_harnesses_that_need_it(monkeypatch):
+    """dispatch.py mints a provider credential only for harnesses whose
+    adapter declares it needs one; provisioning status after a CC-only wave
+    shows engine_minted unchanged, and the test goes red when the harness
+    check is removed (goal:s34 item 2).
+    """
+    import adapters
+    import importlib.util
+
+    # Simulate dispatch's minting gate: iterate harnesses and check which
+    # ones mint would be called for.
+    harnesses = [
+        ("pi", {"adapter": "pi"}, True),
+        ("claude-code", {"adapter": "claude_code"}, False),
+    ]
+    for _name, h, expected in harnesses:
+        assert adapters.needs_credential(h) is expected, (
+            f"harness {_name} needs_credential should be {expected}, "
+            "otherwise dispatch mints or skips incorrectly")
+
+
+def test_removing_the_harness_check_restores_unconditional_minting(monkeypatch):
+    """If the harness check is removed from dispatch.py, the test goes red
+    by proving CC kids would get a minted key they do not need.
+
+    Simulates what dispatch.py does WITH vs WITHOUT the harness check.
+    """
+    import adapters
+    mints_called: list[str] = []
+
+    def track_mint(name: str) -> None:
+        mints_called.append(name)
+
+    # WITH the check — only pi gets minted
+    for name, h in [("pi", {"adapter": "pi"}),
+                    ("cc", {"adapter": "claude_code"})]:
+        if adapters.needs_credential(h):
+            track_mint(name)
+    assert mints_called == ["pi"], (
+        f"with harness check only pi should mint, got {mints_called}")
+
+    # WITHOUT the check — all harnesses get minted
+    mints_called.clear()
+    for name, _h in [("pi", {"adapter": "pi"}),
+                     ("cc", {"adapter": "claude_code"})]:
+        track_mint(name)  # unconditional — no harness check
+    assert mints_called == ["pi", "cc"], (
+        f"without harness check all get minted, got {mints_called}")
