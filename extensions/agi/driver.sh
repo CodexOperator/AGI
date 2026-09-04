@@ -125,11 +125,21 @@ fi
 LOG="$PROJECT_ROOT/loop.log"
 mkdir -p "$PROJECT_ROOT/sessions" "$PROJECT_ROOT/context" "$PROJECT_ROOT/nodes"
 
+claim_iter() {
+  python3 "$PLUGIN_ROOT/bin/locations.py" "$PROJECT_ROOT" --claim-iter "$@"
+}
+
 iter_run() {
-  local n="$1"
+  local raw_iter
+  raw_iter=$(claim_iter --loop "$CURRENT_LOOP")
+  local n="$raw_iter"
+  local n_display="$raw_iter"
+  if [[ "$raw_iter" =~ ^[0-9]+$ ]]; then
+    n_display=$(printf "%03d" "$raw_iter")
+  fi
   local ts
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  echo "=== iter $n @ $ts ===" | tee -a "$LOG"
+  echo "=== iter $n_display @ $ts ===" | tee -a "$LOG"
 
   # 1a. Render GOALS.md FROM nodes/goal/ (goal:g6.9 — the nodes are the source;
   #     the document is a flat reading convenience). This direction cannot
