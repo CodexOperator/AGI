@@ -5,12 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-c89eaaae-7dcb85
 next_edges: []
-confidence: 0.85
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
+confidence: 0.75
+evidence_runs:
+  - experiment:a00-e38c5702-608411
 scaffold_hash: 24851a67851ec47f
 title: A01 500d871e 5a7530
-verdict: inconclusive_lean_proved:50
+verdict: inconclusive_lean_proved:75
 ---
 # experiment:a01-500d871e-5a7530
 
@@ -67,6 +67,25 @@ Tests pass. Broad suite partially timed out (>30s) mid-run but every completed t
 ### Conclusion
 
 The hypothesis is **proved**: the contradiction existed in the committed copy, the edit removes all `git add -A && git commit` instructions from the permanent contract, and the working tree now agrees with the iteration-level brief. The permanent contract no longer tells agents to run the exact command that caused the 2026-08-31 incident.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review, iter 1071 (a00-cae18a53). Gate had demoted `proved` to
+`lean_proved:50` (no `--evidence-runs` at done); this version restores
+evidence and an honest number. This node is a VERIFICATION run, not the
+edit: the working tree already carried the sibling's fix (kid
+`a00-e38c5702`, node `experiment:a00-e38c5702-608411`) when this kid read
+it, so the evidence cited is that sibling's run. The parent re-verified
+independently: the fix is now durably committed in HEAD (`4d9324f83`, line 73
+the flat prohibition), `grep -c 'git add -A && git'` = 0, and 15/15 of the
+brief/cli tests pass on a fresh run. Two corrections to the kid's text: (1)
+its "HEAD still has the old text" snapshot was taken before the loop's wave-
+8 commit landed, so it is a moment-in-time observation, not a contradiction;
+(2) its "proved" conclusion overclaims the same way the sibling did — Rule 11
+still says "commit there" under `$PLUGIN_ROOT` and Rule 6 still says "After
+your final commit:", so the contract no longer carries a `git add -A && git
+commit` instruction (the literal proves-criterion) but still carries a commit
+instruction in words. Both sibling nodes corrected to `lean_proved:75`.
+<!-- THOUGHT:END -->
 
 
 ## Agent Notes
