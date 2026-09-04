@@ -6,9 +6,11 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 scaffold_hash: fe8592a0b35123bd
 title: Live-graph attractor list check — deprecation filter verified on real graph
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:a00-beefd8bb-49d392
 
