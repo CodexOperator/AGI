@@ -382,3 +382,11 @@ crontab lines commented (`#PAUSED-2026-09-04`; backup + restore notes in
 **Prime suspect for the second director:** the reactive daemon —
 `~/.hermes/belam-codex/scripts/agent_pingpong.py` references this repo /
 `HANDOFF`. Confirm from its logs before re-enabling anything.
+
+**State 11:00 EDT (after wave 8, commit `L1.11b`):** active **1037** /
+deprecated 180, primary 0.196 (honest — hypotheses lead, guard withholding
+-0.1), `mvp_count` 50 (48 scoring, 2 backward), links 1214/0 broken, tests
+**1454**, `unevidenced_decisive_verdicts` 5 → 0 at grid commit (the gate
+demoting live kid output every wave, as designed). Wave 9 dispatched 10:59
+(iters 1073–1078: g10.1 g8.1 g9.7 g1.10 s32 g4.7). One more wave after it,
+then this director stops.
