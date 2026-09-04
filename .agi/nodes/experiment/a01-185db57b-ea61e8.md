@@ -5,10 +5,11 @@ type: experiment
 parents:
   - hypothesis:a01-721930d9-d34989
 next_edges: []
+confidence: 0.75
 scaffold_hash: 23d8b6b416896a10
 title: A01 185db57b ea61e8
+verdict: inconclusive_lean_proved:75
 ---
-
 # experiment:a01-185db57b-ea61e8
 
 ## Experiment
@@ -97,3 +98,6 @@ Corpus: 15 goal nodes from /home/ubuntu/work/agi/.agi/nodes/goal
 
 `/tmp/g13-join-experiment-2.py` — may not survive reboot.
 
+
+## Agent Notes
+Tested update_node as generator write path: 15/15 semantically identical frontmatter to write_frontmatter, 30/30 write-back identity, 15/15 no-op detection, 5/5 THOUGHT preserved. The serializer differences (key order, quoting) are cosmetic — both produce valid YAML. The preserve= mechanism is not needed: update_node's merge-by-default semantics already provide it. Write-side join is achievable; full join (read wrapper, no caller-shaped seam, broken_links=0) remains untested.

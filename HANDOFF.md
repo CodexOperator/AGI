@@ -213,7 +213,13 @@ python3 extensions/agi/bin/commands.py run tests     # 1371
    `_benchmark.py` at the root, and a hand edit to `HANDOFF.md`. Moved to
    `.agi/sessions/L1-logs/parent-scratch/`. The parent brief should forbid
    writes outside `.agi/nodes/`, `extensions/`, `src/`, `skills/`, `tests/`.
-9. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
+9. **`test_publish_alarm.py::test_dry_run_writes_neither_nodes_nor_grid_versions`
+   fails with `_scratch_dirs() == 4`, not 3** once the director's own scratch
+   dirs exist under `.agi/sessions/` (`L1-logs`, `L1.09-mining`, …). Not a
+   regression — a non-hermetic count. It slipped past the commit gate once
+   because pytest's `FAILED` line is colour-coded and a plain `grep ^FAILED`
+   missed it; strip ANSI before grepping (`sed 's/\x1b\[[0-9;]*m//g'`).
+10. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
    this session uses 1006+. Loop-scoped numbering (L1.10) is still unbuilt.
 
 ## §5 Known-good verification sequence
