@@ -6,9 +6,11 @@ parents:
   - experiment:a01-d450d5b0-1b8669
 next_edges: []
 confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 scaffold_hash: ab445765cfd9add0
 title: A01 2afbdd41 ee4a10
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # verdict:a01-2afbdd41-ee4a10
 
