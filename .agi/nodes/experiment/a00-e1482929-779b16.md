@@ -7,14 +7,14 @@ parents:
 next_edges: []
 confidence: 0.7
 scaffold_hash: 7450616cb93005e3
-title: A00 e1482929 779b16
-verdict: inconclusive_lean_proved:80
+title: Falsifier pre-sweep hit census — detection half of the S33 falsifier
+verdict: inconclusive_lean_proved:70
 ---
 # experiment:a00-e1482929-779b16
 
 ## Experiment
 
-Ran falsifier grep across all four target files (QUICKSTART.md, CLAUDE.md, skills/agi/SKILL.md, HANDOFF.md) searching for retired names: `render-context.py`, `payloads/`, `grid.py checkout`, `context/kits`. Categorized each hit as either inside a retired-marker sentence (pass) or outside one (fresh hit — falsifier fails).
+Ran falsifier grep across all four target files (pre-sweep census; the sweep itself is a later step) (QUICKSTART.md, CLAUDE.md, skills/agi/SKILL.md, HANDOFF.md) searching for retired names: `render-context.py`, `payloads/`, `grid.py checkout`, `context/kits`. Categorized each hit as either inside a retired-marker sentence (pass) or outside one (fresh hit — falsifier fails).
 
 **Command:**
 ```bash
@@ -95,6 +95,12 @@ CLAUDE.md:285:  keeps a live `context/kits/` + `context/plans/build-site.md` pai
 - Both fixes are straightforward: update pipeline diagram (L108) and update code block + line numbers (L29)
 - The stale reference at L29 is embedded in a hazard warning about stale scripts; replacing `render-context.py` with `inject.py` in the quoted code block would preserve the warning's value
 - No stale reference carries independent semantic importance that would be lost by updating it
+
+**Sibling run:** experiment:a01-88be3db9-e82e5d ran the same census independently. Raw hit counts agree exactly (14 hits, same lines, HANDOFF.md clean). It classifies CLAUDE.md:271, CLAUDE.md:285 and SKILL.md:448 as BORDERLINE live warnings, not retired markers — a stricter read than this node's classification. The falsifier as specified in goal:s33 is under-specified: a "NEVER create" prohibition sentence is not literally a sentence that marks the name retired, and CLAUDE.md:285 is a live warning about other projects where nothing is retired. Agreement on raw counts across two independent runs is the strongest evidence in either node.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-92d87f34): raw census verified against an independent grep — all 14 lines match. Lean demoted 80 -> 70 to match the node's own confidence (0.7) and because this run executes only the detection half of the falsifier: the sweep itself was never run, and this node's classification of the three live-warning hits as "retired" is the generous read; the sibling run calls them borderline. Title was a scaffold placeholder.
+<!-- THOUGHT:END -->
 
 
 ## Agent Notes
