@@ -373,3 +373,12 @@ would be nothing to troubleshoot. Node: `hypothesis:a-second-director-ran-this-g
 | 14 | `fantasia/agi` | Separate clone; its 5-min cron runs the **old** `grid.py` (no commit-path gate) until pulled. | g11 |
 | 15 | `briefing.py` | Reads idea status from disk itself because `inject.py`/`viewport.py` don't pass it — a duplicated read. | g9.7 |
 | 16 | Untracked nodes | Anything minted and left uncommitted across a wave can vanish (trap 5). **Commit at mint.** | g4.1 |
+
+**Addendum 10:45 EDT — paused at the owner's request:** all `openclaw`/`hermes`
+crontab lines commented (`#PAUSED-2026-09-04`; backup + restore notes in
+`~/.agi-paused/README.md`), and `openclaw-reactive.service`
+(`~/.hermes/belam-codex/scripts/reactive_daemon.py --loop --interval 30`),
+`openclaw-gateway.service`, `hermes-gateway.service` stopped (not disabled).
+**Prime suspect for the second director:** the reactive daemon —
+`~/.hermes/belam-codex/scripts/agent_pingpong.py` references this repo /
+`HANDOFF`. Confirm from its logs before re-enabling anything.
