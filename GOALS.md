@@ -860,6 +860,43 @@ Rotating `OPENROUTER_API_KEY` itself, a secret store, or anything touching
 `MINIMAX_API_KEY` / `OPENAI_API_KEY`. One provider, one mechanism, proved
 before it is generalised.
 
+### G1.12 — Loop flavor is a tag: research, exploration, development, implementation — status: horizon
+
+# goal:g1.12
+
+## Agent Notes
+**Owner spec, 2026-09-04.** A goal should declare *what kind of loop it launches*,
+and every node that loop produces should carry that flavor as a tag. The tag is
+what a zoomed-out view collapses on (`goal:g2.6`), so flavor and zoom are the
+same mechanism seen twice.
+
+The flavors, as the owner framed them:
+
+- **research** — many verdict → mvp → build/build-version chains run *before* the
+  first mvp that is allowed to be called development. Any node in it can become
+  the launch point for a fresh idea, now or much later. Zoomed out, the whole
+  thing reads as one `research` node.
+- **exploration** — the lighter chain: verdict loops that lead straight to an mvp
+  and its build nodes down one path. Its mvps and builds stay tagged
+  `exploration`, which is an honest statement that this region has not been
+  experimented on hard.
+- **development** — what a research loop *becomes* once it delivers its first
+  real mvp: that mvp and the build nodes it creates or revises are tagged
+  `development` at the larger zoom. So a research loop is research-and-development
+  in one shape.
+- **implementation** — goals that spawn work directly, typically new versions of
+  existing build nodes.
+
+**Nesting is the point.** Inside a research loop each individual chain path is
+itself sub-tagged `exploration`, so one zoom level shows many paths as single
+nodes and the next breaks each path into the on-disk chain nodes it is made of.
+The tag system therefore has to nest and to be legal at every grain, not just at
+the top.
+
+Downstream: `goal:g5.2` decides the flavor and the split mechanically;
+`goal:g14` uses the flavor tag to route each node request to a model; the live
+view (`goal:g9.8`) collapses on it.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -2294,6 +2331,38 @@ Falsifier: run the metric over this file as it stands. It must flag **G6.6**
 (known bundled, proved so by verdict) and must not flag **G3.1** or **S9**
 (single claim, single falsifier, closed cleanly). If it cannot separate those,
 the signal is length in disguise.
+
+### G5.2 — Splitting a goal is a mechanical act — classifiers and encoders, not taste — status: horizon
+
+# goal:g5.2
+
+## Agent Notes
+**Why this exists, with a worked failure.** `goal:g9.4` — the live graph viewport
+— was handed to the loop as one goal and came back as a list view: correct
+against the words, nowhere near the intent. It should have been split first, into
+a hook layer plus two skins plus a player avatar (now `goal:g9.8`, `goal:g9.9`,
+`goal:g9.10`), each chasing its own mvp. Nothing in the engine noticed the goal
+was too big to aim at, so a director had to, and did not. That is a harness gap,
+not a model failure.
+
+`goal:g5.1` says a saturated goal gets broken up. This says the breaking up is
+**mechanical**:
+
+- **Classify goals with real classifiers.** OpenRouter-hosted classifier models,
+  or plain encoders, over the goal body and its chain. Both are cheap; both
+  likely carry usable signal, and which signal is worth having is itself
+  research, not a decision to make up front.
+- **Score saturation.** How many distinct intents a goal body carries, how many
+  independent falsifiers it implies, how far its chains have drifted from its
+  words.
+- **Propose the split, and eventually perform it** — sub-goals with their own
+  mvps — with the classifier's output as the evidence in the node, so the split
+  is reviewable rather than asserted.
+- **Assign the loop flavor** each sub-goal should launch (`goal:g1.12`).
+
+Falsifier shape: run the classifier over the goal corpus as it stood before
+2026-09-04 and check that `goal:g9.4` scores as over-saturated while goals that
+closed cleanly in one chain do not.
 
 ## G6 — The closed loop: engine work starts in the graph — status: horizon
 
@@ -4157,7 +4226,7 @@ Load the exact context injection a kid receives on arrival. The fastest way to
 judge whether a brief is genuinely self-contained, and the only way to see the
 system from the inside without spending an agent. Was L10's first half.
 
-### G9.4 — The live graph viewport: watch the whole thing, moving — status: active
+### G9.4 — The live graph viewport: watch the whole thing, moving — status: horizon
 
 **This supersedes the dashboard as the primary view.** G9.1 answers "what is the
 state" in panels of text. This answers "what does the graph *look* like, right
@@ -4191,6 +4260,40 @@ to do.
 
 Inherits G9's invariants: reader-never-writer, and it renders damage rather than
 hiding it — a broken region of the graph should be visibly broken on the web.
+
+## Agent Notes
+## Owner review, 2026-09-04 — what shipped is not this, and the goal returns to `horizon`
+
+`viewport.py --live` renders **a list**, not a web: goals and a few neighbours,
+no full node graph, no edges you can read as connections, and "spiders" that are
+markers in text rather than creatures on a web. Judged against the intent above
+this is a **completion failure**, and it is the clearest example the project has
+of a goal delivered against its words while missing what was asked for.
+
+The diagnosis is not that the kids underperformed. **The goal was too saturated
+to aim at** — renderer unification, viewport panning, live agent positions, the
+zoom axis and an ASCII-to-3D-to-browser progression, all in one node with one
+mvp. Nothing in the engine detects that, so it fell to a director who did not.
+That is `goal:g5.1`'s thesis observed live, and `goal:g5.2` is the mechanical
+fix.
+
+**Split, and each half chases its own mvp:**
+
+- `goal:g9.8` — one hook layer and frame stream, the player avatar, docking, and
+  LOD-on-approach. Everything both skins share.
+- `goal:g9.9` — the spider web skin: every node on a web, animated ASCII spiders
+  that crawl edges and mess with the nodes they are working on, motion that reads
+  as alive rather than linear.
+- `goal:g9.10` — the space skin: systems, planets, moons, asteroids; ships whose
+  size mirrors the tier split, plus modular tiers (station, terraformer, colony);
+  a player ship that flies, docks, and browses versions and chats.
+
+Both skins are 2D top-down, share every hook, and are designed for recursion in
+both directions — more zoom layers, and more agent hierarchy layers, are rows in
+a table, never new branches.
+
+**This node stays as the umbrella** and goes back to `horizon`: it is not being
+worked, and it is not `complete`. It closes when the three subgoals do.
 
 ### G9.5 — Pick a node, see its history; pick a version, see how it got there — status: horizon
 
@@ -4382,6 +4485,88 @@ view is not the one agents read.
   view rendered by the engine. Same argument, different artefact.
 - **Feeds `goal:g8`** (forkability) through `goal:g9`: a fork needs to see
   what it inherited.
+
+### G9.8 — One live hook layer, two skins, and a player avatar that browses the graph — status: horizon
+
+# goal:g9.8
+
+## Agent Notes
+**Owner spec, 2026-09-04.** The live view shipped as a list. This goal is the
+half that has to exist before either skin is worth drawing: **one hook layer,
+one frame stream, two renderings.** `viewport.py --emit both` already proves the
+principle for human/LLM text; this extends the same discipline to two *visual*
+skins that share every hook and differ only in paint.
+
+What the layer owes:
+
+- **Every node, not just goals.** The web is the whole graph — 1,275 nodes and
+  1,196 edges today — laid out in 2D top-down, not a filtered list of the
+  interesting ones.
+- **Live agent positions as events, not polls.** A frame carries where each
+  agent is, which edge it is traversing, and what it is doing to the node it
+  sits on (reading, writing, reviewing, cleaning up after a kid). Bits streaming
+  into the graph, rendered as they land.
+- **A player avatar.** The viewer is *in* the graph: free movement across it,
+  `f` to dock to a node, and once docked, browse that node's grid versions and
+  the chat sessions attached to it (`goal:g2.7`, `goal:g10.1` — this is the
+  first consumer that makes chat-to-node linking visibly worth it).
+- **LOD as approach, not a flag.** A node grows less opaque as the avatar nears
+  it, revealing its subnodes; it never goes fully clear. `z` / `x` zoom in and
+  out from anywhere on the graph. This is `goal:g2.8`'s second axis, made
+  physical.
+- **Recursive by construction, in both directions.** More zoom layers above and
+  below, and more agent hierarchy layers than director/parent/kid, must be
+  additions to a table — never a new branch in the renderer.
+
+**Skins are downstream of this and must not fork it:** `goal:g9.9` (spider web)
+and `goal:g9.10` (space) are two paint jobs over these hooks. If a skin needs a
+hook the other cannot use, the hook is wrong.
+
+### G9.9 — The spider web skin — a living web, animated spiders, every node on it — status: horizon
+
+# goal:g9.9
+
+## Agent Notes
+**The spider skin.** The graph is a web, drawn in ASCII, and it is alive.
+
+- Nodes are anchor points, edges are silk. The web is the real graph, every node
+  on it.
+- **Agents are little animated ASCII spiders that crawl** — a parent sits on the
+  goal or node it was pointed at; when it needs to clean up after a kid it
+  *walks the edge* to that node and visibly messes with it. Kids jump between the
+  nodes they are editing. You watch the swarm work rather than read a log of it.
+- Motion must read as **living, not linear**: a jump is a wind-up, a leap and a
+  settle, minimal in glyphs but never a constant-rate slide between two cells.
+- The player avatar is a jumping spider that can traverse the web in any
+  direction, same animation grammar.
+- Damage stays visible (`goal:g9`'s invariant): a broken region of the graph
+  looks like a torn web.
+
+Everything under it comes from `goal:g9.8`'s hook layer. This node owns the
+paint, the animation grammar, and nothing else.
+
+### G9.10 — The space skin — systems, bodies, and a fleet that mirrors the tier split — status: horizon
+
+# goal:g9.10
+
+## Agent Notes
+**The space skin.** Same hooks as `goal:g9.9`, same 2D top-down frame stream,
+different universe.
+
+- **Nodes are bodies:** systems, planets, moons, asteroids — the mapping from
+  node type and degree to body class is a table, not a branch.
+- **Agents are ships that mine them.** Ship size mirrors the tier split: a large
+  ship spawns smaller ones which spawn smaller ones again — director, parent,
+  kid, and whatever tiers come after.
+- **Modular tiers:** space station, terraformer, colony ship and friends are rows
+  in the same table, so a new agent hierarchy layer is a row rather than a
+  rewrite.
+- **The player ship** flies the graph, docks with `f`, and browses a node's
+  versions and attached chat sessions from the dock. Opacity resolves on
+  approach; `z` / `x` zoom anywhere.
+
+If this skin and the spider skin ever need different frame data, the hook layer
+in `goal:g9.8` is under-specified — fix it there.
 
 ## G10 — The hypergraph: an environment, not a document — status: horizon
 
@@ -5520,6 +5705,43 @@ mode installed beside it.
 landed 2026-09-02 and `write.py` did not. This goal is the first real consumer
 of it, so it is also the thing that will say whether that seam is right.
 **`goal:s31`** is the first defect it should be able to fix from the inside.
+
+## G14 — Local-maxxing: the smallest model that can do the job, everywhere — status: horizon
+
+# goal:g14
+
+## Agent Notes
+**Owner goal, 2026-09-04: local-maxxing.** Use the smallest, fastest, most open
+model that can do each job, everywhere it can be done — and make the graph itself
+the thing that decides which model that is.
+
+The shape:
+
+- **Mechanistic tagging at creation.** Classifiers, encoders, or small tuned
+  models assign a node its tags the moment it is minted, rather than a large
+  model being asked to introspect (`goal:g5.2`, `goal:g1.12`).
+- **Tags route the model.** Which model writes the next node is a function of the
+  requested node's type, flavor tag and grain, given the node it follows in the
+  chain. That is config, declared in the graph (`goal:g1`), never improvised per
+  spawn.
+- **Specialists get sharper over time.** Every routed call is training data for
+  the model that serves that slot, so models become hyper-specialised per
+  granularity, per loop flavor, per harness piece — narrow capability, tiny
+  prompt, tiny output.
+- **A lattice, not a ladder.** Many hyper-tuned models each doing one subtask,
+  with classifiers and encoders breaking a goal into optimal sub-goals and the
+  results stitched back together live at every zoom level — the way DNA is
+  stitched during replication, or proteins working inside a cell. No single large
+  model in the middle of the loop.
+
+**Why it is a goal rather than an optimisation:** the director's context is the
+scarce resource (measured across loop L1) and provider spend is the other. Both
+fall out of the same fix — put the smallest competent model at every node and let
+the graph, not a human, decide what competent means here.
+
+Related: `goal:g4` (right model at the right grain), `goal:g4.2` (a
+reasoning-effort dial), `goal:g4.4` (a web of specialists, each owning a region),
+`goal:g2.4` and `goal:s32` (the embeddings pipeline this needs).
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 

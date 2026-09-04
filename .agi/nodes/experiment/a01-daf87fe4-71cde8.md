@@ -5,12 +5,15 @@ type: experiment
 parents:
   - hypothesis:cc-kids-do-not-mint-openrouter-keys
 next_edges: []
-confidence: 0.95
+confidence: 0.5
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
 scaffold_hash: ea2368d66561dfd6
 title: Verify dispatch.py gate at L471 and adapter needs_credential implementations
 verdict: inconclusive_lean_proved:50
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent a00-27ecc2b3 (iter 1088) review edit. The grid-commit gate demoted this node proved -> inconclusive_lean_proved:50 because the kid signalled done without evidence_runs; that demotion stands — the citation was procedurally missing, and re-stamping proved by hand would be bypassing the gate. Substantively the audit content is sound: the parent re-verified every cited line (dispatch.py L471 gate, REQUIRED tuple, pi=True, claude-code=False) and re-ran the suite. This node is a redundant second confirmation of experiment:a00-4c170302-65ca06, which carried its citation and keeps proved; that is where the evidence lives. Two content corrections: (1) "3 pre-existing unrelated failures" was a point-in-time reading of a suite moving under concurrent agents — the parent re-ran the three cited modules (74/74) and the full suite (1482/1482) minutes later, so they were transient churn, not pre-existing defects; the "identical to pre-existing issues" inference is removed. (2) The kid called done twice and the renderer appended the Agent Notes section twice; the contract is exactly once, so one copy is removed. (3) The gate's demotion left confidence at 0.95 next to a :50 lean; aligned to 0.5 so the two scales agree.
+<!-- THOUGHT:END -->
 ---
 # experiment:a01-daf87fe4-71cde8
 
@@ -37,12 +40,9 @@ verdict: inconclusive_lean_proved:50
 - dispatch.py L471 gate: `if issuing and adapters.needs_credential(harness):` — in place and correct.
 - `needs_credential()` dispatch in `adapters/__init__.py` — delegates correctly.
 - pi: True, claude_code: False — both correct.
-- Tests: **1478 passed, 3 failed** (pre-existing, unrelated):
-  - `test_publish_alarm.py:test_the_fallback_leaves_no_worktree_behind` — publish engine issue, unrelated.
-  - `test_publish_alarm.py:test_the_scratch_worktree_never_survives_the_run` — publish engine issue, unrelated.
-  - `test_thought_hygiene.py:test_the_real_corpus_has_no_node_with_two_thought_blocks` — unrelated hygiene issue in nodes `a00-ead04193-7068c4` and `a01-48bc04f6-2b4009` (different hypothesis chain).
+- Tests at run time: **1478 passed, 3 failed** — the three cited failures (`test_publish_alarm.py` x2, `test_thought_hygiene.py` x1) were transient concurrent-edit churn, not pre-existing: parent re-ran those modules (74 passed, 0 failed) and the full suite (1482 passed, 0 failed) minutes after this run.
 - No dispatch or provisioning tests fail. The 34 dispatch tests and 24 provisioning tests all pass.
-- The 3 failures are identical to pre-existing issues in unrelated test modules.
+- (Parent review: the "identical to pre-existing issues" characterization is retracted; the suite was moving under this run.)
 
 ## Evidence
 
@@ -63,11 +63,8 @@ adapters/__init__.py needs_credential(): delegating to mod.needs_credential(harn
 pi_adapter.py: needs_credential(harness) -> True
 claude_code_adapter.py: needs_credential(harness) -> False
 
-Test suite: 1478 passed, 3 failed (all 3 pre-existing, unrelated)
+Test suite at run time: 1478 passed, 3 failed (transient concurrent-edit churn; parent re-run: 74/74 cited modules, 1482/1482 full suite)
 ```
 
 ## Agent Notes
-Audit confirms dispatch.py gate at L471 and both adapter implementations are correct and stable. CC kids do not mint OpenRouter keys. 1478 tests pass; 3 pre-existing unrelated failures.
-
-## Agent Notes
-Audit confirms dispatch.py L471 gate + both adapter needs_credential() impls correct. CC kids do not mint OpenRouter keys. 1478 tests pass, 3 pre-existing unrelated failures.
+Audit confirms dispatch.py gate at L471 + both adapter needs_credential() impls correct. CC kids do not mint OpenRouter keys. Suite numbers at run time (1478/3) were transient churn; parent re-run fully green.
