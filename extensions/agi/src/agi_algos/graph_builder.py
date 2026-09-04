@@ -55,7 +55,7 @@ def _save_cache(data: str):
 
 class GraphBuilder:
     """Builds a unified graph from multiple source materials."""
-    __slots__ = ('nodes', 'edges', 'adj', '_node_ids', '_section_stack', '_precomputed_paths', 'hub_reachable')
+    __slots__ = ('nodes', 'edges', 'adj', '_node_ids', '_section_stack', '_precomputed_paths', 'hub_reachable', '_tag_store')
 
     def __init__(self):
         self.nodes: List[Dict[str, Any]] = []
@@ -64,7 +64,8 @@ class GraphBuilder:
         self._node_ids: set = set()
         self._section_stack: List[int] = []
         self._precomputed_paths: Dict[str, Any] = {}  # (start, end) -> path or None
-        self.hub_reachable: Dict[str, frozenset] = {}  # hub_id -> frozenset of reachable node ids
+        self.hub_reachable: Dict[str, frozenset] = {}
+        self._tag_store: Dict[str, List[str]] = {}  # node_id -> [tags] for tag bridge building  # hub_id -> frozenset of reachable node ids
 
     def add_node(self, node_type: str, label: str, content: str = "",
                  source: str = "", node_id: Optional[str] = None) -> str:
