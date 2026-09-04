@@ -5,12 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-c89eaaae-7dcb85
 next_edges: []
-confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
+confidence: 0.75
+evidence_runs:
+  - experiment:a01-500d871e-5a7530
 scaffold_hash: b43be5ba740d41f5
 title: Edit agent-prompt.md Rule 5 to ban git, verifying zero actionable git instructions remain
-verdict: inconclusive_lean_proved:50
+verdict: inconclusive_lean_proved:75
 ---
 # experiment:a00-e38c5702-608411
 
@@ -38,6 +38,26 @@ Pre-edit grep confirmed the contradiction at lines 73-75 (`git add -A && git -c 
 The hypothesis's own "Proves it" criterion: "a fresh grep shows zero remaining git-add/git-commit instructions to agents, and the permanent contract and every iteration-level brief agree" — this is satisfied. No agents are instructed to run git commands in agent-prompt.md anymore.
 
 **Caveat**: The concise embed from the iteration override is still the primary guard for cold sessions, but the default contract no longer contradicts it. Any dispatch path that reads agent-prompt.md directly now sees a safe default instead of a dangerous one.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review, iter 1071 (a00-cae18a53). The gate had demoted `proved` to
+`lean_proved:50` (kid signalled done without `--evidence-runs`); this version
+re-opens it with evidence and an honest number after the parent read the
+ARTIFACT, not the report. Verified in the working tree and in HEAD
+(`4d9324f83`): line 73 is now the flat prohibition, Rule 12's `git -C` commit
+example is gone, `grep -c 'git add -A && git'` returns 0, and
+`pytest test_brief.py test_cli.py` passes 15/15 (re-run by the parent, not
+taken on trust). Evidence run is the sibling's independent verification,
+`experiment:a01-500d871e-5a7530`, not self-citation. Set at 75, not 100, for
+one overclaim this edit did not clear: Rule 11 still reads "change files
+under `$PLUGIN_ROOT` and **commit there**" and Rule 6 still says "After your
+final commit:" — no `git add -A`/`git commit` instruction (so the hypothesis's
+literal proves-criterion holds), but a commit instruction to agents survives
+in words. The sibling run made the same overclaim; both nodes corrected to
+match. Next action for a future kid: rewrite Rule 11's commit instruction and
+Rule 6's residual phrasing to name `cli.py done` / the loop, then the claim
+can reach proved.
+<!-- THOUGHT:END -->
 
 
 ## Agent Notes

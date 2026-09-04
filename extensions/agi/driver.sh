@@ -125,6 +125,60 @@ fi
 LOG="$PROJECT_ROOT/loop.log"
 mkdir -p "$PROJECT_ROOT/sessions" "$PROJECT_ROOT/context" "$PROJECT_ROOT/nodes"
 
+# Engine drift check (L9 pinning gap, goal:g8.1). Reads engine_commit (or
+# engine_ref) from the project config and warns if the engine checkout's HEAD
+# does not match. Non-fatal: prints a warning line and continues. Silent when
+# the field is absent (i.e. projects that do not use pinning are unaffected).
+#
+# Config is resolved against PROJECT_ROOT first (.agi/config.json for the
+# goal:g11 layout, then agi-tree.config.json for the legacy layout).
+# That matters because the same PROJECT_ROOT value the loop uses is the one
+# whose engine_commit we mean to check, regardless of layout.
+if [[ -z "${SKIP_ENGINE_DRIFT_CHECK:-}" ]]; then
+  python3 -c "
+import json, subprocess, sys
+from pathlib import Path
+
+proot = Path('$PROJECT_ROOT')
+
+# Config is at PROJECT_ROOT/config.json (goal:g11) OR agi-tree.config.json (legacy)
+# PROJECT_ROOT is the .agi/ dir itself when resolved by find-root.sh phase 0
+for cname in ['config.json', 'agi-tree.config.json', 'autoresearch-tree.config.json']:
+    cpath = proot / cname
+    if cpath.exists():
+        break
+else:
+    sys.exit(0)
+
+try:
+    cfg = json.loads(cpath.read_text())
+except Exception:
+    sys.exit(0)
+
+engine_commit = cfg.get('engine_commit') or cfg.get('engine_ref')
+if not engine_commit:
+    sys.exit(0)  # not pinned, silent
+
+try:
+    result = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        cwd='$PLUGIN_ROOT',
+        capture_output=True, text=True, timeout=10
+    )
+    if result.returncode != 0:
+        sys.exit(0)
+    actual = result.stdout.strip()
+except Exception:
+    sys.exit(0)
+
+if actual == engine_commit:
+    print(f'[driver] engine pinned OK: {actual[:12]} matches engine_commit')
+else:
+    print(f'[driver] DRIFT WARNING: engine HEAD is {actual[:12]} but config pins {engine_commit[:12]}', file=sys.stderr)
+    print(f'[driver]   Fix: git -C $PLUGIN_ROOT pull, or update engine_commit in {cname}', file=sys.stderr)
+" 2>&1 | tee -a "$LOG" || true
+fi
+
 claim_iter() {
   python3 "$PLUGIN_ROOT/bin/locations.py" "$PROJECT_ROOT" --claim-iter "$@"
 }
