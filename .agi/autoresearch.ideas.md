@@ -13,3 +13,4 @@
 - ~~Lazy _precompute_key_paths~~ — old code
 - ~~add_node dedup optimization~~ — old code
 - ~~_cache_ver bump convention~~ — old code, not applicable to new architecture
+- goal:s34 item 2: the four s34 tests simulate the mint gate inline and never import dispatch.py, so deleting `adapters.needs_credential(harness)` from dispatch.py leaves them green. Owed: a source-level regression test (import dispatch / inspect the mint gate) that goes red on removal. Surfaced by parent a00-27ecc2b3, iter 1088 (see THOUGHT in experiment:a00-4c170302-65ca06).

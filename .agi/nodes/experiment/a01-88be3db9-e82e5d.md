@@ -41,11 +41,11 @@ Tested hypothesis:a00-abd94427-d2294b: can a falsifier grep (retired names: rend
 
 1. **Unique stale targets: 2** (both in QUICKSTART.md — render-context.py references that describe pre-L1 state without retired marker). Well under hypothesis's 20-target upper bound.
 
-2. **Falsifier produces 3 false positives** — CLAUDE.md:271, CLAUDE.md:285, SKILL.md:448 reference retired names as part of semantically important live warnings ("don't recreate this dangerous file"). These are current content, not stale drift. Adding "(retired)" markers would quiet the falsifier without removing useful warnings.
+2. **Falsifier produces 3 false positives** — CLAUDE.md:271, CLAUDE.md:285, SKILL.md:448 reference retired names as part of semantically important live warnings ("don't recreate this dangerous file"). These are current content, not stale drift. The goal's falsifier as written ("any hit outside a sentence that marks it retired") does not say how to score prohibition sentences or live cross-project warnings, so the gate is under-specified, not just the docs.
 
-3. **Single-pass sweep is feasible** — 5 edits (2 stale QUICKSTART refs updated/replaced, 3 retired markers added to warnings) would reduce falsifier hits to zero. Each fix is a targeted replacement of <2 lines.
+3. **Single-pass sweep is feasible — 2 fixes, not 5** — the 2 stale QUICKSTART.md refs get updated/replaced (pipeline diagram L108; quoted driver.sh check L29, whose line number is also stale — the real check sits near driver.sh:240 and only as a legacy fallback behind inject.py). The 3 borderline warnings keep their text; they need the *falsifier's spec* to add an exclusion for live warning sentences, not a "(retired)" marker in the docs. CLAUDE.md:285 in particular must NOT be marked retired — it warns that the hazard is live for other projects, and tagging it retired would assert the opposite of what it says.
 
-4. **No stale reference is semantically important enough to keep as-is** — the 2 QUICKSTART hits describe pre-L1 state in prose that should be updated to current; the 3 borderline hits are live warnings that should keep their content but add retired markers.
+4. **No stale reference is semantically important enough to keep as-is** — the 2 QUICKSTART hits describe pre-L1 state in prose that should be updated to current; the 3 borderline hits are live warnings that stay exactly as written.
 
 **Conclusion:** Hypothesis is directionally confirmed. The drift is shallow (tractable set of retired names, not structural rewriting needed). The falsifier correctly catches real stale content (QUICKSTART.md) but also flags live warnings by design — the sweep must add retired markers to the latter. A single-pass sweep is practical and would take ~5 minutes.
 
@@ -71,8 +71,12 @@ skills/agi/SKILL.md:448:render-context.py
 skills/agi/SKILL.md:56:grid.py checkout
 ```
 
-14 raw hits, 0 in HANDOFF.md. 6 properly marked retired, 2 unconditionally stale (QUICKSTART.md), 3 borderline live warnings.
+**Sibling run:** experiment:a00-e1482929-779b16 ran the same census independently. Raw hit counts agree exactly (14 hits, same lines). It classifies the 3 live-warning hits as retired markers — a more generous read than this node's; the under-specification is recorded in both nodes.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-92d87f34): grep output verified line-for-line against an independent run — 14 hits, all match, HANDOFF.md clean. Verdict kept at inconclusive_lean_proved:85 (consistent with confidence 0.85). Body corrected: the "add retired markers to 3 warnings" prescription was wrong for CLAUDE.md:285 (a live cross-project hazard — marking it retired would assert its opposite) and partly wrong for the other two (prohibition sentences are the warning's value, not stale text). The sweep is 2 doc fixes plus a spec amendment to the falsifier, not 5 doc edits. Sibling cross-reference added.
+<!-- THOUGHT:END -->
 
 
 ## Agent Notes
-Falsifier grep on 4 target files: 14 raw hits, 2 genuinely stale (QUICKSTART.md), 3 borderline live warnings needing retired markers, 6 properly marked. Shallow drift confirmed — single-pass sweep tractable under 5 targets. Falsifier produces false positives on live warnings referencing retired names.
+Falsifier grep on 4 target files: 14 raw hits, 2 genuinely stale (QUICKSTART.md), 3 borderline live warnings the falsifier spec must exclude, 6 properly marked. Shallow drift confirmed — single-pass sweep tractable under 5 targets. Falsifier produces false positives on live warnings referencing retired names.

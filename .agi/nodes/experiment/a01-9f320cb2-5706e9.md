@@ -5,10 +5,11 @@ type: experiment
 parents:
   - hypothesis:verify-runs-grid-commit-before-smoke
 next_edges: []
+confidence: 0.6
 scaffold_hash: c487feeffdd7863a
 title: A01 9f320cb2 5706e9
+verdict: inconclusive_lean_proved:60
 ---
-
 # experiment:a01-9f320cb2-5706e9
 
 ## Experiment
@@ -72,3 +73,6 @@ $ python3 -m pytest extensions/agi/tests/ -q -k "order or verify or grid"
 
 No test asserts the ordering or catches the stale-metric hazard.
 
+
+## Agent Notes
+Confirmed hazard live: smoke (verify step 1) reports unevidenced_decisive_verdicts=2; evidence_gate dry-run shows 2 would be demoted by grid-commit (verify step 5). No red-on-purpose test exists for ordering. Sibling a00 disproved order claim (smoke first), sibling a01 proved mechanism works (gate before metrics=0). Conjunct (3) remains open.
