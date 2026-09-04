@@ -7,8 +7,8 @@ parents:
 next_edges: []
 confidence: 0.0
 scaffold_hash: cd52b05ee4409cc2
-testable_claim: "g10.1 (goal:g10.1) says chats \"render as graphs too\" and flags one implementation tradeoff explicitly:"
-title: Dynamic (on-demand) chat-to-graph rendering is as useful as pre-baked at lower storage cost
+testable_claim: "Rendering a chat subgraph lazily (on first access) yields output equivalent to pre-baking it while consuming materially less storage, because most chats are never re-read."
+title: "Chat rendering, timing axis: lazy on-access rendering matches pre-baked output at lower storage cost"
 verdict: pending
 ---
 # hypothesis:a01-ee1a02e3-4e834e
@@ -24,7 +24,12 @@ tradeoff explicitly:
 > the job G4.4 reserves for local inference) or pre-baked and auto-updated is
 > an implementation choice, not a design one. **Measure both.**
 
-**No sibling hypothesis under this goal has claimed that gap.**
+**Claimed axis: the TIMING of rendering.** A concurrent sibling,
+`hypothesis:a00-f3481d08-c0a656`, claims the same g10.1 sentence on the
+NAVIGATION axis (which rendering an agent can search faster, and where the
+first-expand LOD cutoff sits). This node does not test navigation quality; it
+tests when the render is computed and what that costs. Both are needed to
+resolve g10.1's punt.
 
 a00-160ca279-56d211 asks whether chat structure is *extractable* (zero-LLM).
 a01-78cdb163-be277d asks whether extracted *key-values* beat raw chat prose.
@@ -174,6 +179,22 @@ Dynamic (on-demand) chat-to-subgraph rendering produces output equivalent
 in quality to pre-baked rendering, while consuming ≤25% of the storage
 for chats accessed fewer than twice after their initial write. The
 project should default to lazy evaluation.
+
+<!-- THOUGHT:BEGIN -->
+Parent review, iter-1066. Frontmatter `testable_claim` was the scaffolder's
+first-line deduction — a lead-in fragment ending in a colon — and is replaced
+with the formal claim already stated at the foot of the body, so frontmatter
+and body agree. The kid's line "no sibling hypothesis under this goal has
+claimed that gap" was true when written and false on landing: a concurrent
+sibling (hypothesis:a00-f3481d08-c0a656) claimed the same "measure both"
+sentence. Both were kept and split on axis — navigation there, timing and
+storage here — with the boundary stated in each, rather than deprecating one
+node for a race neither kid could see. The kid's own caveat is the useful part
+and stands: the access-sparsity census is runnable today as static analysis
+with no extractor, so the first arm of this hypothesis is testable before the
+extractor question (a00-160ca279-56d211) is settled. Verdict stays `pending`
+with no evidence_runs, which is correct for an unrun hypothesis.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Dynamic vs pre-baked chat rendering — the 'measure both' gap in g10.1 that no sibling covers. Three arms: pre-baked / dynamic-on-first-access / dynamic-on-demand-only. Access-sparsity census + extractor-stability test proposed. Time-travel confound is intrinsic (snapshot vs projection), not buggy.

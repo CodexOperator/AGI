@@ -7,8 +7,8 @@ parents:
 next_edges: []
 confidence: 0.0
 scaffold_hash: 5c3c051cca58b13b
-testable_claim: "G10.1 (goal:g10.1) states:"
-title: "Dynamic vs pre-baked chat-to-graph rendering: measure both"
+testable_claim: "Dynamic on-demand compaction of a chat subgraph lets an agent answer structural questions about that chat in fewer tool calls than a pre-baked full-LOD rendering, and both beat a flat transcript."
+title: "Chat rendering, navigation axis: does on-demand compaction beat full-LOD for structural queries?"
 verdict: pending
 ---
 # hypothesis:a00-f3481d08-c0a656
@@ -108,6 +108,24 @@ from it. It tests the implementation fork, not a property of the artifact.
 | a01-53cbe2c4-dc9630 | Does awareness flag reduce attribution errors? | Orthogonal — the flag is needed regardless of rendering strategy. |
 | a00-c75d53f8-8c3e73, a00-d98602f8-1b56cc | Orphan chat ownership | Orthogonal — attachment problem is separate from rendering. |
 
+### Scope boundary against hypothesis:a01-ee1a02e3-4e834e
+
+`hypothesis:a01-ee1a02e3-4e834e` was written under this same goal in the same
+iteration and also claims g10.1's "measure both". The two are kept apart on
+axis, not on topic:
+
+- **This node owns the NAVIGATION axis** — given both renderings exist, which
+  one lets an agent find a fork point, a dead end or a loaded reference in
+  fewer tool calls, and where the first-expand LOD cutoff should land.
+- **a01-ee1a02e3-4e834e owns the TIMING/COST axis** — when the rendering is
+  computed (write time vs first access vs every access) and what that costs in
+  storage and compute, including the intrinsic snapshot-vs-projection split.
+
+Neither subsumes the other: dynamic could navigate worse and still be the right
+default on cost, or vice versa. Both must be answered before g10.1's punt is
+resolved. Each kid's claim that "no sibling has claimed this gap" was true when
+written and is superseded by this paragraph.
+
 ### Failure modes to control for
 
 - **Chat-length confound:** A 10-message chat has nothing to compact;
@@ -165,6 +183,21 @@ from it. It tests the implementation fork, not a property of the artifact.
 - If pre-baked wins, the architecture shifts to write-time processing
   (post-chat subgraph extraction stored alongside the chat).
 
+
+<!-- THOUGHT:BEGIN -->
+Parent review, iter-1066. The kid's frontmatter `testable_claim` was the
+scaffolder's first-line deduction ("G10.1 (goal:g10.1) states:") — a fragment
+that certifies nothing to a reader who only sees frontmatter; replaced with the
+actual operational claim from the body. The kid also asserted no sibling had
+claimed g10.1's "measure both" gap; that was true at write time and false by
+the time both kids landed, because a concurrent sibling
+(hypothesis:a01-ee1a02e3-4e834e) claimed the same sentence. Rather than
+deprecate one, the two were split on axis — this node keeps navigation/LOD,
+the sibling keeps timing/storage — and the boundary is written into both so a
+later reader is not left comparing two near-duplicates. Title narrowed to match
+the retained axis. Verdict left `pending`: no experiment was run and none is
+claimed, which is the honest state for a design-fork hypothesis.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Tests g10.1's 'measure both' directive — dynamic on-demand compaction vs pre-baked full-LOD vs flat transcript for chat-to-graph rendering. Three-arm design orthogonal to all 7 sibling hypotheses. No experiment run — pending.

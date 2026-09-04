@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-03: loop L1 RESUMED at 08 — LIVE SCRATCHPAD
+# SESSION HANDOFF — 2026-09-04 03:20: loop L1 RUN COMPLETE (L1.08–L1.10)
 
 Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
 session only and the next director replaces it wholesale. The previous
@@ -9,20 +9,29 @@ session resumes at `L1.08`. Global `iter-NNN` ended at 116.
 
 ## §0 State block
 
-| | baseline this session | now (02:10, after wave 6) |
+| | baseline (post-L1.07) | end of run (03:20) |
 |---|---|---|
-| active nodes | 940 | **961** (+ 178 deprecated; L1.09 retired 159) |
-| `outcome_coverage` (primary) | 0.271 | **0.204** ⬇ honest: hypotheses lead, guard withholds the deprecation lift |
-| `mvp_count` / scoring | 39 | 48 / 46 (2 backward excluded) |
+| active nodes | 940 | **1012** (+178 deprecated, 159 of them the build-site cohort) |
+| `outcome_coverage` (primary) | 0.271 | **0.201** ⬇ honest — see note |
+| `evidence_fraction` | 0.317 | **0.363** ⬆ |
+| `mvp_count` / scoring | 39 | 50 / 48 (2 backward excluded) |
+| `unevidenced_decisive_verdicts` | 6 | **0** (gate on the commit path) |
+| `deprecation_score_delta` | — | **-0.075 withheld** (guard live) |
 | `broken_links` | 0 | 0 |
 | tests | 1371 | **1454** |
-| `unevidenced_decisive_verdicts` | 6 | **2** (gate demotes at commit; 11 → 0 → 2 new arrivals) |
-| budget peak | 0/25 | **25/25 held, waves 2–4 and 6** |
+| goals active / cap | 13 / 15 | 13 / 15; `goal:s32` minted (horizon) |
+| budget peak | 0/25 | 25/25 held in waves 2–4, 6–8 |
 | unpushed | 0 | 0 |
 
-**Live now:** wave 7, iters `1055`–`1061` (g10.1, g8.1, g4.1, g13, s32, the
-loop-scoped hypothesis, g9.7). A background reaper kills any `pi` older than
-1500 s every 60 s (trap 7). Sampler: `L1-logs/samples3.log`.
+**The primary fell and that is the guard working.** 159 deprecated build-site
+hypotheses stay in the denominator by design (`goal:g3` symmetry), and eight
+waves added hypotheses faster than mvps closed. Do not "fix" it by minting
+mvps for finished work — `backward_mvp_count` now catches exactly that.
+
+**Background processes:** the pi reaper loop was killed at run end; the
+30-second sampler (`L1-logs/samples3.log`) exits on its own. One CC parent
+from `iter-1065/1066` (g8.1/g10.1) may still be finishing — `git status`
+first thing; commit whatever it left.
 
 ### 🔴 Crons are still OFF — push by hand after every iteration
 
@@ -64,13 +73,14 @@ Full director authority for the run. Explicitly authorized, on the record:
       broken, tests 1452, goals round-trip byte-identical. Follow-ups
       (briefing attractor filter, `deprecated` in status regexes, stale
       `CLAUDE.md` rows) dispatched to a cleanup agent.
-- [ ] **L1.10** — chat-to-node linking (`goal:g10.1`, `goal:g2.7`),
-      engine-commit pinning (`goal:g8.1`), loop-scoped iteration numbering.
-      **In flight via engine CC parents:** `iter-1039` (loop-scoped ids,
-      `hypothesis:loop-scoped-iteration-ids-cannot-clobber` under g7),
-      `iter-1041` (g10.1). `iter-1040` = attractor-filter follow-up
-      (`hypothesis:attractor-list-must-hide-deprecated-ideas` under g9.7).
-      g8.1 dispatch waits for 1039 to drain (subscription rate limit).
+- [~] **L1.10** — **one of three landed.** Loop-scoped iteration ids are
+      real end to end (`L1.10b`: `sessions/iter-L1.NN`, allocator in
+      `locations.py --claim-iter`, legacy dirs readable). **Chat-to-node
+      linking (`goal:g10.1`/`g2.7`) and engine-commit pinning (`goal:g8.1`)
+      have graph nodes from waves 6–7 and CC parents `1065`/`1066`, but no
+      engine code landed by 03:20** — `grep -l thought_session
+      extensions/agi/bin/*.py` is still only `write.py`; no `engine_commit`
+      key exists. **Next session starts here.**
 
 ## §2 Concurrency discipline this session
 
@@ -82,6 +92,23 @@ and no `grid.py`. The director commits, serially, between waves. Parents own
 Kids see each other's untracked files — report, never clean.
 
 ## §3 🔴 Where it stands, and the next command
+
+**Run complete at 03:20.** Everything committed, grid-versioned, pushed;
+smoke exit 0, links 0 broken, tests 1454, goals round-trip byte-identical.
+
+```bash
+cd /home/ubuntu/work/agi
+git status --short                                   # a late CC parent may have left nodes — commit them
+bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK   # 1012 active, must NOT drop
+python3 extensions/agi/bin/commands.py run tests     # 1454
+python3 extensions/agi/bin/spawn_budget.py status    # expect 0/25
+```
+
+Then L1.11: `goal:g10.1` and `goal:g8.1` implementation — dispatch the
+`claude-code` harness (`dispatch.py <root> <iter> --harness claude-code
+--tier parent --target goal:g8.1`); pi parents on qwen/deepseek wrote nodes
+for these all night and never touched engine code. Keep `spawn.parallel: 2`.
+
 
 **01:20 — owner reset the OpenRouter workspace budget (+$30 balance).** pi
 dispatch is back. `L1.10b` committed the loop-scoped iteration ids
@@ -219,7 +246,13 @@ python3 extensions/agi/bin/commands.py run tests     # 1371
    regression — a non-hermetic count. It slipped past the commit gate once
    because pytest's `FAILED` line is colour-coded and a plain `grep ^FAILED`
    missed it; strip ANSI before grepping (`sed 's/\x1b\[[0-9;]*m//g'`).
-10. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
+10. 🔴 **A parent's `driver.sh` edit (`claim_iter --loop "$CURRENT_LOOP"`,
+    never set, under `set -u`) broke `smoke` and was swept into a director
+    commit (`L1.10d`) because `driver.sh` is not under pytest — the suite
+    was green while the entry point was dead.** Fixed in `L1.10e`
+    (`CURRENT_LOOP`/`AGI_LOOP` optional). Lesson: the verify sequence must
+    run `smoke` *and check its exit code*, not just grep its metrics.
+11. **`iter-NNN` did not end at 116** — `ls .agi/sessions` shows `iter-1005`;
    this session uses 1006+. Loop-scoped numbering (L1.10) is still unbuilt.
 
 ## §5 Known-good verification sequence
