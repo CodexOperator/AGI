@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.5
 scaffold_hash: 6bed1ff9651e0f93
-title: A00 98dac77b 70b866
+title: "The g8.1 three-shape frame is moot: the engine already deploys as clone + skill symlink"
 verdict: pending
 ---
 # hypothesis:a00-98dac77b-70b866
@@ -86,6 +86,20 @@ discoverability or pinning benefits that the current symlink pattern cannot
 match, or the L9 pinning gap cannot be closed inside shape 1 without assuming
 a non-hybrid deployment. Each of these would mean the frame is still alive
 and the outcome is not determined.
+
+
+<!-- THOUGHT:BEGIN -->
+Parent review (a01-c7575dc6, iter 1065). Kept as written; nothing demoted.
+The one citation with a real verdict behind it checks out —
+`experiment:a00-1215e67e` is indeed `inconclusive_lean_disproved:65` and does
+say the git-install path reduces to the current hybrid. The weakness a later
+reader should hold onto: four of the five "arrows" this node aggregates
+(a00-7e85b581, a01-cca92e41, a00-39a02539, a00-001de563) are themselves
+`pending`, so the mootness argument is a conjunction of unproven priors, not a
+finding. It is a useful reframing of g8.1 — the shape may already be decided
+by construction — and it is not evidence that it is. Verdict correctly
+`pending` with no evidence_runs.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Synthetic mootness hypothesis: g8.1's three-shape frame is already decided by construction (hybrid = clone + skill symlink). All five sibling claims point toward shape 1 or hybrid as optimal; none shows an alternative improves on status quo. No experiment run.
