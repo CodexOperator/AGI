@@ -307,6 +307,9 @@ class GraphBuilder:
                 )
                 decision_ids[decision_slug] = decision_id
                 file_contents[filename] = (content, meta)
+                tags_str = meta.get('tags', '')
+                if tags_str:
+                    self._tag_store[decision_id] = re.findall(r'\w+', tags_str)
                 count += 1
 
             except Exception:
@@ -375,6 +378,10 @@ class GraphBuilder:
                 )
                 lesson_ids[lesson_slug] = f"lesson_{lesson_slug}"
                 file_meta[filename] = meta
+                lesson_node_id = f"lesson_{lesson_slug}"
+                tags_str = meta.get('tags', '')
+                if tags_str:
+                    self._tag_store[lesson_node_id] = re.findall(r'\w+', tags_str)
                 count += 1
 
             except Exception:
@@ -449,6 +456,9 @@ class GraphBuilder:
                     f"task_{task_key[:50]}"
                 )
                 task_ids[task_key] = task_id
+                tags_str = meta.get('tags', '')
+                if tags_str:
+                    self._tag_store[task_id] = re.findall(r'\w+', tags_str)
                 count += 1
 
             except Exception:
@@ -2206,6 +2216,13 @@ class GraphBuilder:
         for node in self.nodes:
             node_id, node_type, label, content, source = node
             if not any(node_id.startswith(p) for p in cross_type_prefixes):
+                continue
+
+            # Use cached tags from initial parse when available (avoids re-reading file ~416 I/O calls)
+            cached = self._tag_store.get(node_id)
+            if cached is not None:
+                for tag in cached:
+                    tag_map[tag].add((node_id, node_type))
                 continue
 
             subdir = None
