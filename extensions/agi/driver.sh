@@ -131,7 +131,15 @@ claim_iter() {
 
 iter_run() {
   local raw_iter
-  raw_iter=$(claim_iter --loop "$CURRENT_LOOP")
+  # CURRENT_LOOP is optional: --loop is omitted when neither it nor
+  # $AGI_LOOP is set, and locations.py falls back to config `loop`, then
+  # the newest loop on disk, then legacy numbering (set -u safe).
+  local loop="${CURRENT_LOOP:-${AGI_LOOP:-}}"
+  if [[ -n "$loop" ]]; then
+    raw_iter=$(claim_iter --loop "$loop")
+  else
+    raw_iter=$(claim_iter)
+  fi
   local n="$raw_iter"
   local n_display="$raw_iter"
   if [[ "$raw_iter" =~ ^[0-9]+$ ]]; then
