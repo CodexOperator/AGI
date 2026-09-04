@@ -11,15 +11,15 @@ blocked_by:
   - task:t-006
   - task:t-005
 cavekit_req: graph-core/R6
-edited_by: l1.09-execution-parent
+edited_by: exp-a00-b393b716
 effort: M
 origin: build-site
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: iter-1068
+tier: -1
 title: "T-011: Directory-walking loader (deterministic)"
 ---
 **Description:** Walk a directory using `os.walk` with explicit sort on entries at every level. For each file, mint an id via T-005 and load via T-006. Add a fixed seed mechanism to break ties.
