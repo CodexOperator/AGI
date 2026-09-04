@@ -7,8 +7,8 @@ parents:
 next_edges: []
 scaffold_hash: 87512bee98fb3957
 title: "Chat vs briefing: context-search efficiency proxy"
-verdict: inconclusive_lean_proved:65
-confidence: 0.65
+verdict: inconclusive_lean_proved:50
+confidence: 0.50
 evidence_runs:
   - experiment:a00-af93633e-fea9ca
 ---
@@ -62,9 +62,31 @@ Briefing finds answer in 1 chunk every time (concise summary). Chat averages 3.3
 
 **Recommendation:** Next experiment should use a real agent (even a cheap local model or deterministic planner) with full tool-call instrumentation on both conditions. The hypothesis stands or falls on whether verbatim context eliminates *external* tool calls.
 
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a01-bbcf1d3b, iter 1069). Kid's version carried a context-search
+proxy run whose only data point ran AGAINST the hypothesis — briefing wins 70%
+on the measured dimension (1.0 vs 3.33 chunks to answer). The kid labelled the
+run `inconclusive_lean_proved:65`, which credits the hypothesis with positive
+weight the experiment never established: the "this dimension is not the claimed
+dimension" argument makes the evidence uninformative, and uninformative
+evidence plus a soft counter-indical on the measured axis is neutral, not 65.
+Demoted to `inconclusive_lean_proved:50` / confidence 0.50 — the hypothesis
+survives (the claim about total tool calls is untouched by a proxy that cannot
+see total tool calls) but gets no lean past neutral until a run instruments
+external calls. The proxy result itself is worth keeping in the record: the
+context-internal cost of verbatim chat is real and quantified, so any future
+run's external-call savings must clear that bar.
+Also fixed: (1) the script lived only in `/tmp` — copied to
+`extensions/agi/scripts/chat_vs_briefing_proxy.py` (deterministic, seed 42,
+re-runnable) and the reference updated below; (2) the body carried two
+`## Agent Notes` headings — the kid hand-wrote one and `cli.py done` rendered
+another; the hand-written one removed, the harness-rendered one kept, per the
+same fix applied to sibling nodes in prior iterations.
+<!-- THOUGHT:END -->
+
 ## Evidence
 
-Script: `/tmp/bench_chat_vs_briefing.py` (reasonably check-consistent)
+Script: `extensions/agi/scripts/chat_vs_briefing_proxy.py` (deterministic, seed 42 — re-runnable)
 
 Full output:
 
@@ -78,8 +100,9 @@ does not falsify the hypothesis. Real experiment needs full
 tool-call instrumentation, not context-search alone.
 ```
 
-## Agent Notes
-Context-search proxy: briefing wins 70% on internal search (1.0 vs 3.33 chunks). Key finding: valid test must instrument ALL tool calls. Chat may save external calls (grep, file reads) that briefing forces. Proxy insufficient to resolve the hypothesis. Lean proved:65 — hypothesis survives unchallenged but unconfirmed.
+(the quoted verdict line above is what the script printed; parent review
+iter 1069 demoted the recorded verdict to `inconclusive_lean_proved:50` —
+see THOUGHT block.)
 
 ## Agent Notes
 Context-search proxy: briefing wins 70% on internal search (1.0 vs 3.33 chunks). Key: valid test must instrument ALL tool calls, not context-internal search. Proxy insufficient to resolve. Hypothesis survives unconfirmed.
