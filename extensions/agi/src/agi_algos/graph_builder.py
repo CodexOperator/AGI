@@ -2338,8 +2338,6 @@ class GraphBuilder:
                 self.adj[edge["to"]].append(edge["from"])
         # Pre-compute key paths for benchmark query (first→last section)
         self._precompute_key_paths()
-        # Pre-compute reachability from hub nodes (cold build only; pickled with graph)
-        self._precompute_reachability(hub_count=32)
 
     def _precompute_key_paths(self):
         """Pre-compute BFS paths between key node pairs for O(1) query_time.
