@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.65
 scaffold_hash: 8e3bd9879ae3b557
-title: EmbedProjectCache on REAL .agi/nodes/ (1233 files) — 7/7 claims pass
+title: EmbedProjectCache on REAL .agi/nodes/ (1233 files) — 7/7 assertions across all 5 claims pass
 verdict: inconclusive_lean_proved:65
 ---
 # experiment:a00-99a6a472-ceefc3
@@ -17,6 +17,10 @@ verdict: inconclusive_lean_proved:65
 Tested all 5 hypothesis claims using the **real `.agi/nodes/` directory** (1233 `.md` files, 7.0 MB) — the first experiment to validate the cache pattern on actual production graph data rather than synthetic chain graphs.
 
 **Cache design:** `EmbedProjectCache` wrapping `directory_digest(directory)` + `config_digest(embed_config, project_config)` as cache key, adapting `WarmLoadCache` pattern from `graph_core/cache.py`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent a00-a1c493ec (iter-1077) review. Kid wrote this node, reported DONE in text, but never ran `cli.py done` — parent recorded it via `--owns`. Review re-ran the artifact: script reproduces (7/7 assertions; warm/cold 2.747% on 1248 files — the digest also changed between the kid's run and review because the graph grew, which is itself a live demonstration of Claim 2 invalidation). 24 embedding tests re-verified. Claim 2 confirmed to have edited a `tempfile.TemporaryDirectory()` copy, not the real tree. Only edit: the title said "7/7 claims" but the hypothesis has 5 claims and the script asserts 7 sub-checks — corrected so the node does not conflate assertions with claims. Verdict `inconclusive_lean_proved:65` accepted as written: honest, since the ≤1% threshold (Claim 1) fails at ~3% on the stdlib-only pipeline, and that is a measurement fact, not a bug.
+<!-- THOUGHT:END -->
 
 ### Results
 
@@ -96,4 +100,5 @@ METRIC node_count=1233
 24 embedding tests pass (`python3 -m pytest extensions/agi/tests/embeddings/ -q`)
 
 ## Agent Notes
+Parent review 2026-09-04: artifact re-run passes 7/7 (warm/cold 2.747% at 1248 files), 24 embedding tests pass, no real-tree mutation. Accepted.
 First experiment on REAL .agi/nodes/ (1233 files, not synthetic). EmbedProjectCache adapter from WarmLoadCache pattern: all 5 claims verified on production data. Cache hit 3.073% of cold (digest overhead=3.0%; same ~2-5% range as 4 prior synthetic experiments). 7/7 assertions pass. 24 embedding tests pass.
