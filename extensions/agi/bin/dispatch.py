@@ -2,8 +2,10 @@
 """dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts.
 
 Reads <project>/agi-tree.config.json for parallelism + model.
-Writes session manifest at <project>/sessions/iter-NNN/manifest.json so
-heal.py can detect timeouts.
+Writes session manifest at <project>/sessions/iter-NNN/manifest.json (or
+iter-L1.08 for a loop-scoped id; `locations.iteration_dir` spells both) so
+heal.py can detect timeouts. This script never picks an iteration id -- the
+caller allocates one (`driver.sh` via `locations.py --claim-iter`).
 
 Each agent gets:
 - zoom context file (built by zoom.py)
@@ -236,7 +238,7 @@ def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict],
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
-    ap.add_argument("iter_n", type=int)
+    ap.add_argument("iter_n", type=locations.iteration_id)
     ap.add_argument(
         "--template",
         default=None,
@@ -311,7 +313,7 @@ def main() -> int:
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
 
-    iter_dir = root / "sessions" / f"iter-{args.iter_n:03d}"
+    iter_dir = locations.iteration_dir(root, args.iter_n)
     iter_dir.mkdir(parents=True, exist_ok=True)
 
     # Two-agent research pipeline: architect (slot 0) + builder (slot 1)
@@ -719,7 +721,7 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
             tier=rec.get("tier", "kid"),
             context_file=rec.get("context_file", ""),
             agent_id=agent_id,
-            iter_n=int(rec.get("iter", 0) or 0),
+            iter_n=locations.iteration_id(rec.get("iter", 0) or 0),
             sess_dir=Path(iter_dir) / agent_id,
             target=rec.get("target"),
             agent_record=rec,

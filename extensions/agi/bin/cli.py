@@ -8,6 +8,9 @@ Subcommands:
   pending <iter_n> <agent_id> --reason "stuck on X"
   scaffold <iter_n> <agent_id> --type <node_type> --parent <parent_id> --slug <slug>
   status <iter_n>      — print all agent statuses for iter
+
+`<iter_n>` is a legacy number (`1039` -> `sessions/iter-1039`) or a loop-scoped
+id (`L1.08` -> `sessions/iter-L1.08`); `locations.iteration_id` parses both.
 """
 from __future__ import annotations
 
@@ -55,8 +58,10 @@ def _find_root() -> Path:
     return root
 
 
-def _agent_path(root: Path, iter_n: int, agent_id: str) -> Path:
-    return root / "sessions" / f"iter-{iter_n:03d}" / agent_id / "agent.json"
+def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
+    # `iter_n` is a legacy int (`iter-007`) or a loop-scoped str (`iter-L1.08`);
+    # `locations` is the one place either is spelled as a directory.
+    return locations.iteration_dir(root, iter_n) / agent_id / "agent.json"
 
 
 def _node_evidence_runs_raw(root: Path, node_id: str | None):
@@ -518,7 +523,7 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
 
 def cmd_status(args: argparse.Namespace) -> int:
     root = _find_root()
-    iter_dir = root / "sessions" / f"iter-{args.iter_n:03d}"
+    iter_dir = locations.iteration_dir(root, args.iter_n)
     manifest = iter_dir / "manifest.json"
     if not manifest.exists():
         print(f"ERR: no manifest at {manifest}", file=sys.stderr)
@@ -537,7 +542,7 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p_done = sub.add_parser("done")
-    p_done.add_argument("iter_n", type=int)
+    p_done.add_argument("iter_n", type=locations.iteration_id)
     p_done.add_argument("agent_id")
     p_done.add_argument("--verdict", required=True)
     p_done.add_argument("--confidence", type=float, default=0.5)
@@ -574,13 +579,13 @@ def main() -> int:
     p_done.set_defaults(func=cmd_done)
 
     p_pend = sub.add_parser("pending")
-    p_pend.add_argument("iter_n", type=int)
+    p_pend.add_argument("iter_n", type=locations.iteration_id)
     p_pend.add_argument("agent_id")
     p_pend.add_argument("--reason", required=True)
     p_pend.set_defaults(func=cmd_pending)
 
     p_scaffold = sub.add_parser("scaffold")
-    p_scaffold.add_argument("iter_n", type=int)
+    p_scaffold.add_argument("iter_n", type=locations.iteration_id)
     p_scaffold.add_argument("agent_id")
     p_scaffold.add_argument("--type", dest="node_type", required=True, choices=NODE_TYPES)
     p_scaffold.add_argument(
@@ -597,7 +602,7 @@ def main() -> int:
     p_scaffold.set_defaults(func=cmd_scaffold)
 
     p_stat = sub.add_parser("status")
-    p_stat.add_argument("iter_n", type=int)
+    p_stat.add_argument("iter_n", type=locations.iteration_id)
     p_stat.set_defaults(func=cmd_status)
 
     p_claim = sub.add_parser("claim")

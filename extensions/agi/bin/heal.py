@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """heal.py — monitor agent timeouts; spawn healer subagent for hung agents.
 
-Polls <project>/sessions/iter-NNN/manifest.json + each agent.json. For agents
+Polls <project>/sessions/iter-NNN/manifest.json (or iter-L1.08 for a
+loop-scoped id; `locations.iteration_dir`) + each agent.json. For agents
 whose status is still 'running' past `timeout_seconds`:
   1. Kill the pid (gracefully → SIGKILL after grace)
   2. Mark agent.json status=hung
@@ -64,7 +65,7 @@ def _pi_model_args(root: Path) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
-    ap.add_argument("iter_n", type=int)
+    ap.add_argument("iter_n", type=locations.iteration_id)
     ap.add_argument("--poll-interval-s", type=int, default=30)
     ap.add_argument("--max-wait-mins", type=int, default=30)
     args = ap.parse_args()
@@ -75,7 +76,7 @@ def main() -> int:
     # changes for the caller that exists today.
     given = Path(args.project_root).resolve()
     root = locations.find_project_root(given) or given
-    iter_dir = root / "sessions" / f"iter-{args.iter_n:03d}"
+    iter_dir = locations.iteration_dir(root, args.iter_n)
     manifest_path = iter_dir / "manifest.json"
     if not manifest_path.exists():
         print(f"ERR: no manifest at {manifest_path}", file=sys.stderr)
@@ -137,7 +138,7 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
-def _heal(root: Path, iter_n: int, agent_id: str, rec: dict) -> None:
+def _heal(root: Path, iter_n: int | str, agent_id: str, rec: dict) -> None:
     pid = int(rec.get("pid", 0))
     print(f"healer: agent {agent_id} timed out (pid={pid}), killing + spawning healer")
     if pid > 0 and _pid_alive(pid):
@@ -152,7 +153,7 @@ def _heal(root: Path, iter_n: int, agent_id: str, rec: dict) -> None:
             except ProcessLookupError:
                 pass
 
-    sess_dir = root / "sessions" / f"iter-{iter_n:03d}" / agent_id
+    sess_dir = locations.iteration_dir(root, iter_n) / agent_id
     log_path = Path(rec.get("log_file", ""))
     log_tail = ""
     if log_path.exists():

@@ -305,7 +305,7 @@ def _gate(agent: dict, fm: dict, corpus):
 
 def cmd_wire(args: argparse.Namespace) -> int:
     root = _find_root()
-    iter_dir = root / "sessions" / f"iter-{args.iter_n:03d}"
+    iter_dir = locations.iteration_dir(root, args.iter_n)
     manifest_path = iter_dir / "manifest.json"
 
     if not manifest_path.exists():
@@ -511,7 +511,9 @@ def cmd_wire(args: argparse.Namespace) -> int:
 
     # 3. Persist updated graph back (so subsequent iterations see wired edges)
     #    We write a .graph.json snapshot alongside the manifest
-    graph_path = iter_dir / f"iter-{args.iter_n:03d}-graph.json"
+    # `iter-007-graph.json` for a legacy id, `iter-L1.08-graph.json` for a
+    # loop-scoped one: the directory name is already the formatted id.
+    graph_path = iter_dir / f"{iter_dir.name}-graph.json"
     graph_data = {
         "nodes": [
             {
@@ -569,7 +571,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Wire agent verdicts back into the node graph.")
     ap.add_argument("project_root", nargs="?")
-    ap.add_argument("iter_n", type=int)
+    ap.add_argument("iter_n", type=locations.iteration_id)
     args = ap.parse_args()
 
     if args.project_root:

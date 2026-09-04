@@ -409,7 +409,7 @@ def _frontmatter_for(root: Path, dir_name: str) -> dict[str, dict]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
-    ap.add_argument("iter_n", type=int)
+    ap.add_argument("iter_n", type=locations.iteration_id)
     ap.add_argument("agent_id")
     ap.add_argument(
         "--level",
@@ -459,7 +459,7 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    sess_dir = root / "sessions" / f"iter-{args.iter_n:03d}" / args.agent_id
+    sess_dir = locations.iteration_dir(root, args.iter_n) / args.agent_id
     sess_dir.mkdir(parents=True, exist_ok=True)
     out_path = sess_dir / "context.md"
 

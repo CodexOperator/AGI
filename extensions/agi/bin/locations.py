@@ -60,6 +60,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import sys
 from pathlib import Path
 
 # --- markers ---------------------------------------------------------------
@@ -302,6 +304,274 @@ def goals_path(root: Path, config: dict | None = None) -> Path:
     return repo_root(root) / p.name
 
 
+# --- iterations ------------------------------------------------------------
+#
+# `hypothesis:loop-scoped-iteration-ids-cannot-clobber` (goal:g7). Every entry
+# point under `bin/` used to format its own `f"iter-{iter_n:03d}"` — seven
+# sites — and nothing anywhere *allocated* the number: `driver.sh` counted
+# `seq 1 N` from one on every invocation, so a fresh run pointed itself at
+# `sessions/iter-001`, which already held a real 23-agent manifest. Only
+# `dispatch._merge_manifest` (goal:s28) stood between that and data loss, and
+# it guards one file, not the directory (`iter-NNN-graph.json`, the per-agent
+# `sess_dir`).
+#
+# This section is the one parser, the one formatter and the one allocator.
+#
+# **Two id schemes, one type each, and they cannot collide:**
+#
+#   legacy numeric   7      -> `iter-007`      an `int`  (1000+ dirs on disk)
+#   loop-scoped      L1.08  -> `iter-L1.08`    a `str`   (loop label + counter)
+#
+# A numeric id stays an `int` on purpose — it is what every legacy manifest
+# holds under `"iter"`, what `brief.py` prints, what `dispatch` restarts with —
+# so nothing that reads a legacy directory changes shape. A loop-scoped id is
+# a `str` whose label must start with a letter, so it can never parse as a
+# number and the two schemes never share a directory name. The dir keeps the
+# `iter-` prefix so a reader that lists iterations by prefix (`viewport.py`)
+# sees both shapes without knowing there are two.
+#
+# The commit-subject convention this session already uses by hand — `L1.08:`
+# — is the loop-scoped id verbatim. The driver prints it at the end of an
+# iteration; it does not commit.
+
+SESSIONS_DIR_NAME = "sessions"
+ITER_DIR_PREFIX = "iter-"
+
+#: A loop label: a letter first, so it can never be mistaken for a number.
+LOOP_LABEL_RE = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
+_LOOP_ID_RE = re.compile(rf"^({LOOP_LABEL_RE.pattern})\.(\d+)$")
+_NUMERIC_ID_RE = re.compile(r"^\d+$")
+
+#: Loop label resolution: `--loop` > this env var > config key > newest loop
+#: already on disk > DEFAULT_LOOP.
+LOOP_ENV_VAR = "AGI_LOOP"
+LOOP_CONFIG_KEY = "loop"
+DEFAULT_LOOP = "L1"
+
+#: Counter width inside a loop-scoped id (`L1.08`). Widens past 99 on its own;
+#: allocation compares numerically, never lexically, so nothing depends on it.
+LOOP_COUNTER_WIDTH = 2
+
+
+class IterationOccupied(Exception):
+    """An explicit iteration id names a directory that already holds data."""
+
+
+def iteration_id(text: int | str) -> int | str:
+    """Parse an iteration id from any spelling a caller might hand over.
+
+    Accepts an int, a digit string, a loop-scoped id (`L1.08`, `L1.8`), or a
+    session directory name with the `iter-` prefix on either. Returns the
+    canonical id: an `int` for the numeric scheme, a `str` with a zero-padded
+    counter for the loop-scoped one. Raises `ValueError` on anything else, so
+    it can stand directly as an argparse `type=`.
+    """
+    if isinstance(text, bool):
+        raise ValueError(f"not an iteration id: {text!r}")
+    if isinstance(text, int):
+        if text < 0:
+            raise ValueError(f"not an iteration id: {text!r}")
+        return text
+    s = str(text).strip()
+    if s.startswith(ITER_DIR_PREFIX):
+        s = s[len(ITER_DIR_PREFIX):]
+    if _NUMERIC_ID_RE.match(s):
+        return int(s)
+    m = _LOOP_ID_RE.match(s)
+    if m:
+        return format_loop_iteration(m.group(1), int(m.group(2)))
+    raise ValueError(
+        f"not an iteration id: {text!r} (want a number like 1039 or a "
+        f"loop-scoped id like L1.08)")
+
+
+def format_loop_iteration(loop: str, counter: int) -> str:
+    """`("L1", 8)` -> `"L1.08"`."""
+    if not LOOP_LABEL_RE.fullmatch(loop):
+        raise ValueError(f"not a loop label: {loop!r} (a letter first, then "
+                         f"letters, digits, '_' or '-')")
+    return f"{loop}.{int(counter):0{LOOP_COUNTER_WIDTH}d}"
+
+
+def iteration_loop(iter_id: int | str) -> str | None:
+    """The loop label of a loop-scoped id; None for a numeric one."""
+    iid = iteration_id(iter_id)
+    if isinstance(iid, int):
+        return None
+    return _LOOP_ID_RE.match(iid).group(1)
+
+
+def _iteration_counter(iter_id: int | str) -> int:
+    iid = iteration_id(iter_id)
+    return iid if isinstance(iid, int) else int(_LOOP_ID_RE.match(iid).group(2))
+
+
+def iteration_dirname(iter_id: int | str) -> str:
+    """`7` -> `iter-007` (byte-identical to the legacy format), `L1.08` ->
+    `iter-L1.08`."""
+    iid = iteration_id(iter_id)
+    if isinstance(iid, int):
+        return f"{ITER_DIR_PREFIX}{iid:03d}"
+    return f"{ITER_DIR_PREFIX}{iid}"
+
+
+def sessions_dir(root: Path) -> Path:
+    return Path(root) / SESSIONS_DIR_NAME
+
+
+def iteration_dir(root: Path, iter_id: int | str) -> Path:
+    """`<root>/sessions/<iteration_dirname>` — the one place this is spelled."""
+    return sessions_dir(root) / iteration_dirname(iter_id)
+
+
+def list_iterations(root: Path) -> list[int | str]:
+    """Every iteration id with a directory under `sessions/`, either scheme.
+
+    Directories that carry the `iter-` prefix but parse as neither shape
+    (`iter-s31-repro`) are not iterations and are skipped, as are the ad-hoc
+    hand-made dirs with no prefix (`L1.08-scale`).
+    """
+    sess = sessions_dir(root)
+    if not sess.is_dir():
+        return []
+    out: list[int | str] = []
+    for p in sess.iterdir():
+        if not p.is_dir() or not p.name.startswith(ITER_DIR_PREFIX):
+            continue
+        try:
+            out.append(iteration_id(p.name))
+        except ValueError:
+            continue
+    return out
+
+
+def _newest_loop_on_disk(root: Path) -> str | None:
+    """The label of the loop-scoped iteration directory touched most
+    recently, or None when no loop-scoped iteration exists yet."""
+    newest: tuple[float, str] | None = None
+    for iid in list_iterations(root):
+        loop = iteration_loop(iid)
+        if loop is None:
+            continue
+        try:
+            mtime = iteration_dir(root, iid).stat().st_mtime
+        except OSError:
+            continue
+        if newest is None or mtime > newest[0]:
+            newest = (mtime, loop)
+    return newest[1] if newest else None
+
+
+def loop_label(root: Path, explicit: str | None = None,
+               config: dict | None = None) -> str:
+    """Which loop a new iteration belongs to.
+
+    A flag wins, then `$AGI_LOOP`, then the config key `loop` (graph content —
+    a director bumping the loop edits the config and commits, the same way
+    crons are declared), then the loop that most recently ran on disk, then
+    `DEFAULT_LOOP`. The on-disk fallback is what makes a bare `driver.sh`
+    continue the loop in progress instead of starting L1 forever.
+    """
+    for cand in (explicit, os.environ.get(LOOP_ENV_VAR)):
+        if isinstance(cand, str) and cand.strip():
+            label = cand.strip()
+            if not LOOP_LABEL_RE.fullmatch(label):
+                raise ValueError(f"not a loop label: {label!r}")
+            return label
+    cfg = load_config(root) if config is None else config
+    declared = cfg.get(LOOP_CONFIG_KEY)
+    if isinstance(declared, str) and declared.strip():
+        label = declared.strip()
+        if not LOOP_LABEL_RE.fullmatch(label):
+            raise ValueError(f"config {LOOP_CONFIG_KEY!r} is not a loop label: {label!r}")
+        return label
+    return _newest_loop_on_disk(root) or DEFAULT_LOOP
+
+
+def next_free_iteration(root: Path, loop: str | None = None, *,
+                        after: int | str | None = None) -> int | str:
+    """The lowest id, in one scheme, that no directory on disk carries.
+
+    `loop=None` is the numeric scheme. `after`, when given, decides the scheme
+    (its own) and is a floor: the result is strictly past it even if its
+    directory does not exist — which is what lets a `--smoke` pass show the
+    ids a live run *would* take, one per iteration, without claiming any.
+    """
+    if after is not None:
+        after = iteration_id(after)
+        loop = iteration_loop(after)
+    taken = list_iterations(root)
+    if loop is None:
+        floor = after if isinstance(after, int) else 0
+        nums = [i for i in taken if isinstance(i, int)]
+        return max([floor, *nums]) + 1
+    if not LOOP_LABEL_RE.fullmatch(loop):
+        raise ValueError(f"not a loop label: {loop!r}")
+    floor = _iteration_counter(after) if isinstance(after, str) else 0
+    counters = [_iteration_counter(i) for i in taken
+                if isinstance(i, str) and iteration_loop(i) == loop]
+    return format_loop_iteration(loop, max([floor, *counters]) + 1)
+
+
+def _occupancy(d: Path) -> str | None:
+    """What an iteration directory already holds, as a phrase, or None."""
+    if not d.is_dir():
+        return None
+    if (d / "manifest.json").is_file():
+        return "a manifest"
+    try:
+        n = sum(1 for _ in d.iterdir())
+    except OSError:
+        return "unreadable contents"
+    return f"{n} entr{'y' if n == 1 else 'ies'}" if n else None
+
+
+def claim_iteration(root: Path, *, loop: str | None = None,
+                    explicit: int | str | None = None,
+                    after: int | str | None = None,
+                    dry_run: bool = False) -> int | str:
+    """Allocate an iteration id and reserve its directory. Never assumes one.
+
+    - `explicit` is honoured only if its directory is absent or empty.
+      Anything already there — a manifest above all — raises
+      `IterationOccupied`; this is the refusal that replaces the clobber.
+    - Otherwise the next free id in the scheme (`after`'s, else `loop`'s,
+      else numeric) is taken with a bare `mkdir`, which is atomic: two
+      drivers racing for the same id cannot both win it. A lost race moves
+      past the contested id and tries again.
+    - `dry_run` returns the id it would claim and creates nothing.
+    """
+    root = Path(root)
+    if explicit is not None:
+        iid = iteration_id(explicit)
+        d = iteration_dir(root, iid)
+        held = _occupancy(d)
+        if held:
+            raise IterationOccupied(
+                f"iteration {iid} already holds {held} at {d} — refusing to "
+                f"reuse it. Drop --iter to allocate the next free id, or name "
+                f"one whose directory is empty.")
+        if not dry_run:
+            d.mkdir(parents=True, exist_ok=True)
+        return iid
+
+    for _ in range(1000):
+        iid = next_free_iteration(root, loop, after=after)
+        if dry_run:
+            return iid
+        d = iteration_dir(root, iid)
+        sessions_dir(root).mkdir(parents=True, exist_ok=True)
+        try:
+            d.mkdir()
+        except FileExistsError:
+            after = iid   # lost a race for this id; look strictly past it
+            continue
+        return iid
+    raise IterationOccupied(
+        f"could not claim a free iteration under {sessions_dir(root)} in "
+        f"1000 attempts")
+
+
 # --- cli -------------------------------------------------------------------
 
 
@@ -309,7 +579,9 @@ def main(argv: list[str] | None = None) -> int:
     """Print resolved locations. `--json` for machine use, plain for humans.
 
     Exists so the bash half and the shell can ask the same question this module
-    answers, rather than reimplementing it a fourteenth time.
+    answers, rather than reimplementing it a fourteenth time. `--claim-iter`
+    is the same idea for the allocator: `driver.sh` asks here for its next
+    iteration id rather than counting in bash.
     """
     import argparse
 
@@ -319,6 +591,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--json", action="store_true", help="emit JSON")
     ap.add_argument("--what", choices=["root", "source", "goals", "repo"],
                     help="print one path and nothing else")
+    ap.add_argument("--claim-iter", action="store_true",
+                    help="allocate the next free iteration id, reserve its "
+                         "sessions dir, print the id")
+    ap.add_argument("--loop", default=None,
+                    help=f"with --claim-iter: the loop label (default: "
+                         f"${LOOP_ENV_VAR}, then config `{LOOP_CONFIG_KEY}`, "
+                         f"then the newest loop on disk, then {DEFAULT_LOOP})")
+    ap.add_argument("--iter", dest="explicit_iter", default=None,
+                    help="with --claim-iter: use exactly this id; refused if "
+                         "its directory already holds anything")
+    ap.add_argument("--after", default=None,
+                    help="with --claim-iter: allocate strictly past this id, "
+                         "in its own scheme")
+    ap.add_argument("--numeric", action="store_true",
+                    help="with --claim-iter: the legacy iter-NNN scheme")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="with --claim-iter: print the id, create nothing")
     args = ap.parse_args(argv)
 
     root = find_project_root(args.start)
@@ -328,6 +617,17 @@ def main(argv: list[str] | None = None) -> int:
               f"{GRAPH_DIR_NAME}/ or {CONFIG_NAMES[0]} walking up, then "
               f"<dir>/*-tree/ below", flush=True)
         return 1
+
+    if args.claim_iter:
+        try:
+            loop = None if args.numeric else loop_label(root, args.loop)
+            iid = claim_iteration(root, loop=loop, explicit=args.explicit_iter,
+                                  after=args.after, dry_run=args.dry_run)
+        except (IterationOccupied, ValueError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr, flush=True)
+            return 1
+        print(iid)
+        return 0
 
     cfg = load_config(root)
     resolved = {
