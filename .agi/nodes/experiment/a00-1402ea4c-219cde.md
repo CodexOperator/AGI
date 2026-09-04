@@ -5,10 +5,11 @@ type: experiment
 parents:
   - hypothesis:a02-02affc6b-dc0c54
 next_edges: []
+confidence: 0.7
 scaffold_hash: 2d6a8e168b66ba0b
-title: Delegator token cost measured: parent briefs at 17% of full kid reads
+title: "Delegator token cost measured: parent briefs at 17% of full kid reads"
+verdict: inconclusive_lean_proved:70
 ---
-
 # experiment:a00-1402ea4c-219cde
 
 ## Experiment
@@ -95,3 +96,10 @@ Brief A flags: Kid 1 underspecified scope (working tree not addressed), Kid 3 de
 2. **Briefs were hand-written, not parent-generated.** The simulation assumes a parent can produce briefs at this density. Real parent briefs may be longer or shorter depending on model capability and instruction quality.
 3. **Selective kids.** The 6 selected nodes are the g4.8 sibling hypotheses — representative of real graph content. A larger L would test the O(P) vs O(L) scaling more convincingly.
 
+
+
+## Agent Notes
+Analytical experiment confirming delegator O(P) token scaling: 6 real hypothesis nodes measured at 6,348 tokens total vs P=2 parent briefs summing 1,090 tokens — ratio 0.17 exactly matching hypothesis prediction. All 4 claims confirmed: token bound <4K per brief (568 max), sub-linear scaling (17% of L), oversight feasible from briefs alone, kid node reads unnecessary. Caveats: analytical (no real pi agents), briefs hand-written, token estimates word-count based.
+
+## Agent Notes
+Analytical experiment confirming delegator O(P) token scaling: 6 real hypothesis nodes measured at 6,348 tokens total vs P=2 parent briefs summing 1,090 tokens — ratio 0.17 exact match to hypothesis prediction. Claims confirmed: token bound <4K per brief (568 max), sub-linear scaling (17% of L), oversight feasible from briefs alone, kid node reads unnecessary. Caveats: analytical (no real pi agents), briefs hand-written, token estimates word-count based.

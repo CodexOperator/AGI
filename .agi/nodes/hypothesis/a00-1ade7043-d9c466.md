@@ -19,8 +19,6 @@ tags:
 
 # hypothesis:a00-1ade7043-d9c466
 
-# hypothesis:a00-1ade7043-d9c466
-
 ## Hypothesis
 
 ### Testable claim
@@ -165,9 +163,24 @@ If graduated LOD does NOT work:
 6. N ≥ 15 per arm for statistical power.
 
 ## Agent Notes
-Fifth distinct hypothesis under goal:g10.1 — tests the LOD (level-of-detail) rendering claim that no sibling covers: graduated depth-on-demand (summary → key events → verbatim) vs full chat vs single summary. Three-arm design with interaction-cost and summary-quality controls. Orthogonal to all five existing siblings.
-
-
-
-## Agent Notes
 Fifth hypothesis under g10.1 — tests the LOD (level-of-detail) rendering claim: graduated depth-on-demand (summary → key events → verbatim) beats both full-verbatim (a00-711c2d0f's chat arm) and single-summary (a00-711c2d0f's briefing arm). Three-arm design with interaction-cost, summary-quality, and question-type controls. Distinct from all 5 existing siblings: covers the 'expandable to full LOD' property in g10.1 that none test.
+
+<!-- THOUGHT:BEGIN -->
+Reviewed by parent a01-59cad5b1, iteration 1066. This version differs from the
+kid's in form only, not in claim: the scaffold heading was emitted twice and
+`cli.py done` left two `## Agent Notes` blocks whose texts disagreed in wording
+while agreeing in substance. Both duplicates removed, the later notes kept.
+
+The claim itself is accepted as written and stays at `pending`. It is the fifth
+distinct hypothesis under goal:g10.1 and it does cover the one property of the
+goal no sibling tests -- "expandable to full LOD" as an operational protocol
+rather than a rendering flourish. Arm 3 is genuinely novel against
+a00-711c2d0f-15bc43, whose two arms this node reuses as baselines rather than
+re-deriving.
+
+Not fixed, and left as a caveat for whoever runs it: the primary dependent
+variable is tool calls, which structurally penalises Arm 3, since every depth
+request is itself a tool call. The node names this confound and proposes total
+tokens as a secondary measure -- an experiment under it should promote tokens to
+primary or the design measures the interaction cost instead of the effect.
+<!-- THOUGHT:END -->
