@@ -390,3 +390,29 @@ deprecated 180, primary 0.196 (honest — hypotheses lead, guard withholding
 demoting live kid output every wave, as designed). Wave 9 dispatched 10:59
 (iters 1073–1078: g10.1 g8.1 g9.7 g1.10 s32 g4.7). One more wave after it,
 then this director stops.
+
+### Close-out 12:10 EDT — the L1.08 director stops here (waves 8–10 done, owner's "2–3 more waves")
+
+**State:** active **1064** / deprecated 180 (sum 1244, never dropped), primary
+0.194 (guard withholding ≈ -0.1; hypotheses lead), `mvp_count` 50 (48
+scoring), links 0 broken, **tests 1471** via `commands.py run tests`,
+`unevidenced_decisive_verdicts` 3 on smoke → demoted at the next grid commit
+(the gate's normal cadence). Everything committed and pushed; grid current.
+
+**Straggler leases at close:** ~9 pi processes (iters 1075, 1079–1081) were
+still live. Their nodes will appear in `git status` as untracked/modified —
+run §5 and commit them; nothing else is pending on them. Note that the
+`iter-1075` parents outlived the 20-min timeout by >1 h (reaper restarts?) —
+check `heal.py`/`_reap_one` before trusting `agent_timeout_mins` (§8 row 3).
+
+**Near-miss, on the record (trap 2's shape, caught this time):** a kid's
+in-progress edit to `bin/commands.py` broke the `Command` loader
+(`missing 'raw_argv'`) while direct `pytest` stayed green — `commands.py run
+tests` was the only check that caught it. **Always verify through the
+runner, not around it**, and never commit an engine file a live kid is still
+editing (`git status` shows it as `M`; wait for the lease to drain).
+
+Next director: start at §1 L1.10 — `goal:g10.1` chat-to-node linking and
+`goal:g8.1` engine pinning still have no engine code; four waves of research
+nodes now sit under each. Then §8 rows 1, 3, 10 (provisioning reads the
+workspace budget; reaper restart model; adapter `disallowedTools`).

@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.0
 scaffold_hash: 8c45d84ab10eb5e3
-title: A01 8aa231b6 68bca4
+title: "Three-arm KV-vs-raw-chat design (padded token control, power analysis) — designed, NOT executed"
 verdict: pending
 ---
 # experiment:a01-8aa231b6-68bca4
@@ -86,9 +86,18 @@ and logs structured metrics. Not present at time of writing.
 
 No runs conducted. Design documented for future execution.
 
-The sibling experiment a00-f29fde6f-0abbec under the same hypothesis is also
-unfilled (scaffolded only), confirming no arm has been tested yet.
+The sibling experiment a00-f29fde6f-0abbec under the same hypothesis has
+since been EXECUTED as a context-search proxy (three arms, 810 trials per
+arm, seed 42) and landed inconclusive_lean_proved:70 — but with the
+token-count confound this design's padding control exists to fix. So the
+proxy arm is partially tested; the real-dispatch arms (padded, two model
+families, 60–120 sessions) remain untested. This design is the next step,
+not the first.
 
 
 ## Agent Notes
 Filled experiment node body with full three-arm design (raw chat vs key-values only vs both). Experiment not executed — requires 60-120 sessions across 2 models × 2 task types. Design includes token-count padding control, extraction quality control, and power analysis. Sibling a00-f29fde6f-0abbec also unfilled under same hypothesis.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Kid v1: design-only node (not executed — 60-120 real sessions exceeds one iteration; stated in body). Parent review (a01-2184b48f, iter-1073): design accepted as-is, but the final claim in Evidence — "sibling … also unfilled (scaffolded only)" — was written against the sibling's pre-execution state and is now false; the sibling ran and is lean_proved:70. Left uncorrected it would have made a future reader believe no arm had ever been tested. Fixed the claim and repositioned this design as the follow-up (its padding control is exactly the confound the sibling flagged). Title was also a scaffold placeholder; replaced.
+<!-- THOUGHT:END -->

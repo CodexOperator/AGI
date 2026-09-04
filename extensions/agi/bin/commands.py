@@ -62,18 +62,27 @@ class CommandError(RuntimeError):
 
 @dataclass(frozen=True)
 class Command:
-    """One declared command, with its argv already substituted."""
+    """One declared command, with both raw and substituted argv."""
 
     name: str
     argv: list[str]
+    raw_argv: list[str]
     about: str = ""
     cwd: str = ""
+    raw_cwd: str = ""
     workflow: str = ""
 
-    def shell(self) -> str:
-        """The command as a human would type it. Display only."""
+    def shell(self, *, placeholders: bool = False) -> str:
+        """Render the command as a shell string.
+
+        placeholders=False (default) emits the fully substituted argv — the form
+        that actually runs on this checkout. placeholders=True preserves the
+        `<root>` / `<engine>` tokens from the declaration so rendered docs stay
+        clone-agnostic (goal:g8.2).
+        """
         import shlex
-        return " ".join(shlex.quote(a) for a in self.argv)
+        argv = self.raw_argv if placeholders else self.argv
+        return " ".join(shlex.quote(a) for a in argv)
 
 
 def _load_node(root: Path) -> dict:
@@ -121,11 +130,15 @@ def load(root) -> dict[str, Command]:
             # than half-resolved, because a Command that cannot run is worse
             # than an absent one -- it looks available.
             continue
+        substituted = [_substitute(a, root) for a in argv]
+        raw_cwd = str(spec.get("cwd") or str(root))
         out[str(name)] = Command(
             name=str(name),
-            argv=[_substitute(a, root) for a in argv],
+            argv=substituted,
+            raw_argv=[str(a) for a in argv],
             about=str(spec.get("about") or ""),
-            cwd=_substitute(spec.get("cwd") or str(root), root),
+            cwd=_substitute(raw_cwd, root),
+            raw_cwd=raw_cwd,
             workflow=str(spec.get("workflow") or ""),
         )
     return out
@@ -246,13 +259,13 @@ def render_for_injection(root, limit: int = 0) -> list[str]:
         lines.append(f"- **{flow_name}**{suffix}")
         for cmd in members:
             seen.add(cmd.name)
-            lines.append(f"  - `{cmd.shell()}`"
+            lines.append(f"  - `{cmd.shell(placeholders=True)}`"
                          + (f" — {cmd.about}" if cmd.about else ""))
     loose = [c for n, c in sorted(table.items()) if n not in seen]
     if loose:
         lines.append("- standalone:")
         for cmd in loose:
-            lines.append(f"  - `{cmd.shell()}`"
+            lines.append(f"  - `{cmd.shell(placeholders=True)}`"
                          + (f" — {cmd.about}" if cmd.about else ""))
     if limit and len(lines) > limit:
         lines = lines[:limit] + [f"  … {len(table)} declared in total"]

@@ -72,11 +72,11 @@ def _render_table(root: Path) -> str | None:
                 continue
             seen.add(n)
             cmd = table[n]
-            lines.append(f"| `{cmd.shell()}` | {cmd.about} |")
+            lines.append(f"| `{cmd.shell(placeholders=True)}` | {cmd.about} |")
     # Unassigned commands (no workflow)
     loose = [c for n, c in sorted(table.items()) if n not in seen]
     for cmd in loose:
-        lines.append(f"| `{cmd.shell()}` | {cmd.about} |")
+        lines.append(f"| `{cmd.shell(placeholders=True)}` | {cmd.about} |")
     return "\n".join(lines)
 
 
