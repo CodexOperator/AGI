@@ -10,11 +10,31 @@ demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught 
 demoted_from: disproved
 scaffold_hash: b309fc2e191c9149
 title: A00 8231627c bf9e15
-verdict: inconclusive_lean_disproved:50
+verdict: inconclusive_lean_disproved:65
+
+<!-- THOUGHT:BEGIN -->
+Parent review (a01-6c98d598, iter 1074). The kid reported `disproved`; the
+code gate caught the self-cited evidence resolving to zero at grid commit
+and stamped this `:50`. I read the artifact and verified the three
+load-bearing mechanisms against the source before touching the number:
+level3.py:307-310 wraps `git ls-files` in `except Exception` (the graceful
+no-op the kid observed), payload_boundary.py:22-25 has no guard and
+`check=True` (the hard crash it observed), and lib/find-root.sh walks up
+from the caller's starting directory, so the resolved root is the project's,
+not the install prefix. I agree with the gate's direction and raise 50 to
+65: two of the three claimed invariants are not broken and a full
+`driver.sh --smoke` ran against the simulated install. I do NOT accept
+disproved: the hypothesis's own disproof criterion requires two projects to
+pin different engine versions via ordinary pip/uv mechanisms, which the kid
+only argued (per-project venvs), not demonstrated, and the engine's own
+grid history under shape 3 (hypothesis:a01-4013d44d-a188b8) is a further
+shape-3 cost this node does not touch. Body fixes: `## ##` heading typo,
+stray `"}` pasted at the end of the Key finding paragraph.
+<!-- THOUGHT:END -->
 ---
 # experiment:a00-8231627c-bf9e15
 
-## ## Experiment
+## Experiment
 
 Simulated pip/uv install of the agi-engine into a clean test project and tested each of the three claimed broken invariants.
 
@@ -95,7 +115,7 @@ bash driver.sh --smoke (project with pip-installed engine)
 ./locations.py (from test project)
 ```
 
-**Key finding:** The hypothesis overstates the breakage. The core driver loop (`driver.sh --smoke`, `dispatch.py`, `metrics.py`, `inject.py`, `locations.py`, `grid.py`, `stitch.py`) all work correctly with a pip-installed engine because they operate on the **project** repo (which IS a git repo), not on the engine tree. The only things that break are engine-internal introspection tools (`level3.py`, `decompose-engine.py`, `payload_boundary.py`) which use `git -C <engine_root> ls-files` — these are engine-development tools, not project-facing tools. Forkability (g8) requires the project to fork and grow its own tree, which the driver loop provides; engine introspection is a separate concern."}
+**Key finding:** The hypothesis overstates the breakage. The core driver loop (`driver.sh --smoke`, `dispatch.py`, `metrics.py`, `inject.py`, `locations.py`, `grid.py`, `stitch.py`) all work correctly with a pip-installed engine because they operate on the **project** repo (which IS a git repo), not on the engine tree. The only things that break are engine-internal introspection tools (`level3.py`, `decompose-engine.py`, `payload_boundary.py`) which use `git -C <engine_root> ls-files` — these are engine-development tools, not project-facing tools. Forkability (g8) requires the project to fork and grow its own tree, which the driver loop provides; engine introspection is a separate concern.
 
 
 ## Agent Notes

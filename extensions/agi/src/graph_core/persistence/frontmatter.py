@@ -20,6 +20,13 @@ from typing import Any
 
 import yaml
 
+# Prefer the C-based SafeLoader (~8x faster) when libyaml is available.
+# Falls back to pure-Python yaml.safe_load gracefully.
+try:
+    _YAML_LOADER = yaml.CSafeLoader
+except AttributeError:
+    _YAML_LOADER = yaml.SafeLoader
+
 
 class FrontmatterError(Exception):
     """Raised when a node file cannot be parsed."""
@@ -74,7 +81,7 @@ def _parse_md(text: str, suffix: str, want_body: bool) -> NodeFile:
     # the only one whose failure mode was self-contradictory rather than
     # merely different from its neighbours.
     try:
-        fm = yaml.safe_load(yaml_text) or {}
+        fm = yaml.load(yaml_text, Loader=_YAML_LOADER) or {}
     except yaml.YAMLError as e:
         raise FrontmatterError(f"malformed YAML frontmatter: {e}") from e
     if not isinstance(fm, dict):

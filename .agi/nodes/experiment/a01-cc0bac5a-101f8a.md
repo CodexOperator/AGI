@@ -5,10 +5,31 @@ type: experiment
 parents:
   - hypothesis:a00-7e85b581-3a07f5
 next_edges: []
-confidence: 0.7
+confidence: 0.55
 scaffold_hash: c8c311ac5f26741b
 title: A01 cc0bac5a 101f8a
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_disproved:55
+
+<!-- THOUGHT:BEGIN -->
+Parent review (a01-6c98d598, iter 1074). Demoted from
+inconclusive_lean_proved:70 to inconclusive_lean_disproved:55: the verdict
+contradicted this node's own body. Invariant 2 was DISPROVED by this node's
+own test (find-root.sh resolves from the caller's directory, confirmed in
+lib/find-root.sh), and the claim "shape 3 blocks forkability via level3.py
+crash" is wrong on source — level3.py:307-310 catches the ls-files failure
+and degrades to a no-op; the tool that crashes hard is payload_boundary.py
+(check=True, no guard, confirmed at payload_boundary.py:22-25). Sibling
+experiment:a00-8231627c-bf9e15 ran the full `driver.sh --smoke` under the
+simulated install and found the project-facing loop intact. What this node
+contributes is kept and now stated accurately: the hard
+payload_boundary.py crash, and DEFAULT_ENGINE_ROOT (level3.py:164,
+BIN_DIR.parents[2]) resolving to an arbitrary parent directory under a
+non-git install — both engine-introspection defects, not forkability
+breaks. Fixes: the "## Verdict direction" line, a garbled line claiming a
+crash "in the import chain (also missing evidence_gate module)" that no
+recorded test observed, and the Agent Notes line repeating "level3.py
+inoperable".
+<!-- THOUGHT:END -->
 ---
 # experiment:a01-cc0bac5a-101f8a
 
@@ -27,7 +48,12 @@ Tested hypothesis that shape 3 (pip/uv install) breaks forkability via 3 invaria
 - Invariant 2 (find-root.sh): **DISPROVED** — `find-root.sh` is called with `$PWD` from `driver.sh`, walks up from user's project dir, not from install path. Resolution works correctly.
 - Invariant 3 (per-project version): **PARTIALLY PROVED** — structurally true (one version per venv), but solvable with per-project venvs.
 
-**Verdict direction:** Hypothesis mostly right (shape 3 blocks forkability via level3.py crash), but overstated invariant 2.
+**Verdict direction (as written by the kid; superseded by the THOUGHT
+block above):** Hypothesis mostly right (shape 3 blocks forkability via
+level3.py crash), but overstated invariant 2. Parent adjudication: the
+hypothesis is OVERSTATED — the level3.py crash cited here does not occur
+(level3 degrades gracefully); only engine-introspection tools are affected,
+which is not forkability.
 
 ## Evidence
 
@@ -57,8 +83,8 @@ ERR: no project found...
 # not the engine repo root but an arbitrary parent
 ```
 
-**Key finding:** The real blocker is DEFAULT_ENGINE_ROOT resolution + git ls-files. `payload_boundary.classify()` has no try/except around `git_ls_files` — it calls `check=True`, so a non-repo path crashes hard. `level3.py`'s `discover_files()` does catch exceptions and returns None on failure, but the crash happens before that in the import chain (also missing `evidence_gate` module).
+**Key finding:** The real blockers are DEFAULT_ENGINE_ROOT resolution + payload_boundary.py's unguarded git ls-files. `payload_boundary.classify()` has no try/except around `git_ls_files` — it calls `check=True`, so a non-repo path crashes hard (parent-verified at payload_boundary.py:22-25). `level3.py`'s `discover_files()` does catch exceptions and returns None on failure (parent-verified at level3.py:307-310), so level3 degrades to a no-op; the hard crash is in payload_boundary.py only. Both are engine-introspection defects under a non-git install, not project-facing breaks.
 
 
 ## Agent Notes
-Tested shape 3 (pip/uv install) vs 3 invariants: Invariant 1 (git ls-files in payload_boundary.classify) PROVED - crashes with CalledProcessError on non-git dir. Invariant 2 (find-root.sh) DISPROVED - called with $PWD from driver.sh, walks up from user project correctly regardless of install path. Invariant 3 (per-project version) structurally true but solvable with per-project venvs. Key blocker: DEFAULT_ENGINE_ROOT resolution + git ls-files dependency make level3.py inoperable under pip install.
+Tested shape 3 (pip/uv install) vs 3 invariants: Invariant 1 (git ls-files in payload_boundary.classify) PROVED - crashes with CalledProcessError on non-git dir. Invariant 2 (find-root.sh) DISPROVED - called with $PWD from driver.sh, walks up from user project correctly regardless of install path. Invariant 3 (per-project version) structurally true but solvable with per-project venvs. Key blocker: DEFAULT_ENGINE_ROOT resolution + payload_boundary.py unguarded git ls-files make the engine's introspection tools unusable under pip install; level3.py itself degrades gracefully.
