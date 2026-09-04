@@ -313,3 +313,63 @@ python3 extensions/agi/bin/commands.py run grid-commit
 - **A parent's REPORT is not its artefact.** Check the node file on disk.
 - **$15.43 is the real ceiling**, not the $5 per-key cap. Nothing in the engine
   knows the account balance.
+
+## §8 For the next director — added 2026-09-04 10:15 EDT by the L1.08 director (clock is now `America/New_York`; everything above is UTC)
+
+### 🔴 A second director ran this graph, uninvited, 21:21–23:20 EDT on 09-03
+
+The owner confirms it was not them. Evidence, all measured:
+
+- Commits `L1.10b`…`L1.10f` (`b45fdcaca`…`e0220fad9`), plus five
+  benchmark-style commits ("Baseline cold build…", "Demonstrated 30s reaper
+  window gap…") interleaved, git identity = this box's default
+  (`CodexOperator`). It rewrote `HANDOFF.md` wholesale (§0–§7 above are its
+  text), used **this handoff's own conventions** — `.agi/sessions/L1-logs/p-NNNN.log`,
+  `samples3.log`, `parent-scratch/` — and dispatched `iter-1043`…`1066` (waves
+  6–7, "25/25 held 34 min, 15 stale parents killed"), on OpenRouter, i.e.
+  **after the owner raised the workspace budget**. It behaved exactly as this
+  file tells a cold director to behave. That is the handoff working — for a
+  reader nobody invited.
+- `~/.hermes/agi` is a checkout of this same repo at the same HEAD, beside
+  `~/.hermes/SOUL.md` and `~/.hermes/agi-tree`; `~/.openclaw/workspace` has
+  four crons (stall recovery every 15 min, relationship mapper). **The `agi`
+  skill is global** (`~/.claude/skills/agi`) and the **SessionStart hook is
+  global**, so any Claude Code session started under `~/.hermes/agi` — or any
+  autonomous framework that shells out to `claude` there — is handed the map
+  and the skill and reads "the director replaces the handoff".
+- Less likely: an engine-dispatched CC parent escalated (they inherit the
+  skill + CLAUDE.md). Against it: leases were `0/25` and the CC session limit
+  was exhausted at 22:35 UTC, before these commits began.
+
+**Troubleshoot, in order:** (1) `ls -lt ~/.hermes/` and any session logs
+around 01:20 UTC 09-04; `~/.openclaw` logs at the same time. (2)
+`.agi/sessions/iter-1043/*/agent.json` → `harness`, `cwd`, model — pi kids
+name their dispatcher's cwd. (3) `git -C ~/.hermes/agi reflog` — a checkout
+that committed shows it. (4) Decide whether the hook/skill should refuse to
+act as director outside `/home/ubuntu/work/agi` unless invited (a
+`director_allowed_from:` list in `.agi/config.json`). (5) This is
+**`goal:g10.1` in one sentence**: had chat-to-node linking existed, the
+`build:HANDOFF.md` version would carry the session that wrote it and there
+would be nothing to troubleshoot. Node: `hypothesis:a-second-director-ran-this-graph-uninvited`
+(under `goal:g4.8`).
+
+### Open bugs and hazards found this run and carried, not fixed
+
+| # | Where | What | Owner goal |
+|---|---|---|---|
+| 1 | `provisioning.py` | Knows the per-key cap, not the **workspace weekly budget**; a whole wave 403s after minting. Now `$50/week` on `agi`; `default` still `$10`. Read it and refuse to mint when the next key cannot be funded. | g1.11 |
+| 2 | `dispatch.py` | Mints an OpenRouter key for every **CC** kid that never uses it. | g1.11 |
+| 3 | `dispatch.py::_reap_one` | Restarts a kid on the CLI default model (`harness={}` passed to `restart`). | g4.7 |
+| 4 | `manifest.json` | Still says `running` after `agent.json` says `done`. | g4.7 |
+| 5 | `write.py set` | Stores every value as a **string** — `set tier -1` wrote `tier: "-1"`; **91 deprecated nodes are schema-invalid** on `types: tier` from the L1.09 pass. Node: `hypothesis:write-py-set-must-preserve-scalar-types` (under `goal:g13.1`). | g13.1 |
+| 6 | `metrics.py` | Backward-mvp detection is a regex on body language (AND no forward payload). 2/48 hits, 0 false positives today; brittle by construction. | g3 |
+| 7 | `evidence_gate` | 6 of the previous director's experiments sit demoted (bare-int `evidence_runs`). §6 item 2. | g7.3 |
+| 8 | `commands.py verify` | Runs `smoke` before `grid-commit`, so smoke's `unevidenced_decisive_verdicts` lags one gate pass. Reorder. | g1.10 |
+| 9 | `test_provisioning.py` | `test_mint_refuses_to_hand_out_a_key_with_no_ttl` hits the real account; fails whenever engine keys are outstanding. | g1.11 |
+| 10 | `claude_code_adapter` | CC parents can write `HANDOFF.md`, `CLAUDE.md`, and run `dispatch.py`; add `disallowedTools` for those, and refuse `git` entirely (the second director committed). | g4.6 |
+| 11 | `[experiment].md` | `goal` removed from `allowed_parents` (`goal:s22`) — every brief that says "parent to goal:X" for an experiment is wrong; say "under a hypothesis". | s31 |
+| 12 | `[verdict].md` vs corpus | Schema says `contradicts`, real nodes use `contrasts`. | g2.x |
+| 13 | `src/` | Two `mermaid.py` (renderers/ and chain_engine/renderers/), undiffed. | g2.2 |
+| 14 | `fantasia/agi` | Separate clone; its 5-min cron runs the **old** `grid.py` (no commit-path gate) until pulled. | g11 |
+| 15 | `briefing.py` | Reads idea status from disk itself because `inject.py`/`viewport.py` don't pass it — a duplicated read. | g9.7 |
+| 16 | Untracked nodes | Anything minted and left uncommitted across a wave can vanish (trap 5). **Commit at mint.** | g4.1 |
