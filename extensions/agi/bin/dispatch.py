@@ -466,7 +466,9 @@ def main() -> int:
             # recorded on the lease, because the lease's liveness is already
             # what governs the slot -- so reclaiming the slot and revoking the
             # key are one event rather than two that can disagree.
-            if issuing:
+            # goal:s34 item 2 -- only mint for harnesses whose adapter needs
+            # a credential; CC kids authenticate through their own channel.
+            if issuing and adapters.needs_credential(harness):
                 minted = provisioning.mint(
                     iter_n=args.iter_n, agent_id=agent_id, tier=args.tier,
                     limit_usd=cred_limit, ttl_minutes=cred_ttl,

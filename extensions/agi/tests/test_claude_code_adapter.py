@@ -206,8 +206,12 @@ def test_tools_are_a_closed_list_with_no_agent_and_git_writes_are_refused(rig):
     assert "Agent" not in tools and "Task" not in tools
     assert variadic_values(args, "--allowedTools") == tools
     denied = variadic_values(args, "--disallowedTools")
-    for verb in ("commit", "add", "push", "stash", "checkout"):
+    for verb in ("commit", "add", "push", "stash", "checkout", "reset", "rm"):
         assert f"Bash(git {verb}:*)" in denied, verb
+    # goal:s34 item 10: HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs
+    assert "Bash(*HANDOFF.md:*)" in denied, "HANDOFF.md writes must be disallowed"
+    assert "Bash(*CLAUDE.md:*)" in denied, "CLAUDE.md writes must be disallowed"
+    assert "Bash(*dispatch.py:*)" in denied, "dispatch.py runs must be disallowed"
 
 
 def test_tool_lists_come_from_config_when_declared(rig):

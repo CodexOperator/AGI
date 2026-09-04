@@ -89,6 +89,10 @@ DEFAULT_TTL_MINUTES = 60
 #: Every key this engine mints is named with this prefix, so `reap_orphans`
 #: can tell its own litter from a key a human made by hand and must not touch.
 NAME_PREFIX = "agi"
+#: Credits endpoint — account-level remaining budget. Not workspace-scoped.
+CREDITS_BASE = "https://openrouter.ai/api/v1/credits"
+#: Minimum remaining credits before refusing to mint a new key.
+MIN_REMAINING_CREDITS = 1.0
 
 
 class ProvisioningError(RuntimeError):
@@ -126,6 +130,53 @@ def _read_provisioning_key(root: Path | str | None = None) -> str | None:
 def available(root: Path | str | None = None) -> bool:
     """Whether this project can issue keys at all. Never raises."""
     return _read_provisioning_key(root) is not None
+
+
+def credit_balance(root: Path | str | None = None) -> tuple[float, float, float] | None:
+    """(total, used, remaining) credits from the account-level endpoint.
+
+    Returns None when the provisioning key is absent (absence is supported).
+    Raises ProvisioningError on a failed API call with the key present, so a
+    caller that cares about budget knows the answer is missing rather than zero.
+
+    🔴 **Account-level, not workspace-scoped.** The `/credits` endpoint reports
+    the whole account balance, not a single workspace's budget. A project that
+    uses workspaces to isolate engine-minted keys from personal keys cannot
+    distinguish the two balances here. For workspace-scoped budgets, OpenRouter
+    does not expose an endpoint as of 2026-09-04.
+    """
+    prov = _read_provisioning_key(root)
+    if prov is None:
+        return None
+    status, body = _call("GET", CREDITS_BASE, prov)
+    if status != 200:
+        raise ProvisioningError(
+            f"credit_balance failed: HTTP {status} {body.get('error', body)}")
+    data = body.get("data") or {}
+    total = float(data.get("total_credits", 0))
+    used = float(data.get("total_usage", 0))
+    remaining = total - used
+    return total, used, remaining
+
+
+def can_fund(root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, reason) — whether the remaining credits can fund one more key.
+
+    The decision replaces a guess with a known threshold: a project with $1.00
+    left can afford a $0.25 key. Below that boundary, the next mint risks a
+    402 (insufficient credits) and leaves no escape path — the loop would need
+    a key to mint keys, and no credits remain to create one.
+    """
+    bal = credit_balance(root)
+    if bal is None:
+        return True, None  # no provisioning key = shared key fallback
+    _total, _used, remaining = bal
+    if remaining < MIN_REMAINING_CREDITS:
+        return False, (
+            f"remaining credits (${remaining:.2f}) below minimum "
+            f"(${MIN_REMAINING_CREDITS:.2f}) — minting a new key risks making "
+            f"the loop unfundable")
+    return True, None
 
 
 def settings(cfg: dict) -> tuple[float, int]:
@@ -204,6 +255,15 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     # and silently ignored, producing a key with no TTL -- see module docstring.
     expires_at = expires.isoformat().replace("+00:00", "Z")
     name = key_name(iter_n, agent_id, tier)
+
+    # goal:s34 — check remaining credits before minting. Refuse to mint when
+    # the remaining budget cannot fund the next key, so the loop does not paint
+    # itself into a corner with no credits left to mint a key for the next
+    # iteration.
+    ok, reason = can_fund(root)
+    if not ok:
+        raise ProvisioningError(
+            f"mint refused for {name}: {reason}")
 
     # goal:g1.11 / 2026-09-03 — `workspace_id` is honoured on create, asserted
     # against the live API before this line was written (201, and the returned
