@@ -18,6 +18,12 @@ _RE_CODE_BLOCK = re.compile(r'`([^`]+)`')
 _RE_FRONT_MATTER = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
 _RE_YAML_PAIR = re.compile(r'^(\w+):\s*(.*)$')
 
+
+def _parse_yaml_line(line: str, meta: dict) -> None:
+    """Parse a key: value YAML line into meta dict. Faster than regex partition."""
+    if ':' in line:
+        key, _, val = line.partition(':')
+        meta[key.strip()] = val.strip()
 # Cache for gitnexus output
 _GITNEXUS_CACHE_FILE = None
 _gitnexus_cache = None
@@ -279,9 +285,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 # Extract decision title
                 title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
@@ -350,9 +354,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 # Extract lesson title
                 title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
@@ -419,9 +421,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 # Extract task title
                 title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
@@ -464,9 +464,7 @@ class GraphBuilder:
                     continue
                 meta = {}
                 for line in fm_match.group(1).split('\n'):
-                    m = _RE_YAML_PAIR.match(line)
-                    if m:
-                        meta[m.group(1)] = m.group(2)
+                    _parse_yaml_line(line, meta)
 
                 dep_str = meta.get('depends_on', '').strip('[] ')
                 if not dep_str:
@@ -508,9 +506,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 # Extract goal title
                 title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
@@ -561,9 +557,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 agent_id = meta.get('agent_id', filename[:-3])
                 role = meta.get('role', '')
@@ -637,9 +631,7 @@ class GraphBuilder:
                     continue
                 meta = {}
                 for line in fm_match.group(1).split('\n'):
-                    m = _RE_YAML_PAIR.match(line)
-                    if m:
-                        meta[m.group(1)] = m.group(2)
+                    _parse_yaml_line(line, meta)
 
                 agent_id = meta.get('agent_id', filename[:-3])
                 src_id = agent_ids.get(agent_id)
@@ -750,9 +742,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 topic = meta.get('topic', filename[:-3])
                 tags_str = meta.get('tags', '[]')
@@ -835,9 +825,7 @@ class GraphBuilder:
                     meta = {}
                     if fm_match:
                         for line in fm_match.group(1).split('\n'):
-                            m = _RE_YAML_PAIR.match(line)
-                            if m:
-                                meta[m.group(1)] = m.group(2)
+                            _parse_yaml_line(line, meta)
 
                     skill_name = meta.get('name', os.path.basename(os.path.dirname(skill_md)))
                     description = meta.get('description', '')[:80]
@@ -898,9 +886,7 @@ class GraphBuilder:
                             continue
                         meta = {}
                         for line in fm_match.group(1).split('\n'):
-                            m = _RE_YAML_PAIR.match(line)
-                            if m:
-                                meta[m.group(1)] = m.group(2)
+                            _parse_yaml_line(line, meta)
 
                         skill_name = meta.get('name', '')
                         src_id = skill_ids.get(skill_name)
@@ -967,9 +953,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 controller = meta.get('controller', '')
                 timestamp = meta.get('timestamp', '')
@@ -1036,9 +1020,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 command_name = meta.get('command', filename[:-3])
                 aliases_str = meta.get('aliases', '[]')
@@ -1116,9 +1098,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 category = meta.get('category', 'guide')
                 tags_str = meta.get('tags', '[]')
@@ -1187,9 +1167,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 persona_name = meta.get('persona', filename[:-3])
                 role = meta.get('role', '')
@@ -1262,9 +1240,7 @@ class GraphBuilder:
                     continue
                 meta = {}
                 for line in fm_match.group(1).split('\n'):
-                    m = _RE_YAML_PAIR.match(line)
-                    if m:
-                        meta[m.group(1)] = m.group(2)
+                    _parse_yaml_line(line, meta)
 
                 src_key = filename[:-3]
                 src_id = persona_ids.get(src_key)
@@ -1342,9 +1318,7 @@ class GraphBuilder:
                     meta = {}
                     if fm_match:
                         for line in fm_match.group(1).split('\n'):
-                            m = _RE_YAML_PAIR.match(line)
-                            if m:
-                                meta[m.group(1)] = m.group(2)
+                            _parse_yaml_line(line, meta)
                     title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
                     title = title_match.group(1).strip()[:60] if title_match else filename[:-3]
                     status = meta.get('status', '')
@@ -1511,9 +1485,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2).strip()
+                        _parse_yaml_line(line, meta)
 
                 version = meta.get('version', filename[:-3])
                 status = meta.get('status', '')
@@ -1815,9 +1787,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 status = meta.get('status', '')
                 priority = meta.get('priority', '')
@@ -2042,9 +2012,7 @@ class GraphBuilder:
                 meta = {}
                 if fm_match:
                     for line in fm_match.group(1).split('\n'):
-                        m = _RE_YAML_PAIR.match(line)
-                        if m:
-                            meta[m.group(1)] = m.group(2)
+                        _parse_yaml_line(line, meta)
 
                 hook_name = meta.get('name', subdir)
                 description = meta.get('description', '')
@@ -2262,11 +2230,12 @@ class GraphBuilder:
                 continue
             tags = []
             for line in fm_match.group(1).split('\n'):
-                m = _RE_YAML_PAIR.match(line)
-                if m and m.group(1) == 'tags':
-                    raw = m.group(2)
-                    tags = re.findall(r'\w+', raw)
-                    break
+                if ':' in line:
+                    key, _, val = line.partition(':')
+                    if key.strip() == 'tags':
+                        raw = val.strip()
+                        tags = re.findall(r'\w+', raw)
+                        break
             for tag in tags:
                 tag_map[tag].add((node_id, node_type))
 
