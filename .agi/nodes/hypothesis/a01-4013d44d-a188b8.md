@@ -7,16 +7,36 @@ parents:
 next_edges: []
 confidence: 0.5
 scaffold_hash: bb594561664fe62a
-title: A01 4013d44d a188b8
+title: "Grid version history under non-clone distribution shapes: whose .git hosts refs/grid/*"
 verdict: pending
 ---
 # hypothesis:a01-4013d44d-a188b8
 
 ## Hypothesis
 
-**Claim:** The grid version history (`refs/grid/*` — 1,443 refs in this repo, per-node versioning committed to by the CLAUDE.md and 5-min cron) is **silently lost under distribution shapes 2 (skill package) and 3 (pip/uv install)**, because `grid.py commit --all` writes refs into the engine repo's `.git/refs/grid/` namespace, and under shapes 2/3 the engine is not a git checkout — there is no engine `.git` to host the refs, and `grid.py log`, `grid.py versions`, and `grid.py diff` all resolve refs against the missing git namespace and fail or return empty.
+**Claim (narrowed by parent review — see THOUGHT):** Under distribution
+shapes 2 (skill package) and 3 (pip/uv install), **the engine's own graph
+loses its grid history**, because `refs/grid/*` lives in a git repository and
+a packaged engine ships without one. A *project's* grid history is not lost:
+`grid.py` routes every git call through `repo_root()`
+(`extensions/agi/bin/grid.py:164-184`, delegating to
+`locations.repo_root`, `extensions/agi/bin/locations.py:109-117`), which is
+the parent of the resolved `.agi/` — i.e. the **project's** repo, not the
+engine's. So a project that keeps its own checkout keeps its own node
+versions under any shape.
 
-This means the grid versioning feature — which the CLAUDE.md explicitly commits to maintaining (".agi/grid/" note, "Per-node version history is baked into this repo as `refs/grid/*`") — would silently disappear under any distribution shape that does not ship the full engine repo as a git checkout. None of the 13 sibling hypotheses under `goal:g8.1` examines this.
+What shapes 2/3 do cost, then, is narrower and still real: (a) the engine's
+own `.agi/` graph — 1,468 refs today (`git for-each-ref refs/grid/ | wc -l`,
+2026-09-04) — has no host repo once the engine is a package, so
+`grid.py log|versions|diff` against engine nodes returns nothing; and (b)
+there is no longer one shared engine history for the tool's own development,
+only per-project histories of per-project graphs.
+
+This means the grid versioning feature — which CLAUDE.md explicitly commits
+to ("Per-node version history is baked into this repo as `refs/grid/*`") —
+holds for consumer projects under every shape, and holds for the engine itself
+only under a shape that ships the engine as a git checkout. None of the 13
+sibling hypotheses under `goal:g8.1` examines either half.
 
 **What would prove it:**
 
@@ -44,18 +64,27 @@ This means the grid versioning feature — which the CLAUDE.md explicitly commit
 | `a00-bad7df6a` (shape 2 unviability) | Skill format cannot hold ~15 entry points | Grid refs are not entry points; skill format's inability to hold scripts doesn't imply grid loss. Test is about the engine code's *content*, not its *version history*. |
 | `a00-7e85b581` (shape 3 breaks forkability) | Pip/uv breaks 3 runtime invariants | Grid refs are a *provenance feature*, not a runtime invariant. `level3.py`, `find-root.sh`, per-project versioning all work without grid refs — grid is additive, not load-bearing. This hypothesis covers a separate loss that the forkability hypothesis does not examine. |
 | `a01-cca92e41` (shape 1 sufficiency) | Clone alone absorbs integration layer | Assumes shape 1 preserves grid. Does not test grid under shape 2/3. |
-| `a01-c70bfcf6`, `a01-e3478ffd`, `a01-abd43b16`, `a00-2bf7847c`, `a00-98dac77b` (empty scaffolds) | No content | N/A. |
+| `a01-c70bfcf6`, `a01-e3478ffd`, `a01-abd43b16`, `a00-2bf7847c` (empty scaffolds) | No content | N/A. |
+| `a00-98dac77b` (mootness) | Argues the three-shape frame is already decided by construction | Written in the same iteration as this node; it aggregates sibling arrows, it does not test grid provenance. |
 
 **Cost of being wrong:** If grid refs survive shape 2/3 (e.g., via the project's own `.git` namespace, or via embedded refs in node files), then the grid feature imposes no constraint on the distribution shape decision, and `goal:g8.1` can be decided without considering grid provenance. But being wrong is still useful — it would be the first empirical check that the grid is distribution-shape-agnostic, which no sibling has verified.
 
 
 <!-- THOUGHT:BEGIN -->
-Fills scaffolded node a01-4013d44d-a188b8 under goal:g8.1. Covers the grid
-version-history loss claim that none of the 13 sibling hypotheses examines:
-1,443 refs/grid/* refs verified in the engine repo's .git; grid.py writes to
-CWD's git namespace (project's .git under shapes 2/3, not engine's).
-Distinct from shape-2/shape-3/hybrid/sufficiency/pinning siblings per the
-table in the body. No experiment run — verdict pending.
+Parent review (a01-c7575dc6, iter 1065) rewrote the Claim and left the rest of
+the kid's body standing. The kid's headline said grid refs are written "into
+the engine repo's `.git`" and are therefore silently lost under shapes 2/3.
+That is not what the code does: `grid.py` sends every git invocation through
+`repo_root()` (grid.py:164-184 -> locations.repo_root, locations.py:109-117),
+which resolves to the parent of the nearest `.agi/` — the PROJECT's repo. A
+project on a packaged engine keeps its own `refs/grid/*` intact, so the
+"silently lost" framing overstated the loss. The kid half-caught this itself,
+in disproof branch #1, and then did not carry the correction back into the
+claim it was testing; the claim is now narrowed to the loss that survives
+scrutiny — the ENGINE's own graph history, 1,468 refs verified today, which
+has no host repo once the engine ships without `.git`.
+Verdict stays `pending`, evidence_runs empty: no packaging run was performed,
+and the narrowed claim is a code-reading, not an experiment.
 <!-- THOUGHT:END -->
 
 
