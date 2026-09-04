@@ -86,6 +86,16 @@ Kids see each other's untracked files — report, never clean.
 
 ## §3 🔴 Where it stands, and the next command
 
+**01:20 — owner reset the OpenRouter workspace budget (+$30 balance).** pi
+dispatch is back. `L1.10b` committed the loop-scoped iteration ids
+(`sessions/iter-L1.NN`, 6 engine files, suite 1454). **Wave 6 live on pi:**
+iters `1043`–`1054`, 12 targets (g4.1, g13, g13.1, g10.1, g8.1, the
+loop-scoped hypothesis, s32, g9.4, g4.7, g1.10, g5, g4.8), 22 parents
+admitted, **25/25 held**, 0 × 403. Sampler: `L1-logs/samples3.log`.
+Loop: drain → verify (smoke/links/tests) → commit → grid-commit → push →
+next wave. Rule stands: rather waste OpenRouter tokens than director context.
+
+
 **L1.08 guard landed** (commit "L1.08: removal guard in metrics.py"): new
 metrics `deprecated_open_hypotheses`, `deprecated_excluded_nodes`,
 `deprecation_score_delta` (must stay `<= 0`). Suite 1371 → **1381**. Written
