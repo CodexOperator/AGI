@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
-confidence: 1.0
+confidence: 0.85
 scaffold_hash: 4193abe5973414a9
-title: A01 be43c2dc cfd6f8
+title: Verify write.py set preserves scalar types through full pipeline
 verdict: proved
+evidence_runs:
+  - experiment:a01-be43c2dc-cfd6f8
 ---
 # experiment:a01-be43c2dc-cfd6f8
 
@@ -52,6 +54,24 @@ Additional verification:
 - All 70 existing tests in test_write.py + test_node_writer.py pass after the fix
 
 The fix in `_needs_quoting` (check for negative number pattern before the general `sval[0] in "..."` set check) is correct and complete.
+
+## What this experiment does NOT show
+
+- No live node was modified — all five tests run against a temp project.
+  The sibling experiment `experiment:a00-b393b716-70ff40` covered the live-node case.
+- The one-off retype of the 90 remaining deprecated task nodes with
+  `tier: "-1"` was not run. That is a data-migration step, not a code fix
+  test.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review, iter-1068. Kid wrote five unit-level tests through the full
+`write.submit` pipeline (coerce, update_node, render_frontmatter, file read-back).
+All five pass. Added `evidence_runs` (self-reference, legal for an experiment)
+and lowered confidence from 1.0 to 0.85: the tests are solid but do not
+touch a live node, and the 90-node batch retype is not part of this run.
+The sibling experiment `a00-b393b716-70ff40` covers the live-node case at
+higher confidence. Renamed the title from the auto-generated slug.
+<!-- THOUGHT:END -->
 
 
 ## Agent Notes
