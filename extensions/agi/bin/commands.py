@@ -175,6 +175,54 @@ def run(root, name: str, extra: list[str] | None = None) -> int:
     return subprocess.call(argv, cwd=cmd.cwd or None)
 
 
+def run_workflow(root, workflow_name: str, start_from: str | None = None) -> int:
+    """Run an ordered workflow: execute each step in sequence, stop on failure.
+
+    Returns the failing step's exit code, or 0 if all steps pass.
+    Reports which step broke and its exit code to stderr.
+
+    Exit code 2 means the workflow itself was not found in the declaration.
+    """
+    flow_map = workflows(root)
+    ordered_set = ordered_workflows(root)
+
+    if workflow_name not in flow_map:
+        known = ", ".join(sorted(flow_map)) or "(none declared)"
+        print(f"ERR: no workflow {workflow_name!r}. Declared: {known}.",
+              file=sys.stderr)
+        return 2
+
+    if workflow_name not in ordered_set:
+        print(f"ERR: workflow {workflow_name!r} is unordered "
+              f"(a set, not a sequence); cannot execute in order.",
+              file=sys.stderr)
+        return 2
+
+    steps = flow_map[workflow_name]
+    start_idx = 0
+    if start_from is not None:
+        if start_from in steps:
+            start_idx = steps.index(start_from)
+        else:
+            print(f"ERR: step {start_from!r} not in workflow "
+                  f"{workflow_name!r}. Steps: {steps}.", file=sys.stderr)
+            return 2
+
+    for step in steps[start_idx:]:
+        code = run(root, step)
+        if code != 0:
+            try:
+                cmd = get(root, step)
+                print(f"FAIL: step {step!r} exited {code}", file=sys.stderr)
+                print(f"  re-run: {cmd.shell()}", file=sys.stderr)
+            except CommandError:
+                print(f"FAIL: step {step!r} exited {code} "
+                      f"(no further detail — not in declaration)",
+                      file=sys.stderr)
+            return code
+
+
+
 def render_for_injection(root, limit: int = 0) -> list[str]:
     """The declared commands as `INJECTION.md` lines.
 
@@ -221,6 +269,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("name", nargs="?", help="command name, for show/run")
     ap.add_argument("extra", nargs="*", help="extra args appended to run")
     ap.add_argument("--root", default=".", help="any path inside the project")
+    ap.add_argument("--workflow", "-w", default=None,
+                    help="run a declared workflow instead of a single command")
+    ap.add_argument("--from", dest="start_from", default=None,
+                    help="resume workflow from this step (skip prior steps)")
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
@@ -252,6 +304,9 @@ def main(argv: list[str] | None = None) -> int:
             for n in loose:
                 print(f"  {n:{width}}  {table[n].about}")
         return 0
+
+    if args.action == "run" and args.workflow:
+        return run_workflow(root, args.workflow, start_from=args.start_from)
 
     if not args.name:
         print(f"ERR: {args.action} needs a command name", file=sys.stderr)
