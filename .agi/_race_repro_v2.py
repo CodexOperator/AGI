@@ -89,6 +89,8 @@ def run_reader_trial(state: WriterState, trial_num: int,
     expected_version = state.version
 
     # Now import sensor in a subprocess
+    # NOTE: deliberately do NOT clear __pycache__ -- the race depends on
+    # a subsequent process finding a stale .pyc that is not invalidated.
     runner_code = """
 import sys, importlib, importlib.util
 from pathlib import Path
@@ -97,9 +99,6 @@ sensor_py = {sensor_py!r}
 for key in list(sys.modules.keys()):
     if 'sensor' in key:
         del sys.modules[key]
-import shutil
-for p in Path(sensor_dir).rglob('__pycache__'):
-    shutil.rmtree(p, ignore_errors=True)
 spec = importlib.util.spec_from_file_location('sensor', sensor_py)
 m = importlib.util.module_from_spec(spec)
 sys.modules['sensor'] = m
