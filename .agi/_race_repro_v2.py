@@ -89,25 +89,22 @@ def run_reader_trial(state: WriterState, trial_num: int,
     expected_version = state.version
 
     # Now import sensor in a subprocess
-    runner_code = """\
+    runner_code = """
 import sys, importlib, importlib.util
+from pathlib import Path
 sensor_dir = {sensor_dir!r}
 sensor_py = {sensor_py!r}
-
-# Ensure fresh import
 for key in list(sys.modules.keys()):
     if 'sensor' in key:
         del sys.modules[key]
-# Clear __pycache__ so we aren't served a pre-existing one
 import shutil
 for p in Path(sensor_dir).rglob('__pycache__'):
     shutil.rmtree(p, ignore_errors=True)
-
 spec = importlib.util.spec_from_file_location('sensor', sensor_py)
-mod = importlib.util.module_from_spec(spec)
-sys.modules['sensor'] = mod
-spec.loader.exec_module(mod)
-print(f'VERSION={mod.VERSION}', flush=True)
+m = importlib.util.module_from_spec(spec)
+sys.modules['sensor'] = m
+spec.loader.exec_module(m)
+print('VERSION=' + str(m.VERSION), flush=True)
 """.format(sensor_dir=str(sensor_dir), sensor_py=str(state.sensor_path))
 
     runner_path = sensor_dir / f"_runner_{trial_num}.py"

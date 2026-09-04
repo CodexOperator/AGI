@@ -107,23 +107,25 @@ def simulate(max_wait_s, label):
         #   1. Return progressively larger values
         #   2. Simulate agent death by setting adapter.sim_now = time()
 
-        sim_t = [0.0]  # mutable for closure
         poll_interval = 0.2  # each iteration advances sim time by this much
+        # Generate time values for the loop, updating adapter.sim_now each time
+        n_iters = int(max_wait_s / poll_interval) + 5
 
-        def advance_time():
-            val = sim_t[0]
-            sim_t[0] += poll_interval
-            adapter.sim_now = val
-            return val
+        class _TimeAdvancer:
+            """Return advancing time values AND update adapter.sim_now."""
+            def __init__(self):
+                self.i = 0
+            def __call__(self):
+                val = self.i * poll_interval
+                self.i += 1
+                adapter.sim_now = val
+                return val
 
-        # Generate as many time values as needed for the loop
-        # max_wait_s/poll_interval iterations + 2 for entry + exit
-        n_iters = int(max_wait_s / poll_interval) + 2
-        time_values = [0.0 + i * poll_interval for i in range(n_iters)]
+        advancer = _TimeAdvancer()
 
         with mock.patch.object(completion, 'is_complete', return_value=False):
             with mock.patch('dispatch.time.sleep', lambda s: None):
-                with mock.patch('dispatch.time.time', side_effect=time_values + [9999.0]):
+                with mock.patch('dispatch.time.time', side_effect=advancer):
                     dispatch._reaper_phase(
                         root=root, iter_dir=iter_dir, adapter=adapter,
                         timeout_s=600, max_wait_s=max_wait_s,
