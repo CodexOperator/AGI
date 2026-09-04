@@ -560,16 +560,18 @@ def main() -> int:
         print(f"budget: {len(unadmitted)} of {len(targets)} slot(s) unadmitted "
               f"at cap {cap} — see manifest.unadmitted", file=sys.stderr)
 
-    # goal:g4.7 — inline reaper phase. After spawn, poll agent pids via
-    # adapter.is_alive() and mark dead agents. This replaces heal.py's
-    # out-of-process pid monitoring with an inline pass that detects and
-    # records failure before the loop exits.
+    # goal:g4.7 — continuous reaper phase. After spawn, poll agent pids via
+    # adapter.is_alive() until all agents are terminal or the config timeout
+    # expires (was bounded at 30s — now runs for the full agent lifecycle.
+    # This replaces heal.py's out-of-process pid monitoring with an inline
+    # pass that detects and records failure (or restarts) before the loop
+    # exits.
     _reaper_phase(
         root=root,
         iter_dir=iter_dir,
         adapter=adapter,
         timeout_s=int(manifest.get("timeout_seconds", 600)),
-        max_wait_s=30,
+        max_wait_s=int(manifest.get("timeout_seconds", 600)),
         cap=cap,
         cfg=cfg,
     )
@@ -582,15 +584,25 @@ def _reaper_phase(
     iter_dir: Path,
     adapter: object,
     timeout_s: int = 600,
-    max_wait_s: int = 30,
+    max_wait_s: int = 600,
     cap: int = 1,
     cfg: dict | None = None,
 ) -> None:
     """Poll agent pids inline after spawn. Detect dead agents, mark failed.
 
     `goal:g4.7`. Runs inside dispatch.py's main() after all agents are
-    spawned, replacing heal.py's out-of-process polling with an inline pass.
-    Uses `adapter.is_alive(pid)` so detection works across any harness.
+    spawned, blocking until all agents reach a terminal status or the config
+    timeout expires (was bounded at 30s — now runs for the full agent
+    lifecycle). Uses `adapter.is_alive(pid)` so detection works across any
+    harness.
+
+    **Continuous monitor, not a bounded phase.** The previous `max_wait_s=30`
+    window meant agents dying mid-run (after the first 30s) were invisible to
+    the reaper — heal.py marked them failed but had no restart path. The
+    `timeout_s` bound covers the full agent lifecycle, matching the window
+    heal.py uses for its own timeout handling. A restarted agent completing
+    within this window IS harvested by `post_wire` (called after dispatch.py
+    returns to driver.sh).
 
     **Restart is wired now (`goal:g4.7`), and the order of the two checks is
     the whole design.** A dead pid is not the same fact as lost work:

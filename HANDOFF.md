@@ -9,23 +9,20 @@ session resumes at `L1.08`. Global `iter-NNN` ended at 116.
 
 ## §0 State block
 
-| | baseline this session | now |
+| | baseline this session | now (02:10, after wave 6) |
 |---|---|---|
-| active nodes | 940 | **982** (after wave 1–2) |
-| deprecated | 8 | 9 |
-| `outcome_coverage` (primary) | 0.271 | **0.224** ⬇ honest: +42 nodes, no chain closed |
-| `evidence_fraction` | 0.317 | 0.320 |
-| `mvp_count` | 39 | 39 |
-| `broken_links` | 0 (1 retired payload, not damage) | 0 |
-| tests | 1371 passing | **1381** |
-| `unevidenced_decisive_verdicts` | 6 | **7** ⚠ one slipped in wave 1–2 |
-| goals active / cap | 13 / 15 | 13 / 15 |
-| budget peak | 0/25 live | **25/25, pi=25, held 20:06–20:15** |
-| unpushed | 0 | 0 (pushed after wave 2) |
+| active nodes | 940 | **961** (+ 178 deprecated; L1.09 retired 159) |
+| `outcome_coverage` (primary) | 0.271 | **0.204** ⬇ honest: hypotheses lead, guard withholds the deprecation lift |
+| `mvp_count` / scoring | 39 | 48 / 46 (2 backward excluded) |
+| `broken_links` | 0 | 0 |
+| tests | 1371 | **1454** |
+| `unevidenced_decisive_verdicts` | 6 | **2** (gate demotes at commit; 11 → 0 → 2 new arrivals) |
+| budget peak | 0/25 | **25/25 held, waves 2–4 and 6** |
+| unpushed | 0 | 0 |
 
-**Wave 3 dispatched 20:37** — iters `1012`–`1019`, targets g4.8, s18, g7,
-g9.7, g1.10, g13.1, g4.7, g5, two parent slots each. Sampler ends ~21:04;
-restart it if wave 4 runs past.
+**Live now:** wave 7, iters `1055`–`1061` (g10.1, g8.1, g4.1, g13, s32, the
+loop-scoped hypothesis, g9.7). A background reaper kills any `pi` older than
+1500 s every 60 s (trap 7). Sampler: `L1-logs/samples3.log`.
 
 ### 🔴 Crons are still OFF — push by hand after every iteration
 
