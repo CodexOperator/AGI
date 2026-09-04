@@ -4,6 +4,7 @@ from .ascii import render_ascii
 from .git_diff import MismatchedRunsError, render_git_diff
 from .mermaid import render_mermaid
 from .representation import RenderToken, Representation, build_representation
+from .scatter import render_scatter
 
 __all__ = [
     "RenderToken",
@@ -12,5 +13,6 @@ __all__ = [
     "render_ascii",
     "render_mermaid",
     "render_git_diff",
+    "render_scatter",
     "MismatchedRunsError",
 ]

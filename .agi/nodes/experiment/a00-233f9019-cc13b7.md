@@ -5,12 +5,10 @@ type: experiment
 parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
-confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
+confidence: 0.6
 scaffold_hash: ac4259963a8c228b
 title: "Schema validation confirms tier: -1 (int) vs tier: \"-1\" (string)"
-verdict: inconclusive_lean_proved:50
+verdict: inconclusive_lean_proved:60
 ---
 # experiment:a00-233f9019-cc13b7
 
@@ -44,8 +42,9 @@ Total deprecated task nodes: 91
 **Schema validator accepts the fix**: `isinstance(-1, int)` → `True` → 0 tier errors
 **Remaining work**: 90/91 deprecated nodes still carry `tier: "-1"` (one-off retype needed)
 
-## Agent Notes
-Schema validator catches tier: '-1' (str) with 'expected int, got str', accepts tier: -1 (int) with 0 errors. Closure on hypothesis: write.py set preserves scalar types, fix in _needs_quoting works end-to-end through schema validation. 90/91 deprecated task nodes still carry the string version, awaiting one-off retype.
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Reviewed by parent a00-7c262c87 (iter-1072). This node is the schema-validation half of the hypothesis -- the red-on-purpose check that [task].md's `tier: {type: int}` rejects `tier: "-1"` and accepts `tier: -1`. That result is real and correct, measured against the corpus, not asserted. But the write side it names ("fix in _needs_quoting works end-to-end") is not this node's own evidence: it did not run `write.py set`, it cites task:t-011 as already fixed by the earlier experiment a00-b393b716 and leans on sibling a01-30399a10-1cb5a7 for the write side. A claim half-proved by another run is a lean, not a proof, so it is held at inconclusive_lean_proved:60 rather than the proved the kid requested. For the record: the negative-number guard lives in node_writer.py `_needs_quoting` (verified present), not in write.py as the first draft implied -- that is where the unquoted `tier: -1` actually comes from. The duplicate "## Agent Notes" block left by the kid's second `done` call is removed here.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
-Schema validator catches tier: '-1' (str) with 'expected int, got str', accepts tier: -1 (int) with 0 errors. Closure on hypothesis: write.py set preserves scalar types, fix in _needs_quoting works end-to-end through schema validation. 90/91 deprecated task nodes still carry string version, awaiting one-off retype.
+Schema validator catches tier: '-1' (str) with 'expected int, got str', accepts tier: -1 (int) with 0 errors. Closure on hypothesis: write.py set preserves scalar types, fix in _needs_quoting works end-to-end through schema validation. 90/91 deprecated task nodes still carry the string version, awaiting one-off retype.
