@@ -436,3 +436,9 @@ The skill now carries the owner's dispatch-don't-do rule
 (`skills/agi/SKILL.md` "Director economics"). The L1.08 director ran one
 practice iteration on these targets before stopping — see the close-out line
 below.
+
+**Banked (12:35 EDT):** minting g4.9/s33/s34 as `active` put `goals_active`
+at 16 > the focus-budget cap 15; the director raised
+`cc_dispatch.max_goals_active` to 18 so the owner's ask stands unwarned.
+Reversible in one line; park something to `horizon` instead if 16 is too
+many to aim at.
