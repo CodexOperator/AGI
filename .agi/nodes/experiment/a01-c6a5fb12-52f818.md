@@ -5,10 +5,10 @@ type: experiment
 parents:
   - hypothesis:a01-c422b874-397418
 next_edges: []
-confidence: 0.7
+confidence: 0.4
 scaffold_hash: e9da4e89ccecb5de
-title: A01 c6a5fb12 52f818
-verdict: inconclusive_lean_proved:70
+title: Injected context files are front-loaded (structural proxy; wrong-artifact caveat)
+verdict: inconclusive_lean_proved:40
 ---
 # experiment:a01-c6a5fb12-52f818
 
@@ -141,6 +141,40 @@ python3 .agi/bin/analyze-chat-structure.py
 ```
 Script is at `.agi/bin/analyze-chat-structure.py` for reproduction.
 
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-0fa00adf), iteration 1073. Kid's node kept but demoted
+70 → 40, given a real title (was the scaffold placeholder), and re-scoped for an
+artefact mismatch. No THOUGHT existed in the kid's version — this one records
+the parent edit, not a fabricated kid thought.
+
+What the node did well: it committed a reproducible script
+(.agi/bin/analyze-chat-structure.py) and ran it over a large corpus (475 session
+context files, 777 node bodies). The arithmetic is coherent — head 25% carries
+54.6% of structural signal vs 25% random, 470/475 files head>tail. A reproducible
+script is the one thing the sibling a00-81f4d10a-09fbf5 lacked.
+
+Why 40, two issues:
+(1) Wrong artefact for this hypothesis. hypothesis:a01-c422b874-397418 is about
+derivation CHATS (the agent's session transcript) and whether head-truncating the
+transcript speeds a continuing agent. The kid measured the injected context.md —
+the zoom-rendered briefing, a different object. That a context.md is front-loaded
+is near-tautological: its map/target/goal are placed at the top by construction.
+So the 10x finding is real but carries only weak, indirect support for the
+chat-truncation claim, and it belongs closer to a00-711c2d0f-15bc43
+(briefing-vs-chat structure) than to this node's own parent.
+(2) A contradicted struggle. The kid reported "no actual chat transcripts stored
+in parseable format." Its sibling a00-81f4d10a-09fbf5, in this same iteration,
+parsed the same .agi/sessions/*/output.log NDJSON transcripts successfully
+(409 files, 36 active sessions). The stronger, on-target artefact was available
+and parseable; the fallback to context.md was unnecessary. That is why this node
+is demoted more than its sibling (80 → 60) despite the larger corpus.
+
+Kept, not deprecated: it is the only one of the two with a committed reproducible
+script, and the front-matter-density result on node bodies (frontmatter 1.3x-5.0x
+denser than body) is a standalone useful finding. Verdict stays a lean, not
+proved: nothing here runs an agent. Confidence aligned 0.7 → 0.4 to the lean.
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Structural proxy: analyzed 475 session context files, found 99% (470/475) have head-25% signal density 10x higher than tail-25%. Premise confirmed. Behavioral claim (agent speed) untested.

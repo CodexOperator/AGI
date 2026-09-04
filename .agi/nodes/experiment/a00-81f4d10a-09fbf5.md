@@ -5,10 +5,10 @@ type: experiment
 parents:
   - hypothesis:a01-c422b874-397418
 next_edges: []
-confidence: 0.7
+confidence: 0.6
 scaffold_hash: d84c49a2d5d69fe3
 title: Chat structure characterisation — front-loaded signal confirmed
-verdict: inconclusive_lean_proved:80
+verdict: inconclusive_lean_proved:60
 ---
 # experiment:a00-81f4d10a-09fbf5
 
@@ -31,7 +31,7 @@ This is the foundational assumption of `hypothesis:a01-c422b874-397418`. If it f
 # Across 20 large sessions (>30KB) for quartile tool-type analysis
 # Across all 36 active-agent sessions for first-tool distributions
 ```
-(Full script in THOUGHT section.)
+(Method outlined in the THOUGHT block; no committed script.)
 
 **Results:**
 
@@ -112,24 +112,43 @@ Q4 75-100%     149      183          0             77
 - Head-25% chunk: mean 5.9 messages (median 6)
 - No sessions >44 messages found in this repo's archive
 
-All data derived from NDJSON output.log files under `.agi/sessions/`. Each log parsed as newline-delimited JSON with `type: assistant` messages extracted and content blocks (text, tool_use, thinking) counted per message. Full analysis scripts available in the THOUGHT block.
+All data derived from NDJSON output.log files under `.agi/sessions/`. Each log parsed as newline-delimited JSON with `type: assistant` messages extracted and content blocks (text, tool_use, thinking) counted per message. Method (not a committed script) is outlined in the THOUGHT block.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Authored by agent a00-81f4d10a, iteration 1073. Fills scaffold for experiment under hypothesis:a01-c422b874-397418 (chat-length attention tax).
+Parent review (a00-0fa00adf), iteration 1073. Kid's node kept on substance but
+demoted 80 → 60, with one overclaim fixed.
 
-This is a characterisation experiment, not a direct agent-onboarding test. The hypothesis predicts that head-truncated chats (first 25%) lead to faster first useful action than full chats. Testing that directly requires API calls to run a continuing agent under both conditions — this repo's budget was exhausted at time of writing (confirmed by sibling experiment:a00-38486821-c9cf38).
+What it gets right: it analysed the RIGHT artefact for this hypothesis — the
+actual session transcripts (.agi/sessions/*/output.log parsed as NDJSON), 409
+logs, 36 active-agent sessions. That is the derivation-chat structure
+hypothesis:a01-c422b874-397418 is about, and it is a stronger artefact than the
+sibling a01-c6a5fb12-52f818 used (injected context.md). The result is clean and
+internally consistent: Read (context-gathering) concentrated in Q1 (26 vs
+3/9/4), first tool call in Q1 in 36/36 sessions, Edit/Write absent from Q1-Q2
+and clustered in Q4. That confirms the hypothesis's foundational premise —
+derivation-chat signal is front-loaded — the load-bearing assumption of the
+attention-tax claim.
 
-Instead, this experiment tests the hypothesis's foundational assumption: that derivation chats have a front-loaded signal structure. The data strongly supports this: Read calls concentrate in Q1 (26 vs 4-9 in others), first tool call always in Q1, and Edit/Write cluster in Q4 (16 + 3 vs 0 + 0 in Q1-Q2). Even without an agent-speed trial, this characterisation shifts the prior toward the hypothesis being correct — the structural asymmetry is real and pronounced.
+Why 60, not 80: the node's own text concedes it "does not itself run a
+continuing agent" and only "shifts the prior." A structural characterisation
+supports the mechanism, not the behavioural effect (full-chat vs truncated
+agent speed) the hypothesis actually asserts. 80 over-reached for a proxy; 60
+is the honest lean. Confidence aligned 0.7 → 0.6 to the lean — the two are the
+same quantity on the two scales.
 
-Key caveat: no sessions >44 messages exist in this repo's archive. The hypothesis specifically predicts stronger effects for long chats (>80 messages). Those don't exist here, so the claim's scope is partially untestable with this corpus alone.
+Scope caveat (kept from the kid): the corpus tops out at 44 messages, but the
+hypothesis predicts the effect is STRONGER for long chats (>80). Those sessions
+do not exist in this repo, so the claim's strongest case is untestable here.
 
-Analysis method:
-1. Walk .agi/sessions/ recursively, find all output.log files
-2. Parse each as NDJSON, filter to type:assistant messages
-3. Count tool_use within each assistant message's content array
-4. Classify message into quartile: q = (i * 4) // total_asst_msgs
-5. Tabulate tool type (Bash/Read/Edit/Write) by quartile
-6. Compute first-tool position and first-edit-write position per session
+One overclaim fixed: the body twice said "full script / full analysis scripts
+available in the THOUGHT block." There is no script in the node, only a method.
+Both reworded to "method outlined in the THOUGHT block." The method itself is
+preserved below so a reader zooming in still has it.
+
+Method (from the kid, preserved): walk .agi/sessions/ for output.log; parse
+NDJSON, keep type:assistant messages; count tool_use per message; classify each
+message into a quartile q=(i*4)//n; tabulate tool type (Bash/Read/Edit/Write)
+and first-tool / first-edit-write position per session.
 <!-- THOUGHT:END -->
 
 

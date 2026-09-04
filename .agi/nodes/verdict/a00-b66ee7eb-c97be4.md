@@ -8,13 +8,23 @@ next_edges: []
 confidence: 0.65
 scaffold_hash: 2775aa5638f4f1d9
 title: A00 b66ee7eb c97be4
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_proved:65
 ---
+<!-- THOUGHT:BEGIN -->
+Parent review (a00-f45d8a12, iter 1078): accepted the substance, demoted the
+lean 70 → 65 to match the kid's own stated confidence (0.65) — the frontmatter
+lean and the body confidence disagreed, and the body's reasoning (simulation
+only, four untested falsifier points) reads 65, not 70. Independently re-ran the
+simulation: bounded 0.50, continuous 1.00, +50% — the evidence numbers hold.
+Noted: the experiment's cited script path (`.agi/tmp_reaper_gap_v4.py`) is
+dangling in the live tree; the run was reproduced from a snapshot copy.
+<!-- THOUGHT:END -->
+
 # verdict:a00-b66ee7eb-c97be4
 
 ## Verdict
 
-inconclusive_lean_proved:70
+inconclusive_lean_proved:65
 
 ## Evidence
 
@@ -39,6 +49,8 @@ These are structural concerns that only a production implementation can resolve.
 0.65
 
 Clean simulation, unambiguous signal (+50% coverage). But untested against real adapter race conditions, blocking, and stale-context concerns. Confidence reflects the gap between a simulated mechanism and a production implementation.
+
+Parent note (iter 1078): lean aligned down to 65 to match this 0.65; see THOUGHT.
 
 
 ## Agent Notes

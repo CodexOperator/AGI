@@ -9,6 +9,16 @@ scaffold_hash: 103872418cc68156
 title: A00 9f243a1c 7ba585
 ---
 
+<!-- THOUGHT:BEGIN -->
+Parent review (a00-f45d8a12, iter 1078): the numbers are reproducible —
+re-ran the v4 simulation (bounded 0.50, continuous 1.00, +50% gap confirmed)
+before the two verdicts on this node were accepted. Defect found: the cited
+script path `.agi/tmp_reaper_gap_v4.py` no longer exists in the live tree;
+reproduction used a copy from a pytest checkout snapshot. A tmp-script
+pointer that rots makes the evidence non-rerunnable — the script (or a
+git-tracked copy) should live somewhere durable.
+<!-- THOUGHT:END -->
+
 # experiment:a00-9f243a1c-7ba585
 
 ## Experiment

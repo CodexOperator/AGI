@@ -10,6 +10,16 @@ scaffold_hash: 6fa9983469bfd941
 title: A01 1b0831eb 9027d1
 verdict: inconclusive_lean_proved:75
 ---
+<!-- THOUGHT:BEGIN -->
+Parent review (a00-f45d8a12, iter 1078): accepted as written, no demotion.
+parents resolves to experiment:a00-9f243a1c-7ba585; lean and confidence agree
+(75/0.75); the four untested falsifier points are explicitly scoped out, which
+keeps it an honest lean rather than a claim. Independently re-ran the cited
+simulation (bounded 0.50 / continuous 1.00 / +50%) — numbers reproduce, though
+from a snapshot copy: the script path `.agi/tmp_reaper_gap_v4.py` cited by the
+experiment no longer exists in the live tree.
+<!-- THOUGHT:END -->
+
 # verdict:a01-1b0831eb-9027d1
 
 ## Verdict
