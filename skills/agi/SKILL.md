@@ -109,6 +109,35 @@ with the target node's body as the brief — **mint a hypothesis node for the
 bug, commit it, and aim parents at it.** Sixteen hazards that were carried
 across a handoff instead of fixed in-loop became `goal:s34`.
 
+## Every node edit goes through `write.py` (`goal:g13.1`)
+
+**One way in.** Creating a node, editing its frontmatter, appending a body note,
+rewriting its `THOUGHT` or `FEELING` region — all of it is
+`bin/write.py`, for a mechanical reason: a plain file write still gets a grid
+version, but it loses `edited_by`, `thought_session`, the spawn gate and the
+schema warning. **An untraceable write is exactly what this command exists to
+end**, and it is the easiest rule in the project to skip, because a direct edit
+looks like it worked.
+
+```bash
+write.py create <type> <slug> --parent <id> [--payload PATH] [--set k=v]
+write.py <node-id> "set status horizon && note <prose>"
+write.py <node-id> "thought <why THIS version differs>"
+```
+
+Verbs: `set`, `unset`, `link`, `thought`, `note`, chained with `&&`. `--actor`
+and `--session` stamp who and which chat.
+
+**The one exception, and the line that decides it:** a **payload** — the file a
+build node points at — is edited directly, in place, with ordinary tools. That
+is `HANDOFF.md`, `COMPLETE.md`, `CLAUDE.md`, and every `.py`/`.sh` under
+`extensions/`, `src/`, `skills/`. **What you owe afterwards is the node behind
+it:** `write.py build:<id> "thought <why this version differs>"`, then
+`grid.py commit --all`, which versions the payload and the node together.
+
+So the split is: **payload bytes → your editor; anything inside a node file →
+`write.py`.** If you find yourself opening `.agi/nodes/**` in an editor, stop.
+
 ## Iteration protocol (parent)
 
 One iteration = one node per kid, reviewed and committed by the parent.
