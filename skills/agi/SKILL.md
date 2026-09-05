@@ -128,15 +128,31 @@ write.py <node-id> "thought <why THIS version differs>"
 Verbs: `set`, `unset`, `link`, `thought`, `note`, chained with `&&`. `--actor`
 and `--session` stamp who and which chat.
 
-**The one exception, and the line that decides it:** a **payload** — the file a
-build node points at — is edited directly, in place, with ordinary tools. That
-is `HANDOFF.md`, `COMPLETE.md`, `CLAUDE.md`, and every `.py`/`.sh` under
-`extensions/`, `src/`, `skills/`. **What you owe afterwards is the node behind
-it:** `write.py build:<id> "thought <why this version differs>"`, then
-`grid.py commit --all`, which versions the payload and the node together.
+**Payloads go through it too** — the file a build node points at is not an
+exception:
 
-So the split is: **payload bytes → your editor; anything inside a node file →
-`write.py`.** If you find yourself opening `.agi/nodes/**` in an editor, stop.
+```bash
+# compose the new content wherever you like, then submit it
+write.py build:skills-agi-SKILL.md \
+    "payload /tmp/SKILL.next.md && thought <why this version differs>"
+```
+
+`payload <path>` replaces the bytes at the node's own `payload_ref` and lands
+in the **same submit** as the thought that explains them, so `edited_by`,
+`thought_session`, the new bytes and the reason for them are one operation
+instead of an edit plus a hope. It **never creates** (a new file is
+`create --payload`), refuses a source that does not exist rather than emptying
+a payload on a typo, and preserves the destination's mode so replacing a
+script's bytes cannot disarm it.
+
+**Use your editor to compose, never to land.** Draft to a scratch file, diff it
+if you like, then hand it to `write.py`. Then `grid.py commit --all` versions
+the payload and the node together.
+
+**If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
+with anything but `write.py`, stop** — that is the untraceable write this
+command exists to end, and it is the easiest rule here to skip, because a
+direct edit looks like it worked.
 
 ## Iteration protocol (parent)
 
