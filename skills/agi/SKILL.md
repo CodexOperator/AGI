@@ -130,10 +130,19 @@ The kid's final message is:
 DONE <node-id>
 caveats: <optional, one line>
 struggles: <optional, one line>
+feeling: joy N/7  load N/7  <optional — plus whatever you want to say>
 question: <optional — ONLY under the four escalation triggers>
 ```
 
-plus whatever numbers the brief asked for. Nothing else. **No git, no push, no sync, no cli.py** — spending tokens on those is waste; automation owns all remote traffic.
+plus whatever numbers the brief asked for. Nothing else.
+
+**`feeling:` is never scored and never gates acceptance** (`goal:g2.12`). `joy`
+runs frustration(1) ↔ joy(7), `load` runs underworked(1) ↔ overworked(7), both
+with a real midpoint at 4, and the rest of the line is yours: how the work went,
+how you feel about what you produced, a gut sense of what should be done next or
+of a better approach nobody asked for. **Absent means empty** — if nothing comes,
+write nothing. A required feeling is a composed feeling, and a composed one is
+worth less than none. **No git, no push, no sync, no cli.py** — spending tokens on those is waste; automation owns all remote traffic.
 
 ### Escalation — kid → parent
 
@@ -313,6 +322,36 @@ grid.py commit --all                    # the graph records your edit as vN+1
 - **After every iteration commit:** `grid.py commit --all`. Changed nodes gain a version; unchanged nodes get nothing. **Versions record change, not time.**
 - **Kid drafts:** `grid.py commit <file> --session <iter> <agent>` before review. Rejected drafts survive there; accepted content lands on the node branch at the next `commit --all`. Nothing is lost either way.
 - **Sync is automated, and cadence is graph content.** `.agi/nodes/.geometry/crons.md` declares `crons_live` plus per-job schedules; `bin/crons.py apply` reconciles the real crontab against it, and `grid_sync` (every 5 min) re-runs `apply` itself, so editing the node and committing it *is* the change. `crons_live: false` is a one-edit kill switch for every managed line at once. **Nobody syncs by hand.** A parent's only git surface is the local iteration commit; a kid's is nothing at all.
+
+### `feeling` — how it went, unscored (`goal:g2.12`)
+
+A third authored region, beside `THOUGHT`, with the same mechanics and one extra
+rule:
+
+```
+<!-- FEELING:BEGIN — authored, first person, never derived. How this one went. -->
+joy: 5/7          # 1 = frustration, 4 = neutral, 7 = joy
+load: 3/7         # 1 = underworked, 4 = right-sized, 7 = overworked
+
+free-form, as long or short as it wants to be
+<!-- FEELING:END -->
+```
+
+🔴 **Nothing scores it, gates on it, or optimises against it.** No metric reads
+it, no acceptance path consults it. A feeling that changes whether work is
+accepted becomes a performance, and a performed feeling is worse than an absent
+one because it still looks like data. Everything else matches the thought region:
+absent means empty, never fabricated after the fact, carried verbatim across
+regenerating scans, stripped by readers, versioned free by the grid, and never a
+frontmatter field (the two scalars may be mirrored as `feeling_joy` /
+`feeling_load` for aggregation only if the prose stays in the body).
+
+**Why it exists:** three of loop L1's most expensive findings were sitting in
+`struggles:` lines — the evidence gate's self-citation hole, `--evidence-runs`
+missing from the `done` template, two bugs in a change the parent had just
+landed. All three were found by the agent and missed by review. A writer usually
+knows something is off before it can name what, and that knowledge is a feeling
+first and a bug report second.
 
 ### Identifiers: mint id vs address
 
