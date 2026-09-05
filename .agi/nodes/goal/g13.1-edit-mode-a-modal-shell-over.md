@@ -1,22 +1,28 @@
 ---
+id: goal:g13.1
+mint_id: 7a1f4d02c6b84e39ae5c30b7f2481d6e
+type: goal
+parents:
+  - goal:g13
 confidence: 1.0
+edited_by: director
 goal_id: G13.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g13.1"
-mint_id: 7a1f4d02c6b84e39ae5c30b7f2481d6e
 origin: goals-doc
-parents:
-  - goal:g13
-seeds: []
+seeds:
+  - build:bin-node-writer
+  - build:bin-locations
+  - build:bin-write
+  - build:bin-links
+  - build:tests-test-write
 status: active
 tags:
   - goal
   - subgoal
+thought_session: L1.13
 title: "G13.1: Edit mode: a modal shell over the read and write paths, so a human edit is an engine action"
-type: goal
 ---
-
 **The write-side counterpart of the viewport, and the reason it is a separate
 goal from it.** `goal:g9.4` gave the graph a *reader* a human can drive.
 Everything a human does to *change* the graph is still a text editor and a

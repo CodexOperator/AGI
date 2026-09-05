@@ -937,6 +937,8 @@ data exist in a fixed format.
 Falsifier: two consecutive loops close with a `COMPLETE.md`, and the second one's
 carried-hazard list is shorter than the first's rather than a copy of it.
 
+CORRECTION 2026-09-05, owner: COMPLETE.md is NOT append-only. It follows the same rule as HANDOFF.md -- replaced whole by default, appended only when the owner asks, which they do when the next loop continues directly off the last one and both reports must be readable at once. The body above says never replaced; that is wrong and the rule here supersedes it. Replacing is safe for the reason it is safe for the handoff: grid.py payload build:COMPLETE.md --version N returns every prior report, so accumulation costs future context and buys nothing.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that

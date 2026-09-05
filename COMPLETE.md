@@ -1,9 +1,14 @@
 # COMPLETE.md — post-loop completion reports
 
-**One section per completed loop, newest first. This file is never replaced.**
-`HANDOFF.md` is the live scratchpad and the next director deletes it; this is its
-opposite — the closing record of what a loop did and did not close, appended to
-and versioned by the grid (`build:COMPLETE.md`).
+**One section per completed loop, newest first.** `HANDOFF.md` is the live
+scratchpad of a session; this is the closing record of a loop — what it did and
+did not close.
+
+**Same rule as `HANDOFF.md`: replaced whole by default, appended only when the
+owner asks** — as here, because the next work continues directly off loop L1 and
+both reports need to be readable at once. Every prior report is
+`grid.py payload build:COMPLETE.md --version N`, which is what makes replacing
+safe and accumulating unnecessary.
 
 Shape and rules: `goal:g1.13`. What it must contain:
 `mvp:complete-md-the-post-loop-completion-report`. Why it is written by a
@@ -13,6 +18,74 @@ director today and by a small model later: `goal:g14`.
 A claim that cannot be grounded says so. A decision banked to the owner is a
 completion failure** — not the model's, the harness's, for not giving the
 director enough to decide with.
+
+---
+
+## Session L1.13 — 2026-09-04 → 09-05 — director session, no waves
+
+Not a loop: no dispatch, no kids, no parents. A director session working the
+owner's asks directly. Recorded here because it closed things and left things
+open, which is what this file is for.
+
+### 1. What ran
+
+Eight commits, all direct director work. No agents spawned, no provider spend.
+
+### 2. Scoreboard
+
+| | start | end |
+|---|---|---|
+| active nodes | 1094 | 1108 |
+| goals | 115 | 124 |
+| `outcome_coverage` | 0.187 | 0.190 |
+| tests | 1482 | **1493** |
+| broken links | 0 | 0 |
+
+### 3. Per goal, how far it got
+
+| Goal | Where it got to |
+|---|---|
+| **g13.1** edit mode | **Real code, twice.** `write.py` gained `payload <path>`, `payload_text <inline>` and `payload -` (stdin), so editing the file behind a build node is finally a named operation instead of the one node operation with no command. Then payload resolution moved off a hardcoded `source_root()` onto a named `location:` on the node. 10 tests, all verified red. |
+| **g1.13** completion report | Minted, chained (`hypothesis` → `mvp` → `build:COMPLETE.md`), and this section is its second use. |
+| **g2.12** the FEELING block | Minted and specified in `SKILL.md`; not yet implemented in any writer. |
+| **s35** schemas are nodes | Minted `active` with a five-step migration and a count falsifier. **Not started** — see §5. |
+| **g9.4 / g9.8 / g9.9 / g9.10** live view | Split from one saturated goal into an umbrella plus three subgoals, each with its own mvp to chase. All `horizon`. |
+| **g1.12, g5.2, g14** | Minted `horizon`: loop-flavor tags, mechanical goal splitting, local-maxxing. |
+| **g5** goal lifecycle | `[goal].md` widened so a goal may name the build node that produced it; ingest fixed to preserve it. |
+
+### 4. Goals closed
+
+**Zero.** Every goal touched is `horizon` or `active`. Nothing became
+`complete`, and nothing was claimed to be.
+
+### 5. Completion failures
+
+- **`banked-to-owner`** — `goal:s35` (schemas are nodes). The owner decided it;
+  the director minted the plan and stopped, because every reader globs
+  `nodes/<type>/*.md` and a move-first migration breaks three readers against
+  files with no `id:` and no `mint_id:`. Correctly banked, but it is banked.
+- **`verification-blindness`, twice, and both were the graph not seeing itself.**
+  `write.py`, `test_write.py` and `links.py` — the write path and the link
+  resolver — **had no build nodes at all**. Both were found by trying to record
+  a thought against them and getting "no node file". Nothing checks that every
+  tracked source file has a node; `level3.py` mints them on a scan nobody ran.
+- **`hazard-carry-over`, avoided once.** Three goals from L1.12 (`g4.9`, `s33`,
+  `s34`) were schema-invalid on `confidence`/`seeds`/`tags` and were fixed in
+  this session rather than written into a table.
+- **Two gaps found and documented rather than fixed:** no prose verb can contain
+  `&&` (the script form splits on it — it broke a `thought` in this session),
+  and payload writes are whole-file only, with no anchored edit. Both are now
+  🔴 in `SKILL.md`, because a rule that cannot be followed for real work is how
+  the write path got skipped in the first place.
+
+### 6. What was minted or changed
+
+`goal:g9.8`, `g9.9`, `g9.10`, `g1.12`, `g1.13`, `g2.12`, `g5.2`, `g14`, `s35`;
+`build:COMPLETE.md`, `build:bin-write`, `build:tests-test-write`,
+`build:bin-links`. `[goal].md` and `[build].md` both widened, each with the
+shape that stays forbidden stated as plainly as the ones added. `SKILL.md`
+reached v32 with three new sections: the write path, `COMPLETE.md`, and the
+`FEELING` block.
 
 ---
 
