@@ -64,3 +64,9 @@ Falsifier: two consecutive loops close with a `COMPLETE.md`, and the second one'
 carried-hazard list is shorter than the first's rather than a copy of it.
 
 CORRECTION 2026-09-05, owner: COMPLETE.md is NOT append-only. It follows the same rule as HANDOFF.md -- replaced whole by default, appended only when the owner asks, which they do when the next loop continues directly off the last one and both reports must be readable at once. The body above says never replaced; that is wrong and the rule here supersedes it. Replacing is safe for the reason it is safe for the handoff: grid.py payload build:COMPLETE.md --version N returns every prior report, so accumulation costs future context and buys nothing.
+
+FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6, findings that are not failures -- optional, omitted when there are none -- sits between the failure categories and what was minted. What was minted becomes section 7. Everything else in the list above stands.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Grew a seventh section on its first real use. The six-section format had a slot for what closed and a slot for what did not, and none for what was learned -- so the L1.13 report hung its most valuable finding off the failure section as a 5b. A format that can only record failure teaches a loop to look only for failure, which loses exactly the observations that are hardest to reconstruct later. Optional by design: a loop with nothing to report there omits the heading rather than manufacturing a finding, the same rule the THOUGHT and FEELING blocks already follow -- absent means empty.
+<!-- THOUGHT:END -->
