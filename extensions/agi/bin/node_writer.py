@@ -421,7 +421,7 @@ def _is_untouched_scaffold(text: str, scaffold_body: str) -> bool:
     return parts[2].strip() in scaffold_body.strip()
 
 
-def ensure_payload(root, ref: str) -> Path | None:
+def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
     """Create the source file a node will point at, if it is not there yet.
 
     Returns the path if this call created it, else None. **Never overwrites**:
@@ -438,8 +438,7 @@ def ensure_payload(root, ref: str) -> Path | None:
     """
     import locations as _loc
 
-    p = Path(ref)
-    src = p if p.is_absolute() else Path(_loc.source_root(Path(root))) / p
+    src = _loc.resolve_payload_path(Path(root), ref, location)
     if src.exists() or src.is_symlink():
         return None
     src.parent.mkdir(parents=True, exist_ok=True)
@@ -447,7 +446,8 @@ def ensure_payload(root, ref: str) -> Path | None:
     return src
 
 
-def replace_payload(root, ref: str, source) -> tuple[Path, bool]:
+def replace_payload(root, ref: str, source=None, *, location: str | None = None,
+                    data: bytes | None = None) -> tuple[Path, bool]:
     """Replace the bytes of an existing payload from `source`. Never creates.
 
     The other half of `ensure_payload`, and here for the same reason: a payload
@@ -470,18 +470,21 @@ def replace_payload(root, ref: str, source) -> tuple[Path, bool]:
     """
     import locations as _loc
 
-    src = Path(source)
-    if not src.is_file():
-        raise FileNotFoundError(f"payload source {src} does not exist")
+    if (source is None) == (data is None):
+        raise ValueError("replace_payload takes exactly one of source, data")
+    if source is not None:
+        src = Path(source)
+        if not src.is_file():
+            raise FileNotFoundError(f"payload source {src} does not exist")
+        data = src.read_bytes()
 
-    p = Path(ref)
-    dest = p if p.is_absolute() else Path(_loc.source_root(Path(root))) / p
+    dest = _loc.resolve_payload_path(Path(root), ref, location)
     if not dest.is_file():
         raise FileNotFoundError(
             f"payload {dest} does not exist — `payload` replaces bytes, it "
             f"never creates. A new file is `write.py create --payload`.")
 
-    new = src.read_bytes()
+    new = data
     if dest.read_bytes() == new:
         return dest, False
     mode = dest.stat().st_mode

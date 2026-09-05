@@ -97,11 +97,13 @@ class Edit:
     body_append: str = ""
     thought: str = ""
     payload_from: str = ""
+    payload_bytes: str = ""
 
     @property
     def empty(self) -> bool:
         return not (self.set_fm or self.unset_fm or self.body_append
-                    or self.thought or self.payload_from)
+                    or self.thought or self.payload_from
+                    or self.payload_bytes)
 
 
 # --------------------------------------------------------------------------
@@ -163,6 +165,25 @@ def verb_note(edit: Edit, text: str) -> Edit:
     return edit
 
 
+def verb_payload_text(edit: Edit, text: str) -> Edit:
+    """`payload_text <content>` — the payload's new bytes, inline.
+
+    The same move `note` makes for a body: say the content, do not stage it.
+    `payload <path>` still exists and is the right verb when the bytes already
+    exist as a file or are large; this one removes the scratch-file step for
+    everything else.
+
+    One newline is ensured at the end, because a text payload without one is a
+    diff that reports a change on the last line forever.
+
+    **Caveat, stated rather than hidden:** the script form splits on `&&`, so
+    content containing `&&` must come through `payload <path>` or stdin
+    (`payload -`). The Python API has no such limit.
+    """
+    edit.payload_bytes = text if text.endswith("\n") else text + "\n"
+    return edit
+
+
 def verb_payload(edit: Edit, source: str) -> Edit:
     """`payload <path>` — replace the bytes of the file this node points at.
 
@@ -188,6 +209,7 @@ VERBS = {
     "thought": verb_thought,
     "note": verb_note,
     "payload": verb_payload,
+    "payload_text": verb_payload_text,
 }
 
 #: How many arguments each verb takes. The LAST one always absorbs the rest of
@@ -200,7 +222,7 @@ VERBS = {
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
-         "payload": 1}
+         "payload": 1, "payload_text": 1}
 
 
 def _coerce(value: str):
@@ -288,19 +310,26 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     # payload swap that lands next to a rejected node edit is a file whose
     # reason never made it into the graph, which is the exact split this verb
     # exists to close.
-    payload_ref = _payload_ref(root, edit) if edit.payload_from else ""
+    touches_payload = bool(edit.payload_from or edit.payload_bytes)
+    payload_ref, location = _payload_ref(root, edit) if touches_payload else ("", None)
+    # A `location` set in this same edit wins over the one on disk: naming the
+    # new base and moving the bytes is one intention, not two.
+    if "location" in set_fm:
+        location = set_fm["location"]
 
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body)
-    if payload_ref and not getattr(res, "rejected", False):
+    if payload_ref and res.status != node_writer.REJECTED:
         dest, changed = node_writer.replace_payload(
-            root, payload_ref, edit.payload_from)
+            root, payload_ref, edit.payload_from or None,
+            location=location,
+            data=edit.payload_bytes.encode() if edit.payload_bytes else None)
         res.payload_changed = changed
         res.payload_path = str(dest)
     return res
 
 
-def _payload_ref(root, edit: Edit) -> str:
+def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
     """Where this node's bytes live, or an error naming why there are none.
 
     Read off the node rather than passed in, because `payload_ref` is the
@@ -319,7 +348,8 @@ def _payload_ref(root, edit: Edit) -> str:
             f"{edit.node_id} has no payload_ref, so there are no bytes to "
             f"replace. `payload` edits the file a build node points at; a "
             f"node without one is edited with `set`, `note` and `thought`.")
-    return ref.strip()
+    loc = fm.get("location")
+    return ref.strip(), loc.strip() if isinstance(loc, str) and loc.strip() else None
 
 
 def _default_actor() -> str:
@@ -393,7 +423,9 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         # Delegated, not done here: this module's guard is that it performs no
         # file write at all, and `node_writer` already owns writing the files
         # behind nodes. See `node_writer.ensure_payload`.
-        created_file = node_writer.ensure_payload(root, payload)
+        extra.setdefault("location", locations.DEFAULT_PAYLOAD_LOCATION)
+        created_file = node_writer.ensure_payload(
+            root, payload, extra.get("location"))
         extra[links.LINK_FIELD] = str(payload)
 
     res = node_writer.write_node(root, node_type, slug, parents,
@@ -522,7 +554,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  note    ({len(edit.body_append)} chars)")
         if edit.payload_from:
             print(f"  payload from {edit.payload_from}")
+        if edit.payload_bytes:
+            print(f"  payload  ({len(edit.payload_bytes)} bytes, inline)")
         return 0
+
+    if edit.payload_from == "-":
+        # The CLI layer reads stdin; the library never does. `payload -` is
+        # for content that cannot ride in an argv chunk -- anything with `&&`
+        # in it, or a whole file being piped in.
+        edit.payload_from = ""
+        edit.payload_bytes = sys.stdin.read()
 
     try:
         res = submit(root, edit, actor=args.actor, session=args.session)

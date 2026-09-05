@@ -141,16 +141,19 @@ def link_ref(frontmatter: dict) -> tuple[str, str]:
     return SELF, FROM_DEFAULT
 
 
-def link_path(root, ref: str) -> Path | None:
+def link_path(root, ref: str, location: str | None = None) -> Path | None:
     """Where `ref` resolves on disk, or None for `self`.
 
-    Against `locations.source_root` — the repo enclosing `.agi/` — because
-    that is where `payload_ref` already resolves and this generalises that
-    field rather than inventing a second base (`goal:g11`).
+    Against the node's own named `location`, which defaults to `source_root`
+    — the repo enclosing `.agi/` — because that is where `payload_ref` has
+    always resolved (`goal:g11`). Naming the base rather than hardcoding it is
+    `goal:g13.1`: a tree that moves becomes a config edit instead of a sweep
+    over every node. `locations.payload_base` is the one place the name is
+    turned into a path.
     """
     if ref == SELF:
         return None
-    return Path(locations.source_root(root)) / ref
+    return locations.resolve_payload_path(Path(root), ref, location)
 
 
 def resolve(root, node_id: str, frontmatter: dict, body: str) -> Link:
@@ -163,7 +166,7 @@ def resolve(root, node_id: str, frontmatter: dict, body: str) -> Link:
     if ref == SELF:
         return Link(node_id=node_id, ref=SELF, source=source, path=None,
                     content=body)
-    path = link_path(root, ref)
+    path = link_path(root, ref, frontmatter.get("location"))
     if path is None or not path.is_file():
         raise MissingLink(node_id, ref, path if path else Path(ref))
     return Link(node_id=node_id, ref=ref, source=source, path=path,
