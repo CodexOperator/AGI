@@ -897,6 +897,46 @@ Downstream: `goal:g5.2` decides the flavor and the split mechanically;
 `goal:g14` uses the flavor tag to route each node request to a model; the live
 view (`goal:g9.8`) collapses on it.
 
+### G1.13 — A loop ends with a completion report, and the report is generated, not remembered — status: horizon
+
+# goal:g1.13
+
+## Agent Notes
+**Owner ask, 2026-09-04.** `HANDOFF.md` is the bridge *between* sessions and is
+replaced wholesale. Nothing closes a loop. So a loop ends with its gaps written
+in prose that the next director deletes, and the same gaps come back — measured:
+16 hazards carried out of L1 in a handoff table became `goal:s34`, and of them
+roughly two closed.
+
+**A completed loop writes `COMPLETE.md`.** Standing shape:
+
+1. What ran — waves, dispatch counts, harness, spend.
+2. The scoreboard — node counts, primary metric, evidence fraction, suite, links.
+3. **Per active goal, how far it got**, grounded in commits and node diffs rather
+   than recollection.
+4. **How many goals actually closed**, and any `complete` marking the report
+   cannot substantiate (L1 found one: `goal:g4.6` was marked complete two days
+   before the adapter existed).
+5. **For everything that did not close, a completion-failure category** —
+   saturation, ceiling-found-by-dying, late minting, hazard carry-over,
+   banked-to-owner, verification blindness, attribution void. A decision banked
+   to the owner counts as a failure here: not the model's, the harness's, for not
+   giving the director enough to decide with.
+6. What was minted or changed in response, linked as graph edges.
+
+**`COMPLETE.md` is a payload, `HANDOFF.md`'s peer, and the opposite of it in one
+respect: it is never replaced.** A loop appends its section; the grid versions
+it; `GOALS.md` stays the tracker.
+
+**The end state is that none of this is prompt text.** Today the shape lives in
+`skills/agi/SKILL.md` and a director follows it. The categories above are exactly
+the kind of judgement a small classifier can make over a parent's report and a
+goal's diff — see `goal:g14`. This goal is the scaffold that makes that training
+data exist in a fixed format.
+
+Falsifier: two consecutive loops close with a `COMPLETE.md`, and the second one's
+carried-hazard list is shorter than the first's rather than a copy of it.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -5742,6 +5782,41 @@ the graph, not a human, decide what competent means here.
 Related: `goal:g4` (right model at the right grain), `goal:g4.2` (a
 reasoning-effort dial), `goal:g4.4` (a web of specialists, each owning a region),
 `goal:g2.4` and `goal:s32` (the embeddings pipeline this needs).
+
+### Addendum, 2026-09-04 — the cheapest thing on this lattice is a gap-spotter
+
+The completion review that produced `COMPLETE.md` (`goal:g1.13`) was done by a
+large model reading a handoff. **It did not need to be.** The gaps it surfaced —
+a goal marked `complete` two days before its code existed, sixteen hazards
+carried instead of closed, three goals minted hours before the budget ended, a
+decision banked that silently gated half the run's throughput — are all
+**pattern-matchable against a parent's own report**. A classifier, or a very
+small model, reading a parent report plus the node diff should flag every one of
+them. That is the first slot on the lattice worth filling, because it is the one
+whose ground truth already exists in the corpus.
+
+**The framing this goal is really about.** There are two ways to get an agent to
+behave, and both are bad on their own:
+
+- A **fully deterministic program** — a decision tree at its core. Predictable,
+  and unable to handle anything its author did not enumerate.
+- **Prompt-maxxing** — write the instruction into `SKILL.md` and hope. Most of
+  what is in a skill document today *could* be harness code; instead it is text
+  handed to a model, which turns a should-be-invariant into a Markov chain where
+  maybe it completes and maybe it does not.
+
+**The lattice is the thing in between.** Many tiny, hyper-tuned models, each with
+a narrow capability and a tiny prompt-and-output, wired by classifiers and
+encoders — statistical where judgement is genuinely needed, mechanical
+everywhere else, and never a single large model asked to hold the whole
+instruction set in its head. Each slot is small enough to be trained, scored and
+replaced independently.
+
+**The migration path is explicit, and we are on step one:** write the rule into
+`skills/agi/SKILL.md` (prompt), observe it hold or fail across loops, then
+replace it with a scored model or a plain check. A rule that has survived a few
+loops as prose is a rule with a labelled dataset behind it. `COMPLETE.md`'s fixed
+failure-category set exists to make those labels.
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
