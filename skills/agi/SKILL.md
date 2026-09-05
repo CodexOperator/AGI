@@ -400,6 +400,49 @@ in `QUICKSTART.md`, split out on 2026-09-02 precisely because replacement is the
 default: standing instructions inside a file the next director deletes are
 standing instructions with a countdown on them.
 
+## `COMPLETE.md` — every finished loop writes one (`goal:g1.13`)
+
+**`HANDOFF.md` bridges sessions and is deleted by the next director. Nothing
+closed a loop**, so a loop's gaps were recorded in prose somebody was instructed
+to erase, and the same gaps came back — measured on L1: 16 hazards carried in a
+handoff table became `goal:s34`, which closed roughly 2 of them.
+
+**When a loop ends, append a section to `COMPLETE.md` at the repo root.** Newest
+first. **This file is never replaced** — that is the whole reason it is a second
+file. It is `build:COMPLETE.md`, so the grid versions it like any payload.
+
+Six sections, in this order:
+
+1. **What ran** — waves, dispatch counts, harness, spend.
+2. **The scoreboard** — node counts, primary metric, evidence fraction, suite,
+   links; start and end.
+3. **Per active goal, how far it got** — grounded in a commit, a node diff or a
+   parent report. Never recollection. A claim you cannot ground says so.
+4. **How many goals actually closed**, plus any `complete` the record cannot
+   substantiate. (L1 found one: `goal:g4.6` was marked complete two days before
+   the adapter it names existed.)
+5. **A completion-failure category for everything that did not close.** The set
+   is closed and deliberately small: `saturation`,
+   `ceiling-found-by-dying`, `late-minting`, `hazard-carry-over`,
+   `banked-to-owner`, `verification-blindness`, `attribution-void`.
+   **A decision banked to the owner counts as a failure here** — not the model's,
+   the harness's, for not giving the director enough to decide with.
+6. **What was minted or changed in response**, linked as graph edges.
+
+**Why the category set is closed, and why that matters more than the prose.**
+These labels are training data. The gaps a completion review finds — a goal
+marked complete before its code existed, hazards carried instead of closed,
+goals minted hours before the budget ends — are pattern-matchable against a
+parent's own report, and are the first slot on `goal:g14`'s lattice worth filling
+with a classifier. A free-text report teaches nothing; a fixed label set over
+many loops is a dataset.
+
+**This section is prompt text today and is not meant to stay that way.** The
+standing migration path, which applies to every rule in this document: write it
+here as prose, watch it hold or fail across a few loops, then replace it with
+harness code or a scored small model. An instruction that *could* be a check and
+is instead handed to a model is an invariant turned into a coin flip.
+
 ## Long runs
 
 ```bash
