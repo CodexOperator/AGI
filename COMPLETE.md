@@ -78,6 +78,32 @@ Eight commits, all direct director work. No agents spawned, no provider spend.
   🔴 in `SKILL.md`, because a rule that cannot be followed for real work is how
   the write path got skipped in the first place.
 
+### 5b. One finding that is not a failure
+
+**The credential trail on the uninvited director resolves, and it changes the
+guard.** The `openclaw`/`hermes` stack runs on a **ChatGPT/Codex OAuth session**
+— `auth: oauth` against `api.openai.com`, all five agents on `openai/gpt-5.4`,
+plus a second `openai-codex` session in `~/.hermes/auth.json` with
+`auth_mode: chatgpt`. There is **no Anthropic credential in that stack at all**,
+so the uninvited director was almost certainly a **Codex agent, not a Claude
+one** — and it arrived through **`AGENTS.md`, which is a symlink to
+`CLAUDE.md`**. It was handed the full director contract by a route nobody
+designed. A guard that names one vendor's CLI would guard the wrong thing: what
+needs gating is *acting as director*, not which binary does it.
+
+**The larger observation, recorded as `idea:the-graph-is-the-workflow`:** an
+agent on a different runtime and a different vendor read one instruction file
+and *continued the work correctly for two hours*, with no skill invoked and
+nothing scheduling it. The graph was sufficient. A graph with missing pieces is
+a structure that states what is absent — a hypothesis with no experiment, a goal
+with no mvp, a `payload_ref` with no node — each a hole with a typed edge already
+pointing at it, so the set of legal next moves is computable from the structure
+rather than argued for in prose. The owner's framing: **the graph is DNA, the
+models are ribosomes, the code is protein**, and growth is cross-assembly —
+completion happens wherever a reader binds, with the gates as proof-reading.
+`goal:g14` reaches the same picture from the efficiency end; this is the
+observation that the substrate already behaves that way.
+
 ### 6. What was minted or changed
 
 `goal:g9.8`, `g9.9`, `g9.10`, `g1.12`, `g1.13`, `g2.12`, `g5.2`, `g14`, `s35`;

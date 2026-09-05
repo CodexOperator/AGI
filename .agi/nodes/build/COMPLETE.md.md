@@ -21,7 +21,7 @@ title: "Build: COMPLETE.md"
 # build:COMPLETE.md
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Fourth version: the header now states the real rule, which the owner corrected -- replaced whole by default like HANDOFF.md, appended only on request, as in this instance where the next work continues directly off loop L1. Calling the file append-only made accumulation the default and would have grown the one document a cold reader opens for a verdict on the last loop, which is the mistake the handoff already paid for at 1,723 lines.
+Fifth version: section 5b added to the L1.13 report, because the credential trail and what it implies are findings rather than failures and the six-section shape had nowhere to put a finding that is neither. The report now says what the uninvited runtime actually was, that it arrived through the AGENTS.md symlink, and that the graph turned out to be sufficient on its own -- which is the observation the owner drew out and which idea:the-graph-is-the-workflow carries in full.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
