@@ -13,7 +13,8 @@ goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: 7bceacd8528266d8
-seeds: []
+seeds:
+  - idea:the-graph-is-the-workflow
 status: horizon
 tags:
   - goal
