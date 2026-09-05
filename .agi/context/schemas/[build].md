@@ -4,7 +4,8 @@ derived_from: corpus-survey-2026-08-25 (n=185 as level3); renamed level3 -> buil
 fields:
   title: {type: str}
   build_kind: {type: str}     # THE DISCRIMINATOR: code | prose
-  payload_ref: {type: str}    # path of the file this node IS, relative to engine root
+  payload_ref: {type: str}    # path of the file this node IS, relative to `location`
+  location: {type: str}       # NAME of the base it resolves against; default source_root
   origin: {type: str}         # build-scan | build-version
   parents: {type: list}
   confidence: {type: float}
@@ -101,6 +102,52 @@ ref (`refs/grid/node/<mint-id>:payload`), which is what makes the graph the
 source and the engine tree the thing that falls out.
 
 ID prefix: `build:<payload_ref>` — e.g. `build:.gitignore`.
+
+## `location` — the payload's base is a name, not a path (2026-09-05)
+
+`payload_ref` is a **relative** path, and until now the thing it was relative
+to lived in the code: three call sites each resolved it against
+`locations.source_root()`. That is fine while every payload lives in one tree
+and wrong the moment one does not — a doc set beside the repo, a second
+checkout, a generated tree, a project that rearranges itself.
+
+**`location:` names the base; it never contains a path.**
+
+```yaml
+payload_ref: extensions/agi/bin/write.py
+location: source_root          # the default, stamped at creation
+```
+
+Names resolve through `locations.payload_base()`, the single place a name
+becomes a directory:
+
+| name | is |
+|---|---|
+| `source_root` | the repo enclosing `.agi/` — the default, and what every node meant before this field existed |
+| `graph_root` | the `.agi/` directory itself |
+| `repo_root` | the enclosing git repo |
+| *anything under `locations:` in the project config* | whatever that key declares — absolute as given, relative against the graph root |
+
+**Absent means `source_root`.** The 224 build nodes that predate the field keep
+resolving exactly as they did; nothing was rewritten to add it, and nothing
+needs to be.
+
+**An unknown name is a hard error naming the node, never a fallback to the
+default.** Silently resolving somewhere plausible would write real bytes into
+the wrong tree and report success — the one failure mode a payload base has
+that nobody would notice until much later.
+
+**Why a name and not a path.** A path in the node is the same hardcoding, moved
+one level: a tree that shifts would mean a sweep over every node pointing into
+it. A name means the shift is one config edit. This is `goal:g1`'s rule —
+every engine action is declared, never improvised — applied to the question
+"where do these bytes live".
+
+**`write.py create --payload` stamps it** with the default rather than leaving
+it implicit, so the field is visible on the node and can be changed by hand
+later. `write.py <id> "payload_text <bytes>"` and `"payload <path>"` both
+resolve through it, and a `location` set in the same edit wins over the one on
+disk — naming a new base and moving the bytes is one intention, not two.
 
 ## Renamed from `level3` on 2026-08-27
 

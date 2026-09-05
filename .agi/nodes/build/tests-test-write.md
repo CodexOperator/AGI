@@ -20,5 +20,5 @@ title: "Build: extensions/agi/tests/test_write.py"
 # build:tests-test-write
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version as a node. Carries five tests for the payload verb: the bytes land together with the thought, the destination mode survives, a node with no payload_ref is refused by name, a missing source refuses rather than emptying the file, and a missing destination refuses rather than creating one. The last two are the ones worth having -- both are ways a typo could destroy a payload silently. Verified red with the change stashed.
+Five more tests: inline bytes land with a trailing newline ensured, payload and payload_text are the same operation, a node with location: docs_root writes into the configured tree and NOT into the default one with the same relative ref, an unknown location refuses instead of defaulting, and create stamps the location it used. The third and fourth are the ones with teeth -- both are ways bytes could land in the wrong tree while the command reports success.
 <!-- THOUGHT:END -->

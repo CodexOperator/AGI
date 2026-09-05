@@ -266,6 +266,74 @@ def source_root(root: Path, config: dict | None = None) -> Path:
     return root
 
 
+#: What a build node's `location:` means when it does not say. Absent is the
+#: overwhelmingly common case -- 224 build nodes predate the field -- and it
+#: must keep meaning exactly what it has always meant.
+DEFAULT_PAYLOAD_LOCATION = "source_root"
+
+
+def payload_base(root: Path, location: str | None = None,
+                 config: dict | None = None) -> Path:
+    """The base a `payload_ref` resolves against, by NAME rather than by path.
+
+    `goal:g13.1`, 2026-09-05. A build node used to resolve its payload against
+    `source_root()` and nothing else, which made the base a hardcoded property
+    of the code rather than a stated property of the node. That is fine while
+    every payload lives in one tree and wrong the moment one does not -- a doc
+    set beside the repo, a second checkout, a generated tree. Naming the base
+    means a tree that moves is a config edit, never a sweep over every node.
+
+    Names, in resolution order:
+
+    1. **`source_root`** (the default) and **`repo_root`** and **`graph_root`**
+       — the three roots the engine already knows.
+    2. **Anything declared under `locations:` in the project config**, resolved
+       the same way `source_root` is: absolute as given, relative against the
+       graph root.
+
+    **An unknown name is an error, never a fallback.** Silently resolving to
+    the default would write bytes into the wrong tree and report success, which
+    is the one failure mode a payload base can have that nobody would notice.
+    """
+    root = Path(root).resolve()
+    cfg = load_config(root) if config is None else config
+    name = (location or DEFAULT_PAYLOAD_LOCATION).strip()
+
+    if name == "source_root":
+        return source_root(root, cfg)
+    if name == "graph_root":
+        return root
+    if name == "repo_root":
+        return repo_root(root)
+
+    declared = (cfg.get("locations") or {}).get(name)
+    if isinstance(declared, str) and declared.strip():
+        p = Path(declared.strip()).expanduser()
+        return p.resolve() if p.is_absolute() else (root / p).resolve()
+
+    known = ["source_root", "graph_root", "repo_root"]
+    known += sorted(k for k in (cfg.get("locations") or {})
+                    if isinstance(k, str) and k not in known)
+    raise KeyError(
+        f"unknown payload location {name!r}. Declare it under `locations:` in "
+        f"the project config, or use one of: {', '.join(known)}."
+    )
+
+
+def resolve_payload_path(root: Path, ref: str, location: str | None = None,
+                         config: dict | None = None) -> Path:
+    """One node's payload, as an absolute path. The single place this is done.
+
+    An absolute `payload_ref` is used as-is and its `location` is ignored --
+    naming a base for a path that already has one is a contradiction, and the
+    absolute path is the more specific statement.
+    """
+    p = Path(ref)
+    if p.is_absolute():
+        return p
+    return payload_base(root, location, config) / p
+
+
 def goals_path(root: Path, config: dict | None = None) -> Path:
     """Where the rendered goal document belongs.
 

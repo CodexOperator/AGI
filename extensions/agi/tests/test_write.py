@@ -376,6 +376,92 @@ def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
     assert not (tmp_path / "src" / "absent.py").exists()
 
 
+def test_payload_text_writes_the_bytes_inline_with_no_scratch_file(project,
+                                                                  tmp_path):
+    """`note` says the body inline; this says the payload inline. Staging a
+    temp file just to hand it over was a step the verb layer imposed."""
+    _build_node(project)
+    dest = tmp_path / "src" / "thing.py"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("old\n")
+
+    edit = write.apply_verb(write.Edit("build:b1"), "payload_text",
+                            ["print('new')"])
+    res = write.submit(project, edit, actor="director")
+    assert dest.read_text() == "print('new')\n", "a trailing newline is ensured"
+    assert res.payload_changed is True
+
+
+def test_payload_and_payload_text_are_the_same_operation(project, tmp_path):
+    _build_node(project)
+    dest = tmp_path / "src" / "thing.py"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("old\n")
+    src = tmp_path / "from_file.py"
+    src.write_text("same\n")
+
+    write.submit(project, write.apply_verb(
+        write.Edit("build:b1"), "payload", [str(src)]), actor="d")
+    from_file = dest.read_bytes()
+    dest.write_text("old\n")
+    write.submit(project, write.apply_verb(
+        write.Edit("build:b1"), "payload_text", ["same"]), actor="d")
+    assert dest.read_bytes() == from_file
+
+
+def test_payload_resolves_against_the_nodes_named_location(project, tmp_path):
+    """`goal:g13.1`: the base is a NAME on the node, not a path in the code.
+
+    A node that says `location: docs_root` writes into whatever the config
+    calls `docs_root` -- so moving that tree is a config edit, not a sweep
+    over every node that points into it.
+    """
+    (project / "config.json").write_text(
+        '{"locations": {"docs_root": "../elsewhere"}}')
+    (project / "nodes" / "build").mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / "build" / "b2.md").write_text(
+        '---\nid: "build:b2"\ntype: build\nmint_id: bbb222\n'
+        'title: "t"\nbuild_kind: prose\norigin: build-scan\n'
+        'payload_ref: NOTES.md\nlocation: docs_root\n---\n\nbody\n')
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir(parents=True, exist_ok=True)
+    (elsewhere / "NOTES.md").write_text("old\n")
+    # The default base must NOT be written: same relative ref, wrong tree.
+    (tmp_path / "NOTES.md").write_text("untouched\n")
+
+    write.submit(project, write.apply_verb(
+        write.Edit("build:b2"), "payload_text", ["new"]), actor="d")
+    assert (elsewhere / "NOTES.md").read_text() == "new\n"
+    assert (tmp_path / "NOTES.md").read_text() == "untouched\n"
+
+
+def test_an_unknown_location_is_refused_rather_than_defaulted(project,
+                                                              tmp_path):
+    """Falling back to the default would write real bytes into the wrong tree
+    and report success -- the one failure a payload base can have that nobody
+    would notice."""
+    (project / "nodes" / "build").mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / "build" / "b3.md").write_text(
+        '---\nid: "build:b3"\ntype: build\nmint_id: bbb333\n'
+        'title: "t"\nbuild_kind: prose\norigin: build-scan\n'
+        'payload_ref: NOTES.md\nlocation: nowhere\n---\n\nbody\n')
+    (tmp_path / "NOTES.md").write_text("untouched\n")
+    with pytest.raises(KeyError, match="unknown payload location"):
+        write.submit(project, write.apply_verb(
+            write.Edit("build:b3"), "payload_text", ["new"]), actor="d")
+    assert (tmp_path / "NOTES.md").read_text() == "untouched\n"
+
+
+def test_create_stamps_the_location_it_used(project):
+    """Auto-assigned, and visible on the node so it can be changed later --
+    an implicit default is the hardcoding this replaced, one level up."""
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "located", ["goal:g1"],
+                          payload="src/located.py")
+    assert res.written
+    assert "location: source_root" in Path(res.path).read_text()
+
+
 def test_a_created_node_carries_the_same_provenance_as_an_edited_one(project):
     _schemas(project)
     res, _ = write.create(project, "hypothesis", "provenanced", ["goal:g1"],
