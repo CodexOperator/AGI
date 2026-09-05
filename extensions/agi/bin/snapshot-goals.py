@@ -1005,7 +1005,21 @@ def main(argv: list[str] | None = None) -> int:
         if parent_gid:
             # Same parent-pointing convention seed ideas use, so a sub-goal
             # renders and traverses under its long-term goal for free.
-            fm["parents"] = [f"goal:{parent_gid.lower()}"]
+            #
+            # `[goal].md` lets a goal name the build node that produced it
+            # (2026-09-05) — a completion report, a survey, a design note. This
+            # direction reconstructs `parents:` from the heading hierarchy, and
+            # a heading can only ever yield the goal parent, so a rebuild that
+            # simply assigned the list would silently drop the other half. Keep
+            # whatever non-goal parents the node already carries; the goal
+            # parent is still derived, never preserved, because the hierarchy
+            # is the authority on THAT one.
+            prior = (existing.get(node_id, {}).get("fm") or {}).get("parents")
+            kept = [x.strip() for x in prior
+                    if isinstance(x, str) and x.strip()
+                    and not x.strip().startswith("goal:")] \
+                if isinstance(prior, (list, tuple)) else []
+            fm["parents"] = [f"goal:{parent_gid.lower()}"] + kept
         slug = f"{g['gid'].lower()}-{slugify(g['title'])}"
         out_path = NODES_DIR / "goal" / f"{slug}.md"
         write_frontmatter(out_path, fm, g["body"], origin=ORIGIN,

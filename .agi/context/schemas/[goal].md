@@ -8,7 +8,7 @@ fields:
   status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
   origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
   seeds: {type: list}         # node ids seeded from this goal
-  parents: {type: list}       # subgoal only: exactly one goal
+  parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
   tags: {type: list}
 validation:
@@ -25,17 +25,18 @@ spawn:
   discriminator: goal_kind
   variants:
     long-term:
-      allowed_parents: []
+      allowed_parents: [build, goal]
       min_parents: 0
-      max_parents: 0
+      max_parents: 2
     short-term:
-      allowed_parents: []
+      allowed_parents: [build, goal]
       min_parents: 0
-      max_parents: 0
+      max_parents: 2
     subgoal:
-      allowed_parents: [goal]
+      allowed_parents: [build, goal]
       min_parents: 1
-      max_parents: 1
+      max_parents: 3
+      min_parents_by_type: {goal: 1}
 ---
 
 # goal
@@ -83,9 +84,47 @@ Measured over all 75 goal nodes — the correlation is exact, zero exceptions:
 
 So "exactly three types may be parentless: G-goal, S-goal, `idea`" is precise
 only when stated per-variant: **`goal` is parentless-legal in two of its three
-variants and illegal in the third.** A flat `allowed_parents: []` on `goal`
-would license 48 subgoals to float free. `[shape].md`'s `parentless_types`
-therefore lists `goal:long-term` and `goal:short-term`, not `goal`.
+variants and illegal in the third.** `[shape].md`'s `parentless_types`
+therefore lists `goal:long-term` and `goal:short-term`, not `goal`. The table
+above is the corpus as surveyed on 2026-08-25 and is now a floor rather than a
+ceiling — see the next section.
+
+## A goal may be spawned by a build node (2026-09-05)
+
+**Widened at the owner's request, and the widening is small on purpose:**
+
+| `goal_kind` | may have | must have |
+|---|---|---|
+| `long-term` | up to 2 parents, each a `build` or a `goal` | nothing — parentless stays legal |
+| `short-term` | up to 2 parents, each a `build` or a `goal` | nothing — parentless stays legal |
+| `subgoal` | up to 3 parents, each a `build` or a `goal` | **at least one `goal`** (`min_parents_by_type`) |
+
+**What this buys.** A goal usually comes from somewhere, and until now the graph
+could not say where. `COMPLETE.md` — the post-loop completion report
+(`goal:g1.13`) — is the worked example: eight goals were minted *because of what
+that report found*, and with `allowed_parents: [goal]` the only way to record it
+was an edge pointing the wrong way, from the report at the goals. Now the goals
+name the document that produced them and the provenance reads in the direction
+the graph already reads everything else: **parents are where this came from.**
+
+**Why `build` specifically, and not "any type".** A build node is a file with a
+thought attached, and a document that argues for new work — a report, a survey,
+a design note — is exactly a prose build node. Letting `hypothesis` or `verdict`
+parent a goal would invert the chain the whole engine is built on (goals seed
+hypotheses, not the reverse) and would make `outcome_coverage` circular.
+
+**Why a subgoal still needs its goal.** `min_parents_by_type: {goal: 1}` is an
+AND across kinds, so a subgoal may gain a `build` parent and even a second goal,
+but it can never float free of the root it belongs under. That root is what
+`GOALS.md` nests it beneath and what `goal:s26`'s completion check walks.
+
+**The one place this is not yet symmetric:** `snapshot-goals.py`'s *ingest*
+direction (`GOALS.md` → nodes) writes a subgoal's `parents:` from the heading
+hierarchy, so it can only reconstruct the goal parent. It now preserves any
+non-goal parent already on disk rather than dropping it, which is enough because
+`--render` (nodes → `GOALS.md`) is the live direction and the one `driver.sh`
+runs. A build parent minted only in `GOALS.md` prose is still unrepresentable —
+mint it on the node.
 
 ## Conventions that are not mechanical checks
 

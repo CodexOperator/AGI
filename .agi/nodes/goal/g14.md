@@ -2,7 +2,9 @@
 id: goal:g14
 mint_id: c721e86dd1c545f0abfcbcac486919c3
 type: goal
-parents: []
+parents:
+  - build:COMPLETE.md
+  - goal:g4
 next_edges: []
 confidence: 1.0
 edited_by: director
