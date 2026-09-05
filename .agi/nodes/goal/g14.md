@@ -53,3 +53,42 @@ the graph, not a human, decide what competent means here.
 Related: `goal:g4` (right model at the right grain), `goal:g4.2` (a
 reasoning-effort dial), `goal:g4.4` (a web of specialists, each owning a region),
 `goal:g2.4` and `goal:s32` (the embeddings pipeline this needs).
+
+### Addendum, 2026-09-04 — the cheapest thing on this lattice is a gap-spotter
+
+The completion review that produced `COMPLETE.md` (`goal:g1.13`) was done by a
+large model reading a handoff. **It did not need to be.** The gaps it surfaced —
+a goal marked `complete` two days before its code existed, sixteen hazards
+carried instead of closed, three goals minted hours before the budget ended, a
+decision banked that silently gated half the run's throughput — are all
+**pattern-matchable against a parent's own report**. A classifier, or a very
+small model, reading a parent report plus the node diff should flag every one of
+them. That is the first slot on the lattice worth filling, because it is the one
+whose ground truth already exists in the corpus.
+
+**The framing this goal is really about.** There are two ways to get an agent to
+behave, and both are bad on their own:
+
+- A **fully deterministic program** — a decision tree at its core. Predictable,
+  and unable to handle anything its author did not enumerate.
+- **Prompt-maxxing** — write the instruction into `SKILL.md` and hope. Most of
+  what is in a skill document today *could* be harness code; instead it is text
+  handed to a model, which turns a should-be-invariant into a Markov chain where
+  maybe it completes and maybe it does not.
+
+**The lattice is the thing in between.** Many tiny, hyper-tuned models, each with
+a narrow capability and a tiny prompt-and-output, wired by classifiers and
+encoders — statistical where judgement is genuinely needed, mechanical
+everywhere else, and never a single large model asked to hold the whole
+instruction set in its head. Each slot is small enough to be trained, scored and
+replaced independently.
+
+**The migration path is explicit, and we are on step one:** write the rule into
+`skills/agi/SKILL.md` (prompt), observe it hold or fail across loops, then
+replace it with a scored model or a plain check. A rule that has survived a few
+loops as prose is a rule with a labelled dataset behind it. `COMPLETE.md`'s fixed
+failure-category set exists to make those labels.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Owner addendum 2026-09-04: named the first lattice slot (a classifier that spots completion gaps in a parent report -- ground truth already in the corpus), and framed the lattice as the middle ground between a deterministic decision tree and prompt-maxxing, where an instruction that should be harness code is handed to a model as text and becomes a Markov chain. Migration path recorded: SKILL.md prose first, scored model second.
+<!-- THOUGHT:END -->
