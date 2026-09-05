@@ -295,6 +295,87 @@ def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
         "a rejected spawn left an orphaned source file")
 
 
+# --------------------------------------------------------------------------
+# `payload` — the bytes behind a build node (goal:g13.1)
+# --------------------------------------------------------------------------
+
+def _build_node(project: Path, ref: str = "src/thing.py") -> None:
+    (project / "nodes" / "build").mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: "build:b1"\ntype: build\nmint_id: bbb111\n'
+        'title: "t"\nbuild_kind: code\norigin: build-scan\n'
+        f'payload_ref: {ref}\n---\n\nthe body\n')
+
+
+def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
+    _build_node(project)
+    dest = tmp_path / "src" / "thing.py"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("old\n")
+    src = tmp_path / "new.py"
+    src.write_text("new\n")
+
+    edit = write.Edit("build:b1")
+    write.apply_verb(edit, "payload", [str(src)])
+    write.apply_verb(edit, "thought", ["why it changed"])
+    write.submit(project, edit, actor="director", session="L1.13")
+
+    assert dest.read_text() == "new\n"
+    node = (project / "nodes" / "build" / "b1.md").read_text()
+    assert "edited_by: director" in node
+    assert "why it changed" in node, "the bytes landed but the reason did not"
+
+
+def test_payload_preserves_the_destination_mode(project, tmp_path):
+    """A dropped exec bit is `goal:s9` again, and the grid reads the real
+    mode from lstat -- so replacing a script's bytes must not disarm it."""
+    _build_node(project, ref="src/run.sh")
+    dest = tmp_path / "src" / "run.sh"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("#!/bin/sh\necho old\n")
+    dest.chmod(0o755)
+    src = tmp_path / "new.sh"
+    src.write_text("#!/bin/sh\necho new\n")
+
+    edit = write.apply_verb(write.Edit("build:b1"), "payload", [str(src)])
+    write.submit(project, edit, actor="director")
+    assert dest.read_text().endswith("echo new\n")
+    assert dest.stat().st_mode & 0o111, "the exec bit was dropped"
+
+
+def test_payload_refuses_a_node_that_points_at_nothing(project, tmp_path):
+    edit = write.apply_verb(write.Edit("hypothesis:h1"), "payload",
+                            [str(tmp_path / "x")])
+    with pytest.raises(write.EditError, match="no payload_ref"):
+        write.submit(project, edit)
+
+
+def test_payload_refuses_a_missing_source_rather_than_emptying_the_file(
+        project, tmp_path):
+    """A typo in the source path must never be a way to blank a payload."""
+    _build_node(project)
+    dest = tmp_path / "src" / "thing.py"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("precious\n")
+    edit = write.apply_verb(write.Edit("build:b1"), "payload",
+                            [str(tmp_path / "typo.py")])
+    with pytest.raises(FileNotFoundError):
+        write.submit(project, edit)
+    assert dest.read_text() == "precious\n"
+
+
+def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
+    """Replacing nothing is creating, and creation has its own never-overwrite
+    rule in `create --payload`."""
+    _build_node(project, ref="src/absent.py")
+    src = tmp_path / "new.py"
+    src.write_text("x\n")
+    edit = write.apply_verb(write.Edit("build:b1"), "payload", [str(src)])
+    with pytest.raises(FileNotFoundError, match="never creates"):
+        write.submit(project, edit)
+    assert not (tmp_path / "src" / "absent.py").exists()
+
+
 def test_a_created_node_carries_the_same_provenance_as_an_edited_one(project):
     _schemas(project)
     res, _ = write.create(project, "hypothesis", "provenanced", ["goal:g1"],

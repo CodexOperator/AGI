@@ -360,6 +360,12 @@ class NodeWrite:
     #: is the healthy value; a non-empty list is a node that is valid-shaped
     #: but incomplete, and the caller is told rather than left to find out.
     missing_required: list = field(default_factory=list)
+    #: goal:g13.1 -- what the `payload` verb did to the bytes behind this
+    #: node, if anything. `None` = the edit did not touch them, `False` =
+    #: identical bytes, `True` = replaced. A caller reports it; nothing
+    #: branches on it.
+    payload_changed: bool | None = None
+    payload_path: str = ""
 
     @property
     def written(self) -> bool:
@@ -439,6 +445,49 @@ def ensure_payload(root, ref: str) -> Path | None:
     src.parent.mkdir(parents=True, exist_ok=True)
     src.write_text("")
     return src
+
+
+def replace_payload(root, ref: str, source) -> tuple[Path, bool]:
+    """Replace the bytes of an existing payload from `source`. Never creates.
+
+    The other half of `ensure_payload`, and here for the same reason: a payload
+    write is a real file write, and `write.py` holds a mechanically-checked
+    invariant that it performs none (`test_edit_py_contains_no_file_write`).
+    Editing the file behind a build node was the last node operation with no
+    named command — `goal:g13.1`'s whole complaint — so it lands in the module
+    that already owns writing the files behind nodes rather than weakening the
+    guard that keeps the verb layer a front end.
+
+    Returns `(path, changed)`. Refuses rather than guesses:
+
+    - a `source` that does not exist, because a typo must not empty a payload;
+    - a destination that does not exist, because replacing nothing is creating,
+      and creation is `ensure_payload`'s job with its own never-overwrite rule.
+
+    **The destination's mode is preserved**, so replacing the bytes of an
+    executable does not silently disarm it — the grid reads the real mode from
+    `os.lstat()` and a dropped exec bit is `goal:s9` all over again.
+    """
+    import locations as _loc
+
+    src = Path(source)
+    if not src.is_file():
+        raise FileNotFoundError(f"payload source {src} does not exist")
+
+    p = Path(ref)
+    dest = p if p.is_absolute() else Path(_loc.source_root(Path(root))) / p
+    if not dest.is_file():
+        raise FileNotFoundError(
+            f"payload {dest} does not exist — `payload` replaces bytes, it "
+            f"never creates. A new file is `write.py create --payload`.")
+
+    new = src.read_bytes()
+    if dest.read_bytes() == new:
+        return dest, False
+    mode = dest.stat().st_mode
+    dest.write_bytes(new)
+    os.chmod(dest, mode)
+    return dest, True
 
 
 def write_node(

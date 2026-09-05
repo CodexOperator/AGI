@@ -96,11 +96,12 @@ class Edit:
     unset_fm: list = field(default_factory=list)
     body_append: str = ""
     thought: str = ""
+    payload_from: str = ""
 
     @property
     def empty(self) -> bool:
         return not (self.set_fm or self.unset_fm or self.body_append
-                    or self.thought)
+                    or self.thought or self.payload_from)
 
 
 # --------------------------------------------------------------------------
@@ -162,12 +163,31 @@ def verb_note(edit: Edit, text: str) -> Edit:
     return edit
 
 
+def verb_payload(edit: Edit, source: str) -> Edit:
+    """`payload <path>` — replace the bytes of the file this node points at.
+
+    The last node operation that had no name. A build node's payload — a
+    `.py`, a `.sh`, `SKILL.md`, `HANDOFF.md` — was edited with whatever editor
+    was to hand, and the node behind it learned nothing: no `edited_by`, no
+    `thought_session`, no single submit tying the bytes to the reason for
+    them. Compose the new content wherever you like, then hand the file over
+    here and it lands with the rest of the edit (`goal:g13.1`).
+
+    The write itself is `node_writer.replace_payload` — this module still
+    performs no file write, which is the invariant that keeps the verb layer a
+    front end rather than a second way in.
+    """
+    edit.payload_from = source
+    return edit
+
+
 VERBS = {
     "set": verb_set,
     "unset": verb_unset,
     "link": verb_link,
     "thought": verb_thought,
     "note": verb_note,
+    "payload": verb_payload,
 }
 
 #: How many arguments each verb takes. The LAST one always absorbs the rest of
@@ -179,7 +199,8 @@ VERBS = {
 #: everything else -- `note some prose here` arrived as three arguments to a
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
-ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1}
+ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
+         "payload": 1}
 
 
 def _coerce(value: str):
@@ -263,8 +284,42 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     if edit.body_append or edit.thought:
         body = _compose_body(root, edit)
 
-    return node_writer.update_node(root, edit.node_id, set_fm=set_fm,
-                                   unset_fm=edit.unset_fm, body=body)
+    # Everything that can refuse, refuses BEFORE anything is written: a
+    # payload swap that lands next to a rejected node edit is a file whose
+    # reason never made it into the graph, which is the exact split this verb
+    # exists to close.
+    payload_ref = _payload_ref(root, edit) if edit.payload_from else ""
+
+    res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
+                                  unset_fm=edit.unset_fm, body=body)
+    if payload_ref and not getattr(res, "rejected", False):
+        dest, changed = node_writer.replace_payload(
+            root, payload_ref, edit.payload_from)
+        res.payload_changed = changed
+        res.payload_path = str(dest)
+    return res
+
+
+def _payload_ref(root, edit: Edit) -> str:
+    """Where this node's bytes live, or an error naming why there are none.
+
+    Read off the node rather than passed in, because `payload_ref` is the
+    node's own statement about which file it is; a caller that supplied the
+    path could point the verb at a file the node has never claimed.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    path = node_writer.find_node_file(root, edit.node_id)
+    if path is None:
+        raise EditError(f"no node file for {edit.node_id}")
+    fm = fm_reader.load_node_file(path, body=False).frontmatter
+    ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
+    if not isinstance(ref, str) or not ref.strip():
+        raise EditError(
+            f"{edit.node_id} has no payload_ref, so there are no bytes to "
+            f"replace. `payload` edits the file a build node points at; a "
+            f"node without one is edited with `set`, `note` and `thought`.")
+    return ref.strip()
 
 
 def _default_actor() -> str:
@@ -465,15 +520,20 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  thought ({len(edit.thought)} chars)")
         if edit.body_append:
             print(f"  note    ({len(edit.body_append)} chars)")
+        if edit.payload_from:
+            print(f"  payload from {edit.payload_from}")
         return 0
 
     try:
         res = submit(root, edit, actor=args.actor, session=args.session)
-    except EditError as exc:
+    except (EditError, FileNotFoundError) as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
     print(f"{res.status}: {edit.node_id}"
           + (f" — {res.reason}" if res.reason else ""))
+    if res.payload_changed is not None:
+        print(f"payload: {res.payload_path} "
+              + ("replaced" if res.payload_changed else "unchanged"))
     return 1 if res.status == node_writer.REJECTED else 0
 
 
