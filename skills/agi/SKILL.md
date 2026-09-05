@@ -132,22 +132,47 @@ and `--session` stamp who and which chat.
 exception:
 
 ```bash
-# compose the new content wherever you like, then submit it
+# inline, the way `note` writes a body — no scratch file
+write.py build:bin-thing "payload_text <the file's new contents>"
+
+# from a file, when the bytes already exist or are large
 write.py build:skills-agi-SKILL.md \
     "payload /tmp/SKILL.next.md && thought <why this version differs>"
+
+# from stdin, for content the `&&` split cannot carry
+some-generator | write.py build:bin-thing "payload -"
 ```
 
-`payload <path>` replaces the bytes at the node's own `payload_ref` and lands
-in the **same submit** as the thought that explains them, so `edited_by`,
+⚠️ **The script form splits on `&&`, so no prose verb — `note`, `thought`,
+`payload_text` — can contain `&&`.** Use `payload -` for payload bytes; for a
+`note` or a `thought`, reword. This bites in practice: it broke a `thought`
+whose text was *about* the `&&` split.
+
+Both verbs replace the bytes at the node's own `payload_ref` and land in the
+**same submit** as the thought that explains them, so `edited_by`,
 `thought_session`, the new bytes and the reason for them are one operation
 instead of an edit plus a hope. It **never creates** (a new file is
 `create --payload`), refuses a source that does not exist rather than emptying
 a payload on a typo, and preserves the destination's mode so replacing a
 script's bytes cannot disarm it.
 
-**Use your editor to compose, never to land.** Draft to a scratch file, diff it
-if you like, then hand it to `write.py`. Then `grid.py commit --all` versions
-the payload and the node together.
+**Use your editor to compose, never to land.** Draft it, diff it if you like,
+then hand it to `write.py`. Then `grid.py commit --all` versions the payload
+and the node together.
+
+**A payload's base is a name, not a path.** `payload_ref` is relative to the
+node's `location:` — `source_root` by default (absent means that too), plus
+`graph_root`, `repo_root`, or any key declared under `locations:` in the
+project config. `create --payload` stamps it. An unknown name is refused rather
+than defaulted, because a base that silently resolves somewhere plausible
+writes real bytes into the wrong tree and reports success. Move a tree by
+editing the config, never by sweeping every node that points into it.
+
+🔴 **Known gap:** payload writes are whole-file only. There is no anchored or
+partial edit, so a one-line change to a large module still means emitting the
+whole file — which is why engine surgery across several modules is still done
+with ordinary tools plus a `thought` afterwards. That is a real hole in
+`goal:g13.1`, not a licence.
 
 **If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
 with anything but `write.py`, stop** — that is the untraceable write this
