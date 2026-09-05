@@ -21,7 +21,7 @@ title: "Build: COMPLETE.md"
 # build:COMPLETE.md
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Fifth version: section 5b added to the L1.13 report, because the credential trail and what it implies are findings rather than failures and the six-section shape had nowhere to put a finding that is neither. The report now says what the uninvited runtime actually was, that it arrived through the AGENTS.md symlink, and that the graph turned out to be sufficient on its own -- which is the observation the owner drew out and which idea:the-graph-is-the-workflow carries in full.
+Sixth version: the format gained a seventh section and both reports were renumbered to match. What was 5b -- a finding hung off the side of the failure section because there was nowhere else to put it -- is now section 6, findings that are not failures, and what was minted moves to 7. Loop L1 predates the section and says so rather than being backfilled with something that was never written. Note on the first attempt at this edit: the renumber script asserted and aborted because the two reports word the last heading differently, and write.py reported the payload unchanged -- the refuse-before-writing order held, and nothing landed half applied.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

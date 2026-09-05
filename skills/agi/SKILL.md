@@ -528,7 +528,7 @@ every prior report is one command away —
 `grid.py payload build:COMPLETE.md --version N` — and accumulating costs every
 future session context while buying nothing. When you do append, newest first.
 
-Six sections, in this order:
+Seven sections, in this order:
 
 1. **What ran** — waves, dispatch counts, harness, spend.
 2. **The scoreboard** — node counts, primary metric, evidence fraction, suite,
@@ -544,7 +544,13 @@ Six sections, in this order:
    `banked-to-owner`, `verification-blindness`, `attribution-void`.
    **A decision banked to the owner counts as a failure here** — not the model's,
    the harness's, for not giving the director enough to decide with.
-6. **What was minted or changed in response**, linked as graph edges.
+6. **Findings that are not failures** — *optional; omit the heading when there
+   are none.* What the loop learned that is neither a closure nor a failure: a
+   mechanism that turned out to work, a cause finally traced, an observation
+   worth carrying. Added after the first report had one and the format had
+   nowhere to put it, so it was filed as a failure's footnote — a shape that
+   quietly teaches a loop to report only what went wrong.
+7. **What was minted or changed in response**, linked as graph edges.
 
 **Why the category set is closed, and why that matters more than the prose.**
 These labels are training data. The gaps a completion review finds — a goal

@@ -939,6 +939,8 @@ carried-hazard list is shorter than the first's rather than a copy of it.
 
 CORRECTION 2026-09-05, owner: COMPLETE.md is NOT append-only. It follows the same rule as HANDOFF.md -- replaced whole by default, appended only when the owner asks, which they do when the next loop continues directly off the last one and both reports must be readable at once. The body above says never replaced; that is wrong and the rule here supersedes it. Replacing is safe for the reason it is safe for the handoff: grid.py payload build:COMPLETE.md --version N returns every prior report, so accumulation costs future context and buys nothing.
 
+FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6, findings that are not failures -- optional, omitted when there are none -- sits between the failure categories and what was minted. What was minted becomes section 7. Everything else in the list above stands.
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that

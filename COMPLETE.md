@@ -78,7 +78,7 @@ Eight commits, all direct director work. No agents spawned, no provider spend.
   🔴 in `SKILL.md`, because a rule that cannot be followed for real work is how
   the write path got skipped in the first place.
 
-### 5b. One finding that is not a failure
+### 6. Findings that are not failures
 
 **The credential trail on the uninvited director resolves, and it changes the
 guard.** The `openclaw`/`hermes` stack runs on a **ChatGPT/Codex OAuth session**
@@ -104,7 +104,7 @@ completion happens wherever a reader binds, with the gates as proof-reading.
 `goal:g14` reaches the same picture from the efficiency end; this is the
 observation that the substrate already behaves that way.
 
-### 6. What was minted or changed
+### 7. What was minted or changed
 
 `goal:g9.8`, `g9.9`, `g9.10`, `g1.12`, `g1.13`, `g2.12`, `g5.2`, `g14`, `s35`;
 `build:COMPLETE.md`, `build:bin-write`, `build:tests-test-write`,
@@ -221,7 +221,11 @@ thing in time. Failure here includes decisions correctly banked to the owner.
    and it took forensics to establish it was not the owner. Had `goal:g10.1`
    existed, the `build:HANDOFF.md` version would name the session that wrote it.
 
-### 6. What was minted in response
+### 6. Findings that are not failures
+
+*(none recorded — this report predates the section, added 2026-09-05)*
+
+### 7. What was minted in response
 
 All `horizon` — declared, not in flight.
 

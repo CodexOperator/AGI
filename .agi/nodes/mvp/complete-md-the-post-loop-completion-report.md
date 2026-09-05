@@ -56,3 +56,5 @@ a copy of the first with a new date, the format is decoration.
 artifact; `goal:g14` owns replacing the director with a small model that emits it.
 
 CORRECTION 2026-09-05, owner: strike the append-only requirement above. COMPLETE.md is replaced whole by default and appended only on owner request, exactly like HANDOFF.md. Everything else in this mvp stands -- the six sections, the closed failure-category set, grounded claims, and a banked decision counting as a completion failure.
+
+FORMAT UPDATE 2026-09-05: SEVEN required sections, not six. Section 6 is findings that are not failures, optional and omitted when empty; what was minted becomes section 7. The falsifier is unchanged.
