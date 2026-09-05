@@ -4,14 +4,20 @@ mint_id: e00c348e0718409dbdb4aaa6a9c8cbf1
 type: goal
 parents: []
 next_edges: []
+confidence: 1.0
 edited_by: director
 goal_id: S34
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: 84788d877ae9eae0
+seeds: []
 status: active
-thought_session: L1.12
+tags:
+  - goal
+  - root
+  - short-term
+thought_session: L1.13
 title: "S34: Every hazard carried in a handoff is closed in the loop, not carried again"
 ---
 # goal:s34

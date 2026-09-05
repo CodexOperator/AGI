@@ -431,6 +431,33 @@ def test_subgoals_and_short_term_goals_become_nodes(nested):
                           "goal:g2"}
 
 
+def test_ingest_keeps_a_build_parent_the_hierarchy_cannot_know_about(nested):
+    """A goal may name the build node that produced it (`[goal].md`, 2026-09-05).
+
+    The import direction rebuilds `parents:` from the heading hierarchy, and a
+    heading only ever yields the goal parent -- so an unguarded rebuild drops
+    the other half silently. It must keep the non-goal parents already on disk
+    and still derive the goal parent from the hierarchy, because the hierarchy
+    is the authority on that one and only that one.
+    """
+    # Written at the slug the import will rewrite, so this is the same node
+    # coming back rather than a second file with the same id.
+    write_node(nested, "goal/g1.2-a-short-step-inside-g1.md", {
+        "id": "goal:g1.2", "type": "goal", "goal_id": "G1.2",
+        "title": "A short step inside G1", "status": "active", "goal_kind": "subgoal",
+        "heading_level": 3, "seeds": [], "tags": ["goal", "subgoal"],
+        "confidence": 1.0,
+        # The wrong goal parent on purpose: it must be REPLACED from the
+        # hierarchy, while the build parent beside it survives.
+        "parents": ["goal:g9", "build:COMPLETE.md"],
+    })
+    run(nested)
+    parents = _by_id(nested)["goal:g1.2"]["parents"]
+    assert parents[0] == "goal:g1"
+    assert "build:COMPLETE.md" in parents
+    assert "goal:g9" not in parents
+
+
 def test_subgoal_parent_points_at_its_long_term_goal(nested):
     run(nested)
     nodes = _by_id(nested)

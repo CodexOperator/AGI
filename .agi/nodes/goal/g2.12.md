@@ -4,6 +4,7 @@ mint_id: c71aa813c225429696880bed7839291c
 type: goal
 parents:
   - goal:g2
+  - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
 edited_by: director

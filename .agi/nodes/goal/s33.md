@@ -4,14 +4,20 @@ mint_id: 70fc9c0443ec43bc89f18b769187a114
 type: goal
 parents: []
 next_edges: []
+confidence: 1.0
 edited_by: director
 goal_id: S33
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: 38059e6af16cef9f
+seeds: []
 status: active
-thought_session: L1.12
+tags:
+  - goal
+  - root
+  - short-term
+thought_session: L1.13
 title: "S33: The docs say what the tree does now"
 ---
 # goal:s33

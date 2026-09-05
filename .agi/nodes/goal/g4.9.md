@@ -5,14 +5,19 @@ type: goal
 parents:
   - goal:g4
 next_edges: []
+confidence: 1.0
 edited_by: director
 goal_id: G4.9
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: de70a8566f2ad9c4
+seeds: []
 status: active
-thought_session: L1.12
+tags:
+  - goal
+  - subgoal
+thought_session: L1.13
 title: "G4.9: A parent that outlives its timeout is a bug, not a lease"
 ---
 # goal:g4.9
