@@ -516,9 +516,17 @@ closed a loop**, so a loop's gaps were recorded in prose somebody was instructed
 to erase, and the same gaps came back — measured on L1: 16 hazards carried in a
 handoff table became `goal:s34`, which closed roughly 2 of them.
 
-**When a loop ends, append a section to `COMPLETE.md` at the repo root.** Newest
-first. **This file is never replaced** — that is the whole reason it is a second
-file. It is `build:COMPLETE.md`, so the grid versions it like any payload.
+**When a loop ends, write `COMPLETE.md` at the repo root** — the closing record
+of that loop, the way `HANDOFF.md` is the live one of a session.
+
+**Same rule as `HANDOFF.md`: replace it whole, unless the owner asks otherwise.**
+Default is one loop's report at a time. **Append only when the owner says to** —
+which they do when the next loop is actively continuing off the last one and
+both reports need to be in front of a reader at once. Erasing is safe for the
+same measured reason it is safe there: `COMPLETE.md` is `build:COMPLETE.md`, so
+every prior report is one command away —
+`grid.py payload build:COMPLETE.md --version N` — and accumulating costs every
+future session context while buying nothing. When you do append, newest first.
 
 Six sections, in this order:
 

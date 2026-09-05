@@ -25,19 +25,23 @@ spawn:
   discriminator: build_kind
   variants:
     code:
-      allowed_parents: [mvp, build, goal]
+      allowed_parents: [mvp, build, goal, idea]
       min_parents: 1
       max_parents: 2
       parent_shapes:
         - [mvp]
         - [build, goal]
+        - [goal, mvp]
+        - [goal, idea]
     prose:
-      allowed_parents: [mvp, build, goal]
+      allowed_parents: [mvp, build, goal, idea]
       min_parents: 1
       max_parents: 2
       parent_shapes:
         - [mvp]
         - [build, goal]
+        - [goal, mvp]
+        - [goal, idea]
 ---
 
 # build
@@ -73,6 +77,36 @@ a grid commit, not a second node file (`goal:g6.3`) — you edit the build node 
 place and `grid.py commit --all` records it. What this shape governs is the
 node's `parents:` when a goal is the reason for the edit: the goal joins the
 lineage, so the grid history answers "why" as well as "what".
+
+### The goal that motivated a version may join any lineage (2026-09-05)
+
+Two shapes added, and **the shape that stays forbidden is the point**:
+
+| shape | means |
+|---|---|
+| `[mvp]` | a new build node, specified by an mvp |
+| `[build, goal]` | a new version of an existing file, with the goal that motivated it |
+| `[goal, mvp]` | *(new)* an mvp specified this file; a goal motivated **this** version |
+| `[goal, idea]` | *(new)* a census-parented node gains the goal that motivated a version |
+| ~~`[goal]`~~ | **still refused.** A goal alone must never mint a build node out of nothing (`goal:s29`) |
+
+**Why `idea` is back in `allowed_parents`, narrowly.** It was dropped because it
+was the census-era answer and the census is grandfathered rather than continued.
+That reasoning is intact: `idea` appears in exactly one shape, always beside a
+goal, and never on its own — so it can only ever describe *an existing
+census-parented node gaining a motive*, never a new node minted from an idea.
+Rewriting 216 census parents to record one version's motive would be
+archaeology; letting the goal join beside the census parent costs nothing and
+records the thing that is actually true.
+
+**The 19 parentless build nodes are the case this deliberately does not fix.**
+`build:bin-node-writer`, `build:bin-locations` and `build:CLAUDE.md` have no
+parent at all, so the only shape that would admit a goal is the bare `[goal]`
+that `goal:s29` forbids. **They are linked from the goal side instead** — the
+goal's `seeds:` lists them — which states the same relationship without
+creating a shape that, at creation time, would mean "a goal minted this file".
+Fixing them properly means giving each a real mvp or census parent, and that is
+work with an owner, not a field to backfill.
 
 ### The existing corpus is grandfathered, deliberately
 

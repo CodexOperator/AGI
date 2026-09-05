@@ -4,6 +4,7 @@ mint_id: 7a43cca5e67b4bcdbf580fc695f4f720
 type: build
 parents:
   - mvp:complete-md-the-post-loop-completion-report
+  - goal:g1.13
 next_edges: []
 build_kind: prose
 confidence: 1.0
@@ -20,7 +21,7 @@ title: "Build: COMPLETE.md"
 # build:COMPLETE.md
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Second version. The eight goals this report produced now name it as a parent, which is what [goal].md was widened to allow; the next_edges that stood in for that edge while the gate forbade it are cleared rather than left as a duplicate of the real one.
+Fourth version: the header now states the real rule, which the owner corrected -- replaced whole by default like HANDOFF.md, appended only on request, as in this instance where the next work continues directly off loop L1. Calling the file append-only made accumulation the default and would have grown the one document a cold reader opens for a verdict on the last loop, which is the mistake the handoff already paid for at 1,723 lines.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

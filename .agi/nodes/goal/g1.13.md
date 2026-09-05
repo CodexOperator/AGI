@@ -13,7 +13,11 @@ goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 6ec14427d97ab1b5
-seeds: []
+seeds:
+  - build:COMPLETE.md
+  - build:CLAUDE.md
+  - build:bin-snapshot-goals
+  - build:tests-test-snapshot-goals
 status: horizon
 tags:
   - goal
@@ -58,3 +62,5 @@ data exist in a fixed format.
 
 Falsifier: two consecutive loops close with a `COMPLETE.md`, and the second one's
 carried-hazard list is shorter than the first's rather than a copy of it.
+
+CORRECTION 2026-09-05, owner: COMPLETE.md is NOT append-only. It follows the same rule as HANDOFF.md -- replaced whole by default, appended only when the owner asks, which they do when the next loop continues directly off the last one and both reports must be readable at once. The body above says never replaced; that is wrong and the rule here supersedes it. Replacing is safe for the reason it is safe for the handoff: grid.py payload build:COMPLETE.md --version N returns every prior report, so accumulation costs future context and buys nothing.

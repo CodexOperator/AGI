@@ -291,14 +291,29 @@ def _rules():
         Path(__file__).resolve().parents[3] / ".agi/context/schemas")
 
 
-def test_build_schema_declares_exactly_two_parent_shapes():
+def test_a_goal_alone_can_never_be_a_build_parent_shape():
+    """`goal:s29`'s invariant, which is what this guard has always been for.
+
+    Widened 2026-09-05 from "exactly two shapes" to "these four, and never a
+    lone goal": the goal that motivated a version may now join an `mvp` or a
+    census `idea` lineage. Pinning the count made the guard fail on a widening
+    that kept the invariant intact, which is a guard measuring the wrong thing
+    -- the thing that must never be true is `[goal]` on its own, because that
+    is a goal minting a file out of nothing.
+    """
     sg, rules = _rules()
     s = rules.get("build")
     assert not s.error, s.error
+    expected = {("mvp",), ("build", "goal"), ("goal", "mvp"), ("goal", "idea")}
     for variant in ("code", "prose"):
         r = s.variants[variant]
-        assert r.parent_shapes == (("mvp",), ("build", "goal")), variant
-        assert sorted(r.allowed_parents) == ["build", "goal", "mvp"]
+        assert set(r.parent_shapes) == expected, variant
+        assert ("goal",) not in r.parent_shapes, variant
+        assert sorted(r.allowed_parents) == ["build", "goal", "idea", "mvp"]
+        # `idea` is admitted in exactly one shape, always beside a goal, so it
+        # can never mint a build node the way the census once did.
+        idea_shapes = [sh for sh in r.parent_shapes if "idea" in sh]
+        assert idea_shapes == [("goal", "idea")], variant
 
 
 def test_parent_shapes_is_an_or_across_whole_shapes_not_an_and():
