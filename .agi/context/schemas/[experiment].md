@@ -13,6 +13,8 @@ fields:
   subgraph: {type: bool}
   testable_claim: {type: str}
   tags: {type: list}
+  payload_ref: {type: str}    # path of the file this experiment IS, relative to `location`
+  location: {type: str}       # NAME of the base it resolves against; default source_root
 validation:
   required: [id, type, mint_id, title]
   types:

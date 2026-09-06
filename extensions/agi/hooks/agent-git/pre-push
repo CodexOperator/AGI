@@ -1,0 +1,10 @@
+#!/bin/bash
+# agi: refuse git push for automated agent tiers
+# goal:s27 — automation owns git; agents may read (status, diff, log) but
+#           may not write (commit, push).  The dispatch harness exports
+#           AGI_TIER to distinguish kid/parent from human/director sessions.
+if [ "${AGI_TIER:-}" = "kid" ] || [ "${AGI_TIER:-}" = "parent" ]; then
+    echo "agi: tier ${AGI_TIER} may not push — automation owns git (goal:s27)" >&2
+    exit 1
+fi
+exit 0
