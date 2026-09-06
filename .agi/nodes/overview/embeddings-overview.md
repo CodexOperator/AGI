@@ -5,30 +5,36 @@ type: overview
 parents:
   - bigger_outcome:embeddings-r2
 next_edges: []
+accepted_bytes_total: 0
 alignment: unknown
+cost_usd_total: 0
 edited_by: ubuntu
 judged_against: vision:embeddings
 lens: unknown
 moral_audit:
   faith:
     value: unknown
-    evidence: 
+    evidence:
   love:
     value: unknown
-    evidence: 
+    evidence:
   empathy:
     value: unknown
-    evidence: 
+    evidence:
   antifragility:
     value: unknown
-    evidence: 
+    evidence:
   beauty:
     value: unknown
-    evidence: 
+    evidence:
 scaffold_hash: b005e979646aa8da
 season: 1
+telemetry_nodes_skipped: 8
+telemetry_nodes_summed: 0
 thought_session: L2.10
 title: Embeddings overview
+tokens_in_total: 0
+tokens_out_total: 0
 ---
 # overview:embeddings-overview
 

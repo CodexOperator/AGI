@@ -6,6 +6,8 @@ parents:
   - mvp:a00-ddbe3410-mvp001-chain-bootstrap
 next_edges:
   - bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap
+accepted_bytes_total: 0
+cost_usd_total: 0
 edited_by: season.py
 judged_against: goal:g2.1
 lens: goal:g2
@@ -13,8 +15,12 @@ season: 1
 tags:
   - bootstrap
   - chain-block
+telemetry_nodes_skipped: 9
+telemetry_nodes_summed: 0
 thought_session: season
 title: "OUTCOME001: task→experiment conversion is feasible"
+tokens_in_total: 0
+tokens_out_total: 0
 ---
 ## Input
 Pending task node (e.g., `task:t-001` with full acceptance criteria).

@@ -5,30 +5,36 @@ type: overview
 parents:
   - bigger_outcome:a00-1467544f-aaaa25
 next_edges: []
+accepted_bytes_total: 0
 alignment: unknown
+cost_usd_total: 0
 edited_by: ubuntu
 judged_against: vision:a00-1467544f-aaaa25
 lens: unknown
 moral_audit:
   faith:
     value: unknown
-    evidence: 
+    evidence:
   love:
     value: unknown
-    evidence: 
+    evidence:
   empathy:
     value: unknown
-    evidence: 
+    evidence:
   antifragility:
     value: unknown
-    evidence: 
+    evidence:
   beauty:
     value: unknown
-    evidence: 
+    evidence:
 scaffold_hash: 455cff6d9d060b6a
 season: 1
+telemetry_nodes_skipped: 1
+telemetry_nodes_summed: 0
 thought_session: L2.10
 title: A00 1467544f aaaa25 overview
+tokens_in_total: 0
+tokens_out_total: 0
 ---
 # overview:a00-1467544f-aaaa25-overview
 

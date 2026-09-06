@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-06: loop L2 CLOSED by `agi-master`; rotated to `agi-master-2` (remote-control). Successor: read whole, then carry in place.
+# SESSION HANDOFF — 2026-09-06: `agi-master-2` live, post-L2-close housekeeping round L2.12 in flight. Successor: read whole, then carry in place.
 
 **Owner's instruction 2026-09-06: this handoff is carried forward, not replaced** — the 2026-09-05 plan below stays and the live session diffs it in place. Successors: read before touching.
 
@@ -33,6 +33,57 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | spend this session | OpenRouter balance $5 at start; owner topping to $30 (the binding cap). Fallback if it runs dry: `--harness claude-code`, opus parents / sonnet kids, until the subscription taps out. |
 | disk | 79% (was 96%); 17G freed 2026-09-06 — see §0.5 item 4 |
 | this session | prime director, `claude remote-control --name agi-master --permission-mode bypassPermissions` in tmux `agi-rc`, log `.agi/sessions/remote-control.log` (carries `usage` lines = context meter for rotation) |
+
+## §0.6 Session 2026-09-06 (agi-master-2) — post-close round L2.12, live
+
+L2 closed at L2.11 (see COMPLETE.md, §0/§2 above). This director's first
+actions: full verify sequence (all green — 1184/194 active/deprecated, 1629
+tests, dispatch-ok, 0 live, meter 0.098 fresh, season status matches §2's
+prediction). OpenRouter balance: $72 total credits, $52.14 used → **~$20
+remaining**, still under the $30 cap logic (fallback ladder unchanged).
+
+Found two stray empty `iter-L2.12`/`iter-L2.13` session dirs pre-existing at
+session start (no manifest, never dispatched) — removed the unused `.13`,
+reused `.12` for this round rather than minting a fresh number.
+
+**Round L2.12 dispatched** (3 pi parents, tmux windows `p-season`,
+`p-telemetry`, `p-writeguard` in session `agi-rc`), targeting §2's open items:
+
+1. `hypothesis:l2w3-season-py` — the rollover cap-count DEFECT (counts
+   season-1 closed visions against the cap; must count only the new season's
+   visions) **plus an addendum this session added**: `season.py judge` on an
+   overview should also scaffold `moral_audit` (five-key dict, fill-missing
+   -only) per `[overview].md` — bundled into the same file/kid to avoid two
+   kids touching `season.py`.
+2. `hypothesis:l2w6-telemetry-rollup` — **newly minted this session** under
+   `goal:g16`: sums `tokens_in/out`, `cost_usd`, `accepted_bytes` up one level
+   (outcome←loop kids, bigger_outcome←outcomes, overview←bigger_outcomes),
+   prints bytes/token, bytes/dollar, cost-per-aligned-outcome. Distinct from
+   `l2w2-telemetry-stamps` (per-node stamping, already landed round 6) — this
+   is the roll-up the brief's §5 also asks for and nothing built yet.
+3. `hypothesis:l2w15-write-guard` — the standing FOLLOW-UP from L2.03: log the
+   second writer (`snapshot-goals.py write_frontmatter`) the same way
+   `node_writer.py` already does, then verify the guard is silent after a
+   fresh `snapshot-goals.py --render`.
+
+**Not dispatched this round** (§2 item 3's smaller leftovers — bank for next
+round, not blocking): pi kids give no live progress signal for ~9 min
+(`struggles:` note, L2.07); `write_guard` warns once on a `git mv`-ed node
+whose bytes weren't re-logged; the 6 explicit `--help` skips in
+`test_bin_help_smoke.py`.
+
+**Rollover (§6 item 9) still BANKED — owner has not replied with vision text
+this session.** Do not invent one. Once the cap-count fix above lands, rerun
+`season.py rollover --dry-run` to confirm it *would* offer up to 3 slots, but
+do not mint real visions without owner text.
+
+🔴 **Next action for whoever reads this next:** poll
+`python3 extensions/agi/bin/spawn_budget.py status` until 0/25 live for the
+three L2.12 parents above, then review each parent's accepted node(s) —
+`struggles:`/`caveats:` first — against the verify sequence in §5, one commit
+`iter-L2.12: ...`, `grid.py commit --all` (master only), push. If nothing else
+changed structurally, HANDOFF's §0 state-block numbers just need the
+post-round refresh (active/deprecated count, test count, evidence_fraction).
 
 ## §0.5 Session 2026-09-06 — L2 opened. Owner answers, settled (do not re-ask)
 

@@ -393,6 +393,10 @@ def _claim_node(root: Path, node_id: str, session_id: str, force: bool = False) 
             tmp = node_file.with_suffix(".md.tmp")
             tmp.write_text(new_content)
             tmp.rename(node_file)
+            # Log this sanctioned write so write_guard recognises it
+            node_writer.log_write(root, "claim_node", node_id, node_file,
+                                  new_content,
+                                  extra={"session": session_id})
             return True, f"claimed {node_id} for {session_id} at {now}"
         finally:
             fcntl.flock(lf.fileno(), fcntl.LOCK_UN)

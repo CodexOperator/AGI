@@ -243,6 +243,12 @@ def _coerce(value: str):
     if text.startswith("[") and text.endswith("]"):
         inner = text[1:-1].strip()
         return [_coerce(p.strip()) for p in inner.split(",")] if inner else []
+    if text.startswith("{") and text.endswith("}"):
+        import json
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, ValueError):
+            pass
     try:
         return int(text)
     except ValueError:
