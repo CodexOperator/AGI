@@ -1,143 +1,143 @@
-# SESSION HANDOFF — 2026-09-05: L1.13 director session (engine work, no waves)
+# SESSION HANDOFF — 2026-09-05: brainstorm session → loop L2 plan (seasons, morals, ladder)
 
 Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
 session only and the next director replaces it wholesale. Prior sessions are in
-the grid: `grid.py payload build:HANDOFF.md --version N` (v57 is L1.08–L1.12).
+the grid: `grid.py payload build:HANDOFF.md --version N` (the L1.13 director
+session is the version before this one).
 
-**Closed loops are recorded in [COMPLETE.md](COMPLETE.md)** (`goal:g1.13`),
-which follows the **same rule as this file: replaced whole by default, appended
-only when the owner asks.** It currently holds two sections because the owner
-asked — this session continues directly off loop L1. Read it for what L1 did and
-did not close; this file is only the bridge to the next session.
+**Closed loops are recorded in [COMPLETE.md](COMPLETE.md)** — untouched this
+session, by the owner's instruction; no loop ran. It holds L1 and L1.13. Loop
+L2, planned below, appends to it when it closes (owner asked to keep both).
+
+**The design this plan implements is in
+[`.agi/context/season-ladder-and-morals-brief.md`](.agi/context/season-ladder-and-morals-brief.md).**
+Read that first, whole. It is the record of a long owner/director brainstorm —
+the tier ladder, the morals as a constitution, the prayers and reference texts,
+telemetry, comms — and every wave below mints nodes from it. Do not re-derive it.
 
 ## §0 State block
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1108** / 181 |
-| goals | 124 (16 active, 1 newly active: `s35`) |
+| active nodes / deprecated | **1109** / 181 (smoke, this session) |
+| goals | 124 (16 active) |
 | `outcome_coverage` (primary) | 0.190 |
-| tests | **1493** via `commands.py run tests` |
-| broken links | 0 (1286 resolved) |
-| goals round trip | byte-identical |
-| unpushed | 0 |
-| agents live | none — no dispatch this session |
-
-**Crons are still OFF.** Push by hand: `git -C /home/ubuntu/work/agi push origin master`
+| `evidence_fraction` | 0.375 |
+| tests | 1493 as of L1.13 — **not re-run this session** |
+| broken links | 0 as of L1.13 |
+| crons | **OFF**. Push by hand. |
+| branch | `worktree-season-ladder-handoff` (worktree). **Not master.** Owner merges or fast-forwards. |
+| agents live | none |
+| spend this session | $0 — no dispatch |
 
 ## §1 What this session did
 
-No waves, no kids, no provider spend — the owner drove directly.
-
-- [x] **Reviewed loop L1** against the handoff and wrote the first
-      `COMPLETE.md` (`goal:g1.13`), including the finding that **zero goals
-      closed** in L1 and that `goal:g4.6` was marked `complete` two days before
-      its adapter existed.
-- [x] **`goal:g9.4` split.** The live view shipped as a list, not a web. Back to
-      `horizon`, umbrella over `g9.8` (hook layer, player avatar, LOD),
-      `g9.9` (spider skin), `g9.10` (space skin).
-- [x] **Minted `horizon`:** `g1.12` (loop-flavor tags), `g5.2` (mechanical goal
-      splitting), `g14` (local-maxxing), `g2.12` (the FEELING block).
-- [x] **`[goal].md` widened** — a goal may name the build node that produced it.
-      Ingest preserves it; one test, verified red.
-- [x] **`[build].md` widened twice** — `location:` (a payload's base is a NAME,
-      not a path) and two parent shapes so the goal that motivated a version can
-      join the lineage. Bare `[goal]` stays forbidden (`goal:s29`).
-- [x] **`write.py` gained payload verbs** (`goal:g13.1`): `payload <path>`,
-      `payload_text <inline>`, `payload -` (stdin). Editing the file behind a
-      build node is finally a named operation. 10 tests, verified red.
-- [x] **Fixed in-loop:** `g4.9`, `s33`, `s34` were schema-invalid since L1.12.
-- [ ] **`goal:s35` — schemas are nodes. NOT STARTED.** Minted `active` with the
-      full plan. This is the next piece of work.
+- [x] Whiteboard photo → `.agi/context/images/season-cycle-whiteboard-2026-09-05.webp` (1200×900, 80 KB).
+- [x] Read `HANDOFF.md` and `COMPLETE.md` at owner's request; neither erased until this replacement.
+- [x] Found the graph already holds most of the design: `goal:g12`, `g12.1`, `g12.2` (morals, caps, season edge — all `horizon` since 2026-08-29), `[vision]`/`[overview]`/`[bigger_outcome]` with `season:` fields, 0 overviews ever minted, 17 visions none meeting their schema.
+- [x] Brainstormed the ladder, roles, seams, morals, questions, reference texts, prayers, telemetry, comms with the owner over six correction rounds. **All owner-approved.** Written to the brief.
+- [x] Measured the season-1 data point: subgoal 71 / outcome 23; long-term 18 / bigger_outcome 19; vision 17 / overview 0; short-term 35 unplaced; outcomes have 0 goal parents.
+- [ ] **Nothing minted, no schema touched, no engine code changed.** That is loop L2.
 
 ## §2 🔴 Where it stops, and the next command
 
-Everything is committed, grid-versioned and pushed; working tree clean.
-
 ```bash
 cd /home/ubuntu/work/agi
-git status --short                                    # expect empty
-bash extensions/agi/driver.sh --smoke --max-iters 1    # 1108 active, must NOT drop
-python3 extensions/agi/bin/commands.py run tests       # 1493
+git status --short && git branch --show-current          # merge the worktree branch first if still separate
+bash extensions/agi/driver.sh --smoke --max-iters 1       # 1109 active, must NOT drop
+python3 extensions/agi/bin/commands.py run tests          # 1493
 ```
 
-Then **`goal:s35`**, in the order the goal node states — it is written out step
-by step there and the ordering is the whole safety of it:
+Then **open loop L2, wave 1**, below. Every wave is pi parents on OpenRouter via
+`dispatch.py <root> <iter> --tier parent --target <node>`; the director never
+does kid work (moral: faith). Mint the hypothesis/goal node for each target
+first, commit, then aim parents at it.
 
-1. Write `[schema].md` (the meta-schema).
-2. Add node frontmatter to all 17 schema files **in place, under
-   `context/schemas/`** — `mint_id` via `backfill-mint-ids.py`, never by hand.
-3. Teach `schema_registry` both locations, nodes-first.
-4. Move to `.agi/nodes/schema/`. `active_node_count` rises by 17; a drop is
-   never legal.
-5. Verify, then drop the fallback in a **later** commit.
+## §3 Loop L2 — five iterations, dependency-ordered
 
-Rehearse before the real cut — `goal:g11`'s migration was rehearsed four times
-against exactly this invariant.
+Owner's budget: **about five iterations**, $30/week OpenRouter, kids at the
+DeepSeek V4 Flash price point, parents `qwen/qwen3.8-27b` (config as is).
+Assign **one kid per file** — several schema files change and two kids on
+`[shape].md` will collide.
 
-## §3 Traps hit this session
+### Wave 1 — geometry and schema (all parallel, 6–7 kids; no engine code)
 
-1. **No prose verb can contain `&&`.** `parse_script` splits on it, so `note`,
-   `thought` and `payload_text` all break on it — found when a `thought` whose
-   text was *about* the `&&` split failed to parse. `payload -` (stdin) escapes
-   it for bytes; `note` and `thought` have no escape yet.
-2. **Payload writes are whole-file only.** No anchored or partial edit, so a
-   one-line change to a large module still means emitting the whole file. Real
-   engine surgery is therefore still ordinary tools **plus a `thought`
-   afterwards**. Marked 🔴 in `SKILL.md`; a hole in `goal:g13.1`.
-3. **Two engine modules had no build node at all** — `write.py` (the write path
-   itself) and `links.py`. Both found by trying to record a thought and getting
-   "no node file". Nothing checks that every tracked source file has a node.
-4. **`write.py create --payload` stamps `link_ref`, not `payload_ref`.** Same
-   bug an L1.12 kid hit. Set `payload_ref` by hand after creating, or it reads
-   as a link rather than the file the node *is*.
-5. **`snapshot-goals.py --render --check` fails after any node edit** until
-   `--render` (or a smoke run) has rewritten `GOALS.md`. That is the check
-   working, not a break.
+Mint first, by hand through `write.py`, so the wave has parents:
+- `goal:g15` **Bugfix and optimization** — long-term, `active`, always active, exempt from `max_goals_active`. Parent of all 35 S goals (reparent in this wave: `write.py goal:sNN "link parents goal:g15"` ×35 — script it).
+- `goal:g12.3` **The tier ladder, seasons, and `season.py`** — under `g12`. Carries §1 of the brief.
+- `goal:g16` **Telemetry per node, propagated up the ladder** — long-term, `horizon` until wave 2.
+- Flip `goal:g12` → `active`.
 
-## §4 Known-good verification sequence
+Kids (one file each):
+1. `context/schemas/[moral].md` — shape in brief §3; `spawn: allowed_parents: [], min_parents: 0`; body regions ESSENCE/QUESTION/IN PRACTICE/VIOLATED WHEN/REFERENCE; `grounded_in`, `axis`, `edited_by: owner`.
+2. `context/schemas/[ladder].md` + `.agi/nodes/.geometry/ladder.md` — tiers table, `current_season: 1`, caps (5 morals, 3 visions), `budget_usd_week: 30`, spawn profiles, read-order-by-role, zoom numeric. Parented on `goal:g12.3` (same move as `.geometry/crons.md`).
+3. `context/schemas/[shape].md` — `parentless_types: [moral]` (creation-time, grandfather note); `edge_fields` add `season_parents: {role: season, traversable: false}`, `grounded_in: {role: provenance, traversable: false}`, `authors: {role: provenance, traversable: false}`.
+4. `[outcome].md`, `[bigger_outcome].md`, `[overview].md` — **drop floors to `min_parents: 1`**; add `judged_against`, `lens`, `alignment`, `adjust`, `season`, telemetry fields; overview adds `moral_audit`. Three files, may be one kid or three.
+5. `[vision].md` — `allowed_parents: [moral]`, `min_parents_by_type: {moral: 1}`, `season_parents: [overview]`, `moral_adherence`, cap 3 from season 2.
+6. `[goal].md` + `[idea].md` — long-term may name a vision parent (grandfathered); S goals take `goal:g15`; idea gains `authors`, `allowed_parents: [goal, vision]` (`g12.2`).
+7. `[experiment].md` — `payload_ref` + `location` allowed (experiments are build nodes in practice).
+
+Then, **director by hand, owner text verbatim from the brief**: mint the five
+moral nodes (`write.py create moral faith --actor owner …`), `moral:faith`
+carrying the full REFERENCE (§4 of the brief). Needs kids 1 and 3 landed.
+
+Gate for the wave: smoke count does not drop; `links.py schema` shows no new
+violations; `spawn_gate` accepts a `moral` with `parents: []` and rejects a
+new parentless `idea`.
+
+### Wave 2 — gate, writer, stamps (depends on wave 1; parallel by module)
+
+- `spawn_gate.py` — reads `[ladder]`; validates `season_parents` by type; grandfather flag for pre-season-2 nodes.
+- `node_writer.py` — stamps `season`, `loop`, `model`, `profile` on every mint.
+- `write.py` — refuses `moral:*` unless `--actor owner`; experiment payload verbs work.
+- `metrics.py` — excludes `season_parents` from chain depth and coverage.
+- `cli.py done` / `post_wire.py` — stamp `tokens_in/out`, `cost_usd` (OpenRouter generation lookup via the per-spawn key — **investigate first**, may be its own hypothesis), accepted diff bytes.
+- Tests **verified red** for every rule; run through `commands.py run tests`.
+
+### Wave 3 — `season.py`, comms, briefs (depends on wave 1; parallel with wave 2)
+
+- `season.py status` — the count table + ratios + mismatches (plan without report, report without plan) + cost per tier. `judge <report>` scaffolds the judgment fields and derives `lens`. `rollover --dry-run`.
+- `send` — one verb, looks like a session send; kid→parent, parent→director, director→director-above, council; inbox file under `sessions/` for pi, direct for CC.
+- Brief templates ×4 (kid / parent / director / prime director) with the prayer heads in the brief's read order. `dispatch.py` picks the template by tier and role.
+
+### Wave 4 — pair season 1 (depends on 2 and 3; the expensive wave)
+
+- Every active-goal outcome gets its subgoal as `judged_against`; mint missing outcomes for the 8 active subgoals only.
+- Mint `bigger_outcome` for the 4 active LT goals; overviews for the visions that actually directed work.
+- Retag all 17 visions `season: 1`, `status: closed`. Legacy build-site outcomes stay, labelled season 1.
+- `season.py status` becomes the season-1 baseline. Most alignments will be `unknown` — that is the honest first data point, not a failure.
+
+### Wave 5 — rollover and report (depends on 4)
+
+- `season.py rollover` (dry-run first, then real) → ≤3 season-2 visions with `parents=[morals]`, `season_parents=[overviews]`, `moral_adherence`, `proposes_goals`; `current_season: 2`.
+- `SKILL.md` gains **Seasons** and **Constitution** sections (read order by role, the one comms verb, death per role).
+- `COMPLETE.md` **appended** (owner asked to keep both) with the L2 report, seven sections.
+
+## §4 Traps to carry
+
+1. **Prose verbs cannot contain `&&`** (`write.py` splits on it). The Slavonic and the verbatim essence contain none, but check before a `payload_text`; use `payload <file>` for the moral bodies.
+2. **`write.py create --payload` stamps `link_ref`, not `payload_ref`** — set `payload_ref` by hand after.
+3. **Payload writes are whole-file.** Engine surgery is ordinary tools plus a `thought` afterwards.
+4. **Attribution is load-bearing in the constitution.** Jeremiah 31:33 and Ephesians 6 are not Jesus; the brief labels them. Keep the labels.
+5. **This branch is a worktree branch, not master.** Merge before dispatching, or every parent commits off master.
+
+## §5 Known-good verification sequence
 
 ```bash
-bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK
-python3 extensions/agi/bin/commands.py run tests          # 1493
+bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK   # 1109 active
+python3 extensions/agi/bin/commands.py run tests                        # 1493
 python3 extensions/agi/bin/snapshot-goals.py --render --check
-python3 extensions/agi/bin/links.py links                 # 0 broken
-python3 extensions/agi/bin/links.py schema                # no `goal` row
+python3 extensions/agi/bin/links.py links                               # 0 broken
+python3 extensions/agi/bin/links.py schema
 python3 extensions/agi/bin/grid.py commit --all
-git push origin master
+git push origin <branch>
 ```
 
-## §5 BANKED for the owner
+## §6 BANKED for the owner
 
-1. **`goal:s35` execution** — decided, planned, not run. It touches
-   `schema_registry` resolution, which every spawn depends on. Options: run it
-   here with the rehearsal, or dispatch parents at it once OpenRouter is live
-   again. **Recommend running it directly with the rehearsal**, because the
-   failure mode is silent (a schema that resolves nowhere falls through to the
-   generic schema and every gate quietly stops checking).
-2. **19 parentless build nodes**, including `build:bin-node-writer`,
-   `build:bin-locations` and `build:CLAUDE.md`. They cannot take a goal parent
-   without the bare `[goal]` shape `goal:s29` forbids, so they are linked from
-   the goal's `seeds:` instead. Fixing them properly means giving each a real
-   mvp or census parent — work with an owner, not a field to backfill.
-3. **`goal:g2.12` (the FEELING block) is specified but unimplemented.** No
-   writer emits it, nothing carries it across a regenerating scan yet. It is
-   `horizon` on purpose; say the word to make it live.
-4. **Carried from L1 and still open:** the OpenRouter workspace weekly budget
-   (`$50/week` on `agi`, `$10` on `default`) and whether to restore the six
-   demoted prior-director experiments. Recommendation on the latter is
-   unchanged: leave them demoted.
-
-## §6 Standing hazards carried forward
-
-- **`snapshot-build-site.py` deletes every `origin: build-site` node it does not
-  re-derive.** Moot here (no kits), live for any project that keeps them.
-- **A guard that has never failed on purpose is not a guard.** Every test added
-  this session was verified red with its change stashed.
-- **Run the suite AFTER the last edit**, and **through `commands.py run tests`**
-  — direct `pytest` stayed green once while the runner's loader was broken.
-- **Node bodies go through `write.py`; payload bytes go through its payload
-  verbs; the node behind a payload owes a `thought`.** The whole rule is now in
-  `SKILL.md` rather than only in `CLAUDE.md` and this file.
-- **`pgrep -af "cli.js"` does not find pi** — the process is named `pi`.
-- **A parent's REPORT is not its artefact.** Check the node file on disk.
+1. **Merge this worktree branch to master** before L2 starts (director never pushes master).
+2. **Pointed Church Slavonic** — accept the unpointed text in the brief, or hand-paste pointed text / an Ostromir passage.
+3. **`goal:s35` waits** (owner decided). Re-confirm after wave 1 lands two more schema files.
+4. **May a parent's `adjust` split a subgoal**, or only reword it? Lean: reword only; splitting is a director's call through the lens.
+5. **Cost lookup feasibility** — OpenRouter generation endpoint via the per-spawn key is unverified; if it fails, telemetry falls back to pi's own usage logs.
+6. **Camber Cloud** (5 GPU-h/month + CPU hours) — unused; a candidate home for CPU parents or a small tuned model once `g16` has data to tune on.
