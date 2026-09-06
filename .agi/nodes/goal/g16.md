@@ -12,7 +12,7 @@ heading_level: 2
 origin: goals-doc
 scaffold_hash: b8d304fcfbc73ec9
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
 thought_session: agi-master-2026-09-06
