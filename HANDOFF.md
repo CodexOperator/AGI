@@ -46,7 +46,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 **Live checklist (this session)**
 - [x] smoke 1099 active / 1290 total, tests 1487, disk freed, handoff carried
 - [x] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15` (commit after this line)
-- [ ] wave 1 dispatch, 2 parents at a time, one kid per schema file
+- [~] wave 1 dispatch, 2 parents at a time, one kid per schema file. Briefs = `hypothesis:l2w1-*` (7). `spawn.parallel` set to 1 so one dispatch call = one parent. Iter id `L2.01`. Round 1 live: shape + ladder (tmux `agi-rc` windows `p-shape`, `p-ladder`, logs `.agi/sessions/iter-L2.01/dispatch-*.log`). Rounds: 2 = moral + report-floors; 3 = vision + goal-idea; 4 = experiment-payload.
 - [ ] five moral nodes by hand (owner text verbatim)
 - [ ] wave 1.5: ladder node, rotation script, RC successor test, unsanctioned-write check
 - [ ] waves 2–5 per §3
