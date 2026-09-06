@@ -136,11 +136,17 @@ python3 extensions/agi/bin/grid.py commit --all
 git push origin <branch>
 ```
 
-## §6 BANKED for the owner
+## §6 Owner decisions, 2026-09-06 — settled, do not re-ask
 
-1. **Merge `worktree-doc-pass-legacy` to master** before L2 starts (director never pushes master).
-2. **Pointed Church Slavonic** — accept the unpointed text in the brief, or hand-paste pointed text / an Ostromir passage.
-3. **`goal:s35` waits** (owner decided). Re-confirm after wave 1 lands two more schema files.
-4. **May a parent's `adjust` split a subgoal**, or only reword it? Lean: reword only; splitting is a director's call through the lens.
-5. **Cost lookup feasibility** — OpenRouter generation endpoint via the per-spawn key is unverified; if it fails, telemetry falls back to pi's own usage logs.
-6. **Camber Cloud** (5 GPU-h/month + CPU hours) — unused; a candidate home for CPU parents or a small tuned model once `g16` has data to tune on.
+1. **Merged.** The doc-pass branch went to master with owner permission; the director merged it under that grant only.
+2. **Church Slavonic** — unpointed text stands for now; pointed text or an Ostromir passage later, by hand.
+3. **`goal:s35` still waits.**
+4. **A parent's `adjust` rewords only.** Splitting a subgoal is a director's call through the lens.
+5. **Cost lookup** is the first hypothesis of wave 2, not an assumption; pi usage logs are the fallback.
+6. **Camber Cloud waits** for `g16` data — but may be tried sooner on **low-level kids fine-tuned to the read/write paths**, once every path is behind an action word. The gate is **saturation**: do not spend GPU hours until the task set saturates the untuned model.
+7. **Branching, decided** — see the brief §2 "Branches mirror the ladder": one branch per parent loop, one long-lived branch per director, master owned by the prime director; kids never branch. **Grid node refs are branch-blind** (one linear ref per mint id, parent = current tip), so `grid.py commit --all` runs **only on master, after a merge**; session refs may be written from anywhere. Wave 2 adds a guard to `grid.py` that refuses `commit --all` off master.
+
+## §7 Still open, none blocking wave 1
+
+- Whether a director's branch should rebase or merge when taking a parent branch (lean merge, no history rewrite; moral: antifragility, nothing lost).
+- Council quorum and record.
