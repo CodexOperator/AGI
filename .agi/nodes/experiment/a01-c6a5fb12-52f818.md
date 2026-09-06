@@ -6,6 +6,8 @@ parents:
   - hypothesis:a01-c422b874-397418
 next_edges: []
 confidence: 0.4
+edited_by: ubuntu
+payload_ref: extensions/agi/bin/analyze-chat-structure.py
 scaffold_hash: e9da4e89ccecb5de
 title: Injected context files are front-loaded (structural proxy; wrong-artifact caveat)
 verdict: inconclusive_lean_proved:40

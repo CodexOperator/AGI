@@ -13,6 +13,7 @@ edited_by: ubuntu
 evidence_runs: experiment:season:l2w4
 scaffold_hash: deca57975c857e9d
 season: 1
+status: deprecated
 thought_session: iter-L2.09
 title: "Verdict: season pairing"
 verdict: inconclusive_lean_proved:70
@@ -35,3 +36,7 @@ What evidence supports this verdict?
 Season.py judge sweep: 23 tier-0 outcomes now stamped with goal + lens/unknown; verified status+links+pytest.
 
 Parent demoted proved -> inconclusive_lean_proved:70. This verdict is a redundant, malformed duplicate of verdict:a00-1a2f54da-outcome-judgment: its real body is trapped as a JSON-escaped string in a frontmatter body: field while the markdown body still holds the scaffold. Same tier-0 sweep, lower structural quality. Keep the clean chain, treat this as prior art.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Deprecated L2.09 hygiene: redundant duplicate of verdict:a00-1a2f54da-outcome-judgment. Same tier-0 sweep, body trapped in frontmatter.
+<!-- THOUGHT:END -->

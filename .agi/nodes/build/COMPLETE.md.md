@@ -21,7 +21,7 @@ title: "Build: COMPLETE.md"
 # build:COMPLETE.md
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-06 L2 report appended newest-first, owner's standing ask to keep both. Seven sections, every claim grounded in an iter commit or a hypothesis node; g12.3 deliberately not marked complete because the rollover conjunct is banked.
+2026-09-06 L2 close: heading level matched to the other loop sections, end numbers set after round 11 (1184 active / 194 deprecated, 1629 tests), hygiene item moved from open to closed.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
