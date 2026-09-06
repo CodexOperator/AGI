@@ -446,6 +446,10 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
         return None
     src.parent.mkdir(parents=True, exist_ok=True)
     src.write_text("")
+    _log_write(root, "ensure_payload", ref, src,
+               text="",
+               extra={"sha256": hashlib.sha256(b"").hexdigest(),
+                       "payload_ref": ref, "location": str(location)})
     return src
 
 

@@ -53,6 +53,39 @@ SUMMARY_FIELDS = (
 )
 
 
+def count_aligned_outcomes(root: Path, node_id: str) -> int:
+    """Walk the graph from node_id and count outcome nodes with alignment=aligned."""
+    nodes_by_id, children_map = _graph_data(root)
+    if node_id not in nodes_by_id:
+        return 0
+
+    visited: set[str] = set()
+    queue: deque[str] = deque([node_id])
+    aligned_count = 0
+
+    while queue:
+        current = queue.popleft()
+        if current in visited:
+            continue
+        visited.add(current)
+
+        fm = nodes_by_id.get(current)
+        if fm is None:
+            continue
+
+        if fm.get("type") == "outcome" and fm.get("alignment") == "aligned":
+            aligned_count += 1
+
+        for parent in _ensure_list(fm.get("parents", [])):
+            if parent not in visited:
+                queue.append(parent)
+        for child in children_map.get(current, []):
+            if child not in visited:
+                queue.append(child)
+
+    return aligned_count
+
+
 def _ensure_list(val) -> list[str]:
     """Normalize a parents field into a list of strings."""
     if not val:
@@ -231,12 +264,20 @@ def do_rollup(root: Path, report_id: str, *, dry_run: bool = False) -> dict:
 
     sums, nodes_summed, nodes_skipped = collect_telemetry(unique_experiments)
 
+    aligned_outcomes_count = count_aligned_outcomes(root, report_id)
+    cost_total = sums.get("cost_usd_total", 0)
+    cost_per_aligned: float | None = None
+    if cost_total and aligned_outcomes_count:
+        cost_per_aligned = cost_total / aligned_outcomes_count
+
     result = {
         "node_id": report_id,
         "type": node_type,
         "experiments_found": len(unique_experiments),
         "nodes_summed": nodes_summed,
         "nodes_skipped": nodes_skipped,
+        "aligned_outcomes_count": aligned_outcomes_count,
+        "cost_per_aligned_outcome": cost_per_aligned,
         "sums": sums,
         "ratios": format_ratios(sums),
     }
@@ -306,6 +347,13 @@ def main(argv: list[str] | None = None) -> int:
     for k, v in result['sums'].items():
         print(f"    {k}: {v}")
     print(f"  ratios: {result['ratios']}")
+    cpa = result.get('cost_per_aligned_outcome')
+    aligned_count = result.get('aligned_outcomes_count', 0)
+    print(f"  aligned outcomes:     {aligned_count}")
+    if cpa is not None:
+        print(f"  cost_per_aligned_outcome: ${cpa:.6f}")
+    else:
+        print(f"  cost_per_aligned_outcome: n/a")
     if args.dry_run:
         print(f"  (dry run — nothing written)")
     elif result.get("write_results"):

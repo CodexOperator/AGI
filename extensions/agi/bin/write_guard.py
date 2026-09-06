@@ -91,6 +91,9 @@ def _git_changed_files(root: Path, agi_root: Path) -> list[dict]:
         f = Path(fname)
         if not f.as_posix().startswith(nodes_prefix):
             continue
+        # .lock files created by _claim_node are not node writes -- skip
+        if f.suffix == ".lock":
+            continue
         key = f.as_posix()
         if key in seen:
             continue

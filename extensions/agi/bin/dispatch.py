@@ -780,6 +780,21 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
                             f"budget full, not restarted)")}
 
     try:
+        # hypothesis:l2-dispatch-restart-twin-node — Fix A: pass scaffold
+        # info to restart so the restarted agent reuses its existing
+        # scaffolded node instead of minting a second one.
+        scaffold_info = None
+        existing_nid = rec.get("node_id") or ""
+        if existing_nid:
+            # find_node_file expects the graph root (contains nodes/)
+            graph_root = root / ".agi" if (root / ".agi" / "nodes").is_dir() else root
+            nf = node_writer.find_node_file(graph_root, existing_nid)
+            scaffold_info = {
+                "node_id": existing_nid,
+                "parent": rec.get("parent", ""),
+                "node_type": existing_nid.split(":", 1)[0],
+                "path": str(nf) if nf else "",
+            }
         new_pid = adapter.restart(
             harness=rec.get("harness_spec") or {},
             tier=rec.get("tier", "kid"),
@@ -788,6 +803,7 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
             iter_n=locations.iteration_id(rec.get("iter", 0) or 0),
             sess_dir=Path(iter_dir) / agent_id,
             target=rec.get("target"),
+            scaffold=scaffold_info,
             agent_record=rec,
         )
     except (NotImplementedError, Exception) as exc:   # noqa: B014

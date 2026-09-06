@@ -270,3 +270,90 @@ def test_write_guard_no_git(tmp_path):
     # Write guard uses find_project_root which walks up from cwd
     # We can't easily override cwd in a pytest, so just verify the module loads
     assert wg is not None
+
+
+# ---------------------------------------------------------------------------
+# ensure_payload is logged
+# ---------------------------------------------------------------------------
+
+def test_ensure_payload_logs(project):
+    """ensure_payload creates a log entry."""
+    log_path = project / ".agi" / "sessions" / "write-log.jsonl"
+
+    # Create payload directory and file via ensure_payload
+    payload_dir = project / "ext" / "test"
+    payload_dir.mkdir(parents=True, exist_ok=True)
+    nw.ensure_payload(project / ".agi", "ext/test/payload.sh")
+
+    assert log_path.is_file()
+    text = log_path.read_text().strip()
+    last_line = text.splitlines()[-1]
+    entry = json.loads(last_line)
+    assert entry["operation"] == "ensure_payload"
+    assert entry["payload_ref"] == "ext/test/payload.sh"
+    assert entry["path"].endswith("ext/test/payload.sh")
+    assert entry["sha256"]  # not empty
+
+
+def test_write_guard_silent_after_ensure_payload(project):
+    """After ensure_payload + commit, check finds nothing unsanctioned."""
+    payload_dir = project / "ext" / "test"
+    payload_dir.mkdir(parents=True, exist_ok=True)
+    nw.ensure_payload(project / ".agi", "ext/test/payload2.sh")
+
+    # Commit so the payload is known to git
+    subprocess.run(["git", "-C", str(project), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m",
+                    "add payload"], check=True, capture_output=True)
+
+    # Create a build node pointing at this payload
+    nw.write_node(project / ".agi", "mvp", "payload-mvp",
+                  parents=[],
+                  extra_fm={"payload_ref": "ext/test/payload2.sh",
+                            "link_ref": "ext/test/payload2.sh"},
+                  announce=False, bypass=True)
+
+    rc = _check(project)
+    assert rc == 0, "check must exit 0 after sanctioned ensure_payload"
+
+    rc = _check(project, ["--strict"])
+    assert rc == 0, "--strict must pass after sanctioned ensure_payload"
+
+
+# ---------------------------------------------------------------------------
+# .lock files created by _claim_node are ignored
+# ---------------------------------------------------------------------------
+
+def test_write_guard_ignores_lock_files(project):
+    """
+    .lock files under nodes/ are created by _claim_node for flock.
+    The guard must not flag them as unsanctioned node writes.
+    """
+    nw.write_node(project / ".agi", "hypothesis", "h-lock-test",
+                  parents=[], announce=False)
+
+    # Commit so the node is tracked by git
+    subprocess.run(["git", "-C", str(project), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m",
+                    "add node"], check=True, capture_output=True)
+
+    # Create a .lock file next to the node, simulating _claim_node behavior
+    lock_file = (project / ".agi" / "nodes" / "hypothesis" /
+                 "h-lock-test.lock")
+    lock_file.write_text("")
+
+    # Must not warn about the .lock file
+    rc = _check(project)
+    assert rc == 0, ".lock files must not trigger a warning"
+
+    rc = _check(project, ["--strict"])
+    assert rc == 0, "--strict must pass when only .lock files differ"
+
+    # Verify the node itself is still monitored
+    node_file = project / ".agi" / "nodes" / "hypothesis" / "h-lock-test.md"
+    node_file.write_text(node_file.read_text() + "\nExtra\n")
+
+    rc = _check(project, ["--strict"])
+    assert rc == 1, "--strict must still detect node edits even with lock files"
