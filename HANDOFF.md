@@ -26,7 +26,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | tests | **1493** passed, 1 skipped (2026-09-06, `commands.py run tests`) |
 | broken links | 0 (1270 resolved, 2026-09-06) |
 | crons | **OFF**. Push by hand. |
-| branch | `worktree-doc-pass-legacy` (worktree). **Not master.** Owner merges or fast-forwards, as with the brainstorm branch. |
+| branch | `worktree-council-rotation` (worktree). **Not master.** Owner merges or fast-forwards, as with the two branches before it. |
 | agents live | none |
 | spend this session | $0 — no dispatch |
 
