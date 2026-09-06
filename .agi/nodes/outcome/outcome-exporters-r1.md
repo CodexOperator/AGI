@@ -1,20 +1,24 @@
 ---
-confidence: 1.0
-id: "outcome:exporters-r1"
+id: outcome:exporters-r1
 mint_id: 5432bd58a77d4f71aea9114ed111735d
-next_edges:
-  - bigger_outcome:exporters-r1
+type: outcome
 parents:
   - mvp:exporters-r1
+next_edges:
+  - bigger_outcome:exporters-r1
+confidence: 1.0
+edited_by: season.py
+judged_against: goal:g9.3
+lens: goal:g9
+season: 1
 status: open
 tags:
   - exporters
   - R1
   - outcome
+thought_session: season
 title: "Outcome: Exporters R1"
-type: outcome
 ---
-
 # Outcome: Markdown Chain Exporter
 
 ## Input Shape

@@ -2,13 +2,17 @@
 id: outcome:writers-routed-post-wire-and-cli
 mint_id: a028286831d54bb49abae9f9681e0692
 type: outcome
-title: Both hand-rolled node writers now go through the gate
 parents:
   - mvp:route-every-writer-through-update-node
 next_edges: []
+edited_by: season.py
+judged_against: goal:g4.2
+lens: goal:g4
 scaffold_hash: c76f695e014fee7d
+season: 1
+thought_session: season
+title: Both hand-rolled node writers now go through the gate
 ---
-
 # outcome:writers-routed-post-wire-and-cli
 
 ## What was built

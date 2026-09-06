@@ -1,17 +1,21 @@
 ---
-id: "outcome:a00-ddbe3410-outcome002-structural-repair"
+id: outcome:a00-ddbe3410-outcome002-structural-repair
 mint_id: fae435ae1b9d4cbd9ba71c4da164d246
-next_edges:
-  - bigger_outcome:a00-ddbe3410-bo002-structural-repair
+type: outcome
 parents:
   - mvp:a00-ddbe3410-mvp002-structural-repair
+next_edges:
+  - bigger_outcome:a00-ddbe3410-bo002-structural-repair
+edited_by: season.py
+judged_against: goal:g2.1
+lens: goal:g2
+season: 1
 tags:
   - structural-bias
   - repair
+thought_session: season
 title: "OUTCOME002: synthetic verdict nodes now quality-filterable"
-type: outcome
 ---
-
 ## Input
 Verdict nodes with `status: proved`, `confidence >= 0.8`, no `evidence_runs`, `chain-extension` tag.
 

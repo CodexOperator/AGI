@@ -493,6 +493,9 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     mode = dest.stat().st_mode
     dest.write_bytes(new)
     os.chmod(dest, mode)
+    _log_write(root, "replace_payload", str(ref), dest,
+               text=new.decode("utf-8", errors="replace"),
+               extra={"payload_ref": str(ref), "location": str(location)})
     return dest, True
 
 
@@ -862,6 +865,13 @@ def _log_write(root, operation: str, node_id: str, path: Path,
             f.write(json.dumps(entry, sort_keys=True) + "\n")
     except BaseException:
         pass  # best-effort logging, never breaks a write
+
+
+def log_write(root, operation: str, node_id: str, path: Path,
+                text: str = "", *,
+                extra: dict | None = None):
+    """Public wrapper for _log_write. Same signature."""
+    _log_write(root, operation, node_id, path, text, extra=extra)
 
 
 def _log_relpath(path: Path, root: Path) -> str:

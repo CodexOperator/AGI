@@ -1,19 +1,23 @@
 ---
-confidence: 0.97
-id: "outcome:a00-1467544f-aaaa25"
+id: outcome:a00-1467544f-aaaa25
 mint_id: f3fd1545cc4d4d06814bf86d5cf2e0b2
-next_edges:
-  - bigger_outcome:a00-1467544f-aaaa25
+type: outcome
 parents:
   - mvp:a00-1467544f-aaaa25
+next_edges:
+  - bigger_outcome:a00-1467544f-aaaa25
+confidence: 0.97
+edited_by: season.py
+judged_against: goal:g4.6
+lens: goal:g4
+season: 1
 subgraph: false
 tags:
   - bootstrap
   - outcome
+thought_session: season
 title: "Outcome: Graph density baseline measured"
-type: outcome
 ---
-
 **Input shape:** Capillary DAG at nodes/ (157 nodes: 60 hypotheses, 7 ideas, 90 tasks)
 
 **Output shape:** Metrics dict:

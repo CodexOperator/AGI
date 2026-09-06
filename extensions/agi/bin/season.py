@@ -233,8 +233,8 @@ def _shell_out_write(root: Path, node_id: str,
     script = " && ".join(script_parts)
     cmd = [
         sys.executable, str(WRITE_PY),
-        "edit", node_id,
-        "--script", script,
+        node_id,
+        script,
         "--actor", actor,
         "--session", session,
     ]
