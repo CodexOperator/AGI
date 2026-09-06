@@ -707,11 +707,42 @@ def test_minted_node_stamps_loop_model_profile_from_env(project, monkeypatch):
     assert fm.get("profile") == "balanced"
 
 
+def test_minted_node_stamps_role_from_env(project, monkeypatch):
+    """hypothesis:l3w0-ladder-roles-table — dispatch exports AGI_ROLE and
+    node_writer stamps it as `role:` alongside loop/model/profile."""
+    import yaml
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    res = nw.write_node(project, "hypothesis", "roled",
+                        parents=["idea:i1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm.get("role") == "parent"
+
+
+def test_minted_node_omits_role_when_env_absent(project, monkeypatch):
+    """No AGI_ROLE -> no `role:` field; never fabricated."""
+    import yaml
+    monkeypatch.delenv("AGI_ROLE", raising=False)
+    monkeypatch.setenv("AGI_SEASON", "1")
+    res = nw.write_node(project, "mvp", "norole",
+                        parents=["verdict:v1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert "role" not in fm
+
+
 def test_minted_node_omits_loop_when_env_absent(project, monkeypatch):
-    """Absent env vars must NOT fabricate values."""
+    """Absent env vars must NOT fabricate values.
+
+    Controls every AGI_* stamp source: the harness shell (this test suite
+    can run under a dispatched session that exports AGI_LOOP/AGI_MODEL/
+    AGI_PROFILE) must not leak into an 'absent' assertion. Masked before
+    hypothesis:l3w0-ladder-roles-table by the season early-return bug, which
+    silently skipped loop/model/profile whenever AGI_SEASON parsed."""
     import yaml
     monkeypatch.setenv("AGI_SEASON", "1")
-    # Do NOT set AGI_LOOP, AGI_MODEL, AGI_PROFILE
+    for v in ("AGI_LOOP", "AGI_MODEL", "AGI_PROFILE", "AGI_ROLE"):
+        monkeypatch.delenv(v, raising=False)
     res = nw.write_node(project, "mvp", "bare",
                         parents=["verdict:v1"], announce=False)
     assert res.written
@@ -720,6 +751,7 @@ def test_minted_node_omits_loop_when_env_absent(project, monkeypatch):
     assert "loop" not in fm
     assert "model" not in fm
     assert "profile" not in fm
+    assert "role" not in fm
 
 
 def test_update_node_does_not_add_stamps(project, monkeypatch):

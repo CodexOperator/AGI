@@ -1,11 +1,13 @@
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from agi.bin import brief
 
 
 @pytest.fixture
@@ -121,3 +123,187 @@ def test_spawn_refuses_existing_window(monkeypatch, tmp_path, capsys):
     err = capsys.readouterr().err
     assert exit_code == 1
     assert "already exists" in err
+
+
+# --- l3w0-rotate-roles: role resolution, head, name derivation, loop --------
+
+
+def _proj(tmp_path, ladder_roles=""):
+    """A minimal fake graph root: `.agi/` layout (the dir find_project_root
+    returns) with a ladder node under nodes/.geometry."""
+    root = tmp_path / "proj"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    lines = ["---"]
+    if ladder_roles:
+        lines.append("roles:")
+        lines.append(ladder_roles)
+    lines.append("closed: false")
+    lines.append("---")
+    (root / "nodes" / ".geometry" / "ladder.md").write_text("\n".join(lines))
+    return root
+
+
+def test_spawn_resolves_role_model_effort_settings(monkeypatch, tmp_path, capsys):
+    # Ladder roles table row for prime_director wins over config/defaults.
+    root = _proj(tmp_path, ladder_roles=(
+        "  - role: prime_director\n"
+        "    harness: claude-code\n"
+        "    model: claude-fable-5-1\n"
+        "    effort: max\n"
+        "    settings: {ultracode: true}\n"
+        "    tier: 3\n"
+    ))
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "belam-2", "--prompt-file", str(prompt),
+        "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "--model claude-fable-5-1" in out
+    assert "--effort max" in out
+    assert "--settings" in out
+    assert "ultracode" in out
+
+
+def test_spawn_normalizes_string_settings_word(monkeypatch, tmp_path, capsys):
+    # The landing l3w0-ladder-roles-table spells settings as the bare word
+    # `ultracode`; rotate must emit `--settings '{"ultracode": true}'`.
+    root = _proj(tmp_path, ladder_roles=(
+        "  - role: prime_director\n"
+        "    harness: claude-code\n"
+        "    model: claude-fable-5-1\n"
+        "    effort: max\n"
+        "    settings: ultracode\n"
+        "    tier: 3\n"
+    ))
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "belam-2", "--prompt-file", str(prompt),
+        "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert '--settings \'{"ultracode": true}\'' in out
+    # the bare-word form (settings = the string `ultracode`) must not leak:
+    assert '--settings \'"ultracode"\'' not in out
+
+
+def test_spawn_falls_back_to_defaults_without_table(monkeypatch, tmp_path, capsys):
+    # No roles table, no config.json: fixed top-tier defaults apply.
+    root = _proj(tmp_path)
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "belam-9", "--prompt-file", str(prompt),
+        "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "--remote-control belam-9" in out
+    assert "--model claude-fable-5-1" in out
+    assert "--effort max" in out
+
+
+def test_successor_prompt_prepends_constitution_head():
+    body = "the successor body"
+    prompt = brief.successor_prompt(tier="prime_director", body=body)
+    assert prompt.startswith("─── CONSTITUTION HEAD ───")
+    assert "THE FOUR PRAYERS" in prompt
+    assert prompt.rstrip().endswith(body)
+    assert prompt.index(body) > prompt.index("THE FOUR PRAYERS")
+
+
+def test_derive_successor_name():
+    assert rotate._derive_successor_name([], "belam") == "belam-1"
+    # live prime window `belam-S1-L3` has no trailing integer => N=1
+    assert rotate._derive_successor_name(["belam-S1-L3"], "belam") == "belam-2"
+    assert rotate._derive_successor_name(["belam"], "belam") == "belam-2"
+    assert (
+        rotate._derive_successor_name(["belam-2", "belam-4", "belam"], "belam")
+        == "belam-5"
+    )
+    assert rotate._derive_successor_name(["agi-master-7"], "belam") == "belam-1"
+    assert rotate._derive_successor_name(["belam-3"], "belam") == "belam-4"
+
+
+def test_spawn_default_name_derives_from_window_path(monkeypatch, tmp_path, capsys):
+    root = _proj(tmp_path)
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("hi {name}")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("belam-S1-L3\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--prompt-file", str(prompt),
+        "--window-path", str(wins), "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "--remote-control belam-2" in out
+    assert "hi belam-2" in out
+
+
+def test_loop_below_threshold_holds(monkeypatch, tmp_path, capsys):
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 0)
+
+    def fail_spawn(*a, **k):
+        raise AssertionError("must not spawn below threshold")
+
+    monkeypatch.setattr(rotate, "_launch_window", fail_spawn)
+
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="prime_director", name=None,
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    assert "no rotation" in capsys.readouterr().err
+
+
+def test_loop_over_threshold_rotates_and_continue(monkeypatch, tmp_path, capsys):
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    # Need a prompt file in a location the subprocess will reach:
+    monkeypatch.setattr(rotate, "DEFAULT_PROMPT_FILE",
+                        str(tmp_path / "successor.md"))
+    (tmp_path / "successor.md").write_text("you are {name}\n")
+
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # over threshold
+
+    reply = tmp_path / "reply.log"
+    reply.write_text("continue\n")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")  # hermetic: no existing belam windows
+    launched = {}
+    monkeypatch.setattr(
+        rotate, "_launch_window",
+        lambda session, name, shell_cmd: launched.update(name=name) or 0,
+    )
+
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="prime_director", name=None,
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(reply), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    assert launched.get("name") == "belam-1"
+    assert "handoff stood" in capsys.readouterr().err
+

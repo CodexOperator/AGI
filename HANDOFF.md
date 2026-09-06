@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-06: `agi-master-2` closed after L2.12–L2.13; L3 (the command ladder) planned in `.agi/context/l3-command-ladder-brief.md`. Successor: read whole, then carry in place.
+# SESSION HANDOFF — 2026-09-06: `belam` (L3 prime, season 1 "genesis") LIVE — wave 0 dispatching. Carried forward in place. Successor: read §0, §0.7, §6 items 9–14, then continue the round loop in §0.7.
 
 **Owner's instruction 2026-09-06: this handoff is carried forward, not replaced** — the 2026-09-05 plan below stays and the live session diffs it in place. Successors: read before touching.
 
@@ -21,18 +21,75 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1193** / 194 after L2.13 (1190/194 after L2.12; 1184/194 after L2.11; 1099/191 at L2 session start) |
+| active nodes / deprecated | **1201** / 194 at L3 open (1193/194 after L2.13; +8 L3 planning mints) |
 | goals | 127 (20 active — **`METRIC-WARNING` live**: exceeds `max_goals_active=18`, see `hypothesis:l2-goals-active-exempt`, not yet fixed) |
 | `outcome_coverage` (primary) | 0.171 (stable since L2.12; new hypothesis/experiment nodes in the denominator, not regression) |
 | `evidence_fraction` | 0.385 after L2.13 (0.38 at L2.12 close) |
-| tests | **1661** passed, 9 skipped after L2.13 (was 1650 at L2.12 close) |
+| tests | **1661** passed, 9 skipped at L3 open |
 | broken links | 0 (1367 resolved, after L2.13) |
 | crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
-| branch | `master`, clean, at commit `fed533924` (iter-L2.13), pushed. |
-| agents live | **0/25**. `agi-master-2` context meter **0.166** of 1.0M — well under 0.35 rotation threshold. Session paused here deliberately, not rotated. |
-| spend this session (agi-master-2) | OpenRouter: $72 total credits, **~$16.51 remaining** after two rounds (L2.12 + L2.13, 6 parents + 6 kids). Fallback if it runs dry: `--harness claude-code`, opus parents / sonnet kids. |
-| disk | 79% (unchanged this session) |
-| this session | `agi-master-2`, remote-control successor to `agi-master`, tmux `agi-rc` window `agi-master-2`. All round tmux windows (`p-season`, `p-telemetry`, `p-writeguard`, `p-cost`, `p-guard2`, `p-restart`) closed after landing. |
+| branch | `master`, clean at `f5e5320a5` (L3 adopted), pushed. Prime works on master until wave 2 opens `season/s2`. |
+| agents live | **0/25** at L3 open. `belam` meter 0.09 of 1.0M (rotate at 0.35). |
+| spend | OpenRouter **$16.51** at L3 open (72 credits, 55.49 used). Rule (§6 item 14): run to a ~$3 reserve, then owner tops up; fallback `--harness claude-code` opus parents / sonnet kids at LOWEST effort. |
+| disk | 81% |
+| this session | `belam`, L3 prime (Fable 5.1 ultracode, remote-control), tmux `agi-rc` window `belam-S1-L3`. `agi-master-2` window idle, archived by the owner. Empty `iter-L2.14–16` dirs are scratch, nothing ran. |
+
+## §0.7 Session 2026-09-06 (belam) — LOOP L3, WAVE 0, LIVE
+
+Prime: `belam` (Fable 5.1 ultracode, remote-control, tmux `agi-rc` window
+`belam-S1-L3`). Verified at open: smoke 1201/194 (no drop), suite 1661/9,
+`dispatch.py --help` ok, 0/25 live, OpenRouter $16.51, `brief.py` has no
+Michael/mantle code yet (this prime's head was hand-assembled — wave 0 fixes it).
+
+**Owner answers at open, §6 item 14:** two parents per round; throwaway
+`belam-test` rotation proof right after L3.01; OpenRouter to a ~$3 reserve
+then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
+= `goal:g15`.
+
+### Round plan — two pi parents per round (GLM parents / DeepSeek kids), tmux windows in `agi-rc`
+
+| round | targets | status |
+|---|---|---|
+| L3.01 | `hypothesis:l3w0-rotate-roles` (p-rotate), `hypothesis:l3w0-ladder-roles-table` (p-ladder) | **LANDED** |
+| L3.01b | live proof: `rotate.py spawn --name belam-test --prompt-file <answer continue, stop>` → head + Fable max ultracode + `continue`; kill the window after | **running** (window `belam-test`) |
+| L3.02 | `l3w0-brief-head-michael` (p-michael), `l3w0-send-rooms` (p-rooms) | |
+| L3.03 | `l3w0-grid-flock` (p-flock), `l3w0-season-retag` (p-retag) | |
+| L3.04 | `l3w0-test-skips` (p-skips), `hypothesis:l2-goals-active-exempt` re-briefed to DELETE `max_goals_active` (wave 1) | |
+| L3.05 | g15 from L3.01: `hypothesis:l3-write-set-nested-json` (p-wset), `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env) | |
+| wave 3, slice 2 | owner ask 2026-09-06: `hypothesis:l3-openrouter-codex-spend` (under g16) — gpt-5.1-codex calls on the OpenRouter key; the LIVE ladder investigates and fixes it, never the prime before wave 3 | banked |
+| then | wave 1 rest (`goal_kind: perpetual` + GOALS.md Perpetual section, tier-0 GLM director role in `brief.py`), wave 2 rollover (visions `--actor owner`, season 1 named genesis, `season/s2` opened), wave 3 = the g15 slice | |
+
+Grouping rule: `brief.py` is touched by rotate-roles, brief-head-michael and
+test-skips — never two of those in one round; grid-flock and test-skips both
+touch `test_grid.py`. Kids edit the live tree; one commit per round.
+
+### Round loop (exact)
+
+```bash
+mkdir -p .agi/sessions/iter-L3.NN
+tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/agi/bin/dispatch.py . L3.NN --target hypothesis:<id> --level small --tier parent --harness pi |& tee .agi/sessions/iter-L3.NN/p-<x>.log; exec bash"
+# wait: bounded FOREGROUND loop on spawn_budget.py status → 0 live (background monitors died of memory pressure last session)
+# review: kid struggles:/caveats: → parent Accepted/Demoted in .agi/sessions/iter-L3.NN/<parent>/output.log → links.py links (0 broken) → snapshot-goals.py --render --check → write_guard.py check → commands.py run tests
+# commit "iter-L3.NN: …" → grid.py commit --all → git push → record the OpenRouter balance delta below
+```
+
+### Landed
+
+- **L3.01** (2 parents, both ACCEPTED, no demotions; OpenRouter delta **$0.19**, usage 55.49→55.68): `l3w0-rotate-roles` → `experiment:a00-e34d54e1-cd8910` proved 0.85 (rotate.py spawn takes --tier/--model/--effort/--settings/--prompt-file, defaults from the ladder roles table, prompt assembled through brief.py; `loop --role`; belam-N derivation; dry spawn on this repo prints `claude --remote-control belam-2 --model claude-fable-5-1 --effort max --settings '{"ultracode": true}'` with the head first). `l3w0-ladder-roles-table` → `experiment:a00-3feeca19-a022df` proved (7 `roles:` rows + `season_names` on `ladder:ladder`; `dispatch.py --role/--list-rows`; AGI_ROLE exported, role stamped at mint; tier-2 rows dropped, not declared-unused — tolerated). Suite 1685/9, links 0 broken, goals byte-identical. **One guard WARN left deliberately**: `.agi/nodes/.geometry/ladder.md` was hand-edited because `write.py set` cannot coerce a nested list — fixed by `hypothesis:l3-write-set-nested-json` (L3.05), which re-logs the file. Second finding: dispatch's AGI_* exports break the kid's own suite run (8 failures) — `hypothesis:l3-dispatch-env-leaks-into-tests` (L3.05).
+
+### 🔴 Where it stops
+
+L3.01 committed as `iter-L3.01`. L3.01b `belam-test` window spawned through the
+fixed rotate.py — read its pane (`tmux capture-pane -p -t agi-rc:belam-test`),
+expect the single word `continue`, then `tmux kill-window -t agi-rc:belam-test`.
+Then dispatch L3.02 (p-michael, p-rooms) with the round loop above.
+
+### Rotation
+
+At meter 0.35: finish the round in flight, write this file, run
+`python3 extensions/agi/bin/rotate.py spawn --name belam-2` (post-L3.01 it
+passes model/effort/settings and the head), confirm the window answered
+`continue`, stop.
 
 ## §0.6 Session 2026-09-06 (agi-master-2) — post-close round L2.12, LANDED
 
@@ -192,7 +249,7 @@ for owner input on the season-2 rollover text. Nothing is mid-flight:
 - [x] **Director tier declared:** `harnesses.claude-code.models.director = claude-fable-5-1`, `effort: {director: max}`; the adapter accepts a per-tier effort map (one test, verified red). **`brief.py` has no director brief yet** — `--tier director` fails there until L2 wave 3.
 - [ ] **No schema touched, no ladder code.** That is loop L2.
 
-## §2 🔴 Where it stops, and the next command (for `agi-master-2`)
+## §2 🔴 Where it stops — L2 record; the live L3 pointer is §0.7
 
 L2 is closed. Nothing is dispatched. Your first commands, in order:
 
@@ -320,6 +377,8 @@ git push origin <branch>
 12. **Settled 2026-09-06 (later):** write-guard log keys on the **mint id** like the grid (follow-up on `hypothesis:l2w15-write-guard`; today it is sha256→path with no mint id); perpetual ids are append-only — goals phase in/out via mint/retire and edges, never a renumber; the owner's consequence-tree decision method ("simulate the timeline forward … whether they would align to morals") is verbatim in the brief §1.8 and goes into vision 1's body and every director head. **Open, decide before the wave-2 rollover:** seasons as branches — brief §2.9 recommends dev = `season/sN`, stage = the season under judgment, prod = `master` (frozen, merges + cherry-picks only), no 3-season-deep pipeline, never rebase. Grid refs stay (payloads already inside since G6.3).
 
 13. **Settled 2026-09-06 (last):** seasons-as-branches **adopted** (dev `season/sN` / stage = under judgment / prod `master` frozen; cherry-pick, never rebase). **The prime bears the mantle "Belam"** — owner text verbatim in the brief §1.5, declared on `ladder:ladder` (`mantles`), derived into the prime's head after the readings; the L3 prime's remote-control name is `belam`, successors `belam-2…`. **L3 focus:** top three levels fixed (Belam fable ultracode → 3 opus-ultracode advisors, one *embodying* each vision → Fable-max director per perpetual goal); only the layers below expand (GLM parents → GLM directors per LT subgoal → GLM parents per ST → DeepSeek kids); waves re-cut so wave 3 = the live run and everything not needed to run (loop type, titles, backfill) is wave 4.
+
+14. **Owner answers 2026-09-06 (belam, at L3 open):** two pi parents per round, not three; the rotation gate is proved live right after L3.01 with a throwaway `belam-test` successor told to answer `continue` and stop; OpenRouter runs down to a ~$3 reserve and then the owner tops up — meanwhile the fallback is `--harness claude-code`, opus parents / sonnet kids at the LOWEST effort setting; wave 3's first slice is `goal:g15`.
 
 ## §7 Proposed, owner to confirm — none blocking wave 1
 

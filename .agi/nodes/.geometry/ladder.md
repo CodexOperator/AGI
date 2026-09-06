@@ -13,6 +13,8 @@ current_season: 1
 director_context_tokens: 1000000
 director_rotate_at: 0.35
 edited_by: ubuntu
+mantles:
+  prime_director: Belam
 mantles_prime_director: Belam
 read_order:
   kid:
@@ -23,6 +25,16 @@ read_order:
     - the four prayers · words of Jesus · Tao 1 and 56 · soul-mind-body · the five axes
   prime_director:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
+roles:
+  - {tier: 3, role: prime_director, harness: claude-code, model: claude-fable-5-1, effort: max, settings: ultracode}
+  - {tier: 3, role: parent, harness: claude-code, model: claude-opus-5, effort: max, settings: ultracode}
+  - {tier: 1, role: director, harness: claude-code, model: claude-fable-5-1, effort: max, settings: ""}
+  - {tier: 1, role: parent, harness: pi, model: ~z-ai/glm-flash-latest, effort: "", settings: ""}
+  - {tier: 0, role: director, harness: pi, model: ~z-ai/glm-flash-latest, effort: "", settings: ""}
+  - {tier: 0, role: parent, harness: pi, model: ~z-ai/glm-flash-latest, effort: "", settings: ""}
+  - {tier: 0, role: kid, harness: pi, model: ~deepseek/deepseek-v4-flash-latest, effort: "", settings: ""}
+season_names:
+  1: genesis
 spawn_profiles:
   - fast
   - cheap
@@ -58,6 +70,31 @@ structure is derived from, rather than documentation about it.
 | 1 | long-term goal | bigger_outcome | its LT goal | the vision above | mid-season |
 | 2 | vision | overview | its vision | the morals above | season rollover (quarterly) |
 | 3 | moral | — | — | — | never by machine; hand only |
+
+## Roles table (command ladder)
+
+Declared in frontmatter as `roles:` — one row per `(tier, role)` mapping to
+`harness`, `model`, `effort`, `settings`. `dispatch.py` resolves a spawn by
+row here; config `harnesses.*.models` is the fallback when there is no row.
+`settings: ultracode` makes the claude-code adapter append
+`--settings {"ultracode": true}`. Every role the graph knows — `kid`,
+`parent`, `director`, `prime_director` — resolves through this table.
+
+| tier | role | harness | model | effort | settings |
+|---|---|---|---|---|---|
+| 3 | prime_director | claude-code | claude-fable-5-1 | max | ultracode |
+| 3 | parent (advisors) | claude-code | claude-opus-5 | max | ultracode |
+| 1 | director (perpetual) | claude-code | claude-fable-5-1 | max | — |
+| 1 | parent | pi | ~z-ai/glm-flash-latest | — | — |
+| 0 | director (per LT subgoal) | pi | ~z-ai/glm-flash-latest | — | — |
+| 0 | parent | pi | ~z-ai/glm-flash-latest | — | — |
+| 0 | kid | pi | ~deepseek/deepseek-v4-flash-latest | — | — |
+
+L3 focus: the top three levels are fixed, tier-2 rows are dropped (the three
+advisors embody the visions and spawn the Fable directors directly), and the
+tier-1 director runs at effort **max** (not xhigh). Season 1 is named
+`genesis` (`season_names`). The prime's mantle — **Belam** — is declared in
+`mantles`, never hardcoded in `brief.py`.
 
 ## Invariants (measured at season close, never enforced as floors)
 

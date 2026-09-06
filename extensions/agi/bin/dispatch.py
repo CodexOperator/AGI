@@ -236,6 +236,109 @@ def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict],
     return merged
 
 
+# hypothesis:l3w0-ladder-roles-table — (tier, role) -> spawn spec.
+#
+# The ladder node's `roles:` table maps a (tier, role) row to
+# harness / model / effort / settings. A declared row wins outright;
+# config `harnesses.<h>.models[role]` is the historical fallback and stays
+# exactly as it was when the table has no row. `--list-rows` resolves every
+# declared row and prints it without spawning anything — the dry-proof this
+# hypothesis's VERIFY asks for.
+
+
+def _default_tier_for_role(role: str) -> int:
+    """The ladder tier a role lives at when `--ladder-tier` is not given.
+
+    Ties are not ambiguous because a role has a canonical home: kids and the
+    tier-0 directors/parents sit at 0, tier-1 directors/parents at 1, and
+    the prime director (with its parents) at 3. The L3 shape declares no
+    tier-2 rows (the advisors embody the visions, §1.9 of the command
+    ladder brief), so `director`/`parent` default to 1, not 2.
+    """
+    return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
+        role, 0)
+
+
+def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
+                      role: str) -> dict:
+    """Resolve (tier, role) to {harness, model, effort, settings, from_ladder}.
+
+    A row in `roles` matching both keys wins; its empty/short cells resolve
+    to None (no flag). With no row (or no table at all) the historical
+    config path answers: `harness` from `adapters.resolve`, `model` from
+    `harnesses.<h>.models[role]`, `effort` from `harnesses.<h>.effort[role]`.
+    `from_ladder` distinguishes the source so callers can report it.
+    """
+    row = None
+    for r in (roles or []):
+        try:
+            if int(r.get("tier")) == int(tier) and r.get("role") == role:
+                row = r
+                break
+        except (TypeError, ValueError):
+            continue
+    if row is not None:
+        return {
+            "harness": row.get("harness") or None,
+            "model": (row.get("model") or "").strip() or None,
+            "effort": (row.get("effort") or "").strip() or None,
+            "settings": row.get("settings") or None,
+            "from_ladder": True,
+        }
+    _name, harness = adapters.resolve(cfg)
+    models = harness.get("models") or {}
+    model = models.get(role) if isinstance(models, dict) else None
+    effort = harness.get("effort")
+    if isinstance(effort, dict):
+        effort = effort.get(role)
+    if not isinstance(model, str) or not model.strip():
+        model = None
+    if not isinstance(effort, str) or not effort.strip():
+        effort = None
+    return {
+        "harness": _name,
+        "model": model,
+        "effort": effort,
+        "settings": None,
+        "from_ladder": False,
+    }
+
+
+def _compile_role_rows(roles: list | None) -> list[tuple[int, str, dict]]:
+    """Resolve every declared row -> (tier, role, spec), in declaration order.
+
+    The shared body behind `--list-rows` and its test; printing is the only
+    thing `main` adds on top.
+    """
+    out: list[tuple[int, str, dict]] = []
+    for r in (roles or []):
+        try:
+            tier = int(r.get("tier"))
+        except (TypeError, ValueError):
+            continue
+        role = r.get("role")
+        if not isinstance(role, str) or not role.strip():
+            continue
+        out.append((tier, role, resolve_role_spec({}, roles, tier, role)))
+    return out
+
+
+def _list_rows(root: Path, cfg: dict) -> int:
+    """Dry print the roles table, resolved. Nothing is spawned or written."""
+    roles = spawn_gate.read_ladder_roles(root / "nodes" if root else None)
+    if not roles:
+        print("ladder: no roles table declared — every tier falls back to "
+              "config harnesses.*")
+        return 0
+    print(f"ladder roles table: {len(roles)} rows")
+    for tier, role, spec in _compile_role_rows(roles):
+        print(f"tier={tier} role={role:<15} harness={spec['harness'] or '-':<11} "
+              f"model={spec['model'] or '-':<28} "
+              f"effort={spec['effort'] or '-':<5} "
+              f"settings={spec['settings'] or '-'}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
@@ -272,6 +375,25 @@ def main() -> int:
         help="Tier to spawn: selects harnesses.<h>.models[tier] (default: kid)",
     )
     ap.add_argument(
+        "--role",
+        default="kid",
+        help="Ladder role to spawn (kid|parent|director|prime_director); "
+             "resolved against the ladder's roles table (default: kid)",
+    )
+    ap.add_argument(
+        "--ladder-tier",
+        type=int,
+        default=None,
+        help="Ladder tier (0-3) for roles-table lookup; default derives from "
+             "--role when a row exists, else config fallback",
+    )
+    ap.add_argument(
+        "--list-rows",
+        action="store_true",
+        help="Dry print: resolve every role in the ladder's roles table and "
+             "exit without spawning (hypothesis:l3w0-ladder-roles-table)",
+    )
+    ap.add_argument(
         "--detach",
         action="store_true",
         help="Skip the reaper phase and return immediately after spawn. "
@@ -292,13 +414,54 @@ def main() -> int:
         return 1
     cfg = json.loads(cfg_path.read_text())
 
+    # hypothesis:l3w0-ladder-roles-table — dry print: resolve every declared
+    # role row and exit without spawning anything. Nothing is written.
+    if args.list_rows:
+        return _list_rows(root, cfg)
+
     # goal:g4.6 — the harness is resolved ONCE, from config, and everything
     # below spawns through it. This function no longer knows what a pi flag
     # looks like. Adding a harness is a config entry plus one file in
     # bin/adapters/; if it ever needs an edit here, the seam is wrong.
     try:
         harness_name, harness = adapters.resolve(cfg, args.harness)
-        adapter = adapters.load(harness["adapter"])
+        # hypothesis:l3w0-ladder-roles-table — a declared (tier, role) row
+        # overrides harness/model/effort/settings, resolved from the ladder;
+        # config harnesses.* remains the fallback when the ladder has no row.
+        ladder_roles = spawn_gate.read_ladder_roles(
+            root / "nodes" if root else None)
+        tier_eff = (args.ladder_tier if args.ladder_tier is not None
+                    else _default_tier_for_role(args.role))
+        _spec = resolve_role_spec(cfg, ladder_roles, tier_eff, args.role)
+        dispatch_harness = harness
+        if _spec["from_ladder"]:
+            if _spec["harness"] and _spec["harness"] != harness_name:
+                # A ladder row may name a different harness (e.g. an opus
+                # parent on claude-code while the invocation defaulted to pi).
+                harness_name, dispatch_harness = adapters.resolve(
+                    cfg, _spec["harness"])
+                dispatch_harness = dict(dispatch_harness)
+            else:
+                dispatch_harness = dict(harness)
+            _models = dict(dispatch_harness.get("models") or {})
+            if _spec["model"]:
+                # Keyed by the adapter's tier string so model_args(harness,
+                # args.tier) returns the ladder row's model.
+                _models[args.tier] = _spec["model"]
+            dispatch_harness["models"] = _models
+            if _spec["effort"]:
+                dispatch_harness["effort"] = {args.tier: _spec["effort"]}
+            if _spec["settings"]:
+                dispatch_harness["settings"] = _spec["settings"]
+        else:
+            print(f"roles: no ladder row for (tier={tier_eff}, "
+                  f"role={args.role}); falling back to config "
+                  f"harnesses.{harness_name}.models[{args.tier}]")
+        if _spec["from_ladder"]:
+            print(f"roles: tier={tier_eff} role={args.role} -> "
+                  f"{_spec['harness']}/{_spec['model'] or '-'}/"
+                  f"effort={_spec['effort'] or '-'}/settings={_spec['settings'] or '-'}")
+        adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 1
@@ -457,7 +620,7 @@ def main() -> int:
         # Spawn pi (detached). Output -> sess_dir/output.log
         try:
             spawn_args = adapter.build_command(
-                harness=harness,
+                harness=dispatch_harness,
                 tier=args.tier,
                 context_file=ctx_path,
                 agent_id=agent_id,
@@ -475,22 +638,27 @@ def main() -> int:
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
             )
-            spawn_env = adapter.child_env(harness=harness, base=scrubbed_env())
+            spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env())
             # goal:l2-agent-git-commit-guard -- belt: refuse git write for
             # automated agent tiers (kid, parent).  AGI_TIER distinguishes
             # machine from human; GIT_CONFIG tells git to use our hooks
             # directory (agent-git/) which exits 1 for tier kid/parent.
             # Only the director or a human session can write to git.
             spawn_env["AGI_TIER"] = args.tier
+            # hypothesis:l3w0-ladder-roles-table — claim the role and ladder
+            # tier in the environment so node_writer stamps `role:` and the
+            # portal knows which level of the ladder this agent sits at.
+            spawn_env["AGI_ROLE"] = args.role
+            spawn_env["AGI_LADDER_TIER"] = str(tier_eff)
             # hypothesis:l2w2-writer-stamps — stamp season / loop / model /
             # profile into child env so node_writer can pick them up at mint.
             spawn_env["AGI_SEASON"] = str(current_season)
             loop_ref = target or "explore"
             spawn_env["AGI_LOOP"] = f"{loop_ref}@s{current_season}"
-            model_val = harness.get("models", {}).get(args.tier, "")
+            model_val = dispatch_harness.get("models", {}).get(args.tier, "")
             if model_val:
                 spawn_env["AGI_MODEL"] = str(model_val)
-            profile_val = harness.get("profiles", {}).get(
+            profile_val = dispatch_harness.get("profiles", {}).get(
                 args.tier, "balanced")
             spawn_env["AGI_PROFILE"] = str(profile_val)
             if args.tier in ("kid", "parent"):
@@ -514,7 +682,7 @@ def main() -> int:
             # key are one event rather than two that can disagree.
             # goal:s34 item 2 -- only mint for harnesses whose adapter needs
             # a credential; CC kids authenticate through their own channel.
-            if issuing and adapters.needs_credential(harness):
+            if issuing and adapters.needs_credential(dispatch_harness):
                 minted = provisioning.mint(
                     iter_n=args.iter_n, agent_id=agent_id, tier=args.tier,
                     limit_usd=cred_limit, ttl_minutes=cred_ttl,

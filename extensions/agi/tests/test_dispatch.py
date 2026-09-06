@@ -505,3 +505,100 @@ def test_the_mint_call_is_guarded_by_needs_credential():
         "every provisioning.mint call must be conditioned on "
         "adapters.needs_credential(harness); removing the gate must fail "
         "this test")
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w0-ladder-roles-table — resolve (tier, role) -> spec.
+#
+# The ladder node declares a `roles:` table (tier x role -> harness, model,
+# effort, settings); dispatch resolves the row when it exists and falls back
+# to config `harnesses.*.models[role]` when it does not.
+# ---------------------------------------------------------------------------
+
+
+def _roles():
+    return [
+        {"tier": 3, "role": "prime_director", "harness": "claude-code",
+         "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode"},
+        {"tier": 3, "role": "parent", "harness": "claude-code",
+         "model": "claude-opus-5", "effort": "max", "settings": "ultracode"},
+        {"tier": 1, "role": "director", "harness": "claude-code",
+         "model": "claude-fable-5-1", "effort": "max", "settings": ""},
+        {"tier": 1, "role": "parent", "harness": "pi",
+         "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""},
+        {"tier": 0, "role": "kid", "harness": "pi",
+         "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""},
+    ]
+
+
+def _cfg():
+    return {"spawn": {"harness": "pi"},
+            "harnesses": {"pi": {"adapter": "pi",
+                                   "models": {"kid": "default-kid",
+                                               "parent": "default-parent"}}}}
+
+
+def test_ladder_row_wins_over_config():
+    """A ladder row for (0, kid) names deepseek; config fallback would say
+    'default-kid'. The row must win."""
+    spec = dispatch.resolve_role_spec(_cfg(), _roles(), 0, "kid")
+    assert spec["from_ladder"] is True
+    assert spec["harness"] == "pi"
+    assert spec["model"] == "~deepseek/deepseek-v4-flash-latest"
+
+
+def test_config_fallback_when_no_ladder_row():
+    """No tier-2 kid row exists -> the config's models[kid] is the answer,
+    exactly as dispatch behaved before the roles table."""
+    spec = dispatch.resolve_role_spec(_cfg(), _roles(), 2, "kid")
+    assert spec["from_ladder"] is False
+    assert spec["model"] == "default-kid"
+
+
+def test_empty_cell_values_resolve_to_none():
+    """A row that omits effort/settings (the pi rows) resolves to None, so
+    the adapter emits no --effort/--settings flag rather than a bare one."""
+    spec = dispatch.resolve_role_spec(_cfg(), _roles(), 1, "parent")
+    assert spec["from_ladder"] is True
+    assert spec["effort"] is None
+    assert spec["settings"] is None
+
+
+def test_missing_roles_table_falls_back_to_config():
+    spec = dispatch.resolve_role_spec(_cfg(), None, 0, "kid")
+    assert spec["from_ladder"] is False
+    assert spec["model"] == "default-kid"
+
+
+def test_compile_role_rows_covers_every_declared_row():
+    """The dry listing (--list-rows) must resolve one spec per declared row."""
+    rows = dispatch._compile_role_rows(_roles())
+    assert len(rows) == len(_roles())
+    for tier, role, spec in rows:
+        assert isinstance(tier, int)
+        assert isinstance(role, str)
+        assert spec["from_ladder"] is True
+        assert spec["model"]
+
+
+def test_default_tier_for_role():
+    assert dispatch._default_tier_for_role("kid") == 0
+    assert dispatch._default_tier_for_role("director") == 1
+    assert dispatch._default_tier_for_role("prime_director") == 3
+
+
+def test_dispatch_exports_agi_role_env():
+    """Every spawn must carry AGI_ROLE so node_writer can stamp `role:` at
+    mint. AST check -- dispatch writes spawn_env after Popen is built, so the
+    only seam that proves it is the literal in the source."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Assign):
+            for t in n.targets:
+                if (isinstance(t, ast.Subscript)
+                        and isinstance(t.slice, ast.Constant)
+                        and t.slice.value == "AGI_ROLE"):
+                    return
+    pytest.fail("dispatch.py must export AGI_ROLE into the spawn environment")

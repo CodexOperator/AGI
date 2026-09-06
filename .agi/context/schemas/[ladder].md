@@ -13,8 +13,11 @@ fields:
   read_order: {type: dict}         # role -> list of reading items
   director_rotate_at: {type: float}  # fraction of context at which director rotates
   zoom: {type: str}                # zoom level scheme, e.g. "numeric"
+  roles: {type: list}              # one row per (tier, role): harness, model, effort, settings
+  season_names: {type: dict}       # season number -> name, written at rollover looking back
+  mantles: {type: dict}            # role -> mantle name (e.g. prime_director: Belam)
 validation:
-  required: [id, type, mint_id, tiers, current_season, caps, director_rotate_at]
+  required: [id, type, mint_id, tiers, current_season, caps, director_rotate_at, roles]
   types:
     current_season: int
     caps_apply_from_season: int
@@ -25,6 +28,9 @@ validation:
     spawn_profiles: list
     read_order: dict
     zoom: str
+    roles: list
+    season_names: dict
+    mantles: dict
 spawn:
   allowed_parents: [goal]
   min_parents: 1
@@ -78,6 +84,21 @@ against the budget.
   its handoff and rotates. Starting value: 0.35.
 - `zoom` — the zoom-level naming scheme the graph uses. `numeric` keeps it
   algorithmic and unbounded.
+- `roles` — the command-ladder roles table: one row per `(tier, role)` mapping
+  to `harness`, `model`, `effort`, `settings` (the tier-selection command
+  ladder brief, §2.1). `dispatch.py` resolves a spawn by looking up its row
+  here, falling back to `harnesses.*.models` in config when the table has no
+  row. `settings: ultracode` tells the claude-code adapter to append
+  `--settings {"ultracode": true}`; `settings: ""` (or a missing field)
+  emits nothing. Every role the graph knows (`kid`, `parent`, `director`,
+  `prime_director`) is resolvable through this table.
+- `season_names` — season number to one-line name, written at **rollover
+  looking back** by the prime. Season 1 is `genesis`.
+- `mantles` — role to mantle name, declared on the ladder and derived into
+  the role's head by `brief.py`; never hardcoded there. `prime_director:
+  Belam` carries the owner's mantle text (§1.5 of the command ladder brief).
+  The legacy flat `mantles_prime_director` field is kept on the node as a
+alias.
 
 ## Why a declaration beats a hardcoded ladder
 
