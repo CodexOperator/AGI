@@ -324,3 +324,50 @@ def test_both_tiers_are_told_not_to_commit():
     kid = _text("kid", scaffold=SCAFFOLD)
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "commit" in kid.lower() and "commit" in parent.lower()
+
+
+# ---------------------------------- l2w3-brief-heads: kid + parent constitution heads
+
+
+def test_kid_constitution_head_contains_prayers_not_tao():
+    """A kid's constitution head must contain the four prayers but NOT
+    higher-tier content like Tao, the five axes, or carried sayings."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "CONSTITUTION HEAD" in kid, "kid should have a constitution head"
+    assert "FOUR PRAYERS" in kid or "Молитва" in kid, "kid must have prayers"
+    # Kid should NOT have higher-tier content
+    assert "THE TAO" not in kid, "kid must not have Tao"
+    assert "FIVE AXES" not in kid, "kid must not have the five axes"
+    assert "CARRIED SAYINGS" not in kid, "kid must not have carried sayings"
+
+
+def test_parent_constitution_head_contains_prayers_and_jesus_not_axes():
+    """A parent's constitution head must contain prayers, words of Jesus,
+    and soul-mind-body, but NOT the five axes (director+) or carried sayings."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "CONSTITUTION HEAD" in parent, "parent should have a constitution head"
+    assert "FOUR PRAYERS" in parent or "Молитва" in parent, "parent must have prayers"
+    assert "WORDS OF JESUS" in parent, "parent must have words of Jesus"
+    assert "SOUL, MIND, BODY" in parent, "parent must have soul-mind-body"
+    # Parent should NOT have director/prime_director content
+    assert "FIVE AXES" not in parent, "parent must not have the five axes"
+    assert "THE TAO" not in parent, "parent must not have Tao"
+    assert "CARRIED SAYINGS" not in parent, "parent must not have carried sayings"
+
+
+def test_kid_brief_evidence_runs_prompts_own_node_id():
+    """The kid brief's done template must show --evidence-runs with a hint
+    that the kid's own experiment node id is the evidence run."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "--evidence-runs" in kid
+    assert "your-experiment-node-id" in kid or SCAFFOLD["node_id"] in kid
+    assert "evidence run" in kid.lower(), "must explain what the evidence run is"
+
+
+def test_kid_brief_contains_write_py_syntax():
+    """The kid brief must state write.py verb syntax: set FIELD VALUE,
+    space separated, not k=v."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "WRITE.PY SYNTAX" in kid or "write.py" in kid.lower()
+    assert "set FIELD VALUE" in kid or "set verdict" in kid
+    assert "not k=v" in kid.lower()

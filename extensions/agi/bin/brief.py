@@ -400,6 +400,11 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
         "`python3 -m pytest extensions/agi/tests/ -q`. Your own scratch test "
         "passing is not the same claim. A failing assertion you did not expect "
         "is usually the assertion working.",
+        # write.py verb syntax: set FIELD VALUE, space separated, not k=v
+        "WRITE.PY SYNTAX: `write.py <node-id> set FIELD VALUE`. "
+        "Space separated, not k=v. Example:\n"
+        "  python3 extensions/agi/bin/write.py experiment:x set verdict proved\n"
+        "  python3 extensions/agi/bin/write.py experiment:x set evidence_runs experiment:x",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
     ]
@@ -420,7 +425,9 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
             f"When done, run: python3 {cli_py} done {iter_n} {agent_id} "
             f"--verdict <state> --confidence <0..1> --node-id {scaffold['node_id']}"
             f"{parent_arg}"
-            f" --evidence-runs <backing-node-id> [...]"
+            f" --evidence-runs <your-experiment-node-id> [...]\n"
+            f"  (Your own experiment node is your evidence run. "
+            f"Use `--evidence-runs {scaffold['node_id']}` to cite it.)"
         )
     else:
         segs.append(
@@ -583,11 +590,20 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         return segs
 
     if tier == "parent":
-        return _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
+        segs = _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                        dispatch_py=str(dispatch_py), target=target,
                        parallel=parallel, max_live=max_live)
-    return _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
+        head = _build_head(tier=tier)
+        if head:
+            segs.insert(0, head)
+        return segs
+
+    segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold)
+    head = _build_head(tier=tier)
+    if head:
+        segs.insert(0, head)
+    return segs
 
 
 def closing_line(tier: str, agent_id: str, iter_n: int) -> str:

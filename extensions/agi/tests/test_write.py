@@ -469,3 +469,76 @@ def test_a_created_node_carries_the_same_provenance_as_an_edited_one(project):
     text = Path(res.path).read_text()
     assert "edited_by: director" in text
     assert "thought_session: L1.07" in text
+
+
+# --------------------------------------------------------------------------
+# L2.08 — owner-only guard for moral nodes (hypothesis:l2w2-write-owner-and-payload-types)
+# --------------------------------------------------------------------------
+
+def _moral_schema(project: Path):
+    """Write the moral schema so the gate can recognise moral nodes."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[moral].md").write_text(
+        "---\nname: moral\nspawn:\n  allowed_parents: []\n"
+        "  min_parents: 0\n  max_parents: 0\n"
+        "validation:\n  required: [id, type, mint_id, title]\n---\n\nbody\n")
+
+
+def _moral_node(project: Path, slug: str = "faith") -> None:
+    (project / "nodes" / "moral").mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / "moral" / f"{slug}.md").write_text(
+        '---\nid: "moral:%s"\ntype: moral\nmint_id: mmm001\n'
+        'title: "Faith"\n---\n\nthe body\n' % slug)
+
+
+def test_create_moral_without_owner_is_refused(project):
+    """🔴 RED FIRST: moral node creation without --actor owner must raise EditError.
+
+    goal:g12 — the five moral nodes are hand-edited only by the owner.
+    """
+    _moral_schema(project)
+    with pytest.raises(write.EditError, match="owner only"):
+        write.create(project, "moral", "faith", [],
+                     actor="director", bypass=True)
+    assert not (project / "nodes" / "moral" / "faith.md").exists()
+
+
+def test_create_moral_with_owner_succeeds(project):
+    """Creating a moral node with --actor owner is permitted."""
+    _moral_schema(project)
+    res, made = write.create(project, "moral", "faith", [],
+                              actor="owner", bypass=True)
+    assert res.written and not res.rejected
+    assert (project / "nodes" / "moral" / "faith.md").exists()
+
+
+def test_submit_moral_without_owner_is_refused(project):
+    """🔴 RED FIRST: editing a moral node without --actor owner must be refused."""
+    _moral_node(project, "faith")
+    e = write.Edit("moral:faith")
+    write.verb_set(e, "title", "New Title")
+    with pytest.raises(write.EditError, match="owner"):
+        write.submit(project, e, actor="director")
+
+
+def test_submit_moral_with_owner_succeeds(project):
+    """Editing a moral node with --actor owner is permitted."""
+    _moral_node(project, "faith")
+    e = write.Edit("moral:faith")
+    write.verb_set(e, "title", "New Title")
+    res = write.submit(project, e, actor="owner")
+    assert res.status == node_writer.UPDATED
+    text = (project / "nodes" / "moral" / "faith.md").read_text()
+    assert "edited_by: owner" in text
+    assert "title: New Title" in text
+
+
+def test_submit_non_moral_without_owner_still_works(project):
+    """Non-moral nodes are NOT affected by the owner guard."""
+    # The project fixture already has hypothesis:h1
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "title", "New")
+    # This should work even with a non-owner actor
+    res = write.submit(project, e, actor="director")
+    assert res.status == node_writer.UPDATED
