@@ -160,6 +160,25 @@ def model_args(harness: dict, tier: str) -> list[str]:
         effort = effort.get(tier)
     if isinstance(effort, str) and effort.strip():
         args += ["--effort", effort.strip()]
+    settings = harness.get("settings")
+    if isinstance(settings, dict):
+        # Per-tier settings (ladder rows resolve one row, so this is the
+        # config-facing shape): a tier the map does not name gets none -- the
+        # same no-fallback rule as models and effort.
+        settings = settings.get(tier)
+    if isinstance(settings, str) and settings.strip():
+        val = settings.strip()
+        # hypothesis:l3w0-ladder-roles-table -- "ultracode" is not an effort
+        # level; it is a settings flag the remote ccd sessions on this box
+        # run. The adapter spells it, only this file knows the CLI.
+        if val == "ultracode":
+            obj = {"ultracode": True}
+        else:
+            try:
+                obj = json.loads(val)
+            except (json.JSONDecodeError, ValueError):
+                obj = val
+        args += ["--settings", json.dumps(obj)]
     return args
 
 

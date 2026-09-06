@@ -53,6 +53,41 @@ def rig(tmp_path):
     return {"repo": repo, "root": root, "sess": sess, "ctx": ctx, "skill": skill}
 
 
+def test_no_settings_flag_when_absent(rig):
+    """A row with no settings emits no --settings flag at all."""
+    args = build(rig, "kid")
+    assert "--settings" not in args
+
+
+def test_settings_ultracode_appends_settings_flag(rig):
+    """hypothesis:l3w0-ladder-roles-table — a row whose settings is the
+    string 'ultracode' must append `--settings` carrying {"ultracode": true}."""
+    import json
+    harness = dict(HARNESS, settings="ultracode")
+    args = build(rig, "kid", harness=harness)
+    i = args.index("--settings")
+    assert json.loads(args[i + 1]) == {"ultracode": True}
+
+
+def test_settings_per_tier_map(rig):
+    """Settings may be a per-tier map (ultracode on directors, none on kids)."""
+    import json
+    harness = dict(HARNESS, models=dict(HARNESS["models"], director="claude-fable-5-1"),
+                   settings={"director": "ultracode"})
+    args = build(rig, "kid", harness=harness)
+    assert "--settings" not in args  # kid tier not in the map
+    args_d = build(rig, "director", harness=harness)
+    assert json.loads(args_d[args_d.index("--settings") + 1]) == {"ultracode": True}
+
+
+def test_effort_and_settings_combine(rig):
+    """A row carries both effort (as today) and settings; both reach the CLI."""
+    harness = dict(HARNESS, effort={"kid": "max"}, settings="ultracode")
+    args = build(rig, "kid", harness=harness)
+    assert args[args.index("--effort") + 1] == "max"
+    assert "--settings" in args
+
+
 def build(rig, tier="kid", harness=HARNESS, **kw):
     kw.setdefault("scaffold", SCAFFOLD if tier == "kid" else None)
     kw.setdefault("skill_prompt", rig["skill"])

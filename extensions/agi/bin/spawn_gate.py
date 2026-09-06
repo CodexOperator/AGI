@@ -604,6 +604,24 @@ def read_ladder_season(nodes_dir: Path) -> int | None:
     return None
 
 
+def read_ladder_roles(nodes_dir: Path) -> list | None:
+    """Read the `roles` table from `.geometry/ladder.md`.
+
+    hypothesis:l3w0-ladder-roles-table. Returns the list of row dicts
+    (tier, role, harness, model, effort, settings), or None when the ladder
+    node is missing or has no roles table. None means "no ladder declaration,
+    fall back to config harnesses.*" -- a missing ladder must never block
+    dispatch. An empty declared table returns [] (declared, no rows).
+    """
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md"
+    if not ladder.is_file():
+        return None
+    fm = _read_frontmatter(ladder)
+    if not fm:
+        return None
+    return fm.get("roles")
+
+
 def read_node_season(fm: dict | None) -> int | None:
     """Read `season:` from a node's frontmatter.
 

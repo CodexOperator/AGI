@@ -640,9 +640,18 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     - **loop:** env AGI_LOOP only; absent means absent
     - **model:** env AGI_MODEL only; absent means absent
     - **profile:** env AGI_PROFILE only; absent means absent
+    - **role:** env AGI_ROLE only; absent means absent
 
     A missing env var with no ladder fallback leaves the field absent — never
     fabricates a value (hypothesis:l2w2-writer-stamps).
+
+    A deliberate non-`return` in the season branch: the old implementation
+    returned after a successful AGI_SEASON parse, so in the real dispatch
+    environment -- where dispatch.py sets AGI_SEASON and AGI_LOOP together --
+    the loop/model/profile/role stamps never landed (measured: the
+    `test_minted_node_stamps_loop_model_profile_from_env` test failed under an
+    AGI_SEASON=1 shell). dispatch exports all five before it spawns, so
+    stamping one must not skip the rest.
     """
     import os as _os
 
@@ -650,13 +659,11 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     if env_season is not None:
         try:
             fm["season"] = int(env_season)
-            return  # successful parse — skip fallback chain
         except (ValueError, TypeError):
-            pass  # bad value: fall through to ladder / default
-    if current_season is not None:
-        fm["season"] = current_season
+            # Bad value: fall through to ladder / default.
+            fm["season"] = current_season if current_season is not None else 1
     else:
-        fm["season"] = 1
+        fm["season"] = current_season if current_season is not None else 1
 
     loop = _os.environ.get("AGI_LOOP")
     if loop is not None:
@@ -669,6 +676,12 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     profile = _os.environ.get("AGI_PROFILE")
     if profile is not None:
         fm["profile"] = profile.strip()
+
+    # hypothesis:l3w0-ladder-roles-table — dispatch exports AGI_ROLE for
+    # every spawn so a minted node records which role made it.
+    role = _os.environ.get("AGI_ROLE")
+    if role is not None:
+        fm["role"] = role.strip()
 
 
 # ---------------------------------------------------------------------------

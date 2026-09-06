@@ -303,6 +303,25 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     )
 
 
+def successor_prompt(*, tier: str, body: str,
+                     project_root: Path | None = None) -> str:
+    """The successor prompt for a rotation: the constitution head for the
+    target role ahead of the successor file's body (goal:g1.9,
+    hypothesis:l3w0-rotate-roles).
+
+    rotate.py spawns through this so a successor is handed the same head
+    (prayers, then readings by role -- and the Michael line once
+    hypothesis:l3w0-brief-head-michael lands) that the live role it replaces
+    would have been given, instead of a bare brief with no head. The head is
+    always first; when the ladder declares no read_order for the tier, the
+    body stands alone.
+    """
+    head = _build_head(tier=tier, project_root=project_root)
+    if head:
+        return head + "\n\n" + body
+    return body
+
+
 # ---- director and prime_director tiers --------------------------------------
 
 
