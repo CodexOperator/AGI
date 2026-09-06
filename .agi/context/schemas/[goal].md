@@ -28,13 +28,14 @@ spawn:
     # (parentless_types is now [moral]; the 27 pre-existing roots are
     # season 1, grandfathered, never re-gated).
     long-term:
-      allowed_parents: [build, goal]
+      allowed_parents: [build, goal, vision]
       min_parents: 1
       max_parents: 2
     short-term:
       allowed_parents: [build, goal]
       min_parents: 1
       max_parents: 2
+      # every S goal carries goal:g15 as a mechanical parent (goal:g12.3, done 2026-09-06, 35 of 35)
     subgoal:
       allowed_parents: [build, goal]
       min_parents: 1

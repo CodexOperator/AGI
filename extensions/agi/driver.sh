@@ -268,6 +268,9 @@ iter_run() {
   # goal:g4.3 said before this was traced; that module is reached through
   # `chain_engine/queries.py` instead.
 
+  # 4b. Write guard: detect unsanctioned node edits (warn only, non-fatal)
+  python3 "$PLUGIN_ROOT/bin/write_guard.py" check 2>&1 | tee -a "$LOG" || true
+
   if [[ "$SMOKE" == "true" ]]; then
     echo "[smoke] skipping agent dispatch + heal" | tee -a "$LOG"
     return

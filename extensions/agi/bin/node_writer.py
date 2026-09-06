@@ -51,8 +51,9 @@ of them had been fixed.
 """
 from __future__ import annotations
 
-import json
+import datetime
 import hashlib
+import json
 import os
 import re
 import sys
@@ -111,6 +112,8 @@ BODY_PROMPTS = {
 #: Frontmatter keys that lead, in this order. Everything else follows sorted,
 #: so two writers producing the same node produce the same bytes.
 LEADING_KEYS = ("id", "mint_id", "type", "parents", "next_edges")
+
+WRITE_LOG = "sessions/write-log.jsonl"
 
 WRITTEN = "written"
 SKIPPED = "skipped"
@@ -598,6 +601,10 @@ def write_node(
 
     node_file.parent.mkdir(parents=True, exist_ok=True)
     node_file.write_text(text, encoding="utf-8")
+    _log_write(root, "write_node", node_id, node_file, text, extra={
+        "parents": list(plist),
+        "node_type": ntype,
+    })
     # A new file invalidates `find_node_file`'s whole-corpus index. Dropping it
     # here is what makes caching safe at all: the only routine that adds a node
     # is the only routine that has to remember.
@@ -743,6 +750,7 @@ def update_node(
         tmp.unlink(missing_ok=True)
         raise
 
+    _log_write(root, "update_node", node_id, path, text)
     res.status = UPDATED
     return res
 
@@ -781,7 +789,41 @@ def update_node(
 
 #: Fields this module knows how to derive without a model. Everything else
 #: required-but-absent is reported, never invented.
-def _derive_title(slug: str) -> str:
+def _log_write(root, operation: str, node_id: str, path: Path,
+                text: str = "", *,
+                extra: dict | None = None):
+    """Append one JSON line to the write log under sessions/."""
+    try:
+        root_p = Path(root)
+        log_path = root_p / WRITE_LOG
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "ts": datetime.datetime.utcnow().isoformat() + "Z",
+            "operation": operation,
+            "node_id": node_id,
+            "path": _log_relpath(path, root_p),
+            "sha256": hashlib.sha256(
+                text.encode("utf-8")).hexdigest() if text else "",
+        }
+        if extra:
+            entry.update(extra)
+        with open(log_path, "a") as f:
+            f.write(json.dumps(entry, sort_keys=True) + "\n")
+    except BaseException:
+        pass  # best-effort logging, never breaks a write
+
+
+def _log_relpath(path: Path, root: Path) -> str:
+    """Relative path from root, or absolute if not under root."""
+    try:
+        r = root.resolve()
+        p = path.resolve()
+        return str(p.relative_to(r))
+    except (ValueError, OSError):
+        return str(path)
+
+
+def _derive_title(slug: str):
     """A human-readable title from a slug. A real value, not a placeholder.
 
     `title` is what every human-facing renderer keys on -- `snapshot-goals.py`,
