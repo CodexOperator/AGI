@@ -1,20 +1,24 @@
 ---
-confidence: 1.0
-id: "doc:goals-preamble"
+id: doc:goals-preamble
 mint_id: 657d1fae8f844389b52ef512856181e3
-origin: goals-doc
+type: doc
 parents: []
+confidence: 1.0
+edited_by: director
+origin: goals-doc
 tags:
   - goals-doc
   - preamble
-title: "GOALS.md preamble — the goal contract's own framing"
-type: doc
+thought_session: doc-pass-2026-09-06
+title: GOALS.md preamble — the goal contract's own framing
 ---
+# GOALS.md — agi long-term goals
 
-# GOALS.md — agi-tree long-term goals
-
-`agi-tree` is the thoughtgraph that builds `agi`; `agi` is the code that operates
-on thoughtgraphs. These goals are the **engine's own design contract** — the
+`agi` is the code that operates on thoughtgraphs, and the thoughtgraph that
+built it, in one repo (`goal:g11`): the graph lives in `.agi/`, the engine
+beside it. Before 2026-09-01 the graph was a separate repo called `agi-tree`,
+and goal bodies below still use that name when they describe that era — read
+it as "the graph". These goals are the **engine's own design contract** — the
 durable commitments engine work serves, and **the only place new work is
 recorded**. `agi/TODO.md` was demoted to an archive on 2026-08-22 (L19 action 4):
 it keeps the reasoning behind each closed defect, which is worth preserving, but
@@ -81,7 +85,7 @@ the goal hierarchy are the same mechanism, not two that resemble each other.
 ## The working rule — every change starts here and is built back into the engine
 
 **All future work — fixes, upgrades, extensions, reworks — originates as a node
-in `agi-tree` and is built back into `agi` for subsequent use.** Not "recorded
+in the graph and is built back into the engine for subsequent use.** Not "recorded
 here afterwards": *originates* here. The engine is the artefact this graph
 assembles; a change that appears in the engine without a node behind it is the
 open loop G6 exists to close.
@@ -109,11 +113,12 @@ operations, and the small errors they breed, are the system's job to absorb and
 never the agent's. Full statement: `agi/skills/agi/SKILL.md` §"Why this
 machinery exists".
 
-**Scope boundary (`TODO.md` L8, decided).** `agi` and `agi-tree` stay separate
-repos. This file holds goals about the *engine*; a project holds goals about its
-own domain. `fantasia/GOALS.md` is the reference for the project side — engine
-work must never be tracked in a project repo again (that was fantasia's deleted
-G2).
+**Scope boundary (`TODO.md` L8, revised by `goal:g11`).** The graph and the
+engine share one repo now, but the boundary between *engine* goals and *project*
+goals stands: this file holds goals about the engine; a project holds goals
+about its own domain in its own `GOALS.md`. `fantasia/GOALS.md` is the
+reference for the project side — engine work must never be tracked in a
+project repo again (that was fantasia's deleted G2).
 
 ---
 
@@ -191,3 +196,7 @@ the defect in place and the next agent would have hit it.
 
 This is also why the honest report matters more than the clean one. An agent
 that hides a failure has destroyed the only thing that failure was good for.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Doc pass 2026-09-06: the preamble still opened with agi-tree as a separate repo and a scope-boundary paragraph saying the two stay separate, both contradicted by goal:g11. Rewritten to name one repo and to keep only the part of the boundary that survives: engine goals here, project goals in the project. Goal bodies keep the old name where they describe that era.
+<!-- THOUGHT:END -->

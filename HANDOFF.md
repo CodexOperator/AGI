@@ -19,14 +19,14 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1109** / 181 (smoke, this session) |
+| active nodes / deprecated | **1099** / 191 (smoke after the 2026-09-06 doc pass: 10 legacy build nodes retired, total 1290 held) |
 | goals | 124 (16 active) |
 | `outcome_coverage` (primary) | 0.190 |
 | `evidence_fraction` | 0.375 |
-| tests | 1493 as of L1.13 — **not re-run this session** |
-| broken links | 0 as of L1.13 |
+| tests | **1493** passed, 1 skipped (2026-09-06, `commands.py run tests`) |
+| broken links | 0 (1270 resolved, 2026-09-06) |
 | crons | **OFF**. Push by hand. |
-| branch | `worktree-season-ladder-handoff` (worktree). **Not master.** Owner merges or fast-forwards. |
+| branch | `worktree-doc-pass-legacy` (worktree). **Not master.** Owner merges or fast-forwards, as with the brainstorm branch. |
 | agents live | none |
 | spend this session | $0 — no dispatch |
 
@@ -37,7 +37,9 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 - [x] Found the graph already holds most of the design: `goal:g12`, `g12.1`, `g12.2` (morals, caps, season edge — all `horizon` since 2026-08-29), `[vision]`/`[overview]`/`[bigger_outcome]` with `season:` fields, 0 overviews ever minted, 17 visions none meeting their schema.
 - [x] Brainstormed the ladder, roles, seams, morals, questions, reference texts, prayers, telemetry, comms with the owner over six correction rounds. **All owner-approved.** Written to the brief.
 - [x] Measured the season-1 data point: subgoal 71 / outcome 23; long-term 18 / bigger_outcome 19; vision 17 / overview 0; short-term 35 unplaced; outcomes have 0 goal parents.
-- [ ] **Nothing minted, no schema touched, no engine code changed.** That is loop L2.
+- [x] **Doc pass, 2026-09-06 (director by hand, owner's ask):** `GOALS.md` preamble no longer says `agi-tree`; 10 pre-agi build nodes retired (`autoresearch.*`, `run-loop.sh`, `start.sh`, `schema.sql`, `context/impl/*`) and their files removed, plus file-only leftovers (`_benchmark.py`, `context/kits/`, `context/plans/`); census rows pruned; driver, find-root and agent-prompt headers rewritten for the `.agi/` layout. `context/refs/` kept (31 nodes cite it); `TODO.md` kept as the retired archive.
+- [x] **Director tier declared:** `harnesses.claude-code.models.director = claude-fable-5-1`, `effort: {director: max}`; the adapter accepts a per-tier effort map (one test, verified red). **`brief.py` has no director brief yet** — `--tier director` fails there until L2 wave 3.
+- [ ] **No schema touched, no ladder code.** That is loop L2.
 
 ## §2 🔴 Where it stops, and the next command
 
@@ -120,6 +122,7 @@ new parentless `idea`.
 3. **Payload writes are whole-file.** Engine surgery is ordinary tools plus a `thought` afterwards.
 4. **Attribution is load-bearing in the constitution.** Jeremiah 31:33 and Ephesians 6 are not Jesus; the brief labels them. Keep the labels.
 5. **This branch is a worktree branch, not master.** Merge before dispatching, or every parent commits off master.
+6. **Worktree sessions cannot run git inside loops, heredocs or with computed arguments** — the harness refuses. Batch `write.py` calls in a script file; run moves and removals as plain single commands.
 
 ## §5 Known-good verification sequence
 
@@ -135,7 +138,7 @@ git push origin <branch>
 
 ## §6 BANKED for the owner
 
-1. **Merge this worktree branch to master** before L2 starts (director never pushes master).
+1. **Merge `worktree-doc-pass-legacy` to master** before L2 starts (director never pushes master).
 2. **Pointed Church Slavonic** — accept the unpointed text in the brief, or hand-paste pointed text / an Ostromir passage.
 3. **`goal:s35` waits** (owner decided). Re-confirm after wave 1 lands two more schema files.
 4. **May a parent's `adjust` split a subgoal**, or only reword it? Lean: reword only; splitting is a director's call through the lens.

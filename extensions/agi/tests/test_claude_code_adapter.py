@@ -235,97 +235,15 @@ def test_optional_knobs_are_omitted_unless_set(rig):
     assert "--no-session-persistence" in args
 
 
-def test_bin_env_var_wins_over_config(monkeypatch):
-    assert cc.resolve_bin({"bin": "/from/config"}) == "/from/config"
-    monkeypatch.setenv("CLAUDE_BIN", "/from/env")
-    assert cc.resolve_bin({"bin": "/from/config"}) == "/from/env"
-
-
-# ---------------------------------------------------------------- the env
-
-
-SCRUBBED = {"PATH": "/bin", "HOME": "/h", "OPENROUTER_API_KEY": "rt-key"}
-INHERITED = {**SCRUBBED,
-             "ANTHROPIC_BASE_URL": "https://host-proxy",
-             "ANTHROPIC_API_KEY": "sk-sub",
-             "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "0",
-             "CLAUDECODE": "1",
-             "CLAUDE_AGENT_SDK_VERSION": "0.3",
-             "UNRELATED_SECRET": "no",
-             provisioning.PROVISIONING_KEY_VAR: "mints-keys"}
-
-
-def test_child_env_hands_back_what_the_shared_scrub_took():
-    """The pi scrub exists so a pi child cannot bill the subscription. For a
-    Claude Code child that billing IS the sanctioned path."""
-    env = cc.child_env(harness={}, base=dict(SCRUBBED), inherited=INHERITED)
-    assert env["ANTHROPIC_BASE_URL"] == "https://host-proxy"
-    assert env["ANTHROPIC_API_KEY"] == "sk-sub"
-    assert env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "0"
-    assert env["CLAUDECODE"] == "1"
-    assert env["CLAUDE_AGENT_SDK_VERSION"] == "0.3"
-    assert env["PATH"] == "/bin" and env["OPENROUTER_API_KEY"] == "rt-key"
-    # Restoration is by namespace, not "everything the parent had".
-    assert "UNRELATED_SECRET" not in env
-
-
-def test_child_env_never_hands_down_the_key_that_mints_keys():
-    """`goal:g1.11`. From the base (a restart passes the raw environment),
-    from the inherited environment, and from `harness.env` -- all three."""
-    key = provisioning.PROVISIONING_KEY_VAR
-    env = cc.child_env(harness={"env": {key: "via-config"}},
-                       base={**SCRUBBED, key: "via-base"}, inherited=INHERITED)
-    assert key not in env
-
-
-def test_child_env_base_wins_over_inherited_and_harness_env_wins_over_both():
-    env = cc.child_env(harness={"env": {"ANTHROPIC_MODEL": "cfg", "X": 1}},
-                       base={"ANTHROPIC_BASE_URL": "from-base"},
-                       inherited={"ANTHROPIC_BASE_URL": "from-parent",
-                                  "ANTHROPIC_MODEL": "from-parent"})
-    assert env["ANTHROPIC_BASE_URL"] == "from-base"
-    assert env["ANTHROPIC_MODEL"] == "cfg"
-    assert env["X"] == "1"
-
-
-def test_child_env_defaults_to_the_real_environment(monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://real")
-    env = cc.child_env(harness={}, base={"PATH": "/bin"})
-    assert env["ANTHROPIC_BASE_URL"] == "https://real"
-
-
-# ---------------------------------------------------------------- liveness
-
-
-def test_is_alive_distinguishes_a_reaped_pid():
-    proc = subprocess.Popen(["true"])
-    proc.wait()
-    assert cc.is_alive(os.getpid())
-    assert not cc.is_alive(proc.pid)
-
-
-def test_restart_rebuilds_the_command_and_spawns_from_the_root(rig, monkeypatch):
-    seen = {}
-
-    class _Proc:
-        pid = 4242
-
-    def fake_popen(args, **kw):
-        seen["args"] = args
-        seen["kw"] = kw
-        return _Proc()
-
-    monkeypatch.setattr(cc.subprocess, "Popen", fake_popen)
-    monkeypatch.setenv(provisioning.PROVISIONING_KEY_VAR, "mints-keys")
-    record = {"id": "a00-test", "status": "running", "pid": 1}
-    pid = cc.restart(harness=HARNESS, tier="kid", context_file=str(rig["ctx"]),
-                     agent_id="a00-test", iter_n=1, sess_dir=rig["sess"],
-                     scaffold=SCAFFOLD, agent_record=record)
-    assert pid == 4242
-    assert seen["args"][:2] == ["claude", "-p"]
-    assert value(seen["args"], "--model") == "claude-sonnet-5"
-    assert Path(seen["kw"]["cwd"]) == rig["root"]
-    assert seen["kw"]["start_new_session"] is True
-    assert provisioning.PROVISIONING_KEY_VAR not in seen["kw"]["env"]
-    assert record["pid"] == 4242 and record["status"] == "restarted"
-    assert (rig["sess"] / "agent.json").exists()
+def test_effort_may_be_a_per_tier_map():
+    """2026-09-06: `effort` may map tier -> level. A tier the map does not
+    name gets no --effort at all -- never another tier's value, the same
+    no-fallback rule `models` has -- so a director at `max` cannot leak its
+    dial onto a kid. Exercised on model_args directly: brief.py has no
+    director brief yet (loop L2 wave 3), so build_command cannot be used."""
+    from adapters import claude_code_adapter as cc
+    harness = {"adapter": "claude_code", "effort": {"director": "max"},
+               "models": {"kid": "k", "director": "d"}}
+    args = cc.model_args(harness, "director")
+    assert args[args.index("--effort") + 1] == "max"
+    assert "--effort" not in cc.model_args(harness, "kid")

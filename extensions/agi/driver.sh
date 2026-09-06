@@ -1,23 +1,24 @@
 #!/bin/bash
-# agi-tree driver — orchestrates parallel pi agent dispatch + healing.
+# agi driver — orchestrates parallel pi agent dispatch + healing.
 #
-# Lives in the agi engine. Auto-detects project root by walking up
-# from cwd until it finds agi-tree.config.json (legacy: autoresearch-tree.config.json).
+# Lives in the agi engine. Auto-detects the project root by walking up from
+# cwd to the nearest enclosing `.agi/` holding config.json (goal:g11); a
+# legacy agi-tree.config.json / autoresearch-tree.config.json still resolves.
 #
 # Usage:
 #   driver.sh [--max-iters N] [--delay-mins M] [--smoke] [--no-heal]
 #
-# Project layout expected:
-#   <project>/agi-tree.config.json
-#   <project>/context/INJECTION.md
-#   <project>/nodes/
-#   <project>/sessions/   (created)
-#   <project>/bin/snapshot-build-site.py
-#   <project>/bin/render-context.py
+# Project layout expected (PROJECT_ROOT = <repo>/.agi):
+#   <repo>/.agi/config.json
+#   <repo>/.agi/context/INJECTION.md
+#   <repo>/.agi/nodes/
+#   <repo>/.agi/sessions/   (created)
+#   NEVER <repo>/.agi/bin/snapshot-build-site.py or render-context.py — a
+#   project-local copy shadows the engine's and has wiped a corpus (H0/H0b).
 
 set -euo pipefail
 
-# Resolve real path so symlinks (e.g. ~/.local/bin/agi-tree) point back
+# Resolve real path so symlinks (e.g. ~/.local/bin/agi) point back
 # to the plugin dir, not the symlink dir.
 SCRIPT_REAL="$(readlink -f "${BASH_SOURCE[0]}")"
 PLUGIN_ROOT="$(cd "$(dirname "$SCRIPT_REAL")" && pwd)"
@@ -70,7 +71,7 @@ while [[ $# -gt 0 ]]; do
     --tier) TIER="$2"; shift 2 ;;
     -h|--help)
       cat <<HELP
-agi-tree driver — thoughtgraph loop for agi
+agi driver — the thoughtgraph loop
 
 OPTIONS:
   --max-iters N      Run N iterations (default 1)
@@ -83,8 +84,8 @@ OPTIONS:
                      from harnesses.<h>.models[T] AND the brief from brief.py.
 
 PROJECT ROOT:
-  Auto-detected by walking up from \$PWD looking for
-  agi-tree.config.json (legacy name autoresearch-tree.config.json still works).
+  Auto-detected by walking up from \$PWD to the nearest .agi/config.json
+  (legacy agi-tree.config.json / autoresearch-tree.config.json still work).
 
 PLUGIN ROOT:
   $PLUGIN_ROOT
@@ -96,7 +97,7 @@ HELP
 done
 
 PROJECT_ROOT=$(find_project_root "$PWD") || {
-  echo "ERR: not inside an agi-tree project (no agi-tree.config.json found above $PWD)" >&2
+  echo "ERR: not inside an agi project (no .agi/config.json or agi-tree.config.json found above $PWD)" >&2
   exit 1
 }
 echo "[driver] PROJECT_ROOT=$PROJECT_ROOT"

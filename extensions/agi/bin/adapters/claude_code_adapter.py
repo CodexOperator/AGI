@@ -137,7 +137,9 @@ def model_args(harness: dict, tier: str) -> list[str]:
 
     `effort` is Claude Code's reasoning dial (low|medium|high|xhigh|max),
     the `goal:g4.2` knob pi spells `thinking`. Passed through verbatim so the
-    CLI, not this file, is what rejects an unknown level.
+    CLI, not this file, is what rejects an unknown level. Either one string
+    for every tier, or a mapping by tier (2026-09-06: directors run
+    `claude-fable-5-1` at `max`, kids do not need to).
     """
     args: list[str] = []
     models = harness.get("models") or {}
@@ -151,6 +153,11 @@ def model_args(harness: dict, tier: str) -> list[str]:
         if isinstance(model, str) and model.strip():
             args += ["--model", model.strip()]
     effort = harness.get("effort")
+    if isinstance(effort, dict):
+        # Per-tier dial: {"kid": "high", "director": "max"}. A tier the map
+        # does not name gets no --effort, never another tier's value -- the
+        # same no-fallback rule as models, for the same reason.
+        effort = effort.get(tier)
     if isinstance(effort, str) and effort.strip():
         args += ["--effort", effort.strip()]
     return args

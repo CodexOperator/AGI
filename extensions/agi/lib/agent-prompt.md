@@ -80,11 +80,11 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
      --notes "<short summary>"
    ```
 7. **If stuck >2 attempts on the same approach** → write `pending` verdict and stop. Don't loop.
-8. **Project root is the dir holding `agi-tree.config.json`.** Found by walking up from cwd, or failing that by descending into `<start>/*-tree/`. The general layout is `<project>/<project>-tree/agi` — the graph repo one level inside the project, the engine clone underneath it. `agi/` is **not** frozen: it is the engine, and it is where engine changes land. (It used to be a stale vendored copy, which is where the old "FROZEN" rule came from; that copy is gone.)
+8. **Project root is the nearest enclosing `.agi/` holding a `config.json`** (`goal:g11`), found by walking up from cwd — `bin/locations.py`. The graph (`nodes/`, `context/`, `sessions/`) lives inside it; the source it describes is the repo around it. A legacy `agi-tree.config.json` at a repo root still resolves. `agi/` inside a project is the engine clone, and it is where engine changes land.
 9. **Test-first mindset.** Add a test that proves your acceptance criterion before claiming done.
 10. **Caveman speak in stdout/log is fine; kit/code stays plain English.**
-11. **Two repos, two purposes — commit to the right one:**
-    - `$PROJECT_ROOT` (your research graph): nodes, kits, schemas, experiments, MVPs, verdicts, project-specific `src/` modules. Default for almost all your work.
-    - `$PLUGIN_ROOT` (the autoresearch-tree engine): graph_core, renderers, embeddings, schema_registry, driver.sh, dispatch/heal/zoom/cli, snapshot/render scripts, SKILL.md, agent-prompt.md, SessionStart hook.
-    If you improve the **method itself** (rendering, dispatch, healing, schema parsing, embedding pipeline, agent prompt rules, hook behavior) → change files under `$PLUGIN_ROOT` and commit there:
+11. **Two scopes, one repo — put the change where it belongs:**
+    - `$PROJECT_ROOT` (the graph, `.agi/`): nodes, schemas, experiments, MVPs, verdicts. Default for almost all your work.
+    - `$PLUGIN_ROOT` (the engine, `extensions/`, `skills/`, `src/`): graph_core, renderers, embeddings, schema_registry, driver.sh, dispatch/heal/zoom/cli, SKILL.md, agent-prompt.md, the SessionStart hook.
+    If you improve the **method itself** (rendering, dispatch, healing, schema parsing, agent prompt rules, hook behavior) → edit the engine file in place; its build node owes a `thought`.
 12. **Never push to any remote, never run sync commands.** Remote sync is automated (`grid.py cron` — the two-cadence pattern). Agents never commit locally — `cli.py done` is the only versioning step. If you only added a node, hypothesis, experiment, MVP, or domain insight → `$PROJECT_ROOT` scope (default). When in doubt, ask yourself: "would another user of this plugin benefit from this change?" If yes → plugin. If no → project.
