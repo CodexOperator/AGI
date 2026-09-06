@@ -52,6 +52,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 # every entry point here, so this is a plain sibling import.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+from node_writer import log_write  # noqa: E402
 
 #: **goal:g11.1's first casualty, found the hour the layout changed.** This was
 #: `... or os.getcwd()`: an env var, else whatever directory you happened to be
@@ -412,7 +413,11 @@ def write_frontmatter(path: Path, fm: dict, body: str, origin: str = "",
     lines.append("")
     lines.append(body.strip())
     lines.append("")
-    path.write_text("\n".join(lines), encoding="utf-8")
+    text = "\n".join(lines)
+    path.write_text(text, encoding="utf-8")
+    log_write(PROJECT_ROOT, "write_frontmatter",
+              fm.get("id", "<no-id>"), path,
+              text=text, extra={"origin": origin})
 
 
 def load_existing_nodes() -> dict:

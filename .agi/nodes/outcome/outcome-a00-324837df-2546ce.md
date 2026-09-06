@@ -1,20 +1,24 @@
 ---
-confidence: 0.95
-id: "outcome:a00-324837df-2546ce"
+id: outcome:a00-324837df-2546ce
 mint_id: 5541a39537bc4518b06bdeb78b75a0f5
-next_edges:
-  - bigger_outcome:a00-324837df-2546ce
+type: outcome
 parents:
   - mvp:a00-324837df-2546ce
+next_edges:
+  - bigger_outcome:a00-324837df-2546ce
+confidence: 0.95
+edited_by: ubuntu
+judged_against: goal:g13
+lens: unknown
+season: 1
 status: open
 tags:
   - embeddings
   - node2vec
   - isomorphism
+thought_session: season
 title: "Outcome: Gensim Skip-Gram Embeddings"
-type: outcome
 ---
-
 **Input**: Graph with 2968 nodes, 2440 edges (autoresearch-tree capillary DAG)
 **Output**: dict[node_id → list[float, dim=32]] learned skip-gram embeddings
 

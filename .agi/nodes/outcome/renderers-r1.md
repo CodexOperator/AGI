@@ -1,18 +1,22 @@
 ---
-id: "outcome:renderers-r1"
+id: outcome:renderers-r1
 mint_id: ebf4d73f723a4b4fa5204be534cd3ce2
-next_edges:
-  - bigger_outcome:renderers-r1
+type: outcome
 parents:
   - mvp:renderers-r1
+next_edges:
+  - bigger_outcome:renderers-r1
+edited_by: season.py
+judged_against: goal:g9.4
+lens: goal:g9
+season: 1
 subgraph: false
 tags:
   - renderers
   - R1
+thought_session: season
 title: "renderers/R1: Outcome"
-type: outcome
 ---
-
 **Input:** Graph with nodes + edges
 
 **Output:** Sequence of RenderToken objects

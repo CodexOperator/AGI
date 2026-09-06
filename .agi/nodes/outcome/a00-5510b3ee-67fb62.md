@@ -5,11 +5,15 @@ type: outcome
 parents:
   - mvp:a00-8a013aaf-ca2434
 confidence: 0.7
+edited_by: season.py
+judged_against: goal:g13.1
+lens: goal:g13
 scaffold_hash: 4d1ad36c24dd8644
+season: 1
+thought_session: season
 title: A00 5510b3ee 67fb62
 verdict: inconclusive_lean_proved:70
 ---
-
 # outcome:a00-5510b3ee-67fb62
 
 ## Outcome

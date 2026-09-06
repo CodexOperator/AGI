@@ -1,18 +1,22 @@
 ---
-id: "outcome:embeddings-r2"
+id: outcome:embeddings-r2
 mint_id: a89d76ed6863454aa9a9bcf2ec3b4e32
-next_edges:
-  - bigger_outcome:embeddings-r2
+type: outcome
 parents:
   - mvp:embeddings-r2
+next_edges:
+  - bigger_outcome:embeddings-r2
+edited_by: ubuntu
+judged_against: goal:g11.2
+lens: unknown
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R2
+thought_session: season
 title: "embeddings/R2: Outcome"
-type: outcome
 ---
-
 **Input:** Node embeddings (float vectors), config dict, random seed
 
 **Output:** 2D (x, y) coordinate pairs per node via UMAP projection

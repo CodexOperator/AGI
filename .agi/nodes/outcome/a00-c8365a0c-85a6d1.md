@@ -5,8 +5,13 @@ type: outcome
 parents:
   - mvp:unified-spawn-path
 confidence: 0.7
+edited_by: season.py
 evidence_runs: 0
+judged_against: goal:g4.6
+lens: goal:g4
+season: 1
 status: open
+thought_session: season
 title: A00 c8365a0c 85a6d1
 verdict: inconclusive_lean_proved:70
 wired_at: 1788237714

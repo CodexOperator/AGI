@@ -1,17 +1,21 @@
 ---
-id: "outcome:a00-ddbe3410-outcome003-iterative-traversal"
+id: outcome:a00-ddbe3410-outcome003-iterative-traversal
 mint_id: 95cd99f655ab4216b0bff2cb570abcbc
-next_edges:
-  - bigger_outcome:a00-ddbe3410-bo003-iterative-traversal
+type: outcome
 parents:
   - mvp:a00-ddbe3410-mvp003-iterative-traversal
+next_edges:
+  - bigger_outcome:a00-ddbe3410-bo003-iterative-traversal
+edited_by: season.py
+judged_against: goal:g2.1
+lens: goal:g2
+season: 1
 tags:
   - chain-engine
   - recursion-bug
+thought_session: season
 title: "OUTCOME003: chain traversal unbounded by recursion depth"
-type: outcome
 ---
-
 ## Input
 Recursive `_traverse_from` in `src/chain_engine/chains.py`.
 
