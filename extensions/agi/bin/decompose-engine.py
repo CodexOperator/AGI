@@ -100,9 +100,8 @@ BIN_PREFIX = "extensions/agi/bin/"
 # each holds a handful of files that are one coherent body of material.
 # Subdividing further would be one-unit-per-file for a directory this small.
 DIR_SUBSYSTEM_PREFIXES = [
-    ("context/impl/", "context-impl"),
-    ("context/kits/", "context-kits"),
-    ("context/plans/", "context-plans"),
+    # context/impl, kits, plans retired 2026-09-06 (Hermes/cavekit era);
+    # their build nodes live under nodes/deprecated/build/.
     ("context/refs/", "context-refs"),
 ]
 
@@ -145,13 +144,8 @@ NAMED_ENTRY_POINTS = [
     ("HANDOFF.md", "handoff", "entry_point"),
     (".gitignore", "gitignore", "entry_point"),
     ("package.json", "package-json", "entry_point"),
-    ("schema.sql", "schema-sql", "entry_point"),
-    ("run-loop.sh", "run-loop-sh", "entry_point"),
-    ("start.sh", "start-sh", "entry_point"),
-    ("autoresearch.sh", "autoresearch-sh", "entry_point"),
-    ("autoresearch.md", "autoresearch-md", "entry_point"),
-    ("autoresearch.ideas.md", "autoresearch-ideas", "entry_point"),
-    ("autoresearch.config.json", "autoresearch-config", "entry_point"),
+    # schema.sql, run-loop.sh, start.sh, autoresearch.* retired 2026-09-06 --
+    # pre-agi entry points; nodes deprecated, files gone, grid keeps them.
 ]
 
 KIND_LABEL = {

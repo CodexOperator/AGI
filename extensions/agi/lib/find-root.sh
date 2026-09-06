@@ -17,8 +17,9 @@
 #      run from fantasia/agi/ and you get the engine's.
 #   1. UP: walk up from the starting directory looking for a config file
 #      (agi-tree.config.json, or legacy autoresearch-tree.config.json).
-#      This is the classic layout, where the tree IS the project root
-#      (e.g. this repo: agi-tree.config.json + nodes/ at the top).
+#      This is the pre-goal:g11 layout, where the tree IS the project root
+#      (agi-tree.config.json + nodes/ at the top). This repo no longer
+#      uses it; phase 0 resolves .agi/ here.
 #   2. DOWN: only if phase 1 finds nothing, descend from the starting
 #      directory looking for a tree at <start>/*-tree/.
 #      This is the layout for a generic project that keeps its graph as a
@@ -34,12 +35,13 @@
 #
 # No project name is ever hardcoded here — phase 2 is derived purely from the
 # starting directory's basename and a glob, so this file stays generic across
-# any project (see goal:g8.2 in agi-tree).
+# any project (see goal:g8.2).
 #
 # Source from any other script: `source <plugin>/lib/find-root.sh && PROJECT_ROOT=$(find_project_root)`
 #
-# Compatibility window: the legacy marker autoresearch-tree.config.json is still
-# accepted so existing projects keep working. New projects use agi-tree.config.json.
+# Compatibility window: agi-tree.config.json and autoresearch-tree.config.json
+# are still accepted so pre-goal:g11 projects keep working. New projects use
+# .agi/config.json (phase 0).
 
 # Canonical first, legacy second. Order matters: agi_tree_config_path returns the
 # first that exists, so a project carrying both resolves to the canonical one.
