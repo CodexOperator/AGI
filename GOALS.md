@@ -5929,7 +5929,7 @@ failure-category set exists to make those labels.
 ## Agent Notes
 Long-term, always active, exempt from max_goals_active. Parent of every short-term (S) goal: ids never renumbered, goal_kind stays short-term, they stop being roots. Its bigger_outcome each season is the hazard ledger, goal:s34's home. Bugfixes, edge-case hardening, security fixes, optimization and hazard removal are done in-loop under this goal or under the S goal beneath it that fits. Design: .agi/context/season-ladder-and-morals-brief.md section 2.
 
-## G16 — Telemetry per node, propagated up the ladder — status: horizon
+## G16 — Telemetry per node, propagated up the ladder — status: active
 
 # goal:g16
 
