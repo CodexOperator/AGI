@@ -321,6 +321,15 @@ def main() -> int:
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
 
+    # hypothesis:l2w2-writer-stamps — read season from ladder for AGI_SEASON
+    current_season = spawn_gate.read_ladder_season(
+        root / "nodes" if root else None)
+    if current_season is None:
+        current_season = 1
+        print(f"season: ladder not found, defaulting to {current_season}")
+    else:
+        print(f"season: ladder current_season={current_season}")
+
     iter_dir = locations.iteration_dir(root, args.iter_n)
     iter_dir.mkdir(parents=True, exist_ok=True)
 
@@ -472,6 +481,17 @@ def main() -> int:
             # directory (agent-git/) which exits 1 for tier kid/parent.
             # Only the director or a human session can write to git.
             spawn_env["AGI_TIER"] = args.tier
+            # hypothesis:l2w2-writer-stamps — stamp season / loop / model /
+            # profile into child env so node_writer can pick them up at mint.
+            spawn_env["AGI_SEASON"] = str(current_season)
+            loop_ref = target or "explore"
+            spawn_env["AGI_LOOP"] = f"{loop_ref}@s{current_season}"
+            model_val = harness.get("models", {}).get(args.tier, "")
+            if model_val:
+                spawn_env["AGI_MODEL"] = str(model_val)
+            profile_val = harness.get("profiles", {}).get(
+                args.tier, "balanced")
+            spawn_env["AGI_PROFILE"] = str(profile_val)
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"

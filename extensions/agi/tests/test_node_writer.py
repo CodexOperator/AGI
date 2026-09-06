@@ -88,6 +88,10 @@ def project(tmp_path):
         (d / f"{slug}.md").write_text(
             f"---\nid: {ntype}:{slug}\ntype: {ntype}\n---\n\nbody\n"
         )
+    # Ladder node for season stamping (hypothesis:l2w2-writer-stamps)
+    (nd / ".geometry").mkdir(parents=True, exist_ok=True)
+    (nd / ".geometry" / "ladder.md").write_text(
+        "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 1\n---")
     return tmp_path
 
 
@@ -658,3 +662,124 @@ def test_scalars_and_empty_containers_are_unchanged_by_the_fix():
     assert back["nothing"] is None
     assert back["n"] == 3 and back["s"] == "plain"
     assert "flag: true" in text, "bools stay lowercase yaml"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l2w2-writer-stamps — season / loop / model / profile stamping
+# --------------------------------------------------------------------------
+
+
+def test_minted_node_stamps_season_from_ladder_when_no_env(project):
+    """Without AGI_SEASON env var, season comes from ladder's current_season.
+
+The ladder.md fixture declares current_season: 1."""
+    import yaml
+    res = nw.write_node(project, "hypothesis", "seasoned",
+                        parents=["idea:i1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm.get("season") == 1
+
+
+def test_minted_node_stamps_season_from_env_var(project, monkeypatch):
+    """AGI_SEASON env var wins over the ladder's current_season."""
+    import yaml
+    monkeypatch.setenv("AGI_SEASON", "7")
+    res = nw.write_node(project, "experiment", "env-season",
+                        parents=["hypothesis:h1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm.get("season") == 7
+
+
+def test_minted_node_stamps_loop_model_profile_from_env(project, monkeypatch):
+    """When AGI_LOOP, AGI_MODEL, AGI_PROFILE are set, they are stamped."""
+    import yaml
+    monkeypatch.setenv("AGI_LOOP", "hypothesis:foo@s2")
+    monkeypatch.setenv("AGI_MODEL", "anthropic/claude-sonnet-4")
+    monkeypatch.setenv("AGI_PROFILE", "balanced")
+    res = nw.write_node(project, "verdict", "stamped",
+                        parents=["experiment:e1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm.get("loop") == "hypothesis:foo@s2"
+    assert fm.get("model") == "anthropic/claude-sonnet-4"
+    assert fm.get("profile") == "balanced"
+
+
+def test_minted_node_omits_loop_when_env_absent(project, monkeypatch):
+    """Absent env vars must NOT fabricate values."""
+    import yaml
+    monkeypatch.setenv("AGI_SEASON", "1")
+    # Do NOT set AGI_LOOP, AGI_MODEL, AGI_PROFILE
+    res = nw.write_node(project, "mvp", "bare",
+                        parents=["verdict:v1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm.get("season") == 1
+    assert "loop" not in fm
+    assert "model" not in fm
+    assert "profile" not in fm
+
+
+def test_update_node_does_not_add_stamps(project, monkeypatch):
+    """`update_node` must NOT call `_stamp_env_fields`. An existing node
+    without season/loop/model/profile keeps them absent after an update."""
+    import yaml
+    monkeypatch.setenv("AGI_SEASON", "42")
+    monkeypatch.setenv("AGI_LOOP", "goal:g1@s42")
+    monkeypatch.setenv("AGI_MODEL", "deepseek/deepseek-v4")
+    monkeypatch.setenv("AGI_PROFILE", "fast")
+
+    res = nw.update_node(project, "hypothesis:h1",
+                         set_fm={"verdict": "proved"},
+                         validate=False, announce=False)
+    assert res.status == nw.UPDATED
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert "season" not in fm, "update must not add season"
+    assert "loop" not in fm, "update must not add loop"
+    assert "model" not in fm, "update must not add model"
+    assert "profile" not in fm, "update must not add profile"
+
+
+def test_minted_node_season_defaults_to_1_without_ladder_or_env(
+        monkeypatch, tmp_path):
+    """When no ladder node exists and no env var is set, season defaults to 1."""
+    import yaml
+    # Build a project with NO ladder node and a valid config marker
+    no_ladder = tmp_path / "no-ladder"
+    no_ladder.mkdir(parents=True)
+    (no_ladder / "agi-tree.config.json").write_text("{}")
+    # Minimal schemas
+    sd = no_ladder / "context" / "schemas"
+    sd.mkdir(parents=True)
+    (sd / "[shape].md").write_text(
+        "---\nname: shape\nparentless_types: [idea]\n"
+        "max_parents_ceiling: 2\n---\n")
+    (sd / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nspawn:\n  allowed_parents: [idea]\n"
+        "  min_parents: 1\n  max_parents: 2\n---\n")
+    nd = no_ladder / "nodes"
+    nd.mkdir(parents=True)
+    (nd / "idea").mkdir()
+    (nd / "idea/i1.md").write_text(
+        "---\nid: idea:i1\ntype: idea\n---\n\nb\n")
+
+    res = nw.write_node(no_ladder, "hypothesis", "default-season",
+                        parents=["idea:i1"], announce=False)
+    assert res.written, f"{res.status} {res.reason}"
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm.get("season") == 1
+
+
+def test_env_season_that_cannot_be_parsed_falls_back_to_ladder(
+        project, monkeypatch):
+    """A non-integer AGI_SEASON is silently ignored (falls through to ladder)."""
+    import yaml
+    monkeypatch.setenv("AGI_SEASON", "not-a-number")
+    res = nw.write_node(project, "experiment", "bad-season",
+                        parents=["hypothesis:h1"], announce=False)
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    # Falls back to ladder's current_season: 1
+    assert fm.get("season") == 1
