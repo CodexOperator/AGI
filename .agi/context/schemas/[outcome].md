@@ -14,6 +14,16 @@ fields:
   confidence: {type: float}
   subgraph: {type: bool}
   tags: {type: list}
+  judged_against: {type: str}  # the plan node this report is judged against
+  lens: {type: str}            # the plan node's own parent, stamped for readers
+  alignment: {type: str}       # aligned | adjust | unknown
+  adjust: {type: str}          # one line: what shifts in the plan node
+  season: {type: int}          # which season this outcome belongs to
+  season_parents: {type: list} # season edge, not lineage
+  tokens_in: {type: int}       # telemetry roll-up: tokens consumed
+  tokens_out: {type: int}      # telemetry roll-up: tokens produced
+  cost_usd: {type: float}      # telemetry roll-up: cost in USD
+  accepted_bytes: {type: int}  # telemetry roll-up: accepted diff bytes
 validation:
   required: [id, type, mint_id, title, parents, next_edges]
   types:
@@ -27,33 +37,30 @@ spawn:
 
 # outcome
 
-Fusion of in-code documentation + README. Records what an MVP does in
-input → output terms. Aggregates upward into `bigger_outcome` and eventually
-`vision`.
+**Report node for tier 0.** A kid returns a verdict; the parent judges it
+against the subgoal through the lens of the long-term goal above. Records
+what an MVP does in input → output terms. Aggregates upward into
+`bigger_outcome` and eventually `vision`.
 
 ID prefix: `outcome:<short-slug>`.
 
 **This is the type `outcome_coverage` — the project's primary metric — is
-computed from.** Which is why its schema being fiction mattered more than the
-node count suggests.
+computed from.**
 
 ## Spawn rule
 
-`allowed_parents: [mvp, verdict]`, `max_parents: 2`. Observed over 19 nodes:
-`mvp` 19, `verdict` 2. **Zero parentless.**
+`allowed_parents: [mvp, verdict]`, `max_parents: 2`, `min_parents: 1`.
 
-## Repair: three of the four required fields were carried by no node
+## Ladder rationale (season-ladder-and-morals-brief §1)
 
-Pre-2026-08-25 `required: [title, input_shape, output_shape, behavior]`.
-Measured: `title` 19/19, `input_shape` **0/19**, `output_shape` **0/19**,
-`behavior` **0/19**. The i/o contract that defines what an outcome node *is*
-was declared required and then written by nothing, for all 19 nodes, with no
-error ever raised — because no code path ran this schema against a node.
+An outcome is judged against its (sub)goal through the lens of the long-term
+goal above. The judgment record (`judged_against`, `lens`, `alignment`,
+`adjust`) is stamped on the report node, not as a new type. Counts are
+measured at season close, never enforced as floors.
 
-All three are kept declared and moved to optional, on the same reasoning as
-`[mvp].md`'s `source_files`: they describe the type's actual job, and the gap
-is a finding to report rather than a fact to legislate away. `required:` now
-lists only what 19/19 carry.
+Collapse ratios are data, not rules: outcome→bigger_outcome ratio is subgoals
+per LT goal. `min_parents: 1` is the floor for DAG consistency — a report
+with no plan is an orphan.
 
 ## The `THOUGHT` block (goal:g2.11)
 
