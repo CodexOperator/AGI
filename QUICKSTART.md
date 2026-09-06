@@ -164,3 +164,12 @@ model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
 | `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g13.1 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
+
+## Write guard hook (goal:g13.1, L2 wave 1.5)
+
+Every sanctioned node write is logged to `.agi/sessions/write-log.jsonl`; `write_guard.py check` warns about any node changed outside `write.py` (the smoke path runs it, warn-only). To refuse such commits locally, install the hook once per clone:
+
+```bash
+mkdir -p .githooks && python3 extensions/agi/bin/write_guard.py hook > .githooks/pre-commit && chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
+```

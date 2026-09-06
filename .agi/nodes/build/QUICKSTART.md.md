@@ -1,23 +1,24 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:QUICKSTART.md"
+id: build:QUICKSTART.md
 mint_id: 7867cc7526ba4dceaffbdd48ad884316
-next_edges: []
-origin: build-scan
+type: build
 parents:
   - build:HANDOFF.md
   - goal:s30
+next_edges: []
+build_kind: prose
+confidence: 1.0
+edited_by: director
+origin: build-scan
 payload_ref: QUICKSTART.md
 scaffold_hash: 694a033d7c07e588
 tags:
   - build
   - prose
   - g2.1
+thought_session: agi-master-2026-09-06
 title: "Build: QUICKSTART.md"
-type: build
 ---
-
 `QUICKSTART.md` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

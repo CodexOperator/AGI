@@ -3,9 +3,11 @@ name: vision
 derived_from: corpus-survey-2026-08-25 (n=17 as app_purpose); renamed app_purpose -> vision 2026-08-27; spawn block PRESCRIPTIVE from that date
 fields:
   title: {type: str}
-  parents: {type: list}      # overview ids
+  parents: {type: list}      # moral ids — the constitution a vision is grounded in
   season: {type: int}        # which season this version of the vision belongs to
+  season_parents: {type: list}   # overview ids from the previous season — NOT lineage, see [shape].md
   proposes_goals: {type: list}   # goal ids this vision proposes -- NOT lineage, see [shape].md
+  moral_adherence: {type: dict}  # one entry per moral parent: aligned | violated | unknown
   next_edges: {type: list}
   tags: {type: list}
   status: {type: str}        # open | active | closed
@@ -17,10 +19,10 @@ validation:
     parents: list
     tags: list
 spawn:
-  allowed_parents: [overview]
-  min_parents: 2
+  allowed_parents: [moral]
+  min_parents: 1
   max_parents: 4
-  min_parents_by_type: {overview: 2}
+  min_parents_by_type: {moral: 1}
 ---
 
 # vision
@@ -62,34 +64,50 @@ overviews assemble `vision@season 2`. Instance-level, that is a DAG: no node
 is ever its own ancestor, because the vision that proposes a goal is a
 different, earlier version than the vision that goal eventually feeds.
 
-## Spawn rule — PRESCRIPTIVE, like `[bigger_outcome].md`
+## Spawn rule — PRESCRIPTIVE (L2 wave 1)
 
-`allowed_parents: [overview]`, `min_parents: 2`, `max_parents: 4`,
-`min_parents_by_type: {overview: 2}`.
+`allowed_parents: [moral]`, `min_parents: 1`, `max_parents: 4`,
+`min_parents_by_type: {moral: 1}`.
 
-Measured over all 17 nodes before the rename: parents were `bigger_outcome`
-15 and `outcome` 2, and **`overview` 0** — the type did not exist. So 17 of 17
-violate the new rule and keep their place; the gate runs on the writer path
-(G7). This is a floor for what gets written from here on.
+A vision is now grounded in at least one moral (the constitution). The
+previous season's overviews migrate to `season_parents:` (role: season,
+non-traversable for chain depth). Cap of 3 visions from season 2 lives on
+`.agi/nodes/.geometry/ladder.md`.
 
-Two overviews minimum is the convergence forcing. A vision assembled from a
-single overview is a rename of that overview, not a synthesis, and the whole
-point of this end of the graph is that it is **harder to earn than the middle**.
+The 17 season-1 visions remain on `bigger_outcome` directly and are
+grandfathered: they keep their structure, get retagged `season: 1` and
+`status: closed` in wave 4, and still validate because the schema change is
+creation-time only (G7).
 
 ## Seasons
 
-`season: <int>` distinguishes versions of the vision. It is not a `@v2` node
-and not a `supersedes:` pair — those are forbidden here as everywhere (G6.3);
-a new season is a **new node**, because it has different parents (the
-overviews of that season) and makes different proposals. Contrast with the
-grid, which versions *the same* node as it is edited. Both dimensions exist
-and they answer different questions: the grid says "how did this node change",
-the season says "which iteration of the vision is this".
+`season: <int>` distinguishes versions of the vision. `season_parents:` holds
+the previous season's overview ids — the `role: season` edge that bounds
+chains across seasons without entering chain depth (see `[shape].md :: edge_fields`).
+
+It is not a `@v2` node and not a `supersedes:` pair — those are forbidden here
+as everywhere (G6.3); a new season is a **new node**, because it has different
+parents (the morals of that season) and makes different proposals. Contrast
+with the grid, which versions *the same* node as it is edited. Both dimensions
+exist and they answer different questions: the grid says "how did this node
+change", the season says "which iteration of the vision is this".
 
 The scoring loop this enables — assemble a vision from overviews without
 looking at the previous one, then measure how close it landed — is **designed
 and not built**. What is built is the field and the acyclic shape that makes
 it expressible. Recorded as the residual, not claimed as done.
+
+## Moral adherence
+
+`moral_adherence:` is a dict with one key per moral parent. Each value is one
+of `aligned`, `violated` or `unknown`. Populated during the overview's
+moral audit at season close; a vision inherits its overviews' audits.
+
+| key | meaning |
+|---|---|
+| aligned | all overviews under this vision report the moral as satisfied |
+| violated | any overview reports this moral violated |
+| unknown | no overview has answered this moral's question yet |
 
 ## The `THOUGHT` block (goal:g2.11)
 

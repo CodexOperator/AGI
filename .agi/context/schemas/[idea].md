@@ -4,7 +4,8 @@ derived_from: corpus-survey-2026-08-25 (n=71)
 fields:
   title: {type: str}
   scale: {type: str}       # "big" | "small"
-  parents: {type: list}    # goal ids, or empty -- idea is parentless-legal
+  authors: {type: list}    # list of agent ids; for co-authored memo ideas every listed author is required (goal:g12.2, section 2 Ideas as memos)
+  parents: {type: list}    # goal or vision ids, or empty -- idea was once parentless-legal
   next_edges: {type: list}
   tags: {type: list}
   confidence: {type: float}
@@ -21,11 +22,13 @@ validation:
     scale: '^(big|small)$'
     status: '^(open|active|extended|abandoned|deprecated)$'
 spawn:
-  allowed_parents: [goal]
+  allowed_parents: [goal, vision]
   # No longer parentless-legal (parentless_types is now [moral]; the 42
   # pre-existing parentless ideas are season 1, grandfathered).
+  # A co-authored memo idea names every author and lists every goal/vision
+  # parent the memo emerges from; authorship rules in section 2 (goal:g12.2).
   min_parents: 1
-  max_parents: 1
+  max_parents: 2
 ---
 
 # idea
@@ -38,19 +41,26 @@ fork mid-chain.
 
 ID prefix: `idea:<short-slug>` (e.g. `idea:capillary-dag-memory`).
 
-## Spawn rule — one goal parent, no longer parentless-legal
+## Spawn rule — goal or vision parent, no longer parentless-legal
 
 `min_parents: 1`. Since `goal:g12`, `moral` is the **only** parentless-legal
 shape (`[shape].md :: parentless_types`); `idea` lost that status at
 creation time. The 42 pre-existing parentless ideas are season 1,
-grandfathered, never re-gated. Every new idea names a `goal`, because a
-parentless idea is attributable to no goal and therefore cannot move
-`outcome_coverage`.
+grandfathered, never re-gated. Every new idea names a `goal` or `vision`,
+because a parentless idea is attributable to no goal and therefore cannot
+move `outcome_coverage`.
 
-`max_parents: 1` — never more than one goal observed. Raising it is a
-deliberate act: bump this **and** `max_parents_ceiling` in `[shape].md`.
+`max_parents: 2` — widened from 1 on 2026-09-06 to allow a co-authored
+memo idea (section 2, goal:g12.2) that emerges from two goals/visions. An
+idea with two vision parents is a synthesis of two convergence outcomes; an
+idea with two goal parents is a cross-chain memo.
 
-## Repair: the declared `status` enum did not match the corpus
+## The `authors` field (goal:g12.2, section 2)
+
+`authors: [list of agent ids]`. For a co-authored memo idea, every listed
+author is required to exist as an agent node. A solo-authored idea may omit
+the field. The field is provenance, not lineage, and is tracked as such in
+`[shape].md :: edge_fields`.
 
 The pre-2026-08-25 regex was `^(open|extended|abandoned)$`. Measured: `open`
 66, `active` 1, `extended` 0, `abandoned` 0. So the one value actually in use
