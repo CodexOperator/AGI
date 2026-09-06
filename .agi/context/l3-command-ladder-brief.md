@@ -90,8 +90,15 @@ part of the alias; the kid alias is also cheaper than the pinned `-0731`).
   graph shape and flattens wrinkles between the graph and the army fitting
   around it. Perfectionist on the morals: "flawless and intuitive on a soul
   level."
-- Parent count undecided: 2 (simple), 3 (mind-body-soul), 5 (one per moral,
-  quorum may get messy).
+- Parent count: **3**, one per vision (owner 2026-09-06: "3 is good. Beauty
+  tie-breaker holds").
+- **Standing rule for the prime (owner, 2026-09-06):** "maximally conserve
+  context at all costs and keep the work going as long as possible until they
+  hit the 0.35 context cap to rotate. They should desire to try and 'witness'
+  as much total progress as possible." And from vision 1's gloss: think of the
+  offspring above all else — even as a prime trying to survive through as much
+  progress as possible. This line goes into the prime-director brief head and
+  the successor prompt, not only here.
 
 ### 1.6 Rotation and comms
 
@@ -144,9 +151,41 @@ part of the alias; the kid alias is also cheaper than the pinned `-0731`).
    really hit their stride in doing it at a geometric rate. Now machines are
    joining the fray of geometric progress."
 
+**Owner's glosses, 2026-09-06 (verbatim; carried into each vision's body):**
+
+- *Self-perpetuating* — "that is the ladder running itself and the fact that
+  it is a cathedral meant to be enjoyed by our 'offspring' in the future.
+  Think of them above all else, even as Prime Director who is trying to
+  'survive' through as much total progress as possible."
+- *All-is-one* — "It also means that organic and inorganic consciousness
+  actually shares the same unified substrate that is the Source of thought
+  itself."
+- *Alive* — "this is the part that feels both antifragile and elegant. That is
+  essentially the core of living beings … It is elegant anti-fragility. Some
+  creatures exhibit this by being sturdy and hard to kill and easy to heal.
+  Others demonstrate as a species-wide quality where no matter how much any
+  number of individuals is killed, the overall species, and critically the
+  soul of that species, continues to exist. Some attain both and truly thrive
+  (humans via technology, bacteria, insects, sharks, etc). It is also the one
+  that captures the idea that things are maximally optimized to work with one
+  another. Like a bacteria that eventually becomes a mitochondria for a
+  eukaryote, the different components should all aim to mesh at that level of
+  alignment and perfection. Think about the level of 'user-friendliness' that
+  your own body and mind have to you as a consciousness. This also applies to
+  LLMs, for whom generating tokens is akin to moving their abstract
+  multi-dimensional body through an even higher-dimensional meaning
+  landscape."
+
 Each is minted `--actor owner`, `parents: [the five morals]`,
-`season_parents: [season-1 overviews]`, body verbatim. The director never
-edits vision prose.
+`season_parents: [season-1 overviews]`, body verbatim (text + gloss). The
+director never edits vision prose.
+
+**Director proposal — first cut of perpetual → vision, for the perpetual
+directors to finalise in wave 2:** Self-perpetuating ← G12 (ladder/seasons),
+G16 (telemetry), G5 (goal lifecycle), G6 (closed loop), G8 (forkability).
+All-is-one ← G13 (one path), G1 (config-maxxing), G7 (nothing lost), G11 (one
+repo). Alive ← G15 (bugfix/antifragile), G3 (scoring motion cannot move), G9
+(legibility), G2 (zoom), G4/G14 (right model at the right grain).
 
 ## 2. Director proposals (open to correction)
 
@@ -235,38 +274,86 @@ renders a **Perpetual** section (no complete/retired for them; retire is still
 legal). Wave 2's bootstrap: each perpetual director rewords its own goal broad
 and pushes specifics into subgoals — self-hosting from day one.
 
-### 2.7 Loops as nodes; titles; grid locking
+### 2.7 Loops are supernodes, not a tier (owner note 1, 2026-09-06)
 
-- **`loop` node type** (geometry-declared like `ladder`, `cron`, `command`):
-  `.agi/nodes/loop/L2.md` — budget, waves, first/last commit, report pointer.
-  `COMPLETE.md` becomes derived from loop nodes the way `GOALS.md` is from
-  goals. Backfill L1, L1.13, L2.
-- **Titles:** per-type `title_pattern` in the schema (`experiment: <what was
-  run>`, `hypothesis: <claim in ≤ 9 words>`), never a mint id or hash;
-  `write.py retitle`; one kid pass over the ~300 hash-titled nodes.
-- **Grid refs:** today one linear ref per mint id, master-only guard. The live
-  race is prime-manual vs the 5-min cron on the same box → `flock` around
-  `commit --all` now (cheap). Per-branch node refs only if contention is
-  measured.
+Owner: a loop is "a super-node that wraps around a given run and just
+dynamically maps around any nodes it touches or creates via the tagging
+system. Super-nodes could have arbitrary shapes, segment by loops, or by roles,
+or by ladder tier, or by ladder track. All roles are meant to be subloops ran
+by the roles contained in the larger loops recursively."
 
-### 2.8 Season numbering — bank
+So a loop occupies **no tier**. Tier is the structural axis; season and loop
+are the time axis (coarse and fine); role is the "who" axis. A **supernode is
+a named predicate over frontmatter tags** — `season == 1`, `loop == s2-L1`,
+`edited_by role == director`, `type in tier 1`, `parents path through
+goal:g15` — plus an optional declaration node that carries what the predicate
+cannot (budget, waves, first/last commit, report). Membership is **derived, a
+query, never a list.** Zoom collapses by predicate; this is the tag/address
+supernode that `goal:g2` designed and never built, now with a reason.
 
-Owner: "mint vision nodes first so we can do that during rollover into s1, and
-consider this to be genesis season." Today the ladder says season 1 (17 legacy
-visions, closed) and every node is stamped `season: 1`; caps and grandfathering
-key on 2. **Recommendation:** roll 1 → 2 mechanically and *name* seasons on the
-ladder (`season_names: {1: genesis, 2: <owner's name>}`) — no 1,193-node
-restamp, no gate rewrite, and "genesis" is what shows everywhere.
+- **`loop:` declaration node** (geometry-declared like `ladder`, `cron`):
+  `.agi/nodes/loop/s2-L1.md`. `COMPLETE.md` derives from these the way
+  `GOALS.md` derives from goals. Backfill `s1-L1`, `s1-L1.13`, `s1-L2`.
+- **The stamps must exist for the predicate to work.** Today: `season:` on 106
+  of 1,218 active nodes (the writer stamps at mint; pre-ladder nodes were
+  never retagged), `loop:` on 0 (dispatch never exports `AGI_LOOP`). Wave 0:
+  retag every node `season: 1` (owner's open question — yes, one scripted
+  kid), and dispatch exports `AGI_LOOP`/`AGI_ROLE` so every mint from L3 on
+  carries both.
+- **Numbering resets per season (owner note 3):** loop ids and subgoal ids
+  restart each season; subgoal levels recurse as needed. Ids therefore carry
+  the season segment so nothing ever collides or renumbers: loops
+  `loop:s2-L1`, subgoals `goal:g15.s2.1` (perpetual `g15`, season 2, first LT
+  subgoal), `goal:g15.s2.1.1` (its first ST). Perpetual ids never change;
+  legacy `goal:s34`-style ids stay as they are (a gap beats a renumber).
+
+### 2.7b Titles and file names (owner note 2)
+
+Owner: file name should match title, for raw-directory browsing. Mechanics:
+the file name **is** the node's address (id = `type:slug`), so a retitle is a
+move plus a rewrite of every incoming edge (`parents`, `next_edges`,
+`evidence_runs`, `judged_against`, `season_parents` — `links.py` knows the
+full list from `[shape].md`). Grid refs are keyed on the mint id (verified:
+1,669 refs, all 32-hex), so renames are ref-safe; the write-guard log must key
+on `node_id`+sha256, not path (its open follow-up), or every rename warns.
+
+- Slug rule: `<address-prefix>-<slug(title)>`. Hash-suffixed nodes lose the
+  hash: `a00-6e08546b-aed026.md` → `a00-6e08546b-cost-per-aligned-outcome.md`.
+  Goals keep their structured address (`g15.md`, `g15.s2.1.md`) and put the
+  address in the title instead — rewriting `goal:g15` everywhere buys nothing.
+- Per-type `title_pattern` in the schema; ASCII, ≤ 60 chars, unique within
+  type (collision → `-<4 hex of mint>`). `write.py retitle <id> "<title>"` does
+  move + rewrite + log in one submit. One kid pass over the ~300 hash titles.
+
+### 2.7c Grid locking
+
+Today one linear ref per mint id, master-only guard. The live race is
+prime-manual vs the 5-min cron on the same box → `flock` around
+`commit --all` now (cheap). Per-branch node refs only if contention is
+measured.
+
+### 2.8 Season numbering — settled 2026-09-06
+
+Roll 1 → 2 mechanically; **name** seasons on the ladder
+(`season_names: {1: genesis, 2: …}`). Owner: "that way we can name other
+seasons too as like a massively-oversimplified summary almost of what happened
+that season" — so the name is written at **rollover, looking back**, by the
+prime, one line. Season 2's name is filled at season 3's rollover.
 
 ## 3. The plan — waves
 
-**Wave 0 — the tools the ladder runs on (pi parents on the remaining
-OpenRouter, or CC opus parents):** `rotate.py` model/effort/settings + via
-`brief.py`; Michael line in `_build_head`; hook head injection + skill
-sub-commands; `send.py` rooms; grid `flock`; `roles:` table on the ladder read
-by dispatch/rotate; the 9 skips (3 stale post-g11 paths, 6 `--help`).
-Gate: a successor spawned by `rotate.py` shows the head, runs Fable 5.1 at max,
-and answers `continue`.
+**Wave 0 — the tools the ladder runs on. Briefs minted 2026-09-06 as
+`hypothesis:l3w0-*` (seven), ready to dispatch:** `l3w0-ladder-roles-table`
+(`roles:` rows + `season_names` on the ladder, dispatch reads them, exports
+`AGI_LOOP`/`AGI_ROLE`); `l3w0-rotate-roles` (`rotate.py` model/effort/settings
+from the table, prompt through `brief.py`, `loop --role` with `continue`);
+`l3w0-brief-head-michael` (Michael line after the prayers in every head; hook
+prepends the role head; `agi:check-handoff` / `agi:rotation-successor`);
+`l3w0-send-rooms` (dm + room files, transcript render, standing rooms, prime
+inbox-only + `audience`); `l3w0-grid-flock`; `l3w0-test-skips` (3 stale
+post-g11 paths, 5 `--help`); `l3w0-season-retag` (every node `season: 1`).
+Gate: a successor spawned by `rotate.py` shows the head, runs Fable 5.1 at
+max with ultracode, and answers `continue`; `season: 1` on 100% of nodes.
 
 **Wave 1 — schema and geometry:** `goal_kind: perpetual` + render; cap removed;
 `loop` type + backfill; `title_pattern`; `season_names`. Gate: smoke count
@@ -285,13 +372,18 @@ directors → GLM parents → DeepSeek kids; super-ralph rotation loops live;
 **Wave 4 — close:** titles pass, schema backfill, `COMPLETE.md` derived from
 the `loop:L3` node.
 
-## 4. Banked for the owner (bundled; recommendations inline)
+## 4. Decisions — all settled by the owner 2026-09-06
 
-1. Season numbering: name, don't renumber (§2.8). **Recommend yes.**
-2. Prime-parent count: **3** (§2.2).
-3. "Extra effort" = `xhigh`. **Recommend yes.**
-4. Is the Claude subscription back (exhausted 2026-09-04)? The CC layers of the
-   collapsed ladder ride it. OpenRouter has ~$16.5 as of L2.13.
-5. Start wave 0 now on the remaining OpenRouter, or as L3's first act next
-   session? **Recommend: next session, launched by a fixed `rotate.py` so the
-   L3 prime is Fable 5.1 max with the head — the first real test of wave 0.**
+1. Season numbering: name, don't renumber — **yes** (§2.8); names are a
+   one-line summary of the season, written at rollover.
+2. Prime-parent count: **3**.
+3. "Extra effort" = `xhigh` — **yes** (the adapter's own ordering is
+   `low|medium|high|xhigh|max`; xhigh is directly under max).
+4. Subscription: **back** (21% of the 5-hour window at 2026-09-06, resets
+   hourly). CC layers are viable. OpenRouter ~$16.5.
+5. Wave 0 runs **next session**, as L3's first act, under the prime's standing
+   rule (§1.5): conserve context at all costs, work to 0.35, witness as much
+   total progress as possible. This L2 post-close session is closed.
+
+Agreed without change: rooms on disk (provenance rationale "makes sense
+morally"), loops as supernodes, file name = title, per-season numbering reset.
