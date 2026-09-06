@@ -2,7 +2,8 @@
 id: goal:s33
 mint_id: 70fc9c0443ec43bc89f18b769187a114
 type: goal
-parents: []
+parents:
+  - goal:g15
 next_edges: []
 confidence: 1.0
 edited_by: director
@@ -17,7 +18,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: L1.13
+thought_session: agi-master-2026-09-06
 title: "S33: The docs say what the tree does now"
 ---
 # goal:s33

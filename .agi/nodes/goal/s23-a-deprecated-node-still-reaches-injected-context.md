@@ -1,10 +1,14 @@
 ---
+id: goal:s23
+mint_id: 8274f7365bf5494ebecab0336e63ba85
+type: goal
+parents:
+  - goal:g15
 confidence: 0.8
+edited_by: director
 goal_id: S23
 goal_kind: short-term
 heading_level: 2
-id: "goal:s23"
-mint_id: 8274f7365bf5494ebecab0336e63ba85
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S23: A deprecated node still reaches injected context"
-type: goal
 ---
-
 **Measured 2026-09-02, during the goal sweep.** `build:TODO.md` and
 `idea:engine-todo` were marked `status: deprecated` and moved to
 `.agi/nodes/deprecated/`. `driver.sh --smoke` was re-run. **`build:TODO.md` is

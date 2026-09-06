@@ -1,10 +1,14 @@
 ---
+id: goal:s13
+mint_id: 199d522645cc4f84957fd23fda49dfc7
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S13
 goal_kind: short-term
 heading_level: 2
-id: "goal:s13"
-mint_id: 199d522645cc4f84957fd23fda49dfc7
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S13: `write_frontmatter` serialized YAML null as the string \"None\""
-type: goal
 ---
-
 Fixed 2026-08-25. `write_frontmatter` in `bin/snapshot-goals.py` — the **shared**
 serializer that `level3.py` and `decompose-engine.py` import by file path
 specifically so there is one writer and no field erasure — turned a real YAML

@@ -1,10 +1,14 @@
 ---
+id: goal:s28
+mint_id: c43a2514d4a843339de9e0f4244232a3
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S28
 goal_kind: short-term
 heading_level: 2
-id: "goal:s28"
-mint_id: c43a2514d4a843339de9e0f4244232a3
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S28: A parent erases itself from the iteration manifest by spawning a kid"
-type: goal
 ---
-
 **Found by the parent, in its `struggles:` line, on the second parent-tier run
 (2026-09-02). Third time this session that field beat the review it came
 attached to.** Quoted verbatim:

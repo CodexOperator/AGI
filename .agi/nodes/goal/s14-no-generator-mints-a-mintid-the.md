@@ -1,10 +1,14 @@
 ---
+id: goal:s14
+mint_id: 64daaa144abb4309b36b0bab107ede85
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S14
 goal_kind: short-term
 heading_level: 2
-id: "goal:s14"
-mint_id: 64daaa144abb4309b36b0bab107ede85
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S14: No generator mints a `mint_id`; the backfill is the only assigner"
-type: goal
 ---
-
 Every node a generator creates arrives without a `mint_id`, so `grid.py commit
 --all` skips it with a loud per-node error until `bin/backfill-mint-ids.py` runs.
 Affects `level3.py`, `snapshot-goals.py`, `decompose-engine.py` and the

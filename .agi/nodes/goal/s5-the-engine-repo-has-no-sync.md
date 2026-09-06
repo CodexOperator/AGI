@@ -1,10 +1,14 @@
 ---
+id: goal:s5
+mint_id: 9cfe86f4759648ed914615ddc2e4b019
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S5
 goal_kind: short-term
 heading_level: 2
-id: "goal:s5"
-mint_id: 9cfe86f4759648ed914615ddc2e4b019
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S5: The engine repo has no sync at all"
-type: goal
 ---
-
 `agi-tree` got both grid cadences on 2026-08-22 (**S2**). **`agi` got nothing** —
 no cron, and as of that date 11 unpushed commits on `master` carrying every
 engine fix this session produced.

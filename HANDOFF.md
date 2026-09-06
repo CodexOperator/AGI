@@ -41,11 +41,11 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 3. **Rotation 0.35 and council quorum (§7) confirmed as written.**
 4. **Disk**: owner granted deletion of every other repo whose remote is up to date. Done this session: pushed the one unpushed ML branch, christenArts main (+9), two hermes stashes as `stash/*` branches, belam's dirty canvas json as `wip/2026-09-06-canvas-progress`; then deleted `machinelearning` (14G), `machinelearning-hermes`, `belam-codex`, `christenArts`, `agi-tree`, `fencePros`, `/tmp/pytest-of-ubuntu` (2.5G). **Left**: `machinelearning-modularnn-spike-viz` (787M, not a git repo, no remote to verify — banked), `fantasia` (worked example, dirty), tiny repos. Grid storage: git already delta+zlib packs the grid; `git gc` took `.git` 63M → 23M. Zips would not beat pack deltas — no grid compression work needed.
 5. **Spend**: $30 OpenRouter is the cap once topped. Subscription was exhausted 2026-09-04 by stress-testing; the fallback ladder is opus parents / sonnet kids at max.
-6. **Successor first prompt**: test remote-control first; if it needs the owner's tap, bank and pause.
+6. **Successor first prompt — TESTED, works hands-off** (2026-09-06 02:47): `claude --remote-control <name> --permission-mode bypassPermissions "<prompt>"` run in a tmux window **with a TTY (no pipe to tee — piping makes it print-mode and exit)** takes the prompt, answers, and stays live under Remote Control with a claude.ai/code URL. No owner tap needed. This is the rotation transport.
 
 **Live checklist (this session)**
 - [x] smoke 1099 active / 1290 total, tests 1487, disk freed, handoff carried
-- [ ] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15`
+- [x] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15` (commit after this line)
 - [ ] wave 1 dispatch, 2 parents at a time, one kid per schema file
 - [ ] five moral nodes by hand (owner text verbatim)
 - [ ] wave 1.5: ladder node, rotation script, RC successor test, unsanctioned-write check

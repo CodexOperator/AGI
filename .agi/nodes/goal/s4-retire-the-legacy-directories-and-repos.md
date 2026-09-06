@@ -1,10 +1,14 @@
 ---
+id: goal:s4
+mint_id: 351125dd5d3942a2aa032920cb12771c
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S4
 goal_kind: short-term
 heading_level: 2
-id: "goal:s4"
-mint_id: 351125dd5d3942a2aa032920cb12771c
 origin: goals-doc
 seeds: []
 status: horizon
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S4: Retire the legacy directories and repos"
-type: goal
 ---
-
 Housekeeping carried from TODO **C1–C6**, gated on bug-sweep clearance and
 grouped here because none of it is worth its own long-term goal:
 

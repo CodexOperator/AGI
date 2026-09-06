@@ -1,10 +1,14 @@
 ---
+id: goal:s10
+mint_id: 32ab6af9735040b6bc3242f903cc5ba8
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S10
 goal_kind: short-term
 heading_level: 2
-id: "goal:s10"
-mint_id: 32ab6af9735040b6bc3242f903cc5ba8
 origin: goals-doc
 seeds: []
 status: retired
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S10: the purged gamed mass is still on disk inside agi-tree"
-type: goal
 ---
-
 Found 2026-08-23. **G6.2 says the 28,916 gamed `-extend<N>` nodes were "removed
 from the working tree and archived outside the repo." The first half is not
 true.** `.claude/worktrees/wonderful-lamport-51c9a9/` — a git worktree registered

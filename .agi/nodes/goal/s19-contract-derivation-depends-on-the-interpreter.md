@@ -1,22 +1,24 @@
 ---
+id: goal:s19
+mint_id: ed6a7e053b2e4959aa04ade37256b53c
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S19
 goal_kind: short-term
 heading_level: 2
-id: "goal:s19"
-mint_id: ed6a7e053b2e4959aa04ade37256b53c
 origin: goals-doc
-parents: []
 seeds: []
 status: complete
 tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S19: Contract derivation depends on which interpreter ran it"
-type: goal
 ---
-
 🔴 **`level3.py`'s `how` field is not a function of the payload alone. It is a
 function of the payload *and* whichever `python3` ran the scan.**
 

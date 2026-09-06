@@ -1,10 +1,14 @@
 ---
+id: goal:s7
+mint_id: 1f929b0d5c964abaac19a9e93514d04c
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S7
 goal_kind: short-term
 heading_level: 2
-id: "goal:s7"
-mint_id: 1f929b0d5c964abaac19a9e93514d04c
 origin: goals-doc
 seeds: []
 status: horizon
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S7: `snapshot-goals.py` needs two passes to wire a new sub-goal"
-type: goal
 ---
-
 Found 2026-08-23 while adding G1.3–G1.5, G6.6 and G6.7. Adding a sub-goal and
 running the script once mints the child node with a correct `parents:` list, but
 the **parent's `seeds:` list does not contain it**. A second run adds it.

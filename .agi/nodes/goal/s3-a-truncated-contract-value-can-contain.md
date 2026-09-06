@@ -1,10 +1,14 @@
 ---
+id: goal:s3
+mint_id: 99dbc70857fd4bccb9fa9ddb8014f4d0
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S3
 goal_kind: short-term
 heading_level: 2
-id: "goal:s3"
-mint_id: 99dbc70857fd4bccb9fa9ddb8014f4d0
 origin: goals-doc
 seeds: []
 status: horizon
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S3: A truncated contract value can contain a fence lookalike"
-type: goal
 ---
-
 `level3.py`'s `_cap()` truncates derived text to 240 characters. In
 `nodes/level3/bin-heal.md` the `healer_ctx` input's `how` field is the truncated
 source of a `write_text(f"""...```json ...```...""")` call, so the truncated

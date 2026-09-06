@@ -1,10 +1,14 @@
 ---
+id: goal:s6
+mint_id: 7b5e4b82d1844a56bf67898c520bf0eb
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S6
 goal_kind: short-term
 heading_level: 2
-id: "goal:s6"
-mint_id: 7b5e4b82d1844a56bf67898c520bf0eb
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S6: Strip agi-tree to the graph and its inputs"
-type: goal
 ---
-
 Done 2026-08-23. `agi-tree` had accumulated a second copy of most of `agi`:
 ~95 one-off `exp-*.py` / `extend-*.py` scripts at the root, a vendored engine
 tree (`src/`, `tests/`, `engines/` — the copy **G7.7** wanted retired), the

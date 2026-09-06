@@ -1,10 +1,14 @@
 ---
+id: goal:s16
+mint_id: f52e9f204e264a91b64f9e7e7aecef15
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S16
 goal_kind: short-term
 heading_level: 2
-id: "goal:s16"
-mint_id: f52e9f204e264a91b64f9e7e7aecef15
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S16: The evidence gate demoted `verdict:` and left the `status` shadow behind"
-type: goal
 ---
-
 Done 2026-08-25. The H4 gate rewrote exactly one field. A demoted node
 therefore read:
 

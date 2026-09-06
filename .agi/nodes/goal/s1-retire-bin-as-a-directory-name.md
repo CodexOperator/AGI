@@ -1,10 +1,14 @@
 ---
+id: goal:s1
+mint_id: 7ab72d5c06424296a1c4c3456e48b0e0
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S1
 goal_kind: short-term
 heading_level: 2
-id: "goal:s1"
-mint_id: 7ab72d5c06424296a1c4c3456e48b0e0
 origin: goals-doc
 seeds: []
 status: horizon
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S1: Retire `bin/` as a directory name"
-type: goal
 ---
-
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
 holds fifteen `.py` files with shebangs, plus `driver.sh` alongside in the
 parent. Nothing in it is compiled and nothing in it is a binary.

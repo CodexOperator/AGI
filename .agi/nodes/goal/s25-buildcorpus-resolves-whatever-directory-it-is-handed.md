@@ -1,10 +1,14 @@
 ---
+id: goal:s25
+mint_id: c205acee53484885b8e5ae817e8f6fa8
+type: goal
+parents:
+  - goal:g15
 confidence: 0.8
+edited_by: director
 goal_id: S25
 goal_kind: short-term
 heading_level: 2
-id: "goal:s25"
-mint_id: c205acee53484885b8e5ae817e8f6fa8
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S25: `build_corpus` resolves whatever directory it is handed"
-type: goal
 ---
-
 **`goal:s10`'s second fix, which that goal said to do "regardless of (1)" and
 which never landed.** Split out on 2026-09-02 when S10 retired: its title
 asserts a file count that is now zero, so it can no longer carry a live defect

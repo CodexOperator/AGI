@@ -1,10 +1,14 @@
 ---
+id: goal:s27
+mint_id: 9689d2979de44066aa583ed9bbfac080
+type: goal
+parents:
+  - goal:g15
 confidence: 0.9
+edited_by: director
 goal_id: S27
 goal_kind: short-term
 heading_level: 2
-id: "goal:s27"
-mint_id: 9689d2979de44066aa583ed9bbfac080
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S27: Dispatch scaffolds an authored node for every tier, including the one that must not author"
-type: goal
 ---
-
 **Found by the parent itself, in its `struggles:` line, on the first
 parent-tier run this project ever completed (2026-09-02).** Quoted verbatim,
 because a defect report from the agent that hit it is worth more than a

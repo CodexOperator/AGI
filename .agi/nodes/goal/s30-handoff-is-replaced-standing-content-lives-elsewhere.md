@@ -1,10 +1,14 @@
 ---
+id: goal:s30
+mint_id: 50c014bec839497aaae0423b3698a709
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S30
 goal_kind: short-term
 heading_level: 2
-id: "goal:s30"
-mint_id: 50c014bec839497aaae0423b3698a709
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S30: `HANDOFF.md` is replaced each session, so standing content cannot live in it"
-type: goal
 ---
-
 **Two rules, and the second follows from the first by necessity.**
 
 1. **The director replaces `HANDOFF.md`'s session section wholesale**, on their
