@@ -599,6 +599,12 @@ def write_node(
               f"[{ntype}].md and not derivable at scaffold time (goal:s31)",
               file=sys.stderr)
     res.missing_required = list(still_missing)
+    # hypothesis:l2w2-writer-stamps — season, loop, model, profile stamped
+    # at mint time from environment, falling back to the ladder node's
+    # current_season for season only. loop, model, profile are stamped only
+    # when their env vars are present (never fabricated). Updates do NOT
+    # stamp — `update_node` is deliberately separate.
+    _stamp_env_fields(fm, current_season=current_season)
     spawn_gate.stamp(fm, gate)
 
     text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + scaffold_body
@@ -615,6 +621,47 @@ def write_node(
     _ID_INDEX.pop(str(root.resolve()), None)
     res.status = WRITTEN
     return res
+
+
+def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
+    """Stamp season / loop / model / profile into a new node's frontmatter.
+
+    Called from `write_node` at mint time only. `update_node` does NOT call
+    this: existing nodes keep their stamps or their absence.
+
+    - **season:** env AGI_SEASON > ladder current_season > 1
+    - **loop:** env AGI_LOOP only; absent means absent
+    - **model:** env AGI_MODEL only; absent means absent
+    - **profile:** env AGI_PROFILE only; absent means absent
+
+    A missing env var with no ladder fallback leaves the field absent — never
+    fabricates a value (hypothesis:l2w2-writer-stamps).
+    """
+    import os as _os
+
+    env_season = _os.environ.get("AGI_SEASON")
+    if env_season is not None:
+        try:
+            fm["season"] = int(env_season)
+            return  # successful parse — skip fallback chain
+        except (ValueError, TypeError):
+            pass  # bad value: fall through to ladder / default
+    if current_season is not None:
+        fm["season"] = current_season
+    else:
+        fm["season"] = 1
+
+    loop = _os.environ.get("AGI_LOOP")
+    if loop is not None:
+        fm["loop"] = loop.strip()
+
+    model = _os.environ.get("AGI_MODEL")
+    if model is not None:
+        fm["model"] = model.strip()
+
+    profile = _os.environ.get("AGI_PROFILE")
+    if profile is not None:
+        fm["profile"] = profile.strip()
 
 
 # ---------------------------------------------------------------------------
