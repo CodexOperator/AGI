@@ -515,10 +515,27 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
     # into the body -- four kids in a row did, and it lands twice"), and the
     # accusation was false: no kid was writing it, two engine writers were.
     # Re-running `done` after an evidence-gate demotion made it three copies.
-    body = node_file.read_text() if notes else ""
-    if notes and notes.strip() not in body:
-        with open(node_file, "a") as f:
-            f.write(f"\n\n## Agent Notes\n{notes}\n")
+    #
+    # L2.05: the raw append bypassed the logged writer, so write_guard.py
+    # flagged every done-completed node as unsanctioned. Route through
+    # update_node instead, which atomically rewrites and logs the final sha.
+    if notes:
+        try:
+            from graph_core.persistence import frontmatter as _fmr2
+            nf2 = _fmr2.load_node_file(node_file)
+            if notes.strip() not in nf2.body:
+                new_body = nf2.body
+                if not new_body.endswith("\n"):
+                    new_body += "\n"
+                new_body += f"\n## Agent Notes\n{notes}\n"
+                res2 = node_writer.update_node(
+                    root, node_id, body=new_body)
+                if res2.status == node_writer.REJECTED:
+                    print(f"warn: could not add notes to {node_id}: {res2.reason}",
+                          file=sys.stderr)
+        except Exception as exc:
+            print(f"warn: could not add notes to {node_id}: {exc}",
+                  file=sys.stderr)
 
 
 def cmd_status(args: argparse.Namespace) -> int:

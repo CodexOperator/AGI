@@ -164,7 +164,7 @@ def project(tmp_path):
 
 @pytest.fixture
 def gate(project):
-    rules, index = sg.gate_for_root(project)
+    rules, index, _ = sg.gate_for_root(project)
     return rules, index
 
 
@@ -437,7 +437,7 @@ def test_both_spellings_resolve_to_one_rule(project):
     (project / "nodes" / "outcome").mkdir(parents=True, exist_ok=True)
     (project / "nodes" / "outcome" / "o1.md").write_text(
         "---\nid: outcome:o1\ntype: outcome\n---\n\nb\n")
-    rules, index = sg.gate_for_root(project)
+    rules, index, _ = sg.gate_for_root(project)
     for spelling in ("bigger_outcome", "bigger-outcome"):
         res = sg.check_spawn(spelling, ["outcome:o1"], rules=rules,
                              type_index=index)
@@ -458,7 +458,7 @@ def test_parent_typed_with_a_hyphen_still_validates(project):
     d.mkdir(parents=True, exist_ok=True)
     (d / "b1.md").write_text(
         "---\nid: bigger-outcome:b1\ntype: bigger-outcome\n---\n\nb\n")
-    rules, index = sg.gate_for_root(project)
+    rules, index, _ = sg.gate_for_root(project)
     res = sg.check_spawn("app_purpose", ["bigger-outcome:b1"], rules=rules,
                          type_index=index)
     assert res.status == sg.APPROVED
@@ -760,7 +760,7 @@ def converging(project):
 
 
 def _check(project, ntype, parents, **kw):
-    rules, index = sg.gate_for_root(project)
+    rules, index, _ = sg.gate_for_root(project)
     return sg.check_spawn(ntype, parents, rules=rules, type_index=index, **kw)
 
 
@@ -910,3 +910,238 @@ shape
         assert rules.geometry.scheduling_edges() == frozenset()
         assert rules.geometry.is_traversable("depends_on") is True
         assert rules.geometry.is_traversable("season_parents") is True
+
+
+# --------------------------------------------------------------------------
+# season_parents gate — L2 wave 2: hypothesis:l2w2-gate-season-parents
+# --------------------------------------------------------------------------
+
+VISION_SEASON = """\
+---
+name: vision
+spawn:
+  allowed_parents: [moral]
+  min_parents: 1
+  max_parents: 4
+  min_parents_by_type: {moral: 1}
+  season_parents_allowed: [overview]
+---
+vision
+"""
+
+OVERVIEW_SCHEMA = """\
+---
+name: overview
+spawn:
+  allowed_parents: [bigger_outcome]
+  min_parents: 1
+  max_parents: 4
+---
+overview
+"""
+
+LADDER_SEASON_1 = """\
+---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps: {moral: 5, vision: 3}
+tiers: []
+director_rotate_at: 0.35
+---
+ladder
+"""
+
+LADDER_SEASON_2 = """\
+---
+id: ladder:ladder
+type: ladder
+current_season: 2
+caps: {moral: 5, vision: 3}
+tiers: []
+director_rotate_at: 0.35
+---
+ladder
+"""
+
+
+@pytest.fixture
+def season_project(project, request):
+    """`project`, plus a [vision].md schema with season_parents_allowed,
+    an [overview].md schema, a ladder node, an overview node, a moral node,
+    and a bigger_outcome node. Raises the max_parents_ceiling to 4 so
+    vision's max_parents: 4 passes."""
+    sd = project / "context" / "schemas"
+    (sd / "[vision].md").write_text(VISION_SEASON)
+    (sd / "[overview].md").write_text(OVERVIEW_SCHEMA)
+    # Raise ceiling to 4 so vision's max_parents: 4 passes
+    (sd / "[shape].md").write_text(SHAPE.replace("max_parents_ceiling: 2",
+                                                    "max_parents_ceiling: 4"))
+    # ladder
+    gd = project / "nodes" / ".geometry"
+    gd.mkdir(parents=True, exist_ok=True)
+    season = getattr(request, "param", 1)
+    ladder_body = LADDER_SEASON_2 if season == 2 else LADDER_SEASON_1
+    (gd / "ladder.md").write_text(ladder_body)
+    # overview node (season 2)
+    nd = project / "nodes"
+    for ntype, slug, extra in [
+        ("overview", "o1", "season: 2"),
+        ("bigger_outcome", "bo1", ""),
+        ("moral", "faith", ""),
+    ]:
+        d = nd / ntype
+        d.mkdir(parents=True, exist_ok=True)
+        body = f"---\nid: {ntype}:{slug}\ntype: {ntype}\n{extra}\n---\n\nb\n"
+        (d / f"{slug}.md").write_text(body)
+    return project
+
+
+def test_season_parents_allowed_is_parsed_correctly():
+    """season_parents_allowed is parsed from the schema and stored on Rule."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        sd = Path(td) / "context" / "schemas"
+        sd.mkdir(parents=True)
+        (sd / "[shape].md").write_text(SHAPE)
+        (sd / "[vision].md").write_text(VISION_SEASON)
+        rules = sg.load_spawn_rules(sd, root=Path(td))
+        vision = rules.schemas.get("vision")
+        assert vision is not None, "vision schema not loaded"
+        assert vision.flat is not None, "vision has no flat rule"
+        assert vision.flat.season_parents_allowed == frozenset({"overview"})
+
+
+def test_type_with_no_season_parents_allowed_refuses_entries(season_project):
+    """A type that does not declare season_parents_allowed rejects any
+    season_parents entries."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "verdict", ["experiment:e1"], rules=rules, type_index=index,
+        season_parents=["overview:o1"], current_season=cs,
+        fm={"season": 2},
+    )
+    assert res.status == sg.REJECTED
+    assert "season_parents_allowed" in res.reason
+
+
+def test_vision_valid_season_parents_pass(season_project):
+    """Vision with season_parents [overview:x] where x exists passes."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "vision", ["moral:faith"], rules=rules, type_index=index,
+        season_parents=["overview:o1"], current_season=cs,
+        fm={"season": 2},
+    )
+    assert res.status == sg.APPROVED, f"failed: {res.reason}"
+    assert any("season_parents_allowed" in a for a in res.applied)
+
+
+def test_vision_wrong_season_parent_type_is_rejected(season_project):
+    """Vision with season_parents [bigger_outcome:x] where x exists refuses."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "vision", ["moral:faith"], rules=rules, type_index=index,
+        season_parents=["bigger_outcome:bo1"], current_season=cs,
+        fm={"season": 2},
+    )
+    assert res.status == sg.REJECTED
+    assert "season_parents_allowed" in res.reason
+    assert "bigger_outcome" in res.reason
+
+
+def test_vision_missing_season_parent_is_unverified(season_project):
+    """Vision with season_parents pointing to a nonexistent node is UNVERIFIED."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "vision", ["moral:faith"], rules=rules, type_index=index,
+        season_parents=["overview:nonexistent"], current_season=cs,
+        fm={"season": 2},
+    )
+    assert res.status == sg.UNVERIFIED
+    assert "nonexistent" in res.reason
+
+
+def test_season_parents_grandfathered_when_season_lower(season_project):
+    """A node with season < current_season skips the season_parents check."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "vision", ["moral:faith"], rules=rules, type_index=index,
+        season_parents=["overview:nonexistent"], current_season=2,
+        fm={"season": 1},
+    )
+    assert res.status == sg.APPROVED, f"not grandfathered: {res.reason}"
+    assert any("grandfathered" in a for a in res.applied)
+
+
+def test_season_parents_grandfathered_no_season_at_season_1(season_project):
+    """A node with no season field at current_season=1 is grandfathered."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "vision", ["moral:faith"], rules=rules, type_index=index,
+        season_parents=["overview:nonexistent"], current_season=1,
+    )
+    assert res.status == sg.APPROVED, f"not grandfathered: {res.reason}"
+    assert any("grandfathered" in a for a in res.applied)
+
+
+def test_no_ladder_skips_season_parents_check(season_project):
+    """When the ladder node is missing, current_season is None: no
+    grandfathering applies, the type check still runs, and a missing
+    season_parent is UNVERIFIED (write, warn) rather than rejected."""
+    (season_project / "nodes" / ".geometry" / "ladder.md").unlink()
+    rules, index, cs = sg.gate_for_root(season_project)
+    assert cs is None, f"expected None, got {cs}"
+    res = sg.check_spawn(
+        "vision", ["moral:faith"], rules=rules, type_index=index,
+        season_parents=["overview:nonexistent"], current_season=cs,
+        fm={"season": 2},
+    )
+    assert res.status == sg.UNVERIFIED
+    assert res.ok  # UNVERIFIED still writes
+
+
+def test_current_season_read_from_ladder(season_project):
+    """gate_for_root reads current_season from ladder.md."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    assert cs == 1, f"expected 1, got {cs}"
+
+
+def test_season_parents_check_skipped_when_rule_has_none(season_project):
+    """If rule has empty season_parents_allowed and season_parents is None,
+    no check runs."""
+    rules, index, cs = sg.gate_for_root(season_project)
+    res = sg.check_spawn(
+        "verdict", ["experiment:e1"], rules=rules, type_index=index,
+        current_season=cs,
+    )
+    assert res.status == sg.APPROVED
+
+
+def test_node_writer_rejects_wrong_season_parent_type(season_project):
+    """The creation path enforces season_parents, not just check_spawn.
+    Red before node_writer passed season_parents/current_season to
+    check_spawn: write_node let a wrong-type season_parent through."""
+    import node_writer
+    res = node_writer.write_node(
+        season_project, "vision", "seasoned-bad", ["moral:faith"],
+        extra_fm={"season": 2, "season_parents": ["bigger_outcome:bo1"]},
+        body="b\n",
+    )
+    assert res.rejected, (
+        f"expected rejection, gate={getattr(res.gate, 'status', None)}")
+    assert "season_parents_allowed" in (res.reason or "")
+    assert not (season_project / "nodes" / "vision" / "seasoned-bad.md").exists()
+
+
+def test_node_writer_accepts_valid_season_parent(season_project):
+    """A vision node whose season_parent resolves to an existing overview
+    writes through the gate."""
+    import node_writer
+    res = node_writer.write_node(
+        season_project, "vision", "seasoned-good", ["moral:faith"],
+        extra_fm={"season": 2, "season_parents": ["overview:o1"]},
+        body="b\n",
+    )
+    assert not res.rejected, res.reason
+    assert (season_project / "nodes" / "vision" / "seasoned-good.md").exists()

@@ -23,6 +23,7 @@ spawn:
   min_parents: 1
   max_parents: 4
   min_parents_by_type: {moral: 1}
+  season_parents_allowed: [overview]
 ---
 
 # vision

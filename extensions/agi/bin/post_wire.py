@@ -323,7 +323,7 @@ def cmd_wire(args: argparse.Namespace) -> int:
     # goal:s17 -- the spawn gate, on post_wire's own node-creating path. Loaded
     # once per pass for the same reason as `corpus`: the schemas do not change
     # mid-loop, and neither does the type of any node this pass reads.
-    spawn_rules, type_index = spawn_gate.gate_for_root(root)
+    spawn_rules, type_index, _ = spawn_gate.gate_for_root(root)
     spawn_gate.announce_schema_errors(spawn_rules)
 
     # Build current graph
