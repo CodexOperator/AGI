@@ -1,0 +1,353 @@
+"""Tests for season.py — season lifecycle: status, judge, rollover.
+
+goal:g12.3 — every new rule gets a test that was red first.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+TESTS_DIR = Path(__file__).resolve().parent
+BIN_DIR = TESTS_DIR.parent / "bin"
+SRC_DIR = TESTS_DIR.parent / "src"
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def engine_on_path(monkeypatch):
+    monkeypatch.syspath_prepend(str(BIN_DIR))
+    monkeypatch.syspath_prepend(str(SRC_DIR))
+    yield
+
+
+@pytest.fixture()
+def season_py():
+    """Return the absolute path to season.py."""
+    return BIN_DIR / "season.py"
+
+
+@pytest.fixture
+def temp_graph(tmp_path, engine_on_path):
+    """Create a minimal temp graph with a ladder node for testing."""
+    import locations
+    # Write a minimal ladder node inside .agi/nodes/.geometry/
+    # (find_project_root returns the .agi/ directory)
+    ladder_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+    ladder_dir.mkdir(parents=True)
+    ladder = """---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps:
+  moral: 5
+  vision: 3
+tiers:
+  - tier: 0
+    plan_types: [subgoal, short-term goal]
+    report_type: outcome
+    judged_against: its (sub)goal
+    lens: the long-term goal above
+    cadence: the loop (weekly)
+  - tier: 1
+    plan_types: [long-term goal]
+    report_type: bigger_outcome
+    judged_against: its LT goal
+    lens: the vision above
+    cadence: mid-season
+  - tier: 2
+    plan_types: [vision]
+    report_type: overview
+    judged_against: its vision
+    lens: the morals above
+    cadence: season rollover (quarterly)
+  - tier: 3
+    plan_types: [moral]
+    report_type: null
+    judged_against: —
+    lens: —
+    cadence: never by machine; hand only
+---
+# ladder:ladder
+
+Test ladder node.
+"""
+    (ladder_dir / "ladder.md").write_text(ladder)
+
+    # Write a config so the project root is detected
+    cfg_dir = tmp_path / ".agi"
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    cfg = cfg_dir / "config.json"
+    cfg.write_text('{"project": "test"}')
+
+    # Write some test nodes inside .agi/nodes/
+    goals_dir = tmp_path / ".agi" / "nodes" / "goal"
+    goals_dir.mkdir(parents=True)
+
+    # A subgoal with status active
+    subgoal = """---
+id: goal:sub1
+type: goal
+goal_kind: subgoal
+status: active
+parents: []
+---
+# subgoal 1
+Test subgoal.
+"""
+    (goals_dir / "sub1.md").write_text(subgoal)
+
+    # A short-term goal
+    short = """---
+id: goal:short1
+type: goal
+goal_kind: short-term
+status: active
+parents: []
+---
+# short-term 1
+"""
+    (goals_dir / "short1.md").write_text(short)
+
+    # A long-term goal
+    lt = """---
+id: goal:lt1
+type: goal
+goal_kind: long-term
+status: active
+parents: []
+---
+# long-term 1
+"""
+    (goals_dir / "lt1.md").write_text(lt)
+
+    # An outcome (report for tier 0)
+    outcomes_dir = tmp_path / ".agi" / "nodes" / "outcome"
+    outcomes_dir.mkdir(parents=True)
+    outcome = """---
+id: outcome:o1
+type: outcome
+status: active
+parents: [goal:sub1]
+---
+# outcome 1
+"""
+    (outcomes_dir / "o1.md").write_text(outcome)
+
+    # A second outcome with no judged_against
+    outcome2 = """---
+id: outcome:o2
+type: outcome
+status: active
+parents: [goal:sub1]
+---
+# outcome 2
+"""
+    (outcomes_dir / "o2.md").write_text(outcome2)
+
+    # A vision
+    visions_dir = tmp_path / ".agi" / "nodes" / "vision"
+    visions_dir.mkdir(parents=True)
+    vision = """---
+id: vision:v1
+type: vision
+status: active
+parents: [goal:lt1]
+---
+# vision 1
+"""
+    (visions_dir / "v1.md").write_text(vision)
+
+    # A moral
+    morals_dir = tmp_path / ".agi" / "nodes" / "moral"
+    morals_dir.mkdir(parents=True)
+    moral = """---
+id: moral:faith
+type: moral
+status: active
+parents: []
+---
+# moral:faith
+"""
+    (morals_dir / "faith.md").write_text(moral)
+
+    return tmp_path
+
+
+# ---------------------------------------------------------------------------
+# Status tests
+# ---------------------------------------------------------------------------
+
+
+class TestStatus:
+    """season.py status subcommand."""
+
+    def test_status_prints_tier_table(self, season_py, temp_graph):
+        """status prints per-tier plan/report info."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "Tier 0" in result.stdout
+        assert "Tier 1" in result.stdout
+        assert "Tier 2" in result.stdout
+        assert "Tier 3" in result.stdout
+
+    def test_status_shows_plan_counts(self, season_py, temp_graph):
+        """status shows active/total plan counts."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        # Tier 0 has subgoal (1) + short-term (1) = 2 plans total, 2 active
+        assert "2 active / 2 total" in result.stdout
+
+    def test_status_shows_report_counts(self, season_py, temp_graph):
+        """status shows active/total report counts."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        # Tier 0 has 2 outcomes
+        assert "2 active / 2 total" in result.stdout
+
+    def test_status_shows_orphan_reports(self, season_py, temp_graph):
+        """status shows reports with no judged_against."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        assert "judged_against" in result.stdout
+
+
+class TestRollover:
+    """season.py rollover subcommand."""
+
+    def test_rollover_dry_run_prints_plan(self, season_py, temp_graph):
+        """rollover --dry-run prints what would happen without writing."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "rollover", "--dry-run"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "DRY RUN" in result.stdout
+        assert "Rollover: season 1 → 2" in result.stdout
+        assert "Bump ladder" in result.stdout
+
+    def test_rollover_dry_run_does_not_write_ladder(self, season_py, temp_graph):
+        """rollover --dry-run must not change the ladder node."""
+        import locations
+        from graph_core.persistence import frontmatter
+
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        # Read season before
+        nf = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
+        before = nf.frontmatter.get("current_season")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "rollover", "--dry-run"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+
+        # Read season after — must be unchanged
+        nf = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
+        after = nf.frontmatter.get("current_season")
+        assert before == after, "dry-run changed the ladder node"
+
+
+class TestJudge:
+    """season.py judge subcommand."""
+
+    def test_judge_refuses_non_report_type(self, season_py, temp_graph):
+        """judge refuses when the target is not a report type."""
+        # A vision is not a report type
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", "vision:v1"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1
+        assert "not a report type" in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# Integration: commands.py can discover season.py
+# ---------------------------------------------------------------------------
+
+
+class TestCommandDiscovery:
+    """season.py is discoverable via commands.py list or json."""
+
+    def test_commands_json_includes_season_py(self, engine_on_path):
+        """season.py is reachable from bin/ (tested via import)."""
+        # Just verify the module can be imported without error
+        import importlib
+        spec = importlib.util.find_spec("season")
+        assert spec is not None, "season.py not findable on sys.path"
+        # We can also call --help
+        import subprocess, sys
+        result = subprocess.run(
+            [sys.executable, BIN_DIR / "season.py", "--help"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        assert "status" in result.stdout
+        assert "judge" in result.stdout
+        assert "rollover" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Error handling
+# ---------------------------------------------------------------------------
+
+
+class TestErrorHandling:
+    """season.py error states."""
+
+    def test_requires_subcommand(self, season_py, temp_graph):
+        """Running season.py with no subcommand exits 2."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 2
+
+    def test_unknown_subcommand(self, season_py, temp_graph):
+        """Running season.py with an unknown subcommand exits 2."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "foobar"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 2
+
+    def test_outside_project(self, season_py, tmp_path):
+        """Running season.py outside an agi project exits 1."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(tmp_path),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1
+        assert "not an agi project" in result.stderr

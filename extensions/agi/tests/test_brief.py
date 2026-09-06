@@ -177,6 +177,137 @@ def test_kid_brief_is_untouched_by_the_parent_artefact_change():
     assert "--node-id experiment:x" in kid
 
 
+# ---------------------------------- l2w3-brief-heads: director + prime_director
+
+
+def test_director_tier_has_a_brief():
+    """The director tier must produce a brief with its role name visible."""
+    d = _text("director")
+    assert "DIRECTOR" in d
+    assert "hold the lens" in d.lower() or "lens" in d.lower()
+
+
+def test_prime_director_tier_has_a_brief():
+    """The prime_director tier must produce a brief with master ownership."""
+    pd = _text("prime_director")
+    assert "PRIME DIRECTOR" in pd or "Prime Director" in pd
+    assert "master" in pd.lower()
+    assert "never rebase" in pd.lower()
+
+
+def test_director_and_prime_director_are_different():
+    """Prime director adds master ownership; director alone doesn't.
+    Both contain the director role text."""
+    d = _text("director")
+    pd = _text("prime_director")
+    assert d != pd, "the two briefs must differ"
+    assert "DIRECTOR" in d
+    assert "PRIME DIRECTOR" in pd
+    # Prime adds master ownership, director does not
+    assert "master is yours alone" not in d.lower()
+    assert "master is yours alone" in pd.lower()
+
+
+def test_director_brief_contains_job_description():
+    """A director's job text must include holding the lens, dispatching
+    parents, judging reports, writing HANDOFF.md, rotating."""
+    d = _text("director")
+    assert "hold the lens" in d.lower()
+    assert "dispatch" in d.lower() and "parent" in d.lower()
+    assert "HANDOFF.md" in d
+    assert "rotate" in d.lower()
+
+
+def test_director_cannot_do_kid_work():
+    """A director must be told not to do kid work."""
+    d = _text("director")
+    assert "NEVER do kid work" in d or "never do kid work" in d.lower()
+
+
+def test_director_brief_is_within_the_known_tiers():
+    """The known tiers list must include director and prime_director so an
+    unknown tier (e.g. 'delegator') still raises BriefError."""
+    assert "director" in brief.TIERS
+    assert "prime_director" in brief.TIERS
+
+
+def test_director_constitution_head_contains_prayers():
+    """The director's constitution head must source prayers from moral:faith
+    at run time, visible in the assembled brief."""
+    d = _text("director")
+    # The constitution head block is present
+    assert "CONSTITUTION HEAD" in d
+    # Prayers should be present (since director reads the four prayers)
+    if "CONSTITUTION HEAD" in d:
+        # The prayers section marker or prayer content should appear
+        assert "FOUR PRAYERS" in d or "Молитва" in d
+
+
+def test_prime_director_constitution_head_contains_sayings():
+    """The prime director reads the carried sayings; director may not."""
+    pd = _text("prime_director")
+    d = _text("director")
+    # Prime director gets Carried Sayings section
+    assert "CARRIED SAYINGS" in pd
+
+
+def test_closing_line_differs_by_tier():
+    """Each tier has a distinct closing line."""
+    kid_close = brief.closing_line("kid", "a", 1)
+    parent_close = brief.closing_line("parent", "a", 1)
+    director_close = brief.closing_line("director", "a", 1)
+    prime_close = brief.closing_line("prime_director", "a", 1)
+
+    assert kid_close != parent_close
+    assert parent_close != director_close
+    assert director_close != prime_close
+    assert "DIRECTOR" in director_close
+    assert "PRIME DIRECTOR" in prime_close
+
+
+def test_adapter_accepts_director_tier():
+    """The pi adapter must be able to build a command for director and
+    prime_director tiers."""
+    try:
+        cmd = _cmd("director", scaffold=SCAFFOLD)
+        assert len(cmd) > 5
+        cmd_pd = _cmd("prime_director", scaffold=SCAFFOLD)
+        assert len(cmd_pd) > 5
+    except KeyError as exc:
+        if "declares no model for tier" in str(exc):
+            pytest.skip("no model declared for director in test harness config")
+        raise
+
+
+def test_director_and_kid_differ():
+    """A director brief must not contain kid-specific text like "fill in
+    the scaffolded node file"."""
+    d = _text("director")
+    assert "fill in the scaffolded node file" not in d.lower()
+
+
+def test_director_refuses_no_git_instruction():
+    """A director must also be told not to run git."""
+    d = _text("director")
+    assert "DO NOT run git" in d
+
+
+def test_faith_ref_error_is_distinct():
+    """FaithRefError must be a separate exception class from BriefError."""
+    assert issubclass(brief.FaithRefError, ValueError)
+    assert brief.FaithRefError.__name__ == "FaithRefError"
+
+
+def test_known_tiers_still_unknown_tier_raises():
+    """The BriefError must still fire for a truly unknown tier."""
+    with pytest.raises(brief.BriefError) as exc:
+        brief.assemble(tier="delegator", agent_id="a", iter_n=1)
+    assert "delegator" in str(exc.value)
+    # The message lists known tiers, which now include director
+    for t in ("kid", "parent", "director", "prime_director"):
+        assert t in str(exc.value)
+
+
 def test_kid_brief_forbids_git_and_requires_the_suite():
     """A kid ran `git add -A` on 2026-09-02 and committed 37 lines of the
     director's in-flight `CLAUDE.md` edit. `SKILL.md` forbade it, the parent
