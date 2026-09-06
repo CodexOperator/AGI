@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-06: `agi-master-2` live, post-L2-close housekeeping round L2.12 in flight. Successor: read whole, then carry in place.
+# SESSION HANDOFF — 2026-09-06: `agi-master-2` closed after L2.12–L2.13; L3 (the command ladder) planned in `.agi/context/l3-command-ladder-brief.md`. Successor: read whole, then carry in place.
 
 **Owner's instruction 2026-09-06: this handoff is carried forward, not replaced** — the 2026-09-05 plan below stays and the live session diffs it in place. Successors: read before touching.
 
@@ -140,9 +140,23 @@ explicit `--help` skips in `test_bin_help_smoke.py` (never picked up either).
 None of these block anything — pick 2-3 for the next round of three parents,
 same shape as L2.12/L2.13.
 
-🔴 **Session stopped here by `agi-master-2`, not rotated** (context meter
-0.166, well under the 0.35 threshold — this is a deliberate pause, not a
-rotation). Two rounds landed clean this session (L2.12 `4153ddf85`, L2.13
+**Then the owner returned with the L3 brainstorm** (visions, perpetual goals,
+the command ladder, comms, rotation) — captured in
+[`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md)
+(DRAFT, owner text verbatim + director proposals + a 5-wave plan). Two facts
+found answering it, both L3 wave-0 items: `rotate.py spawn` bypasses
+`brief.py`, so this director got **no constitution head and no `--model`**
+(ran on Sonnet 5, not Fable 5.1); and of the 9 skipped tests, 6 are L2.08's
+deliberate `--help` skips and **3 are stale post-g11 paths silently skipping
+real coverage** (`test_grid.py:272` wants `../agi-tree/nodes`,
+`test_spawn_gate.py:628` wants `context/schemas` not `.agi/context/schemas`,
+`test_brief.py:278` a fixture with no director model). Config change applied:
+pi models → the `-latest` aliases (§6 item 10).
+
+🔴 **Session closed by `agi-master-2` with the owner's leave, not rotated**
+(context meter well under 0.35). **Next session = loop L3, wave 0 first**
+(brief §3): fix `rotate.py` (model/effort/settings, head via `brief.py`),
+then launch the L3 prime through it as the first live test. Two rounds landed clean this session (L2.12 `4153ddf85`, L2.13
 `fed533924`), both reviewed and pushed. Whoever resumes — same session or a
 fresh one — can either dispatch another round immediately (targets listed
 just above, same 3-parent tmux-in-`agi-rc` shape as §0.6 describes) or wait
@@ -297,7 +311,11 @@ git push origin <branch>
 
 8. **Merge, not rebase**, when a director takes a parent branch (owner, 2026-09-06). Rebase rewrites hashes the grid may cite.
 
-9. **BANKED 2026-09-06 (L2 close) — season-2 visions, one decision.** `season.py rollover` is ready except for the owner-tier input: up to 3 season-2 visions, each `parents: [the five morals]`, `season_parents: [season-1 overviews]`. A vision is owner text; the director does not invent one. **Recommendation** (grouping the 7 active top-level LT goals): (1) *The ladder runs itself* — G12 seasons + G16 telemetry + G5 lifecycle; (2) *One hand, one path* — G13 write.py as the only hand + G7 nothing silently lost; (3) *Antifragile by default* — G15 bugfix in-loop + G3 scoring motion cannot move. Reply with three lines of vision text (or "use the recommendation") and the successor runs `season.py rollover` for real (after the cap-count fix on `hypothesis:l2w3-season-py`). Until then season 1 stays open and the loop keeps working g15/g16 items.
+9. **RESOLVED 2026-09-06 (after L2.13) — the owner supplied the three visions**, verbatim in [`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md) §1.8: *Self-perpetuating* (the cathedral), *All is one — one hand, one path*, *Alive*. Minted `--actor owner` during the L3 wave-2 rollover, never before the cap fix (landed L2.12) and never by a director's hand on the prose. The L2 recommendation's grouping maps onto them and is superseded.
+
+10. **Owner decisions 2026-09-06 (L3 brainstorm), settled:** LT goals become **perpetual** and there is **no active goal count at all** (`max_goals_active` and its warning go — `hypothesis:l2-goals-active-exempt` is re-briefed to *delete*, not exempt); pi parents `~z-ai/glm-flash-latest`, pi kids `~deepseek/deepseek-v4-flash-latest` (**applied to config.json, slugs verified**), CC parents Opus 5 ultracode; the Archangel Michael line follows the prayers in every head (verbatim in the brief §1.1); rotation must set model + effort; comms are per-session `comms/` files (pairwise + quorum), free horizontal comms per level, prime's parents in perpetual quorum, prime gated; collapsed ladder first; this L2 post-close session may be marked closed.
+
+11. **BANKED 2026-09-06 — five, bundled, recommendations in the brief §4:** (1) season numbering: name season 1 "genesis" rather than renumber (**rec yes**); (2) prime-parent count (**rec 3**, one per vision); (3) "extra effort" = `xhigh` (**rec yes**); (4) is the Claude subscription back for the CC layers?; (5) wave 0 now on the ~$16.5 OpenRouter left, or as L3's first act via a fixed `rotate.py` (**rec next session**).
 
 ## §7 Proposed, owner to confirm — none blocking wave 1
 
