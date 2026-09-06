@@ -15,13 +15,13 @@ scaffold_hash: d8b43e6e0045d164
 tags:
   - build
   - prose
-thought_session: L1.13
+thought_session: agi-master-2026-09-06
 title: "Build: COMPLETE.md"
 ---
 # build:COMPLETE.md
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Sixth version: the format gained a seventh section and both reports were renumbered to match. What was 5b -- a finding hung off the side of the failure section because there was nowhere else to put it -- is now section 6, findings that are not failures, and what was minted moves to 7. Loop L1 predates the section and says so rather than being backfilled with something that was never written. Note on the first attempt at this edit: the renumber script asserted and aborted because the two reports word the last heading differently, and write.py reported the payload unchanged -- the refuse-before-writing order held, and nothing landed half applied.
+2026-09-06 L2 report appended newest-first, owner's standing ask to keep both. Seven sections, every claim grounded in an iter commit or a hypothesis node; g12.3 deliberately not marked complete because the rollover conjunct is banked.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

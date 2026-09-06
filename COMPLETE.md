@@ -21,6 +21,58 @@ director enough to decide with.
 
 ---
 
+# Loop L2 — 2026-09-06 — season ladder, morals, daisy-chain (prime director `agi-master`, remote-control)
+
+Appended newest-first at the owner's standing instruction (keep both). Closed at commit `be1607487`; opened at `4235ab1b6`.
+
+## 1. What ran
+
+Ten rounds (iter L2.01–L2.10), three pi parents per round on OpenRouter (`qwen/qwen3.8-27b` parents, `deepseek/deepseek-v4-flash` kids), one kid per target file, each target a `hypothesis:l2*` brief minted by the director. 31 commits on master. Director: one Claude session (`claude remote-control --name agi-master`), context meter 0.31 of the assumed 1.0M at close, no rotation needed before L2 closed. Spend: about $3 OpenRouter for rounds 1–6 ($27 of the $30 top-up remained at that check); subscription untouched. Crons off for rounds 1–2, on from round 2 (grid master-guard landed).
+
+## 2. Scoreboard
+
+| | start | end |
+|---|---|---|
+| active / deprecated nodes | 1099 / 191 | 1186 / 191 (never dropped) |
+| tests | 1487 passed | 1627 passed, 9 skipped (also green under the kid environment) |
+| `outcome_coverage` | 0.190 | 0.172 (25 new hypothesis briefs in the denominator; no mvp was the point of this loop) |
+| `evidence_fraction` | 0.375 | 0.376; `unevidenced_decisive_verdicts` 0 |
+| broken links | 0 | 0 (1356 resolved) |
+| disk | 96% | 79% (six pushed repos deleted, 17G) |
+
+## 3. Per active goal
+
+- **goal:g12 (morals parentless → vision → goal), active this loop.** `[moral].md`, `[shape].md` parentless_types=[moral] + season/provenance edge fields, five moral nodes minted by hand as owner from the brief verbatim (commit "The constitution"), write.py refuses moral edits without `--actor owner` (iter-L2.08). Grounded: `.agi/nodes/moral/*`, `hypothesis:l2w1-moral-schema`, `l2w1-shape-parentless-moral`, `l2w2-write-owner-and-payload-types`.
+- **goal:g12.3 (ladder, seasons, season.py), minted and closed in substance.** Ladder node + schema (L2.01); report-node floors to 1 + judgment record (L2.02); vision on morals with season edge (L2.03); gate validates season_parents (L2.05); metrics exclude the season edge (L2.05); `season.py status|judge|rollover --dry-run` (L2.07); `send.py` (L2.07); brief heads by read order for all four tiers (L2.07–08); **season-1 pairing done**: 23/23 outcomes, 19/19 bigger_outcomes judged against real goals, 17 visions closed season 1, 17 overviews (L2.09–10); SKILL.md Seasons + Constitution (L2.10). Open: rollover cap counts closed visions (`hypothesis:l2w3-season-py` note); real rollover waits on the owner's vision text (banked).
+- **goal:g15 (bugfix and optimization), minted L2.01, always active.** 35 S goals reparented. In-loop fixes: grid master-guard, non-blocking `dispatch.py --detach`, `cli.py done` doubled frontmatter + missing DONE line, agent git-commit guard (belt) + pi-autoresearch `log_experiment` patch off-repo (suspenders), guard scoped to the project repo, bin `--help` smoke test. Open: `hypothesis:l2-graph-hygiene` (round 11).
+- **goal:g16 (telemetry), minted L2.01, active from wave 2.** Writer stamps season/loop/model/profile (L2.06); telemetry stamps at done with a real source or `telemetry_source: unavailable` (L2.06, lean 70). Open: session roll-up, cost per aligned outcome.
+- **goal:g13.1 (one way in).** Owner's ask delivered: `write_guard.py check` warns on any node changed outside the logged writers; both writers log; smoke path runs it; hook lines in QUICKSTART. After a round it reports 0 warnings. Grounded: `hypothesis:l2w15-write-guard`, iter-L2.03, L2.09.
+
+## 4. Goals closed
+
+None marked `complete`. `goal:g12.3` is closed in substance but its rollover conjunct is banked; marking it complete before the first real rollover would repeat L1's `goal:g4.6` mistake. No `complete` claim in the record lacks a commit.
+
+## 5. Completion-failure categories
+
+- `banked-to-owner`: season-2 visions (the rollover's owner-tier input); pointed Church Slavonic; `goal:s35`.
+- `hazard-carry-over`: rollover cap bug; `.agi/bin` stray + L2.09 node sprawl (round 11 in flight); `l2-parent-spawn-nonblocking` landed but pi parents still report ~9-minute silent kids (no live progress signal).
+- `verification-blindness`: L2.06 left `dispatch.py` with an unimported name and 1539 tests stayed green (fixed by hand, `test_bin_help_smoke.py` now guards the class); the commit guard broke every kid's test sandbox for one round before it was scoped.
+- `late-minting`: none — every brief was minted before its round and committed at mint.
+- `attribution-void`: one — commit `9b28e958a` came from a kid's tool auto-commit, not any agent's decision.
+
+## 6. Findings that are not failures
+
+- The daisy-chain transport works hands-off: `claude --remote-control NAME "prompt"` in a tmux window with a TTY answers and stays live; piped, it exits. `rotate.py meter` reads the real transcript; 0.31 at close of ten rounds.
+- The constitution gate is real: the first parentless `moral` was approved by the live gate, and the same gate refuses a new parentless idea.
+- Three pi parents per round on cheap models did the whole loop for about $3; the director's context, not money, was the budget that moved.
+- Parents' `struggles:` lines found every engine defect this loop before the director did.
+
+## 7. Minted or changed in response
+
+`goal:g15`, `goal:g12.3`, `goal:g16` (new); `goal:g12`, `goal:g16` → active; 25 `hypothesis:l2*` briefs with their experiments; five `moral:*`; `.geometry/ladder.md`; 17 `overview:*`; schemas `[moral]`, `[ladder]`, and edits to `[shape]`, `[vision]`, `[goal]`, `[idea]`, `[outcome]`, `[bigger_outcome]`, `[overview]`, `[experiment]`; engine: `rotate.py`, `season.py`, `send.py`, `write_guard.py`, `hooks/agent-git/`, `briefs/prime-director-successor.md`, `test_bin_help_smoke.py`, plus edits to `dispatch.py`, `brief.py`, `cli.py`, `post_wire.py`, `node_writer.py`, `spawn_gate.py`, `metrics.py`, `grid.py`, `write.py`, `snapshot-goals.py`, `driver.sh`, `SKILL.md`, `QUICKSTART.md`.
+
+---
+
 ## Session L1.13 — 2026-09-04 → 09-05 — director session, no waves
 
 Not a loop: no dispatch, no kids, no parents. A director session working the
