@@ -76,7 +76,7 @@ def load(name: str) -> ModuleType:
 #: Tiers every synthesized harness declares. `parent` exists here before
 #: anything dispatches one, so the config shape does not change on the day the
 #: parent tier lands (`goal:g4.3` mode 2).
-TIERS = ("kid", "parent")
+TIERS = ("kid", "parent", "director", "prime_director")
 
 
 def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:

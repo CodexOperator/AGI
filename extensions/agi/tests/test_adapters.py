@@ -104,7 +104,7 @@ def test_legacy_synthesis_populates_both_tiers_explicitly():
     thing it refuses to do."""
     cfg = {"agent_dispatch": {"model": "m"}}
     _n, harness = adapters.resolve(cfg)
-    assert harness["models"] == {"kid": "m", "parent": "m"}
+    assert harness["models"] == {"kid": "m", "parent": "m", "director": "m", "prime_director": "m"}
 
 
 def test_declared_harnesses_win_and_spawn_harness_selects():
