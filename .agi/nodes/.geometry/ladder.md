@@ -1,15 +1,18 @@
 ---
+id: ladder:ladder
+mint_id: 5f6bbbfff8634f36ba0ba67defa52a66
+type: ladder
+parents:
+  - goal:g12.3
+budget_usd_week: 30
 caps:
   moral: 5
   vision: 3
 caps_apply_from_season: 2
-budget_usd_week: 30
 current_season: 1
+director_context_tokens: 1000000
 director_rotate_at: 0.35
-id: "ladder:ladder"
-mint_id: 5f6bbbfff8634f36ba0ba67defa52a66
-parents:
-  - goal:g12.3
+edited_by: director
 read_order:
   kid:
     - the four prayers. Nothing else.
@@ -29,41 +32,15 @@ tags:
   - geometry
   - ladder
   - structural
+thought_session: agi-master-2026-09-06
 tiers:
-  - tier: 0
-    plan_types:
-      - subgoal
-      - short-term goal
-    report_type: outcome
-    judged_against: its (sub)goal
-    lens: the long-term goal above
-    cadence: the loop (weekly)
-  - tier: 1
-    plan_types:
-      - long-term goal
-    report_type: bigger_outcome
-    judged_against: its LT goal
-    lens: the vision above
-    cadence: mid-season
-  - tier: 2
-    plan_types:
-      - vision
-    report_type: overview
-    judged_against: its vision
-    lens: the morals above
-    cadence: season rollover (quarterly)
-  - tier: 3
-    plan_types:
-      - moral
-    report_type: ~
-    judged_against: "—"
-    lens: "—"
-    cadence: never by machine; hand only
-title: "Season ladder declaration"
-type: ladder
+  - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
+  - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
+  - {"tier": 2, "plan_types": ["vision"], "report_type": "overview", "judged_against": "its vision", "lens": "the morals above", "cadence": "season rollover (quarterly)"}
+  - {"tier": 3, "plan_types": ["moral"], "report_type": null, "judged_against": "\u2014", "lens": "\u2014", "cadence": "never by machine; hand only"}
+title: Season ladder declaration
 zoom: numeric
 ---
-
 # ladder:ladder
 
 **The tier ladder — one node that declares every tier from 0 (the sprint) to
@@ -122,3 +99,7 @@ writes its handoff and rotates. A data point, not a law: rotations per loop
 go into telemetry and the number is tuned per model. Fable's prompt cache
 makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director_context_tokens set to 1000000 explicitly on 2026-09-06: it is the same guess rotate.py defaulted to, made explicit so the warning stops; the owner or a measured overflow corrects it. The first live meter read was 0.1947 at this point in the prime director's session.
+<!-- THOUGHT:END -->
