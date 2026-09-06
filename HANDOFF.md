@@ -48,7 +48,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 - [x] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15` (commit after this line)
 - [~] wave 1 dispatch, 2 parents at a time, one kid per schema file. Briefs = `hypothesis:l2w1-*` (7). `spawn.parallel` set to 1 so one dispatch call = one parent. Iter id `L2.01`. Round 1 live: shape + ladder (tmux `agi-rc` windows `p-shape`, `p-ladder`, logs `.agi/sessions/iter-L2.01/dispatch-*.log`). Rounds: 2 = moral + report-floors; 3 = vision + goal-idea; 4 = experiment-payload.
 - [ ] five moral nodes by hand (owner text verbatim)
-- [ ] wave 1.5: ladder node, rotation script, RC successor test, unsanctioned-write check
+- [~] wave 1.5: briefs minted `hypothesis:l2w15-rotate` (rotate.py meter/spawn/status + successor prompt), `l2w15-write-guard` (owner's unsanctioned-write check, under goal:g13.1), `l2w15-grid-master-guard` (crons come back on after it lands). grid-guard parent dispatched alongside round 1 (window `p-gridguard`); rotate + write-guard dispatch when round-1 slots free. RC successor test: done, see §0.5 item 6.
 - [ ] waves 2–5 per §3
 
 ## §1 What the 2026-09-05 session did
