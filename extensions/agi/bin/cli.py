@@ -203,7 +203,8 @@ def cmd_done(args: argparse.Namespace) -> int:
         if node_file and node_file.exists():
             _append_verdict_to_node(node_file, verdict, args.confidence, args.notes,
                                     args.next_edge, gate, root=root,
-                                    node_id=args.node_id)
+                                    node_id=args.node_id,
+                                    evidence_runs=args.evidence_runs)
             # goal:s31 -- the completion half. A scaffold is born with what the
             # engine can derive from a slug; the rest is content only the kid
             # has, and the kid wrote it into the BODY because a kid writing
@@ -460,7 +461,8 @@ def cmd_reclaim(args: argparse.Namespace) -> int:
 def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, notes: str,
                             next_edge: str | None = None, gate=None,
                             root: Path | None = None,
-                            node_id: str | None = None) -> None:
+                            node_id: str | None = None,
+                            evidence_runs: list | tuple | None = None) -> None:
     """Add verdict frontmatter fields to an existing node file.
 
     `root`/`node_id` are how this reaches `node_writer.update_node`; both
@@ -483,6 +485,12 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
     # why the status-shadow demotion below had to be reimplemented against
     # text. Now there is a dict, so the shared routine does it.
     set_fm = {"verdict": verdict, "confidence": confidence}
+    if gate is not None and evidence_runs:
+        # hypothesis:l2-dispatch-restart-twin-node — Fix B: persist
+        # evidence_runs into the node's own frontmatter at signal time so a
+        # node citing itself as evidence survives a later grid-commit re-check.
+        # Store the raw cited ids (the node IDs), not the resolved count.
+        set_fm["evidence_runs"] = list(evidence_runs)
     if gate is not None:
         if gate.demoted:
             set_fm["demoted_from"] = gate.original

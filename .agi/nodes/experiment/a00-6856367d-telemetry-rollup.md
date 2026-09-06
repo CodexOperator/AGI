@@ -42,3 +42,5 @@ Key commands and outputs:
 telemetry_rollup tool + tests + real-node dry runs; baseline zeros now honest
 
 Parent a00-403a3639 review: this node is a twin minted when kid a00-6856367d was restarted (pid 1316280 disappeared 08:25, restart 08:25:08 scaffolded this node). Its own recorded outputs (9/1/8-experiment runs, suite 1650 passed) are consistent with the canonical twin experiment:a00-6856367d-7b307d, which is what hypothesis:l2w6-telemetry-rollup next_edges links and which carries the parent-reviewed verdict. This node holds the gate-demoted duplicate; not canonical.
+
+L2.13 note (parent a00-de25bce0): this is the restart-twin of experiment:a00-6856367d-7b307d (canonical). The gap both nodes left open - cost_per_aligned_outcome, the ranking number the hypothesis names - is now closed by experiment:a00-6e08546b-aed026 (proved, L2.13). Read that node for the current state; this twin stays as restart provenance, demoted_from: proved at L2.12 grid commit.

@@ -326,6 +326,60 @@ def test_rollup_from_overview(graph: Path):
 
 
 # --------------------------------------------------------------------------
+# Test: count_aligned_outcomes and cost_per_aligned_outcome
+# --------------------------------------------------------------------------
+
+
+def test_count_aligned_outcomes_zero(graph: Path):
+    """No outcomes in the chain have alignment=aligned → count is 0."""
+    count = telemetry_rollup.count_aligned_outcomes(graph, "outcome:o1")
+    assert count == 0, "outcome:o1 has no alignment field"
+
+
+def test_count_aligned_outcomes_counted(graph: Path):
+    """An outcome with alignment=aligned is counted."""
+    _write_node(graph, "outcome:o1", "outcome", ["verdict:v1"],
+                {"alignment": "aligned"})
+    count = telemetry_rollup.count_aligned_outcomes(graph, "outcome:o1")
+    assert count == 1, "outcome:o1 now has alignment=aligned"
+
+
+def test_do_rollup_includes_aligned_count_and_cost(graph: Path):
+    """do_rollup returns aligned_outcomes_count and cost_per_aligned_outcome."""
+    # Create an outcome that has alignment=aligned and is connected to e1 (cost=0.01)
+    _write_node(graph, "outcome:o-aligned", "outcome", ["verdict:v1"],
+                {"alignment": "aligned"})
+    result = telemetry_rollup.do_rollup(graph, "outcome:o-aligned")
+    assert "error" not in result, f"unexpected error: {result.get('error')}"
+    assert result["aligned_outcomes_count"] == 1, "one aligned outcome"
+    # e1 has cost_usd=0.01; cost_per_aligned = 0.01 / 1 = 0.01
+    assert result["cost_per_aligned_outcome"] == 0.01, \
+        f"expected 0.01, got {result['cost_per_aligned_outcome']}"
+
+
+def test_do_rollup_cost_per_aligned_computed(graph: Path):
+    """cost_per_aligned_outcome computed when both cost and aligned count > 0."""
+    _write_node(graph, "outcome:o-cost-computed", "outcome", ["verdict:v2"],
+                {"alignment": "aligned"})
+    result = telemetry_rollup.do_rollup(graph, "outcome:o-cost-computed")
+    assert "error" not in result
+    # v2 → e2: cost_usd=0.02, so cost_per_aligned = 0.02/1 = 0.02
+    assert result["aligned_outcomes_count"] == 1
+    assert result["cost_per_aligned_outcome"] == 0.02, \
+        f"expected 0.02, got {result['cost_per_aligned_outcome']}"
+
+
+def test_do_rollup_aligned_no_cost_per_aligned(graph: Path):
+    """An outcome with no cost and no aligned outcomes returns None."""
+    result = telemetry_rollup.do_rollup(graph, "outcome:o1")
+    assert "error" not in result
+    # o1 → v1 → e1 (cost=0.01), but o1 has no alignment field
+    # So aligned_outcomes_count=0, cost_per_aligned_outcome=None (division by zero avoided)
+    assert result["aligned_outcomes_count"] == 0
+    assert result["cost_per_aligned_outcome"] is None
+
+
+# --------------------------------------------------------------------------
 # Test: CLI smoke (argparse parsing, help)
 # --------------------------------------------------------------------------
 
