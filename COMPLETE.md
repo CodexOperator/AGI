@@ -21,9 +21,9 @@ director enough to decide with.
 
 ---
 
-# Loop L2 — 2026-09-06 — season ladder, morals, daisy-chain (prime director `agi-master`, remote-control)
+## Loop L2 — 2026-09-06 — season ladder, morals, daisy-chain (prime director `agi-master`, remote-control)
 
-Appended newest-first at the owner's standing instruction (keep both). Closed at commit `be1607487`; opened at `4235ab1b6`.
+Appended newest-first at the owner's standing instruction (keep both). Closed at the `iter-L2.11` commit (round 11 hygiene, proved); opened at `4235ab1b6`. Eleven rounds.
 
 ## 1. What ran
 
@@ -33,8 +33,8 @@ Ten rounds (iter L2.01–L2.10), three pi parents per round on OpenRouter (`qwen
 
 | | start | end |
 |---|---|---|
-| active / deprecated nodes | 1099 / 191 | 1186 / 191 (never dropped) |
-| tests | 1487 passed | 1627 passed, 9 skipped (also green under the kid environment) |
+| active / deprecated nodes | 1099 / 191 | 1184 / 194 (sum only grew; 3 L2.09 sweep nodes deprecated in L2.11) |
+| tests | 1487 passed | 1629 passed, 9 skipped (also green under the kid environment) |
 | `outcome_coverage` | 0.190 | 0.172 (25 new hypothesis briefs in the denominator; no mvp was the point of this loop) |
 | `evidence_fraction` | 0.375 | 0.376; `unevidenced_decisive_verdicts` 0 |
 | broken links | 0 | 0 (1356 resolved) |
@@ -44,7 +44,7 @@ Ten rounds (iter L2.01–L2.10), three pi parents per round on OpenRouter (`qwen
 
 - **goal:g12 (morals parentless → vision → goal), active this loop.** `[moral].md`, `[shape].md` parentless_types=[moral] + season/provenance edge fields, five moral nodes minted by hand as owner from the brief verbatim (commit "The constitution"), write.py refuses moral edits without `--actor owner` (iter-L2.08). Grounded: `.agi/nodes/moral/*`, `hypothesis:l2w1-moral-schema`, `l2w1-shape-parentless-moral`, `l2w2-write-owner-and-payload-types`.
 - **goal:g12.3 (ladder, seasons, season.py), minted and closed in substance.** Ladder node + schema (L2.01); report-node floors to 1 + judgment record (L2.02); vision on morals with season edge (L2.03); gate validates season_parents (L2.05); metrics exclude the season edge (L2.05); `season.py status|judge|rollover --dry-run` (L2.07); `send.py` (L2.07); brief heads by read order for all four tiers (L2.07–08); **season-1 pairing done**: 23/23 outcomes, 19/19 bigger_outcomes judged against real goals, 17 visions closed season 1, 17 overviews (L2.09–10); SKILL.md Seasons + Constitution (L2.10). Open: rollover cap counts closed visions (`hypothesis:l2w3-season-py` note); real rollover waits on the owner's vision text (banked).
-- **goal:g15 (bugfix and optimization), minted L2.01, always active.** 35 S goals reparented. In-loop fixes: grid master-guard, non-blocking `dispatch.py --detach`, `cli.py done` doubled frontmatter + missing DONE line, agent git-commit guard (belt) + pi-autoresearch `log_experiment` patch off-repo (suspenders), guard scoped to the project repo, bin `--help` smoke test. Open: `hypothesis:l2-graph-hygiene` (round 11).
+- **goal:g15 (bugfix and optimization), minted L2.01, always active.** 35 S goals reparented. In-loop fixes: grid master-guard, non-blocking `dispatch.py --detach`, `cli.py done` doubled frontmatter + missing DONE line, agent git-commit guard (belt) + pi-autoresearch `log_experiment` patch off-repo (suspenders), guard scoped to the project repo, bin `--help` smoke test. Closed: `hypothesis:l2-graph-hygiene` (round 11, proved).
 - **goal:g16 (telemetry), minted L2.01, active from wave 2.** Writer stamps season/loop/model/profile (L2.06); telemetry stamps at done with a real source or `telemetry_source: unavailable` (L2.06, lean 70). Open: session roll-up, cost per aligned outcome.
 - **goal:g13.1 (one way in).** Owner's ask delivered: `write_guard.py check` warns on any node changed outside the logged writers; both writers log; smoke path runs it; hook lines in QUICKSTART. After a round it reports 0 warnings. Grounded: `hypothesis:l2w15-write-guard`, iter-L2.03, L2.09.
 
@@ -55,7 +55,7 @@ None marked `complete`. `goal:g12.3` is closed in substance but its rollover con
 ## 5. Completion-failure categories
 
 - `banked-to-owner`: season-2 visions (the rollover's owner-tier input); pointed Church Slavonic; `goal:s35`.
-- `hazard-carry-over`: rollover cap bug; `.agi/bin` stray + L2.09 node sprawl (round 11 in flight); `l2-parent-spawn-nonblocking` landed but pi parents still report ~9-minute silent kids (no live progress signal).
+- `hazard-carry-over`: rollover cap bug; `l2-parent-spawn-nonblocking` landed but pi parents still report ~9-minute silent kids (no live progress signal).
 - `verification-blindness`: L2.06 left `dispatch.py` with an unimported name and 1539 tests stayed green (fixed by hand, `test_bin_help_smoke.py` now guards the class); the commit guard broke every kid's test sandbox for one round before it was scoped.
 - `late-minting`: none — every brief was minted before its round and committed at mint.
 - `attribution-void`: one — commit `9b28e958a` came from a kid's tool auto-commit, not any agent's decision.

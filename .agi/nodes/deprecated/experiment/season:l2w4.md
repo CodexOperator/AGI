@@ -9,6 +9,7 @@ body: "\"# experiment:season:l2w4\\n\\n## Experiment\\n\\nSeason 1 tier-0 pairin
 edited_by: ubuntu
 scaffold_hash: 71d7be2c51f2323b
 season: 1
+status: deprecated
 thought_session: iter-L2.09
 title: "Experiment: season pairing run"
 ---
@@ -24,3 +25,7 @@ Raw output, screenshots, logs.
 
 ## Agent Notes
 Parent review: malformed/redundant. The run log lives as a JSON-escaped string in a frontmatter body: field; the markdown body is still scaffold. Duplicates experiment:a00-1a2f54da-outcome-judgment. Prior art only.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Deprecated L2.09 hygiene: body trapped in frontmatter body: field; markdown body still scaffold. Duplicates experiment:a00-1a2f54da-outcome-judgment.
+<!-- THOUGHT:END -->
