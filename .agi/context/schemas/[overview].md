@@ -10,64 +10,52 @@ fields:
   status: {type: str}        # open | closed
   confidence: {type: float}
   evidence_fraction: {type: float}   # inherited score of what it aggregates
+  judged_against: {type: str}  # the vision this report is judged against
+  lens: {type: str}            # the morals above, stamped for readers
+  alignment: {type: str}       # aligned | adjust | unknown
+  adjust: {type: str}          # one line: what shifts in the vision
+  season_parents: {type: list} # season edge, not lineage
+  tokens_in: {type: int}       # telemetry roll-up: tokens consumed
+  tokens_out: {type: int}      # telemetry roll-up: tokens produced
+  cost_usd: {type: float}      # telemetry roll-up: cost in USD
+  accepted_bytes: {type: int}  # telemetry roll-up: accepted diff bytes
+  moral_audit: {type: dict}    # five-key dict: faith, love, empathy, antifragility, beauty; each has value (aligned|violated|unknown) and evidence pointer
 validation:
   required: [id, type, mint_id, title, parents]
   types:
     parents: list
 spawn:
   allowed_parents: [bigger_outcome]
-  min_parents: 3
+  min_parents: 1
   max_parents: 4
-  min_parents_by_type: {bigger_outcome: 3}
 ---
 
 # overview
 
-**The reporting tier between aggregated outcomes and the vision.** Several
-`bigger_outcome` nodes, read together, and what they say about whether the
-season's goals were met.
+**Report node for tier 2.** A season rollover report judged against its vision
+through the lens of the morals above. Composed from several `bigger_outcome`
+nodes, read together, and what they say about whether the season's goals were
+met.
 
 ID prefix: `overview:<short-slug>`.
 
-## This schema is PRESCRIPTIVE and describes zero nodes
+## Ladder rationale (season-ladder-and-morals-brief §1)
 
-Every other schema here except `[bigger_outcome].md` and `[vision].md` is
-derived from the corpus. **This type has no corpus at all** — it was created
-on 2026-08-27 and nothing has been written to it yet. So there are no
-observed counts below, and the numbers are chosen rather than measured. A
-reader who assumes "derived" will misread it.
+An overview is judged against its vision through the lens of the morals above.
+The judgment record (`judged_against`, `lens`, `alignment`, `adjust`) is
+stamped on the report node. An overview additionally carries `moral_audit:` —
+five answers to the five moral questions (§3 of the design brief), each
+`aligned | violated | unknown` with an evidence pointer. Counts are measured
+at season close, never enforced as floors.
 
-Stating that plainly matters more here than elsewhere: the other schemas earn
-their rules from 780 nodes of evidence, and this one earns its rules from an
-argument. If the argument is wrong the rule should change, and changing it
-costs nothing today precisely because no node depends on it.
+`min_parents: 1` replaced the previous `min_parents: 3` with
+`min_parents_by_type: {bigger_outcome: 3}` per the season-ladder design brief.
+The old floor was the highest in the graph but existed only as design intent:
+zero overview nodes had ever been minted, so it expressed a wish rather than a
+measured property. The new floor ensures DAG consistency.
 
-## Spawn rule
-
-`allowed_parents: [bigger_outcome]`, `min_parents: 3`, `max_parents: 4`,
-`min_parents_by_type: {bigger_outcome: 3}`.
-
-**Three, deliberately, and it is the highest floor in the graph.** The
-convergence end is supposed to be harder to reach than the middle: an
-`overview` resting on one or two aggregates is a restatement, not a reading.
-Three is the smallest number at which "what do these say *together*" is a
-different question from "what does this say".
-
-`max_parents: 4` leaves exactly one slot above the floor, so a fourth
-aggregate can be admitted without the type becoming a bucket. Both sit under
-`[shape].md`'s ceiling of 4, which was raised from 2 on the same day and for
-the same reason.
-
-## Where it sits
-
-    outcome -> bigger_outcome -> overview -> vision
-
-`bigger_outcome` requires 2 verdicts and 2 outcomes; `overview` requires 3
-bigger_outcomes; `vision` requires 2 overviews. The floors compound on
-purpose — a vision that satisfies its own rule rests, transitively, on at
-least 6 aggregates, 12 verdicts and 12 outcomes. **That is the "harder to
-earn" property expressed as arithmetic rather than as intent**, which is the
-difference between a design and a wish.
+Collapse ratios are data, not rules: overview→vision ratio is LT goals per
+vision. `max_parents: 4` leaves room above the floor for legitimate density.
 
 ## Not built
 
@@ -77,6 +65,24 @@ belongs to — score the overviews, unlock the next season's vision when they
 clear a bar — is designed and unbuilt. Declared here rather than omitted so
 the field name is fixed before anything writes it; recorded as a residual
 rather than claimed.
+
+## moral_audit shape
+
+A dict with exactly five keys. Each key maps to an object with:
+- `value`: one of `aligned`, `violated`, `unknown`
+- `evidence`: pointer to the node(s) supporting the claim (str or list)
+
+Keys: `faith`, `love`, `empathy`, `antifragility`, `beauty`.
+
+Example:
+```yaml
+moral_audit:
+  faith: {value: aligned, evidence: "experiment:a00-1234-abcd"}
+  love: {value: unknown, evidence: []}
+  empathy: {value: aligned, evidence: "experiment:a00-5678-efgh"}
+  antifragility: {value: aligned, evidence: ["experiment:a00-9012-ijkl", "experiment:a00-3456-mnop"]}
+  beauty: {value: violated, evidence: "overview:cluttered-format"}
+```
 
 ## The `THOUGHT` block (goal:g2.11)
 
