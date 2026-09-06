@@ -1,4 +1,6 @@
-# SESSION HANDOFF — 2026-09-05: brainstorm session → loop L2 plan (seasons, morals, ladder)
+# SESSION HANDOFF — 2026-09-06: LIVE SCRATCHPAD — loop L2 opened (prime director `agi-master`, remote-control, session in progress)
+
+**Owner's instruction 2026-09-06: this handoff is carried forward, not replaced** — the 2026-09-05 plan below stays and the live session diffs it in place. Successors: read before touching.
 
 Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
 session only and the next director replaces it wholesale. Prior sessions are in
@@ -23,14 +25,33 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | goals | 124 (16 active) |
 | `outcome_coverage` (primary) | 0.190 |
 | `evidence_fraction` | 0.375 |
-| tests | **1493** passed, 1 skipped (2026-09-06, `commands.py run tests`) |
+| tests | **1487** passed (2026-09-06 session start, `commands.py run tests`; the 1493 count predates the doc pass — all green) |
 | broken links | 0 (1270 resolved, 2026-09-06) |
-| crons | **OFF**. Push by hand. |
-| branch | `worktree-council-rotation` (worktree). **Not master.** Owner merges or fast-forwards, as with the two branches before it. |
+| crons | **OFF** until the grid master-guard lands (wave 2), then on (owner, 2026-09-06). Push by hand until then. |
+| branch | `master`, clean, worktree branch merged. Prime director works on master (brief §2). |
 | agents live | none |
-| spend this session | $0 — no dispatch |
+| spend this session | OpenRouter balance $5 at start; owner topping to $30 (the binding cap). Fallback if it runs dry: `--harness claude-code`, opus parents / sonnet kids, until the subscription taps out. |
+| disk | 79% (was 96%); 17G freed 2026-09-06 — see §0.5 item 4 |
+| this session | prime director, `claude remote-control --name agi-master --permission-mode bypassPermissions` in tmux `agi-rc`, log `.agi/sessions/remote-control.log` (carries `usage` lines = context meter for rotation) |
 
-## §1 What this session did
+## §0.5 Session 2026-09-06 — L2 opened. Owner answers, settled (do not re-ask)
+
+1. **Authority is open-ended**: loop until L2 closes; minimise owner decisions, combine several into one, morals as the tie-breaker.
+2. **Wave order changed**: wave 1 → **wave 1.5 (daisy-chain path)** → wave 2 → 3 → 4 → 5. Wave 1.5 = ladder node with `director_rotate_at: 0.35`, rotation script (write handoff live, launch successor `claude remote-control --name agi-master-N` in tmux `agi-rc`, successor reads handoff before replacing), **plus an unsanctioned-write check** (owner's ask): the repo mechanically detects a node or payload edit that did not go through `write.py` and warns to redo it properly.
+3. **Rotation 0.35 and council quorum (§7) confirmed as written.**
+4. **Disk**: owner granted deletion of every other repo whose remote is up to date. Done this session: pushed the one unpushed ML branch, christenArts main (+9), two hermes stashes as `stash/*` branches, belam's dirty canvas json as `wip/2026-09-06-canvas-progress`; then deleted `machinelearning` (14G), `machinelearning-hermes`, `belam-codex`, `christenArts`, `agi-tree`, `fencePros`, `/tmp/pytest-of-ubuntu` (2.5G). **Left**: `machinelearning-modularnn-spike-viz` (787M, not a git repo, no remote to verify — banked), `fantasia` (worked example, dirty), tiny repos. Grid storage: git already delta+zlib packs the grid; `git gc` took `.git` 63M → 23M. Zips would not beat pack deltas — no grid compression work needed.
+5. **Spend**: $30 OpenRouter is the cap once topped. Subscription was exhausted 2026-09-04 by stress-testing; the fallback ladder is opus parents / sonnet kids at max.
+6. **Successor first prompt**: test remote-control first; if it needs the owner's tap, bank and pause.
+
+**Live checklist (this session)**
+- [x] smoke 1099 active / 1290 total, tests 1487, disk freed, handoff carried
+- [ ] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15`
+- [ ] wave 1 dispatch, 2 parents at a time, one kid per schema file
+- [ ] five moral nodes by hand (owner text verbatim)
+- [ ] wave 1.5: ladder node, rotation script, RC successor test, unsanctioned-write check
+- [ ] waves 2–5 per §3
+
+## §1 What the 2026-09-05 session did
 
 - [x] Whiteboard photo → `.agi/context/images/season-cycle-whiteboard-2026-09-05.webp` (1200×900, 80 KB).
 - [x] Read `HANDOFF.md` and `COMPLETE.md` at owner's request; neither erased until this replacement.
