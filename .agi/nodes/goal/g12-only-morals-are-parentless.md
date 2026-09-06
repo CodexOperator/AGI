@@ -1,23 +1,24 @@
 ---
+id: goal:g12
+mint_id: be648cffa7e2473f9962b087153c3fe6
+type: goal
+parents: []
 confidence: 1.0
+edited_by: director
 goal_id: G12
 goal_kind: long-term
 heading_level: 2
-id: "goal:g12"
-mint_id: be648cffa7e2473f9962b087153c3fe6
 origin: goals-doc
-parents: []
 seeds:
   - goal:g12.1
   - goal:g12.2
-status: horizon
+status: active
 tags:
   - goal
   - root
+thought_session: agi-master-2026-09-06
 title: "G12: Only morals are parentless — moral spawns vision spawns goal"
-type: goal
 ---
-
 **The rule, stated once: exactly one node type may have an empty `parents`
 list — `moral`.** Every other type, without exception, resolves to at least
 one moral by walking `parents` upward. Morals are the root; morals spawn

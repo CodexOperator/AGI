@@ -1,10 +1,14 @@
 ---
+id: goal:s17
+mint_id: 46b7d8f76a8742bf9aafa5a82ad8cca3
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S17
 goal_kind: short-term
 heading_level: 2
-id: "goal:s17"
-mint_id: 46b7d8f76a8742bf9aafa5a82ad8cca3
 origin: goals-doc
 seeds:
   - idea:schema-declared-spawn-gate
@@ -13,10 +17,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S17: Node types have no declared schema, so a spawn is never checked"
-type: goal
 ---
-
 **Seven node types are in daily use and `context/schemas/` declares six of
 them — and the overlap is not what you would guess.** Active (bracketed, per
 `schema_registry/loader.py`: `[name].md` is active, `name.md` is inactive):

@@ -1,10 +1,14 @@
 ---
+id: goal:s11
+mint_id: bb55e3a25e244bdd811997143dd84ae7
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S11
 goal_kind: short-term
 heading_level: 2
-id: "goal:s11"
-mint_id: bb55e3a25e244bdd811997143dd84ae7
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S11: Retire `level3` as a type name"
-type: goal
 ---
-
 `level3` names a zoom level in the data — the category error G2 now records.
 ~180 nodes carry `type: level3`, they live in `nodes/level3/`, and the name is
 load-bearing in `bin/level3.py`, `bin/stitch.py` (which filters on it), the
@@ -72,4 +75,3 @@ One miss worth remembering for the next rename: `[experiment].md` still listed
 `level3` in `allowed_parents`, which an id-rename pass cannot see because a
 bare type name has no `:` in it. Caught afterwards by running the spawn gate
 over the whole corpus. **Do that as the last step of any type rename.**
-

@@ -2,7 +2,8 @@
 id: goal:s35
 mint_id: 2e11d8bd74be4ca0a1755ad3240ae405
 type: goal
-parents: []
+parents:
+  - goal:g15
 next_edges: []
 confidence: 1.0
 edited_by: director
@@ -17,7 +18,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: L1.13
+thought_session: agi-master-2026-09-06
 title: "S35: Schemas are nodes, and they live under nodes/"
 ---
 # goal:s35

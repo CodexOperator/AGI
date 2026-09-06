@@ -5195,7 +5195,7 @@ points it at the wrong directory is the H0i pruning hazard with the safety
 catch removed. It has not fired only because nothing has run it from a cwd
 where the old rule resolves differently.
 
-## G12 — Only morals are parentless — moral spawns vision spawns goal — status: horizon
+## G12 — Only morals are parentless — moral spawns vision spawns goal — status: active
 
 **The rule, stated once: exactly one node type may have an empty `parents`
 list — `moral`.** Every other type, without exception, resolves to at least
@@ -5582,6 +5582,13 @@ existing nodes is a separate, mechanical follow-up once the schema change
 itself is made — bundling the two would let the rule's definition drift
 while the migration is still being decided node by node.
 
+### G12.3 — The tier ladder, seasons, and season.py — status: active
+
+# goal:g12.3
+
+## Agent Notes
+The generic tier ladder declared as one node, .agi/nodes/.geometry/ladder.md with schema [ladder]: tiers 0..3 each with plan node, report node, judged-against, lens and cadence; current_season; caps (5 morals, 3 visions); budget_usd_week; spawn profiles; read order by role; director_rotate_at. Judgment record lives on the report node: judged_against, lens, alignment, adjust, season. season_parents is the season edge, traversable for zoom and provenance, excluded from chain depth and outcome_coverage. season.py status, judge, rollover. Design: .agi/context/season-ladder-and-morals-brief.md section 1. Build plan: HANDOFF.md section 3, loop L2 waves 1 to 5.
+
 ## G13 — One read/write path for nodes — an LLM-native node interface — status: active
 
 **One way in and one way out of the graph.** Every operation an agent performs
@@ -5914,6 +5921,20 @@ replaced independently.
 replace it with a scored model or a plain check. A rule that has survived a few
 loops as prose is a rule with a labelled dataset behind it. `COMPLETE.md`'s fixed
 failure-category set exists to make those labels.
+
+## G15 — Bugfix and optimization — status: active
+
+# goal:g15
+
+## Agent Notes
+Long-term, always active, exempt from max_goals_active. Parent of every short-term (S) goal: ids never renumbered, goal_kind stays short-term, they stop being roots. Its bigger_outcome each season is the hazard ledger, goal:s34's home. Bugfixes, edge-case hardening, security fixes, optimization and hazard removal are done in-loop under this goal or under the S goal beneath it that fits. Design: .agi/context/season-ladder-and-morals-brief.md section 2.
+
+## G16 — Telemetry per node, propagated up the ladder — status: horizon
+
+# goal:g16
+
+## Agent Notes
+Per node at done and per session: model, harness, profile, tokens_in, tokens_out, cost_usd, accepted diff bytes (node plus payload, review-accepted only). Roll-up is a descendant sum along parents: outcome is its loop, bigger_outcome the LT goal, overview the season. Ratios: bytes per token and bytes per dollar, always beside aligned-outcome count; cost per aligned outcome is the ranking number. Secondary only, never a target, never read by an agent choosing what to do; it tunes the model lattice, goal:g14. Cost source is OpenRouter's per-generation endpoint through the per-spawn key, to be verified first. Design: .agi/context/season-ladder-and-morals-brief.md section 5. Horizon until L2 wave 2.
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 

@@ -1,10 +1,14 @@
 ---
+id: goal:s8
+mint_id: d3ded88fb3b34d52beb8eb38ec6bf973
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S8
 goal_kind: short-term
 heading_level: 2
-id: "goal:s8"
-mint_id: d3ded88fb3b34d52beb8eb38ec6bf973
 origin: goals-doc
 seeds:
   - mvp:zoom-runtime-contract
@@ -13,10 +17,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S8: `zoom.py` bakes the pi-runtime completion contract into the kid context"
-type: goal
 ---
-
 When using the script to inject context, eventually zoom.py fires and inserts the
 reference for each kid on how to mark the completion of their task. It currently
 inserts a pi-runtime reference for completion, rather than being properly runtime-

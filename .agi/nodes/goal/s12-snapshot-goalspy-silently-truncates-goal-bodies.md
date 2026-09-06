@@ -1,10 +1,14 @@
 ---
+id: goal:s12
+mint_id: 9532754542ee47ac806a47721c2c89c5
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S12
 goal_kind: short-term
 heading_level: 2
-id: "goal:s12"
-mint_id: 9532754542ee47ac806a47721c2c89c5
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S12: `snapshot-goals.py` silently truncates goal bodies at 4000 chars"
-type: goal
 ---
-
 `BODY_CAP = 4000` in `bin/snapshot-goals.py` line 290:
 `g["body"] = "\n".join(g["body"]).strip()[:BODY_CAP]`. A goal longer than that
 is cut **mid-character-stream** — no boundary, no marker, no warning — and the

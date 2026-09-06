@@ -1,10 +1,14 @@
 ---
+id: goal:s24
+mint_id: 92c99c4d207c402f87dfea8507136976
+type: goal
+parents:
+  - goal:g15
 confidence: 0.8
+edited_by: director
 goal_id: S24
 goal_kind: short-term
 heading_level: 2
-id: "goal:s24"
-mint_id: 92c99c4d207c402f87dfea8507136976
 origin: goals-doc
 seeds: []
 status: horizon
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S24: Sweep the corpus for stale nodes: orphan @v2s and filler chain extensions"
-type: goal
 ---
-
 **The owner's ask, 2026-09-02, alongside the goal sweep: the same pass the
 goals just got, applied to the nodes.** A goal sweep classifies 41 declarations;
 this classifies 861 nodes. Two populations are named as suspects, and both are

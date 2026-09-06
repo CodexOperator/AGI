@@ -1,10 +1,14 @@
 ---
+id: goal:s2
+mint_id: 8411f48082324bed9607e200adca84cc
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S2
 goal_kind: short-term
 heading_level: 2
-id: "goal:s2"
-mint_id: 8411f48082324bed9607e200adca84cc
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S2: Cron parity with fantasia"
-type: goal
 ---
-
 `grid.py cron install` sets both cadences — a 5-minute grid snapshot + push
 (crash window ≤ 5 minutes) and an hourly main-branch push. fantasia has this;
 **agi-tree does not**, and the grid was only initialised in this project on

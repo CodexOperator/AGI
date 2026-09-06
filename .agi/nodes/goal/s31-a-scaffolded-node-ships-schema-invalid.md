@@ -1,10 +1,14 @@
 ---
+id: goal:s31
+mint_id: 8b21d5fc9e3a4c07af6d1e94b70c2f38
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S31
 goal_kind: short-term
 heading_level: 2
-id: "goal:s31"
-mint_id: 8b21d5fc9e3a4c07af6d1e94b70c2f38
 origin: goals-doc
 seeds: []
 status: active
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S31: A scaffolded node ships schema-invalid, and the brief forbids the kid from fixing it"
-type: goal
 ---
-
 **Found by a parent, in its `struggles:` line, on the 2026-09-02 iteration-103
 run. Fifth time this session that field beat the review it came attached to.**
 Quoted verbatim:

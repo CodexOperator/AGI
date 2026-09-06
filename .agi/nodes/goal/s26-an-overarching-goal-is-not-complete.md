@@ -1,10 +1,14 @@
 ---
+id: goal:s26
+mint_id: 46d3da15cddd4baaae02af095551cd78
+type: goal
+parents:
+  - goal:g15
 confidence: 0.9
+edited_by: director
 goal_id: S26
 goal_kind: short-term
 heading_level: 2
-id: "goal:s26"
-mint_id: 46d3da15cddd4baaae02af095551cd78
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S26: An overarching goal is not `complete` while its subgoals are live"
-type: goal
 ---
-
 **The owner's rule, stated during the 2026-09-02 sweep, and it caught a real
 misclassification in the act.** The sweep's recommendation was to mark
 `goal:g5` `complete` — every falsifier it names is met and iteration 1 built

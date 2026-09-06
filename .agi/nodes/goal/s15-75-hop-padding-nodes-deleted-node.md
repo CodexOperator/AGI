@@ -1,10 +1,14 @@
 ---
+id: goal:s15
+mint_id: d03d67013f784e4bb2469c28fffa5581
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S15
 goal_kind: short-term
 heading_level: 2
-id: "goal:s15"
-mint_id: d03d67013f784e4bb2469c28fffa5581
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S15: 75 hop-padding nodes deleted; node count dropped on purpose"
-type: goal
 ---
-
 Done 2026-08-25, immediately after G7.1's sweep. **This is the one place in this
 document where `node_count` goes down, so it is recorded rather than merely
 done.**

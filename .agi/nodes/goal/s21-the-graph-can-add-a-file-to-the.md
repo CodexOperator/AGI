@@ -1,22 +1,24 @@
 ---
+id: goal:s21
+mint_id: 6349aa237a354f869360370076fdcdb5
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S21
 goal_kind: short-term
 heading_level: 2
-id: "goal:s21"
-mint_id: 6349aa237a354f869360370076fdcdb5
 origin: goals-doc
-parents: []
 seeds: []
 status: horizon
 tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S21: The graph can add a file to the engine but can never remove one"
-type: goal
 ---
-
 🔴 **The publish path is one-directional for existence.** `level3.py` mints a
 node for a new file authored under `payloads/` and `stitch.py --publish` writes
 it into the engine, so the graph can *create*. Nothing anywhere lets the graph

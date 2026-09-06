@@ -1,10 +1,14 @@
 ---
+id: goal:s9
+mint_id: 2513e14e53704aaab53d51318542bb1f
+type: goal
+parents:
+  - goal:g15
 confidence: 1.0
+edited_by: director
 goal_id: S9
 goal_kind: short-term
 heading_level: 2
-id: "goal:s9"
-mint_id: 2513e14e53704aaab53d51318542bb1f
 origin: goals-doc
 seeds: []
 status: complete
@@ -12,10 +16,9 @@ tags:
   - goal
   - root
   - short-term
+thought_session: agi-master-2026-09-06
 title: "S9: `commit_file()` drops the exec bit and mis-hashes symlinks"
-type: goal
 ---
-
 Found 2026-08-23 by `exp:grid-payload-roundtrip`, confirmed at the cited lines.
 `bin/grid.py`:
 
