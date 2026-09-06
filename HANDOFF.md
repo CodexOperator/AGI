@@ -146,7 +146,9 @@ git push origin <branch>
 6. **Camber Cloud waits** for `g16` data — but may be tried sooner on **low-level kids fine-tuned to the read/write paths**, once every path is behind an action word. The gate is **saturation**: do not spend GPU hours until the task set saturates the untuned model.
 7. **Branching, decided** — see the brief §2 "Branches mirror the ladder": one branch per parent loop, one long-lived branch per director, master owned by the prime director; kids never branch. **Grid node refs are branch-blind** (one linear ref per mint id, parent = current tip), so `grid.py commit --all` runs **only on master, after a merge**; session refs may be written from anywhere. Wave 2 adds a guard to `grid.py` that refuses `commit --all` off master.
 
-## §7 Still open, none blocking wave 1
+8. **Merge, not rebase**, when a director takes a parent branch (owner, 2026-09-06). Rebase rewrites hashes the grid may cite.
 
-- Whether a director's branch should rebase or merge when taking a parent branch (lean merge, no history rewrite; moral: antifragility, nothing lost).
-- Council quorum and record.
+## §7 Proposed, owner to confirm — none blocking wave 1
+
+- **Council quorum and record** — brief §6 "Council": convened one tier up only, quorum = convener + affected directors, one-seam time box, co-authored idea node as the record.
+- **Director rotation** — brief §6 "Director rotation": `director_rotate_at: 0.35` on the ladder node; the parent above respawns a rotating director on the same branch and worktree; the prime self-rotates and daisy-chains; rotation writes the handoff only, and a successor reads before replacing. Wave 3 builds the trigger and the respawn; wave 1 declares the field.
