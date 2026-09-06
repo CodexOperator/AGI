@@ -536,17 +536,21 @@ def write_node(
     res = NodeWrite(node_id=node_id, node_type=ntype, slug=str(slug),
                     parents=list(plist))
 
+    current_season = None
     if rules is None or type_index is None:
-        loaded_rules, loaded_index = spawn_gate.gate_for_root(root)
+        loaded_rules, loaded_index, current_season = spawn_gate.gate_for_root(root)
         rules = rules if rules is not None else loaded_rules
         type_index = type_index if type_index is not None else loaded_index
         if announce:
             spawn_gate.announce_schema_errors(rules)
 
+    gate_fm = fm_for_gate if fm_for_gate is not None else (extra_fm or {})
     gate = spawn_gate.check_spawn(
         ntype, plist, rules=rules, type_index=type_index,
-        fm=fm_for_gate if fm_for_gate is not None else (extra_fm or {}),
+        fm=gate_fm,
         node_id=node_id, bypass=bypass,
+        season_parents=gate_fm.get("season_parents"),
+        current_season=current_season,
     )
     if announce:
         spawn_gate.announce(gate)

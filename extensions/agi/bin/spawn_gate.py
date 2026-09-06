@@ -135,6 +135,10 @@ class Rule:
     #: neither of those halves alone. Empty tuple = no shape restriction, so
     #: every type that does not declare it is unaffected.
     parent_shapes: tuple = ()
+    #: Which types a node of this shape may have in `season_parents:`.
+    #: Empty frozenset means the type does not support season_parents
+    #: at all, and any season_parents entry is refused.
+    season_parents_allowed: frozenset = frozenset()
 
 
 @dataclass
@@ -349,12 +353,23 @@ def _parse_rule(block, variant: str = "") -> tuple[Rule | None, str]:
     if err:
         return None, err
 
+    spa_raw = block.get("season_parents_allowed")
+    if spa_raw is not None:
+        if not isinstance(spa_raw, (list, tuple)) or not spa_raw:
+            return None, "spawn.season_parents_allowed must be a non-empty list of types"
+        spa_set = frozenset(canonical_type(x) for x in spa_raw)
+        if any(not x for x in spa_set):
+            return None, "spawn.season_parents_allowed has an unusable type name"
+    else:
+        spa_set = frozenset()
+
     return Rule(
         allowed_parents=allowed_set,
         min_parents=min_p,
         max_parents=max_p,
         min_parents_by_type=by_type,
         parent_shapes=shapes,
+        season_parents_allowed=spa_set,
         variant=variant,
     ), ""
 
@@ -570,6 +585,38 @@ def resolve_nodes_root(root, schemas_dir=None) -> Path:
     return root / DEFAULT_NODES_SUBDIR
 
 
+def read_ladder_season(nodes_dir: Path) -> int | None:
+    """Read `current_season` from `.geometry/ladder.md`.
+
+    Returns None if the ladder node does not exist or cannot be read,
+    which fails OPEN: season_parents checking is skipped and the node
+    is written. A missing ladder must never block the loop.
+    """
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md"
+    if not ladder.is_file():
+        return None
+    fm = _read_frontmatter(ladder)
+    if not fm:
+        return None
+    cs = fm.get("current_season")
+    if isinstance(cs, int) and not isinstance(cs, bool):
+        return cs
+    return None
+
+
+def read_node_season(fm: dict | None) -> int | None:
+    """Read `season:` from a node's frontmatter.
+
+    Returns None when absent (pre-season-1 node), int when present.
+    """
+    if not isinstance(fm, dict):
+        return None
+    s = fm.get("season")
+    if isinstance(s, int) and not isinstance(s, bool):
+        return s
+    return None
+
+
 @dataclass
 class SpawnResult:
     """What the gate decided, and enough detail to print either outcome."""
@@ -604,6 +651,8 @@ def check_spawn(
     fm: dict | None = None,
     node_id: str = "",
     bypass: bool = False,
+    season_parents: list | None = None,
+    current_season: int | None = None,
 ) -> SpawnResult:
     """Check one spawn against the schema. Never raises.
 
@@ -613,6 +662,10 @@ def check_spawn(
     instinct as `evidence_gate.normalize_evidence_runs(corpus=None)`, except
     that here failing closed means *declining to approve*, not rejecting,
     because a type we cannot resolve is not evidence of a wrong type.
+
+    `season_parents` is the node's `season_parents:` list (ids).
+    `current_season` is the ladder's current_season; pass None to skip
+    season_parents checking entirely (old callers that don't need it).
     """
     ntype = canonical_type(node_type)
     plist = [p.strip() for p in (parents or []) if isinstance(p, str) and p.strip()]
@@ -807,6 +860,76 @@ def check_spawn(
             res.applied.append(
                 "parent_shapes=[" + ", ".join(got) + "]")
 
+    # 6. season_parents: validate by type, with grandfathering.
+    if season_parents is not None and rule.season_parents_allowed:
+        splist = [p.strip() for p in season_parents
+                  if isinstance(p, str) and p.strip()]
+        if splist:
+            # Grandfathering: nodes with season < current_season skip check.
+            node_season = read_node_season(fm)
+            if current_season is not None and node_season is not None \
+                    and node_season < current_season:
+                res.applied.append(
+                    f"season_parents grandfathered (season {node_season} < "
+                    f"current {current_season})")
+            elif current_season is not None and node_season is None \
+                    and current_season == 1:
+                res.applied.append(
+                    "season_parents grandfathered (no season, current=1)")
+            else:
+                if type_index is None:
+                    res.status = UNVERIFIED
+                    res.reason = "no node index to resolve season_parents"
+                    res.messages.append(
+                        f"SPAWN-GATE UNVERIFIED: {res.node_id} — "
+                        f"season_parents could not be checked: no node index. "
+                        "The node is written.")
+                    return res
+                unresolved = []
+                for spid in splist:
+                    ptype = type_index.get(spid)
+                    if ptype is None:
+                        unresolved.append(spid)
+                        continue
+                    if ptype not in rule.season_parents_allowed:
+                        res.status = REJECTED
+                        res.reason = (
+                            f"rule 'season_parents_allowed' from "
+                            f"{schema.source}: {shape} season_parent "
+                            f"{spid!r} has type '{ptype}', allowed "
+                            f"types: {sorted(rule.season_parents_allowed)}")
+                        res.fix = (
+                            f"give {res.node_id} season_parents of type "
+                            f"{{{', '.join(sorted(rule.season_parents_allowed))}}}, "
+                            f"or add '{ptype}' to spawn.season_parents_allowed "
+                            f"in {schema.source}.")
+                        _reject_message(res, shape, schema)
+                        return res
+                if unresolved:
+                    res.status = UNVERIFIED
+                    res.reason = f"season_parents id(s) resolve to no node: {unresolved}"
+                    res.messages.append(
+                        f"SPAWN-GATE UNVERIFIED: {res.node_id} — "
+                        f"season_parents {unresolved} name no node. "
+                        "The node is written.")
+                    return res
+                res.applied.append(
+                    f"season_parents_allowed="
+                    f"{{{', '.join(sorted(rule.season_parents_allowed))}}}")
+    elif season_parents is not None and not rule.season_parents_allowed \
+            and season_parents:
+        # Type does not support season_parents at all -> refuse.
+        res.status = REJECTED
+        res.reason = (
+            f"rule 'season_parents_allowed' from {schema.source}: {shape}"
+            f" does not declare season_parents_allowed, but has "
+            f"season_parents entries")
+        res.fix = (
+            f"remove season_parents from {res.node_id}, or add "
+            f"spawn.season_parents_allowed to {schema.source}.")
+        _reject_message(res, shape, schema)
+        return res
+
     res.status = APPROVED
     res.messages.append(
         f"SPAWN-GATE APPROVED: {res.node_id} checked against "
@@ -872,13 +995,14 @@ def stamp(fm: dict, res: SpawnResult) -> dict:
     return fm
 
 
-def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict]:
-    """Convenience for the writer paths: rules + type index for one project."""
+def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict, int | None]:
+    """Convenience for the writer paths: rules + type index + current season."""
     root = Path(root)
     schemas_dir = root.joinpath(*SCHEMAS_SUBDIR)
     rules = load_spawn_rules(schemas_dir, root=root)
     nd = Path(nodes_dir) if nodes_dir else resolve_nodes_root(root, schemas_dir)
-    return rules, build_type_index(nd)
+    cs = read_ladder_season(nd)
+    return rules, build_type_index(nd), cs
 
 
 def _cli(argv) -> int:
@@ -900,12 +1024,16 @@ def _cli(argv) -> int:
     c.add_argument("--set", dest="sets", action="append", default=[],
                    metavar="K=V", help="extra frontmatter, e.g. goal_kind=subgoal")
     c.add_argument("--no-spawn-gate", action="store_true")
+    c.add_argument("--season-parent", dest="season_parents",
+                   action="append", default=[])
+    c.add_argument("--current-season", type=int, default=None,
+                   help="override the ladder's current_season")
     r = sub.add_parser("rules")
     r.add_argument("--root", default=None)
     args = ap.parse_args(argv)
 
     root = Path(args.root).resolve() if args.root else _find_root()
-    rules, index = gate_for_root(root)
+    rules, index, cs = gate_for_root(root)
     announce_schema_errors(rules)
 
     if args.cmd == "rules":
@@ -938,6 +1066,8 @@ def _cli(argv) -> int:
     res = check_spawn(
         args.node_type, args.parents, rules=rules, type_index=index, fm=fm,
         node_id=args.node_id, bypass=args.no_spawn_gate,
+        season_parents=args.season_parents,
+        current_season=args.current_season if args.current_season is not None else cs,
     )
     announce(res)
     return 2 if res.status == REJECTED else 0

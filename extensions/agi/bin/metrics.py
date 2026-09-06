@@ -95,8 +95,50 @@ UNPUSHED_WARN_AT = 20
 #: --smoke` and a smoke pass that can hang is not a cheap dry pass.
 GIT_TIMEOUT_SECONDS = 10
 
+#: Fallback traversable lineage fields when `[shape].md` is missing or has no
+#: `edge_fields` declaration (goal:g12.3).
+FALLBACK_TRAVERSABLE_FIELDS = frozenset({"parents"})
+
 #: Frontmatter `status:` that retires a node file without deleting it.
 DEPRECATED_STATUS = "deprecated"
+
+
+def _load_traversable_fields(root: Path) -> frozenset[str]:
+    """Read traversable edge fields from `[shape].md` context/schemas.
+
+    Returns the set of frontmatter field names declared as
+    ``traversable: true`` in the shape schema's ``edge_fields``.
+    Falls back to :data:`FALLBACK_TRAVERSABLE_FIELDS` when the schema
+    file is missing or has no valid ``edge_fields`` declaration
+    (goal:g12.3, hypothesis:l2w2-metrics-season-edge).
+    """
+    import yaml
+    shape_path = root / "context" / "schemas" / "[shape].md"
+    if not shape_path.is_file():
+        return FALLBACK_TRAVERSABLE_FIELDS
+    try:
+        text = shape_path.read_text(encoding="utf-8")
+    except Exception:
+        return FALLBACK_TRAVERSABLE_FIELDS
+    if not text.startswith("---"):
+        return FALLBACK_TRAVERSABLE_FIELDS
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return FALLBACK_TRAVERSABLE_FIELDS
+    try:
+        fm = yaml.safe_load(parts[1]) or {}
+    except Exception:
+        return FALLBACK_TRAVERSABLE_FIELDS
+    ef = fm.get("edge_fields")
+    if not isinstance(ef, dict):
+        return FALLBACK_TRAVERSABLE_FIELDS
+    traversable = set()
+    for field_name, entry in ef.items():
+        if isinstance(entry, dict) and entry.get("traversable") is True:
+            traversable.add(str(field_name).strip())
+    if not traversable:
+        return FALLBACK_TRAVERSABLE_FIELDS
+    return frozenset(traversable)
 
 
 def _load_graph(root: Path):
@@ -108,6 +150,47 @@ def _load_graph(root: Path):
     from graph_core.edge import Edge
 
     g, loaded = load_directory(root / "nodes")
+    traversable = _load_traversable_fields(root)
+
+    # Build node-id -> values for non-parents traversable fields from frontmatter.
+    # These are fields like `next_edges` that are ``role: lineage`` and
+    # ``traversable: true`` but are not the primary ``parents`` field.
+    import yaml
+    extra_forward: dict[str, list[str]] = {}
+    other_fields = traversable - FALLBACK_TRAVERSABLE_FIELDS
+    if other_fields:
+        for nf in sorted((root / "nodes").rglob("*.md")):
+            try:
+                text = nf.read_text(encoding="utf-8")
+            except Exception:
+                continue
+            if not text.startswith("---"):
+                continue
+            parts = text.split("---", 2)
+            if len(parts) < 3:
+                continue
+            try:
+                fm = yaml.safe_load(parts[1]) or {}
+            except Exception:
+                continue
+            if not isinstance(fm, dict):
+                continue
+            nid = fm.get("id")
+            if not isinstance(nid, str) or not nid.strip():
+                continue
+            nid = nid.strip()
+            vals = []
+            for field in other_fields:
+                raw = fm.get(field)
+                if isinstance(raw, list):
+                    for v in raw:
+                        if isinstance(v, str) and v.strip():
+                            vals.append(v.strip())
+                elif isinstance(raw, str) and raw.strip():
+                    vals.append(raw.strip())
+            if vals:
+                extra_forward[nid] = vals
+
     for ln in loaded:
         for parent_id in ln.node.parents:
             if g.has_node(parent_id):
@@ -119,6 +202,17 @@ def _load_graph(root: Path):
                 pn = g.get_node(parent_id)
                 if pn is not None:
                     pn.children.add(ln.node.id)
+
+        # Forward edges from additional traversable fields (e.g. `next_edges`).
+        # Creates edge: this_node -> target, and adds target to this_node's children.
+        for tid in extra_forward.get(ln.node.id, []):
+            if g.has_node(tid):
+                try:
+                    g.add_edge(Edge(source_id=ln.node.id, target_id=tid,
+                                    relation="traversable"))
+                except Exception:
+                    pass
+                ln.node.children.add(tid)
     return g
 
 
@@ -702,6 +796,16 @@ def goal_attribution(nodes_dir: Path) -> dict:
     types: dict[str, str] = {}
     deprecated: set[str] = set()
 
+    # Which edge fields to follow for lineage walks (goal:g12.3).
+    # Read from the shape schema so `season_parents` and other
+    # non-traversable fields are excluded mechanically rather than
+    # hardcoded (hypothesis:l2w2-metrics-season-edge).
+    traversable = _load_traversable_fields(nodes_dir.parent)
+    # Inverted index for forward-pointing traversable fields (e.g. `next_edges`).
+    # If node A has `next_edges: [B]`, then B's ancestor A should be reachable
+    # when walking UP from B.
+    extra_ascendants: dict[str, list[str]] = {}
+
     for _nf, fm in _iter_frontmatter(nodes_dir):
         nid = fm.get("id")
         if not isinstance(nid, str) or not nid.strip():
@@ -711,6 +815,17 @@ def goal_attribution(nodes_dir: Path) -> dict:
         raw = fm.get("parents")
         parents[nid] = [p.strip() for p in raw if isinstance(p, str) and p.strip()] \
             if isinstance(raw, (list, tuple)) else []
+        # Additional traversable fields: build inverse relationships for
+        # forward-pointing edges so the upward walk can reach the source node.
+        for field in traversable:
+            if field == "parents":
+                continue
+            raw_other = fm.get(field)
+            if isinstance(raw_other, list):
+                for v in raw_other:
+                    if isinstance(v, str) and v.strip():
+                        tid = v.strip()
+                        extra_ascendants.setdefault(tid, []).append(nid)
         st = fm.get("status")
         # Same predicate as `deprecated_node_ids`, over an iteration this
         # function is already making. One definition of "retired node", two
@@ -719,6 +834,12 @@ def goal_attribution(nodes_dir: Path) -> dict:
             deprecated.add(nid)
         if types[nid] == "goal":
             statuses[nid] = st.strip() if isinstance(st, str) and st.strip() else "active"
+
+    # Merge inverse relationships from forward-pointing traversable fields
+    # into the parent mapping so the upward walk can also reach nodes that
+    # point TO this node via fields like `next_edges`.
+    for child_id, ascendants in extra_ascendants.items():
+        parents.setdefault(child_id, []).extend(ascendants)
 
     # goal:g3 / L1.08 — mvps that fail `[mvp].md`'s forward-pointing rule.
     # Computed from the `types`/`parents` this pass already built, plus one
