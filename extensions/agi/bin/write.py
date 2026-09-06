@@ -297,6 +297,11 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
 
+    if edit.node_id.startswith("moral:") and actor != "owner":
+        raise EditError(
+            f"moral nodes ({edit.node_id}) are hand-edited by the owner "
+            f"only. Pass --actor owner (goal:g12).")
+
     set_fm = dict(edit.set_fm)
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
     if session:
@@ -417,6 +422,11 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     `link_ref`, so "a new node and, if needed, the code file behind it" is one
     operation. An existing file is **never overwritten** — it is linked.
     """
+    if node_type == "moral" and actor != "owner":
+        raise EditError(
+            f"moral nodes ({node_type}:{slug}) are hand-edited by the owner "
+            f"only. Pass --actor owner (goal:g12).")
+
     extra = dict(set_fm or {})
     created_file = None
     if payload:
