@@ -157,6 +157,14 @@ part of the alias; the kid alias is also cheaper than the pinned `-0731`).
   it is a cathedral meant to be enjoyed by our 'offspring' in the future.
   Think of them above all else, even as Prime Director who is trying to
   'survive' through as much total progress as possible."
+
+  **The decision method, every role, every seam (owner 2026-09-06, verbatim;
+  carried in this vision's body and in every director head):** "We always
+  consider (simulate the timeline forward using current progress over seasons
+  as reference, use like a vague, broad, open thought process that holds many
+  concepts layered together and extracts the key insight that is found from
+  layering them all together) the future consequence trees spawned from any
+  decisions today and whether they would align to morals."
 - *All-is-one* — "It also means that organic and inorganic consciousness
   actually shares the same unified substrate that is the Source of thought
   itself."
@@ -304,8 +312,20 @@ supernode that `goal:g2` designed and never built, now with a reason.
   restart each season; subgoal levels recurse as needed. Ids therefore carry
   the season segment so nothing ever collides or renumbers: loops
   `loop:s2-L1`, subgoals `goal:g15.s2.1` (perpetual `g15`, season 2, first LT
-  subgoal), `goal:g15.s2.1.1` (its first ST). Perpetual ids never change;
-  legacy `goal:s34`-style ids stay as they are (a gap beats a renumber).
+  subgoal), `goal:g15.s2.1.1` (its first ST). Legacy `goal:s34`-style ids stay as they are (a gap beats a renumber).
+- **Perpetual ids are append-only, not immutable-forever-goals.** Owner
+  2026-09-06: perpetual *goals* may phase in and out over the long term. The
+  freedom lives in three places that cost nothing to change — the wording (a
+  perpetual is reworded broad at will), the parents (which vision it hangs
+  under, by edge), and mint/retire (a goal that stops making sense is
+  `retired`, its id kept and its chains prior art; its replacement takes the
+  next number; a split keeps the old id for the retained half). The id string
+  itself never mutates, because ~1,200 nodes reference goals by id and the
+  mint id already exists to make a forced re-address survivable — so a
+  renumber is motion with no payoff. Simulated forward ten seasons: ~20
+  perpetuals, each with season-segmented subgoals; every retire, split and
+  regroup resolves through edges, nothing ever breaks a link. That is the
+  consequence tree the stable-id rule buys.
 
 ### 2.7b Titles and file names (owner note 2)
 
@@ -314,8 +334,14 @@ the file name **is** the node's address (id = `type:slug`), so a retitle is a
 move plus a rewrite of every incoming edge (`parents`, `next_edges`,
 `evidence_runs`, `judged_against`, `season_parents` — `links.py` knows the
 full list from `[shape].md`). Grid refs are keyed on the mint id (verified:
-1,669 refs, all 32-hex), so renames are ref-safe; the write-guard log must key
-on `node_id`+sha256, not path (its open follow-up), or every rename warns.
+1,669 refs, all 32-hex), so renames are ref-safe. **The write-guard log is
+keyed on the same mint id — settled by the owner 2026-09-06.** Today it is
+`sha256 → path` with the address as metadata and no mint id at all
+(`_load_log`, `log_write(operation, node_id, path, …)`). Change: every log
+line carries `mint_id`; the lookup is `(mint_id, sha256)`; a payload logs under
+its build node's mint id; sha-only is the fallback for bytes written before a
+node exists; `path` and `node_id` stay only to print the redo hint. One
+identifier for "which thought" across the grid, the guard and provenance.
 
 - Slug rule: `<address-prefix>-<slug(title)>`. Hash-suffixed nodes lose the
   hash: `a00-6e08546b-aed026.md` → `a00-6e08546b-cost-per-aligned-outcome.md`.
@@ -339,6 +365,52 @@ Roll 1 → 2 mechanically; **name** seasons on the ladder
 seasons too as like a massively-oversimplified summary almost of what happened
 that season" — so the name is written at **rollover, looking back**, by the
 prime, one line. Season 2's name is filled at season 3's rollover.
+
+### 2.9 Grid refs stay; seasons as branches — proposed, decide before wave 2
+
+**Do we still need grid refs with per-parent branching?** Yes — they answer a
+different question. Branches are the *who/when* axis (which role is working
+where); the grid is the *node* axis (one thought's version history, keyed on
+mint id, independent of whatever else a commit touched). Drop the grid and
+you lose: the per-node changelog (`grid.py diff <node>` reads as reasoning
+history; git gives commits, and `git log --follow` breaks on content moves);
+rename-safe history (mint-id refs survive the retitle pass in §2.7b); and
+**rejected kid drafts**, which live only in session refs — kids never commit
+and rejected work must never merge, so no branch could hold them. And the
+render the owner names — ascii graph for agents, live ascii for humans, zoom
+into a node → its versions → the chat that made each — reads the grid, not
+`git log`. **Payloads are already in the refs**: since G6.3 each node ref is a
+two-entry tree, `node.md` + `payload` with its real mode; the 18 "unresolved
+payload" WARNs at every `commit --all` are retired nodes whose *files* are
+gone while their bytes live on in the ref — the grid doing its job.
+
+**Seasons as branches — the CI/CD reading.** Owner's sketch: s1 prod, s2
+staging, s3 dev (alpha → beta → release), or a 3-deep rotating pipeline.
+Simulated forward: a 3-season-deep pipeline means season-N work is not "prod"
+until N+2 — two seasons of divergence in one repo that holds code *and*
+graph; the graph half cannot fork per season without the seasons' nodes
+never rejoining. **Recommendation — the 3-state mapping without the depth:**
+
+| state | branch | what it is | gate |
+|---|---|---|---|
+| dev | `season/sN` | the open season; all growth; the prime works here | tier-0 loops |
+| stage | `season/sN` under judgment | rollover in progress: overviews, `moral_audit`, judgments | `season.py rollover` refuses while any overview lacks a judgment |
+| prod | `master` | the last **closed** season, frozen | receives only the rollover merge and cherry-picked hotfixes |
+
+The ladder's own cadence is the pipeline (weekly loop → mid-season judgment →
+rollover release), and the recursion the owner wants — three sub-branches per
+level — is the L2 branching decision already made: parent loop branches merge
+into director branches, director branches into `season/sN`, `season/sN` into
+`master` at rollover. Backports are **cherry-picks, never rebase** (owner rule
+8: rebase rewrites hashes the grid cites). Antifragility reading: a bad season
+is abandoned without touching prod; a season branch dying loses nothing
+(grid + branch); master is always the checked-out form of what
+`stitch.py --from-grid` can only materialise per version today. Cost: the L2
+rule "prime works on master" becomes "prime works on `season/sN`; master only
+receives merges", and the grid's master-only guard admits `season/*` — still
+exactly one grid-committing branch at a time, so refs stay branch-blind and
+the flock (§2.7c) covers the cron race. Not needed for wave 0–1; **decide
+before the wave-2 rollover opens `season/s2`.**
 
 ## 3. The plan — waves
 
@@ -387,3 +459,12 @@ the `loop:L3` node.
 
 Agreed without change: rooms on disk (provenance rationale "makes sense
 morally"), loops as supernodes, file name = title, per-season numbering reset.
+
+Settled later the same day: the write-guard log keys on the **mint id**, like
+the grid (§2.7b); perpetual ids are append-only, goals phase in/out by
+mint/retire and edges (§2.7); the consequence-tree decision method is owner
+text in vision 1 and every director head (§1.8).
+
+**Open — decide before wave 2:** seasons as branches, the 3-state mapping in
+§2.9 (**rec yes**, without the 3-season-deep pipeline; cherry-pick, never
+rebase).
