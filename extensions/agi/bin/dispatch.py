@@ -270,6 +270,14 @@ def main() -> int:
         default="kid",
         help="Tier to spawn: selects harnesses.<h>.models[tier] (default: kid)",
     )
+    ap.add_argument(
+        "--detach",
+        action="store_true",
+        help="Skip the reaper phase and return immediately after spawn. "
+             "The caller (e.g. a parent agent) polls cli.py status to "
+             "detect completion. Without this flag dispatch blocks until "
+             "all agents finish or the timeout expires.",
+    )
     args = ap.parse_args()
 
     # goal:g11.1 — resolve the given path the way every entry point resolves
@@ -458,6 +466,18 @@ def main() -> int:
                 max_live=cap,
             )
             spawn_env = adapter.child_env(harness=harness, base=scrubbed_env())
+            # goal:l2-agent-git-commit-guard -- belt: refuse git write for
+            # automated agent tiers (kid, parent).  AGI_TIER distinguishes
+            # machine from human; GIT_CONFIG tells git to use our hooks
+            # directory (agent-git/) which exits 1 for tier kid/parent.
+            # Only the director or a human session can write to git.
+            spawn_env["AGI_TIER"] = args.tier
+            if args.tier in ("kid", "parent"):
+                plugin_root = Path(__file__).resolve().parent.parent
+                hooks_dir = plugin_root / "hooks" / "agent-git"
+                spawn_env["GIT_CONFIG_COUNT"] = "1"
+                spawn_env["GIT_CONFIG_KEY_0"] = "core.hooksPath"
+                spawn_env["GIT_CONFIG_VALUE_0"] = str(hooks_dir)
             # goal:g1.11 -- mint AFTER the brief is assembled and BEFORE the
             # process exists, so a key is never issued for a slot that then
             # fails to spawn for some other reason. The secret goes into the
@@ -562,21 +582,25 @@ def main() -> int:
         print(f"budget: {len(unadmitted)} of {len(targets)} slot(s) unadmitted "
               f"at cap {cap} — see manifest.unadmitted", file=sys.stderr)
 
-    # goal:g4.7 — continuous reaper phase. After spawn, poll agent pids via
-    # adapter.is_alive() until all agents are terminal or the config timeout
-    # expires (was bounded at 30s — now runs for the full agent lifecycle.
-    # This replaces heal.py's out-of-process pid monitoring with an inline
-    # pass that detects and records failure (or restarts) before the loop
-    # exits.
-    _reaper_phase(
-        root=root,
-        iter_dir=iter_dir,
-        adapter=adapter,
-        timeout_s=int(manifest.get("timeout_seconds", 600)),
-        max_wait_s=int(manifest.get("timeout_seconds", 600)),
-        cap=cap,
-        cfg=cfg,
-    )
+    if not args.detach:
+        # goal:g4.7 — continuous reaper phase. After spawn, poll agent pids via
+        # adapter.is_alive() until all agents are terminal or the config timeout
+        # expires (was bounded at 30s — now runs for the full agent lifecycle.
+        # This replaces heal.py's out-of-process pid monitoring with an inline
+        # pass that detects and records failure (or restarts) before the loop
+        # exits.
+        # With --detach, the caller (e.g. a parent) owns polling via cli.py
+        # status; they get the kid's agent id back in seconds rather than
+        # waiting for the full lifecycle.
+        _reaper_phase(
+            root=root,
+            iter_dir=iter_dir,
+            adapter=adapter,
+            timeout_s=int(manifest.get("timeout_seconds", 600)),
+            max_wait_s=int(manifest.get("timeout_seconds", 600)),
+            cap=cap,
+            cfg=cfg,
+        )
 
     return 0
 
