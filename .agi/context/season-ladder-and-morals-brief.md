@@ -154,6 +154,32 @@ caps apply from season 2. `goal:g12`'s falsifier carries an asterisk; honest.
   per-director inbox file under `sessions/` polled at each seam); the call
   never does. Chat stays chat; decisions become co-authored idea nodes.
 
+### Branches mirror the ladder (owner decision, 2026-09-06)
+
+Concurrency is by loop, so isolation is by loop. Branches nest the way tiers do:
+
+| role | git surface |
+|---|---|
+| **kid** | none. Works in its parent's worktree, one kid per file, never commits (unchanged). |
+| **parent** | one branch + worktree per loop (`loop/<goal-id>@s<season>`), short-lived. Commits its kids' accepted nodes. |
+| **director** | one long-lived branch per director for the season (`tier<N>/<director>`). Merges its parents' branches at the **director seam**; that merge *is* the seam's `continue`. Merges upward into the director above. |
+| **prime director** | master. Nothing else touches it. |
+
+Merge, never rebase, when taking a lower branch: no history rewrite, nothing
+lost (antifragility). A parent branch that will not merge cleanly is an
+`adjust`, not a force.
+
+**The grid does not branch, and must not be asked to.** `refs/grid/node/<mint
+id>` is one linear ref per node; `grid.py commit --all` takes the working
+tree as the next version and parents it on the current tip, with no notion
+of which branch produced it. Two worktrees committing the same node would
+interleave versions and record every alternation as a change. Rule:
+**`grid.py commit --all` runs only on master, after a merge** — the prime
+director's or the cron's job. **Session refs** (`refs/grid/session/<iter>/
+<agent>/<id>`) are keyed by agent and may be written from any worktree; that
+is where a kid's draft goes. Wave 2 adds a guard in `grid.py` refusing
+`commit --all` off master.
+
 ---
 
 ## 3. Morals — the constitution
