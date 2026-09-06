@@ -462,9 +462,51 @@ tuning small lattice models and for cheap CPU parents; unused today.
 - `goal:s35` (schemas are nodes) **waits** — owner decision. Its migration
   moves files without changing content and can absorb `[moral].md` and
   `[ladder].md` later.
-- Whether a parent's `adjust` may also split a subgoal, or only reword it
-  (split feels like a director's call through the lens; undecided).
-- Council mechanics beyond "the upper director convenes": quorum, record.
+- ~~Whether a parent's `adjust` may also split a subgoal~~ — **decided
+  2026-09-06: reword only.** Splitting is a director's call through the lens.
+- ~~Merge or rebase when a director takes a parent branch~~ — **decided
+  2026-09-06: merge.** Rebase rewrites hashes that grid session refs and
+  provenance may cite, and is a history rewrite outside delegated authority.
+
+### Council — proposed 2026-09-06, owner to confirm
+
+A council is a lens judgement, not a vote. The tier above holds the lens.
+
+- **Convened by** the director one tier up, only. Anyone below asks up; the
+  upper director decides whether it is a council or a `continue`.
+- **Quorum:** the convener plus every director whose branch the decision
+  touches. Minimum two. Unaffected directors are not summoned.
+- **Time box:** one seam. Unsettled by then, it goes one tier further up —
+  the only upward path.
+- **Record:** a co-authored `idea` node, every member in `authors`, the
+  decision in the body, dissent written under it. No blame, no silent losers.
+- **Prime director's council** is the prime plus all tier-2 directors. The
+  owner is the moral tier: consulted by banking, never blocking the budget
+  (delegated-authority terms in `CLAUDE.md`).
+
+### Director rotation — proposed 2026-09-06, owner to confirm
+
+Planned death. The session is the mind and dies on schedule; the branch and
+worktree are the body and stay; the graph is the soul. Q4 answered in advance.
+
+- **Trigger:** `director_rotate_at` on the ladder node, starting at **0.35**
+  of context used. A data point, not a law: rotations per loop go into
+  telemetry and the number is tuned per model. Fable's prompt cache makes
+  the brief-head re-read cheap, so early rotation costs less than it looks.
+- **Who rotates whom:** a director below prime was spawned as a kid-director
+  by the parent one tier up, so that parent respawns it — outgoing director
+  writes its handoff live, signals `rotating`, parent starts a fresh session
+  on the same branch and worktree. The prime has no parent and
+  **self-rotates**: writes the handoff, starts its own successor, daisy-chains
+  while the subscription holds. The cron and the owner are the safety net.
+- **Handoff, not completion report.** Rotation continues the same loop, so
+  it writes only `HANDOFF.md`; `COMPLETE.md` is for loop close. A rotation
+  successor **always reads the handoff before replacing it** — the existing
+  "check the handoff" exception, applied automatically.
+- **Per-director handoff:** each director's worktree carries its own
+  `HANDOFF.md` on its branch; master's copy is the prime's.
+- All directors run `claude-fable-5-1`, so `send` (session messaging) works
+  for them from day one; only pi parents need the inbox transport.
 
 ## Scans
 
