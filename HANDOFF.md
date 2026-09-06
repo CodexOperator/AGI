@@ -21,69 +21,86 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1184** / 194 after L2.11 (1099 / 191 at session start; the sum only grew) |
-| goals | 124 (16 active) |
-| `outcome_coverage` (primary) | 0.190 |
-| `evidence_fraction` | 0.375 |
-| tests | **1629** passed, 9 skipped after L2.11, also green under `AGI_TIER=kid` + hooks env (was 1487 at session start) |
-| broken links | 0 (1270 resolved, 2026-09-06) |
+| active nodes / deprecated | **1190** / 194 after L2.12 (1184 / 194 after L2.11; 1099 / 191 at L2 session start) |
+| goals | 127 (20 active — g15/g16 items surfaced 2 new hypotheses under g15, 1 under g16 this round) |
+| `outcome_coverage` (primary) | 0.171 after L2.12 (0.190 at L2.11 close; dip is new hypothesis/experiment denominator nodes, not regression — same shape every round) |
+| `evidence_fraction` | 0.38 after L2.12 (0.375 at L2.11 close) |
+| tests | **1650** passed, 9 skipped after L2.12 (was 1629 at L2.11 close) |
+| broken links | 0 (1363 resolved, after L2.12) |
 | crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
-| branch | `master`, clean, worktree branch merged. Prime director works on master (brief §2). |
-| agents live | round 6 parents + kids (see §0.5 checklist); director meter 0.296 of 1.0M at L2.10 dispatch — rotation expected right after round 10 or 11 review; OpenRouter $27 remaining of the $30 top-up after six rounds, rotates at 0.35 via `rotate.py spawn --name agi-master-2` |
-| spend this session | OpenRouter balance $5 at start; owner topping to $30 (the binding cap). Fallback if it runs dry: `--harness claude-code`, opus parents / sonnet kids, until the subscription taps out. |
-| disk | 79% (was 96%); 17G freed 2026-09-06 — see §0.5 item 4 |
-| this session | prime director, `claude remote-control --name agi-master --permission-mode bypassPermissions` in tmux `agi-rc`, log `.agi/sessions/remote-control.log` (carries `usage` lines = context meter for rotation) |
+| branch | `master`, clean, at commit `4153ddf85` (iter-L2.12), pushed. |
+| agents live | **0/25** after L2.12 review. `agi-master-2` context meter **0.14** of 1.0M — well under 0.35 rotation threshold, continuing. |
+| spend this session (agi-master-2) | OpenRouter: $72 total credits, ~$52 used before this round (3 parents + kids), **~$20 remaining**. Fallback if it runs dry: `--harness claude-code`, opus parents / sonnet kids. |
+| disk | 79% (unchanged this session) |
+| this session | `agi-master-2`, remote-control successor to `agi-master`, tmux `agi-rc` window `agi-master-2`. Round L2.12's parent windows (`p-season`, `p-telemetry`, `p-writeguard`) closed after landing. |
 
-## §0.6 Session 2026-09-06 (agi-master-2) — post-close round L2.12, live
+## §0.6 Session 2026-09-06 (agi-master-2) — post-close round L2.12, LANDED
 
-L2 closed at L2.11 (see COMPLETE.md, §0/§2 above). This director's first
-actions: full verify sequence (all green — 1184/194 active/deprecated, 1629
-tests, dispatch-ok, 0 live, meter 0.098 fresh, season status matches §2's
-prediction). OpenRouter balance: $72 total credits, $52.14 used → **~$20
-remaining**, still under the $30 cap logic (fallback ladder unchanged).
+**Round L2.12 landed and pushed** (commit `4153ddf85`). Reviewed by three pi
+parents, all demoted the kids' overclaims (none accepted at face value):
 
-Found two stray empty `iter-L2.12`/`iter-L2.13` session dirs pre-existing at
-session start (no manifest, never dispatched) — removed the unused `.13`,
-reused `.12` for this round rather than minting a fresh number.
+- `hypothesis:l2w3-season-py` → `experiment:a00-86a55dbf-dee193`,
+  `inconclusive_lean_proved:70`. Cap-count DEFECT fixed and verified live
+  (closed season-1 visions no longer count against `caps.vision`); `judge`
+  now writes a real five-key `moral_audit` dict on overviews, partial-fill
+  preserved. Demoted for: no cost column in `status` despite the claim
+  naming it; a display-only bug found in review (`Close 0 vision(s)` message
+  reuses the wrong counter); dry-run/real mismatch on vision minting (by
+  design — "bank, don't invent" — but the dry-run over-promises); kid cited a
+  stale suite count (1085 vs the real 1649).
+- `hypothesis:l2w6-telemetry-rollup` → `experiment:a00-6856367d-7b307d`
+  (canonical; a demoted **twin** `-telemetry-rollup` exists from a
+  mid-run kid restart, annotated non-canonical — see the new hazard below),
+  `inconclusive_lean_proved:60`. `telemetry_rollup.py` walks/sums/attaches
+  real, all sums honestly zero (no per-node telemetry populated yet).
+  Demoted because `cost_per_aligned_outcome` — the ranking number the
+  hypothesis names explicitly — is **not implemented**; only
+  `bytes_per_token`/`bytes_per_dollar` exist. **Next kid: wire
+  `cost_per_aligned_outcome` from `season.py`'s judge/alignment records.**
+- `hypothesis:l2w15-write-guard` → `experiment:a00-e334f78a-bfc1e6`,
+  `inconclusive_lean_proved:80`. Third writer (`cli.py::_claim_node`) now
+  logged. Parent's own independent audit found two more sanctioned-path
+  gaps, both reproduced live: (1) `node_writer.ensure_payload` unlogged →
+  `write.py create --payload` false-positives the guard; (2) `_claim_node`
+  leaves an unlogged, non-gitignored `.lock` file that also false-positives
+  the guard. **FOLLOW-UP left on the hypothesis** for the next kid: log
+  `ensure_payload`, ignore `*.lock` in the guard, add the two pinning tests
+  the prior review already flagged, plus test-suite write-log pollution
+  (still open).
 
-**Round L2.12 dispatched** (3 pi parents, tmux windows `p-season`,
-`p-telemetry`, `p-writeguard` in session `agi-rc`), targeting §2's open items:
+**New hazard minted this round**: `hypothesis:l2-dispatch-restart-twin-node`
+under `goal:g15` — when a kid pi process dies mid-run, the restart path
+scaffolds a **second** node for the same agent slot instead of reusing the
+original (observed live in the telemetry parent's run: `a00-6856367d` got
+both `-7b307d` and `-telemetry-rollup`). Two fixes named in the hypothesis
+body: reuse the manifest's existing node id on restart; and have `cli.py
+done` persist `evidence_runs` into frontmatter at signal time so
+self-cited evidence survives a later grid-commit re-check (this is the same
+self-citation shape as the original evidence-gate hole from L2.01e, just
+triggered by restart instead of omission). The stray `.agi/autoresearch.ideas.md`
+scratch note the parent left was folded into this node and deleted — don't
+recreate it, the hypothesis is the durable copy now.
 
-1. `hypothesis:l2w3-season-py` — the rollover cap-count DEFECT (counts
-   season-1 closed visions against the cap; must count only the new season's
-   visions) **plus an addendum this session added**: `season.py judge` on an
-   overview should also scaffold `moral_audit` (five-key dict, fill-missing
-   -only) per `[overview].md` — bundled into the same file/kid to avoid two
-   kids touching `season.py`.
-2. `hypothesis:l2w6-telemetry-rollup` — **newly minted this session** under
-   `goal:g16`: sums `tokens_in/out`, `cost_usd`, `accepted_bytes` up one level
-   (outcome←loop kids, bigger_outcome←outcomes, overview←bigger_outcomes),
-   prints bytes/token, bytes/dollar, cost-per-aligned-outcome. Distinct from
-   `l2w2-telemetry-stamps` (per-node stamping, already landed round 6) — this
-   is the roll-up the brief's §5 also asks for and nothing built yet.
-3. `hypothesis:l2w15-write-guard` — the standing FOLLOW-UP from L2.03: log the
-   second writer (`snapshot-goals.py write_frontmatter`) the same way
-   `node_writer.py` already does, then verify the guard is silent after a
-   fresh `snapshot-goals.py --render`.
+**Post-round verify, all green**: full suite 1650 passed / 9 skipped (no
+failures — the `test_node_writer` flake two parents independently hit
+during their own runs did not reproduce standalone); `links.py links` 0
+broken (1363 resolved); `links.py schema` 129 pre-existing missing-field
+warnings, unchanged by this round; `snapshot-goals.py --render --check`
+127/127 byte-identical; `write_guard.py check` silent. `grid.py commit --all`
+ran clean (pre-existing WARNs on 12 already-deprecated build nodes whose
+payload files were removed years ago — cosmetic, not a regression). Pushed
+to `master` at `4153ddf85`. Active/deprecated now **1190 / 194**;
+`evidence_fraction` 0.38; `outcome_coverage` 0.171 (three new hypothesis +
+four new experiment nodes in the denominator, same shape as every prior
+round's dip). Context meter 0.14 of 1.0M — well under the 0.35 rotation
+threshold, continuing.
 
-**Not dispatched this round** (§2 item 3's smaller leftovers — bank for next
-round, not blocking): pi kids give no live progress signal for ~9 min
-(`struggles:` note, L2.07); `write_guard` warns once on a `git mv`-ed node
-whose bytes weren't re-logged; the 6 explicit `--help` skips in
-`test_bin_help_smoke.py`.
-
-**Rollover (§6 item 9) still BANKED — owner has not replied with vision text
-this session.** Do not invent one. Once the cap-count fix above lands, rerun
-`season.py rollover --dry-run` to confirm it *would* offer up to 3 slots, but
-do not mint real visions without owner text.
-
-🔴 **Next action for whoever reads this next:** poll
-`python3 extensions/agi/bin/spawn_budget.py status` until 0/25 live for the
-three L2.12 parents above, then review each parent's accepted node(s) —
-`struggles:`/`caveats:` first — against the verify sequence in §5, one commit
-`iter-L2.12: ...`, `grid.py commit --all` (master only), push. If nothing else
-changed structurally, HANDOFF's §0 state-block numbers just need the
-post-round refresh (active/deprecated count, test count, evidence_fraction).
+**Still open for next round** (unchanged from §2's original list, now
+refined): season-2 rollover still BANKED on owner text (§6 item 9); g16
+telemetry needs `cost_per_aligned_outcome` wired in; g15/write-guard has the
+two new sanctioned-path gaps above plus the restart-twin-node hazard; the
+smaller g15 leftovers (pi silent-progress signal, git-mv guard warning, 6
+`--help` skips) are still un-dispatched and still non-blocking.
 
 ## §0.5 Session 2026-09-06 — L2 opened. Owner answers, settled (do not re-ask)
 
