@@ -4,15 +4,21 @@ mint_id: 00f77f2908ec406c8ee3119f3c9fd8d3
 type: outcome
 parents:
   - mvp:unified-spawn-path
+accepted_bytes_total: 0
 confidence: 0.7
+cost_usd_total: 0
 edited_by: season.py
 evidence_runs: 0
 judged_against: goal:g4.6
 lens: goal:g4
 season: 1
 status: open
+telemetry_nodes_skipped: 92
+telemetry_nodes_summed: 0
 thought_session: season
 title: A00 c8365a0c 85a6d1
+tokens_in_total: 0
+tokens_out_total: 0
 verdict: inconclusive_lean_proved:70
 wired_at: 1788237714
 wired_from: a00-c8365a0c

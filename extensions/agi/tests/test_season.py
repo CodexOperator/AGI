@@ -47,6 +47,7 @@ def temp_graph(tmp_path, engine_on_path):
 id: ladder:ladder
 type: ladder
 current_season: 1
+caps_apply_from_season: 2
 caps:
   moral: 5
   vision: 3
@@ -251,6 +252,19 @@ class TestRollover:
         assert "Rollover: season 1 → 2" in result.stdout
         assert "Bump ladder" in result.stdout
 
+    def test_rollover_dry_run_shows_cap_applied_correctly(self, season_py, temp_graph):
+        """rollover --dry-run counts visions of new season only against cap."""
+        # Rollover from season 1 → 2: no visions of season 2 exist, so cap of 3 allows 3
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "rollover", "--dry-run"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        # Should offer up to 3 new visions (cap for new season, 0 existing)
+        assert "Mint up to 3 new vision(s)" in result.stdout, \
+            f"expected 'Mint up to 3 new vision(s)' in: {result.stdout}"
+
     def test_rollover_dry_run_does_not_write_ladder(self, season_py, temp_graph):
         """rollover --dry-run must not change the ladder node."""
         import locations
@@ -289,6 +303,118 @@ class TestJudge:
         )
         assert result.returncode == 1
         assert "not a report type" in result.stderr
+
+    def test_judge_scaffolds_moral_audit_on_overview(self, season_py, temp_graph):
+        """judge on an overview scaffolds moral_audit with all 5 keys unknown."""
+        import locations
+        from graph_core.persistence import frontmatter
+
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        # Create a vision for the overview to parent to
+        visions_dir = root / "nodes" / "vision"
+        vision_with_parent = """---
+id: vision:v2
+season: 1
+type: vision
+status: active
+parents: [goal:lt1]
+---
+# vision v2
+"""
+        (visions_dir / "v2.md").write_text(vision_with_parent)
+
+        # Create an overview node
+        overviews_dir = root / "nodes" / "overview"
+        overviews_dir.mkdir(parents=True, exist_ok=True)
+        overview = """---
+id: overview:test1
+type: overview
+status: active
+parents: [vision:v2]
+season: 1
+---
+# overview:test1
+"""
+        (overviews_dir / "test1.md").write_text(overview)
+
+        # Run judge with explicit --against
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", "overview:test1", "--against", "vision:v2"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "moral_audit scaffolded" in result.stdout
+
+        # Verify moral_audit was written
+        nf = frontmatter.load_node_file(overviews_dir / "test1.md")
+        audit = nf.frontmatter.get("moral_audit", {})
+        assert isinstance(audit, dict)
+        for mk in ("faith", "love", "empathy", "antifragility", "beauty"):
+            assert mk in audit, f"missing moral key: {mk}"
+            assert audit[mk].get("value") == "unknown", f"{mk} value not unknown"
+            assert audit[mk].get("evidence") is None, f"{mk} evidence not null"
+
+    def test_judge_preserves_existing_moral_audit_keys(self, season_py, temp_graph):
+        """judge on an overview with partial moral_audit fills only missing keys."""
+        import locations
+        from graph_core.persistence import frontmatter
+
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        # Create a vision
+        visions_dir = root / "nodes" / "vision"
+        vision_v3 = """---
+id: vision:v3
+season: 1
+type: vision
+status: active
+parents: [goal:lt1]
+---
+# vision v3
+"""
+        (visions_dir / "v3.md").write_text(vision_v3)
+
+        # Create an overview with partial moral_audit
+        overviews_dir = root / "nodes" / "overview"
+        overviews_dir.mkdir(parents=True, exist_ok=True)
+        overview = """---
+id: overview:test2
+type: overview
+status: active
+parents: [vision:v3]
+season: 1
+moral_audit:
+  faith: {value: aligned, evidence: "exp:abc"}
+---
+# overview:test2
+"""
+        (overviews_dir / "test2.md").write_text(overview)
+
+        # Run judge with explicit --against
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", "overview:test2", "--against", "vision:v3"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "moral_audit scaffolded" in result.stdout
+
+        # Verify faith is untouched and others were filled
+        nf = frontmatter.load_node_file(overviews_dir / "test2.md")
+        audit = nf.frontmatter.get("moral_audit", {})
+        assert isinstance(audit, dict)
+        # faith preserved
+        assert audit["faith"]["value"] == "aligned"
+        assert audit["faith"]["evidence"] == "exp:abc"
+        # others filled
+        for mk in ("love", "empathy", "antifragility", "beauty"):
+            assert mk in audit, f"missing moral key: {mk}"
+            assert audit[mk].get("value") == "unknown"
+            assert audit[mk].get("evidence") is None
 
 
 # ---------------------------------------------------------------------------

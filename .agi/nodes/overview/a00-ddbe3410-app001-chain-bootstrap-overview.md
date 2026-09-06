@@ -5,30 +5,36 @@ type: overview
 parents:
   - bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap
 next_edges: []
+accepted_bytes_total: 0
 alignment: unknown
+cost_usd_total: 0
 edited_by: ubuntu
 judged_against: vision:a00-ddbe3410-app001-chain-bootstrap
 lens: unknown
 moral_audit:
   faith:
     value: unknown
-    evidence: 
+    evidence:
   love:
     value: unknown
-    evidence: 
+    evidence:
   empathy:
     value: unknown
-    evidence: 
+    evidence:
   antifragility:
     value: unknown
-    evidence: 
+    evidence:
   beauty:
     value: unknown
-    evidence: 
+    evidence:
 scaffold_hash: cdb908390913ce43
 season: 1
+telemetry_nodes_skipped: 1
+telemetry_nodes_summed: 0
 thought_session: L2.10
 title: A00 ddbe3410 app001 chain bootstrap overview
+tokens_in_total: 0
+tokens_out_total: 0
 ---
 # overview:a00-ddbe3410-app001-chain-bootstrap-overview
 

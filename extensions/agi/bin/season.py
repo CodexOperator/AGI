@@ -223,6 +223,9 @@ def _shell_out_write(root: Path, node_id: str,
     script_parts = []
     if set_fm:
         for k, v in set_fm.items():
+            if isinstance(v, dict):
+                import json
+                v = json.dumps(v, separators=(',', ':'))
             script_parts.append(f"set {k} {v}")
     if note:
         script_parts.append(f"note {note}")
@@ -456,6 +459,30 @@ def cmd_judge(root: Path, args) -> int:
     if rc != 0:
         return rc
 
+    # moral_audit scaffold for overviews
+    if report_type == "overview":
+        # Reload to get current state
+        report_nf = frontmatter.load_node_file(report_path)
+        existing_audit = report_nf.frontmatter.get("moral_audit", {})
+        if not isinstance(existing_audit, dict):
+            existing_audit = {}
+
+        MORAL_KEYS = ["faith", "love", "empathy", "antifragility", "beauty"]
+        new_audit = {}
+        changed = False
+        for mk in MORAL_KEYS:
+            if mk in existing_audit and isinstance(existing_audit[mk], dict):
+                new_audit[mk] = existing_audit[mk]
+            else:
+                new_audit[mk] = {"value": "unknown", "evidence": None}
+                changed = True
+
+        if changed:
+            rc2 = _shell_out_write(root, report_id, set_fm={"moral_audit": new_audit})
+            if rc2 != 0:
+                return rc2
+            print(f"moral_audit scaffolded on {report_id} (filled missing keys)")
+
     print(f"Judgment stamped on {report_id}:")
     print(f"  judged_against: {final_against}")
     print(f"  lens: {lens_id or '(not found)'}")
@@ -529,7 +556,7 @@ def cmd_rollover(root: Path, args) -> int:
         try:
             nf = frontmatter.load_node_file(f)
             fm = nf.frontmatter
-            if fm.get("type") == "vision" and fm.get("season") == season:
+            if fm.get("type") == "vision" and fm.get("season") == new_season:
                 visions_current += 1
         except Exception:
             continue
@@ -537,6 +564,10 @@ def cmd_rollover(root: Path, args) -> int:
     # Close current visions
     print(f"  Close {visions_current} vision(s) of season {season} → status: closed")
     visions_open_for_new = max(0, vision_cap - visions_current)
+    # Also check the caps_apply_from_season flag for grandfathering
+    caps_from = ladder_fm.get("caps_apply_from_season", 2)
+    if new_season < caps_from:
+        visions_open_for_new = vision_cap  # no cap for this season yet
     if visions_open_for_new > 0:
         print(f"  Mint up to {visions_open_for_new} new vision(s) (cap: {vision_cap})")
         if dry_run:
