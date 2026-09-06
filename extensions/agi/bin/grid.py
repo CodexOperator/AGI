@@ -689,7 +689,8 @@ def iter_node_files(root: Path):
 
 def cmd_commit(root: Path, files: list[str], do_all: bool,
                session: tuple[str, str] | None, prefix: str = "",
-               engine_root: Path | None = None) -> None:
+               engine_root: Path | None = None,
+               allow_branch: bool = False) -> None:
     """Snapshot node files.
 
     Non-session writes go to the mint-id ref (goal:g2.5) and, unless the
@@ -719,6 +720,26 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     reintroduce it under a different cause.
     """
     ensure_repo(root)
+
+    # hypothesis:l2w15-grid-master-guard — refuse commit on a non-master
+    # branch unless --allow-branch is passed. Session commits (D3 drafts)
+    # are never gated.
+    if not session and not allow_branch:
+        # resolve the checked-out branch of the repo that owns the graph
+        # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
+        # work); on detached HEAD it fails (exit != 0) which we treat as not
+        # master.
+        branch = git(root, "symbolic-ref", "--short", "HEAD", check=False)
+        # git symbolic-ref returns empty string on error with check=False
+        if not branch or branch != "master":
+            ref_name = branch if branch else "detached HEAD"
+            print(
+                f"grid: refusing commit --all on {ref_name!r}, node refs are "
+                f"branch-blind; merge to master first or pass --allow-branch",
+                file=sys.stderr
+            )
+            sys.exit(2)
+
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
@@ -1399,6 +1420,9 @@ def main() -> None:
     c.add_argument("--session", nargs=2, metavar=("ITER", "AGENT"))
     c.add_argument("--prefix", default="",
                    help='commit-message prefix, e.g. "cron: " for auto-snapshots')
+    c.add_argument("--allow-branch", action="store_true",
+                   help="allow commit --all on a non-master branch; node refs "
+                        "are branch-blind, merge to master first to share history")
     lg = sub.add_parser("log")
     lg.add_argument("node_id")
     lg.add_argument("-n", type=int, default=20)
@@ -1455,12 +1479,13 @@ def main() -> None:
                          "layer is trusted should enable this.")
     args = ap.parse_args()
     root = find_project_root()
-    if args.cmd == "init":
-        cmd_init(root)
-    elif args.cmd == "commit":
+    if args.cmd == "commit":
         cmd_commit(root, args.files, args.all,
                    tuple(args.session) if args.session else None,
-                   prefix=args.prefix)
+                   prefix=args.prefix, allow_branch=args.allow_branch)
+    elif args.cmd == "init":
+        cmd_init(root)
+
     elif args.cmd == "log":
         cmd_log(root, args.node_id, args.n)
     elif args.cmd == "diff":

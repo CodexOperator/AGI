@@ -51,10 +51,17 @@ SHAPE = """\
 name: shape
 structural: true
 parentless_types:
-  - goal:long-term
-  - goal:short-term
-  - idea
+  - moral
 max_parents_ceiling: 2
+edge_fields:
+  parents:         {role: lineage,    traversable: true}
+  next_edges:      {role: lineage,    traversable: true}
+  depends_on:      {role: scheduling, traversable: false}
+  seeds:           {role: provenance, traversable: false}
+  proposes_goals:  {role: proposal,   traversable: false}
+  season_parents:  {role: season,     traversable: false}
+  grounded_in:     {role: provenance, traversable: false}
+  authors:         {role: provenance, traversable: false}
 ---
 shape
 """
@@ -86,7 +93,7 @@ IDEA = """\
 name: idea
 spawn:
   allowed_parents: [goal]
-  min_parents: 0
+  min_parents: 1
   max_parents: 1
 ---
 idea
@@ -98,8 +105,8 @@ name: goal
 spawn:
   discriminator: goal_kind
   variants:
-    long-term:  {allowed_parents: [], min_parents: 0, max_parents: 0}
-    short-term: {allowed_parents: [], min_parents: 0, max_parents: 0}
+    long-term:  {allowed_parents: [goal], min_parents: 1, max_parents: 1}
+    short-term: {allowed_parents: [goal], min_parents: 1, max_parents: 1}
     subgoal:    {allowed_parents: [goal], min_parents: 1, max_parents: 1}
 ---
 goal
@@ -177,9 +184,10 @@ def test_loads_every_active_schema_and_no_inactive_one(gate):
 def test_geometry_comes_from_shape_md(gate):
     rules, _ = gate
     assert rules.geometry.max_parents_ceiling == 2
-    assert rules.geometry.parentless_types == frozenset(
-        {"goal:long-term", "goal:short-term", "idea"}
-    )
+    assert rules.geometry.parentless_types == frozenset({"moral"})
+    assert "idea" not in rules.geometry.parentless_types
+    assert "goal:long-term" not in rules.geometry.parentless_types
+    assert "goal:short-term" not in rules.geometry.parentless_types
 
 
 def test_shape_key_canonicalises_type_half_only():
@@ -286,19 +294,49 @@ def test_wrong_parent_type_is_rejected(gate):
 # parentless-legal shapes, and the discriminator
 # --------------------------------------------------------------------------
 
-def test_idea_may_be_parentless(gate):
+def test_idea_may_not_be_parentless_anymore(gate):
+    """`goal:g12` — only moral is parentless-legal.
+
+    idea was removed from parentless_types in [shape].md. A parentless idea
+    is now REJECTED at the gate. The 42 pre-existing parentless ideas are
+    season 1, grandfathered.
+    """
     rules, index = gate
-    res = sg.check_spawn("idea", [], rules=rules, type_index=index)
-    assert res.status == sg.APPROVED
-    assert "parentless-legal" in res.messages[0]
+    res = sg.check_spawn("idea", [], rules=rules, type_index=index,
+                         node_id="idea:new-root")
+    assert res.status == sg.REJECTED
+    assert "min_parents" in res.reason
 
 
 @pytest.mark.parametrize("kind", ["long-term", "short-term"])
-def test_goal_roots_may_be_parentless(gate, kind):
+def test_goal_roots_may_not_be_parentless_anymore(gate, kind):
+    """`goal:g12` — only moral is parentless-legal.
+
+    goal:long-term and goal:short-term were removed from parentless_types.
+    A root goal is now REJECTED at the gate. The 27 pre-existing roots are
+    season 1, grandfathered.
+    """
     rules, index = gate
     res = sg.check_spawn("goal", [], rules=rules, type_index=index,
-                         fm={"goal_kind": kind})
-    assert res.status == sg.APPROVED
+                         fm={"goal_kind": kind}, node_id=f"goal:{kind}-new")
+    assert res.status == sg.REJECTED
+
+
+def test_only_moral_is_parentless_legal(gate):
+    """`goal:g12` — only the type 'moral' may be parentless.
+
+    Verifies the gate geometry declares exactly one parentless type and that
+    attempting to spawn any other type without a parent is REJECTED or, for
+    unregistered types, UNVERIFIED.
+    """
+    rules, index = gate
+    # moral has no schema yet, so it's UNVERIFIED rather than APPROVED;
+    # the geometry still declares it as the sole parentless-legal entry.
+    assert "moral" in rules.geometry.parentless_types
+    assert len(rules.geometry.parentless_types) == 1
+    assert "idea" not in rules.geometry.parentless_types
+    assert "goal:long-term" not in rules.geometry.parentless_types
+    assert "goal:short-term" not in rules.geometry.parentless_types
 
 
 def test_subgoal_may_not_be_parentless(gate):
@@ -432,7 +470,8 @@ def test_parent_typed_with_a_hyphen_still_validates(project):
 
 def test_announce_prints_on_approval_too(gate, capsys):
     rules, index = gate
-    sg.announce(sg.check_spawn("idea", [], rules=rules, type_index=index))
+    sg.announce(sg.check_spawn("task", ["hypothesis:h1"], rules=rules,
+                               type_index=index))
     out = capsys.readouterr()
     assert "SPAWN-GATE APPROVED" in out.out   # grep-able marker on stdout
     assert "SPAWN-GATE APPROVED" in out.err   # full explanation on stderr
@@ -815,12 +854,19 @@ def test_absent_min_by_type_changes_nothing(gate):
 # meant to prevent, not cause.
 # --------------------------------------------------------------------------
 
-SHAPE_WITH_EDGES = SHAPE.replace("max_parents_ceiling: 2", """\
+SHAPE_WITH_EDGES = """\
+---
+name: shape
+structural: true
+parentless_types:
+  - moral
 max_parents_ceiling: 2
 edge_fields:
   parents:    {role: lineage, traversable: true}
-  depends_on: {role: scheduling, traversable: false}\
-""")
+  depends_on: {role: scheduling, traversable: false}
+---
+shape
+"""
 
 
 def test_scheduling_edges_are_not_traversable(project):
@@ -838,9 +884,29 @@ def test_undeclared_edge_field_stays_traversable(project):
     assert geo.is_traversable("next_edges") is True
 
 
-def test_absent_edge_fields_leaves_every_edge_traversable(gate):
-    """A project with no `edge_fields:` walks exactly what it walked before."""
-    rules, _ = gate
-    assert rules.geometry.edge_fields == {}
-    assert rules.geometry.scheduling_edges() == frozenset()
-    assert rules.geometry.is_traversable("depends_on") is True
+def test_absent_edge_fields_leaves_every_edge_traversable():
+    """A project with no `edge_fields:` walks exactly what it walked before.
+
+    Uses a shape schema with NO edge_fields declared, so the gate falls back
+    to traversable=true for every field.
+    """
+    shape_no_edges = """\
+---
+name: shape
+structural: true
+parentless_types:
+  - moral
+max_parents_ceiling: 2
+---
+shape
+"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        sd = Path(td) / "context" / "schemas"
+        sd.mkdir(parents=True)
+        (sd / "[shape].md").write_text(shape_no_edges)
+        rules = sg.load_spawn_rules(sd)
+        assert rules.geometry.edge_fields == {}
+        assert rules.geometry.scheduling_edges() == frozenset()
+        assert rules.geometry.is_traversable("depends_on") is True
+        assert rules.geometry.is_traversable("season_parents") is True
