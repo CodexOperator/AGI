@@ -24,13 +24,16 @@ validation:
 spawn:
   discriminator: goal_kind
   variants:
+    # goal:long-term and goal:short-term are no longer parentless-legal
+    # (parentless_types is now [moral]; the 27 pre-existing roots are
+    # season 1, grandfathered, never re-gated).
     long-term:
       allowed_parents: [build, goal]
-      min_parents: 0
+      min_parents: 1
       max_parents: 2
     short-term:
       allowed_parents: [build, goal]
-      min_parents: 0
+      min_parents: 1
       max_parents: 2
     subgoal:
       allowed_parents: [build, goal]

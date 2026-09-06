@@ -1156,6 +1156,129 @@ def test_ensure_repo_names_the_repo_not_the_graph_dir(tmp_path, capsys):
     assert str(graph) not in str(exc.value)
 
 
+# -------------------- hypothesis:l2w15-grid-master-guard — --allow-branch guard on commit --all
+#
+# grid.py commit --all must refuse to run when the checked-out branch is not
+# master, unless --allow-branch is passed. Session commits (--session) are
+# never gated. Detached HEAD counts as not master.
+
+
+@pytest.fixture()
+def guard_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    d = tmp_path / "nodes" / "idea"
+    d.mkdir(parents=True)
+    (d / "x.md").write_text(
+        f'---\nid: "idea:x"\nmint_id: {MINT_G11}'  # reuse G11's mint
+        '\ntype: idea\n---\n\nfirst thought\n'
+    )
+    grid.cmd_init(tmp_path)
+    # The fixture repo is on master by default (git init checks out master).
+    return tmp_path
+
+
+def _on_branch(root, branch):
+    """Create and switch to `branch` (orphan if needed), leaving master intact."""
+    subprocess.run(["git", *grid.GIT_IDENT, "-C", str(root),
+                    "checkout", "--orphan", branch],
+                   capture_output=True, check=True)
+    # Orphan needs a first commit to become a real branch.
+    subprocess.run(["git", *grid.GIT_IDENT, "-C", str(root),
+                    "commit", "--allow-empty",
+                    "-m", f"init {branch}"], capture_output=True, check=True)
+
+
+def test_commit_all_refuses_on_non_master_branch(guard_project):
+    """commit --all on a non-master branch exits 2 and writes no ref."""
+    _on_branch(guard_project, "work")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+    assert grid.ref_tip(guard_project, grid.node_ref("idea:x")) is None
+
+
+def test_commit_all_on_master_succeeds(guard_project):
+    """commit --all on master works normally."""
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    # Must not raise; must create a version (uses mint-id ref under G2.5).
+    mint_ref = grid.mint_node_ref(MINT_G11)
+    assert grid.ref_tip(guard_project, mint_ref) is not None
+
+
+def test_commit_all_on_non_master_with_allow_branch_succeeds(guard_project):
+    """commit --all --allow-branch on a non-master branch works."""
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None,
+                    allow_branch=True)
+    mint_ref = grid.mint_node_ref(MINT_G11)
+    assert grid.ref_tip(guard_project, mint_ref) is not None
+
+
+def test_session_commit_on_non_master_branch_is_not_gated(guard_project):
+    """Session commit (D3) always works regardless of branch."""
+    _on_branch(guard_project, "work")
+    f = guard_project / "nodes" / "idea" / "x.md"
+    grid.cmd_commit(guard_project, [str(f)], do_all=False,
+                    session=("1", "a01"))
+    ref = grid.session_ref("1", "a01", "idea:x")
+    assert grid.ref_tip(guard_project, ref) is not None
+
+
+def test_commit_all_refuses_on_detached_head(guard_project):
+    """Detached HEAD is treated as 'not master' and is refused."""
+    # First commit on master so we have a commit to detach to.
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    mint_ref = grid.mint_node_ref(MINT_G11)
+    tip = grid.ref_tip(guard_project, mint_ref)
+    subprocess.run(["git", *grid.GIT_IDENT, "-C", str(guard_project),
+                    "checkout", "--detach", tip],
+                   capture_output=True, check=True)
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+
+
+def test_commit_all_refuses_on_detached_head_even_with_existing_refs(guard_project):
+    """A detached HEAD with existing grid history still refuses commit --all."""
+    # Commit on master, then detach.
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    mint_ref = grid.mint_node_ref(MINT_G11)
+    tip = grid.ref_tip(guard_project, mint_ref)
+    subprocess.run(["git", *grid.GIT_IDENT, "-C", str(guard_project),
+                    "checkout", "--detach", tip],
+                   capture_output=True, check=True)
+    # Edit the node so there's something to commit.
+    f = guard_project / "nodes" / "idea" / "x.md"
+    f.write_text(f.read_text().replace("first thought", "second thought"))
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+    # Existing ref must still hold v1 (via mint ref), not a new v2.
+    assert int(grid.git(guard_project, "rev-list", "--count", mint_ref)) == 1
+
+
+def test_commit_named_files_refuses_on_non_master(guard_project):
+    """commit FILE (without --session) is also gated, not just --all."""
+    _on_branch(guard_project, "work")
+    f = guard_project / "nodes" / "idea" / "x.md"
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [str(f)], do_all=False, session=None)
+    assert exc.value.code == 2
+
+
+def test_allow_branch_message_mentions_branch_name_and_flag(guard_project, capsys):
+    """The error message should name the branch and suggest --allow-branch."""
+    _on_branch(guard_project, "work")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+    out = capsys.readouterr()
+    err = out.err
+    assert "work" in err
+    assert "--allow-branch" in err
+
+
 # --------------------------------------------- evidence gate on the commit path
 #
 # hypothesis:gate-must-sit-on-the-commit-path (goal:g7). The falsifier the

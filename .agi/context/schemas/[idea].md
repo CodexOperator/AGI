@@ -22,7 +22,9 @@ validation:
     status: '^(open|active|extended|abandoned|deprecated)$'
 spawn:
   allowed_parents: [goal]
-  min_parents: 0
+  # No longer parentless-legal (parentless_types is now [moral]; the 42
+  # pre-existing parentless ideas are season 1, grandfathered).
+  min_parents: 1
   max_parents: 1
 ---
 
@@ -36,14 +38,14 @@ fork mid-chain.
 
 ID prefix: `idea:<short-slug>` (e.g. `idea:capillary-dag-memory`).
 
-## Spawn rule — one of exactly three parentless-legal shapes
+## Spawn rule — one goal parent, no longer parentless-legal
 
-`min_parents: 0`. `idea`, `goal:long-term` and `goal:short-term` are **the
-only** shapes in the graph permitted an empty `parents` list
-(`[shape].md :: parentless_types`). 42 of 71 ideas are parentless and every
-one of them is legal; the other 29 name a `goal`, which is the shape to
-prefer, because a parentless idea is attributable to no goal and therefore
-cannot move `outcome_coverage`.
+`min_parents: 1`. Since `goal:g12`, `moral` is the **only** parentless-legal
+shape (`[shape].md :: parentless_types`); `idea` lost that status at
+creation time. The 42 pre-existing parentless ideas are season 1,
+grandfathered, never re-gated. Every new idea names a `goal`, because a
+parentless idea is attributable to no goal and therefore cannot move
+`outcome_coverage`.
 
 `max_parents: 1` — never more than one goal observed. Raising it is a
 deliberate act: bump this **and** `max_parents_ceiling` in `[shape].md`.

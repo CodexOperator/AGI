@@ -27,7 +27,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | `evidence_fraction` | 0.375 |
 | tests | **1487** passed (2026-09-06 session start, `commands.py run tests`; the 1493 count predates the doc pass — all green) |
 | broken links | 0 (1270 resolved, 2026-09-06) |
-| crons | **OFF** until the grid master-guard lands (wave 2), then on (owner, 2026-09-06). Push by hand until then. |
+| crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
 | branch | `master`, clean, worktree branch merged. Prime director works on master (brief §2). |
 | agents live | none |
 | spend this session | OpenRouter balance $5 at start; owner topping to $30 (the binding cap). Fallback if it runs dry: `--harness claude-code`, opus parents / sonnet kids, until the subscription taps out. |
@@ -46,7 +46,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 **Live checklist (this session)**
 - [x] smoke 1099 active / 1290 total, tests 1487, disk freed, handoff carried
 - [x] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15` (commit after this line)
-- [~] wave 1 dispatch, 2 parents at a time, one kid per schema file. Briefs = `hypothesis:l2w1-*` (7). `spawn.parallel` set to 1 so one dispatch call = one parent. Iter id `L2.01`. Round 1 live: shape + ladder (tmux `agi-rc` windows `p-shape`, `p-ladder`, logs `.agi/sessions/iter-L2.01/dispatch-*.log`). Rounds: 2 = moral + report-floors; 3 = vision + goal-idea; 4 = experiment-payload.
+- [~] wave 1 dispatch, 2 parents at a time, one kid per schema file. Briefs = `hypothesis:l2w1-*` (7). `spawn.parallel` set to 1 so one dispatch call = one parent. Iter id `L2.01`. **Round 1 landed** (iter L2.01, commit after this line): `[shape].md` parentless_types=[moral] + 3 edge fields (kid also set goal/idea min_parents 1 — accepted, brief for round 3 amended); `[ladder].md` + `.geometry/ladder.md` (proved); grid master-guard in `grid.py` (proved, 8 tests). Tests 1497. **Round 2 live** (iter L2.02): moral + report-floors + rotate.py, windows `p-moral`, `p-floors`, `p-rotate`. Then round 3 = vision + goal-idea + write-guard; round 4 = experiment-payload.
 - [ ] five moral nodes by hand (owner text verbatim)
 - [~] wave 1.5: briefs minted `hypothesis:l2w15-rotate` (rotate.py meter/spawn/status + successor prompt), `l2w15-write-guard` (owner's unsanctioned-write check, under goal:g13.1), `l2w15-grid-master-guard` (crons come back on after it lands). grid-guard parent dispatched alongside round 1 (window `p-gridguard`); rotate + write-guard dispatch when round-1 slots free. RC successor test: done, see §0.5 item 6.
 - [ ] waves 2–5 per §3
@@ -137,6 +137,8 @@ new parentless `idea`.
 - `COMPLETE.md` **appended** (owner asked to keep both) with the L2 report, seven sections.
 
 ## §4 Traps to carry
+
+0. **Found in L2.01, bank to `goal:g15` (mint a hypothesis when a slot frees):** (a) a pi parent's blocking `dispatch.py --tier kid` call was killed by the 20-min tool timeout while the kid kept running; the parent recovered from the manifest but should not have had to — spawn must be non-blocking or the timeout must not apply to a spawn call. (b) `cli.py done` left a doubled frontmatter block in a kid's node (parent merged it by hand). (c) one kid never emitted the DONE contract line. (d) Monitoring parents: the dispatch log ends with `reaper: finished`, and `echo EXIT` after a tee pipe never reaches the log.
 
 1. **Prose verbs cannot contain `&&`** (`write.py` splits on it). The Slavonic and the verbatim essence contain none, but check before a `payload_text`; use `payload <file>` for the moral bodies.
 2. **`write.py create --payload` stamps `link_ref`, not `payload_ref`** — set `payload_ref` by hand after.

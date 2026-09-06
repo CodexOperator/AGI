@@ -31,12 +31,12 @@ node_tree_entries:
   - node.md      # always
   - payload      # only when the node has a payload_ref; real mode (644/755/120000)
 
-# The parentless whitelist. Exactly three shapes, and `goal` only in two of
-# its three variants -- see the discriminator in [goal].md.
+# The parentless whitelist. Since goal:g12 exactly one entry: `moral`,
+# creation-time only. The 113 pre-existing parentless nodes (long-term
+# goals, short-term goals, ideas) are season 1, grandfathered, never
+# re-gated.
 parentless_types:
-  - goal:long-term      # a `## G7` root
-  - goal:short-term     # a `## S4` root
-  - idea
+  - moral
 
 # No type may declare max_parents above this without also raising the ceiling.
 # Two deliberate edits, which is the point, and this is the second one:
@@ -67,6 +67,9 @@ edge_fields:
   depends_on:      {role: scheduling, traversable: false}
   seeds:           {role: provenance, traversable: false}
   proposes_goals:  {role: proposal,   traversable: false}
+  season_parents:  {role: season,     traversable: false}
+  grounded_in:     {role: provenance, traversable: false}
+  authors:         {role: provenance, traversable: false}
 
 # The per-type table lives in each [<type>].md `spawn:` block and NOWHERE
 # else. Copying it here would recreate the exact defect S17 names -- one fact
