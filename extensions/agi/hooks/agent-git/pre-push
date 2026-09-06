@@ -1,10 +1,23 @@
 #!/bin/bash
-# agi: refuse git push for automated agent tiers
-# goal:s27 — automation owns git; agents may read (status, diff, log) but
-#           may not write (commit, push).  The dispatch harness exports
-#           AGI_TIER to distinguish kid/parent from human/director sessions.
-if [ "${AGI_TIER:-}" = "kid" ] || [ "${AGI_TIER:-}" = "parent" ]; then
-    echo "agi: tier ${AGI_TIER} may not push — automation owns git (goal:s27)" >&2
-    exit 1
+# agi: refuse git push for automated agent tiers — only in the project repo
+# hypothesis:l2-commit-guard-scope — same scoping as pre-commit.
+# Compare git rev-parse --show-toplevel with AGI_PROJECT_ROOT; exit 0
+# when they differ or when AGI_PROJECT_ROOT is unset. Refusal only for
+# a push whose toplevel is the project repo.
+if [ -z "${AGI_TIER:-}" ]; then
+    exit 0
 fi
-exit 0
+if [ "${AGI_TIER}" != "kid" ] && [ "${AGI_TIER}" != "parent" ]; then
+    exit 0
+fi
+if [ -z "${AGI_PROJECT_ROOT:-}" ]; then
+    exit 0
+fi
+TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+REAL_TOPLEVEL=$(cd "$TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
+    exit 0
+fi
+echo "agi: tier ${AGI_TIER} may not push — automation owns git (goal:s27)" >&2
+exit 1

@@ -1,18 +1,21 @@
 ---
-id: "bigger_outcome:schema-registry-r1"
+id: bigger_outcome:schema-registry-r1
 mint_id: f695c4be5cec4aa8aad40dcda01b3ea2
-next_edges:
-  - vision:schema-registry
+type: bigger_outcome
 parents:
   - outcome:schema-registry-r1
+next_edges:
+  - vision:schema-registry
+edited_by: season.py
+judged_against: goal:g3
+season: 1
 subgraph: false
 tags:
   - schema-registry
   - R1
+thought_session: season
 title: "schema-registry/R1: Bigger Outcome"
-type: bigger_outcome
 ---
-
 **Broader outcome:** Schema-registry enables drop-in extension of the graph's type system without code changes. Schemas live as files in `context/schemas/`, bracket convention controls activation, and the cascade (bracket → fingerprint → LM hook) handles auto-discovery. New domains can plug in by dropping schema files.
 
 **Properties achieved:**

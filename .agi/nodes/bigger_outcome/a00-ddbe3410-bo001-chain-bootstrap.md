@@ -1,16 +1,19 @@
 ---
-id: "bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap"
+id: bigger_outcome:a00-ddbe3410-bo001-chain-bootstrap
 mint_id: 1d680aae096e46be830779231268273f
-next_edges:
-  - vision:a00-ddbe3410-app001-chain-bootstrap
+type: bigger_outcome
 parents:
   - outcome:a00-ddbe3410-outcome001-chain-bootstrap
+next_edges:
+  - vision:a00-ddbe3410-app001-chain-bootstrap
+edited_by: season.py
+judged_against: goal:g2
+season: 1
 tags:
   - bootstrap
+thought_session: season
 title: "BIGGER_OUTCOME001: chain-bootstrap domain enables capillary DAG execution"
-type: bigger_outcome
 ---
-
 ## Module Purpose
 The `domain-chain-bootstrap` idea proves the hypothesis→experiment→verdict pipeline is executable. This enables all other domains to convert their pending task nodes into experiments, producing verdict nodes, and ultimately completing chains to `app_purpose`.
 

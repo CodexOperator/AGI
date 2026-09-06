@@ -1,10 +1,27 @@
 #!/bin/bash
-# agi: refuse git commit for automated agent tiers
-# goal:s27 — automation owns git; agents may read (status, diff, log) but
-#           may not write (commit, push).  The dispatch harness exports
-#           AGI_TIER to distinguish kid/parent from human/director sessions.
-if [ "${AGI_TIER:-}" = "kid" ] || [ "${AGI_TIER:-}" = "parent" ]; then
-    echo "agi: tier ${AGI_TIER} may not commit — automation owns git (goal:s27)" >&2
-    exit 1
+# agi: refuse git commit for automated agent tiers — only in the project repo
+# hypothesis:l2-commit-guard-scope — the hook was refusing ALL commits under
+# AGI_TIER=kid|parent, including test repos under /tmp. Now it compares
+# git rev-parse --show-toplevel (real path) with AGI_PROJECT_ROOT and exits
+# 0 (allows) when they differ or when AGI_PROJECT_ROOT is unset. The refusal
+# with the existing one-line message stays only for a commit whose toplevel
+# is the project repo.
+if [ -z "${AGI_TIER:-}" ]; then
+    exit 0
 fi
-exit 0
+if [ "${AGI_TIER}" != "kid" ] && [ "${AGI_TIER}" != "parent" ]; then
+    exit 0
+fi
+# AGI_PROJECT_ROOT unset → cannot scope the guard, allow all
+if [ -z "${AGI_PROJECT_ROOT:-}" ]; then
+    exit 0
+fi
+# Resolve toplevel, resolve AGI_PROJECT_ROOT, compare them
+TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+REAL_TOPLEVEL=$(cd "$TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
+    exit 0
+fi
+echo "agi: tier ${AGI_TIER} may not commit — automation owns git (goal:s27)" >&2
+exit 1

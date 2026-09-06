@@ -1,20 +1,23 @@
 ---
-id: "bigger_outcome:schema-registry-r2"
+id: bigger_outcome:schema-registry-r2
 mint_id: 8e87962417424ff5896bdc57af94a50e
-next_edges:
-  - vision:schema-registry
+type: bigger_outcome
 parents:
   - outcome:schema-registry-r2-bracket-convention
+next_edges:
+  - vision:schema-registry
+edited_by: season.py
+judged_against: goal:g3
+season: 1
 subgraph: false
 tags:
   - schema-registry
   - R2
   - bracket-convention
   - chain-closure
+thought_session: season
 title: "schema-registry/R2: Bigger Outcome — Bracket Convention"
-type: bigger_outcome
 ---
-
 **Broader outcome:** Schema-registry R2 Bracket Convention enables clean schema activation/deactivation. Active schemas (bracketed) are discovered via cascade: bracket detection → fingerprint → LM hook. This separates schema definition (file) from schema activation (convention), enabling drop-in extensions without code changes.
 
 **Properties achieved:**
