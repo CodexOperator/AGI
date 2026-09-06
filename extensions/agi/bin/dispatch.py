@@ -44,6 +44,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import locations  # noqa: E402
+import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
