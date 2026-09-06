@@ -52,6 +52,10 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (`goal:g11`). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
+| `bin/season.py {status,judge,rollover}` | Season lifecycle: plan/report counts, judgment stamps, rollover (`ladder:ladder`) |
+| `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
+| `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
+| `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
 
 **`grid.py checkout` is gone — never run it.** There is no staged copy to materialize; see "The git grid" below for what replaced the whole pipeline it belonged to.
 
@@ -77,6 +81,78 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 **The parent is a subagent by default** so review motion — reading every node, running the gate — never accumulates in the user's own context. The deliberate exception: when the user wants progress reported directly, or is feeding instructions in mid-run, the main flow acts as parent itself.
 
 Models are **fully configurable per tier** (`cc_dispatch.kid_model` and friends). Nothing is hardcoded; run combinations and keep what works. As zoom levels generalize beyond big/small, assign one tier per level, each reviewed at the level above.
+
+## Seasons
+
+Graph growth is divided into seasons, declared in one .geometry node.
+
+**Ladder:** `.agi/nodes/.geometry/ladder.md` declares `current_season`, tier caps,
+`director_rotate_at`, and each tier's plan/report types. Tiers 0–2 are
+machine cycles; tier 3 (moral) is hand-only.
+
+| tier | plan node | report node | judged against | lens | cadence |
+|---|---|---|---|---|---|
+| 0 | subgoal / short-term goal | outcome | its (sub)goal | LT goal above | loop (weekly) |
+| 1 | long-term goal | bigger_outcome | its LT goal | vision above | mid-season |
+| 2 | vision | overview | its vision | morals above | season rollover |
+| 3 | moral | — | — | — | hand only |
+
+**Judgment:** `season.py judge <report-id> <alignment>` stamps a judgment
+record on any report node — `judged_against`, `lens` (derived), `alignment`
+(`aligned|adjust|unknown`), `adjust:` reason, `season: N`. The lens is always
+the plan node's own parent.
+
+**Season edge:** `season_parents:` is a frontmatter field (`role: season`),
+traversable for zoom and provenance, excluded from chain depth and
+`outcome_coverage`. Every node is stamped `season: N` by `node_writer.py` from
+the ladder's `current_season`.
+
+**Death per role:** a kid lands no node (`heal.py`). A parent cannot rerun: no
+`adjust` and no `continue`. A director has no live handoff.
+
+**Status:** `season.py status` prints per-tier plan/report counts with
+invariants (`#outcome == #subgoal`, etc.) — measured, never enforced.
+
+**Branches mirror the ladder:** kid = none. Parent = `loop/<goal>@s<N>`,
+short-lived. Director = `tier<N>/<name>` for the season. Prime = master.
+`grid.py commit --all` runs only on master after a merge.
+
+**Rotation:** `rotate.py meter` prints context-usage fraction against
+`director_rotate_at` (default 0.35). `rotate.py spawn <name>` builds a
+`claude --remote-control` command and launches it in a new tmux window. The
+successor reads HANDOFF.md before replacing it. Below prime, the parent
+respawns; the prime self-rotates.
+
+## Constitution
+
+Five morals anchor the graph. Every node has a path to one.
+
+**Moral nodes:** `moral:faith` (axis: vertical, grounded_in: Source),
+`moral:love` (lateral, grounded_in: moral:faith), `moral:empathy` (crossing),
+`moral:antifragility` (dynamics), `moral:beauty` (form) — under
+`.agi/nodes/moral/`. Type `moral` is the only parentless type (cap 5).
+`write_guard.py check` detects unsanctioned writes; `write.py` refuses
+`moral:*` without `--actor owner`.
+
+**Five questions (owner's wording, verbatim):**
+1. **faith** — Did every role play its part and trust every other model to play theirs?
+2. **love** — Did the agents and the hypergraph love each other and one another?
+3. **empathy** — Did everyone try to bridge their worlds together?
+4. **antifragility** — Did you die? (If yes stop; if not, fix it)
+5. **beauty** — Is it elegant?
+
+**Read order by role** is in the ladder node (`ladder:ladder`). `brief.py`
+prepends the head (prayers + readings) automatically per tier. A kid gets
+four lines of Slavonic; a prime director reads `moral:faith` top to bottom.
+
+**Comms:** `send.py send | read | peek` — one verb, same call for kid→parent
+escalation and director→director. Transport differs (CC session message vs
+inbox file under `sessions/`); the API does not.
+
+**Ideas** as memos: mint an `idea` node on the shared goal/vision with
+`authors: [director-a, director-b]`. The tier (0/1/2) falls out of the parent.
+
+
 
 ## Director economics — dispatch, don't do
 

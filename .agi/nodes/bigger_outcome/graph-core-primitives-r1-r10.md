@@ -1,18 +1,21 @@
 ---
-id: "bigger_outcome:graph-core-primitives-r1-r10"
+id: bigger_outcome:graph-core-primitives-r1-r10
 mint_id: d4682171bf004e9f807055b13cf77b76
-next_edges:
-  - vision:graph-core
+type: bigger_outcome
 parents:
   - outcome:graph-core-r1
+next_edges:
+  - vision:graph-core
+edited_by: season.py
+judged_against: goal:g1
+season: 1
 subgraph: false
 tags:
   - graph-core
   - R1
+thought_session: season
 title: "graph-core/R1: Bigger Outcome"
-type: bigger_outcome
 ---
-
 **Broader outcome:** graph-core provides the foundational primitives (Node, Edge, Graph) for the entire capillary DAG memory system. All other modules (chain_engine, renderers, embeddings, schema_registry, environment_indexers) depend on these primitives. The DAG invariant ensures the graph never forms cycles, making find_chains() termination guaranteed.
 
 **Properties achieved:**

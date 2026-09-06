@@ -1,18 +1,21 @@
 ---
-id: "bigger_outcome:exporters-r1"
+id: bigger_outcome:exporters-r1
 mint_id: a9d2270825de45418871f3d3cdd53673
-next_edges:
-  - vision:exporters
+type: bigger_outcome
 parents:
   - outcome:exporters-r1
+next_edges:
+  - vision:exporters
+edited_by: season.py
+judged_against: goal:g9
+season: 1
 status: open
 tags:
   - exporters
   - bigger_outcome
+thought_session: season
 title: "Bigger Outcome: Exporters"
-type: bigger_outcome
 ---
-
 # Bigger Outcome: Exporter Domain
 
 The Exporters domain enables the capillary DAG to interoperate with external knowledge management tools.

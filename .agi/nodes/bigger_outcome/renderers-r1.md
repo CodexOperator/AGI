@@ -1,18 +1,21 @@
 ---
-id: "bigger_outcome:renderers-r1"
+id: bigger_outcome:renderers-r1
 mint_id: 8e1e5288a7364a4f871d9e773a26b1a7
-next_edges:
-  - vision:renderers
+type: bigger_outcome
 parents:
   - outcome:renderers-r1
+next_edges:
+  - vision:renderers
+edited_by: season.py
+judged_against: goal:g9
+season: 1
 subgraph: false
 tags:
   - renderers
   - R1
+thought_session: season
 title: "renderers/R1: Bigger Outcome"
-type: bigger_outcome
 ---
-
 **Broader outcome:** Uniform render representation enables multiple renderer formats (ASCII, Mermaid, Git-tree, Git-diff) all sharing the same token contract. The same representation feeds into the embeddings module (coordinate isomorphism). Adding a new renderer requires zero changes to the representation code.
 
 **Properties achieved:**

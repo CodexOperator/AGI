@@ -171,6 +171,8 @@ git push origin <branch>
 
 8. **Merge, not rebase**, when a director takes a parent branch (owner, 2026-09-06). Rebase rewrites hashes the grid may cite.
 
+9. **BANKED 2026-09-06 (L2 close) — season-2 visions, one decision.** `season.py rollover` is ready except for the owner-tier input: up to 3 season-2 visions, each `parents: [the five morals]`, `season_parents: [season-1 overviews]`. A vision is owner text; the director does not invent one. **Recommendation** (grouping the 7 active top-level LT goals): (1) *The ladder runs itself* — G12 seasons + G16 telemetry + G5 lifecycle; (2) *One hand, one path* — G13 write.py as the only hand + G7 nothing silently lost; (3) *Antifragile by default* — G15 bugfix in-loop + G3 scoring motion cannot move. Reply with three lines of vision text (or "use the recommendation") and the successor runs `season.py rollover` for real (after the cap-count fix on `hypothesis:l2w3-season-py`). Until then season 1 stays open and the loop keeps working g15/g16 items.
+
 ## §7 Proposed, owner to confirm — none blocking wave 1
 
 - **Council quorum and record** — brief §6 "Council": convened one tier up only, quorum = convener + affected directors, one-seam time box, co-authored idea node as the record.

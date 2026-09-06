@@ -1,19 +1,22 @@
 ---
-id: "bigger_outcome:embeddings-r3"
+id: bigger_outcome:embeddings-r3
 mint_id: 3d0773adfa4d422fbf6325a66984c5e0
-next_edges:
-  - vision:embeddings
+type: bigger_outcome
 parents:
   - outcome:embeddings-r3
+next_edges:
+  - vision:embeddings
+edited_by: season.py
+judged_against: goal:g11
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R3
 testable_claim: Coordinate Isomorphism with Renderers
+thought_session: season
 title: "embeddings/R3: Bigger Outcome"
-type: bigger_outcome
 ---
-
 **Bridges two previously separate layers into one isomorphic pipeline:**
 
 1. **Embeddings layer** (`src/embeddings/`): `embed_graph()` → `project()` → produces `{node_id: (x, y)}` coordinates

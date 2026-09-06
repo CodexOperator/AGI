@@ -1,18 +1,21 @@
 ---
-id: "bigger_outcome:embeddings-r2"
+id: bigger_outcome:embeddings-r2
 mint_id: bc59d23570a94cdb8fb99c7e659b806a
-next_edges:
-  - vision:embeddings
+type: bigger_outcome
 parents:
   - outcome:embeddings-r2
+next_edges:
+  - vision:embeddings
+edited_by: season.py
+judged_against: goal:g11
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R2
+thought_session: season
 title: "embeddings/R2: Bigger Outcome"
-type: bigger_outcome
 ---
-
 **Broader outcome:** Per-node embeddings enable similarity queries, scatter rendering, and the vector-ASCII isomorphism (R3). Node2Vec generates vectors; UMAP projects to 2D. The same coordinate system underlies both the embeddings module and the renderers module.
 
 **Properties achieved:**

@@ -499,6 +499,11 @@ def main() -> int:
                 spawn_env["GIT_CONFIG_COUNT"] = "1"
                 spawn_env["GIT_CONFIG_KEY_0"] = "core.hooksPath"
                 spawn_env["GIT_CONFIG_VALUE_0"] = str(hooks_dir)
+                # hypothesis:l2-commit-guard-scope — the hooks compare
+                # toplevel with AGI_PROJECT_ROOT to scope the refusal to
+                # only the project repo, so test repos under /tmp are
+                # allowed even under AGI_TIER=kid
+                spawn_env["AGI_PROJECT_ROOT"] = str(root.resolve())
             # goal:g1.11 -- mint AFTER the brief is assembled and BEFORE the
             # process exists, so a key is never issued for a slot that then
             # fails to spawn for some other reason. The secret goes into the
