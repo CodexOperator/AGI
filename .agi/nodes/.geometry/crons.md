@@ -1,23 +1,32 @@
 ---
-cadences:
-  grid_sync: {every_mins: 5, enabled: true}
-  branch_push: {schedule: "7 * * * *", enabled: true}
-  publish_engine: {schedule: "37 * * * *", enabled: false}
-  engine_push: {schedule: "47 * * * *", enabled: false}
-crons_live: false
-id: "cron:crons"
+id: cron:crons
 mint_id: dc4da698f3f94dbc83a0c2233b2a8b94
+type: cron
 parents:
   - goal:g10.2
+cadences:
+  grid_sync:
+    every_mins: 5
+    enabled: true
+  branch_push:
+    schedule: 7 * * * *
+    enabled: true
+  publish_engine:
+    schedule: 37 * * * *
+    enabled: false
+  engine_push:
+    schedule: 47 * * * *
+    enabled: false
+crons_live: true
+edited_by: director
 status: active
 tags:
   - geometry
   - cron
   - structural
-title: "Cron cadence declaration"
-type: cron
+thought_session: agi-master-2026-09-06
+title: Cron cadence declaration
 ---
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Two defects, found by the parent re-verifying this node's own claim during a
 `goal:g11` migration freeze: flipping the frontmatter boolean off really does
