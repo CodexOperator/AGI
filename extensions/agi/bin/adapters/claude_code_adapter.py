@@ -76,6 +76,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -85,6 +86,7 @@ from pathlib import Path
 import brief
 import locations
 import provisioning
+import spawn_budget
 
 NAME = "claude-code"
 
@@ -628,9 +630,52 @@ def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int,
     return closing
 
 
+# = The Claude Code subscription-session-limit text and its reaping path.
+#: (`hypothesis:l3-cc-adapter-zombie-lease`)
+SESSION_LIMIT_TEXT = "You've hit your session limit"
+
+#: The reset time named after the limit message, e.g. `resets 5:20am
+#: (America/New_York)` -> `5:20am (America/New_York)`.
+SESSION_LIMIT_RESET_PATTERN = re.compile(
+    r"resets?\s+(.*?)(?:\)|\s*)$", re.IGNORECASE
+)
+
+#: The exit code a session-limited handle returns so a parent DONE contract
+#: reads the turn as *do not retry* (`hypothesis:l3-cc-adapter-zombie-lease`).
+#: Non-zero on purpose: a success status is a lie for a run the subscription
+#: ended -- the message is from the limit, not from the model.
+SESSION_LIMIT_EXIT = 3
+
+
+#: The `result` subtype written for a subscription-limited turn.
+SESSION_LIMIT_SUBTYPE = "session_limit"
+
+
+def _procstate(pid: int) -> str | None:
+    """The Linux process-state letter for `pid`, or None off /proc."""
+    try:
+        with open(f"/proc/{pid}/stat", encoding="utf-8") as fh:
+            # State is field 3, after `pid (comm)`; comm can hold spaces/parens,
+            # so split from the right on `)` (same as spawn_budget._pid_alive).
+            return fh.read().rsplit(") ", 1)[1].split()[0]
+    except (OSError, IndexError, ValueError):
+        return None
+
+
 def is_alive(pid: int) -> bool:
-    """Is the process with `pid` still running? `os.kill(pid, 0)` sends no
-    signal; it only checks existence. Same as `pi_adapter.is_alive`."""
+    """Is the process with `pid` still running?
+
+    A zombie (state `Z`) counts as **dead** (`hypothesis:l3-cc-adapter-zombie-
+    lease`): its code has exited and only reaping by its parent is outstanding.
+    `os.kill(pid, 0)` answers true for a defunct child, so trusting signal-
+    existence alone leaves a slot behind a process that is gone. The reaper
+    polls through this function, so treating Z as dead is what lets it stop
+    believing a finished claude `-p` is still live. Same rule as
+    `spawn_budget._pid_alive`; off /proc we fall back to signal-existence and
+    answer as `pi_adapter.is_alive` does.
+    """
+    if _procstate(pid) == "Z":
+        return False
     try:
         os.kill(pid, 0)
     except OSError:
@@ -638,6 +683,114 @@ def is_alive(pid: int) -> bool:
     return True
 
 
+def limit_from_result_text(text: str) -> str | None:
+    """The subscription reset time named in a `type=result` event's text when
+    the run turned the session limit, else None (a clean finished turn --
+    nothing to act on)."""
+    if SESSION_LIMIT_TEXT not in text:
+        return None
+    m = SESSION_LIMIT_RESET_PATTERN.search(text)
+    if m and m.group(1).strip():
+        return m.group(1).strip().rstrip(")")
+    return None
+
+
+def scan_log_for_session_limit(log_file) -> tuple[bool, str | None]:
+    """Read a `--output-format stream-json` log and decide whether the final
+    `type=result` event is a subscription-limit termination.
+
+    Returns `(is_limit, reset_time)` -- `reset_time` is the reset string from
+    the last result line (None when the turn is clean). Scans the whole file so
+    a reader that only ever saw an open pipe (the grandchild-holds-the-pipe
+    case this hypothesis is named for) still finds the limit once the child has
+    exited and the file is complete.
+    """
+    found = False
+    reset: str | None = None
+    with open(log_file, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(ev, dict) or ev.get("type") != "result":
+                continue
+            r = limit_from_result_text(ev.get("text") or "")
+            if r is not None:
+                found = True
+                reset = r or None
+    return found, reset
+
+
+def append_limit_line(log_file, reset_time: str | None = None) -> Path:
+    """Append one ``result`` event naming the subscription reset (or text).
+
+    One line, never a stream of retries -- the line is what a parent DONE
+    contract reads to bank the round instead of re-running it. Stream-json
+    compatible, so the same reader that parses result lines sees it.
+    """
+    ev = {"type": "result", "subtype": SESSION_LIMIT_SUBTYPE,
+          "text": SESSION_LIMIT_TEXT, "reset_at": reset_time}
+    log_file = Path(log_file)
+    with open(log_file, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(ev) + "\n")
+    return log_file
+
+
+def reap_child(pid: int, timeout: float = 5.0) -> bool:
+    """Reap a finished `claude -p` child so no defunct (state `Z`) remains.
+
+    `os.waitpid` is the only call that releases a child's process-table entry;
+    `os.kill(pid, 0)` and `is_alive` keep reporting the zombie until it is
+    reaped. Returns True once the pid is gone (reaped or never ours) and False
+    when it was another owner's child. Never blocks: WNOHANG, bounded by
+    `timeout`, so a still-running child is left for its owner to wait on.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if _procstate(pid) is None:
+            return True
+        try:
+            waited, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            # The pid is gone from OUR table; nothing to reap. If it still has
+            # no /proc z-entry it is done.
+            return True
+        except OSError:
+            return False
+        if waited == 0:
+            return _procstate(pid) is None
+        # No-op: a child was reaped on this pass; loop for the table to clear.
+    return False
+
+
+def close_session_limit(*, log_file, reset_time: str | None = None,
+                        lease=None) -> int:
+    """The adapter-side close of a subscription-limited child: the whole
+    `hypothesis:l3-cc-adapter-zombie-lease` lease-release path, one call.
+
+    1. Append exactly ONE `result`/`session_limit` line (``append_limit_line``)
+       so a parent DONE contract can bank the round instead of re-running it;
+    2. release the spawn-budget lease immediately, not at the next sweep;
+    3. return a non-zero exit code so the retry loop stops against the same
+       limit instead of burning five more 1s turns.
+
+    Returns `SESSION_LIMIT_EXIT` (3).
+    """
+    if log_file is not None:
+        append_limit_line(log_file, reset_time)
+    if lease is not None:
+        try:
+            spawn_budget.release(lease)
+        except Exception:
+            # A lease that is already gone is a success, not a fault; the
+            # sweep reclamation is the safety net. Never let the release stop
+            # the close from returning its exit code.
+            pass
+    return SESSION_LIMIT_EXIT
 def restart(
     *,
     harness: dict,

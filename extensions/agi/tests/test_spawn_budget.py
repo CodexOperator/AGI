@@ -240,3 +240,48 @@ def test_a_second_independent_spawner_counts_against_the_first(root: Path):
     assert out == ["1", "0"], (
         "the second spawner saw the first's lease and was cut off at the "
         "shared bound, not at its own")
+
+
+# --------------------------------------------------------------------------
+# The budget is ONE directory across worktrees (hypothesis:l3w4)
+# --------------------------------------------------------------------------
+
+def test_budget_dir_is_shared_across_a_linked_worktree(tmp_path: Path):
+    """A lease taken from a worktree lands in the MAIN checkout's budget.
+
+    `hypothesis:l3w4-parent-branch-merge-up`: a parent dispatched with
+    `--branch` runs in its own git worktree; its kids edit only that worktree.
+    The budget must NOT follow the worktree root or the tree-wide bound
+    silently splits per worktree — the whole thing
+    `spawn_budget.py` exists to enforce (goal:g4.8 item 3).
+    """
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "master"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    (repo / "sessions").mkdir()
+
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/slug@s2", str(wt), "master"],
+                   check=True, capture_output=True)
+
+    main_budget = spawn_budget.budget_dir(repo)
+    wt_budget = spawn_budget.budget_dir(wt)
+    assert wt_budget == main_budget, (
+        "a worktree's spawn budget must be the MAIN checkout's directory, "
+        "not a per-worktree split")
+    assert spawn_budget.acquire(wt, 2, "wt-agent") is not None
+    # The lease is visible from the main checkout and from the worktree alike.
+    assert spawn_budget.live_count(repo) == 1
+    assert spawn_budget.live_count(wt) == 1
+    assert (main_budget / "wt-agent.lease").is_file(), (
+        "the lease file lives in the main checkout's budget dir")

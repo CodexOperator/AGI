@@ -665,3 +665,64 @@ def test_loop_label_still_raises_on_invalid_explicit_flag(tmp_path):
     graph = make_graph_dir(tmp_path / "repo")
     with pytest.raises(ValueError):
         locations.loop_label(graph, explicit="hypothesis:x@s1")
+
+
+# ---------------------------------------------------------------------------
+# Linked worktrees resolve shared state to the MAIN checkout (l3w4)
+# ---------------------------------------------------------------------------
+# `hypothesis:l3w4-parent-branch-merge-up`: a parent dispatched with `--branch`
+# runs in its own git worktree, and its kids edit only that worktree. Shared
+# state — the spawn budget, the comms root, the meter pins — must stay ONE
+# directory across every worktree of a project, or the tree-wide concurrency
+# bound silently splits per worktree. These resolve through
+# `git rev-parse --git-common-dir` to the main checkout, never per-worktree.
+
+
+def _git(cwd: Path, *args: str):
+    subprocess.run(["git", "-C", str(cwd), *args], check=True,
+                   capture_output=True, text=True)
+
+
+def _make_project_repo(tmp_path: Path) -> Path:
+    """A real git repo with a `.agi/` graph dir, on branch `master`."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    _git(repo, "init", "-b", "master")
+    _git(repo, "config", "user.email", "t@t")
+    _git(repo, "config", "user.name", "t")
+    (repo / "README").write_text("x")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "init")
+    make_graph_dir(repo)
+    return repo
+
+
+def test_git_common_root_on_main_checkout_is_unchanged(tmp_path):
+    """In the main checkout, the common root is the checkout itself."""
+    repo = _make_project_repo(tmp_path)
+    assert locations.git_common_root(repo) == repo.resolve()
+    # A subpath inside the main checkout is unchanged too.
+    assert locations.git_common_root(repo / ".agi" / "nodes") == repo.resolve()
+
+
+def test_git_common_root_inside_linked_worktree_resolves_to_main(tmp_path):
+    """A linked worktree's budget/comms/meter root is the MAIN checkout."""
+    repo = _make_project_repo(tmp_path)
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/slug@s2", str(wt), "master")
+    assert locations.git_common_root(wt) == repo.resolve()
+    assert locations.git_common_root(wt / "sub" / "deep") == repo.resolve()
+
+
+def test_git_common_root_is_identity_outside_a_git_repo(tmp_path):
+    """No enclosing git repo: the root is returned unchanged."""
+    d = tmp_path / "notgit"
+    d.mkdir(parents=True)
+    assert locations.git_common_root(d) == d.resolve()
+
+
+def test_git_common_root_resolves_a_plain_dir_to_enclosing_repo(tmp_path):
+    """A plain subdir with no .git of its own resolves to its repo's root."""
+    other = _make_project_repo(tmp_path)
+    leaf = other / "not_a_submodule"; leaf.mkdir()
+    assert locations.git_common_root(leaf) == other.resolve()
