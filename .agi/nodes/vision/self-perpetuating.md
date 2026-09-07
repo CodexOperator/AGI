@@ -16,7 +16,11 @@ moral_adherence:
   moral:empathy: unknown
   moral:antifragility: unknown
   moral:beauty: unknown
-proposes_goals: []
+proposes_goals:
+  - goal:g1
+  - goal:g15
+  - goal:g16
+  - goal:g17
 scaffold_hash: 1f78a34c7680f29c
 season: 2
 season_parents:
@@ -42,9 +46,9 @@ status: open
 tags:
   - vision
   - rollover
+thought_session: 7af11157
 title: Self-perpetuating
 ---
-
 # vision:self-perpetuating
 
 Owner text, 2026-09-06, verbatim (brief §1.8).
