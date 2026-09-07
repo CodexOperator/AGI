@@ -133,3 +133,49 @@ def test_dry_run_takes_no_budget_slot(project):
     budget_dir = project / ".agi" / "sessions" / ".spawn-budget"
     assert not budget_dir.exists(), (
         f"a dry run must not register a spawn-budget slot, but {budget_dir} exists")
+
+
+def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
+    """hypothesis:l3-agent-id-never-exported — the JOINED contract.
+
+    dispatch --dry-run resolves the real child env, so it must export the id
+    it minted as both AGI_AGENT_ID and AGI_ACTOR. This test reads the
+    PRODUCER's own output (not a value the test invented), then feeds exactly
+    that env to the two READERS, send._detect_sender and write._default_actor,
+    and asserts all three surfaces resolve to the one id. Green here means the
+    suite is no longer testing a contract half by hand-constructing the other
+    half's input — the shape test_send.py used to mask with
+    monkeypatch.setenv.
+    """
+    import importlib.util
+    import re as _re
+
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    out = r.stdout
+    m_id = _re.search(r"\bAGI_AGENT_ID=(\S+)", out)
+    m_actor = _re.search(r"\bAGI_ACTOR=(\S+)", out)
+    assert m_id, f"dry-run env must export AGI_AGENT_ID:\n{out}"
+    assert m_actor, f"dry-run env must export AGI_ACTOR:\n{out}"
+    aid, actor = m_id.group(1), m_actor.group(1)
+    assert aid.startswith("dry") and len(aid) >= 10, f"not an agent id: {aid}"
+    assert actor == aid, "AGI_ACTOR must equal the minted agent id"
+
+    # Feed the producer's OWN exported values to the readers — no invented id.
+    monkeypatch.setenv("AGI_AGENT_ID", aid)
+    monkeypatch.setenv("AGI_ACTOR", aid)
+    monkeypatch.delenv("AGI_TMUX_WINDOW_NAME", raising=False)
+    monkeypatch.delenv("TMUX", raising=False)
+    monkeypatch.delenv("USER", raising=False)
+
+    sys.path.insert(0, str(BIN))
+    loaded = {}
+    for name in ("send", "write"):
+        spec = importlib.util.spec_from_file_location(name, BIN / f"{name}.py")
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[name] = mod  # dataclasses needs the module registered
+        spec.loader.exec_module(mod)
+        loaded[name] = mod
+    assert loaded["send"]._detect_sender(None) == aid
+    assert loaded["write"]._default_actor() == aid

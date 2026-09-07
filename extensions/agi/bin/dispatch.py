@@ -467,6 +467,11 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             profile_val = dispatch_harness.get("profiles", {}).get(
                 args.tier, "balanced")
             env["AGI_PROFILE"] = str(profile_val)
+            # hypothesis:l3-agent-id-never-exported — mirror of the live
+            # spawn_env identity exports, kept so the dry report shows the
+            # child WOULD receive its own id and actor.
+            env["AGI_AGENT_ID"] = agent_id
+            env["AGI_ACTOR"] = agent_id
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
 
@@ -498,8 +503,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         print(f"  command: {' '.join(_compact(a) for a in cmd)}")
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
-                       "AGI_PROFILE", "GIT_CONFIG_COUNT",
-                       "CLAUDE_CODE_WORKFLOWS"]
+                       "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
+                       "GIT_CONFIG_COUNT", "CLAUDE_CODE_WORKFLOWS"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
@@ -888,6 +893,13 @@ def main() -> int:
             profile_val = dispatch_harness.get("profiles", {}).get(
                 args.tier, "balanced")
             spawn_env["AGI_PROFILE"] = str(profile_val)
+            # hypothesis:l3-agent-id-never-exported — tell every agent its own
+            # name: export the id dispatch minted and the actor under which it
+            # records provenance, so send.py and write.py resolve the same
+            # identity the engine already wrote into agent.json, instead of
+            # inventing a per-tool fallback (tmux window name / $USER).
+            spawn_env["AGI_AGENT_ID"] = agent_id
+            spawn_env["AGI_ACTOR"] = agent_id
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"

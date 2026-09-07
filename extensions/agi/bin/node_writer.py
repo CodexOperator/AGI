@@ -894,6 +894,82 @@ def update_node(
     return res
 
 
+def repair_mint(root, node_id, *, announce=True) -> NodeWrite:
+    """Mint a first `mint_id` for a node written outside node_writer.
+
+    hypothesis:l3-node-without-mint-id — a kid that writes its own node file
+    with its own file tool (not through this module) leaves a node with no
+    `mint_id` and no `scaffold_hash`, and `grid.py commit --all` refuses to
+    version it on every grid_sync tick. No verb can adopt it either: `write.py`
+    refuses `set mint_id` by design (goal:g2.5: identity is assigned once,
+    never by a verb). This is that adoption — the one sanctioned path from
+    "argument" to writing a node someone else left behind with no identity.
+
+    Mints through the SAME identity source as every mint
+    (`mint_permanent_id`) and stamps `scaffold_hash` of the *placeholder*
+    body, so the adopted node reads complete under `completion.is_complete`
+    exactly like a node `write_node` produced (real content differs from the
+    placeholder -> complete). Logs the final bytes to the write-guard.
+
+    Refuses when a non-empty `mint_id` already exists — a mint id is assigned
+    once and never changed (goal:g2.5).
+
+    Returns a `NodeWrite` with status `UPDATED` (adopted), `SKIPPED` (already
+    carries a `mint_id` — the refusal), or `REJECTED` (could not find or
+    parse the node). Never raises for a refusal.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    root = Path(root)
+    res = NodeWrite(node_id=str(node_id))
+    path = find_node_file(root, node_id)
+    if path is None:
+        res.status = REJECTED
+        res.reason = f"no node file for {node_id}"
+        return res
+    res.path = path
+    try:
+        nf = fm_reader.load_node_file(path)
+    except Exception as exc:
+        res.status = REJECTED
+        res.reason = f"{node_id} could not be parsed: {exc}"
+        return res
+    fm = dict(nf.frontmatter)
+    res.node_type = canonical_node_type(fm.get("type") or path.parent.name)
+    res.slug = path.stem
+    res.parents = list(fm.get("parents") or [])
+    existing = fm.get("mint_id")
+    if isinstance(existing, str) and existing.strip():
+        res.status = SKIPPED
+        res.reason = (f"{node_id} already carries mint_id {existing.strip()}; "
+                      "a mint id is assigned once and never changed "
+                      "(goal:g2.5) -- refusing")
+        return res
+    mint = mint_permanent_id()
+    fm["mint_id"] = mint
+    # Stamp as complete, not as an untouched scaffold: this node already holds
+    # real content (the reason it is being adopted at all), so the stamp is
+    # the *placeholder* hash -- completion reads "body differs from stamp" ->
+    # complete, drift-safe against a future BODY_PROMPTS change.
+    ph = f"\n# {node_id}\n\n" + BODY_PROMPTS.get(res.node_type, "")
+    fm["scaffold_hash"] = scaffold_hash(ph)
+    text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + nf.body
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+    _log_write(root, "repair_mint", node_id, path, text, mint_id=mint)
+    res.status = UPDATED
+    if announce:
+        print(f"adopted {node_id}: minted {mint} "
+              f"(was missing on a node written outside node_writer)",
+              file=sys.stderr)
+    return res
+
+
 # ---------------------------------------------------------------------------
 # goal:s31 -- a scaffolded node ships schema-invalid.
 #

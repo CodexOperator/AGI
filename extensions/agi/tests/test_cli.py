@@ -152,6 +152,50 @@ def _cmd_done_project(tmp_path):
     return graph, args
 
 
+def test_done_adopts_a_node_written_outside_node_writer(tmp_path, monkeypatch):
+    """hypothesis:l3-node-without-mint-id — `cli.py done` mints a first
+    `mint_id` on a node a kid wrote with its own file tool (valid frontmatter,
+    but no mint_id), so grid.py can version it -- keyed from the spawn
+    manifest, exactly like the frontmatter repair. The verdict is still
+    recorded."""
+    cli = _load_cli()
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    # kid-written node: valid frontmatter, real content, NO mint_id.
+    (graph / "nodes" / "experiment" / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        "parents:\n- hypothesis:h1\n---\n\n# experiment:e1\n\n"
+        "The kid wrote this body directly.\n")
+    # a valid backer experiment so `proved` resolves real evidence
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    (graph / "sessions" / "iter-001" / "a00-x").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
+        '{"id": "a00-x", "node_id": "experiment:e1", '
+        '"parent": "hypothesis:h1", "status": "running"}')
+    import argparse
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+
+    rc = cli.cmd_done(args)
+    assert rc == 0
+
+    text = (graph / "nodes" / "experiment" / "e1.md").read_text()
+    import re
+    assert re.search(r"^mint_id:\s*\S+", text, re.M) is not None
+    assert "verdict: proved" in text
+    # the kid's body survived the adoption
+    assert "The kid wrote this body directly." in text
+
+
 def test_done_repairs_broken_frontmatter_and_records_the_verdict_unchanged(
         tmp_path, monkeypatch):
     """The crux of L3.13: `done` repairs the frontmatter from the manifest and

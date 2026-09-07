@@ -31,7 +31,8 @@ project config so a project may point it at tmpfs. `read --all` (and
 
 Options:
     --from <sender>    override sender (default: AGI_AGENT_ID, then --from,
-                       then the tmux window name, then "unknown")
+                       then "unknown"; a seat/tmux window name is never
+                       used as an identity)
     --comms-root <dir> override the comms root (else config, else default)
 
 Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
@@ -41,7 +42,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -108,45 +108,23 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _tmux_window_name() -> str | None:
-    """The current tmux window name, or None when not in tmux / unobtainable.
-
-    Injectable via $AGI_TMUX_WINDOW_NAME for tests. Only shells out to tmux
-    when $TMUX is set (i.e. we are already inside a tmux session), so the
-    common case costs nothing.
-    """
-    override = os.environ.get("AGI_TMUX_WINDOW_NAME", "").strip()
-    if override:
-        return override
-    if not os.environ.get("TMUX"):
-        return None
-    try:
-        r = subprocess.run(
-            ["tmux", "display-message", "-p", "#{window_name}"],
-            capture_output=True, text=True, timeout=3,
-        )
-        name = r.stdout.strip()
-        return name or None
-    except Exception:
-        return None
-
-
 def _detect_sender(from_flag: str | None) -> str:
-    """Sender: AGI_AGENT_ID env, then --from flag, then the tmux window name,
-    then "unknown".
+    """Sender: AGI_AGENT_ID env, then the --from flag, then "unknown".
 
     The agent's own id (AGI_AGENT_ID, exported by dispatch) signs a message
-    even when the caller forgot a flag; an explicit --from beats the tmux
-    window / unknown (hypothesis:l3-send-comms-root).
+    even when the caller forgot a flag; an explicit --from beats the
+    fallback (hypothesis:l3-send-comms-root). No seat/terminal name is
+    ever used as an identity: a tmux window name is a seat, not an agent,
+    and signing one was exactly the false-identity hazard this became
+    (hypothesis:l3-agent-id-never-exported). When no id and no flag are
+    present the message is signed "unknown" — an honest absence, not a
+    confident wrong name.
     """
     env = os.environ.get("AGI_AGENT_ID", "").strip()
     if env:
         return env
     if from_flag:
         return from_flag
-    win = _tmux_window_name()
-    if win:
-        return win
     return "unknown"
 
 

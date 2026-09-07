@@ -562,3 +562,68 @@ def test_submit_non_moral_without_owner_still_works(project):
     # This should work even with a non-owner actor
     res = write.submit(project, e, actor="director")
     assert res.status == node_writer.UPDATED
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3-node-without-mint-id — the `adopt` verb, the parent-facing
+# repair that mints a FIRST mint_id on a node written outside node_writer.
+# `set mint_id` stays refused; `adopt` is the one sanctioned exception and
+# runs through node_writer.repair_mint, which refuses an already-minted node.
+# --------------------------------------------------------------------------
+
+def _write_no_mint_kid(project, node_id="experiment:e2"):
+    """A kid-written node (valid frontmatter, real content, NO mint_id)."""
+    ntype, slug = node_id.split(":", 1)
+    p = project / "nodes" / ntype / f"{slug}.md"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        f"---\nid: {node_id}\ntype: {ntype}\nparents:\n- hypothesis:h1\n"
+        f"---\n\n# {node_id}\n\nThe kid wrote this body directly.\n")
+    return p
+
+
+def test_verb_set_still_refuses_mint_id_even_with_adopt_available():
+    """adopt is the exception, not a relaxation: `set mint_id` remains refused."""
+    e = write.Edit("experiment:e2")
+    with pytest.raises(write.EditError):
+        write.verb_set(e, "mint_id", "anything")
+
+
+def test_adopt_verb_mints_a_missing_mint_id(project):
+    _write_no_mint_kid(project)
+    rc = write.main(["experiment:e2", "adopt", "--root", str(project)])
+    assert rc == 0
+    text = (project / "nodes/experiment/e2.md").read_text()
+    assert "mint_id:" in text and "scaffold_hash:" in text
+    assert "The kid wrote this body directly." in text
+
+
+def test_adopt_verb_refuses_when_a_mint_id_already_exists(project):
+    p = _write_no_mint_kid(project)
+    # give it a mint_id already
+    text = p.read_text().replace(
+        "type: experiment", "type: experiment\nmint_id: existing-123")
+    p.write_text(text)
+    rc = write.main(["experiment:e2", "adopt", "--root", str(project)])
+    assert rc != 0
+    out = (project / "nodes/experiment/e2.md").read_text()
+    assert "existing-123" in out  # untouched
+
+
+def test_adopt_verb_is_standalone(project):
+    _write_no_mint_kid(project)
+    rc = write.main(
+        ["experiment:e2", "adopt && set status active", "--root", str(project)])
+    assert rc == 2
+    # nothing was adopted (node still has no mint_id)
+    text = (project / "nodes/experiment/e2.md").read_text()
+    assert "mint_id:" not in text
+
+
+def test_adopt_dry_run_writes_nothing(project):
+    _write_no_mint_kid(project)
+    rc = write.main(
+        ["experiment:e2", "adopt", "--dry-run", "--root", str(project)])
+    assert rc == 0
+    text = (project / "nodes/experiment/e2.md").read_text()
+    assert "mint_id:" not in text

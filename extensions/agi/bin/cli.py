@@ -342,6 +342,17 @@ def cmd_done(args: argparse.Namespace) -> int:
             if not _ok:
                 print(f"ERR: {_msg}", file=sys.stderr)
                 return 1
+            # hypothesis:l3-node-without-mint-id -- a kid that wrote its own
+            # node file with its own file tool leaves no `mint_id`, and
+            # grid.py commit --all refuses to version it on every grid_sync
+            # tick. Adopt it here, through node_writer (which refuses if a
+            # `mint_id` already exists), so `done` turns an orphan the kid
+            # left behind into a node the grid can version -- keyed from the
+            # spawn manifest, exactly like the frontmatter repair above.
+            adopted = node_writer.repair_mint(root, args.node_id, announce=True)
+            if adopted.status == node_writer.REJECTED:
+                print(f"ERR: {adopted.reason}", file=sys.stderr)
+                return 1
 
     # H4 evidence gate. `--evidence-runs` wins; otherwise infer from the node
     # file the agent already wrote, so a real experiment isn't punished for a
