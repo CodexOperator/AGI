@@ -649,3 +649,36 @@ def test_dispatch_exports_agi_role_env():
                         and t.slice.value == "AGI_ROLE"):
                     return
     pytest.fail("dispatch.py must export AGI_ROLE into the spawn environment")
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w3-advisor-brief addendum after L3.12 — the --goal flag threads
+# the pinned perpetual goal into the advisor brief via the environment, so a
+# spawn reads it through assemble without every harness adapter gaining a new
+# keyword (claude_code_adapter.py is another kid's this round).
+# ---------------------------------------------------------------------------
+
+def test_goal_flag_sets_the_advisor_goal_env():
+    """`apply_advisor_goal_env` seeds AGI_ADVISOR_GOAL from --goal and clears
+    it when the flag is absent (a fresh process per dispatch, so a stale value
+    from a prior test never leaks into a real spawn here)."""
+    dispatch.apply_advisor_goal_env("goal:g15")
+    assert os.environ.get("AGI_ADVISOR_GOAL") == "goal:g15"
+    dispatch.apply_advisor_goal_env(None)
+    assert "AGI_ADVISOR_GOAL" not in os.environ
+
+
+def test_goal_flag_is_accepted_by_the_dispatch_argparser():
+    """The flag has to exist on the dispatch CLI, not just the env helper. An
+    AST-free structural check: `--goal` is registered as a command-line
+    argument, so `dispatch.py ... --goal goal:g15` parses."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    found = any(
+        isinstance(n, ast.Call)
+        and getattr(n.func, "attr", "") == "add_argument"
+        and any(isinstance(a, ast.Constant) and a.value == "--goal" for a in n.args)
+        for n in ast.walk(tree)
+    )
+    assert found, "dispatch.py must register a --goal command-line flag"

@@ -354,6 +354,106 @@ def test_optional_knobs_are_omitted_unless_set(rig):
     assert "--no-session-persistence" in args
 
 
+# ----------------------------------------- hypothesis:l3-cc-tools-by-tier ---
+# Tools resolve per (role, ladder tier): kids keep the full closed default
+# list; advisors (parent@tier3) and directors (director@tier1) add the
+# ultracode/loop tools and drop the dispatch.py refusal; git verbs, HANDOFF.md
+# and CLAUDE.md stay refused for every role below the prime.
+
+
+def test_kid_with_role_keeps_the_full_default_block_list(rig):
+    args = build(rig, "kid", role="kid", ladder_tier=4)
+    tools = variadic_values(args, "--tools")
+    denied = variadic_values(args, "--disallowedTools")
+    for t in ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput", "TaskStop"):
+        assert t not in tools, t
+    assert "Bash(*dispatch.py:*)" in denied
+    for rule in ("Bash(git commit:*)", "Bash(*HANDOFF.md:*)", "Bash(*CLAUDE.md:*)"):
+        assert rule in denied, rule
+
+
+def _advisor_tools(rig):
+    """Resolve the variadic blocks for a tier-3 advisor (parent role)."""
+    args = build(rig, "parent", role="parent", ladder_tier=3,
+                 brief_tier="advisor", target="vision:alive", scaffold=None)
+    return {
+        "tools": variadic_values(args, "--tools"),
+        "allowed": variadic_values(args, "--allowedTools"),
+        "denied": variadic_values(args, "--disallowedTools"),
+    }
+
+
+def test_advisor_parent_at_tier3_adds_ultracode_tools(rig):
+    blk = _advisor_tools(rig)
+    for t in ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput", "TaskStop"):
+        assert t in blk["tools"], t
+        assert t in blk["allowed"], t  # auto-approved, since -p cannot prompt
+
+
+def test_advisor_parent_at_tier3_drops_dispatch_rule_but_keeps_others(rig):
+    blk = _advisor_tools(rig)
+    assert "Bash(*dispatch.py:*)" not in blk["denied"]
+    # rotate.py / send.py / season.py never blocked by the defaults anyway
+    assert not any("rotate.py" in r or "send.py" in r or "season.py" in r
+                   for r in blk["denied"])
+    # git verbs and the handoff files stay refused below the prime
+    for rule in ("Bash(git commit:*)", "Bash(git add:*)",
+                 "Bash(*HANDOFF.md:*)", "Bash(*CLAUDE.md:*)"):
+        assert rule in blk["denied"], rule
+
+
+def test_director_at_tier1_gets_the_same_tools_as_advisor(rig):
+    harness = dict(HARNESS, models=dict(HARNESS["models"],
+                                        director="claude-fable-5-1"))
+    args = build(rig, "director", harness=harness, role="director",
+                 ladder_tier=1, scaffold=None, target="vision:alive")
+    tools = variadic_values(args, "--tools")
+    denied = variadic_values(args, "--disallowedTools")
+    for t in ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput", "TaskStop"):
+        assert t in tools, t
+    assert "Bash(*dispatch.py:*)" not in denied
+    assert "Bash(git push:*)" in denied
+
+
+def test_privileged_only_for_the_exact_role_and_tier(rig):
+    # a parent but not at tier 3 stays on the closed list
+    args = build(rig, "parent", role="parent", ladder_tier=2,
+                 scaffold=None, target="vision:alive")
+    assert "Workflow" not in variadic_values(args, "--tools")
+    assert "Bash(*dispatch.py:*)" in variadic_values(args, "--disallowedTools")
+
+
+def test_no_role_given_keeps_todays_behaviour(rig):
+    """Privacy is opt-in: a call that passes no role/ladder_tier resolves to
+    the old flat defaults, so the legacy shim and any out-of-tree callers are
+    unchanged."""
+    args = build(rig, "parent", scaffold=None, target="vision:alive")
+    assert "Workflow" not in variadic_values(args, "--tools")
+    assert "Bash(*dispatch.py:*)" in variadic_values(args, "--disallowedTools")
+
+
+def test_per_role_config_override_wins_over_flat_and_default(rig):
+    harness = dict(HARNESS,
+                   tools_by_role={"parent": "Read, Workflow"},
+                   disallowed_tools_by_role={"parent": ["Bash(rm:*)"]})
+    args = build(rig, "parent", harness=harness, role="parent", ladder_tier=3,
+                 scaffold=None, target="vision:alive")
+    assert variadic_values(args, "--tools") == ["Read", "Workflow"]
+    assert variadic_values(args, "--allowedTools") == ["Read", "Workflow"]
+    assert variadic_values(args, "--disallowedTools") == ["Bash(rm:*)"]
+
+
+def test_per_role_override_only_claims_the_named_role(rig):
+    """A per-role map that does not name this role falls back to the flat key,
+    then to the tier-aware default."""
+    harness = dict(HARNESS, tools_by_role={"parent": ["Read"]},
+                   disallowed_tools="Bash(rm:*)")
+    # a kid with the map present, not named -> flat/default
+    args = build(rig, "kid", harness=harness, role="kid", ladder_tier=4)
+    assert "Read" in variadic_values(args, "--tools")
+    assert variadic_values(args, "--disallowedTools") == ["Bash(rm:*)"]
+
+
 def test_effort_may_be_a_per_tier_map():
     """2026-09-06: `effort` may map tier -> level. A tier the map does not
     name gets no --effort at all -- never another tier's value, the same

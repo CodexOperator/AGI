@@ -63,6 +63,14 @@ MCP servers are off by default (`--strict-mcp-config` with none named). The
 director's interactive session may carry trading, calendar and browser
 servers; a detached kid inheriting them is the same shape of leak the env
 scrub exists to close, one layer up.
+
+Tools resolve per (role, ladder tier) (`hypothesis:l3-cc-tools-by-tier`): a
+kid keeps the closed default list and the full block list, while an advisor
+(parent at ladder tier 3) and a director (tier 1) may reach the ultracode
+workflow suite (Workflow, Agent, ToolSearch, Monitor, TaskOutput, TaskStop)
+and run the loop verbs -- the dispatch.py refusal is the one rule that drops,
+because the loop ladder is exactly what those seats exist to run. Git verbs,
+HANDOFF.md and CLAUDE.md stay refused for every role below the prime.
 """
 from __future__ import annotations
 
@@ -98,6 +106,17 @@ DEFAULT_DISALLOWED_TOOLS = tuple(
     "Bash(*CLAUDE.md:*)",
     "Bash(*dispatch.py:*)",
 )
+
+#: Built-in tools the loop-ladder seats (advisor, director) may additionally
+#: reach -- the dynamic "ultracode" workflow suite plus the loop duties those
+#: roles are the seat of. A kid never sees any of them.
+ULTRA_TOOLS = ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput",
+               "TaskStop")
+
+#: The one block-list rule that falls away on a privileged seat: dispatch.py.
+#: Everything else (git verbs, HANDOFF.md, CLAUDE.md) stays refused below the
+#: prime director.
+DISPATCH_RULE = "Bash(*dispatch.py:*)"
 
 #: Output formats `claude -p` accepts. `stream-json` is the default because it
 #: logs as it goes -- see the module docstring.
@@ -270,12 +289,74 @@ def _tool_list(harness: dict, key: str, default) -> list[str]:
     """
     if key not in harness:
         return [str(t) for t in default]
-    value = harness[key]
+    return _coerce_list(harness[key], default)
+
+
+def _coerce_list(value, default) -> list[str]:
+    """The shared normalizer for a tool-list value, whatever its shape."""
     if value is None:
         return []
     if isinstance(value, str):
         return [t.strip() for t in value.split(",") if t.strip()]
     return [str(t) for t in value]
+
+
+def _is_privileged_tool_seat(role: str | None, ladder_tier: int | None) -> bool:
+    """The two roles the ladder confides the loop's dynamics to: an advisor
+    (parent at ladder tier 3) and a director at tier 1. Everyone else --
+    including a bare `kid`, and a parent/director at any other tier -- keeps
+    the closed default list.
+    """
+    if role is None or ladder_tier is None:
+        return False
+    lt = int(ladder_tier)
+    return (role == "parent" and lt == 3) or (role == "director" and lt == 1)
+
+
+def _role_override(harness: dict, role: str | None, ladder_tier: int | None,
+                   key: str):
+    """(value, matched) for a per-role tool-list override.
+
+    `tools_by_role` / `disallowed_tools_by_role` map role-or-tier to a list or
+    comma-string. A map that does not name this role/tier returns un-matched,
+    so the flat key then the tier-aware default apply.
+    """
+    m = harness.get(key)
+    if not isinstance(m, dict):
+        return None, False
+    if role is not None and role in m:
+        return m[role], True
+    if ladder_tier is not None:
+        for cand in (str(ladder_tier), f"tier{ladder_tier}"):
+            if cand in m:
+                return m[cand], True
+    return None, False
+
+
+def _resolved_tools(harness: dict, *, role: str | None,
+                    ladder_tier: int | None):
+    """The (tools, allowed, disallowed) lists for a (role, ladder tier).
+
+    Defaults are tier-aware: a privileged seat adds the ultracode/loop tools
+    and drops the dispatch.py rule. Per-role config override wins over the
+    flat keys (`tools` / `disallowed_tools`), which win over the defaults.
+    """
+    privileged = _is_privileged_tool_seat(role, ladder_tier)
+    base_tools = tuple(DEFAULT_TOOLS) + (tuple(ULTRA_TOOLS) if privileged else ())
+    base_deny = tuple(
+        d for d in DEFAULT_DISALLOWED_TOOLS
+        if not (privileged and d == DISPATCH_RULE)
+    )
+
+    rv, matched = _role_override(harness, role, ladder_tier, "tools_by_role")
+    tools = _coerce_list(rv, base_tools) if matched else _tool_list(
+        harness, "tools", base_tools)
+    allowed = _tool_list(harness, "allowed_tools", tools)
+    rv, matched = _role_override(harness, role, ladder_tier,
+                                 "disallowed_tools_by_role")
+    disallowed = (_coerce_list(rv, base_deny) if matched else _tool_list(
+        harness, "disallowed_tools", base_deny))
+    return tools, allowed, disallowed
 
 
 def write_system_prompt(
@@ -327,6 +408,8 @@ def build_command(
     parallel: int = 1,
     max_live: int = 1,
     brief_tier: str | None = None,
+    role: str | None = None,
+    ladder_tier: int | None = None,
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -344,6 +427,10 @@ def build_command(
     tier (parent) while assembling a different tier's brief (advisor): the
     model/effort/settings still resolve from `tier`, only the assembled brief
     and its closing line change.
+
+    `role` and `ladder_tier` (hypothesis:l3-cc-tools-by-tier) are who this
+    agent is, which selects the tool bundle: kids keep the closed default
+    list, advisors and directors add the ultracode/loop tools.
     """
     sess_dir = Path(sess_dir)
     root = _root_of(sess_dir)
@@ -387,13 +474,17 @@ def build_command(
     mcp = harness.get("mcp_config")
     if mcp:
         args += ["--mcp-config", *([mcp] if isinstance(mcp, str) else [str(m) for m in mcp])]
-    tools = _tool_list(harness, "tools", DEFAULT_TOOLS)
+    tools, allowed, disallowed = _resolved_tools(
+        harness, role=role, ladder_tier=ladder_tier)
+    if os.environ.get("AGI_DEBUG"):
+        print(f"{NAME}: tools role={role!r} ladder_tier={ladder_tier!r}")
+        print(f"  --tools {tools}")
+        print(f"  --allowedTools {allowed}")
+        print(f"  --disallowedTools {disallowed}")
     if tools:
         args += ["--tools", *tools]
-    allowed = _tool_list(harness, "allowed_tools", tools)
     if allowed:
         args += ["--allowedTools", *allowed]
-    disallowed = _tool_list(harness, "disallowed_tools", DEFAULT_DISALLOWED_TOOLS)
     if disallowed:
         args += ["--disallowedTools", *disallowed]
 
@@ -448,6 +539,8 @@ def restart(
     max_live: int = 1,
     agent_record: dict | None = None,
     brief_tier: str | None = None,
+    role: str | None = None,
+    ladder_tier: int | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns the new pid, or None on failure.
 
@@ -463,7 +556,8 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live, brief_tier=brief_tier,
+        max_live=max_live, brief_tier=brief_tier, role=role,
+        ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
