@@ -51,6 +51,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
 | `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (`goal:g11`). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
+| `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
 | `bin/season.py {status,judge,rollover}` | Season lifecycle: plan/report counts, judgment stamps, rollover (`ladder:ladder`) |
 | `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |

@@ -388,6 +388,128 @@ def apply_advisor_goal_env(value: str | None) -> None:
         os.environ.pop("AGI_ADVISOR_GOAL", None)
 
 
+def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
+                    dispatch_harness: dict, adapter: object, args,
+                    targets, tier_eff: int) -> int:
+    """hypothesis:l3-dispatch-dry-run — resolve and print every slot's spawn.
+
+    Resolves exactly what the live path resolves (target, tier, role, ladder
+    tier, brief tier via `_brief_tier_for`, model and effort rows, env
+    exports), assembles the brief, prints a compact report (quoted, shell-safe
+    command line; exported env; brief tier; brief line count and first 20
+    lines) and exits 0. It never registers a spawn-budget slot, never writes a
+    manifest or a session dir, and never calls Popen — the caller has already
+    deferred `iter_dir.mkdir`, so nothing lands on disk.
+
+    The command line is built through each harness's OWN `build_command` (the
+    same call the live spawn loop makes), so model/effort/settings routing,
+    the advisor brief swap, the tool bundles and the ultracode env gate are
+    all exercised for real; only the `context_file` is a placeholder (a dry
+    run does not want to pay for a zoom render), and the `sess_dir` is a
+    disposable temp dir that is removed before this returns.
+    """
+    import brief as _brief
+    import tempfile
+
+    current_season = spawn_gate.read_ladder_season(
+        root / "nodes" if root else None)
+    if current_season is None:
+        current_season = 1
+    cap = spawn_budget.max_live(cfg)
+    parallel = adapters.parallelism(cfg)
+    skill_prompt = PLUGIN_ROOT / "lib" / "agent-prompt.md"
+    dispatch_py = Path(__file__).resolve()
+
+    for slot, target_entry in enumerate(targets):
+        if len(target_entry) == 4:
+            level, target, strategy, _role = target_entry
+        else:
+            level, target, strategy = target_entry
+        if level == "auto":
+            # Resolution-only: we need one deterministic level for the report.
+            level = "big"
+        agent_id = f"dry{slot:02d}-{uuid.uuid4().hex[:8]}"
+        brief_tier = _brief_tier_for(args.tier, tier_eff, target)
+        with tempfile.TemporaryDirectory() as td:
+            sess_dir = Path(td)
+            # Placeholder context — we resolve the spawn, not the map.
+            # Written via open().write rather than a node-writer call: the
+            # suite asserts dispatch.py only ever writes named session
+            # artefacts.
+            ctx_file = sess_dir / "context.md"
+            with open(ctx_file, "w", encoding="utf-8") as _fh:
+                _fh.write(
+                    f"# dry-run context (placeholder, no zoom render)\n\n"
+                    f"target: {target}\nlevel: {level}\n")
+            cmd = adapter.build_command(
+                harness=dispatch_harness, tier=args.tier,
+                brief_tier=brief_tier, context_file=str(ctx_file),
+                agent_id=agent_id, iter_n=args.iter_n,
+                sess_dir=sess_dir, scaffold=None, cli_py=CLI_PY,
+                skill_prompt=skill_prompt, dispatch_py=dispatch_py,
+                target=target, parallel=parallel, max_live=cap,
+                role=args.role, ladder_tier=tier_eff,
+            )
+            # The env a child WOULD have been spawned with — same exports the
+            # live loop builds in main(), kept here so the dry report shows
+            # the real values (AGI_*, CLAUDE_CODE_WORKFLOWS) without a spawn.
+            env = adapter.child_env(harness=dispatch_harness,
+                                    base=scrubbed_env(), tier=args.tier)
+            env["AGI_TIER"] = args.tier
+            env["AGI_ROLE"] = args.role
+            env["AGI_LADDER_TIER"] = str(tier_eff)
+            env["AGI_SEASON"] = str(current_season)
+            loop_ref = target or "explore"
+            env["AGI_LOOP"] = f"{loop_ref}@s{current_season}"
+            model_val = dispatch_harness.get("models", {}).get(args.tier, "")
+            if model_val:
+                env["AGI_MODEL"] = str(model_val)
+            profile_val = dispatch_harness.get("profiles", {}).get(
+                args.tier, "balanced")
+            env["AGI_PROFILE"] = str(profile_val)
+            if args.tier in ("kid", "parent"):
+                env["GIT_CONFIG_COUNT"] = "1"
+
+            # The brief, assembled directly so the report can show ITS line
+            # count and first 20 lines without depending on how a harness
+            # spells the prompt to disk.
+            segments = _brief.assemble(
+                tier=brief_tier, agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=CLI_PY, dispatch_py=dispatch_py, scaffold=None,
+                target=target, parallel=parallel, max_live=cap,
+                session_dir=sess_dir)
+        brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
+        brief_lines = [l for l in brief_text.splitlines() if l.strip()]
+
+        print(f"[dry-run] slot={slot} harness={harness_name} "
+              f"tier={args.tier} role={args.role} ladder_tier={tier_eff} "
+              f"level={level} target={target or '-'} "
+              f"brief_tier={brief_tier}")
+        # Compact: pi inlines every brief segment as its own flag, so the raw
+        # command would print hundreds of lines of the brief itself. The brief
+        # is shown separately below; here a long argument is shortened to a
+        # marker. claude-code keeps the brief in a file, so its line stays
+        # clean and short.
+        def _compact(a: str) -> str:
+            q = shlex.quote(a)
+            if len(q) > 200:
+                return q[:180] + f"...<{len(q)} chars>"
+            return q
+        print(f"  command: {' '.join(_compact(a) for a in cmd)}")
+        export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
+                       "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
+                       "AGI_PROFILE", "GIT_CONFIG_COUNT",
+                       "CLAUDE_CODE_WORKFLOWS"]
+        shown = [f"{k}={env[k]}" for k in export_keys if k in env]
+        print(f"  env: {' '.join(shown)}")
+        print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
+              f"first 20:")
+        for ln in brief_lines[:20]:
+            print(f"    {ln}")
+    print("dry-run: nothing spawned, nothing written, no budget slot taken")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
@@ -449,6 +571,15 @@ def main() -> int:
         action="store_true",
         help="Dry print: resolve every role in the ladder's roles table and "
              "exit without spawning (hypothesis:l3w0-ladder-roles-table)",
+    )
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Resolve and print the fully-resolved spawn for every slot -- "
+             "command line, exported env, brief tier, brief line count and "
+             "first 20 lines -- WITHOUT spawning, writing a session dir, or "
+             "taking a spawn-budget slot. Exits 0 (hypothesis:l3-dispatch-\n"
+             "dry-run).",
     )
     ap.add_argument(
         "--detach",
@@ -564,7 +695,8 @@ def main() -> int:
         print(f"season: ladder current_season={current_season}")
 
     iter_dir = locations.iteration_dir(root, args.iter_n)
-    iter_dir.mkdir(parents=True, exist_ok=True)
+    # Deferred `.mkdir()` until AFTER the dry-run return: a dry-run must not
+    # create a session dir (hypothesis:l3-dispatch-dry-run).
 
     # Two-agent research pipeline: architect (slot 0) + builder (slot 1)
     # Slot 1 waits for slot 0 to produce a node, then implements it.
@@ -584,6 +716,20 @@ def main() -> int:
         targets = _research_pipeline_targets(root, n, iter_dir)
     else:
         targets = _pick_targets(root, n)
+
+    # hypothesis:l3-dispatch-dry-run — a dry run resolves everything the live
+    # path resolves (target, tier, role, ladder tier, brief tier via
+    # `_brief_tier_for`, model and effort rows, env exports) then assembles the
+    # brief, prints a compact report and exits 0 — without spawning, let a
+    # single spawn-budget slot, write a manifest or session dir, or call
+    # Popen. It also must not create the iteration dir — hence the deferred
+    # `.mkdir()` above.
+    if args.dry_run:
+        return _dry_run_report(
+            root=root, cfg=cfg, harness_name=harness_name,
+            dispatch_harness=dispatch_harness, adapter=adapter,
+            args=args, targets=targets, tier_eff=tier_eff)
+    iter_dir.mkdir(parents=True, exist_ok=True)
 
     # goal:s28 — merge into existing manifest rather than overwriting.
     # A parent dispatch into the same iter dir must not clobber its own
