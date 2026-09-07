@@ -8,8 +8,11 @@ next_edges: []
 confidence: 0.5
 demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
 demoted_from: disproved
+edited_by: season.py
 scaffold_hash: 5156aa99c03fd469
-title: Verify order probe: grid-commit declared last, smoke first
+season: 1
+thought_session: season
+title: "Verify order probe: grid-commit declared last, smoke first"
 verdict: inconclusive_lean_disproved:50
 ---
 # experiment:a00-508e2451-cbc9e9

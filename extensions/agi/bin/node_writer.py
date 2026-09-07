@@ -158,19 +158,10 @@ def _build_id_index(root: Path) -> dict:
     nd = Path(root) / "nodes"
     if not nd.is_dir():
         return index
+    from graph_core.persistence import frontmatter as fm_reader
     for nf in sorted(nd.rglob("*.md")):
         try:
-            text = nf.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        if not text.startswith("---"):
-            continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        try:
-            import yaml
-            fm = yaml.safe_load(parts[1]) or {}
+            fm = fm_reader.load_node_file(nf, body=False).frontmatter
         except Exception:
             continue
         if isinstance(fm, dict):
@@ -233,13 +224,10 @@ def find_node_file(root, node_id) -> Path | None:
     for d in dirs:
         if not d.is_dir():
             continue
+        from graph_core.persistence import frontmatter as fm_reader
         for nf in sorted(d.glob("*.md")):
             try:
-                text = nf.read_text(encoding="utf-8")
-                if not text.startswith("---"):
-                    continue
-                import yaml
-                fm = yaml.safe_load(text.split("---", 2)[1]) or {}
+                fm = fm_reader.load_node_file(nf, body=False).frontmatter
             except Exception:
                 continue
             if isinstance(fm, dict) and fm.get("id") == node_id:

@@ -6,10 +6,13 @@ parents:
   - experiment:a00-32130a44-f8496f
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 evidence_runs:
   - experiment:a00-32130a44-f8496f
 scaffold_hash: da1e58eadc1028fc
-title: A00 59e4b575 ee0ac2 — L9 pinning gap: mechanism proven, integration unperformed
+season: 1
+thought_session: season
+title: "A00 59e4b575 ee0ac2 — L9 pinning gap: mechanism proven, integration unperformed"
 verdict: inconclusive_lean_proved:80
 ---
 # verdict:a00-59e4b575-ee0ac2

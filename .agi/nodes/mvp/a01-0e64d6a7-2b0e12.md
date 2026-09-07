@@ -6,8 +6,11 @@ parents:
   - verdict:the-verb-layer-holds
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 scaffold_hash: 4bc86ed31527f895
-title: The body verb: full-body composition through $EDITOR
+season: 1
+thought_session: season
+title: "The body verb: full-body composition through $EDITOR"
 verdict: pending
 ---
 # mvp:a01-0e64d6a7-2b0e12

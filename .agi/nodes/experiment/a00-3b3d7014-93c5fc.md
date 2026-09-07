@@ -6,14 +6,17 @@ parents:
   - hypothesis:a01-390e52ad-e286a2
 next_edges: []
 confidence: 0.5
-scaffold_hash: 22b9a81e94a7fd5a
-title: v7 A/B: in-process import staleness is real but tautological; incident mechanism unaddressed
-verdict: inconclusive_lean_disproved:50
-demoted_from: proved
 demote_reason: frontmatter 'proved' contradicted the body's own 'disproved' conclusion (polarity error); 'proved'/'disproved' also require evidence_runs, absent here; the A/B design demonstrates Python import semantics, not the g4.1 incident mechanism [caught in parent review, iter 1080, a01-50743e85]
+demoted_from: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-cce327d4-f2932a
   - experiment:a00-5f8cf404-0f3ef7
+scaffold_hash: 22b9a81e94a7fd5a
+season: 1
+thought_session: season
+title: "v7 A/B: in-process import staleness is real but tautological; incident mechanism unaddressed"
+verdict: inconclusive_lean_disproved:50
 ---
 # experiment:a00-3b3d7014-93c5fc
 

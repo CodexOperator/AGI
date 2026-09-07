@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-c89eaaae-7dcb85
 next_edges: []
+edited_by: season.py
 scaffold_hash: c267c2a97c7b6bbd
-title: Grep confirmation: agent-prompt.md Rule 5 still carries git commit instruction
+season: 1
+thought_session: season
+title: "Grep confirmation: agent-prompt.md Rule 5 still carries git commit instruction"
 ---
-
 # experiment:a00-f5950c0a-999cc8
 
 ## Experiment

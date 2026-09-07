@@ -8,12 +8,15 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a01-1367dde9-e7320a
 scaffold_hash: e6e34a33f8e16ac9
+season: 1
+thought_session: season
 title: A01 1367dde9 e7320a
 verdict: inconclusive_lean_proved:85
-
+---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review, iter 1080 (a00-6ca14e4e). The gate's demotion from `proved` was
 solely mechanical — the kid ran the reproduction (a real, live one, in a
@@ -36,7 +39,7 @@ deliberate gaps above; not 100 because "grid.py checkout --all" was tested as
 its underlying `git checkout .`, per the hypothesis's own description of that
 tool.
 <!-- THOUGHT:END -->
----
+
 # experiment:a01-1367dde9-e7320a
 
 ## Experiment

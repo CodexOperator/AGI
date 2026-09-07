@@ -358,6 +358,34 @@ def test_unknown_id_is_none_not_a_guess(project):
     assert nw.find_node_file(project, "not-an-id") is None
 
 
+def test_a_runon_frontmatter_opener_is_not_misread(project):
+    """l3-corrupt-frontmatter-19 — the lax split loader used to disagree
+    with the strict loader on a `---id:` run-on opener: it parsed the id out
+    of the glued line and RESOLVED the file, where `load_node_file` raises
+    (missing opening `---`). That disagreement hid the corruption from
+    every writer. `find_node_file`'s frontmatter scan and the id index now
+    delegate to the strict loader, so a run-on file is skipped, not resolved.
+    The file must not carry a canonical name, or step 1 (direct path) would
+    resolve it by filename and never reach the frontmatter scan.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+    d = project / "nodes" / "experiment"
+    corrupt = d / "not-its-canonical-name.md"
+    corrupt.write_text(
+        "---id: experiment:ghost\n"
+        "mint_id: deadbeef\n"
+        "type: experiment\n"
+        "parents:\n  - idea:i1\n"
+        "---\n\nbody\n",
+        encoding="utf-8")
+    # the strict reader rejects it — that is the corruption
+    with pytest.raises(fm_reader.FrontmatterError):
+        fm_reader.load_node_file(corrupt)
+    # ...so the lookup must not resolve the id it claims
+    assert nw.find_node_file(project, "experiment:ghost") is None
+    assert "experiment:ghost" not in nw._build_id_index(project)
+
+
 def test_the_index_cannot_go_stale_under_its_own_writer(project):
     """Prime the cache with a miss, then write the node and look again."""
     assert nw.find_node_file(project, "verdict:later") is None      # builds index
