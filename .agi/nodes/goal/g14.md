@@ -7,7 +7,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: belam-S1-L3-III
+edited_by: belam-S1-L3-VI
 goal_id: G14
 goal_kind: long-term
 heading_level: 2
@@ -98,3 +98,5 @@ Owner addendum 2026-09-04: named the first lattice slot (a classifier that spots
 <!-- THOUGHT:END -->
 
 OWNER SOURCE 2026-09-07 (verbatim in doc:l3-command-ladder-brief quote 7b): https://github.com/project-89/coherence-guided-dead-head-identification — incorporate into local-maxxing. The owner wants experiment/hypothesis loops on it in the autoresearch style (this repo's experiments/ folder is the record of how that skill loop ran and what it yielded), supercharged by the graph: each hypothesis and experiment builds off the previous one to push as far as possible, not just far enough to prove a verdict. Gate: the Camber Cloud GPU auth token arrives through the standard secure import path (.env, envfile.py --check); none was present on 2026-09-07 14:15 UTC (checked by key name only). Until then this goal stays horizon; first slice when it opens = a hypothesis chain on the dead-head paper with Camber runs as evidence.
+
+OWNER SOURCE 2026-09-07 19:47 UTC (owner, verbatim: 'Record following link and info under the localmaxxing goal'): https://huggingface.co/datasets/kuben-developer/tiktok-videos-4b — TikTok Videos, 4.5 Billion (kuben-developer): 4.5B TikTok video records, one row per content_id, with caption (desc), create_time, duration, mentions, sound (music_id + music_title, a join key across videos), engagement counts at collection time (views, likes, comments, shares, saves), country, language, is_ad; collected from TikTok's mobile API over about three weeks; 27 zstd Parquet files, about 289 GB (size_categories n>1T); license 'other' = research-use, released as-is for research; languages en/es/pt/id/ar; task tags text-classification, text-generation, feature-extraction, recommender-systems; queryable in place with duckdb over 'videos-*.parquet' without a full download; HF page at fetch time: 6488 downloads, 204 likes, last modified 2026-09-02. Info fetched from the HF API and README by Belam VI.
