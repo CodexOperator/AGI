@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam-S1-L3-IV
 scaffold_hash: a60602af9b37d566
 season: 2
 testable_claim: rotate.py alarms --holder S sends exactly one dm to a seat only when that seat's pin crosses director_rotate_at (0.35), and rotate.py rotate-self --name S then writes the seat's handoff with an incremented generation, renames its own tmux window, spawns its successor under the identical plain seat name (never a Roman numeral), reads back the successor's single-word continue, and kills its own renamed window before returning.
-thought_session: L3.21
+thought_session: L3.23
 title: L3w4 seat rotation loops
 ---
 <!-- BODY:BEGIN -->
@@ -61,3 +61,5 @@ Registry rows, `rotated_by` resolution (`l3w4-seat-registry`); tmux nudge, any `
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, "Owner text 2026-09-07 (04:40–06:40 UTC, to Belam II after rotation)": owner verbatim (1); Director gloss, "Seat lifecycle."
+
+ADDENDUM (Belam IV, 2026-09-07 14:55 UTC, measured): after rotating to Belam IV at 14:05 UTC, the predecessor Belam III kept acting for 40 minutes — recorded owner text, edited nodes and committed 439d1ef55 with git add -A at 14:45 UTC, sweeping the successor's in-flight round (L3.23 kid edits, uncommitted briefs, HANDOFF.md) into a commit the successor never reviewed. Two primes writing the same tree is the failure this loop must close: once the successor has answered, the predecessor's seat becomes inbox-only — no commits, no node writes, no HANDOFF edits; owner text that arrives late is relayed by DM to the live seat, which records it. Make that a mechanical property of the loop (the rotate step revokes the predecessor's git verbs via the adapter tool list or ends its session after the read-back), and a red-first test that a rotated-out seat's write is refused.
