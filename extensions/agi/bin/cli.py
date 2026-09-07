@@ -66,6 +66,46 @@ def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
     return locations.iteration_dir(root, iter_n) / agent_id / "agent.json"
 
 
+def _evidence_corpus(root: Path) -> frozenset:
+    """The evidence gate's corpus: the trees the cite-able nodes live in.
+
+    hypothesis:l3w4-branch-tooling-blind (claim i). A `--branch` kid's node
+    lives ONLY in its own git worktree (`<main>/.agi/worktrees/<slug>/`),
+    so a parent reviewing that kid from the main checkout sees the gate
+    built from `build_corpus(root / "nodes")` alone -> the kid's id does not
+    resolve -> the parent's decisive `proved` is auto-demoted to a lean even
+    though a real node was cited (L3.33/L3.34: every kid verdict under
+    `--branch` silently under-scored). This unions in every linked worktree's
+    corpus so a worktree-resident experiment resolves.
+
+    Worktrees are a MAJOR-checkout layout under this repo (`.agi/worktrees/`
+    resolved via `locations.git_common_root`); under the legacy layout there
+    are none and `root / "worktrees"` is simply absent, so the corpus is the
+    main graph alone -- unchanged behaviour.
+
+    Deliberately tolerant: a half-created worktree (no `.agi/nodes` yet) must
+    not take the gate down, and an unreadable tree contributes nothing. The
+    gate's fail-closed rule still applies inside each tree -- `build_corpus`
+    is what does the actual scan, so nothing here lets a bare word or a
+    dangling id resolve.
+    """
+    corpus = set(evidence_gate.build_corpus(root / "nodes"))
+    wt_root = root / "worktrees"
+    if wt_root.is_dir():
+        for tree in sorted(wt_root.glob("*")):
+            if not tree.is_dir():
+                continue
+            nodes = tree / ".agi" / "nodes"
+            if not nodes.is_dir():
+                continue
+            try:
+                corpus |= set(evidence_gate.build_corpus(nodes))
+            except evidence_gate.CorpusRootError:
+                # A stray root with a nodes/ child, not a real worktree graph.
+                continue
+    return frozenset(corpus)
+
+
 def _node_evidence_runs_raw(root: Path, node_id: str | None):
     """Read the *raw* `evidence_runs` value off an existing node file, if any
     (H4 inference). Returns it unnormalized (int / list / str / None) so the
@@ -379,7 +419,7 @@ def cmd_done(args: argparse.Namespace) -> int:
             runs = _node_evidence_runs_raw(root, _owned)
             if runs:
                 break
-    corpus = evidence_gate.build_corpus(root / "nodes")
+    corpus = _evidence_corpus(root)
     gate = evidence_gate.apply_gate(
         args.verdict, runs, bypass=args.no_evidence_gate, corpus=corpus,
         # An `experiment` may name itself (it IS the run); anything else must
