@@ -540,11 +540,22 @@ def loop_label(root: Path, explicit: str | None = None,
     `DEFAULT_LOOP`. The on-disk fallback is what makes a bare `driver.sh`
     continue the loop in progress instead of starting L1 forever.
     """
-    for cand in (explicit, os.environ.get(LOOP_ENV_VAR)):
-        if isinstance(cand, str) and cand.strip():
-            label = cand.strip()
-            if not LOOP_LABEL_RE.fullmatch(label):
-                raise ValueError(f"not a loop label: {label!r}")
+    # The explicit flag is a programmer error when invalid — always raise.
+    if isinstance(explicit, str) and explicit.strip():
+        label = explicit.strip()
+        if not LOOP_LABEL_RE.fullmatch(label):
+            raise ValueError(f"not a loop label: {label!r}")
+        return label
+    # $AGI_LOOP, by contrast, is the dispatch spawn variable (dispatch.py
+    # exports it as a full label like hypothesis:x@s1 — never a bare loop
+    # label), which is a normal state inside a dispatched shell, not an error.
+    # A value that is not a bare loop label is therefore ignored, so every
+    # caller falls through to the config/on-disk loop instead of crashing on
+    # its own spawning environment (hypothesis:l3-dispatch-env-leaks-into-tests).
+    env = os.environ.get(LOOP_ENV_VAR)
+    if isinstance(env, str) and env.strip():
+        label = env.strip()
+        if LOOP_LABEL_RE.fullmatch(label):
             return label
     cfg = load_config(root) if config is None else config
     declared = cfg.get(LOOP_CONFIG_KEY)

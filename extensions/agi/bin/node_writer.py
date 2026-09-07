@@ -618,10 +618,12 @@ def write_node(
 
     node_file.parent.mkdir(parents=True, exist_ok=True)
     node_file.write_text(text, encoding="utf-8")
-    _log_write(root, "write_node", node_id, node_file, text, extra={
-        "parents": list(plist),
-        "node_type": ntype,
-    })
+    _log_write(root, "write_node", node_id, node_file, text,
+               mint_id=fm.get("mint_id", ""),
+               extra={
+                   "parents": list(plist),
+                   "node_type": ntype,
+               })
     # A new file invalidates `find_node_file`'s whole-corpus index. Dropping it
     # here is what makes caching safe at all: the only routine that adds a node
     # is the only routine that has to remember.
@@ -821,7 +823,8 @@ def update_node(
         tmp.unlink(missing_ok=True)
         raise
 
-    _log_write(root, "update_node", node_id, path, text)
+    _log_write(root, "update_node", node_id, path, text,
+               mint_id=fm.get("mint_id", ""))
     res.status = UPDATED
     return res
 
@@ -862,8 +865,17 @@ def update_node(
 #: required-but-absent is reported, never invented.
 def _log_write(root, operation: str, node_id: str, path: Path,
                 text: str = "", *,
+                mint_id: str = "",
                 extra: dict | None = None):
-    """Append one JSON line to the write log under sessions/."""
+    """Append one JSON line to the write log under sessions/.
+
+    Every line carries `mint_id` (SETTLED, l2w15-write-guard): the durable
+    identifier the grid refs and write_guard key on, read from the node's
+    frontmatter at write time. A payload write logs under its build node's
+    mint_id. Absent is fine (a payload created before its node exists, or a
+    legacy writer that does not pass one) — write_guard then falls back to
+    sha256-only matching, which covers bytes written before a node existed.
+    """
     try:
         root_p = Path(root)
         log_path = root_p / WRITE_LOG
@@ -872,6 +884,7 @@ def _log_write(root, operation: str, node_id: str, path: Path,
             "ts": datetime.datetime.utcnow().isoformat() + "Z",
             "operation": operation,
             "node_id": node_id,
+            "mint_id": mint_id,
             "path": _log_relpath(path, root_p),
             "sha256": hashlib.sha256(
                 text.encode("utf-8")).hexdigest() if text else "",
@@ -886,9 +899,11 @@ def _log_write(root, operation: str, node_id: str, path: Path,
 
 def log_write(root, operation: str, node_id: str, path: Path,
                 text: str = "", *,
+                mint_id: str = "",
                 extra: dict | None = None):
     """Public wrapper for _log_write. Same signature."""
-    _log_write(root, operation, node_id, path, text, extra=extra)
+    _log_write(root, operation, node_id, path, text, mint_id=mint_id,
+               extra=extra)
 
 
 def _log_relpath(path: Path, root: Path) -> str:
