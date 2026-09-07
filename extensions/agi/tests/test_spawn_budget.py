@@ -254,6 +254,13 @@ def test_budget_dir_is_shared_across_a_linked_worktree(tmp_path: Path):
     The budget must NOT follow the worktree root or the tree-wide bound
     silently splits per worktree — the whole thing
     `spawn_budget.py` exists to enforce (goal:g4.8 item 3).
+
+    `hypothesis:l3-budget-dir-dropped-agi`: under G11 the graph lives at
+    `<repo>/.agi` and the budget must resolve to `<repo>/.agi/sessions/
+    .spawn-budget` — never a stray `<repo>/sessions/` and never a
+    per-worktree split. The exact `.agi` path is asserted so a regression
+    that drops the graph-dir segment fails red on both the main checkout and
+    the worktree.
     """
     repo = tmp_path / "main"
     repo.mkdir(parents=True)
@@ -263,27 +270,32 @@ def test_budget_dir_is_shared_across_a_linked_worktree(tmp_path: Path):
         subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
                        check=True, capture_output=True)
     (repo / "README").write_text("x")
+    # G11 layout: the graph root is a resolveable `.agi` dir with a config.
+    graph = repo / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text("{}")
     subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
                    capture_output=True)
     subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
                    check=True, capture_output=True)
-    (repo / "sessions").mkdir()
 
     wt = tmp_path / "wt"
     subprocess.run(["git", "-C", str(repo), "worktree", "add",
                     "-b", "loop/slug@s2", str(wt), "master"],
                    check=True, capture_output=True)
 
-    main_budget = spawn_budget.budget_dir(repo)
-    wt_budget = spawn_budget.budget_dir(wt)
-    assert wt_budget == main_budget, (
-        "a worktree's spawn budget must be the MAIN checkout's directory, "
-        "not a per-worktree split")
+    expected = repo / ".agi" / "sessions" / ".spawn-budget"
+    assert spawn_budget.budget_dir(repo) == expected, (
+        "the main checkout's budget must keep the .agi graph-dir segment: "
+        "<repo>/.agi/sessions/.spawn-budget, not <repo>/sessions/.spawn-budget")
+    assert spawn_budget.budget_dir(wt) == expected, (
+        "a worktree's budget must be the MAIN checkout's `.agi` graph dir, "
+        "never a per-worktree split and never a dropped `.agi` segment")
     assert spawn_budget.acquire(wt, 2, "wt-agent") is not None
     # The lease is visible from the main checkout and from the worktree alike.
     assert spawn_budget.live_count(repo) == 1
     assert spawn_budget.live_count(wt) == 1
-    assert (main_budget / "wt-agent.lease").is_file(), (
+    assert (expected / "wt-agent.lease").is_file(), (
         "the lease file lives in the main checkout's budget dir")
 
 

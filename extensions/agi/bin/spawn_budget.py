@@ -59,9 +59,22 @@ def budget_dir(root: Path) -> Path:
     the tree-wide bound silently splits per worktree. `git_common_root`
     answers that via `git rev-parse --git-common-dir`, identity when the
     caller is already in the main checkout (or outside any git repo).
+
+    **Keeps the graph-dir segment (`hypothesis:l3-budget-dir-dropped-agi`).**
+    Under G11 the graph root is `<repo>/.agi`, and `git_common_root` returns
+    the repo root — naively joining `main/sessions` would DROP the `.agi`
+    segment and write leases into a stray `<repo>/sessions/`. So the main
+    checkout's graph root is re-derived (`find_project_root(main)`, the same
+    re-root `send.py` and `rotate.py` use) and the budget lives under IT:
+    `<repo>/.agi/sessions/.spawn-budget`, shared by every worktree. In the
+    legacy layout the graph root IS the repo root, so this is the identity
+    and the budget keeps resolving to `<repo>/sessions/.spawn-budget`.
     """
-    main = locations.git_common_root(root)
-    return Path(main) / "sessions" / ".spawn-budget"
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+    base = main_graph or graph
+    return base / locations.SESSIONS_DIR_NAME / ".spawn-budget"
 
 
 def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
