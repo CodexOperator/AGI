@@ -83,6 +83,7 @@ GLYPH = {
     "leaf": "·",      # ·
     "damaged": "✗",   # ✗  dangling parent / broken edge
     "spider": "✶",    # ✶  an agent, working here
+    "seat": "◆",     # ◆  a perpetual seat, sitting on this node
     "mantle": "✦",    # ✦  a mantled spirit in the sanctuary theme
     "wisp": "≈",      # ≈  a probe / ephemeral wisp in the sanctuary theme
 }
@@ -271,12 +272,17 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 
 def render_human(frames: list[Frame], top: int, left: int,
                  height: int, width: int, status: str = "",
-                 brief=None, seats=None) -> list[str]:
+                 brief=None, seats=None, occupants=None) -> list[str]:
     """The terminal viewport: a window onto a graph larger than the screen.
 
     `brief` is the same `Briefing` object `render_llm` receives, rendered
     compactly — the numbers a human watches change, without the rules text a
     human reading their own graph does not need restated every frame.
+
+    `occupants` is an `OccupantIndex` (hypothesis:l3w4-seat-graph-view): the
+    perpetual seats it maps are drawn INLINE on the node they sit on, and the
+    seats it lists as idle are drawn in a named idle band beneath the window
+    so none is invisible. The same object reaches `render_llm`.
     """
     lines: list[str] = []
     for f in frames:
@@ -285,10 +291,19 @@ def render_human(frames: list[Frame], top: int, left: int,
         tag = TYPE_TAG.get(f.type, "?")
         v = f" [{f.verdict}]" if f.verdict and f.verdict != "pending" else ""
         note = f"   {GLYPH['damaged']} {f.damaged}" if f.damaged else ""
-        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{v}{spider}{note}")
+        seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
+        seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
+        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{v}{spider}{seat_mark}{note}")
 
     window = lines[top:top + height]
     out = [ln[left:left + width].ljust(width) for ln in window]
+
+    # Named idle band: seats with no current node, so empty seats are seen,
+    # not erased. Rendered beneath the window slice, distinct glyph + label.
+    if occupants is not None and occupants.idle:
+        idle_ln = (f"{GLYPH['seat']} idle: " + ", ".join(occupants.idle))
+        out.append((idle_ln[left:left + width]).ljust(width))
+
     head = []
     if brief is not None:
         import briefing as _briefing
@@ -304,7 +319,7 @@ def render_human(frames: list[Frame], top: int, left: int,
 
 def render_llm(frames: list[Frame], top: int, left: int,
                height: int, width: int, status: str = "",
-               brief=None, seats=None) -> str:
+               brief=None, seats=None, occupants=None) -> str:
     """Exactly what a kid is handed for this position.
 
     Same frames, same slice, same order. The markdown wrapper differs because
@@ -323,7 +338,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
         v = f" verdict={f.verdict}" if f.verdict else ""
         dmg = f" DAMAGE={f.damaged}" if f.damaged else ""
         who = f" agents={','.join(f.agents)}" if f.agents else ""
-        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{v}{dmg}{who}")
+        seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
+        seating = f" seats={','.join(seats_here)}" if seats_here else ""
+        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{v}{dmg}{who}{seating}")
     head = [
         "# graph viewport",
         f"_frames {top}-{min(top + height, len(frames))} of {len(frames)}_",
@@ -338,6 +355,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
     if seats is not None:
         import seat_status as _ss
         head += [*_ss.to_markdown(seats), ""]
+    if occupants is not None and occupants.idle:
+        head += ["## idle seats", "",
+                 *[f"- seat {nm}" for nm in occupants.idle], ""]
     head += ["## the graph", ""]
     return "\n".join(head + body) + "\n"
 
@@ -553,6 +573,122 @@ def agents_of_iteration(root: Path, iter_name: str) -> dict:
     return out
 
 
+@dataclass(frozen=True)
+class OccupantIndex:
+    """Who sits where, as ONE object both formatters render (hypothesis
+    l3w4-seat-graph-view). Mirrors the `Frame`/`SeatsView` discipline: built
+    once, read by both `render_human` and `render_llm`.
+
+    `at_nodes` — `{node_id: tuple[seat_name, ...]}` — seats rendered INLINE on
+    the node they are working today.
+    `idle` — `tuple[seat_name, ...]` — seats with no resolvable current node,
+    rendered in a named idle band so none is invisible.
+
+    Ephemeral round agents ride the existing `Frame.agents` spider glyph;
+    this index carries only the perpetual seats, which is what the owner asked
+    to see ON the graph and what was missing.
+    """
+    at_nodes: tuple = ()          # node_id -> tuple[seat_name, ...]
+    idle: tuple = ()              # tuple[seat_name, ...]
+
+    @classmethod
+    def _from(cls, at_nodes: dict, idle) -> "OccupantIndex":
+        return cls(tuple((k, tuple(v)) for k, v in (at_nodes or {}).items()),
+                   tuple(idle or ()))
+
+    def seats_at(self, node_id: str) -> tuple:
+        for k, v in self.at_nodes:
+            if k == node_id:
+                return v
+        return ()
+
+
+def _manifest_agents(root: Path, iter_name: str) -> list[dict]:
+    """The `agents` list of one iteration's manifest.json, or []. Read-only."""
+    mf = Path(root) / "sessions" / iter_name / "manifest.json"
+    if not mf.is_file():
+        return []
+    try:
+        agents = json.loads(mf.read_text()).get("agents", [])
+        return [a for a in agents if isinstance(a, dict)]
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+_SESSIONS_MARK = re.compile(r"(?:^|[/\\])sessions[/\\]([^/\\]+)[/\\]")
+
+
+def _agent_id_of_session(sess_text: str) -> str | None:
+    """The agent id a session path names: the dir right under `sessions/`.
+
+    A seat's meter pin names its current transcript, whose path runs
+    `.../sessions/<agent_id>/...`. The agent id is how the seat's session
+    joins to a manifest row's `target`.
+    """
+    m = _SESSIONS_MARK.search(sess_text or "")
+    return m.group(1) if m else None
+
+
+def _seat_sessions(root: Path, registry_rows) -> dict:
+    """`{seat_name: pin_text}` from each seat's meter pin, best-effort.
+
+    `.agi/sessions/<name>.meter` holds the transcript path the seat is
+    currently working on (seat-stable via AGI_SEAT, `config:seats` `pin_ref`).
+    Absent or unreadable pin -> the seat simply has no session, which is the
+    honest "idle" state, never an error.
+    """
+    out: dict[str, str] = {}
+    for r in registry_rows or []:
+        name = str(r.get("name") or "")
+        if not name:
+            continue
+        pin = Path(root) / "sessions" / f"{name}.meter"
+        if pin.is_file():
+            try:
+                out[name] = pin.read_text(encoding="utf-8").strip()
+            except OSError:
+                pass
+    return out
+
+
+def seat_index(manifest_agents: list, registry_rows: list,
+               session_by_seat: dict) -> tuple[dict, list]:
+    """`(at_nodes, idle)` — join each seat to the node it is working on.
+
+    `manifest_agents` — one iteration's manifest `agents` rows; each carries
+    `id` and `target` (the node that agent is writing right now).
+    `registry_rows` — `config:seats`'s `seats:` list.
+    `session_by_seat` — `{seat_name: session_path}` from each seat's meter pin
+    (see `_seat_sessions`).
+
+    Resolution, newest iteration wins (the caller hands the newest manifest):
+    a seat's pinned session names the agent id it currently runs; that agent's
+    manifest `target` is the node the seat sits on. A seat with no pin, or a
+    pin whose agent has no manifest row, is IDLE — shown in the idle band,
+    never invented onto a node it is not on.
+    """
+    by_agent = {str(a.get("id")): a for a in (manifest_agents or [])
+                if a.get("id") is not None}
+    at_nodes: dict[str, list[str]] = {}
+    seated: set[str] = set()
+    for r in registry_rows or []:
+        seat = str(r.get("name") or "")
+        if not seat:
+            continue
+        sess = (session_by_seat or {}).get(seat)
+        node = None
+        if sess:
+            row = by_agent.get(_agent_id_of_session(sess) or "")
+            if row and row.get("target"):
+                node = row["target"]
+        if node:
+            at_nodes.setdefault(node, []).append(seat)
+            seated.add(seat)
+    idle = [str(r.get("name")) for r in (registry_rows or [])
+            if r.get("name") and str(r.get("name")) not in seated]
+    return at_nodes, idle
+
+
 def grid_versions(node_id: str) -> list[str]:
     """A node's grid versions, newest last. Read-only (`grid.py versions`)."""
     try:
@@ -591,10 +727,16 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             frames = frame_stream(g, fm_by_id, anchor, depth, agents)
 
             seats = None
+            occupants = None
             if live:
                 try:
                     import seat_status as _ss
                     seats = _ss.collect(root, fm_by_id)
+                    occ_rows = getattr(seats, "seats", [])
+                    at_nodes, idle = seat_index(
+                        _manifest_agents(root, iter_name), occ_rows,
+                        _seat_sessions(root, occ_rows))
+                    occupants = OccupantIndex._from(at_nodes, idle)
                 except Exception:                                    # noqa: BLE001
                     pass
 
@@ -602,7 +744,8 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
                       f"frames={len(frames)} "
                       f"time={iter_name or '-'} live={'on' if live else 'off'}"
                       + (f" | {msg}" if msg else ""))
-            body = render_human(frames, top, left, h - 2, w - 1, seats=seats)
+            body = render_human(frames, top, left, h - 2, w - 1, seats=seats,
+                                occupants=occupants)
 
             scr.erase()
             for i, ln in enumerate(body[:h - 2]):
@@ -718,11 +861,20 @@ def main() -> int:
     # computed once, handed to both formatters like the frame stream and the
     # briefing. Only on `--live` — the static graph view has no business reading
     # the seat board. Fails open to an absent registry, never a traceback.
+    occupants = None
     seats = None
     if args.live:
         try:
             import seat_status as _ss
             seats = _ss.collect(root, fm_by_id)
+            # hypothesis:l3w4-seat-graph-view — join seats to the nodes they
+            # sit on (manifest target + each seat's meter pin), newest
+            # iteration wins; build ONE OccupantIndex both readers render.
+            occ_rows = getattr(seats, "seats", [])
+            at_nodes, idle = seat_index(
+                _manifest_agents(root, iter_name), occ_rows,
+                _seat_sessions(root, occ_rows))
+            occupants = OccupantIndex._from(at_nodes, idle)
         except Exception as exc:                                   # noqa: BLE001
             print(f"viewport: seat status unavailable "
                   f"({type(exc).__name__}: {exc})", file=sys.stderr)
@@ -742,14 +894,16 @@ def main() -> int:
             print("HUMAN VIEW".center(args.width))
             print("=" * args.width)
         print("\n".join(render_human(frames, args.top, args.left,
-                                     args.height, args.width, status, brief, seats)))
+                                     args.height, args.width, status, brief,
+                                     seats, occupants)))
     if mode in ("llm", "both"):
         if mode == "both":
             print("\n" + "=" * args.width)
             print("LLM VIEW  — same frames, same slice".center(args.width))
             print("=" * args.width)
         print(render_llm(frames, args.top, args.left,
-                         args.height, args.width, status, brief, seats), end="")
+                         args.height, args.width, status, brief, seats,
+                         occupants), end="")
     return 0
 
 
