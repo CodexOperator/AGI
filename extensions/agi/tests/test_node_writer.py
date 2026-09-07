@@ -843,3 +843,62 @@ def test_env_season_that_cannot_be_parsed_falls_back_to_ladder(
     fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
     # Falls back to ladder's current_season: 1
     assert fm.get("season") == 1
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l2-done-doubled-frontmatter — a duplicate leading frontmatter
+# block living in the body (a kid that kept the scaffold's frontmatter) is
+# absorbed into the real frontmatter, later keys winning, and stripped.
+# Reproduces L2.01: experiment:a00-e65beccc-ac5309 arrived with a duplicate
+# scaffold FM block left in the body after cli.py done wrote the verdict.
+# --------------------------------------------------------------------------
+
+def test_update_node_absorbs_a_duplicate_leading_frontmatter_block(project):
+    """A body that opens with a second --- block is merged, dup removed."""
+    import yaml
+    nf = project / "nodes" / "experiment" / "e1.md"
+    dup = ("---\nid: experiment:e1\ntype: experiment\n"
+           "title: Kid Kept The Scaffold Frontmatter\n---\n")
+    # The kid's rewrite: real scaffold frontmatter, then the scaffold's own
+    # frontmatter pasted again at the top of the body.
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\ntitle: Real Title\n---"
+        f"\n\n{dup}\n# experiment:e1\n\nkid content\n")
+
+    res = nw.update_node(project, "experiment:e1",
+                         set_fm={"verdict": "proved", "confidence": 0.9})
+    assert res.status == nw.UPDATED, res.reason
+
+    text = nf.read_text()
+    # One real frontmatter block (open + close = exactly two --- lines).
+    assert text.count("---") == 2, text
+    # The verdict landed in the real frontmatter.
+    fm = yaml.safe_load(text.split("---", 2)[1])
+    assert fm.get("verdict") == "proved"
+    assert fm.get("confidence") == 0.9
+    # The duplicate's keys were absorbed into the real block, later keys
+    # winning (the body's title is the one that survives).
+    assert fm.get("title") == "Kid Kept The Scaffold Frontmatter"
+    # And the duplicate text is gone from the body.
+    body = text.split("---", 2)[2]
+    assert "id: experiment:e1" not in body
+    assert "Kid Kept The Scaffold Frontmatter" not in body
+    # The kid's real content survived.
+    assert "kid content" in body
+
+
+def test_update_node_leaves_a_body_without_leading_frontmatter_alone(project):
+    """No leading dup -> normally equivalent update, verdict still written."""
+    import yaml
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\ntitle: Real Title\n---"
+        "\n\n# experiment:e1\n\nplain content\n")
+    res = nw.update_node(project, "experiment:e1",
+                         set_fm={"verdict": "disproved", "confidence": 0.3})
+    assert res.status == nw.UPDATED
+    text = nf.read_text()
+    assert text.count("---") == 2
+    fm = yaml.safe_load(text.split("---", 2)[1])
+    assert fm.get("verdict") == "disproved"
+    assert "plain content" in text.split("---", 2)[2]

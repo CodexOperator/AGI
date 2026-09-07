@@ -38,7 +38,13 @@ def _ladder_node_file():
 
 def test_ladder_node_current_season(engine_on_path):
     nf = _ladder_node_file()
-    assert nf.frontmatter["current_season"] == 1
+    # The live ladder rolls over (season 1 -> 2 on 2026-09-07); the test pins
+    # the shape, not the season number: a positive int, and every named
+    # (closed) season lies strictly before the current one.
+    cs = nf.frontmatter["current_season"]
+    assert isinstance(cs, int) and cs >= 1
+    names = nf.frontmatter.get("season_names") or {}
+    assert all(int(k) < cs for k in names), (cs, names)
 
 
 def test_ladder_node_director_rotate_at(engine_on_path):

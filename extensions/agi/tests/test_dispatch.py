@@ -587,6 +587,27 @@ def test_default_tier_for_role():
     assert dispatch._default_tier_for_role("prime_director") == 3
 
 
+def test_default_role_follows_tier():
+    """hypothesis:l3-dispatch-role-default — a bare --tier must not resolve
+    the tier-0 kid row. Tier parent means role parent; tier kid means role
+    kid; an explicit --role still wins over both."""
+    assert dispatch._default_role_for_tier("parent") == "parent"
+    assert dispatch._default_role_for_tier("kid") == "kid"
+    assert dispatch._default_role_for_tier("prime_director") == "prime_director"
+
+
+def test_parent_tier_without_role_resolves_parent_row():
+    """The bug this pins: dispatch --tier parent (no --role) used to fall
+    through to the tier-0 kid row (deepseek) because --role defaulted to
+    'kid'. After the fix the resolved spec must be the tier-1 parent row
+    (glm-flash-latest), not the kid model."""
+    role = dispatch._default_role_for_tier("parent")
+    spec = dispatch.resolve_role_spec(_cfg(), _roles(),
+                                      dispatch._default_tier_for_role(role), role)
+    assert spec["from_ladder"] is True
+    assert spec["model"] == "~z-ai/glm-flash-latest"
+
+
 def test_dispatch_exports_agi_role_env():
     """Every spawn must carry AGI_ROLE so node_writer can stamp `role:` at
     mint. AST check -- dispatch writes spawn_env after Popen is built, so the
