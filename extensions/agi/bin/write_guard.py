@@ -60,11 +60,13 @@ def _git_root(cwd: Path) -> Path | None:
     return None
 
 
-def _git_changed_files(root: Path, agi_root: Path) -> list[dict]:
-    """List of {path, old_sha256} for files under .agi/nodes/ changed vs HEAD.
+def _git_changed_files(root: Path, agi_root: Path, subdir: str = "nodes") -> list[dict]:
+    """List of {path, old_sha256} for files under .agi/<subdir>/ changed vs HEAD.
 
-    Includes modified and untracked files. Returns paths relative to the repo
-    root (agi_root is under the repo).
+    `subdir` defaults to `nodes` (the node tree); the context pass passes
+    `"context"` to sweep `.agi/context/*.md` design docs (l3w4). Includes
+    modified and untracked files. Returns paths relative to the repo root
+    (agi_root is under the repo).
     """
     git = _git_root(root)
     if git is None:
@@ -83,13 +85,13 @@ def _git_changed_files(root: Path, agi_root: Path) -> list[dict]:
     except BaseException:
         return []
 
-    # Filter to files under the agi node tree
-    nodes_prefix = _rel_node_prefix(agi_root, git)
+    # Filter to files under the agi subdir (nodes/ or context/)
+    prefix = _rel_dir_prefix(agi_root, git, subdir)
     interesting = []
     seen = set()
     for fname in modified + untracked:
         f = Path(fname)
-        if not f.as_posix().startswith(nodes_prefix):
+        if not f.as_posix().startswith(prefix):
             continue
         # .lock files created by _claim_node are not node writes -- skip
         if f.suffix == ".lock":
@@ -110,11 +112,16 @@ def _git_changed_files(root: Path, agi_root: Path) -> list[dict]:
 
 def _rel_node_prefix(agi_root: Path, git_root: Path) -> str:
     """The relative path prefix for node files: e.g. '.agi/nodes/'."""
+    return _rel_dir_prefix(agi_root, git_root, "nodes")
+
+
+def _rel_dir_prefix(agi_root: Path, git_root: Path, subdir: str) -> str:
+    """The relative path prefix for a tree under .agi/: e.g. '.agi/nodes/'."""
     try:
         rel = agi_root.resolve().relative_to(git_root.resolve())
-        return (rel / "nodes").as_posix()
+        return (rel / subdir).as_posix()
     except (ValueError, OSError):
-        return ".agi/nodes"
+        return f".agi/{subdir}"
 
 
 def _load_log(agi_root: Path):
@@ -296,6 +303,20 @@ def cmd_check(argv: list[str]) -> int:
             hint = _redo_hint(fpath, root)
             warnings.append(f"WARN unsanctioned write: {fpath}")
             warnings.append(f"  {hint}")
+
+    # Second pass: unsanctioned writes under .agi/context/ (l3w4). These are
+    # design docs, not node files, so they carry no mint_id frontmatter; a
+    # sanctioned payload write is matched by sha256 alone, exactly like the
+    # SETTLED rekey fallback above.
+    for c in _git_changed_files(root, root, subdir="context"):
+        sha = c.get("old_sha256", "")
+        fpath = c.get("path", "")
+        if not san.has("", sha) and sha:
+            warnings.append(f"WARN unsanctioned write under .agi/context/: {fpath}")
+            warnings.append(
+                f"  python3 extensions/agi/bin/write.py <doc-node-id> "
+                f"'payload {fpath}'  # or write.py create doc <slug> ...")
+
 
     # Check payload files of modified build nodes
     try:

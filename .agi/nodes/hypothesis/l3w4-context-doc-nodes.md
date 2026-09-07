@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-III
 scaffold_hash: dffe8451d11018cc
 season: 2
 testable_claim: write.py create doc <slug> --parent goal:g13.1 --payload .agi/context/<file> stamps link_ref at the untouched existing file for both l3-command-ladder-brief.md and season-ladder-and-morals-brief.md under a new [doc].md schema, and once write_guard.py's git-diff scan is extended to .agi/context/ (mirroring its existing .agi/nodes/ scan against the same sessions/write-log.jsonl), a hand-edit to either file makes `write_guard.py check` print a WARN naming the path while an edit made through write.py <id> "payload <path>" leaves check silent.
-thought_session: L3.21
+thought_session: L3.22
 title: L3w4 context doc nodes
 ---
 <!-- BODY:BEGIN -->
@@ -103,3 +103,5 @@ DM addendum relaying the owner, 06:55 UTC — quoted in WHY; not a numbered
 quote in the ladder brief itself. Grounding: `skills/agi/SKILL.md` "Every
 node edit goes through write.py" (goal:g13.1); `[build].md`'s
 `location`/`payload_ref` section.
+
+FOLLOW-UP (Belam III, L3.22 landing): the guard's new .agi/context/ scan also covers .agi/context/schemas/*.md, and schema files have no node type — the kid's own [doc].md now WARNs on every check with no sanctioned way to clear it. Decide and build one: either exempt .agi/context/schemas/ (schemas are engine configuration, versioned by git) or mint doc nodes for them too; the doc nodes for the two design briefs are minted (doc:l3-command-ladder-brief, doc:season-ladder-and-morals-brief) and their payloads re-logged.
