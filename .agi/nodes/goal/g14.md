@@ -7,7 +7,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam-S1-L3-III
 goal_id: G14
 goal_kind: long-term
 heading_level: 2
@@ -20,7 +20,7 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: season
+thought_session: L3.22
 title: "G14: Local-maxxing: the smallest model that can do the job, everywhere"
 ---
 # goal:g14
@@ -96,3 +96,5 @@ failure-category set exists to make those labels.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Owner addendum 2026-09-04: named the first lattice slot (a classifier that spots completion gaps in a parent report -- ground truth already in the corpus), and framed the lattice as the middle ground between a deterministic decision tree and prompt-maxxing, where an instruction that should be harness code is handed to a model as text and becomes a Markov chain. Migration path recorded: SKILL.md prose first, scored model second.
 <!-- THOUGHT:END -->
+
+OWNER SOURCE 2026-09-07 (verbatim in doc:l3-command-ladder-brief quote 7b): https://github.com/project-89/coherence-guided-dead-head-identification — incorporate into local-maxxing. The owner wants experiment/hypothesis loops on it in the autoresearch style (this repo's experiments/ folder is the record of how that skill loop ran and what it yielded), supercharged by the graph: each hypothesis and experiment builds off the previous one to push as far as possible, not just far enough to prove a verdict. Gate: the Camber Cloud GPU auth token arrives through the standard secure import path (.env, envfile.py --check); none was present on 2026-09-07 14:15 UTC (checked by key name only). Until then this goal stays horizon; first slice when it opens = a hypothesis chain on the dead-head paper with Camber runs as evidence.

@@ -587,6 +587,54 @@ def test_default_tier_for_role():
     assert dispatch._default_tier_for_role("prime_director") == 3
 
 
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-seat-registry — resolve a named seat -> spec.
+#
+# config:seats declares one row per seat; a seat's own cells override the
+# ladder's (tier, role) class table. Missing registry / no row fails open.
+# ---------------------------------------------------------------------------
+
+
+def _seats():
+    return [
+        {"name": "belam", "role": "prime_director", "tier": 3,
+         "harness": "claude-code", "model": "claude-fable-5-1",
+         "effort": "max", "settings": "ultracode"},
+        {"name": "liaison", "role": "director", "tier": 1,
+         "harness": "claude-code", "model": "claude-sonnet-5",
+         "effort": "high", "settings": ""},
+    ]
+
+
+def test_resolve_seat_spec_liaison_returns_sonnet_high_not_opus():
+    """The liaison seat diverges from its director class (opus/max): the seat
+    row names sonnet/high. Seat cells override the (tier, role) table."""
+    spec = dispatch.resolve_seat_spec(_seats(), "liaison")
+    assert spec is not None
+    assert spec["from_seat"] is True
+    assert spec["model"] == "claude-sonnet-5"
+    assert spec["effort"] == "high"
+    assert spec["model"] != "claude-opus-5"   # not the class table's opus
+
+
+def test_dispatch_seat_flag_overrides_role_and_ladder_tier():
+    """A seat is a more specific key than (tier, role): belam resolves its own
+    fable-5.1/max row, not the tier-3 parent class opus/max."""
+    spec = dispatch.resolve_seat_spec(_seats(), "belam")
+    assert spec is not None
+    assert spec["model"] == "claude-fable-5-1"
+    assert spec["effort"] == "max"
+    assert spec["settings"] == "ultracode"
+
+
+def test_resolve_seat_spec_none_when_missing_fails_open():
+    """No registry or no row -> None, so dispatch falls back to the ladder's
+    (tier, role) lookup. A missing seat must never break dispatch."""
+    assert dispatch.resolve_seat_spec(None, "liaison") is None
+    assert dispatch.resolve_seat_spec(_seats(), "nobody") is None
+    assert dispatch.resolve_seat_spec([], "belam") is None
+
+
 def test_default_role_follows_tier():
     """hypothesis:l3-dispatch-role-default — a bare --tier must not resolve
     the tier-0 kid row. Tier parent means role parent; tier kid means role

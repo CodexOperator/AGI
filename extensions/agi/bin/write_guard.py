@@ -307,10 +307,15 @@ def cmd_check(argv: list[str]) -> int:
     # Second pass: unsanctioned writes under .agi/context/ (l3w4). These are
     # design docs, not node files, so they carry no mint_id frontmatter; a
     # sanctioned payload write is matched by sha256 alone, exactly like the
-    # SETTLED rekey fallback above.
+    # SETTLED rekey fallback above. .agi/context/schemas/*.md are exempt:
+    # they are engine configuration versioned by git, have no node type, and
+    # nothing can sanely claim them, so a legit edit must not WARN (l3w4
+    # FOLLOW-UP).
     for c in _git_changed_files(root, root, subdir="context"):
         sha = c.get("old_sha256", "")
         fpath = c.get("path", "")
+        if "/schemas/" in fpath:
+            continue  # engine config under .agi/context/schemas/ — git-versioned
         if not san.has("", sha) and sha:
             warnings.append(f"WARN unsanctioned write under .agi/context/: {fpath}")
             warnings.append(

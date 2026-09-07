@@ -574,3 +574,22 @@ def test_write_guard_silent_after_write_py_payload_edit(project, context_doc):
         data=b"# bottom line\n\nvia write.py payload edit.\n")
     assert changed
     assert _check(project, []) == 0, "logged payload write must stay silent"
+
+
+def test_write_guard_silent_on_hand_edit_to_schema_file(project):
+    """A schema hand-edit is engine config, not an unsanctioned node write.
+
+    (l3w4-context-doc-nodes FOLLOW-UP) The broadcast .agi/context/ scan sweeps
+    .agi/context/schemas/*.md too, but a schema has no node type and nothing
+    claims it as a payload, so a legitimate edit to engine configuration would
+    WARN with no sanctioned way to clear it. Schemas are versioned by git,
+    not node content, so the sweep must exempt them while still covering the
+    top-level .agi/context/*.md design docs.
+    """
+    schema = project / ".agi" / "context" / "schemas" / "[doc].md"
+    before = schema.read_text()
+    schema.write_text(before + "# engine-edit note\n")
+    out = _check_capture(project, [])
+    assert "schemas" not in out, \
+        "a schema edit is git-versioned engine config, not a node write"
+    assert _check(project, []) == 0

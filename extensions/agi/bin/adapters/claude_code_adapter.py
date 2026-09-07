@@ -216,7 +216,13 @@ def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
         return None
     seg = Path(root) / ".agi" / "sessions"
     seg.mkdir(parents=True, exist_ok=True)
-    pin = seg / f"{agent_id}{METER_PIN_EXT}"
+    # hypothesis:l3w4-seat-registry — when the seat key is set, pin under the
+    # seat's STABLE name rather than the per-process agent id, so the seat's
+    # meter finds its own pin even across rotations that change the agent id.
+    # No graph write, no race on seats.md: the seat name rides the env.
+    seat = os.environ.get("AGI_SEAT")
+    pin_id = seat if seat else agent_id
+    pin = seg / f"{pin_id}{METER_PIN_EXT}"
     pin.write_text(str(transcript) + "\n", encoding="utf-8")
     return pin
 
