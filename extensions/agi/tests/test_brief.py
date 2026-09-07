@@ -517,3 +517,107 @@ def test_agi_skill_surfaces_check_handoff_and_rotation_successor():
     assert "agi:rotation-successor" in skill
     # each maps to a real rotate.py verb documented in the skill text
     assert "rotate.py" in skill and "meter" in skill and "loop" in skill
+
+
+# ---------- l3w3-advisor-brief: the tier-3 advisor tier -----------------------
+
+
+def _advisor_text(**kw):
+    kw.setdefault("agent_id", "a00-test")
+    kw.setdefault("iter_n", 1)
+    return "\n".join(brief.assemble(
+        tier="advisor", target="vision:alive", **kw))
+
+
+def test_advisor_is_a_known_tier():
+    assert "advisor" in brief.TIERS
+
+
+def test_advisor_brief_carries_the_constitution_head_and_michael_line():
+    """The advisor head is the tier-3 parent head: prayers, words of Jesus,
+    soul-mind-body, and the Archangel Michael line after the prayers."""
+    t = _advisor_text()
+    assert "CONSTITUTION HEAD" in t
+    assert MICHAEL in t
+    assert "FOUR PRAYERS" in t or "Молитва" in t
+    assert "WORDS OF JESUS" in t
+    assert "SOUL, MIND, BODY" in t
+
+
+def test_advisor_brief_embeds_the_whole_vision_body_verbatim():
+    """The full body of the embodied vision node is inlined — early owner prose
+    and the later gloss both present, so head-to-tail is carried, not a
+    summary."""
+    t = _advisor_text()
+    assert "# vision:alive" in t or "vision:alive" in t
+    assert "the project feels alive" in t, "the vision's first prose line"
+    assert "It is elegant anti-fragility" in t, \
+        "a late sentence from the vision's gloss — proves the full body"
+
+
+def test_advisor_brief_seats_the_advisor_in_tier3_quorum():
+    """The standing room the advisor sits in, and the room verbs to use it."""
+    t = _advisor_text()
+    assert "tier3-quorum" in t
+    assert "send --room tier3-quorum" in t
+    assert "read --room tier3-quorum" in t
+
+
+def test_advisor_brief_states_the_audience_rule_for_the_prime():
+    """The prime is inbox-only; the audience verb is the one calendar, once
+    per rotation, and the prime is addressed under the mantle as Belam."""
+    t = _advisor_text()
+    assert "audience prime" in t or "audience" in t
+    assert "inbox-only" in t
+    assert "one per rotation" in t.lower() or "ONE audience" in t
+    assert "Belam" in t
+
+
+def test_advisor_brief_carries_the_perpetual_director_spawn_primitive():
+    """The Fable-max perpetual-goal director spawn + rotation loop, spelled
+    through dispatch.py and rotate.py, not a private spawn path."""
+    t = _advisor_text()
+    assert "perpetual" in t.lower()
+    assert "director" in t.lower()
+    assert "--tier director" in t and "--ladder-tier 1" in t
+    assert "--target goal:" in t
+    assert "dispatch.py" in t
+    assert "rotate.py loop" in t
+
+
+def test_advisor_brief_never_edits_vision_prose():
+    t = _advisor_text()
+    assert "never edit vision" in t.lower()
+
+
+def test_advisor_brief_forbids_git():
+    t = _advisor_text()
+    assert "DO NOT run git" in t
+
+
+def test_advisor_without_a_vision_target_raises_instead_of_embodying_nothing():
+    """goal:g1.9 — an advisor with no vision to embody fails loudly rather
+    than silently receiving a parent's job description."""
+    with pytest.raises(brief.BriefError) as exc:
+        brief.assemble(tier="advisor", agent_id="a00-test", iter_n=1)
+    assert "vision" in str(exc.value).lower()
+    assert "--target vision:" in str(exc.value)
+
+
+def test_advisor_brief_is_distinct_from_the_parent_brief():
+    """An advisor is a tier-3 parent but is not the generic parent brief — it
+    condames the vision and the quorum."""
+    parent = "\n".join(brief.assemble(
+        tier="parent", agent_id="a00-test", iter_n=1, dispatch_py="/x/d.py",
+        target="vision:alive"))
+    advisor = _advisor_text()
+    assert advisor != parent
+    assert "THE VISION YOU EMBODY" in advisor
+    assert "THE VISION YOU EMBODY" not in parent
+
+
+def test_advisor_closing_line_is_distinct():
+    close = brief.closing_line("advisor", "a00-test", 1)
+    assert "ADVISOR" in close
+    assert close != brief.closing_line("parent", "a00-test", 1)
+

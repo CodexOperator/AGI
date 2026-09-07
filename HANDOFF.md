@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-06: `belam` (L3 prime, season 1 "genesis") LIVE — wave 0 dispatching. Carried forward in place. Successor: read §0, §0.7, §6 items 9–14, then continue the round loop in §0.7.
+# SESSION HANDOFF — 2026-09-07: `belam` (Belam, L3 prime) ROTATED to `belam-S1-L3-II` (Belam II) after L3.01–L3.11 + the wave-2 rollover. Waves 0–2 DONE; wave 3 (the live g15 slice) is Belam II's. Read §0, §0.7, §6 items 9–15, then continue on `season/s2`.
 
 **Owner's instruction 2026-09-06: this handoff is carried forward, not replaced** — the 2026-09-05 plan below stays and the live session diffs it in place. Successors: read before touching.
 
@@ -21,18 +21,18 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1201** / 194 at L3 open (1193/194 after L2.13; +8 L3 planning mints) |
+| active nodes / deprecated | **1257** expected / 194 at rotation (1252 at L3.09 smoke; +5 nodes since — verify with `--smoke`; never lower) |
 | goals | 127 (20 active — **`METRIC-WARNING` live**: exceeds `max_goals_active=18`, see `hypothesis:l2-goals-active-exempt`, not yet fixed) |
 | `outcome_coverage` (primary) | 0.171 (stable since L2.12; new hypothesis/experiment nodes in the denominator, not regression) |
 | `evidence_fraction` | 0.385 after L2.13 (0.38 at L2.12 close) |
-| tests | **1661** passed, 9 skipped at L3 open |
+| tests | **1785** passed, 1 skipped (only the `node_writer.py` library skip) at L3.11 |
 | broken links | 0 (1367 resolved, after L2.13) |
 | crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
-| agents live | **0/25** at L3 open. `belam` meter 0.09 of 1.0M (rotate at 0.35). |
-| spend | OpenRouter **$16.51** at L3 open (72 credits, 55.49 used). Rule (§6 item 14): run to a ~$3 reserve, then owner tops up; fallback `--harness claude-code` opus parents / sonnet kids at LOWEST effort. |
+| agents live | **0/25** at rotation. `belam` meter **0.29** at rotation (cap 0.35). |
+| spend | OpenRouter **$15.05** left at rotation (usage 56.95 of 72; L3 rounds cost $0.07–0.25 each, 11 rounds ≈ $1.46). Rule §6 item 14: to a ~$3 reserve, then owner tops up; CC fallback lowest effort. |
 | disk | 81% |
-| this session | `belam`, L3 prime (Fable 5.1 ultracode, remote-control), tmux `agi-rc` window `belam-S1-L3`. `agi-master-2` window idle, archived by the owner. Empty `iter-L2.14–16` dirs are scratch, nothing ran. |
+| this session | `belam-S1-L3-II` = **Belam II**, spawned by `belam` via `rotate.py spawn --name belam-S1-L3-II` (head + Fable 5.1 max + ultracode env). Predecessor window `belam-S1-L3` may still be open (idle). |
 
 ## §0.7 Session 2026-09-06 (belam) — LOOP L3, WAVE 0, LIVE
 
@@ -90,11 +90,18 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops
 
 Wave 2 rolled over and committed on `season/s2`, pushed. master frozen as
-genesis. L3.10 landed and committed on `season/s2`. **L3.11 running** (p-advisor2 =
-`hypothesis:l3w3-advisor-brief` re-dispatched as a BUILD, p-roman =
-`hypothesis:l3w0-rotate-roles` follow-up: Roman-numeral successor names)
-— belam lands it (meter ≈ 0.31), then rotates to **belam-S1-L3-II**
-(Belam II; owner rule §6 item 15). If this file still says "running", the
+genesis. L3.11 landed and committed on `season/s2` (`iter-L3.11`). **belam rotated to
+belam-S1-L3-II (Belam II) here.** Nothing is mid-flight: 0/25 live, tree clean,
+branch `season/s2` pushed.
+
+**Belam II, first commands:** `git branch --show-current` (season/s2) ·
+`bash extensions/agi/driver.sh --smoke --max-iters 1` (≥1257/194) ·
+`python3 extensions/agi/bin/commands.py run tests` (1785/1) ·
+`spawn_budget.py status` (0) · `rotate.py meter`.
+**L3.12** (two pi parents, round loop above): p-route =
+`hypothesis:l3w3-advisor-brief` (dispatch routing gap — the last wave-3
+precondition) + p-roman = `hypothesis:l3w0-rotate-roles` (Roman-numeral
+derivation, still open). Then **wave 3**, step 3 of the list below. If this file still says "running", the
 round may be mid-flight: `spawn_budget.py status` and `git status` first; if
 0 live and a diff is present, review it with the round loop above and commit
 it as `iter-L3.10` before anything else.
