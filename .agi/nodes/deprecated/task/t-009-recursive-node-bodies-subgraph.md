@@ -12,15 +12,16 @@ blocked_by:
   - task:t-007
   - task:t-004
 cavekit_req: graph-core/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-009: Recursive node bodies (`subgraph: true`)"
 ---
 **Description:** When a loaded node's frontmatter contains `subgraph: true`, recursively invoke the directory loader on its body content. Expose the inner graph via `node.subgraph` (a `Graph` instance). Outer parent queries continue to work as before; the subgraph is opaque from outside.

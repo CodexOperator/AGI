@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-agi-algos-init"
+id: build:src-agi-algos-init
 mint_id: aaed6dc7894d4e369f07990af48f895c
-origin: build-scan
+type: build
 parents:
   - idea:engine-agi-algos
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/agi_algos/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/agi_algos/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/agi_algos/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-agi-algos`.

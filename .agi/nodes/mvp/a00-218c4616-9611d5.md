@@ -6,7 +6,10 @@ parents:
   - verdict:the-verb-layer-holds
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 scaffold_hash: cd0c132b43c8fe14
+season: 1
+thought_session: season
 title: A00 218c4616 9611d5
 verdict: pending
 ---

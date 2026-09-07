@@ -6,7 +6,10 @@ parents:
   - hypothesis:the-briefing-is-the-missing-half
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: c4b6e4a5c03f63e8
+season: 1
+thought_session: season
 title: A00 811b8503 ae99a5
 verdict: inconclusive_lean_proved:85
 ---

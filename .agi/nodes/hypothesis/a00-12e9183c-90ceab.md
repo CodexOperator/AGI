@@ -6,8 +6,11 @@ parents:
   - goal:s32
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: b75d37c47785185f
+season: 1
 testable_claim: "1. **Toggle exists and defaults off**: `EmbeddingConfig` gains `store_in_graph: bool = False`. When `False`, `embed_graph()` behaviour is unchanged. When `True`, after computing a vector for node N, `save_node_file(frontmatter={..., \"embedding\": vector})` is called on N's source file. 2. **Round-trip integrity**: after `store_in_graph=True` write, reloading the node frontmatter and reading `embedding` yields the same `list[float]` that was written (within float64 serialization tolerance — YAML float list round-trips at ~15 decimal digits, which exceeds the precision of the hash-based vectors). 3. **Idempotent re-run**: calling `embed_graph()` a second time with `store_in_graph=True` on an already-embedded graph reads the vectors from frontmatter instead of recomputing, producing the same result within float tolerance. The directory digest changes (file bytes changed → cache miss), but the cost model still favours reading a dozen floats from YAML over re-running walks+projection. 4. **Selective embed**: when some nodes already carry `embedding` and others do not, `embed_graph()` embeds only the missing ones and writes them, then returns the combined dict. Adding a single new node to a 500-node graph embeds only the new node (the other 499 read their stored vector). 5. **Compatibility**: `project()` and `similar_to()` consume the returned `dict[str, list[float]]` unchanged — the in-graph toggle is a storage detail, not a new API. The vector dict returned by `embed_graph()` is the same shape whether built from frontmatter reads or from fresh computation. 6. **No identity drift**: writing `embedding` into frontmatter does not change the node's `id`, `type`, `parents`, `children`, `tags`, or body. The `digest` in `directory_digest` changes (file bytes changed), so the warm-load cache sees a miss — this is a correctness tradeoff (v6) not a correctness bug."
+thought_session: season
 title: "S32.3: In-graph embedding storage — toggle writes vector into node frontmatter, loader reads it back"
 verdict: pending
 ---

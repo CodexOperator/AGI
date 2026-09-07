@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a01-dd74693c-b77b37
 next_edges: []
+edited_by: season.py
 scaffold_hash: c45f6521ba0b3f60
+season: 1
+thought_session: season
 title: A01 095cec0b 115104
 ---
-
 # experiment:a01-095cec0b-115104
 
 ## Experiment

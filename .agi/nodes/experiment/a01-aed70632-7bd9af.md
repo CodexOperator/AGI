@@ -6,11 +6,14 @@ parents:
   - hypothesis:cc-kids-do-not-mint-openrouter-keys
 next_edges: []
 confidence: 0.8
-scaffold_hash: 8629809711f4dabe
-title: A01 aed70632 7bd9af — verify CC kids skip key minting
-verdict: inconclusive_lean_proved:80
+edited_by: season.py
 evidence_runs:
   - experiment:a01-aed70632-7bd9af
+scaffold_hash: 8629809711f4dabe
+season: 1
+thought_session: season
+title: A01 aed70632 7bd9af — verify CC kids skip key minting
+verdict: inconclusive_lean_proved:80
 ---
 # experiment:a01-aed70632-7bd9af
 

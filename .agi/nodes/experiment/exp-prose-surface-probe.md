@@ -1,19 +1,21 @@
 ---
-confidence: 0.9
-evidence_runs: 1
-id: "exp:prose-surface-probe"
+id: exp:prose-surface-probe
 mint_id: 8946286f50c245a2b910cd8fbb0c0d60
+type: experiment
 parents:
   - exp:noncode-surface-census
+confidence: 0.9
+edited_by: season.py
+evidence_runs: 1
+season: 1
 subgraph: false
 tags:
   - g6.6
   - level3
   - stitch
+thought_session: season
 title: "Probe: stitch.py cannot express or detect a prose contract for SKILL.md"
-type: experiment
 ---
-
 **What was run:**
 
 ```

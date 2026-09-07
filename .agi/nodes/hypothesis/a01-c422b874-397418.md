@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: b66c6998337a3e8d
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: b66c6998337a3e8d
+season: 1
 testable_claim: "Full-length derivation chats impose an attention tax: agents given the full transcript reach first useful action SLOWER than agents given a head-truncated version (first 25% of messages) of the same chat, because the tail dilutes front-loaded signal."
-title: "Chat length imposes diminishing returns — truncating to signal-rich prefix speeds agent onboarding vs full chat"
+thought_session: season
+title: Chat length imposes diminishing returns — truncating to signal-rich prefix speeds agent onboarding vs full chat
+verdict: pending
 ---
-
 # hypothesis:a01-c422b874-397418
 
 ## Hypothesis

@@ -8,12 +8,15 @@ confidence: 0.95
 contradicts: []
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 evidence_runs: []
+season: 1
 supports: []
 tags:
   - chain-extension
   - bias
   - orphaned
+thought_session: season
 title: A00 407fa689 3a4948 verdict pareto
 verdict: inconclusive_lean_proved:50
 ---

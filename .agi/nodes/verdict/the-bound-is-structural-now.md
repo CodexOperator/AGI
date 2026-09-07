@@ -2,17 +2,19 @@
 id: verdict:the-bound-is-structural-now
 mint_id: ecd72eedace74054b6725a498a138584
 type: verdict
-title: "A bound in shared state holds the tree; a bound in a number never could"
 parents:
   - experiment:lease-bound-under-five-spawners
 next_edges: []
-scaffold_hash: 01f83522f862b78d
-verdict: proved
 confidence: 0.97
+edited_by: season.py
 evidence_runs:
   - experiment:lease-bound-under-five-spawners
+scaffold_hash: 01f83522f862b78d
+season: 1
+thought_session: season
+title: A bound in shared state holds the tree; a bound in a number never could
+verdict: proved
 ---
-
 # verdict:the-bound-is-structural-now
 
 ## Verdict

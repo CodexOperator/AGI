@@ -1,18 +1,20 @@
 ---
+id: build:bin-publish-engine.sh
+mint_id: c1339cf55b8440f38a656a208084f41f
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-publish-engine.sh"
-mint_id: c1339cf55b8440f38a656a208084f41f
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/publish-engine.sh
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/publish-engine.sh"
-type: build
 ---
-
 `extensions/agi/bin/publish-engine.sh` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

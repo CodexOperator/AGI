@@ -1,19 +1,21 @@
 ---
-id: "exp:graph-core-node-primitive-r1"
+id: exp:graph-core-node-primitive-r1
 mint_id: 304b0d19a10945d4af12689a549b4887
-next_edges:
-  - verdict:graph-core-r1
+type: experiment
 parents:
   - hyp:graph-core-r1
+next_edges:
+  - verdict:graph-core-r1
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - graph-core
   - R1
 testable_claim: Generic Node Primitive
+thought_session: season
 title: "graph-core/R1: Experiment"
-type: experiment
 ---
-
 **Description:** Run graph-core test suite + validate R1 acceptance criteria.
 
 **Method:**

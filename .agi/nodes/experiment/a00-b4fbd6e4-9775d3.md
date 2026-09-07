@@ -6,11 +6,14 @@ parents:
   - hypothesis:cc-kids-do-not-mint-openrouter-keys
 next_edges: []
 confidence: 0.8
-scaffold_hash: 85915b104d267fe6
-title: A00 b4fbd6e4 9775d3
-verdict: inconclusive_lean_proved:80
+edited_by: season.py
 evidence_runs:
   - experiment:a00-b4fbd6e4-9775d3
+scaffold_hash: 85915b104d267fe6
+season: 1
+thought_session: season
+title: A00 b4fbd6e4 9775d3
+verdict: inconclusive_lean_proved:80
 ---
 # experiment:a00-b4fbd6e4-9775d3
 

@@ -6,7 +6,10 @@ parents:
   - hypothesis:loop-scoped-iteration-ids-cannot-clobber
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: 74212f60f2085412
+season: 1
+thought_session: season
 title: claim_iteration() exists but driver.sh does not use it
 verdict: inconclusive_lean_proved:50
 ---

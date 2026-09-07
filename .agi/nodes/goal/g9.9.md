@@ -7,18 +7,19 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G9.9
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 672c16a6614fe72a
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G9.9: The spider web skin — a living web, animated spiders, every node on it"
 ---
 # goal:g9.9

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-chain-engine
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - chain-engine
   - R4
 testable_claim: Mid-Chain Join
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R4: Mid-Chain Join"
 ---
 **Description:** An agent may attach to any node mid-chain rather than at the end. The probability of joining mid-chain is a tunable parameter.

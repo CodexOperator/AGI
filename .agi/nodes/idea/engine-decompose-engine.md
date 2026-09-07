@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-decompose-engine"
+id: idea:engine-decompose-engine
 mint_id: b3dfc46702914abbbb76d99151b4cdf3
-origin: engine-decomp
+type: idea
 parents:
   - goal:g6.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/decompose-engine.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/decompose-engine.py
 ---
-
 `extensions/agi/bin/decompose-engine.py` — an engine bin entry-point script.
 
 decompose-engine.py — census of the engine's changeable surfaces -> nodes/idea/.

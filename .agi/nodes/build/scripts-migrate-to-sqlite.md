@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:scripts-migrate-to-sqlite"
+id: build:scripts-migrate-to-sqlite
 mint_id: 57b0106ec4f54f81bdf6b68555b8ed0c
-origin: build-scan
+type: build
 parents:
   - idea:engine-migrate-to-sqlite
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/scripts/migrate_to_sqlite.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/scripts/migrate_to_sqlite.py"
-type: build
 ---
-
 `extensions/agi/scripts/migrate_to_sqlite.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-migrate-to-sqlite`.

@@ -6,8 +6,11 @@ parents:
   - goal:g10.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: cd52b05ee4409cc2
-testable_claim: "Rendering a chat subgraph lazily (on first access) yields output equivalent to pre-baking it while consuming materially less storage, because most chats are never re-read."
+season: 1
+testable_claim: Rendering a chat subgraph lazily (on first access) yields output equivalent to pre-baking it while consuming materially less storage, because most chats are never re-read.
+thought_session: season
 title: "Chat rendering, timing axis: lazy on-access rendering matches pre-baked output at lower storage cost"
 verdict: pending
 ---

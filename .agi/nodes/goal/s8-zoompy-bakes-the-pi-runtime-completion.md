@@ -5,11 +5,12 @@ type: goal
 parents:
   - goal:g15
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S8
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds:
   - mvp:zoom-runtime-contract
 status: complete
@@ -17,7 +18,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S8: `zoom.py` bakes the pi-runtime completion contract into the kid context"
 ---
 When using the script to inject context, eventually zoom.py fires and inserts the

@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:graph-core-r1
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R1
 testable_claim: Generic Node Primitive
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R1: Generic Node Primitive"
 ---
 **Description:** A node is a typed, identified record with an optional payload reference, parent and child links, and free-form tags. Node type does not constrain payload; payload meaning is delegated to the schema-registry.

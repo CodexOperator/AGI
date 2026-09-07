@@ -1,13 +1,16 @@
 ---
+id: goal:g3.1
+mint_id: dd0c5de790b849f39e88f5b89566858d
+type: goal
+parents:
+  - goal:g3
 confidence: 1.0
+edited_by: season.py
 goal_id: G3.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g3.1"
-mint_id: dd0c5de790b849f39e88f5b89566858d
 origin: goals-doc
-parents:
-  - goal:g3
+season: 1
 seeds:
   - exp:evidence-gate-resolution-r1
   - idea:engine-evidence-gate
@@ -16,10 +19,9 @@ status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G3.1: `evidence_runs` must resolve to a real node"
-type: goal
 ---
-
 🔴 **The evidence metric was itself gamed, and by the cheapest possible move.**
 `normalize_evidence_runs` returns `len(value)` for any list, so
 `evidence_runs: [synthetic]` — the literal string — satisfies `evidence_runs >= 1`

@@ -1,24 +1,26 @@
 ---
-confidence: 0.95
-evidence_runs:
-  - exp:a00-ddbe3410-exp001-graph-core-r1-t001
-id: "verdict:a00-ddbe3410-verdict001-graph-core-r1-t001"
+id: verdict:a00-ddbe3410-verdict001-graph-core-r1-t001
 mint_id: f96c884ef5674ded95d053568e875268
-next_edges:
-  - mvp:a00-ddbe3410-mvp001-chain-bootstrap
+type: verdict
 parents:
   - exp:a00-ddbe3410-exp001-graph-core-r1-t001
   - hyp:a00-ddbe3410-3cc776
+next_edges:
+  - mvp:a00-ddbe3410-mvp001-chain-bootstrap
+confidence: 0.95
+edited_by: season.py
+evidence_runs:
+  - exp:a00-ddbe3410-exp001-graph-core-r1-t001
+season: 1
 status: proved
 tags:
   - bootstrap
   - chain-block
   - task-to-experiment
+thought_session: season
 title: "V001: task-to-experiment bootstrap unblocks chain formation"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict**: PROVED (confidence: 0.95)
 
 ## Metric

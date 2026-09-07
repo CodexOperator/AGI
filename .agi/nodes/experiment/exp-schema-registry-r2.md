@@ -1,17 +1,19 @@
 ---
-id: "exp:schema-registry-r2"
+id: exp:schema-registry-r2
 mint_id: cd52087324ad409b85cabc72350ebd64
-next_edges:
-  - verdict:schema-registry-r2
+type: experiment
 parents:
   - hyp:schema-registry-r2
+next_edges:
+  - verdict:schema-registry-r2
+edited_by: season.py
+season: 1
 tags:
   - schema-registry
   - R2
+thought_session: season
 title: "schema-registry R2 chain: exp:schema-registry-r2"
-type: experiment
 ---
-
 **experiment** node for schema-registry R2: Bracket Convention.
 
 ## Acceptance Criteria

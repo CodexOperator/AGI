@@ -6,8 +6,11 @@ parents:
   - goal:g4.8
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 8f714deeda819771
+season: 1
 testable_claim: "Given a dispatch configuration with distinct parent and kid model settings (e.g., `harnesses.parent.models.parent = \"anthropic/claude-sonnet-4\"` and `harnesses.kid.models.parent = \"google/gemini-3-flash\"`), a spawned dispatch process for the parent tier carries its model identifier in the process launch command — not in the LLM call's runtime payload — and is verifiable by `ps`-level inspection of the spawned process tree. This verification is structural, not statistical: either the command contains the correct model switch or it does not."
+thought_session: season
 title: Model tiers verified by command inspection — the fifth falsifier clause of g4.8
 verdict: pending
 ---

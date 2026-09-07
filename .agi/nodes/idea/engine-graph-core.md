@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-graph-core"
+id: idea:engine-graph-core
 mint_id: f21fd8eb1d29439f9ba187f7e586b98d
-origin: engine-decomp
+type: idea
 parents:
   - goal:g7
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/src/graph_core"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/src/graph_core
 ---
-
 `extensions/agi/src/graph_core` — an engine source package.
 
 graph-core: generic node/edge primitives for autoresearch-tree.

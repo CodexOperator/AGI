@@ -11,15 +11,16 @@ blocked_by:
   - task:t-035
   - task:t-013
 cavekit_req: environment-indexers/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-036: Code symbol indexer — warm-load and upgrade markers"
 ---
 **Description:** Reuse T-013 warm-load cache for the indexer's per-path output. Add inline `# UPGRADE-MARKER:` comments naming the upgradable concern in each parsing stage (lex, parse, symbol-resolve, edge-emit) — at least one per stage.

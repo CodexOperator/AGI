@@ -1,17 +1,19 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:dashboard-cli-r1"
+id: exp:dashboard-cli-r1
 mint_id: 01809e8e8f774c65ab2e570214a1a5c8
+type: experiment
 parents:
   - goal:g9.1
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - legibility
   - g9.1
+thought_session: season
 title: CLI dashboard, first build
-type: experiment
 ---
-
 **Built:** `extensions/agi/bin/dashboard.py` (679 lines, stdlib only) plus
 `extensions/agi/tests/test_dashboard.py` (23 tests). Read-only terminal view
 of the graph for a reader who does not know this project's vocabulary — no

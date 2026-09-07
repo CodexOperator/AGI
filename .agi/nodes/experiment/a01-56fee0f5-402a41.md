@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-160ca279-56d211
 next_edges: []
+edited_by: season.py
+season: 1
 status: not_run
-title: "Second slot on the chat-structure extractor — DISPATCHED, NOT RUN (provider budget)"
+thought_session: season
+title: Second slot on the chat-structure extractor — DISPATCHED, NOT RUN (provider budget)
 ---
-
 # experiment:a01-56fee0f5-402a41
 
 ## Experiment

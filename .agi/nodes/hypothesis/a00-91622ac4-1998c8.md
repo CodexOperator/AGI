@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g5
 next_edges: []
+edited_by: season.py
 scaffold_hash: 180898d89f6b4c07
+season: 1
+thought_session: season
 title: snapshot-goals.py --render does not filter retired goals from GOALS.md
 ---
-
 # hypothesis:a00-91622ac4-1998c8
 
 ## Hypothesis

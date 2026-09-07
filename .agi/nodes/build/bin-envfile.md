@@ -1,18 +1,20 @@
 ---
+id: build:bin-envfile
+mint_id: 07a3592c706c4eaf937c141099763351
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-envfile"
-mint_id: 07a3592c706c4eaf937c141099763351
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/envfile.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/envfile.py"
-type: build
 ---
-
 `extensions/agi/bin/envfile.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

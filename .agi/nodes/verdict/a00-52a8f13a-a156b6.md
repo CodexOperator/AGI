@@ -7,8 +7,11 @@ parents:
 next_edges:
   - mvp:a00-8a013aaf-ca2434
 confidence: 0.7
+edited_by: season.py
 evidence_runs: 1
 scaffold_hash: 1fd91137250ee2be
+season: 1
+thought_session: season
 title: A00 52a8f13a a156b6
 verdict: inconclusive_lean_proved:70
 wired_at: 1788280172

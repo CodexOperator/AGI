@@ -6,7 +6,10 @@ parents:
   - verdict:the-reaper-can-heal-now
 next_edges: []
 confidence: 0.75
+edited_by: season.py
 scaffold_hash: b1d0f2212041ff93
+season: 1
+thought_session: season
 title: A00 bd00f723 0fdba2
 verdict: inconclusive_lean_proved:75
 ---

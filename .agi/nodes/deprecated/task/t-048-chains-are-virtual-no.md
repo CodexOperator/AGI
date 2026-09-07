@@ -12,15 +12,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-047
 cavekit_req: chain-engine/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-048: Chains are virtual (no on-disk chain objects)"
 ---
 **Description:** Audit code path: ensure `find_chains` is pure over the live graph, never persists. Add tests for the four criteria.

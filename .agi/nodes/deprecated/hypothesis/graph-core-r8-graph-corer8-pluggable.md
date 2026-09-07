@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R8
 testable_claim: Pluggable Persistence Layer
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R8: Pluggable Persistence Layer"
 ---
 **Description:** The default persistence backend is the filesystem. The graph-core exposes a backend contract so alternative backends (such as in-process databases) can be added without changing callers.

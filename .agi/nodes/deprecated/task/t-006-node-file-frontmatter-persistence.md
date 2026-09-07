@@ -10,15 +10,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-001
 cavekit_req: graph-core/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-006: Node file frontmatter persistence (Markdown + JSON containers)"
 ---
 **Description:** Implement a frontmatter reader/writer. For `.md` files, parse a `---` YAML block then body. For `.json` files, treat the file as `{frontmatter:..., body:...}`. Write paths preserve a normalized form (consistent line endings, sorted top-level keys). Round-trip test feeds a known fixture, loads, saves, then asserts file equivalence after whitespace normalization.

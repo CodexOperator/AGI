@@ -6,7 +6,10 @@ parents:
   - hypothesis:l2-parent-spawn-nonblocking
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 scaffold_hash: f6217e70256c4c9d
+season: 1
+thought_session: season
 title: A00 7a44b09a 9b04b9
 verdict: inconclusive_lean_proved:80
 ---

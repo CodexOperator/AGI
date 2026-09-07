@@ -1,19 +1,21 @@
 ---
-id: "exp:a00-ddbe3410-exp003-iterative-traversal"
+id: exp:a00-ddbe3410-exp003-iterative-traversal
 mint_id: 67b573e87e8f4a05adfda4aecf4a7b7f
-next_edges:
-  - verdict:a00-ddbe3410-verdict003-iterative-traversal
+type: experiment
 parents:
   - hyp:a00-ddbe3410-iterative-traversal
+next_edges:
+  - verdict:a00-ddbe3410-verdict003-iterative-traversal
+edited_by: season.py
+season: 1
 status: complete
 tags:
   - chain-engine
   - recursion-bug
   - iterative
+thought_session: season
 title: "EXP003: Iterative find_chains() — eliminate recursion limit"
-type: experiment
 ---
-
 ## Experiment
 
 Replace `_traverse_from` (recursive DFS) with `_traverse_iterative` (explicit stack) in `src/chain_engine/chains.py`.

@@ -1,22 +1,24 @@
 ---
+id: goal:g4.5
+mint_id: 3caaf35b1cb24fc8811eaf51364e1df2
+type: goal
+parents:
+  - goal:g4
 confidence: 1.0
+edited_by: season.py
 goal_id: G4.5
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.5"
-mint_id: 3caaf35b1cb24fc8811eaf51364e1df2
 origin: goals-doc
-parents:
-  - goal:g4
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G4.5: `depends_on` as a first-class scheduling edge"
-type: goal
 ---
-
 The edge already exists, under another name and confined to one type.
 `blocked_by` is carried by 94 `task` nodes, 89 of them populated, with exactly
 **one** dangling reference (`task:t-012` -> `task:t-020`, which names no node)

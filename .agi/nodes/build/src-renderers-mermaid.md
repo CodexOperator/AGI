@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-renderers-mermaid"
+id: build:src-renderers-mermaid
 mint_id: b4a3a911f3914d04934538394950a698
-origin: build-scan
+type: build
 parents:
   - idea:engine-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/renderers/mermaid.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/renderers/mermaid.py"
-type: build
 ---
-
 `extensions/agi/src/renderers/mermaid.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-renderers`.

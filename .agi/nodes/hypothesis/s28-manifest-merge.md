@@ -5,7 +5,10 @@ type: hypothesis
 parents:
   - goal:s28
 confidence: 0.9
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: S28 manifest merge
 verdict: pending
 ---

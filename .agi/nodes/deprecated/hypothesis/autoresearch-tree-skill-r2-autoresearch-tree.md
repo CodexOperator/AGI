@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R2
 testable_claim: Big-Idea-Versus-Small-Idea Decision Per Iteration
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R2: Big-Idea-Versus-Small-Idea Decision Per Iteration"
 ---
 **Description:** Every iteration begins with an explicit decision between exploring a big idea or a small idea. The split is governed by a configuration parameter shared with chain-engine.

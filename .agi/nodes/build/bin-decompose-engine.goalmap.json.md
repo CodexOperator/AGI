@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:bin-decompose-engine.goalmap.json"
+id: build:bin-decompose-engine.goalmap.json
 mint_id: 33c8edbd558a4cc7abc1438aeb00a2c3
-origin: build-scan
+type: build
 parents:
   - idea:engine-decompose-engine-goalmap
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/decompose-engine.goalmap.json
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/decompose-engine.goalmap.json"
-type: build
 ---
-
 `extensions/agi/bin/decompose-engine.goalmap.json` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-decompose-engine-goalmap`.

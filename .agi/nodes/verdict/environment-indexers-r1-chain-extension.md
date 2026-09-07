@@ -1,18 +1,21 @@
 ---
-confidence: 1.0
-contrasts: []
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs:
-  - exp:environment-indexers-r1-chain-extension
-id: "verdict:environment-indexers-r1-chain-extension"
+id: verdict:environment-indexers-r1-chain-extension
 mint_id: 6309ddbdc48342cabf6481b0be1b7129
-next_edges:
-  - mvp:environment-indexers-r1
+type: verdict
 parents:
   - verdict:environment-indexers-r1-extend2
   - exp:environment-indexers-r1-extend2
-status: "inconclusive_lean_proved:50"
+next_edges:
+  - mvp:environment-indexers-r1
+confidence: 1.0
+contrasts: []
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: season.py
+evidence_runs:
+  - exp:environment-indexers-r1-chain-extension
+season: 1
+status: inconclusive_lean_proved:50
 subgraph: false
 supports: []
 tags:
@@ -20,11 +23,10 @@ tags:
   - chain-extension
   - verdict-experiment-transition
   - proved
+thought_session: season
 title: "environment-indexers/R1: Chain Extension — PROVED"
-type: verdict
-verdict: "inconclusive_lean_proved:50"
+verdict: inconclusive_lean_proved:50
 ---
-
 **Verdict:** PROVED
 
 **Evidence:**

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R6
 testable_claim: Container Observation Indexer
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R6: Container Observation Indexer"
 ---
 **Description:** An indexer emits nodes describing a running container observed read-only from the outside, with no modification of the container.

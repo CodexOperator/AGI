@@ -10,15 +10,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-085
 cavekit_req: autoresearch-tree-skill/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-086: Driver — error handling and per-iteration summary"
 ---
 **Description:** Driver writes summary at `context/iterations/<n>/summary.md` with the decision, action counts, verdicts emitted, and metrics. On metric-record failure, exit with code 2.

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-schema-registry
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - schema-registry
   - R4
 testable_claim: Optional Validation Hooks
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R4: Optional Validation Hooks"
 ---
 **Description:** A schema may declare a validation rule. When set, the rule checks node frontmatter on load.

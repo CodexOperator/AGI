@@ -12,15 +12,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-067
 cavekit_req: renderers/R8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-068: Pure-function guarantees"
 ---
 **Description:** Add a property-based test that runs each registered renderer twice on the same representation and asserts equal output. Snapshot the representation before and after to assert immutability. Use `unittest.mock` to patch `open`, `os.environ.__getitem__`, and `socket.socket` and assert no calls.

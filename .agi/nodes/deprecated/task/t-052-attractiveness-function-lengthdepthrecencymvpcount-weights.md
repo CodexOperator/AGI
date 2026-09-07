@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-053
 cavekit_req: chain-engine/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-052: Attractiveness function (length/depth/recency/mvp_count weights)"
 ---
 **Description:** Implement `attractiveness(chain, weights, now)` returning `weights.length*length + weights.depth*depth + weights.recency*recency + weights.mvp_count*mvp_count`. Recency = exp-decay over time delta to now. With all-zero weights, returns 0.0 (the documented constant).

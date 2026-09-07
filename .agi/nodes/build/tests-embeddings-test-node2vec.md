@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-embeddings-test-node2vec"
+id: build:tests-embeddings-test-node2vec
 mint_id: 7ff3d0ad23d3458fa04df0fe256257ee
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/embeddings/test_node2vec.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/embeddings/test_node2vec.py"
-type: build
 ---
-
 `extensions/agi/tests/embeddings/test_node2vec.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-embeddings`.

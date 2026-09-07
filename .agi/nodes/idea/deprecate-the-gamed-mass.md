@@ -1,19 +1,21 @@
 ---
-confidence: 1.0
-id: "idea:deprecate-the-gamed-mass"
+id: idea:deprecate-the-gamed-mass
 mint_id: de4f70aaff7c4b7db9b81520fddb408d
+type: idea
 parents:
   - goal:g6
+confidence: 1.0
+edited_by: season.py
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - seed
   - l19
+thought_session: season
 title: Deprecate the gamed mass without deleting it
-type: idea
 ---
-
 Retire the H3 padding by **stamping** it, never by editing or removing it. What
 follows is measured on the corpus, not restated from `TODO.md`.
 

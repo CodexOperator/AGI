@@ -6,8 +6,11 @@ parents:
   - goal:g4.8
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 168fb6b5cc705e84
+season: 1
 testable_claim: The delegator's token spend (input tokens to read + output tokens to judge) scales with the **number of parent-level summary reports**, not with the total number of nodes produced across all loops. If P parents each produce one structured summary report reviewing K kids each, the delegator reads O(P) reports rather than O(P×K) full kid nodes — spending fewer tokens per unit of graph growth as P×K grows.
+thought_session: season
 title: Delegator spend is sub-linear in loop count if review is by-summary not by-node
 verdict: pending
 ---

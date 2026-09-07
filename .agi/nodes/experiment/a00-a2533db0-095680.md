@@ -6,7 +6,10 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.75
+edited_by: season.py
 scaffold_hash: 95d772d001ed3765
+season: 1
+thought_session: season
 title: A00 a2533db0 095680
 verdict: inconclusive_lean_proved:75
 ---

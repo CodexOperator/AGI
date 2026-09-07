@@ -6,10 +6,11 @@ parents:
   - goal:g4.8
 next_edges: []
 confidence: 0.0
-edited_by: director
+edited_by: season.py
 scaffold_hash: 14421efef6aebbf5
+season: 1
 testable_claim: A delegator reading parent-summary reports, each compressing M kid outcomes into one bounded report, consumes token cost growing sub-linearly in the number of concurrent loops N
-thought_session: L1.03
+thought_session: season
 title: Parent reports are size-bounded, so delegator cost is sub-linear in loop count
 verdict: pending
 ---

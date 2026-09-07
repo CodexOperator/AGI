@@ -6,15 +6,16 @@ parents:
   - idea:engine-context-kits
 build_kind: prose
 confidence: 1.0
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-scan
 payload_ref: context/kits/cavekit-bug-sweep.md
+season: 1
 status: deprecated
 tags:
   - build
   - prose
   - g2.1
-thought_session: L1.09
+thought_session: season
 title: "Build: context/kits/cavekit-bug-sweep.md"
 ---
 `context/kits/cavekit-bug-sweep.md` — level-3 code node (one file, one canonical node).

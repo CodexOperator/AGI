@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-brief"
+id: build:tests-test-brief
 mint_id: 184e21275db745fe8fd795b97a15f8ec
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_brief.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_brief.py"
-type: build
 ---
-
 `extensions/agi/tests/test_brief.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

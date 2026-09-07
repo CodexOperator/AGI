@@ -6,7 +6,10 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: ac4259963a8c228b
+season: 1
+thought_session: season
 title: "Schema validation confirms tier: -1 (int) vs tier: \"-1\" (string)"
 verdict: inconclusive_lean_proved:60
 ---

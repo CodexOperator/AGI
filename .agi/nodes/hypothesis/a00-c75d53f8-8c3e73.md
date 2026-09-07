@@ -5,18 +5,20 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: 8f674101c3622859
 confidence: 0.0
-verdict: pending
-testable_claim: "Attach-a-chat-to-its-end-result, the ownership rule g10.1 adopts, leaves a large and MEASURABLE fraction of chats with no owner — not a rare edge case. On this repo the fraction is measurable today by counting session directories under .agi/sessions/ that no node mentions."
-title: "Orphan chats are the common case, not the edge case, under attach-to-end-result"
+edited_by: season.py
+scaffold_hash: 8f674101c3622859
+season: 1
 tags:
   - hypothesis
   - g10.1
   - orphan-chats
   - session-dimension
+testable_claim: Attach-a-chat-to-its-end-result, the ownership rule g10.1 adopts, leaves a large and MEASURABLE fraction of chats with no owner — not a rare edge case. On this repo the fraction is measurable today by counting session directories under .agi/sessions/ that no node mentions.
+thought_session: season
+title: Orphan chats are the common case, not the edge case, under attach-to-end-result
+verdict: pending
 ---
-
 # hypothesis:a00-c75d53f8-8c3e73
 
 ## Hypothesis

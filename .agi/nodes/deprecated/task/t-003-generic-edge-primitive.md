@@ -10,15 +10,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-001
 cavekit_req: graph-core/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-003: Generic edge primitive"
 ---
 **Description:** Implement `Edge` record with exactly four fields. Equality and hashing are based on `(source_id, target_id, relation)` so a set of edges naturally deduplicates.

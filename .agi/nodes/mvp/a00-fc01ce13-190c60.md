@@ -6,7 +6,10 @@ parents:
   - verdict:the-verb-layer-holds
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 scaffold_hash: 1fa82bcb5901b9de
+season: 1
+thought_session: season
 title: Smoke-born — a scratch node walks the full verb pipeline to submission
 verdict: pending
 ---

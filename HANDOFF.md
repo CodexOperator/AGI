@@ -53,10 +53,11 @@ then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
 | L3.01 | `hypothesis:l3w0-rotate-roles` (p-rotate), `hypothesis:l3w0-ladder-roles-table` (p-ladder) | **LANDED** |
 | L3.01b | live proof, three throwaways: `belam-test` answered `continue` with the head, Fable, effort max — but **ultracode NOT enabled** (owner saw it); `belam-test2` (+ keyword `ultracode` in the prompt) → `ultracode: no`; `belam-test3` (+ `CLAUDE_CODE_WORKFLOWS=1` in the env) → **`ultracode: yes`**. The env var is the launch gate; `--settings '{"ultracode":true}'` is inert on 2.1.263. Fix briefed: `hypothesis:l3-rotate-ultracode-env` (g15, L3.05). NOTE: `belam` itself runs WITHOUT ultracode (launched without the env var). | **done, gap found** |
 | L3.02 | `l3w0-brief-head-michael` (p-michael), `l3w0-send-rooms` (p-rooms) | **LANDED** |
-| L3.03 | `l3w0-grid-flock` (p-flock), `l3w0-season-retag` (p-retag) | **dispatched** |
-| L3.04 | `l3w0-test-skips` (p-skips), `hypothesis:l2-goals-active-exempt` re-briefed to DELETE `max_goals_active` (wave 1) | |
+| L3.03 | `l3w0-grid-flock` (p-flock), `l3w0-season-retag` (p-retag) | **LANDED** |
+| L3.04 | `l3w0-test-skips` (p-skips), `hypothesis:l2-goals-active-exempt` re-briefed to DELETE `max_goals_active` (wave 1) | **dispatched** |
 | L3.05 | g15 from L3.01: `hypothesis:l3-rotate-ultracode-env` (p-ultra, FIRST — the rotation gate depends on it), `hypothesis:l3-write-set-nested-json` (p-wset) | |
-| L3.06 | `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env) + next wave-1 item | |
+| L3.06 | `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env), `hypothesis:l2w15-write-guard` follow-up (mint-id rekey + pre-guard payload baseline — 175 payload WARNs since the retag) | |
+| L3.07 | `hypothesis:l3-corrupt-frontmatter-19` (p-corrupt) + wave-1 `goal_kind: perpetual` | |
 | wave 3, slice 2 | owner ask 2026-09-06: `hypothesis:l3-openrouter-codex-spend` (under g16) — gpt-5.1-codex calls on the OpenRouter key; the LIVE ladder investigates and fixes it, never the prime before wave 3 | banked |
 | then | wave 1 rest (`goal_kind: perpetual` + GOALS.md Perpetual section, tier-0 GLM director role in `brief.py`), wave 2 rollover (visions `--actor owner`, season 1 named genesis, `season/s2` opened), wave 3 = the g15 slice | |
 
@@ -78,13 +79,13 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 - **L3.01** (2 parents, both ACCEPTED, no demotions; OpenRouter delta **$0.19**, usage 55.49→55.68): `l3w0-rotate-roles` → `experiment:a00-e34d54e1-cd8910` proved 0.85 (rotate.py spawn takes --tier/--model/--effort/--settings/--prompt-file, defaults from the ladder roles table, prompt assembled through brief.py; `loop --role`; belam-N derivation; dry spawn on this repo prints `claude --remote-control belam-2 --model claude-fable-5-1 --effort max --settings '{"ultracode": true}'` with the head first). `l3w0-ladder-roles-table` → `experiment:a00-3feeca19-a022df` proved (7 `roles:` rows + `season_names` on `ladder:ladder`; `dispatch.py --role/--list-rows`; AGI_ROLE exported, role stamped at mint; tier-2 rows dropped, not declared-unused — tolerated). Suite 1685/9, links 0 broken, goals byte-identical. **One guard WARN left deliberately**: `.agi/nodes/.geometry/ladder.md` was hand-edited because `write.py set` cannot coerce a nested list — fixed by `hypothesis:l3-write-set-nested-json` (L3.05), which re-logs the file. Second finding: dispatch's AGI_* exports break the kid's own suite run (8 failures) — `hypothesis:l3-dispatch-env-leaks-into-tests` (L3.06).
 - **L3.02** (2 parents; OpenRouter delta **$0.10**, usage 55.68→55.78): `l3w0-send-rooms` → `experiment:a00-f16f044c-885d9c` **proved 0.9** (dm/room files under `sessions/<iter>/comms/`, transcript render, standing rooms, `audience prime --reason`, `rooms` with unread counts; read position in a sidecar `.state.json`, not grid-snapshotted — caveat). `l3w0-brief-head-michael` → two kids: `a00-941da286-d57ebe` **pending** (first DeepSeek kid misread the directive as a status check, shipped a non-result; parent demoted `disproved → pending`, "unimplemented ≠ falsified"), then `a00-ae3a9634-c9d544` **inconclusive_lean_proved:80** (Michael line after the prayers in every head — verified live at line 43 of the prime head; hook emits the head first when `AGI_ROLE` is set — verified live; MANTLE + DECISION METHOD sections after the axes; `agi:check-handoff` / `agi:rotation-successor` documented in SKILL.md only — suggestion-view rendering unproven, hence the demotion). Suite 1715/9, links 0 broken, goals byte-identical, guard silent. Trap: the hook's tier map knows role names, not numerals — `AGI_TIER=3` silently emits no head; use `AGI_ROLE=prime_director`.
+- **L3.03** (2 parents; OpenRouter delta **$0.11**, usage 55.78→55.89): `l3w0-season-retag` → `experiment:a00-855d562e-c271ba` **proved** (`season.py retag`: 1,279 node files stamped `season: 1` through write.py; smoke 1212/194 holds; the only season-less files are **19 with corrupted `---id:` frontmatter**, skipped by design → `hypothesis:l3-corrupt-frontmatter-19`, g15, L3.07). `l3w0-grid-flock` → `experiment:a00-af0145ae-1c5bfe` **inconclusive_lean_proved:90** (flock on `.agi/sessions/.grid.lock` with `--lock-wait`, guard admits `season/*`; demoted for a self-citing `evidence_runs`; lock test is in-thread, not two processes). Suite 1727/9, links 0 broken, goals byte-identical. **Guard now prints 175 payload WARNs** (pre-guard source files surfaced by the build-node retag — noise, not damage; addendum on `hypothesis:l2w15-write-guard`, L3.06).
 
 ### 🔴 Where it stops
 
-L3.02 committed as `iter-L3.02`. L3.03 running (p-flock, p-retag; the retag
-kid rewrites ~1,100 node frontmatters through write.py — expect a huge diff,
-count must hold at 1204+/194). Next: wait to 0 live, review, commit
-`iter-L3.03`, grid, push; then L3.04 (p-skips + goals-active-exempt). Rotation
+L3.03 committed as `iter-L3.03`. L3.04 running (p-skips, p-goals). Next: wait
+to 0 live, review, commit `iter-L3.04`, grid, push; then L3.05 (p-ultra FIRST,
+p-wset). Rotation
 of the prime must wait for L3.05's ultracode-env fix or export
 `CLAUDE_CODE_WORKFLOWS=1` by hand in the tmux window before `rotate.py spawn`.
 

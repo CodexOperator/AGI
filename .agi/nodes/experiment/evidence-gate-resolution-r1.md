@@ -1,17 +1,19 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:evidence-gate-resolution-r1"
+id: exp:evidence-gate-resolution-r1
 mint_id: 485ba78c63ed4a0fa185d77e39d86bd7
+type: experiment
 parents:
   - goal:g3.1
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - integrity
   - g3.1
+thought_session: season
 title: "Evidence gate: resolve evidence_runs against the corpus"
-type: experiment
 ---
-
 **Defect (H4c).** `normalize_evidence_runs` returned `len(value)` for any
 list, so `evidence_runs: [synthetic]` — the literal sentinel string —
 satisfied `evidence_runs >= 1` and both the gate and `evidence_fraction`

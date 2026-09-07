@@ -16,15 +16,16 @@ blocked_by:
   - task:t-064
   - task:t-065
 cavekit_req: renderers/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-067: Renderer plugin contract"
 ---
 **Description:** Define `RendererPlugin` Protocol with `render(rep) -> str`. Implement `RendererRegistry.register(plugin)` and `agi-tree self-test renderers` command. Wrap each render call in try/except → structured `RendererError(name, exc)`.

@@ -7,8 +7,9 @@ parents:
 next_edges: []
 edited_by: ubuntu
 scaffold_hash: de23f50cf585a218
+season: 1
 testable_claim: Every sanctioned node write is logged at the one engine function that writes a node file, and a write_guard.py check warns, with the exact write.py command to redo it, about any node or payload changed since HEAD whose bytes are not in that log
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1.5: l2w15-write-guard"
 ---
 # hypothesis:l2w15-write-guard
@@ -27,3 +28,5 @@ FOLLOW-UP 2026-09-06 after L2.12 (parent a00-554cbcdf): the kid logged cli.py _c
 FOLLOW-UP 2026-09-06 after L2.13 (both prior follow-ups now closed, verified live at inconclusive_lean_proved:90 — ensure_payload logged, *.lock ignored). Two items still open, lower priority, bank for a future round: (1) write_guard warns once on a node whose file path changed via git mv even though its bytes are unchanged and already logged under the old path — the log should key on node_id+sha256, not path, so a rename does not need re-logging; (2) the test suite still appends real entries to .agi/sessions/write-log.jsonl via snapshot_goals.PROJECT_ROOT during test runs (noted since L2.03), which pollutes the box's real log with test data — tests should redirect PROJECT_ROOT to a temp dir for this path specifically.
 
 SETTLED 2026-09-06 (owner) for the rename follow-up above: key the write log on the node's mint_id, the same identifier the grid refs use, not on path. Every log line gains mint_id (read from the node's frontmatter at write time; a payload logs under its build node's mint_id); write_guard._load_log indexes by (mint_id, sha256) with sha256-only as the fallback for bytes written before a node exists; path and node_id remain in the line only to print the redo hint. Red-first test: git mv a logged node to a new path, check stays silent; a hand edit after the move still warns. This is the precondition for write.py retitle in the L3 brief section 2.7b.
+
+ADDENDUM 2026-09-06 (belam, after L3.03): season.py retag rewrote every build node's frontmatter through write.py, and write_guard.py check now prints 175 WARN unsanctioned write to payload of build:X lines for source files that predate the guard (.env.example, .gitignore, extensions/agi/bin/adapters/*.py, ...) and were never logged. Not damage: the payload bytes are unchanged and committed; the guard has no baseline for pre-guard payloads. Fold into the mint-id rekey (owner decision, HANDOFF section 6 item 12): when a node's payload has no log line at all, treat the bytes at the node's last grid version as the baseline (grid.py payload NODE --version latest) instead of warning, warn only on a divergence from that baseline, and add a red-first test with an unlogged payload. Gate for the next kid: write_guard.py check silent on this repo with the retag in place.

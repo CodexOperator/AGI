@@ -4,12 +4,13 @@ mint_id: 657d1fae8f844389b52ef512856181e3
 type: doc
 parents: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: goals-doc
+season: 1
 tags:
   - goals-doc
   - preamble
-thought_session: doc-pass-2026-09-06
+thought_session: season
 title: GOALS.md preamble — the goal contract's own framing
 ---
 # GOALS.md — agi long-term goals

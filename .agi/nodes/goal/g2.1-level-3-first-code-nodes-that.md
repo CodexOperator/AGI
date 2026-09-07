@@ -1,13 +1,16 @@
 ---
+id: goal:g2.1
+mint_id: d1a6a806b6af413a82f6cc1b2a7471f9
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.1"
-mint_id: d1a6a806b6af413a82f6cc1b2a7471f9
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds:
   - hyp:level3-node-anatomy
   - idea:engine-agi-algos
@@ -16,10 +19,9 @@ status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.1: Level 3 first: code nodes that stitch back into a running tree"
-type: goal
 ---
-
 **Build level 3 before any other level.** It is the one that makes the graph an
 executable artifact rather than a description of one, and it is the level with
 an existing index to stand on: GitNexus already holds this repo's symbols, call

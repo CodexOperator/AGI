@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-dec78137-07daab
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: fda7371ac33a6fbd
+season: 1
+thought_session: season
 title: A01 1835a461 27038b
 verdict: pending
 ---

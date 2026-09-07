@@ -5,11 +5,13 @@ type: experiment
 parents:
   - hypothesis:a01-dd74693c-b77b37
 next_edges: []
-status: deprecated
+edited_by: season.py
 scaffold_hash: 73c1fea61e333668
+season: 1
+status: deprecated
+thought_session: season
 title: A00 3a7d5c8c 46ee39
 ---
-
 # experiment:a00-3a7d5c8c-46ee39
 
 ## Experiment
@@ -33,4 +35,3 @@ a dispatch failure mode, not garbage. The thread it was meant to serve,
 `experiment:a01-095cec0b-115104` (two verdicts), so nothing in this thread
 waits on a third experiment.
 <!-- THOUGHT:END -->
-

@@ -6,9 +6,12 @@ parents:
   - hypothesis:l2w2-gate-season-parents
 next_edges: []
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a00-8219cb1c-b1ff2a
 scaffold_hash: b26bc8a618396aff
+season: 1
+thought_session: season
 title: A00 8219cb1c b1ff2a
 verdict: proved
 ---

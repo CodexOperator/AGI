@@ -8,15 +8,16 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 location: source_root
 origin: build-scan
 payload_ref: extensions/agi/bin/links.py
 scaffold_hash: b1d27882fe79fbb3
+season: 1
 tags:
   - build
   - code
-thought_session: L1.13
+thought_session: season
 title: "Build: extensions/agi/bin/links.py"
 ---
 # build:bin-links

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R5
 testable_claim: API Dependency Indexer
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R5: API Dependency Indexer"
 ---
 **Description:** An indexer emits nodes describing endpoints and their relationships from an OpenAPI or Swagger specification.

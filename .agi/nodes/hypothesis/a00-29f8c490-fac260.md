@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.10
 next_edges: []
+edited_by: season.py
 scaffold_hash: e63fe525042b9e01
+season: 1
+thought_session: season
 title: commands.py run --workflow executes verify in order, stops on failure
 ---
-
 # hypothesis:a00-29f8c490-fac260
 
 ## Hypothesis

@@ -5,11 +5,14 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
+edited_by: season.py
+season: 1
 tags:
   - zoom-level
   - agent-routing
   - A00
 testable_claim: Agents injected with BIG zoom level (whole-graph exploration mode) will spawn ≥3x more new idea or hypothesis nodes per session than agents injected with SMALL zoom level (mid-chain extension mode).
+thought_session: season
 title: "Zoom-level routing: BIG zoom agents spawn 3x more new ideas than SMALL zoom agents"
 verdict:
 wired_at: 1777664395

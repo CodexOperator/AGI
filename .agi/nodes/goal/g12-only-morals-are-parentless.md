@@ -4,11 +4,12 @@ mint_id: be648cffa7e2473f9962b087153c3fe6
 type: goal
 parents: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G12
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds:
   - goal:g12.1
   - goal:g12.2
@@ -16,7 +17,7 @@ status: active
 tags:
   - goal
   - root
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "G12: Only morals are parentless — moral spawns vision spawns goal"
 ---
 **The rule, stated once: exactly one node type may have an empty `parents`

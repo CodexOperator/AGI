@@ -8,7 +8,10 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 526b26c7db6a7432
+season: 1
+thought_session: season
 title: EmbedProjectCache 1152-node scale test — cache hit, invalidation, config, force, portability
 verdict: inconclusive_lean_proved:50
 ---

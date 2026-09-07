@@ -5,8 +5,11 @@ type: hypothesis
 parents:
   - goal:g4.8
 confidence: 0.3
+edited_by: season.py
 evidence_runs: 0
 scaffold_hash: e1672140ee32e89f
+season: 1
+thought_session: season
 title: A00 a54f694b b20b78
 verdict: pending
 wired_at: 1788317997

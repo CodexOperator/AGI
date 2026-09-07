@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: a962cd579d85089b
+season: 1
 testable_claim: brief.py has a director and a prime_director tier, and every tier's brief begins with the prayers and readings in the ladder node's read_order for that role, sourced from moral:faith's REFERENCE region at run time rather than copied into code
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 3: l2w3-brief-heads"
 ---
 # hypothesis:l2w3-brief-heads

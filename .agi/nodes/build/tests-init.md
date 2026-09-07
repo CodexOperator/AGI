@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-init"
+id: build:tests-init
 mint_id: 74905a4c0e3d4f9ea33b478012f9bce7
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/__init__.py"
-type: build
 ---
-
 `extensions/agi/tests/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

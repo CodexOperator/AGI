@@ -1,24 +1,26 @@
 ---
+id: goal:g1.11
+mint_id: 9d41f7ac6b2e4d0fa5c38e71b04d29f6
+type: goal
+parents:
+  - goal:g1
+next_edges:
+  - hypothesis:per-spawn-keys-cost-under-a-second
 confidence: 0.9
+edited_by: season.py
 goal_id: G1.11
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.11"
-mint_id: 9d41f7ac6b2e4d0fa5c38e71b04d29f6
-next_edges:
-  - hypothesis:per-spawn-keys-cost-under-a-second
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.11: A fresh, credit-capped provider key per spawn — not one key for the whole run"
-type: goal
 ---
-
 **Today every spawned agent inherits the same long-lived
 `OPENROUTER_API_KEY`, and that one key is the whole balance.** One runaway kid
 in a retry loop can spend it; one leaked context can expose it; and when the

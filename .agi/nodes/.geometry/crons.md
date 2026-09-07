@@ -18,13 +18,14 @@ cadences:
     schedule: 47 * * * *
     enabled: false
 crons_live: true
-edited_by: director
+edited_by: season.py
+season: 1
 status: active
 tags:
   - geometry
   - cron
   - structural
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

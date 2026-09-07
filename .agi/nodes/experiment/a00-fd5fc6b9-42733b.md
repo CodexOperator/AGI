@@ -5,14 +5,16 @@ type: experiment
 parents:
   - hypothesis:l2w15-rotate
 next_edges: []
-scaffold_hash: d9fd632018969854
-title: A00 fd5fc6b9 42733b
 confidence: 0.8
+edited_by: season.py
 evidence_runs:
   - experiment:a00-fd5fc6b9-42733b
+scaffold_hash: d9fd632018969854
+season: 1
+thought_session: season
+title: A00 fd5fc6b9 42733b
 verdict: inconclusive_lean_proved:80
 ---
-
 # experiment:a00-fd5fc6b9-42733b
 
 ## Experiment

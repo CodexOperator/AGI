@@ -12,15 +12,16 @@ blocked_by:
   - task:t-019
   - task:t-020
 cavekit_req: graph-core/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-012: Subdirectory→subgraph node resolution via schema-registry"
 ---
 **Description:** When loader encounters a subdirectory, it asks the schema-registry to resolve the directory name into a node type. Falls back to generic node type when no match. Emits a single aggregated warning naming each unmatched file.

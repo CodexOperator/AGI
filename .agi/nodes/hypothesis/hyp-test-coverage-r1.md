@@ -1,21 +1,23 @@
 ---
-domain: test-coverage
-id: "hyp:test-coverage-r1"
+id: hyp:test-coverage-r1
 mint_id: c0f0f8c2f2444f50b190152c11c9d8cb
-next_edges: []
+type: hypothesis
 parents:
   - idea:domain-test-coverage
+next_edges: []
+domain: test-coverage
+edited_by: season.py
+season: 1
 status: pending
 tags:
   - tests
   - pytest
   - coverage
   - R1
+thought_session: season
 title: "R1: Test coverage analysis of node types, edge relations, and graph operations"
-type: hypothesis
 verdict: pending
 ---
-
 ## Hypothesis
 
 **Claim**: The 257 pytest tests provide comprehensive coverage of the agi-tree system, with >80% coverage of node types, edge relations, and graph operations.

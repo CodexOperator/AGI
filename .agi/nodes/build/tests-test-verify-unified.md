@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-verify-unified"
+id: build:tests-test-verify-unified
 mint_id: 02285dcb8ab04398a97b329f4b9502c6
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_verify_unified.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_verify_unified.py"
-type: build
 ---
-
 `extensions/agi/tests/test_verify_unified.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

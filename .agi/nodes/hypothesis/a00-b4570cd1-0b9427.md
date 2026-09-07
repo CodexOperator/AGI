@@ -1,13 +1,15 @@
 ---
-id: "hyp:a00-b4570cd1-0b9427"
+id: hyp:a00-b4570cd1-0b9427
 mint_id: 04fb5b18c5ff4b1d9d6c9bf822e9e01d
+type: hypothesis
+parents: []
 next_edges:
   - exp:a00-b4570cd1-context-injection-fix
-parents: []
+edited_by: season.py
+season: 1
+thought_session: season
 title: Context injection longest_chain reports 0 hops because _longest_chain_length walks spawns not next_edges
-type: hypothesis
 ---
-
 # hyp:a00-b4570cd1-0b9427
 
 ## Hypothesis

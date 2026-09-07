@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-c422b874-397418
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: d84c49a2d5d69fe3
+season: 1
+thought_session: season
 title: Chat structure characterisation — front-loaded signal confirmed
 verdict: inconclusive_lean_proved:60
 ---

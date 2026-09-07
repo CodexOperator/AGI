@@ -117,15 +117,16 @@ commands:
       - <engine>/extensions/agi/bin/write.py
     about: goal:g13.1 — named node operations; a hand edit becomes an engine action
     workflow: see
-edited_by: director
+edited_by: season.py
 ordered:
   - verify
+season: 1
 status: active
 tags:
   - geometry
   - command
   - structural
-thought_session: L1.07
+thought_session: season
 title: Standard command declaration
 workflows:
   verify:

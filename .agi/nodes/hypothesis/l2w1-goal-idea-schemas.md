@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 5a5d1533a7a514f6
+season: 1
 testable_claim: "[goal].md lets a long-term goal name a vision parent and [idea].md accepts goal or vision parents and carries authors, with GOALS.md still round-tripping byte-identical"
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-goal-idea-schemas"
 ---
 # hypothesis:l2w1-goal-idea-schemas

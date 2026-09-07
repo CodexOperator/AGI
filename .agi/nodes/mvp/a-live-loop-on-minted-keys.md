@@ -6,10 +6,11 @@ parents:
   - verdict:per-spawn-beats-batching
 next_edges: []
 confidence: 0.8
-edited_by: director
+edited_by: season.py
 scaffold_hash: fe6f7690615aa0b4
+season: 1
 status: open
-thought_session: L1.01
+thought_session: season
 title: A real loop where every agent authenticates with a key that did not exist before it
 ---
 # mvp:a-live-loop-on-minted-keys

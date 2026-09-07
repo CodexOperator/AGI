@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-schema-registry
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - schema-registry
   - R6
 testable_claim: Pluggable Language-Model Hook
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R6: Pluggable Language-Model Hook"
 ---
 **Description:** The schema-proposal hook is selected by configuration and degrades gracefully when no model is available.

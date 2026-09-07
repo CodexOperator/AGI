@@ -6,11 +6,12 @@ parents:
   - hyp:embeddings-r5
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-embeddings-similarity
   - build:tests-embeddings-test-similarity
 scaffold_hash: 57fd5c0b24847809
+season: 1
 supports:
   - hyp:embeddings-r5
 tags:
@@ -18,7 +19,7 @@ tags:
   - R5
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R5: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

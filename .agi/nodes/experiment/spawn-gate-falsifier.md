@@ -7,14 +7,16 @@ parents:
 next_edges:
   - verdict:spawn-gate-lands-on-writer-path
 confidence: 0.9
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - s17
   - schema
   - falsifier
+thought_session: season
 title: "Pre-registered falsifier: two illegal spawns rejected by name, legal spawns approved out loud"
 ---
-
 # exp:spawn-gate-falsifier
 
 The falsifier was registered in `GOALS.md` §S17 **before** the gate existed:

@@ -1,19 +1,21 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:grid-payload-roundtrip"
+id: exp:grid-payload-roundtrip
 mint_id: ddf2c1ef390a460c9f2f331d0d91d2bc
+type: experiment
 parents:
   - hyp:payload-in-node
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 subgraph: false
 tags:
   - g6.3
   - grid
   - stitch
+thought_session: season
 title: "Grid-ref payload round-trip: bytes pass everywhere, mode/symlink pass only if commit_file() is rewritten, not reused"
-type: experiment
 ---
-
 **What was run:** A throwaway sandbox repo (`git init`,
 `sessions/iter-9007/kid-c/sandbox/`, never touched `refs/grid/*` in the real
 `agi-tree`), seeded with 3 real engine files copied verbatim —

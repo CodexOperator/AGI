@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R5
 testable_claim: Git-Diff Renderer
-thought_session: L1.09
+thought_session: season
 title: "renderers/R5: Git-Diff Renderer"
 ---
 **Description:** A renderer produces a diff view between two experiment runs along the same chain so progression and regression are visible side by side.

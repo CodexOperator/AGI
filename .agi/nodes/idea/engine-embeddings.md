@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-embeddings"
+id: idea:engine-embeddings
 mint_id: 7be5301066614d86a49a5469f4bb7293
-origin: engine-decomp
+type: idea
 parents:
   - goal:g2
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/src/embeddings"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/src/embeddings
 ---
-
 `extensions/agi/src/embeddings` — an engine source package.
 
 embeddings: vector embeddings of the graph (R1+).

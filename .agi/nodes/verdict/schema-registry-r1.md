@@ -1,26 +1,28 @@
 ---
-confidence: 1.0
-contrasts: []
-evidence_runs:
-  - exp:schema-registry-r1
-id: "verdict:schema-registry-r1"
+id: verdict:schema-registry-r1
 mint_id: 4a2f29d1b2394e9ca86f2f545d131210
+type: verdict
+parents:
+  - exp:schema-registry-r1
 next_edges:
   - exp:schema-registry-r1-extend
   - mvp:schema-registry-r1
-parents:
+confidence: 1.0
+contrasts: []
+edited_by: season.py
+evidence_runs:
   - exp:schema-registry-r1
+season: 1
 status: proved
 subgraph: false
 supports: []
 tags:
   - schema-registry
   - R1
+thought_session: season
 title: "schema-registry/R1: Verdict"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict:** PROVED
 
 **Evidence:**

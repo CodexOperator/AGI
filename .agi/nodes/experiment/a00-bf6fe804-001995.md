@@ -5,11 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-4d063889-c4e95d
 next_edges: []
-confidence: 0.80
-scaffold_hash: d98236e11e00e151
-edited_by: a00-c0c0a6c9
-demoted_from: inconclusive_lean_proved:85
+confidence: 0.8
 demote_reason: "parent review: the drift integration (config field + drift_check.py + driver.sh inline check) was already committed (18921b3c) by prior parallel work — this experiment validated it, did not author it. Body reattributed; stale HEAD and misclaimed authorship corrected in THOUGHT."
+demoted_from: inconclusive_lean_proved:85
+edited_by: season.py
+scaffold_hash: d98236e11e00e151
+season: 1
+thought_session: season
 title: A00 bf6fe804 001995 — L9 pinning integration verified end-to-end (pre-existing, committed)
 verdict: inconclusive_lean_proved:80
 ---

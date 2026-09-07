@@ -2,17 +2,19 @@
 id: hypothesis:per-spawn-keys-cost-under-a-second
 mint_id: 8c193121f6ce4aa6b9b226f063f2c1c7
 type: hypothesis
-title: "Per-spawn credentials are affordable, so batching buys nothing worth its cost in attribution"
-testable_claim: "Minting one OpenRouter key costs under 1s and does not degrade under concurrency, so issuing per spawn is affordable — and per-spawn is the only granularity that gives per-agent attribution, which is one of goal:g1.11's requirements."
-confidence: 0.85
 parents:
   - goal:g1.11
 next_edges:
   - experiment:mint-latency-and-a-live-spawn
+confidence: 0.85
+edited_by: season.py
 scaffold_hash: 1eca7dbcc740cd65
+season: 1
+testable_claim: Minting one OpenRouter key costs under 1s and does not degrade under concurrency, so issuing per spawn is affordable — and per-spawn is the only granularity that gives per-agent attribution, which is one of goal:g1.11's requirements.
+thought_session: season
+title: Per-spawn credentials are affordable, so batching buys nothing worth its cost in attribution
 verdict: pending
 ---
-
 # hypothesis:per-spawn-keys-cost-under-a-second
 
 ## Hypothesis

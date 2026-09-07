@@ -6,11 +6,12 @@ parents:
   - hyp:renderers-r5
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-renderers-git-diff
   - build:tests-renderers-test-git-diff
 scaffold_hash: 5f5f68548abd0e29
+season: 1
 supports:
   - hyp:renderers-r5
 tags:
@@ -18,7 +19,7 @@ tags:
   - R5
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "renderers/R5: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

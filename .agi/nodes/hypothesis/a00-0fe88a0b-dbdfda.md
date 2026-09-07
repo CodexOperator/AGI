@@ -6,8 +6,11 @@ parents:
   - goal:g10.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: a57fd8a7a177e94e
+season: 1
 testable_claim: "G10.1 asserts chats are \"viewable, expandable to full LOD, **forkable**.\" The forkability claim is the one g10.1 property that is *not* a rendering concern: it says an agent or user can take a chat at an internal decision point and continue from there, inheriting the context up to that point, rather than starting a fresh chat from the outputs alone."
+thought_session: season
 title: Chat-fork at decision points reduces re-derivation overhead vs starting fresh
 verdict: pending
 ---

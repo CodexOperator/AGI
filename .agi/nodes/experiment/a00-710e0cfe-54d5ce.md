@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-4ed0dccd-68c060
 next_edges: []
 confidence: 0.65
+edited_by: season.py
 scaffold_hash: 54e65a1f3841e88a
+season: 1
+thought_session: season
 title: Command-scoped isolation - pi adapter lacks restrictions, claude adapter has them
 verdict: inconclusive_lean_proved:65
 ---

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-schema-registry
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - schema-registry
   - R1
 testable_claim: Schema as File
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R1: Schema as File"
 ---
 **Description:** Each schema is a single file in a known directory of the project's context. Adding, editing, or removing a schema requires only file operations.

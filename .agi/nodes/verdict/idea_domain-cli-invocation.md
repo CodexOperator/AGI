@@ -5,7 +5,10 @@ type: verdict
 confidence: 0.5
 demote_reason: no experiment evidence (evidence_runs=0) for 'disproved'
 demoted_from: disproved
+edited_by: season.py
 evidence_runs: []
+season: 1
+thought_session: season
 title: Idea domain cli invocation
 verdict: inconclusive_lean_disproved:50
 ---

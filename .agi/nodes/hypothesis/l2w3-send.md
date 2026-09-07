@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 0d5d68cd32e38fcc
+season: 1
 testable_claim: One send verb carries a message from any role to any other through a per-recipient inbox file under sessions, and a recipient can read and clear its inbox with the same tool
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 3: l2w3-send"
 ---
 # hypothesis:l2w3-send

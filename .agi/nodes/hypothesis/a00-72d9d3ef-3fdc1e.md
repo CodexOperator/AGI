@@ -7,7 +7,10 @@ next_edges:
   - verdict:hypothesis_a00-72d9d3ef-3fdc1e
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
+season: 1
 status: inconclusive_lean_proved:50
+thought_session: season
 title: A00 72d9d3ef 3fdc1e
 verdict: inconclusive_lean_proved:50
 ---

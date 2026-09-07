@@ -1,22 +1,24 @@
 ---
+id: goal:g7.5
+mint_id: 116872160ca44aafadd6c8d1eab645a2
+type: goal
+parents:
+  - goal:g7
 confidence: 1.0
+edited_by: season.py
 goal_id: G7.5
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g7.5"
-mint_id: 116872160ca44aafadd6c8d1eab645a2
 origin: goals-doc
-parents:
-  - goal:g7
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G7.5: Parse failures are swallowed with zero signal"
-type: goal
 ---
-
 > **Corpus repaired 2026-08-25; the code fix is still open, which is why this
 > stays `active`.** The malformed file below now parses, carries a `mint_id`,
 > and has a grid ref. **The loaders still swallow parse failures silently** —

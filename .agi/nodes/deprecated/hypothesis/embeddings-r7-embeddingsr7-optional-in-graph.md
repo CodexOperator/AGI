@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-embeddings
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - embeddings
   - R7
 testable_claim: Optional In-Graph Embedding Storage
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R7: Optional In-Graph Embedding Storage"
 ---
 **Description:** Per-node vectors may optionally be stored as a payload field on the node itself so the embedding is persisted alongside the graph.

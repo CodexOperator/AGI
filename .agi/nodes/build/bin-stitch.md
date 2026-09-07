@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-stitch"
+id: build:bin-stitch
 mint_id: ad6809b5d43b4983827231158b779f69
-origin: build-scan
+type: build
 parents:
   - idea:engine-stitch
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/stitch.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/stitch.py"
-type: build
 ---
-
 `extensions/agi/bin/stitch.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-stitch`.

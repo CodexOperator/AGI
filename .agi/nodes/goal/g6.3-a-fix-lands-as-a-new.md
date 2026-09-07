@@ -1,13 +1,16 @@
 ---
+id: goal:g6.3
+mint_id: 6634587e21fc4173911d4024abb7d858
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.3
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.3"
-mint_id: 6634587e21fc4173911d4024abb7d858
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds:
   - hyp:payload-in-node
   - build:bin-stitch@v2
@@ -15,10 +18,9 @@ status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.3: A fix lands as a new version of a build node"
-type: goal
 ---
-
 **The mechanism to test, and the reason to test it on real work.** Today an
 engine fix is edited in the engine repo, and `level3.py` re-derives the build
 node afterwards — the node trails the code. The target is the reverse: a fix is

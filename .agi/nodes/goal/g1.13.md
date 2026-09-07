@@ -7,12 +7,13 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G1.13
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 6ec14427d97ab1b5
+season: 1
 seeds:
   - build:COMPLETE.md
   - build:CLAUDE.md
@@ -22,7 +23,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G1.13: A loop ends with a completion report, and the report is generated, not remembered"
 ---
 # goal:g1.13

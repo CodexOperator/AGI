@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-160ca279-56d211
 next_edges: []
+edited_by: season.py
 scaffold_hash: 5061241c73b44fa9
+season: 1
+thought_session: season
 title: A01 717569b6 f97dce
 ---
-
 # experiment:a01-717569b6-f97dce
 
 <!-- THOUGHT:BEGIN -->
@@ -34,4 +36,3 @@ refs/grid/session/*, with no manual annotation.
 ## Evidence
 
 Raw output, screenshots, logs.
-

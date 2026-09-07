@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-chain-engine"
+id: idea:engine-chain-engine
 mint_id: e2e61c701167497d9d09a229e26ff7c7
-origin: engine-decomp
+type: idea
 parents:
   - goal:g3
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/src/chain_engine"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/src/chain_engine
 ---
-
 `extensions/agi/src/chain_engine` — an engine source package.
 
 Chain engine — virtual chain queries on top of graph-core.

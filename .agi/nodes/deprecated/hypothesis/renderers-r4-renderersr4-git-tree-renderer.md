@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R4
 testable_claim: Git-Tree Renderer
-thought_session: L1.09
+thought_session: season
 title: "renderers/R4: Git-Tree Renderer"
 ---
 **Description:** A renderer produces a view shaped like the output of a graph-style git log, where each chain corresponds to one branch shape.

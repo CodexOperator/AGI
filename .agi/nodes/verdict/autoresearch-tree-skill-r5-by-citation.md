@@ -6,10 +6,11 @@ parents:
   - hyp:autoresearch-tree-skill-r5
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:bin-evidence-gate
 scaffold_hash: f14a2c36e0a8a8f6
+season: 1
 supports:
   - hyp:autoresearch-tree-skill-r5
 tags:
@@ -17,7 +18,7 @@ tags:
   - R5
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R5: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

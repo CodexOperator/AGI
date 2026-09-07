@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-post-wire"
+id: build:bin-post-wire
 mint_id: 7cdc45cecea04eef914b2972700963e1
-origin: build-scan
+type: build
 parents:
   - idea:engine-post-wire
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/post_wire.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/post_wire.py"
-type: build
 ---
-
 `extensions/agi/bin/post_wire.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-post-wire`.

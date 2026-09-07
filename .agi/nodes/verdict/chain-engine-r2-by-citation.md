@@ -6,11 +6,12 @@ parents:
   - hyp:chain-engine-r2
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-chain-engine-chains
   - build:tests-chain-engine-test-chain-definition
 scaffold_hash: 29ae31137d87b5af
+season: 1
 supports:
   - hyp:chain-engine-r2
 tags:
@@ -18,7 +19,7 @@ tags:
   - R2
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R2: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

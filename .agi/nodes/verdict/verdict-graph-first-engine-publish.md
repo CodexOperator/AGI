@@ -1,11 +1,14 @@
 ---
-confidence: 0.85
-evidence_runs:
-  - exp:graph-first-engine-publish
-id: "verdict:graph-first-engine-publish"
+id: verdict:graph-first-engine-publish
 mint_id: 8b0e5d21c7a34f6ea9d3b8c1470f2e56
+type: verdict
 parents:
   - exp:graph-first-engine-publish
+confidence: 0.85
+edited_by: season.py
+evidence_runs:
+  - exp:graph-first-engine-publish
+season: 1
 status: open
 subgraph: false
 tags:
@@ -13,11 +16,10 @@ tags:
   - g6.3
   - grid
   - stitch
-title: "The write direction is reversed and measured; the read direction is not, and G6.1 stays active for exactly that reason"
-type: verdict
+thought_session: season
+title: The write direction is reversed and measured; the read direction is not, and G6.1 stays active for exactly that reason
 verdict: proved
 ---
-
 **VERDICT: proved, for `goal:g6.3` in full and for the *write* half of
 `goal:g6.1`.**
 

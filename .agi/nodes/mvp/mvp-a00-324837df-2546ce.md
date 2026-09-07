@@ -1,21 +1,23 @@
 ---
-confidence: 0.95
-id: "mvp:a00-324837df-2546ce"
+id: mvp:a00-324837df-2546ce
 mint_id: 9766d3c1c2c44ecab1f46c5b4639c97e
-next_edges:
-  - outcome:a00-324837df-2546ce
+type: mvp
 parents:
   - verdict:a00-324837df-2546ce
+next_edges:
+  - outcome:a00-324837df-2546ce
+confidence: 0.95
+edited_by: season.py
+season: 1
 status: open
 tags:
   - embeddings
   - node2vec
   - gensim
   - MVP
+thought_session: season
 title: "MVP: Gensim Skip-Gram Node2Vec Wrapper"
-type: mvp
 ---
-
 **Script**: `exp-a00-324837df-vector-embedding-isomorphism-r2.py`
 
 **What it does**: Wraps gensim Word2Vec to replace the hash-based node2vec in `src/embeddings/node2vec.py`.

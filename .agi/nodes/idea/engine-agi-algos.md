@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-agi-algos"
+id: idea:engine-agi-algos
 mint_id: 1ff5c536ab2547a89c48489690a15134
-origin: engine-decomp
+type: idea
 parents:
   - goal:g2.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/src/agi_algos"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/src/agi_algos
 ---
-
 `extensions/agi/src/agi_algos` — an engine source package.
 
 agi_algos — Graph algorithms folded from `~/.hermes/agi/` root.

@@ -13,15 +13,16 @@ blocked_by:
   - task:t-032
   - task:t-031
 cavekit_req: environment-indexers/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: L
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - L
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-034: Code symbol indexer — node emission for functions/classes/methods/modules"
 ---
 **Description:** Python-first AST-based parser (use stdlib `ast`). Emits `module`, `class`, `function`, `method` node types. Inspired by `agi/graph_builder.py` lru_cache pattern but re-implemented under schema-registry contracts. Documented as Python-only for v1.

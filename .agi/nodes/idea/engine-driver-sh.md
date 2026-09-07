@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-driver-sh"
+id: idea:engine-driver-sh
 mint_id: b49e475bf00449d2897085f064867e8f
-origin: engine-decomp
+type: idea
 parents:
   - goal:g1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/driver.sh"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/driver.sh
 ---
-
 `extensions/agi/driver.sh` — an engine entry point.
 
 agi-tree driver — orchestrates parallel pi agent dispatch + healing.

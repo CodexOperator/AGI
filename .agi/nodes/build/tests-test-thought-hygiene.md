@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-thought-hygiene"
+id: build:tests-test-thought-hygiene
 mint_id: 1558357933b34d158b1c23b8bb05df8c
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_thought_hygiene.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_thought_hygiene.py"
-type: build
 ---
-
 `extensions/agi/tests/test_thought_hygiene.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

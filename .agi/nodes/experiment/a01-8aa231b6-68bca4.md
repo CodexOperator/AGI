@@ -6,8 +6,11 @@ parents:
   - hypothesis:a01-78cdb163-be277d
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 8c45d84ab10eb5e3
-title: "Three-arm KV-vs-raw-chat design (padded token control, power analysis) — designed, NOT executed"
+season: 1
+thought_session: season
+title: Three-arm KV-vs-raw-chat design (padded token control, power analysis) — designed, NOT executed
 verdict: pending
 ---
 # experiment:a01-8aa231b6-68bca4

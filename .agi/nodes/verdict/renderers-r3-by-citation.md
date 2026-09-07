@@ -6,11 +6,12 @@ parents:
   - hyp:renderers-r3
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-renderers-mermaid
   - build:tests-renderers-test-mermaid
 scaffold_hash: cb6f3dd736500d81
+season: 1
 supports:
   - hyp:renderers-r3
 tags:
@@ -18,7 +19,7 @@ tags:
   - R3
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "renderers/R3: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

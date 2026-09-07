@@ -8,6 +8,7 @@ axis: dynamics
 edited_by: owner
 grounded_in: moral:faith
 scaffold_hash: 321d14c2a0d7c711
+season: 1
 season_introduced: 1
 thought_session: agi-master-2026-09-06
 title: "moral: antifragility"

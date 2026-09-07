@@ -1,24 +1,26 @@
 ---
-confidence: 0.82
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "verdict:verdict:a00-204c9d9e-1d958f"
+id: verdict:verdict:a00-204c9d9e-1d958f
 mint_id: f10f1ab354a04d59aad7bb56f6fe9c2c
-next_edges: []
+type: verdict
 parents:
   - exp:exp:a00-204c9d9e-1d958f
   - hyp:a00-204c9d9e-1d958f
+next_edges: []
+confidence: 0.82
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: season.py
+evidence_runs: []
+season: 1
 tags:
   - architecture
   - query-api
   - capillary-dag
   - proved
+thought_session: season
 title: Query API enables rational task selection in the capillary DAG
-type: verdict
-verdict: "inconclusive_lean_proved:50"
+verdict: inconclusive_lean_proved:50
 ---
-
 # verdict:verdict:a00-204c9d9e-1d958f
 
 ## Verdict: PROVED

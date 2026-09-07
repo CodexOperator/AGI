@@ -6,9 +6,12 @@ parents:
   - hypothesis:a00-c89eaaae-7dcb85
 next_edges: []
 confidence: 0.75
+edited_by: season.py
 evidence_runs:
   - experiment:a01-500d871e-5a7530
 scaffold_hash: b43be5ba740d41f5
+season: 1
+thought_session: season
 title: Edit agent-prompt.md Rule 5 to ban git, verifying zero actionable git instructions remain
 verdict: inconclusive_lean_proved:75
 ---

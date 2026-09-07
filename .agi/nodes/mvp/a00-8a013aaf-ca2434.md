@@ -5,8 +5,11 @@ type: mvp
 parents:
   - verdict:a00-52a8f13a-a156b6
 confidence: 0.7
+edited_by: season.py
 evidence_runs: 2
 scaffold_hash: fbb5f68c29d733aa
+season: 1
+thought_session: season
 title: A00 8a013aaf ca2434
 verdict: inconclusive_lean_proved:70
 wired_at: 1788283900

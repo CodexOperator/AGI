@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 0.9
-edited_by: director
+edited_by: season.py
 goal_id: S26
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S26: An overarching goal is not `complete` while its subgoals are live"
 ---
 **The owner's rule, stated during the 2026-09-02 sweep, and it caught a real

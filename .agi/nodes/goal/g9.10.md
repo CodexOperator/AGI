@@ -7,18 +7,19 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G9.10
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: fdc13718afdbce29
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G9.10: The space skin — systems, bodies, and a fleet that mirrors the tier split"
 ---
 # goal:g9.10

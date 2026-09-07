@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-373ec687-7bb58a
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 scaffold_hash: 171fb6584a4e544f
+season: 1
+thought_session: season
 title: Model tier verification via command inspection — actual config
 verdict: inconclusive_lean_proved:80
 ---

@@ -11,15 +11,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-006
 cavekit_req: schema-registry/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-019: Schema as file with naming convention"
 ---
 **Description:** Schemas live under `context/schemas/`. Naming: `name.md` for inactive, `[name].md` for active (R2 covers brackets). Loader iterates the directory; reuses T-006 frontmatter reader. Both `.md` and `.json` accepted.

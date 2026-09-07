@@ -13,15 +13,16 @@ blocked_by:
   - task:t-086
   - task:t-017
 cavekit_req: autoresearch-tree-skill/R8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-087: Drop-in portability self-test for the skill"
 ---
 **Description:** Implement `agi-tree self-test skill-portability`: copy the project's `context/` to a tempdir, run a single skill iteration there, assert success. Audit the skill code for absolute paths or unauthorized env reads. Document the contract in SKILL.md.

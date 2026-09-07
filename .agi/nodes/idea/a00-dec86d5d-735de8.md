@@ -4,13 +4,15 @@ mint_id: dcad3a14fb1442279ad8c39cf34d09d1
 type: idea
 parents: []
 confidence: 0.5
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: A00 dec86d5d 735de8
 verdict: pending
 wired_at: 1788197591
 wired_from: a00-dec86d5d
 ---
-
 
 # idea:a00-dec86d5d-735de8
 

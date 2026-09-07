@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-stitch"
+id: idea:engine-stitch
 mint_id: db49423d700447349931cf1632f092e2
-origin: engine-decomp
+type: idea
 parents:
   - goal:g6.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/stitch.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/stitch.py
 ---
-
 `extensions/agi/bin/stitch.py` — an engine bin entry-point script.
 
 stitch.py — materialize level-3 nodes back into a runnable directory tree.

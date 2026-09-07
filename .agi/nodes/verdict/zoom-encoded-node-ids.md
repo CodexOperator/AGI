@@ -1,21 +1,23 @@
 ---
-confidence: 0.9
-contradicts: []
-evidence_runs:
-  - exp:id-fanout-budget
-id: "verdict:zoom-encoded-node-ids"
+id: verdict:zoom-encoded-node-ids
 mint_id: 57859600bb8d41c1b17f0af9f976fb0b
+type: verdict
 parents:
   - exp:id-fanout-budget
+confidence: 0.9
+contradicts: []
+edited_by: season.py
+evidence_runs:
+  - exp:id-fanout-budget
+season: 1
 supports:
   - hyp:zoom-encoded-node-ids
 tags:
   - g2.5
+thought_session: season
 title: "Verdict: fan-out budget for zoom-encoded ids"
-type: verdict
 verdict: proved
 ---
-
 > ⚠️ **Superseding note added on review, 2026-08-24 — read this before citing
 > this verdict.** G2.5 was rewritten after this measurement to the *address*
 > model: ids are fixed-width 7-character hierarchical addresses, and a

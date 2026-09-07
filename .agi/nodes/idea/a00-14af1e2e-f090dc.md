@@ -4,13 +4,15 @@ mint_id: 636e7347e01449c68fc71e412f2fa9ce
 type: idea
 parents: []
 confidence: 0.5
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: A00 14af1e2e f090dc
 verdict: pending
 wired_at: 1788198005
 wired_from: a00-14af1e2e
 ---
-
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Seeded at BIG zoom (iteration 1, agent a00-14af1e2e). No existing domain

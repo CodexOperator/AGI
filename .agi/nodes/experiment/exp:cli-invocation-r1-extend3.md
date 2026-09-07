@@ -6,5 +6,8 @@ parents:
   - verdict:cli-invocation-r1-extend2
 next_edges:
   - verdict:cli-invocation-r1-extend3
+edited_by: season.py
+season: 1
+thought_session: season
 title: Exp:cli invocation r1 extend3
 ---

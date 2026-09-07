@@ -6,7 +6,10 @@ parents:
   - goal:g4.6
 next_edges: []
 confidence: 0.75
+edited_by: season.py
 scaffold_hash: f7d52ff171c7f75e
+season: 1
+thought_session: season
 title: A01 391172f1 7157cf
 verdict: inconclusive_lean_proved:75
 ---

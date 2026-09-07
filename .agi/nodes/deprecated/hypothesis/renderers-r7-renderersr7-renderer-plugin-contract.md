@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R7
 testable_claim: Renderer Plugin Contract
-thought_session: L1.09
+thought_session: season
 title: "renderers/R7: Renderer Plugin Contract"
 ---
 **Description:** Adding a new renderer is one new class that implements a single method taking the shared representation and returning a string.

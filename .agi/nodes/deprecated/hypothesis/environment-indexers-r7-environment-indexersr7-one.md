@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R7
 testable_claim: One-File-Per-Indexer Layout
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R7: One-File-Per-Indexer Layout"
 ---
 **Description:** Each indexer is a single self-contained file with documented internals and registers or references at least one schema.

@@ -5,14 +5,16 @@ type: experiment
 parents:
   - hypothesis:a00-8d238338-ec4dff
 confidence: 0.95
+edited_by: season.py
 evidence_runs:
   - experiment:a00-5f927203-8a66a2
   - experiment:a00-f0fd9669-ce583f
 scaffold_hash: f720534d2faa8ba7
+season: 1
+thought_session: season
 title: A00 5f927203 8a66a2
 verdict: disproved
 ---
-
 # experiment:a00-5f927203-8a66a2
 
 ## Experiment

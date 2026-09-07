@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-schema-registry
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - schema-registry
   - R7
 testable_claim: Generated Schemas Land Inactive
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R7: Generated Schemas Land Inactive"
 ---
 **Description:** Schemas produced by the language-model hook are written to the schemas directory without brackets so the user must explicitly activate them.

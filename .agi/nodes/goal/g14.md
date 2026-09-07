@@ -7,19 +7,20 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G14
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: 7bceacd8528266d8
+season: 1
 seeds:
   - idea:the-graph-is-the-workflow
 status: horizon
 tags:
   - goal
   - root
-thought_session: L1.13
+thought_session: season
 title: "G14: Local-maxxing: the smallest model that can do the job, everywhere"
 ---
 # goal:g14

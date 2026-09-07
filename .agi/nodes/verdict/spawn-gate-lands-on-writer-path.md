@@ -7,21 +7,23 @@ parents:
   - exp:spawn-gate-falsifier
 next_edges:
   - mvp:spawn-gate
-verdict: proved
 confidence: 0.85
+contradicts: []
+edited_by: season.py
 evidence_runs:
   - exp:node-type-corpus-survey
   - exp:spawn-gate-falsifier
+season: 1
 supports:
   - hyp:spawn-check-on-writer-path
-contradicts: []
 tags:
   - s17
   - schema
   - gate
+thought_session: season
 title: "Proved: the spawn rule is derivable, expressible and enforceable on the writer path — for 2 of ~6 writers"
+verdict: proved
 ---
-
 # verdict:spawn-gate-lands-on-writer-path
 
 **`proved`, on the core claim, at the level it actually holds.**

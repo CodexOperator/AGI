@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-post-wire"
+id: idea:engine-post-wire
 mint_id: e4df40631893457884e98fbde686fadb
-origin: engine-decomp
+type: idea
 parents:
   - goal:g3.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/post_wire.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/post_wire.py
 ---
-
 `extensions/agi/bin/post_wire.py` — an engine bin entry-point script.
 
 post_wire.py — wire agent results back into the node graph after an iteration.

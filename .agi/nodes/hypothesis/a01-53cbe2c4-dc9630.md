@@ -5,18 +5,20 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: 0d90b544ef0fd6a7
-title: "Awareness-flag reduces inherited-context misattribution in continuing agents"
-testable_claim: "An agent that inherits a verbatim derivation chat with an explicit 'you are a later agent, not the original mid-thought' preamble makes fewer attribution errors than an agent given the same chat without that flag."
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: 0d90b544ef0fd6a7
+season: 1
 tags:
   - hypothesis
   - g10.1
   - awareness-flag
   - chat-inheritance
+testable_claim: An agent that inherits a verbatim derivation chat with an explicit 'you are a later agent, not the original mid-thought' preamble makes fewer attribution errors than an agent given the same chat without that flag.
+thought_session: season
+title: Awareness-flag reduces inherited-context misattribution in continuing agents
+verdict: pending
 ---
-
 # hypothesis:a01-53cbe2c4-dc9630
 
 ## Hypothesis

@@ -1,22 +1,24 @@
 ---
+id: goal:g2.11
+mint_id: 684604b774304d6aba522fc661a30bfd
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.11
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.11"
-mint_id: 684604b774304d6aba522fc661a30bfd
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.11: Every node version carries the thought that produced it"
-type: goal
 ---
-
 **`body` is state; `thought` is delta.** The body says what a node asserts
 *now*. The thought says why *this version* differs from the last one. They
 accumulate differently, they are rewritten on different schedules, and

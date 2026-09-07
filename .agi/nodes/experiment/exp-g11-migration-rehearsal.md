@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-evidence_runs: 4
-id: "exp:g11-migration-rehearsal"
+id: exp:g11-migration-rehearsal
 mint_id: 58b01e6669b249ff83fb439a4c2bd6b3
+type: experiment
 parents:
   - goal:g11
+confidence: 1.0
+edited_by: season.py
+evidence_runs: 4
+season: 1
 status: complete
 subgraph: false
 tags:
   - g11
   - migration
   - grid
-title: "Four rehearsals of the two-repo merge on throwaway clones, including one reversed"
-type: experiment
+thought_session: season
+title: Four rehearsals of the two-repo merge on throwaway clones, including one reversed
 ---
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Adds run 4, the rollback rehearsal, which v1 listed under "what this does not
 test". The owner asked for it before authorising the irreversible step, and it

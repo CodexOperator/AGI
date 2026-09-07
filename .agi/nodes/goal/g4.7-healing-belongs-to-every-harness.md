@@ -1,22 +1,24 @@
 ---
+id: goal:g4.7
+mint_id: 800ebcbccc8a4c45b19f293a1df44085
+type: goal
+parents:
+  - goal:g4
 confidence: 1.0
+edited_by: season.py
 goal_id: G4.7
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.7"
-mint_id: 800ebcbccc8a4c45b19f293a1df44085
 origin: goals-doc
-parents:
-  - goal:g4
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G4.7: Healing belongs to every harness, and to the dispatch loop"
-type: goal
 ---
-
 **`heal.py` is not redundant machinery; it is the shape of a missing
 abstraction.** It exists because `dispatch.py` fires agents into detached
 `Popen` calls and then has no idea what became of them, so a second program

@@ -2,18 +2,20 @@
 id: experiment:the-table-runs-and-caught-a-bug
 mint_id: 52a5cdee52d34dbb9626e20567637623
 type: experiment
-title: The table runs and caught a bug
 parents:
   - hypothesis:commands-are-config-not-prose
 next_edges:
   - verdict:declared-commands-delete-four-copies
-scaffold_hash: f3809c94d908f726
-verdict: proved
 confidence: 0.93
+edited_by: season.py
 evidence_runs:
   - experiment:the-table-runs-and-caught-a-bug
+scaffold_hash: f3809c94d908f726
+season: 1
+thought_session: season
+title: The table runs and caught a bug
+verdict: proved
 ---
-
 # experiment:the-table-runs-and-caught-a-bug
 
 ## Experiment

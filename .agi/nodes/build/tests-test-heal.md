@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-heal"
+id: build:tests-test-heal
 mint_id: 7d64c390d0fb4eadacda28c43f99343d
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_heal.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_heal.py"
-type: build
 ---
-
 `extensions/agi/tests/test_heal.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

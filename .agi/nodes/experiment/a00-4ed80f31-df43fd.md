@@ -6,11 +6,14 @@ parents:
   - hypothesis:cc-adapter-refuses-git-handoff-and-dispatch
 next_edges: []
 confidence: 0.95
-scaffold_hash: 538a7b4b0c534c04
-title: A00 4ed80f31 df43fd
-verdict: disproved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-4ed80f31-df43fd
+scaffold_hash: 538a7b4b0c534c04
+season: 1
+thought_session: season
+title: A00 4ed80f31 df43fd
+verdict: disproved
 ---
 # experiment:a00-4ed80f31-df43fd
 

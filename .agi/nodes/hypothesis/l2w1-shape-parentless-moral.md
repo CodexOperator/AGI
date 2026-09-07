@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: ff5abc5aa6eb8dbe
+season: 1
 testable_claim: "[shape].md declares moral as the only parentless type plus three new edge fields, and the spawn gate then refuses a new parentless idea while still accepting a parentless moral"
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-shape-parentless-moral"
 ---
 # hypothesis:l2w1-shape-parentless-moral

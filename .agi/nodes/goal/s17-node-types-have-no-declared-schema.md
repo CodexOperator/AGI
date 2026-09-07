@@ -5,11 +5,12 @@ type: goal
 parents:
   - goal:g15
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S17
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds:
   - idea:schema-declared-spawn-gate
 status: complete
@@ -17,7 +18,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S17: Node types have no declared schema, so a spawn is never checked"
 ---
 **Seven node types are in daily use and `context/schemas/` declares six of

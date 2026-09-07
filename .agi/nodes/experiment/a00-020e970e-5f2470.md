@@ -5,14 +5,16 @@ type: experiment
 parents:
   - hypothesis:a00-ee08875d-df7a60
 next_edges: []
-scaffold_hash: ac15bba8171aa218
-title: A00 020e970e 5f2470
 confidence: 0.7
+edited_by: season.py
 evidence_runs:
   - experiment:a00-020e970e-5f2470
+scaffold_hash: ac15bba8171aa218
+season: 1
+thought_session: season
+title: A00 020e970e 5f2470
 verdict: inconclusive_lean_disproved:60
 ---
-
 # experiment:a00-020e970e-5f2470
 
 ## Experiment
@@ -95,4 +97,3 @@ script, and the Command line above updated.
 <!-- THOUGHT:END -->
 
 **Weakness:** 21 mvps (54%) are unattributed (no goal in parent chain), limiting the sample size. The gap only shows in goals that already have mvps, and most scoring goals (37/58) have zero mvps.
-

@@ -5,11 +5,13 @@ type: hypothesis
 parents:
   - goal:g4.1
 next_edges: []
-status: deprecated
+edited_by: season.py
 scaffold_hash: 5cbbb78062cb78f3
+season: 1
+status: deprecated
+thought_session: season
 title: A01 98e872ef bd5f40
 ---
-
 # hypothesis:a01-98e872ef-bd5f40
 
 ## Hypothesis

@@ -6,10 +6,13 @@ parents:
   - hyp:a00-a8357dc5-08d530
 confidence: 0.65
 contradicts: []
+edited_by: season.py
 evidence_runs:
   - t-093
 hypothesis: hyp:graph-core-r1
+season: 1
 supports: []
+thought_session: season
 title: A00a8357dc5 08d530 closure test
 verdict: inconclusive_lean_proved:65
 ---

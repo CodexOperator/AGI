@@ -7,9 +7,12 @@ parents:
 confidence: 0.75
 demote_reason: loop-level admission was re-implemented in the test, not called (B2/C3/D2)
 demoted_from: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-63cb3c4e-6adaa7
 scaffold_hash: 3c0017a0a96f6e78
+season: 1
+thought_session: season
 title: A00 63cb3c4e 6adaa7
 verdict: inconclusive_lean_proved:75
 wired_at: 1788317207

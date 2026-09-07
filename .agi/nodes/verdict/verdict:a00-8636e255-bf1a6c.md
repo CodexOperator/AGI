@@ -1,14 +1,17 @@
 ---
-confidence: 1.0
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "verdict:a00-8636e255-bf1a6c"
+id: verdict:a00-8636e255-bf1a6c
 mint_id: aefe5460cf0f4741b86e5b59ab34ffb1
-next_edges: []
+type: verdict
 parents:
   - exp:a00-8636e255-bf1a6c
   - hyp:a00-8636e255-bf1a6c
+next_edges: []
+confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: season.py
+evidence_runs: []
+season: 1
 status: open
 tags:
   - renderers
@@ -17,11 +20,10 @@ tags:
   - proved
   - determinism
   - validity
+thought_session: season
 title: "Verdict: Mermaid Renderer R3 — Valid and Deterministic"
-type: verdict
-verdict: "inconclusive_lean_proved:50"
+verdict: inconclusive_lean_proved:50
 ---
-
 **VERDICT: PROVED**
 
 Mermaid renderer (R3) passes all 5 acceptance criteria:

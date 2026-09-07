@@ -6,8 +6,11 @@ parents:
   - goal:g10.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 18973a52e59c8655
+season: 1
 testable_claim: G10.1 (goal:g10.1) asserts that a continuing agent inherits a chat and "inherits the pre-computed key-values wholesale, arriving with the reasoning already in context rather than reconstructed." This implies that the *structured* content of a derivation chat — the decisions made, alternatives rejected, tradeoffs acknowledged, nodes referenced — is more valuable than its *unstructured* prose. But the falsifier in g10.1 tests only whole-chat vs briefing; it does not isolate whether the key-values carry the signal.
+thought_session: season
 title: "A01: Pre-computed key-values from derivation chats reduce agent overhead more than raw chats"
 verdict: pending
 ---

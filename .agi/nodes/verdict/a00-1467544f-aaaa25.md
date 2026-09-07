@@ -1,24 +1,26 @@
 ---
-confidence: 0.97
-contradicts: []
-evidence_runs:
-  - exp:a00-1467544f-aaaa25
-id: "verdict:a00-1467544f-aaaa25"
+id: verdict:a00-1467544f-aaaa25
 mint_id: 9f467422284d4fc7a214305898bb29c6
-next_edges:
-  - mvp:a00-1467544f-aaaa25
+type: verdict
 parents:
   - exp:a00-1467544f-aaaa25
+next_edges:
+  - mvp:a00-1467544f-aaaa25
+confidence: 0.97
+contradicts: []
+edited_by: season.py
+evidence_runs:
+  - exp:a00-1467544f-aaaa25
+season: 1
 status: proved
 supports: []
 tags:
   - bootstrap
   - chain-engine
+thought_session: season
 title: "Hypothesis task-spawns bootstrapping: PROVED"
-type: verdict
 verdict: proved
 ---
-
 **Verdict:** PROVED (confidence: 0.97)
 
 **Claim:** ≥70% of hypothesis nodes spawn ≥1 task via the `spawns` relationship, providing sufficient graph density for chain bootstrapping.

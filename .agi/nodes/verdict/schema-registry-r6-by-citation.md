@@ -6,7 +6,7 @@ parents:
   - hyp:schema-registry-r6
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-schema-registry-hooks-protocol
   - build:src-schema-registry-hooks-claude-hook
@@ -14,6 +14,7 @@ evidence_runs:
   - build:src-schema-registry-hooks-none-hook
   - build:tests-schema-registry-test-hooks
 scaffold_hash: cf9ec6bfc5016bf6
+season: 1
 supports:
   - hyp:schema-registry-r6
 tags:
@@ -21,7 +22,7 @@ tags:
   - R6
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R6: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

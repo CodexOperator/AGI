@@ -6,7 +6,10 @@ parents:
   - goal:g4.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 9c50dc31b2edb229
+season: 1
+thought_session: season
 title: Worktree isolation prevents all 3 g4.1 collision types structurally — benefit unmeasured, cost proved negligible
 verdict: pending
 ---

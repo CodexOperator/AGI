@@ -7,18 +7,19 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G9.8
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: aca900e6d41c2e21
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G9.8: One live hook layer, two skins, and a player avatar that browses the graph"
 ---
 # goal:g9.8

@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 1cedac95a4d53cce
+season: 1
 testable_claim: spawn_gate.py validates season_parents by type from the schema's spawn block, reads current_season from the ladder node, and skips the check for nodes whose season is earlier than the current one
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 2: l2w2-gate-season-parents"
 ---
 # hypothesis:l2w2-gate-season-parents

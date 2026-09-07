@@ -5,14 +5,16 @@ type: experiment
 parents:
   - hypothesis:a00-711c2d0f-15bc43
 next_edges: []
-scaffold_hash: 87512bee98fb3957
-title: "Chat vs briefing: context-search efficiency proxy"
-verdict: inconclusive_lean_proved:50
-confidence: 0.50
+confidence: 0.5
+edited_by: season.py
 evidence_runs:
   - experiment:a00-af93633e-fea9ca
+scaffold_hash: 87512bee98fb3957
+season: 1
+thought_session: season
+title: "Chat vs briefing: context-search efficiency proxy"
+verdict: inconclusive_lean_proved:50
 ---
-
 # experiment:a00-af93633e-fea9ca
 
 ## Experiment

@@ -2,17 +2,19 @@
 id: hypothesis:verbs-before-keystrokes
 mint_id: 6ee87e315e8447f4b9df4fea9546e725
 type: hypothesis
-title: Verbs before keystrokes
-testable_claim: "Edit mode's nameable verb set is the thing with a right and a wrong answer; the modal shell is skin over it, and building the shell first would produce verbs shaped by keybindings rather than by operations."
 parents:
   - goal:g13.1
 next_edges:
   - experiment:both-callers-one-edit
-scaffold_hash: a7b54ad286879bee
-verdict: pending
 confidence: 0.85
+edited_by: season.py
+scaffold_hash: a7b54ad286879bee
+season: 1
+testable_claim: Edit mode's nameable verb set is the thing with a right and a wrong answer; the modal shell is skin over it, and building the shell first would produce verbs shaped by keybindings rather than by operations.
+thought_session: season
+title: Verbs before keystrokes
+verdict: pending
 ---
-
 # hypothesis:verbs-before-keystrokes
 
 ## Hypothesis

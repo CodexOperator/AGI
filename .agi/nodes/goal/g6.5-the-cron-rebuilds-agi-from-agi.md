@@ -1,22 +1,24 @@
 ---
+id: goal:g6.5
+mint_id: 1144ba54807845f2b7dfa655e7f47571
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.5
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.5"
-mint_id: 1144ba54807845f2b7dfa655e7f47571
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds: []
 status: retired
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.5: The cron rebuilds agi from agi-tree, then commits and pushes it"
-type: goal
 ---
-
 **The shape being committed to: `agi-tree` is the development environment,
 `agi` is the shippable package.** Work happens in the graph; the engine repo is
 what falls out of it. When the grid cron runs it should re-derive the census,

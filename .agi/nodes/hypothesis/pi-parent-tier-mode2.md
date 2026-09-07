@@ -7,7 +7,10 @@ parents:
 next_edges:
   - experiment:a00-763e629b-5c04ad
 confidence: 0.5
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: Pi parent tier mode2
 verdict: pending
 ---

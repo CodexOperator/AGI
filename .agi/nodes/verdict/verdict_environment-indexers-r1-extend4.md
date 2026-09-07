@@ -5,7 +5,10 @@ type: verdict
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 evidence_runs: []
+season: 1
+thought_session: season
 title: Verdict environment indexers r1 extend4
 verdict: inconclusive_lean_proved:50
 ---

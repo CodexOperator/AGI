@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-tests-graph-core"
+id: idea:engine-tests-graph-core
 mint_id: f0a71a8656f94c22bb2620593fdefa71
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/tests/graph_core"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/tests/graph_core
 ---
-
 `extensions/agi/tests/graph_core` — an engine source package.
 
 No module docstring or header comment was found for this surface.

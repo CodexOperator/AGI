@@ -1,22 +1,24 @@
 ---
+id: goal:g6.2
+mint_id: 004d3220565b41c4ba5b56ce24b2c66b
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.2
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.2"
-mint_id: 004d3220565b41c4ba5b56ce24b2c66b
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.2: Retire the padding and keep it recoverable"
-type: goal
 ---
-
 Done 2026-08-21. 28,916 gamed `-extend<N>` experiment/verdict nodes were
 removed from the working tree and archived outside the repo with a manifest
 recording the predicate, family and index of every one. 122 family heads were

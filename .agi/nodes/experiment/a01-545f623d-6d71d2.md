@@ -5,11 +5,13 @@ type: experiment
 parents:
   - hypothesis:a01-dd74693c-b77b37
 next_edges: []
-status: deprecated
+edited_by: season.py
 scaffold_hash: 75cfaa0f388eb751
+season: 1
+status: deprecated
+thought_session: season
 title: A01 545f623d 6d71d2
 ---
-
 # experiment:a01-545f623d-6d71d2
 
 ## Experiment
@@ -32,4 +34,3 @@ deleted — mint id and grid ref outlive the file. Thread
 `experiment:a01-095cec0b-115104` → two verdicts); nothing in the thread
 waits on a third experiment.
 <!-- THOUGHT:END -->
-

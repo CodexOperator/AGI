@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-context-kits"
+id: idea:engine-context-kits
 mint_id: b7b91cb5380d445683c9a3c9d2e87b27
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: context/kits"
-type: idea
 unit_kind: src_package
 unit_path: context/kits
 ---
-
 `context/kits` — an engine source package.
 
 No module docstring or header comment was found for this surface.

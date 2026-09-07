@@ -1,19 +1,21 @@
 ---
+id: exp:exp-a00-4125fa6d-005488
+mint_id: 16232b9405c34cd7b052086e985f6dcd
+type: experiment
+parents:
+  - hyp:a00-4125fa6d-005488
+next_edges:
+  - verdict:verdict-a00-4125fa6d-005488
 confidence: 0.75
+edited_by: season.py
 evidence_runs:
   - run:1
   - run:2
-id: "exp:exp-a00-4125fa6d-005488"
-mint_id: 16232b9405c34cd7b052086e985f6dcd
-next_edges:
-  - verdict:verdict-a00-4125fa6d-005488
-parents:
-  - hyp:a00-4125fa6d-005488
+season: 1
+thought_session: season
 title: Agent Spawning via Verdict Nodes
-type: experiment
 verdict: pending
 ---
-
 # exp:exp-a00-4125fa6d-005488
 
 ## Experiment

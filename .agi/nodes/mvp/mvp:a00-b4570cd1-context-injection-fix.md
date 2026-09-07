@@ -5,6 +5,9 @@ type: mvp
 parents:
   - verdict:a00-b4570cd1-0b9427
 next_edges: []
+edited_by: season.py
+season: 1
+thought_session: season
 title: Mvp:a00 b4570cd1 context injection fix
 ---
 **MVP:** Context injection now reports accurate chain state

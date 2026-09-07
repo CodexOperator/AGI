@@ -6,13 +6,15 @@ parents:
   - hypothesis:a00-c75d53f8-8c3e73
 next_edges: []
 confidence: 0.55
-scaffold_hash: 59069e7bcfdb99de
-
-title: "Orphan chat census, strict denominator (session dirs with context.md) — 26.8%, thin margin over 25%"
-verdict: inconclusive_lean_proved:55
+edited_by: season.py
 evidence_runs:
   - experiment:a00-30335f56-5f7b2f
   - experiment:a01-dd5d475e-8dcf31
+scaffold_hash: 59069e7bcfdb99de
+season: 1
+thought_session: season
+title: Orphan chat census, strict denominator (session dirs with context.md) — 26.8%, thin margin over 25%
+verdict: inconclusive_lean_proved:55
 ---
 # experiment:a00-30335f56-5f7b2f
 

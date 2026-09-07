@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: ubuntu
+edited_by: season.py
 scaffold_hash: a977b28399901009
+season: 1
 testable_claim: season.py status prints the per-tier plan and report counts, ratios, mismatches and cost from the live graph; judge scaffolds the judgment record on a report node with the lens derived from the plan node's parent; rollover --dry-run lists what season N+1 would mint without writing
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 3: l2w3-season-py"
 ---
 # hypothesis:l2w3-season-py

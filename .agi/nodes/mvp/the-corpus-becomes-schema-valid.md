@@ -2,15 +2,17 @@
 id: mvp:the-corpus-becomes-schema-valid
 mint_id: edae00c540aa437ba07d929ea3d6af17
 type: mvp
-title: The 115 nodes that predate the fix become valid without anything being invented
 parents:
   - verdict:scaffolds-are-born-valid-now
 next_edges: []
-scaffold_hash: 879a958ec582a87e
-status: complete
 confidence: 0.8
+edited_by: season.py
+scaffold_hash: 879a958ec582a87e
+season: 1
+status: complete
+thought_session: season
+title: The 115 nodes that predate the fix become valid without anything being invented
 ---
-
 # mvp:the-corpus-becomes-schema-valid
 
 ## What this must satisfy

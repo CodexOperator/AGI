@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R10
 testable_claim: Bootstrap Command
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R10: Bootstrap Command"
 ---
 **Description:** A command initializes a new project so a fresh directory becomes a valid graph root.

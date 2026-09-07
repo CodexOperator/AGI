@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-021
 cavekit_req: schema-registry/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-028: Pluggable LM hook with graceful degradation"
 ---
 **Description:** Implement `LanguageModelHook` Protocol with `propose_schema(samples)` returning a candidate dict. Implementations chosen via `context/config/schema-registry.toml` `hook=` value (claude/ollama/none). Wrap calls in `try/except` with structured logging and a strict YAML schema validator on outputs.

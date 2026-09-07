@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a01-f812c411-1e85f9
 next_edges: []
+edited_by: season.py
 scaffold_hash: 103872418cc68156
+season: 1
+thought_session: season
 title: A00 9f243a1c 7ba585
 ---
-
 <!-- THOUGHT:BEGIN -->
 Parent review (a00-f45d8a12, iter 1078): the numbers are reproducible —
 re-ran the v4 simulation (bounded 0.50, continuous 1.00, +50% gap confirmed)
@@ -54,4 +56,3 @@ reaper: finished
 ```
 
 Simulation script: `.agi/tmp_reaper_gap_v4.py`
-

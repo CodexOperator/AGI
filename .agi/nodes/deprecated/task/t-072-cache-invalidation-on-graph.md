@@ -14,15 +14,16 @@ blocked_by:
   - task:t-069
   - task:t-013
 cavekit_req: embeddings/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-072: Cache invalidation on graph change"
 ---
 **Description:** Embedding cache stored at `context/.cache/embeddings/<digest>.npz`. Per-node digest tracked; only invalid entries re-embedded. `--reembed` flag forces full rebuild.

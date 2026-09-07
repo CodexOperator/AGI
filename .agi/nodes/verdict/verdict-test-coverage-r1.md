@@ -1,24 +1,26 @@
 ---
-confidence: 0.41
-demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
-demoted_from: disproved
-domain: test-coverage
-evidence_runs:
-  - exp:test-coverage-r1
-id: "verdict:test-coverage-r1"
+id: verdict:test-coverage-r1
 mint_id: 2505427d31594df6a4880dcf44c78043
+type: verdict
 parents:
   - hyp:test-coverage-r1
-status: "inconclusive_lean_disproved:50"
+confidence: 0.41
+demote_reason: no experiment evidence (evidence_runs=0) for 'disproved'
+demoted_from: disproved
+domain: test-coverage
+edited_by: season.py
+evidence_runs:
+  - exp:test-coverage-r1
+season: 1
+status: inconclusive_lean_disproved:50
 tags:
   - tests
   - coverage
   - R1
+thought_session: season
 title: "R1: Test coverage analysis of node types, edge relations, and graph operations"
-type: verdict
-verdict: "inconclusive_lean_disproved:50"
+verdict: inconclusive_lean_disproved:50
 ---
-
 **Verdict:** DISPROVED
 
 **Coverage Metrics:**

@@ -6,13 +6,14 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.85
-edited_by: director
+edited_by: season.py
 evidence_runs:
   - experiment:mvp-forward-backward-audit
 scaffold_hash: efafa44d05812d01
 scale: engine
+season: 1
 testable_claim: An mvp minted for work already done (no forward-pointing source_files/build; body describes a finished change) does not raise outcome_coverage; the 9 mvps minted 2026-09-03 in iters 1012-1019 are audited against [mvp].md and any backward-pointing one is deprecated or excluded from scoring_mvp_count
-thought_session: L1.08
+thought_session: season
 title: An mvp that points backward is score neutral
 verdict: proved
 ---

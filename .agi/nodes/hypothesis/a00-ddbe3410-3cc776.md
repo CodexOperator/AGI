@@ -1,23 +1,25 @@
 ---
+id: hyp:a00-ddbe3410-3cc776
+mint_id: f202f3472d954d3f9c7ee2931f19e5df
+type: hypothesis
+parents:
+  - idea:domain-chain-bootstrap
+next_edges:
+  - exp:a00-ddbe3410-exp001-graph-core-r1-t001
 acceptance_criteria: []
 blocked_by: []
 cavekit_req: bootstrap/chain-block
+edited_by: season.py
 effort: L
-id: "hyp:a00-ddbe3410-3cc776"
-mint_id: f202f3472d954d3f9c7ee2931f19e5df
-next_edges:
-  - exp:a00-ddbe3410-exp001-graph-core-r1-t001
-parents:
-  - idea:domain-chain-bootstrap
+season: 1
 status: open
 tags:
   - bootstrap
   - chain-block
   - iteration-1
+thought_session: season
 title: "Hypothesis: task-to-experiment bootstrap is the chain-block bottleneck"
-type: hypothesis
 ---
-
 ## Hypothesis
 
 The capillary DAG has 60 hypotheses, 90 pending tasks, but **zero experiment nodes and zero verdict nodes**. This is not a content gap — it is an **execution gap**. The graph is blocked at the hypothesis→experiment transition.

@@ -6,6 +6,9 @@ parents:
   - hyp:a00-204c9d9e-1d958f
 next_edges:
   - verdict:verdict:a00-204c9d9e-1d958f
+edited_by: season.py
+season: 1
+thought_session: season
 title: Exp:a00 204c9d9e 1d958f
 ---
 # exp:exp:a00-204c9d9e-1d958f

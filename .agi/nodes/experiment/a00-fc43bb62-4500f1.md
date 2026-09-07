@@ -6,11 +6,14 @@ parents:
   - hypothesis:l2w1-ladder-node
 next_edges: []
 confidence: 1.0
-scaffold_hash: f1cc57c0f7992d44
-title: A00 fc43bb62 4500f1 — ladder schema + node creation and validation
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-fc43bb62-4500f1
+scaffold_hash: f1cc57c0f7992d44
+season: 1
+thought_session: season
+title: A00 fc43bb62 4500f1 — ladder schema + node creation and validation
+verdict: proved
 ---
 # experiment:a00-fc43bb62-4500f1
 

@@ -1,21 +1,23 @@
 ---
+id: goal:g12.1
+mint_id: ea44e514a73a4c30ab13660a30a9e82f
+type: goal
+parents:
+  - goal:g12
 confidence: 1.0
+edited_by: season.py
 goal_id: G12.1
 goal_kind: long-term
 heading_level: 3
-id: "goal:g12.1"
-mint_id: ea44e514a73a4c30ab13660a30a9e82f
 origin: goals-doc
-parents:
-  - goal:g12
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
+thought_session: season
 title: "G12.1: Caps on morals and visions, and season-boundary edges"
-type: goal
 ---
-
 **G12 sets the chain; this sets the numbers on it.** Two caps, one new edge
 concept, and one open question about who may edit the root of the tree.
 

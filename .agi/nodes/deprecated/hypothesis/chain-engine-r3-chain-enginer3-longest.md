@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-chain-engine
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - chain-engine
   - R3
 testable_claim: Longest-Chain Attractor
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R3: Longest-Chain Attractor"
 ---
 **Description:** Among current chains, longer chains are preferred but not exclusive. Attractiveness is a weighted score and short chains may still be selected if their score is competitive.

@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S14
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S14: No generator mints a `mint_id`; the backfill is the only assigner"
 ---
 Every node a generator creates arrives without a `mint_id`, so `grid.py commit

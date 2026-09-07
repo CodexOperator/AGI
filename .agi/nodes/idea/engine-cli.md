@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-cli"
+id: idea:engine-cli
 mint_id: c93918a0494b460ca4d6cc8d65188bc0
-origin: engine-decomp
+type: idea
 parents:
   - goal:g1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/cli.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/cli.py
 ---
-
 `extensions/agi/bin/cli.py` — an engine bin entry-point script.
 
 cli.py — agent-facing completion + verdict-emission CLI.

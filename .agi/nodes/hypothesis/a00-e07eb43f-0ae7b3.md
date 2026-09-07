@@ -4,6 +4,9 @@ mint_id: 67fb39923f7144ccb382b9ae6506eae0
 type: hypothesis
 parents: []
 next_edges: []
+edited_by: season.py
+season: 1
+thought_session: season
 title: A00 e07eb43f 0ae7b3
 ---
 # hyp:a00-e07eb43f-0ae7b3

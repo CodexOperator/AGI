@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:embeddings-r2
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - embeddings
   - R2
 testable_claim: UMAP Projection to 2D
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R2: UMAP Projection to 2D"
 ---
 **Description:** Per-node vectors are projected to two dimensions using UMAP. Three-dimensional projection is supported via configuration but is not required by default.

@@ -6,14 +6,15 @@ next_edges:
   - hyp:embeddings-r2
   - hyp:embeddings-r3
 confidence: 1.0
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
 scale: big
+season: 1
 status: deprecated
 tags:
   - domain
   - seed
-thought_session: L1.09
+thought_session: season
 title: "Domain: embeddings"
 ---
 Vector embeddings of the graph that share their two-dimensional projection with the renderers' shared representation. The same coordinate values that drive a scatter rendering also drive similarity queries: visualization and embedding are isomorphic by construction. Node2Vec is the embedding model and UMAP is the projection method for v1. Other models and projections are documented as upgrade paths but not required.

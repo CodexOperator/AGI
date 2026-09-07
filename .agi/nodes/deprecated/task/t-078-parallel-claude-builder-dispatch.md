@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-077
 cavekit_req: autoresearch-tree-skill/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-078: Parallel Claude builder dispatch (≤5)"
 ---
 **Description:** Implement `dispatch_builders(briefings)` using `asyncio.gather(..., return_exceptions=True)` capped at 5 concurrent. Document Ollama-as-v2 in `agi-tree/skills/autoresearch-tree/references/dispatch.md`. Failure → structured per-agent result, others continue.

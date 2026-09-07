@@ -2,18 +2,20 @@
 id: experiment:link-scan-and-the-thought-guarantee
 mint_id: 894bad469adf49bc9eaa9ef2ea0bb84e
 type: experiment
-title: "Scan every node's link; try to destroy a thought through the writer"
 parents:
   - hypothesis:one-gated-edit-in-place
 next_edges:
   - verdict:the-write-half-has-a-floor
-scaffold_hash: 87923ea9b46b9fc4
-verdict: proved
 confidence: 0.93
+edited_by: season.py
 evidence_runs:
   - experiment:link-scan-and-the-thought-guarantee
+scaffold_hash: 87923ea9b46b9fc4
+season: 1
+thought_session: season
+title: Scan every node's link; try to destroy a thought through the writer
+verdict: proved
 ---
-
 # experiment:link-scan-and-the-thought-guarantee
 
 ## Experiment

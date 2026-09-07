@@ -1,11 +1,14 @@
 ---
+id: goal:g2
+mint_id: bcbb7e64bb824b74876ad5db95c89969
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G2
 goal_kind: long-term
 heading_level: 2
-id: "goal:g2"
-mint_id: bcbb7e64bb824b74876ad5db95c89969
 origin: goals-doc
+season: 1
 seeds:
   - exp:zoom-numeric-axis-r1
   - goal:g2.1
@@ -25,10 +28,9 @@ status: horizon
 tags:
   - goal
   - root
+thought_session: season
 title: "G2: Adjustable zoom with contracts that survive the trip"
-type: goal
 ---
-
 One graph readable at five grains, where level 3 is **actual code nodes that
 stitch into a runnable directory layout** — the property that makes the graph an
 executable artifact rather than a description of one. Build level 3 first and

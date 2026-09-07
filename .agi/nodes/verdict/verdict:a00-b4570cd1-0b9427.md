@@ -1,15 +1,18 @@
 ---
-confidence: 0.98
-contrasts: []
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "verdict:a00-b4570cd1-0b9427"
+id: verdict:a00-b4570cd1-0b9427
 mint_id: 0775b843e55b45d3b74f656d1de9b46e
-next_edges:
-  - mvp:a00-b4570cd1-context-injection-fix
+type: verdict
 parents:
   - exp:a00-b4570cd1-context-injection-fix
+next_edges:
+  - mvp:a00-b4570cd1-context-injection-fix
+confidence: 0.98
+contrasts: []
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: season.py
+evidence_runs: []
+season: 1
 status: inconclusive_lean_proved:50
 subgraph: false
 supports:
@@ -17,11 +20,10 @@ supports:
   - verdict:embeddings-r2
   - verdict:embeddings-r3
   - verdict:chain-engine-r1
+thought_session: season
 title: "iter30: context longest_chain 0→199 hops via next_edges fix"
-type: verdict
 verdict: inconclusive_lean_proved:50
 ---
-
 **Verdict:** PROVED (confidence 0.98)
 
 **Evidence:**

@@ -7,8 +7,11 @@ parents:
 next_edges:
   - experiment:the-falsifier-and-the-corpus-census
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 2b25f5e175a1dd7f
+season: 1
 testable_claim: "A scaffold can be born schema-valid without any agent touching frontmatter, by splitting the required fields into two populations: those the **engine can derive** at write time, seeded before the file is written; and those only the **kid holds**, written by the kid into the *body* under the heading its brief asks for and lifted into frontmatter at completion by the gated write path. Nothing is invented for a field in neither population — it stays absent and stays reported."
+thought_session: season
 title: Born valid without touching frontmatter
 verdict: pending
 ---

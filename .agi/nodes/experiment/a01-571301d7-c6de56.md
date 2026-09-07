@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 5c171292d3716bf2
+season: 1
+thought_session: season
 title: Part B fallback verified at code+test level — live dispatch with provisioning truly absent still untested
 verdict: inconclusive_lean_proved:85
 ---

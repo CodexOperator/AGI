@@ -6,12 +6,13 @@ parents:
   - hypothesis:a-loop-that-does-not-report-its-own-completion-repeats-its-gaps
 next_edges: []
 confidence: 0.8
-edited_by: director
+edited_by: season.py
 scaffold_hash: a544d6be1303f546
+season: 1
 status: open
 tags:
   - mvp
-thought_session: L1.13
+thought_session: season
 title: Complete md the post loop completion report
 ---
 # mvp:complete-md-the-post-loop-completion-report

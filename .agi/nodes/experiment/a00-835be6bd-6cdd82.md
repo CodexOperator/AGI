@@ -5,11 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-2e59d7d4-5497cf
 confidence: 0.55
+edited_by: season.py
 scaffold_hash: acdcd552d042629a
+season: 1
+thought_session: season
 title: A00 835be6bd 6cdd82
 verdict: inconclusive_lean_proved:55
 ---
-
 # experiment:a00-835be6bd-6cdd82
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

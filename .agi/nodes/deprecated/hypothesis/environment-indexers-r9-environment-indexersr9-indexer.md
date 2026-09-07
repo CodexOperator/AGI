@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R9
 testable_claim: Indexer Documentation and Upgrade Markers
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R9: Indexer Documentation and Upgrade Markers"
 ---
 **Description:** Each indexer's source documents its own internals well enough that a future contributor can replace the parsing or scanning core without re-deriving the schema mapping.

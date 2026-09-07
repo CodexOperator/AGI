@@ -6,7 +6,10 @@ parents:
   - goal:g4.1
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: 8770a6a3b0792622
+season: 1
+thought_session: season
 title: The permanent agent contract still tells kids to commit — the ban only holds because every iteration override wins
 verdict: inconclusive_lean_proved:70
 ---

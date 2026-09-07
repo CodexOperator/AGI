@@ -6,9 +6,12 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: e09125bbd5a6ec1e
+season: 1
 testable_claim: "Per-goal `outcome_coverage` computed via backward parent-chain traversal from outcomes through mvps/hypotheses to goals reveals meaningful dispersion on the real corpus: **at least one active goal's per-goal coverage differs from the whole-graph aggregate `outcome_coverage` by > 0.2**, confirming that the aggregate proxy (L4's target) masks real goal-level divergence."
-title: "Is per-goal outcome_coverage dispersion material? (L4 test)"
+thought_session: season
+title: Is per-goal outcome_coverage dispersion material? (L4 test)
 verdict: pending
 ---
 # hypothesis:a00-7c4fe325-167867

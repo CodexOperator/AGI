@@ -1,21 +1,23 @@
 ---
-confidence: 0.95
-id: "hyp:a01-7031af17-449ecb"
+id: hyp:a01-7031af17-449ecb
 mint_id: a2f2765bcca64ff3b993d3f4ae29d4aa
+type: hypothesis
+parents:
+  - idea:domain-graph-core
 next_edges:
   - verdict:a01-7031af17-449ecb-r11
   - mvp:a01-7031af17-449ecb-r11
-parents:
-  - idea:domain-graph-core
+confidence: 0.95
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - graph-core
   - R11
 testable_claim: Path Safety and Project-Root Sandboxing
+thought_session: season
 title: "graph-core/R11: Path Safety and Project-Root Sandboxing"
-type: hypothesis
 ---
-
 ## Hypothesis
 
 The `PathValidator` in `src/graph_core/paths.py` provides correct project-root sandboxing for all graph-core file-system operations. The PathValidator class itself is correct (rejects escapes, accepts valid paths), but it is NOT wired into the `load_directory` function — the loader reads files without sandboxing. This gap means a malicious or misconfigured node file could reference paths outside the project root.

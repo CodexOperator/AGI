@@ -4,14 +4,15 @@ mint_id: c7b854df037045dd90c30fca57b08e54
 type: build
 build_kind: prose
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: CLAUDE.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
-thought_session: L1.13
+thought_session: season
 title: "Build: CLAUDE.md"
 ---
 `CLAUDE.md` — level-3 code node (one file, one canonical node).

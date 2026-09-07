@@ -6,8 +6,11 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 evidence_runs: []
 scaffold_hash: 208188f8456db8e8
+season: 1
+thought_session: season
 title: A03 1b139d1a 8b6adf
 verdict: pending
 ---

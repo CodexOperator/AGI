@@ -1,22 +1,24 @@
 ---
+id: goal:g2.7
+mint_id: 9d60959979ff4b2397e6722488c609d7
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.7
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.7"
-mint_id: 9d60959979ff4b2397e6722488c609d7
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.7: The finest zoom is the chat that produced the version"
-type: goal
 ---
-
 **Zoom does not stop at the node.** Coarse levels are organised by tags and
 addresses (**G2.5**, **G2.6**); the finer levels are organised by **mint id and
 the grid**. Zooming into a node reveals its version history; zooming into a

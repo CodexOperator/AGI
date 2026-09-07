@@ -5,21 +5,23 @@ type: mvp
 parents:
   - verdict:spawn-gate-lands-on-writer-path
 next_edges: []
+confidence: 0.85
+edited_by: season.py
+season: 1
 source_files:
   - extensions/agi/bin/spawn_gate.py
   - extensions/agi/bin/cli.py
   - extensions/agi/bin/post_wire.py
   - extensions/agi/tests/test_spawn_gate.py
-tests_pass: true
 status: implemented
-confidence: 0.85
 tags:
   - s17
   - schema
   - gate
-title: "bin/spawn_gate.py — schema-declared spawn rules, enforced on the writer path"
+tests_pass: true
+thought_session: season
+title: bin/spawn_gate.py — schema-declared spawn rules, enforced on the writer path
 ---
-
 # mvp:spawn-gate
 
 The code control S17 asked for. **The schema is data; this module is only the

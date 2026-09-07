@@ -5,7 +5,10 @@ type: verdict
 confidence: 0.18
 demote_reason: no experiment evidence (evidence_runs=0) for 'disproved'
 demoted_from: disproved
+edited_by: season.py
 evidence_runs: []
+season: 1
+thought_session: season
 title: Idea domain vector embedding isomorphism
 verdict: inconclusive_lean_disproved:50
 ---

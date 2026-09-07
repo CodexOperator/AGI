@@ -8,21 +8,17 @@ next_edges:
   - exp:node-type-corpus-survey
   - exp:spawn-gate-falsifier
 confidence: 0.8
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - s17
   - schema
   - gate
-title: "A schema-declared spawn rule, enforced on the writer path, rejects by name and approves out loud"
-testable_claim: >-
-  A spawn rule read from context/schemas/[<type>].md and applied inside
-  cli.py/post_wire.py will (a) refuse to write a verdict with no parent and a
-  task with three parents, each time naming the violated rule AND the schema
-  file it came from, (b) print an explicit approval naming the schema on a
-  legal spawn, and (c) leave every one of the 53 existing rule-violating nodes
-  in place.
+testable_claim: A spawn rule read from context/schemas/[<type>].md and applied inside cli.py/post_wire.py will (a) refuse to write a verdict with no parent and a task with three parents, each time naming the violated rule AND the schema file it came from, (b) print an explicit approval naming the schema on a legal spawn, and (c) leave every one of the 53 existing rule-violating nodes in place.
+thought_session: season
+title: A schema-declared spawn rule, enforced on the writer path, rejects by name and approves out loud
 ---
-
 # hyp:spawn-check-on-writer-path
 
 ## The testable claim

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-grid"
+id: build:bin-grid
 mint_id: 0c772dbafc4845e7ad419180519d4243
-origin: build-scan
+type: build
 parents:
   - idea:engine-grid
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/grid.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/grid.py"
-type: build
 ---
-
 `extensions/agi/bin/grid.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-grid`.

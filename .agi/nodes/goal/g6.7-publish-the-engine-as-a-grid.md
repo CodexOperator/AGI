@@ -1,22 +1,24 @@
 ---
+id: goal:g6.7
+mint_id: 79319444e14942368e38c41156800830
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.7
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.7"
-mint_id: 79319444e14942368e38c41156800830
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.7: Publish the engine as a grid ref, not a written tree"
-type: goal
 ---
-
 **The question: could a fourth grid dimension replace `stitch.py --out`?** The
 grid already has three — D1 chain (`refs/heads/*`), D2 node
 (`refs/grid/node/<id>`), D3 session (`refs/grid/session/...`). A D4 *release*

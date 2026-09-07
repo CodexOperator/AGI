@@ -6,11 +6,14 @@ parents:
   - experiment:a00-6e0b0336-5fe614
 next_edges: []
 confidence: 0.95
-scaffold_hash: 7e74c0f41d9424cb
-title: A00 57072aee 77a31b
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-6e0b0336-5fe614
+scaffold_hash: 7e74c0f41d9424cb
+season: 1
+thought_session: season
+title: A00 57072aee 77a31b
+verdict: proved
 ---
 # verdict:a00-57072aee-77a31b
 

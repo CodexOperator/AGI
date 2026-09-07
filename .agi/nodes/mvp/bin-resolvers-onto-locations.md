@@ -5,6 +5,9 @@ type: mvp
 parents:
   - goal:g11.1
 next_edges: []
+confidence: 0.93
+edited_by: season.py
+season: 1
 source_files:
   - extensions/agi/bin/benchmark.py
   - extensions/agi/bin/cli.py
@@ -17,15 +20,14 @@ source_files:
   - extensions/agi/bin/spawn_gate.py
   - extensions/agi/bin/zoom.py
   - extensions/agi/tests/test_locations.py
-tests_pass: true
 status: implemented
-confidence: 0.93
 tags:
   - g11.1
   - resolver
-title: "All ten bin/ entry points delegate to locations.py; all ten were broken, not three"
+tests_pass: true
+thought_session: season
+title: All ten bin/ entry points delegate to locations.py; all ten were broken, not three
 ---
-
 # mvp:bin-resolvers-onto-locations
 
 The ten duplicated ancestor walks under `extensions/agi/bin/` now call

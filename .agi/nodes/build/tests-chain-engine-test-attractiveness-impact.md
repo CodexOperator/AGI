@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-chain-engine-test-attractiveness-impact"
+id: build:tests-chain-engine-test-attractiveness-impact
 mint_id: e8b8874a5aca42de9262014a9b95f947
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-chain-engine
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/chain_engine/test_attractiveness_impact.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/chain_engine/test_attractiveness_impact.py"
-type: build
 ---
-
 `extensions/agi/tests/chain_engine/test_attractiveness_impact.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-chain-engine`.

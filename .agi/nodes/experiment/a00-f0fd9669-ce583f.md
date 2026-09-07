@@ -7,9 +7,12 @@ parents:
 confidence: 0.8
 demote_reason: "parent review: disproof is a static code trace, not the live N-parent run the hypothesis specified; N=1 carve-out keeps the claim from being universally disproved. Strong lean, not a decisive verdict."
 demoted_from: disproved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-f0fd9669-ce583f
 scaffold_hash: 43c9f68d9de2b4cc
+season: 1
+thought_session: season
 title: A00 f0fd9669 ce583f
 verdict: inconclusive_lean_disproved:80
 wired_at: 1788320203

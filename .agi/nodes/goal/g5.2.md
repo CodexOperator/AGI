@@ -7,18 +7,19 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G5.2
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 1d476dccd6b13d22
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G5.2: Splitting a goal is a mechanical act — classifiers and encoders, not taste"
 ---
 # goal:g5.2

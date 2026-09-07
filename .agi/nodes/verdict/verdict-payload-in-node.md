@@ -1,21 +1,23 @@
 ---
-confidence: 0.75
-evidence_runs:
-  - exp:grid-payload-roundtrip
-id: "verdict:payload-in-node"
+id: verdict:payload-in-node
 mint_id: f0dc116e9820405cb2b7fbe6bdc6bcd9
+type: verdict
 parents:
   - exp:grid-payload-roundtrip
+confidence: 0.75
+edited_by: season.py
+evidence_runs:
+  - exp:grid-payload-roundtrip
+season: 1
 status: open
 subgraph: false
 tags:
   - g6.3
   - grid
+thought_session: season
 title: Grid-ref payload roundtrip proves the core claim; reusing commit_file() as-is is unendorsed
-type: verdict
 verdict: proved
 ---
-
 **VERDICT: proved.** The git-plumbing mechanism (`hash-object`/`mktree`/
 `commit-tree`/`update-ref`) can carry a level-3 node's payload losslessly —
 bytes, exec bit, and symlink target — across real version history. The

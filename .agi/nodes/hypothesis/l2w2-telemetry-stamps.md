@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g16
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 994e4c49af9a45cc
+season: 1
 testable_claim: At cli.py done the kid's node is stamped with tokens_in, tokens_out and cost_usd from a real source, and with accepted diff bytes at parent acceptance, or the node records which source was unavailable
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 2: l2w2-telemetry-stamps"
 ---
 # hypothesis:l2w2-telemetry-stamps

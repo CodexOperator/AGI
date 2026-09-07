@@ -6,10 +6,13 @@ parents:
   - hypothesis:a00-c75d53f8-8c3e73
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 evidence_runs:
   - experiment:a01-dd5d475e-8dcf31
   - experiment:a00-30335f56-5f7b2f
-title: "Orphan session-dir audit, loose denominator (all iter-* dirs) — 74-79%, parent-demoted from proved"
+season: 1
+thought_session: season
+title: Orphan session-dir audit, loose denominator (all iter-* dirs) — 74-79%, parent-demoted from proved
 verdict: inconclusive_lean_proved:70
 ---
 # experiment:a01-dd5d475e-8dcf31

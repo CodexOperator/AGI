@@ -8,14 +8,15 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/tests/test_write.py
 scaffold_hash: 55fb1454eaa9eb25
+season: 1
 tags:
   - build
   - code
-thought_session: L1.13
+thought_session: season
 title: "Build: extensions/agi/tests/test_write.py"
 ---
 # build:tests-test-write

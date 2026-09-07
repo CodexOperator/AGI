@@ -5,7 +5,10 @@ type: experiment
 parents:
   - hypothesis:pi-parent-tier-mode2
 confidence: 0.65
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: A00 763e629b 5c04ad
 verdict: inconclusive_lean_proved:65
 wired_at: 1788233448

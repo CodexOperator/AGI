@@ -1,19 +1,21 @@
 ---
-confidence: 0.5
-id: "hyp:a00-407fa689-verdict-repair"
+id: hyp:a00-407fa689-verdict-repair
 mint_id: c98782837134412b96939215180f5d48
-next_edges:
-  - exp:exp-a00-407fa689-verdict-repair
+type: hypothesis
 parents:
   - hyp:a00-407fa689-3a4948
+next_edges:
+  - exp:exp-a00-407fa689-verdict-repair
+confidence: 0.5
+edited_by: season.py
+season: 1
 tags:
   - chain-extension
   - repair
   - structural-bias
+thought_session: season
 title: Synthetic Verdict Parent Repair
-type: hypothesis
 ---
-
 # hyp:a00-407fa689-verdict-repair
 ## Hypothesis
 

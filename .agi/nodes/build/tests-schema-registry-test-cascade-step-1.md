@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-schema-registry-test-cascade-step-1"
+id: build:tests-schema-registry-test-cascade-step-1
 mint_id: 8da5eb44885c418d81dfc76e15bd432d
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/schema_registry/test_cascade_step_1.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/schema_registry/test_cascade_step_1.py"
-type: build
 ---
-
 `extensions/agi/tests/schema_registry/test_cascade_step_1.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-schema-registry`.

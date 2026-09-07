@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-schema-registry-hooks-protocol"
+id: build:src-schema-registry-hooks-protocol
 mint_id: 155fde23eda74f859c4fd58bf4e035be
-origin: build-scan
+type: build
 parents:
   - idea:engine-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/schema_registry/hooks/protocol.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/schema_registry/hooks/protocol.py"
-type: build
 ---
-
 `extensions/agi/src/schema_registry/hooks/protocol.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-schema-registry`.

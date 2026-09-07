@@ -1,20 +1,22 @@
 ---
-confidence: 0.65
-evidence_runs: []
-id: "exp:g5-lifecycle-enforcement"
+id: exp:g5-lifecycle-enforcement
 mint_id: 866e3a477f4840429fabb6ae38aed316
+type: experiment
 parents:
   - goal:g5
+confidence: 0.65
+edited_by: season.py
+evidence_runs: []
 provenance: direct-engine-edit
+season: 1
 subgraph: false
 tags:
   - g5
   - g6.1
   - metrics
+thought_session: season
 title: "G5 lifecycle enforcement: scoring exclusion, L5 rotation, L18 degrade — landed as a direct engine edit"
-type: experiment
 ---
-
 **Provenance deviation, stated first:** this work was made as a direct,
 uncommitted edit to `/home/ubuntu/work/agi` — no idea/hypothesis node preceded
 it, no chain led here. That is exactly the defect `goal:g6.1` names: "a change

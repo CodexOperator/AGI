@@ -2,17 +2,19 @@
 id: verdict:declared-commands-delete-four-copies
 mint_id: e8e446a4898946c087243404bafe1ae1
 type: verdict
-title: A declared command table is executable, so a wrong one fails instead of being believed
 parents:
   - experiment:the-table-runs-and-caught-a-bug
 next_edges: []
-scaffold_hash: e00a2a6cbba53b8c
-verdict: proved
 confidence: 0.93
+edited_by: season.py
 evidence_runs:
   - experiment:the-table-runs-and-caught-a-bug
+scaffold_hash: e00a2a6cbba53b8c
+season: 1
+thought_session: season
+title: A declared command table is executable, so a wrong one fails instead of being believed
+verdict: proved
 ---
-
 # verdict:declared-commands-delete-four-copies
 
 ## Verdict

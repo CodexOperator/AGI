@@ -6,9 +6,12 @@ parents:
   - hypothesis:a00-bad7df6a-dd3928
 next_edges: []
 confidence: 0.65
+edited_by: season.py
 evidence_runs:
   - experiment:a00-1215e67e-de106f
 scaffold_hash:
+season: 1
+thought_session: season
 title: A00 1215e67e de106f — Shape 2 skill package viability analysis for full engine
 verdict: inconclusive_lean_disproved:65
 ---

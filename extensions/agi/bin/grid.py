@@ -53,11 +53,13 @@ Usage:
 """
 
 import argparse
+import fcntl
 import os
 import re
 import stat
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 # goal:g11 — one resolver for every path. Plain sibling import; every entry
@@ -687,10 +689,84 @@ def iter_node_files(root: Path):
     yield from sorted((root / "nodes").rglob("*.md"))
 
 
+class GridLock:
+    """Exclusive advisory flock held across one `commit --all`.
+
+    hypothesis:l3w0-grid-flock — a manual director `grid.py commit --all` and
+    the 5-minute grid_sync cron on the same box serialize on this lock instead
+    of racing on the same node refs. Only `commit --all` (non-session) takes
+    it; single-file commits and every read verb take no lock.
+
+    The lockfile lives in `.agi/sessions/` (scratch, never versioned). The
+    holder stamps its pid into the file so a waiter that times out can name
+    it in the error. flock is advisory and process-scoped, so the lock is
+    released automatically when the holder exits even on an exception path;
+    close()/release() also free it on the clean path.
+    """
+    def __init__(self, root: Path, wait_seconds: int) -> None:
+        self._lock_dir = root / ".agi" / "sessions"
+        self._path = self._lock_dir / ".grid.lock"
+        self._wait_seconds = wait_seconds
+        self._f = None
+
+    def acquire(self) -> None:
+        self._lock_dir.mkdir(parents=True, exist_ok=True)
+        # open append so we create-if-missing and never truncate a holder's pid
+        f = open(self._path, "a+")
+        deadline = time.time() + self._wait_seconds
+        holder = None
+        while True:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+                try:
+                    f.seek(0)
+                    reader = f.read().strip()
+                    if reader:
+                        holder = reader
+                except OSError:
+                    pass
+                if time.time() >= deadline:
+                    f.close()
+                    holder_msg = f" (held by pid {holder})" if holder else ""
+                    print(
+                        f"grid: commit --all could not acquire the grid lock "
+                        f"{self._path}{holder_msg} within {self._wait_seconds}s; "
+                        f"another commit (manual or the grid_sync cron) is in "
+                        f"progress — wait for it to finish and retry",
+                        file=sys.stderr)
+                    sys.exit(2)
+                time.sleep(0.05)
+        # We hold the lock: stamp our pid so a waiter can name us.
+        f.seek(0)
+        f.truncate()
+        f.write(str(os.getpid()))
+        f.flush()
+        self._f = f
+
+    def release(self) -> None:
+        if self._f is not None:
+            try:
+                fcntl.flock(self._f, fcntl.LOCK_UN)
+            except OSError:
+                pass
+            self._f.close()
+            self._f = None
+
+    def __enter__(self) -> "GridLock":
+        self.acquire()
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self.release()
+
+
 def cmd_commit(root: Path, files: list[str], do_all: bool,
                session: tuple[str, str] | None, prefix: str = "",
                engine_root: Path | None = None,
-               allow_branch: bool = False) -> None:
+               allow_branch: bool = False,
+               lock_wait: int = 120) -> None:
     """Snapshot node files.
 
     Non-session writes go to the mint-id ref (goal:g2.5) and, unless the
@@ -723,7 +799,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
 
     # hypothesis:l2w15-grid-master-guard — refuse commit on a non-master
     # branch unless --allow-branch is passed. Session commits (D3 drafts)
-    # are never gated.
+    # are never gated. Addendum (owners, seasons-as-branches): branches named
+    # season/* are admitted like master; any other non-master branch refused.
     if not session and not allow_branch:
         # resolve the checked-out branch of the repo that owns the graph
         # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
@@ -731,7 +808,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         # master.
         branch = git(root, "symbolic-ref", "--short", "HEAD", check=False)
         # git symbolic-ref returns empty string on error with check=False
-        if not branch or branch != "master":
+        if not branch or (branch != "master" and not branch.startswith("season/")):
             ref_name = branch if branch else "detached HEAD"
             print(
                 f"grid: refusing commit --all on {ref_name!r}, node refs are "
@@ -743,67 +820,81 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     paths = list(iter_node_files(root)) if do_all else [Path(f) for f in files]
     if not paths:
         sys.exit("ERR: give node files or --all")
-    # hypothesis:gate-must-sit-on-the-commit-path (goal:g7) -- the evidence
-    # gate, at the point of acceptance. A writer that records a verdict through
-    # `cli.py done` or `post_wire` meets the gate there; one that writes the
-    # file directly meets it HERE, before the bytes become a version. Runs over
-    # every file about to be committed; rewrites only a decisive verdict nothing
-    # backs (demoted in place, node kept), so a passing node is byte-identical
-    # and the unchanged-check below still sees it as unchanged.
-    #
-    # Session (D3) drafts are not gated: a draft is a node under review, not an
-    # accepted one, and the gate belongs on acceptance.
-    demoted = 0
-    if not session:
-        demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
-                      if d.written)
-    id_index = None if session else build_id_index(root)
-    engine_root = engine_root or default_engine_root()
-    written = 0
-    errors = 0
-    payloads = 0
-    payload_missing = 0
-    for p in paths:
-        if not p.exists():
-            print(f"skip (missing): {p}", file=sys.stderr)
-            continue
-        node_id = parse_node_id(p)
-        if node_id is None:
-            print(f"skip (no id): {p}", file=sys.stderr)
-            continue
-        payload = None
-        if session:
-            ref = session_ref(session[0], session[1], node_id)
-            msg_prefix = prefix + f"session {session[0]}/{session[1]}: "
-            trailer = None
-        else:
-            try:
-                ref = write_ref_for(p, node_id)
-            except MissingMintIdError as exc:
-                print(f"ERROR: {exc}", file=sys.stderr)
-                errors += 1
+
+    # hypothesis:l3w0-grid-flock — commit --all serializes with any other
+    # commit --all on the same box (incl. the 5-min grid_sync cron) via an
+    # exclusive advisory flock on .agi/sessions/.grid.lock. Only --all; a
+    # single-file commit and the read verbs take no lock. The lock covers the
+    # evidence-gate rewrites and every ref write below, then is released here.
+    lock: GridLock | None = None
+    if do_all and not session:
+        lock = GridLock(root, lock_wait)
+        lock.acquire()
+    try:
+        # hypothesis:gate-must-sit-on-the-commit-path (goal:g7) -- the evidence
+        # gate, at the point of acceptance. A writer that records a verdict through
+        # `cli.py done` or `post_wire` meets the gate there; one that writes the
+        # file directly meets it HERE, before the bytes become a version. Runs over
+        # every file about to be committed; rewrites only a decisive verdict nothing
+        # backs (demoted in place, node kept), so a passing node is byte-identical
+        # and the unchanged-check below still sees it as unchanged.
+        #
+        # Session (D3) drafts are not gated: a draft is a node under review, not an
+        # accepted one, and the gate belongs on acceptance.
+        demoted = 0
+        if not session:
+            demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
+                          if d.written)
+        id_index = None if session else build_id_index(root)
+        engine_root = engine_root or default_engine_root()
+        written = 0
+        errors = 0
+        payloads = 0
+        payload_missing = 0
+        for p in paths:
+            if not p.exists():
+                print(f"skip (missing): {p}", file=sys.stderr)
                 continue
-            msg_prefix = prefix
-            trailer = build_parent_mint_trailer(p, id_index)
-            payload_ref = parse_payload_ref(p)
-            if payload_ref:
-                found = resolve_payload(root, payload_ref, engine_root)
-                if found is None:
-                    print(f"WARN: {node_id} payload_ref {payload_ref!r} resolves "
-                          f"neither under {PAYLOAD_DIR}/ nor in {engine_root} — "
-                          "committing the node without a payload entry",
-                          file=sys.stderr)
-                    payload_missing += 1
-                else:
-                    payload = found[0]
-                    payloads += 1
-        v = commit_file(root, p, ref, msg_prefix, trailer=trailer, payload=payload)
-        if v:
-            written += 1
-            print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
-    print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
-          f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
-          f"{demoted} demoted by the evidence gate")
+            node_id = parse_node_id(p)
+            if node_id is None:
+                print(f"skip (no id): {p}", file=sys.stderr)
+                continue
+            payload = None
+            if session:
+                ref = session_ref(session[0], session[1], node_id)
+                msg_prefix = prefix + f"session {session[0]}/{session[1]}: "
+                trailer = None
+            else:
+                try:
+                    ref = write_ref_for(p, node_id)
+                except MissingMintIdError as exc:
+                    print(f"ERROR: {exc}", file=sys.stderr)
+                    errors += 1
+                    continue
+                msg_prefix = prefix
+                trailer = build_parent_mint_trailer(p, id_index)
+                payload_ref = parse_payload_ref(p)
+                if payload_ref:
+                    found = resolve_payload(root, payload_ref, engine_root)
+                    if found is None:
+                        print(f"WARN: {node_id} payload_ref {payload_ref!r} resolves "
+                              f"neither under {PAYLOAD_DIR}/ nor in {engine_root} — "
+                              "committing the node without a payload entry",
+                              file=sys.stderr)
+                        payload_missing += 1
+                    else:
+                        payload = found[0]
+                        payloads += 1
+            v = commit_file(root, p, ref, msg_prefix, trailer=trailer, payload=payload)
+            if v:
+                written += 1
+                print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
+        print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
+              f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
+              f"{demoted} demoted by the evidence gate")
+    finally:
+        if lock is not None:
+            lock.release()
 
 
 def _resolve_read_ref(root: Path, path: Path, node_id: str) -> str | None:
@@ -1423,6 +1514,9 @@ def main() -> None:
     c.add_argument("--allow-branch", action="store_true",
                    help="allow commit --all on a non-master branch; node refs "
                         "are branch-blind, merge to master first to share history")
+    c.add_argument("--lock-wait", type=int, default=120,
+                   help="seconds commit --all waits on the grid flock before "
+                        "failing non-zero (default 120)")
     lg = sub.add_parser("log")
     lg.add_argument("node_id")
     lg.add_argument("-n", type=int, default=20)
@@ -1482,7 +1576,8 @@ def main() -> None:
     if args.cmd == "commit":
         cmd_commit(root, args.files, args.all,
                    tuple(args.session) if args.session else None,
-                   prefix=args.prefix, allow_branch=args.allow_branch)
+                   prefix=args.prefix, allow_branch=args.allow_branch,
+                   lock_wait=args.lock_wait)
     elif args.cmd == "init":
         cmd_init(root)
 

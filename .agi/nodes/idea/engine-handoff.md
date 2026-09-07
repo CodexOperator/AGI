@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-handoff"
+id: idea:engine-handoff
 mint_id: 7ad96935277b428fb7ccbaf21195f55d
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: HANDOFF.md"
-type: idea
 unit_kind: entry_point
 unit_path: HANDOFF.md
 ---
-
 `HANDOFF.md` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

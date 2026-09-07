@@ -5,11 +5,12 @@ type: hypothesis
 parents:
   - goal:g9.7
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: a9c2efd9f194132f
 scale: engine
+season: 1
 testable_claim: briefing.py's attractive-ideas ranking excludes deprecated nodes and their subtrees, exactly as frame_stream(hide_deprecated=True) already does for the map, so the seven deprecated idea:domain-* roots (75/45/44/41/40/39/38 descendants) drop out of INJECTION.md and idea:engine-tests / idea:engine-graph-core head the list; a test with a deprecated idea fixture goes red when the filter is removed
-thought_session: L1.09
+thought_session: season
 title: Attractor list must hide deprecated ideas
 ---
 # hypothesis:attractor-list-must-hide-deprecated-ideas

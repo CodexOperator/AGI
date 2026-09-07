@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-autoresearch-sh"
+id: idea:engine-autoresearch-sh
 mint_id: c48b5901ddc347e4815151c4dc4640c5
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: autoresearch.sh"
-type: idea
 unit_kind: entry_point
 unit_path: autoresearch.sh
 ---
-
 `autoresearch.sh` — an engine entry point.
 
 Autoresearch benchmark driver for DB-augmented graph code generation

@@ -6,7 +6,10 @@ parents:
   - hypothesis:a02-02affc6b-dc0c54
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: 2d6a8e168b66ba0b
+season: 1
+thought_session: season
 title: "Delegator token cost measured: parent briefs at 17% of full kid reads"
 verdict: inconclusive_lean_proved:70
 ---

@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-b5758a12-c77a46
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: cf3d827ffb2b2c36
+season: 1
+thought_session: season
 title: Dispatch duplication audit — 2/2 N≥3 same-target instances show ≥50% duplication
 verdict: inconclusive_lean_proved:60
 ---

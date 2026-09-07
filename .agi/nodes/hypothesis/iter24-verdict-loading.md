@@ -8,11 +8,14 @@ next_edges: []
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 evidence_runs: []
+season: 1
 tags:
   - topological-queries
   - loader
   - iter-24
+thought_session: season
 title: Iter24 verdict loading
 verdict: inconclusive_lean_proved:50
 ---

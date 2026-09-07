@@ -8,7 +8,10 @@ next_edges:
   - experiment:a00-40bc8d0a-f0690e
   - experiment:a00-63cb3c4e-6adaa7
 confidence: 0.7
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: A00 9bae6ee8 52d7f5
 verdict: pending
 wired_at: 1788239113

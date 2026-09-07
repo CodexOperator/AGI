@@ -444,6 +444,150 @@ class TestCommandDiscovery:
 
 
 # ---------------------------------------------------------------------------
+# Retag tests
+# ---------------------------------------------------------------------------
+
+
+class TestRetag:
+    """season.py retag subcommand — backfill the season stamp."""
+
+    def _load_fm(self, root, rel):
+        from graph_core.persistence import frontmatter
+        nf = frontmatter.load_node_file(root / rel)
+        return nf.frontmatter
+
+    def _collect(self, season_py, temp_graph, *args):
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "retag", *args],
+            capture_output=True, text=True,
+        )
+        return result
+
+    def _unstamped_paths(self, root):
+        from graph_core.persistence import frontmatter
+        out = []
+        for f in sorted((root / "nodes").rglob("*.md")):
+            try:
+                nf = frontmatter.load_node_file(f)
+            except Exception:
+                continue
+            if nf.frontmatter.get("id") and nf.frontmatter.get("season") is None:
+                out.append(f.relative_to(root / "nodes"))
+        return out
+
+    def test_retag_stamps_all_unstamped(self, season_py, temp_graph):
+        """After retag, every node carries season: 1."""
+        import locations
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+        assert len(self._unstamped_paths(root)) >= 3, "fixture must have unstamped nodes"
+
+        result = self._collect(season_py, temp_graph)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+
+        unstamped = self._unstamped_paths(root)
+        assert unstamped == [], f"nodes still unstamped: {unstamped}"
+        # spot-check one goal and the moral node
+        from graph_core.persistence import frontmatter
+        sub = frontmatter.load_node_file(root / "nodes" / "goal" / "sub1.md")
+        assert sub.frontmatter.get("season") == 1
+        faith = frontmatter.load_node_file(root / "nodes" / "moral" / "faith.md")
+        assert faith.frontmatter.get("season") == 1
+
+    def test_retag_never_overwrites_existing(self, season_py, temp_graph):
+        """A node that already has a season is left untouched."""
+        import locations
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+        # Give the outcome a season that is NOT the retag value.
+        from graph_core.persistence import frontmatter
+        o2 = root / "nodes" / "outcome" / "o2.md"
+        text = o2.read_text().replace("status: active", "status: active\nseason: 2")
+        o2.write_text(text)
+
+        result = self._collect(season_py, temp_graph)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        # o2 keeps its hand-set season
+        o2fm = frontmatter.load_node_file(o2).frontmatter
+        assert o2fm.get("season") == 2, "explicit existing season was overwritten"
+        # everything else got 1
+        for p in self._unstamped_paths(root):
+            if p == (root / "nodes" / "outcome" / "o2.md").relative_to(root / "nodes"):
+                continue
+            fm = frontmatter.load_node_file(root / "nodes" / p).frontmatter
+            assert fm.get("season") == 1, f"{p} not stamped: {fm.get('season')}"
+
+    def test_retag_dry_run_writes_nothing(self, season_py, temp_graph):
+        """--dry-run reports counts but writes no season fields."""
+        import locations
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+        before = self._unstamped_paths(root)
+        assert before, "fixture must have unstamped nodes"
+
+        result = self._collect(season_py, temp_graph, "--dry-run")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "DRY RUN" in result.stdout
+        # nothing changed
+        assert self._unstamped_paths(root) == before
+
+    def test_retag_reports_before_after_counts(self, season_py, temp_graph):
+        """stdout reports counts before and after the pass."""
+        result = self._collect(season_py, temp_graph)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        # before figure
+        assert "with season: 0" in result.stdout
+        assert "without season: 8" in result.stdout
+        # after figure
+        assert "after: 8 with season / 0 without" in result.stdout
+
+    def test_retag_preserves_owner_provenance_on_moral(self, season_py, temp_graph):
+        """Moral nodes keep their owner edited_by/thought_session after retag."""
+        import locations
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+        faith = root / "nodes" / "moral" / "faith.md"
+        # Give the moral node owner provenance that retag must not clobber.
+        text = faith.read_text().replace(
+            "status: active", "status: active\nedited_by: owner\nthought_session: agi-master-2026-09-06")
+        faith.write_text(text)
+
+        result = self._collect(season_py, temp_graph)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        from graph_core.persistence import frontmatter
+        fm = frontmatter.load_node_file(faith).frontmatter
+        assert fm.get("season") == 1, "moral not stamped"
+        assert fm.get("edited_by") == "owner", "moral edited_by clobbered"
+        assert fm.get("thought_session") == "agi-master-2026-09-06", \
+            "moral thought_session clobbered by scripted pass"
+
+    def test_retag_covers_deprecated(self, season_py, temp_graph):
+        """Nodes under nodes/deprecated/ are retagged too."""
+        import locations
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+        dep = root / "nodes" / "deprecated" / "experiment"
+        dep.mkdir(parents=True, exist_ok=True)
+        old = """---
+id: experiment:ancient
+mint_id: 11111111111111111111111111111111
+type: experiment
+parents: []
+status: deprecated
+---
+# ancient
+"""
+        (dep / "ancient.md").write_text(old)
+
+        result = self._collect(season_py, temp_graph)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        from graph_core.persistence import frontmatter
+        fm = frontmatter.load_node_file(dep / "ancient.md").frontmatter
+        assert fm.get("season") == 1
+
+
+# ---------------------------------------------------------------------------
 # Error handling
 # ---------------------------------------------------------------------------
 

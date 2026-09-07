@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-tests-embeddings"
+id: idea:engine-tests-embeddings
 mint_id: 84bc3f8df7ae4f8aa0c262b0952935fe
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/tests/embeddings"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/tests/embeddings
 ---
-
 `extensions/agi/tests/embeddings` — an engine source package.
 
 No module docstring or header comment was found for this surface.

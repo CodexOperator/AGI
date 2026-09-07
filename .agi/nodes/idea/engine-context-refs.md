@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-context-refs"
+id: idea:engine-context-refs
 mint_id: 5707cde0e6084210903edd844c167f83
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: context/refs"
-type: idea
 unit_kind: src_package
 unit_path: context/refs
 ---
-
 `context/refs` — an engine source package.
 
 No module docstring or header comment was found for this surface.

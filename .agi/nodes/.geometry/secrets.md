@@ -1,48 +1,50 @@
 ---
+id: config:secrets
+mint_id: eba3708aa2ce4642a394a3646f6e2a26
+type: config
+parents:
+  - goal:g1.8
+  - goal:g10.2
+edited_by: season.py
 forbidden_keys:
   - ANTHROPIC_API_KEY
   - ANTHROPIC_AUTH_TOKEN
   - ANTHROPIC_BASE_URL
   - CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST
-id: "config:secrets"
 locations:
   env_file:
-    role: "provider credentials for this project — the VALUES"
+    role: provider credentials for this project — the VALUES
     derivation: relative-to-source-root
-    path: "<source_root>/.env"
+    path: <source_root>/.env
     gitignored: true
-    mode: "600"
+    mode: 600
     declared_in:
-      - "extensions/agi/bin/envfile.py :: resolve"
-      - "extensions/agi/driver.sh :: AGI_ENV_FILE"
-      - "extensions/agi/bin/env-get.sh :: ENV_FILE"
+      - extensions/agi/bin/envfile.py :: resolve
+      - extensions/agi/driver.sh :: AGI_ENV_FILE
+      - extensions/agi/bin/env-get.sh :: ENV_FILE
   env_template:
-    role: "the committed SHAPE of env_file — which keys, and what each is for"
+    role: the committed SHAPE of env_file — which keys, and what each is for
     derivation: relative-to-source-root
-    path: "<source_root>/.env.example"
+    path: <source_root>/.env.example
     gitignored: false
     declared_in:
-      - "extensions/agi/bin/envfile.py :: resolve"
-mint_id: eba3708aa2ce4642a394a3646f6e2a26
+      - extensions/agi/bin/envfile.py :: resolve
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
   - OPENROUTER_PROVISIONING_KEY
-parents:
-  - goal:g1.8
-  - goal:g10.2
 required_keys:
   - OPENROUTER_API_KEY
+season: 1
 status: active
 tags:
   - geometry
   - config
   - secrets
   - structural
-title: "Where credentials live, and which keys this project requires"
-type: config
+thought_session: season
+title: Where credentials live, and which keys this project requires
 ---
-
 **One file holds this project's secrets, and this node says which file it is.**
 Before it existed the answer was a literal `.env` written into a shell script,
 a second `.env` written into another shell script, and prose in a third place —

@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-027
 cavekit_req: schema-registry/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-030: Generated schemas land inactive with provenance"
 ---
 **Description:** Generated schema files are named `<name>.md` (no brackets). Frontmatter includes `provenance: {generated_at, source_dir, hook_target}`. Idempotency check: hash the source-dir fingerprint and skip writing if a file with the same hash already exists.

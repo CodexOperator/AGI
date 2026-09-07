@@ -14,15 +14,16 @@ blocked_by:
   - task:t-081
   - task:t-084
 cavekit_req: autoresearch-tree-skill/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-085: Driver script — single iteration end-to-end"
 ---
 **Description:** Implement `agi-tree run` CLI invoking decision → dispatch → verdict-emission → benchmark → record, all reading `context/config/`.

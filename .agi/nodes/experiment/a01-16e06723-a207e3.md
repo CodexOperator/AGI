@@ -6,11 +6,14 @@ parents:
   - hypothesis:a00-d98602f8-1b56cc
 next_edges: []
 confidence: 1.0
-scaffold_hash: 7875c639dc051d46
-title: "Census: orphan sessions in refs/grid/session/*"
-verdict: disproved
+edited_by: season.py
 evidence_runs:
   - experiment:a01-16e06723-a207e3
+scaffold_hash: 7875c639dc051d46
+season: 1
+thought_session: season
+title: "Census: orphan sessions in refs/grid/session/*"
+verdict: disproved
 ---
 # experiment:a01-16e06723-a207e3
 

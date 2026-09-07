@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-chain-engine-attractiveness"
+id: build:src-chain-engine-attractiveness
 mint_id: 1cd5af833f0b489f844a9e693fb8e205
-origin: build-scan
+type: build
 parents:
   - idea:engine-chain-engine
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/chain_engine/attractiveness.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/chain_engine/attractiveness.py"
-type: build
 ---
-
 `extensions/agi/src/chain_engine/attractiveness.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-chain-engine`.

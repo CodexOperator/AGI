@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R2
 testable_claim: Generic Edge Primitive
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R2: Generic Edge Primitive"
 ---
 **Description:** Edges connect a parent node to a child node, carry a relation type, and may carry tag metadata. The graph is a DAG; cycles are rejected at insert time.

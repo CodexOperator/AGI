@@ -5,10 +5,12 @@ type: mvp
 parents:
   - verdict:a00-4c4fbb51-0f3630
 next_edges: []
+edited_by: season.py
 scaffold_hash: 8b8c9dd1104b7e34
+season: 1
+thought_session: season
 title: A01 f1a34371 eeec0b
 ---
-
 # mvp:a01-f1a34371-eeec0b
 
 ## MVP
@@ -72,4 +74,3 @@ def cleanup_worktree(root, agent_id):
 ```
 
 The actual `build` node must implement these in `dispatch.py`'s spawn path, between the zoom context generation and the `Popen` call.
-

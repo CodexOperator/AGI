@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:autoresearch-tree-skill-r1
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R1
 testable_claim: Skill Lives in a Forked Skill Repository
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R1: Skill Lives in a Forked Skill Repository"
 ---
 **Description:** A new skill is added to the existing autoresearch skill repository alongside the existing skills, without modifying or removing them.

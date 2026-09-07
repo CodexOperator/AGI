@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-049
 cavekit_req: chain-engine/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-056: longest_n chain query"
 ---
 **Description:** Implement `longest_n(graph, n)` returning `[(chain, score, length), ...]` of size up to n.

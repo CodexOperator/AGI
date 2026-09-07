@@ -6,10 +6,13 @@ parents:
   - hypothesis:a00-711c2d0f-15bc43
 next_edges: []
 confidence: 0.65
+edited_by: season.py
 evidence_runs:
   - experiment:a00-e6a3622e-470e5b
 scaffold_hash: 8d54eda183b492ae
+season: 1
 status: run
+thought_session: season
 title: "Total tool-call tradeoff proxy: chat vs briefing across three regimes"
 verdict: inconclusive_lean_disproved:65
 ---

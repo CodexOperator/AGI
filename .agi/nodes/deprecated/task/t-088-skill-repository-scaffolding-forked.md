@@ -8,15 +8,16 @@ acceptance_criteria:
   - (supporting task; criteria fully covered under T-076 via the install-skill payload structure)
 blocked_by: []
 cavekit_req: autoresearch-tree-skill/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-088: Skill repository scaffolding (forked autoresearch skills layout)"
 ---
 **Description:** Pre-create the directory tree under `agi-tree/skills/autoresearch-tree/` so T-076's installer has files to install. This is a structural-only task that prepares the payload; the criteria coverage is validated under T-076.

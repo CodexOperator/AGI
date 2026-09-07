@@ -11,14 +11,15 @@ acceptance_criteria:
 blocked_by:
   - task:t-082
 cavekit_req: autoresearch-tree-skill/R6
-edited_by: exp-a01-30399a10
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: iter-1072
+thought_session: season
 tier: -1
 title: "T-083: Benchmark harness — outcome_coverage definition"
 ---

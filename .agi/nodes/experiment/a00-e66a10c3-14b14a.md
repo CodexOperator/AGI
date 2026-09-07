@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 5679e6aa32fc4a46
+season: 1
+thought_session: season
 title: Part B proved at unit level — provisioning-absent fallback works correctly (live dispatch untested)
 verdict: inconclusive_lean_proved:85
 ---

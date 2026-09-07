@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-tests-schema-registry"
+id: idea:engine-tests-schema-registry
 mint_id: 8077702f6e764a328e76d102bc9101b9
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/tests/schema_registry"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/tests/schema_registry
 ---
-
 `extensions/agi/tests/schema_registry` — an engine source package.
 
 No module docstring or header comment was found for this surface.

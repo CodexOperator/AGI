@@ -1,17 +1,19 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:engine-census-r1"
+id: exp:engine-census-r1
 mint_id: ceedcf5c28df4448be9f96455578300d
+type: experiment
 parents:
   - hyp:engine-census-generated
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - engine
   - l19
+thought_session: season
 title: Engine census generator, first run
-type: experiment
 ---
-
 **Built:** `extensions/agi/bin/decompose-engine.py`, plus a declared-mapping
 side file `extensions/agi/bin/decompose-engine.goalmap.json` (checked in,
 currently `{"mappings": {}}`) and 18 tests in

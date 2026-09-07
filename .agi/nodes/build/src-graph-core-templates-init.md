@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-graph-core-templates-init"
+id: build:src-graph-core-templates-init
 mint_id: 8b560f5228f0434b9bf396a034e16538
-origin: build-scan
+type: build
 parents:
   - idea:engine-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/graph_core/templates/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/graph_core/templates/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/graph_core/templates/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-graph-core`.

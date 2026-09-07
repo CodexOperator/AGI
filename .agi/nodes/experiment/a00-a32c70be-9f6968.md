@@ -6,11 +6,14 @@ parents:
   - hypothesis:a00-d98602f8-1b56cc
 next_edges: []
 confidence: 1.0
-scaffold_hash: 20cc1b630f0127e6
-title: "Orphan chats: refs/grid/session/* census disproves sufficiency"
-verdict: disproved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-a32c70be-9f6968
+scaffold_hash: 20cc1b630f0127e6
+season: 1
+thought_session: season
+title: "Orphan chats: refs/grid/session/* census disproves sufficiency"
+verdict: disproved
 ---
 # experiment:a00-a32c70be-9f6968
 

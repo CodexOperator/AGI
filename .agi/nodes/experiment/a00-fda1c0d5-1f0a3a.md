@@ -7,13 +7,15 @@ parents:
 confidence: 0.85
 demote_reason: no evidence_runs; predictions verified against a simulation of the dispatch lifecycle, not a live multi-tier run
 demoted_from: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-fda1c0d5-1f0a3a
 scaffold_hash: ef3d55899ab3e6d4
+season: 1
+thought_session: season
 title: A00 fda1c0d5 1f0a3a
 verdict: inconclusive_lean_proved:85
 ---
-
 # experiment:a00-fda1c0d5-1f0a3a
 
 ## Experiment

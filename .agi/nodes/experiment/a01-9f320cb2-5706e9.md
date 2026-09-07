@@ -6,7 +6,10 @@ parents:
   - hypothesis:verify-runs-grid-commit-before-smoke
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: c487feeffdd7863a
+season: 1
+thought_session: season
 title: A01 9f320cb2 5706e9
 verdict: inconclusive_lean_proved:60
 ---

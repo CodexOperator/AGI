@@ -1,21 +1,23 @@
 ---
-confidence: 0.65
-id: "exp:topological-queries-r1"
+id: exp:topological-queries-r1
 mint_id: 7b86e35c43104608adf670651ea92ba6
-next_edges:
-  - verdict:topological-queries-r1
+type: experiment
 parents:
   - hyp:a00-c2d7dbcc-3987c7
+next_edges:
+  - verdict:topological-queries-r1
+confidence: 0.65
+edited_by: season.py
+season: 1
 spawns: []
 status: completed
 tags:
   - experiment
   - topology
   - query-api
-title: "exp:topological-queries-r1"
-type: experiment
+thought_session: season
+title: exp:topological-queries-r1
 ---
-
 # exp:topological-queries-r1
 
 **Hypothesis:** `hyp:a00-c2d7dbcc-3987c7`

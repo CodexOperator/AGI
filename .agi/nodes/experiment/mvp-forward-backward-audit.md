@@ -5,9 +5,10 @@ type: experiment
 parents:
   - hypothesis:an-mvp-that-points-backward-is-score-neutral
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: c0048df310572989
-thought_session: L1.08
+season: 1
+thought_session: season
 title: Nine mvps audited against the forward-pointing rule; two were backward
 ---
 # experiment:mvp-forward-backward-audit

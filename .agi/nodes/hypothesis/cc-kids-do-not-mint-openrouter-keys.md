@@ -5,11 +5,12 @@ type: hypothesis
 parents:
   - goal:s34
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: ad15b022ca7c6108
 scale: engine
+season: 1
 testable_claim: dispatch.py mints a provider credential only for harnesses whose adapter declares it needs one (pi does, claude-code does not); provisioning status after a CC-only wave shows engine_minted unchanged, and the test goes red when the harness check is removed
-thought_session: L1.12
+thought_session: season
 title: Cc kids do not mint openrouter keys
 ---
 # hypothesis:cc-kids-do-not-mint-openrouter-keys

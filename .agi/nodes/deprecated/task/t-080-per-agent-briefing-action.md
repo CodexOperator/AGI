@@ -14,15 +14,16 @@ blocked_by:
   - task:t-079
   - task:t-058
 cavekit_req: autoresearch-tree-skill/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-080: Per-agent briefing — action menu and engine purity"
 ---
 **Description:** Extend briefing dict with an `actions: list[Action]` per chain. Each `Action` has `kind ∈ {extend, fork, hop, fresh_start}` plus the relevant `target_node`. Audit imports: only `chain_engine.queries` is permitted.

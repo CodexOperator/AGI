@@ -10,15 +10,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-044
 cavekit_req: environment-indexers/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-045: Upgrade markers grep-discoverable"
 ---
 **Description:** Standardize `# UPGRADE-MARKER: <slug> — <section description>` lines. Each indexer must have at least one. The `agi-tree self-test indexer-docs` (T-046) greps for them.

@@ -1,19 +1,21 @@
 ---
-domain: cli-invocation
-id: "idea:domain-cli-invocation"
+id: idea:domain-cli-invocation
 mint_id: cc5844ad16d64542b158c7236ef378c5
+type: idea
 next_edges:
   - hyp:cli-invocation-r1
+domain: cli-invocation
+edited_by: season.py
+season: 1
 tags:
   - cli
   - shell
   - command
   - execution
   - environment
+thought_session: season
 title: "CLI Invocation: Shell Command Detection and Execution"
-type: idea
 ---
-
 # Domain: CLI Invocation
 
 ## Concept

@@ -5,11 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-160ca279-56d211
 next_edges: []
+edited_by: season.py
 scaffold_hash: 66b340a45b469690
+season: 1
 status: not_run
-title: "Chat-structure extractor over refs/grid/session/* — DISPATCHED, NOT RUN (provider budget)"
+thought_session: season
+title: Chat-structure extractor over refs/grid/session/* — DISPATCHED, NOT RUN (provider budget)
 ---
-
 # experiment:a00-fe19cdc4-0b7f2e
 
 ## Experiment

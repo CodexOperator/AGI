@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-schema-sql"
+id: idea:engine-schema-sql
 mint_id: 827885797daf4f04993c07ddf5d8cab0
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: schema.sql"
-type: idea
 unit_kind: entry_point
 unit_path: schema.sql
 ---
-
 `schema.sql` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

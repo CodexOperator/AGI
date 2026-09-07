@@ -6,11 +6,14 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.7
-scaffold_hash: 45cef464dc207d6d
-title: A01 27793b9a 0a42b3
-verdict: inconclusive_lean_proved:70
+edited_by: season.py
 evidence_runs:
   - experiment:a01-27793b9a-0a42b3
+scaffold_hash: 45cef464dc207d6d
+season: 1
+thought_session: season
+title: A01 27793b9a 0a42b3
+verdict: inconclusive_lean_proved:70
 ---
 # experiment:a01-27793b9a-0a42b3
 

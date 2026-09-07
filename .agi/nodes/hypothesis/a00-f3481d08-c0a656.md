@@ -6,8 +6,11 @@ parents:
   - goal:g10.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 5c3c051cca58b13b
-testable_claim: "Dynamic on-demand compaction of a chat subgraph lets an agent answer structural questions about that chat in fewer tool calls than a pre-baked full-LOD rendering, and both beat a flat transcript."
+season: 1
+testable_claim: Dynamic on-demand compaction of a chat subgraph lets an agent answer structural questions about that chat in fewer tool calls than a pre-baked full-LOD rendering, and both beat a flat transcript.
+thought_session: season
 title: "Chat rendering, navigation axis: does on-demand compaction beat full-LOD for structural queries?"
 verdict: pending
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:extensions-agi-bridge-index.ts"
+id: build:extensions-agi-bridge-index.ts
 mint_id: 5c8bff21292842c8aa1b2d59acd1db00
-origin: build-scan
+type: build
 parents:
   - idea:engine-agi-bridge-index
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi-bridge/index.ts
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi-bridge/index.ts"
-type: build
 ---
-
 `extensions/agi-bridge/index.ts` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-agi-bridge-index`.

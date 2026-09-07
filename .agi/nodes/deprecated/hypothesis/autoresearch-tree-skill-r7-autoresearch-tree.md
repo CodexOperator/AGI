@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R7
 testable_claim: Driver Script
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R7: Driver Script"
 ---
 **Description:** A driver script orchestrates one or more loop iterations analogously to the predecessor project's driver.

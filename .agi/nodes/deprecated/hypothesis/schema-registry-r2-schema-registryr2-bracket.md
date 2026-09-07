@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:schema-registry-r2
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - schema-registry
   - R2
 testable_claim: Bracket Convention for Active Schemas
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R2: Bracket Convention for Active Schemas"
 ---
 **Description:** A schema file whose name is wrapped in brackets is treated as the active schema for the directory tree it lives in. Bracketing is the user's signal of approval.

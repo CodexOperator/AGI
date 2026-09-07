@@ -5,16 +5,15 @@ type: hypothesis
 parents:
   - goal:g3
 next_edges: []
-scaffold_hash: a5b29514730b65f3
 confidence: 0.0
-verdict: pending
-testable_claim: >-
-  Fraction of scoring mvps whose nearest hypothesis ancestor has verdict
-  "disproved" is >= 0.1 on the real corpus, confirming that binary
-  outcome_coverage credits disproven claims as goal-fulfilment.
+edited_by: season.py
+scaffold_hash: a5b29514730b65f3
+season: 1
+testable_claim: Fraction of scoring mvps whose nearest hypothesis ancestor has verdict "disproved" is >= 0.1 on the real corpus, confirming that binary outcome_coverage credits disproven claims as goal-fulfilment.
+thought_session: season
 title: "Verdict polarity asymmetry: disproved mvp counts as goal-fulfilment"
+verdict: pending
 ---
-
 # hypothesis:a00-c8b56cd1-d985fa
 
 ## Hypothesis

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R2
 testable_claim: Filesystem Tree Indexer
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R2: Filesystem Tree Indexer"
 ---
 **Description:** An indexer emits one node per directory and one node per file under a target path.

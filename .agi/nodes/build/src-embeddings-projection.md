@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-embeddings-projection"
+id: build:src-embeddings-projection
 mint_id: 4a6049b0fd674aba9dc551fa5f0c1600
-origin: build-scan
+type: build
 parents:
   - idea:engine-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/embeddings/projection.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/embeddings/projection.py"
-type: build
 ---
-
 `extensions/agi/src/embeddings/projection.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-embeddings`.

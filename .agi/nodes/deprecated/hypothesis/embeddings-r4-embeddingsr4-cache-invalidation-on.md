@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-embeddings
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - embeddings
   - R4
 testable_claim: Cache Invalidation on Graph Change
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R4: Cache Invalidation on Graph Change"
 ---
 **Description:** Embedding state is invalidated when the underlying graph changes. UMAP coordinates remain stable across rebuilds when the graph is unchanged and the seed is fixed.

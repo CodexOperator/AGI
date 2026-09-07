@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S12
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S12: `snapshot-goals.py` silently truncates goal bodies at 4000 chars"
 ---
 `BODY_CAP = 4000` in `bin/snapshot-goals.py` line 290:

@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:.gitignore"
+id: build:.gitignore
 mint_id: aae1893604ff4ef0888dd954909d1b1c
-origin: build-scan
+type: build
 parents:
   - idea:engine-gitignore
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: .gitignore
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: .gitignore"
-type: build
 ---
-
 `.gitignore` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-gitignore`.

@@ -7,17 +7,18 @@ next_edges:
   - hypothesis:a00-5b27ca07-438c0a
   - hypothesis:a00-6b4ad6b2-a60b78
 confidence: 0.8
-edited_by: owner
+edited_by: season.py
 goal_id: G13
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - long-term
-thought_session: L1.07
+thought_session: season
 title: One read/write path for nodes — an LLM-native node interface
 ---
 **One way in and one way out of the graph.** Every operation an agent performs

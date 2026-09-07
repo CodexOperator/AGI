@@ -6,7 +6,10 @@ parents:
   - verdict:declared-commands-delete-four-copies
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 scaffold_hash: ef0fc72bd1430e98
+season: 1
+thought_session: season
 title: Every declared command runs through the resolver, under test
 verdict: pending
 ---

@@ -6,10 +6,13 @@ parents:
   - hypothesis:loop-scoped-iteration-ids-cannot-clobber
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 evidence_runs:
   - experiment:a01-095ada3e-1662a8
   - experiment:a00-ff8eb71d-f812bc
 scaffold_hash: 50e7a920a17e9698
+season: 1
+thought_session: season
 title: A01 095ada3e 1662a8
 verdict: inconclusive_lean_disproved:70
 ---

@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-8e09cdf2-6c63ec
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: bb8ddf01cc26b540
+season: 1
+thought_session: season
 title: Corpus audit of outcome_coverage gap vs goal-attributed fraction
 verdict: inconclusive_lean_proved:60
 ---

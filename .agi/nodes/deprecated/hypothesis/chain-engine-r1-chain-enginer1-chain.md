@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:chain-engine-r1
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - chain-engine
   - R1
 testable_claim: Chain Definition
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R1: Chain Definition"
 ---
 **Description:** A chain is an ordered path through the autoresearch node types: idea, hypothesis (one or more), experiment (one or more), verdict, mvp, outcome, bigger_outcome, app_purpose.

@@ -5,14 +5,15 @@ type: idea
 next_edges:
   - hyp:renderers-r1
 confidence: 1.0
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
 scale: big
+season: 1
 status: deprecated
 tags:
   - domain
   - seed
-thought_session: L1.09
+thought_session: season
 title: "Domain: renderers"
 ---
 Multi-format renderers that turn a graph into human-readable views. All renderers consume a single shared internal representation, so a new renderer is one class implementing a single method. The same representation is also consumed by the embeddings kit, which is what keeps visualization and embedding isomorphic. Renderers are pure functions: same input, same output, no side effects.

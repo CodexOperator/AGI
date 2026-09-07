@@ -6,7 +6,10 @@ parents:
   - hypothesis:provisioning-reads-the-workspace-weekly-budget
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: f81a46dc1369c240
+season: 1
+thought_session: season
 title: A01 48bc04f6 2b4009
 verdict: inconclusive_lean_proved:70
 ---

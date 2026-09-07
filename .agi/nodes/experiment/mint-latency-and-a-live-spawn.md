@@ -2,18 +2,20 @@
 id: experiment:mint-latency-and-a-live-spawn
 mint_id: 7a6054f9aca04bec94cc0e9cb5db7b3f
 type: experiment
-title: "Mint latency against the live API, and one real spawn end to end"
 parents:
   - hypothesis:per-spawn-keys-cost-under-a-second
 next_edges:
   - verdict:per-spawn-beats-batching
-scaffold_hash: 57c2044e4b2806cf
-verdict: proved
 confidence: 0.96
+edited_by: season.py
 evidence_runs:
   - experiment:mint-latency-and-a-live-spawn
+scaffold_hash: 57c2044e4b2806cf
+season: 1
+thought_session: season
+title: Mint latency against the live API, and one real spawn end to end
+verdict: proved
 ---
-
 # experiment:mint-latency-and-a-live-spawn
 
 ## Experiment

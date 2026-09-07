@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-decompose-engine-goalmap"
+id: idea:engine-decompose-engine-goalmap
 mint_id: afb15ae9e4bf408a9027f4457c3e58ae
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/decompose-engine.goalmap.json"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/bin/decompose-engine.goalmap.json
 ---
-
 `extensions/agi/bin/decompose-engine.goalmap.json` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

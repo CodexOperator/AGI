@@ -2,17 +2,19 @@
 id: verdict:the-write-half-has-a-floor
 mint_id: 0a8c3fa7a587482a968a2a23362336cf
 type: verdict
-title: "An in-place edit now has one gated routine, and it cannot destroy an authored thought"
 parents:
   - experiment:link-scan-and-the-thought-guarantee
 next_edges: []
-scaffold_hash: f54c63cf67a2cd67
-verdict: proved
 confidence: 0.93
+edited_by: season.py
 evidence_runs:
   - experiment:link-scan-and-the-thought-guarantee
+scaffold_hash: f54c63cf67a2cd67
+season: 1
+thought_session: season
+title: An in-place edit now has one gated routine, and it cannot destroy an authored thought
+verdict: proved
 ---
-
 # verdict:the-write-half-has-a-floor
 
 ## Verdict

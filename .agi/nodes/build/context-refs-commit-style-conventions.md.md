@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:context-refs-commit-style-conventions.md"
+id: build:context-refs-commit-style-conventions.md
 mint_id: 671897f7f79844bc91d0dbb7c5ccece5
-origin: build-scan
+type: build
 parents:
   - idea:engine-context-refs
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: context/refs/commit-style-conventions.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: context/refs/commit-style-conventions.md"
-type: build
 ---
-
 `context/refs/commit-style-conventions.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-context-refs`.

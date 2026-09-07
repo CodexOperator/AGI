@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-graph-core-test-warm-load"
+id: build:tests-graph-core-test-warm-load
 mint_id: 84364912228e4bb2a5763c37377e5273
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/graph_core/test_warm_load.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/graph_core/test_warm_load.py"
-type: build
 ---
-
 `extensions/agi/tests/graph_core/test_warm_load.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-graph-core`.

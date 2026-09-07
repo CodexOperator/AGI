@@ -1,22 +1,24 @@
 ---
+id: goal:g4.2
+mint_id: 1ff9cd74d05644f5ac1e8b9fadb3b24b
+type: goal
+parents:
+  - goal:g4
 confidence: 1.0
+edited_by: season.py
 goal_id: G4.2
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.2"
-mint_id: 1ff9cd74d05644f5ac1e8b9fadb3b24b
 origin: goals-doc
-parents:
-  - goal:g4
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G4.2: A reasoning-effort dial, not just a model name"
-type: goal
 ---
-
 `cc_dispatch.kid_model` selects the model. **Nothing selects how hard it
 thinks.** Asked for "sonnet 5 on max settings" the honest answer was that the
 dispatch surface exposes model choice and not reasoning budget, so the request

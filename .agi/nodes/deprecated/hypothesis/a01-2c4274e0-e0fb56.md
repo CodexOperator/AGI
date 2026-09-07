@@ -5,18 +5,20 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: bc8a8db410ee5dc4
-status: deprecated
 confidence: 0.0
-verdict: pending
-testable_claim: "None authored — the kid holding this slot died before its first output."
-title: "DEPRECATED: empty second slot, iter-1041 dispatch at goal:g10.1 (provider budget)"
+edited_by: season.py
+scaffold_hash: bc8a8db410ee5dc4
+season: 1
+status: deprecated
 tags:
   - hypothesis
   - g10.1
   - deprecated
+testable_claim: None authored — the kid holding this slot died before its first output.
+thought_session: season
+title: "DEPRECATED: empty second slot, iter-1041 dispatch at goal:g10.1 (provider budget)"
+verdict: pending
 ---
-
 # hypothesis:a01-2c4274e0-e0fb56
 
 ## Hypothesis

@@ -8,7 +8,10 @@ next_edges: []
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 81ddf13bce9b07f9
+season: 1
+thought_session: season
 title: Edit vision schema for moral parents + season_parents + moral_adherence
 verdict: inconclusive_lean_proved:50
 ---

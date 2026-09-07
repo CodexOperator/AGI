@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-graph-core-persistence-sqlite-backend"
+id: build:src-graph-core-persistence-sqlite-backend
 mint_id: 082898f9ad8d4bb19ba1fb8dac834674
-origin: build-scan
+type: build
 parents:
   - idea:engine-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/graph_core/persistence/sqlite_backend.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/graph_core/persistence/sqlite_backend.py"
-type: build
 ---
-
 `extensions/agi/src/graph_core/persistence/sqlite_backend.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-graph-core`.

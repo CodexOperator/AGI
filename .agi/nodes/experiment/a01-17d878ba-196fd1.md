@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-ee1a02e3-4e834e
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: 7c6e9505f31b1b5c
+season: 1
+thought_session: season
 title: "Access-sparsity census: 67.1% of 1155 sessions never cited in any node; 75% bar not met, recency-bias and self-citation limits documented"
 verdict: inconclusive_lean_proved:60
 ---

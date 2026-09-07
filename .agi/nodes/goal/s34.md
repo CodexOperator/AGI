@@ -6,19 +6,20 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S34
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: 84788d877ae9eae0
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S34: Every hazard carried in a handoff is closed in the loop, not carried again"
 ---
 # goal:s34

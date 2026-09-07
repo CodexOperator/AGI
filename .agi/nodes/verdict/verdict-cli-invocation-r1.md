@@ -1,26 +1,28 @@
 ---
-confidence: 0.8
-domain: cli-invocation
-evidence_runs:
-  - exp:cli-invocation-r1
-id: "verdict:cli-invocation-r1"
+id: verdict:cli-invocation-r1
 mint_id: 38ccedb9f9684f47af3e56be1a415b51
+type: verdict
+parents:
+  - hyp:cli-invocation-r1
 next_edges:
   - mvp:cli-invocation-r1
   - exp:cli-invocation-r1-extend1
-parents:
-  - hyp:cli-invocation-r1
+confidence: 0.8
+domain: cli-invocation
+edited_by: season.py
+evidence_runs:
+  - exp:cli-invocation-r1
+season: 1
 status: proved
 tags:
   - cli
   - shell
   - detection
   - R1
+thought_session: season
 title: "R1: Shell type detection accuracy"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict:** PROVED
 
 **Detection Metrics:**

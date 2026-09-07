@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-agent-prompt"
+id: idea:engine-agent-prompt
 mint_id: bf63f1c8f1884ff99d6f0fc2914d3f2a
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/lib/agent-prompt.md"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/lib/agent-prompt.md
 ---
-
 `extensions/agi/lib/agent-prompt.md` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

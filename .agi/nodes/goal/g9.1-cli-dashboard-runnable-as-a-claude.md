@@ -1,13 +1,16 @@
 ---
+id: goal:g9.1
+mint_id: 58362ff3322b4537ac059a9791017ab6
+type: goal
+parents:
+  - goal:g9
 confidence: 1.0
+edited_by: season.py
 goal_id: G9.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g9.1"
-mint_id: 58362ff3322b4537ac059a9791017ab6
 origin: goals-doc
-parents:
-  - goal:g9
+season: 1
 seeds:
   - exp:dashboard-cli-r1
   - idea:engine-dashboard
@@ -15,10 +18,9 @@ status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G9.1: CLI dashboard, runnable as a Claude Code side terminal"
-type: goal
 ---
-
 First deliverable, and deliberately the humble one. A terminal view that
 answers, without the reader knowing any of this system's vocabulary:
 

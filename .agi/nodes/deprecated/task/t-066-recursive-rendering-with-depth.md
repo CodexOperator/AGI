@@ -17,15 +17,16 @@ blocked_by:
   - task:t-065
   - task:t-009
 cavekit_req: renderers/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-066: Recursive rendering with depth bound"
 ---
 **Description:** Add `render_subgraph(node, depth)` recursion to ASCII renderer with default `max_depth=2` and configurable. Other renderers default to a `[subgraph: <id>]` placeholder line.

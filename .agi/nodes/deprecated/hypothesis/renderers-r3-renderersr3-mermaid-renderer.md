@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R3
 testable_claim: Mermaid Renderer
-thought_session: L1.09
+thought_session: season
 title: "renderers/R3: Mermaid Renderer"
 ---
 **Description:** A renderer produces a valid Mermaid diagram source string usable as a graph or flowchart.

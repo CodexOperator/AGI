@@ -1,25 +1,27 @@
 ---
-confidence: 0.95
-evidence_runs:
-  - exp:a00-ddbe3410-exp003-iterative-traversal
-id: "verdict:a00-ddbe3410-verdict003-iterative-traversal"
+id: verdict:a00-ddbe3410-verdict003-iterative-traversal
 mint_id: b273d901747d43daa23cbb29c843015b
-next_edges:
-  - mvp:a00-ddbe3410-mvp003-iterative-traversal
+type: verdict
 parents:
   - exp:a00-ddbe3410-exp003-iterative-traversal
   - hyp:a00-ddbe3410-iterative-traversal
+next_edges:
+  - mvp:a00-ddbe3410-mvp003-iterative-traversal
+confidence: 0.95
+edited_by: season.py
+evidence_runs:
+  - exp:a00-ddbe3410-exp003-iterative-traversal
+season: 1
 status: proved
 synthetic: false
 tags:
   - chain-engine
   - recursion-bug
   - iterative
+thought_session: season
 title: "V003: iterative traversal PROVED — 9 chains at 708 hops"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict**: PROVED (confidence: 0.95)
 
 ## Metric

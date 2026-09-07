@@ -1,19 +1,21 @@
 ---
-id: "exp:embeddings-r2"
+id: exp:embeddings-r2
 mint_id: 5b9d32fccd8a44dd87f4f05e8d9fa237
-next_edges:
-  - verdict:embeddings-r2
+type: experiment
 parents:
   - hyp:embeddings-r2
+next_edges:
+  - verdict:embeddings-r2
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R2
 testable_claim: UMAP Projection to 2D
+thought_session: season
 title: "embeddings/R2: Experiment"
-type: experiment
 ---
-
 **Description:** Run embeddings projection test suite to validate UMAP 2D projection acceptance criteria.
 
 **Method:**

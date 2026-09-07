@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R4
 testable_claim: Per-Agent Briefing Payload
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R4: Per-Agent Briefing Payload"
 ---
 **Description:** Each builder agent receives a briefing that contains the current chain statistics, the attractiveness scores for candidate chains, and the menu of available actions (extend, fork, hop, fresh start).

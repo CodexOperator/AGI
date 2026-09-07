@@ -1,22 +1,24 @@
 ---
+id: goal:g1.9
+mint_id: d71f94660ce843c0879bd5a9f1d4c121
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.9
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.9"
-mint_id: d71f94660ce843c0879bd5a9f1d4c121
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.9: One brief, assembled by the engine, never typed per spawn"
-type: goal
 ---
-
 **A parent should name the target and the tier, and nothing else.** Today
 `SKILL.md` tells it to hand-assemble a self-contained prompt per kid, listing
 six ingredients by name:

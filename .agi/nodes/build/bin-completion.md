@@ -1,18 +1,20 @@
 ---
+id: build:bin-completion
+mint_id: 35b9b753e0344cbfac70a68be656fd21
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-completion"
-mint_id: 35b9b753e0344cbfac70a68be656fd21
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/completion.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/completion.py"
-type: build
 ---
-
 `extensions/agi/bin/completion.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

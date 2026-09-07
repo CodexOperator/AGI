@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-019
 cavekit_req: schema-registry/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-091: Schema removal handling with generic fallback warning"
 ---
 **Description:** When a previously-loaded schema is no longer present, mark its type as removed. Nodes that referenced it on next load fall through to the generic schema and emit a single warning per missing schema name.

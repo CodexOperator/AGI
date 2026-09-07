@@ -14,15 +14,16 @@ blocked_by:
   - task:t-060
   - task:t-049
 cavekit_req: renderers/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: L
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - L
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-064: Git-tree renderer"
 ---
 **Description:** Implement `GitTreeRenderer.render(rep, chains) -> str`. Lays out chains as parallel lanes using ASCII glyphs `|/\*`. Lane 0 is the highest-scoring chain. Merge junctions render as `*`. Restrict character set to printable ASCII via assertion.

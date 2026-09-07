@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 86f2075865dfcb02
+season: 1
 testable_claim: Every node minted through node_writer.py carries season, loop, model and profile stamped from the ladder node and the spawning environment, and dispatch.py exports that environment to every agent it spawns
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 2: l2w2-writer-stamps"
 ---
 # hypothesis:l2w2-writer-stamps

@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a01-dd74693c-b77b37
 next_edges: []
+edited_by: season.py
 scaffold_hash: c0749efd44ad3ceb
+season: 1
+thought_session: season
 title: Historical audit — whole-tree command prohibition since 2026-09-02
 ---
-
 # experiment:a00-8807a5ef-f0a414
 
 ## Experiment

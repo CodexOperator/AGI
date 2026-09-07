@@ -1,22 +1,24 @@
 ---
+id: goal:g9.7
+mint_id: 3f9c1a4e7d2b48c5b1e0a6f83c5d7e21
+type: goal
+parents:
+  - goal:g9
 confidence: 1.0
+edited_by: season.py
 goal_id: G9.7
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g9.7"
-mint_id: 3f9c1a4e7d2b48c5b1e0a6f83c5d7e21
 origin: goals-doc
-parents:
-  - goal:g9
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G9.7: One render, two readers: the human viewport and the LLM's context are the same view"
-type: goal
 ---
-
 **Stated by the owner, 2026-09-02, and it is a constraint on `goal:g9.4`
 rather than a feature beside it:** *"I want it to be the same view as you'd
 want to present to an LLM, so we can iterate on it as I use it to start

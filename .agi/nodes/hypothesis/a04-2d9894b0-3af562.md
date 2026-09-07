@@ -6,7 +6,10 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.5
+edited_by: season.py
 scaffold_hash: 428dac6f90990834
+season: 1
+thought_session: season
 title: "G3-L4: goal-to-outcome attribution scoring resists hop-inflation"
 verdict: pending
 ---

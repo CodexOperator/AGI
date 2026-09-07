@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 70ed34aad7119837
+season: 1
 testable_claim: A rotate.py exists whose meter reports this director session's fraction of context used and whose spawn subcommand launches a named successor as a remote-control session in tmux from a dry-run-testable command line
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1.5: l2w15-rotate"
 ---
 # hypothesis:l2w15-rotate

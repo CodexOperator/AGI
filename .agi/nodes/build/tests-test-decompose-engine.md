@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-decompose-engine"
+id: build:tests-test-decompose-engine
 mint_id: ff155db7153446ddb9ce3c9e8d0941bc
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_decompose_engine.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_decompose_engine.py"
-type: build
 ---
-
 `extensions/agi/tests/test_decompose_engine.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

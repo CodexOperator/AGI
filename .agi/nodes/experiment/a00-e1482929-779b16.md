@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-abd94427-d2294b
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: 7450616cb93005e3
+season: 1
+thought_session: season
 title: Falsifier pre-sweep hit census — detection half of the S33 falsifier
 verdict: inconclusive_lean_proved:70
 ---

@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:embeddings-r3
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - embeddings
   - R3
 testable_claim: Coordinate Isomorphism with Renderers
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R3: Coordinate Isomorphism with Renderers"
 ---
 **Description:** The `(x, y)` coordinates produced by projection are exactly the `x` and `y` values used by the renderers' shared representation. There is one source of truth.

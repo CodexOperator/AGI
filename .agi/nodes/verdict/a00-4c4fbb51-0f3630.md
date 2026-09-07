@@ -5,13 +5,15 @@ type: verdict
 parents:
   - experiment:a00-67c6ae64-feb32a
 confidence: 0.99
+edited_by: season.py
 evidence_runs:
   - experiment:a00-67c6ae64-feb32a
 scaffold_hash: 0c3b73c1ac93e855
+season: 1
+thought_session: season
 title: A00 4c4fbb51 0f3630
 verdict: proved
 ---
-
 # verdict:a00-4c4fbb51-0f3630
 
 ## Verdict

@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-039
 cavekit_req: environment-indexers/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-040: API dependency indexer — schema reuse edges"
 ---
 **Description:** Scan `$ref` and inline schema reuse. For every shared component, emit `shares_schema` edges between the affected endpoint nodes.

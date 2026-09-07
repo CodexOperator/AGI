@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-embeddings-similarity"
+id: build:src-embeddings-similarity
 mint_id: 8b79dd122afb4a5bac159abb824107e5
-origin: build-scan
+type: build
 parents:
   - idea:engine-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/embeddings/similarity.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/embeddings/similarity.py"
-type: build
 ---
-
 `extensions/agi/src/embeddings/similarity.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-embeddings`.

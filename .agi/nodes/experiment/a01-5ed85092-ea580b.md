@@ -6,11 +6,14 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.95
-scaffold_hash: ec589fe786a9280e
-title: Live-graph attractor verification — filter holds on the real INJECTION.md
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a01-5ed85092-ea580b
+scaffold_hash: ec589fe786a9280e
+season: 1
+thought_session: season
+title: Live-graph attractor verification — filter holds on the real INJECTION.md
+verdict: proved
 ---
 # experiment:a01-5ed85092-ea580b
 

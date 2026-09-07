@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-060
 cavekit_req: renderers/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: L
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - L
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-061: ASCII renderer — bounded 200x200 with truncation marker"
 ---
 **Description:** Implement `AsciiRenderer.render(rep) -> str`. Hierarchical layout (depth-driven indent). Bounded by 200 lines and 200 cols; on overflow, emit `... [truncated, N more nodes]` and `... [line cut at column 200]` markers. Byte-equal across runs (driven by deterministic representation).

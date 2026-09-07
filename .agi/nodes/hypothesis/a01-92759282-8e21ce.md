@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: A01 92759282 8e21ce
 verdict: pending
 wired_at: 1788197591
 wired_from: a01-92759282
 ---
-
 
 # hypothesis:a01-92759282-8e21ce
 

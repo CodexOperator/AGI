@@ -1,19 +1,21 @@
 ---
-id: "exp:a00-ddbe3410-exp002-structural-repair"
+id: exp:a00-ddbe3410-exp002-structural-repair
 mint_id: eba7d0c465214ccca238a5dbfa8b5aee
-next_edges:
-  - verdict:a00-ddbe3410-verdict002-structural-repair
+type: experiment
 parents:
   - hyp:a00-ddbe3410-structural-repair
+next_edges:
+  - verdict:a00-ddbe3410-verdict002-structural-repair
+edited_by: season.py
+season: 1
 status: complete
 tags:
   - structural-bias
   - repair
   - synthetic-flag
+thought_session: season
 title: "EXP002: Add synthetic flag + evidence_runs to verdict nodes"
-type: experiment
 ---
-
 ## Experiment
 
 Run `exp-a00-ddbe3410-synthetic-repair.py` to:

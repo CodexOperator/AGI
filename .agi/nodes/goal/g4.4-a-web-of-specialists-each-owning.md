@@ -1,22 +1,24 @@
 ---
+id: goal:g4.4
+mint_id: 7d890c1786f14524ad92edcd4aeb852f
+type: goal
+parents:
+  - goal:g4
 confidence: 1.0
+edited_by: season.py
 goal_id: G4.4
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.4"
-mint_id: 7d890c1786f14524ad92edcd4aeb852f
 origin: goals-doc
-parents:
-  - goal:g4
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G4.4: A web of specialists, each owning a region"
-type: goal
 ---
-
 **Where the model-tiering goes once the dial exists.** G4.2 gives per-tier effort;
 this is what to do with it. The target shape: many small, hyper-specialised models
 each owning a **region of a zoom level** of the hypergraph, a smaller number of

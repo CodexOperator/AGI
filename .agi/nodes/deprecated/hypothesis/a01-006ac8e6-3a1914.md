@@ -5,9 +5,12 @@ type: hypothesis
 parents:
   - goal:s34
 next_edges: []
-status: deprecated
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 9e20bd1673d032d3
+season: 1
+status: deprecated
+thought_session: season
 title: "DEPRECATED: duplicate of hypothesis:a00-3416528c-c05b85 (same row 12 claim); corpus counts stale (8 vs actual 7 contrasts nodes; 83 vs 159 verdict files); garbage scaffold title uncorrected"
 verdict: pending
 ---

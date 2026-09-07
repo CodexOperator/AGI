@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R6
 testable_claim: Recursive Rendering
-thought_session: L1.09
+thought_session: season
 title: "renderers/R6: Recursive Rendering"
 ---
 **Description:** When a node's body is itself a subgraph, renderers may render it as a nested view bounded in depth.

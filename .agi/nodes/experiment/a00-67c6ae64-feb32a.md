@@ -7,11 +7,13 @@ parents:
 confidence: 0.5
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 12e5cf04ff9a13d1
+season: 1
+thought_session: season
 title: A00 67c6ae64 feb32a
 verdict: inconclusive_lean_proved:50
 ---
-
 # experiment:a00-67c6ae64-feb32a
 
 ## Experiment

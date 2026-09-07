@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g4.8
 next_edges: []
-scaffold_hash: a4cc57f4a421ff27
-title: "Delegator token spend is sub-linear in loop count via structural delta review"
-testable_claim: "When a delegator directs N concurrent parent loops, its per-loop token consumption decreases as N grows because parents report structural deltas (verdict changes, metric diffs, exit codes) rather than full node bodies — the delegator reads full content only for anomalous deltas, so marginal cost per additional loop approaches zero."
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: a4cc57f4a421ff27
+season: 1
+testable_claim: When a delegator directs N concurrent parent loops, its per-loop token consumption decreases as N grows because parents report structural deltas (verdict changes, metric diffs, exit codes) rather than full node bodies — the delegator reads full content only for anomalous deltas, so marginal cost per additional loop approaches zero.
+thought_session: season
+title: Delegator token spend is sub-linear in loop count via structural delta review
 verdict: pending
 ---
-
 # hypothesis:a06-4714fa2c-c75aec
 
 ## Hypothesis

@@ -1,11 +1,14 @@
 ---
-domain: vector-embedding-isomorphism
-id: "hyp:a00-324837df-2546ce"
+id: hyp:a00-324837df-2546ce
 mint_id: cbe5102fffee43f9a2947c26ff776f63
-next_edges:
-  - exp:a00-324837df-2546ce
+type: hypothesis
 parents:
   - idea:domain-vector-embedding-isomorphism
+next_edges:
+  - exp:a00-324837df-2546ce
+domain: vector-embedding-isomorphism
+edited_by: season.py
+season: 1
 spawns: []
 status: complete
 tags:
@@ -14,10 +17,9 @@ tags:
   - gensim
   - isomorphism
   - skip-gram
+thought_session: season
 title: "R2: Gensim Skip-Gram Node2Vec Preserves Graph Topology"
-type: hypothesis
 ---
-
 ## Hypothesis
 
 **Claim**: A true gensim skip-gram Word2Vec implementation will preserve graph topology significantly better than the hash-based approach (R1 Spearman = -0.18).

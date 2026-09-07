@@ -1,22 +1,24 @@
 ---
+id: goal:g1.3
+mint_id: 7423e948481f46e1a73abc88988f0aa3
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.3
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.3"
-mint_id: 7423e948481f46e1a73abc88988f0aa3
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.3: The injected map teaches its own use"
-type: goal
 ---
-
 **The map shows what is in the graph and says nothing about how to move through
 it.** An agent arrives holding 200 lines of ASCII render and no addressing
 scheme, so the only move it knows is the one it brought from outside: open a

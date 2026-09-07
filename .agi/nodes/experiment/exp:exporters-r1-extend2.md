@@ -1,25 +1,27 @@
 ---
-confidence: 1.0
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "exp:exporters-r1-extend2"
+id: exp:exporters-r1-extend2
 mint_id: 5f03fb58b1b545c9a4764f53c84b241b
-next_edges:
-  - verdict:exporters-r1-extend2
+type: experiment
 parents:
   - verdict:exporters-r1-extend
   - hyp:exporters-r1
-status: "inconclusive_lean_proved:50"
+next_edges:
+  - verdict:exporters-r1-extend2
+confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: season.py
+evidence_runs: []
+season: 1
+status: inconclusive_lean_proved:50
 tags:
   - exporters
   - chain-extension
   - r1-extend2
+thought_session: season
 title: "Experiment: Exporters R1 Second Extension"
-type: experiment
-verdict: "inconclusive_lean_proved:50"
+verdict: inconclusive_lean_proved:50
 ---
-
 # Experiment: Exporters R1 Second Extension
 
 Extends the exporters chain from 10 to 12 hops via second verdict→experiment→verdict cycle.

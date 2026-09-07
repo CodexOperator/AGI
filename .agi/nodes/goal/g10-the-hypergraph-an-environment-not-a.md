@@ -1,11 +1,14 @@
 ---
+id: goal:g10
+mint_id: 61522510d1ad4359aed7fa04555065dd
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G10
 goal_kind: long-term
 heading_level: 2
-id: "goal:g10"
-mint_id: 61522510d1ad4359aed7fa04555065dd
 origin: goals-doc
+season: 1
 seeds:
   - goal:g10.1
   - goal:g10.2
@@ -14,10 +17,9 @@ status: horizon
 tags:
   - goal
   - root
+thought_session: season
 title: "G10: The hypergraph: an environment, not a document"
-type: goal
 ---
-
 **The end state this whole system is walking toward.** Not "a graph the agent can
 query" — a *place the agent is in*. There are no blocks of prose anywhere in the
 working context; everything an agent sees is graph, rendered. The agent receives

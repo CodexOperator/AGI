@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-renderers-init"
+id: build:tests-renderers-init
 mint_id: 68e41a4c76cc46a9b2e9304518323444
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/renderers/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/renderers/__init__.py"
-type: build
 ---
-
 `extensions/agi/tests/renderers/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-renderers`.

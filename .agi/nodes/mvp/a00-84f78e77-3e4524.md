@@ -6,7 +6,10 @@ parents:
   - verdict:declared-commands-delete-four-copies
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 7f3460a31cf243a7
+season: 1
+thought_session: season
 title: Run declared workflows through the resolver in batch
 verdict: pending
 ---

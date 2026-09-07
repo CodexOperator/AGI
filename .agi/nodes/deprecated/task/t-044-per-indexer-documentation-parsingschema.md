@@ -11,15 +11,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-042
 cavekit_req: environment-indexers/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-044: Per-indexer documentation (parsing/schema-mapping/caching comments)"
 ---
 **Description:** Audit and add comment blocks per indexer covering: (a) parsing strategy, (b) schema mapping, (c) caching behavior. Three labeled sections per file.

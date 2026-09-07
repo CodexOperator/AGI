@@ -1,19 +1,21 @@
 ---
-confidence: 0.85
-evidence_runs: []
-id: "mvp:level3-boundary-scope"
+id: mvp:level3-boundary-scope
 mint_id: 21c543f1dca049c3b7003ade93c64db4
+type: mvp
 parents:
   - goal:g6.8
+confidence: 0.85
+edited_by: season.py
+evidence_runs: []
+season: 1
 subgraph: false
 tags:
   - g6.6
   - g6.8
   - level3
-title: "Point level3.py's scan at the G6.8 payload-boundary predicate instead of its hardcoded src/bin prefixes"
-type: mvp
+thought_session: season
+title: Point level3.py's scan at the G6.8 payload-boundary predicate instead of its hardcoded src/bin prefixes
 ---
-
 **Verified, not guessed.** I built the exact diff below in scratch, ran it
 against a mirrored copy of the real test suite, and dry-ran it against the
 real `agi` engine repo + real `agi-tree` project (`--dry-run`, zero writes).

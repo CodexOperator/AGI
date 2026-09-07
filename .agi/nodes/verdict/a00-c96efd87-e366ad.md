@@ -6,11 +6,14 @@ parents:
   - experiment:the-serializer-ate-the-command-node
 next_edges: []
 confidence: 1.0
-scaffold_hash: ca3b26a305f61775
-title: A00 c96efd87 e366ad
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:the-serializer-ate-the-command-node
+scaffold_hash: ca3b26a305f61775
+season: 1
+thought_session: season
+title: A00 c96efd87 e366ad
+verdict: proved
 ---
 # verdict:a00-c96efd87-e366ad
 

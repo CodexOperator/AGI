@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: d9bab02f69062881
+season: 1
 testable_claim: "An agent spawned by dispatch.py at tier kid or parent cannot git commit in the project repo: a per-process hooks path installed by dispatch.py refuses the commit with the rule and the tier, while git status and git diff keep working"
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 g15: l2-agent-git-commit-guard"
 ---
 # hypothesis:l2-agent-git-commit-guard

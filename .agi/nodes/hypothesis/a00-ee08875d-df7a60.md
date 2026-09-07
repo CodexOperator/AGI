@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g3
 next_edges: []
-scaffold_hash: c44de233cd69aed8
-title: Confidence-weighted goal fulfillment exposes fragile progress
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: c44de233cd69aed8
+season: 1
 testable_claim: Weighting outcomes/mvps by hypothesis-verdict confidence when computing per-goal fulfillment reveals a materially different picture than binary outcome_coverage, and at least one active goal has a confidence-weighted score >0.2 lower than its binary score — meaning a substantial fraction of its "progress" rests on low-confidence verdicts that binary scoring treats as solid.
+thought_session: season
+title: Confidence-weighted goal fulfillment exposes fragile progress
+verdict: pending
 ---
-
 # hypothesis:a00-ee08875d-df7a60
 
 ## Hypothesis

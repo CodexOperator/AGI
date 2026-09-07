@@ -6,10 +6,11 @@ parents:
   - goal:g4.8
 next_edges: []
 confidence: 0.0
-edited_by: director
+edited_by: season.py
 scaffold_hash: 82e64f9e6774bd2e
+season: 1
 testable_claim: A delegator reviewing P parent briefs -- each parent reviewing its own kids -- spends tokens sub-linearly in total loops L = P x M, because it reads P short parent briefs rather than L kid nodes
-thought_session: L1.03
+thought_session: season
 title: Delegator token cost is O(P) in parent count, not O(L) in total loops
 verdict: pending
 ---

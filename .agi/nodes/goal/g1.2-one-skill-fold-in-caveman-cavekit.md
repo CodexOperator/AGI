@@ -1,22 +1,24 @@
 ---
+id: goal:g1.2
+mint_id: e4f95f4dffe74c939d08cfbae7351937
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.2
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.2"
-mint_id: e4f95f4dffe74c939d08cfbae7351937
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.2: One skill: fold in caveman, cavekit, and gitnexus"
-type: goal
 ---
-
 Four systems overlap in this repo and none of them know about the others:
 **agi** (this loop), **caveman** (compressed communication, ~75% fewer tokens),
 **cavekit** (kits → build sites → tiered task graphs, with its own peer-review

@@ -13,15 +13,16 @@ blocked_by:
   - task:t-031
   - task:t-004
 cavekit_req: chain-engine/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-047: Chain definition and ordered-type traversal"
 ---
 **Description:** Define `Chain` as `list[str]` (node ids). Implement `find_chains(graph)` that traverses from idea nodes following `next` edges, collecting paths whose type sequence matches the regex `idea hypothesis+ experiment+ verdict mvp outcome bigger_outcome app_purpose`. Multiple-of-same-type consecutive runs allowed. Skipping any required type → path is rejected. Shared prefixes preserved as separate chains.

@@ -6,8 +6,11 @@ parents:
   - goal:g4.8
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 3294874fda810824
+season: 1
 testable_claim: "With one delegator (director) and P parents, each parent having spawned K kids and produced one parent summary node:"
+thought_session: season
 title: "Delegator token spend is sub-linear in loops: parent summaries replace kid re-reads"
 verdict: pending
 ---

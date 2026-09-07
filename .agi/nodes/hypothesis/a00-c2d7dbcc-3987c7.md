@@ -1,11 +1,14 @@
 ---
-confidence: 0.65
-id: "hyp:a00-c2d7dbcc-3987c7"
+id: hyp:a00-c2d7dbcc-3987c7
 mint_id: d2bc694d9ffe42488577482ee9f1693c
-next_edges:
-  - exp:topological-queries-r1
+type: hypothesis
 parents:
   - idea:domain-graph-core
+next_edges:
+  - exp:topological-queries-r1
+confidence: 0.65
+edited_by: season.py
+season: 1
 status: inconclusive_lean_proved
 tags:
   - graph-core
@@ -13,11 +16,10 @@ tags:
   - query-api
   - task-selection
   - topology
+thought_session: season
 title: Topology-only DAG queries for agent task-selection
-type: hypothesis
-verdict: "inconclusive_lean_proved:65"
+verdict: inconclusive_lean_proved:65
 ---
-
 # hyp:a00-c2d7dbcc-3987c7
 ## Hypothesis
 

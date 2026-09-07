@@ -8,6 +8,7 @@ axis: vertical
 edited_by: owner
 grounded_in: Source
 scaffold_hash: 87125a01dce6f821
+season: 1
 season_introduced: 1
 thought_session: agi-master-2026-09-06
 title: "moral: faith"

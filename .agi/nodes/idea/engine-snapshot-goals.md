@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-snapshot-goals"
+id: idea:engine-snapshot-goals
 mint_id: 4214cb27979f47cdb09bfe7fe6922847
-origin: engine-decomp
+type: idea
 parents:
   - goal:g5
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/snapshot-goals.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/snapshot-goals.py
 ---
-
 `extensions/agi/bin/snapshot-goals.py` — an engine bin entry-point script.
 
 snapshot-goals.py — convert GOALS.md into first-class nodes under nodes/goal/.

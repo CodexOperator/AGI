@@ -1,19 +1,21 @@
 ---
-id: "mvp:schema-registry-r1"
+id: mvp:schema-registry-r1
 mint_id: 264d718d0a234bdbb71a6239f91e7bce
-next_edges:
-  - outcome:schema-registry-r1
+type: mvp
 parents:
   - verdict:schema-registry-r1
+next_edges:
+  - outcome:schema-registry-r1
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - schema-registry
   - R1
 testable_claim: MVP for schema-registry R1
+thought_session: season
 title: "schema-registry/R1: MVP"
-type: mvp
 ---
-
 **MVP:** Schema-as-file pattern with bracket convention.
 
 ```python

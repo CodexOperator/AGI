@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g13
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: a533ea9e47ea561e
+season: 1
 testable_claim: A frontmatter serializer with a str(v) fallback branch will silently destroy the first node type it does not recognise, and the loss will look like a successful write
-thought_session: L1.07
+thought_session: season
 title: A str(v) fallback is how losing data looks like working
 ---
 # hypothesis:a-serializer-lossy-on-one-type

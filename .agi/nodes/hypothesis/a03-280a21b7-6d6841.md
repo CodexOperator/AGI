@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g4.8
 next_edges: []
-scaffold_hash: 4a3d7d5cdf404654
-title: "Parallel kids writing to the same working tree avoid node collisions through mint_id-scoped file paths"
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: 4a3d7d5cdf404654
+season: 1
+testable_claim: With the lease-bound mechanism capping concurrent agents, kids spawned by different parents into the same working tree can avoid node file collisions because each kid's node file path is derived from its unique mint_id (a UUID) and contains no shared counter, temp-name, or sequence number that another kid could alias — so two kids cannot write to the same path even if they target the same parent node.
+thought_session: season
+title: Parallel kids writing to the same working tree avoid node collisions through mint_id-scoped file paths
 verdict: pending
-testable_claim: "With the lease-bound mechanism capping concurrent agents, kids spawned by different parents into the same working tree can avoid node file collisions because each kid's node file path is derived from its unique mint_id (a UUID) and contains no shared counter, temp-name, or sequence number that another kid could alias — so two kids cannot write to the same path even if they target the same parent node."
 ---
-
 # hypothesis:a03-280a21b7-6d6841
 
 ## Hypothesis

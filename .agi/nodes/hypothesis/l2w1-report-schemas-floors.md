@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: cb7aa67d60d0a7d5
+season: 1
 testable_claim: "[outcome], [bigger_outcome] and [overview] have min_parents 1 and carry the judgment record and season fields, and every existing node of the three types still validates"
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-report-schemas-floors"
 ---
 # hypothesis:l2w1-report-schemas-floors

@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 5a8d4d69cb1e2f13
+season: 1
 testable_claim: A pi parent's kid spawn returns within seconds with the kid's agent id, and the parent brief tells it to wait with cli.py status, so no parent tool call outlives the harness tool timeout while a kid runs
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 g15: l2-parent-spawn-nonblocking"
 ---
 # hypothesis:l2-parent-spawn-nonblocking

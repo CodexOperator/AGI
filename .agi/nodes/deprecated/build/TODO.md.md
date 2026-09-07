@@ -1,21 +1,23 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:TODO.md"
+id: build:TODO.md
 mint_id: 193472bb2ba84ffab51c97c1ea424613
-origin: build-scan
+type: build
 parents:
   - idea:engine-todo
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: TODO.md
+season: 1
 status: deprecated
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: TODO.md"
-type: build
 ---
-
 `TODO.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-todo`.

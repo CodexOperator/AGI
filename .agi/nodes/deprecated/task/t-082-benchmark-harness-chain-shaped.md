@@ -14,15 +14,16 @@ blocked_by:
   - task:t-056
   - task:t-057
 cavekit_req: autoresearch-tree-skill/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-082: Benchmark harness — chain-shaped metrics"
 ---
 **Description:** Implement `bench(graph) -> Metrics` that computes all five metrics. Use chain-engine queries. Add a documented tolerance constant (1e-6) for floating-point comparisons.

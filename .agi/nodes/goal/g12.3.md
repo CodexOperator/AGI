@@ -6,17 +6,18 @@ parents:
   - goal:g12
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G12.3
 goal_kind: long-term
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 26675f1aece38f09
+season: 1
 seeds: []
 status: active
 tags:
   - goal
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "G12.3: The tier ladder, seasons, and season.py"
 ---
 # goal:g12.3

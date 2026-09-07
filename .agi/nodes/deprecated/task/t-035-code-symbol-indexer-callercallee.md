@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-034
 cavekit_req: environment-indexers/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-035: Code symbol indexer — caller/callee relationship edges"
 ---
 **Description:** Augment T-034 with `calls` edges from caller symbol to callee symbol (best-effort name resolution within the indexed project; cross-package calls flagged as `external_call`). Add `callers_of(id)` and `callees_of(id)` query helpers.

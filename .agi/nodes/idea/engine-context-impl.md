@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-context-impl"
+id: idea:engine-context-impl
 mint_id: 879a780f2ce7424fb97c1b0186fb90a1
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: context/impl"
-type: idea
 unit_kind: src_package
 unit_path: context/impl
 ---
-
 `context/impl` — an engine source package.
 
 No module docstring or header comment was found for this surface.

@@ -5,18 +5,20 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: 3cad1bd09ce163e3
-title: "LOD rendering of derivation chats: graduated depth-on-demand beats both full-verbatim and single-summary"
-testable_claim: "An agent that accesses a derivation chat at graduated levels of detail (summary → key events → verbatim sections on demand) reaches correct conclusions in fewer tool calls than an agent given either the full verbatim chat or a single static summary."
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: 3cad1bd09ce163e3
+season: 1
 tags:
   - hypothesis
   - g10.1
   - lod
   - chat-rendering
+testable_claim: An agent that accesses a derivation chat at graduated levels of detail (summary → key events → verbatim sections on demand) reaches correct conclusions in fewer tool calls than an agent given either the full verbatim chat or a single static summary.
+thought_session: season
+title: "LOD rendering of derivation chats: graduated depth-on-demand beats both full-verbatim and single-summary"
+verdict: pending
 ---
-
 # hypothesis:a00-1ade7043-d9c466
 
 ## Hypothesis

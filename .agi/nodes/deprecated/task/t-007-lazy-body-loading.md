@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-006
 cavekit_req: graph-core/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-007: Lazy body loading"
 ---
 **Description:** Wrap node body in a `LazyBody` object. The graph load path reads only the frontmatter region of each file. `node.body` is a property that triggers the on-disk read on first access.

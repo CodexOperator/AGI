@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-019
 cavekit_req: schema-registry/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-021: Bracket convention for active schemas"
 ---
 **Description:** Implement `is_active = filename.startswith('[') and filename.endswith(']')`. Track active vs inactive sets separately. On collision among active schemas, raise `DuplicateActiveSchemaError(names=[path1, path2])`.

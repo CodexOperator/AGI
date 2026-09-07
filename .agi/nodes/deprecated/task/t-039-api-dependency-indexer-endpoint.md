@@ -12,15 +12,16 @@ blocked_by:
   - task:t-032
   - task:t-031
 cavekit_req: environment-indexers/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-039: API dependency indexer — endpoint nodes"
 ---
 **Description:** Parse OpenAPI/Swagger 2.0 + 3.x. For each path × method, emit one `endpoint` node with `method`, `path`, `summary` in frontmatter. Invalid spec → `InvalidOpenApiError(path, parser_message)`.

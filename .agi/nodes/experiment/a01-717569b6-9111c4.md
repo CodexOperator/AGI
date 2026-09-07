@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-160ca279-56d211
 next_edges: []
 confidence: 0.55
+edited_by: season.py
+season: 1
 status: run
+thought_session: season
 title: Regex/JSON extraction over 4 real CC session logs, in-session (no dispatch, no budget wall) — 3 of 4 event classes recovered
 verdict: inconclusive_lean_proved:55
 ---

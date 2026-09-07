@@ -6,10 +6,13 @@ parents:
   - experiment:a00-1215e67e-de106f
 next_edges: []
 confidence: 0.65
-scaffold_hash: ffd67f76624d5f95
-title: Shape-2 skill package viable under git install; npm path breaks level3/grid
+edited_by: season.py
 evidence_runs:
   - experiment:a00-1215e67e-de106f
+scaffold_hash: ffd67f76624d5f95
+season: 1
+thought_session: season
+title: Shape-2 skill package viable under git install; npm path breaks level3/grid
 verdict: inconclusive_lean_proved:65
 ---
 # verdict:a00-ed03ba59-e92206

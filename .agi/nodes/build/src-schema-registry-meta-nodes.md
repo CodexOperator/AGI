@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-schema-registry-meta-nodes"
+id: build:src-schema-registry-meta-nodes
 mint_id: f3c52c4bc3114b32864eabd28b3c8ac8
-origin: build-scan
+type: build
 parents:
   - idea:engine-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/schema_registry/meta_nodes.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/schema_registry/meta_nodes.py"
-type: build
 ---
-
 `extensions/agi/src/schema_registry/meta_nodes.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-schema-registry`.

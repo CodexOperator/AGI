@@ -7,8 +7,11 @@ parents:
 next_edges:
   - experiment:a00-f0fd9669-ce583f
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 3ae0dcace5c11e52
+season: 1
 testable_claim: With bound `B`, `N` parents each spawning `M` kids, the max concurrent process count across all N×M kids never exceeds `B`, regardless of timing skew between parent spawns.
+thought_session: season
 title: A00 8d238338 ec4dff
 verdict: pending
 ---

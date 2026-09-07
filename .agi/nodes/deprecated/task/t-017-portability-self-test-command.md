@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-016
 cavekit_req: graph-core/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-017: Portability self-test command"
 ---
 **Description:** Implement `agi-tree self-test portability` CLI subcommand. Copies `context/` to a tempdir, loads from there, compares node counts and id lists with the original. Exit code 0 on match, non-zero with diff on mismatch.

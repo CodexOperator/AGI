@@ -12,15 +12,16 @@ blocked_by:
   - task:t-002
   - task:t-003
 cavekit_req: graph-core/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-004: Graph DAG insertion with cycle rejection"
 ---
 **Description:** Implement a `Graph` container that holds nodes by id and edges as a set, exposes `add_node`, `add_edge`, `remove_node`, and `remove_edge`. `add_edge` performs cycle detection via DFS from target back to source; on a cycle, raises `CycleError` and rolls back. `remove_node` filters out every incident edge.

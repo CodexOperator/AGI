@@ -6,19 +6,20 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S35
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: eb5531b880f23924
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S35: Schemas are nodes, and they live under nodes/"
 ---
 # goal:s35

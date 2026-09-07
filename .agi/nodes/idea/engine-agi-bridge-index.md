@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-agi-bridge-index"
+id: idea:engine-agi-bridge-index
 mint_id: 625b5d5dfb744d24a19f9019d10e76ed
-origin: engine-decomp
+type: idea
 parents:
   - goal:g4
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi-bridge/index.ts"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi-bridge/index.ts
 ---
-
 `extensions/agi-bridge/index.ts` — an engine entry point.
 
 agi-bridge — Pi Extension

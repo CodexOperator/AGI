@@ -10,12 +10,15 @@ next_edges:
 confidence: 0.9
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 evidence_runs: []
+season: 1
 status: inconclusive_lean_proved:50
 tags:
   - session-management-r1
   - chain-extension
   - r21g
+thought_session: season
 title: Verdict:session management r1 extend1
 verdict: inconclusive_lean_proved:50
 ---
