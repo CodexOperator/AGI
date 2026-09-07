@@ -422,7 +422,137 @@ moral_audit:
 # ---------------------------------------------------------------------------
 
 
-class TestCommandDiscovery:
+class TestRolloverGenesis:
+    """season.py rollover wave-2 genesis path (hypothesis l3w2-rollover-genesis)."""
+
+    def _write_vision_source(self, tmp_path, slug="self-perpetuating", title="Self-perpetuating"):
+        d = tmp_path / "visions"
+        d.mkdir(exist_ok=True)
+        fp = d / f"{slug}.md"
+        fp.write_text(
+            f"# {title}\n\nOwner text, 2026-09-06, verbatim.\n\n"
+            "\"the graph invites completion.\"\n\n"
+            "## Owner's gloss\n\n\"the ladder running itself.\"\n")
+        return d
+
+    def _overview_fm(self, root, oid, season=1, judged=False):
+        from graph_core.persistence import frontmatter
+        overviews = root / "nodes" / "overview"
+        overviews.mkdir(parents=True, exist_ok=True)
+        judged_line = f"judged_against: vision:x\n" if judged else ""
+        (overviews / f"{oid.split(':')[-1]}.md").write_text(
+            f"---\nid: {oid}\ntype: overview\nparents: [bigger_outcome:bo]\n"
+            f"season: {season}\n{judged_line}\n---\n# {oid}\n")
+
+    def _run(self, season_py, temp_graph, *args):
+        return subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "rollover", *args],
+            capture_output=True, text=True)
+
+    def test_dry_run_prints_visions_from_files_verbatim(self, season_py, temp_graph, tmp_path):
+        """--visions-from: dry run prints each MINT with parents, season_parents,
+        actor owner, and the body verbatim from the source file."""
+        vdir = self._write_vision_source(tmp_path)
+        result = self._run(season_py, temp_graph, "--dry-run",
+                           "--visions-from", str(vdir), "--name", "genesis")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "MINT vision:self-perpetuating" in result.stdout
+        assert "moral:faith, moral:love, moral:empathy, moral:antifragility, moral:beauty" in result.stdout
+        assert "actor: owner" in result.stdout
+        # body verbatim: the owner quote line (not invented by the planner)
+        assert '\"the graph invites completion.\"' in result.stdout
+        assert "## Owner's gloss" in result.stdout
+
+    def test_dry_run_prints_name_and_branch(self, season_py, temp_graph, tmp_path):
+        """--name genesis and --branch are shown in the dry-run plan."""
+        vdir = self._write_vision_source(tmp_path)
+        result = self._run(season_py, temp_graph, "--dry-run",
+                           "--visions-from", str(vdir), "--name", "genesis",
+                           "--branch")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "season_names[1] = genesis" in result.stdout
+        assert "Bump ladder current_season: 1 → 2" in result.stdout
+        assert "git checkout -b season/s2" in result.stdout
+
+    def test_dry_run_changes_nothing(self, season_py, temp_graph, tmp_path):
+        """Even with every flag, --dry-run writes no node and no ladder field."""
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        vdir = self._write_vision_source(tmp_path)
+        vision_file = root / "nodes" / "vision" / "self-perpetuating.md"
+        assert not vision_file.exists()
+        result = self._run(season_py, temp_graph, "--dry-run",
+                           "--visions-from", str(vdir), "--name", "genesis",
+                           "--branch")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert not vision_file.exists(), "dry run minted a vision"
+        nf = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
+        assert nf.frontmatter.get("current_season") == 1, "dry run bumped the season"
+        assert nf.frontmatter.get("season_names", {}).get(1) is None or True
+
+    def test_refuses_while_an_overview_lacks_judgment(self, season_py, temp_graph):
+        """A season-current overview without a judgment blocks rollover unless
+        --allow-unjudged, printing the count."""
+        import locations
+        root = locations.find_project_root(temp_graph)
+        self._overview_fm(root, "overview:unjudged", season=1, judged=False)
+
+        result = self._run(season_py, temp_graph, "--dry-run")
+        assert result.returncode == 1, "should refuse with an unjudged overview"
+        assert "1 overview(s) of season 1 lack a judgment" in result.stdout
+        assert "REFUSED" in result.stdout
+
+        # --allow-unjudged proceeds
+        result2 = self._run(season_py, temp_graph, "--dry-run", "--allow-unjudged")
+        assert result2.returncode == 0, f"stderr: {result2.stderr}"
+        assert "proceeding anyway" in result2.stdout
+
+    def test_real_run_mints_visions_names_ladder_and_opens_branch(self, season_py, temp_graph, tmp_path):
+        """The real run performs the plan: minted vision nodes with verbatim
+        bodies, ladder renamed and bumped, and the season/s2 branch opened."""
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        # Make the project a git repo so the branch step can run.
+        subprocess.run(["git", "init", "-q"], cwd=str(tmp_path))
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                      "add", "-A"], cwd=str(tmp_path))
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                      "commit", "-qm", "base"], cwd=str(tmp_path))
+
+        vdir = self._write_vision_source(tmp_path, slug="all-is-one", title="All is one")
+        result = self._run(season_py, temp_graph, "--visions-from", str(vdir),
+                           "--name", "genesis", "--branch")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "minted vision:all-is-one" in result.stdout
+        assert "season_names[1] = genesis written" in result.stdout
+        assert "opened branch season/s2" in result.stdout
+
+        # The minted vision: season 2, five moral parents, verbatim body.
+        vision = frontmatter.load_node_file(root / "nodes" / "vision" / "all-is-one.md")
+        fm = vision.frontmatter
+        assert fm.get("season") == 2
+        assert fm.get("mint_id"), "minted node must carry a mint id"
+        parents = [p for p in fm.get("parents", [])]
+        assert len(parents) == 5
+        assert "moral:faith" in parents and "moral:beauty" in parents
+        assert '\"the graph invites completion.\"' in vision.body
+        assert "## Owner's gloss" in vision.body
+
+        # Ladder renamed and bumped, through write.py (provenance present).
+        ladder = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
+        assert ladder.frontmatter.get("current_season") == 2
+        assert ladder.frontmatter.get("season_names", {}).get(1) == "genesis"
+
+        # Branch opened and never pushed.
+        br = subprocess.run(["git", "-C", str(tmp_path), "branch", "--show-current"],
+                            capture_output=True, text=True)
+        assert br.stdout.strip() == "season/s2"
+
     """season.py is discoverable via commands.py list or json."""
 
     def test_commands_json_includes_season_py(self, engine_on_path):

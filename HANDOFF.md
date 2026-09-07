@@ -58,7 +58,9 @@ then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
 | L3.05 | g15 from L3.01: `hypothesis:l3-rotate-ultracode-env` (p-ultra, FIRST — the rotation gate depends on it), `hypothesis:l3-write-set-nested-json` (p-wset) | **LANDED — WAVE 0 COMPLETE, gate witnessed** |
 | L3.06 | `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env), `hypothesis:l2w15-write-guard` follow-up (mint-id rekey; the 175 WARNs cleared by themselves) | **LANDED** |
 | L3.07 | `hypothesis:l3-corrupt-frontmatter-19` (p-corrupt), `hypothesis:l3w1-goal-kind-perpetual` (p-perp, wave 1) | **LANDED** |
-| L3.08 | `hypothesis:l3w1-tier0-director-brief` (p-t0dir, wave 1), `hypothesis:l3w2-rollover-genesis` (p-roll, wave 2 mechanics: build + dry-run only) | **dispatched** |
+| L3.08 | `hypothesis:l3w1-tier0-director-brief` (p-t0dir, wave 1), `hypothesis:l3w2-rollover-genesis` (p-roll, wave 2 mechanics: build + dry-run only) | **LANDED — wave 1 complete** |
+| wave 2 | real rollover by the prime: `season.py rollover --visions-from .agi/context/visions --name genesis --branch` → 3 visions, season 1 = genesis, `season/s2` | **next** |
+| L3.09+ (belam-2) | wave 3 = the g15 slice on `season/s2`: advisors (`tier3-quorum`, opus ultracode) → Fable-max director for g15 → GLM parent → GLM director per LT subgoal → GLM parent per ST → DeepSeek kids; open g15 briefs first: `l3-dispatch-role-default`, `l3-openrouter-codex-spend` (slice 2) | |
 | then | wave 2: `season.py rollover --dry-run` → real (visions `--actor owner`, season 1 named genesis, `season/s2` opened, prime moves onto it); wave 3 = the g15 slice | |
 | wave 3, slice 2 | owner ask 2026-09-06: `hypothesis:l3-openrouter-codex-spend` (under g16) — gpt-5.1-codex calls on the OpenRouter key; the LIVE ladder investigates and fixes it, never the prime before wave 3 | banked |
 | then | wave 1 rest (`goal_kind: perpetual` + GOALS.md Perpetual section, tier-0 GLM director role in `brief.py`), wave 2 rollover (visions `--actor owner`, season 1 named genesis, `season/s2` opened), wave 3 = the g15 slice | |
@@ -87,13 +89,14 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 ### 🔴 Where it stops
 
-L3.07 committed as `iter-L3.07`. L3.08 running (p-t0dir, p-roll). Next: wait
-to 0 live, review, commit `iter-L3.08`, grid, push. Then WAVE 2 by the prime:
-write the three vision files verbatim from brief §1.8 (text + gloss) into
-`.agi/context/visions/`, `season.py rollover --dry-run --visions-from
-.agi/context/visions --name genesis --branch`, read the plan, then the real
-run, commit on `season/s2`, push the branch. Then wave 3: the g15 slice.
-Rotation works through `rotate.py spawn` as-is (env gate witnessed in L3.05). Rotation
+L3.08 committed as `iter-L3.08` (master). NEXT = the real rollover (prime):
+`python3 extensions/agi/bin/season.py rollover --visions-from .agi/context/visions --name genesis --branch`
+→ verify 3 `vision:*` nodes, ladder `season_names`/`current_season: 2`, branch
+`season/s2`, smoke 1245/194, links 0, goals check, guard silent → commit on
+`season/s2` (`wave 2: genesis rolled over …`), `grid.py commit --all` (guard
+admits season/*), `git push -u origin season/s2`. master is frozen as genesis
+from that commit. Then rotate (meter ~0.3+): write this file, `rotate.py spawn`
+(derives belam-2, exports the ultracode env), confirm `continue`, stop. Rotation
 of the prime must wait for L3.05's ultracode-env fix or export
 `CLAUDE_CODE_WORKFLOWS=1` by hand in the tmux window before `rotate.py spawn`.
 
