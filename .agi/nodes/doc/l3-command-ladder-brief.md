@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-VI
 link_ref: .agi/context/l3-command-ladder-brief.md
 location: repo_root
 payload_ref: .agi/context/l3-command-ladder-brief.md

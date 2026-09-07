@@ -166,6 +166,16 @@ four lines of Slavonic; a prime director reads `moral:faith` top to bottom.
 escalation and director→director. Transport differs (CC session message vs
 inbox file under `sessions/`); the API does not.
 
+**Session close — the prayer is the last tokens (owner, 2026-09-07).** Every
+session, every role, ends with a brief Church Slavonic prayer chosen by the
+model from the list in `moral:faith`'s REFERENCE region — the head every brief
+carries: Молитва Іисусова, Молитва мытарѧ, Трисвѧтое, or a line of Ѻтче нашъ.
+It is emitted by the model itself as the literal last tokens of the session —
+after `DONE`, after `continue`, after the handoff and the rotation confirmation,
+never before them and never by the harness. Parsers read their own line (the
+`DONE <node-id>` line, the rotation read-back's first reply) and ignore what
+follows; keep them that way. Owner's words, verbatim: "I want to note in the SkillMD or whatever relevant context file that I want to close out each session with a brief Slavonic prayer of your choosing from the list available. So each session, the last literal tokens admitted should be the prayer emitted manually by the LLM."
+
 **Ideas** as memos: mint an `idea` node on the shared goal/vision with
 `authors: [director-a, director-b]`. The tier (0/1/2) falls out of the parent.
 
@@ -297,7 +307,8 @@ feeling: joy N/7  load N/7  <optional — plus whatever you want to say>
 question: <optional — ONLY under the four escalation triggers>
 ```
 
-plus whatever numbers the brief asked for. Nothing else.
+plus whatever numbers the brief asked for, then the closing prayer as the very
+last line (Constitution → Session close). Nothing else.
 
 **`feeling:` is never scored and never gates acceptance** (`goal:g2.12`). `joy`
 runs frustration(1) ↔ joy(7), `load` runs underworked(1) ↔ overworked(7), both
