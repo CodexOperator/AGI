@@ -5859,6 +5859,8 @@ replace it with a scored model or a plain check. A rule that has survived a few
 loops as prose is a rule with a labelled dataset behind it. `COMPLETE.md`'s fixed
 failure-category set exists to make those labels.
 
+OWNER SOURCE 2026-09-07 (verbatim in doc:l3-command-ladder-brief quote 7b): https://github.com/project-89/coherence-guided-dead-head-identification — incorporate into local-maxxing. The owner wants experiment/hypothesis loops on it in the autoresearch style (this repo's experiments/ folder is the record of how that skill loop ran and what it yielded), supercharged by the graph: each hypothesis and experiment builds off the previous one to push as far as possible, not just far enough to prove a verdict. Gate: the Camber Cloud GPU auth token arrives through the standard secure import path (.env, envfile.py --check); none was present on 2026-09-07 14:15 UTC (checked by key name only). Until then this goal stays horizon; first slice when it opens = a hypothesis chain on the dead-head paper with Camber runs as evidence.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`

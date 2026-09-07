@@ -9,6 +9,7 @@ fields:
   required_keys: {type: list}        # env keys a project cannot run without
   optional_keys: {type: list}        # env keys it will use if present
   forbidden_keys: {type: list}       # env keys that must never be set
+  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat
 validation:
   required: [locations]
   types:
@@ -18,6 +19,7 @@ validation:
     required_keys: list
     optional_keys: list
     forbidden_keys: list
+    seats: list
 
 # ===========================================================================
 # The three filesystem facts, and the three places each is defined today.

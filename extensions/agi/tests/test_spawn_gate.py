@@ -168,6 +168,38 @@ def gate(project):
     return rules, index
 
 
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-seat-registry — read_seat_registry
+# ---------------------------------------------------------------------------
+
+def test_read_seat_registry_none_when_node_absent_fails_open(tmp_path):
+    """No .geometry/seats.md -> None, never an exception: dispatch falls back
+    to the ladder/config rather than blocking on a missing seat node."""
+    nodes_dir = tmp_path / "nodes"
+    nodes_dir.mkdir(parents=True)
+    assert sg.read_seat_registry(nodes_dir) is None
+    assert sg.read_seat_registry(None) is None
+
+
+def test_read_seat_registry_returns_declared_rows(tmp_path):
+    seats_md = tmp_path / "nodes" / ".geometry" / "seats.md"
+    seats_md.parent.mkdir(parents=True)
+    seats_md.write_text((
+        "---\nid: config:seats\ntype: config\n"
+        "seats:\n"
+        "  - {name: liaison, role: director, tier: 1, harness: claude-code, "
+        "model: claude-sonnet-5, effort: high, settings: ''}\n"
+        "  - {name: belam, role: prime_director, tier: 3, harness: claude-code, "
+        "model: claude-fable-5-1, effort: max, settings: ultracode}\n"
+        "---\n"
+    ))
+    rows = sg.read_seat_registry(tmp_path / "nodes")
+    assert isinstance(rows, list) and len(rows) == 2
+    names = [r["name"] for r in rows]
+    assert names == ["liaison", "belam"]
+    assert rows[0]["model"] == "claude-sonnet-5"
+
+
 # --------------------------------------------------------------------------
 # loading
 # --------------------------------------------------------------------------

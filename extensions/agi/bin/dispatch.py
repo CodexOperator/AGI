@@ -337,6 +337,28 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
     }
 
 
+def resolve_seat_spec(seats: list | None, name: str) -> dict | None:
+    """Resolve one seat row by NAME to {harness, model, effort, settings}.
+
+    hypothesis:l3w4-seat-registry. A seat's own cells override the ladder's
+    (tier, role) class table -- that is how the liaison diverges from the
+    director class (sonnet/high, not opus/max) while staying privileged as a
+    director on tier 1. Returns None when the registry is absent or has no
+    row for `name`, which fails open to the (tier, role) ladder lookup.
+    """
+    for r in (seats or []):
+        if r.get("name") != name:
+            continue
+        return {
+            "harness": r.get("harness") or None,
+            "model": (r.get("model") or "").strip() or None,
+            "effort": (r.get("effort") or "").strip() or None,
+            "settings": r.get("settings") or None,
+            "from_seat": True,
+        }
+    return None
+
+
 def _compile_role_rows(roles: list | None) -> list[tuple[int, str, dict]]:
     """Resolve every declared row -> (tier, role, spec), in declaration order.
 
@@ -572,6 +594,15 @@ def main() -> int:
              "--target vision:<id> --goal goal:<id>",
     )
     ap.add_argument(
+        "--seat",
+        default=None,
+        help="Seat name to dispatch as (hypothesis:l3w4-seat-registry). The "
+             "seat's own row in config:seats overrides harness/model/effort/"
+             "settings from the ladder's (tier, role) class table. No row for "
+             "the name falls back to the ladder. Export AGI_SEAT=<name> for "
+             "the meter pin to land seat-stable.",
+    )
+    ap.add_argument(
         "--list-rows",
         action="store_true",
         help="Dry print: resolve every role in the ladder's roles table and "
@@ -619,6 +650,29 @@ def main() -> int:
         return 1
     cfg = json.loads(cfg_path.read_text())
 
+    # hypothesis:l3w4-seat-registry — a named seat overrides the (tier, role)
+    # ladder class table with the seat's own row. Resolved here, after `root`
+    # exists and before the harness block reads the ladder.
+    if args.seat is not None:
+        seat_spec = resolve_seat_spec(
+            spawn_gate.read_seat_registry(root / "nodes" if root else None),
+            args.seat)
+        if seat_spec is None:
+            print(f"seats: no row for seat '{args.seat}'; falling back to "
+                  f"ladder/config", file=sys.stderr)
+        else:
+            # Reuse the (tier, role) override branch below by substituting the
+            # seat's cells for the ladder spec's. The model cell is keyed to
+            # the adapter's tier string later, so the seat's model wins.
+            _seat_override = dict(seat_spec)
+            _seat_override["from_ladder"] = True
+            _seat_override["from_seat"] = True
+            args._seat_override = _seat_override
+            print(f"seats: seat {args.seat} -> "
+                  f"{seat_spec['harness'] or '-'}/{seat_spec['model'] or '-'}/"
+                  f"effort={seat_spec['effort'] or '-'}/"
+                  f"settings={seat_spec['settings'] or '-'}")
+
     # hypothesis:l3w0-ladder-roles-table — dry print: resolve every declared
     # role row and exit without spawning anything. Nothing is written.
     if args.list_rows:
@@ -638,6 +692,10 @@ def main() -> int:
         tier_eff = (args.ladder_tier if args.ladder_tier is not None
                     else _default_tier_for_role(args.role))
         _spec = resolve_role_spec(cfg, ladder_roles, tier_eff, args.role)
+        # hypothesis:l3w4-seat-registry — a named seat's row replaces the
+        # ladder spec; the seat's harness/model/effort/settings win.
+        if getattr(args, "_seat_override", None):
+            _spec = args._seat_override
         dispatch_harness = harness
         if _spec["from_ladder"]:
             if _spec["harness"] and _spec["harness"] != harness_name:

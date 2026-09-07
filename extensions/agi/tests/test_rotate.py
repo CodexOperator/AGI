@@ -416,6 +416,24 @@ def _write_pin(root, target, name="prime.meter"):
     return pin
 
 
+def test_seat_pin_stable_across_two_rotations_same_name(monkeypatch, tmp_path, fake_ladder, capsys):
+    # hypothesis:l3w4-seat-registry — .agi/sessions/<name>.meter is seat-stable:
+    # a seat rotation re-reads the SAME seat pin even as a NEWER foreign pin
+    # lands. Without --seat, newest-mtime wins (the bug this closes).
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    seat_pin = _write_pin(tmp_path, pinned, name="belam.meter")
+    _write_pin(tmp_path, foreign, name="zzz-newer.meter")
+    import os
+    old, now = time.time() - 10_000, time.time()
+    os.utime(seat_pin, (old, old))
+    os.utime(tmp_path / ".agi" / "sessions" / "zzz-newer.meter", (now, now))
+    code = rotate.main(["meter", "--seat", "belam"])
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert "0.020" in out, out      # seat's own pinned transcript
+    assert "0.4" not in out, out     # NOT the newer foreign pin newest would pick
+
+
 def test_meter_pin_file_wins_over_newer_foreign(monkeypatch, tmp_path, fake_ladder, capsys):
     # A pin file naming our own transcript must beat the newer foreign .jsonl
     # in the project dir (the hypothesis: without it, newest wins -> bug).

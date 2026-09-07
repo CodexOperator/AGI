@@ -219,8 +219,13 @@ def _derive_cc_slug(cwd: str) -> str:
     return cwd.replace("/", "-")
 
 
-def find_pin_log(root: Path) -> Path | None:
-    """The newest `<root>/.agi/sessions/*.meter` pin, if any.
+def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
+    """The newest `<root>/.agi/sessions/*.meter` pin, or the seat's own pin.
+
+    When `seat` is given, the seat-stable pin `<root>/.agi/sessions/"
+    "<seat>.meter` wins over every other pin regardless of mtime
+    (hypothesis:l3w4-seat-registry) -- the meter for a named seat reads its
+    own pin even as newer foreign pins land.
 
     A pin's content is a single line: the absolute path to the transcript this
     agent owns. Written by `rotate.py meter --pin` or by the claude adapter
@@ -231,6 +236,9 @@ def find_pin_log(root: Path) -> Path | None:
     sessions = root / ".agi" / "sessions"
     if not sessions.is_dir():
         return None
+    if seat is not None:
+        sp = sessions / f"{seat}{METER_PIN_EXT}"
+        return sp if sp.is_file() else None
     pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
                   key=lambda p: p.stat().st_mtime)
     return pins[-1] if pins else None
@@ -249,13 +257,15 @@ def _read_pin_target(pin: Path) -> Path | None:
 
 
 def resolve_transcript(*, root: Path, session_log: str | None = None,
-                       env=None) -> tuple[Path | None, str]:
+                       env=None, seat: str | None = None) -> tuple[Path | None, str]:
     """The transcript the meter should read, resolved in strict order
     (hypothesis:l3-meter-own-transcript):
 
       1. `--session-log PATH` (explicit, must exist)
       2. env `AGI_SESSION_LOG` (must exist)
       3. a pin file `<root>/.agi/sessions/*.meter` naming our transcript
+         (`--seat NAME` reads the seat-stable `<NAME>.meter` instead of the
+         newest-mtime pin, hypothesis:l3w4-seat-registry)
       4. the transcript dir for OUR cwd slug (the child ran from this cwd)
       5. newest transcript in the fallback slug dir `.
 
@@ -276,12 +286,12 @@ def resolve_transcript(*, root: Path, session_log: str | None = None,
             return lp, "AGI_SESSION_LOG"
         return None, "AGI_SESSION_LOG-missing"
     # 3 pin file
-    pin = find_pin_log(root)
+    pin = find_pin_log(root, seat)
     if pin is not None:
         target = _read_pin_target(pin)
         if target is not None:
-            return target, "pin_file"
-        return None, "pin_file-missing"
+            return target, "seat_pin" if seat else "pin_file"
+        return None, f"pin_file-missing"
     # 4 slug from this cwd
     slug = _derive_cc_slug(os.getcwd())
     for cand_slug in (slug, CC_PROJECT_SLUG):
@@ -651,7 +661,8 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     # own-transcript): --session-log, then env AGI_SESSION_LOG, then the pin
     # file, then our cwd's slug dir (newest, with a WARN), then the
     # remote-control debug log as a last resort.
-    log_path, source = resolve_transcript(root=root, session_log=args.session_log)
+    log_path, source = resolve_transcript(root=root, session_log=args.session_log,
+                                          seat=getattr(args, "seat", None))
 
     if source in ("explicit-missing", "AGI_SESSION_LOG-missing",
                   "pin_file-missing"):
@@ -1013,6 +1024,10 @@ def main(argv: list[str] | None = None) -> int:
                              "remote-control debug log")
     p_meter.add_argument("--check", action="store_true",
                         help="exit 1 if fraction >= threshold; else 0")
+    p_meter.add_argument("--seat", default=None,
+                        help="seat name: read the seat-stable "
+                             ".agi/sessions/<name>.meter pin over the "
+                             "newest-mtime pin (hypothesis:l3w4-seat-registry)")
     p_meter.add_argument("--pin", default=None,
                         help="write a pin file naming the transcript this "
                              "role owns (hypothesis:l3-meter-own-transcript)")

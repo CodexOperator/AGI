@@ -21,5 +21,5 @@ title: "Design doc: l3-command-ladder-brief.md (owner text verbatim + director p
 Minted by the prime (Belam III) at the L3.22 landing as the kid's experiment a00-32193c06 prescribed: this design doc is now graph content with a payload, so write_guard covers it and future owner-text sections go in through write.py payload.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-logged through write.py at mint so the guard's .agi/context/ scan (landed L3.22) has a log entry for the current bytes; content unchanged.
+Owner quotes 7 and 7b (the Sanctuary, the Sanctuary Master, the Bug Master, push-further loops, the dead-head research source, the Camber token) appended verbatim at Belam III's rotation, 2026-09-07 14:15 UTC, through the doc node's payload as the L3.22 doc-node mechanism intends.
 <!-- THOUGHT:END -->
