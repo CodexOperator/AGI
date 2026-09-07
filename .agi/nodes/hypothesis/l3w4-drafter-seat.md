@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam-S1-L3-V
 scaffold_hash: b3e620cb1818abce
 season: 2
 testable_claim: A `drafter` row on the ladder's `roles:` table (claude-code, claude-sonnet-5, effort max, settings ultracode) is resolved by `dispatch.py --role drafter --ladder-tier 1` and a new `brief.py assemble(tier="drafter")`, whose DUTIES turn a `send.py send --to drafter` request into a scratch draft that a mechanical lint must clear before `write.py create hypothesis` mints it under the requester's own named parents and only the requester's own reply closes the acceptance gate, while the drafting workflow itself, `extensions/agi/workflows/draft-briefs.js`, exists as a `build` node under `goal:g17` (parents `[mvp:l3w4-draft-workflow, goal:g17]`) so any harness — claude-code Sonnet or a pi GLM drafter — can summon the same workflow by editing only that row's harness and model.
-thought_session: L3.21
+thought_session: L3.27
 title: Stand up the drafter seat
 ---
 <!-- BODY:BEGIN -->
@@ -47,3 +47,5 @@ NOT IN SCOPE: the seat registry (l3w4-seat-registry); the remote-control transpo
 SOURCE: "Owner text 2026-09-07 ... perpetual seats, the quorum as reviewer, the owner liaison", quotes (5) and (6).
 
 OWNER QUOTE (6), 2026-09-07 (verbatim in the brief doc): "Just make it easy to switch the workflow agents to opus or fable again if needed via config update or single-run override. And later make it model- and inference provider-agnostic completely." Requirement: the drafting workflow reads its model/effort from .agi/config.json workflows.drafting (landed) with a per-run override (landed); the seat design must make the drafter fully model- and inference-provider-agnostic — dispatch.py picks harness/provider/model from the seat row and the workflow script must not hardcode a vendor.
+
+Belam V 2026-09-07 18:40 UTC: owner layer 8 (HANDOFF section 6 item 24, doc quote 9): brief drafting happens through the PLAN MASTER — hypothesis:l3w4-plan-master supersedes this seat's SEAT while keeping this brief's mechanism (config-maxxed drafting workflow, model/effort from config with a single-run override, provider-agnostic). Build the mechanism here, the seat there.
