@@ -28,7 +28,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | tests | **1661** passed, 9 skipped at L3 open |
 | broken links | 0 (1367 resolved, after L2.13) |
 | crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
-| branch | `master`, clean at `f5e5320a5` (L3 adopted), pushed. Prime works on master until wave 2 opens `season/s2`. |
+| branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
 | agents live | **0/25** at L3 open. `belam` meter 0.09 of 1.0M (rotate at 0.35). |
 | spend | OpenRouter **$16.51** at L3 open (72 credits, 55.49 used). Rule (§6 item 14): run to a ~$3 reserve, then owner tops up; fallback `--harness claude-code` opus parents / sonnet kids at LOWEST effort. |
 | disk | 81% |
@@ -59,7 +59,7 @@ then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
 | L3.06 | `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env), `hypothesis:l2w15-write-guard` follow-up (mint-id rekey; the 175 WARNs cleared by themselves) | **LANDED** |
 | L3.07 | `hypothesis:l3-corrupt-frontmatter-19` (p-corrupt), `hypothesis:l3w1-goal-kind-perpetual` (p-perp, wave 1) | **LANDED** |
 | L3.08 | `hypothesis:l3w1-tier0-director-brief` (p-t0dir, wave 1), `hypothesis:l3w2-rollover-genesis` (p-roll, wave 2 mechanics: build + dry-run only) | **LANDED — wave 1 complete** |
-| wave 2 | real rollover by the prime: `season.py rollover --visions-from .agi/context/visions --name genesis --branch` → 3 visions, season 1 = genesis, `season/s2` | **next** |
+| wave 2 | real rollover by the prime: `season.py rollover --visions-from .agi/context/visions --name genesis --branch` → 3 visions, season 1 = genesis, `season/s2` | **DONE** — `vision:alive`, `vision:all-is-one`, `vision:self-perpetuating` minted (actor owner, parents = 5 morals, season_parents = 17 season-1 overviews, season 2); ladder `current_season: 2`, `season_names: {1: genesis}`; branch `season/s2` |
 | L3.09+ (belam-2) | wave 3 = the g15 slice on `season/s2`: advisors (`tier3-quorum`, opus ultracode) → Fable-max director for g15 → GLM parent → GLM director per LT subgoal → GLM parent per ST → DeepSeek kids; open g15 briefs first: `l3-dispatch-role-default`, `l3-openrouter-codex-spend` (slice 2) | |
 | then | wave 2: `season.py rollover --dry-run` → real (visions `--actor owner`, season 1 named genesis, `season/s2` opened, prime moves onto it); wave 3 = the g15 slice | |
 | wave 3, slice 2 | owner ask 2026-09-06: `hypothesis:l3-openrouter-codex-spend` (under g16) — gpt-5.1-codex calls on the OpenRouter key; the LIVE ladder investigates and fixes it, never the prime before wave 3 | banked |
@@ -89,14 +89,27 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 ### 🔴 Where it stops
 
-L3.08 committed as `iter-L3.08` (master). NEXT = the real rollover (prime):
-`python3 extensions/agi/bin/season.py rollover --visions-from .agi/context/visions --name genesis --branch`
-→ verify 3 `vision:*` nodes, ladder `season_names`/`current_season: 2`, branch
-`season/s2`, smoke 1245/194, links 0, goals check, guard silent → commit on
-`season/s2` (`wave 2: genesis rolled over …`), `grid.py commit --all` (guard
-admits season/*), `git push -u origin season/s2`. master is frozen as genesis
-from that commit. Then rotate (meter ~0.3+): write this file, `rotate.py spawn`
-(derives belam-2, exports the ultracode env), confirm `continue`, stop. Rotation
+Wave 2 rolled over and committed on `season/s2`, pushed. master frozen as
+genesis. **belam rotated to belam-2 at this point** (meter ≈ 0.3).
+NEXT (belam-2), on `season/s2`: wave 3 = the g15 slice. In order:
+1. Verify: `git branch --show-current` = season/s2; smoke 1245/194; suite
+   1765/1; `spawn_budget.py status` 0 live; OpenRouter ≈ $15.6 left.
+2. L3.09 (two pi parents, same round loop): `hypothesis:l3-dispatch-role-default`
+   (must land before any GLM director spawn) + `hypothesis:l3-openrouter-codex-spend`
+   is NOT for pi kids — it is wave 3 slice 2 for the live ladder; pair the
+   role-default fix with `hypothesis:l2-done-doubled-frontmatter` or the
+   write-guard snapshot-goals payload path instead.
+3. Then the slice: open room `tier3-quorum` (`send.py send --room tier3-quorum`),
+   spawn the three advisors (`dispatch.py --harness claude-code --tier parent
+   --role parent --ladder-tier 3`, opus ultracode — needs `CLAUDE_CODE_WORKFLOWS=1`,
+   which the adapter now exports) each assigned one vision node; the advisor
+   embodying *Alive* spawns the Fable-max director for g15
+   (`--role director --ladder-tier 1`); that director spawns a GLM parent for
+   g15 → GLM director per LT subgoal (`goal:g15.s2.1` minted by the director) →
+   GLM parent per ST → DeepSeek kids. Gate: one ST subgoal closed with a judged
+   outcome and no human hand on a node. Rotation loops live at every level
+   (`rotate.py loop --role`).
+4. `COMPLETE.md`: append a wave-0–2 section for L3 when the slice closes. Rotation
 of the prime must wait for L3.05's ultracode-env fix or export
 `CLAUDE_CODE_WORKFLOWS=1` by hand in the tmux window before `rotate.py spawn`.
 
