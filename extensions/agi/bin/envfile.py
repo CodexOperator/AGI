@@ -208,6 +208,74 @@ def read_env(path: Path) -> dict[str, str]:
     return out
 
 
+def set_key(res: "Resolution", name: str) -> int:
+    """Read one secret from the terminal and write it into the env file.
+
+    The value never appears in argv, in shell history, on screen, or in this
+    process's output -- `getpass` reads it straight from the tty. That is the
+    whole point: a secret pasted onto a command line is a secret in
+    `~/.bash_history`, in `ps`, and in any recording of the terminal, which
+    matters here because this box is about to be livestreamed.
+
+    Every existing line for `name` is replaced, not appended to. A duplicated
+    key in a `.env` is a real hazard rather than an untidiness: which value
+    wins depends on the parser, and this repo's own file carried
+    OPENROUTER_API_KEY twice before this verb existed.
+    """
+    import getpass
+    import os
+    import tempfile
+
+    path = Path(res.env_file)
+    if not sys.stdin.isatty():
+        print("ERR: --set reads the value from a terminal, and stdin is not one.\n"
+              "     Run it from an interactive ssh session. Never pipe a secret in:\n"
+              "     a piped secret is a secret in your shell history.",
+              file=sys.stderr)
+        return 1
+
+    value = getpass.getpass(f"paste value for {name} (input hidden): ").strip()
+    if not value:
+        print("ERR: empty value; nothing written.", file=sys.stderr)
+        return 1
+    again = getpass.getpass("paste it once more to confirm: ").strip()
+    if value != again:
+        print("ERR: the two entries differ; nothing written.", file=sys.stderr)
+        return 1
+
+    existing = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+    out: list[str] = []
+    replaced = 0
+    for raw in existing:
+        line = raw.strip()
+        candidate = line[len("export "):].lstrip() if line.startswith("export ") else line
+        key = candidate.partition("=")[0].strip() if "=" in candidate else ""
+        if key == name:
+            replaced += 1
+            if replaced == 1:
+                out.append(f"{name}={value}")
+            continue
+        out.append(raw)
+    if replaced == 0:
+        out.append(f"{name}={value}")
+
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".env.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(out).rstrip("\n") + "\n")
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+    where = "replaced" if replaced else "added"
+    dupes = f", dropped {replaced - 1} duplicate line(s)" if replaced > 1 else ""
+    print(f"[secrets] {where} {name} in {path} ({len(value)} chars{dupes}); mode 0600")
+    print("[secrets] the value was not printed and is not in your shell history.")
+    return 0
+
+
 def check(res: Resolution) -> tuple[list[str], list[str]]:
     """`(problems, notes)` — neither ever contains a secret value.
 
@@ -277,6 +345,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true",
                     help="report missing or forbidden keys; exit 1 on a problem")
     ap.add_argument("--json", action="store_true", help="emit the whole resolution")
+    ap.add_argument("--set", metavar="NAME",
+                    help="prompt on the terminal for NAME's value and write it "
+                         "into the env file, replacing any existing lines for "
+                         "it; the value is never echoed, never in argv, never "
+                         "in shell history")
     args = ap.parse_args(argv)
 
     try:
@@ -284,6 +357,9 @@ def main(argv: list[str] | None = None) -> int:
     except SecretsError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 1
+
+    if args.set:
+        return set_key(res, args.set)
 
     if args.what:
         print({"env-file": res.env_file, "template": res.template,
