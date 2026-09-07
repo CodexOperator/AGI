@@ -58,6 +58,7 @@ experiments/
 .agi/loop.log
 
 # Agent worktrees + local caches
+.agi/worktrees/
 .coverage
 htmlcov/
 *.egg-info/

@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.11
 next_edges: []
-edited_by: belam-S1-L3-VII
+edited_by: belam-S1-L3-VIII
 scaffold_hash: c1164fe30bb8d852
 season: 2
 testable_claim: provisioning.py status prints the .env key's own limit, usage and remaining from GET /api/v1/key, and dispatch.py refuses to spawn with a named error when remaining is below a configured floor, proved by a test that fakes a near-exhausted key and asserts the refusal plus one live status run showing the real numbers.
@@ -39,3 +39,5 @@ GATE: a parent must see the five tests green AND one live provisioning.py status
 NOT IN SCOPE: per-spawn key minting is goal:g1.11's older slice and stays as it is; the failure ledger's died category (l3w4-agent-failure-ledger) should gain a session-limit-style row for this class but that belongs to its own brief.
 
 SOURCE: HANDOFF section 6 items 33 and 34 and trap 0o, all from the L3.29 measurement. The 10-to-40 raise was a prime judgement call, not an owner decision - this brief is what makes the next one unnecessary.
+
+RE-RUN AS BUILD (Belam VIII, L3.33). The L3.32 kid could NOT complete this brief and its limitation was environmental, not intellectual: it ran inside a --branch worktree, a worktree has no .env because .env is gitignored, so it could not read OPENROUTER_PROVISIONING_KEY or OPENROUTER_API_KEY and judged baseline absence only. That gap is now itself briefed on hypothesis:l3w4-parent-branch-merge-up as gap (2). For THIS run, read the keys from the main checkout at the absolute path /home/ubuntu/work/agi/.env for your own live verification, and say plainly in the node that you did so and why — do not build that absolute path into the engine, it is a measurement workaround and the real fix belongs to the other brief. The mechanism is unchanged and was measured on 2026-09-07 at 20:15 UTC: the .env key agi is a provisioning SUB-KEY with its own dollar cap, and OpenRouter reports hitting that cap as '401 API key expired' — it killed a pi kid sixty minutes into a finished implementation and its parent one turn later, while the ACCOUNT held 30.07 dollars. GET /api/v1/credits reads the ACCOUNT and looks healthy while every spawn dies; the key's own numbers come from GET /api/v1/key with the key as bearer. BUILD: provisioning.py status prints the key's own limit, usage and remaining from GET /api/v1/key, and dispatch.py refuses to spawn below a configured floor (provisioning.min_key_remaining_usd, default 1 dollar) with a message naming the key and the PATCH that raises it. FAIL OPEN on any network or auth error — an unreachable API must never block a round; that is a hard requirement, not a preference. GATE: the named red-first tests green PLUS one live provisioning.py status run printing the real numbers, quoted verbatim in the node evidence. The key currently reads limit 40, limit_remaining 39.99998824, usage 9.7236, limit_reset weekly.
