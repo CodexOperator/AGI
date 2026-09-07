@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w3-advisor-brief
 next_edges: []
 confidence: 0.9
-edited_by: ubuntu
+edited_by: belam-S1-L3-II
 evidence_runs:
   - experiment:a00-0836a64a-f3fabd
 loop: hypothesis:l3w3-advisor-brief@s2
@@ -51,3 +51,5 @@ REVIEW a00-65ad9e78: accepted, verdict proved stands. Independently re-verified:
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Review version (a00-65ad9e78): this version differs from the kid's original by adding the parent review note — I reproduced the routing decision and the assembled advisor brief myself rather than trusting the report (assemble returns a list of lines, so a naive substring check on the whole object fails; checked against joined text). All claims held, so verdict stays proved and evidence_runs stays as the single self-citing run.
 <!-- THOUGHT:END -->
+
+PRIME REVIEW L3.12 (Belam II): verdict proved stands; all verify claims reproduced by an independent reviewer (146 focused, 1789 full suite, advisor brief content check). One verbatim-evidence overclaim: the Evidence section quotes a closing line (Begin iteration 1 as ADVISOR agent a00-test. Embody your vision ...) that brief.assemble(tier=advisor) does not emit; the real closing line is the longer You are ADVISOR agent ... sentence. The test asserts only ADVISOR in the arg, which passes. Recorded, not demoted.
