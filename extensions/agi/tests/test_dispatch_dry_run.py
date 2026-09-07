@@ -135,6 +135,55 @@ def test_dry_run_takes_no_budget_slot(project):
         f"a dry run must not register a spawn-budget slot, but {budget_dir} exists")
 
 
+def test_explicit_harness_flag_wins_over_ladder_row(project):
+    """hypothesis:l3-dispatch-harness-flag-overridden — an explicit
+    --harness claude-code must beat a ladder row that names pi (the tier-1
+    parent row), and take claude-code's OWN parent model/effort, not the pi
+    row's glm-flash model. One notice line names both harnesses."""
+    r = _run(project, "--harness", "claude-code", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    out = r.stdout
+    assert "harness=claude-code" in out, out
+    # the command line is a claude command with claude-code's own parent
+    # model, NOT the pi row's glm-flash
+    cmd_line = next(l.strip() for l in out.splitlines()
+                    if l.strip().startswith("command:"))
+    assert "claude -p" in cmd_line, out
+    assert "--model claude-opus-5" in cmd_line, out
+    assert "glm-flash" not in cmd_line, out
+    # a notice names both the explicit and the ladder-row harness
+    assert "overrides" in out and "claude-code" in out and "pi" in out, out
+
+
+def test_ladder_row_wins_without_harness_flag(project):
+    """Without --harness the ladder row still wins: a tier-3 parent row that
+    names claude-code beats the config default harness (pi)."""
+    r = _run(project, "--tier", "parent", "--ladder-tier", "3",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    out = r.stdout
+    assert "harness=claude-code" in out, out
+    assert "--model claude-opus-5" in out, out
+
+
+def test_seat_row_wins_over_both_harness_and_ladder(project):
+    """A --seat row keeps winning over BOTH an explicit --harness and the
+    ladder row: the seat names pi while the explicit flag names claude-code,
+    so the seat's pi harness must win."""
+    seats = (project / ".agi" / "nodes" / ".geometry" / "seats.md")
+    seats.write_text("---\nseats:\n"
+                     "  - {name: liaison, tier: 1, role: parent, "
+                     "harness: pi, model: ~z-ai/glm-flash-latest, "
+                     "effort: \"\", settings: \"\"}\n---\n")
+    r = _run(project, "--harness", "claude-code", "--tier", "parent",
+             "--seat", "liaison", "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    out = r.stdout
+    assert "harness=pi" in out, out
+    assert "glm-flash" in out, out
+
+
 def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     """hypothesis:l3-agent-id-never-exported — the JOINED contract.
 

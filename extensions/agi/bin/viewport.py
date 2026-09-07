@@ -271,7 +271,7 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 
 def render_human(frames: list[Frame], top: int, left: int,
                  height: int, width: int, status: str = "",
-                 brief=None) -> list[str]:
+                 brief=None, seats=None) -> list[str]:
     """The terminal viewport: a window onto a graph larger than the screen.
 
     `brief` is the same `Briefing` object `render_llm` receives, rendered
@@ -289,16 +289,22 @@ def render_human(frames: list[Frame], top: int, left: int,
 
     window = lines[top:top + height]
     out = [ln[left:left + width].ljust(width) for ln in window]
+    head = []
     if brief is not None:
         import briefing as _briefing
         head = [ln[:width] for ln in _briefing.to_compact(brief)]
-        out = head + ["-" * min(width, 80)] + out
+    if seats is not None:
+        import seat_status as _ss
+        head += [ln[:width] for ln in _ss.to_compact(seats)]
+    if head:
+        head += ["-" * min(width, 80)]
+    out = head + out
     return out + ([status[:width]] if status else [])
 
 
 def render_llm(frames: list[Frame], top: int, left: int,
                height: int, width: int, status: str = "",
-               brief=None) -> str:
+               brief=None, seats=None) -> str:
     """Exactly what a kid is handed for this position.
 
     Same frames, same slice, same order. The markdown wrapper differs because
@@ -328,7 +334,11 @@ def render_llm(frames: list[Frame], top: int, left: int,
         head.append("")
     if brief is not None:
         import briefing as _briefing
-        head += [*_briefing.to_markdown(brief), "", "## the graph", ""]
+        head += [*_briefing.to_markdown(brief), ""]
+    if seats is not None:
+        import seat_status as _ss
+        head += [*_ss.to_markdown(seats), ""]
+    head += ["## the graph", ""]
     return "\n".join(head + body) + "\n"
 
 
@@ -580,11 +590,19 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             agents = agents_of_iteration(root, iter_name) if (live and iter_name) else {}
             frames = frame_stream(g, fm_by_id, anchor, depth, agents)
 
+            seats = None
+            if live:
+                try:
+                    import seat_status as _ss
+                    seats = _ss.collect(root, fm_by_id)
+                except Exception:                                    # noqa: BLE001
+                    pass
+
             status = (f"anchor={anchor or 'roots'} depth={depth} "
                       f"frames={len(frames)} "
                       f"time={iter_name or '-'} live={'on' if live else 'off'}"
                       + (f" | {msg}" if msg else ""))
-            body = render_human(frames, top, left, h - 2, w - 1)
+            body = render_human(frames, top, left, h - 2, w - 1, seats=seats)
 
             scr.erase()
             for i, ln in enumerate(body[:h - 2]):
@@ -696,6 +714,19 @@ def main() -> int:
         print(f"viewport: briefing unavailable ({type(exc).__name__}: {exc})",
               file=sys.stderr)
 
+    # Live seat status (hypothesis:l3w4-telemetry-seat-status): one `SeatsView`
+    # computed once, handed to both formatters like the frame stream and the
+    # briefing. Only on `--live` — the static graph view has no business reading
+    # the seat board. Fails open to an absent registry, never a traceback.
+    seats = None
+    if args.live:
+        try:
+            import seat_status as _ss
+            seats = _ss.collect(root, fm_by_id)
+        except Exception as exc:                                   # noqa: BLE001
+            print(f"viewport: seat status unavailable "
+                  f"({type(exc).__name__}: {exc})", file=sys.stderr)
+
     if args.verify:
         return _verify(frames, args, brief)
 
@@ -711,14 +742,14 @@ def main() -> int:
             print("HUMAN VIEW".center(args.width))
             print("=" * args.width)
         print("\n".join(render_human(frames, args.top, args.left,
-                                     args.height, args.width, status, brief)))
+                                     args.height, args.width, status, brief, seats)))
     if mode in ("llm", "both"):
         if mode == "both":
             print("\n" + "=" * args.width)
             print("LLM VIEW  — same frames, same slice".center(args.width))
             print("=" * args.width)
         print(render_llm(frames, args.top, args.left,
-                         args.height, args.width, status, brief), end="")
+                         args.height, args.width, status, brief, seats), end="")
     return 0
 
 

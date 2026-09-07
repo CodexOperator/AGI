@@ -807,25 +807,39 @@ def main() -> int:
         if getattr(args, "_seat_override", None):
             _spec = args._seat_override
         dispatch_harness = harness
+        explicit_harness = args.harness is not None
+        from_seat = bool(_spec.get("from_seat"))
         if _spec["from_ladder"]:
             if _spec["harness"] and _spec["harness"] != harness_name:
-                # A ladder row may name a different harness (e.g. an opus
-                # parent on claude-code while the invocation defaulted to pi).
-                harness_name, dispatch_harness = adapters.resolve(
-                    cfg, _spec["harness"])
-                dispatch_harness = dict(dispatch_harness)
+                if from_seat or not explicit_harness:
+                    # A seat row, or no explicit flag: the declared
+                    # (seat/ladder) harness wins, as it always has.
+                    harness_name, dispatch_harness = adapters.resolve(
+                        cfg, _spec["harness"])
+                    dispatch_harness = dict(dispatch_harness)
+                else:
+                    # hypothesis:l3-dispatch-harness-flag-overridden — an
+                    # explicit --harness beats a ladder row that names a
+                    # different harness. The row's model/effort/settings
+                    # belong to THAT harness, so drop them and take this
+                    # harness's own tier model. One notice naming both.
+                    print(f"harness: --harness {harness_name} overrides "
+                          f"ladder row harness {_spec['harness']} (using "
+                          f"{harness_name} models for tier {args.tier})")
             else:
                 dispatch_harness = dict(harness)
-            _models = dict(dispatch_harness.get("models") or {})
-            if _spec["model"]:
-                # Keyed by the adapter's tier string so model_args(harness,
-                # args.tier) returns the ladder row's model.
-                _models[args.tier] = _spec["model"]
-            dispatch_harness["models"] = _models
-            if _spec["effort"]:
-                dispatch_harness["effort"] = {args.tier: _spec["effort"]}
-            if _spec["settings"]:
-                dispatch_harness["settings"] = _spec["settings"]
+            if (from_seat or not explicit_harness
+                    or _spec["harness"] == harness_name):
+                _models = dict(dispatch_harness.get("models") or {})
+                if _spec["model"]:
+                    # Keyed by the adapter's tier string so model_args(harness,
+                    # args.tier) returns the ladder row's model.
+                    _models[args.tier] = _spec["model"]
+                dispatch_harness["models"] = _models
+                if _spec["effort"]:
+                    dispatch_harness["effort"] = {args.tier: _spec["effort"]}
+                if _spec["settings"]:
+                    dispatch_harness["settings"] = _spec["settings"]
         else:
             print(f"roles: no ladder row for (tier={tier_eff}, "
                   f"role={args.role}); falling back to config "
