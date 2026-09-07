@@ -77,6 +77,12 @@
     "comms_root": "comms/season-2"
   },
   "workflows": {
+    "review": {
+      "model": "sonnet",
+      "effort": "medium",
+      "provider": "pi",
+      "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07"
+    },
     "drafting": {
       "model": "sonnet",
       "effort": "max",

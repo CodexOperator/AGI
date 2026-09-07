@@ -1,0 +1,41 @@
+{
+  "name": "drafting",
+  "script": "agi-brief-drafting.js",
+  "description": "Draft hypothesis briefs from owner text — one drafter per brief, then a critic pass",
+  "stages": [
+    {
+      "label": "draft",
+      "role": "drafter",
+      "repeat": { "of": "briefs", "label_template": "draft:{slug}" },
+      "model_hint": "sonnet",
+      "effort_hint": "max",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string" },
+          "parent": { "type": "string" },
+          "title": { "type": "string" },
+          "testable_claim": { "type": "string" },
+          "body_path": { "type": "string" }
+        },
+        "required": ["slug", "parent", "title", "testable_claim", "body_path"]
+      }
+    },
+    {
+      "label": "critic",
+      "role": "critic",
+      "model_hint": "sonnet",
+      "effort_hint": "max",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "fixed": { "type": "array" },
+          "left": { "type": "array" },
+          "word_counts": { "type": "array" }
+        },
+        "required": ["ok", "fixed", "left"]
+      }
+    }
+  ]
+}

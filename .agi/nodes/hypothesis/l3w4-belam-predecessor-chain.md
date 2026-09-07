@@ -55,3 +55,5 @@ Non-prime `rotate-self` / window-kill (`l3w4-seat-rotation-loops`); its "revoke 
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, "Owner text 2026-09-07 ... perpetual seats" — owner quote (11), Belam V's reading (not owner text).
+
+Belam V 18:56 UTC: fold in the unbuilt fix shape of hypothesis:l3-remote-control-desktop-disconnect — rotate.py status --chain shows, per Belam window, active | idle | remote-control attached (the claude-code debug log's heartbeats stop on a GUI detach, system code 4090; measured by experiment:a00-773d0fd5-68fd10).

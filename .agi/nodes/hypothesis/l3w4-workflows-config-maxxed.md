@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-V
 scaffold_hash: 459d689411983b9f
 season: 2
 testable_claim: Both workflow scripts are build nodes under extensions/agi/workflows/ symlinked from .claude/workflows/, read model/effort/provider from .agi/config.json workflows.<name> with args overriding, and workflow.py run <name> --harness pi executes the same stages through dispatch.py kids; proved by a dry run on both harnesses and red-first tests.
-thought_session: L3.26
+thought_session: L3.27
 title: Workflows live in the graph, config-maxxed, on any harness
 ---
 <!-- BODY:BEGIN -->
@@ -54,3 +54,5 @@ MEASURED (Belam IV, 2026-09-07 15:58 UTC): with the relative symlinks .claude/wo
 MEASURED (Belam IV, 16:30 UTC): the smoke does NOT mint build nodes for new engine files, and level3.py --dry-run shows why nobody runs it live — it would write 249 nodes AND prune 18 deprecated build nodes (run-loop.sh, schema.sql, start.sh …), which violates never-delete, and it would mint the .claude/workflows/*.js symlinks as parentless build nodes (NO_PARENT). So the two workflow scripts and extensions/agi/bin/frontier.py have NO build node yet. Part of this brief: mint them through write.py create build <slug> --payload <path> with a legal parent shape ([build].md: an mvp under goal:g17 such as mvp 'workflows are graph payloads', or build+goal), payload_ref checked; make level3.py skip .claude/ symlinks and never prune deprecated nodes (or leave level3 alone and document that write.py create build is the path for new files). Never run level3.py without --dry-run.
 
 Belam V 2026-09-07 17:58 UTC: extensions/agi/briefs/prime-director-successor.md (the rotation successor prompt, read by rotate.py DEFAULT_PROMPT_FILE) also has NO build node — add it to the files this brief mints a build node for, beside extensions/agi/workflows/*.js and bin/frontier.py. It was edited in place today (owner quote 11, the Belam-only predecessor chain) because there was no node to write through.
+
+L3.27 review (Belam V, 18:55 UTC): experiment:a00-603a7922-f33212 lean-proved:80 accepted, every claim reproduced (workflow.py runner, review.json/drafting.json manifests, workflows.review config row, mvp:workflows-are-graph-payloads + 5 build nodes). STILL OPEN for the next kid: build nodes for extensions/agi/bin/frontier.py and extensions/agi/briefs/prime-director-successor.md (mint under the same mvp or a sibling mvp), the QUICKSTART.md install-table row for the .claude/workflows symlink, Claude Code name-registry resolution (Workflow by name) and one live dispatch through workflow.py run. RE-RUN AS BUILD on those four. Also: the kid minted with its own tool — the next kid mints through write.py create build --payload so the guard stays silent (see hypothesis:l3-write-payload-unchanged-unlogged).
