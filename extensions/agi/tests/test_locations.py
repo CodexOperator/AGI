@@ -726,3 +726,35 @@ def test_git_common_root_resolves_a_plain_dir_to_enclosing_repo(tmp_path):
     other = _make_project_repo(tmp_path)
     leaf = other / "not_a_submodule"; leaf.mkdir()
     assert locations.git_common_root(leaf) == other.resolve()
+
+
+def test_shared_project_root_is_identity_in_main_checkout(tmp_path):
+    """A caller in the main checkout is unchanged (the usual non-branch case)."""
+    repo = _make_project_repo(tmp_path)
+    assert locations.shared_project_root(repo) == locations.find_project_root(repo)
+
+
+def test_shared_project_root_resolves_main_graph_from_worktree(tmp_path):
+    """A linked worktree's SHARED graph root is the main checkout's `.agi`.
+    This is the primitive the `.env` lookup and any other main-only shared
+    state resolve through (`hypothesis:l3w4-branch-shared-state`)."""
+    repo = _make_project_repo(tmp_path)
+    # `_make_project_repo` commits only README, so the graph dir is NOT in the
+    # worktree yet -- real worktrees carry their committed `.agi` (the fork).
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/slug@s2", str(wt), "master")
+    assert (wt / ".agi" / "config.json").is_file()  # the fork is checked out
+    wt_graph = locations.find_project_root(wt)      # the fork a kid edits
+    main_graph = locations.find_project_root(repo)  # the one shared body
+    assert wt_graph != main_graph                   # the fork is real
+    assert locations.shared_project_root(wt) == main_graph
+    assert locations.shared_project_root(wt / "deep" / "sub") == main_graph
+
+
+def test_shared_project_root_is_none_outside_a_project(tmp_path):
+    """No project anywhere: None, like find_project_root."""
+    d = tmp_path / "notgit"
+    d.mkdir(parents=True)
+    assert locations.shared_project_root(d) is None
