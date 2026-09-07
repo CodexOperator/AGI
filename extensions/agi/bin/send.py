@@ -82,6 +82,14 @@ STANDING_ROOMS = (
 #: The prime director is inbox-only; rooms may not address it.
 PRIME = "prime"
 
+#: The three advisor visions, one vote each in a complete quorum
+#: (hypothesis:l3w4-quorum-reviews). A tally needs all three.
+VISIONS = ("alive", "all-is-one", "self-perpetuating")
+
+#: The alignment enum a quorum vote may carry (mirrors the `alignment`
+#: field on report nodes and the `schemas/[outcome].md` enum).
+ALIGNMENTS = ("aligned", "adjust", "unknown")
+
 #: Sidecar suffix for per-participant read positions (JSON, participant -> ts).
 STATE_SUFFIX = ".state.json"
 
@@ -107,6 +115,15 @@ def _inbox_path(root: Path, recipient: str) -> Path:
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _quorum_caller() -> bool:
+    """True when the caller is a tier-3 parent (the quorum) — the only role
+    that may reach the prime without the morals override
+    (hypothesis:l3w4-quorum-reviews: "The quorum IS Belam to anyone else")."""
+    role = os.environ.get("AGI_ROLE", "").strip()
+    tier = os.environ.get("AGI_LADDER_TIER", "").strip()
+    return role == "parent" and tier == "3"
 
 
 def _detect_sender(from_flag: str | None) -> str:
@@ -458,7 +475,17 @@ def peek(root: Path, me: str) -> None:
 
 def send_dm(croot: Path, me: str, other: str, text: str,
             sender: str | None) -> Path:
-    """Append a message to the pairwise dm file `<a>--<b>.md`, names sorted."""
+    """Append a message to the pairwise dm file `<a>--<b>.md`, names sorted.
+
+    A dm may never address or originate from the prime, like a room
+    (hypothesis:l3w4-quorum-reviews): the prime is inbox-only, reached only
+    through the gated `audience` path.
+    """
+    if other == PRIME or me == PRIME or other.startswith(PRIME + "-"):
+        print(f"ERR: the prime is inbox-only; a dm may not address or "
+              f"originate from the prime — use `audience prime` instead",
+              file=sys.stderr)
+        raise SystemExit(1)
     a, b, _ = _dm_pair(me, other)
     path = _dm_path(croot, me, other)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -571,6 +598,13 @@ def audience_prime(croot: Path, root: Path, reason: str,
     sender_id = _detect_sender(sender)
     rotation = os.environ.get("AGI_LOOP", "default")
 
+    # quorum-only gate to the prime; only --morals bypasses it
+    if not morals and not _quorum_caller():
+        print(f"ERR: an audience with the prime is quorum-only — "
+              f"AGI_ROLE=parent + AGI_LADDER_TIER=3 required, or --morals "
+              f"(morality outranks the quorum).", file=sys.stderr)
+        raise SystemExit(1)
+
     # one audience per sender per rotation, unless --morals
     if not morals:
         state_dir = croot / "audience"
@@ -597,6 +631,137 @@ def audience_prime(croot: Path, root: Path, reason: str,
     print(f"audience requested of the prime by {sender_id}: {reason!r}")
     print("rule: the prime is inbox-only; one audience per sender per rotation "
           "unless the morals are at stake (--morals).")
+
+
+# ── quorum review (hypothesis:l3w4-quorum-reviews) ──────────────────────
+
+
+def vote(croot: Path, room: str, target: str, vision: str, alignment: str,
+         sender: str | None, morals: bool, reason: str,
+         round_: str) -> Path:
+    """Post one advisor's `VOTE` line into a quorum room, via `send_room`
+    (which keeps the room prime-free). Every vote carries the round, the
+    judgement target, the advisor's vision, its alignment, the reason, and a
+    morals flag. `tally_votes` reads exactly this shape back."""
+    if vision not in VISIONS:
+        print(f"ERR: vision must be one of {', '.join(VISIONS)}, got {vision!r}",
+              file=sys.stderr)
+        raise SystemExit(1)
+    if alignment not in ALIGNMENTS:
+        print(f"ERR: alignment must be one of {', '.join(ALIGNMENTS)}, "
+              f"got {alignment!r}", file=sys.stderr)
+        raise SystemExit(1)
+    if not target:
+        print("ERR: vote needs --target", file=sys.stderr)
+        raise SystemExit(1)
+    round_ = round_ or os.environ.get("AGI_LOOP", "default")
+    line = (f"VOTE | round={round_} | target={target} | vision={vision} "
+            f"| alignment={alignment} | reason={reason} "
+            f"| morals={1 if morals else 0}")
+    return send_room(croot, room, line, sender)
+
+
+def _parse_vote(text: str) -> dict | None:
+    """Parse a `VOTE | key=val | ...` room line into a dict. Returns None for
+    non-vote lines (ordinary chatter) or a line with an unknown vision."""
+    if not text.strip().startswith("VOTE"):
+        return None
+    d: dict[str, str | bool] = {}
+    for tok in text.strip()[4:].split("|"):
+        tok = tok.strip()
+        if "=" in tok:
+            k, _, v = tok.partition("=")
+            d[k.strip()] = v.strip()
+    if d.get("vision") not in VISIONS:
+        return None
+    d["morals"] = str(d.get("morals")) == "1"
+    return d
+
+
+def tally_votes(croot: Path, room: str, target: str, round_: str) -> dict:
+    """Tally the quorum's votes in `room` for one `target` and `round`.
+
+    Groups by vision (one advisor per vision); for a vision voted twice the
+    LAST write wins. Requires all three visions present, else ERR "incomplete
+    quorum" and exits 1. Returns {vision: {alignment, reason, morals, from}}.
+    """
+    path = _room_path(croot, room)
+    by_vision: dict = {}
+    for b in _read_conv(path):
+        parsed = _parse_vote(b.get("text", ""))
+        if not parsed:
+            continue
+        if parsed.get("target") != target:
+            continue
+        if parsed.get("round") != round_:
+            continue
+        parsed["from"] = b.get("from", "")
+        by_vision[str(parsed["vision"])] = parsed  # last write wins
+    missing = [v for v in VISIONS if v not in by_vision]
+    if missing:
+        print(f"ERR: incomplete quorum in room {room!r} for {target} round "
+              f"{round_}: missing vision(s) {', '.join(missing)}",
+              file=sys.stderr)
+        raise SystemExit(1)
+    return by_vision
+
+
+#: Filenames for the audience-exit sidecar and audience state, under
+#: `<croot>/audience/`.
+EXITED_STATE = "exited.json"
+AUDIENCE_STATE = "state.json"
+
+
+def audience_close(croot: Path, round_: str, decision: str = "") -> None:
+    """Close an audience with the prime for one round: the prime is excluded
+    from further group traffic that rotation (`exited.json[prime][round]=true`)
+    and the {opened,closed,decision} record is kept in `state.json`.
+    """
+    state_dir = croot / "audience"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    ts = _now()
+
+    exited: dict = {}
+    ep = state_dir / EXITED_STATE
+    if ep.is_file():
+        try:
+            exited = json.loads(ep.read_text())
+        except Exception:
+            exited = {}
+    exited.setdefault(PRIME, {})[round_] = True
+    ep.write_text(json.dumps(exited))
+
+    state: dict = {}
+    sp = state_dir / AUDIENCE_STATE
+    if sp.is_file():
+        try:
+            state = json.loads(sp.read_text())
+        except Exception:
+            state = {}
+    rec = state.setdefault(PRIME, {}).setdefault(round_, {"opened": ts})
+    rec["closed"] = ts
+    if decision:
+        rec["decision"] = decision
+    sp.write_text(json.dumps(state))
+    print(f"audience with the prime closed; prime excluded from group "
+          f"traffic for round {round_}")
+
+
+def prime_excluded(croot: Path, round_: str) -> int:
+    """Exit 0 when the prime is excluded for `round_`, else exit 1 — a probe
+    a rotation-loop alarm reads to know Belam has left the room
+    (hypothesis:l3w4-seat-rotation-loops)."""
+    ep = croot / "audience" / EXITED_STATE
+    if ep.is_file():
+        try:
+            exited = json.loads(ep.read_text())
+            if exited.get(PRIME, {}).get(round_):
+                print(f"prime excluded for round {round_}")
+                return 0
+        except Exception:
+            pass
+    print(f"prime NOT excluded for round {round_}", file=sys.stderr)
+    return 1
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────
@@ -669,6 +834,30 @@ def main(argv: list[str] | None = None) -> int:
     p_aud.add_argument("--reason", default="", help="why you need the prime")
     p_aud.add_argument("--morals", action="store_true",
                        help="bypass one-per-rotation gate (morals at stake)")
+    p_aud.add_argument("--round", dest="aud_round", default="",
+                       help="round to close/exclude (audience close)")
+    p_aud.add_argument("--decision", default="",
+                       help="decision record (audience close)")
+
+    p_vote = sub.add_parser("vote", parents=[common],
+                  help="post one advisor quorum vote into a room")
+    p_vote.add_argument("--room", default="tier3-quorum",
+                        help="room to post the vote into")
+    p_vote.add_argument("--target", required=True,
+                        help="node id the vote judges")
+    p_vote.add_argument("--vision", required=True,
+                        help="your vision: " + ",".join(VISIONS))
+    p_vote.add_argument("--alignment", required=True,
+                        help="your alignment: " + ",".join(ALIGNMENTS))
+    p_vote.add_argument("--reason", default="", help="one-line why")
+    p_vote.add_argument("--morals", action="store_true",
+                        help="morals at stake: forces audience not stamp")
+    p_vote.add_argument("--round", dest="v_round", default="",
+                        help="round (default: AGI_LOOP)")
+
+    p_pe = sub.add_parser("prime-excluded", parents=[common],
+                  help="exit 0 if the prime is excluded for a round, else 1")
+    p_pe.add_argument("--round", required=True)
 
     args = ap.parse_args(argv)
 
@@ -752,12 +941,28 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.verb == "audience":
+        if args.target == "close":
+            if not args.aud_round:
+                print("ERR: audience close needs --round", file=sys.stderr)
+                return 1
+            audience_close(croot, args.aud_round, args.decision)
+            return 0
         if args.target != PRIME:
-            print(f"ERR: audience targets the prime only, got {args.target!r}",
-                  file=sys.stderr)
+            print(f"ERR: audience targets the prime or close only, "
+                  f"got {args.target!r}", file=sys.stderr)
             return 1
         audience_prime(croot, root, args.reason, sender, args.morals)
         return 0
+
+    if args.verb == "vote":
+        round_ = args.v_round or os.environ.get("AGI_LOOP", "default")
+        print(vote(croot, args.room, args.target, args.vision,
+                   args.alignment, sender, args.morals, args.reason,
+                   round_))
+        return 0
+
+    if args.verb == "prime-excluded":
+        return prime_excluded(croot, args.round)
 
     return 0
 

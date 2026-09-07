@@ -317,6 +317,18 @@ def test_dm_creates_sorted_file(comms: Path):
     assert "hello" in path.read_text()
 
 
+def test_dm_to_or_from_prime_refused(comms: Path):
+    """A dm may never address or originate from the prime, like a room
+    (hypothesis:l3w4-quorum-reviews: the prime is inbox-only)."""
+    with pytest.raises(SystemExit):
+        send_mod.send_dm(comms, "adv-alive", "prime", "hi", "adv-alive")
+    with pytest.raises(SystemExit):
+        send_mod.send_dm(comms, "prime", "adv-alive", "hi", "prime")
+    with pytest.raises(SystemExit):
+        send_mod.send_dm(comms, "adv-alive", "prime-fans", "hi", "adv-alive")
+    assert not (comms / "dm" / "adv-alive--prime.md").exists()
+
+
 def test_dm_names_are_sorted(comms: Path):
     """File name sorts the two ids, independent of call order."""
     send_mod.send_dm(comms, "zz", "aa", "hi", "aa")
@@ -448,6 +460,8 @@ def test_rooms_lists_rooms_with_unread_counts(comms: Path):
 
 def test_audience_writes_to_prime_inbox(project: Path, monkeypatch):
     monkeypatch.setenv("AGI_AGENT_ID", "parent-x")
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_LADDER_TIER", "3")
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "need a ruling on g7", None, False)
     inbox = project / "sessions" / "inbox" / "prime.md"
@@ -457,8 +471,38 @@ def test_audience_writes_to_prime_inbox(project: Path, monkeypatch):
     assert "need a ruling on g7" in content
 
 
+def test_audience_prime_refuses_non_quorum_caller(project: Path, monkeypatch,
+                                                  capsys):
+    """A non-tier3-parent audience request is refused; nothing reaches the
+    prime's inbox (hypothesis:l3w4-quorum-reviews: the quorum IS Belam to
+    anyone else)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "dir-t2")
+    monkeypatch.setenv("AGI_ROLE", "director")
+    monkeypatch.setenv("AGI_LADDER_TIER", "2")
+    monkeypatch.setenv("AGI_LOOP", "L3.29@1")
+    croot = project / "comms"
+    with pytest.raises(SystemExit):
+        send_mod.audience_prime(croot, project, "let me in", None, False)
+    assert not (project / "sessions" / "inbox" / "prime.md").exists()
+
+
+def test_audience_prime_morals_bypasses_quorum_gate(project: Path, monkeypatch):
+    """--morals opens the quorum gate: morality outranks the quorum line
+    (hypothesis:l3w4-quorum-reviews)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "kid-x")
+    monkeypatch.setenv("AGI_ROLE", "kid")
+    monkeypatch.setenv("AGI_LADDER_TIER", "1")
+    monkeypatch.setenv("AGI_LOOP", "L3.29@1")
+    croot = project / "comms"
+    send_mod.audience_prime(croot, project, "morals: life is at stake",
+                            None, True)
+    assert (project / "sessions" / "inbox" / "prime.md").is_file()
+
+
 def test_audience_one_per_rotation(project: Path, monkeypatch, capsys):
     monkeypatch.setenv("AGI_AGENT_ID", "parent-y")
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_LADDER_TIER", "3")
     monkeypatch.setenv("AGI_LOOP", "L3.02@1")
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "first", None, False)
@@ -469,6 +513,8 @@ def test_audience_one_per_rotation(project: Path, monkeypatch, capsys):
 def test_audience_morals_bypasses_gate(project: Path, monkeypatch):
     """--morals bypasses the one-per-rotation gate."""
     monkeypatch.setenv("AGI_AGENT_ID", "parent-z")
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_LADDER_TIER", "3")
     monkeypatch.setenv("AGI_LOOP", "L3.02@1")
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "one", None, False)
@@ -477,11 +523,88 @@ def test_audience_morals_bypasses_gate(project: Path, monkeypatch):
 
 def test_audience_rule_printed_back(project: Path, monkeypatch, capsys):
     monkeypatch.setenv("AGI_AGENT_ID", "parent-q")
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_LADDER_TIER", "3")
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "please", None, False)
     captured = capsys.readouterr()
     assert "inbox-only" in captured.out
     assert "one audience per sender per rotation" in captured.out
+
+
+# ── quorum review (hypothesis:l3w4-quorum-reviews) ────────────────────────
+
+
+def test_vote_posts_structured_line(comms: Path):
+    """vote posts a single structured VOTE line into the room, carrying the
+    round, target, vision, alignment, reason and morals flag."""
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "alive", "aligned",
+                  "adv-alive", False, "looks right", "L3.29")
+    content = (comms / "room" / "tier3-quorum.md").read_text()
+    assert "VOTE" in content
+    assert "target=outcome:o1" in content
+    assert "vision=alive" in content
+    assert "alignment=aligned" in content
+    assert "reason=looks right" in content
+    assert "morals=0" in content
+
+
+def test_vote_round_defaults_from_loop(comms: Path, monkeypatch):
+    """vote without --round takes AGI_LOOP."""
+    monkeypatch.setenv("AGI_LOOP", "L3.29@s2")
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "alive", "aligned",
+                  "adv-alive", False, "", "")
+    assert "round=L3.29@s2" in (comms / "room" / "tier3-quorum.md").read_text()
+
+
+def test_vote_rejects_bad_vision_and_alignment(comms: Path, capsys):
+    with pytest.raises(SystemExit):
+        send_mod.vote(comms, "tier3-quorum", "outcome:o1", "bogus", "aligned",
+                      "a1", False, "", "R")
+    with pytest.raises(SystemExit):
+        send_mod.vote(comms, "tier3-quorum", "outcome:o1", "alive", "banana",
+                      "a1", False, "", "R")
+
+
+def test_tally_votes_requires_all_three_visions(comms: Path):
+    """A tally with a missing vision is an incomplete quorum (ERR, exit 1)."""
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "alive", "aligned",
+                  "a1", False, "", "R")
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "all-is-one", "adjust",
+                  "a2", False, "shift it", "R")
+    with pytest.raises(SystemExit):
+        send_mod.tally_votes(comms, "tier3-quorum", "outcome:o1", "R")
+
+
+def test_tally_votes_groups_by_vision_last_write_wins(comms: Path):
+    """With all three visions present the tally returns one vote per vision;
+    a vision voted twice keeps the LAST write."""
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "alive", "aligned",
+                  "a1", False, "first", "R")
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "all-is-one", "adjust",
+                  "a2", False, "shift", "R")
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "self-perpetuating",
+                  "aligned", "a3", False, "yes", "R")
+    # a1 re-votes alive -> last write wins for the alive vision
+    send_mod.vote(comms, "tier3-quorum", "outcome:o1", "alive", "adjust",
+                  "a1", False, "changed my mind", "R")
+    tally = send_mod.tally_votes(comms, "tier3-quorum", "outcome:o1", "R")
+    assert set(tally) == {"alive", "all-is-one", "self-perpetuating"}
+    assert tally["alive"]["alignment"] == "adjust"  # last write wins
+    assert tally["alive"]["reason"] == "changed my mind"
+
+
+def test_audience_close_sets_prime_excluded(comms: Path):
+    """audience close excludes the prime for a round; prime-excluded then
+    exits 0 for that round and 1 for others."""
+    assert send_mod.prime_excluded(comms, "R2") == 1
+    send_mod.audience_close(comms, "R2", "adjust: shift the model")
+    assert send_mod.prime_excluded(comms, "R2") == 0
+    assert send_mod.prime_excluded(comms, "R9") == 1
+    state = json.loads((comms / "audience" / "state.json").read_text())
+    rec = state["prime"]["R2"]
+    assert "opened" in rec and "closed" in rec
+    assert rec["decision"] == "adjust: shift the model"
 
 
 # ── red-first: --from && --comms-root are honored BEFORE the subcommand ──

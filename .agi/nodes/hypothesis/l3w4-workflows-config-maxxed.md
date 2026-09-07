@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-VII
 scaffold_hash: 459d689411983b9f
 season: 2
 testable_claim: Both workflow scripts are build nodes under extensions/agi/workflows/ symlinked from .claude/workflows/, read model/effort/provider from .agi/config.json workflows.<name> with args overriding, and workflow.py run <name> --harness pi executes the same stages through dispatch.py kids; proved by a dry run on both harnesses and red-first tests.
-thought_session: L3.27
+thought_session: 7af11157
 title: Workflows live in the graph, config-maxxed, on any harness
 ---
 <!-- BODY:BEGIN -->
@@ -56,3 +56,5 @@ MEASURED (Belam IV, 16:30 UTC): the smoke does NOT mint build nodes for new engi
 Belam V 2026-09-07 17:58 UTC: extensions/agi/briefs/prime-director-successor.md (the rotation successor prompt, read by rotate.py DEFAULT_PROMPT_FILE) also has NO build node — add it to the files this brief mints a build node for, beside extensions/agi/workflows/*.js and bin/frontier.py. It was edited in place today (owner quote 11, the Belam-only predecessor chain) because there was no node to write through.
 
 L3.27 review (Belam V, 18:55 UTC): experiment:a00-603a7922-f33212 lean-proved:80 accepted, every claim reproduced (workflow.py runner, review.json/drafting.json manifests, workflows.review config row, mvp:workflows-are-graph-payloads + 5 build nodes). STILL OPEN for the next kid: build nodes for extensions/agi/bin/frontier.py and extensions/agi/briefs/prime-director-successor.md (mint under the same mvp or a sibling mvp), the QUICKSTART.md install-table row for the .claude/workflows symlink, Claude Code name-registry resolution (Workflow by name) and one live dispatch through workflow.py run. RE-RUN AS BUILD on those four. Also: the kid minted with its own tool — the next kid mints through write.py create build --payload so the guard stays silent (see hypothesis:l3-write-payload-unchanged-unlogged).
+
+MEASURED 2026-09-07 20:22 UTC (Belam VII): the pi path of workflow.py run is a STUB, so owner item 32's ask (move workflow roles onto OpenRouter to conserve subscription tokens) is blocked. Three defects, all in workflow.py run_workflow lines 190-206: (1) --target is built as f-string key:label, e.g. drafting:draft, which is not a node id and dispatch.py cannot resolve it; (2) --template workflow_stage exists nowhere outside that one line - grep across extensions/agi/bin finds no such template in brief.py or lib; (3) the resolved knobs model and effort are printed by _dispatching_line but never passed to dispatch.py, so a pi run would take the ladder row model rather than the resolved one, and the stage prompt plus the .js args (briefs, scratch, owner_section) never reach the kid at all. --dry-run looks green because it returns before any of this. RE-RUN AS BUILD: the gate is a live workflow.py run drafting --harness pi that produces one real draft file on disk from --args, spending zero subscription tokens. --args model and effort overrides DO resolve correctly today (verified: --args model glm-flash prints through both stages).

@@ -417,6 +417,135 @@ moral_audit:
             assert audit[mk].get("evidence") is None
 
 
+class TestJudgeQuorum:
+    """season.py judge --quorum: reviews through the advisor quorum.
+
+    hypothesis:l3w4-quorum-reviews — three advisor votes (one per vision) in
+    a room; a 3-0/2-1 majority stamps alignment here, a 1-1-1 deadlock or any
+    --morals vote falls through to `send.py audience prime` instead and leaves
+    alignment unset.
+    """
+
+    @staticmethod
+    def _post_quorum(croot, target, votes, round_):
+        """Post votes [(vision, alignment, morals, reason)] into tier3-quorum."""
+        sys.path.insert(0, str(BIN_DIR))
+        import send
+        for vision, alignment, morals, reason in votes:
+            send.vote(croot, "tier3-quorum", target, vision, alignment,
+                      "adv-" + vision, morals, reason, round_)
+
+    @staticmethod
+    def _quorum_env():
+        env = dict(os.environ)
+        env["AGI_ROLE"] = "parent"
+        env["AGI_LADDER_TIER"] = "3"
+        env["AGI_LOOP"] = "L3.29@s2"
+        return env
+
+    def _judge(self, season_py, temp_graph, croot, round_, target="outcome:o1"):
+        return subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", target, "--quorum", "--room", "tier3-quorum",
+             "--round", round_, "--comms-root", str(croot)],
+            capture_output=True, text=True, env=self._quorum_env(),
+        )
+
+    def test_judge_quorum_stamps_alignment_on_majority(self, season_py,
+                                                       temp_graph, tmp_path):
+        """2 aligned + 1 adjust -> alignment: aligned stamped + quorum note."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, "good fit"),
+            ("all-is-one", "adjust", False, "needs a tweak"),
+            ("self-perpetuating", "aligned", False, "keep it"),
+        ], "R1")
+        result = self._judge(season_py, temp_graph, croot, "R1")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") == "aligned"
+        assert nf.frontmatter.get("judged_against") == "goal:sub1"
+        body = nf.body or ""
+        assert "quorum tier3-quorum" in body  # the quorum note landed
+
+    def test_judge_quorum_three_zero_stamps(self, season_py, temp_graph,
+                                            tmp_path):
+        """3-0 aligned also stamps alignment (unanimity)."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "aligned", False, ""),
+            ("self-perpetuating", "aligned", False, ""),
+        ], "R3")
+        result = self._judge(season_py, temp_graph, croot, "R3")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") == "aligned"
+
+    def test_judge_quorum_deadlock_calls_audience_not_stamp(self, season_py,
+                                                            temp_graph, tmp_path):
+        """A literal 1-1-1 calls audience prime instead and stamps nothing:
+        alignment is unset and no judged_against is written."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "adjust", False, "shift"),
+            ("self-perpetuating", "unknown", False, "on the fence"),
+        ], "R2")
+        result = self._judge(season_py, temp_graph, croot, "R2")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "audience requested" in result.stdout  # reached the prime
+        assert "alignment unset" in result.stdout
+
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") is None
+        assert nf.frontmatter.get("judged_against") is None
+        assert "quorum" not in (nf.body or "")
+
+    def test_judge_quorum_morals_forces_audience_despite_majority(
+            self, season_py, temp_graph, tmp_path):
+        """Any --morals vote forces an audience even on a 2-1 majority;
+        alignment stays unset."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "adjust", True, "life is at stake"),
+            ("self-perpetuating", "aligned", False, ""),
+        ], "R4")
+        result = self._judge(season_py, temp_graph, croot, "R4")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "audience requested" in result.stdout
+        assert "morals" in result.stdout
+
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") is None
+
+    def test_judge_quorum_incomplete_quorum_refuses(self, season_py,
+                                                    temp_graph, tmp_path):
+        """Fewer than three visions -> incomplete quorum, judge refuses."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "adjust", False, ""),
+        ], "R5")
+        result = self._judge(season_py, temp_graph, croot, "R5")
+        assert result.returncode == 1
+        assert "incomplete quorum" in result.stderr
+
+
 # ---------------------------------------------------------------------------
 # Integration: commands.py can discover season.py
 # ---------------------------------------------------------------------------
