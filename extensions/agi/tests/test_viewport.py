@@ -457,3 +457,88 @@ def test_sanctuary_human_and_llm_state_the_same_spirits_and_wisps():
     for p in scene.probes:
         assert p["name"] in human and f"probe {p['name']}" in llm
     assert "2 ephemeral wisps" in human and "ephemeral_wisps: 2" in llm
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3w4-seat-graph-view — seats render ON the graph, not beside it.
+# One OccupantIndex, two readers (goal:g9.7 applied one level down). Three
+# red-first tests from the claim: an attached seat appears on its node's line;
+# that seat is NOT in the idle band; a seat with no target IS in the idle band
+# and on no node line.
+# --------------------------------------------------------------------------
+
+
+def _occ(at_nodes, idle):
+    return V.OccupantIndex._from(at_nodes, idle)
+
+
+def test_an_attached_seat_renders_inline_on_its_nodes_line(graph, fm):
+    """The claim's first falsifier, rendered both ways: a seat joined to a node
+    appears on that node's rendered line, in the human view and the llm view."""
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    occ = _occ({"hypothesis:h1": ["belam"]}, ())
+
+    human = V.render_human(frames, 0, 0, 30, 300, occupants=occ)
+    h_line = [ln for ln in human if "H one" in ln][0]
+    assert V.GLYPH["seat"] in h_line and "belam" in h_line
+    # the node id the seat was joined to carries the seat; a sibling does not
+    other = [ln for ln in human if "H two" in ln][0]
+    assert "belam" not in other
+
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=occ)
+    assert "seats=belam" in [ln for ln in llm.splitlines() if "h1" in ln][0]
+
+
+def test_the_idle_band_does_not_contain_an_attached_seat(graph, fm):
+    """The claim's second falsifier: attachment removes a seat from the band."""
+    frames = V.frame_stream(graph, fm, "goal:a", 1)
+    occ = _occ({"hypothesis:h1": ["liaison"]}, ("dir-g1", "dir-g15"))
+
+    human = "\n".join(V.render_human(frames, 0, 0, 30, 300, occupants=occ))
+    band = human.split("idle:")[1]
+    assert "dir-g1" in band
+    assert "liaison" not in band
+
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=occ)
+    idle_section = llm.split("## idle seats")[1].split("## the graph")[0]
+    assert "dir-g1" in idle_section and "dir-g15" in idle_section
+    assert "liaison" not in idle_section
+
+
+def test_a_seat_with_no_target_is_idle_and_on_no_node_line(graph, fm):
+    """The claim's third falsifier: an unattached seat sits in the band and
+    nowhere on the tree — a view that hides emptiness is worse than none."""
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    occ = _occ({}, ("spare-seat",))
+
+    human = V.render_human(frames, 0, 0, 30, 300, occupants=occ)
+    on_lines = [ln for ln in human if "spare-seat" in ln]
+    assert len(on_lines) == 1
+    assert "idle:" in on_lines[0]
+
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=occ)
+    assert "spare-seat" in llm.split("## idle seats")[1].split("## the graph")[0]
+    assert "spare-seat" not in [ln for ln in llm.splitlines() if "- `" in ln]
+
+
+def test_seat_index_joins_a_pinned_seat_through_its_manifest_target():
+    """The join itself: a seat's meter pin names its session, whose agent id is
+    the manifest row carrying the node it works on."""
+    agents = [{"id": "a00-abc123", "target": "hypothesis:h1",
+               "tier": "parent", "role": None}]
+    rows = [{"name": "belam", "role": "prime_director"},
+            {"name": "dir-g16", "role": "director"}]
+    sessions = {"belam": "/g/.agi/sessions/a00-abc123/output.log"}
+    at_nodes, idle = V.seat_index(agents, rows, sessions)
+    assert at_nodes == {"hypothesis:h1": ["belam"]}
+    assert idle == ["dir-g16"]
+
+
+def test_seat_index_never_invents_a_node_for_a_rowless_session():
+    """A session whose agent id is absent from the manifest is idle, not placed."""
+    agents = [{"id": "a00-other", "target": "goal:x"}]
+    rows = [{"name": "liaison", "role": "director"}]
+    at_nodes, idle = V.seat_index(agents, rows,
+                                  {"liaison": "/g/.agi/sessions/a00-ghost/log"})
+    assert at_nodes == {}
+    assert idle == ["liaison"]
