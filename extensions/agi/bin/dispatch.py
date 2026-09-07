@@ -246,6 +246,20 @@ def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict],
 # hypothesis's VERIFY asks for.
 
 
+def _default_role_for_tier(tier: str) -> str:
+    """hypothesis:l3-dispatch-role-default — the ladder role a spawn
+    defaults to when `--role` is not given.
+
+    The bug this closes: `--role` defaulted to ``kid`` whatever `--tier`
+    said, so a director's bare `--tier parent` spawn resolved the tier-0
+    kid row and loaded the deepseek kid model instead of the parent model.
+    Tier and role are the same ladder column in the roles table (a row is
+    keyed by both), so the default role is the spawn tier itself. An
+    explicit `--role` still wins over this in `main()`.
+    """
+    return tier or "kid"
+
+
 def _default_tier_for_role(role: str) -> int:
     """The ladder tier a role lives at when `--ladder-tier` is not given.
 
@@ -376,9 +390,10 @@ def main() -> int:
     )
     ap.add_argument(
         "--role",
-        default="kid",
+        default=None,
         help="Ladder role to spawn (kid|parent|director|prime_director); "
-             "resolved against the ladder's roles table (default: kid)",
+             "resolved against the ladder's roles table (default: derived "
+             "from --tier, so a parent tier means role parent)",
     )
     ap.add_argument(
         "--ladder-tier",
@@ -402,6 +417,13 @@ def main() -> int:
              "all agents finish or the timeout expires.",
     )
     args = ap.parse_args()
+
+    # hypothesis:l3-dispatch-role-default — a bare --tier parent must mean
+    # role parent (so it resolves the parent ladder row, never the tier-0
+    # kid model). An explicit --role always wins over the tier-derived
+    # default.
+    if args.role is None:
+        args.role = _default_role_for_tier(args.tier)
 
     # goal:g11.1 — resolve the given path the way every entry point resolves
     # cwd, rather than demanding it already BE the graph root. Identity on a

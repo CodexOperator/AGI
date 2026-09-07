@@ -90,15 +90,18 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops
 
 Wave 2 rolled over and committed on `season/s2`, pushed. master frozen as
-genesis. **belam rotated to belam-2 at this point** (meter ≈ 0.3).
+genesis. L3.09 landed and committed on `season/s2`. **L3.10 running** (p-advisor =
+`hypothesis:l3w3-advisor-brief`, p-pin = `hypothesis:l3-tests-pin-ladder-state`)
+— belam lands it if the meter allows, then rotates to **belam-S1-L3-II**
+(Belam II; owner rule §6 item 15). If this file still says "running", the
+round may be mid-flight: `spawn_budget.py status` and `git status` first; if
+0 live and a diff is present, review it with the round loop above and commit
+it as `iter-L3.10` before anything else.
 NEXT (belam-2), on `season/s2`: wave 3 = the g15 slice. In order:
 1. Verify: `git branch --show-current` = season/s2; smoke 1245/194; suite
    1765/1; `spawn_budget.py status` 0 live; OpenRouter ≈ $15.6 left.
-2. L3.09 (two pi parents, same round loop): `hypothesis:l3-dispatch-role-default`
-   (must land before any GLM director spawn) + `hypothesis:l3-openrouter-codex-spend`
-   is NOT for pi kids — it is wave 3 slice 2 for the live ladder; pair the
-   role-default fix with `hypothesis:l2-done-doubled-frontmatter` or the
-   write-guard snapshot-goals payload path instead.
+2. L3.09 landed by belam (see Landed). `hypothesis:l3-openrouter-codex-spend`
+   is NOT for pi kids — it is wave 3 slice 2 for the live ladder.
 3. Then the slice: open room `tier3-quorum` (`send.py send --room tier3-quorum`),
    spawn the three advisors (`dispatch.py --harness claude-code --tier parent
    --role parent --ladder-tier 3`, opus ultracode — needs `CLAUDE_CODE_WORKFLOWS=1`,
@@ -406,6 +409,8 @@ git push origin <branch>
 12. **Settled 2026-09-06 (later):** write-guard log keys on the **mint id** like the grid (follow-up on `hypothesis:l2w15-write-guard`; today it is sha256→path with no mint id); perpetual ids are append-only — goals phase in/out via mint/retire and edges, never a renumber; the owner's consequence-tree decision method ("simulate the timeline forward … whether they would align to morals") is verbatim in the brief §1.8 and goes into vision 1's body and every director head. **Open, decide before the wave-2 rollover:** seasons as branches — brief §2.9 recommends dev = `season/sN`, stage = the season under judgment, prod = `master` (frozen, merges + cherry-picks only), no 3-season-deep pipeline, never rebase. Grid refs stay (payloads already inside since G6.3).
 
 13. **Settled 2026-09-06 (last):** seasons-as-branches **adopted** (dev `season/sN` / stage = under judgment / prod `master` frozen; cherry-pick, never rebase). **The prime bears the mantle "Belam"** — owner text verbatim in the brief §1.5, declared on `ladder:ladder` (`mantles`), derived into the prime's head after the readings; the L3 prime's remote-control name is `belam`, successors `belam-2…`. **L3 focus:** top three levels fixed (Belam fable ultracode → 3 opus-ultracode advisors, one *embodying* each vision → Fable-max director per perpetual goal); only the layers below expand (GLM parents → GLM directors per LT subgoal → GLM parents per ST → DeepSeek kids); waves re-cut so wave 3 = the live run and everything not needed to run (loop type, titles, backfill) is wave 4.
+
+15. **Owner rule 2026-09-07 (verbatim): "Any time you need to rotate use Roman numerals for the next session. So the next is belam-S1-L3-II and the next prime is Belam II aka belam the second."** rotate.py still derives `belam-N`; pass `--name belam-S1-L3-II` (then `-III`…) until the follow-up on `hypothesis:l3w0-rotate-roles` lands.
 
 14. **Owner answers 2026-09-06 (belam, at L3 open):** two pi parents per round, not three; the rotation gate is proved live right after L3.01 with a throwaway `belam-test` successor told to answer `continue` and stop; OpenRouter runs down to a ~$3 reserve and then the owner tops up — meanwhile the fallback is `--harness claude-code`, opus parents / sonnet kids at the LOWEST effort setting; wave 3's first slice is `goal:g15`.
 

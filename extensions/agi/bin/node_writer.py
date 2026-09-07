@@ -725,6 +725,50 @@ def _carry_thought(old_body: str, new_body: str) -> str:
     return new_body.rstrip("\n") + "\n\n" + thought + "\n"
 
 
+def _absorb_leading_frontmatter(fm: dict, body: str) -> tuple[dict, str, list[str]]:
+    """Merge a duplicate `---` frontmatter block that opens the body.
+
+    A kid that kept the scaffold's frontmatter in its body (L2.01,
+    hypothesis:l2-done-doubled-frontmatter) leaves a second `---` YAML block
+    at the top of the body. Serializing the file back with that block present
+    produces a node with TWO frontmatter blocks -- which is exactly how
+    `experiment:a00-e65beccc-ac5309` arrived.
+
+    When the body (after optional leading newlines) opens with `---` and
+    contains a parseable YAML mapping block, that block is merged INTO `fm`
+    (**later keys winning** -- the body block is physically later in the
+    file), stripped from the body, and the absorbed key names are returned.
+    A body with no leading block, an unclosed block, or an unparseable
+    non-mapping block is returned untouched, so kid-authored content that
+    merely resembles frontmatter is never mangled.
+    """
+    stripped = body.lstrip("\n")
+    lead = body[: len(body) - len(stripped)]
+    if not stripped.startswith("---\n"):
+        return fm, body, []
+    lines = stripped.split("\n")
+    close_idx = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            close_idx = i
+            break
+    if close_idx is None or close_idx == 1:
+        return fm, body, []
+    yaml_block = "\n".join(lines[1:close_idx])
+    try:
+        import yaml
+        dup = yaml.safe_load(yaml_block)
+    except yaml.YAMLError:
+        return fm, body, []
+    if not isinstance(dup, dict):
+        return fm, body, []
+    absorbed = [k for k in dup if dup[k] != fm.get(k)]
+    merged = dict(fm)
+    merged.update(dup)  # later (body) keys win over the real frontmatter
+    remaining = "\n".join(lines[close_idx + 1:])
+    return merged, lead + remaining.lstrip("\n"), absorbed
+
+
 def update_node(
     root,
     node_id,
@@ -773,9 +817,26 @@ def update_node(
 
     for key in unset_fm:
         fm.pop(key, None)
-    fm.update(set_fm or {})
 
     new_body = nf.body if body is None else _carry_thought(nf.body, body)
+
+    # hypothesis:l2-done-doubled-frontmatter — a kid that kept the scaffold's
+    # frontmatter in its body (L2.01: experiment:a00-e65beccc-ac5309) leaves a
+    # duplicate `---` block at the top of the body. Once this writer
+    # serializes the file back it would read as TWO frontmatter blocks. Absorb
+    # the duplicate into the real frontmatter (later keys winning) and strip it
+    # from the body, ONE writer -- the shared `cli.py done`/`post_wire` path.
+    fm, new_body, _absorbed = _absorb_leading_frontmatter(fm, new_body)
+    if _absorbed:
+        print(
+            f"warn: absorbed duplicate frontmatter from body of {node_id} "
+            f"(merged {len(_absorbed)} key(s), first {_absorbed[0]!r}); "
+            f"duplicate removed (l2-done-doubled-frontmatter)",
+            file=sys.stderr)
+
+    # The verdict/confidence delta wins over anything the duplicate carried,
+    # so it is applied AFTER the absorb -- never clobbered by a body block.
+    fm.update(set_fm or {})
 
     if fm == nf.frontmatter and new_body == nf.body:
         res.status = UNCHANGED
