@@ -9,6 +9,11 @@ Subcommands:
   judge <report-node-id>          — stamp a judgment record on a report node
     [--against <plan-node-id>]
   rollover [--dry-run]            — print or perform season N+1 rollover
+    [--visions-from <dir|file>]   — vision bodies verbatim (owner text + gloss)
+    [--name <name>]               — name season 1 in the ladder's season_names
+    [--branch]                    — git checkout -b season/s<N> after the write
+    [--allow-unjudged]            — bypass the unjudged-overview stage gate
+  retag                           — backfill the season stamp
 """
 from __future__ import annotations
 
@@ -625,143 +630,280 @@ def cmd_retag(root: Path, args) -> int:
 # Subcommand: rollover
 # ---------------------------------------------------------------------------
 
+#: The five morals (goal:g12) — a new season's vision parents, in canonical
+#: order (the schema table in [moral].md).
+MORALS = ["moral:faith", "moral:love", "moral:empathy",
+          "moral:antifragility", "moral:beauty"]
+
+
+def _season_nodes(root: Path, season: int, node_type: str) -> list[str]:
+    """The ids of every node of `node_type` stamped with `season`."""
+    out = []
+    nodes_dir = Path(root) / "nodes"
+    for f in sorted(nodes_dir.rglob("*.md")):
+        try:
+            nf = frontmatter.load_node_file(f)
+        except Exception:
+            continue
+        fm = nf.frontmatter
+        if fm.get("type") == node_type and fm.get("season") == season:
+            nid = fm.get("id")
+            if isinstance(nid, str) and nid:
+                out.append(nid)
+    return out
+
+
+def _unjudged_overviews(root: Path, season: int) -> list[str]:
+    """Overviews of `season` whose `judged_against` is unset (brief 2.9 gate)."""
+    out = []
+    nodes_dir = Path(root) / "nodes"
+    for f in sorted(nodes_dir.rglob("*.md")):
+        try:
+            nf = frontmatter.load_node_file(f)
+        except Exception:
+            continue
+        fm = nf.frontmatter
+        if fm.get("type") == "overview" and fm.get("season") == season:
+            if not fm.get("judged_against"):
+                nid = fm.get("id", "?")
+                out.append(str(nid))
+    return out
+
+
+def _load_vision_sources(arg: str) -> list[dict]:
+    """Read vision owner text from a markdown file or a directory of them.
+
+    Each file's body is taken **verbatim** — the prime writes the files from
+    brief §1.8 and season.py never invents or edits vision prose. The leading
+    `# Title` heading names the node and is stripped from the body; everything
+    after it (text + gloss) is the body.
+    """
+    p = Path(arg)
+    files = sorted(p.glob("*.md")) if p.is_dir() else [p]
+    sources = []
+    for fp in files:
+        if not fp.exists():
+            print(f"ERR: vision source not found: {fp}", file=sys.stderr)
+            continue
+        text = fp.read_text(encoding="utf-8")
+        lines = text.splitlines()
+        title = fp.stem
+        i = 0
+        while i < len(lines) and not lines[i].strip():
+            i += 1
+        if i < len(lines) and lines[i].strip().startswith("# "):
+            title = lines[i].strip()[2:].strip()
+            i += 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+        body = "\n".join(lines[i:]).strip("\n")
+        sources.append({"file": str(fp), "slug": fp.stem,
+                        "title": title, "body": body})
+    return sources
+
+
+def _mint_vision(root: Path, source: dict, season_overviews: list[str],
+                 new_season: int):
+    """Mint one vision node, `--actor owner`, body verbatim. Returns NodeWrite."""
+    from node_writer import write_node
+    moral_adherence = {m: "unknown" for m in MORALS}
+    extra = {
+        "title": source["title"],
+        "season": new_season,
+        "season_parents": list(season_overviews),
+        "proposes_goals": [],
+        "moral_adherence": moral_adherence,
+        "status": "open",
+        "tags": ["vision", "rollover"],
+        "edited_by": "owner",
+    }
+    return write_node(root, "vision", source["slug"],
+                      parents=MORALS, extra_fm=extra,
+                      body=source["body"], heading=True, bypass=True)
+
+
+def _find_git_root(root: Path) -> Path | None:
+    """Walk up from the project root to the enclosing git repo (or None)."""
+    cur = root.resolve()
+    while True:
+        if (cur / ".git").exists():
+            return cur
+        if cur.parent == cur:
+            return None
+        cur = cur.parent
+
+
 def cmd_rollover(root: Path, args) -> int:
-    """Print or perform a season rollover."""
-    dry_run = getattr(args, 'dry_run_explicit', False) or getattr(args, 'dry_run', False)
-    debug = getattr(args, 'debug', False)
+    """Print or perform a season rollover.
+
+    Wave-2 genesis rollover (brief §1.8, §2.8, §2.9):
+      * mint three visions from `--visions-from` (dir or file), bodies taken
+        **verbatim** from the owner text (text + gloss); `--actor owner`;
+      * `--name <name>` names season 1 in the ladder's `season_names` through
+        write.py (e.g. `genesis`);
+      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+        graph writes, then prints the next commands — never pushes;
+      * a stage gate (brief 2.9) refuses the rollover while any season-current
+        overview lacks a judgment unless `--allow-unjudged` is given,
+        printing the count.
+
+    The dry run prints every node it would mint (title, parents,
+    season_parents, actor), every ladder field it would set, and the branch
+    step — and changes nothing.
+    """
+    dry_run = bool(getattr(args, "dry_run_explicit", False)
+                   or getattr(args, "dry_run", False))
+    allow_unjudged = bool(getattr(args, "allow_unjudged", False))
+    name = (getattr(args, "name", "") or "").strip()
+    want_branch = bool(getattr(args, "branch", False))
+    visions_from = (getattr(args, "visions_from", "") or "").strip()
 
     ladder_fm = _load_ladder(root)
     season = int(ladder_fm.get("current_season", 1))
     new_season = season + 1
     caps = _get_caps(root)
-    vision_cap = caps.get("vision", 3)
-
-    # Get stats for current season
-    tiers = _load_tiers(root)
-    stats_list = _collect_stats(root, tiers, season)
+    vision_cap = int(caps.get("vision", 3))
 
     print(f"Rollover: season {season} → {new_season}")
-    if dry_run:
-        print("[DRY RUN — no changes will be written]")
+    print("[DRY RUN — no changes will be written]" if dry_run
+          else "[REAL RUN — performing the plan]")
     print()
 
-    # Check: any overviews of current season with no judgment record?
-    # (overviews don't exist yet, but check anyway)
-    nodes_dir = Path(root) / "nodes"
-    unjudged_overviews = []
-    for f in sorted(nodes_dir.rglob("*.md")):
-        try:
-            nf = frontmatter.load_node_file(f)
-            fm = nf.frontmatter
-            if fm.get("type") == "overview" and fm.get("season") == season:
-                if not fm.get("judged_against"):
-                    unjudged_overviews.append(fm.get("id", "?"))
-        except Exception:
-            continue
-
-    if unjudged_overviews:
-        print(f"BLOCKING: {len(unjudged_overviews)} overview(s) of season {season} "
-              f"lack a judgment record:")
-        for oid in unjudged_overviews:
+    # ---- Stage gate (brief 2.9): refuse while any season-current overview
+    # ---- lacks a judgment, unless --allow-unjudged.
+    unjudged = _unjudged_overviews(root, season)
+    if unjudged:
+        print(f"{len(unjudged)} overview(s) of season {season} lack a judgment:")
+        for oid in unjudged:
             print(f"  {oid}")
-        if not dry_run:
-            print("Rollover refused. Judge or discard unjudged overviews first.",
+        if not allow_unjudged:
+            print("REFUSED: pass --allow-unjudged to roll over anyway")
+            return 1
+        print("[--allow-unjudged] proceeding anyway")
+    print()
+
+    # ---- Season-current overviews become the new visions' season_parents.
+    season_overviews = _season_nodes(root, season, "overview")
+    existing_new = set(_season_nodes(root, new_season, "vision"))
+
+    print(f"Visions to mint for season {new_season}:")
+    if visions_from:
+        sources = _load_vision_sources(visions_from)
+        if not sources:
+            print("ERR: no vision source files read from --visions-from",
                   file=sys.stderr)
             return 1
-        print("(dry run continues despite blocker)")
-        print()
-
-    # What would be minted for new season:
-    print("Would mint for season", new_season, ":")
-
-    # New visions (up to caps.vision)
-    # Existing visions at current season
-    visions_current = 0
-    for f in sorted(nodes_dir.rglob("*.md")):
-        try:
-            nf = frontmatter.load_node_file(f)
-            fm = nf.frontmatter
-            if fm.get("type") == "vision" and fm.get("season") == new_season:
-                visions_current += 1
-        except Exception:
-            continue
-
-    # Close current visions
-    print(f"  Close {visions_current} vision(s) of season {season} → status: closed")
-    visions_open_for_new = max(0, vision_cap - visions_current)
-    # Also check the caps_apply_from_season flag for grandfathering
-    caps_from = ladder_fm.get("caps_apply_from_season", 2)
-    if new_season < caps_from:
-        visions_open_for_new = vision_cap  # no cap for this season yet
-    if visions_open_for_new > 0:
-        print(f"  Mint up to {visions_open_for_new} new vision(s) (cap: {vision_cap})")
-        if dry_run:
-            print(f"    Each with parents: [moral:faith, moral:love, moral:empathy, "
-                  f"moral:antifragility, moral:beauty]")
-            print(f"    season_parents: [overviews of season {season}]")
-            print(f"    proposes_goals: [], moral_adherence: all unknown")
+        for s in sources:
+            nid = f"vision:{s['slug']}"
+            if nid in existing_new:
+                print(f"  SKIP {nid} — already exists (season {new_season})")
+                continue
+            print(f"  MINT {nid}")
+            print(f"    title: {s['title']}")
+            print(f"    parents: {', '.join(MORALS)}")
+            print(f"    season_parents: {', '.join(season_overviews) or '(none)'}")
+            print("    actor: owner")
+            print(f"    season: {new_season}")
+            print("    moral_adherence: 'unknown' for each moral parent")
+            print("    body (verbatim, text + gloss):")
+            for body_line in s["body"].splitlines():
+                print(f"      {body_line}")
+            print()
     else:
-        print(f"  Vision cap ({vision_cap}) reached; no new visions")
-
-    # Overviews at current season: retag to closed
-    overviews_current = 0
-    for f in sorted(nodes_dir.rglob("*.md")):
-        try:
-            nf = frontmatter.load_node_file(f)
-            fm = nf.frontmatter
-            if fm.get("type") == "overview" and fm.get("season") == season:
-                overviews_current += 1
-        except Exception:
-            continue
-    if overviews_current > 0:
-        print(f"  Retag {overviews_current} overview(s) of season {season} → status: closed")
-
-    # Bump season
+        caps_from = int(ladder_fm.get("caps_apply_from_season", 2))
+        if new_season < caps_from:
+            open_v = vision_cap
+        else:
+            open_v = max(0, vision_cap - len(existing_new))
+        print(f"  Mint up to {open_v} new vision(s) (cap: {vision_cap})")
+        if open_v > 0:
+            print("    bodies require --visions-from <dir|file>: owner text "
+                  "verbatim, never invented")
+            print(f"    each parents: {', '.join(MORALS)}")
+            print(f"    each season_parents: {', '.join(season_overviews) or '(none)'}")
+            print("    each actor: owner")
     print()
+
+    # ---- Ladder fields (through write.py).
+    print("Ladder writes:")
+    if name:
+        print(f"  season_names[1] = {name}")
     print(f"  Bump ladder current_season: {season} → {new_season}")
+    print()
 
-    if not dry_run:
-        # Perform the rollover
-        print("Performing rollover...")
+    # ---- Branch step (never pushes).
+    branch_name = f"season/s{new_season}"
+    if want_branch:
+        print(f"Branch: git checkout -b {branch_name} (never pushes)")
 
-        # Close all current visions
-        vision_ids_to_close = []
-        for f in sorted(nodes_dir.rglob("*.md")):
-            try:
-                nf = frontmatter.load_node_file(f)
-                fm = nf.frontmatter
-                if fm.get("type") == "vision" and fm.get("season") == season and fm.get("status") != "closed":
-                    vision_ids_to_close.append(str(fm.get("id", "")))
-            except Exception:
-                continue
+    if dry_run:
+        return 0
 
-        for vid in vision_ids_to_close:
-            rc = _shell_out_write(root, vid, set_fm={"status": "closed"})
-            if rc != 0:
-                return rc
+    # ===================== REAL RUN — perform the plan =====================
+    # Stamped season on the newly minted nodes must be the NEW season. write_node
+    # reads AGI_SEASON from the environment (falling back to the ladder's
+    # current_season), so export it for the mint pass and restore afterwards.
+    old_env_season = os.environ.get("AGI_SEASON")
+    os.environ["AGI_SEASON"] = str(new_season)
+    try:
+        # 1. Mint the visions, --actor owner, bodies verbatim.
+        if visions_from:
+            from node_writer import WRITTEN, SKIPPED, REJECTED
+            sources = _load_vision_sources(visions_from)
+            minted = 0
+            for s in sources:
+                nid = f"vision:{s['slug']}"
+                if nid in existing_new:
+                    continue
+                res = _mint_vision(root, s, season_overviews, new_season)
+                if res.status in (WRITTEN,):
+                    print(f"minted {nid} (parents: {len(MORALS)} morals, "
+                          f"season_parents: {len(season_overviews)} overviews, actor owner)")
+                    minted += 1
+                else:
+                    print(f"ERR: {nid} not minted ({res.status}: {res.reason})",
+                          file=sys.stderr)
+            if not minted:
+                print("no new visions minted (all already exist or files missing)")
+    finally:
+        if old_env_season is None:
+            os.environ.pop("AGI_SEASON", None)
+        else:
+            os.environ["AGI_SEASON"] = old_env_season
 
-        # Close current overviews
-        overview_ids_to_close = []
-        for f in sorted(nodes_dir.rglob("*.md")):
-            try:
-                nf = frontmatter.load_node_file(f)
-                fm = nf.frontmatter
-                if fm.get("type") == "overview" and fm.get("season") == season and fm.get("status") != "closed":
-                    overview_ids_to_close.append(str(fm.get("id", "")))
-            except Exception:
-                continue
+    # 2. Name season 1 and bump the season on the ladder (through write.py).
+    ladder_set = {}
+    if name:
+        season_names = dict(ladder_fm.get("season_names") or {})
+        season_names[1] = name
+        ladder_set["season_names"] = season_names
+    ladder_set["current_season"] = new_season
+    rc = _shell_out_write(root, "ladder:ladder", set_fm=ladder_set)
+    if rc != 0:
+        return rc
+    if name:
+        print(f"season_names[1] = {name} written on the ladder")
+    print(f"ladder current_season: {season} → {new_season}")
 
-        for oid in overview_ids_to_close:
-            rc = _shell_out_write(root, oid, set_fm={"status": "closed"})
-            if rc != 0:
-                return rc
+    # 3. Open the season branch (never pushes).
+    if want_branch:
+        git_root = _find_git_root(root)
+        if git_root is None:
+            print("ERR: no git repo found; branch step skipped", file=sys.stderr)
+            return 1
+        brc = subprocess.run(
+            ["git", "-C", str(git_root), "checkout", "-b", branch_name],
+            capture_output=True, text=True)
+        if brc.returncode != 0:
+            print(f"ERR git checkout -b {branch_name}: {brc.stderr.strip()}",
+                  file=sys.stderr)
+            return 1
+        print(f"opened branch {branch_name}")
 
-        # Bump season on ladder node
-        rc = _shell_out_write(root, "ladder:ladder", set_fm={"current_season": new_season})
-        if rc != 0:
-            return rc
-
-        print(f"Rollover to season {new_season} complete.")
+    print(f"Rollover to season {new_season} complete.")
+    print("Next commands (prime):")
+    print("  * the three advisors each take a vision")
+    print("  * perpetual directors bootstrap their goals and hang each under its vision")
 
     return 0
 
@@ -795,6 +937,18 @@ def main(argv: list[str] | None = None) -> int:
                             help="Only print what would happen")
     p_rollover.add_argument("--debug", action="store_true", help="Show debug info",
                             dest="debug")
+    p_rollover.add_argument("--visions-from", default="",
+                            help="dir or file of markdown vision bodies (owner text "
+                                 "verbatim); else generic count printed")
+    p_rollover.add_argument("--name", default="",
+                            help="name season 1 in the ladder's season_names "
+                                 "(e.g. genesis)")
+    p_rollover.add_argument("--branch", action="store_true", default=False,
+                            help="open season/s<N> with git checkout -b after the "
+                                 "graph writes (never pushes)")
+    p_rollover.add_argument("--allow-unjudged", action="store_true", default=False,
+                            help="proceed even while a season-current overview lacks "
+                                 "a judgment")
 
     # retag
     p_retag = sub.add_parser("retag",

@@ -222,6 +222,21 @@ def test_director_brief_contains_job_description():
     assert "rotate" in d.lower()
 
 
+def test_director_spawn_primitive_names_the_parent_role_and_ladder_tier():
+    """hypothesis:l3w1-tier0-director-brief — a tier-0 GLM director's spawn
+    primitive must spell `--role parent --ladder-tier 0`. dispatch.py's `--role`
+    defaults to `kid`, so a bare `--tier parent` resolves the tier-0 KID row and
+    hands the spawned parent the deepseek model instead of the tier-0 parent
+    GLM row. Naming both the role and the ladder tier is what disambiguates."""
+    d = _text("director")
+    assert "--role parent" in d
+    assert "--ladder-tier 0" in d
+    assert "--tier parent" in d
+    assert "deepseek" in d.lower(), (
+        "the brief must say WHY the role+tier matter, or the next editor"
+        " will 'simplify' it back to the bug")
+
+
 def test_director_cannot_do_kid_work():
     """A director must be told not to do kid work."""
     d = _text("director")
