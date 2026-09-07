@@ -10,15 +10,16 @@ blocked_by:
   - task:t-022
   - task:t-003
 cavekit_req: schema-registry/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-023: Validating edges from meta-nodes to ordinary nodes"
 ---
 **Description:** After validating a node against its schema, insert a `validated_by` edge from the meta-node to the ordinary node.

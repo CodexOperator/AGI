@@ -5,13 +5,14 @@ type: hypothesis
 parents:
   - goal:g8.1
 next_edges: []
+edited_by: season.py
 scaffold_hash: de20db4b0bbc6f42
+season: 1
+thought_session: season
 title: A01 e3478ffd d38b0b
 ---
-
 # hypothesis:a01-e3478ffd-d38b0b
 
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
-

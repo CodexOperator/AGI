@@ -6,9 +6,12 @@ parents:
   - goal:s18
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 0c752659b8d6c62b
-title: S18 build-site hypothesis content exists only in R-refs, not in goals
+season: 1
 testable_claim: For a random sample of 10 build-site nodes carrying a resolvable cavekit_req, >=8 of 10 lack the requirement's acceptance-criteria text in their own body (literally or paraphrased), i.e. the kit file is non-redundant with its host node and inlining is mandatory before deprecation
+thought_session: season
+title: S18 build-site hypothesis content exists only in R-refs, not in goals
 verdict: pending
 ---
 # hypothesis:a00-15d05ac0-7ef787

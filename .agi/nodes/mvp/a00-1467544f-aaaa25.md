@@ -1,19 +1,21 @@
 ---
-confidence: 0.97
-id: "mvp:a00-1467544f-aaaa25"
+id: mvp:a00-1467544f-aaaa25
 mint_id: d1682de4be33400ea53225e83d90d25a
-next_edges:
-  - outcome:a00-1467544f-aaaa25
+type: mvp
 parents:
   - verdict:a00-1467544f-aaaa25
+next_edges:
+  - outcome:a00-1467544f-aaaa25
+confidence: 0.97
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - bootstrap
   - mvp
+thought_session: season
 title: "MVP: Graph density reporter script"
-type: mvp
 ---
-
 **MVP:** `exp-a00-1467544f-aaaa25-hypothesis-task-spawns.py`
 
 A script that:

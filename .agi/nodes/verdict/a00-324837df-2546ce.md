@@ -1,24 +1,26 @@
 ---
-confidence: 0.95
-domain: vector-embedding-isomorphism
-evidence_runs:
-  - exp:a00-324837df-2546ce
-id: "verdict:a00-324837df-2546ce"
+id: verdict:a00-324837df-2546ce
 mint_id: 2024ad628dfa4ca1a0aca31111f28f3b
-next_edges: []
+type: verdict
 parents:
   - hyp:a00-324837df-2546ce
+next_edges: []
+confidence: 0.95
+domain: vector-embedding-isomorphism
+edited_by: season.py
+evidence_runs:
+  - exp:a00-324837df-2546ce
+season: 1
 status: proved
 tags:
   - embeddings
   - node2vec
   - gensim
   - isomorphism
+thought_session: season
 title: "R2: Gensim Skip-Gram Node2Vec Preserves Graph Topology"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict**: PROVED (confidence: 0.95)
 
 **Metric**: Spearman correlation = +0.37 on 94-pair benchmark (vs R1 baseline -0.18)

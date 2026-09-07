@@ -1,22 +1,24 @@
 ---
+id: goal:g6.4
+mint_id: 7ecc46c896654d5090cdad602cbf45de
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.4
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.4"
-mint_id: 7ecc46c896654d5090cdad602cbf45de
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.4: Non-build work branches off a build version and returns a new one"
-type: goal
 ---
-
 The full cycle, once G6.3 holds: a non-build chain — idea → hypothesis →
 experiment → verdict — **branches off a specific version of a build node**, and
 its accepted verdict produces the **next version** of that build node.

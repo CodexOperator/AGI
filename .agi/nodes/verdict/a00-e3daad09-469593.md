@@ -8,7 +8,10 @@ next_edges: []
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 65161c4c61105e44
+season: 1
+thought_session: season
 title: A serializer str(v) fallback destroys nested mappings silently
 verdict: inconclusive_lean_proved:50
 ---

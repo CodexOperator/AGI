@@ -1,22 +1,24 @@
 ---
+id: goal:g1.1
+mint_id: de7aafc73c54435885fd02b96e92bcc6
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.1"
-mint_id: de7aafc73c54435885fd02b96e92bcc6
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.1: An agent should need only the graph to orient"
-type: goal
 ---
-
 **Recon happens in the graph, not in the filesystem.** Today a kid arrives with
 a rendered map and then reads files anyway, because the map cannot answer
 follow-up questions. Every one of those reads is motion spent re-deriving

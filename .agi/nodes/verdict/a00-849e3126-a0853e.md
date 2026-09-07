@@ -6,12 +6,15 @@ parents:
   - experiment:a00-5b72095d-2c70c0
 next_edges: []
 confidence: 0.95
-scaffold_hash: c54a87eca1512784
-title: Grid versions payload-backed and node-backed bodies identically
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-5b72095d-2c70c0
   - experiment:a00-6e0b0336-5fe614
+scaffold_hash: c54a87eca1512784
+season: 1
+thought_session: season
+title: Grid versions payload-backed and node-backed bodies identically
+verdict: proved
 ---
 # verdict:a00-849e3126-a0853e
 

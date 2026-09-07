@@ -2,15 +2,17 @@
 id: mvp:the-bound-under-real-agents
 mint_id: e416f8f0d8ec4379a5f79bfbe0bcca2b
 type: mvp
-title: goal:g4.8's remaining three falsifier clauses, at the cap the owner set
 parents:
   - verdict:the-bound-is-structural-now
 next_edges: []
-scaffold_hash: 5f53b803a0d34926
-status: open
 confidence: 0.75
+edited_by: season.py
+scaffold_hash: 5f53b803a0d34926
+season: 1
+status: open
+thought_session: season
+title: goal:g4.8's remaining three falsifier clauses, at the cap the owner set
 ---
-
 # mvp:the-bound-under-real-agents
 
 ## What this must satisfy

@@ -6,7 +6,10 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: d7197c75d45ba17f
+season: 1
+thought_session: season
 title: "--strict-goals flag in driver.sh default path causes no regression (0 unresolved goal refs)"
 verdict: pending
 ---

@@ -6,7 +6,7 @@ parents:
   - hyp:graph-core-r8
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-graph-core-persistence-backend
   - build:src-graph-core-persistence-filesystem
@@ -14,6 +14,7 @@ evidence_runs:
   - build:src-graph-core-persistence-sqlite-backend
   - build:tests-graph-core-test-backend-swap
 scaffold_hash: 0a3d01f2ebe3ca6b
+season: 1
 supports:
   - hyp:graph-core-r8
 tags:
@@ -21,7 +22,7 @@ tags:
   - R8
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R8: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

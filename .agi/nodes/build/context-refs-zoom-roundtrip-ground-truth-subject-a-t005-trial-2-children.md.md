@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:context-refs-zoom-roundtrip-ground-truth-subject-a-t005-trial-2-children.md"
+id: build:context-refs-zoom-roundtrip-ground-truth-subject-a-t005-trial-2-children.md
 mint_id: e3f1ed1af9574e6bb0b8cdbc8133fa93
-origin: build-scan
+type: build
 parents:
   - idea:engine-context-refs
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: context/refs/zoom-roundtrip-ground-truth/subject-a-t005/trial-2/children.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: context/refs/zoom-roundtrip-ground-truth/subject-a-t005/trial-2/children.md"
-type: build
 ---
-
 `context/refs/zoom-roundtrip-ground-truth/subject-a-t005/trial-2/children.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-context-refs`.

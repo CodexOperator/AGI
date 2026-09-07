@@ -1,11 +1,14 @@
 ---
+id: goal:g8
+mint_id: d9b0550f6c91463d92a36990c4ebdbd0
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G8
 goal_kind: long-term
 heading_level: 2
-id: "goal:g8"
-mint_id: d9b0550f6c91463d92a36990c4ebdbd0
 origin: goals-doc
+season: 1
 seeds:
   - goal:g8.1
   - goal:g8.2
@@ -13,10 +16,9 @@ status: horizon
 tags:
   - goal
   - root
+thought_session: season
 title: "G8: Forkability: anyone grows their own tree"
-type: goal
 ---
-
 A project repo holds data and configuration; the engine arrives as a clone.
 `fantasia` is the reference implementation and proves the layout composes.
 

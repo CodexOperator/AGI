@@ -6,7 +6,10 @@ parents:
   - hypothesis:born-valid-without-touching-frontmatter
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 5c431894f7d5268d
+season: 1
+thought_session: season
 title: A01 234c1b05 85689f
 verdict: inconclusive_lean_proved:85
 ---

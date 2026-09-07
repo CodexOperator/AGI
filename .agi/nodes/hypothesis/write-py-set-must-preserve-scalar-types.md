@@ -5,11 +5,12 @@ type: hypothesis
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: add0a3b1cb712b7a
 scale: engine
+season: 1
 testable_claim: "write.py set stores a value with the type the target schema declares (int, float, bool, list) rather than always a string; set tier -1 yields tier: -1, and the 91 deprecated nodes carrying tier: \"-1\" from L1.09 become schema-valid after a one-off retype"
-thought_session: L1.08
+thought_session: season
 title: Write py set must preserve scalar types
 ---
 # hypothesis:write-py-set-must-preserve-scalar-types

@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-chain-engine
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - chain-engine
   - R5
 testable_claim: Fork Mechanics
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R5: Fork Mechanics"
 ---
 **Description:** Any node may have multiple children of the same type, allowing arbitrary forks.

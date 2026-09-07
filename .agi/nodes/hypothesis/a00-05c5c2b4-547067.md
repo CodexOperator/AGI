@@ -6,7 +6,10 @@ parents:
   - goal:s18
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 791573d3b3d0fc5d
+season: 1
+thought_session: season
 title: "S18: Open build-site hypotheses lack experiments, not evidence"
 verdict: pending
 ---

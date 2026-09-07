@@ -1,18 +1,20 @@
 ---
-domain: session-management
-id: "idea:domain-session-management"
+id: idea:domain-session-management
 mint_id: b5677befbad54dd3a25b13b03a283f20
+type: idea
 next_edges:
   - hyp:session-management-r1
+domain: session-management
+edited_by: season.py
+season: 1
 tags:
   - sessions
   - memory
   - persistence
   - agent
+thought_session: season
 title: "Session Management: Persistent Agent Sessions with Memory"
-type: idea
 ---
-
 # Domain: Session Management
 
 ## Concept

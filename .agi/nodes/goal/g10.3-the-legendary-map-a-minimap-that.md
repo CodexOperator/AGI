@@ -1,22 +1,24 @@
 ---
+id: goal:g10.3
+mint_id: 71cb54ea76764946a6baade1b58e8c26
+type: goal
+parents:
+  - goal:g10
 confidence: 1.0
+edited_by: season.py
 goal_id: G10.3
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g10.3"
-mint_id: 71cb54ea76764946a6baade1b58e8c26
 origin: goals-doc
-parents:
-  - goal:g10
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G10.3: The legendary map: a minimap that is itself the territory"
-type: goal
 ---
-
 **The widest possible view — what exists, and what can be done to it.** The old
 `.openclaw`/`.hermes` supermap, taken further and made legible: not just an
 overview of the graph but **a legend of the actions available in it**, rendered

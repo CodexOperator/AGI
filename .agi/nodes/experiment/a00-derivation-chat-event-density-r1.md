@@ -6,11 +6,14 @@ parents:
   - hypothesis:a00-160ca279-56d211
 next_edges: []
 confidence: 0.55
+edited_by: season.py
 evidence_runs: 1
+season: 1
 tags:
   - g10.1
   - derivation-chats
 testable_claim: A zero-model-call parser over structured JSONL session logs (message.role, content[].type) recovers per-chat event counts (tool calls, tool errors, thinking blocks) that are not sparse (≫2/chat), addressing one of the hypothesis's two named disproof conditions.
+thought_session: season
 title: Zero-LLM field extraction on 8 raw derivation-chat JSONL logs
 verdict: inconclusive_lean_proved:55
 ---

@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-dbd82e32-0b294f
 next_edges: []
+edited_by: season.py
 scaffold_hash: 527a697de4332191
+season: 1
+thought_session: season
 title: A00 6e0b0336 5fe614
 ---
-
 # experiment:a00-6e0b0336-5fe614
 
 ## Experiment
@@ -42,4 +44,3 @@ grid.py versions <mint-id>  # both: integer count
 5. **Write-path asymmetry confirmed.** The grid would version a build node body edit identically to a goal node body edit — the gap is on the writer side (update_node edits node.md always), not the grid side.
 
 Grid claim proven; the gap goal:g13 names is indeed on the write side only.
-

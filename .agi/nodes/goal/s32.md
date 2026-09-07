@@ -6,19 +6,20 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S32
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: 905d31224cf0a239
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S32: Finish the embeddings pipeline the build-site started — cache, in-graph storage, and a scatter renderer"
 ---
 **Minted 2026-09-03 in L1.09 from the cavekit build-site survey

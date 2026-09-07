@@ -6,15 +6,16 @@ parents:
   - idea:engine-render-context
 build_kind: code
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/render-context.py
+season: 1
 status: deprecated
 tags:
   - build
   - code
   - g2.1
-thought_session: L1.05
+thought_session: season
 title: "Build: extensions/agi/bin/render-context.py"
 ---
 `extensions/agi/bin/render-context.py` — level-3 code node (one file, one canonical node).

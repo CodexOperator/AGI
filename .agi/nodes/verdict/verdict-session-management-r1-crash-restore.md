@@ -9,11 +9,14 @@ next_edges:
 confidence: 0.9
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 evidence_runs: []
+season: 1
 tags:
   - session-management
   - r1
   - r21g
+thought_session: season
 title: Verdict session management r1 crash restore
 verdict: inconclusive_lean_proved:50
 ---

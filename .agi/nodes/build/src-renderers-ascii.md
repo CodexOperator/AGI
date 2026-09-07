@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-renderers-ascii"
+id: build:src-renderers-ascii
 mint_id: fc77db73444844d5a84c604a7d71d12a
-origin: build-scan
+type: build
 parents:
   - idea:engine-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/renderers/ascii.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/renderers/ascii.py"
-type: build
 ---
-
 `extensions/agi/src/renderers/ascii.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-renderers`.

@@ -14,15 +14,16 @@ blocked_by:
   - task:t-078
   - task:t-081
 cavekit_req: autoresearch-tree-skill/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-089: Agent timeout and healer dispatch mechanism"
 ---
 **Description:** Implement heal.py monitoring agent PIDs, graceful termination (SIGTERM → SIGKILL), healer subagent dispatch with partial output context, and verdict emission with calibrated confidence. Partial results from timed-out agents flow into manifest.json alongside successful agents.

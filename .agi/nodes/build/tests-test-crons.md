@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-crons"
+id: build:tests-test-crons
 mint_id: f8afe4ca2643442b84ec3e4da9d71ba5
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_crons.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_crons.py"
-type: build
 ---
-
 `extensions/agi/tests/test_crons.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

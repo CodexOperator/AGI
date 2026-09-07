@@ -1,22 +1,24 @@
 ---
+id: goal:g2.3
+mint_id: 5c2f2729778949ed98b3db262dbb1f4b
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.3
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.3"
-mint_id: 5c2f2729778949ed98b3db262dbb1f4b
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.3: `graph_builder` becomes data-source-agnostic and cold-builds fast"
-type: goal
 ---
-
 `agi_algos/graph_builder.py` is the code-intelligence layer and the natural
 substrate for zoom levels 4–5, but it is coupled to specific data sources and is
 slow on a cold build. Absorbs **A1** (data-source-agnostic refactor) and **A3**

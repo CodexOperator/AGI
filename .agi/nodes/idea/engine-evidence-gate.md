@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-evidence-gate"
+id: idea:engine-evidence-gate
 mint_id: a9ed518fab064646a9d5aed61a2544d3
-origin: engine-decomp
+type: idea
 parents:
   - goal:g3.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/evidence_gate.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/evidence_gate.py
 ---
-
 `extensions/agi/bin/evidence_gate.py` — an engine bin entry-point script.
 
 evidence_gate.py — the orphan-verdict gate (TODO.md H4, H4c).

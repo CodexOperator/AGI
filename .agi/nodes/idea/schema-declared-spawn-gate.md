@@ -2,19 +2,21 @@
 id: idea:schema-declared-spawn-gate
 mint_id: a1065992cbef4e589f0cea52d809f02d
 type: idea
-scale: big
-status: open
-confidence: 0.8
 parents:
   - goal:s17
 next_edges: []
+confidence: 0.8
+edited_by: season.py
+scale: big
+season: 1
+status: open
 tags:
   - s17
   - schema
   - geometry
-title: "The spawn rule is data in a schema; the gate is only the enforcement"
+thought_session: season
+title: The spawn rule is data in a schema; the gate is only the enforcement
 ---
-
 # idea:schema-declared-spawn-gate
 
 **The graph already knows its own spawn rules — it just has never been asked.**

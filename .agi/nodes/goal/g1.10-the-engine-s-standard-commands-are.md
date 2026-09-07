@@ -1,22 +1,24 @@
 ---
+id: goal:g1.10
+mint_id: 4c7e0b93a15d42f6b8e2d7f1a06c9358
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.10
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.10"
-mint_id: 4c7e0b93a15d42f6b8e2d7f1a06c9358
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.10: The engine's standard commands are declared in a node, not memorised"
-type: goal
 ---
-
 **Config-maxxing applied to the one surface that has escaped it: the commands
 themselves.** Everything else about a run is declared — metrics, dispatch,
 harnesses, schemas, cron cadences. The commands an operator actually types to

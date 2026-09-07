@@ -16,15 +16,16 @@ blocked_by:
   - task:t-039
   - task:t-041
 cavekit_req: environment-indexers/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-042: One-file-per-indexer layout enforcement"
 ---
 **Description:** Lint pass / structural test that each file under `agi-tree/src/environment_indexers/` (excluding cli/registry/queries) (a) exposes exactly one indexer, (b) declares its schemas, (c) has a header docstring with inputs/outputs/limitations.

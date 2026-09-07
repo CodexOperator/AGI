@@ -10,15 +10,16 @@ blocked_by:
   - task:t-037
   - task:t-034
 cavekit_req: environment-indexers/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-038: Python dependency indexer — internal-import edges"
 ---
 **Description:** Walk Python files, parse `import`/`from ... import` statements. For modules that resolve within the project, emit `imports` edges between module nodes (reuse module nodes from T-034 if present, otherwise emit lightweight stand-ins).

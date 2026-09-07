@@ -6,7 +6,7 @@ parents:
   - hyp:graph-core-r4
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-graph-core-persistence-frontmatter
   - build:src-graph-core-persistence-lazy-body
@@ -14,6 +14,7 @@ evidence_runs:
   - build:tests-graph-core-test-frontmatter-errors
   - build:tests-graph-core-test-lazy-body
 scaffold_hash: c46f17eb4df1df82
+season: 1
 supports:
   - hyp:graph-core-r4
 tags:
@@ -21,7 +22,7 @@ tags:
   - R4
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R4: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

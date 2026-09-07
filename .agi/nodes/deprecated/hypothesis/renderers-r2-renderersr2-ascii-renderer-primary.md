@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R2
 testable_claim: ASCII Renderer (Primary)
-thought_session: L1.09
+thought_session: season
 title: "renderers/R2: ASCII Renderer (Primary)"
 ---
 **Description:** A primary renderer produces a compact text view bounded by 200 lines and 200 columns. The view is hierarchical and includes a summary of edges and a count of node types.

@@ -6,7 +6,10 @@ parents:
   - goal:g8.1
 next_edges: []
 confidence: 0.5
+edited_by: season.py
 scaffold_hash: 6bed1ff9651e0f93
+season: 1
+thought_session: season
 title: "The g8.1 three-shape frame is moot: the engine already deploys as clone + skill symlink"
 verdict: pending
 ---

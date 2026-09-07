@@ -5,14 +5,15 @@ type: hypothesis
 parents:
   - goal:g1.11
 next_edges: []
-scaffold_hash: 881987ac95eea42e
-title: "TTL-enforced expiry: a minted key stops authenticating after expires_at passes — the crash-safety TTL guarantee is real, not aspirational"
 confidence: 0.0
-testable_claim: "A key minted with expires_at set to T minutes ahead authenticates a live API call within its lifetime, but fails with a 401/403 after the TTL expires. This proves the third independent limit is load-bearing and satisfies the falsifier's 'within one reclamation interval' even when no sweep or reaper runs."
-verdict: pending
+edited_by: season.py
 scaffold_hash: 881987ac95eea42e
+season: 1
+testable_claim: A key minted with expires_at set to T minutes ahead authenticates a live API call within its lifetime, but fails with a 401/403 after the TTL expires. This proves the third independent limit is load-bearing and satisfies the falsifier's 'within one reclamation interval' even when no sweep or reaper runs.
+thought_session: season
+title: "TTL-enforced expiry: a minted key stops authenticating after expires_at passes — the crash-safety TTL guarantee is real, not aspirational"
+verdict: pending
 ---
-
 # hypothesis:a01-3a27dede-1f5ce6
 
 ## Hypothesis

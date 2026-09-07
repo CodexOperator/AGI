@@ -1,20 +1,22 @@
 ---
-domain: domain-query-api
-id: "hyp:a00-204c9d9e-1d958f"
+id: hyp:a00-204c9d9e-1d958f
 mint_id: af73b11909574cecb20fb332b76f3688
+type: hypothesis
+parents: []
 next_edges:
   - exp:exp:a00-204c9d9e-1d958f
-parents: []
+domain: domain-query-api
+edited_by: season.py
+season: 1
 status: pending
 tags:
   - architecture
   - query-api
   - capillary-dag
   - task-prioritization
+thought_session: season
 title: Query API enables rational task selection in the capillary DAG
-type: hypothesis
 ---
-
 # hyp:a00-204c9d9e-1d958f
 
 ## Hypothesis

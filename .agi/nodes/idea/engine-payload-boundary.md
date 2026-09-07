@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-payload-boundary"
+id: idea:engine-payload-boundary
 mint_id: b568a2a1e5dd466e9815cbfddb577d8a
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/payload_boundary.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/payload_boundary.py
 ---
-
 `extensions/agi/bin/payload_boundary.py` — an engine bin entry-point script.
 
 G6.8 payload boundary predicate.

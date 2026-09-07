@@ -8,6 +8,7 @@ axis: lateral
 edited_by: owner
 grounded_in: moral:faith
 scaffold_hash: 6976c55078bc4664
+season: 1
 season_introduced: 1
 thought_session: agi-master-2026-09-06
 title: "moral: love"

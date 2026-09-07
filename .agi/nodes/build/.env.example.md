@@ -1,18 +1,20 @@
 ---
+id: build:.env.example
+mint_id: d1826fa76ffd463f86b416351197facf
+type: build
 build_kind: prose
 confidence: 1.0
-id: "build:.env.example"
-mint_id: d1826fa76ffd463f86b416351197facf
+edited_by: season.py
 origin: build-scan
 payload_ref: .env.example
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: .env.example"
-type: build
 ---
-
 `.env.example` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-package-json"
+id: idea:engine-package-json
 mint_id: 6bb8e622425945b79eb1f0a335bd0b4d
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: package.json"
-type: idea
 unit_kind: entry_point
 unit_path: package.json
 ---
-
 `package.json` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

@@ -8,10 +8,11 @@ next_edges: []
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
 demoted_from: disproved
-edited_by: director
+edited_by: season.py
 evidence_runs: 2
 scaffold_hash: e3c279cc48922f53
-thought_session: L1.07
+season: 1
+thought_session: season
 title: The first live pi agents on minted keys — and the keys were never used
 verdict: inconclusive_lean_disproved:50
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-renderers-test-ascii"
+id: build:tests-renderers-test-ascii
 mint_id: 9102b29db13d4f14bae298efba19c129
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/renderers/test_ascii.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/renderers/test_ascii.py"
-type: build
 ---
-
 `extensions/agi/tests/renderers/test_ascii.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-renderers`.

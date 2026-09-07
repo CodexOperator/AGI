@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:lib-agent-prompt.md"
+id: build:lib-agent-prompt.md
 mint_id: 5658a94ea860424ea31fdc1b353e9ebf
-origin: build-scan
+type: build
 parents:
   - idea:engine-agent-prompt
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/lib/agent-prompt.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/lib/agent-prompt.md"
-type: build
 ---
-
 `extensions/agi/lib/agent-prompt.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-agent-prompt`.

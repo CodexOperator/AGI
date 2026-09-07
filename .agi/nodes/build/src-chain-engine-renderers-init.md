@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-chain-engine-renderers-init"
+id: build:src-chain-engine-renderers-init
 mint_id: c61ecae33a3d4f0d86897c9b84f2c1d7
-origin: build-scan
+type: build
 parents:
   - idea:engine-chain-engine
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/chain_engine/renderers/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/chain_engine/renderers/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/chain_engine/renderers/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-chain-engine`.

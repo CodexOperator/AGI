@@ -14,15 +14,16 @@ blocked_by:
   - task:t-032
   - task:t-031
 cavekit_req: environment-indexers/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-041: Container observation indexer — read-only nodes with redaction"
 ---
 **Description:** Use `docker inspect <id>` shelled-out as read-only call. Emit `container` parent + `image`, `port`, `mount`, `env_key` children. Redact env values, secret-like keys (TOKEN/PASSWORD/SECRET/KEY) → `***REDACTED***`. Refuse to call any docker subcommand other than `inspect`/`ps`. Unreachable → `ContainerUnreachableError`.

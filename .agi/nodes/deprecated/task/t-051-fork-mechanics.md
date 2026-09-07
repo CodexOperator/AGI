@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-047
 cavekit_req: chain-engine/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-051: Fork mechanics"
 ---
 **Description:** Document and verify that the graph allows multiple children of the same type. Implement `fork_count(graph, node_id)` returning the number of out-edges to children of the same type. `chain_stats(graph)` returns a dict including `fork_counts`.

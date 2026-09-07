@@ -5,11 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-4d063889-c4e95d
 next_edges: []
-confidence: 0.80
-scaffold_hash: 14eb0da6ba346d19
-edited_by: a00-c0c0a6c9
-demoted_from: inconclusive_lean_proved:90
+confidence: 0.8
 demote_reason: "parent review: honest that the integration was pre-existing committed work (18921b3c), but its 'SKIP_ENGINE_DRIFT_CHECK skip' test is false for drift_check.py (only driver.sh honors the env var — I re-ran it and the warning still fires under the flag). No new implementation; magnitude reduced 90→80."
+demoted_from: inconclusive_lean_proved:90
+edited_by: season.py
+scaffold_hash: 14eb0da6ba346d19
+season: 1
+thought_session: season
 title: A01 5047bc5f 12916f — L9 pinning integration verified end-to-end (pre-existing, committed)
 verdict: inconclusive_lean_proved:80
 ---

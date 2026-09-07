@@ -3,11 +3,12 @@ id: goal:g5
 mint_id: 71c02192f832480f85cb075ad649a451
 type: goal
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G5
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds:
   - exp:g5-lifecycle-enforcement
   - goal:g5.1
@@ -19,7 +20,7 @@ status: active
 tags:
   - goal
   - root
-thought_session: L1.01
+thought_session: season
 title: "G5: Goals are a lifecycle the engine reads, not a human convention"
 ---
 `status:` should be a field the engine acts on: stop accruing score to

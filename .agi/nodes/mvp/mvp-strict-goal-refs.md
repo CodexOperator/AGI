@@ -1,18 +1,20 @@
 ---
-confidence: 0.95
-evidence_runs: []
-id: "mvp:strict-goal-refs"
+id: mvp:strict-goal-refs
 mint_id: 62c0d6be59164db5917a13974abb465b
+type: mvp
 parents:
   - goal:g5
+confidence: 0.95
+edited_by: season.py
+evidence_runs: []
+season: 1
 subgraph: false
 tags:
   - g5
   - integrity
+thought_session: season
 title: Add --strict-goals flag to make goal refs fail loudly
-type: mvp
 ---
-
 **What --strict does today:** 
 `snapshot-goals.py` lines 315-316 describe `--strict` as "exit 1 if a node references an unknown goal id". However, lines 425-428 show the actual behavior: it exits non-zero if ANY `unresolved` parent reference exists (not just goal references). The distinction between goal-prefixed refs and other parent refs (lines 393-407) is only used for message formatting, not for the exit logic. Both types increment the same `unresolved` counter that gates the failure.
 

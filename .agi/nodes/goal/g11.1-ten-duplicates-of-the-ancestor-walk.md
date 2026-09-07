@@ -1,21 +1,23 @@
 ---
+id: goal:g11.1
+mint_id: 34c17df8db994d3ea8c6f2a63fae8c62
+type: goal
+parents:
+  - goal:g11
 confidence: 1.0
+edited_by: season.py
 goal_id: G11.1
 goal_kind: long-term
 heading_level: 3
-id: "goal:g11.1"
-mint_id: 34c17df8db994d3ea8c6f2a63fae8c62
 origin: goals-doc
-parents:
-  - goal:g11
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
+thought_session: season
 title: "G11.1: Nine Python files still declare their own ancestor walk, and it has cost three outages"
-type: goal
 ---
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Marked complete in the 2026-09-01 sweep, on its own falsifier rather than on
 judgement: `grep -c '^CONFIG_NAMES' extensions/agi/bin/*.py` names exactly one

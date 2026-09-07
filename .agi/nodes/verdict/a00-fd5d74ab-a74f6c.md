@@ -5,9 +5,10 @@ type: verdict
 parents:
   - experiment:a00-835be6bd-6cdd82
 confidence: 0.55
-edited_by: director
+edited_by: season.py
 scaffold_hash: 34d4184288c1664e
-thought_session: iter-115
+season: 1
+thought_session: season
 title: A00 fd5d74ab a74f6c
 verdict: inconclusive_lean_proved:55
 ---

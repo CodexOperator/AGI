@@ -1,22 +1,24 @@
 ---
+id: goal:g1.6
+mint_id: 2fde0822cd974042b6876cd06003ac0d
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.6
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.6"
-mint_id: 2fde0822cd974042b6876cd06003ac0d
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.6: Every action is a one-word command, inside the project"
-type: goal
 ---
-
 **No more reaching for a file whose path you have to know.** Today an agent runs
 `python3 agi/extensions/agi/bin/zoom.py "$PWD" 9006 kid-a --level small --target
 goal:g6.3`. Every element of that except `goal:g6.3` is ceremony — an interpreter,

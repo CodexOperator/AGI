@@ -1,19 +1,21 @@
 ---
-id: "mvp:renderers-r1"
+id: mvp:renderers-r1
 mint_id: c4c4999ffaa34ae5ab3a29db5a265273
-next_edges:
-  - outcome:renderers-r1
+type: mvp
 parents:
   - verdict:renderers-r1
+next_edges:
+  - outcome:renderers-r1
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - renderers
   - R1
 testable_claim: MVP for renderers R1
+thought_session: season
 title: "renderers/R1: MVP"
-type: mvp
 ---
-
 **MVP:** Shared RenderToken representation.
 
 ```python

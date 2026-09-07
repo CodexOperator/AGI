@@ -1,19 +1,21 @@
 ---
-confidence: 1.0
-id: "idea:engine-self-decomposition"
+id: idea:engine-self-decomposition
 mint_id: 404c121212fa40ed99e1dc5e4eefa3e6
+type: idea
 parents:
   - goal:g6
+confidence: 1.0
+edited_by: season.py
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - seed
   - l19
+thought_session: season
 title: "Engine self-decomposition: a generated idea layer"
-type: idea
 ---
-
 The idea layer should be a **census of the engine's changeable surfaces, regenerated
 from the engine**. G6's invariant says generated, never hand-written; this node takes
 the four positions that decision requires and pre-registers what would falsify it.

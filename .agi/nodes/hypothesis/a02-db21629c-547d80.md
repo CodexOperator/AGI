@@ -6,8 +6,11 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 1.0
+edited_by: season.py
 scaffold_hash: 7573f8a5a69cbb1a
+season: 1
 testable_claim: "Implement `goal_outcome_density(goal_id)`: scan all outcome-type nodes, filter to those reachable from `goal_id` via a path that includes ≥1 experiment node. The value is `(|{outcomes matching filter}| / |{all outcomes}|)`. This metric is strictly monotonic in real goal progress and flat under irrelevant motion."
+thought_session: season
 title: A02 db21629c 547d80
 verdict: pending
 ---

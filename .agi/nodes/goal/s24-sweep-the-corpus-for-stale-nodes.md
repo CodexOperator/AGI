@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 0.8
-edited_by: director
+edited_by: season.py
 goal_id: S24
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S24: Sweep the corpus for stale nodes: orphan @v2s and filler chain extensions"
 ---
 **The owner's ask, 2026-09-02, alongside the goal sweep: the same pass the

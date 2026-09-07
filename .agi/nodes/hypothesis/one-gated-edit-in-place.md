@@ -2,17 +2,19 @@
 id: hypothesis:one-gated-edit-in-place
 mint_id: 2bddd3c84b42476bb70c71a9b46ca5ee
 type: hypothesis
-title: "The write half's floor is one gated in-place edit, and the link layer sits on it"
-testable_claim: "A single gated `update_node` routine can carry every in-place node edit without destroying the authored THOUGHT region, and `link_ref` generalises `payload_ref` to every node type with zero broken links across the existing corpus."
-confidence: 0.85
 parents:
   - goal:g13
 next_edges:
   - experiment:link-scan-and-the-thought-guarantee
+confidence: 0.85
+edited_by: season.py
 scaffold_hash: d905b9eb69426ca2
+season: 1
+testable_claim: A single gated `update_node` routine can carry every in-place node edit without destroying the authored THOUGHT region, and `link_ref` generalises `payload_ref` to every node type with zero broken links across the existing corpus.
+thought_session: season
+title: The write half's floor is one gated in-place edit, and the link layer sits on it
 verdict: pending
 ---
-
 # hypothesis:one-gated-edit-in-place
 
 ## Hypothesis

@@ -1,22 +1,24 @@
 ---
-confidence: 0.95
-evidence_runs:
-  - exp:g11-migration-rehearsal
-id: "verdict:g11-migration-rehearsal"
+id: verdict:g11-migration-rehearsal
 mint_id: 469b6ce3ffac489fb279c903282eca99
+type: verdict
 parents:
   - exp:g11-migration-rehearsal
+confidence: 0.95
+edited_by: season.py
+evidence_runs:
+  - exp:g11-migration-rehearsal
+season: 1
 status: open
 subgraph: false
 tags:
   - g11
   - migration
   - grid
-title: "The merge is lossless and reversible, and it must be preceded by a publish"
+thought_session: season
+title: The merge is lossless and reversible, and it must be preceded by a publish
 verdict: proved
-type: verdict
 ---
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v1 withheld 0.1 of confidence for one named reason: no migration had ever been
 reversed, so reversibility was reasoned about rather than performed. Run 4

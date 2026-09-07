@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-001
 cavekit_req: graph-core/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-002: Node parent/child invariant guards (no duplicates, no self-loops)"
 ---
 **Description:** Add validators that reject inserting a node id into its own parents/children set with a `SelfLoopError` carrying the offending id; ensure set semantics naturally drop duplicates. Surface a structured exception type.

@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-autoresearch-config"
+id: idea:engine-autoresearch-config
 mint_id: 5e320bc9fe1a4ca99bb3658a17a82d9b
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: autoresearch.config.json"
-type: idea
 unit_kind: entry_point
 unit_path: autoresearch.config.json
 ---
-
 `autoresearch.config.json` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

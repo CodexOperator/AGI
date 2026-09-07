@@ -1,22 +1,24 @@
 ---
+id: verdict:noncode-coverage
+mint_id: ed2ffc1b49db43f0a648120aa973e0fa
+type: verdict
+parents:
+  - exp:prose-surface-probe
 confidence: 0.85
+edited_by: season.py
 evidence_runs:
   - exp:noncode-surface-census
   - exp:prose-surface-probe
-id: "verdict:noncode-coverage"
-mint_id: ed2ffc1b49db43f0a648120aa973e0fa
-parents:
-  - exp:prose-surface-probe
+season: 1
 status: open
 subgraph: false
 tags:
   - g6.6
   - level3
+thought_session: season
 title: Coverage diagnosis holds, prescribed remedy does not deliver what G6.6 promises
-type: verdict
 verdict: disproved
 ---
-
 **VERDICT: disproved.** G6.6 bundles two claims that resolve in opposite
 directions: the coverage gap it diagnoses is real and severe (proved), but
 the fix it prescribes — a level-3 node per non-code surface with "the same

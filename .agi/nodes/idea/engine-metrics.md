@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-metrics"
+id: idea:engine-metrics
 mint_id: 9e0a302064574883bdd1467c1ab5a5a9
-origin: engine-decomp
+type: idea
 parents:
   - goal:g3
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/metrics.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/metrics.py
 ---
-
 `extensions/agi/bin/metrics.py` — an engine bin entry-point script.
 
 metrics.py — compute and emit the loop's METRIC lines (TODO.md H3).

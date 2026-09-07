@@ -6,11 +6,12 @@ parents:
   - hyp:autoresearch-tree-skill-r4
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-chain-engine-query-api
   - build:bin-dispatch
 scaffold_hash: 1b16c82c65285376
+season: 1
 supports:
   - hyp:autoresearch-tree-skill-r4
 tags:
@@ -18,7 +19,7 @@ tags:
   - R4
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R4: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

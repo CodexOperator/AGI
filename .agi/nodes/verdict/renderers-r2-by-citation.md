@@ -6,12 +6,13 @@ parents:
   - hyp:renderers-r2
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-renderers-ascii
   - build:tests-renderers-test-ascii
   - build:tests-renderers-test-ascii-summary
 scaffold_hash: 3276d23431f67e55
+season: 1
 supports:
   - hyp:renderers-r2
 tags:
@@ -19,7 +20,7 @@ tags:
   - R2
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "renderers/R2: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

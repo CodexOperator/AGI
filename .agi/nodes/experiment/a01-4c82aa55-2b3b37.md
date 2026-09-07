@@ -8,7 +8,10 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 3c36d0084e90ae4b
+season: 1
+thought_session: season
 title: A01 4c82aa55 2b3b37
 verdict: inconclusive_lean_proved:50
 ---

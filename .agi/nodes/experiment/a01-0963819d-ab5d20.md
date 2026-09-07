@@ -6,7 +6,10 @@ parents:
   - hypothesis:verify-runs-grid-commit-before-smoke
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: c64dfe1fea6044a5
+season: 1
+thought_session: season
 title: "Mechanism probe: gate before metrics zeroes unevidenced count"
 verdict: inconclusive_lean_proved:60
 ---

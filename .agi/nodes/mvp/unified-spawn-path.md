@@ -1,16 +1,18 @@
 ---
-confidence: 0.7
-id: "mvp:unified-spawn-path"
+id: mvp:unified-spawn-path
 mint_id: 1646a6b2322244b886c6ce467a573d7c
-next_edges:
-  - outcome:a00-c8365a0c-85a6d1
+type: mvp
 parents:
   - goal:g4.6
+next_edges:
+  - outcome:a00-c8365a0c-85a6d1
+confidence: 0.7
+edited_by: season.py
+season: 1
 status: open
+thought_session: season
 title: "One spawn path: harnesses declared in config, adapters behind them"
-type: mvp
 ---
-
 # mvp:unified-spawn-path
 
 **This is a design node, not code** (see `[mvp].md`, revised 2026-09-01). It

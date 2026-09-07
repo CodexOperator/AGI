@@ -1,18 +1,20 @@
 ---
-confidence: 0.75
-evidence_runs: []
-id: "mvp:payload-boundary-predicate"
+id: mvp:payload-boundary-predicate
 mint_id: 9e9f859800d94ce587e10836f05eaf1c
+type: mvp
 parents:
   - goal:g6.8
+confidence: 0.75
+edited_by: season.py
+evidence_runs: []
+season: 1
 subgraph: false
 tags:
   - g6.8
   - level3
+thought_session: season
 title: A three-rule predicate for the G6.8 payload boundary, run against all 316 tracked files in agi
-type: mvp
 ---
-
 **The predicate:**
 
 ```python

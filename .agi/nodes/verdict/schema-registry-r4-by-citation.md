@@ -6,12 +6,13 @@ parents:
   - hyp:schema-registry-r4
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-schema-registry-dsl
   - build:src-schema-registry-validation
   - build:tests-schema-registry-test-validation
 scaffold_hash: ac5bb37a0cfcf22b
+season: 1
 supports:
   - hyp:schema-registry-r4
 tags:
@@ -19,7 +20,7 @@ tags:
   - R4
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R4: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

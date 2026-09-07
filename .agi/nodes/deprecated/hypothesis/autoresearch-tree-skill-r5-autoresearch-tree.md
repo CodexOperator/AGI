@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R5
 testable_claim: Verdict Emission From Experiment Results
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R5: Verdict Emission From Experiment Results"
 ---
 **Description:** After running an experiment, an agent emits a verdict node whose values conform to the verdict taxonomy.

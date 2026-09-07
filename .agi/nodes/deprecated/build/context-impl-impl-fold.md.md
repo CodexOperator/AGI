@@ -7,15 +7,16 @@ parents:
 build_kind: prose
 confidence: 1.0
 deprecated_on: 2026-09-06
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: context/impl/impl-fold.md
+season: 1
 status: deprecated
 tags:
   - build
   - prose
   - g2.1
-thought_session: doc-pass-2026-09-06
+thought_session: season
 title: "Build: context/impl/impl-fold.md"
 ---
 `context/impl/impl-fold.md` — level-3 code node (one file, one canonical node).

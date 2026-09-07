@@ -6,11 +6,14 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.85
-scaffold_hash: 4193abe5973414a9
-title: Verify write.py set preserves scalar types through full pipeline
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a01-be43c2dc-cfd6f8
+scaffold_hash: 4193abe5973414a9
+season: 1
+thought_session: season
+title: Verify write.py set preserves scalar types through full pipeline
+verdict: proved
 ---
 # experiment:a01-be43c2dc-cfd6f8
 

@@ -1,20 +1,22 @@
 ---
-branched_from_version: 1
-confidence: 0.85
-evidence_runs:
-  - exp:evidence-gate-resolution-r1
-id: "exp:evidence-gate-coverage"
+id: exp:evidence-gate-coverage
 mint_id: b30e4bc049e74c288ae49b24a09f6573
+type: experiment
 parents:
   - build:bin-evidence-gate
+branched_from_version: 1
+confidence: 0.85
+edited_by: season.py
+evidence_runs:
+  - exp:evidence-gate-resolution-r1
+season: 1
 subgraph: false
 tags:
   - g3.1
   - evidence-gate
+thought_session: season
 title: "Evidence gate coverage: the code is sound, the CC-native runtime never calls it"
-type: experiment
 ---
-
 **What was investigated:** `python3 agi/extensions/agi/bin/zoom.py "$PWD" 9009 kid-g --level small --target build:bin-evidence-gate` (1 call); `grid.py log|versions build:bin-evidence-gate` (2 calls, confirmed `branched_from_version: 1`). Read `nodes/level3/bin-evidence-gate.md`, `nodes/idea/engine-evidence-gate.md`, `nodes/goal/g3.1-*.md`, `nodes/experiment/evidence-gate-resolution-r1.md`, one demoted sample (`nodes/verdict/verdict:renderers-r1-extend.md`). Read the engine source in full: `agi/extensions/agi/bin/{cli.py,post_wire.py,evidence_gate.py,grid.py,metrics.py,dispatch.py,heal.py,driver.sh}` and `agi/skills/agi/SKILL.md`. `git log --all` across `agi-tree` for the `-extend` family and the `S6` commit; `git log` inside `agi/` for when `evidence_gate.py` was born. Cross-checked composition with `grep -rl demoted_from nodes/ | grep -c extend` (76/105) and `demote_reason` values (all "no experiment evidence"). This leaned on raw file/git archaeology far more than graph traversal — see `graph-vs-filesystem` below; that's a property of the question (protocol docs and git history aren't graph content), not a shortcut taken.
 
 **Why 104 existed:** They are pre-engine fossils, not gate failures. `git log` shows a root-level ad hoc script family (`extend-*.py`, `exp-r*-extend-*.py`, driven by `src/chain_engine/`) writing directly into `nodes/` from 2026-05-01 ("feat(chain-engine/R1)...") through at least iter24 (~2026-08-2x), synthesizing verdict→experiment→verdict chains purely to stress-test traversal/render performance at hop counts up to 2000 (`exp-a01-extend-2000hop.py`, TODO.md:813). These scripts stamped the honest flag `synthetic: true` but left `evidence_runs` absent or sentinel-valued — there was no gate to fail because `evidence_gate.py` did not exist yet: the agi engine's own log shows it was born 2026-08-21 ("H3/H4: goal-attributable metrics and an enforced evidence gate"), over three and a half months after this writing began. Commit `6566efdc` ("S6: strip agi-tree to the graph and its inputs; drop in the engine", 2026-08-23) deleted the ad hoc scripts and `src/chain_engine/` and replaced them with the current engine, but did not touch already-committed node files. `exp:evidence-gate-resolution-r1` then fixed a second, independent bug — `normalize_evidence_runs` trusted `len(["synthetic"])` as evidence — and re-measuring with correct corpus-resolution raised `unevidenced_decisive_verdicts` from 70 to 104, because entries that used to "pass" via the sentinel-length bug now correctly count as 0. Verified directly: 76/105 demoted files match `-extend` in their id (brief says 76/104 — the 1-node gap is a duplicate-id artifact `zoom.py` already warns about, not a counting error); all 105 sampled carry `demote_reason: 'no experiment evidence (evidence_runs=0)'`, consistent with the stress-test origin (no sentinel needed — the field was just never populated by scripts that predate the concept of `evidence_runs`).

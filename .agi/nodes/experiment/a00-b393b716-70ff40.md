@@ -5,17 +5,19 @@ type: experiment
 parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
-scaffold_hash: ccb3df8f305a07be
-title: Verify write.py set preserves int scalar for tier field
-verdict: proved
 confidence: 0.95
+contradicts: []
+edited_by: season.py
 evidence_runs:
   - experiment:a00-b393b716-70ff40
-testable_claim: write.py set tier "-1" on a deprecated task node produces int -1 in YAML frontmatter (unquoted), not string "-1", via _coerce -> verb_set -> _scalar -> render_frontmatter pipeline
-contradicts: []
+scaffold_hash: ccb3df8f305a07be
+season: 1
 supports: []
+testable_claim: write.py set tier "-1" on a deprecated task node produces int -1 in YAML frontmatter (unquoted), not string "-1", via _coerce -> verb_set -> _scalar -> render_frontmatter pipeline
+thought_session: season
+title: Verify write.py set preserves int scalar for tier field
+verdict: proved
 ---
-
 # experiment:a00-b393b716-70ff40
 
 ## Experiment

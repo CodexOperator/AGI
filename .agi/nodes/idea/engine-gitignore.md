@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-gitignore"
+id: idea:engine-gitignore
 mint_id: 3782c584026441a2857d263cd6e3ffad
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: .gitignore"
-type: idea
 unit_kind: entry_point
 unit_path: .gitignore
 ---
-
 `.gitignore` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

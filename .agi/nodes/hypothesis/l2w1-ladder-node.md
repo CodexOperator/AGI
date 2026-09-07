@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: c8973756e831b84a
+season: 1
 testable_claim: A [ladder].md schema and a .agi/nodes/.geometry/ladder.md node exist, validate against each other, and declare tiers 0 to 3, current_season 1, caps, budget, spawn profiles, read order by role, and director_rotate_at 0.35
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-ladder-node"
 ---
 # hypothesis:l2w1-ladder-node

@@ -14,14 +14,15 @@ blocked_by:
   - task:t-049
   - task:t-053
 cavekit_req: chain-engine/R4
-edited_by: exp-a01-30399a10
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: iter-1072
+thought_session: season
 tier: -1
 title: "T-050: Mid-chain join candidate sampling"
 ---

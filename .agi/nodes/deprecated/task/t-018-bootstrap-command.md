@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-016
 cavekit_req: graph-core/R10
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-018: Bootstrap command"
 ---
 **Description:** Implement `agi-tree bootstrap` CLI. Creates `context/{schemas,kits,nodes,plans,impl,refs,designs}` if missing. Writes a minimal `[example].md` schema and `nodes/example.md` referencing it. Idempotent: existing files are not touched. Prints a summary of created vs skipped paths.

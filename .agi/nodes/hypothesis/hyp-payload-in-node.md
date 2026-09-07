@@ -1,18 +1,20 @@
 ---
-confidence: 0.65
-id: "hyp:payload-in-node"
+id: hyp:payload-in-node
 mint_id: f2b6e00657e94e01814df19b704d1f5e
+type: hypothesis
 parents:
   - goal:g6.3
+confidence: 0.65
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - g6.3
   - level3
   - stitch
+thought_session: season
 title: "G6.3's payload model: resolve against the node's own grid ref, not a disk path"
-type: hypothesis
 ---
-
 **Hypothesis:** G6.3's falsifier becomes passable if `payload_ref` resolution
 changes from "a repo-relative path into the live engine tree" to "the payload
 blob recorded at the current tip of `refs/grid/node/<id>`" — the node's own D2

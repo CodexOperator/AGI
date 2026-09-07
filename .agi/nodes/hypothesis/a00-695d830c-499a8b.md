@@ -1,10 +1,13 @@
 ---
-confidence: 0.5
-domain: vector-embedding-isomorphism
-id: "hyp:a00-695d830c-499a8b"
+id: hyp:a00-695d830c-499a8b
 mint_id: 5684c3c736b5416db9565cbdd7eb90be
+type: hypothesis
 parents:
   - idea:domain-vector-embedding-isomorphism
+confidence: 0.5
+domain: vector-embedding-isomorphism
+edited_by: season.py
+season: 1
 spawns: []
 status: pending
 tags:
@@ -13,11 +16,10 @@ tags:
   - isomorphism
   - neighborhood
   - render
+thought_session: season
 title: UMAP 2D projection enables graph↔render coordinate isomorphism
-type: hypothesis
 verdict: pending
 ---
-
 # hyp:a00-695d830c-499a8b
 
 ## Hypothesis

@@ -5,18 +5,20 @@ type: mvp
 parents:
   - goal:s12
 next_edges: []
+confidence: 0.9
+edited_by: season.py
+season: 1
 source_files:
   - extensions/agi/bin/snapshot-goals.py
   - extensions/agi/tests/test_snapshot_goals.py
-tests_pass: true
 status: implemented
-confidence: 0.9
 tags:
   - goals
   - render
+tests_pass: true
+thought_session: season
 title: "GOALS.md renders by natural goal_id sort; the order: field is retired"
 ---
-
 # mvp:goal-order-retired
 
 **Parent chosen: `goal:s12`, not `goal:g2.5`.** Both exist on this corpus

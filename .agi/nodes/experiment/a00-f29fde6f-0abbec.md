@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-78cdb163-be277d
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: bba659ce8e6c66ec
+season: 1
+thought_session: season
 title: "Three-arm proxy: pre-computed key-values beat raw chat (−68.8% chunks, −83.3% recon errors); token-count confound open"
 verdict: inconclusive_lean_proved:70
 ---

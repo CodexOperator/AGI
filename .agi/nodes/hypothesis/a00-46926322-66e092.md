@@ -6,8 +6,11 @@ parents:
   - goal:g1.10
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 8b7932f7b853df83
+season: 1
 testable_claim: "**`commands.py run <name>` executes every `verify`-workflow command through the resolver, not directly — so the argv stored in the node is what actually runs, and changing it changes behaviour without editing any other file.**"
+thought_session: season
 title: Commands.py run reaches every verify command through the resolver
 verdict: pending
 ---

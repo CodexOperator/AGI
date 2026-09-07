@@ -1,22 +1,24 @@
 ---
+id: goal:g11
+mint_id: 5fb040638ce5429e9240a07b47fb5195
+type: goal
+parents: []
 confidence: 1.0
+edited_by: season.py
 goal_id: G11
 goal_kind: long-term
 heading_level: 2
-id: "goal:g11"
-mint_id: 5fb040638ce5429e9240a07b47fb5195
 origin: goals-doc
-parents: []
+season: 1
 seeds:
   - goal:g11.1
 status: complete
 tags:
   - goal
   - root
+thought_session: season
 title: "G11: One repo: the graph lives inside what it builds"
-type: goal
 ---
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Marked complete in the 2026-09-01 sweep. The repo IS one repo: source,
 `.agi/` graph and `refs/grid/*` in a single tree, `payloads/` gone,

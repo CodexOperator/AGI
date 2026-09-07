@@ -2,17 +2,19 @@
 id: verdict:scaffolds-are-born-valid-now
 mint_id: e649c1bb0f1a4ee69047d94a2db535cf
 type: verdict
-title: Scaffolds are born valid now
 parents:
   - experiment:the-falsifier-and-the-corpus-census
 next_edges: []
-scaffold_hash: 4ff580407a6d89fd
-verdict: proved
 confidence: 0.97
+edited_by: season.py
 evidence_runs:
   - experiment:the-falsifier-and-the-corpus-census
+scaffold_hash: 4ff580407a6d89fd
+season: 1
+thought_session: season
+title: Scaffolds are born valid now
+verdict: proved
 ---
-
 # verdict:scaffolds-are-born-valid-now
 
 ## Verdict

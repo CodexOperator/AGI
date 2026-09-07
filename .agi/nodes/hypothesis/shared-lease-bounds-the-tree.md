@@ -2,17 +2,19 @@
 id: hypothesis:shared-lease-bounds-the-tree
 mint_id: c7947bc03cd24c62bfa87b709f71d96f
 type: hypothesis
-title: "A bound lives in shared state, not in a number each spawner reads"
-testable_claim: "With a per-tree lease taken under a lock at the spawn site, N independent spawners each opening M slots keep the live population <= the declared cap, where the same topology under `spawn.parallel` alone reaches N*M."
-confidence: 0.9
 parents:
   - goal:g4.8
 next_edges:
   - experiment:lease-bound-under-five-spawners
+confidence: 0.9
+edited_by: season.py
 scaffold_hash: de6312a4a1ec2849
+season: 1
+testable_claim: With a per-tree lease taken under a lock at the spawn site, N independent spawners each opening M slots keep the live population <= the declared cap, where the same topology under `spawn.parallel` alone reaches N*M.
+thought_session: season
+title: A bound lives in shared state, not in a number each spawner reads
 verdict: pending
 ---
-
 # hypothesis:shared-lease-bounds-the-tree
 
 ## Hypothesis

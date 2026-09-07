@@ -1,22 +1,24 @@
 ---
+id: goal:g2.10
+mint_id: 167f314e0512428db94739aaba20ed4d
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.10
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.10"
-mint_id: 167f314e0512428db94739aaba20ed4d
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.10: A build node cannot hold a thought — the scan wipes its body"
-type: goal
 ---
-
 🔴 **`level3.py` regenerates a build node's entire body on every run. Anything
 a model wrote there is destroyed on the next loop iteration.**
 

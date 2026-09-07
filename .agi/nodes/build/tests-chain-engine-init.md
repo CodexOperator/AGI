@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-chain-engine-init"
+id: build:tests-chain-engine-init
 mint_id: f52e90f90bae4d21a0ed94eb0e738460
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-chain-engine
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/chain_engine/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/chain_engine/__init__.py"
-type: build
 ---
-
 `extensions/agi/tests/chain_engine/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-chain-engine`.

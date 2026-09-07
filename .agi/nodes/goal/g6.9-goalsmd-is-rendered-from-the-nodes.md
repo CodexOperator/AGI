@@ -1,22 +1,24 @@
 ---
+id: goal:g6.9
+mint_id: f9e21a010143472d8f198d7ea5b10fe0
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.9
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.9"
-mint_id: f9e21a010143472d8f198d7ea5b10fe0
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.9: `GOALS.md` is rendered from the nodes, not the other way round"
-type: goal
 ---
-
 **The last hand-authored source in this repo becomes derived, like everything
 else.** `nodes/goal/` is currently generated *from* `GOALS.md`, which makes the
 document the source of truth and the nodes a projection — the exact arrow

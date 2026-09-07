@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-graph-core-test-edge"
+id: build:tests-graph-core-test-edge
 mint_id: bc3cb5e51187424384193842d9cd2fac
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/graph_core/test_edge.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/graph_core/test_edge.py"
-type: build
 ---
-
 `extensions/agi/tests/graph_core/test_edge.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-graph-core`.

@@ -12,15 +12,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-053
 cavekit_req: autoresearch-tree-skill/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-077: Big-idea-vs-small-idea decision per iteration (with seed determinism)"
 ---
 **Description:** Implement `decide_path(seed, config) -> Literal['big', 'small']`. Use `random.Random(seed)` to draw and compare to `big_idea_vs_small_idea_split`. Persist the decision record at `context/iterations/<n>/decision.json`. Validate config range [0.0, 1.0] before drawing.

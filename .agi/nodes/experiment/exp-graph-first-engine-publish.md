@@ -1,20 +1,22 @@
 ---
-confidence: 0.9
-evidence_runs: 1
-id: "exp:graph-first-engine-publish"
+id: exp:graph-first-engine-publish
 mint_id: 3f7c1a94e0b2489d8c5e6a7b0d1f2e34
+type: experiment
 parents:
   - hyp:payload-in-node
+confidence: 0.9
+edited_by: season.py
+evidence_runs: 1
+season: 1
 subgraph: false
 tags:
   - g6.1
   - g6.3
   - grid
   - stitch
+thought_session: season
 title: "Deploying the grid-ref payload: 180/180 byte-identical, 16 exec bits kept, and two real engine fixes that never touched the engine repo"
-type: experiment
 ---
-
 **What was run,** on the live corpus and the live engine, not a sandbox — the
 sandbox half was `exp:grid-payload-roundtrip`, which proved the *design*; this
 is the deployment that verdict explicitly declined to claim.

@@ -6,8 +6,11 @@ parents:
   - goal:g1.10
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 3c5616448af1309d
+season: 1
 testable_claim: "`derive-commands.py --all` patches CLAUDE.md and QUICKSTART.md with command tables derived from `.geometry/commands.md`, and `derive-commands.py --check` confirms the prose matches the declaration — so editing the commands node is the only change needed, and prose drift stops."
+thought_session: season
 title: derive-commands --all closes the last two prose copies (CLAUDE.md, QUICKSTART.md)
 verdict: pending
 ---

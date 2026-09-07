@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g4.8
 next_edges: []
-scaffold_hash: 28bde3dc641d5618
-title: "Delegator review cost grows sub-linearly with loop count when parents report deltas"
-testable_claim: "With M parents each reviewing M_k kids and reporting a structured brief (delta-only: which nodes changed, which verdicts were demoted, which remain in flight), the delegator can produce its own verdict across all M loops while consuming strictly fewer tokens than re-reading every node on every loop — and the ratio improves as M grows."
-verdict: pending
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: 28bde3dc641d5618
+season: 1
+testable_claim: "With M parents each reviewing M_k kids and reporting a structured brief (delta-only: which nodes changed, which verdicts were demoted, which remain in flight), the delegator can produce its own verdict across all M loops while consuming strictly fewer tokens than re-reading every node on every loop — and the ratio improves as M grows."
+thought_session: season
+title: Delegator review cost grows sub-linearly with loop count when parents report deltas
+verdict: pending
 ---
-
 # hypothesis:a04-7bb380cb-2a7d9b
 
 ## Hypothesis

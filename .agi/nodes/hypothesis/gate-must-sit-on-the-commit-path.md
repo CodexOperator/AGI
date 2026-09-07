@@ -7,13 +7,14 @@ parents:
 next_edges:
   - experiment:gate-on-the-commit-path-eleven-to-zero
 confidence: 0.88
-edited_by: parent
+edited_by: season.py
 evidence_runs:
   - experiment:gate-on-the-commit-path-eleven-to-zero
 scaffold_hash: c11dacc844a74168
 scale: engine
+season: 1
 testable_claim: Every decisive verdict that reaches a commit carries evidence_runs>=1 or is demoted, regardless of write path (cli.py done, post_wire, write.py, plain file write)
-thought_session: L1.08
+thought_session: season
 title: Gate must sit on the commit path
 verdict: proved
 ---

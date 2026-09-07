@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R8
 testable_claim: Per-Path Result Caching
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R8: Per-Path Result Caching"
 ---
 **Description:** Indexer results are cached per-path so repeated invocations on the same unchanged source skip recomputation.

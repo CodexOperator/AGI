@@ -1,18 +1,20 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:integrity-detection-r1"
+id: exp:integrity-detection-r1
 mint_id: 98be4becff9543fd886605b5da0e85a2
+type: experiment
 parents:
   - goal:g7.1
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - integrity
   - g7.1
   - g7.2
+thought_session: season
 title: Duplicate-id and dangling-parent detection
-type: experiment
 ---
-
 Closed both silent-integrity holes G7 named: G7.2 (duplicate ids hide files)
 and G7.1 (dangling parent references go unchecked outside `goal:`). Both
 fixes are detection-only — no node under `nodes/` was touched, merged, or

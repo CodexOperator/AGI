@@ -6,13 +6,14 @@ parents:
   - hyp:schema-registry-r8
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-schema-registry-active-set
   - build:src-schema-registry-loader
   - build:tests-schema-registry-test-brackets
   - build:tests-schema-registry-test-schema-files
 scaffold_hash: 5ebbba7949c2c2f6
+season: 1
 supports:
   - hyp:schema-registry-r8
 tags:
@@ -20,7 +21,7 @@ tags:
   - R8
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R8: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

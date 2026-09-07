@@ -15,15 +15,16 @@ blocked_by:
   - task:t-031
   - task:t-005
 cavekit_req: environment-indexers/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-033: Filesystem tree indexer"
 ---
 **Description:** `filesystem_tree` indexer walks the target. Emits a `directory` node per dir and `file` node per file. Skips symlinks/unreadable with a per-entry warning. Determinism comes from sorted walking + T-005 id minting.

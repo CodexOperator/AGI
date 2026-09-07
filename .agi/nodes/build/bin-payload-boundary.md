@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-payload-boundary"
+id: build:bin-payload-boundary
 mint_id: b8e5e23113f9468bbaec8c61de67774c
-origin: build-scan
+type: build
 parents:
   - idea:engine-payload-boundary
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/payload_boundary.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/payload_boundary.py"
-type: build
 ---
-
 `extensions/agi/bin/payload_boundary.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-payload-boundary`.

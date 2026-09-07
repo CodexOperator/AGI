@@ -5,22 +5,24 @@ type: mvp
 parents:
   - goal:g11
 next_edges: []
+confidence: 0.82
+edited_by: season.py
+season: 1
 source_files:
   - extensions/agi/bin/metrics.py
   - extensions/agi/hooks/cc-session-start.sh
   - .agi/nodes/.geometry/crons.md
   - extensions/agi/tests/test_publish_alarm.py
   - extensions/agi/tests/test_thought_hygiene.py
-tests_pass: true
 status: implemented
-confidence: 0.82
 tags:
   - g11
   - crons
   - metrics
+tests_pass: true
+thought_session: season
 title: "Two goal:g11 residuals fixed: a self-contradictory kill-switch node, and metrics.py measuring the retired publish pipeline"
 ---
-
 # mvp:g11-crons-metrics-residual
 
 Two independent post-`goal:g11` defects, both residue of the two-repo -> one-repo

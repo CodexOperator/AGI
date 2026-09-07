@@ -6,9 +6,12 @@ parents:
   - hypothesis:l2w1-report-schemas-floors
 next_edges: []
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a00-e85e494a-5b05e1
 scaffold_hash: 752e467b9dba42f1
+season: 1
+thought_session: season
 title: "L2W1: Edit report schemas — min_parents 1, judgment record, season fields, drop floors"
 verdict: proved
 ---

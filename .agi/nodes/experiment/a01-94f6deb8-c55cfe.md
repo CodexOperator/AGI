@@ -6,8 +6,11 @@ parents:
   - hypothesis:a01-3c5640a0-5c684c
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: c961d754b3ff42d9
-title: "Part B fallback path verified at unit level in an isolated temp project — no live dispatch"
+season: 1
+thought_session: season
+title: Part B fallback path verified at unit level in an isolated temp project — no live dispatch
 verdict: inconclusive_lean_proved:70
 ---
 # experiment:a01-94f6deb8-c55cfe

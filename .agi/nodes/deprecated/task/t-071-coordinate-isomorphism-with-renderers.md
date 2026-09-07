@@ -14,15 +14,16 @@ blocked_by:
   - task:t-070
   - task:t-060
 cavekit_req: embeddings/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-071: Coordinate isomorphism with renderers"
 ---
 **Description:** Modify `build_representation(graph)` (T-060) to consult the embeddings cache for each node id and use those coordinates when present. Forbid setting `RenderToken.x` or `.y` from any other source when an embedding exists (assertion at construction). Provide an integration test fixture.

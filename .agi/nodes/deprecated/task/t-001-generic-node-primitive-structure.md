@@ -10,15 +10,16 @@ acceptance_criteria:
   - R1.4 (tags is a set of strings independent of typed links)
 blocked_by: []
 cavekit_req: graph-core/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-001: Generic node primitive structure"
 ---
 **Description:** Implement a `Node` dataclass/record with exactly the six fields. Type is a string (deferred semantic meaning to schema-registry). `parents`/`children` are sets of node-id strings. `tags` is a separate set[str]. Provide constructors that default to empty parents/children/tags, and accept a payload_ref of None. Expose only these fields publicly; do not auto-add fields like timestamps at this layer.

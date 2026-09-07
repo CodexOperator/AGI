@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: f5f18d094ff521d1
+season: 1
 testable_claim: A [moral].md schema exists such that the spawn gate accepts a moral node with an empty parents list and links.py schema reports no violation for it
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-moral-schema"
 ---
 # hypothesis:l2w1-moral-schema

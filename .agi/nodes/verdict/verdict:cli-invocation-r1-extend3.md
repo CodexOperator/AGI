@@ -6,9 +6,12 @@ next_edges: []
 confidence: 0.9
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 evidence_runs: []
+season: 1
 tags:
   - chain-persistence
+thought_session: season
 title: Verdict:cli invocation r1 extend3
 verdict: inconclusive_lean_proved:50
 ---

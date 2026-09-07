@@ -1,19 +1,21 @@
 ---
-id: "mvp:embeddings-r2"
+id: mvp:embeddings-r2
 mint_id: 9fffa74147e04d6794845012390f544e
-next_edges:
-  - outcome:embeddings-r2
+type: mvp
 parents:
   - verdict:embeddings-r2
+next_edges:
+  - outcome:embeddings-r2
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R2
 testable_claim: UMAP Projection to 2D
+thought_session: season
 title: "embeddings/R2: MVP"
-type: mvp
 ---
-
 **MVP:** UMAP 2D/3D Projection from Embedding Vectors
 
 ```python

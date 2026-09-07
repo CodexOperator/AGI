@@ -6,8 +6,11 @@ parents:
   - goal:s32
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 50180a5690634f72
+season: 1
 testable_claim: "Given a graph with embedded + projected nodes (via `embed_graph` + `project`), a scatter renderer that reads `Representation.tokens[].x/.y` (already populated by the embeddings layer overwriting the defaults) can produce a bounded ASCII scatter grid where:"
+thought_session: season
 title: A00 c4b84f52 f58e90
 verdict: pending
 ---

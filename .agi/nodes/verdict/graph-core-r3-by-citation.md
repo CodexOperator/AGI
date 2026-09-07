@@ -6,11 +6,12 @@ parents:
   - hyp:graph-core-r3
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-graph-core-identity
   - build:tests-graph-core-test-identity
 scaffold_hash: 0792ee295450b35e
+season: 1
 supports:
   - hyp:graph-core-r3
 tags:
@@ -18,7 +19,7 @@ tags:
   - R3
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R3: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

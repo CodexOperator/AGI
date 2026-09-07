@@ -1,18 +1,20 @@
 ---
-confidence: 0.5
-id: "hyp:a00-407fa689-3a4948"
+id: hyp:a00-407fa689-3a4948
 mint_id: 94ee6481b5b245f6b21498e231b34152
+type: hypothesis
+parents: []
 next_edges:
   - exp:exp-a00-407fa689-verdict-pareto
   - verdict:a00-407fa689-verdict-pareto
-parents: []
+confidence: 0.5
+edited_by: season.py
+season: 1
 tags:
   - chain-extension
   - bias
+thought_session: season
 title: Verdict-count Pareto skew reveals chain-extension bias
-type: hypothesis
 ---
-
 # hyp:a00-407fa689-3a4948
 
 ## Hypothesis

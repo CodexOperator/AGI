@@ -6,13 +6,15 @@ parents:
   - goal:g10.1
 next_edges:
   - experiment:a01-717569b6-9111c4
-scaffold_hash: 652f92e6f90e43d1
-testable_claim: "From a raw derivation chat, key structural events (context injection points, decision branches, referenced nodes, dead-end attempts) can be mechanically identified and rendered as a subgraph, without manual annotation."
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: 652f92e6f90e43d1
+season: 1
+testable_claim: From a raw derivation chat, key structural events (context injection points, decision branches, referenced nodes, dead-end attempts) can be mechanically identified and rendered as a subgraph, without manual annotation.
+thought_session: season
 title: Derivation chats yield mechanically-extractable hypergraph structure without manual annotation
+verdict: pending
 ---
-
 # hypothesis:a00-160ca279-56d211
 
 ## Hypothesis

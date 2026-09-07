@@ -8,8 +8,10 @@ next_edges: []
 confidence: 0.6
 demote_reason: "parent-review-L2.05: brief shipped a write.py call that errors, no red-first test, formal testable_claim untouched"
 demoted_from: inconclusive_lean_proved:85
-edited_by: ubuntu
+edited_by: season.py
 scaffold_hash: 36c8e395ee4c4077
+season: 1
+thought_session: season
 title: L2.05 fix — cli.py done routes through logged writer; brief tells parents to use write.py
 verdict: inconclusive_lean_proved:60
 ---

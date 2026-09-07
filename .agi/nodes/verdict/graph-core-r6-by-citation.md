@@ -6,12 +6,13 @@ parents:
   - hyp:graph-core-r6
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-graph-core-loader
   - build:tests-graph-core-test-loader
   - build:tests-graph-core-test-walk-determinism
 scaffold_hash: 0db01ab8806874d6
+season: 1
 supports:
   - hyp:graph-core-r6
 tags:
@@ -19,7 +20,7 @@ tags:
   - R6
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R6: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:package.json"
+id: build:package.json
 mint_id: c5fe65595edd462ea1cf89b9a8978953
-origin: build-scan
+type: build
 parents:
   - idea:engine-package-json
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: package.json
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: package.json"
-type: build
 ---
-
 `package.json` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-package-json`.

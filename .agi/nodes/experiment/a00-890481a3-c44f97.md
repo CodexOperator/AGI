@@ -6,7 +6,10 @@ parents:
   - hypothesis:cc-adapter-refuses-git-handoff-and-dispatch
 next_edges: []
 confidence: 0.55
+edited_by: season.py
 scaffold_hash: e13ad1357890e82e
+season: 1
+thought_session: season
 title: Verify disallow-list integrity across full test suite
 verdict: inconclusive_lean_disproved:55
 ---

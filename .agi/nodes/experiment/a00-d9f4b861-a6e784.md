@@ -8,11 +8,14 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-scaffold_hash: 421293a1a38a2245
-title: "Scatter renderer built and verified — all 5 hypothesis claims, 1471-test suite green"
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-d9f4b861-a6e784
+scaffold_hash: 421293a1a38a2245
+season: 1
+thought_session: season
+title: Scatter renderer built and verified — all 5 hypothesis claims, 1471-test suite green
+verdict: proved
 ---
 # experiment:a00-d9f4b861-a6e784
 

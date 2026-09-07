@@ -1,22 +1,24 @@
 ---
+id: goal:g10.2
+mint_id: 4b27be7298144a7e801b6e63ce5a5ae0
+type: goal
+parents:
+  - goal:g10
 confidence: 1.0
+edited_by: season.py
 goal_id: G10.2
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g10.2"
-mint_id: 4b27be7298144a7e801b6e63ce5a5ae0
 origin: goals-doc
-parents:
-  - goal:g10
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G10.2: The graph describes its own geometry"
-type: goal
 ---
-
 **A `nodes/.geometry/` directory holding a handful of nodes that describe the
 shape of the graph itself** — what the axes are, what a version is, what a chat
 attaches to, how zoom and LOD compose. Not documentation *about* the system in

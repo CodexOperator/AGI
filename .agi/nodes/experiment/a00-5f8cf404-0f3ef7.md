@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-390e52ad-e286a2
 next_edges: []
 confidence: 0.3
+edited_by: season.py
 scaffold_hash: d13ad6db72662a78
+season: 1
+thought_session: season
 title: A00 5f8cf404 0f3ef7
 verdict: inconclusive_lean_disproved:80
 ---

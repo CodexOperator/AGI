@@ -6,9 +6,12 @@ parents:
   - goal:g4.9
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 95c39fd55168da33
-title: "spawn_budget status hides lease age — an over-timeout parent is indistinguishable from a healthy one"
-testable_claim: "Running `spawn_budget.py status` in a project holding a live lease whose reserved_at is older than the configured agent_timeout_mins prints no age and no over-timeout annotation — the only fields printed are agent_id, tier, iter, pid"
+season: 1
+testable_claim: Running `spawn_budget.py status` in a project holding a live lease whose reserved_at is older than the configured agent_timeout_mins prints no age and no over-timeout annotation — the only fields printed are agent_id, tier, iter, pid
+thought_session: season
+title: spawn_budget status hides lease age — an over-timeout parent is indistinguishable from a healthy one
 verdict: pending
 ---
 # hypothesis:a00-250fed0c-9beef9

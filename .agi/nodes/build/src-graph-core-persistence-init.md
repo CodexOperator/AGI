@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-graph-core-persistence-init"
+id: build:src-graph-core-persistence-init
 mint_id: e57491a230ed4f119d2630d54d8bf483
-origin: build-scan
+type: build
 parents:
   - idea:engine-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/graph_core/persistence/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/graph_core/persistence/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/graph_core/persistence/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-graph-core`.

@@ -5,6 +5,9 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 next_edges: []
+edited_by: season.py
+season: 1
+thought_session: season
 title: A01 6e912754 2c156f
 ---
 # hyp:a01-6e912754-2c156f

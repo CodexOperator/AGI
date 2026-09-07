@@ -13,15 +13,16 @@ blocked_by:
   - task:t-047
   - task:t-052
 cavekit_req: chain-engine/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-049: Longest-chain attractor + ranking"
 ---
 **Description:** Implement `rank_chains(chains, weights, config)` that calls the attractiveness function (T-052) and sorts descending. Tie-break by chain id sequence lexicographically. Ranking is pure (no mutation).

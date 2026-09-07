@@ -6,8 +6,11 @@ parents:
   - goal:g1.11
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 33326248c907bea3
+season: 1
 testable_claim: "Given N agents spawned with per-spawn keys, where N > 1 and the agents have overlapping lifetimes, `reap_orphans` called mid-state (some agents alive, some dead) returns a list that:"
+thought_session: season
 title: "The reaper handles interleaved lifecycle: concurrent agents with overlapping lifetimes produce no false positives or missed orphans"
 verdict: pending
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-metrics"
+id: build:bin-metrics
 mint_id: 2f7402938a954f18b115d44b1a632e6e
-origin: build-scan
+type: build
 parents:
   - idea:engine-metrics
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/metrics.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/metrics.py"
-type: build
 ---
-
 `extensions/agi/bin/metrics.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-metrics`.

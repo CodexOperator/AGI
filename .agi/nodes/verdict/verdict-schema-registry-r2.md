@@ -1,16 +1,18 @@
 ---
-id: "verdict:schema-registry-r2"
+id: verdict:schema-registry-r2
 mint_id: 869027c3fa19487c823868c87019539e
+type: verdict
+parents:
+  - exp:schema-registry-r2
 next_edges:
   - exp:schema-registry-r2-extend
   - mvp:schema-registry-r2-bracket-convention
-parents:
-  - exp:schema-registry-r2
+edited_by: season.py
+season: 1
+thought_session: season
 title: "schema-registry R2 chain: verdict:schema-registry-r2"
-type: verdict
 verdict: pending
 ---
-
 **verdict** node for schema-registry R2: Bracket Convention.
 
 ## Acceptance Criteria

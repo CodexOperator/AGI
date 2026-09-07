@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "mvp:exporters-r1"
+id: mvp:exporters-r1
 mint_id: 0108a4dfb3f74530b278afb92d3749f8
-next_edges:
-  - outcome:exporters-r1
+type: mvp
 parents:
   - verdict:exporters-r1
+next_edges:
+  - outcome:exporters-r1
+confidence: 1.0
+edited_by: season.py
+season: 1
 status: open
 tags:
   - exporters
   - R1
   - mvp
+thought_session: season
 title: "MVP: Exporters R1 — Markdown Exporter"
-type: mvp
 ---
-
 # MVP: Markdown Chain Exporter
 
 Exports capillary DAG chains as Markdown files with YAML frontmatter.

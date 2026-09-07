@@ -6,11 +6,12 @@ parents:
   - hyp:schema-registry-r3
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-schema-registry-meta-nodes
   - build:tests-schema-registry-test-meta-nodes
 scaffold_hash: 06a2c5e95d1a207a
+season: 1
 supports:
   - hyp:schema-registry-r3
 tags:
@@ -18,7 +19,7 @@ tags:
   - R3
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R3: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

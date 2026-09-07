@@ -1,21 +1,23 @@
 ---
-confidence: 0.75
-contradicts: []
-evidence_runs:
-  - exp:exp-a00-4125fa6d-005488
-id: "verdict:verdict-a00-4125fa6d-005488"
-lean_strength: 75
+id: verdict:verdict-a00-4125fa6d-005488
 mint_id: ed29e1f7eb8a42c09b57eb7e05ef3d60
-next_edges: []
+type: verdict
 parents:
   - exp:exp-a00-4125fa6d-005488
+next_edges: []
+confidence: 0.75
+contradicts: []
+edited_by: season.py
+evidence_runs:
+  - exp:exp-a00-4125fa6d-005488
+lean_strength: 75
+season: 1
 supports:
   - verdict:chain-engine-r8
+thought_session: season
 title: Agent Spawning via Verdict Nodes — Architecturally Feasible
-type: verdict
-verdict: "inconclusive_lean_proved:75"
+verdict: inconclusive_lean_proved:75
 ---
-
 # verdict:verdict-a00-4125fa6d-005488
 
 ## Verdict

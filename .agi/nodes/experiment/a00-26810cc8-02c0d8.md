@@ -6,7 +6,10 @@ parents:
   - hypothesis:loop-scoped-iteration-ids-cannot-clobber
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: f5b838fb8abda805
+season: 1
+thought_session: season
 title: Loop-scoped ids are implemented, dead code, no tests
 verdict: inconclusive_lean_disproved:85
 ---

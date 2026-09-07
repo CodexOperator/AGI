@@ -6,15 +6,18 @@ parents:
   - hypothesis:a00-db12df62-1859fd
 next_edges: []
 confidence: 0.8
-scaffold_hash: 639a4b57ab3de253
-title: "Lockstep propagation: two stream modifications reach both formatters, level-cap test vacuous"
-testable_claim: "Changing the NodeFrameStream's sort order or adding a flag field propagates identically to both the ASCII viewport and markdown context formatters with no formatter-local edit."
+edited_by: season.py
 evidence_runs:
   - experiment:a00-25c44a94-f4f545
+scaffold_hash: 639a4b57ab3de253
+season: 1
 tags:
   - g9.7-execution
   - node-frame-stream
   - lockstep-propagation
+testable_claim: Changing the NodeFrameStream's sort order or adding a flag field propagates identically to both the ASCII viewport and markdown context formatters with no formatter-local edit.
+thought_session: season
+title: "Lockstep propagation: two stream modifications reach both formatters, level-cap test vacuous"
 verdict: inconclusive_lean_proved:80
 ---
 # experiment:a00-25c44a94-f4f545

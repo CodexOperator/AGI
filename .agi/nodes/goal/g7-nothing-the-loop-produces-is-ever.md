@@ -1,11 +1,14 @@
 ---
+id: goal:g7
+mint_id: d020b2d79cb545edb5c23fb2d63c7d54
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G7
 goal_kind: long-term
 heading_level: 2
-id: "goal:g7"
-mint_id: d020b2d79cb545edb5c23fb2d63c7d54
 origin: goals-doc
+season: 1
 seeds:
   - goal:g7.1
   - goal:g7.10
@@ -24,10 +27,9 @@ status: active
 tags:
   - goal
   - root
+thought_session: season
 title: "G7: Nothing the loop produces is ever silently lost"
-type: goal
 ---
-
 The graph is what makes it safe to stop mid-sprint, which only holds if stopping
 cannot lose work and no artefact can quietly disappear or quietly lie.
 

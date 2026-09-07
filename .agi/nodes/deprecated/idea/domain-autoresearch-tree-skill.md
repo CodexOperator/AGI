@@ -5,14 +5,15 @@ type: idea
 next_edges:
   - hyp:autoresearch-tree-skill-r1
 confidence: 1.0
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
 scale: big
+season: 1
 status: deprecated
 tags:
   - domain
   - seed
-thought_session: L1.09
+thought_session: season
 title: "Domain: autoresearch-tree-skill"
 ---
 The agent skill that drives the autoresearch loop on top of the rest of the system. It forks an existing autoresearch skill family rather than modifying it, picks between big-idea and small-idea exploration each iteration, dispatches parallel builder agents, accepts their experiment results as verdict emissions, and runs a benchmark harness that extends the predecessor harness with new chain-shaped metrics. The skill must be drop-in portable: it should run in any repository where the project context directory has been added.

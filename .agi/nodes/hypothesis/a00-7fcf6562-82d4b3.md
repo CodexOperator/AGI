@@ -6,8 +6,11 @@ parents:
   - goal:g7.8
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 23ae4fe4112e53c9
+season: 1
 testable_claim: "Adding a corpus-resolution check before `snapshot-build-site.py` writes a parent-hyp ID (constructed at line 358 as `f\"hyp:{domain}-{rnum.lower()}\"`) will catch every unresolved reference that the current code silently accepts — emitting `WARN: task <id> cavekit_req <req> -> unresolvable <parent_hyp>` and setting `parents: []` — without ever producing a false-positive (flagging a reference that actually resolves) or a false-negative (missing a reference that does not resolve)."
+thought_session: season
 title: A00 7fcf6562 82d4b3
 verdict: pending
 ---

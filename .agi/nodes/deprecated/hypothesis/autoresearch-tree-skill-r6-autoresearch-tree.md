@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R6
 testable_claim: Benchmark Harness Extension
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R6: Benchmark Harness Extension"
 ---
 **Description:** A benchmark harness extends the predecessor project's harness with new chain-shaped metrics. The new metrics are measured per run.

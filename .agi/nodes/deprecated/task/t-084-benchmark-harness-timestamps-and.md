@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-082
 cavekit_req: autoresearch-tree-skill/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-084: Benchmark harness — timestamps and iteration recording"
 ---
 **Description:** Persist per-iteration metrics at `context/bench/<iteration>.json` with `timestamp`, `iteration`, and the metric dict.

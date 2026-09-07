@@ -2,17 +2,19 @@
 id: verdict:the-verb-layer-holds
 mint_id: 7d28693a2a424e7cb0cd9ac65b0c0284
 type: verdict
-title: The verb layer holds, and no verb turned up that needs a cursor
 parents:
   - experiment:both-callers-one-edit
 next_edges: []
-scaffold_hash: 98cccffcf59205b6
-verdict: proved
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:both-callers-one-edit
+scaffold_hash: 98cccffcf59205b6
+season: 1
+thought_session: season
+title: The verb layer holds, and no verb turned up that needs a cursor
+verdict: proved
 ---
-
 # verdict:the-verb-layer-holds
 
 ## Verdict

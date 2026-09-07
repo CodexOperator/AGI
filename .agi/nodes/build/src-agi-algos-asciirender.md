@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-agi-algos-asciirender"
+id: build:src-agi-algos-asciirender
 mint_id: 9c2a57d633aa4e009c15cdf9b440511c
-origin: build-scan
+type: build
 parents:
   - idea:engine-agi-algos
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/agi_algos/asciirender.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/agi_algos/asciirender.py"
-type: build
 ---
-
 `extensions/agi/src/agi_algos/asciirender.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-agi-algos`.

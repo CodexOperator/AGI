@@ -1,18 +1,20 @@
 ---
-id: "mvp:session-management-r1-r1"
+id: mvp:session-management-r1-r1
 mint_id: 56cf1a31b51840c8b2140815cb3eb43d
-next_edges:
-  - outcome:session-management-r1-r1
+type: mvp
 parents:
   - verdict:session-management-r1-extend1
+next_edges:
+  - outcome:session-management-r1-r1
+edited_by: season.py
+season: 1
 tags:
   - session-management-r1
   - session
   - mvp
+thought_session: season
 title: Session state capture/restore MVP
-type: mvp
 ---
-
 # Session Management MVP
 
 ## What it does

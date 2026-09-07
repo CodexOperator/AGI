@@ -1,11 +1,14 @@
 ---
+id: goal:g1
+mint_id: 556869f3f6454ffe9118a793e062aa5f
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G1
 goal_kind: long-term
 heading_level: 2
-id: "goal:g1"
-mint_id: 556869f3f6454ffe9118a793e062aa5f
 origin: goals-doc
+season: 1
 seeds:
   - goal:g1.1
   - goal:g1.2
@@ -22,10 +25,9 @@ status: horizon
 tags:
   - goal
   - root
+thought_session: season
 title: "G1: Config-maxxing: every engine action is declared, never improvised"
-type: goal
 ---
-
 **Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
 step is a command".** The invariant did not change; the framing got one level
 deeper, and the new name is the one that generalises. Recorded as a rename

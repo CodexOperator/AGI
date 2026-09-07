@@ -7,18 +7,19 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G2.12
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 5b36c08126143eb4
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G2.12: A node version may carry how it felt to write it"
 ---
 # goal:g2.12

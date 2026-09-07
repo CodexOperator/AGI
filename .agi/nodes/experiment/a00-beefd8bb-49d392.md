@@ -6,11 +6,14 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.95
-scaffold_hash: fe8592a0b35123bd
-title: Live-graph attractor list check — deprecation filter verified on real graph
-verdict: inconclusive_lean_proved:90
+edited_by: season.py
 evidence_runs:
   - experiment:a00-beefd8bb-49d392
+scaffold_hash: fe8592a0b35123bd
+season: 1
+thought_session: season
+title: Live-graph attractor list check — deprecation filter verified on real graph
+verdict: inconclusive_lean_proved:90
 ---
 # experiment:a00-beefd8bb-49d392
 

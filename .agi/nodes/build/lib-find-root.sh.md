@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:lib-find-root.sh"
+id: build:lib-find-root.sh
 mint_id: 7749f4c9fed748b8ac80f98ddf1a922e
-origin: build-scan
+type: build
 parents:
   - idea:engine-find-root
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/lib/find-root.sh
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/lib/find-root.sh"
-type: build
 ---
-
 `extensions/agi/lib/find-root.sh` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-find-root`.

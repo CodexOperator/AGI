@@ -8,8 +8,10 @@ confidence: 0.85
 contradicts:
   - hypothesis:domain-renderers-ordering
 domain: renderers
+edited_by: season.py
 evidence_runs:
   - exp:a00-c2ec59b7-b391d9
+season: 1
 spawns: []
 status: completed
 tags:
@@ -19,6 +21,7 @@ tags:
   - topology
   - descendant-overlap
 testable_claim: Nodes that share more common descendants in the capillary DAG graph will be rendered closer together in the ASCII renderer output.
+thought_session: season
 title: A00 c2ec59b7 b391d9
 ---
 # hyp:a00-c2ec59b7-b391d9

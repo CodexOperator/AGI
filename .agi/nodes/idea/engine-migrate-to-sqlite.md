@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-migrate-to-sqlite"
+id: idea:engine-migrate-to-sqlite
 mint_id: 566acd35613b4c57a1d149249736b3f7
-origin: engine-decomp
+type: idea
 parents:
   - goal:g7
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/scripts/migrate_to_sqlite.py"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/scripts/migrate_to_sqlite.py
 ---
-
 `extensions/agi/scripts/migrate_to_sqlite.py` — an engine entry point.
 
 One-shot migration: filesystem node directory -> SQLite database.

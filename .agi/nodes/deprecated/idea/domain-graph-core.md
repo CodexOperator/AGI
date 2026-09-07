@@ -8,14 +8,15 @@ next_edges:
   - hypothesis:a01-92759282-8e21ce
   - hypothesis:a01-eb185005-a7478c
 confidence: 1.0
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
 scale: big
+season: 1
 status: deprecated
 tags:
   - domain
   - seed
-thought_session: L1.09
+thought_session: season
 title: "Domain: graph-core"
 ---
 Generic, domain-agnostic graph primitives: nodes, edges, identity, persistence, recursive bodies, directory-walking auto-discovery, and a portable bootstrap path. This kit is the substrate every other domain stands on. It contains nothing autoresearch-specific; the same primitives could be reused for any DAG memory product.

@@ -6,7 +6,10 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: bc9e99067eeda55d
+season: 1
+thought_session: season
 title: A00 98fb9939 89089f
 verdict: inconclusive_lean_proved:85
 ---

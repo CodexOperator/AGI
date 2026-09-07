@@ -10,15 +10,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-021
 cavekit_req: schema-registry/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-025: Auto-discovery cascade — bracket name match (step 1)"
 ---
 **Description:** Implement step 1 of the cascade. Given a directory name `foo`, look up `[foo].md` in the active set. On match, return that schema and short-circuit.

@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:README.md"
+id: build:README.md
 mint_id: 9af6cd8199e7444e8c5fd363722f8fee
-origin: build-scan
+type: build
 parents:
   - idea:engine-readme
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: README.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: README.md"
-type: build
 ---
-
 `README.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-readme`.

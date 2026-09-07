@@ -1,26 +1,28 @@
 ---
-confidence: 1.0
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
-demoted_from: proved
-evidence_runs: []
-id: "exp:exporters-r1"
+id: exp:exporters-r1
 mint_id: 6c9279ff57e24184a228b3f53147fb9f
-next_edges:
-  - verdict:exporters-r1
+type: experiment
 parents:
   - hyp:exporters-r1
   - idea:domain-exporters
-status: "inconclusive_lean_proved:50"
+next_edges:
+  - verdict:exporters-r1
+confidence: 1.0
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demoted_from: proved
+edited_by: season.py
+evidence_runs: []
+season: 1
+status: inconclusive_lean_proved:50
 tags:
   - exporters
   - R1
   - experiment
   - proved
+thought_session: season
 title: "Experiment: Exporters R1 — Markdown Exporter"
-type: experiment
-verdict: "inconclusive_lean_proved:50"
+verdict: inconclusive_lean_proved:50
 ---
-
 # Experiment: Exporters R1 — Markdown Exporter
 
 **Status**: PROVED (5/5 tests passed)

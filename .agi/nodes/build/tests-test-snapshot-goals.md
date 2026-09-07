@@ -7,14 +7,15 @@ parents:
   - goal:g1.13
 build_kind: code
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/tests/test_snapshot_goals.py
+season: 1
 tags:
   - build
   - code
   - g2.1
-thought_session: L1.13
+thought_session: season
 title: "Build: extensions/agi/tests/test_snapshot_goals.py"
 ---
 `extensions/agi/tests/test_snapshot_goals.py` — level-3 code node (one file, one canonical node).

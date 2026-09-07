@@ -1,17 +1,19 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:zoom-numeric-axis-r1"
+id: exp:zoom-numeric-axis-r1
 mint_id: e8c3b74bbe4c46e385670d1f3ab9f92c
+type: experiment
 parents:
   - goal:g2
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - zoom
   - g2
+thought_session: season
 title: Numeric zoom axis, first implementation
-type: experiment
 ---
-
 Generalized `extensions/agi/bin/zoom.py` from `--level big|small` to
 `--level 1..5`. `big`/`small` still work — required by `dispatch.py`'s live
 research pipeline — but as labeled legacy aliases with unchanged content, not

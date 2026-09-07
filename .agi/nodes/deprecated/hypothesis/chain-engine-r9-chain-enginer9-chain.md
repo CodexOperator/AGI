@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-chain-engine
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - chain-engine
   - R9
 testable_claim: Chain Query API
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R9: Chain Query API"
 ---
 **Description:** A documented set of queries over chains is available without requiring callers to traverse the graph by hand.

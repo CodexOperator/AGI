@@ -1,19 +1,21 @@
 ---
-confidence: 0.85
-evidence_runs: []
-id: "mvp:census-boundary-scope"
+id: mvp:census-boundary-scope
 mint_id: 8f6cc64b5b8b42e1893684a395cfca13
+type: mvp
 parents:
   - goal:g6.8
+confidence: 0.85
+edited_by: season.py
+evidence_runs: []
+season: 1
 subgraph: false
 tags:
   - g6.6
   - g6.8
   - census
-title: "Widen decompose-engine.py's census to the G6.8 payload boundary; found a second, independent bug in level3.py's matcher along the way"
-type: mvp
+thought_session: season
+title: Widen decompose-engine.py's census to the G6.8 payload boundary; found a second, independent bug in level3.py's matcher along the way
 ---
-
 **Verified, not guessed, same standard as `mvp:level3-boundary-scope`.** I built
 the exact diff below in scratch, applied it to a byte-for-byte copy of the real
 `decompose-engine.py`, ran it for real against `/home/ubuntu/work/agi` (not a

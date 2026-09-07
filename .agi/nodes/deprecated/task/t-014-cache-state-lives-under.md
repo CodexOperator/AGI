@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-013
 cavekit_req: graph-core/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-014: Cache state lives under project context dir"
 ---
 **Description:** Cache files (digest manifests, pickled graph snapshots) live at `<project_root>/context/.cache/graph/`. Configurable only through a context-relative path; reject configurations that resolve outside the project root.

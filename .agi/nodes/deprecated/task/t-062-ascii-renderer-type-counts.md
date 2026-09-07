@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-061
 cavekit_req: renderers/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-062: ASCII renderer — type counts and edge summary"
 ---
 **Description:** Append a footer block with `Types: {type: count}` and `Edges: {relation: count}` lines.

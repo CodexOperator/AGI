@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:renderers-r1
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R1
 testable_claim: Shared Internal Representation
-thought_session: L1.09
+thought_session: season
 title: "renderers/R1: Shared Internal Representation"
 ---
 **Description:** All renderers operate over a uniform representation: a sequence of render tokens, where each token carries identity, label, type, depth, two-dimensional coordinates, and outgoing edges.

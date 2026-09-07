@@ -6,7 +6,10 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: aee6667a33947786
+season: 1
+thought_session: season
 title: Unattributed hypotheses inflate the outcome_coverage denominator
 verdict: pending
 ---

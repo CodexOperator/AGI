@@ -5,15 +5,17 @@ type: experiment
 parents:
   - hypothesis:a00-0d182e77-3f4501
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a00-788f8d7f-f11472
 scaffold_hash: 2e127f8f500cab2a
+season: 1
+thought_session: season
 title: A00 788f8d7f f11472
 verdict: proved
 wired_at: 1788245310
 wired_from: a00-788f8d7f
 ---
-
 
 # experiment:a00-788f8d7f-f11472
 

@@ -6,9 +6,12 @@ parents:
   - goal:g4.9
 next_edges: []
 confidence: 0.3
+edited_by: season.py
 scaffold_hash: 81ee024821460297
-title: Lease time-to-live — stale leases must surface age and timeout, restarts must carry tier
+season: 1
 testable_claim: "A hung-but-alive agent past manifest timeout_seconds holds its spawn_budget slot forever: `spawn_budget status` shows it live with no age or restart count, `_sweep_locked` reclaims only pid-dead leases, and the inline reaper never compares elapsed time against the timeout — so the G4.9 falsifier (hold a fake pi process past timeout) cannot pass today"
+thought_session: season
+title: Lease time-to-live — stale leases must surface age and timeout, restarts must carry tier
 verdict: pending
 ---
 # hypothesis:a01-1a07c67e-af6ab1

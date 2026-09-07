@@ -6,14 +6,17 @@ parents:
   - hyp:a00-407fa689-verdict-repair
 confidence: 0.6
 contradicts: []
+edited_by: season.py
 evidence_runs:
   - exp-a00-407fa689-verdict-repair
+season: 1
 supports:
   - verdict:a00-407fa689-verdict-pareto
 tags:
   - chain-extension
   - repair
   - structural-bias
+thought_session: season
 title: A00 407fa689 verdict repair
 verdict: inconclusive_lean_proved:60
 ---

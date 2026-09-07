@@ -6,9 +6,10 @@ parents:
   - hypothesis:l2w2-telemetry-stamps
 next_edges: []
 confidence: 0.7
-edited_by: a00-33dc185c
+edited_by: season.py
 scaffold_hash: 77e3712110c7718e
-thought_session: agi-master-2026-09-06
+season: 1
+thought_session: season
 title: Investigate telemetry stamp sources for cli.py done
 verdict: inconclusive_lean_proved:70
 ---

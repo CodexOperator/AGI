@@ -1,25 +1,27 @@
 ---
-confidence: 0.9
-evidence_runs:
-  - exp:a00-ddbe3410-exp002-structural-repair
-id: "verdict:a00-ddbe3410-verdict002-structural-repair"
+id: verdict:a00-ddbe3410-verdict002-structural-repair
 mint_id: 30088d3f2bb441ec8ba3140c57efbda1
-next_edges:
-  - mvp:a00-ddbe3410-mvp002-structural-repair
+type: verdict
 parents:
   - exp:a00-ddbe3410-exp002-structural-repair
   - hyp:a00-ddbe3410-structural-repair
+next_edges:
+  - mvp:a00-ddbe3410-mvp002-structural-repair
+confidence: 0.9
+edited_by: season.py
+evidence_runs:
+  - exp:a00-ddbe3410-exp002-structural-repair
+season: 1
 status: proved
 synthetic: true
 tags:
   - structural-bias
   - repair
   - synthetic-flag
+thought_session: season
 title: "V002: synthetic flag + evidence_runs added to 3235 verdict nodes"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict**: PROVED (confidence: 0.9)
 
 ## Metric

@@ -6,7 +6,10 @@ parents:
   - goal:s34
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 scaffold_hash: d1e55eb6edcb4e4d
+season: 1
+thought_session: season
 title: Verdict schema declares contradicts but corpus uses contrasts
 verdict: inconclusive_lean_proved:85
 ---

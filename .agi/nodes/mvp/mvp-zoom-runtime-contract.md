@@ -1,18 +1,20 @@
 ---
-confidence: 0.95
-evidence_runs: []
-id: "mvp:zoom-runtime-contract"
+id: mvp:zoom-runtime-contract
 mint_id: 77a49bc9337f4f5cb4f46c0429621db5
+type: mvp
 parents:
   - goal:s8
+confidence: 0.95
+edited_by: season.py
+evidence_runs: []
+season: 1
 subgraph: false
 tags:
   - s8
   - zoom
+thought_session: season
 title: Runtime-aware completion contract in zoom.py
-type: mvp
 ---
-
 ## Sites found
 
 **Three locations emit the completion block:**

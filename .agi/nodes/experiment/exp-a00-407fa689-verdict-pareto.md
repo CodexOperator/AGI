@@ -4,9 +4,12 @@ mint_id: 38d1f73b6d194e9f9277f5f98fe5adc3
 type: experiment
 parents:
   - hyp:a00-407fa689-3a4948
+edited_by: season.py
+season: 1
 tags:
   - chain-extension
   - bias
+thought_session: season
 title: Exp a00 407fa689 verdict pareto
 ---
 # exp:exp-a00-407fa689-verdict-pareto

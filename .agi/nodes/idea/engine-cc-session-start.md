@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-cc-session-start"
+id: idea:engine-cc-session-start
 mint_id: cf5b8ecd58994b5ab67b9a042b045a47
-origin: engine-decomp
+type: idea
 parents:
   - goal:g9
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/hooks/cc-session-start.sh"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/hooks/cc-session-start.sh
 ---
-
 `extensions/agi/hooks/cc-session-start.sh` — an engine entry point.
 
 cc-session-start.sh — Claude Code SessionStart hook.

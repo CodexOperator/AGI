@@ -1,22 +1,24 @@
 ---
+id: goal:g2.6
+mint_id: 8dc9d0b7100b4d59b89901756c4fbdf5
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.6
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.6"
-mint_id: 8dc9d0b7100b4d59b89901756c4fbdf5
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.6: Tags name the supernode; the renderer groups on them live"
-type: goal
 ---
-
 **Tags are the human-readable half of G2.5's addressing.** An id is short,
 unambiguous and machine-facing; a tag is long, descriptive and person-facing.
 Each node carries the tag of the supernode it belongs to, and the renderer

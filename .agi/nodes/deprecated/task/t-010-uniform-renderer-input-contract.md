@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-009
 cavekit_req: graph-core/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-010: Uniform renderer input contract (recursive)"
 ---
 **Description:** Document and enforce that any function accepting a `Graph` accepts both top-level and nested subgraph instances without type discrimination. Add an internal `RenderableGraph` typing alias so renderers (built later) inherit this contract.

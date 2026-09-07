@@ -5,13 +5,15 @@ type: verdict
 parents:
   - experiment:a00-fda1c0d5-1f0a3a
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a00-fda1c0d5-1f0a3a
 scaffold_hash: f892df19454fe81c
+season: 1
+thought_session: season
 title: A00 e6e82f19 ca9c59
 verdict: inconclusive_lean_proved:80
 ---
-
 # verdict:a00-e6e82f19-ca9c59
 
 ## Verdict

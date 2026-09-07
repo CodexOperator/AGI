@@ -6,11 +6,14 @@ parents:
   - hypothesis:a00-29f8c490-fac260
 next_edges: []
 confidence: 0.65
-scaffold_hash: 101cb612897c7fbc
-title: run --workflow executes verify in order, stops on failure, resumes with --from
-verdict: inconclusive_lean_proved:65
+edited_by: season.py
 evidence_runs:
   - experiment:a00-282ad7b1-d617e3
+scaffold_hash: 101cb612897c7fbc
+season: 1
+thought_session: season
+title: run --workflow executes verify in order, stops on failure, resumes with --from
+verdict: inconclusive_lean_proved:65
 ---
 # experiment:a00-282ad7b1-d617e3
 

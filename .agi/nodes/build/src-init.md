@@ -1,18 +1,20 @@
 ---
+id: build:src-init
+mint_id: 3a96a3c47fea4ef585fab71d3d2ae9a3
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:src-init"
-mint_id: 3a96a3c47fea4ef585fab71d3d2ae9a3
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/src/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

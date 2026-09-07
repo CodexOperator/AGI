@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-abd94427-d2294b
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 0ff59902f8ba82c1
+season: 1
+thought_session: season
 title: Falsifier grep single-pass doc sweep
 verdict: inconclusive_lean_proved:85
 ---

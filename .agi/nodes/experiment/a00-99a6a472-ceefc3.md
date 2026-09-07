@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-ec5ee032-7eefb8
 next_edges: []
 confidence: 0.65
+edited_by: season.py
 scaffold_hash: 8e3bd9879ae3b557
+season: 1
+thought_session: season
 title: EmbedProjectCache on REAL .agi/nodes/ (1233 files) — 7/7 assertions across all 5 claims pass
 verdict: inconclusive_lean_proved:65
 ---

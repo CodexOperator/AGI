@@ -1,22 +1,24 @@
 ---
+id: goal:g1.4
+mint_id: adc82c05ab6a4b3d89c78179571b3f2b
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.4
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.4"
-mint_id: adc82c05ab6a4b3d89c78179571b3f2b
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.4: Kids get the graph and nothing else"
-type: goal
 ---
-
 **A kid should not be able to spend motion on anything but the graph.** Weight
 is the reason: everything a kid reads rides along in its context for the rest of
 the run, and most of what it reads is context the graph already holds — this is

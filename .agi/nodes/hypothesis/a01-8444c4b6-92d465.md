@@ -5,6 +5,9 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
+edited_by: season.py
+season: 1
+thought_session: season
 title: A01 8444c4b6 92d465
 verdict:
 wired_at: 1777664395

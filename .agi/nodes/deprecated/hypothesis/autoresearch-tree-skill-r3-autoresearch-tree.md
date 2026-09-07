@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R3
 testable_claim: Parallel Claude Builder Dispatch
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R3: Parallel Claude Builder Dispatch"
 ---
 **Description:** Each iteration dispatches up to five builder agents in parallel using a Claude-class model. Equivalent Ollama dispatch is explicitly deferred.

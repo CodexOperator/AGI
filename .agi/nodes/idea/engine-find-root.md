@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-find-root"
+id: idea:engine-find-root
 mint_id: 3abbff5a81b34041bc547f732c0a6510
-origin: engine-decomp
+type: idea
 parents:
   - goal:g1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/lib/find-root.sh"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/lib/find-root.sh
 ---
-
 `extensions/agi/lib/find-root.sh` — an engine entry point.
 
 find-root.sh — locate project root by walking up looking for agi-tree.config.json.

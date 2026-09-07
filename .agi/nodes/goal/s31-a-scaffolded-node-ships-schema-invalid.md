@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: S31
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S31: A scaffolded node ships schema-invalid, and the brief forbids the kid from fixing it"
 ---
 **Found by a parent, in its `struggles:` line, on the 2026-09-02 iteration-103

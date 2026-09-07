@@ -8,10 +8,11 @@ next_edges: []
 confidence: 1.0
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director
+edited_by: season.py
 evidence_runs: 1
 scaffold_hash: 2e0e4e15eff3d840
-thought_session: L1.07
+season: 1
+thought_session: season
 title: The serializer ate the command node
 verdict: inconclusive_lean_proved:50
 ---

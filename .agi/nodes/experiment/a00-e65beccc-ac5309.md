@@ -6,15 +6,17 @@ parents:
   - hypothesis:l2w1-shape-parentless-moral
 next_edges: []
 confidence: 0.75
+demote_reason: "parent review — the moral-acceptance half of the claim is UNVERIFIED, not APPROVED: [moral].md does not exist, so the gate fail-opens (goal:g12 mints it in a later wave); a conjunction is only proved when both conjuncts hold"
+demoted_from: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-e65beccc-ac5309
 scaffold_hash: edf6cc50dcfc0dfa
+season: 1
+thought_session: season
 title: A00 e65beccc ac5309
 verdict: inconclusive_lean_proved:75
-demoted_from: proved
-demote_reason: "parent review — the moral-acceptance half of the claim is UNVERIFIED, not APPROVED: [moral].md does not exist, so the gate fail-opens (goal:g12 mints it in a later wave); a conjunction is only proved when both conjuncts hold"
 ---
-
 # experiment:a00-e65beccc-ac5309
 
 ## Experiment

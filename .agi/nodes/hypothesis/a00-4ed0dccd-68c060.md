@@ -6,7 +6,10 @@ parents:
   - goal:g4.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: b7782c6ee8450748
+season: 1
+thought_session: season
 title: "Command-scoped isolation: restrict blast radius instead of copying the tree"
 verdict: pending
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-embeddings-init"
+id: build:src-embeddings-init
 mint_id: b2f49a2bf40145d0b3c23a71f0e40650
-origin: build-scan
+type: build
 parents:
   - idea:engine-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/embeddings/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/embeddings/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/embeddings/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-embeddings`.

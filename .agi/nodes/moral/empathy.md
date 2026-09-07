@@ -8,6 +8,7 @@ axis: crossing
 edited_by: owner
 grounded_in: moral:faith
 scaffold_hash: ff54329d49589ae9
+season: 1
 season_introduced: 1
 thought_session: agi-master-2026-09-06
 title: "moral: empathy"

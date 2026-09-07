@@ -13,15 +13,16 @@ blocked_by:
   - task:t-001
   - task:t-003
 cavekit_req: renderers/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-060: Shared internal representation (RenderToken)"
 ---
 **Description:** Define `RenderToken` dataclass with seven fields. Implement `build_representation(graph)` that traverses deterministically (sorted ids), assigns a default depth via BFS from roots, default x/y as zero (overridden later by embeddings), and edges = list of `(target_id, relation)`. Document the contract in a header docstring.

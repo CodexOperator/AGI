@@ -1,15 +1,17 @@
 ---
-confidence: 0.92
-id: "exp:id-fanout-budget"
+id: exp:id-fanout-budget
 mint_id: 15df46d4b87f40d3b5b40080e19c3546
+type: experiment
 parents:
   - hyp:zoom-encoded-node-ids
+confidence: 0.92
+edited_by: season.py
+season: 1
 tags:
   - g2.5
+thought_session: season
 title: "Fan-out budget: does any node in the corpus exceed 36/62 children?"
-type: experiment
 ---
-
 **Method.** Walked `/home/ubuntu/work/agi-tree/nodes/**/*.md` (a plain
 `glob`, explicitly unioned with a dotfile glob because Python's `**/*.md`
 silently skips names starting with `.` — this corpus has exactly one such

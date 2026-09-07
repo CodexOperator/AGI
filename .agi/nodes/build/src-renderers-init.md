@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-renderers-init"
+id: build:src-renderers-init
 mint_id: 9872dc0ebc00416e890faad16082d5dd
-origin: build-scan
+type: build
 parents:
   - idea:engine-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/renderers/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/renderers/__init__.py"
-type: build
 ---
-
 `extensions/agi/src/renderers/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-renderers`.

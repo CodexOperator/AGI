@@ -6,8 +6,11 @@ parents:
   - goal:g1.11
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 3ac52406aa3596f6
+season: 1
 testable_claim: "**Part A — provisioning key present, agent spawned normally.** For any agent spawned through `dispatch.py` with `OPENROUTER_PROVISIONING_KEY` set, the spawned process's `/proc/<PID>/environ` (read externally, within the first second after spawn) contains: - `OPENROUTER_API_KEY` — the minted per-spawn key (starts with `sk-or-v1-`) - Zero occurrence of `OPENROUTER_PROVISIONING_KEY` - No key matching the pattern of a provisioning key (i.e., the key value from the envfile is not found anywhere in the environ) - The scrub list is not accidentally over-broad: `ANTHROPIC_*`, `CLAUDE_CODE_*` are absent as specified, but `PATH`, `HOME`, `USER` etc. remain intact"
+thought_session: season
 title: A00 2ce1b784 906943
 verdict: pending
 ---

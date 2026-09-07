@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:conftest"
+id: build:conftest
 mint_id: 736c3434757d454bb6fcdc6ac859942c
-origin: build-scan
+type: build
 parents:
   - idea:engine-conftest
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/conftest.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/conftest.py"
-type: build
 ---
-
 `extensions/agi/conftest.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-conftest`.

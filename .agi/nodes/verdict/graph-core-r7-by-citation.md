@@ -6,11 +6,12 @@ parents:
   - hyp:graph-core-r7
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-graph-core-cache
   - build:tests-graph-core-test-warm-load
 scaffold_hash: 3419c0ef2fd3acc9
+season: 1
 supports:
   - hyp:graph-core-r7
 tags:
@@ -18,7 +19,7 @@ tags:
   - R7
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R7: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

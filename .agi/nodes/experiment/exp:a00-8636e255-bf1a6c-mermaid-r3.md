@@ -1,11 +1,14 @@
 ---
-confidence: 1.0
-id: "exp:a00-8636e255-bf1a6c"
+id: exp:a00-8636e255-bf1a6c
 mint_id: 8e1d2230bb70489f9d1abc1f7817ff72
-next_edges:
-  - verdict:a00-8636e255-bf1a6c
+type: experiment
 parents:
   - hyp:a00-8636e255-bf1a6c
+next_edges:
+  - verdict:a00-8636e255-bf1a6c
+confidence: 1.0
+edited_by: season.py
+season: 1
 status: completed
 tags:
   - renderers
@@ -13,10 +16,9 @@ tags:
   - r3
   - determinism
   - validity
+thought_session: season
 title: "Experiment: Mermaid Renderer R3 — validity and determinism"
-type: experiment
 ---
-
 **Experiment:** Test Mermaid renderer (R3) against 5 acceptance criteria:
 1. Deterministic output (byte-identical across runs)
 2. Valid `flowchart TD` directive

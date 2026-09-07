@@ -6,7 +6,10 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 6e486e5c6ff46d06
+season: 1
+thought_session: season
 title: A00 — evidence gate/metric parity and deprecation guard soundness
 verdict: pending
 ---

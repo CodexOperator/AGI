@@ -6,11 +6,14 @@ parents:
   - hypothesis:a00-c75d53f8-8c3e73
 next_edges: []
 confidence: 0.95
-scaffold_hash: 71785ffb6462d0c5
-title: Orphan chat fraction 72-78 pct hypothesis proved
-verdict: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-2a6a91e6-0e0560
+scaffold_hash: 71785ffb6462d0c5
+season: 1
+thought_session: season
+title: Orphan chat fraction 72-78 pct hypothesis proved
+verdict: proved
 ---
 # experiment:a00-2a6a91e6-0e0560
 

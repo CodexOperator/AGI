@@ -7,15 +7,16 @@ parents:
 next_edges:
   - exp:environment-indexers-r1
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R1
 testable_claim: Indexer Invocation Command
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R1: Indexer Invocation Command"
 ---
 **Description:** A single command runs a chosen indexer over a chosen path and writes results into the graph.

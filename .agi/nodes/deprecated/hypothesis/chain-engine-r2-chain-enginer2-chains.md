@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-chain-engine
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - chain-engine
   - R2
 testable_claim: Chains Are Virtual
-thought_session: L1.09
+thought_session: season
 title: "chain-engine/R2: Chains Are Virtual"
 ---
 **Description:** Chains are computed by traversing the graph; they are not stored as separate persistent records.

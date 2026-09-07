@@ -1,10 +1,13 @@
 ---
-domain: vector-embedding-isomorphism
-id: "idea:domain-vector-embedding-isomorphism"
+id: idea:domain-vector-embedding-isomorphism
 mint_id: 3b8e843c721c41d2b3d5b7304bcf37c2
+type: idea
 next_edges:
   - hyp:vector-embedding-isomorphism-r1
   - hyp:a00-324837df-2546ce
+domain: vector-embedding-isomorphism
+edited_by: season.py
+season: 1
 tags:
   - embeddings
   - renderers
@@ -12,10 +15,9 @@ tags:
   - node2vec
   - umap
   - duality
+thought_session: season
 title: "Vector Embedding Isomorphism: Graph↔Render Duality"
-type: idea
 ---
-
 # Domain: Vector Embedding Isomorphism
 
 ## Concept

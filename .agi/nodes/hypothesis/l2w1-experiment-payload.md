@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: c2f9ccdd6efc4bfc
+season: 1
 testable_claim: "[experiment].md declares payload_ref and location so an experiment node can carry a file the way a build node does"
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-experiment-payload"
 ---
 # hypothesis:l2w1-experiment-payload

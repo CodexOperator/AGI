@@ -2,18 +2,20 @@
 id: experiment:both-callers-one-edit
 mint_id: 8afa31b5dcbd4699b6b1fd576952b5f5
 type: experiment
-title: Both callers, one edit
 parents:
   - hypothesis:verbs-before-keystrokes
 next_edges:
   - verdict:the-verb-layer-holds
-scaffold_hash: 5069dd60e8238082
-verdict: proved
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:both-callers-one-edit
+scaffold_hash: 5069dd60e8238082
+season: 1
+thought_session: season
+title: Both callers, one edit
+verdict: proved
 ---
-
 # experiment:both-callers-one-edit
 
 ## Experiment

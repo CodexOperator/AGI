@@ -5,17 +5,19 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: 025fdc191122c728
-title: "Verbatim derivation chats reduce agent tool-call overhead vs post-hoc summaries"
-testable_claim: "An agent that receives the verbatim chat transcript from the version that produced the node it inherits reaches its first useful action in fewer tool calls than an agent that receives a human-authored post-hoc summary of that version's derivation."
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: 025fdc191122c728
+season: 1
 tags:
   - hypothesis
   - g10.1
   - chats-as-thought
+testable_claim: An agent that receives the verbatim chat transcript from the version that produced the node it inherits reaches its first useful action in fewer tool calls than an agent that receives a human-authored post-hoc summary of that version's derivation.
+thought_session: season
+title: Verbatim derivation chats reduce agent tool-call overhead vs post-hoc summaries
+verdict: pending
 ---
-
 # hypothesis:a00-711c2d0f-15bc43
 
 ## Hypothesis

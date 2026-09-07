@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-chain-engine-test-chain-definition"
+id: build:tests-chain-engine-test-chain-definition
 mint_id: 90092c932baa464ea8965b45807d66fe
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-chain-engine
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/chain_engine/test_chain_definition.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/chain_engine/test_chain_definition.py"
-type: build
 ---
-
 `extensions/agi/tests/chain_engine/test_chain_definition.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-chain-engine`.

@@ -6,8 +6,11 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.95
+edited_by: season.py
 scaffold_hash: 130e25920291e69d
-title: "Dispatch scoring ignores ancestor goal lifecycle status — G5's 'lifecycle the engine reads' is reporting-only"
+season: 1
+thought_session: season
+title: Dispatch scoring ignores ancestor goal lifecycle status — G5's 'lifecycle the engine reads' is reporting-only
 verdict: inconclusive_lean_proved:95
 ---
 # hypothesis:a01-fc9a1d05-5ef909

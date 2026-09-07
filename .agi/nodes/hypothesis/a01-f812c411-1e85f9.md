@@ -6,7 +6,10 @@ parents:
   - goal:g4.7
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 60d7aa95a8c56a3b
+season: 1
+thought_session: season
 title: The reaper's 30-second window leaves the lifecycle unhealed — a continuous reaper closes it
 verdict: pending
 ---

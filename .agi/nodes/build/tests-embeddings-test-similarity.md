@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-embeddings-test-similarity"
+id: build:tests-embeddings-test-similarity
 mint_id: 9f14dedee851485dbf50fce05367f344
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/embeddings/test_similarity.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/embeddings/test_similarity.py"
-type: build
 ---
-
 `extensions/agi/tests/embeddings/test_similarity.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-embeddings`.

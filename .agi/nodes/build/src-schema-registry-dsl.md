@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-schema-registry-dsl"
+id: build:src-schema-registry-dsl
 mint_id: fa29186c60304b32bc3a9f59414ff772
-origin: build-scan
+type: build
 parents:
   - idea:engine-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/schema_registry/dsl.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/schema_registry/dsl.py"
-type: build
 ---
-
 `extensions/agi/src/schema_registry/dsl.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-schema-registry`.

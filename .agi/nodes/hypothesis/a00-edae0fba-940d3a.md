@@ -4,13 +4,15 @@ mint_id: f92d3a2537d14e7b9f11d4732bda767d
 type: hypothesis
 parents:
   - goal:s31
-title: "Seeding title+testable_claim at scaffold time makes hypothesis nodes schema-valid at birth"
-testable_claim: "If node_writer.write_node seeds the schema-required title and testable_claim from dispatch-time context, the scaffolded hypothesis passes [hypothesis] required-field validation at birth, and completion.is_complete still returns False on the untouched scaffold and True once the body is filled."
-scaffold_hash: 19458dca89a121d7
-verdict: pending
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: 19458dca89a121d7
+season: 1
+testable_claim: If node_writer.write_node seeds the schema-required title and testable_claim from dispatch-time context, the scaffolded hypothesis passes [hypothesis] required-field validation at birth, and completion.is_complete still returns False on the untouched scaffold and True once the body is filled.
+thought_session: season
+title: Seeding title+testable_claim at scaffold time makes hypothesis nodes schema-valid at birth
+verdict: pending
 ---
-
 
 # hypothesis:a00-edae0fba-940d3a
 

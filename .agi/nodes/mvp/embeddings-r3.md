@@ -1,19 +1,21 @@
 ---
-id: "mvp:embeddings-r3"
+id: mvp:embeddings-r3
 mint_id: ea2eaba7355a4b1e8fa907c336f89086
-next_edges:
-  - outcome:embeddings-r3
+type: mvp
 parents:
   - verdict:embeddings-r3
+next_edges:
+  - outcome:embeddings-r3
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R3
 testable_claim: Coordinate Isomorphism with Renderers
+thought_session: season
 title: "embeddings/R3: MVP"
-type: mvp
 ---
-
 **MVP:** UMAP Coords → Representation Bridge
 
 ```python

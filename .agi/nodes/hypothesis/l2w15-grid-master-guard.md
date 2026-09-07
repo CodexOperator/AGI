@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: afdc7bc1bded6fb0
+season: 1
 testable_claim: grid.py commit --all refuses to run when the checked-out branch is not master, unless --allow-branch is passed, while session-ref commits keep working from any branch
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1.5: l2w15-grid-master-guard"
 ---
 # hypothesis:l2w15-grid-master-guard

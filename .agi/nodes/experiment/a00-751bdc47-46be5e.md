@@ -5,14 +5,17 @@ type: experiment
 parents:
   - hypothesis:a00-88bc8541-fb6812
 next_edges: []
-confidence: 0.70
+confidence: 0.7
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-scaffold_hash: 357c50ba3b0d6c32
-title: derive-commands.py --all patches CLAUDE.md + QUICKSTART.md + edit-cycle passes
-verdict: inconclusive_lean_proved:70
+edited_by: season.py
 evidence_runs:
   - experiment:a00-751bdc47-46be5e
+scaffold_hash: 357c50ba3b0d6c32
+season: 1
+thought_session: season
+title: derive-commands.py --all patches CLAUDE.md + QUICKSTART.md + edit-cycle passes
+verdict: inconclusive_lean_proved:70
 ---
 # experiment:a00-751bdc47-46be5e
 

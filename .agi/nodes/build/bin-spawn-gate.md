@@ -1,18 +1,20 @@
 ---
+id: build:bin-spawn-gate
+mint_id: 79cb1a7ee8f949d8b272e894bb4e7a7e
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-spawn-gate"
-mint_id: 79cb1a7ee8f949d8b272e894bb4e7a7e
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/spawn_gate.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/spawn_gate.py"
-type: build
 ---
-
 `extensions/agi/bin/spawn_gate.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

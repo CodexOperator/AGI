@@ -1,25 +1,27 @@
 ---
-confidence: 1.0
-contrasts:
-evidence_runs:
-  - exp:graph-core-r1
-id: "verdict:graph-core-r1"
+id: verdict:graph-core-r1
 mint_id: 490712112f6d494b8fa146158470ba6b
-next_edges:
-  - exp:graph-core-r1-extend
+type: verdict
 parents:
   - exp:graph-core-r1
+next_edges:
+  - exp:graph-core-r1-extend
+confidence: 1.0
+contrasts:
+edited_by: season.py
+evidence_runs:
+  - exp:graph-core-r1
+season: 1
 status: proved
 subgraph: false
 supports:
 tags:
   - graph-core
   - R1
+thought_session: season
 title: "graph-core/R1: Verdict"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict:** PROVED
 
 **Evidence:**

@@ -4,17 +4,19 @@ mint_id: 05dada24dc6049a9a5ed0c86d1c69b60
 type: hypothesis
 parents:
   - goal:g9.7
+confidence: 0.75
+edited_by: season.py
 scaffold_hash: 6f73e1deaf8d0657
-title: "NodeFrameStream: one shared traversal transduced into both the terminal viewport and the spawn context"
-testable_claim: "A single NodeFrameStream of (node, depth, level, flag) frames sorted by one ordering policy transduces into both the ASCII viewport (g9.4) and the markdown spawn context with no forked traversal, so one render change reaches both outputs in the same commit."
+season: 1
 tags:
   - g9.7-execution
   - unified-renderer
   - shared-read-path
+testable_claim: A single NodeFrameStream of (node, depth, level, flag) frames sorted by one ordering policy transduces into both the ASCII viewport (g9.4) and the markdown spawn context with no forked traversal, so one render change reaches both outputs in the same commit.
+thought_session: season
+title: "NodeFrameStream: one shared traversal transduced into both the terminal viewport and the spawn context"
 verdict: pending
-confidence: 0.75
 ---
-
 
 # hypothesis:a00-db12df62-1859fd
 

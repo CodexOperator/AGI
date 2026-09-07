@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: 8cae4fe28ce50653
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: 8cae4fe28ce50653
+season: 1
 status: not_run
-title: "Second slot at goal:g10.1 — DISPATCHED, NOT RUN (provider budget)"
+thought_session: season
+title: Second slot at goal:g10.1 — DISPATCHED, NOT RUN (provider budget)
+verdict: pending
 ---
-
 # hypothesis:a01-b92cd522-47d3a8
 
 <!-- THOUGHT:BEGIN -->

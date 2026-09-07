@@ -14,15 +14,16 @@ blocked_by:
   - task:t-032
   - task:t-013
 cavekit_req: environment-indexers/R8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-043: Per-path result caching with invalidation and force-refresh"
 ---
 **Description:** Wrap each indexer's main entrypoint with a content-digest-keyed cache stored at `context/.cache/indexers/<indexer_name>/<digest>.pkl`. Add `--no-cache` CLI flag.

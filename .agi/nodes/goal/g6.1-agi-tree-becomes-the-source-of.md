@@ -1,13 +1,16 @@
 ---
+id: goal:g6.1
+mint_id: 73547cd61d2f4e37847b43ee6e050a83
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.1"
-mint_id: 73547cd61d2f4e37847b43ee6e050a83
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds:
   - exp:stitch-roundtrip-r1
   - idea:engine-decompose-engine
@@ -16,10 +19,9 @@ status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.1: agi-tree becomes the source of truth agi is assembled from"
-type: goal
 ---
-
 **The direction of authority reverses.** Today the graph describes the engine
 after the fact. The target is that the engine is *assembled from* the graph —
 the code is a projection of level-3 nodes, not a thing the nodes comment on.

@@ -7,14 +7,15 @@ parents:
   - goal:g13.1
 build_kind: prose
 confidence: 1.0
-edited_by: a00-64e810e1
+edited_by: season.py
 origin: build-scan
 payload_ref: skills/agi/SKILL.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
-thought_session: iter-L2.10
+thought_session: season
 title: "Build: skills/agi/SKILL.md"
 ---
 `skills/agi/SKILL.md` — level-3 code node (one file, one canonical node).

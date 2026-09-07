@@ -6,7 +6,10 @@ parents:
   - goal:g4.7
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 4bf7bfef2470c417
+season: 1
+thought_session: season
 title: A00 33773a60 eaefcb
 verdict: pending
 ---

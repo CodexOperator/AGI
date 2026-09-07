@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-stitch"
+id: build:tests-test-stitch
 mint_id: a7fb261841994fcbb57d2c2770d09211
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_stitch.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_stitch.py"
-type: build
 ---
-
 `extensions/agi/tests/test_stitch.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

@@ -8,7 +8,10 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 568b687b2034871f
+season: 1
+thought_session: season
 title: EmbedProjectCache adapter from WarmLoadCache pattern
 verdict: inconclusive_lean_proved:50
 ---

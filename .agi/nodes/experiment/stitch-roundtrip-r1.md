@@ -1,18 +1,20 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:stitch-roundtrip-r1"
+id: exp:stitch-roundtrip-r1
 mint_id: 6aa5e46bb8864417a93adec72a6a897f
+type: experiment
 parents:
   - goal:g6.1
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - level3
   - stitch
   - g6.1
+thought_session: season
 title: Stitch level-3 nodes back into a runnable tree
-type: experiment
 ---
-
 **Built:** `extensions/agi/bin/stitch.py` (engine repo), 31 new tests in
 `extensions/agi/tests/test_stitch.py`. Two modes: `--out DIR` materializes
 every `nodes/level3/*.md` node's `payload_ref` into `DIR`, preserving

@@ -1,18 +1,20 @@
 ---
+id: build:GOALS.md
+mint_id: 16fd4c7f953c40298fc1a486e8a2a4c8
+type: build
 build_kind: prose
 confidence: 1.0
-id: "build:GOALS.md"
-mint_id: 16fd4c7f953c40298fc1a486e8a2a4c8
+edited_by: season.py
 origin: build-scan
 payload_ref: GOALS.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: GOALS.md"
-type: build
 ---
-
 `GOALS.md` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

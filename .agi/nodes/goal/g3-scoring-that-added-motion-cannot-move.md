@@ -1,11 +1,14 @@
 ---
+id: goal:g3
+mint_id: 3df6dabc1aa4449aa506e3f158512f21
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G3
 goal_kind: long-term
 heading_level: 2
-id: "goal:g3"
-mint_id: 3df6dabc1aa4449aa506e3f158512f21
 origin: goals-doc
+season: 1
 seeds:
   - goal:g3.1
   - idea:engine-benchmark
@@ -15,10 +18,9 @@ status: active
 tags:
   - goal
   - root
+thought_session: season
 title: "G3: Scoring that added motion cannot move"
-type: goal
 ---
-
 The graph is measured by goals reached, never by motion spent. This goal exists
 because the opposite was tried and it worked: 9 chains × 2000 hops via shortcut
 cycles, carrying no signal, and the resulting structure then broke the render

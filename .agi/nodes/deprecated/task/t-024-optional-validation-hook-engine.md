@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-021
 cavekit_req: schema-registry/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-024: Optional validation hook engine"
 ---
 **Description:** Schema frontmatter may include a `validation` rule (declarative DSL — required-fields, type-checks, regex). Loader runs the rule against each candidate node. Each failure becomes a `ValidationError(node_id, schema, reason)` collected into the load result. Provide `registry.failures_by_schema()` query.

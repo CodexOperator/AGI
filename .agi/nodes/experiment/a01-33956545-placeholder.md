@@ -6,12 +6,13 @@ parents:
   - hypothesis:a01-33956545-9fc0bb
 next_edges: []
 confidence: 0.73
-edited_by: director
+edited_by: season.py
 evidence_runs:
   - experiment:a01-33956545-placeholder
 link_ref: extensions/agi/tests/test_commands.py
 scaffold_hash: a99c9ac57ec33d59
-thought_session: L1.12
+season: 1
+thought_session: season
 title: Derived command tables stay placeholder-safe
 verdict: proved
 ---

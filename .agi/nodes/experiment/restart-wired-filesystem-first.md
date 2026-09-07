@@ -2,18 +2,20 @@
 id: experiment:restart-wired-filesystem-first
 mint_id: 47412642608a4c6881aa5144173a4558
 type: experiment
-title: Restart wired, filesystem checked first
 parents:
   - verdict:a00-fd5d74ab-a74f6c
 next_edges:
   - verdict:the-reaper-can-heal-now
-scaffold_hash: 2236fd227ff34cb4
-verdict: proved
 confidence: 0.88
+edited_by: season.py
 evidence_runs:
   - experiment:restart-wired-filesystem-first
+scaffold_hash: 2236fd227ff34cb4
+season: 1
+thought_session: season
+title: Restart wired, filesystem checked first
+verdict: proved
 ---
-
 # experiment:restart-wired-filesystem-first
 
 ## Experiment

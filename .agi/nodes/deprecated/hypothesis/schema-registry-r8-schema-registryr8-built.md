@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-schema-registry
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - schema-registry
   - R8
 testable_claim: Built-In Schemas for Autoresearch Types
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R8: Built-In Schemas for Autoresearch Types"
 ---
 **Description:** A baseline set of schemas ships with the registry to define the autoresearch node types so chain-engine, renderers, and the skill can rely on them.

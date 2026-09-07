@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-031
 cavekit_req: chain-engine/R8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-054: Verdict taxonomy state validation"
 ---
 **Description:** Implement `Verdict.validate(state, n)` and a parser for the colon-suffixed forms. Insert hook in graph that intercepts verdict-typed nodes and runs validation; raises `VerdictTaxonomyError` on violation.

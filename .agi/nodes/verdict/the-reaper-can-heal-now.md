@@ -2,17 +2,19 @@
 id: verdict:the-reaper-can-heal-now
 mint_id: d36b769bb34246328b9818f4262ea6ae
 type: verdict
-title: The reaper can heal, and it checks the filesystem before it tries
 parents:
   - experiment:restart-wired-filesystem-first
 next_edges: []
-scaffold_hash: 64bbe60504faa060
-verdict: proved
 confidence: 0.88
+edited_by: season.py
 evidence_runs:
   - experiment:restart-wired-filesystem-first
+scaffold_hash: 64bbe60504faa060
+season: 1
+thought_session: season
+title: The reaper can heal, and it checks the filesystem before it tries
+verdict: proved
 ---
-
 # verdict:the-reaper-can-heal-now
 
 ## Verdict

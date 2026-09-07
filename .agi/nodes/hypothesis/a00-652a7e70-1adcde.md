@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g4.3
 confidence: 0.5
+edited_by: season.py
 evidence_runs: 0
+season: 1
+thought_session: season
 title: A00 652a7e70 1adcde
 verdict: pending
 wired_at: 1788204776
 wired_from: a00-652a7e70
 ---
-
 
 # hypothesis:a00-652a7e70-1adcde
 

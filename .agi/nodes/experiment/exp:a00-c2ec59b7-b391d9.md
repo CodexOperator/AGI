@@ -1,19 +1,21 @@
 ---
-id: "exp:a00-c2ec59b7-b391d9"
+id: exp:a00-c2ec59b7-b391d9
 mint_id: 1092eeaa56b844eaaeaace762617cd4c
-next_edges:
-  - verdict:a00-c2ec59b7-b391d9
+type: experiment
 parents:
   - hyp:a00-c2ec59b7-b391d9
+next_edges:
+  - verdict:a00-c2ec59b7-b391d9
+edited_by: season.py
+season: 1
 tags:
   - renderers
   - ascii
   - isomorphism
   - spearman
+thought_session: season
 title: ASCII render proximity vs graph descendant overlap
-type: experiment
 ---
-
 ## Method
 
 1. Loaded graph (983 nodes, 802 with descendants) via `graph_core.loader.load_directory`

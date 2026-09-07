@@ -6,8 +6,11 @@ parents:
   - goal:g1.10
 next_edges: []
 confidence: 0.25
+edited_by: season.py
 scaffold_hash: f23e1c5cc1492ccb
+season: 1
 testable_claim: Rendering every operator-facing command list **from** `nodes/.geometry/commands.md`, rather than describing commands again, removes the remaining manual copies. Editing the node becomes the only way a command changes anywhere. A change to one declared command propagates to all docs in a single run of the renderer, and the rendered tables match the node byte for byte (modulo formatting) on every smoke pass.
+thought_session: season
 title: A01 33956545 9fc0bb
 verdict: pending
 ---

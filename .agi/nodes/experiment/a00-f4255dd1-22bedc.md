@@ -6,10 +6,12 @@ parents:
   - hypothesis:a01-f9ba05b4-30da30
 next_edges: []
 confidence: 0.6
-edited_by: parent
-demoted_from: proved
 demote_reason: "[parent review] Experiment found 0 duplicate-id pairs (trigger absent); did not observe the mechanism firing. Code defect confirmed by grep but not demonstrated. Proof is in a01-42536fa8's synthetic test, not here."
+demoted_from: proved
+edited_by: season.py
 scaffold_hash: 46937f5670428792
+season: 1
+thought_session: season
 title: A00 f4255dd1 22bedc
 verdict: inconclusive_lean_proved:60
 ---

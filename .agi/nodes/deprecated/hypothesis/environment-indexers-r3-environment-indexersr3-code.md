@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-environment-indexers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - environment-indexers
   - R3
 testable_claim: Code Symbol Indexer
-thought_session: L1.09
+thought_session: season
 title: "environment-indexers/R3: Code Symbol Indexer"
 ---
 **Description:** An indexer emits nodes for code symbols (functions, classes, methods, modules) and edges for the relationships between them. The internals carry forward the lessons of the predecessor project (warm-load caching, tag-based bridging edges, precomputed traversal paths) but are re-implemented against this kit's contracts rather than copied.

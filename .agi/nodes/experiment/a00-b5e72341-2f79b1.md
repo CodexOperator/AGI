@@ -6,7 +6,10 @@ parents:
   - hypothesis:born-valid-without-touching-frontmatter
 next_edges: []
 confidence: 0.9
+edited_by: season.py
 scaffold_hash: 13411b275fc3bffe
+season: 1
+thought_session: season
 title: Replicate of the falsifier — s31 fix still holds at 2026-09-03
 verdict: inconclusive_lean_proved:90
 ---

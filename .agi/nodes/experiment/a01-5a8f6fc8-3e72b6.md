@@ -6,7 +6,10 @@ parents:
   - hypothesis:a01-8e09cdf2-6c63ec
 next_edges: []
 confidence: 0.4
+edited_by: season.py
 scaffold_hash: a389c13044edab17
+season: 1
+thought_session: season
 title: Outcome-coverage attribution audit — forward-ref method was flawed (parent review)
 verdict: inconclusive_lean_proved:40
 ---

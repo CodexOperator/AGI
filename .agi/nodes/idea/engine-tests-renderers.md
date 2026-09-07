@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-tests-renderers"
+id: idea:engine-tests-renderers
 mint_id: 8be9462c56f548a7acda2cd6ea301b12
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/tests/renderers"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/tests/renderers
 ---
-
 `extensions/agi/tests/renderers` — an engine source package.
 
 No module docstring or header comment was found for this surface.

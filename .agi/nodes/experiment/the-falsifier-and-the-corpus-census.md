@@ -2,18 +2,20 @@
 id: experiment:the-falsifier-and-the-corpus-census
 mint_id: 5f1f90fce155431788a151cb726880e9
 type: experiment
-title: The falsifier and the corpus census
 parents:
   - hypothesis:born-valid-without-touching-frontmatter
 next_edges:
   - verdict:scaffolds-are-born-valid-now
-scaffold_hash: 01d5d56d4030d1a7
-verdict: proved
 confidence: 0.94
+edited_by: season.py
 evidence_runs:
   - experiment:the-falsifier-and-the-corpus-census
+scaffold_hash: 01d5d56d4030d1a7
+season: 1
+thought_session: season
+title: The falsifier and the corpus census
+verdict: proved
 ---
-
 # experiment:the-falsifier-and-the-corpus-census
 
 ## Experiment

@@ -6,9 +6,12 @@ parents:
   - hypothesis:a01-ee1a02e3-4e834e
 next_edges: []
 confidence: 0.7
+edited_by: season.py
 evidence_runs:
   - experiment:a00-5c56a790-e73aaa
 scaffold_hash: 59e354d4731523e7
+season: 1
+thought_session: season
 title: Storage-cost projection — raw chat already pruned for 62% of recent sessions; lazy rendering saves 67% of subgraph storage
 verdict: inconclusive_lean_proved:70
 ---

@@ -5,12 +5,15 @@ type: experiment
 parents:
   - hypothesis:a00-edae0fba-940d3a
 next_edges: []
-scaffold_hash: cf6c6014c5eb5e09
-title: A01 de655bfd 635cd0
-verdict: disproved
 confidence: 0.85
+edited_by: season.py
 evidence_runs:
   - experiment:a01-de655bfd-635cd0
+scaffold_hash: cf6c6014c5eb5e09
+season: 1
+thought_session: season
+title: A01 de655bfd 635cd0
+verdict: disproved
 ---
 # experiment:a01-de655bfd-635cd0
 

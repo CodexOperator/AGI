@@ -7,18 +7,19 @@ parents:
   - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G1.12
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 5b4069c7b33c0b38
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G1.12: Loop flavor is a tag: research, exploration, development, implementation"
 ---
 # goal:g1.12

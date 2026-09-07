@@ -8,6 +8,7 @@ axis: form
 edited_by: owner
 grounded_in: moral:faith
 scaffold_hash: ce9dcc25226d5a41
+season: 1
 season_introduced: 1
 thought_session: agi-master-2026-09-06
 title: "moral: beauty"

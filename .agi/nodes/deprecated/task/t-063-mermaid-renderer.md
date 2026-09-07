@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-060
 cavekit_req: renderers/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-063: Mermaid renderer"
 ---
 **Description:** Implement `MermaidRenderer.render(rep) -> str`. Outputs `flowchart TD` followed by node and edge declarations. Deduplicates by id and edge triple.

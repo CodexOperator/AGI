@@ -1,19 +1,21 @@
 ---
-confidence: 0.9
-evidence_runs: 1
-id: "exp:noncode-surface-census"
+id: exp:noncode-surface-census
 mint_id: fa7f62e0dc3547d783675b3adc19ee61
+type: experiment
 parents:
   - goal:g6.6
+confidence: 0.9
+edited_by: season.py
+evidence_runs: 1
+season: 1
 subgraph: false
 tags:
   - g6.6
   - level3
   - census
+thought_session: season
 title: "Census: level3.py sees 23% of the engine, 39% after excluding generated noise"
-type: experiment
 ---
-
 **What was run:**
 
 ```

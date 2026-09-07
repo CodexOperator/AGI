@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-dashboard"
+id: idea:engine-dashboard
 mint_id: 0e7b83e64b004d5d8af6201982cbd0a3
-origin: engine-decomp
+type: idea
 parents:
   - goal:g9.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/dashboard.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/dashboard.py
 ---
-
 `extensions/agi/bin/dashboard.py` — an engine bin entry-point script.
 
 dashboard.py — a read-only terminal view of the graph, built for a HUMAN (G9.1).

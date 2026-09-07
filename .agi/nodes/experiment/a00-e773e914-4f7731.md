@@ -2,21 +2,23 @@
 id: experiment:a00-e773e914-4f7731
 mint_id: fef97b93dd294e3cb9fcb133425cb39f
 type: experiment
-title: "NodeFrameStream prototype: two formatters on one shared traversal, fidelity-checked across three zooms"
-testable_claim: "A single NodeFrameStream of (node, depth, level, flag) frames transduces into both the ASCII viewport and the markdown spawn context with identical counts, ordering, depth markers, and truncation boundaries."
 parents:
   - hypothesis:a00-db12df62-1859fd
-scaffold_hash: 9121ee72b0d80d4c
-verdict: inconclusive_lean_proved:65
 confidence: 0.65
+edited_by: season.py
 evidence_runs:
   - experiment:a00-e773e914-4f7731
+scaffold_hash: 9121ee72b0d80d4c
+season: 1
 tags:
   - g9.7-execution
   - node-frame-stream
   - unified-renderer
+testable_claim: A single NodeFrameStream of (node, depth, level, flag) frames transduces into both the ASCII viewport and the markdown spawn context with identical counts, ordering, depth markers, and truncation boundaries.
+thought_session: season
+title: "NodeFrameStream prototype: two formatters on one shared traversal, fidelity-checked across three zooms"
+verdict: inconclusive_lean_proved:65
 ---
-
 
 # experiment:a00-e773e914-4f7731
 

@@ -7,8 +7,11 @@ parents:
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
+edited_by: season.py
 evidence_runs: 1
 scaffold_hash: f81f04e561adacb7
+season: 1
+thought_session: season
 title: A00 a667efeb 43f94e
 verdict: inconclusive_lean_proved:50
 wired_at: 1788276225

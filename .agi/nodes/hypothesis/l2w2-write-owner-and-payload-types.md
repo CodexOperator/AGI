@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 67d24f171f7f4eec
+season: 1
 testable_claim: write.py refuses to create or edit any moral node unless --actor owner, and its payload verbs accept any node whose schema declares payload_ref, not only build nodes
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 2: l2w2-write-owner-and-payload-types"
 ---
 # hypothesis:l2w2-write-owner-and-payload-types

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-heal"
+id: build:bin-heal
 mint_id: 2405ecff7d3a4584af5cd7ec815bc679
-origin: build-scan
+type: build
 parents:
   - idea:engine-heal
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/heal.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/heal.py"
-type: build
 ---
-
 `extensions/agi/bin/heal.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-heal`.

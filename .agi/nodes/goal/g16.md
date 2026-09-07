@@ -5,17 +5,18 @@ type: goal
 parents: []
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G16
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 scaffold_hash: b8d304fcfbc73ec9
+season: 1
 seeds: []
 status: active
 tags:
   - goal
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "G16: Telemetry per node, propagated up the ladder"
 ---
 # goal:g16

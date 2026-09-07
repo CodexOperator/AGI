@@ -15,15 +15,16 @@ blocked_by:
   - task:t-024
   - task:t-018
 cavekit_req: schema-registry/R8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: L
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - L
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-031: Built-in schemas for autoresearch types"
 ---
 **Description:** Ship eight bracketed schema files in `agi-tree/src/graph_core/templates/builtin_schemas/`. Bootstrap copies them into `context/schemas/`. Verdict schema declares `state`, `confidence`, `evidence_runs`, `contradicts`, `supports`. User override mechanism: any user-placed `[<same-name>].md` shadows the built-in (built-in skipped on copy). Downstream callers of missing built-ins receive `MissingBuiltinSchemaError`.

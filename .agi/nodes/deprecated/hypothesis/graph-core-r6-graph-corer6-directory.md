@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R6
 testable_claim: Directory-Walking Auto-Discovery
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R6: Directory-Walking Auto-Discovery"
 ---
 **Description:** A directory of node files is loaded by walking the filesystem. A folder is a subgraph; files inside are nodes; folder names map to node types via the schema-registry.

@@ -7,8 +7,11 @@ parents:
 next_edges:
   - experiment:the-table-runs-and-caught-a-bug
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 7e09937831345e6e
+season: 1
 testable_claim: "A command table declared as a `.geometry` node, with one resolver, is strictly better than prose in a way that is **observable rather than aesthetic**: the table is executable, so a wrong command in it *fails* instead of being read and believed; and it is injectable, so an agent is **handed** the commands rather than remembering them."
+thought_session: season
 title: Commands are config not prose
 verdict: pending
 ---

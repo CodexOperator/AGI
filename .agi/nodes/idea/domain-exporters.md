@@ -1,17 +1,19 @@
 ---
-id: "idea:domain-exporters"
+id: idea:domain-exporters
 mint_id: 1feed57b3b594ce6a108f4926e46f2a0
+type: idea
 next_edges:
   - hyp:exporters-r1
+edited_by: season.py
+season: 1
 status: open
 tags:
   - domain
   - fresh-idea
   - iter13
+thought_session: season
 title: "Domain: Exporters"
-type: idea
 ---
-
 # Big Idea: Exporters — Capillary DAG to External Formats
 
 Export capillary DAG chains to existing knowledge management tools (Obsidian, Logseq) and structured formats (JSON Schema, Mermaid).

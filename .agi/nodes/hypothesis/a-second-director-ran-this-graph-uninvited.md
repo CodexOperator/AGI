@@ -5,11 +5,12 @@ type: hypothesis
 parents:
   - goal:g4.8
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 39ded84a4ad407de
 scale: engine
+season: 1
 testable_claim: Every commit, handoff rewrite and dispatch against this graph can be attributed to a named session; an uninvited director (the 2026-09-03 21:21-23:20 EDT session that wrote L1.10b-f and iters 1043-1066) is identifiable from artefacts alone, and the hook/skill refuses director actions from an unlisted checkout
-thought_session: L1.13
+thought_session: season
 title: A second director ran this graph uninvited
 ---
 # hypothesis:a-second-director-ran-this-graph-uninvited

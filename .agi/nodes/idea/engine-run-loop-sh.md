@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-run-loop-sh"
+id: idea:engine-run-loop-sh
 mint_id: 72743f7b867b49e9a3ed8326fcedc276
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: run-loop.sh"
-type: idea
 unit_kind: entry_point
 unit_path: run-loop.sh
 ---
-
 `run-loop.sh` — an engine entry point.
 
 run-loop.sh — bounded iteration loop for pi-autoresearch

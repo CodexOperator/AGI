@@ -1,28 +1,30 @@
 ---
+id: hyp:a00-ddbe3410-iterative-traversal
+mint_id: bc11344a96544f3bb83a07a9851ae18c
+type: hypothesis
+parents:
+  - idea:domain-chain-bootstrap
+  - exp:a00-ddbe3410-exp003-iterative-traversal
 acceptance_criteria: []
 blocked_by: []
 cavekit_req: chain-engine/iterative-fix
 confidence: 0.95
-demote_reason: "no experiment evidence (evidence_runs=0) for 'proved'"
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 effort: S
 evidence_runs: []
-id: "hyp:a00-ddbe3410-iterative-traversal"
-mint_id: bc11344a96544f3bb83a07a9851ae18c
-parents:
-  - idea:domain-chain-bootstrap
-  - exp:a00-ddbe3410-exp003-iterative-traversal
+season: 1
 status: open
 tags:
   - chain-engine
   - recursion-bug
   - iterative
   - iteration-1
+thought_session: season
 title: "Hypothesis: recursive DFS in find_chains() hits Python stack limit at 700+ hops"
-type: hypothesis
-verdict: "inconclusive_lean_proved:50"
+verdict: inconclusive_lean_proved:50
 ---
-
 ## Hypothesis
 
 The `find_chains()` function uses recursive DFS traversal. Python's default recursion limit is ~1000 frames. A 708-hop chain (alternating verdict/experiment) requires ~354 recursion levels, plus exploration overhead from branching. This exceeds the limit, causing `RecursionError` and masking the true chain lengths.

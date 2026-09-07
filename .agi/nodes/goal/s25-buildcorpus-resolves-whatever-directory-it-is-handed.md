@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 0.8
-edited_by: director
+edited_by: season.py
 goal_id: S25
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S25: `build_corpus` resolves whatever directory it is handed"
 ---
 **`goal:s10`'s second fix, which that goal said to do "regardless of (1)" and

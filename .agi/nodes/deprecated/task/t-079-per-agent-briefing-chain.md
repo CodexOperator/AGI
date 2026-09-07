@@ -13,15 +13,16 @@ blocked_by:
   - task:t-052
   - task:t-056
 cavekit_req: autoresearch-tree-skill/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-079: Per-agent briefing — chain stats"
 ---
 **Description:** Implement `build_briefing(graph, candidate_chains)` that calls chain-engine queries and assembles per-chain stats: length, depth, recency, mvp_count, attractiveness. Output is a structured JSON-serializable dict.

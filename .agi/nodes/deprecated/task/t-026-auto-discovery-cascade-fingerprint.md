@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-025
 cavekit_req: schema-registry/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-026: Auto-discovery cascade — fingerprint similarity (step 2)"
 ---
 **Description:** Step 2: compute a fingerprint (set of frontmatter keys) for files in the directory and the union over all registered schemas. Score = Jaccard similarity. Pick the schema with the highest score >= 0.7.

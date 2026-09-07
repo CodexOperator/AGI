@@ -1,13 +1,16 @@
 ---
+id: goal:g6.8
+mint_id: c0267a5787834c2189726d34a0966993
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.8
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.8"
-mint_id: c0267a5787834c2189726d34a0966993
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds:
   - mvp:census-boundary-scope
   - mvp:level3-boundary-scope
@@ -16,10 +19,9 @@ status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.8: The payload boundary: what is allowed to be a node"
-type: goal
 ---
-
 **G6.6 said "cover the non-code surfaces" without saying where coverage stops.
 This draws the line, so the answer is a rule rather than a judgement call each
 time.**
@@ -145,4 +147,3 @@ are not: they carry 7k-13k characters of real reasoning each and survive
 byte-identical to the engine, so collapsing them loses no bytes — and ~47,000
 characters of prose, with nowhere to put it. Fix G2.10 first, migrate the
 bodies, then retire the convention.
-

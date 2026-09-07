@@ -1,24 +1,26 @@
 ---
+id: hyp:a00-ddbe3410-structural-repair
+mint_id: feaf4a2e88d34e27ac192074295a68ea
+type: hypothesis
+parents:
+  - idea:domain-chain-bootstrap
+next_edges:
+  - exp:a00-ddbe3410-exp002-structural-repair
 acceptance_criteria: []
 blocked_by: []
 cavekit_req: structural-bias/synthetic-repair
+edited_by: season.py
 effort: L
-id: "hyp:a00-ddbe3410-structural-repair"
-mint_id: feaf4a2e88d34e27ac192074295a68ea
-next_edges:
-  - exp:a00-ddbe3410-exp002-structural-repair
-parents:
-  - idea:domain-chain-bootstrap
+season: 1
 status: open
 tags:
   - structural-bias
   - repair
   - synthetic-flag
   - iteration-1
+thought_session: season
 title: "Hypothesis: synthetic verdict nodes lack evidence_runs and synthetic flag"
-type: hypothesis
 ---
-
 ## Hypothesis
 
 The capillary DAG has 7794 verdict nodes. Most are synthetic (created by chain-extension scripts without running real experiments). These synthetic verdicts lack:

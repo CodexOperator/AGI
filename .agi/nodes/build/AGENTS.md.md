@@ -1,18 +1,20 @@
 ---
+id: build:AGENTS.md
+mint_id: f831dd7ca9df44048061087936cf4acd
+type: build
 build_kind: prose
 confidence: 1.0
-id: "build:AGENTS.md"
-mint_id: f831dd7ca9df44048061087936cf4acd
+edited_by: season.py
 origin: build-scan
 payload_ref: AGENTS.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: AGENTS.md"
-type: build
 ---
-
 `AGENTS.md` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

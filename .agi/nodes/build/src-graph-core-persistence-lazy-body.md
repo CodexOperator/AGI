@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-graph-core-persistence-lazy-body"
+id: build:src-graph-core-persistence-lazy-body
 mint_id: 50c2ca08036c4e67a107b58283375669
-origin: build-scan
+type: build
 parents:
   - idea:engine-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/graph_core/persistence/lazy_body.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/graph_core/persistence/lazy_body.py"
-type: build
 ---
-
 `extensions/agi/src/graph_core/persistence/lazy_body.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-graph-core`.

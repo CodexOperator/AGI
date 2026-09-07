@@ -6,14 +6,15 @@ parents:
   - idea:engine-decompose-engine
 build_kind: code
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/decompose-engine.py
+season: 1
 tags:
   - build
   - code
   - g2.1
-thought_session: doc-pass-2026-09-06
+thought_session: season
 title: "Build: extensions/agi/bin/decompose-engine.py"
 ---
 `extensions/agi/bin/decompose-engine.py` — level-3 code node (one file, one canonical node).

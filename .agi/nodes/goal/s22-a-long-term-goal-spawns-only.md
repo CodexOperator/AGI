@@ -7,17 +7,18 @@ parents:
 next_edges:
   - hypothesis:a00-0d182e77-3f4501
 confidence: 0.9
-edited_by: director
+edited_by: season.py
 goal_id: S22
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: A long-term goal spawns only hypotheses — design is earned
 ---
 **A goal may not shortcut to a design brief.** The route from a goal to an

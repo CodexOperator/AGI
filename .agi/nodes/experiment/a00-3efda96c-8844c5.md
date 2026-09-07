@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:loop-scoped-iteration-ids-cannot-clobber
 next_edges: []
+edited_by: season.py
 scaffold_hash: 9e62077f0f9a4a51
+season: 1
+thought_session: season
 title: A00 3efda96c 8844c5
 ---
-
 # experiment:a00-3efda96c-8844c5
 
 ## Experiment
@@ -18,4 +20,3 @@ What did you do? What happened? Include command/inputs and actual outputs.
 ## Evidence
 
 Raw output, screenshots, logs.
-

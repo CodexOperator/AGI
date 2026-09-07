@@ -1,22 +1,24 @@
 ---
-domain: session-management
-id: "hyp:session-management-r1"
+id: hyp:session-management-r1
 mint_id: 1fd4588f495c4f9ab568709fa3e13a17
-next_edges:
-  - exp:session-management-r1
+type: hypothesis
 parents:
   - idea:domain-session-management
+next_edges:
+  - exp:session-management-r1
+domain: session-management
+edited_by: season.py
+season: 1
 status: pending
 tags:
   - sessions
   - memory
   - persistence
   - R1
+thought_session: season
 title: "R1: Session state can be captured and restored with >95% fidelity"
-type: hypothesis
 verdict: pending
 ---
-
 ## Hypothesis
 
 **Claim**: Session state (working directory, git status, node graph, pending tasks) can be captured and restored with >95% fidelity.

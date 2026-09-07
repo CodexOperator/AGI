@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-level3"
+id: build:bin-level3
 mint_id: 59ccbfe63daf4e1bbccbe88d4e3e73b3
-origin: build-scan
+type: build
 parents:
   - idea:engine-level3
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/level3.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/level3.py"
-type: build
 ---
-
 `extensions/agi/bin/level3.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-level3`.

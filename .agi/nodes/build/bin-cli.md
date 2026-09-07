@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-cli"
+id: build:bin-cli
 mint_id: 42b7b4a44a7c4f56825daffc9fa0ced2
-origin: build-scan
+type: build
 parents:
   - idea:engine-cli
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/cli.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/cli.py"
-type: build
 ---
-
 `extensions/agi/bin/cli.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-cli`.

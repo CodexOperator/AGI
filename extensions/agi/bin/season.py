@@ -497,6 +497,124 @@ def cmd_judge(root: Path, args) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Subcommand: retag
+# ---------------------------------------------------------------------------
+
+#: A node whose id starts with this prefix is owner-tier (goal:g12) and may
+#: only be written through write.py with `--actor owner`.
+MORAL_PREFIX = "moral:"
+
+#: The frontmatter key retag stamps.
+SEASON_KEY = "season"
+
+
+def cmd_retag(root: Path, args) -> int:
+    """Backfill `season: 1` on every node that lacks a season stamp.
+
+    The precondition for the season supernode predicate (design brief 2.7):
+    a zoomed-out view collapses `season == 1` into one supernode, which only
+    works if the stamp exists on every node. The writer stamps at mint, so
+    pre-ladder nodes were never retagged; this is the one scripted pass that
+    closes the gap.
+
+    Rules (from hypothesis l3w0-season-retag):
+      * every node under `nodes/`, including `nodes/deprecated/`, with no
+        `season` field is stamped with the ladder's `current_season`;
+      * a node that already has `season` is skipped, never overwritten;
+      * every write shells out to write.py (never a direct file write), so
+        the write guard stays silent and provenance (`edited_by`,
+        `thought_session`) is recorded;
+      * moral nodes are owner-tier (goal:g12): for those five only the
+        shell-out uses `--actor owner`, and their existing `edited_by` /
+        `thought_session` provenance is preserved rather than overwritten by
+        this scripted pass.
+    """
+    dry_run = getattr(args, 'dry_run', False)
+    actor = getattr(args, 'actor', "") or "season.py"
+    session = getattr(args, 'session', "") or "season"
+    season = _get_current_season(root)
+
+    nodes_dir = Path(root) / "nodes"
+    total = 0
+    with_season = 0
+    candidates: list[str] = []
+    moral_ids: list[str] = []
+    for f in sorted(nodes_dir.rglob("*.md")):
+        try:
+            nf = frontmatter.load_node_file(f)
+        except Exception:
+            continue
+        fm = nf.frontmatter
+        nid = fm.get("id")
+        if not isinstance(nid, str) or not nid:
+            continue  # not a node file (e.g. a loose doc)
+        total += 1
+        if fm.get(SEASON_KEY) is not None:
+            with_season += 1
+        else:
+            candidates.append(nid)
+            if nid.startswith(MORAL_PREFIX):
+                moral_ids.append(nid)
+
+    print(f"Retag: stamp season {season} on every node with none")
+    print(f"  nodes: {total}")
+    print(f"  with season: {with_season}")
+    print(f"  without season: {len(candidates)}")
+    if moral_ids:
+        print(f"  moral (owner-tier, --actor owner): {len(moral_ids)}")
+    if dry_run:
+        print(f"[DRY RUN] {len(candidates)} node(s) would be stamped; nothing written")
+        return 0
+
+    if not candidates:
+        print("nothing to stamp.")
+        return 0
+
+    stamped = 0
+    failures = []
+    for nid in candidates:
+        if nid.startswith(MORAL_PREFIX):
+            # Owner-tier (goal:g12): the stamp must not clobber the owner's
+            # own edited_by/thought_session — write.py always sets edited_by
+            # from --actor and only touches thought_session when --session is
+            # truthy, so pass actor=owner and no session to preserve both.
+            node_actor = "owner"
+            node_session = ""
+        else:
+            node_actor = actor
+            node_session = session
+        rc = _shell_out_write(root, nid, set_fm={SEASON_KEY: season},
+                              actor=node_actor, session=node_session)
+        if rc == 0:
+            stamped += 1
+        else:
+            failures.append(nid)
+
+    # Re-count for the after figure.
+    after_with_season = 0
+    after_candidates = 0
+    for f in sorted(nodes_dir.rglob("*.md")):
+        try:
+            nf = frontmatter.load_node_file(f)
+        except Exception:
+            continue
+        fm = nf.frontmatter
+        if not isinstance(fm.get("id"), str):
+            continue
+        if fm.get(SEASON_KEY) is not None:
+            after_with_season += 1
+        else:
+            after_candidates += 1
+
+    print(f"stamped: {stamped}")
+    print(f"  after: {after_with_season} with season / {after_candidates} without")
+    if failures:
+        print(f"FAILED: {len(failures)} — {', '.join(failures)}", file=sys.stderr)
+        return 1
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Subcommand: rollover
 # ---------------------------------------------------------------------------
 
@@ -671,6 +789,16 @@ def main(argv: list[str] | None = None) -> int:
     p_rollover.add_argument("--debug", action="store_true", help="Show debug info",
                             dest="debug")
 
+    # retag
+    p_retag = sub.add_parser("retag",
+                             help="Backfill season on every node that lacks it")
+    p_retag.add_argument("--dry-run", action="store_true", default=False,
+                         help="Print what would happen and write nothing")
+    p_retag.add_argument("--actor", default="",
+                         help="edited_by for non-moral stamps (default: season.py)")
+    p_retag.add_argument("--session", default="",
+                         help="thought_session for stamps (default: season)")
+
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
@@ -684,6 +812,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_judge(root, args)
     elif args.command == "rollover":
         return cmd_rollover(root, args)
+    elif args.command == "retag":
+        return cmd_retag(root, args)
 
     return 0
 

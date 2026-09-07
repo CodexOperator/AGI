@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-dbd82e32-0b294f
 next_edges: []
+edited_by: season.py
 scaffold_hash: d33a6b8f00f829e1
+season: 1
+thought_session: season
 title: A00 5b72095d 2c70c0
 ---
-
 # experiment:a00-5b72095d-2c70c0
 
 ## Hypothesis Under Test

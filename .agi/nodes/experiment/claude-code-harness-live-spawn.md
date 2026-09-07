@@ -6,17 +6,18 @@ parents:
   - hypothesis:a01-391172f1-7157cf
 next_edges: []
 confidence: 0.9
-edited_by: parent agent (Claude Fable 5.1) implementing goal:g4.6
+edited_by: season.py
 evidence_runs:
   - hypothesis:a00-9bcc560d-7dd08c
   - hypothesis:a01-391172f1-7157cf
 scaffold_hash: 191d3ed93b8fe7f5
+season: 1
 tags:
   - experiment
   - harness
   - claude-code
 testable_claim: dispatch.py --harness claude-code --tier kid spawns a real claude -p process per slot that reads its zoom context, fills its scaffolded node under .agi/nodes/, runs cli.py done, exits, and returns its spawn_budget lease -- with dispatch.py unedited
-thought_session: 2447cd96-1371-4b5a-b4c4-655b1e19b44b
+thought_session: season
 title: Claude code harness live spawn
 verdict: proved
 ---

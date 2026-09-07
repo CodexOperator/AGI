@@ -10,15 +10,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-050
 cavekit_req: chain-engine/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-058: mid_chain_candidates query"
 ---
 **Description:** Implement `mid_chain_candidates(graph, min_length, max_recency)` returning a list of `(node_id, chain, position)` triples meeting both filters.

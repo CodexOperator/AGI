@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-schema-registry"
+id: idea:engine-schema-registry
 mint_id: 76120a4f22eb413886a99e6a4780c315
-origin: engine-decomp
+type: idea
 parents:
   - goal:g5
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/src/schema_registry"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/src/schema_registry
 ---
-
 `extensions/agi/src/schema_registry` — an engine source package.
 
 schema-registry: pluggable, file-driven node schemas (R1+).

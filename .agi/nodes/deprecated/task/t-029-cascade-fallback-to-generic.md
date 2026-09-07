@@ -9,14 +9,15 @@ acceptance_criteria:
 blocked_by:
   - task:t-027
 cavekit_req: schema-registry/R5
-edited_by: exp-a01-30399a10
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: iter-1072
+thought_session: season
 tier: -1
 title: "T-029: Cascade fallback to generic with unmatched-files warning (step 4)"
 ---

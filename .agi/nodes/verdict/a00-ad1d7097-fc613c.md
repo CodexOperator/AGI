@@ -5,8 +5,11 @@ type: verdict
 parents:
   - experiment:a00-40bc8d0a-f0690e
 confidence: 0.65
+edited_by: season.py
 evidence_runs: 0
 scaffold_hash: f481e68740b99bb5
+season: 1
+thought_session: season
 title: A00 ad1d7097 fc613c
 verdict: inconclusive_lean_proved:65
 wired_at: 1788244312

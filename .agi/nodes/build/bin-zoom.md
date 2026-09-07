@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-zoom"
+id: build:bin-zoom
 mint_id: 748058ed9c1e41a7acc8c44672c6088e
-origin: build-scan
+type: build
 parents:
   - idea:engine-zoom
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/zoom.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/zoom.py"
-type: build
 ---
-
 `extensions/agi/bin/zoom.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-zoom`.

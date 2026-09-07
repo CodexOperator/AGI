@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g8.1
 next_edges: []
+edited_by: season.py
 scaffold_hash: 9f4d4f2176815048
+season: 1
+thought_session: season
 title: A00 2bf7847c 91509e
 ---
-
 # hypothesis:a00-2bf7847c-91509e
 
 ## Hypothesis

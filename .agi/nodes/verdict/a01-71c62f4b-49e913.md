@@ -6,10 +6,13 @@ parents:
   - experiment:a01-095cec0b-115104
 next_edges: []
 confidence: 0.55
+edited_by: season.py
 evidence_runs:
   - experiment:a01-095cec0b-115104
   - experiment:a00-67c6ae64-feb32a
 scaffold_hash: f382ca8a161b8ef4
+season: 1
+thought_session: season
 title: "A01 71c62f4b 49e913 — designated-committer restriction: lean-proved for 2/3, moot vs worktree"
 verdict: inconclusive_lean_proved:55
 ---

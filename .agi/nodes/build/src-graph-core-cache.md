@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-graph-core-cache"
+id: build:src-graph-core-cache
 mint_id: 42abab1befc34dba9aaee4f9eb0e65a5
-origin: build-scan
+type: build
 parents:
   - idea:engine-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/graph_core/cache.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/graph_core/cache.py"
-type: build
 ---
-
 `extensions/agi/src/graph_core/cache.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-graph-core`.

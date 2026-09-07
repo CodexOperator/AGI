@@ -1,17 +1,19 @@
 ---
-id: "hyp:environment-indexers-r1-chain-extension"
+id: hyp:environment-indexers-r1-chain-extension
 mint_id: abb147d3311c454499bca1b087fe383a
+type: hypothesis
 parents:
   - idea:domain-environment-indexers
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - environment-indexers
   - chain-extension
   - verdict-experiment-transition
+thought_session: season
 title: "environment-indexers/R1: Extend chain to 12 hops via verdict→experiment→verdict cycles"
-type: hypothesis
 ---
-
 **Description:** The environment-indexers domain has 9 hypotheses but no complete 10 or 12-hop chain. Extend the r1 chain by adding verdict→experiment→verdict→mvp→outcome→bigger→app_purpose nodes.
 
 **Method:**

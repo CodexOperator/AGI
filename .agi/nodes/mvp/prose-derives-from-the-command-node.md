@@ -2,15 +2,17 @@
 id: mvp:prose-derives-from-the-command-node
 mint_id: 10d19b3c96b14e41a995a39cd34c8105
 type: mvp
-title: The command lists in prose derive from the node instead of restating it
 parents:
   - verdict:declared-commands-delete-four-copies
 next_edges: []
-scaffold_hash: e5442aa40ebf527e
-status: open
 confidence: 0.8
+edited_by: season.py
+scaffold_hash: e5442aa40ebf527e
+season: 1
+status: open
+thought_session: season
+title: The command lists in prose derive from the node instead of restating it
 ---
-
 # mvp:prose-derives-from-the-command-node
 
 ## What this must satisfy

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:driver.sh"
+id: build:driver.sh
 mint_id: 9cb18b7af95d42b2b4ce033f16bc4f2b
-origin: build-scan
+type: build
 parents:
   - idea:engine-driver-sh
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/driver.sh
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/driver.sh"
-type: build
 ---
-
 `extensions/agi/driver.sh` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-driver-sh`.

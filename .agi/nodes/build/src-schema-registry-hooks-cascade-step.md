@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-schema-registry-hooks-cascade-step"
+id: build:src-schema-registry-hooks-cascade-step
 mint_id: 064ea2454a5f4eee8a04321d48b5188d
-origin: build-scan
+type: build
 parents:
   - idea:engine-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/schema_registry/hooks/cascade_step.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/schema_registry/hooks/cascade_step.py"
-type: build
 ---
-
 `extensions/agi/src/schema_registry/hooks/cascade_step.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-schema-registry`.

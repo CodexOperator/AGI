@@ -1,19 +1,21 @@
 ---
-id: "exp:embeddings-r3"
+id: exp:embeddings-r3
 mint_id: 08db4a9a7b3b45d7bfe75c4bb7aba768
-next_edges:
-  - verdict:embeddings-r3
+type: experiment
 parents:
   - hyp:embeddings-r3
+next_edges:
+  - verdict:embeddings-r3
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - embeddings
   - R3
 testable_claim: Coordinate Isomorphism with Renderers
+thought_session: season
 title: "embeddings/R3: Experiment"
-type: experiment
 ---
-
 **Description:** Implement and validate apply_umap_coords bridging UMAP projection to Representation.
 
 **Method:**

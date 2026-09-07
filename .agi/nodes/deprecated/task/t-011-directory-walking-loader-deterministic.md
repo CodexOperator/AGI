@@ -11,14 +11,15 @@ blocked_by:
   - task:t-006
   - task:t-005
 cavekit_req: graph-core/R6
-edited_by: exp-a00-b393b716
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: iter-1068
+thought_session: season
 tier: -1
 title: "T-011: Directory-walking loader (deterministic)"
 ---

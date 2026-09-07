@@ -13,15 +13,16 @@ blocked_by:
   - task:t-006
   - task:t-011
 cavekit_req: graph-core/R8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-015: Pluggable persistence backend contract"
 ---
 **Description:** Define a `PersistenceBackend` Protocol with `load(path)`, `save(path, node)`, `list(path)`, `watch(path)`. Filesystem backend is the default implementation. Provide an `InMemoryBackend` for tests. Configuration via `context/config/graph-core.toml` selects which backend to use.

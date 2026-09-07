@@ -5,6 +5,8 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 domain: renderers
+edited_by: season.py
+season: 1
 spawns: []
 status: open
 tags:
@@ -14,6 +16,7 @@ tags:
   - deterministic
   - validity
 testable_claim: "The `render_mermaid()` function produces valid Mermaid 10+ syntax that: 1. Starts with `flowchart TD` or `graph TD` directive 2. Every node and edge appears at most once (deduplication) 3. Two runs against the same representation produce byte-identical output"
+thought_session: season
 title: A00 8636e255 bf1a6c
 ---
 # hyp:a00-8636e255-bf1a6c

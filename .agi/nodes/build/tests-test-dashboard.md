@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-dashboard"
+id: build:tests-test-dashboard
 mint_id: c8fc12f318344ac39df3a96eda113819
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_dashboard.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_dashboard.py"
-type: build
 ---
-
 `extensions/agi/tests/test_dashboard.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

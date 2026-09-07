@@ -1,22 +1,24 @@
 ---
+id: goal:g1.7
+mint_id: d188e9268fde4b87877dc8c8d59aaace
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.7
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.7"
-mint_id: d188e9268fde4b87877dc8c8d59aaace
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.7: The demotion path is a command, not a careful hand"
-type: goal
 ---
-
 Demoting a verdict is a **four-field** edit -- `verdict`, `status`,
 `demoted_from`, `demote_reason` -- and `bin/evidence_gate.py` only owns the
 first. The other three are left to whoever is holding the keyboard.

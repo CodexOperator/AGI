@@ -6,7 +6,10 @@ parents:
   - goal:s33
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 16e74c994addd8ca
+season: 1
+thought_session: season
 title: QUICKSTART.md lists retired render-context.py as a live driver.sh stage
 verdict: pending
 ---

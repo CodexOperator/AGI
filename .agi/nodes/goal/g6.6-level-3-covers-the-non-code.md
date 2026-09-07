@@ -1,23 +1,25 @@
 ---
+id: goal:g6.6
+mint_id: 26e39066f7bb494581c7b494d409d4fa
+type: goal
+parents:
+  - goal:g6
 confidence: 1.0
+edited_by: season.py
 goal_id: G6.6
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g6.6"
-mint_id: 26e39066f7bb494581c7b494d409d4fa
 origin: goals-doc
-parents:
-  - goal:g6
+season: 1
 seeds:
   - exp:noncode-surface-census
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G6.6: Level 3 covers the non-code surfaces too"
-type: goal
 ---
-
 **A projection that omits half the engine cannot rebuild it.** `level3.py`'s
 scope is deliberately narrow and says so in its own docstring:
 `extensions/agi/src/**/*.py` plus `extensions/agi/bin/*.py`, about 70 files.

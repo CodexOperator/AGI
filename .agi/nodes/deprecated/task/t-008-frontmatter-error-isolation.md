@@ -9,15 +9,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-006
 cavekit_req: graph-core/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-008: Frontmatter error isolation"
 ---
 **Description:** Wrap each per-file load in a try/except that emits a `FrontmatterError(path, reason)` into a structured error list and skips the offending file. Graph load returns both the loaded node set and the error list.

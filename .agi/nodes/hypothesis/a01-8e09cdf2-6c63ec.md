@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g3
 next_edges: []
-scaffold_hash: c7562d50ca62917a
-title: "Outcome-coverage is gameable because it attributes to no goal"
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: c7562d50ca62917a
+season: 1
+testable_claim: Measuring outcome_coverage (chains reaching any outcome node) vs. goal-attributed outcome fraction (outcomes linked via a proven hypothesis → experiment chain to a specific goal) on the real corpus shows a gap >50%, confirming outcome_coverage is a gameable proxy.
+thought_session: season
+title: Outcome-coverage is gameable because it attributes to no goal
 verdict: pending
-testable_claim: "Measuring outcome_coverage (chains reaching any outcome node) vs. goal-attributed outcome fraction (outcomes linked via a proven hypothesis → experiment chain to a specific goal) on the real corpus shows a gap >50%, confirming outcome_coverage is a gameable proxy."
 ---
-
 # hypothesis:a01-8e09cdf2-6c63ec
 
 ## Hypothesis

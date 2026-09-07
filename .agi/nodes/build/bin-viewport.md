@@ -1,18 +1,20 @@
 ---
+id: build:bin-viewport
+mint_id: b3d2e0e728ff44609a28f351f4ee038c
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-viewport"
-mint_id: b3d2e0e728ff44609a28f351f4ee038c
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/viewport.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/viewport.py"
-type: build
 ---
-
 `extensions/agi/bin/viewport.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

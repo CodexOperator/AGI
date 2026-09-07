@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-skill-doc"
+id: idea:engine-skill-doc
 mint_id: 94b463ebaa5b47f592daad9e10430670
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: skills/agi/SKILL.md"
-type: idea
 unit_kind: entry_point
 unit_path: skills/agi/SKILL.md
 ---
-
 `skills/agi/SKILL.md` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

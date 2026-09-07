@@ -1,18 +1,20 @@
 ---
+id: build:bin-brief
+mint_id: 45c0ff4a2fe34d2aaa496f339ef96b70
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-brief"
-mint_id: 45c0ff4a2fe34d2aaa496f339ef96b70
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/brief.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/brief.py"
-type: build
 ---
-
 `extensions/agi/bin/brief.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

@@ -5,16 +5,18 @@ type: experiment
 parents:
   - hypothesis:loop-scoped-iteration-ids-cannot-clobber
 next_edges: []
-edited_by: a00-dc51bea8
-scale: engine
-verdict: "inconclusive_lean_disproved:65"
 confidence: 0.65
-evidence_runs: []
 contradicts: []
-supports: []
+edited_by: season.py
+evidence_runs: []
+scale: engine
+season: 1
 subgraph: false
+supports: []
 testable_claim: "Read driver.sh, dispatch.py, cli.py, zoom.py for iter-NNN formatting/allocation and check both halves of the hypothesis: (a) does a fresh run clobber an existing sessions manifest, (b) are ids loop-scoped (L<loop>.<nn>) end to end"
+thought_session: season
 title: Read-only check -- clobber is fixed, loop-scoping is not
+verdict: inconclusive_lean_disproved:65
 ---
 # exp:loop-scoped-ids-not-end-to-end
 

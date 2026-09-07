@@ -5,12 +5,15 @@ type: experiment
 parents:
   - hypothesis:l2w1-experiment-payload
 next_edges: []
-scaffold_hash: 68cf494056476643
-title: A00 43639472 a86951
-verdict: proved
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a00-43639472-a86951
+scaffold_hash: 68cf494056476643
+season: 1
+thought_session: season
+title: A00 43639472 a86951
+verdict: proved
 ---
 # experiment:a00-43639472-a86951
 

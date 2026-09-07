@@ -6,7 +6,10 @@ parents:
   - hypothesis:a00-711c2d0f-15bc43
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 52dbd7784dab6574
+season: 1
+thought_session: season
 title: "G10.1 falsifier protocol: chat-vs-briefing agent dispatch with full tool-call instrumentation"
 verdict: pending
 ---

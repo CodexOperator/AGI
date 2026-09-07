@@ -2,18 +2,20 @@
 id: experiment:lease-bound-under-five-spawners
 mint_id: 4edb4c4c5f534ab2a72b13b09694fe9e
 type: experiment
-title: "Five independent spawners, five slots each, one lease directory"
 parents:
   - hypothesis:shared-lease-bounds-the-tree
 next_edges:
   - verdict:the-bound-is-structural-now
-scaffold_hash: 05b6ef7d188857cc
-verdict: proved
 confidence: 0.97
+edited_by: season.py
 evidence_runs:
   - experiment:lease-bound-under-five-spawners
+scaffold_hash: 05b6ef7d188857cc
+season: 1
+thought_session: season
+title: Five independent spawners, five slots each, one lease directory
+verdict: proved
 ---
-
 # experiment:lease-bound-under-five-spawners
 
 ## Experiment

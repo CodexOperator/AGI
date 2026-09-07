@@ -12,15 +12,16 @@ blocked_by:
   - task:t-014
   - task:t-015
 cavekit_req: graph-core/R9
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-016: Portability contract — relative paths only"
 ---
 **Description:** Audit every path-handling site to use `Path(project_root) / relative`. Reject configuration values containing absolute paths outside the project root. Document the optional model-selector env var as the only permitted environment dependency.

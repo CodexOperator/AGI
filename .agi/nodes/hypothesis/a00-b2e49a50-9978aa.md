@@ -6,7 +6,10 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.95
+edited_by: season.py
 scaffold_hash: 81aec29e87a6eb46
+season: 1
+thought_session: season
 title: Spawn gate does not check parent goal lifecycle status before approving
 verdict: inconclusive_lean_proved:95
 ---

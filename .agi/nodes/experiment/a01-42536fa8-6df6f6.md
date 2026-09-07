@@ -6,10 +6,12 @@ parents:
   - hypothesis:a01-f9ba05b4-30da30
 next_edges: []
 confidence: 0.95
-edited_by: parent
+edited_by: season.py
 evidence_runs:
   - experiment:a01-42536fa8-6df6f6
 scaffold_hash: 23b59299e72e0bda
+season: 1
+thought_session: season
 title: Proving load_existing_nodes last-wins hides orphan parents
 verdict: proved
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-renderers-git-diff"
+id: build:src-renderers-git-diff
 mint_id: 513d7cfa874546d48d845e670d500177
-origin: build-scan
+type: build
 parents:
   - idea:engine-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/renderers/git_diff.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/renderers/git_diff.py"
-type: build
 ---
-
 `extensions/agi/src/renderers/git_diff.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-renderers`.

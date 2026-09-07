@@ -5,17 +5,18 @@ type: goal
 parents:
   - goal:g4
 confidence: 1.0
-edited_by: owner
+edited_by: season.py
 goal_id: G4.1
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
-thought_session: L1.07
+thought_session: season
 title: "G4.1: Parallel kids share one working tree and collide"
 ---
 Observed live 2026-08-22, by both kids of the same iteration independently.

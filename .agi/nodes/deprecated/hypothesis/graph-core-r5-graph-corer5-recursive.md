@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R5
 testable_claim: Recursive Node Bodies
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R5: Recursive Node Bodies"
 ---
 **Description:** A node body may itself contain a subgraph. The same primitives and the same renderers handle top-level and recursive subgraphs.

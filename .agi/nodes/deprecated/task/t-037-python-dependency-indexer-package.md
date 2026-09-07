@@ -13,15 +13,16 @@ blocked_by:
   - task:t-032
   - task:t-031
 cavekit_req: environment-indexers/R4
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-037: Python dependency indexer — package nodes from declarations"
 ---
 **Description:** Parse `requirements.txt` (line-based) and `pyproject.toml` (`[project.dependencies]`, `[tool.poetry.dependencies]`). Emit `package` node per dependency. Missing both files → `NoDependencyDeclarationError`.

@@ -4,9 +4,12 @@ mint_id: 6790ca32192049f7bbfd5db2151b3e70
 type: experiment
 parents:
   - hyp:a00-407fa689-verdict-repair
+edited_by: season.py
+season: 1
 tags:
   - chain-extension
   - repair
+thought_session: season
 title: Exp a00 407fa689 verdict repair
 ---
 # exp:exp-a00-407fa689-verdict-repair

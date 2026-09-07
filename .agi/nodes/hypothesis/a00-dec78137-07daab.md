@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g4.8
 next_edges: []
-scaffold_hash: d7a20d06113e3193
-title: "Concurrent dispatch needs target diversity to convert throughput into coverage"
-testable_claim: "With P concurrent parents targeting the same graph region, at least (P-1)/P kids independently re-derive the same one or two hypotheses, because the subtree visible to each kid at --level small contains the same open questions — clones of each other rather than complementary coverage. Raising spawn.parallel against a single target is a throughput knob, not a coverage knob."
-verdict: pending
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: d7a20d06113e3193
+season: 1
+testable_claim: With P concurrent parents targeting the same graph region, at least (P-1)/P kids independently re-derive the same one or two hypotheses, because the subtree visible to each kid at --level small contains the same open questions — clones of each other rather than complementary coverage. Raising spawn.parallel against a single target is a throughput knob, not a coverage knob.
+thought_session: season
+title: Concurrent dispatch needs target diversity to convert throughput into coverage
+verdict: pending
 ---
-
 # hypothesis:a00-dec78137-07daab
 
 ## Hypothesis

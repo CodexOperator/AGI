@@ -6,13 +6,14 @@ parents:
   - hyp:schema-registry-r5
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-schema-registry-cascade
   - build:src-schema-registry-fingerprint
   - build:tests-schema-registry-test-cascade-step-1
   - build:tests-schema-registry-test-cascade-step-2
 scaffold_hash: e8136f125a519fa8
+season: 1
 supports:
   - hyp:schema-registry-r5
 tags:
@@ -20,7 +21,7 @@ tags:
   - R5
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "schema-registry/R5: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

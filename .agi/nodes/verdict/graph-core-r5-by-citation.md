@@ -6,11 +6,12 @@ parents:
   - hyp:graph-core-r5
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:tests-graph-core-test-recursive-bodies
   - build:tests-graph-core-test-uniform-contract
 scaffold_hash: 6285154113614fef
+season: 1
 supports:
   - hyp:graph-core-r5
 tags:
@@ -18,7 +19,7 @@ tags:
   - R5
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R5: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

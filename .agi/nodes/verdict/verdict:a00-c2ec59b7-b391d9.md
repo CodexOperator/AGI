@@ -1,25 +1,27 @@
 ---
-confidence: 0.85
-demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
-demoted_from: disproved
-evidence_runs: []
-id: "verdict:a00-c2ec59b7-b391d9"
+id: verdict:a00-c2ec59b7-b391d9
 mint_id: 632f60af2e3a4910871a02eba4f73c74
-next_edges: []
+type: verdict
 parents:
   - exp:a00-c2ec59b7-b391d9
   - hyp:a00-c2ec59b7-b391d9
-status: "inconclusive_lean_disproved:50"
+next_edges: []
+confidence: 0.85
+demote_reason: no experiment evidence (evidence_runs=0) for 'disproved'
+demoted_from: disproved
+edited_by: season.py
+evidence_runs: []
+season: 1
+status: inconclusive_lean_disproved:50
 tags:
   - renderers
   - ascii
   - isomorphism
   - disproved
+thought_session: season
 title: ASCII render proximity not isomorphic to descendant overlap
-type: verdict
-verdict: "inconclusive_lean_disproved:50"
+verdict: inconclusive_lean_disproved:50
 ---
-
 VERDICT: DISPROVED
 
 Spearman correlation = -0.903 (strongly anti-correlated).

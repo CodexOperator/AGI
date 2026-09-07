@@ -6,7 +6,10 @@ parents:
   - goal:g4.1
 next_edges: []
 confidence: 0.4
+edited_by: season.py
 scaffold_hash: d1fdc5a41ff1e15b
+season: 1
+thought_session: season
 title: A01 390e52ad e286a2 — stale-.pyc race is the one g4.1 collision not fixed by command/worktree restriction
 verdict: pending
 ---

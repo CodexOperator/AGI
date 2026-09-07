@@ -8,9 +8,12 @@ next_edges: []
 confidence: 0.6
 demote_reason: "parent review: universality clause refuted (second unlogged serializer snapshot_goals.write_frontmatter; unlogged post_wire fallback; replace_payload uninstrumented); mechanism live-verified"
 demoted_from: proved
+edited_by: season.py
 evidence_runs:
   - experiment:a00-8be94922-2ea0a8
 scaffold_hash: 3dc9e623bf2baeb4
+season: 1
+thought_session: season
 title: A00 8be94922 2ea0a8
 verdict: inconclusive_lean_proved:60
 ---

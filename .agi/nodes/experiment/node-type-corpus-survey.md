@@ -7,14 +7,16 @@ parents:
 next_edges:
   - verdict:spawn-gate-lands-on-writer-path
 confidence: 0.9
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - s17
   - schema
   - survey
+thought_session: season
 title: "Corpus survey: the spawn rule table reproduces, and 53 nodes already violate it"
 ---
-
 # exp:node-type-corpus-survey
 
 **Sub-claim 1 of the hypothesis: is the rule derivable?** Re-ran the S17

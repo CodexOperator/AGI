@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-embeddings
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - embeddings
   - R1
 testable_claim: Per-Node Vector Generation
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R1: Per-Node Vector Generation"
 ---
 **Description:** A vector is generated per node by running Node2Vec over the graph-core graph. The choice of Node2Vec is fixed for v1; alternative models are out of scope.

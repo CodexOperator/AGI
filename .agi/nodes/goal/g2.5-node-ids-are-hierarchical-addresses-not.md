@@ -1,13 +1,16 @@
 ---
+id: goal:g2.5
+mint_id: 1400b89c012d4ee08f666ad61b471bc0
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.5
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.5"
-mint_id: 1400b89c012d4ee08f666ad61b471bc0
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds:
   - hyp:zoom-encoded-node-ids
   - build:bin-grid@v2
@@ -16,10 +19,9 @@ status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.5: Node ids are hierarchical addresses, not lineage"
-type: goal
 ---
-
 **An id should answer "where is this node" in one string, with no lookup and no
 ambiguity.** Today's scheme is `<type>:<kebab-slug>` minted from title text,
 collisions resolved by appending `:2`. It fails three ways, all observed here:

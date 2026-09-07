@@ -1,22 +1,24 @@
 ---
+id: goal:g10.1
+mint_id: 13c464fdb57e43edb89319a84e5c31fd
+type: goal
+parents:
+  - goal:g10
 confidence: 1.0
+edited_by: season.py
 goal_id: G10.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g10.1"
-mint_id: 13c464fdb57e43edb89319a84e5c31fd
 origin: goals-doc
-parents:
-  - goal:g10
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G10.1: Chats are thoughts, so chats are nodes"
-type: goal
 ---
-
 **The third dimension, and the one that makes the other two worth having.**
 The graph is lateral. Each node carries a linear stack of versions. **Each
 version carries the agentic chats that produced it.**

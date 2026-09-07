@@ -4,14 +4,15 @@ mint_id: 5a377d0360a5414fbc69eb167a7be43d
 type: build
 build_kind: code
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/adapters/claude_code_adapter.py
+season: 1
 tags:
   - build
   - code
   - g2.1
-thought_session: doc-pass-2026-09-06
+thought_session: season
 title: "Build: extensions/agi/bin/adapters/claude_code_adapter.py"
 ---
 `extensions/agi/bin/adapters/claude_code_adapter.py` — level-3 code node (one file, one canonical node).

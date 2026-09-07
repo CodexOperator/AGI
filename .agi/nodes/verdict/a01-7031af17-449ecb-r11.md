@@ -1,14 +1,17 @@
 ---
-confidence: 0.95
-contradicts: []
-evidence_runs:
-  - exp-a01-7031af17-449ecb-r11-path-safety
-id: "verdict:a01-7031af17-449ecb-r11"
+id: verdict:a01-7031af17-449ecb-r11
 mint_id: 4dbf150c06ce4e89ba769d39d1e59e51
-next_edges:
-  - mvp:a01-7031af17-449ecb-r11
+type: verdict
 parents:
   - hyp:a01-7031af17-449ecb
+next_edges:
+  - mvp:a01-7031af17-449ecb-r11
+confidence: 0.95
+contradicts: []
+edited_by: season.py
+evidence_runs:
+  - exp-a01-7031af17-449ecb-r11-path-safety
+season: 1
 status: pending
 supports: []
 tags:
@@ -16,11 +19,10 @@ tags:
   - R11
   - path-safety
   - sandboxing
+thought_session: season
 title: "graph-core/R11: PathValidator Not Wired Into Loader"
-type: verdict
-verdict: "inconclusive_lean_disproved:35"
+verdict: inconclusive_lean_disproved:35
 ---
-
 # verdict:a01-7031af17-449ecb-r11
 
 ## Result: inconclusive_lean_disproved:35

@@ -6,7 +6,10 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 6fd506507224ab84
+season: 1
+thought_session: season
 title: Evidence gate resolves existence not type — non-experiment nodes satisfy evidence_runs
 verdict: pending
 ---

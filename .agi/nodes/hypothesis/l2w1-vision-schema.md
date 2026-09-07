@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 3cdecc25adac37f2
+season: 1
 testable_claim: "[vision].md requires at least one moral parent, moves overview to season_parents, and carries moral_adherence, while the 17 season-1 visions still validate"
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 1: l2w1-vision-schema"
 ---
 # hypothesis:l2w1-vision-schema

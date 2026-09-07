@@ -1,11 +1,14 @@
 ---
+id: goal:g4
+mint_id: 8d0f63708d94497d86da5e2eccd3ee79
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G4
 goal_kind: long-term
 heading_level: 2
-id: "goal:g4"
-mint_id: 8d0f63708d94497d86da5e2eccd3ee79
 origin: goals-doc
+season: 1
 seeds:
   - goal:g4.1
   - goal:g4.2
@@ -20,10 +23,9 @@ status: horizon
 tags:
   - goal
   - root
+thought_session: season
 title: "G4: Right model at the right grain, several goals at once"
-type: goal
 ---
-
 Model choice is a knob the user sets per tier and experiments with — nothing
 hardcoded. Three tiers: **delegator** (the user's own session, holding intent
 and coordinating several parent/kid groups), **parent** (a subagent by default,

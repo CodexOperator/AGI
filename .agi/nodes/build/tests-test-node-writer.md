@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-node-writer"
+id: build:tests-test-node-writer
 mint_id: b945746941aa41bfa3906cfc91deb511
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/test_node_writer.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/test_node_writer.py"
-type: build
 ---
-
 `extensions/agi/tests/test_node_writer.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests`.

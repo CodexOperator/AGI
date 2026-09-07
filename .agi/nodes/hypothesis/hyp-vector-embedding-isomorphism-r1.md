@@ -1,14 +1,17 @@
 ---
-confidence: 0.18
-demote_reason: "no experiment evidence (evidence_runs=0) for 'disproved'"
-demoted_from: disproved
-domain: vector-embedding-isomorphism
-evidence_runs: []
-id: "hyp:vector-embedding-isomorphism-r1"
+id: hyp:vector-embedding-isomorphism-r1
 mint_id: fb05c39e9d4a4a3f9400d13eb649372e
-next_edges: []
+type: hypothesis
 parents:
   - idea:domain-vector-embedding-isomorphism
+next_edges: []
+confidence: 0.18
+demote_reason: no experiment evidence (evidence_runs=0) for 'disproved'
+demoted_from: disproved
+domain: vector-embedding-isomorphism
+edited_by: season.py
+evidence_runs: []
+season: 1
 status: pending
 tags:
   - embeddings
@@ -16,11 +19,10 @@ tags:
   - umap
   - isomorphism
   - render
+thought_session: season
 title: "R1: Node2Vec 2D coordinates isomorphic to ASCII render token positions"
-type: hypothesis
-verdict: "inconclusive_lean_disproved:50"
+verdict: inconclusive_lean_disproved:50
 ---
-
 ## Hypothesis
 
 **Claim**: Node2Vec embeddings projected to 2D via PCA produce (x,y) coordinates that are **topologically isomorphic** to ASCII render token positions.

@@ -6,10 +6,11 @@ parents:
   - goal:g1.11
 next_edges: []
 confidence: 0.0
-edited_by: director
+edited_by: season.py
 scaffold_hash: 97d95eb295e9f524
+season: 1
 testable_claim: reap_orphans and `provisioning.py reap --yes` find engine-minted keys (agi- prefix, scoped to the configured workspace) with no live lease, revoke exactly those, and leave every other key alone -- including the owner long-lived `agi` key
-thought_session: L1.02
+thought_session: season
 title: "The reaper survives a mid-run crash: orphaned minted keys are revoked, every other key is untouched"
 verdict: pending
 ---

@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-grid"
+id: idea:engine-grid
 mint_id: 53418e3477c14566a6ee650202255307
-origin: engine-decomp
+type: idea
 parents:
   - goal:g7
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/grid.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/grid.py
 ---
-
 `extensions/agi/bin/grid.py` — an engine bin entry-point script.
 
 grid.py — per-node version control: "the git grid". Harness-agnostic (TODO H10).

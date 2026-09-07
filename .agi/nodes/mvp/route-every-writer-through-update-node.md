@@ -2,15 +2,17 @@
 id: mvp:route-every-writer-through-update-node
 mint_id: 619f50cb65f7403795654f49c637c3c9
 type: mvp
-title: Every in-place node edit goes through one gated routine
 parents:
   - verdict:the-write-half-has-a-floor
 next_edges: []
-scaffold_hash: d095dad2f7592a30
-status: open
 confidence: 0.8
+edited_by: season.py
+scaffold_hash: d095dad2f7592a30
+season: 1
+status: open
+thought_session: season
+title: Every in-place node edit goes through one gated routine
 ---
-
 # mvp:route-every-writer-through-update-node
 
 ## What this must satisfy

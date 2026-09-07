@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-chain-engine-types"
+id: build:src-chain-engine-types
 mint_id: 3921eb413045413e8b62af5c58af17a6
-origin: build-scan
+type: build
 parents:
   - idea:engine-chain-engine
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/chain_engine/types.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/chain_engine/types.py"
-type: build
 ---
-
 `extensions/agi/src/chain_engine/types.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-chain-engine`.

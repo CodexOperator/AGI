@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-render-context"
+id: idea:engine-render-context
 mint_id: 9cd4457c31014effb7bf4dd516e65450
-origin: engine-decomp
+type: idea
 parents:
   - goal:g9
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/render-context.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/render-context.py
 ---
-
 `extensions/agi/bin/render-context.py` — an engine bin entry-point script.
 
 render-context.py — load a nodes dir, render to ASCII, write INJECTION_FILE.

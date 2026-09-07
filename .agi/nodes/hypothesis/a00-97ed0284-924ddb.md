@@ -8,7 +8,10 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
+edited_by: season.py
 scaffold_hash: 41baa8ab5e391f2b
+season: 1
+thought_session: season
 title: A horizon goal's chains score identically to an active goal's
 verdict: inconclusive_lean_proved:50
 ---

@@ -6,9 +6,12 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a01-30399a10-1cb5a7
 scaffold_hash: 8c2b6902b0166440
+season: 1
+thought_session: season
 title: A01 30399a10 1cb5a7
 verdict: proved
 ---

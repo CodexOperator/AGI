@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-renderers-representation"
+id: build:src-renderers-representation
 mint_id: bd8529d29e4349b993ace493197c6644
-origin: build-scan
+type: build
 parents:
   - idea:engine-renderers
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/renderers/representation.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/renderers/representation.py"
-type: build
 ---
-
 `extensions/agi/src/renderers/representation.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-renderers`.

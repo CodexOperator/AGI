@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-embeddings-node2vec"
+id: build:src-embeddings-node2vec
 mint_id: 6b917e04c44447e387eea835281d19ef
-origin: build-scan
+type: build
 parents:
   - idea:engine-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/embeddings/node2vec.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/embeddings/node2vec.py"
-type: build
 ---
-
 `extensions/agi/src/embeddings/node2vec.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-embeddings`.

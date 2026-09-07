@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:hooks-cc-session-start.sh"
+id: build:hooks-cc-session-start.sh
 mint_id: 7e4ef9b1452d4650a848e25be0a35404
-origin: build-scan
+type: build
 parents:
   - idea:engine-cc-session-start
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/hooks/cc-session-start.sh
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/hooks/cc-session-start.sh"
-type: build
 ---
-
 `extensions/agi/hooks/cc-session-start.sh` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-cc-session-start`.

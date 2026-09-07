@@ -2,15 +2,17 @@
 id: mvp:the-modal-shell-over-the-verbs
 mint_id: 3e9177c585e444e39c55e526f527d266
 type: mvp
-title: The modal shell binds keys to verbs that already exist
 parents:
   - verdict:the-verb-layer-holds
 next_edges: []
-scaffold_hash: f4b9ab2242b6109e
-status: open
 confidence: 0.8
+edited_by: season.py
+scaffold_hash: f4b9ab2242b6109e
+season: 1
+status: open
+thought_session: season
+title: The modal shell binds keys to verbs that already exist
 ---
-
 # mvp:the-modal-shell-over-the-verbs
 
 ## What this must satisfy

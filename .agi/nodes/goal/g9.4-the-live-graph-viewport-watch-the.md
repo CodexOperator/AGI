@@ -5,17 +5,18 @@ type: goal
 parents:
   - goal:g9
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G9.4
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G9.4: The live graph viewport: watch the whole thing, moving"
 ---
 **This supersedes the dashboard as the primary view.** G9.1 answers "what is the

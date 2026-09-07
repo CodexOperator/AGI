@@ -1,11 +1,14 @@
 ---
-domain: vector-embedding-isomorphism
-id: "exp:a00-324837df-2546ce"
+id: exp:a00-324837df-2546ce
 mint_id: 7bad2164b95746689a109773f8839469
-next_edges:
-  - verdict:a00-324837df-2546ce
+type: experiment
 parents:
   - hyp:a00-324837df-2546ce
+next_edges:
+  - verdict:a00-324837df-2546ce
+domain: vector-embedding-isomorphism
+edited_by: season.py
+season: 1
 spawns: []
 status: complete
 tags:
@@ -14,10 +17,9 @@ tags:
   - gensim
   - skip-gram
   - spearman
+thought_session: season
 title: "R2: Gensim Skip-Gram Node2Vec Topology Preservation"
-type: experiment
 ---
-
 ## Experiment: Gensim Skip-Gram Node2Vec (R2)
 
 **Script**: `exp-a00-324837df-vector-embedding-isomorphism-r2.py`

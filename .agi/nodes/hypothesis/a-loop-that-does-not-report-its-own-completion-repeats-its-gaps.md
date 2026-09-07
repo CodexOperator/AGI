@@ -6,9 +6,10 @@ parents:
   - goal:g1.13
 next_edges: []
 confidence: 0.7
-edited_by: director
+edited_by: season.py
 scaffold_hash: dcbbcc729c7d00fa
-thought_session: L1.13
+season: 1
+thought_session: season
 title: A loop that does not report its own completion repeats its gaps
 ---
 # hypothesis:a-loop-that-does-not-report-its-own-completion-repeats-its-gaps

@@ -5,12 +5,14 @@ type: hypothesis
 parents:
   - goal:g3
 next_edges: []
+confidence: 0.0
+edited_by: season.py
 scaffold_hash: 137b8a9e6d0aff08
+season: 1
+thought_session: season
 title: Evidence-gate existence resolution misses relevance — cross-goal citation inflates coverage
 verdict: pending
-confidence: 0.0
 ---
-
 # hypothesis:a00-cfbdfb1e-02df1d
 
 ## Hypothesis

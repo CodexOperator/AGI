@@ -5,14 +5,16 @@ type: hypothesis
 parents:
   - goal:g10.1
 next_edges: []
-scaffold_hash: 4b86e4bd21aa324d
-testable_claim: "The orphan-chat case g10.1 names as its hard part — a chat that produced no node and therefore has no owner — already has a home in refs/grid/session/*, and can be shown to by counting sessions in that namespace that resolve to no produced node version."
 confidence: 0.0
-verdict: pending
+edited_by: season.py
+scaffold_hash: 4b86e4bd21aa324d
+season: 1
 status: authored_by_parent_kid_did_not_run
-title: "Orphan chats (produced nothing) already have a home in refs/grid/session/*"
+testable_claim: The orphan-chat case g10.1 names as its hard part — a chat that produced no node and therefore has no owner — already has a home in refs/grid/session/*, and can be shown to by counting sessions in that namespace that resolve to no produced node version.
+thought_session: season
+title: Orphan chats (produced nothing) already have a home in refs/grid/session/*
+verdict: pending
 ---
-
 # hypothesis:a00-d98602f8-1b56cc
 
 <!-- THOUGHT:BEGIN -->

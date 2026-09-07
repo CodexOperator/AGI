@@ -5,11 +5,13 @@ type: hypothesis
 parents:
   - goal:g3
 next_edges:
+edited_by: season.py
 scaffold_hash: e56ea806a724d5ff
-testable_claim: "The fraction of outcome_coverage numerator mvps whose parent is a decisive (proved/disproved) evidenced verdict is well below the raw ratio, so the primary overstates claim resolution."
+season: 1
+testable_claim: The fraction of outcome_coverage numerator mvps whose parent is a decisive (proved/disproved) evidenced verdict is well below the raw ratio, so the primary overstates claim resolution.
+thought_session: season
 title: The outcome_coverage numerator is backed by lean verdicts and goals, never by a decisive evidenced verdict
 ---
-
 # hypothesis:a00-d1344da2-21d70f
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

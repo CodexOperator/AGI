@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-069
 cavekit_req: embeddings/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: S
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - S
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-073: Similarity query API (top-k cosine)"
 ---
 **Description:** Implement `similar_to(node_id, k) -> list[(id, score)]`. Score = cosine similarity in [-1.0, 1.0]. Missing embedding → `[]` + warning.

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-graph-core-persistence-frontmatter"
+id: build:src-graph-core-persistence-frontmatter
 mint_id: ec3de256f50846a5bc1aedaadce4c448
-origin: build-scan
+type: build
 parents:
   - idea:engine-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/graph_core/persistence/frontmatter.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/graph_core/persistence/frontmatter.py"
-type: build
 ---
-
 `extensions/agi/src/graph_core/persistence/frontmatter.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-graph-core`.

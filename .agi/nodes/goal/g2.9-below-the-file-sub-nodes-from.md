@@ -1,22 +1,24 @@
 ---
+id: goal:g2.9
+mint_id: ec10d3fa10824c9e8e679e129c16272a
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.9
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.9"
-mint_id: ec10d3fa10824c9e8e679e129c16272a
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.9: Below the file: sub-nodes from in-file markers, then language primitives"
-type: goal
 ---
-
 **Below base level you are inside one node, never traversing the graph.** That
 is the structural invariant: supernode groupings above base level span many
 nodes, but everything below it — versions, chats, and the decomposition here —

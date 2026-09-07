@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-snapshot-build-site"
+id: build:bin-snapshot-build-site
 mint_id: 773ae6c1d7244da484c33037c47ea4c0
-origin: build-scan
+type: build
 parents:
   - idea:engine-snapshot-build-site
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/bin/snapshot-build-site.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/snapshot-build-site.py"
-type: build
 ---
-
 `extensions/agi/bin/snapshot-build-site.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-snapshot-build-site`.

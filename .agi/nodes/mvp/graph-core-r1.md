@@ -1,19 +1,21 @@
 ---
-id: "mvp:graph-core-r1"
+id: mvp:graph-core-r1
 mint_id: f09cb6dbab114950bf5d6ff6ec5a80d1
-next_edges:
-  - outcome:graph-core-r1
+type: mvp
 parents:
   - verdict:graph-core-r1
+next_edges:
+  - outcome:graph-core-r1
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - graph-core
   - R1
 testable_claim: MVP for graph-core R1
+thought_session: season
 title: "graph-core/R1: MVP"
-type: mvp
 ---
-
 **MVP:** Generic Node Primitive
 
 ```python

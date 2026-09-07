@@ -6,18 +6,19 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G4.9
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: de70a8566f2ad9c4
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G4.9: A parent that outlives its timeout is a bug, not a lease"
 ---
 # goal:g4.9

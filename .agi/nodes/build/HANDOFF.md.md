@@ -6,14 +6,15 @@ parents:
   - idea:engine-handoff
 build_kind: prose
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 origin: build-scan
 payload_ref: HANDOFF.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
-thought_session: doc-pass-2026-09-06
+thought_session: season
 title: "Build: HANDOFF.md"
 ---
 `HANDOFF.md` — level-3 code node (one file, one canonical node).

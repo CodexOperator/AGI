@@ -11,15 +11,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-011
 cavekit_req: graph-core/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-013: Warm-load cache with content-addressed digest"
 ---
 **Description:** Wrap the loader in an `lru_cache`-style memoizer keyed on `(directory_path, content_digest)`. The digest is computed by hashing a sorted list of `(relative_path, sha256(file_bytes))` tuples. Second load with unchanged source yields the cached graph object.

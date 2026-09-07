@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R7
 testable_claim: Warm-Load Caching
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R7: Warm-Load Caching"
 ---
 **Description:** Repeated loads of an unchanged graph return in constant time relative to first load. A memoization layer wraps the builder.

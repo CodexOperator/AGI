@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:extensions-agi-bridge-README.md"
+id: build:extensions-agi-bridge-README.md
 mint_id: e0804372654b47db9a1409ddb9f82358
-origin: build-scan
+type: build
 parents:
   - idea:engine-agi-bridge-readme
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi-bridge/README.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: extensions/agi-bridge/README.md"
-type: build
 ---
-
 `extensions/agi-bridge/README.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-agi-bridge-readme`.

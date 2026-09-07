@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-001
 cavekit_req: graph-core/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-005: Identity scheme (slug + collision suffix + length warning)"
 ---
 **Description:** Implement `mint_id(type_prefix, source_text)` and `IdRegistry`. Slug derivation is deterministic: lowercase, strip punctuation, split on whitespace, take first 2–5 tokens (configurable cap), join with `-`. Registry tracks issued ids; on collision, append `:2`, `:3`, ... in stable insertion order. Warn (via Python `warnings`) when the resulting id exceeds 40 chars but still return it. Stability comes from feeding the same source-text deterministically.

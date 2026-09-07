@@ -14,15 +14,16 @@ blocked_by:
   - task:t-072
   - task:t-006
 cavekit_req: embeddings/R7
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-075: Optional in-graph embedding storage"
 ---
 **Description:** Config flag `in_graph_storage: bool = false`. When true, after embed, write `embedding_vector` into each node's frontmatter via T-006 reader/writer. Toggle does not delete cache. Backfill is field-targeted (does not touch unrelated frontmatter keys).

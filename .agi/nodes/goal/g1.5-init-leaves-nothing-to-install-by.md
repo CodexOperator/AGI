@@ -5,17 +5,18 @@ type: goal
 parents:
   - goal:g1
 confidence: 1.0
-edited_by: l1.09-execution-parent
+edited_by: season.py
 goal_id: G1.5
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
-thought_session: L1.09
+thought_session: season
 title: "G1.5: `init` leaves nothing to install by hand"
 ---
 **Setting up a project is currently two manual steps and a memory test.** The

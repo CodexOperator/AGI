@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-tests"
+id: idea:engine-tests
 mint_id: 7d25f5b935394a15ac21d29f7677b45e
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/tests"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/tests
 ---
-
 `extensions/agi/tests` — an engine source package.
 
 No module docstring or header comment was found for this surface.

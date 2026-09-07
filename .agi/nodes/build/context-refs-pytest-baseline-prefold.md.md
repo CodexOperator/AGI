@@ -1,20 +1,22 @@
 ---
-build_kind: prose
-confidence: 1.0
-id: "build:context-refs-pytest-baseline-prefold.md"
+id: build:context-refs-pytest-baseline-prefold.md
 mint_id: d6ac8ab925304fac8520d00561522f45
-origin: build-scan
+type: build
 parents:
   - idea:engine-context-refs
+build_kind: prose
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: context/refs/pytest-baseline-prefold.md
+season: 1
 tags:
   - build
   - prose
   - g2.1
+thought_session: season
 title: "Build: context/refs/pytest-baseline-prefold.md"
-type: build
 ---
-
 `context/refs/pytest-baseline-prefold.md` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-context-refs`.

@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: director
+edited_by: season.py
 scaffold_hash: 17ef9242b03e5e90
+season: 1
 testable_claim: metrics.py excludes season_parents from chain depth and outcome_coverage by reading the traversable flags in [shape].md edge_fields instead of hardcoding which fields are lineage
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "L2 wave 2: l2w2-metrics-season-edge"
 ---
 # hypothesis:l2w2-metrics-season-edge

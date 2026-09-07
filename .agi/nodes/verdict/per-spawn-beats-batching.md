@@ -2,17 +2,19 @@
 id: verdict:per-spawn-beats-batching
 mint_id: 4a914d2169ce4432ac276eaf176346cf
 type: verdict
-title: "Issue one key per spawn; the cost that motivated batching is 0.77s"
 parents:
   - experiment:mint-latency-and-a-live-spawn
 next_edges: []
-scaffold_hash: 12e5714ccf548dde
-verdict: proved
 confidence: 0.96
+edited_by: season.py
 evidence_runs:
   - experiment:mint-latency-and-a-live-spawn
+scaffold_hash: 12e5714ccf548dde
+season: 1
+thought_session: season
+title: Issue one key per spawn; the cost that motivated batching is 0.77s
+verdict: proved
 ---
-
 # verdict:per-spawn-beats-batching
 
 ## Verdict

@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-heal"
+id: idea:engine-heal
 mint_id: 427cfeb1a231431c97907b137194ca7a
-origin: engine-decomp
+type: idea
 parents:
   - goal:g4
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/heal.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/heal.py
 ---
-
 `extensions/agi/bin/heal.py` — an engine bin entry-point script.
 
 heal.py — monitor agent timeouts; spawn healer subagent for hung agents.

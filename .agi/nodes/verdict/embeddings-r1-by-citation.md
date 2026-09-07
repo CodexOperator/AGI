@@ -6,11 +6,12 @@ parents:
   - hyp:embeddings-r1
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:src-embeddings-node2vec
   - build:tests-embeddings-test-node2vec
 scaffold_hash: 07269036add07ba9
+season: 1
 supports:
   - hyp:embeddings-r1
 tags:
@@ -18,7 +19,7 @@ tags:
   - R1
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R1: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

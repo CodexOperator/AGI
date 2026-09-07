@@ -12,15 +12,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-060
 cavekit_req: renderers/R5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-065: Git-diff renderer"
 ---
 **Description:** Implement `GitDiffRenderer.render(rep, run_a_id, run_b_id) -> str`. Validate both runs exist on the same chain; otherwise raise `MismatchedRunsError`. Use `+`/`-`/`~` markers per field. Identical → "no differences" line.

@@ -1,22 +1,24 @@
 ---
+id: goal:g7.9
+mint_id: 3c2c2f43062c4beabcf8fc694f561956
+type: goal
+parents:
+  - goal:g7
 confidence: 1.0
+edited_by: season.py
 goal_id: G7.9
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g7.9"
-mint_id: 3c2c2f43062c4beabcf8fc694f561956
 origin: goals-doc
-parents:
-  - goal:g7
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G7.9: A scan must not prune quietly, and `level3.py` is misnamed"
-type: goal
 ---
-
 Two changes to the same file, grouped because they touch the same lines and
 the rename is the safer half.
 

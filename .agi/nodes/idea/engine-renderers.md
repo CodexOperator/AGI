@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-renderers"
+id: idea:engine-renderers
 mint_id: 0be9bfcb6d0d472f854ffde25b2446e5
-origin: engine-decomp
+type: idea
 parents:
   - goal:g9
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/src/renderers"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/src/renderers
 ---
-
 `extensions/agi/src/renderers` — an engine source package.
 
 renderers: multi-format renderers over a shared internal representation (R1+).

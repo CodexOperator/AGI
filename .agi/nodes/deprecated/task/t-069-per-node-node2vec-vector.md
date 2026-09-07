@@ -14,15 +14,16 @@ blocked_by:
   - task:t-001
   - task:t-003
 cavekit_req: embeddings/R1
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-069: Per-node Node2Vec vector generation"
 ---
 **Description:** Implement `embed_graph(graph, config) -> dict[node_id, vector]` using `gensim`-style Node2Vec or a stdlib reimplementation. Default dim=64; configurable via `context/config/embeddings.toml`. Random walks seeded.

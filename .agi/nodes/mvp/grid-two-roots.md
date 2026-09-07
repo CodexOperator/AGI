@@ -5,19 +5,21 @@ type: mvp
 parents:
   - goal:g11
 next_edges: []
+confidence: 0.92
+edited_by: season.py
+season: 1
 source_files:
   - extensions/agi/bin/grid.py
   - extensions/agi/tests/test_grid.py
-tests_pass: true
 status: implemented
-confidence: 0.92
 tags:
   - g11
   - grid
   - resolver
-title: "grid.py runs every git command against the repo root, not the graph root"
+tests_pass: true
+thought_session: season
+title: grid.py runs every git command against the repo root, not the graph root
 ---
-
 # mvp:grid-two-roots
 
 `grid.py` is handed one root by its callers and has two different jobs for it.

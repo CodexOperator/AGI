@@ -1,22 +1,24 @@
 ---
+id: goal:g2.8
+mint_id: 28dcc9c1236e491e983b34b9dba07506
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.8
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.8"
-mint_id: 28dcc9c1236e491e983b34b9dba07506
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.8: LOD is a second axis: detail dials independently of position"
-type: goal
 ---
-
 **Zoom says where you are; LOD says how much is drawn there.** They are
 orthogonal, and every zoom position carries its own detail range. Standing far
 out, low LOD is a supernode's name and high LOD is its members' titles and

@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-benchmark"
+id: idea:engine-benchmark
 mint_id: 58187e5dc9dc424fab23a018b8037a9c
-origin: engine-decomp
+type: idea
 parents:
   - goal:g3
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/benchmark.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/benchmark.py
 ---
-
 `extensions/agi/bin/benchmark.py` — an engine bin entry-point script.
 
 benchmark.py — Ollama-based chain quality judgment.

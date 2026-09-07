@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-context-plans"
+id: idea:engine-context-plans
 mint_id: e6e9b4a035eb47e0bffe7102b3ff8ac7
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: context/plans"
-type: idea
 unit_kind: src_package
 unit_path: context/plans
 ---
-
 `context/plans` — an engine source package.
 
 No module docstring or header comment was found for this surface.

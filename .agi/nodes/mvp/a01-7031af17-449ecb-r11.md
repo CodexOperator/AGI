@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "mvp:a01-7031af17-449ecb-r11"
+id: mvp:a01-7031af17-449ecb-r11
 mint_id: 15f0620d29e14073bd4466037413dfa4
-next_edges:
-  - verdict:a01-7031af17-449ecb-r11
+type: mvp
 parents:
   - hyp:a01-7031af17-449ecb
+next_edges:
+  - verdict:a01-7031af17-449ecb-r11
+confidence: 1.0
+edited_by: season.py
+season: 1
 tags:
   - graph-core
   - R11
   - path-safety
   - mvp
+thought_session: season
 title: "graph-core/R11 MVP: Wire PathValidator Into Loader"
-type: mvp
 ---
-
 # mvp:a01-7031af17-449ecb-r11
 
 ## What This Is

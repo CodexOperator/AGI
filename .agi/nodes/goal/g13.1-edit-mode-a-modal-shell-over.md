@@ -5,11 +5,12 @@ type: goal
 parents:
   - goal:g13
 confidence: 1.0
-edited_by: director
+edited_by: season.py
 goal_id: G13.1
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
+season: 1
 seeds:
   - build:bin-node-writer
   - build:bin-locations
@@ -20,7 +21,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: L1.13
+thought_session: season
 title: "G13.1: Edit mode: a modal shell over the read and write paths, so a human edit is an engine action"
 ---
 **The write-side counterpart of the viewport, and the reason it is a separate

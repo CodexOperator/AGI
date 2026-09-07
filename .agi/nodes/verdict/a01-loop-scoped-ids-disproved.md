@@ -6,10 +6,13 @@ parents:
   - experiment:a01-7a49270a-a6b875
 next_edges: []
 confidence: 0.75
+edited_by: season.py
 evidence_runs:
   - experiment:a01-7a49270a-a6b875
   - experiment:a00-ed477860-8f3343
-scaffold_hash: 0000000000000000
+scaffold_hash: 0
+season: 1
+thought_session: season
 title: "Loop-scoped iteration ids: disproved as stated, but the manifest-clobber it worried about is already fixed a different way"
 verdict: disproved
 ---

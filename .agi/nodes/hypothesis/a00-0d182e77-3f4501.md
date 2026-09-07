@@ -7,8 +7,11 @@ parents:
 next_edges:
   - experiment:a00-788f8d7f-f11472
 confidence: 0.85
+edited_by: season.py
 evidence_runs: 0
 scaffold_hash: 9998df62558bd57b
+season: 1
+thought_session: season
 title: A00 0d182e77 3f4501
 verdict: pending
 wired_at: 1788244944

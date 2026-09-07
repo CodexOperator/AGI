@@ -6,10 +6,11 @@ parents:
   - goal:g4.8
 next_edges: []
 confidence: 0.0
-edited_by: director
+edited_by: season.py
 scaffold_hash: 175eabbd5377d980
+season: 1
 testable_claim: A parent-tier agent reviewing its kid deliverables detects and demotes an unevidenced verdict (proved/disproved with no backing evidence_runs, experiment log or test output) without the delegator intervening
-thought_session: L1.03
+thought_session: season
 title: A parent demotes an unevidenced verdict unaided -- goal:g4.8 clause 2, never yet observed
 verdict: pending
 ---

@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-snapshot-build-site"
+id: idea:engine-snapshot-build-site
 mint_id: 322f415dcce0411baac9bc4269c658dd
-origin: engine-decomp
+type: idea
 parents:
   - goal:g5
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/snapshot-build-site.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/snapshot-build-site.py
 ---
-
 `extensions/agi/bin/snapshot-build-site.py` — an engine bin entry-point script.
 
 snapshot-build-site.py — convert build-site.md into a directory of node files.

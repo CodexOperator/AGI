@@ -14,15 +14,16 @@ blocked_by:
   - task:t-067
   - task:t-070
 cavekit_req: embeddings/R6
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-074: Scatter rendering plugin"
 ---
 **Description:** Implement `ScatterRenderer` registering via T-067 plugin protocol. Maps (x, y) to a 200x200 char grid. Overlap shown as `#`. Out-of-bounds compressed with edge markers `<>^v`.

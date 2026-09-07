@@ -6,10 +6,11 @@ parents:
   - hyp:autoresearch-tree-skill-r7
 next_edges: []
 confidence: 0.8
-edited_by: l1.09-execution-parent
+edited_by: season.py
 evidence_runs:
   - build:driver.sh
 scaffold_hash: bdbd143da3ec2f26
+season: 1
 supports:
   - hyp:autoresearch-tree-skill-r7
 tags:
@@ -17,7 +18,7 @@ tags:
   - R7
   - l1.09
   - by-citation
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R7: closed by citation"
 verdict: inconclusive_lean_proved:80
 ---

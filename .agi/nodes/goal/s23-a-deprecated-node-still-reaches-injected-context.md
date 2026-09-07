@@ -5,18 +5,19 @@ type: goal
 parents:
   - goal:g15
 confidence: 0.8
-edited_by: director
+edited_by: season.py
 goal_id: S23
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - root
   - short-term
-thought_session: agi-master-2026-09-06
+thought_session: season
 title: "S23: A deprecated node still reaches injected context"
 ---
 **Measured 2026-09-02, during the goal sweep.** `build:TODO.md` and

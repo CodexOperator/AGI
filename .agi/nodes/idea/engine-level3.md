@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-level3"
+id: idea:engine-level3
 mint_id: e558aa0ce2424de6950dcb2dbeb3e92a
-origin: engine-decomp
+type: idea
 parents:
   - goal:g2.1
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/level3.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/level3.py
 ---
-
 `extensions/agi/bin/level3.py` — an engine bin entry-point script.
 
 level3.py — one level-3 node per code file, carrying a machine-attached contract.

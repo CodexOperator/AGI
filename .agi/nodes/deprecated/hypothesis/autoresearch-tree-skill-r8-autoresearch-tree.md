@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-autoresearch-tree-skill
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - autoresearch-tree-skill
   - R8
 testable_claim: Drop-In Portability
-thought_session: L1.09
+thought_session: season
 title: "autoresearch-tree-skill/R8: Drop-In Portability"
 ---
 **Description:** The skill is portable: dropping the project context directory into any repository should be sufficient to run the skill there.

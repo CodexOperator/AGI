@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-autoresearch-ideas"
+id: idea:engine-autoresearch-ideas
 mint_id: 8a08dbcc925b431f86b4edc4c5a4d8c1
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: autoresearch.ideas.md"
-type: idea
 unit_kind: entry_point
 unit_path: autoresearch.ideas.md
 ---
-
 `autoresearch.ideas.md` — an engine entry point.
 
 No module docstring or header comment was found for this surface.

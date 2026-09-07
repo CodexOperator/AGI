@@ -13,15 +13,16 @@ acceptance_criteria:
 blocked_by:
   - task:t-069
 cavekit_req: embeddings/R2
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-070: UMAP projection to 2D (with 3D toggle)"
 ---
 **Description:** Implement `project(vectors, dim=2, seed) -> dict[node_id, (x, y)]` using `umap-learn` or a stdlib alternative. With <2 nodes, return zero-coordinates with a warning. Configurable to 3D for future use; tests assert defaults.

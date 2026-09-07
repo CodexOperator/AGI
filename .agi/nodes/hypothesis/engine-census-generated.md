@@ -1,18 +1,20 @@
 ---
-confidence: 0.5
-id: "hyp:engine-census-generated"
+id: hyp:engine-census-generated
 mint_id: c76a008cb4d7427b82df98d979ae03f2
+type: hypothesis
 parents:
   - idea:engine-self-decomposition
+confidence: 0.5
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - engine
   - l19
-testable_claim: "A script-generated, git-ls-files-seeded census of the engine's changeable surfaces (23 units - 6 src/ packages, 12 bin/*.py, 5 named entry points) stays accurate across re-runs and engine changes, where the 14 hand-written domain-* idea nodes did not."
+testable_claim: A script-generated, git-ls-files-seeded census of the engine's changeable surfaces (23 units - 6 src/ packages, 12 bin/*.py, 5 named entry points) stays accurate across re-runs and engine changes, where the 14 hand-written domain-* idea nodes did not.
+thought_session: season
 title: A generated engine census stays current where a hand-written one rotted
-type: hypothesis
 ---
-
 **The claim.** `decompose-engine.py` treats the idea layer's "which surfaces does
 the engine have" question as a derived view of `git ls-files`, not a document a
 human maintains by hand. If that is the right design, two things should hold

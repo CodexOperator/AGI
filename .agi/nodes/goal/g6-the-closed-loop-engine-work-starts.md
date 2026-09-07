@@ -1,11 +1,14 @@
 ---
+id: goal:g6
+mint_id: ee284312e59e4ee6bccb0a994ae0bc6b
+type: goal
 confidence: 1.0
+edited_by: season.py
 goal_id: G6
 goal_kind: long-term
 heading_level: 2
-id: "goal:g6"
-mint_id: ee284312e59e4ee6bccb0a994ae0bc6b
 origin: goals-doc
+season: 1
 seeds:
   - goal:g6.1
   - goal:g6.2
@@ -22,10 +25,9 @@ status: horizon
 tags:
   - goal
   - root
+thought_session: season
 title: "G6: The closed loop: engine work starts in the graph"
-type: goal
 ---
-
 Run `agi` and `agi-tree` against each other and the pair is closed: a change to
 the engine originates as a node in this graph, and the engine that grows this
 graph is the thing the node changed. Neither is the author of the other — the

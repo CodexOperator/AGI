@@ -5,10 +5,12 @@ type: verdict
 parents:
   - experiment:a01-095cec0b-115104
 next_edges: []
+edited_by: season.py
 scaffold_hash: b318d2c59b70dabb
+season: 1
+thought_session: season
 title: A00 4e84f537 8d7b96
 ---
-
 # verdict:a00-4e84f537-8d7b96
 
 ## Verdict
@@ -22,4 +24,3 @@ What evidence supports this verdict?
 ## Confidence
 
 0.0 – 1.0
-

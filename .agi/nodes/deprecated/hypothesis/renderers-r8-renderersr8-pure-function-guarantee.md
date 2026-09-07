@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - renderers
   - R8
 testable_claim: Pure Function Guarantee
-thought_session: L1.09
+thought_session: season
 title: "renderers/R8: Pure Function Guarantee"
 ---
 **Description:** Every renderer is a pure function over the representation: it never mutates input, never reads external state, and never writes outside the returned string.

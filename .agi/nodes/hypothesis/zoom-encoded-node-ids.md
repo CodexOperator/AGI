@@ -1,15 +1,17 @@
 ---
-confidence: 0.6
-id: "hyp:zoom-encoded-node-ids"
+id: hyp:zoom-encoded-node-ids
 mint_id: 6817edbfb91641baa4900b41f970be74
+type: hypothesis
 parents:
   - goal:g2.5
+confidence: 0.6
+edited_by: season.py
+season: 1
 tags:
   - g2.5
+thought_session: season
 title: Hierarchical zoom-encoded node ids make collisions structurally impossible
-type: hypothesis
 ---
-
 > ⚠️ **This hypothesis states the superseded reading of G2.5.** It was written
 > against a *lineage* model — an id built up from its parent's id as the graph
 > grows. G2.5 was corrected on 2026-08-24 to an *address* model: every real

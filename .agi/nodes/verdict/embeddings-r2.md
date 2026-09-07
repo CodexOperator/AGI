@@ -1,26 +1,28 @@
 ---
-confidence: 0.85
-contrasts: []
-evidence_runs:
-  - exp:embeddings-r2
-id: "verdict:embeddings-r2"
+id: verdict:embeddings-r2
 mint_id: 27b471797af0471f855fec186605594a
+type: verdict
+parents:
+  - exp:embeddings-r2
 next_edges:
   - exp:embeddings-r2-extend
   - mvp:embeddings-r2
-parents:
+confidence: 0.85
+contrasts: []
+edited_by: season.py
+evidence_runs:
   - exp:embeddings-r2
+season: 1
 status: proved
 subgraph: false
 supports: []
 tags:
   - embeddings
   - R2
+thought_session: season
 title: "embeddings/R2: Verdict"
-type: verdict
-verdict: "proved"
+verdict: proved
 ---
-
 **Verdict:** PROVED
 
 **Evidence:**

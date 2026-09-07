@@ -6,8 +6,11 @@ parents:
   - goal:g7.5
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 36ec33bbb15eb15e
+season: 1
 testable_claim: "Changing the broad `except Exception: continue/pass` in both `load_directory` (loader.py, the catch wrapping `load_node_with_subgraph`, ~line 213) and `load_existing_nodes` (snapshot-goals.py:445) to log a structured warning (file path + exception message) instead of silently dropping unparseable files will surface parse failures to operators without breaking the existing resilience contract (malformed files are still skipped, just noisily)."
+thought_session: season
 title: A00 faa96261 c89170
 verdict: pending
 ---

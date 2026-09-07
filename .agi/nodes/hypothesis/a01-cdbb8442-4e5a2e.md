@@ -5,10 +5,13 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
+edited_by: season.py
+season: 1
 tags:
   - graph-core
   - R11
 testable_claim: "**Claim:** A subscriber plugin can register callbacks for `node_added`, `node_updated`, `node_deleted`, `edge_added`, `edge_deleted` events. When a graph mutation occurs, the bus dispatches the matching event to all registered subscribers within the same load cycle. No subscriber code appears inside graph-core."
+thought_session: season
 title: A01 cdbb8442 4e5a2e
 verdict: pending
 ---

@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-tests-chain-engine"
+id: idea:engine-tests-chain-engine
 mint_id: b11d739942ca42a7a75c4242e5df5f90
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: big
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/tests/chain_engine"
-type: idea
 unit_kind: src_package
 unit_path: extensions/agi/tests/chain_engine
 ---
-
 `extensions/agi/tests/chain_engine` — an engine source package.
 
 No module docstring or header comment was found for this surface.

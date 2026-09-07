@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-start-sh"
+id: idea:engine-start-sh
 mint_id: b736fe5a6b6e43eca0e4254b98bdd28d
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: start.sh"
-type: idea
 unit_kind: entry_point
 unit_path: start.sh
 ---
-
 `start.sh` — an engine entry point.
 
 start.sh — launch pi-autoresearch in ~/.hermes/agi

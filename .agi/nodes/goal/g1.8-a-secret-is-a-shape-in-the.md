@@ -1,22 +1,24 @@
 ---
+id: goal:g1.8
+mint_id: 6755ca16b6d64d65bf37945b3d97d5cb
+type: goal
+parents:
+  - goal:g1
 confidence: 1.0
+edited_by: season.py
 goal_id: G1.8
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g1.8"
-mint_id: 6755ca16b6d64d65bf37945b3d97d5cb
 origin: goals-doc
-parents:
-  - goal:g1
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G1.8: A secret is a shape in the graph and a value on the box"
-type: goal
 ---
-
 **A credential is the one kind of file the graph must describe and must never
 hold.** Every other file in this repo is graph content: `level3.py` mints a node
 for it, `grid.py` versions it, a clone gets it. A provider key inverts that —

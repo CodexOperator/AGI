@@ -6,13 +6,15 @@ parents:
   - goal:g9.7
 next_edges:
   - experiment:the-viewport-reaches-parity
-scaffold_hash: aff24ef94a0a1ff5
-title: "What kept the viewport from replacing the renderer was never the tree — it was the nine sections around it"
-testable_claim: "The gap between `viewport.py --emit llm` and `INJECTION.md` is entirely non-frame briefing material, so extracting that material into one module both call closes the gap without either renderer changing what it draws"
-verdict: pending
 confidence: 0.0
+edited_by: season.py
+scaffold_hash: aff24ef94a0a1ff5
+season: 1
+testable_claim: The gap between `viewport.py --emit llm` and `INJECTION.md` is entirely non-frame briefing material, so extracting that material into one module both call closes the gap without either renderer changing what it draws
+thought_session: season
+title: What kept the viewport from replacing the renderer was never the tree — it was the nine sections around it
+verdict: pending
 ---
-
 # hypothesis:the-briefing-is-the-missing-half
 
 ## Hypothesis

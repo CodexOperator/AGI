@@ -1,9 +1,12 @@
 """Tests for bin/grid.py — the per-node git grid, in-repo ref-namespace mode."""
 
+import fcntl
 import importlib.util
 import os
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -1524,3 +1527,97 @@ def test_commit_path_drives_the_metric_to_zero(gated_project):
     stats = metrics.evidence_stats(nodes)
     assert stats["unevidenced_decisive_verdicts"] == 0
     assert stats["decisive_verdicts"] == 1          # the evidenced one survives
+
+
+# -------------------- hypothesis:l3w0-grid-flock — commit --all holds an exclusive flock
+#
+# grid.py commit --all must take an exclusive flock on .agi/sessions/.grid.lock
+# for the duration of the commit so a manual director commit and the 5-minute
+# grid_sync cron on the same box serialize instead of racing on the same node
+# refs. Single-file commits and read verbs take no lock. A second commit --all
+# waits up to --lock-wait seconds, then exits non-zero naming the holder.
+#
+# Incidental addendum (owner, seasons-as-branches): the master-only guard on
+# commit --all admits branches named season/* as well; master stays admitted;
+# any other branch is still refused with the same message.
+
+
+def _grid_lock_path(root):
+    return root / ".agi" / "sessions" / ".grid.lock"
+
+
+def _hold_grid_lock(root, seconds):
+    """Acquire the grid lock in a background thread and hold it `seconds`.
+    Returns the thread so tests can join it; the lock is released on exit of
+    that thread's run()."""
+    lock = _grid_lock_path(root)
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    f = open(lock, "a+")
+    fcntl.flock(f, fcntl.LOCK_EX)
+
+    def _hold():
+        time.sleep(seconds)
+        fcntl.flock(f, fcntl.LOCK_UN)
+        f.close()
+
+    t = threading.Thread(target=_hold, daemon=True)
+    t.start()
+    return t
+
+
+def test_commit_all_times_out_nonzero_when_lock_held(guard_project, capsys):
+    """A second commit --all waits --lock-wait seconds, then exits non-zero
+    naming the holder pid, writing no new version."""
+    _hold_grid_lock(guard_project, 5)               # holder sleeps well past the wait
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None, lock_wait=1)
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert ".grid.lock" in err                       # message names the lock file
+    assert grid.ref_tip(guard_project, grid.mint_node_ref(MINT_G11)) is None
+
+
+def test_commit_all_waits_for_holder_then_succeeds_consistent(guard_project):
+    """commit --all blocks while a slow writer holds the lock, then completes;
+    the resulting ref is consistent (exactly one version)."""
+    _hold_grid_lock(guard_project, 0.6)
+    t0 = time.time()
+    grid.cmd_commit(guard_project, [], do_all=True, session=None, lock_wait=10)
+    elapsed = time.time() - t0
+    assert elapsed >= 0.3                            # it really waited on the holder
+    mint_ref = grid.mint_node_ref(MINT_G11)
+    assert grid.ref_tip(guard_project, mint_ref) is not None
+    assert int(grid.git(guard_project, "rev-list", "--count", mint_ref)) == 1
+
+
+def test_single_file_commit_takes_no_lock(guard_project):
+    """commit FILE (non-session) is NOT gated by the flock — a manual
+    per-node commit proceeds even while a commit --all holds the lock."""
+    _hold_grid_lock(guard_project, 0.5)
+    f = guard_project / "nodes" / "idea" / "x.md"
+    t0 = time.time()
+    grid.cmd_commit(guard_project, [str(f)], do_all=False, session=None)
+    assert time.time() - t0 < 0.3                    # returned without waiting
+
+
+def test_commit_all_on_season_branch_succeeds(guard_project):
+    """commit --all is admitted on branches named season/* (seasons as
+    git branches), without --allow-branch."""
+    _on_branch(guard_project, "season/s1")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert grid.ref_tip(guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_commit_all_on_nested_season_branch_succeeds(guard_project):
+    """season/* admits nested names like season/ideas/flock too."""
+    _on_branch(guard_project, "season/ideas/flock")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert grid.ref_tip(guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_commit_all_still_refuses_plain_non_master_branch(guard_project):
+    """A non-master, non-season branch is still refused (regression guard)."""
+    _on_branch(guard_project, "work")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2

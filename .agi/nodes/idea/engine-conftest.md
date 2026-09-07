@@ -1,20 +1,22 @@
 ---
-confidence: 1.0
-id: "idea:engine-conftest"
+id: idea:engine-conftest
 mint_id: b5b7e0617e914501854120bfc579474b
+type: idea
+confidence: 1.0
+edited_by: season.py
 origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/conftest.py"
-type: idea
 unit_kind: entry_point
 unit_path: extensions/agi/conftest.py
 ---
-
 `extensions/agi/conftest.py` — an engine entry point.
 
 Pytest conftest — adds src/ to sys.path for clean test imports.

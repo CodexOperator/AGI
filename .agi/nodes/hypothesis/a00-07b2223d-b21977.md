@@ -7,8 +7,11 @@ parents:
 next_edges:
   - experiment:parent-review-demotes-unevidenced
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 7b6d1953a5af6c48
+season: 1
 testable_claim: "With a parent that spawns M kids on the kid model tier, each kid returning a verdict on its experiment: - Every kid with `proved` or `disproved` but no `evidence_runs` referencing existing experiment nodes gets demoted to `inconclusive_lean_proved:N` or `inconclusive_lean_disproved:N` respectively. - Kids whose verdict is `pending` or already a lean pass through unchanged. - The parent's review cost (in tokens) is sub-linear if M grows, because the review is structural (check evidence_runs, check verdict enum) rather than substantive (re-reading each hypothesis)."
+thought_session: season
 title: Parent review gate reliably demotes unevidenced verdicts
 verdict: pending
 ---

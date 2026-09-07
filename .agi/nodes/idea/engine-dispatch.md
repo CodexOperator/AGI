@@ -1,22 +1,24 @@
 ---
-confidence: 1.0
-id: "idea:engine-dispatch"
+id: idea:engine-dispatch
 mint_id: ab5d1717a4ee4937b483ec7d9940b702
-origin: engine-decomp
+type: idea
 parents:
   - goal:g4
+confidence: 1.0
+edited_by: season.py
+origin: engine-decomp
 scale: small
+season: 1
 status: open
 tags:
   - engine
   - census
   - l19
+thought_session: season
 title: "Engine surface: extensions/agi/bin/dispatch.py"
-type: idea
 unit_kind: bin_script
 unit_path: extensions/agi/bin/dispatch.py
 ---
-
 `extensions/agi/bin/dispatch.py` — an engine bin entry-point script.
 
 dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts.

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-schema-registry-fingerprint"
+id: build:src-schema-registry-fingerprint
 mint_id: 066ac81f465e4f308d5790c7f5b3b5e0
-origin: build-scan
+type: build
 parents:
   - idea:engine-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/schema_registry/fingerprint.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/schema_registry/fingerprint.py"
-type: build
 ---
-
 `extensions/agi/src/schema_registry/fingerprint.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-schema-registry`.

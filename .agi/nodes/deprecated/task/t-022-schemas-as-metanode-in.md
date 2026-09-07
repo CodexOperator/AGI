@@ -13,15 +13,16 @@ blocked_by:
   - task:t-001
   - task:t-005
 cavekit_req: schema-registry/R3
-edited_by: l1.09-execution-parent
+edited_by: season.py
 effort: M
 origin: build-site
+season: 1
 status: deprecated
 tags:
   - M
   - tier--1
-thought_session: L1.09
-tier: "-1"
+thought_session: season
+tier: -1
 title: "T-022: Schemas as `meta_node` in graph"
 ---
 **Description:** During registry load, synthesize one node of `type=meta_node` per registered schema. Use the schema's name to mint a deterministic id. The meta-node's frontmatter mirrors the schema's declared fields, defaults, and validation rule references.

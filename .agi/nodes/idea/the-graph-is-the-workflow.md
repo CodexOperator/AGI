@@ -6,13 +6,14 @@ parents:
   - goal:g14
 next_edges: []
 confidence: 0.75
-edited_by: director
+edited_by: season.py
 scaffold_hash: 47d0c421c39a2fa4
+season: 1
 status: active
 tags:
   - idea
   - autocatalysis
-thought_session: L1.13
+thought_session: season
 title: "The graph is the workflow: structure that invites its own completion"
 ---
 # idea:the-graph-is-the-workflow

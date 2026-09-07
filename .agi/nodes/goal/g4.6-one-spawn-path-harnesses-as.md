@@ -1,24 +1,26 @@
 ---
+id: goal:g4.6
+mint_id: 3b187e5eec3246059655916829807d8f
+type: goal
+parents:
+  - goal:g4
+next_edges:
+  - hypothesis:a00-9bae6ee8-52d7f5
 confidence: 1.0
+edited_by: season.py
 goal_id: G4.6
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g4.6"
-mint_id: 3b187e5eec3246059655916829807d8f
-next_edges:
-  - hypothesis:a00-9bae6ee8-52d7f5
 origin: goals-doc
-parents:
-  - goal:g4
+season: 1
 seeds: []
 status: complete
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G4.6: One spawn path; a harness is an adapter named in config"
-type: goal
 ---
-
 **There is no single place where an agent is spawned, and that is the real
 shortfall `goal:g4.3` has been masking.** Today `dispatch.py` builds a pi
 command inline (`pi_model_args`, `_build_pi_args`, a hardcoded `--runtime pi`

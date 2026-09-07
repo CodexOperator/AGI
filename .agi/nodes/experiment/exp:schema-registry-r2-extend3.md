@@ -5,9 +5,12 @@ type: experiment
 parents:
   - verdict:schema-registry-r2-extend2
 next_edges: []
+edited_by: season.py
+season: 1
 tags:
   - schema-registry-r2
   - chain-extension
+thought_session: season
 title: Exp:schema registry r2 extend3
 ---
 # exp:schema-registry-r2-extend3

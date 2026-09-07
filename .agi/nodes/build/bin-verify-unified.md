@@ -1,18 +1,20 @@
 ---
+id: build:bin-verify-unified
+mint_id: 8e9e1ffd6c214a768cc3b6cc0cdc6673
+type: build
 build_kind: code
 confidence: 1.0
-id: "build:bin-verify-unified"
-mint_id: 8e9e1ffd6c214a768cc3b6cc0cdc6673
+edited_by: season.py
 origin: build-scan
 payload_ref: extensions/agi/bin/verify_unified.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/bin/verify_unified.py"
-type: build
 ---
-
 `extensions/agi/bin/verify_unified.py` — level-3 code node (one file, one canonical node).
 
 Census parent: none — **flagged**. No `idea:engine-*` census unit's `unit_path` (see `decompose-engine.py`, `nodes/idea/engine-*.md`) covers this file. Left parentless rather than guessed.

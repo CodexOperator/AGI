@@ -1,19 +1,21 @@
 ---
-domain: graph-topology
-id: "hyp:a00-b43be286-f3ca7b"
+id: hyp:a00-b43be286-f3ca7b
 mint_id: 0c46891cf89e4183a3fa7802d9fbb160
-next_edges: []
+type: hypothesis
 parents: []
+next_edges: []
+domain: graph-topology
+edited_by: season.py
+season: 1
 tags:
   - topology
   - chain-completion
   - attractor-regions
   - density
   - statistical-test
+thought_session: season
 title: Topology attractor regions predict chain completion
-type: hypothesis
 ---
-
 # hyp:a00-b43be286-f3ca7b
 
 **Domain:** graph-topology

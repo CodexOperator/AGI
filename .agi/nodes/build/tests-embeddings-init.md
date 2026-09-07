@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-embeddings-init"
+id: build:tests-embeddings-init
 mint_id: 23735f09b6804e29a4d230109e15aed7
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-embeddings
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/embeddings/__init__.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/embeddings/__init__.py"
-type: build
 ---
-
 `extensions/agi/tests/embeddings/__init__.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-embeddings`.

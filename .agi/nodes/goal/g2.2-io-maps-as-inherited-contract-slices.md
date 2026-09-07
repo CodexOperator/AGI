@@ -1,22 +1,24 @@
 ---
+id: goal:g2.2
+mint_id: e083c82ffed344569259f98cfc400f9f
+type: goal
+parents:
+  - goal:g2
 confidence: 1.0
+edited_by: season.py
 goal_id: G2.2
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g2.2"
-mint_id: e083c82ffed344569259f98cfc400f9f
 origin: goals-doc
-parents:
-  - goal:g2
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G2.2: IO maps as inherited contract slices"
-type: goal
 ---
-
 Every node declares required inputs and promised outputs, each with a how/why,
 a performance note and a security note; the maps re-derive when neighbours
 change.

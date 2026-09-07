@@ -6,8 +6,11 @@ parents:
   - goal:s33
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: a0d57dd8a52279e5
+season: 1
 testable_claim: The falsifier grep can drive a single-pass doc sweep to zero, the stale-names gate (retired references in non-retired prose) is a tractable set under 20 targets, and no section contains a stale reference that is also semantically important enough to keep.
+thought_session: season
 title: Doc sweep via falsifier-driven fix
 verdict: pending
 ---

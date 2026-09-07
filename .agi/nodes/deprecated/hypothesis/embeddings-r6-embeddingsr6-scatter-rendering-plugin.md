@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-embeddings
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - embeddings
   - R6
 testable_claim: Scatter Rendering Plugin
-thought_session: L1.09
+thought_session: season
 title: "embeddings/R6: Scatter Rendering Plugin"
 ---
 **Description:** A renderer plugin produces an ASCII scatter view directly from UMAP coordinates, sharing the renderer plugin contract.

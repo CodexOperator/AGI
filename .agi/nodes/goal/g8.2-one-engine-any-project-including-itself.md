@@ -1,13 +1,16 @@
 ---
+id: goal:g8.2
+mint_id: 5df2daa9211c410b82909da5c031be6c
+type: goal
+parents:
+  - goal:g8
 confidence: 1.0
+edited_by: season.py
 goal_id: G8.2
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g8.2"
-mint_id: 5df2daa9211c410b82909da5c031be6c
 origin: goals-doc
-parents:
-  - goal:g8
+season: 1
 seeds:
   - build:lib-find-root.sh@v2
   - build:skills-agi-SKILL.md@v2
@@ -15,10 +18,9 @@ status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G8.2: One engine, any project, including itself"
-type: goal
 ---
-
 **The engine must never need to know which project it is running.** It already
 mostly holds: `driver.sh` walks up for a config file, the goal and build-site
 snapshots are project-agnostic, and the same binary ran against fantasia (a

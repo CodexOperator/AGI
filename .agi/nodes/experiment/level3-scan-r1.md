@@ -1,18 +1,20 @@
 ---
-confidence: 0.8
-evidence_runs: 1
-id: "exp:level3-scan-r1"
+id: exp:level3-scan-r1
 mint_id: 4ed92dffa50c468fb3f4e01e43733acf
+type: experiment
 parents:
   - hyp:level3-node-anatomy
+confidence: 0.8
+edited_by: season.py
+evidence_runs: 1
+season: 1
 tags:
   - zoom
   - level3
   - g2.1
+thought_session: season
 title: Level-3 scan, first generated pass
-type: experiment
 ---
-
 **Built:** `extensions/agi/bin/level3.py` (engine repo) — one `type: level3`
 node per code file under `extensions/agi/src/**/*.py` and
 `extensions/agi/bin/*.py`, written to `nodes/level3/`. Plus 20 new tests in

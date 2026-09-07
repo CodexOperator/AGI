@@ -6,7 +6,10 @@ parents:
   - hypothesis:the-briefing-is-the-missing-half
 next_edges: []
 confidence: 0.85
+edited_by: season.py
 scaffold_hash: 5efed1b0971cacce
+season: 1
+thought_session: season
 title: Briefing data-contract boundary holds — sole source of truth verified
 verdict: inconclusive_lean_proved:85
 ---

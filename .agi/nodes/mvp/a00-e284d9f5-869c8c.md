@@ -6,7 +6,10 @@ parents:
   - verdict:declared-commands-delete-four-copies
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: 152ba018907cbd3a
+season: 1
+thought_session: season
 title: Derive prose command tables from the declared command node
 verdict: inconclusive_lean_proved:60
 ---

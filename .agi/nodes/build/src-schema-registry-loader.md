@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:src-schema-registry-loader"
+id: build:src-schema-registry-loader
 mint_id: d14b478fb8b743429b994a2892049d5c
-origin: build-scan
+type: build
 parents:
   - idea:engine-schema-registry
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/src/schema_registry/loader.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/src/schema_registry/loader.py"
-type: build
 ---
-
 `extensions/agi/src/schema_registry/loader.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-schema-registry`.

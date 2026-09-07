@@ -1,23 +1,25 @@
 ---
+id: goal:g8.1
+mint_id: 06a693d0580646d0924eaf956b8c12e8
+type: goal
+parents:
+  - goal:g8
 confidence: 1.0
+edited_by: season.py
 goal_id: G8.1
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g8.1"
-mint_id: 06a693d0580646d0924eaf956b8c12e8
 origin: goals-doc
-parents:
-  - goal:g8
+season: 1
 seeds:
   - build:skills-agi-SKILL.md@v2
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G8.1: Decide the distribution shape: drop-in clone, skill package, or install"
-type: goal
 ---
-
 **The engine currently arrives by being cloned into a project and gitignored.**
 That was chosen to prevent vendoring (H0/H0b: a committed copy diverges
 forever, and a stale one destroyed 29,264 files). It works, but it means every

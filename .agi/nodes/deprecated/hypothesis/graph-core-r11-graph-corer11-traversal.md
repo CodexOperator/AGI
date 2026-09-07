@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - idea:domain-graph-core
 confidence: 0.5
-edited_by: l1.09-execution-parent
+edited_by: season.py
 origin: build-site
+season: 1
 status: deprecated
 subgraph: false
 tags:
   - graph-core
   - R11
 testable_claim: Traversal and Query API
-thought_session: L1.09
+thought_session: season
 title: "graph-core/R11: Traversal and Query API"
 ---
 **Description:** The graph exposes traversal primitives and a query API over the loaded node set, returning lazy iterators so a caller never pays for a full materialization it does not use.

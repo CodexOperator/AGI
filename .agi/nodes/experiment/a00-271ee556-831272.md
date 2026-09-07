@@ -5,10 +5,12 @@ type: experiment
 parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
+edited_by: season.py
 scaffold_hash: 13c6b10793a3732a
+season: 1
+thought_session: season
 title: A00 271ee556 831272
 ---
-
 # experiment:a00-271ee556-831272
 
 ## Experiment

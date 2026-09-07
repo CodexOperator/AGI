@@ -1,19 +1,21 @@
 ---
-confidence: 0.5
-id: "hyp:a01-5c29f2e6-f5104d"
+id: hyp:a01-5c29f2e6-f5104d
 mint_id: 50d67ef9b05844faa5cc6d188f4bc5ef
+type: hypothesis
 parents:
   - idea:domain-graph-core
+confidence: 0.5
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - graph-core
   - R11
 testable_claim: Query and Filter API
+thought_session: season
 title: "graph-core/R11: Query and Filter API"
-type: hypothesis
 verdict: pending
 ---
-
 # hyp:a01-5c29f2e6-f5104d
 ## Hypothesis
 

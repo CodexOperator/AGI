@@ -6,8 +6,11 @@ parents:
   - goal:s32
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 234ffe8c43ca84b7
+season: 1
 testable_claim: "Given the existing `WarmLoadCache` and `directory_digest` in `graph_core/cache.py`:"
+thought_session: season
 title: A00 ec5ee032 7eefb8
 verdict: pending
 ---

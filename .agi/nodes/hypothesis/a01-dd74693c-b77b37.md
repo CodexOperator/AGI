@@ -6,7 +6,10 @@ parents:
   - goal:g4.1
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 2311a5fedc2796ef
+season: 1
+thought_session: season
 title: A01 dd74693c b77b37 — whole-tree command restriction vs worktree
 verdict: pending
 ---

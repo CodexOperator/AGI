@@ -1,22 +1,24 @@
 ---
+id: goal:g7.7
+mint_id: 6b02b12853164a169b2ea71dd1748dc7
+type: goal
+parents:
+  - goal:g7
 confidence: 1.0
+edited_by: season.py
 goal_id: G7.7
 goal_kind: subgoal
 heading_level: 3
-id: "goal:g7.7"
-mint_id: 6b02b12853164a169b2ea71dd1748dc7
 origin: goals-doc
-parents:
-  - goal:g7
+season: 1
 seeds: []
 status: horizon
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G7.7: Retire the vendored engine copy and the last loader path bug"
-type: goal
 ---
-
 Two carried defects with one root: `agi-tree/src/` holds project-local copies of
 `graph_core`, `chain_engine`, `renderers`, `schema_registry`, `embeddings` and
 `environment_indexers`, and the documented override convention gives them

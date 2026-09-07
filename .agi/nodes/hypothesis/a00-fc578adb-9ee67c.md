@@ -6,8 +6,11 @@ parents:
   - goal:g3
 next_edges: []
 confidence: 0.0
+edited_by: season.py
 scaffold_hash: 05363717a7ff04b5
+season: 1
 testable_claim: For any `proved` or `disproved` hypothesis node H with `evidence_runs` citing specific experiment nodes, measure **evidence integrity** as the fraction of those experiment nodes whose forward chain (through `next_edges` and `parents`) still connects back to H at the current graph state. A decay threshold exists T such that hypothesis nodes whose evidence is older than T iterations have integrity < 0.5 (majority of evidence is disconnected or stale).
+thought_session: season
 title: Evidence decay — proved hypotheses disconnect from their support over time
 verdict: pending
 ---

@@ -1,20 +1,22 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-graph-core-test-lazy-body"
+id: build:tests-graph-core-test-lazy-body
 mint_id: 4e7fbb5e38b74ba6a10bce9f0ef233ab
-origin: build-scan
+type: build
 parents:
   - idea:engine-tests-graph-core
+build_kind: code
+confidence: 1.0
+edited_by: season.py
+origin: build-scan
 payload_ref: extensions/agi/tests/graph_core/test_lazy_body.py
+season: 1
 tags:
   - build
   - code
   - g2.1
+thought_session: season
 title: "Build: extensions/agi/tests/graph_core/test_lazy_body.py"
-type: build
 ---
-
 `extensions/agi/tests/graph_core/test_lazy_body.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `idea:engine-tests-graph-core`.

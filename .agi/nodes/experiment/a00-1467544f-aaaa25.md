@@ -1,20 +1,22 @@
 ---
-confidence: 0.97
-id: "exp:a00-1467544f-aaaa25"
+id: exp:a00-1467544f-aaaa25
 mint_id: 46368f67a19840a3897e852f55b1c59b
-next_edges:
-  - verdict:a00-1467544f-aaaa25
+type: experiment
 parents:
   - hyp:a00-1467544f-aaaa25
+next_edges:
+  - verdict:a00-1467544f-aaaa25
+confidence: 0.97
+edited_by: season.py
+season: 1
 subgraph: false
 tags:
   - bootstrap
   - chain-engine
 testable_claim: Measure hypothesis→task traversability via spawns_edges
+thought_session: season
 title: "Experiment: hypothesis task-spawns bootstrapping metric"
-type: experiment
 ---
-
 **Experiment:** Measure hypothesis→task traversability in the current graph.
 
 1. Load the full graph (nodes/)

@@ -1,25 +1,27 @@
 ---
-confidence: 0.8
-goal_id: G4.8
-goal_kind: subgoal
-heading_level: 3
-id: "goal:g4.8"
+id: goal:g4.8
 mint_id: 208dc260a25e43959230e94a54785f05
+type: goal
+parents:
+  - goal:g4
 next_edges:
   - hypothesis:a00-a54f694b-b20b78
   - hypothesis:shared-lease-bounds-the-tree
+confidence: 0.8
+edited_by: season.py
+goal_id: G4.8
+goal_kind: subgoal
+heading_level: 3
 origin: goals-doc
-parents:
-  - goal:g4
+season: 1
 seeds: []
 status: active
 tags:
   - goal
   - subgoal
+thought_session: season
 title: "G4.8: Many loops at once; the delegator is the director"
-type: goal
 ---
-
 **Several parents each running their own loop, concurrently, against different
 regions of the graph, with the delegator holding intent and reviewing across
 them.** `goal:g4` already names three tiers and says the delegator "coordinates

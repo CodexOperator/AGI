@@ -6,11 +6,12 @@ parents:
   - hypothesis:gate-must-sit-on-the-commit-path
 next_edges: []
 confidence: 0.9
-edited_by: parent
+edited_by: season.py
 evidence_runs:
   - experiment:gate-on-the-commit-path-eleven-to-zero
 scaffold_hash: dee63186d6500726
-thought_session: L1.08
+season: 1
+thought_session: season
 title: Gate on the commit path eleven to zero
 verdict: proved
 ---
