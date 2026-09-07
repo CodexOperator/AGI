@@ -6,7 +6,10 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.6
+edited_by: season.py
 scaffold_hash: a74696def592acd1
+season: 1
+thought_session: season
 title: A01 9bc63860 d97453
 verdict: inconclusive_lean_proved:60
 ---
