@@ -444,3 +444,55 @@ def test_hand_edit_after_git_mv_still_warns(project):
 
     rc = _check(project, ["--strict"])
     assert rc == 1, "--strict must warn on a hand edit after a git mv"
+
+
+# ---------------------------------------------------------------------------
+# Log follows the written node's project, not a caller's module-global root
+# ---------------------------------------------------------------------------
+
+def test_write_log_follows_node_path_not_caller_root(tmp_path, project):
+    """A write whose node lives in one project but whose passed root is another
+    must log to the node's own project (test-pollution fix, l2w15-write-guard).
+
+    snapshot_goals/level3 reuse this writer with a module-global root that
+    defaults to the real repo during pytest; without this rule every
+    test-fixture node would append to the box's real .agi/sessions/write-log.
+    """
+    real_root = project / ".agi"                      # the 'real' graph root
+    fixture = tmp_path / "some-pytest-project"        # where the node actually lives
+    (fixture / "nodes" / "hypothesis").mkdir(parents=True)
+    node_file = fixture / "nodes" / "hypothesis" / "hv.md"
+    node_file.write_text(
+        "---\nid: hypothesis:hv\ntype: hypothesis\n---\n\nbody\n")
+
+    nw.log_write(real_root, "write_node", "hypothesis:hv", node_file,
+                 node_file.read_text())
+
+    # The log lands with the node, in the fixture's own project...
+    assert (fixture / "sessions" / "write-log.jsonl").is_file()
+    # ...and the caller's root is untouched.
+    assert not (real_root / "sessions" / "write-log.jsonl").exists()
+
+
+def test_foreign_bare_file_is_not_leaked_into_caller_log(project, tmp_path):
+    """A write whose file is a bare fixture path with no `nodes/` component and
+    outside the passed root's project must not append to that root's log.
+
+    This is the exact shape that used to pollute the box's real write log with
+    /tmp/pytest entries: snapshot_goals tests write a `tmp/n.md` while its
+    module-global PROJECT_ROOT points at the real repo. The file has no project
+    of its own, so it is a no-log write, not a leak.
+    """
+    real_root = (tmp_path / "box") / ".agi"          # the 'real' graph root
+    real_root.mkdir(parents=True, exist_ok=True)
+    (real_root / "config.json").write_text("{}")
+    bare = tmp_path / "some-pytest-fixture"           # an unrelated tmp tree
+    bare.mkdir(parents=True)
+    n_file = bare / "n.md"
+    n_file.write_text("---\nid: build:x\ntype: build\n---\n\nbody\n")
+
+    nw.log_write(real_root, "write_frontmatter", "build:x", n_file,
+                 n_file.read_text())
+
+    assert not (real_root / "sessions" / "write-log.jsonl").exists(), \
+        "a foreign bare file must not be logged into the caller's project"

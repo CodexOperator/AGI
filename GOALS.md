@@ -8124,3 +8124,11 @@ Long-term, always active, exempt from max_goals_active. Parent of every short-te
 
 ## Agent Notes
 Per node at done and per session: model, harness, profile, tokens_in, tokens_out, cost_usd, accepted diff bytes (node plus payload, review-accepted only). Roll-up is a descendant sum along parents: outcome is its loop, bigger_outcome the LT goal, overview the season. Ratios: bytes per token and bytes per dollar, always beside aligned-outcome count; cost per aligned outcome is the ranking number. Secondary only, never a target, never read by an agent choosing what to do; it tunes the model lattice, goal:g14. Cost source is OpenRouter's per-generation endpoint through the per-spawn key, to be verified first. Design: .agi/context/season-ladder-and-morals-brief.md section 5. Horizon until L2 wave 2.
+
+### G17 — The seat system
+
+<!-- BODY:BEGIN -->
+# goal:g17
+
+## Agent Notes
+Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the owner text of 2026-09-07 (04:40–07:36 UTC) recorded verbatim in .agi/context/l3-command-ladder-brief.md, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison". The seat system: a registry of roles and active seats extending the dispatch model-assignment config — per seat its role, ladder tier, harness, model, effort, session kind (remote-control, tty, fire-and-forget), personality ref, handoff, current session pin and who rotates it — resolved from config nodes in the graph so the graph carries everything. It spawns the seat build nodes and sub-goals that lead to config nodes, holds the owner-liaison seat (Sonnet 5 high, rotated by the quorum, the owner primary contact), and the perpetual rotation loops at 0.35 for every non-prime seat. Model table (owner correction 07:36 UTC): prime Belam Fable 5.1 max ultracode; quorum advisors Opus 5 max; director-kids Opus 5 high; liaison Sonnet 5 high; pi parents and kids as they are. Comms (owner): collapsed ladder gives director-kids no free comms to Belam; the expanded hierarchy allows free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum, which IS Belam to anyone else. Wave-4 briefs are hypothesis:l3w4-* under this goal.
