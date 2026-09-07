@@ -176,6 +176,39 @@ def test_aiming_does_not_scaffold_a_parentless_idea():
     assert dispatch._node_type_for("big", None, None) == "idea"
 
 
+def test_leaf_recency_boost_fires():
+    """idea:frontier-invitation / l3-frontier-successor-derivable.
+
+    The 1.2x leaf bump used to be `desc * 1.2`, and `_descendant_count`
+    returns 0 for a leaf, so the boost was dead on arrival: `0 * 1.2 == 0.0`
+    and every chain tip scored 0.0 and sorted last. The fix floors the
+    descendant term at 1; these assert the boost now means something.
+    """
+    boosted = dispatch._attractiveness(0, 1.2, 0.0, "idea")
+    plain = dispatch._attractiveness(0, 1.0, 0.0, "idea")
+    assert boosted > 0.0, "a leaf must no longer be condemned to score 0"
+    assert boosted > plain, "the 1.2x leaf bump must actually change the score"
+    # And the floor is identity for every non-leaf (desc >= 1 already).
+    assert dispatch._attractiveness(3, 1.0, 0.0, "idea") == 3.0
+    assert dispatch._attractiveness(3, 1.2, 0.0, "idea") == pytest.approx(3.6)
+
+
+def test_leaf_boost_is_small_relative_to_an_extended_chain():
+    """The floor must not let a lone leaf dwarf a real chain: one descendant
+    (desc=1, no leaf bump) must still outrank an empty leaf (desc floored to
+    1 with the bump) for the same type and diversity."""
+    chain = dispatch._attractiveness(2, 1.0, 0.0, "idea")
+    leaf = dispatch._attractiveness(0, 1.2, 0.0, "idea")
+    assert chain > leaf
+
+
+def test_attractiveness_type_weighting_preserved():
+    assert dispatch._attractiveness(1, 1.0, 0.0, "hypothesis") == pytest.approx(1.4)
+    assert dispatch._attractiveness(1, 1.0, 0.0, "experiment") == pytest.approx(1.2)
+    assert dispatch._attractiveness(1, 1.0, 0.0, "verdict") == pytest.approx(1.1)
+    assert dispatch._attractiveness(1, 1.0, 0.0, "idea") == pytest.approx(1.0)
+
+
 # ---------------------------------------------------------------------------
 # goal:s28 — a parent must not erase itself from the manifest by spawning a kid.
 # goal:g4.8 — and that merge has to survive concurrency, which it did not.
@@ -730,3 +763,55 @@ def test_goal_flag_is_accepted_by_the_dispatch_argparser():
         for n in ast.walk(tree)
     )
     assert found, "dispatch.py must register a --goal command-line flag"
+
+
+def test_scaffold_stamps_the_child_row_not_the_spawner_env(tmp_path, monkeypatch):
+    """hypothesis:l3-scaffold-stamps-spawner-env — the red-first build gate.
+
+    A dispatch-spawned scaffold used to be stamped from the DISPATCHER's
+    os.environ (node_writer reads AGI_LOOP/AGI_MODEL/AGI_PROFILE/AGI_ROLE at
+    mint time), so a kid or advisor spawned under a parent inherited the
+    PARENT's role/model/loop: every child was born role=parent model=glm. The
+    fix resolves the child's row in dispatch BEFORE scaffolding and hands it
+    to node_writer as an explicit `stamp`, which wins over the env.
+
+    This test simulates the parent dispatcher's env still holding the spawner
+    identity while the child row names the kid, scaffolds through the actual
+    dispatch routine, and asserts the minted node carries the CHILD's stamps
+    -- not the parent's env. Green here is the build Verdict-proved requires.
+    """
+    import yaml as _yaml
+
+    d = _load_dispatch()
+    root = tmp_path
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    (root / "nodes" / "hypothesis" / "seed.md").write_text(
+        "---\nid: hypothesis:seed\n---\nseed\n")
+    (root / "agi-tree.config.json").write_text("{}")
+
+    # The spawner (parent dispatcher) holds its OWN identity in os.environ.
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_MODEL", "claude-opus-5")
+    monkeypatch.setenv("AGI_LOOP", "vision:alive@s2")
+    monkeypatch.setenv("AGI_PROFILE", "ultracode")
+    monkeypatch.setenv("AGI_SEASON", "7")
+
+    # The child row dispatch resolves before scaffolding: a kid on the pi
+    # harness aimed at a hypothesis extends it into an experiment.
+    child = {
+        "role": "kid",
+        "loop": "hypothesis:seed@s2",
+        "model": "~deepseek/deepseek-v4-flash-latest",
+        "profile": "balanced",
+        "season": "2",
+    }
+
+    info = d._scaffold_node_for_agent(root, 1, "a00-stubchild", "small",
+                                      "hypothesis:seed", role="kid", stamp=child)
+    assert info, "scaffold must write a node"
+    fm = _yaml.safe_load(Path(info["path"]).read_text().split("---", 2)[1])
+    assert fm["role"] == "kid", "node must carry the CHILD's role, not the parent's env"
+    assert fm["model"] == "~deepseek/deepseek-v4-flash-latest"
+    assert fm["loop"] == "hypothesis:seed@s2"
+    assert fm["profile"] == "balanced"
+    assert fm["season"] == 2

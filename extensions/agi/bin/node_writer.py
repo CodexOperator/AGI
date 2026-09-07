@@ -516,6 +516,7 @@ def write_node(
     fm_for_gate=None,
     on_exists=SKIP,
     announce=True,
+    stamp=None,
 ) -> NodeWrite:
     """Create one node file, gated. The only routine that does this.
 
@@ -523,6 +524,14 @@ def write_node(
     common one-parent call). `extra_fm` is per-caller frontmatter — a
     verdict's `verdict:`/`confidence:`, say — merged over the four keys every
     node gets. `body` defaults to the type's `BODY_PROMPTS` entry.
+
+    `stamp` is the resolved identity of the agent the node is FOR — the
+    role/model/loop/profile/season a dispatch-spawned agent will actually
+    run under (hypothesis:l3-scaffold-stamps-spawner-env). When present it
+    wins over os.environ for the mint stamps; the env is the fallback for a
+    caller with no spawn record (a hand scaffold). Absent stays absent —
+    never fabricate.
+
 
     The spawn check runs **before anything is written**, so a rejection leaves
     no node behind — the same convention `cli.py done` uses for an
@@ -615,7 +624,7 @@ def write_node(
     # current_season for season only. loop, model, profile are stamped only
     # when their env vars are present (never fabricated). Updates do NOT
     # stamp — `update_node` is deliberately separate.
-    _stamp_env_fields(fm, current_season=current_season)
+    _stamp_env_fields(fm, current_season=current_season, stamp=stamp)
     spawn_gate.stamp(fm, gate)
 
     text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + scaffold_body
@@ -636,19 +645,30 @@ def write_node(
     return res
 
 
-def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
-    """Stamp season / loop / model / profile into a new node's frontmatter.
+def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
+                      stamp: dict | None = None) -> None:
+    """Stamp season / loop / model / profile / role into a new node's fm.
 
     Called from `write_node` at mint time only. `update_node` does NOT call
     this: existing nodes keep their stamps or their absence.
 
-    - **season:** env AGI_SEASON > ladder current_season > 1
-    - **loop:** env AGI_LOOP only; absent means absent
-    - **model:** env AGI_MODEL only; absent means absent
-    - **profile:** env AGI_PROFILE only; absent means absent
-    - **role:** env AGI_ROLE only; absent means absent
+    - **season:** `stamp['season']` > env AGI_SEASON > ladder current_season
+      > 1
+    - **loop:** `stamp['loop']` if set else env AGI_LOOP; absent means absent
+    - **model:** `stamp['model']` if set else env AGI_MODEL; absent = absent
+    - **profile:** `stamp['profile']` if set else env AGI_PROFILE; absent =
+      absent
+    - **role:** `stamp['role']` if set else env AGI_ROLE; absent = absent
 
-    A missing env var with no ladder fallback leaves the field absent — never
+    `stamp` is the resolved identity of the agent a scaffold is FOR, handed
+    in by the spawner at write time (hypothesis:l3-scaffold-stamps-
+    spawner-env). A dispatch-spawned scaffold used to be stamped from the
+    DISPATCHER's os.environ, so a kid born under a parent inherited the
+    PARENT's role/model/loop. The spawner now resolves the child's row and
+    passes it here; the env is the fallback for a caller with no record (a
+    hand scaffold).
+
+    A missing value with no fallback leaves the field absent — never
     fabricates a value (hypothesis:l2w2-writer-stamps).
 
     A deliberate non-`return` in the season branch: the old implementation
@@ -661,7 +681,12 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     """
     import os as _os
 
-    env_season = _os.environ.get("AGI_SEASON")
+    def _pick(key: str, env: str):
+        if stamp and stamp.get(key):
+            return stamp[key]
+        return _os.environ.get(env)
+
+    env_season = _pick("season", "AGI_SEASON")
     if env_season is not None:
         try:
             fm["season"] = int(env_season)
@@ -671,21 +696,21 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     else:
         fm["season"] = current_season if current_season is not None else 1
 
-    loop = _os.environ.get("AGI_LOOP")
+    loop = _pick("loop", "AGI_LOOP")
     if loop is not None:
         fm["loop"] = loop.strip()
 
-    model = _os.environ.get("AGI_MODEL")
+    model = _pick("model", "AGI_MODEL")
     if model is not None:
         fm["model"] = model.strip()
 
-    profile = _os.environ.get("AGI_PROFILE")
+    profile = _pick("profile", "AGI_PROFILE")
     if profile is not None:
         fm["profile"] = profile.strip()
 
     # hypothesis:l3w0-ladder-roles-table — dispatch exports AGI_ROLE for
     # every spawn so a minted node records which role made it.
-    role = _os.environ.get("AGI_ROLE")
+    role = _pick("role", "AGI_ROLE")
     if role is not None:
         fm["role"] = role.strip()
 

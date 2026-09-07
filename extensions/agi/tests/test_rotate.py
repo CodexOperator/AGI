@@ -126,6 +126,51 @@ def test_spawn_refuses_existing_window(monkeypatch, tmp_path, capsys):
     assert "already exists" in err
 
 
+def test_spawn_window_reusable_for_non_prime_name(monkeypatch, tmp_path, capsys):
+    # hypothesis:l3w4-seat-transport — spawn_window() is the ONE reusable
+    # launcher: a non-prime seat name launches via `--remote-control`, never -p.
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.chdir(tmp_path)
+
+    rc, shell = rotate.spawn_window(
+        name="adv-alive", tier="parent", prompt_file=str(prompt),
+        dry_run=True,
+    )
+    out = capsys.readouterr().out.strip()
+
+    assert rc == 0
+    assert "claude --remote-control adv-alive" in out
+    assert out == shell
+    assert " -p" not in out
+
+
+def test_loop_uses_spawn_window(monkeypatch, tmp_path, capsys):
+    # hypothesis:l3w4-seat-transport — cmd_loop routes through spawn_window
+    # (one launch path), never its own inline tmux spawn.
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # rotate
+    called = {}
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **kw: called.update(kw) or (0, "claude --remote-control adv-alive"),
+    )
+
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="adv_alive", name="adv-alive",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1,
+    ), root)
+
+    assert code == 0
+    assert called.get("name") == "adv-alive"
+    assert called.get("tier") == "adv_alive"
+    assert called.get("dry_run") is True
+
+
 # --- l3w0-rotate-roles: role resolution, head, name derivation, loop --------
 
 

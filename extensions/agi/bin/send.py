@@ -42,6 +42,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -302,6 +303,43 @@ def _norm(ts: str) -> str:
         return ts
 
 
+def _nudge_window(tmux_session: str | None, window: str, text: str) -> bool:
+    """Best-effort `tmux send-keys` nudge into a perpetual seat's window
+    (hypothesis:l3w4-seat-transport).
+
+    Types `text Enter` into the window literally named `window` in the tmux
+    session; fires only when that window exists and silently returns False
+    otherwise — windowless (ephemeral/fire-and-forget) recipients are
+    untouched. Never raises: tmux missing, a missing session/window, or a
+    timeout is a no-op.
+    """
+    if not window:
+        return False
+    if tmux_session is None:
+        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
+        tmux_session = rotate.DEFAULT_TMUX_SESSION
+    try:
+        listing = subprocess.run(
+            ["tmux", "list-windows", "-t", tmux_session,
+             "-F", "#{window_name}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if listing.returncode != 0:
+            return False
+        names = [ln.strip() for ln in listing.stdout.strip().splitlines()
+                 if ln.strip()]
+        if window not in names:
+            return False
+        subprocess.run(
+            ["tmux", "send-keys", "-t", f"{tmux_session}:{window}",
+             text, "Enter"],
+            capture_output=True, text=True, timeout=5,
+        )
+        return True
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
 # ── verbs ─────────────────────────────────────────────────────────────────
 
 
@@ -316,6 +354,10 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
 
     with open(inbox, "a") as f:
         f.write(block)
+
+    # Best-effort nudge into a perpetual seat's window; a no-op for
+    # windowless (ephemeral) recipients (hypothesis:l3w4-seat-transport).
+    _nudge_window(None, to, text)
 
     print(inbox.resolve())
 
@@ -404,6 +446,9 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a") as f:
         f.write(_block(_now(), _detect_sender(sender), other, text))
+    # Nudge the other party's tmux window when it exists (silent no-op
+    # otherwise) — hypothesis:l3w4-seat-transport.
+    _nudge_window(None, other, text)
     return path
 
 
