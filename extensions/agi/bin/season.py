@@ -1056,6 +1056,22 @@ def cmd_merge_up(root: Path, args) -> int:
              or DEFAULT_SUITE)
     worktree = (args.worktree or _recorded_field(record_path, "worktree"))
 
+    # FALSE-GREEN guard: refuse a branch that carries no commits beyond its
+    # base. Merging a zero-ahead branch produces a no-op merge commit that
+    # reads as a green merge of nothing -- exactly how an empty loop branch
+    # used to sail through every round and a human had to finish by hand.
+    ahead = _git(git_root, "rev-list", "--count", f"{base}..{branch}")
+    if ahead.returncode != 0:
+        print(f"ERR cannot count {branch} ahead of {base}: "
+              f"{ahead.stderr.strip()}", file=sys.stderr)
+        return 1
+    n_ahead = ahead.stdout.strip()
+    if n_ahead == "0":
+        print(f"REFUSED: {branch} is zero commits ahead of {base} -- "
+              f"nothing to merge", file=sys.stderr)
+        return 1
+    print(f"{branch} is {n_ahead} commit(s) ahead of {base}")
+
     cur = _current_branch(git_root)
     if cur != base:
         sw = _git(git_root, "checkout", base)
@@ -1073,7 +1089,10 @@ def cmd_merge_up(root: Path, args) -> int:
         print(f"ERR merge --no-ff {branch}: {mg.stderr.strip()}",
               file=sys.stderr)
         return 1
-    print(f"merged {branch} --no-ff (pending suite) into {base}")
+    # Never claim the merge before its commit exists -- a pretence of green is
+    # indistinguishable from a real green, which is why the old success line
+    # printed before anything had landed.
+    print(f"staged merge of {branch} into {base} (suite gate pending)")
 
     # Suite-green gate on the merged tree.
     suite_proc = subprocess.run(suite, shell=True, cwd=str(git_root),
@@ -1090,9 +1109,26 @@ def cmd_merge_up(root: Path, args) -> int:
     # Green: finalize the merge commit (default merge message, two parents).
     cmt = _git(git_root, "commit", "--no-edit")
     if cmt.returncode != 0:
-        print(f"ERR finalize merge commit: {cmt.stderr.strip()}", file=sys.stderr)
-        return 1
-    print(f"merged {branch} --no-ff into {base}")
+        # FALSE-RED guard: `git commit` can return non-zero even after the
+        # merge has in fact landed, and with blank stderr -- reporting failure
+        # then lies in the same direction as the old false green. Judge by the
+        # merge state, not the code: MERGE_HEAD exists only while a merge is
+        # still unborn, so its absence after a failed commit means the merge
+        # commit really exists and we should treat it as green.
+        still_merging = (_git(git_root, "rev-parse", "--verify",
+                              "MERGE_HEAD").returncode == 0)
+        if still_merging:
+            print(f"ERR finalize merge commit: "
+                  f"{cmt.stderr.strip() or '(no stderr from git)'}",
+                  file=sys.stderr)
+            return 1
+        # The merge actually landed; git merely mis-reported. Say so rather
+        # than cry wolf and strand the worktree on a success.
+        print(f"merged {branch} --no-ff into {base} (finalize returned "
+              f"non-zero {cmt.returncode} but the merge commit exists; "
+              f"treating as green)")
+    else:
+        print(f"merged {branch} --no-ff into {base}")
 
     # Green: remove the worktree (this branch's job is done).
     if worktree:
