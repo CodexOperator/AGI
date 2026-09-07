@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-IV
 scaffold_hash: 4968cdf1bdafda08
 season: 2
 testable_claim: "config:seats gains a sanctuary-master row (director, tier 1, claude-opus-5, effort high, rotated_by: quorum, owning_goal: goal:g17) that is the only row whose rotated_by is quorum; every row for a seat she oversees (liaison, dir-g1, dir-g15, dir-g16, the future Bug Master) has rotated_by repointed to sanctuary-master; and rotate.py master --as <seat> --kind {rotate|add-seat|remove-seat|expand|collapse} forwards exactly one send_dm to sanctuary-master when --as names any other seat, but enacts the request directly (a rotate-now DM, a config:seats rewrite, or a new ladder hierarchy_state write) only when --as sanctuary-master, adding no sanctuary-master key to ladder:ladder's mantles."
-thought_session: L3.24
+thought_session: L3.25
 title: Stand up the Sanctuary Master seat
 ---
 <!-- BODY:BEGIN -->
@@ -59,3 +59,5 @@ Rotation-loop mechanics (`l3w4-seat-rotation-loops`); tmux nudge internals (`l3w
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, "Owner text 2026-09-07... perpetual seats, the quorum as reviewer, the owner liaison" — owner verbatim (4), (7), (7b).
+
+OWNER RENAME 2026-09-07 16:20 UTC: the Bug Master seat is the GLITCH MASTER (glitch-master). Layer 8 (doc quote 9): the Masters under her are the Plan Master (drafting), the Glitch Master (review loops) and the Training Master (audits, role improvement); director-kids consult any Master and Masters report back to the asker.

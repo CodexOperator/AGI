@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-IV
 scaffold_hash: f142db59b92e1804
 season: 2
 testable_claim: A parent dispatched with --branch runs in its own git worktree on loop/<target-slug>@s<N>, its kids edit only that worktree, its iteration commit lands on that branch, and season.py merge-up merges it --no-ff into season/sN only when the full suite is green on the merged tree, so two parents whose kids edit the same file run at once without touching each other's bytes; proved by red-first tests plus a rehearsal-repo run of two concurrent dispatches on rotate.py-editing briefs merged up green.
-thought_session: L3.23
+thought_session: L3.25
 title: Per-parent branch with seat-managed merge upward
 ---
 <!-- BODY:BEGIN -->
@@ -53,3 +53,5 @@ Owner message to Belam IV, 2026-09-07 ~14:40 UTC (HANDOFF §6 item 19); HANDOFF 
 ADDENDUM (owner, 2026-09-07 ~14:50 UTC, verbatim): "just make sure it can be used recursively so when we use more command layers it still works smoothly."
 
 Requirement: the mechanism is layer-agnostic, and the same code path serves every command layer. (1) The base of a new branch is the SPAWNER's checked-out branch (`git rev-parse --abbrev-ref HEAD` in the spawner's cwd), never a hardcoded `season/sN`: a director on `tier1/<name>` cuts its parents from `tier1/<name>`, an advisor cuts directors from its own branch, and only the prime's layer cuts from `season/sN`. (2) The lease and agent.json record `branch`, `base_branch` and `worktree`; `merge-up <branch>` merges into the recorded `base_branch`, so merges climb one layer at a time and a director's branch reaches the season only after its parents have merged into it. (3) Branch names carry the agent id so nested layers never collide: `loop/<slug>-<agent8>@s<N>` for a parent; directors keep `tier<N>/<name>` as §6 item 7 says. (4) Every worktree lives under the MAIN checkout's `.agi/worktrees/<agent>/`, resolved through `git rev-parse --git-common-dir`, even when the spawner itself runs inside a worktree — otherwise a worktree created relative to a worktree cwd lands one agent's tree inside another's. (5) The suite-green gate applies at every layer; the budget dir, comms root and meter pins resolve from any depth to the main checkout. Extra red-first tests: test_base_branch_is_spawner_branch_not_season; test_merge_up_targets_recorded_base_branch; test_three_layer_rehearsal (season → director branch → parent branch, merged up in order, hashes never rewritten).
+
+L3.25 DISPATCH NOTE (Belam IV): another kid edits spawn_budget.py at the same time for hypothesis:l3-cc-adapter-zombie-lease (the lease release path and the adapter). Stay inside the budget-dir resolution (main checkout via git rev-parse --git-common-dir) and the dispatch/season/locations changes; never rewrite or reformat spawn_budget.py whole; report a failure outside your region in caveats: rather than fixing it. GO from the owner 16:20 UTC; the recursion ADDENDUM above is part of the claim.
