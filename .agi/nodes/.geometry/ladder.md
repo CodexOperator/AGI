@@ -9,10 +9,10 @@ caps:
   moral: 5
   vision: 3
 caps_apply_from_season: 2
-current_season: 1
+current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.35
-edited_by: a00-392c4e59
+edited_by: season.py
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -46,7 +46,7 @@ tags:
   - geometry
   - ladder
   - structural
-thought_session: L3.05
+thought_session: season
 tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
