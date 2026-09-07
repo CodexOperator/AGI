@@ -964,3 +964,44 @@ def test_dispatch_branch_exports_agi_tree_project_root_to_the_child():
     # spawn scripts also route `cwd` to the worktree root, not the main one.
     assert "cwd=str(branch_root)" in src, (
         "dispatch.py must launch the child from the worktree root (branch_root)")
+
+
+def test_child_working_root_inherits_spawner_worktree_not_main(tmp_path):
+    """L3.30 runtime defect (Belam VII): a parent spawned with `--branch`
+    runs in its own worktree, and when it spawns a KID (--tier kid, no
+    --branch) the kid must inherit that worktree as its working tree.
+    Red-first: with the spawner's AGI_TREE_PROJECT_ROOT naming the worktree,
+    `child_working_graph` must re-root the kid to the worktree's `.agi/`
+    EVEN WHEN the passed project path resolves to the main checkout — the
+    exact collapse Belam measured, where both worktrees stood empty while
+    every kid's edits landed in the main tree."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-zz@s1", "a00-zz", "init")
+    main_graph = dispatch.locations.find_project_root(repo)
+    wt_graph = dispatch.locations.find_project_root(wt)
+    assert main_graph != wt_graph, "sanity: the worktree has its own graph"
+
+    # Parent passed the MAIN checkout path, but AGI_TREE_PROJECT_ROOT names
+    # the spawner's worktree → the kid edits the worktree, not main.
+    kid_root = dispatch.child_working_graph(
+        passed_root=main_graph,
+        spawner_env_root=str(wt.resolve()))
+    assert kid_root == wt_graph, (
+        "a kid spawned by a --branch parent must edit the parent's worktree, "
+        "not walk back out to the main checkout")
+
+
+def test_child_working_root_unchanged_without_a_worktree_spawner(tmp_path):
+    """The re-root only fires when a dispatched --branch parent is the
+    spawner. A top-level dispatch (seat/cron, no AGI_TREE_PROJECT_ROOT) must
+    resolve exactly as before; so must a spawn whose env value names the same
+    tree it was passed."""
+    repo = _git_repo(tmp_path)
+    main_graph = dispatch.locations.find_project_root(repo)
+    # No spawner env → identity.
+    assert dispatch.child_working_graph(passed_root=main_graph,
+                                        spawner_env_root=None) == main_graph
+    # Env names the SAME tree as passed → identity.
+    assert dispatch.child_working_graph(passed_root=main_graph,
+                                        spawner_env_root=str(repo)) == main_graph

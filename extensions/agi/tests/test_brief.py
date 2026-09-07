@@ -192,6 +192,19 @@ def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
     assert "write.py" in kid and "set FIELD VALUE" in kid
 
 
+def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
+    """L3.30/L3.31 harness defect: the template showed `write.py <id> set
+    verdict proved` unquoted -- argparse reads `set` as the script, `verdict`
+    as the slug, and dies on the extra positional, so the one command every
+    kid must run was taught broken. The whole verb line is ONE argument."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "write.py <node-id> '<verbs>'" in kid
+    assert "write.py experiment:x 'set verdict proved'" in kid
+    assert "write.py experiment:x 'set evidence_runs experiment:x'" in kid
+    # the unquoted example must not survive anywhere in the kid brief
+    assert "write.py experiment:x set verdict proved" not in kid
+
+
 # ---------------------------------- l2w3-brief-heads: director + prime_director
 
 

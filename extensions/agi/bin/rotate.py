@@ -983,19 +983,33 @@ def _is_log_noise(line: str) -> bool:
     return re.match(r"^\S+\s+\[[^\]]+\]", s) is not None
 
 
-def _read_first_reply(path: str | Path, timeout: int = 120) -> str | None:
+def _read_first_reply(path: str | Path, timeout: int = 120,
+                      start_offset: int = 0) -> str | None:
     """Poll `path` until it carries an answer; return the first non-empty line
     that is NOT a bracketed logger line (e.g. `[DEBUG] MDM settings load
-    completed`), or None if the timeout is hit first."""
+    completed`), or None if the timeout is hit first.
+
+    `start_offset` is the read-before-write cursor
+    (hypothesis:l3w4-seat-rotation-loops): only bytes AFTER this offset count,
+    so a successor spawned under a REUSED plain seat name cannot be confirmed
+    by a predecessor's stale bare `continue` left in the same log. Default 0
+    preserves the historical whole-file behaviour for `cmd_loop`.
+    """
     p = Path(path).expanduser()
     deadline = time.time() + timeout
     while time.time() < deadline:
-        if p.exists() and p.stat().st_size > 0:
-            text = p.read_text(encoding="utf-8", errors="replace").strip()
-            for line in text.splitlines():
-                if _is_log_noise(line):
-                    continue
-                return line.strip()
+        try:
+            if p.exists() and p.stat().st_size > start_offset:
+                with open(p, encoding="utf-8", errors="replace") as fh:
+                    if start_offset:
+                        fh.seek(start_offset)
+                    text = fh.read()
+                for line in text.splitlines():
+                    if _is_log_noise(line):
+                        continue
+                    return line.strip()
+        except OSError:
+            pass
         time.sleep(2)
     return None
 
@@ -1072,9 +1086,34 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
-def cmd_status(args: argparse.Namespace) -> int:
+def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     """List tmux windows in sessions whose name starts with agi-master or
-    belam."""
+    belam; with `--seats`, list the registry seats instead — one line per
+    row of seat/generation/fraction/age ("each layer lasts longer" is read
+    here, never enforced).
+
+    `--seats` is the graph-reading half and needs the project root; tmux is
+    never touched for it."""
+
+    if getattr(args, "seats", False):
+        if root is None:
+            print("ERR: --seats needs an agi project root", file=sys.stderr)
+            return 1
+        for row in _load_seats(root):
+            seat = row.get("name") or "?"
+            gen = _read_generation(root, seat)
+            frac = _seat_fraction(root, row)
+            frac_str = "?" if frac is None else f"{frac:.3f}"
+            pin = find_pin_log(root, seat)
+            age_str = "?"
+            if pin is not None:
+                try:
+                    age_sec = int(time.time() - pin.stat().st_mtime)
+                    age_str = f"{age_sec // 60}m{age_sec % 60}s"
+                except (OSError, ValueError):
+                    pass
+            print(f"{seat}\tgen={gen}\tfrac={frac_str}\tage={age_str}")
+        return 0
 
     try:
         result = subprocess.run(
@@ -1121,6 +1160,292 @@ def cmd_status(args: argparse.Namespace) -> int:
                 print(f"  {sess}:{wname}{active_mark} ({age_str})")
         except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
             print(f"  {sess}: (could not list windows)")
+    return 0
+
+
+# --- seats registry (config:seats) -----------------------------------------
+
+
+def _load_seats(root: Path | None) -> list[dict]:
+    """The `seats:` rows of `.agi/nodes/.geometry/seats.md` (config:seats),
+    or [] when absent/unparseable."""
+    if root is None:
+        return []
+    path = Path(root) / "nodes" / ".geometry" / "seats.md"
+    if not path.exists():
+        return []
+    try:
+        nf = frontmatter.load_node_file(path)
+        seats = nf.frontmatter.get("seats") or []
+        if isinstance(seats, list):
+            return [r for r in seats if isinstance(r, dict)]
+    except Exception:
+        pass
+    return []
+
+
+def _find_seat(root: Path | None, name: str) -> dict | None:
+    for row in _load_seats(root):
+        if row.get("name") == name:
+            return row
+    return None
+
+
+def _seat_hands(root: Path) -> Path:
+    """The seat handoff dir: `<graph>/sessions/seats/` (created on demand).
+
+    The design (hypothesis:l3w4-seat-rotation-loops) files one handoff per
+    seat here: `<S>.handoff.md`, carrying `seat`, `generation`, `rotated_at`,
+    `predecessor_session`."""
+    return _sessions_dir(root) / "seats"
+
+
+def _read_generation(root: Path, name: str) -> int:
+    """The `generation:` read from a seat's existing handoff, or 0 when the
+    handoff is absent or unparsable (the rotation that writes gen N always
+    follows prior gen N-1)."""
+    hp = _seat_hands(root) / f"{name}.handoff.md"
+    if not hp.exists():
+        return 0
+    try:
+        txt = hp.read_text(encoding="utf-8", errors="replace")
+        for line in txt.splitlines():
+            ls = line.strip()
+            if ls.startswith("generation:"):
+                v = ls.split(":", 1)[1].strip()
+                return max(0, int(v))
+    except (OSError, ValueError):
+        pass
+    return 0
+
+
+def _write_handoff(root: Path, name: str, generation: int,
+                   predecessor_session: str = "") -> Path:
+    """Write `<S>.handoff.md` with seat/generation/rotated_at/predecessor.
+    Returns the written path."""
+    hand = _seat_hands(root)
+    hand.mkdir(parents=True, exist_ok=True)
+    hp = hand / f"{name}.handoff.md"
+    hp.write_text(
+        f"seat: {name}\n"
+        f"generation: {generation}\n"
+        f"rotated_at: {datetime.utcnow().isoformat()}Z\n"
+        f"predecessor_session: {predecessor_session}\n",
+        encoding="utf-8",
+    )
+    return hp
+
+
+def _rename_own_window(seat: str, new_name: str, tmux_session: str,
+                       window_path: str | None = None) -> None:
+    """Rename the seat's own tmux window `<seat>` aside to `new_name`.
+
+    With `window_path` (tests) the new name is written as the file's new
+    window-name list instead of calling tmux."""
+    if window_path is not None:
+        _replace_window_name(window_path, seat, new_name)
+        return
+    try:
+        subprocess.run(
+            ["tmux", "rename-window", "-t", f"{tmux_session}:{seat}",
+             new_name],
+            capture_output=True, text=True, timeout=5,
+        )
+    except Exception:
+        # rename is best-effort; the successor spawn is the load-bearing step
+        pass
+
+
+def _replace_window_name(window_path: str, old: str, new: str) -> None:
+    """Swap `old` for `new` in a window-name file (test seam)."""
+    p = Path(window_path)
+    if not p.exists():
+        p.write_text(new + "\n", encoding="utf-8")
+        return
+    lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    out = [new if ln == old else ln for ln in lines]
+    p.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+def _kill_window(name: str, tmux_session: str,
+                 window_path: str | None = None) -> None:
+    """Kill the (renamed) own window once the successor has confirmed.
+
+    With `window_path` (tests) the name is dropped from the file instead of a
+    real tmux kill-window."""
+    if window_path is not None:
+        p = Path(window_path)
+        if p.exists():
+            lines = [ln for ln in p.read_text(encoding="utf-8").splitlines()
+                     if ln.strip() != name]
+            p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return
+    try:
+        subprocess.run(
+            ["tmux", "kill-window", "-t", f"{tmux_session}:{name}"],
+            capture_output=True, text=True, timeout=5,
+        )
+    except Exception:
+        pass
+
+
+def _seat_fraction(root: Path, row: dict) -> float | None:
+    """Context fraction for a seat row: read its seat-stable pin
+    (`pin_ref` -> `.agi/sessions/<name>.meter`), parse the named transcript,
+    and divide by the ladder's context window. None when the pin or a usage
+    record is absent (caller warns and skips the seat)."""
+    name = row.get("name")
+    if not name:
+        return None
+    threshold = load_ladder_field(root, "director_rotate_at",
+                                  DEFAULT_DIRECTOR_ROTATE_AT)
+    # Reuse the same meter pin resolution the `meter` command uses: the
+    # seat-stable `.agi/sessions/<name>.meter` wins over newer foreign pins.
+    pin = find_pin_log(root, name)
+    if pin is None:
+        return None
+    target = _read_pin_target(pin)
+    if target is None:
+        return None
+    usage = parse_usage_from_cc_transcript(target)
+    if usage is None:
+        usage = parse_usage_from_rc_log(target)
+    if usage is None:
+        return None
+    context_tokens = load_ladder_field(root, "director_context_tokens",
+                                       DEFAULT_DIRECTOR_CONTEXT_TOKENS)
+    return calculate_fraction(usage, context_tokens)
+
+
+def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
+    """Meter every seat whose registry row names `--holder` as `rotated_by`.
+
+    For each such seat: at/over `director_rotate_at` (0.35) send exactly ONE
+    dm `rotate now` to the holder (never more), nothing else — no spawn, no
+    tmux. Below threshold prints `hold <seat> <fraction>`. `--once` meters
+    each held seat once and returns so the parent's regression test is
+    deterministic; without it the loop meters every `--interval` seconds.
+    """
+    holder = args.holder
+    threshold = load_ladder_field(root, "director_rotate_at",
+                                  DEFAULT_DIRECTOR_ROTATE_AT)
+    import send  # local: same dir
+    croot = Path(args.comms_root) if args.comms_root else send.comms_root(root)
+    due = 0
+    for row in _load_seats(root):
+        if row.get("rotated_by") != holder:
+            continue
+        seat = row.get("name")
+        frac = _seat_fraction(root, row)
+        if frac is None:
+            print(f"warn: no pin/usage for seat {seat!r} — skipping",
+                  file=sys.stderr)
+            continue
+        if frac < threshold:
+            print(f"hold {seat} {frac:.4f}")
+            continue
+        # at/over threshold: one dm to the holder, plain "rotate now".
+        try:
+            send.send_dm(croot, holder, seat, "rotate now",
+                         sender=holder)
+        except SystemExit as exc:
+            print(f"warn: could not dm holder {holder!r} for {seat!r}: {exc}",
+                  file=sys.stderr)
+            continue
+        print(f"rotate now -> {seat} (fraction {frac:.4f})")
+        due += 1
+    if args.once:
+        return 0
+    while True:
+        time.sleep(args.interval)
+        return cmd_alarms(args, root)
+
+
+# --- rotate-self subcommand -----------------------------------------------
+
+
+def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
+    """The self-rotation primitive for a NON-prime seat.
+
+    `rotate.py rotate-self --name S`: reads S's own registry row for
+    role/model/effort/settings (no `--tier`), then (1) writes the seat's
+    handoff with the incremented generation, (2) renames its own tmux window
+    `S` aside to `S.gen<N>`, freeing the plain name, (3) spawns its successor
+    under the SAME plain name (never a Roman numeral), (4) reads back the
+    successor's single-word `continue` from the successor log — through the
+    read-before-write cursor so a stale predecessor `continue` in the reused
+    plain-name log cannot confirm it — and (5) kills its own renamed window.
+    `--dry-run` prints all five steps and touches nothing."""
+    if root is None:
+        print("ERR: rotate-self needs an agi project root.", file=sys.stderr)
+        return 1
+    guard = _check_branch_guard(root)
+    if guard:
+        print(guard, file=sys.stderr)
+        return 1
+    seat = args.name
+    row = _find_seat(root, seat)
+    if row is None:
+        print(f"ERR: no seat {seat!r} in the seats registry "
+              f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
+        return 1
+
+    gen = _read_generation(root, seat) + 1
+    new_name = f"{seat}.gen{gen}"
+    tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
+    dbg = args.debug_file or f".agi/sessions/{seat}.log"
+
+    # (1) handoff
+    if not args.dry_run:
+        _write_handoff(root, seat, gen, predecessor_session=seat)
+    print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
+          f"generation {gen}")
+
+    # (2) rename own window aside, freeing the plain seat name
+    if not args.dry_run:
+        _rename_own_window(seat, new_name, tmux_session, args.window_path)
+    print(f"(2) rename own window {seat!r} -> {new_name!r}")
+
+    # (3) spawn the successor under the SAME plain name - never a Roman numeral
+    role = row.get("role") or "parent"
+    rc, _ = spawn_window(
+        name=seat, tier=role,
+        prompt_file=args.prompt_file,
+        model=args.model or (row.get("model") or None),
+        effort=args.effort or (row.get("effort") or None),
+        settings=(json.loads(args.settings) if args.settings
+                  else _normalize_settings(row.get("settings") or None)),
+        tmux_session=tmux_session, window_path=args.window_path, root=root,
+        dry_run=args.dry_run, debug_file=dbg,
+    )
+    if rc != 0:
+        return rc
+    print(f"(3) spawn successor under the plain name {seat!r} (role {role!r})")
+
+    if args.dry_run:
+        print("(4) read back successor reply")
+        print(f"(5) kill own renamed window {new_name!r}")
+        print("(dry-run) ends on the PLAIN seat name; "
+              f"generation: {gen} (never a Roman numeral)")
+        return 0
+
+    # (4) read back. Record the successor log's size BEFORE the spawn
+    #     completed so the read cursor ignores anything (a stale `continue`)
+    #     written before the successor started (read-before-write cursor).
+    log = Path(dbg).expanduser().resolve()
+    offset = log.stat().st_size if log.exists() else 0
+    timeout = getattr(args, "timeout", 600)
+    reply = _read_first_reply(dbg, timeout=timeout, start_offset=offset)
+    if reply is None or reply.strip().lower() != "continue":
+        print("warn: successor did not answer the single word `continue`; "
+              "leaving the renamed window in place for inspection.",
+              file=sys.stderr)
+        return 1
+
+    # (5) confirmed: kill the renamed predecessor window
+    _kill_window(new_name, tmux_session, args.window_path)
+    print(f"(5) successor confirmed `continue`; killed own window "
+          f"{new_name!r}")
     return 0
 
 
@@ -1215,12 +1540,62 @@ def main(argv: list[str] | None = None) -> int:
     # status
     p_status = sub.add_parser(
         "status", help="list agi-master and belam tmux sessions")
+    p_status.add_argument("--seats", action="store_true",
+                          help="list registry seats instead (seat/generation/"
+                               "fraction/age, one line per row)")
     p_status.set_defaults(func=cmd_status)
+
+    # alarms --holder S: meter held seats, dm `rotate now` when a pin crosses
+    # director_rotate_at (hypothesis:l3w4-seat-rotation-loops)
+    p_alarms = sub.add_parser(
+        "alarms", help="meter seats rotated_by the holder; dm `rotate now` "
+                        "when a pin crosses director_rotate_at")
+    p_alarms.add_argument("--holder", required=True,
+                          help="the seatholder whose `rotated_by` seats this "
+                          "meters (e.g. the advisor that rotates its "
+                          "director-kids)")
+    p_alarms.add_argument("--once", action="store_true",
+                          help="meter each held seat once, send due dms, and "
+                          "return (regression-friendly)")
+    p_alarms.add_argument("--interval", type=int, default=300,
+                          help="seconds between meters when not --once "
+                          "(default: 300)")
+    p_alarms.add_argument("--comms-root", default=None,
+                          help="override the comms root (tests)")
+    p_alarms.set_defaults(func=cmd_alarms)
+
+    # rotate-self --name S: the non-prime self-rotation primitive
+    p_rs = sub.add_parser(
+        "rotate-self", help="rotate a non-prime seat onto a same-named "
+                             "successor and kill its own window")
+    p_rs.add_argument("--name", required=True,
+                      help="the seat's own plain registry name")
+    p_rs.add_argument("--force", action="store_true",
+                      help="rotate without an over-threshold meter check")
+    p_rs.add_argument("--timeout", type=int, default=600,
+                      help="seconds to wait for the successor `continue` "
+                           "(default: 600)")
+    p_rs.add_argument("--debug-file", default=None,
+                      help="override the successor log path (default: "
+                           ".agi/sessions/<name>.log)")
+    p_rs.add_argument("--model", default=None, help="model override")
+    p_rs.add_argument("--effort", default=None, help="effort override")
+    p_rs.add_argument("--settings", default=None,
+                      help="JSON settings flag")
+    p_rs.add_argument("--prompt-file", default=None,
+                      help="successor body file (default by tier)")
+    p_rs.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
+                      help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
+    p_rs.add_argument("--window-path", default=None,
+                      help="read/write window names from this file (tests)")
+    p_rs.add_argument("--dry-run", action="store_true",
+                      help="print all five steps and touch nothing")
+    p_rs.set_defaults(func=cmd_rotate_self)
 
     args = ap.parse_args(argv)
 
-    # meter and loop need the project root
-    if args.cmd in ("meter", "loop"):
+    # meter, loop, alarms and rotate-self need the project root
+    if args.cmd in ("meter", "loop", "alarms", "rotate-self"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
@@ -1229,6 +1604,10 @@ def main(argv: list[str] | None = None) -> int:
 
     # spawn tolerates a missing project root (chiefly for --dry-run previews)
     if args.cmd == "spawn":
+        return args.func(args, find_project_root())
+
+    # status needs the root only for --seats; the tmux half runs without it
+    if args.cmd == "status":
         return args.func(args, find_project_root())
 
     return args.func(args)

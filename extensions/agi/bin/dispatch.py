@@ -218,6 +218,37 @@ def drop_branch_worktree(root: Path, worktree: Path) -> None:
         pass
 
 
+def child_working_graph(*, passed_root: Path | None,
+                        spawner_env_root: str | None) -> Path | None:
+    """Re-root the child's working graph to the SPAWNER's worktree.
+
+    `hypothesis:l3w4-parent-branch-merge-up` recursion fix. A parent spawned
+    with `--branch` runs in its own git worktree (dispatch exports that
+    worktree as `AGI_TREE_PROJECT_ROOT` to the child env), and when it spawns
+    a KID (`--tier kid`, no `--branch`) the kid must INHERIT that worktree as
+    its working tree — not walk back out to the main checkout, which is what
+    resolving the kid's root from the passed project path alone used to do.
+    L3.30 runtime rehearsal (Belam VII): both worktrees stood EMPTY while
+    every kid's edits and session dirs landed in the main checkout, so
+    `merge-up` would have merged two empty branches — a green result meaning
+    the opposite of what it says.
+
+    Only the tree the CHILD edits changes here. Shared state (spawn budget,
+    comms root, meter pins) re-resolves to the main checkout through
+    `git_common_root` in the callees that own it, so this never weakens the
+    tree-wide concurrency bound (ADDENDUM item 4).
+    """
+    if passed_root is None:
+        return passed_root
+    if not spawner_env_root:
+        return passed_root
+    env_graph = locations.find_project_root(spawner_env_root) \
+        or Path(spawner_env_root).resolve()
+    if env_graph == passed_root:
+        return passed_root
+    return env_graph
+
+
 def pi_model_args(cfg: dict, tier: str = "kid") -> list[str]:
     """LEGACY SHIM — the pi flags now live in `adapters/pi_adapter.py`.
 
@@ -754,6 +785,17 @@ def main() -> int:
     # legacy root (phase 1), so no existing project resolves differently.
     given = Path(args.project_root).resolve()
     root = locations.find_project_root(given)
+    # hypothesis:l3w4-parent-branch-merge-up — recursion fix (L3.30 defect):
+    # when THIS dispatch is itself a spawned --branch parent running in its
+    # worktree, AGI_TREE_PROJECT_ROOT names that worktree, and any kid it
+    # spawns heredits it as the working tree instead of collapsing back to
+    # the main checkout. Re-rooting uses project_root_from_env's seam (the
+    # env dispatch itself exports to --branch children) and only fires when
+    # it names a DIFFERENT graph than the passed path resolved to, so a
+    # top-level dispatch from the seat/cron resolves exactly as before.
+    _spawner_env_root = os.environ.get(locations.PROJECT_ROOT_ENV_VARS[0])
+    root = child_working_graph(passed_root=root,
+                               spawner_env_root=_spawner_env_root)
     cfg_path = locations.config_path(root) if root is not None else None
     if cfg_path is None:
         print(f"ERR: not an agi project: {given}", file=sys.stderr)

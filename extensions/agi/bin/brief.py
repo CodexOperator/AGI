@@ -836,11 +836,18 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
         "`python3 -m pytest extensions/agi/tests/ -q`. Your own scratch test "
         "passing is not the same claim. A failing assertion you did not expect "
         "is usually the assertion working.",
-        # write.py verb syntax: set FIELD VALUE, space separated, not k=v
-        "WRITE.PY SYNTAX: `write.py <node-id> set FIELD VALUE`. "
-        "Space separated, not k=v. Example:\n"
-        "  python3 extensions/agi/bin/write.py experiment:x set verdict proved\n"
-        "  python3 extensions/agi/bin/write.py experiment:x set evidence_runs experiment:x",
+        # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
+        # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
+        # and `verdict` as the slug and the call dies on the extra positional
+        # -- the struggle an L3.30 kid recorded. Fields inside the quoted line
+        # stay space separated, not k=v.
+        "WRITE.PY SYNTAX: `write.py <node-id> '<verbs>'` -- the whole verb "
+        "line is ONE quoted argument; chain verbs with `&&` inside the same "
+        "quotes. Fields inside the line stay space separated, not k=v. "
+        "Example:\n"
+        "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
+        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs experiment:x'\n"
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
     ]
@@ -856,7 +863,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
             f"FILL IN the body of that file. Edit below the closing `---` "
             f"only -- never rewrite the frontmatter (the `---` block at the\n"
             f"top of the file). Set frontmatter fields with `write.py "
-            f"<node-id> set FIELD VALUE`, never by hand.\n"
+            f"<node-id> 'set FIELD VALUE'` -- ONE quoted argument, never by hand.\n"
             f"`cli.py done` writes `verdict`, `confidence` and\n"
             f"`evidence_runs` into it for you. Seeing those keys on a node\n"
             f"is not a request to maintain them by hand.\n"

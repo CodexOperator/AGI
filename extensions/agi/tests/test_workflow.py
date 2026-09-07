@@ -123,6 +123,128 @@ def test_stage_return_is_schema_validated():
     assert validate_return(None, {"anything": 1}) == []    # no schema -> valid
 
 
+
+
+# ---------- pi harness LIVE path: prompt render + JSON parse + validate -----
+
+from workflow import (  # noqa: E402
+    render_stage_prompt, _parse_last_json, _effort_to_thinking,
+    _run_stage_pi,
+)
+
+
+def test_render_stage_prompt_uses_repeat_item_fields_over_args():
+    from workflow import _expand_stages
+    manifest = {"stages": [{
+        "label": "draft", "repeat": {"of": "briefs",
+        "label_template": "draft:{slug}"},
+        "prompt": "write {scratch}/{slug}.md parent={parent} scope={scope}",
+    }]}
+    stages = _expand_stages(manifest, {"scratch": "/tmp/S", "briefs": [
+        {"slug": "a", "parent": "goal:x", "scope": "s1"},
+        {"slug": "b", "parent": "goal:y", "scope": "s2"},
+    ]})
+    assert len(stages) == 2, stages
+    st = stages[0]
+    assert st["label"] == "draft:a"
+    assert st["_repeat_key"] == "a"
+    out = render_stage_prompt(st, {"scratch": "/tmp/S"})
+    assert out == "write /tmp/S/a.md parent=goal:x scope=s1", out
+    assert render_stage_prompt(stages[1], {"scratch": "/tmp/S"}) \
+        == "write /tmp/S/b.md parent=goal:y scope=s2"
+
+
+def test_render_stage_prompt_missing_field_and_json_braces_pass_through():
+    # JSON schema braces in a prompt must survive rendering untouched; a
+    # missing `{word}` placeholder stays literal (str.format_map would blow up
+    # on the schema braces, which is the original bug).
+    st = {"label": "critic",
+          "prompt": 'under {scratch}/ and {optional} schema {"a":1}'}
+    assert render_stage_prompt(st, {"scratch": "/tmp"}) == \
+        'under /tmp/ and  schema {"a":1}'  # {optional} absent -> ""; JSON braces intact
+
+
+def test_render_stage_prompt_requires_prompt_text():
+    # The stub ran stages with no prompt at all; a pi run must refuse loudly.
+    st = {"label": "x", "schema": {}}
+    try:
+        render_stage_prompt(st, {})
+        raise AssertionError("expected ValueError for a prompt-less stage")
+    except ValueError as exc:
+        assert "no 'prompt'" in str(exc)
+
+
+def test_parse_last_json_tolerates_preamble_and_trailing_glue():
+    assert _parse_last_json("ok here\n{\"slug\": \"x\", \"v\": 1}\n thanks") == \
+        {"slug": "x", "v": 1}
+    try:
+        _parse_last_json("no braces here")
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
+
+
+def test_effort_to_thinking_map():
+    assert _effort_to_thinking("max") == "high"
+    assert _effort_to_thinking("high") == "high"
+    assert _effort_to_thinking("low") == "low"
+    assert _effort_to_thinking("medium") == "medium"
+    assert _effort_to_thinking(None) == "medium"
+
+
+def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
+    """The live pi path must hand the stage's RESOLVED knob and its rendered
+    prompt to the pi binary — the two things the stub swallowed."""
+    import subprocess as _sp
+    from unittest import mock
+    captured = {}
+
+    def fake_run(cmd, **kw):
+        captured["cmd"] = cmd
+        captured["env"] = kw.get("env")
+        return _sp.CompletedProcess(
+            cmd, 0,
+            stdout='{"slug": "a", "v": 1}', stderr="")
+
+    st = {"label": "draft:a", "role": "drafter",
+          "prompt": "write {scratch}/{slug}.md",
+          "_repeat_item": {"slug": "a"},
+          "schema": {"type": "object", "properties": {"slug": {"type": "string"}},
+                      "required": ["slug"]}}
+    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter",
+                                "thinking": "medium"}}}
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc = _run_stage_pi(cfg, st, {"draft:a": {"model": "glm",
+                                                   "effort": "max"}},
+                           {"scratch": "/tmp/S"})
+    assert rc == 0
+    cmd = captured["cmd"]
+    assert "/bin/fakepi" in cmd, cmd
+    assert "--provider" in cmd and "openrouter" in cmd, cmd
+    assert "--model" in cmd and "glm" in cmd, cmd
+    assert "--thinking" in cmd and "high" in cmd, cmd  # effort max -> high
+    # the rendered per-item prompt reached the binary (the stub dropped it)
+    assert "write /tmp/S/a.md" in cmd, cmd
+    # the pi child env must not inherit Claude subscription credentials
+    env = captured["env"] or {}
+    assert "ANTHROPIC_API_KEY" not in env, env
+
+
+def test_run_stage_pi_rejects_schema_violating_return():
+    import subprocess as _sp
+    from unittest import mock
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout="{\"slug\": 123}", stderr="")
+
+    st = {"label": "draft:a", "prompt": "p", "_repeat_item": {"slug": "a"},
+          "schema": {"type": "object", "properties": {"slug": {"type": "string"}},
+                      "required": ["slug"]}}
+    cfg = {"harnesses": {"pi": {}}}
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc = _run_stage_pi(cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {})
+    assert rc == 5, rc  # schema-violating JSON -> non-zero, stage fails
+
 # ---------- stage manifests match the .js Claude Code scripts ---------------
 
 def test_review_and_drafting_stage_json_matches_js_prompts():

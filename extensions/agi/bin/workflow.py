@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -111,6 +112,12 @@ def _expand_stages(manifest: dict, args: dict) -> list[dict]:
             except (KeyError, IndexError):
                 sub["label"] = tmpl
             sub["_repeat_key"] = key
+            # The render context for this concrete stage: the repeat item's own
+            # fields ({slug}, {scope}, {parent} for a brief) ride on the stage
+            # so the pi path can render a per-item prompt (hypothesis:
+            # l3w4-workflows-config-maxxed — a stage is only runnable on pi if
+            # its prompt can be rendered from the item).
+            sub["_repeat_item"] = item if isinstance(item, dict) else {}
             out.append(sub)
     return out
 
@@ -160,6 +167,147 @@ def _dispatching_line(st, k):
     )
 
 
+class _SafeDict(dict):
+    """dict whose missing keys format to '' instead of raising KeyError, so a
+    stage prompt can reference optional args ({scratch}) without every stage
+    being required to supply them."""
+    def __missing__(self, key):
+        return ""
+
+
+# A placeholder is `{word}` only — the schema examples inside a prompt are
+# `{"..": ..}` JSON braces, which must pass through LITERALLY. str.format_map
+# treats those as format specs and blows up, so expansion is a regex over
+# word keys instead (hypothesis:l3w4-workflows-config-maxxed — a prompt's
+# inline JSON schema must survive rendering).
+_PLACEHOLDER = __import__("re").compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def render_stage_prompt(stage: dict, run_args: dict) -> str:
+    """Render a stage's `prompt` template against the run's args.
+
+    The repeat item's own fields ({slug},{scope},{parent}) are the render
+    context for a concrete expanded stage, overrideing the run args so each
+    brief gets its own prompt. A stage with no `prompt` raises ValueError
+    (naming the stage) — without a prompt text a pi runner physically cannot
+    execute the stage, which is the stub defect this fixes. Only `{word}`
+    placeholders are expanded; `{\"..\": ..}` JSON braces in the prompt pass
+    through untouched.
+    """
+    tmpl = stage.get("prompt")
+    if not tmpl:
+        raise ValueError(f"stage {stage.get('label')!r} declares no 'prompt' "
+                         "text in its manifest — cannot run on the pi harness")
+    ctx = _SafeDict(run_args)
+    for k, v in (stage.get("_repeat_item") or {}).items():
+        ctx[k] = v
+    return _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
+
+
+def _pi_harness_cfg(cfg: dict) -> dict:
+    """The pi harness's bin/provider/thinking from config `harnesses.pi`.
+
+    Fallbacks are the engine defaults, so a project that omits the row still
+    resolves — matching the config-maxxed contract (never a hard literal that
+    skips the config, but a config row with sane defaults)."""
+    h = (cfg.get("harnesses") or {}).get("pi") or {}
+    return {
+        "bin": h.get("bin") or os.environ.get("PI_BIN")
+               or "/home/ubuntu/.npm-global/bin/pi",
+        "provider": h.get("provider") or "openrouter",
+        "thinking": h.get("thinking") or "medium",
+    }
+
+
+_SCRUB = (
+    "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_MODEL", "CLAUDECODE", "CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+)
+
+
+def _pi_env() -> dict:
+    """Inherited env minus Claude-Code-injected Anthropic credentials, so a
+    workflow pi stage spends the project's configured provider (openrouter)
+    rather than a subscription token — the same scrub dispatch.py applies. A
+    copy is returned; the caller's os.environ is untouched."""
+    return {k: v for k, v in os.environ.items() if k not in _SCRUB}
+
+
+def _effort_to_thinking(effort: str | None) -> str:
+    """Map a workflow effort knob to a pi thinking level. `max`/`high` -> high,
+    `low` -> low, anything missing or odd -> medium. A `--args thinking` value
+    is never remapped (the caller passes it through unchanged)."""
+    return {"max": "high", "high": "high", "low": "low"}.get(
+        (effort or "").strip().lower(), "medium")
+
+
+def _parse_last_json(text: str):
+    """Pull the last JSON object out of a model's stdout.
+
+    The model is asked for *exactly one* JSON object, but a flashrier may emit
+    a preamble or trailing glue; scanning for the last complete `{...}` block is
+    the tolerant parse. Returns the parsed value, or raises ValueError with a
+    short reason (no braces found / invalid JSON)."""
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end < 0 or end <= start:
+        raise ValueError("no JSON object `{...}` found in stage output")
+    import json as _json
+    return _json.loads(text[start:end + 1])
+
+
+def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
+                  out=sys.stdout) -> int:
+    """Execute ONE stage on the pi harness: spin the pi binary headlessly with
+    the resolved provider/model/thinking and the rendered prompt, capture its
+    stdout, parse the last JSON object, and validate it against the stage's
+    schema.
+
+    Returns 0 on success (schema-valid JSON produced). The kid writes any
+    artifact (a draft body) itself under the scratch dir the prompt names; the
+    runner does not fabricate it."""
+    import subprocess
+    k = knobs[stage["label"]]
+    prompt = render_stage_prompt(stage, run_args)
+    hc = _pi_harness_cfg(cfg)
+    thinking = run_args.get("thinking") or _effort_to_thinking(k.get("effort"))
+    cmd = [hc["bin"], "-p",
+           "--provider", hc["provider"],
+           "--model", k.get("model", _DEFAULT_MODEL),
+           "--thinking", thinking,
+           prompt]
+    out.write(f"# {_dispatching_line(stage, k)}\n")
+    out.write(f"$ {' '.join(cmd)}\n")
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              env=_pi_env(), timeout=600)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"workflow.py: stage {stage['label']} could not start pi: "
+              f"{exc}", file=sys.stderr)
+        return 2
+    output = proc.stdout or ""
+    if proc.returncode != 0:
+        print(f"workflow.py: stage {stage['label']} pi exited rc="
+              f"{proc.returncode}\n{output[-2000:]} {proc.stderr or ''}",
+              file=sys.stderr)
+        return 3
+    try:
+        value = _parse_last_json(output)
+    except (ValueError, json.JSONDecodeError) as exc:
+        print(f"workflow.py: stage {stage['label']} did not return JSON: "
+              f"{exc}\n--- output tail ---\n{output[-2000:]}", file=sys.stderr)
+        return 4
+    violations = validate_return(stage.get("schema"), value)
+    if violations:
+        print(f"workflow.py: stage {stage['label']} returned JSON that fails "
+              f"its schema:\n  " + "\n  ".join(violations), file=sys.stderr)
+        return 5
+    out.write(f"[ok] {stage['label']} -> "
+              f"{json.dumps(value, ensure_ascii=False, sort_keys=True)[:200]}\n")
+    return 0
+
+
 def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                  out=sys.stdout) -> int:
     repo = _repo_root(root)
@@ -187,23 +335,22 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                       f"model={knobs[st['label']].get('model')}\n")
         return 0
 
+    # pi harness: execute each stage for real — one headless pi process per
+    # stage, prompt rendered from the manifest + --args, resolved provider/
+    # model/thinking passed through, JSON return validated against the schema.
+    # This was a STUB: it used to call dispatch.py with a bogus `key:label`
+    # --target and a nonexistent `workflow_stage` --template, never passing the
+    # resolved knobs or the stage prompt, so a real run could not happen
+    # (Belam VII, L3.28: three concrete defects).
     import subprocess
     for st in stages:
-        k = knobs[st["label"]]
-        # One dispatch.py kid per stage — its brief is the stage prompt, its
-        # done-contract returns the JSON the stage schema validates.
-        cmd = [
-            sys.executable, str(_THIS / "dispatch.py"),
-            str(root), "workflow",
-            "--harness", "pi", "--role", st.get("role", "kid"),
-            "--target", f"{key}:{st['label']}",
-            "--template", "workflow_stage",
-        ]
-        out.write(f"# {_dispatching_line(st, k)}\n")
-        rc = subprocess.call(cmd)
+        rc = _run_stage_pi(cfg, st, knobs, args, out=out)
         if rc != 0:
-            print(f"workflow.py: stage {st['label']} dispatch failed (rc={rc})", file=sys.stderr)
+            print(f"workflow.py: workflow={key} failed at stage "
+                  f"{st['label']} (rc={rc})", file=sys.stderr)
             return rc
+    out.write(f"[summary] workflow={key} harness=pi stages={len(stages)} "
+              f"all schema-valid\n")
     return 0
 
 
