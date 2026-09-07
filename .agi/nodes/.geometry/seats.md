@@ -4,7 +4,7 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: level3.py
+edited_by: owner
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
@@ -13,9 +13,10 @@ seats:
   - {"name": "adv-all-is-one", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:all-is-one", "handoff_file": "", "pin_ref": ".agi/sessions/adv-all-is-one.meter", "rotated_by": "prime", "owning_goal": ""}
   - {"name": "adv-alive", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/adv-alive.meter", "rotated_by": "prime", "owning_goal": ""}
   - {"name": "liaison", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/liaison.meter", "rotated_by": "quorum", "owning_goal": "goal:g17"}
-  - {"name": "dir-g1", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "tty", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g1.meter", "rotated_by": "advisor", "owning_goal": "goal:g1"}
-  - {"name": "dir-g15", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "tty", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g15.meter", "rotated_by": "advisor", "owning_goal": "goal:g15"}
-  - {"name": "dir-g16", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "tty", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g16.meter", "rotated_by": "advisor", "owning_goal": "goal:g16"}
+  - {"name": "dir-g1", "role": "director", "tier": 1, "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "high", "settings": "", "session_kind": "fire-and-forget", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g1.meter", "rotated_by": "advisor", "owning_goal": "goal:g1"}
+  - {"name": "dir-g15", "role": "director", "tier": 1, "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "high", "settings": "", "session_kind": "fire-and-forget", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g15.meter", "rotated_by": "advisor", "owning_goal": "goal:g15"}
+  - {"name": "dir-g16", "role": "director", "tier": 1, "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "high", "settings": "", "session_kind": "fire-and-forget", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g16.meter", "rotated_by": "advisor", "owning_goal": "goal:g16"}
+thought_session: 7af11157
 ---
 <!-- BODY:BEGIN -->
 # config:seats
@@ -45,3 +46,6 @@ The `locations: {}` field is present because the `config` type requireds
 `locations`; this node's real declaration is `seats`, so the field is empty
 rather than a redundant restatement of the shared filesystem facts in
 `config:secrets`.
+
+## Agent Notes
+OWNER GO, 2026-09-07 22:5x UTC (verbatim: '6.36: go' and, on the open half, 'as far as quorum leave on opus max'). Applied by Belam VII as the owner's own ladder assignment, actor owner. CHANGED, three rows only: dir-g1, dir-g15 and dir-g16 move from claude-code / claude-opus-5 / high to harness pi, model ~z-ai/glm-flash-latest, effort high - the mechanism for this was built and reviewed in L3.32 (hypothesis:l3w4-director-kids-on-glm) and the kid deliberately left the data alone because the owner had only said 'I am considering'. Now it is a decision. UNCHANGED, deliberately: the three advisor seats stay claude-opus-5 max - the owner settled the open quorum question in the same breath, and GLM flash is too weak to arbitrate a 1-1-1 morals split; the liaison stays claude-sonnet-5 high because the owner named that model for the seat that talks to them and it is already the cheapest subscription seat; belam stays fable-5.1 max ultracode (item 13). ONE CONSEQUENCE THE OWNER SHOULD KNOW, changed here rather than left silently wrong: the three flipped rows also move session_kind from tty to fire-and-forget, because a pi spawn is not an interactive session and cannot hold a tty seat the way a claude-code seat does. That means these three director-kids are NOT yet perpetual - they run and exit - and they become perpetual only when hypothesis:l3w4-seat-rotation-loops lands its live proof (rotate.py alarms and rotate-self exist and are tested but no live tmux rotation has ever been observed). Until then this change buys the token saving, not the persistence.
