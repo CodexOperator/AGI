@@ -507,6 +507,43 @@ def test_cli_done_keeps_a_lifecycle_status_on_an_existing_node(project):
     assert "status: pending" in nf.read_text()
 
 
+def test_cli_done_corpus_includes_worktree_resident_nodes(project):
+    """hypothesis:l3w4-branch-tooling-blind (claim i) — a `--branch` kid's
+    node lives only in its own git worktree
+    (`<main>/.agi/worktrees/<slug>/.agi/nodes/`), so a parent reviewing it
+    from the main checkout must have those ids in the evidence corpus.
+    Until L3.35 the corpus was built from the main graph alone and the gate
+    auto-demoted the parent's decisive verdict to a lean even with the real
+    worktree node id cited."""
+    kn = project / "worktrees" / "w1" / ".agi" / "nodes" / "experiment"
+    kn.mkdir(parents=True)
+    (kn / "kid.md").write_text(
+        '---\nid: "experiment:kid"\ntype: experiment\n---\n\nrun in the worktree\n'
+    )
+    r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
+                                  "--node-id", "experiment:e1",
+                                  "--evidence-runs", "experiment:kid"])
+    assert r.returncode == 0, r.stderr
+    assert "DEMOTED" not in r.stdout + r.stderr
+    assert _agent_rec(project)["verdict"] == "proved"
+
+
+def test_cli_done_corpus_still_needs_a_real_worktree_node(project):
+    """The worktree union must not rubber-stamp: a non-existent id cited as
+    evidence still demotes, even when sibling worktrees exist."""
+    kn = project / "worktrees" / "w1" / ".agi" / "nodes" / "experiment"
+    kn.mkdir(parents=True)
+    (kn / "kid.md").write_text(
+        '---\nid: "experiment:kid"\ntype: experiment\n---\n\nbody\n'
+    )
+    r = _via_subprocess(project, ["done", "1", "a1", "--verdict", "proved",
+                                  "--node-id", "experiment:e1",
+                                  "--evidence-runs", "experiment:ghost"])
+    assert r.returncode == 0, r.stderr
+    assert "EVIDENCE-GATE DEMOTED" in (r.stdout + r.stderr)
+    assert _agent_rec(project)["verdict"] == "inconclusive_lean_proved:50"
+
+
 def test_cli_done_accepts_evidenced_proved(project):
     # goal:g7.3 — the reference has to resolve, so the node it names must
     # exist. The old form (`--evidence-runs 2`) passed with no such node
