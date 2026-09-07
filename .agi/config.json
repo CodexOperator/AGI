@@ -53,6 +53,9 @@
       "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     }
   },
+  "provisioning": {
+    "min_key_remaining_usd": 1.0
+  },
   "agent_dispatch": {
     "claude_max_parallel": 1,
     "ollama_max_parallel": 0,
