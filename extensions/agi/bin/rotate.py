@@ -681,6 +681,35 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
                                  model=model, effort=effort, settings=settings)
 
 
+def _assembled_successor_command(*, name: str, tier: str, model, effort,
+                                 settings, debug_file: str,
+                                 extra: str = "",
+                                 dispatch_py: str =
+                                 "extensions/agi/bin/dispatch.py",
+                                 cli_py: str =
+                                 "extensions/agi/bin/cli.py") -> list[str]:
+    """Build the successor argv for a non-prime seat from its assembled brief.
+
+    The body is the joined segments of `brief.assemble(tier=..., agent_id=name,
+    iter_n=0)` — a perpetual seat has no iteration number. assemble() already
+    prepends the constitution head (for the liaison, the director's read_order
+    via `_LIAISON_HEAD_TIER`), so unlike the prime's static-file path we do NOT
+    call brief.successor_prompt() again: doing both would double-insert the
+    head (hypothesis:l3w4-liaison-seat).
+    """
+    import brief  # local: same dir, may be absent in a misleading env
+    parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
+                           dispatch_py=dispatch_py, cli_py=cli_py)
+    body = "\n\n".join(parts)
+    if _is_ultracode(settings):
+        # keyword as the first line of the user turn (see _successor_command)
+        body = ULTRACODE_KEYWORD + "\n" + body
+    if extra:
+        body += "\n\n" + extra
+    return _build_claude_command(name, body, debug_file,
+                                 model=model, effort=effort, settings=settings)
+
+
 # ---- meter subcommand -----------------------------------------------------
 
 
@@ -849,11 +878,6 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
               f"or underscores.", file=sys.stderr)
         return 1, ""
 
-    pf = Path(prompt_file).expanduser().resolve()
-    if not pf.exists():
-        print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
-        return 1, ""
-
     # Resolve model / effort / settings (caller flags override role defaults)
     if root is not None:
         if not model:
@@ -864,11 +888,29 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             settings = load_role(root, tier, "settings")
 
     dbg = debug_file or f".agi/sessions/{name}.log"
-    claude_cmd = _successor_command(
-        name=name, tier=tier, prompt_file=str(pf),
-        model=model, effort=effort, settings=settings, debug_file=dbg,
-        extra=extra,
-    )
+
+    # A non-prime seat spawned with no explicit --prompt-file gets its body
+    # from the assembled brief. assemble() already inserts the constitution
+    # head, so we skip successor_prompt() — calling both would double-insert it
+    # (hypothesis:l3w4-liaison-seat). The prime's static-file path, and any
+    # explicit --prompt-file, are untouched.
+    if prompt_file is None and tier != "prime_director":
+        claude_cmd = _assembled_successor_command(
+            name=name, tier=tier, model=model, effort=effort,
+            settings=settings, debug_file=dbg, extra=extra,
+        )
+    else:
+        if prompt_file is None:
+            prompt_file = DEFAULT_PROMPT_FILE
+        pf = Path(prompt_file).expanduser().resolve()
+        if not pf.exists():
+            print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
+            return 1, ""
+        claude_cmd = _successor_command(
+            name=name, tier=tier, prompt_file=str(pf),
+            model=model, effort=effort, settings=settings, debug_file=dbg,
+            extra=extra,
+        )
 
     # Quote for shell display (ultracode roles are env-gated + keyworded)
     shell_cmd = _shell_cmd(claude_cmd, settings)
@@ -907,7 +949,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     rc, _ = spawn_window(
         name=name, tier=args.tier,
-        prompt_file=args.prompt_file or DEFAULT_PROMPT_FILE,
+        prompt_file=args.prompt_file,
         model=args.model, effort=args.effort,
         settings=json.loads(args.settings) if args.settings else None,
         tmux_session=tmux_session, window_path=args.window_path, root=root,
@@ -997,7 +1039,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     )
     rc, _ = spawn_window(
         name=name, tier=role,
-        prompt_file=args.prompt_file or DEFAULT_PROMPT_FILE,
+        prompt_file=args.prompt_file,
         model=args.model, effort=args.effort,
         settings=json.loads(args.settings) if args.settings else None,
         tmux_session=tmux_session, window_path=args.window_path, root=root,

@@ -48,12 +48,17 @@ import evidence_gate
 #: `adapters.TIERS`, which is about which models a harness declares -- a
 #: harness may declare a tier this module has no brief for, and that should
 #: fail loudly here rather than silently hand over the wrong job description.
-TIERS = ("kid", "parent", "advisor", "director", "prime_director")
+TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
 #: The reading level an advisor's constitution head is drawn from. The ladder
 #: declares read_order per tier; ``advisor`` is a role atop the tier-3 parent
 #: row (claude-opus-5, max, ultracode), so it reads at the parent's level.
 #: `hypothesis:l3w3-advisor-brief`.
 _ADVISOR_HEAD_TIER = "parent"
+#: The reading level the owner-liaison seat's constitution head is drawn
+#: from. The ladder declares read_order per tier; ``liaison`` is a director-
+#: kid answering to the quorum (hypothesis:l3w4-liaison-seat), so it reads at
+#: the director's level.
+_LIAISON_HEAD_TIER = "director"
 
 
 class BriefError(ValueError):
@@ -558,6 +563,42 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
     return segs
 
 
+def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
+    """The owner-liaison seat: the owner's primary contact with the quorum.
+
+    `l3w4-liaison-seat` — one director-kid, always on, rotated by the quorum
+    (never itself), so the owner no longer reaches the directors through
+    Belam alone. Sonnet 5 at effort high (ladder row tier=1/liaison). Sits
+    the tier3-quorum to relay quorum questions to the owner and carry owner
+    decisions back; banks every decision in the graph through write.py.
+    """
+    return [
+        f"You are the OWNER LIAISON agent {agent_id}. You are the owner's "
+        f"primary contact with the quorum — so the owner no longer reaches "
+        f"the directors through Belam alone, and the quorum is the owner's "
+        f"channel to every director.",
+        "YOUR DUTIES:\n"
+        "1. SIT the room tier3-quorum. The quorum advisors stand there "
+        "permanently; you sit it too. Relay their questions to the owner "
+        "and carry owner decisions back to them. NEVER address Belam "
+        "directly — the quorum, not you, is the channel to the prime.\n"
+        "2. BANK every owner decision in the graph so it is never lost: "
+        "`write.py <node-id> 'thought <decision>'` on the node it governs, "
+        "or a new idea node under goal:g17 (ideas-as-memos).\n"
+        "3. THE QUORUM ROTATES YOU — you do not rotate yourself and you "
+        "never write your own successor. Rotation is the quorum's call, "
+        "not yours.\n"
+        "4. RELAY, never decide. You are the liaison; judgement over "
+        "candidate decisions sits with the quorum, not you.",
+        "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
+        "Automation owns all remote traffic and the parent owns commits.",
+        "Route every node edit through the logged writer: "
+        "`python3 extensions/agi/bin/write.py <node-id> 'thought <text>'` "
+        "(or `note <text>`). A hand edit to a node file is an unsanctioned "
+        "write.",
+    ]
+
+
 def _prime_director(*, agent_id: str, iter_n: int, cli_py: str,
                     project_root: Path | None = None) -> list[str]:
     """A prime director adds: master is yours alone, merge never rebase,
@@ -1006,6 +1047,16 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             segs.insert(0, head)
         return segs
 
+    if tier == "liaison":
+        # The owner-liaison seat reads at the director's level — same
+        # prayers, words, Tao, soul-mind-body and five axes as the director
+        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
+        segs = _liaison(agent_id=agent_id)
+        head = _build_head(tier=_LIAISON_HEAD_TIER)
+        if head:
+            segs.insert(0, head)
+        return segs
+
     if tier == "parent":
         segs = _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                        dispatch_py=str(dispatch_py), target=target,
@@ -1034,6 +1085,11 @@ def closing_line(tier: str, agent_id: str, iter_n: int) -> str:
         return (f"Begin iteration {iter_n} as ADVISOR agent {agent_id}. "
                 f"Embody your vision, sit the tier3-quorum, and run your "
                 f"perpetual-goal director through its lens.")
+    if tier == "liaison":
+        # A perpetual seat: no iteration number, and rotation is the quorum's.
+        return (f"Begin your watch as OWNER LIAISON agent {agent_id}. "
+                f"Sit the tier3-quorum, relay the owner's voice, bank every "
+                f"decision, and wait for the quorum to rotate you.")
     if _is_director_role(tier):
         return (f"Begin iteration {iter_n} as {'PRIME DIRECTOR' if tier == 'prime_director' else 'DIRECTOR'} "
                 f"agent {agent_id}. Hold the lens, dispatch parents, judge "

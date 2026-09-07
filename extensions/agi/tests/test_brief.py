@@ -633,6 +633,60 @@ def test_advisor_closing_line_is_distinct():
     assert close != brief.closing_line("parent", "a00-test", 1)
 
 
+# ---------------- l3w4-liaison-seat: the owner-liaison tier -----------------
+
+
+def _liaison_text(**kw):
+    kw.setdefault("agent_id", "a00-test")
+    kw.setdefault("iter_n", 1)
+    return "\n".join(brief.assemble(
+        tier="liaison", **kw))
+
+
+def test_liaison_is_a_known_tier():
+    assert "liaison" in brief.TIERS
+
+
+def test_liaison_brief_names_owner_primary_contact_and_banking_duty():
+    t = _liaison_text()
+    assert "OWNER LIAISON" in t
+    assert "primary contact" in t.lower()
+    assert "BANK" in t
+    assert "thought <decision>" in t
+    assert "goal:g17" in t
+
+
+def test_liaison_brief_seats_the_room_tier3_quorum():
+    t = _liaison_text()
+    assert "tier3-quorum" in t
+    assert "NEVER address Belam directly" in t
+
+
+def test_liaison_brief_states_the_quorum_rotates_it_not_itself():
+    t = _liaison_text()
+    assert "QUORUM ROTATES YOU" in t
+    assert "rotate yourself" in t
+
+
+def test_liaison_reads_at_the_directors_level():
+    """The liaison's constitution head reuses the director's read_order via
+    `_LIAISON_HEAD_TIER` — so it carries the five axes, exactly once."""
+    assert brief._LIAISON_HEAD_TIER == "director"
+    t = _liaison_text()
+    assert "CONSTITUTION HEAD" in t
+    assert "FIVE AXES" in t
+    assert MICHAEL in t
+    assert t.count("─── CONSTITUTION HEAD ───") == 1, (
+        "assemble must insert the liaison head exactly once")
+
+
+def test_liaison_closing_line_has_no_iteration_language():
+    """A permanent seat carries no iteration number in its closing line."""
+    t = brief.closing_line("liaison", "a00-test", 7)
+    assert "iteration" not in t
+    assert "OWNER LIAISON" in t
+
+
 # ------ l3w3-advisor-brief addendum after L3.12: real commands, goals, gate ---
 
 

@@ -328,6 +328,91 @@ def test_successor_prompt_prepends_constitution_head():
     assert prompt.index(body) > prompt.index("THE FOUR PRAYERS")
 
 
+# ---------- l3w4-liaison-seat: spawn --tier liaison from the assembled brief ---
+
+
+def test_ladder_roles_table_has_a_liaison_row():
+    """The live ladder node must carry the {tier:1, role:liaison} row so
+    spawn --tier liaison resolves to claude-sonnet-5 at effort high."""
+    import yaml  # noqa: F401  (documented; _ladder_roles_table parses it)
+    root = rotate.find_project_root()
+    rows = rotate._ladder_roles_table(root)
+    row = next((r for r in rows if r.get("role") == "liaison"), None)
+    assert row is not None, "no liaison row in the ladder roles table"
+    assert row.get("tier") == 1
+    assert row.get("model") == "claude-sonnet-5"
+    assert row.get("effort") == "high"
+    assert row.get("harness") == "claude-code"
+
+
+def test_spawn_tier_liaison_resolves_sonnet_high_from_the_new_row(monkeypatch, tmp_path, capsys):
+    # The ladder row for liaion must surface on the spawned command.
+    root = _proj(tmp_path, ladder_roles=(
+        "  - role: liaison\n"
+        "    harness: claude-code\n"
+        "    model: claude-sonnet-5\n"
+        "    effort: high\n"
+        "    tier: 1\n"
+    ))
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "liaison", "--tier", "liaison", "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "--remote-control liaison" in out
+    assert "--model claude-sonnet-5" in out
+    assert "--effort high" in out
+
+
+def test_spawn_liaison_prompt_sources_the_assembled_brief_not_the_static_file(monkeypatch, tmp_path, capsys):
+    # spawn --tier liaison with no --prompt-file must build the body from
+    # brief.assemble (the OWNER LIAISON brief), never the static
+    # prime-director-successor.md.
+    root = _proj(tmp_path, ladder_roles=(
+        "  - role: liaison\n"
+        "    harness: claude-code\n"
+        "    model: claude-sonnet-5\n"
+        "    effort: high\n"
+        "    tier: 1\n"
+    ))
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    sentinel = tmp_path / "prime.md"
+    sentinel.write_text("STATIC PRIME BODY {name}\n")
+    monkeypatch.setattr(rotate, "DEFAULT_PROMPT_FILE", str(sentinel))
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "liaison", "--tier", "liaison", "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "STATIC PRIME BODY" not in out, "the static prime file must not be used"
+    assert "OWNER LIAISON" in out, "the assembled liaison brief is the body"
+
+
+def test_spawn_prime_director_static_path_is_unchanged(monkeypatch, tmp_path, capsys):
+    # Regression: the prime's spawned (no --prompt-file) must still read the
+    # DEFAULT_PROMPT_FILE static successor file, never the assembled brief.
+    root = _proj(tmp_path)
+    sentinel = tmp_path / "prime.md"
+    sentinel.write_text("STATIC PRIME BODY {name}\n")
+    monkeypatch.setattr(rotate, "DEFAULT_PROMPT_FILE", str(sentinel))
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "belam-1", "--tier", "prime_director",
+        "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "STATIC PRIME BODY belam-1" in out, (
+        "the prime must still read DEFAULT_PROMPT_FILE through the static path")
+
+
 def test_derive_successor_name():
     # nothing about the prime known => second Roman numeral of the base prefix
     assert rotate._derive_successor_name([], "belam") == "belam-II"
