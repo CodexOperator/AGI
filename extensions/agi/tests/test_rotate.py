@@ -1,3 +1,4 @@
+import json
 import subprocess
 import sys
 import time
@@ -729,3 +730,188 @@ def test_sessions_dir_resolves_to_main_from_a_worktree(tmp_path):
     assert wt_sess == main_sess, (
         "a worktree kid's meter pins must resolve to the MAIN checkout's "
         "sessions dir, not a per-worktree one")
+
+
+# ── l3w4-seat-rotation-loops: alarms --holder / rotate-self / status --seats ──
+
+
+def _write_seats_sheet(root, rows):
+    """Write a minimal seals-md-style registry the loader can parse."""
+    nodes = root / "nodes" / ".geometry"
+    nodes.mkdir(parents=True, exist_ok=True)
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "---\n"
+    (nodes / "seats.md").write_text(body, encoding="utf-8")
+
+
+def _pin_seat_transcript(root, name, tokens):
+    """Write a fake CC transcript + the seat-stable pin naming it."""
+    transcript = root / f"t-{name}.jsonl"
+    transcript.write_text(json.dumps({
+        "message": {"role": "assistant",
+                    "usage": {"input_tokens": tokens,
+                              "cache_read_input_tokens": 0,
+                              "cache_creation_input_tokens": 0}},
+    }) + "\n", encoding="utf-8")
+    (root / "sessions" / f"{name}.meter").write_text(
+        str(transcript) + "\n", encoding="utf-8")
+    return transcript
+
+
+def _rotate_self_args(tmp_path, **over):
+    base = dict(name="adv-alive", force=False, timeout=5, debug_file=None,
+                model=None, effort=None, settings=None, prompt_file=None,
+                tmux_session="t", window_path=None, dry_run=False)
+    base.update(over)
+    return SimpleNamespace(**base)
+
+
+def test_alarms_once_holds_below_threshold(fake_ladder, tmp_path, capsys):
+    """Below director_rotate_at: prints `hold <seat>` and sends NO dm."""
+    seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"}]
+    _write_seats_sheet(tmp_path, seats)
+    _pin_seat_transcript(tmp_path, "kid-1", tokens=5000)  # 0.05 < 0.25
+    comms = tmp_path / "comms"
+    args = SimpleNamespace(holder="advisor", once=True, interval=300,
+                           comms_root=str(comms))
+    rc = rotate.cmd_alarms(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "hold kid-1 0.0500" in out
+    assert not list(comms.glob("dm/*.md"))
+
+
+def test_alarms_once_dms_holder_when_due_then_stops(fake_ladder, tmp_path):
+    """At/over threshold: exactly one dm `rotate now` to the holder, nil more."""
+    seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"},
+             {"name": "kid-2", "role": "director", "rotated_by": "advisor"}]
+    _write_seats_sheet(tmp_path, seats)
+    _pin_seat_transcript(tmp_path, "kid-1", tokens=40000)  # 0.40 >= 0.25
+    _pin_seat_transcript(tmp_path, "kid-2", tokens=4000)   # 0.04 < 0.25
+    comms = tmp_path / "comms"
+    args = SimpleNamespace(holder="advisor", once=True, interval=300,
+                           comms_root=str(comms))
+    rc = rotate.cmd_alarms(args, tmp_path)
+    assert rc == 0
+    dms = list(comms.glob("dm/*.md"))
+    assert len(dms) == 1  # only the due seat was dm'd
+    assert "rotate now" in dms[0].read_text(encoding="utf-8")
+
+
+def test_rotate_self_dry_run_reuses_plain_name_no_roman(fake_ladder, tmp_path,
+                                                        capsys, monkeypatch):
+    """--dry-run prints the successor under the PLAIN seat name, generation N+1,
+    never a Roman numeral, and touches nothing."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    seen = {}
+    def fake_spawn(**kw):
+        seen["name"] = kw["name"]
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    args = _rotate_self_args(tmp_path, dry_run=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert seen["name"] == "adv-alive"          # plain, not adv-alive-II
+    assert "generation: 1" in capsys.readouterr().out
+    assert not (tmp_path / "sessions" / "seats" / "adv-alive.handoff.md").exists()
+
+
+def test_rotate_self_renames_window_before_respawn(fake_ladder, tmp_path, monkeypatch):
+    """The own window is renamed aside BEFORE the successor spawns."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    at_spawn = {}
+    def fake_spawn(**kw):
+        at_spawn["window_file"] = win.read_text(encoding="utf-8").strip()
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert "adv-alive.gen1" in at_spawn["window_file"]
+
+
+def test_rotate_self_kills_own_window_after_continue(fake_ladder, tmp_path,
+                                                     capsys, monkeypatch):
+    """After the successor answers `continue`, the own renamed window dies."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    killed = []
+    def fake_spawn(**kw):
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window",
+                        lambda name, *a, **k: killed.append(name))
+    args = _rotate_self_args(tmp_path, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert killed == ["adv-alive.gen1"]
+
+
+def test_seat_handoff_generation_bumps_on_rotation(fake_ladder, tmp_path,
+                                                   capsys, monkeypatch):
+    """A seat whose handoff says generation 3 rotates onto generation 4."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    hand = tmp_path / "sessions" / "seats"
+    hand.mkdir(parents=True, exist_ok=True)
+    (hand / "adv-alive.handoff.md").write_text(
+        "seat: adv-alive\ngeneration: 3\n", encoding="utf-8")
+    seen = []
+    def fake_spawn(**kw):
+        seen.append(kw["name"])
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    args = _rotate_self_args(tmp_path, dry_run=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert "generation 4" in capsys.readouterr().out
+    # the read-before-write cursor still computes on the plain seat name
+    assert seen == ["adv-alive"]
+
+
+def test_status_seats_flag_lists_fraction_and_age(fake_ladder, tmp_path,
+                                                  capsys):
+    """`status --seats` prints seat/generation/fraction/age per registry row."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "kid-1", "role": "director",
+                         "rotated_by": "advisor"}])
+    _pin_seat_transcript(tmp_path, "kid-1", tokens=10000)  # 0.1
+    rc = rotate.cmd_status(SimpleNamespace(seats=True), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "kid-1\tgen=" in out
+    assert "frac=0.100" in out
+
+
+def test_rotate_self_cursor_ignores_stale_predecessor_continue(tmp_path):
+    """The read-before-write cursor: a stale bare `continue` left in a reused
+    plain-name log before the successor started must NOT confirm the rotation;
+    only bytes written after the cursor count (hypothesis:l3w4-seat-rotation-
+    loops, fixed after L3.30's reproduced hazard)."""
+    log = tmp_path / "adv-alive.log"
+    log.write_text("continue\nvalid successor line\n", encoding="utf-8")
+    # whole-file (the pre-fix view) still sees the stale `continue` -> the
+    # hazard this must close
+    assert rotate._read_first_reply(str(log), timeout=2, start_offset=0) \
+        == "continue"
+    # cursor past the stale line sees only the successor's fresh output
+    assert rotate._read_first_reply(str(log), timeout=2, start_offset=9) \
+        == "valid successor line"

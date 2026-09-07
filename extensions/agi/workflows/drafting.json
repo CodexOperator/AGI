@@ -6,19 +6,39 @@
     {
       "label": "draft",
       "role": "drafter",
-      "repeat": { "of": "briefs", "label_template": "draft:{slug}" },
+      "repeat": {
+        "of": "briefs",
+        "label_template": "draft:{slug}"
+      },
       "model_hint": "sonnet",
       "effort_hint": "max",
+      "prompt": "You are a hypothesis-brief drafter for the agi thoughtgraph repo at /home/ubuntu/work/agi. You are READ-ONLY on that repo: never run git (any verb), grid.py, write.py, dispatch.py, send.py, or create/edit any file inside the repo. Write ONLY under the scratch dir {scratch}/ (mkdir -p it first).\n\nYOUR BRIEF: slug \"{slug}\", parent {parent}. Scope: {scope}.\nTitle: a short imperative noun phrase.\nWrite the draft body to {scratch}/{slug}.md: a plain-markdown body (no frontmatter, no title line, no \"&&\" anywhere) following the house brief shape CLAIM / WHY / FILES / DESIGN / TESTS / GATE / NOT IN SCOPE / SOURCE. Never invent an owner decision; anything not in owner-verbatim text is labelled \"(director proposal)\".\n\nAfter writing the file, respond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"slug\":\"...\",\"parent\":\"...\",\"title\":\"...\",\"testable_claim\":\"...\",\"body_path\":\"...\",\"files\":[\"...\"]}. body_path must be the absolute path you actually wrote.",
       "schema": {
         "type": "object",
         "properties": {
-          "slug": { "type": "string" },
-          "parent": { "type": "string" },
-          "title": { "type": "string" },
-          "testable_claim": { "type": "string" },
-          "body_path": { "type": "string" }
+          "slug": {
+            "type": "string"
+          },
+          "parent": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "testable_claim": {
+            "type": "string"
+          },
+          "body_path": {
+            "type": "string"
+          }
         },
-        "required": ["slug", "parent", "title", "testable_claim", "body_path"]
+        "required": [
+          "slug",
+          "parent",
+          "title",
+          "testable_claim",
+          "body_path"
+        ]
       }
     },
     {
@@ -26,15 +46,28 @@
       "role": "critic",
       "model_hint": "sonnet",
       "effort_hint": "max",
+      "prompt": "You are the critic for drafted hypothesis briefs. The drafted brief body/bodies live under {scratch}/*.md. Check each against the owner text it cites and fix IN PLACE (you may edit files under {scratch} only): (a) any statement presented as an owner decision that is not in owner-verbatim text is relabelled \"(director proposal)\" or removed; (b) no \"&&\" anywhere; (c) every FILES path exists unless marked NEW; (d) body has no frontmatter and no title line; and (e) the briefs do not contradict each other.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"ok\":true,\"fixed\":[\"...\"],\"left\":[\"...\"],\"word_counts\":[\"...\"]}.",
       "schema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" },
-          "fixed": { "type": "array" },
-          "left": { "type": "array" },
-          "word_counts": { "type": "array" }
+          "ok": {
+            "type": "boolean"
+          },
+          "fixed": {
+            "type": "array"
+          },
+          "left": {
+            "type": "array"
+          },
+          "word_counts": {
+            "type": "array"
+          }
         },
-        "required": ["ok", "fixed", "left"]
+        "required": [
+          "ok",
+          "fixed",
+          "left"
+        ]
       }
     }
   ]
