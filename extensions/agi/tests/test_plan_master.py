@@ -9,8 +9,14 @@ classify as falling.
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
 
-from extensions.agi.bin import plan_master
+BIN_DIR = Path(__file__).resolve().parents[1] / "bin"
+if str(BIN_DIR) not in sys.path:
+    sys.path.insert(0, str(BIN_DIR))
+
+import plan_master  # noqa: E402
 
 
 def _record_run(tmp_path, drafts, fixed, ts):
