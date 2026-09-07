@@ -513,3 +513,115 @@ def test_removing_the_harness_check_restores_unconditional_minting(monkeypatch):
         track_mint(name)  # unconditional — no harness check
     assert mints_called == ["pi", "cc"], (
         f"without harness check all get minted, got {mints_called}")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3-openrouter-key-headroom-invisible — surface the runtime key's
+# own limit/usage/remaining from GET /api/v1/key, and refuse dispatch below a
+# configured floor (named, fail-open). Red-first: each test asserts the exact
+# behaviour the hypothesis's testable claim names.
+# --------------------------------------------------------------------------
+
+
+def _fake_key_usage(label="agg-live", limit=10.0, remaining=8.0):
+    """A faked key_usage triple, driving key_usage()/key_usage consumers."""
+
+    def fake(root=None):
+        return (label, limit, remaining)
+
+    return fake
+
+
+def test_key_usage_decodes_limit_usage_remaining_from_the_key_endpoint(monkeypatch):
+    """status' reading of GET /api/v1/key: limit, usage and remaining decode
+    from the response's data object."""
+    monkeypatch.setattr(provisioning, "_read_runtime_key",
+                        lambda root=None: "rk-secret")
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        assert url == provisioning.RUNTIME_KEY_BASE
+        assert key == "rk-secret"
+        # a proxy-limited sub-key, the exact profile measured in L3.29
+        return 200, {"data": {"label": "agg-live", "limit": 10.0, "usage": 9.7236}}
+
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+    label, limit, remaining = provisioning.key_usage()
+    assert (label, limit) == ("agg-live", 10.0)
+    assert abs(remaining - 0.2764) < 1e-6  # 10 - 9.7236
+
+
+def test_key_usage_reports_uncapped_key_as_unlimited(monkeypatch):
+    """A key with no `limit` returns limit=None; status prints 'unlimited'
+    rather than failing, and a floor check passes (no cap, no headroom)."""
+    monkeypatch.setattr(provisioning, "_read_runtime_key",
+                        lambda root=None: "rk-secret")
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        return 200, {"data": {"label": "uncapped", "limit": None, "usage": 3.0}}
+
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+    label, limit, remaining = provisioning.key_usage()
+    assert label == "uncapped"
+    assert limit is None
+    assert remaining is None
+
+
+def test_status_prints_key_limit_usage_remaining(monkeypatch, capsys):
+    """`provisioning.py status` prints the runtime key's own limit/usage/
+    remaining row from the key endpoint — the headline of the claim — even
+    when no provisioning key is set and the loop is on the shared key."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "key_usage",
+                        _fake_key_usage(label="agg-live", limit=10.0, remaining=8.0))
+    code = provisioning.main(["status"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "agg-live" in out and "remaining=$8.00" in out
+    assert "limit=$10.00" in out
+
+
+def test_status_says_unlimited_when_no_limit(monkeypatch, capsys):
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "key_usage",
+                        _fake_key_usage(label="uncapped", limit=None, remaining=None))
+    assert provisioning.main(["status"]) == 0
+    assert "unlimited" in capsys.readouterr().out
+
+
+def test_dispatch_refuses_below_floor_naming_the_key(monkeypatch):
+    """dispatch's pre-flight refuses (ok=False) below the configured floor,
+    and the message names the key label and the remaining amount."""
+    monkeypatch.setattr(provisioning, "key_usage",
+                        _fake_key_usage(label="agg-live", limit=10.0, remaining=0.4))
+    ok, msg = provisioning.check_runtime_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "agg-live" in msg
+    assert "$0.40" in msg
+    assert "PATCH" in msg
+
+
+def test_dispatch_spawns_when_remaining_above_floor(monkeypatch):
+    monkeypatch.setattr(provisioning, "key_usage",
+                        _fake_key_usage(label="agg-live", limit=10.0, remaining=8.0))
+    ok, msg = provisioning.check_runtime_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_check_fails_open_on_network_error(monkeypatch):
+    """An unreachable API must never block a round: a ProvisioningError from
+    the key read yields ok=True, not a refusal."""
+    def boom(root=None):
+        raise provisioning.ProvisioningError("network down: TimeoutError")
+
+    monkeypatch.setattr(provisioning, "key_usage", boom)
+    ok, msg = provisioning.check_runtime_key_floor({})
+    assert ok is True and msg is None
+
+
+def test_floor_reads_from_config_with_default(monkeypatch):
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": {"min_key_remaining_usd": 2.5}}) == 2.5
+    assert provisioning.min_key_remaining_floor(
+        {}) == provisioning.DEFAULT_MIN_KEY_REMAINING_USD

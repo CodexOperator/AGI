@@ -1009,6 +1009,20 @@ def main() -> int:
     # race produced.
     unadmitted: list[dict] = []
 
+    # hypothesis:l3-openrouter-key-headroom-invisible — pre-flight BEFORE any
+    # slot takes a budget lease. The one number that can kill every pi agent
+    # (the runtime sub-key's remaining balance, which OpenRouter reports as
+    # "401 API key expired" when crossed) should surface as a named refusal
+    # rather than a silent round-destroying death 60 minutes in. The check is
+    # fail-open on absence or a network error — an unreachable API must never
+    # block a round — and applies only to an openrouter harness, whose runtime
+    # key carries its own dollar cap.
+    if dispatch_harness.get("provider") == "openrouter":
+        _hkey_ok, _hkey_msg = provisioning.check_runtime_key_floor(cfg, root)
+        if not _hkey_ok:
+            print(f"ERR: {_hkey_msg}", file=sys.stderr)
+            return 1
+
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
             level, target, strategy, role = target_entry
