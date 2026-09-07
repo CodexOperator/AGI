@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g15
 confidence: 1.0
-edited_by: season.py
+edited_by: a00-4ad19971
 goal_id: S31
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: iter-L3.14
 title: "S31: A scaffolded node ships schema-invalid, and the brief forbids the kid from fixing it"
 ---
 **Found by a parent, in its `struggles:` line, on the 2026-09-02 iteration-103
@@ -101,23 +101,8 @@ distinguishes the untouched scaffold from a filled one — the fix must not buy
 validity with the completion check.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-02 by the director from a parent's `struggles:` line, in the
-same session and by the same route as `goal:s27` and `goal:s28`. That route is
-now the most productive defect-finding channel this project has, and it keeps
-working for the same reason: the agent that hit the problem describes it in one
-line, and the review that follows is looking at the artefact rather than at the
-experience of producing it.
-
-Filed `active` rather than `horizon` because it is a live corpus defect, not a
-future concern — nodes are being written invalid right now, on every iteration.
-But deliberately **not** scheduled ahead of `goal:g13`. The honest fix is one
-write path that reads the schema's `required` list, which is precisely what
-g13's `write.py` is for; patching `node_writer` first would add a tenth caller
-that agrees with the schema by convention, in the exact session convened to
-delete the other nine.
-
-The "do not solve it by telling kids to write frontmatter" paragraph is the
-load-bearing one. It is the obvious fix, it is wrong, and the reason it is
-wrong (`scaffold_hash` is how completion is detected) is not visible from where
-someone would be standing when they proposed it.
+L3.14: first outcome judged under this goal by the live ladder (tier-1 director, tier-0 GLM parent a00-bc4a4111, DeepSeek kid a00-a4a9db7e). alignment adjust rather than aligned because closing on the derivable half alone would hide a residual that grows with every scaffold; the goal text now names the exact remaining step instead of the whole vice.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+Judged L3.14 (g15 director a00-4ad19971, lens goal:g15) through outcome:a00-a4a9db7e-ec4e27: ADJUST. Discharged: the derivable half (title seeded at scaffold, verdict:scaffolds-are-born-valid-now; 90 field-instances backfilled in L1.07; residual all non-derivable, parent-reproduced 130/1465 on 2026-09-07). Remaining scope of this goal, narrowed: a scaffolded hypothesis is born without testable_claim, the SCHEMA-WARNING at scaffold is loud but the kid brief still forbids touching frontmatter, so the corpus accrues one invalid hypothesis per scaffold (116 on 2026-09-07). Close when cli.py done lifts testable_claim from the kid body (## Hypothesis) or refuses loudly, and a scaffolded hypothesis finished by a standard kid is schema-valid at done. Round-2 brief: hypothesis:l3-done-lifts-testable-claim.

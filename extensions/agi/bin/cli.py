@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -86,6 +88,194 @@ def _node_evidence_runs_raw(root: Path, node_id: str | None):
     return fm.get("evidence_runs")
 
 
+#: One-line HTML comment the scaffold writes right after the closing `---` to
+#: mark where the body starts (hypothesis:l3-done-broken-frontmatter). It is the
+#: one reliable anchor `_ensure_frontmatter` repairs up to but never past: a
+#: mangled frontmatter block with this line below it is provably all the kid's
+#: body from here down, so the `---` block above it can be rebuilt safely.
+_BODY_BEGIN = "<!-- BODY:BEGIN -->"
+#: The fields a node's frontmatter must carry to be remotely usable: identity
+#: (`id`), kind (`type`) and lineage (`parents`). Missing any of these is a
+#: defect that makes a node the graph cannot place.
+_FM_REQUIRED = ("id", "type", "parents")
+#: write-log operation for a sanctioned frontmatter repair.
+_FM_REPAIR_OP = "repair-frontmatter"
+
+
+def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
+    """Parse a node file's leading frontmatter block.
+
+    Returns ``(ok, fm, defect)``. ``ok=True`` means the ``---`` block is
+    present, terminates, parses as a YAML mapping, and carries ``id``, ``type``
+    and ``parents``. Anything short of that returns a defect the caller must
+    either repair or refuse on -- NEVER a silent pass, because a node that
+    cannot be read must not be mistaken for a node with no evidence
+    (hypothesis:l3-done-broken-frontmatter, the L3.13 parse-failure incident).
+    """
+    import yaml
+
+    if not text.startswith("---"):
+        return False, None, "missing opening `---` delimiter"
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return False, None, "unterminated `---` block (no closing delimiter)"
+    try:
+        fm = yaml.safe_load(parts[1])
+    except Exception as exc:
+        return False, None, f"frontmatter YAML parse failure: {exc}"
+    if not isinstance(fm, dict):
+        return False, None, "frontmatter is not a YAML mapping"
+    missing = [k for k in _FM_REQUIRED if not fm.get(k)]
+    if missing:
+        return False, fm, "frontmatter missing required field(s): " + ", ".join(missing)
+    return True, fm, None
+
+
+def _coerce_fm_value(v: str):
+    """Turn a salvaged frontmatter scalar string back into a Python value."""
+    v = v.strip()
+    if not v:
+        return v
+    low = v.lower()
+    if low in ("true", "false"):
+        return low == "true"
+    if low in ("null", "~", "none"):
+        return None
+    if (v.startswith("{") and v.endswith("}")) or (
+            v.startswith("[") and v.endswith("]")) or (
+            (v.startswith('"') and v.endswith('"')) or
+            (v.startswith("'") and v.endswith("'"))):
+        try:
+            import ast
+            return ast.literal_eval(v)
+        except Exception:
+            pass
+    try:
+        return int(v)
+    except Exception:
+        return v
+
+
+def _salvage_frontmatter(header: str) -> dict:
+    """Recover ``key: value`` lines from a broken frontmatter block.
+
+    A mangled ``---`` block can still carry valid scalar lines -- most
+    importantly ``mint_id``, the durable identity the grid and write_guard key
+    on. Keep what parses, drop the rest. Canonical identity
+    (``id``/``type``/``parents``) always comes from the spawn manifest, never
+    from salvage.
+    """
+    out: dict = {}
+    for line in header.splitlines():
+        m = re.match(r"^([A-Za-z][\w\-]*):\s*(.*?)\s*$", line)
+        if not m:
+            continue
+        key, raw = m.group(1), m.group(2)
+        if raw.startswith("---"):
+            continue
+        out[key] = _coerce_fm_value(raw)
+    return out
+
+
+def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
+                        node_id: str | None) -> tuple[bool, str]:
+    """Validate a node's frontmatter before `done` records anything; repair it
+    when safe (hypothesis:l3-done-broken-frontmatter).
+
+    Returns ``(True, msg)`` when the frontmatter is valid, or was repaired from
+    the spawn manifest (``ap``, the agent.json in the session dir -- which
+    carries node id/type/parent). Returns ``(False, defect)`` when the node is
+    damaged beyond safe repair; the caller must refuse, recording no demotion
+    and no verdict change.
+
+    Repair rebuilds the ``---`` block from the manifest **only when the body
+    below is intact**, proven by the ``BODY_BEGIN`` marker the scaffold writes
+    after the closing ``---``. Without that anchor there is no safe way to
+    separate a mangled frontmatter from the start of the body: a repair might
+    swallow the kid's work, which is worse than the defect.
+    """
+    text = node_file.read_text(errors="replace")
+    ok, _fm, defect = _load_frontmatter(text)
+    if ok:
+        return True, "frontmatter ok"
+
+    # Determine the body. A *cleanly closed* `---` block delimits it as
+    # `parts[2]` even when the block itself is YAML-broken or missing required
+    # fields -- the close means the body below is intact by construction, so it
+    # can be repaired without the marker. Only when there is no closed block to
+    # delimit the body (missing / unterminated `---`) is the BODY:BEGIN anchor
+    # required: without it there is no safe way to tell a mangled frontmatter
+    # from the start of the body, and a repair might swallow the kid's work.
+    body = None
+    header = None
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) == 3:
+            body = parts[2]
+            header = parts[1]
+    if body is None:
+        if _BODY_BEGIN not in text:
+            return False, (
+                f"{node_file.name}: {defect}, and the body-start marker "
+                f"({_BODY_BEGIN!r}) is absent -- cannot separate a mangled "
+                "frontmatter from the body safely. Restore the `---` block "
+                "(or edit below the closing `---` only) and re-run done."
+            )
+        header, _marker, body = text.partition(_BODY_BEGIN)
+    manifest: dict = {}
+    if ap and ap.exists():
+        try:
+            manifest = json.loads(ap.read_text())
+        except Exception:
+            manifest = {}
+    # Preserve a block that parsed (it may just be missing fields); salvage
+    # line-by-line only when it did not parse at all.
+    new_fm = dict(_fm) if isinstance(_fm, dict) else _salvage_frontmatter(header or "")
+    nid = manifest.get("node_id") or node_id or new_fm.get("id") or ""
+    ntype = manifest.get("scaffolded_node_type") or (_fm or {}).get("type") or new_fm.get("type")
+    if ":" in str(nid) and not ntype:
+        ntype = str(nid).split(":", 1)[0]
+    try:
+        mparent = manifest.get("parent")
+    except Exception:
+        mparent = None
+    if nid:
+        new_fm["id"] = nid
+    if ntype:
+        new_fm["type"] = ntype
+    if mparent:
+        new_fm["parents"] = [mparent] if isinstance(mparent, str) else list(mparent)
+    if isinstance(new_fm.get("parents"), str):
+        new_fm["parents"] = [new_fm["parents"]]
+    if not nid or not new_fm.get("type"):
+        return False, (
+            f"{node_file.name}: {defect} and the spawn manifest gives no node "
+            "id/type to repair from -- cannot rebuild the frontmatter. Fix by "
+            "hand, then re-run done."
+        )
+    # `body` is the raw remainder from either branch (the closed-block split or
+    # the marker partition); it already carries the BODY:BEGIN marker when one
+    # was present, so it is written through untouched.
+    new_body = body
+    repaired = "\n".join(
+        ["---", *node_writer.render_frontmatter(new_fm), "---", ""]
+    ) + new_body
+    tmp = node_file.with_suffix(node_file.suffix + ".tmp")
+    try:
+        tmp.write_text(repaired, encoding="utf-8")
+        os.replace(tmp, node_file)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+    node_writer.log_write(root, _FM_REPAIR_OP, str(new_fm.get("id", "")),
+                          node_file, repaired,
+                          mint_id=str(new_fm.get("mint_id", "") or ""),
+                          extra={"defect": defect})
+    print(f"repaired broken frontmatter on {new_fm.get('id')} "
+          f"from the spawn manifest ({defect})", file=sys.stderr)
+    return True, "frontmatter repaired"
+
+
 def _normalize_confidence(value: float) -> float:
     """`--confidence` is 0..1. A kid that passes 65 meant 0.65.
 
@@ -134,6 +324,24 @@ def cmd_done(args: argparse.Namespace) -> int:
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
+
+    # hypothesis:l3-done-broken-frontmatter -- validate the node's frontmatter
+    # BEFORE the evidence gate runs. The gate's job is to weigh evidence; it
+    # must not run against a node it cannot even read. L3.13: a kid's write
+    # tool mangled the `---` block, `done` first demoted `proved` then could
+    # not parse the node at all, and the kid had to hand-restore the
+    # frontmatter and re-run. A parse failure is not missing evidence. Repair
+    # the `---` block from the spawn manifest when the body is intact;
+    # otherwise refuse with a non-zero exit -- recording no demotion, no
+    # `demoted_from`, and no verdict change.
+    node_file = None
+    if args.node_id:
+        node_file = _find_node_file(root, args.node_id)
+        if node_file and node_file.exists():
+            _ok, _msg = _ensure_frontmatter(root, node_file, ap, args.node_id)
+            if not _ok:
+                print(f"ERR: {_msg}", file=sys.stderr)
+                return 1
 
     # H4 evidence gate. `--evidence-runs` wins; otherwise infer from the node
     # file the agent already wrote, so a real experiment isn't punished for a
@@ -320,6 +528,11 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         rec = json.loads(ap.read_text())
         rec["scaffolded_node"] = res.node_id
         rec["scaffolded_file"] = str(res.path)
+        # hypothesis:l3-done-broken-frontmatter -- the spawn manifest is what a
+        # later `done` repairs a mangled frontmatter from. Carry type + parent
+        # here so the manifest alone can rebuild the `---` block.
+        rec["scaffolded_node_type"] = res.node_type
+        rec["scaffolded_parent"] = res.parents[0] if res.parents else ""
         ap.write_text(json.dumps(rec, indent=2))
 
     return 0

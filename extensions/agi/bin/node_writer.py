@@ -113,6 +113,16 @@ BODY_PROMPTS = {
 #: so two writers producing the same node produce the same bytes.
 LEADING_KEYS = ("id", "mint_id", "type", "parents", "next_edges")
 
+#: One-line HTML comment the scaffold writes right after the closing `---`,
+#: marking where the body starts (hypothesis:l3-done-broken-frontmatter).
+#: `cli.py done`'s repair path uses it as the one reliable boundary between a
+#: mangled frontmatter block and the kid's body: without it there is no safe
+#: way to tell the two apart, so a broken `---` block becomes unrecoverable
+#: rather than repairable. `graph_core` treats everything after the closing
+#: `---` as body, so the comment is inert to every reader that parses the
+#: frontmatter.
+BODY_BEGIN = "<!-- BODY:BEGIN -->"
+
 WRITE_LOG = "sessions/write-log.jsonl"
 
 WRITTEN = "written"
@@ -556,6 +566,12 @@ def write_node(
         return res
 
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
+    if body is None:
+        # hypothesis:l3-done-broken-frontmatter -- anchor the body start with
+        # the marker, right after the closing `---`. A kid's write tool that
+        # later mangles the frontmatter leaves this line intact; `cli.py done`
+        # repairs the broken `---` block up to that boundary, never past it.
+        scaffold_body = BODY_BEGIN + scaffold_body
     scaffold_body += BODY_PROMPTS.get(ntype, "") if body is None else body
     node_file = node_dir(root, ntype) / f"{slug}.md"
     res.path = node_file

@@ -466,3 +466,111 @@ def test_effort_may_be_a_per_tier_map():
     args = cc.model_args(harness, "director")
     assert args[args.index("--effort") + 1] == "max"
     assert "--effort" not in cc.model_args(harness, "kid")
+
+
+# --- hypothesis:l3-meter-own-transcript: session pinning --------------------
+
+
+def test_session_id_from_stream_json_log():
+    """The first stream-json event line carries the session_id; a raw line or
+    an empty log yields None."""
+    from adapters import claude_code_adapter as cc
+    log = Path("/tmp") / "cc-sess-unittest.jsonl"
+    log.write_text(
+        '{"type":"assistant","session_id":"abc-123","message":{"role":"assistant","usage":{"input_tokens":1}}}\n'
+        '{"type":"assistant","session_id":"ignored","message":{"role":"assistant","usage":{"input_tokens":2}}}\n'
+    )
+    assert cc.session_id_from_stream_json(log) == "abc-123"
+    # a log with no session_id yet
+    empty = Path("/tmp") / "cc-sess-empty.jsonl"
+    empty.write_text("not json\n")
+    assert cc.session_id_from_stream_json(empty) is None
+    empty.unlink()
+    log.unlink()
+
+
+
+
+# --- hypothesis:l3-meter-own-transcript: session pinning --------------------
+
+
+def test_session_id_from_stream_json_log(tmp_path):
+    """The first stream-json event line carries the session_id; a raw line or
+    an empty log yields None."""
+    from adapters import claude_code_adapter as cc
+    log = tmp_path / "cc-sess-unittest.jsonl"
+    log.write_text(
+        '{"type":"assistant","session_id":"abc-123","message":{"role":"assistant","usage":{"input_tokens":1}}}\n'
+        '{"type":"assistant","session_id":"ignored","message":{"role":"assistant","usage":{"input_tokens":2}}}\n'
+    )
+    assert cc.session_id_from_stream_json(log) == "abc-123"
+    empty = tmp_path / "cc-sess-empty.jsonl"
+    empty.write_text("not json\n")
+    assert cc.session_id_from_stream_json(empty) is None
+
+
+
+
+# --- hypothesis:l3-meter-own-transcript: session pinning --------------------
+
+
+def test_session_id_from_stream_json_log(tmp_path):
+    """The first stream-json event line carries the session_id; a raw line or
+    an empty log yields None."""
+    from adapters import claude_code_adapter as cc
+    log = tmp_path / "cc-sess-unittest.jsonl"
+    log.write_text(
+        '{"type":"assistant","session_id":"abc-123","message":{"role":"assistant","usage":{"input_tokens":1}}}\n'
+        '{"type":"assistant","session_id":"ignored","message":{"role":"assistant","usage":{"input_tokens":2}}}\n'
+    )
+    assert cc.session_id_from_stream_json(log) == "abc-123"
+    empty = tmp_path / "cc-sess-empty.jsonl"
+    empty.write_text("not json\n")
+    assert cc.session_id_from_stream_json(empty) is None
+
+
+def test_record_session_pin_derives_transcript_then_meter_reads_it(monkeypatch, tmp_path, capsys):
+    """Dispatch captures the child's session_id into a `.meter` pin; the rotate
+    meter's pin rule then reads THAT transcript even when a newer foreign one
+    sits in the shared project dir (the hypothesis's bug without the fix)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    import locations
+    from adapters import claude_code_adapter as cc
+    import agi.bin.rotate as rotate
+
+    # a fake graph: config marks tmp_path/.agi as the graph dir; sessions under it
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sess = graph / "sessions" / "iter-001" / "a00-test"
+    sess.mkdir(parents=True)
+    logf = sess / "output.log"
+    logf.write_text('{"type":"assistant","session_id":"own-sess-1","message":{"role":"assistant","usage":{"input_tokens":5000}}}\n')
+
+    our_slug = cc._cc_slug(str(tmp_path))
+    proj = tmp_path / ".claude" / "projects"
+    (proj / our_slug).mkdir(parents=True, exist_ok=True)
+    own = proj / our_slug / "own-sess-1.jsonl"
+    own.write_text('{"message":{"role":"assistant","usage":{"input_tokens":5000,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}\n')
+    foreign = proj / our_slug / "foreign-newer.jsonl"
+    foreign.write_text('{"message":{"role":"assistant","usage":{"input_tokens":99500,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}\n')
+
+    monkeypatch.setattr(cc, "CC_PROJECTS_DIR", proj)
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", proj)
+    # the meter resolves its root the same way both sides do: the graph dir
+    monkeypatch.setattr(rotate, "find_project_root", lambda: graph)
+    monkeypatch.setattr(locations, "find_project_root", lambda start=None: graph)
+    monkeypatch.setattr(rotate, "load_ladder_field",
+                        lambda root, field, default: {"director_context_tokens": 100000}.get(field, default))
+    monkeypatch.setattr(rotate, "_derive_cc_slug", lambda cwd: cc._cc_slug(cwd))
+
+    pin = cc.record_session_pin(sess_dir=sess, agent_id="a00-test",
+                                cwd=str(tmp_path), log_file=logf)
+    assert pin is not None and pin.exists()
+    assert (graph / ".agi" / "sessions" / "a00-test.meter").exists()
+
+    result = rotate.main(["meter"])
+    out = capsys.readouterr().out
+    assert result == 0
+    assert "0.0500" in out, out          # ours (pinned), not foreign (0.995)
+    assert "source=claude-code transcript (pinned)" in out

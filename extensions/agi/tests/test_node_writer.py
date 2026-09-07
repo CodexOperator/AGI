@@ -193,6 +193,35 @@ def test_hyphenated_input_writes_the_canonical_spelling(project):
     assert "bigger-outcome" not in text
 
 
+def test_the_scaffold_marks_where_the_body_begins(project):
+    """hypothesis:l3-done-broken-frontmatter -- the scaffold writes the one-line
+    `BODY:BEGIN` comment right after the closing `---`, so a later `cli.py done`
+    can repair a mangled frontmatter block up to that boundary without ever
+    swallowing the kid's body."""
+    res = nw.write_node(project, "experiment", "fresh", ["hypothesis:h1"])
+    assert res.written
+    text = res.path.read_text()
+    parts = text.split("---\n", 2)
+    assert len(parts) == 3
+    body = parts[2]
+    assert body.startswith(nw.BODY_BEGIN + "\n"), \
+        "body must begin with the marker, immediately after the closing `---`"
+    # the marker is anchored in the same body the scaffold_hash certifies
+    assert "scaffold_hash:" in parts[1]
+
+
+def test_a_caller_supplied_body_gets_no_marker(project):
+    """The marker is a scaffold concept, not a body mandate: a caller that passes
+    an explicit body (e.g. `cli.py done`'s verdict-fallback path) keeps its body
+    exactly as supplied -- no marker prepended."""
+    res = nw.write_node(project, "experiment", "explicit", ["hypothesis:h1"],
+                        body="## Verdict\n\nproved\n")
+    assert res.written
+    text = res.path.read_text()
+    assert nw.BODY_BEGIN not in text
+    assert "## Verdict" in text
+
+
 def test_an_unaliased_hyphen_still_lands_canonical():
     # The alias table is the documented surface; the general rule is the
     # backstop, so a type nobody remembered to alias cannot mint a hyphen.
