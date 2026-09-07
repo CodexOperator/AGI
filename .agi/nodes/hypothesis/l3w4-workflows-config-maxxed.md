@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-IV
 scaffold_hash: 459d689411983b9f
 season: 2
 testable_claim: Both workflow scripts are build nodes under extensions/agi/workflows/ symlinked from .claude/workflows/, read model/effort/provider from .agi/config.json workflows.<name> with args overriding, and workflow.py run <name> --harness pi executes the same stages through dispatch.py kids; proved by a dry run on both harnesses and red-first tests.
-thought_session: L3.24
+thought_session: L3.25
 title: Workflows live in the graph, config-maxxed, on any harness
 ---
 <!-- BODY:BEGIN -->
@@ -50,3 +50,5 @@ SOURCE
 Owner messages to Belam IV, 15:10 UTC (HANDOFF §6 item 22); owner quote (6) in `doc:l3-command-ladder-brief`; vision:alive addendum (quote 8: atomic, reusable, composable, config maxxing).
 
 MEASURED (Belam IV, 2026-09-07 15:58 UTC): with the relative symlinks .claude/workflows/agi-round-review.js and agi-brief-drafting.js in place (commit b7f591371), Workflow({name: 'agi-round-review'}) returned 'Workflow agi-round-review not found. Available: deep-research' — the name registry did not see them (possibilities to test: the registry is read once at session start; symlinks are not followed; a different filename or a .md manifest is expected; the user-level ~/.claude/workflows/ dir is the one scanned). Running by scriptPath from the repo works. The kid must find the real resolution rule and make the install row match it; until then callers pass scriptPath=extensions/agi/workflows/<name>.js.
+
+MEASURED (Belam IV, 16:30 UTC): the smoke does NOT mint build nodes for new engine files, and level3.py --dry-run shows why nobody runs it live — it would write 249 nodes AND prune 18 deprecated build nodes (run-loop.sh, schema.sql, start.sh …), which violates never-delete, and it would mint the .claude/workflows/*.js symlinks as parentless build nodes (NO_PARENT). So the two workflow scripts and extensions/agi/bin/frontier.py have NO build node yet. Part of this brief: mint them through write.py create build <slug> --payload <path> with a legal parent shape ([build].md: an mvp under goal:g17 such as mvp 'workflows are graph payloads', or build+goal), payload_ref checked; make level3.py skip .claude/ symlinks and never prune deprecated nodes (or leave level3 alone and document that write.py create build is the path for new files). Never run level3.py without --dry-run.
