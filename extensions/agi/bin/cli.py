@@ -369,6 +369,16 @@ def cmd_done(args: argparse.Namespace) -> int:
         runs = max((int(str(r).strip()) for r in runs), default=0)
     if runs is None:
         runs = _node_evidence_runs_raw(root, args.node_id)
+    # L3.33: a parent signals done with `--owns <kid-node-id>` and no
+    # `--node-id` of its own — the kid's node IS the run being attested. The
+    # gate above read only `args.node_id`, found nothing, and demoted every
+    # decisive parent verdict to inconclusive_lean_*:50 even when the owned
+    # node carried a resolvable `evidence_runs`. Read the owned node first.
+    if runs is None and args.owns:
+        for _owned in args.owns:
+            runs = _node_evidence_runs_raw(root, _owned)
+            if runs:
+                break
     corpus = evidence_gate.build_corpus(root / "nodes")
     gate = evidence_gate.apply_gate(
         args.verdict, runs, bypass=args.no_evidence_gate, corpus=corpus,

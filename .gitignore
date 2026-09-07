@@ -73,3 +73,8 @@ venv/
 
 # stray budget/session dir written by the L3.25 git_common_root helper (hypothesis:l3-budget-dir-dropped-agi) — never commit; the real dir is .agi/sessions/
 sessions/
+
+# .env backups (key rotation) — hold FULL live credentials, never commit
+.env.bak*
+.env.old*
+.env.save*
