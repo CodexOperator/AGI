@@ -372,6 +372,22 @@ def _list_rows(root: Path, cfg: dict) -> int:
     return 0
 
 
+def apply_advisor_goal_env(value: str | None) -> None:
+    """Seed/clear the advisor-goal env read by `brief.assemble(tier=advisor)`.
+
+    `hypothesis:l3w3-advisor-brief` addendum after L3.12 — a `--goal goal:<id>`
+    pins which perpetual-goal director the advisor brief says to spawn. The
+    brief is assembled inside `adapter.build_command`, and every harness calls
+    it, so the goal is threaded through the ENVIRONMENT rather than a new
+    keyword on every adapter (claude_code_adapter.py belongs to another kid
+    this round). Set once per invocation, before the spawn loop.
+    """
+    if value:
+        os.environ["AGI_ADVISOR_GOAL"] = value
+    else:
+        os.environ.pop("AGI_ADVISOR_GOAL", None)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
@@ -422,6 +438,13 @@ def main() -> int:
              "--role when a row exists, else config fallback",
     )
     ap.add_argument(
+        "--goal",
+        default=None,
+        help="Perpetual goal pinned for an advisor's spawned director "
+             "(advisor brief only): --tier parent --ladder-tier 3 "
+             "--target vision:<id> --goal goal:<id>",
+    )
+    ap.add_argument(
         "--list-rows",
         action="store_true",
         help="Dry print: resolve every role in the ladder's roles table and "
@@ -436,6 +459,11 @@ def main() -> int:
              "all agents finish or the timeout expires.",
     )
     args = ap.parse_args()
+
+    # hypothesis:l3w3-advisor-brief addendum after L3.12 — thread the advisor's
+    # pinned --goal into the assembled brief through the env (see
+    # apply_advisor_goal_env). Set before any build_command runs.
+    apply_advisor_goal_env(args.goal)
 
     # hypothesis:l3-dispatch-role-default — a bare --tier parent must mean
     # role parent (so it resolves the parent ladder row, never the tier-0
@@ -684,6 +712,11 @@ def main() -> int:
                 target=target,
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
+                # hypothesis:l3-cc-tools-by-tier -- who this agent is on the
+                # ladder selects its tool bundle (kids keep the closed list;
+                # advisors/directors add the ultracode/loop tools).
+                role=args.role,
+                ladder_tier=tier_eff,
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)

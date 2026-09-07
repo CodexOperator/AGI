@@ -621,3 +621,75 @@ def test_advisor_closing_line_is_distinct():
     assert "ADVISOR" in close
     assert close != brief.closing_line("parent", "a00-test", 1)
 
+
+# ------ l3w3-advisor-brief addendum after L3.12: real commands, goals, gate ---
+
+
+def test_advisor_duties_spell_real_runnable_dispatch_and_send_commands():
+    """The DUTIES block must carry runnable invocations, not the old
+    `dispatch.py <project> <iter>` placeholder: the resolved dispatch.py,
+    a submit root, the iteration id, and the sibling send.py/rotate.py paths
+    spelled the same way."""
+    t = _advisor_text()  # dispatch_py defaults to extensions/agi/bin/dispatch.py
+    assert "extensions/agi/bin/dispatch.py" in t
+    assert "extensions/agi/bin/send.py" in t
+    assert "extensions/agi/bin/rotate.py" in t
+    assert "python3 extensions/agi/bin/dispatch.py" in t
+    assert "--tier director --role director --ladder-tier 1" in t
+    assert "--detach" in t
+    assert "send.py send --room tier3-quorum" in t
+    assert "read --room tier3-quorum --me a00-test" in t
+    assert "<project> <iter>" not in t, "the placeholder is gone — real values only"
+
+
+def test_advisor_brief_lists_the_perpetual_goals_with_titles():
+    """The advisor must be told which goals are in the perpetual class and
+    be able to read the assignment — listed with titles, from the goal nodes,
+    not a hardcoded id list."""
+    t = _advisor_text()
+    assert "perpetual goals" in t.lower()
+    assert "goal_kind:" in t
+    assert "goal:g15" in t and "G15: Bugfix and optimization" in t, \
+        "a real perpetual goal and its title must be named"
+    assert "READ THE ROOM FIRST" in t
+
+
+def test_advisor_goal_flag_pins_the_director_goal_with_title(monkeypatch):
+    """`dispatch.py --goal goal:g15` threads into assemble so the brief pins
+    which director the advisor spawns, naming the goal AND its title."""
+    monkeypatch.setenv("AGI_ADVISOR_GOAL", "goal:g15")
+    t = _advisor_text()
+    assert "--target goal:g15" in t
+    assert "goal:g15" in t and "G15: Bugfix and optimization" in t
+    assert "READ THE ROOM FIRST" not in t, "a pinned goal replaces the read-room default"
+
+
+def test_advisor_brief_states_the_wave3_gate_verbatim():
+    """The wave-3 gate sentence, owner-verbatim, in every advisor brief."""
+    t = _advisor_text()
+    assert "WAVE-3 GATE" in t
+    assert "one short-term subgoal under the perpetual goal closed with a " \
+           "judged outcome and no human hand on a node" in t.lower()
+
+
+def test_advisor_brief_keeps_the_six_head_duties_and_git_line():
+    """The addendum's 'keep the existing duties and the DO NOT run git line' —
+    none of the four duties regressed, and the audit/audience/spawn/edit-prose
+    duties plus the git prohibition are all still present."""
+    t = _advisor_text()
+    assert "Sit the quorum" in t
+    assert "audience prime" in t
+    assert "never edit vision prose" in t.lower()
+    assert "DO NOT run git" in t
+
+
+def test_advisor_goal_pinned_keeps_the_target_using_the_resolved_iter():
+    """The spawn command carries the resolved iteration id, so it is runnable
+    as printed rather than a template."""
+    t = "\n".join(brief.assemble(
+        tier="advisor", agent_id="a00-test", iter_n=77, target="vision:alive",
+        goal="goal:g15"))
+    assert "dispatch.py " in t
+    assert "--target goal:g15 --detach" in t
+    assert "77" in t, "the resolved iter id must be in the spawn command"
+

@@ -108,6 +108,7 @@ def build_command(
     parallel: int = 1,
     max_live: int = 1,
     brief_tier: str | None = None,
+    session_dir: Path | None = None,
 ) -> list[str]:
     """The argv that starts one pi agent."""
     args = [resolve_bin(harness)]
@@ -123,10 +124,11 @@ def build_command(
     # hypothesis:l3w3-advisor-brief — `brief_tier` lets a spawn keep the
     # model tier (parent) while assembling a different tier's brief (advisor).
     _btier = brief_tier or tier
+    _sess = session_dir or sess_dir
     for seg in brief.assemble(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
-        parallel=parallel, max_live=max_live,
+        parallel=parallel, max_live=max_live, session_dir=_sess,
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():

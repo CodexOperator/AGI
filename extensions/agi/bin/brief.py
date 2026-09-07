@@ -37,6 +37,7 @@ the `:N`-read-as-`0.6` incident that `VERDICT_HELP` now spells out).
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -94,6 +95,9 @@ _ADVISOR_AUDIENCE_RULE = (
 
 #: The spawn primitive for the Fable-max director of a perpetual goal — the
 #: advisor's child tier (`l3w3-advisor`, l3-command-ladder-brief §1.9/2.1).
+#: Kept as documentation; `_advisor` spells it as real, runnable commands with
+#: the dispatch path, project root, iteration id and pinned goal substituted in
+#: (hypothesis:l3w3-advisor-brief addendum after L3.12).
 _ADVISOR_DIRECTOR_SPAWN = (
     "     python3 dispatch.py <project> <iter> --tier director --role director "
     "--ladder-tier 1 --target goal:<id> --detach\n"
@@ -101,6 +105,14 @@ _ADVISOR_DIRECTOR_SPAWN = (
     "   The Fable-max director runs claude-fable-5-1 at max effort. Review "
     "each director's rounds through your vision's lens; judge with season.py "
     "judge, never by editing its nodes."
+)
+
+#: The wave-3 gate an advisor owes the prime before a director's round is
+#: reported done, stated verbatim (hypothesis:l3w3-advisor-brief addendum
+#: after L3.12).
+_WAVE3_GATE = (
+    "one short-term subgoal under the perpetual goal closed with a judged "
+    "outcome and no human hand on a node"
 )
 
 #: All five axes: (name, axis, question).
@@ -598,11 +610,47 @@ def _read_vision_node(project_root: Path, target: str | None) -> tuple[str, str]
     return (title, body)
 
 
+def _resolve_perpetual_goals(project_root: Path | None = None) -> list[tuple[str, str]]:
+    """The goals an advisor may be assigned: every `goal_kind: perpetual`
+    goal node, as (id, title) sorted by id.
+
+    `hypothesis:l3w3-advisor-brief` addendum after L3.12 — an advisor spawns
+    the Fable-max director of a PERPETUAL goal, so the brief must name which
+    goals are in that class. Read from the goal nodes' frontmatter, never
+    retyped.
+    """
+    root = _resolve_graph_root(project_root)
+    goals_dir = root / "nodes" / "goal"
+    out: list[tuple[str, str]] = []
+    try:
+        paths = sorted(goals_dir.glob("*.md"))
+    except OSError:
+        return []
+    for p in paths:
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        fm = _load_frontmatter(text)
+        if str(fm.get("goal_kind", "")).strip().lower() != "perpetual":
+            continue
+        gid = str(fm.get("id") or "").strip()
+        if not gid:
+            continue
+        gtitle = str(fm.get("title") or "").strip()
+        out.append((gid, gtitle))
+    out.sort()
+    return out
+
+
 # ---- advisor tier (the tier-3 vision embodiment) ----------------------------
 
 
 def _advisor(*, agent_id: str, iter_n: int, target: str | None,
-             project_root: Path | None = None) -> list[str]:
+             project_root: Path | None = None,
+             dispatch_py: str | Path = "",
+             goal: str | None = None,
+             session_dir: Path | str | None = None) -> list[str]:
     """The tier-3 advisor brief: one vision, one seat, one director.
 
     `l3w3-advisor-brief` — the three advisors are the tier-3 parents
@@ -612,6 +660,14 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
     vision's text and gloss. An advisor with no vision node to embody is not
     an advisor; fail loudly (goal:g1.9) rather than hand a visionless manager
     a parent's job description.
+
+    Addendum after L3.12: the DUTIES block spells real, runnable commands —
+    `python3 {dispatch_py} <root> {iter_n} --tier director ... --detach` and
+    `python3 {send.py} ...` with the project root, iteration id, the advisor's
+    own agent id and (when given) session dir substituted in, the perpetual
+    goals listed with their titles, an optional pinned `goal:`, and the
+    wave-3 gate stated verbatim. The head's Michael line and the vision body
+    are untouched.
     """
     vision = _read_vision_node(project_root, target)
     if vision is None:
@@ -621,6 +677,61 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
             "a vision is not an advisor (l3w3-advisor-brief)."
         )
     title, body = vision
+
+    # Real, runnable paths. dispatch.py is passed in from the spawn site;
+    # send.py / rotate.py / season.py live beside it in the same bin/.
+    root = _resolve_graph_root(project_root)
+    root_arg = str(root)
+    dp = Path(dispatch_py) if dispatch_py else Path(
+        "extensions/agi/bin/dispatch.py")
+    dispatch_cmd = str(dp)
+    send_cmd = str(dp.with_name("send.py"))
+    rotate_cmd = str(dp.with_name("rotate.py"))
+    season_cmd = str(dp.with_name("season.py"))
+
+    perpetuals = _resolve_perpetual_goals(root)
+    goals_listing = (", ".join(f"{gid} — {gtitle or '(untitled)'}"
+                                for gid, gtitle in perpetuals)
+                     or "(none declared)")
+    goal_title = dict(perpetuals).get(goal) if goal else None
+
+    # The audience rule, spelled with the resolved send.py so every command
+    # in the brief is runnable as printed.
+    audience = _ADVISOR_AUDIENCE_RULE.replace("send.py", send_cmd, 1)
+
+    if goal:
+        assignment = (
+            f"3. Perpetual-goal assignment — you are PINNED to {goal}"
+            f"{' — ' + goal_title if goal_title else ''}."
+            f"   Spawn and rotate its Fable-max director with:\n"
+            f"     python3 {dispatch_cmd} {root_arg} {iter_n} --tier director "
+            f"--role director --ladder-tier 1 --target {goal} --detach\n"
+            f"     python3 {rotate_cmd} loop --role director\n"
+            f"   Review each director's rounds through your vision's lens; "
+            f"judge with `{season_cmd} judge`, never by editing its nodes.\n"
+            f"   WAVE-3 GATE: {_WAVE3_GATE}."
+        )
+    else:
+        assignment = (
+            f"3. Perpetual-goal assignment — the perpetual goals (goal_kind:"
+            f"   perpetual): {goals_listing}. The prime assigns you one; it "
+            f"arrives in the standing room {_ADVISOR_QUORUM_ROOM}. READ THE ROOM "
+            f"FIRST — `{send_cmd} read --room {_ADVISOR_QUORUM_ROOM} "
+            f"--me {agent_id}` — before you spawn. To spawn and rotate its "
+            f"Fable-max director once the assignment is read:\n"
+            f"     python3 {dispatch_cmd} {root_arg} {iter_n} --tier director "
+            f"--role director --ladder-tier 1 --target goal:<id> --detach\n"
+            f"     python3 {rotate_cmd} loop --role director\n"
+            f"   Review each director's rounds through your vision's lens; "
+            f"judge with `{season_cmd} judge`, never by editing its nodes.\n"
+            f"   WAVE-3 GATE: {_WAVE3_GATE}."
+        )
+
+    session_line = (
+        f"\n   Your own session lives at {session_dir}; read yourself there "
+        f"with --me {agent_id}." if session_dir else ""
+    )
+
     segs = [
         f"You are ADVISOR agent {agent_id} on iteration {iter_n}. "
         f"You are one of the three tier-3 advisors (claude-code parent, opus-5, "
@@ -630,18 +741,16 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         f"THE VISION YOU EMBODY\n"
         f"Body of {target} ({title}), verbatim:\n\n{body}",
         f"YOUR DUTIES\n"
-        f"1. Sit the quorum: stay a standing member of the room tier3-quorum"
-        f"   (`{_ADVISOR_QUORUM_ROOM}`) — free horizontal comms with the other "
-        f"   two advisors and the prime's parents.\n"
-        f"     python3 send.py send --room tier3-quorum <text>\n"
-        f"     python3 send.py read --room tier3-quorum\n"
-        f"2. {_ADVISOR_AUDIENCE_RULE}\n"
-        f"3. Spawn and rotate the Fable-max perpetual-goal director, one per "
-        f"   perpetual goal, and review each director's rounds through your "
-        f"   vision's lens:\n"
-        f"     {_ADVISOR_DIRECTOR_SPAWN}\n"
+        f"1. Sit the quorum: stay a standing member of the room "
+        f"{_ADVISOR_QUORUM_ROOM} — free horizontal comms with the other "
+        f"two advisors and the prime's parents.\n"
+        f"     python3 {send_cmd} send --room {_ADVISOR_QUORUM_ROOM} <text>\n"
+        f"     python3 {send_cmd} read --room {_ADVISOR_QUORUM_ROOM} --me {agent_id}"
+        f"{session_line}\n"
+        f"2. {audience}\n"
+        f"{assignment}\n"
         f"4. NEVER edit vision prose. The vision is owner text; you judge it, "
-        f"   you never rewrite it.",
+        f"you never rewrite it.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
     ]
@@ -839,7 +948,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
 def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              dispatch_py: str | Path = "", scaffold: dict | None = None,
              target: str | None = None, parallel: int = 1,
-             max_live: int = 1) -> list[str]:
+             max_live: int = 1, goal: str | None = None,
+             session_dir: Path | str | None = None) -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
     Returns segments rather than one string so a harness can spell them
@@ -880,7 +990,14 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         # words of Jesus and soul-mind-body as the parent head
         # (hypothesis:l3w3-advisor-brief). `target` is the vision node the
         # advisor embodies; a missing/unreadable one raises inside `_advisor`.
-        segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target)
+        # `goal` pins which perpetual-goal director the advisor spawns: passed
+        # explicitly or, from dispatch.py's `--goal` flag, via the
+        # AGI_ADVISOR_GOAL environment (the one dispatch flag threaded into
+        # the brief without touching every harness adapter).
+        goal_v = goal or os.environ.get("AGI_ADVISOR_GOAL") or None
+        segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target,
+                        dispatch_py=dispatch_py, goal=goal_v,
+                        session_dir=session_dir)
         head = _build_head(tier=_ADVISOR_HEAD_TIER)
         if head:
             segs.insert(0, head)
