@@ -158,6 +158,47 @@ def variadic_values(args, flag):
 # ---------------------------------------------------------------- interface
 
 
+# hypothesis:l3w3-advisor-brief — a parent-tier spawn can carry the advisor brief
+# ------------------------------------------------------------
+
+
+def test_adapter_threads_brief_tier_while_keeping_the_model_tier(rig):
+    """The advisor is a tier-3 parent: its MODEL comes from the parent row
+    (claude-opus-5, effort max) but its BRIEF is the advisor brief (the
+    vision body, the tier3-quorum seat, the perpetual-director spawn
+    primitive). The adapter must let dispatch route a vision-targeted tier-3
+    parent spawn to `assemble(tier='advisor')` without changing the tier
+    that selects the model."""
+    harness = dict(HARNESS, effort={"parent": "max"}, settings="ultracode")
+    args = build(rig, "parent", harness=harness,
+                 brief_tier="advisor", target="vision:alive",
+                 scaffold=None)
+    # model/effort still the parent row's
+    assert value(args, "--model") == "claude-opus-5"
+    assert value(args, "--effort") == "max"
+    # the brief is the advisor's, not the generic parent's
+    prompt = (rig["sess"] / "system-prompt.md").read_text()
+    assert "THE VISION YOU EMBODY" in prompt
+    assert "tier3-quorum" in prompt
+    assert "perpetual" in prompt.lower()
+    # and it closes like an advisor
+    i = args.index("--")
+    assert "ADVISOR" in args[i + 1]
+
+
+def test_adapter_brief_tier_defaults_to_the_spawn_tier(rig):
+    """Without brief_tier the adapter keeps today's behaviour exactly: a
+    plain parent spawn gets the generic parent brief. The new routing must
+    be opt-in, never the default."""
+    args = build(rig, "parent", target="vision:alive", scaffold=None)
+    prompt = (rig["sess"] / "system-prompt.md").read_text()
+    assert "THE VISION YOU EMBODY" not in prompt
+    assert "tier3-quorum" not in prompt
+    # and it still closes like a plain parent (no brief_tier given)
+    i = args.index("--")
+    assert "spawn and review kids" in args[i + 1]
+
+
 def test_adapter_implements_the_whole_interface_not_a_stub():
     """The stub raised NotImplementedError from every function. The interface
     check in `adapters.load` only proves the names exist; this proves they

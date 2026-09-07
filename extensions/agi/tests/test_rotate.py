@@ -283,16 +283,22 @@ def test_successor_prompt_prepends_constitution_head():
 
 
 def test_derive_successor_name():
-    assert rotate._derive_successor_name([], "belam") == "belam-1"
-    # live prime window `belam-S1-L3` has no trailing integer => N=1
-    assert rotate._derive_successor_name(["belam-S1-L3"], "belam") == "belam-2"
-    assert rotate._derive_successor_name(["belam"], "belam") == "belam-2"
-    assert (
-        rotate._derive_successor_name(["belam-2", "belam-4", "belam"], "belam")
-        == "belam-5"
-    )
-    assert rotate._derive_successor_name(["agi-master-7"], "belam") == "belam-1"
-    assert rotate._derive_successor_name(["belam-3"], "belam") == "belam-4"
+    # nothing about the prime known => second Roman numeral of the base prefix
+    assert rotate._derive_successor_name([], "belam") == "belam-II"
+    # live prime window `belam-S1-L3` carries no Roman suffix => the base
+    assert rotate._derive_successor_name(["belam-S1-L3"], "belam") == "belam-S1-L3-II"
+    # bare base `belam` is the first of its line => -II
+    assert rotate._derive_successor_name(["belam"], "belam") == "belam-II"
+    # highest Roman in the series wins
+    assert rotate._derive_successor_name(
+        ["belam-S1-L3", "belam-S1-L3-II", "belam-S1-L3-III"], "belam") \
+        == "belam-S1-L3-IV"
+    # non-matching windows are ignored
+    assert rotate._derive_successor_name(["agi-master-7"], "belam") == "belam-II"
+    # a lone successor with no base present extends its own line
+    assert rotate._derive_successor_name(["belam-S1-L3-II"], "belam") == "belam-S1-L3-III"
+    # a non-belam prefix still derives in roman
+    assert rotate._derive_successor_name(["ccc-III"], "ccc") == "ccc-IV"
 
 
 def test_spawn_default_name_derives_from_window_path(monkeypatch, tmp_path, capsys):
@@ -310,8 +316,8 @@ def test_spawn_default_name_derives_from_window_path(monkeypatch, tmp_path, caps
     ])
     out = capsys.readouterr().out
     assert exit_code == 0
-    assert "--remote-control belam-2" in out
-    assert "hi belam-2" in out
+    assert "--remote-control belam-S1-L3-II" in out
+    assert "hi belam-S1-L3-II" in out
 
 
 def test_loop_below_threshold_holds(monkeypatch, tmp_path, capsys):
@@ -361,6 +367,6 @@ def test_loop_over_threshold_rotates_and_continue(monkeypatch, tmp_path, capsys)
         debug_file=str(reply), dry_run=False, timeout=1,
     ), root)
     assert code == 0
-    assert launched.get("name") == "belam-1"
+    assert launched.get("name") == "belam-II"
     assert "handoff stood" in capsys.readouterr().err
 
