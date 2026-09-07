@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam-S1-L3-V
 scaffold_hash: 6d45c0c92be55616
 season: 2
 testable_claim: dispatch.py --seat bug-master --tier director --role director --ladder-tier 1 --dry-run resolves claude-opus-5 at effort xhigh with CLAUDE_CODE_WORKFLOWS=1 exported and Workflow present in --tools, and new bug_master.py format-record, given agi-round-review.js's returned JSON for N targets plus one global check, writes that JSON verbatim to .agi/sessions/iter-<id>/review/results.json and prints exactly N REVIEW lines plus one GLOBAL line shaped for send.py send --room tier3-quorum.
-thought_session: L3.25
+thought_session: L3.27
 title: Seat the Glitch Master reviewer
 ---
 <!-- BODY:BEGIN -->
@@ -64,3 +64,5 @@ The DESIGN invocation with `--dry-run` prints model=claude-opus-5, effort=xhigh,
 `.agi/context/l3-command-ladder-brief.md`, section "Owner text 2026-09-07... perpetual seats..." (owner verbatim 7, 7b) and its Director note placing Bug Master under `goal:g17`. `.agi/nodes/idea/push-further.md`, Agent Notes.
 
 OWNER RENAME 2026-09-07 16:20 UTC (verbatim): "lets rename Bug Master to Glitch Master. Sounds more badass and lines up with the vibe of the Master layer." — the seat is glitch-master everywhere new (seats.md row, bug_master.py becomes glitch_master.py, the duties brief, room posts); this brief's slug keeps its address. The owner's layer 8 (doc quote 9, HANDOFF §6 item 24) makes it the Master that runs the strict graph-submission review loops under the Sanctuary Master, reports back to the director that asked, and joins season rollovers with the Training Master.
+
+Belam V 2026-09-07 18:40 UTC: owner layer 8 (HANDOFF section 6 item 24, doc quote 9) puts every Master under the Sanctuary Master with its own workflow — this seat (Glitch Master) owns agi-round-review.js, the strict submission review loop. Sibling briefs now minted: hypothesis:l3w4-plan-master (owns agi-brief-drafting.js), hypothesis:l3w4-master-sensei (improves the Masters, reads hypothesis:l3w4-agent-failure-ledger), hypothesis:l3w4-masters-comms-and-escalation, hypothesis:l3w4-seat-push-further, hypothesis:l3w4-masters-rollover (Glitch + Sensei + Sanctuary Masters run season.py rollover).
