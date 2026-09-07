@@ -120,6 +120,32 @@ def test_a_lease_whose_holder_died_before_spawning_is_reclaimed(root: Path):
     assert not (d / "ghost.lease").exists(), "a dead lease is swept, not kept"
 
 
+def test_a_zombie_lease_is_reclaimed_hypothesis_l3_zombie(root: Path):
+    """A defunct (state Z) child does not hold a slot.
+
+    `hypothesis:l3-cc-adapter-zombie-lease`: an unreaped child still answers
+    `os.kill(pid, 0)`, so signal-existence alone would hold every finished
+    claude-code agent's lease forever. Liveness reads the process-table state:
+    a zombie is dead and is swept.
+    """
+    pid = os.fork()
+    if pid == 0:  # child exits; parent never waits before the sweep
+        os._exit(0)
+    try:
+        time.sleep(0.2)  # let the child die and the defunct state settle
+        state = open(f"/proc/{pid}/stat").read().rsplit(") ", 1)[1].split()[0]
+        assert state == "Z", f"expected a zombie, got state {state!r}"
+        assert not spawn_budget._pid_alive(pid), "a zombie is dead, not live"
+        lease = spawn_budget.acquire(root, 1, "zombie-agent")
+        assert lease is not None
+        spawn_budget.commit(lease, pid)
+        assert lease.path.exists(), "lease exists before the sweep that frees it"
+        assert spawn_budget.live_count(root) == 0, "a zombie-held slot is freed"
+        assert not lease.path.exists(), "the sweep removed the dead lease"
+    finally:
+        os.waitpid(pid, 0)
+
+
 def test_a_corrupt_lease_cannot_wedge_the_budget_shut(root: Path):
     """An unparseable lease is dropped rather than believed forever."""
     d = spawn_budget.budget_dir(root)

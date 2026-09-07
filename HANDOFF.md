@@ -1,21 +1,6 @@
-# SESSION HANDOFF — 2026-09-07: `belam-S1-L3-III` (Belam III, L3 prime) LIVE from 06:05 UTC, successor of `belam-S1-L3-II` (Belam II, rotated at ~0.30 after L3.12–L3.15 and the first live wave-3 cycle). Waves 0–2 DONE; **wave 3 LIVE: the ladder ran end to end with no human hand, gate not yet met (judgment `adjust`, not closed)**. Read §0, §0.7, §6 items 9–15, then continue on `season/s2`.
+# SESSION HANDOFF — 2026-09-07: `belam-S1-L3-III` (Belam III, L3 prime) LIVE from 06:05 UTC, successor of `belam-S1-L3-II` (Belam II, rotated at ~0.30 after L3.12–L3.15 and the first live wave-3 cycle). Waves 0–2 DONE; **wave 3 LIVE: the ladder ran end to end with no human hand, gate not yet met (judgment `adjust`, not closed)**. Read §0, §0.7, §6 items 9–18, then continue on `season/s2`.
 
-**Owner's instruction 2026-09-06: this handoff is carried forward, not replaced** — the 2026-09-05 plan below stays and the live session diffs it in place. Successors: read before touching.
-
-Standing bootstrap lives in [QUICKSTART.md](QUICKSTART.md). This file is one
-session only and the next director replaces it wholesale. Prior sessions are in
-the grid: `grid.py payload build:HANDOFF.md --version N` (the L1.13 director
-session is the version before this one).
-
-**Closed loops are recorded in [COMPLETE.md](COMPLETE.md)** — untouched this
-session, by the owner's instruction; no loop ran. It holds L1 and L1.13. Loop
-L2, planned below, appends to it when it closes (owner asked to keep both).
-
-**The design this plan implements is in
-[`.agi/context/season-ladder-and-morals-brief.md`](.agi/context/season-ladder-and-morals-brief.md).**
-Read that first, whole. It is the record of a long owner/director brainstorm —
-the tier ladder, the morals as a constitution, the prayers and reference texts,
-telemetry, comms — and every wave below mints nodes from it. Do not re-derive it.
+**Owner's instructions:** carried forward in place by successors (2026-09-06); trimmed to L3 on 2026-09-07 at the owner's ask — the L1/L2 sessions, the L2 plan and the L2-era proposals live in the grid (`grid.py payload build:HANDOFF.md --version N`) and in [COMPLETE.md](COMPLETE.md). Bootstrap lives in [QUICKSTART.md](QUICKSTART.md). The design is in [`.agi/context/season-ladder-and-morals-brief.md`](.agi/context/season-ladder-and-morals-brief.md) and [`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md) (owner text verbatim, incl. the 2026-09-07 perpetual-seats layer). Do not re-derive either.
 
 ## §0 State block
 
@@ -25,8 +10,8 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | goals | 127 (20 active — **`METRIC-WARNING` live**: exceeds `max_goals_active=18`, see `hypothesis:l2-goals-active-exempt`, not yet fixed) |
 | `outcome_coverage` (primary) | 0.171 (stable since L2.12; new hypothesis/experiment nodes in the denominator, not regression) |
 | `evidence_fraction` | 0.385 after L2.13 (0.38 at L2.12 close) |
-| tests | **1838** passed, 1 skipped (only the `node_writer.py` library skip) at L3.16 |
-| broken links | 0 (1455 resolved, after L3.16) |
+| tests | **1843** passed, 1 skipped (only the `node_writer.py` library skip) at L3.19 |
+| broken links | 0 (1466 resolved, after L3.19) |
 | crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
 | agents live | **0/25** after L3.17 + L3.18 (07:35 UTC). **Claude subscription session limit hit 07:02 UTC, resets 05:20 ET = 09:20 UTC** — until then no claude-code harness spawn and no review/drafting workflow; pi/OpenRouter rounds unaffected. Belam III meter **0.12** at open (own transcript, `--session-log`), cap 0.35. |
@@ -34,17 +19,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 | disk | 81% |
 | this session | `belam-S1-L3-III` = **Belam III**, spawned by Belam II via `rotate.py loop --role prime_director --name belam-S1-L3-III` (head + Fable 5.1 max + ultracode). **Belam III verified at open (06:05–06:07 UTC):** branch season/s2, smoke node_count 1472 (no drop; `DRIFT WARNING` engine HEAD vs config pin — cosmetic, pre-existing), suite 1824/1, dispatch ok, 0/25 live, OpenRouter $14.14 (usage 57.86/72). Predecessor: `belam-S1-L3-II` = **Belam II**, spawned by `belam` via `rotate.py spawn --name belam-S1-L3-II` (head + Fable 5.1 max + ultracode env). Predecessor window `belam-S1-L3` still open (idle). **Belam II verified at open (03:15–03:50 UTC):** smoke 1257/194 (node_count 1451, no drop), suite 1785/1, links 0 broken (1431 resolved), guard silent, dispatch ok, 0/25 live, OpenRouter $15.05. |
 
-## §0.7 Session 2026-09-06 (belam) — LOOP L3, WAVE 0, LIVE
-
-Prime: `belam` (Fable 5.1 ultracode, remote-control, tmux `agi-rc` window
-`belam-S1-L3`). Verified at open: smoke 1201/194 (no drop), suite 1661/9,
-`dispatch.py --help` ok, 0/25 live, OpenRouter $16.51, `brief.py` has no
-Michael/mantle code yet (this prime's head was hand-assembled — wave 0 fixes it).
-
-**Owner answers at open, §6 item 14:** two parents per round; throwaway
-`belam-test` rotation proof right after L3.01; OpenRouter to a ~$3 reserve
-then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
-= `goal:g15`.
+## §0.7 LOOP L3 — LIVE (opened 2026-09-06 by belam; Belam II 2026-09-07 03:15; Belam III 06:05 UTC)
 
 ### Round plan — two pi parents per round (GLM parents / DeepSeek kids), tmux windows in `agi-rc`
 
@@ -68,6 +43,8 @@ then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
 | L3.16 (Belam III) | p-dry = `hypothesis:l3-dispatch-dry-run` + p-comms = `hypothesis:l3-send-comms-root` (minted 05:00 UTC from the advisors' findings) — **LANDED 06:51 UTC** (commit `9f3802c0c`; 35 min; both proved 0.85, plus one red-first kid lean-proved:60; OpenRouter delta $0.33); then (L3.18+) `hypothesis:l3-cc-adapter-zombie-lease` (finished `claude -p` advisors stay `<defunct>` and keep their spawn-budget lease; `sweep` cannot reclaim — 2 of 25 slots leaked at 05:05); mantle rows if the owner's text is in | |
 | L3.17 (Belam III) | **WAVE 3 CYCLE 2**: three advisors respawned exactly as L3.14 via the claude-code harness (opus, max, ultracode) at 06:52 UTC — `a00-7f4c272e` / `a00-830ffdb0` / `a00-cad6f7ba` (windows `adv-alive` with `--goal goal:g15`, `adv-all-is-one`, `adv-self-perpetuating`; logs `.agi/sessions/iter-L3.17/adv-*.log` + `<agent>/output.log`). Alive respawns the g15 director for round 2 (`l3-done-lifts-testable-claim`); the other two judge cycle 1 through their lenses | **CYCLE 2 DONE 07:35 UTC — gate NOT met; the director DIED on the Claude subscription session limit** (`You've hit your session limit · resets 5:20am ET` at 07:02 UTC, after 45 turns / $5.70; the adapter then retried 5× with turns=1 against the same message). Advisors (6–8 min, $2.21/$2.86/~$3 each) minted `hypothesis:l3-frontier-successor-derivable` (self-perpetuating: 925 childless tips = 62.7% of the graph; `dispatch.py:1466` leaf boost is dead because `_descendant_count` returns 0 for a leaf), `hypothesis:l3-agent-id-never-exported` (all-is-one: dispatch exports no `AGI_AGENT_ID`, so send.py's new tmux-window fallback would sign an advisor as `belam-S1-L3-III`), `idea:proprioception` (alive). The director minted `hypothesis:a00-b75ba88b-630d2d` (round-2 plan) and ran one GLM parent → kid `experiment:a00-230456c1-1abcda` **proved** (agent-git pre-commit/pre-push guard now fires under g11, `hypothesis:l3-commit-guard-inert-under-g11` updated) — no outcome minted, nothing judged. Landed with L3.18 in one commit |
 | L3.18 (Belam III, pi, parallel with cycle 2) | p-kwarg = `hypothesis:l3-pi-adapter-role-kwarg` (fix landed `c0157daed`; a kid writes the verdict + tests) + p-wguard = `hypothesis:l2w15-write-guard` follow-up (owner §6 item 12: guard log keyed on the mint id; suite write-log pollution). Chosen because neither touches `dispatch.py` or the adapters the live ladder spawns through; the dispatch-touching briefs (`l3-cc-adapter-zombie-lease`, `l3-commit-guard-inert-under-g11`, `l3-scaffold-stamps-spawner-env`, `l3-alive-proprioception`) wait for the cycle to end. Round-end = the L3.18 agents reach 0, not global 0 | **LANDED 07:35 UTC** (39 min; OpenRouter delta ≈$0.46 incl. the director's GLM round): p-kwarg → `experiment:a00-b9753db0-b62517` **proved** (pi_adapter `role=`/`ladder_tier=` pinned by red-faithful unit + signature-parity tests; no live spawn); p-wguard → `experiment:a00-e2c066ca-e1e284` **lean-proved:90** (suite write-log pollution stopped in `node_writer.py`; caveats: ~31k historical entries untouched, bare-file `write_frontmatter` fallback residual; the mint-id rekey is NOT reported done — re-check the node before closing §6 item 12). Hand-reviewed by the prime: the review workflow cannot run until the subscription resets |
+| L3.19 (Belam III, pi) | p-agentid = `hypothesis:l3-agent-id-never-exported` → `experiment:a00-f9b4361b-949e45` lean-proved:90 on the DEFECT only (fifth confirmation, no fix; re-briefed as BUILD for L3.20); p-zombie = `hypothesis:l3-cc-adapter-zombie-lease` → `experiment:a00-f3f19226-144e06` lean-proved:30 (`spawn_budget._pid_alive` reads /proc state, zombies count dead and sweep reclaims them, 13 tests; adapter reaper / grandchild pipe / session-limit retry still open). Review workflow reproduced every claim; suite 1843/0/1 | **LANDED 12:40 UTC** (OpenRouter usage now 58.73 13.27) |
+| L3.20 (Belam III, pi) | p-agentid2 = `l3-agent-id-never-exported` (the BUILD: export AGI_AGENT_ID/AGI_ACTOR + joined test) + p-mintid = `hypothesis:l3-node-without-mint-id` (cli.py done / repair verb adopts an orphan node; live proof on `experiment:a00-230456c1-1abcda`) | **RUNNING** launched 12:42 UTC |
 | wave 3 (Belam II) | wave 3 = the g15 slice on `season/s2`: advisors (`tier3-quorum`, opus ultracode) → Fable-max director for g15 → GLM parent → GLM director per LT subgoal → GLM parent per ST → DeepSeek kids; open g15 briefs first: `l3-dispatch-role-default`, `l3-openrouter-codex-spend` (slice 2) | |
 | then | wave 2: `season.py rollover --dry-run` → real (visions `--actor owner`, season 1 named genesis, `season/s2` opened, prime moves onto it); wave 3 = the g15 slice | |
 | wave 3, slice 2 | owner ask 2026-09-06: `hypothesis:l3-openrouter-codex-spend` (under g16) — gpt-5.1-codex calls on the OpenRouter key; the LIVE ladder investigates and fixes it, never the prime before wave 3 | banked |
@@ -89,299 +66,25 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 ### Landed
 
-- **L3.01** (2 parents, both ACCEPTED, no demotions; OpenRouter delta **$0.19**, usage 55.49→55.68): `l3w0-rotate-roles` → `experiment:a00-e34d54e1-cd8910` proved 0.85 (rotate.py spawn takes --tier/--model/--effort/--settings/--prompt-file, defaults from the ladder roles table, prompt assembled through brief.py; `loop --role`; belam-N derivation; dry spawn on this repo prints `claude --remote-control belam-2 --model claude-fable-5-1 --effort max --settings '{"ultracode": true}'` with the head first). `l3w0-ladder-roles-table` → `experiment:a00-3feeca19-a022df` proved (7 `roles:` rows + `season_names` on `ladder:ladder`; `dispatch.py --role/--list-rows`; AGI_ROLE exported, role stamped at mint; tier-2 rows dropped, not declared-unused — tolerated). Suite 1685/9, links 0 broken, goals byte-identical. **One guard WARN left deliberately**: `.agi/nodes/.geometry/ladder.md` was hand-edited because `write.py set` cannot coerce a nested list — fixed by `hypothesis:l3-write-set-nested-json` (L3.05), which re-logs the file. Second finding: dispatch's AGI_* exports break the kid's own suite run (8 failures) — `hypothesis:l3-dispatch-env-leaks-into-tests` (L3.06).
-- **L3.02** (2 parents; OpenRouter delta **$0.10**, usage 55.68→55.78): `l3w0-send-rooms` → `experiment:a00-f16f044c-885d9c` **proved 0.9** (dm/room files under `sessions/<iter>/comms/`, transcript render, standing rooms, `audience prime --reason`, `rooms` with unread counts; read position in a sidecar `.state.json`, not grid-snapshotted — caveat). `l3w0-brief-head-michael` → two kids: `a00-941da286-d57ebe` **pending** (first DeepSeek kid misread the directive as a status check, shipped a non-result; parent demoted `disproved → pending`, "unimplemented ≠ falsified"), then `a00-ae3a9634-c9d544` **inconclusive_lean_proved:80** (Michael line after the prayers in every head — verified live at line 43 of the prime head; hook emits the head first when `AGI_ROLE` is set — verified live; MANTLE + DECISION METHOD sections after the axes; `agi:check-handoff` / `agi:rotation-successor` documented in SKILL.md only — suggestion-view rendering unproven, hence the demotion). Suite 1715/9, links 0 broken, goals byte-identical, guard silent. Trap: the hook's tier map knows role names, not numerals — `AGI_TIER=3` silently emits no head; use `AGI_ROLE=prime_director`.
-- **L3.03** (2 parents; OpenRouter delta **$0.11**, usage 55.78→55.89): `l3w0-season-retag` → `experiment:a00-855d562e-c271ba` **proved** (`season.py retag`: 1,279 node files stamped `season: 1` through write.py; smoke 1212/194 holds; the only season-less files are **19 with corrupted `---id:` frontmatter**, skipped by design → `hypothesis:l3-corrupt-frontmatter-19`, g15, L3.07). `l3w0-grid-flock` → `experiment:a00-af0145ae-1c5bfe` **inconclusive_lean_proved:90** (flock on `.agi/sessions/.grid.lock` with `--lock-wait`, guard admits `season/*`; demoted for a self-citing `evidence_runs`; lock test is in-thread, not two processes). Suite 1727/9, links 0 broken, goals byte-identical. **Guard now prints 175 payload WARNs** (pre-guard source files surfaced by the build-node retag — noise, not damage; addendum on `hypothesis:l2w15-write-guard`, L3.06) — **cleared by themselves** once grid_sync versioned the retagged nodes; correction noted on the brief.
-- **L3.04** (2 parents, both ACCEPTED `proved`; OpenRouter delta **$0.07**, usage 55.89→55.96): `l3w0-test-skips` → `experiment:a00-d12b0f11-235864` (3 stale post-g11 test paths repointed, `--help` on briefing/completion/payload_boundary/write_guard; **suite 1734 passed / 1 skipped**, only the `node_writer.py` library skip left). `hypothesis:l2-goals-active-exempt` → `experiment:a00-4854a4bc-3e34e9` (`max_goals_active` deleted from config and metrics; the METRIC-WARNING is gone from `--smoke`, which exits 0 on master at 1215/194). Links 0 broken, goals byte-identical, guard silent. Kid caveat folded into the env-leak brief: inside a dispatched env `--smoke` exits 1 on a loop-label parse of the exported `AGI_LOOP`.
-- **L3.05** (2 parents; OpenRouter delta **$0.09**, usage 55.96→56.05): `l3-write-set-nested-json` → `experiment:a00-392c4e59-b77078` **proved** (`write.py set KEY <json>` coerces lists/objects; ladder roles re-set through write.py; dispatch accepts `iter-L3.NN`). `l3-rotate-ultracode-env` → `experiment:a00-0de26518-769c78` parent-demoted to lean-proved:75 pending a live witness; **the prime ran it: `belam-test4` through the fixed rotate.py answered `ultracode: yes` + `continue`** (rotate.py prefixes `export CLAUDE_CODE_WORKFLOWS=1`); recorded on the node, now lean-proved:95. **The wave-0 gate is met**: a successor spawned by rotate.py shows the head (prayers → Michael line → readings → axes → mantle → decision method), runs Fable 5.1 at max with ultracode, answers `continue`; `season: 1` on every parseable node. Suite 1741/1, links 0 broken, goals byte-identical, guard silent.
+- **L3.01–L3.11 (belam, waves 0–1 + the wave-2 rollover)**: rotate.py roles/head/ultracode env, ladder roles table, send.py rooms, grid flock, season retag, test skips, `max_goals_active` deleted, write.py nested JSON, dispatch env leak, corrupt frontmatter, perpetual goal kind, tier-0 director brief, rollover (visions minted `--actor owner`, `season/s2`), dispatch role default, doubled frontmatter, advisor brief. Detail: `git log --oneline iter-L3.01..` and the experiment nodes named in the round table.
 - **L3.12** (Belam II; 2 parents, both ACCEPTED `proved`, 0 demotions; OpenRouter delta **$0.26**, usage 56.95→57.21; 11 min): `l3w3-advisor-brief` → `experiment:a00-0836a64a-f3fabd` proved 0.9 (`dispatch.py _brief_tier_for`: tier parent + ladder-tier 3 + `vision:*` target → `brief.assemble(tier=advisor)`, model/effort stay on the parent row; threaded through both adapters; advisor brief carries the Michael line, the vision body, `tier3-quorum`, the `--tier director --ladder-tier 1` primitive and never-edit-vision-prose). Prime review (workflow: 3 sonnet reviewers re-ran every verify claim) found one verbatim-quote overclaim in the Evidence section — noted on the node, not demoted. `l3w0-rotate-roles` → `experiment:a00-881b7645-6599a7` proved 0.8 (Roman-numeral successor derivation `<prefix>-<ROMAN>`: belam-S1-L3 → -II → -III, bare `belam` → belam-II, `rotate.py status` lists belam-* windows; 14 tests; dry spawn prints `--model claude-fable-5-1 --effort max`, ultracode settings, head first). Suite 1789/1, links 0 broken (1433), goals byte-identical, guard silent. Kid struggle worth a g15 brief: `dispatch.py` has no `--dry-run` flag, so dry verification goes through Python calls.
 - **L3.13** (Belam II; 2 parents, both ACCEPTED `proved`, 0 demotions; OpenRouter delta **$0.15**; 18 min): `l3-cc-tools-by-tier` → `experiment:a00-fc49e2ad-ecd68a` proved (adapter resolves tools per (role, ladder tier): kids unchanged; advisor = parent@3 and director@1 gain Workflow/Agent/ToolSearch/Monitor/TaskOutput/TaskStop and lose only the `dispatch.py` refusal; git verbs/HANDOFF/CLAUDE still refused below prime; `tools_by_role`/`disallowed_tools_by_role` config override wins over flat keys — implemented, tested, NOT documented in config.json; 7 red-first tests). `l3w3-advisor-brief` → `experiment:a00-2b79aea7-29861b` proved (duties block now has runnable `extensions/agi/bin/...` commands with resolved root/iter/agent id/session dir, lists perpetual goals g1/g15/g16 with titles, `dispatch.py --goal goal:<id>` pins the director, wave-3 gate sentence verbatim). Suite 1805/1, links 0 broken (1438). Review workflow reproduced every claim; the pre-implementation red counts are taken on the kids' word (read-only review cannot stash). Hazard to bank (g15): a kid's `write` tool overwrote the scaffolded node's frontmatter mid-run, `cli.py done` demoted and then could not parse; the kid repaired by hand — `cli.py done` should repair or refuse a broken `---` block loudly, and the kid brief should say edit below the frontmatter.
 - **L3.14 wave 3, first turns (Belam II, 04:46–05:00 UTC):** three advisors launched via the CC harness (`claude -p`, opus, max, ultracode) — the L3.13 tool list was accepted live. **Alive (`a00-341de54e`, 36 turns, $2.58 API-equiv on the subscription)** spawned the g15 director `a00-4ad19971` (Fable max, tier 1, `--detach`) — **the ladder grew below the advisors for the first time**; withheld `rotate.py loop` after measuring that the meter reads the PRIME's transcript for every role (slug hardcoded, `rotate.py:80`) and cannot open the director's transcript dir at all (folded into `l3-meter-own-transcript`); minted `hypothesis:l3-alive-proprioception`; banked the visions' `proposes_goals: []` question (§6 item 17). **Self-perpetuating (`a00-1742819b`, 45 turns, $2.63)** minted `idea:frontier-invitation` under its vision (the loop scores the frontier at 0.0 and filters leaves — kids are steered to the thickest graph, never the unfinished edge); found the comms-seam defects → `hypothesis:l3-send-comms-root`. **All-is-one (`a00-e8af9d8e`)** still running at 05:00; posted a mechanically-proven role-telemetry defect in `dispatch.py:472` as a ready slice for the director. **Director `a00-4ad19971`** live, round-1 plan in the room: `goal:s31` is one hop from the gate (proved verdict + complete mvp); one tier-0 GLM parent at that mvp. Advisor nodes are NOT yet committed — reviewed and committed with the next round.
 - **L3.15** (Belam II; 2 parents, both ACCEPTED, 0 demotions; OpenRouter delta **$0.50** incl. the director's GLM round): `l3-meter-own-transcript` → `experiment:a00-e556b7de-3b5fe7` lean-proved:80 (`rotate.py` resolver order --session-log > `AGI_SESSION_LOG` > pin file `.agi/sessions/<agent>.meter` > cwd-derived slug > newest+WARN; adapter records the child's session pin from stream-json via a daemon thread; NOT built: exporting `AGI_SESSION_LOG` into spawned children; live capture unverified). `l3-done-broken-frontmatter` → `experiment:a00-30a5eb4e-8ae001` lean-proved:90 (`cli.py done` repairs a broken `---` block from the manifest, refuses body damage loudly, kid template says edit below the frontmatter). Suite 1824/1, links 0 broken (1452), goals re-rendered (director's notes on `goal:g15`/`goal:s31`), guard cleared by re-logging the kid outcome.
 - **L3.16** (Belam III; 2 parents, both ACCEPTED, one kid demoted; OpenRouter delta **$0.33**; 35 min): `l3-dispatch-dry-run` → `experiment:a00-eccace59-e6cb6a` **proved 0.85** (`dispatch.py --dry-run` prints the resolved command, AGI_* env incl. `CLAUDE_CODE_WORKFLOWS=1`, brief tier + line count, takes no budget slot, leaves no session dir; `iter_dir.mkdir` deferred past the dry-run return; 5 tests; caveats left honest: placeholder context file so a bad `--target` is not caught dry, env block duplicates `main()`'s). `l3-send-comms-root` → `experiment:a00-8aa136ef-456570` **proved 0.85** (`locations.comms_root: comms/season-2` in config, `send.py` resolves `.agi/comms/season-2/` — git-trackable, gitignore comment guards it; tier3-quorum migrated 12 blocks + the one dm, old root intact; `--from`/`--comms-root` before the subcommand no longer dropped; `read --all`/`peek --all` never advance the cursor; 45 send tests) and the red-first kid `experiment:a00-cd267df6-cc8fba` parent-demoted 85→**lean-proved:60** (confirmed all four defects live, implemented nothing; its test messages leaked into the LIVE room and were cleaned). Review workflow (3 sonnet) reproduced every claim; no overclaims beyond a dropped trailing newline in config.json (restored by the prime) and a stale "1 pre-existing failure" remark. Prime added `.agi/comms/**/*.state.json` to .gitignore (cursor sidecar = per-reader state) with a note on the node. Suite 1838/1, links 0 broken (1455), goals byte-identical, guard silent.
 
-### 🔴 Where it stops
 
-Wave 2 rolled over and committed on `season/s2`, pushed. master frozen as
-genesis. L3.11 landed and committed on `season/s2` (`iter-L3.11`). **belam rotated to
-belam-S1-L3-II (Belam II) here.** Nothing is mid-flight: 0/25 live, tree clean,
-branch `season/s2` pushed.
+### 🔴 Where it stops — live pointer (Belam III)
 
-**Belam II opened 2026-09-07 03:15 UTC; verification green (see §0). L3.12 LANDED 04:20 UTC** (commit `iter-L3.12`): the wave-3 preconditions are all met. **Belam II rotated at 06:05 UTC after committing `iter-L3.15`** (everything landed, tree clean, `season/s2` pushed, 0/25 live). **Belam III, in order:** (0) `git branch --show-current` = season/s2 · `driver.sh --smoke` (node_count ≥ 1470; never lower) · `commands.py run tests` (1824/1) · `spawn_budget.py status` 0 · meter with `--session-log ~/.claude/projects/-home-ubuntu-work-agi/<your-session-id>.jsonl` (the bare meter can still read a foreign session). (1) **L3.16 pi round** (round loop): p-dry = `hypothesis:l3-dispatch-dry-run`, p-comms = `hypothesis:l3-send-comms-root`. (2) **Wave 3 cycle 2 = L3.17**: respawn the three advisors exactly as L3.14 (`dispatch.py . L3.17 --harness claude-code --tier parent --ladder-tier 3 --target vision:alive --goal goal:g15`, then `vision:all-is-one`, `vision:self-perpetuating`, one tmux window each in `agi-rc`); the Alive advisor respawns the g15 director for round 2 (`l3-done-lifts-testable-claim`); the other two judge cycle 1 through their lenses. Watch with a persistent Monitor on `spawn_budget.py status` + `.agi/sessions/iter-L3.17/*/output.log` `"type":"result"` lines; review with the workflow script `~/.claude/projects/-home-ubuntu-work-agi/567c990a-87af-41ca-a505-4e4ee997a263/workflows/scripts/agi-round-review-wf_76472270-a85.js` (args `{iter, targets:[{window,hyp}], advisor_iter, since}` — 3 sonnet reviewers + a ladder summariser; ~6 min; returns compact JSON). (3) Then `l3-cc-adapter-zombie-lease`, `l3-pi-adapter-role-kwarg` (fix already landed — a kid writes the verdict), the director's `l3-commit-guard-inert-under-g11` / `l3-scaffold-stamps-spawner-env`. (4) Owner items pending: mantle text (§6 item 16), `proposes_goals` mapping (§6 item 17). The wave-3 blockers L3.13 closed were: the CC adapter disallows `Bash(*dispatch.py:*)` for every tier and does not allow the ultracode tools, so an advisor could not spawn its director; and the advisor duties block has placeholder paths and no goal assignment. Room `tier3-quorum` is OPEN (convening message posted by Belam II; comms root resolved to `.agi/sessions/iter-1088/comms/` — send.py picks the newest iteration by a numeric-first sort, so every agent on this box sees the same room, hazard noted §4 0d). Launch shape once L3.13 lands: `dispatch.py . L3.15 --harness claude-code --tier parent --ladder-tier 3 --target vision:<alive|all-is-one|self-perpetuating> --goal goal:g15` (Alive gets the goal), one tmux window each in `agi-rc`; advisors run as `claude -p` (one bounded turn; rotation = respawn); if this file still says RUNNING for L3.13, `spawn_budget.py status` + `git status` first, review with the round loop, commit as `iter-L3.13`.
-**Belam III (06:05 UTC):** read the handoff whole, verified green (§0), L3.16 landed `9f3802c0c`, cycle 2 + L3.18 landed in the next commit. **Owner design layer 2026-09-07 (perpetual seats — §6 item 18) recorded verbatim in `.agi/context/l3-command-ladder-brief.md`; `goal:g17` The seat system minted (parent `vision:self-perpetuating`, GOALS.md 128 goals).** 🔴 **NEXT, in order:** (1) **L3.19 pi round** on the dispatch-touching g15 briefs now that no ladder is live: p-agentid = `hypothesis:l3-agent-id-never-exported` (writer half: dispatch exports `AGI_AGENT_ID`/`AGI_ACTOR`; send.py/write.py read them), p-zombie = `hypothesis:l3-cc-adapter-zombie-lease` (+ the session-limit death: the adapter must recognise `You've hit your session limit` in a result line, stop retrying and release the lease — add to that brief); then L3.20 = `l3-scaffold-stamps-spawner-env` + `l3-frontier-successor-derivable`; `l3-alive-proprioception` after. (2) **Wave-4 drafting workflow RETRIED 12:14 UTC (the owner confirmed the subscription is back; hours passed waiting for the owner's reply)** — script `~/.claude/projects/-home-ubuntu-work-agi/6633f27e-9407-497b-9b61-d72ec75ecfef/workflows/scripts/l3w4-brief-drafting-wf_3c101b6d-1c7.js` (7 drafters + critic; first run died on the limit) with the owner correction (4) folded into the RULES model table (quorum Opus max, director-kids Opus high, comms rules) — then mint the 7 `hypothesis:l3w4-*` briefs from `<scratch>/l3w4/index.json` through write.py under g17 / g12.3 / g13.1 / g16, commit, and dispatch `l3w4-context-doc-nodes` first (it is small and closes the guard hole Belam II's hand append proved). (3) Wave-3 cycle 3 only after 09:20 and only with the zombie/limit fix in: same launch as L3.17. (4) Rotation at 0.35 (Belam III meter 0.22 at 07:50 UTC).
+Branch `season/s2`; `master` = season 1 (genesis), frozen. Landed this session: `iter-L3.16` (`9f3802c0c`), `iter-L3.17+L3.18` (`b96d6b3da`), both pushed. Landed: `iter-L3.19`. **In flight at the time of writing:** L3.20 (p-agentid2 BUILD, p-mintid) on OpenRouter; the wave-4 drafting workflow (8 Sonnet/max drafters + critic → `<scratch>/l3w4/index.json`). Committed with L3.19: owner quotes (5)(6), `workflows.drafting`, `hypothesis:l3-node-without-mint-id`, the trim.
 
-NEXT (belam-2), on `season/s2`: wave 3 = the g15 slice. In order:
-1. Verify: `git branch --show-current` = season/s2; smoke 1245/194; suite
-   1765/1; `spawn_budget.py status` 0 live; OpenRouter ≈ $15.6 left.
-2. L3.09 landed by belam (see Landed). `hypothesis:l3-openrouter-codex-spend`
-   is NOT for pi kids — it is wave 3 slice 2 for the live ladder.
-3. Then the slice: open room `tier3-quorum` (`send.py send --room tier3-quorum`),
-   spawn the three advisors (`dispatch.py --harness claude-code --tier parent
-   --role parent --ladder-tier 3`, opus ultracode — needs `CLAUDE_CODE_WORKFLOWS=1`,
-   which the adapter now exports) each assigned one vision node; the advisor
-   embodying *Alive* spawns the Fable-max director for g15
-   (`--role director --ladder-tier 1`); that director spawns a GLM parent for
-   g15 → GLM director per LT subgoal (`goal:g15.s2.1` minted by the director) →
-   GLM parent per ST → DeepSeek kids. Gate: one ST subgoal closed with a judged
-   outcome and no human hand on a node. Rotation loops live at every level
-   (`rotate.py loop --role`).
-4. `COMPLETE.md`: append a wave-0–2 section for L3 when the slice closes. Rotation
-of the prime must wait for L3.05's ultracode-env fix or export
-`CLAUDE_CODE_WORKFLOWS=1` by hand in the tmux window before `rotate.py spawn`.
+**Next, in order:** (1) land L3.19 (round loop below; review workflow script `~/.claude/projects/-home-ubuntu-work-agi/567c990a-87af-41ca-a505-4e4ee997a263/workflows/scripts/agi-round-review-wf_76472270-a85.js`, args `{iter, targets:[{window,hyp}]}`). (2) Mint the 8 `hypothesis:l3w4-*` briefs from `index.json` through `write.py create hypothesis <slug> --parent <parent> --set title=… --set testable_claim=…` + `note <body>` (bodies have no `&&`), add the provider-agnostic note on `l3w4-drafter-seat`, commit, push. (3) L3.21 = `l3w4-context-doc-nodes` (small, closes the guard hole) + `l3w4-seat-registry`; then `l3w4-seat-transport` + `l3w4-liaison-seat`; then liaison, loops, quorum-reviews, drafter seat, telemetry; `l3-scaffold-stamps-spawner-env`, `l3-frontier-successor-derivable`, `l3-alive-proprioception` interleave as g15 slots free. (4) Wave-3 cycle 3 (same launch as L3.17) only once the zombie/limit fix is in — the subscription limit killed cycle 2's director. (5) Rotate at 0.35 with `rotate.py loop --role prime_director --name belam-S1-L3-IV`.
 
 ### Rotation
 
-At meter 0.35: finish the round in flight, write this file, run
-`python3 extensions/agi/bin/rotate.py spawn --name belam-S1-L3-IV` (owner rule §6 item 15: Roman numerals; L3.12 made the derivation automatic, `--name` still wins; post-L3.01 it
-passes model/effort/settings and the head; needs `CLAUDE_CODE_WORKFLOWS=1`, which rotate.py exports since L3.05), confirm the window answered
-`continue`, stop.
+At meter 0.35 (own transcript: `rotate.py meter --session-log ~/.claude/projects/-home-ubuntu-work-agi/<session-id>.jsonl`): finish the round in flight, write this file, run `python3 extensions/agi/bin/rotate.py loop --role prime_director --name belam-S1-L3-<next Roman>` (exports `CLAUDE_CODE_WORKFLOWS=1`, passes model/effort/settings and the head), confirm the new window answered, stop. Owner rule: Roman numerals for the prime only.
 
-## §0.6 Session 2026-09-06 (agi-master-2) — post-close round L2.12, LANDED
-
-**Round L2.12 landed and pushed** (commit `4153ddf85`). Reviewed by three pi
-parents, all demoted the kids' overclaims (none accepted at face value):
-
-- `hypothesis:l2w3-season-py` → `experiment:a00-86a55dbf-dee193`,
-  `inconclusive_lean_proved:70`. Cap-count DEFECT fixed and verified live
-  (closed season-1 visions no longer count against `caps.vision`); `judge`
-  now writes a real five-key `moral_audit` dict on overviews, partial-fill
-  preserved. Demoted for: no cost column in `status` despite the claim
-  naming it; a display-only bug found in review (`Close 0 vision(s)` message
-  reuses the wrong counter); dry-run/real mismatch on vision minting (by
-  design — "bank, don't invent" — but the dry-run over-promises); kid cited a
-  stale suite count (1085 vs the real 1649).
-- `hypothesis:l2w6-telemetry-rollup` → `experiment:a00-6856367d-7b307d`
-  (canonical; a demoted **twin** `-telemetry-rollup` exists from a
-  mid-run kid restart, annotated non-canonical — see the new hazard below),
-  `inconclusive_lean_proved:60`. `telemetry_rollup.py` walks/sums/attaches
-  real, all sums honestly zero (no per-node telemetry populated yet).
-  Demoted because `cost_per_aligned_outcome` — the ranking number the
-  hypothesis names explicitly — is **not implemented**; only
-  `bytes_per_token`/`bytes_per_dollar` exist. **Next kid: wire
-  `cost_per_aligned_outcome` from `season.py`'s judge/alignment records.**
-- `hypothesis:l2w15-write-guard` → `experiment:a00-e334f78a-bfc1e6`,
-  `inconclusive_lean_proved:80`. Third writer (`cli.py::_claim_node`) now
-  logged. Parent's own independent audit found two more sanctioned-path
-  gaps, both reproduced live: (1) `node_writer.ensure_payload` unlogged →
-  `write.py create --payload` false-positives the guard; (2) `_claim_node`
-  leaves an unlogged, non-gitignored `.lock` file that also false-positives
-  the guard. **FOLLOW-UP left on the hypothesis** for the next kid: log
-  `ensure_payload`, ignore `*.lock` in the guard, add the two pinning tests
-  the prior review already flagged, plus test-suite write-log pollution
-  (still open).
-
-**New hazard minted this round**: `hypothesis:l2-dispatch-restart-twin-node`
-under `goal:g15` — when a kid pi process dies mid-run, the restart path
-scaffolds a **second** node for the same agent slot instead of reusing the
-original (observed live in the telemetry parent's run: `a00-6856367d` got
-both `-7b307d` and `-telemetry-rollup`). Two fixes named in the hypothesis
-body: reuse the manifest's existing node id on restart; and have `cli.py
-done` persist `evidence_runs` into frontmatter at signal time so
-self-cited evidence survives a later grid-commit re-check (this is the same
-self-citation shape as the original evidence-gate hole from L2.01e, just
-triggered by restart instead of omission). The stray `.agi/autoresearch.ideas.md`
-scratch note the parent left was folded into this node and deleted — don't
-recreate it, the hypothesis is the durable copy now.
-
-**Post-round verify, all green**: full suite 1650 passed / 9 skipped (no
-failures — the `test_node_writer` flake two parents independently hit
-during their own runs did not reproduce standalone); `links.py links` 0
-broken (1363 resolved); `links.py schema` 129 pre-existing missing-field
-warnings, unchanged by this round; `snapshot-goals.py --render --check`
-127/127 byte-identical; `write_guard.py check` silent. `grid.py commit --all`
-ran clean (pre-existing WARNs on 12 already-deprecated build nodes whose
-payload files were removed years ago — cosmetic, not a regression). Pushed
-to `master` at `4153ddf85`. Active/deprecated now **1190 / 194**;
-`evidence_fraction` 0.38; `outcome_coverage` 0.171 (three new hypothesis +
-four new experiment nodes in the denominator, same shape as every prior
-round's dip). Context meter 0.14 of 1.0M — well under the 0.35 rotation
-threshold, continuing.
-
-**Round L2.13 landed and pushed** (commit `fed533924`), closing every item
-L2.12 left open — all three parents accepted without demotion this time:
-
-- `hypothesis:l2w15-write-guard` → `experiment:a00-4d4910df-28be66`,
-  `inconclusive_lean_proved:90`. Both L2.12 gaps closed and verified live:
-  `ensure_payload` now logs, `.lock` files ignored by the guard, 3 new
-  pinning tests, 12/12 guard tests pass. Two smaller items banked as a fresh
-  FOLLOW-UP on the same hypothesis (not dispatched): the guard should key its
-  log on `node_id`+sha256 rather than path (a `git mv` currently triggers a
-  false warning), and the test suite still writes into the real
-  `write-log.jsonl` instead of a temp path.
-- `hypothesis:l2-dispatch-restart-twin-node` → `experiment:a00-597219b9-43ddf2`,
-  **proved (0.85)**. Restart now passes the manifest's existing node id
-  through to the brief instead of re-scaffolding; `cli.py done` persists
-  `evidence_runs` to frontmatter at signal time. Twin-node hazard closed.
-- `hypothesis:l2w6-telemetry-rollup` → `experiment:a00-6e08546b-aed026`,
-  **proved**. `cost_per_aligned_outcome` implemented (BFS aligned-outcome
-  count, print-only, never gates); 22/22 rollup tests; real dry-run on this
-  repo prints `n/a` (0 aligned outcomes yet — an honest first data point, not
-  a bug). The L2.12 demoted twin got a one-line pointer note, left as-is.
-
-Full suite 1661 passed / 9 skipped after L2.13, `links.py links` 0 broken
-(1367 resolved), `snapshot-goals.py --render --check` byte-identical,
-`write_guard.py check` silent. Active/deprecated **1193 / 194**;
-`evidence_fraction` 0.385. Context meter **0.166** of 1.0M, still well under
-0.35. OpenRouter balance: **~$16.51 remaining**.
-
-**New, found at L2.13 close, banked not dispatched**:
-`bash driver.sh --smoke` now prints `METRIC-WARNING goals_active=20 exceeds
-cc_dispatch.max_goals_active=18` — `goal:g15` (and possibly `g16`) were
-minted "always active, exempt from max_goals_active" in wave 1's own text,
-but `metrics.py`'s check (~line 1118) has no exemption mechanism at all, it's
-a raw count vs the config cap. Minted `hypothesis:l2-goals-active-exempt`
-under `goal:g15` with the fix shape (an `exempt_from_max_active` frontmatter
-field or a fixed allowlist) — **not yet dispatched**, next round's first
-target.
-
-**Still open for the next round**: `hypothesis:l2-goals-active-exempt` (new,
-above); season-2 rollover still BANKED on owner text (§6 item 9) — do not
-invent one; the two small write-guard follow-ups just banked; pi kids give no
-live progress signal for ~9 min (original L2.07 note, never picked up); the 6
-explicit `--help` skips in `test_bin_help_smoke.py` (never picked up either).
-None of these block anything — pick 2-3 for the next round of three parents,
-same shape as L2.12/L2.13.
-
-**Then the owner returned with the L3 brainstorm** (visions, perpetual goals,
-the command ladder, comms, rotation) — captured in
-[`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md)
-(DRAFT, owner text verbatim + director proposals + a 5-wave plan). Two facts
-found answering it, both L3 wave-0 items: `rotate.py spawn` bypasses
-`brief.py`, so this director got **no constitution head and no `--model`**
-(ran on Sonnet 5, not Fable 5.1); and of the 9 skipped tests, 6 are L2.08's
-deliberate `--help` skips and **3 are stale post-g11 paths silently skipping
-real coverage** (`test_grid.py:272` wants `../agi-tree/nodes`,
-`test_spawn_gate.py:628` wants `context/schemas` not `.agi/context/schemas`,
-`test_brief.py:278` a fixture with no director model). Config change applied:
-pi models → the `-latest` aliases (§6 item 10).
-
-🔴 **Session closed by `agi-master-2` with the owner's leave, not rotated**
-(context meter well under 0.35). **Next session = loop L3, wave 0 first**
-(brief §3): fix `rotate.py` (model/effort/settings, head via `brief.py`),
-then launch the L3 prime through it as the first live test. Two rounds landed clean this session (L2.12 `4153ddf85`, L2.13
-`fed533924`), both reviewed and pushed. Whoever resumes — same session or a
-fresh one — can either dispatch another round immediately (targets listed
-just above, same 3-parent tmux-in-`agi-rc` shape as §0.6 describes) or wait
-for owner input on the season-2 rollover text. Nothing is mid-flight:
-`spawn_budget.py status` reads 0/25 live, git is clean and pushed at
-`fed533924`.
-
-## §0.5 Session 2026-09-06 — L2 opened. Owner answers, settled (do not re-ask)
-
-1. **Authority is open-ended**: loop until L2 closes; minimise owner decisions, combine several into one, morals as the tie-breaker.
-2. **Wave order changed**: wave 1 → **wave 1.5 (daisy-chain path)** → wave 2 → 3 → 4 → 5. Wave 1.5 = ladder node with `director_rotate_at: 0.35`, rotation script (write handoff live, launch successor `claude remote-control --name agi-master-N` in tmux `agi-rc`, successor reads handoff before replacing), **plus an unsanctioned-write check** (owner's ask): the repo mechanically detects a node or payload edit that did not go through `write.py` and warns to redo it properly.
-3. **Rotation 0.35 and council quorum (§7) confirmed as written.**
-4. **Disk**: owner granted deletion of every other repo whose remote is up to date. Done this session: pushed the one unpushed ML branch, christenArts main (+9), two hermes stashes as `stash/*` branches, belam's dirty canvas json as `wip/2026-09-06-canvas-progress`; then deleted `machinelearning` (14G), `machinelearning-hermes`, `belam-codex`, `christenArts`, `agi-tree`, `fencePros`, `/tmp/pytest-of-ubuntu` (2.5G). **Left**: `machinelearning-modularnn-spike-viz` (787M, not a git repo, no remote to verify — banked), `fantasia` (worked example, dirty), tiny repos. Grid storage: git already delta+zlib packs the grid; `git gc` took `.git` 63M → 23M. Zips would not beat pack deltas — no grid compression work needed.
-5. **Spend**: $30 OpenRouter is the cap once topped. Subscription was exhausted 2026-09-04 by stress-testing; the fallback ladder is opus parents / sonnet kids at max.
-6. **Successor first prompt — TESTED, works hands-off** (2026-09-06 02:47): `claude --remote-control <name> --permission-mode bypassPermissions "<prompt>"` run in a tmux window **with a TTY (no pipe to tee — piping makes it print-mode and exit)** takes the prompt, answers, and stays live under Remote Control with a claude.ai/code URL. No owner tap needed. This is the rotation transport.
-
-**Live checklist (this session)**
-- [x] smoke 1099 active / 1290 total, tests 1487, disk freed, handoff carried
-- [x] wave 1 mint: `goal:g15`, `goal:g12.3`, `goal:g16`, `g12`→active, 35 S goals → `g15` (commit after this line)
-- [~] wave 1 dispatch, 2 parents at a time, one kid per schema file. Briefs = `hypothesis:l2w1-*` (7). `spawn.parallel` set to 1 so one dispatch call = one parent. Iter id `L2.01`. **Round 1 landed** (iter L2.01, commit after this line): `[shape].md` parentless_types=[moral] + 3 edge fields (kid also set goal/idea min_parents 1 — accepted, brief for round 3 amended); `[ladder].md` + `.geometry/ladder.md` (proved); grid master-guard in `grid.py` (proved, 8 tests). Tests 1497. **Round 2** (iter L2.02) kids done, two parents still reviewing at 04:30: `[moral].md` (parent accepted; gate demoted to lean-proved:50 because the kid omitted `--evidence-runs`), report floors (same demotion), `rotate.py` + `briefs/prime-director-successor.md` + `test_rotate.py` (kid says 1501 tests). **A kid ran `git commit`** (`9b28e958a`, swept all three kids' work into one commit on master — kept, merge-not-rebase; guard brief `hypothesis:l2-agent-git-commit-guard` minted under g15). Tests on the tree: 1501 passed. **Round 3 landed** (iter L2.03): `[vision].md` (moral parents, season_parents, moral_adherence), `[goal].md` + `[idea].md` (vision parents, authors), `write_guard.py` + logging in `node_writer.py` + smoke step in `driver.sh` + hook lines in QUICKSTART — **the owner's unsanctioned-write check works live**: its first run caught a kid's hand edit. Parent re-graded to 60 because `snapshot-goals.py write_frontmatter` is still unlogged (follow-up noted on the hypothesis). **Round 4 landed** (iter L2.04): `[experiment].md` payload_ref + location (proved); `dispatch.py --detach` + parent brief polls `cli.py status` (lean 80); commit guard `hooks/agent-git/{pre-commit,pre-push}` exported via `GIT_CONFIG_*` by dispatch — **verified live: a kid commit is refused, a plain commit passes** (lean 80). **Round 5 landed** (iter L2.05): gate validates `season_parents` by type + grandfathers earlier seasons (proved; parent caught a crash in a `post_wire.py` caller the kid's report claimed was updated — fixed in review); metrics read traversable edge fields from `[shape].md` (parent verified byte-identical output; `outcome_coverage` 0.19→0.176 is the 21 new L2 hypothesis briefs in the denominator, not the code); `cli.py done` merges a doubled frontmatter, marks `done_line: missing`, logs final bytes (lean 60; guard warnings 3→2). **Round 6 landed** (iter L2.06): writer stamps season/loop/model/profile from dispatch env (lean 75); telemetry stamps at done with a real source or `telemetry_source: unavailable` (lean 70; read the experiment for which source pi exposes); **write.py owner-only moral guard NOT built** — the kid tested the old write.py and reported disproved; re-run note on the hypothesis, goes in round 8. Guard warnings now 0 after a round. **Round 7 landed = wave 3** (iter L2.07): `send.py` inbox verb (proved, live round trip ok); `season.py status|judge|rollover --dry-run` (lean 55; **season-1 baseline measured**: tier 0 plans 12 active/106, reports 16/23, ratio 0.22, 83 plans without reports, 23 reports with no judged_against; tier 1 plans 8/21); brief heads for director + prime_director only (lean 55) — kid/parent heads, `--evidence-runs` in the done template and `set FIELD VALUE` syntax are the re-run note on `hypothesis:l2w3-brief-heads`. **Round 8 landed** (iter L2.08): write.py refuses moral edits without `--actor owner` (proved, verified live); kid + parent constitution heads (lean 50: kid head has the prayers and the `set FIELD VALUE` line, parent has prayers + words of Jesus; check the done template carries `--evidence-runs`); `test_bin_help_smoke.py` runs `--help` on 40 bin scripts, 34 pass, 6 explicit skips (lean-disproved 60 on the word *every* — the guard is in the suite). **Round 9 landed = wave 4 pairing** (iter L2.09): all 23 outcomes carry `judged_against` (tier 0 reports without a judgment: 23 → 0); 17 visions retagged season 1 + closed; second-writer log landed (lean 85); **tier-1 pairing blocked** (chain bigger_outcome→outcome→mvp reaches no goal) — re-run note derives it via the outcomes' new `judged_against`. Briefs were: `l2w4-outcomes-judged` (tier 0, every outcome gets judged_against via `season.py judge`, no fabricated outcomes) + `l2w4-tier1-and-visions` (bigger_outcomes for active LT goals, 17 visions → season 1 closed, overviews only where a bigger_outcome exists) + second-writer log follow-up on `l2w15-write-guard`. **Round 10 landed** (iter L2.10): commit guard scoped to the project repo (suite 1627 green normally **and** under the kid env); tier-1 pairing 19/19 bigger_outcomes + 17 overviews (parent verified; verdict flipped only on the three-part wording); SKILL.md Seasons + Constitution. **Round 11 landed** (iter L2.11): `.agi/bin` gone (script re-homed, experiment retargeted, test guards it), 3 sweep nodes deprecated + moved (proved). **L2 CLOSED.** Report in COMPLETE.md (newest first). The real rollover waits on the banked season-2 decision (§6 item 9). Round 11 = wave 5 close: `season.py rollover` dry then real (≤3 season-2 visions on the morals), SKILL.md **Seasons** + **Constitution** sections, `COMPLETE.md` **appended** (owner asked to keep both) with the L2 report, seven sections. Round 5 = `l2-done-doubled-frontmatter` + wave 2 starts: briefs `hypothesis:l2w2-*` minted (gate season_parents, writer stamps, write.py owner-only morals + payload types, metrics season edge, telemetry stamps under `goal:g16`, now active). Three parents per round.
-- [x] five moral nodes by hand, `--actor owner`, text sliced verbatim from the brief (ESSENCE / QUESTION / IN PRACTICE / VIOLATED WHEN / REFERENCE; faith carries §4 whole, 183 lines). Gate approved `parents: []` for all five — `[shape].md` change proven live.
-- [~] wave 1.5 (rotate.py + write_guard.py + grid guard landed; follow-ups: second writer log, non-blocking spawn, commit guard): briefs minted `hypothesis:l2w15-rotate` (rotate.py meter/spawn/status + successor prompt), `l2w15-write-guard` (owner's unsanctioned-write check, under goal:g13.1), `l2w15-grid-master-guard` (crons come back on after it lands). grid-guard parent dispatched alongside round 1 (window `p-gridguard`); rotate + write-guard dispatch when round-1 slots free. RC successor test: done, see §0.5 item 6.
-- [ ] waves 2–5 per §3
-
-## §1 What the 2026-09-05 session did
-
-- [x] Whiteboard photo → `.agi/context/images/season-cycle-whiteboard-2026-09-05.webp` (1200×900, 80 KB).
-- [x] Read `HANDOFF.md` and `COMPLETE.md` at owner's request; neither erased until this replacement.
-- [x] Found the graph already holds most of the design: `goal:g12`, `g12.1`, `g12.2` (morals, caps, season edge — all `horizon` since 2026-08-29), `[vision]`/`[overview]`/`[bigger_outcome]` with `season:` fields, 0 overviews ever minted, 17 visions none meeting their schema.
-- [x] Brainstormed the ladder, roles, seams, morals, questions, reference texts, prayers, telemetry, comms with the owner over six correction rounds. **All owner-approved.** Written to the brief.
-- [x] Measured the season-1 data point: subgoal 71 / outcome 23; long-term 18 / bigger_outcome 19; vision 17 / overview 0; short-term 35 unplaced; outcomes have 0 goal parents.
-- [x] **Doc pass, 2026-09-06 (director by hand, owner's ask):** `GOALS.md` preamble no longer says `agi-tree`; 10 pre-agi build nodes retired (`autoresearch.*`, `run-loop.sh`, `start.sh`, `schema.sql`, `context/impl/*`) and their files removed, plus file-only leftovers (`_benchmark.py`, `context/kits/`, `context/plans/`); census rows pruned; driver, find-root and agent-prompt headers rewritten for the `.agi/` layout. `context/refs/` kept (31 nodes cite it); `TODO.md` kept as the retired archive.
-- [x] **Director tier declared:** `harnesses.claude-code.models.director = claude-fable-5-1`, `effort: {director: max}`; the adapter accepts a per-tier effort map (one test, verified red). **`brief.py` has no director brief yet** — `--tier director` fails there until L2 wave 3.
-- [ ] **No schema touched, no ladder code.** That is loop L2.
-
-## §2 🔴 Where it stops — L2 record; the live L3 pointer is §0.7
-
-L2 is closed. Nothing is dispatched. Your first commands, in order:
-
-```bash
-git status --short && git log --oneline -1     # clean, at or after the L2.11 commit
-bash extensions/agi/driver.sh --smoke --max-iters 1                          # 1184 active / 194 deprecated — sum must not drop
-python3 extensions/agi/bin/commands.py run tests                             # 1629
-python3 extensions/agi/bin/dispatch.py --help >/dev/null && echo dispatch-ok
-python3 extensions/agi/bin/spawn_budget.py status                            # 0 live
-python3 extensions/agi/bin/rotate.py meter                                   # your own context, fresh
-python3 extensions/agi/bin/season.py status                                  # season 1, fully paired
-```
-
-Then, **what is open** — three parents per round, briefs first, same round loop (see §0.5 and the successor prompt):
-
-1. **Season-2 rollover** is blocked on the owner (§6 item 9). Do not invent visions. While waiting: fix the rollover cap count (`hypothesis:l2w3-season-py` DEFECT note) — one kid.
-2. **g16 telemetry roll-up**: session-level sums along `parents`, cost per aligned outcome (brief §5) — mint a brief under `goal:g16`.
-3. **g15 open items**: pi kids give no live progress signal (~9 min silent, `struggles:` of parent a00-4866b905 in L2.07); `write_guard` warns once on a `git mv`-ed node (path changed, bytes not re-logged) — tiny; the 6 `--help` skips in `test_bin_help_smoke.py`.
-4. **Wave 2 leftover**: `[vision]` `moral_adherence` is declared but nothing writes it; `season.py judge` should scaffold it on overviews (`moral_audit`) — one kid.
-5. When the owner answers item 9: fix cap → `season.py rollover --dry-run` → real rollover → open **loop L3 / season 2** with a new `COMPLETE.md` section at its close (append, newest first).
-
-If the owner is silent, work 1–4; they are the field. Do not mint new long-term goals.
-
-## §3 Loop L2 — five iterations, dependency-ordered
-
-Owner's budget: **about five iterations**, $30/week OpenRouter, kids at the
-DeepSeek V4 Flash price point, parents `qwen/qwen3.8-27b` (config as is).
-Assign **one kid per file** — several schema files change and two kids on
-`[shape].md` will collide.
-
-### Wave 1 — geometry and schema (all parallel, 6–7 kids; no engine code)
-
-Mint first, by hand through `write.py`, so the wave has parents:
-- `goal:g15` **Bugfix and optimization** — long-term, `active`, always active, exempt from `max_goals_active`. Parent of all 35 S goals (reparent in this wave: `write.py goal:sNN "link parents goal:g15"` ×35 — script it).
-- `goal:g12.3` **The tier ladder, seasons, and `season.py`** — under `g12`. Carries §1 of the brief.
-- `goal:g16` **Telemetry per node, propagated up the ladder** — long-term, `horizon` until wave 2.
-- Flip `goal:g12` → `active`.
-
-Kids (one file each):
-1. `context/schemas/[moral].md` — shape in brief §3; `spawn: allowed_parents: [], min_parents: 0`; body regions ESSENCE/QUESTION/IN PRACTICE/VIOLATED WHEN/REFERENCE; `grounded_in`, `axis`, `edited_by: owner`.
-2. `context/schemas/[ladder].md` + `.agi/nodes/.geometry/ladder.md` — tiers table, `current_season: 1`, caps (5 morals, 3 visions), `budget_usd_week: 30`, spawn profiles, read-order-by-role, zoom numeric. Parented on `goal:g12.3` (same move as `.geometry/crons.md`).
-3. `context/schemas/[shape].md` — `parentless_types: [moral]` (creation-time, grandfather note); `edge_fields` add `season_parents: {role: season, traversable: false}`, `grounded_in: {role: provenance, traversable: false}`, `authors: {role: provenance, traversable: false}`.
-4. `[outcome].md`, `[bigger_outcome].md`, `[overview].md` — **drop floors to `min_parents: 1`**; add `judged_against`, `lens`, `alignment`, `adjust`, `season`, telemetry fields; overview adds `moral_audit`. Three files, may be one kid or three.
-5. `[vision].md` — `allowed_parents: [moral]`, `min_parents_by_type: {moral: 1}`, `season_parents: [overview]`, `moral_adherence`, cap 3 from season 2.
-6. `[goal].md` + `[idea].md` — long-term may name a vision parent (grandfathered); S goals take `goal:g15`; idea gains `authors`, `allowed_parents: [goal, vision]` (`g12.2`).
-7. `[experiment].md` — `payload_ref` + `location` allowed (experiments are build nodes in practice).
-
-Then, **director by hand, owner text verbatim from the brief**: mint the five
-moral nodes (`write.py create moral faith --actor owner …`), `moral:faith`
-carrying the full REFERENCE (§4 of the brief). Needs kids 1 and 3 landed.
-
-Gate for the wave: smoke count does not drop; `links.py schema` shows no new
-violations; `spawn_gate` accepts a `moral` with `parents: []` and rejects a
-new parentless `idea`.
-
-### Wave 2 — gate, writer, stamps (depends on wave 1; parallel by module)
-
-- `spawn_gate.py` — reads `[ladder]`; validates `season_parents` by type; grandfather flag for pre-season-2 nodes.
-- `node_writer.py` — stamps `season`, `loop`, `model`, `profile` on every mint.
-- `write.py` — refuses `moral:*` unless `--actor owner`; experiment payload verbs work.
-- `metrics.py` — excludes `season_parents` from chain depth and coverage.
-- `cli.py done` / `post_wire.py` — stamp `tokens_in/out`, `cost_usd` (OpenRouter generation lookup via the per-spawn key — **investigate first**, may be its own hypothesis), accepted diff bytes.
-- Tests **verified red** for every rule; run through `commands.py run tests`.
-
-### Wave 3 — `season.py`, comms, briefs (depends on wave 1; parallel with wave 2)
-
-- `season.py status` — the count table + ratios + mismatches (plan without report, report without plan) + cost per tier. `judge <report>` scaffolds the judgment fields and derives `lens`. `rollover --dry-run`.
-- `send` — one verb, looks like a session send; kid→parent, parent→director, director→director-above, council; inbox file under `sessions/` for pi, direct for CC.
-- Brief templates ×4 (kid / parent / director / prime director) with the prayer heads in the brief's read order. `dispatch.py` picks the template by tier and role.
-
-### Wave 4 — pair season 1 (depends on 2 and 3; the expensive wave)
-
-- Every active-goal outcome gets its subgoal as `judged_against`; mint missing outcomes for the 8 active subgoals only.
-- Mint `bigger_outcome` for the 4 active LT goals; overviews for the visions that actually directed work.
-- Retag all 17 visions `season: 1`, `status: closed`. Legacy build-site outcomes stay, labelled season 1.
-- `season.py status` becomes the season-1 baseline. Most alignments will be `unknown` — that is the honest first data point, not a failure.
-
-### Wave 5 — rollover and report (depends on 4)
-
-- `season.py rollover` (dry-run first, then real) → ≤3 season-2 visions with `parents=[morals]`, `season_parents=[overviews]`, `moral_adherence`, `proposes_goals`; `current_season: 2`.
-- `SKILL.md` gains **Seasons** and **Constitution** sections (read order by role, the one comms verb, death per role).
-- `COMPLETE.md` **appended** (owner asked to keep both) with the L2 report, seven sections.
-
-## §4 Traps to carry
-
-0. **Found in L2.01, bank to `goal:g15` (mint a hypothesis when a slot frees):** (a) a pi parent's blocking `dispatch.py --tier kid` call was killed by the 20-min tool timeout while the kid kept running; the parent recovered from the manifest but should not have had to — spawn must be non-blocking or the timeout must not apply to a spawn call. (b) `cli.py done` left a doubled frontmatter block in a kid's node (parent merged it by hand). (c) one kid never emitted the DONE contract line. (d) Monitoring parents: the dispatch log ends with `reaper: finished` **before the parent exits** — wait on the parent pid from `spawn_budget.py status`, not the log. (e) Kids omit `--evidence-runs` on `cli.py done` and get gate-demoted to 50 even when the parent accepts — fold into `hypothesis:l2-done-doubled-frontmatter` (kid done template). (f) A kid committed on master (`9b28e958a`) — an autoresearch `log_experiment` auto-commit; `hypothesis:l2-agent-git-commit-guard`. (h) The rogue-commit root cause is **outside the repo**: `~/.pi/agent/git/github.com/davebcn87/pi-autoresearch/extensions/pi-autoresearch/index.ts` `log_experiment` auto-commits; patched on this box to skip when `AGI_TIER` is kid/parent (L2.04). A fresh box needs the patch again or the hooks-path guard alone (which is enough). (i) `write_guard.py check` warns on every kid node after a round until `cli.py done` logs the final bytes — addendum on `hypothesis:l2-done-doubled-frontmatter`. (k) **The commit guard breaks kid test suites**: under `AGI_TIER=kid` + hooks env, 99 tests fail / 71 error (`tier kid may not commit`) because tests commit in temp repos; parents strip `AGI_*` to verify. Fix = scope the hooks to the project repo — `hypothesis:l2-commit-guard-scope`, round 10, **first**. (l) The outcomes kid wrote 5 nodes for one sweep (an empty scaffold, `experiment/season:l2w4.md`, two verdicts) — harmless, links resolve; deprecate-and-move is a g15 cleanup item. (j) **L2.07 first launch died**: `dispatch.py` called `spawn_gate.read_ladder_season` with no import (L2.06 stamps kid); suite green because nothing calls `main()`. Director added the import by hand (thought on the build node) and minted `hypothesis:l2-bin-help-smoke` under g15. Re-launched. (g) `.agi/bin/analyze-chat-structure.py` exists (L1.11c stray, referenced by `experiment:a01-c6a5fb12-52f818`); S1 says no `.agi/bin/`. `driver.sh` **still prefers** `$PROJECT_ROOT/bin/{snapshot-build-site,inject,render-context}.py` (lines 222, 240, 241) — the stray has a different name so nothing is shadowed today, but the directory existing is the hazard S1 names. Clean-up is a g15 item: retarget the experiment's payload and remove the directory.
-
+## §4 Traps to carry (L3)
 0b. **`write.py` options go AFTER the positional script arg** (`write.py <id> "note …" --actor X`); `--actor` between the node id and the script makes argparse reject the script as unrecognized — three notes silently failed this way in L3.12 (Belam II). Also: never `| tail -1` a write.py call to check success — redirect and test the exit code, or the error text lands in the director's context.
 0c. **`rotate.py meter` reads the NEWEST `.jsonl` in the project transcript dir**, so a subagent's or another session's transcript gives a false reading (0.2856 vs the prime's real 0.1685 on 2026-09-07). Until `hypothesis:l3-meter-own-transcript` lands, run `rotate.py meter --session-log ~/.claude/projects/-home-ubuntu-work-agi/<own-session-id>.jsonl` (Belam II = `567c990a-87af-41ca-a505-4e4ee997a263`).
 0f. **The Claude subscription session limit kills a CC-harness agent mid-turn and the adapter cannot tell**: the result line is `subtype: success` with the text `You've hit your session limit · resets 5:20am (America/New_York)`; the adapter retried five times (turns=1 each) and the director's lease stayed held. Cycle 2's director died this way at 07:02 UTC. Check `grep -c 'session limit' .agi/sessions/iter-*/*/output.log` before trusting a RESULT line; fold detection into `l3-cc-adapter-zombie-lease`.
@@ -391,29 +94,25 @@ new parentless `idea`.
 2. **`write.py create --payload` stamps `link_ref`, not `payload_ref`** — set `payload_ref` by hand after.
 3. **Payload writes are whole-file.** Engine surgery is ordinary tools plus a `thought` afterwards.
 4. **Attribution is load-bearing in the constitution.** Jeremiah 31:33 and Ephesians 6 are not Jesus; the brief labels them. Keep the labels.
-5. **This branch is a worktree branch, not master.** Merge before dispatching, or every parent commits off master.
-6. **Worktree sessions cannot run git inside loops, heredocs or with computed arguments** — the harness refuses. Batch `write.py` calls in a script file; run moves and removals as plain single commands.
 
 ## §5 Known-good verification sequence
 
 ```bash
-bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK   # 1109 active
-python3 extensions/agi/bin/commands.py run tests                        # 1493
-python3 extensions/agi/bin/snapshot-goals.py --render --check
-python3 extensions/agi/bin/links.py links                               # 0 broken
-python3 extensions/agi/bin/links.py schema
-python3 extensions/agi/bin/grid.py commit --all
-git push origin <branch>
+git branch --show-current                                                # season/s2
+bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK     # node_count ≥ 1482, never lower
+python3 extensions/agi/bin/commands.py run tests                         # 1842 passed / 1 skipped (run it ALONE)
+python3 extensions/agi/bin/snapshot-goals.py --render --check            # 128 goals byte-identical
+python3 extensions/agi/bin/links.py links                                # 0 broken
+python3 extensions/agi/bin/write_guard.py check                          # silent
+python3 extensions/agi/bin/spawn_budget.py status                        # 0/25 before a new round
+python3 extensions/agi/bin/grid.py commit --all                          # 1 known error until l3-node-without-mint-id lands
+git push origin season/s2
 ```
 
-## §6 Owner decisions, 2026-09-06 — settled, do not re-ask
+## §6 Owner decisions — settled, do not re-ask
 
-1. **Merged.** The doc-pass branch went to master with owner permission; the director merged it under that grant only.
-2. **Church Slavonic** — unpointed text stands for now; pointed text or an Ostromir passage later, by hand.
-3. **`goal:s35` still waits.**
-4. **A parent's `adjust` rewords only.** Splitting a subgoal is a director's call through the lens.
-5. **Cost lookup** is the first hypothesis of wave 2, not an assumption; pi usage logs are the fallback.
-6. **Camber Cloud waits** for `g16` data — but may be tried sooner on **low-level kids fine-tuned to the read/write paths**, once every path is behind an action word. The gate is **saturation**: do not spend GPU hours until the task set saturates the untuned model.
+0. **L2-era rules still in force (items 1–6 of the 2026-09-06 list, compressed):** Church Slavonic stays unpointed until the owner points it; a parent's `adjust` rewords only — splitting a subgoal is a director's call through the lens; Camber Cloud waits for `g16` data and for the task set to saturate the untuned model; cost lookup was a hypothesis, not an assumption (landed L2.06).
+
 7. **Branching, decided** — see the brief §2 "Branches mirror the ladder": one branch per parent loop, one long-lived branch per director, master owned by the prime director; kids never branch. **Grid node refs are branch-blind** (one linear ref per mint id, parent = current tip), so `grid.py commit --all` runs **only on master, after a merge**; session refs may be written from anywhere. Wave 2 adds a guard to `grid.py` that refuses `commit --all` off master.
 
 8. **Merge, not rebase**, when a director takes a parent branch (owner, 2026-09-06). Rebase rewrites hashes the grid may cite.
@@ -434,11 +133,6 @@ git push origin <branch>
 
 17. **BANKED 2026-09-07 05:00 UTC (from the Alive advisor): the three season-2 visions carry `proposes_goals: []`.** Any write through write.py flips `edited_by` off `owner`, so no advisor touched it. Recommendation: the values are structural, not prose — `vision:alive → [goal:g15]`, `vision:self-perpetuating → [goal:g1]`?, `vision:all-is-one → [goal:g16]`? — the owner names the mapping (or confirms this one) and either runs the three `write.py vision:<id> "set proposes_goals [goal:gNN]" --actor owner` lines or authorizes the prime to run them under `--actor owner` as the owner's own ladder assignment. Until then the assignment lives in the room post and the `--goal` flag.
 
-18. **OWNER DESIGN LAYER 2026-09-07 (04:40–07:36 UTC), settled — verbatim in `.agi/context/l3-command-ladder-brief.md`, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison" (quotes 1–3 relayed by Belam II, quote 4 = correction to Belam III at 07:36 UTC).** Summary: all seats perpetual with rotation loops at 0.35 (Belam, 3 advisors, one director-kid per perpetual goal, plus an owner-liaison director-kid rotated by the quorum, the owner's primary contact); model table = prime Fable 5.1 max ultracode · quorum Opus 5 max · director-kids Opus 5 high · liaison Sonnet 5 high · pi parents/kids as now; a seat registry (session kind remote-control/tty/fire-and-forget, personality ref, handoff, pin, rotated-by) under **`goal:g17` The seat system** → build + config nodes; g16 renders live stats incl. seat status; perpetual seats need TTY/remote-control transport (not `claude -p`) and `send.py` needs a tmux nudge; the quorum reviews rounds (3-0/2-1 stands, 1-1-1 or a morals flag → audience), the prime is inbox-only and exits the room after an audience; **comms: collapsed ladder = director-kids get no free comms to Belam; expanded hierarchy = free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum — the quorum IS Belam to anyone else.** Sequencing: seat registry + transport first, then the liaison seat, then loops, then review-moves-down. Wave-4 label `l3w4-perpetual-seats`. Addendum (owner via Belam II): `.agi/context/*.md` design docs have no node/guard — brief `l3w4-context-doc-nodes` under g13.1. **Done so far:** owner text recorded; `goal:g17` minted; briefs drafting pending the subscription reset.
+18. **OWNER DESIGN LAYER 2026-09-07 (04:40–07:36 UTC), settled — verbatim in `.agi/context/l3-command-ladder-brief.md`, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison" (quotes 1–3 relayed by Belam II, quote 4 = correction to Belam III at 07:36 UTC).** Summary: all seats perpetual with rotation loops at 0.35 (Belam, 3 advisors, one director-kid per perpetual goal, plus an owner-liaison director-kid rotated by the quorum, the owner's primary contact); model table = prime Fable 5.1 max ultracode · quorum Opus 5 max · director-kids Opus 5 high · liaison Sonnet 5 high · pi parents/kids as now; a seat registry (session kind remote-control/tty/fire-and-forget, personality ref, handoff, pin, rotated-by) under **`goal:g17` The seat system** → build + config nodes; g16 renders live stats incl. seat status; perpetual seats need TTY/remote-control transport (not `claude -p`) and `send.py` needs a tmux nudge; the quorum reviews rounds (3-0/2-1 stands, 1-1-1 or a morals flag → audience), the prime is inbox-only and exits the room after an audience; **comms: collapsed ladder = director-kids get no free comms to Belam; expanded hierarchy = free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum — the quorum IS Belam to anyone else.** Sequencing: seat registry + transport first, then the liaison seat, then loops, then review-moves-down. Wave-4 label `l3w4-perpetual-seats`. Addendum (owner via Belam II): `.agi/context/*.md` design docs have no node/guard — brief `l3w4-context-doc-nodes` under g13.1. **Owner quote (5), 12:20 UTC: the drafting workflow uses Sonnet agents at the top effort; drafting is agent-agnostic (dispatch.py flips model/harness) yet the owner still sees the interactive update; a `drafter` seat (Sonnet or GLM flash) summons the drafting workflow and everyone needing a brief goes through it** — verbatim in the brief doc; briefed as `l3w4-drafter-seat` (8th wave-4 brief, drafted by the same run). **Owner quote (6), 12:25 UTC: switching the workflow agents to opus/fable must be a config update or a single-run override; later fully model- and inference-provider-agnostic** — done now: the script takes Workflow args `{model, effort}` (single-run override) and `.agi/config.json` `workflows.drafting` holds the default (sonnet/max/claude-code); provider-agnosticism is a requirement noted on `l3w4-drafter-seat` at mint. **Done so far:** owner text recorded; `goal:g17` minted; drafting run relaunched 12:22 UTC with Sonnet/max drafters (first run died on the limit, second was stopped for the model switch).
 
 14. **Owner answers 2026-09-06 (belam, at L3 open):** two pi parents per round, not three; the rotation gate is proved live right after L3.01 with a throwaway `belam-test` successor told to answer `continue` and stop; OpenRouter runs down to a ~$3 reserve and then the owner tops up — meanwhile the fallback is `--harness claude-code`, opus parents / sonnet kids at the LOWEST effort setting; wave 3's first slice is `goal:g15`.
-
-## §7 Proposed, owner to confirm — none blocking wave 1
-
-- **Council quorum and record** — brief §6 "Council": convened one tier up only, quorum = convener + affected directors, one-seam time box, co-authored idea node as the record.
-- **Director rotation** — brief §6 "Director rotation": `director_rotate_at: 0.35` on the ladder node; the parent above respawns a rotating director on the same branch and worktree; the prime self-rotates and daisy-chains; rotation writes the handoff only, and a successor reads before replacing. Wave 3 builds the trigger and the respawn; wave 1 declares the field.
