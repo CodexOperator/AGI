@@ -209,3 +209,227 @@ def test_sender_falls_back_to_env(monkeypatch):
 
 def test_sender_unknown_when_no_env_no_flag():
     assert send_mod._detect_sender(None) == "unknown"
+
+# ══════════════════════════════════════════════════════════════════════════
+# Rooms (hypothesis:l3w0-send-rooms)
+# dm + quorum conversations as files under comms/, transcript render,
+# standing rooms, prime inbox-only with the audience verb.
+# RED-FIRST: each rule below was written first and asserted to fail before the
+# implementation in bin/send.py made it pass.
+# ══════════════════════════════════════════════════════════════════════════
+
+
+@pytest.fixture
+def comms(tmp_path: Path) -> Path:
+    """A bare comms root (nothing else required — room/dm verbs don't resolve
+    the project root, they take the comms root explicitly)."""
+    return tmp_path / "comms"
+
+
+def _conf(proj: Path, cr: str):
+    import json as _j
+    cfg = _j.loads((proj / ".agi" / "config.json").read_text())
+    cfg.setdefault("locations", {})["comms_root"] = cr
+    (proj / ".agi" / "config.json").write_text(_j.dumps(cfg))
+
+
+# ── dm ────────────────────────────────────────────────────────────────────
+
+def test_dm_creates_sorted_file(comms: Path):
+    """send --to writes comms/dm/<a>--<b>.md with names sorted; a<b in name."""
+    send_mod.send_dm(comms, "director", "kid-a", "hello", "kid-a")
+    path = comms / "dm" / "director--kid-a.md"
+    assert path.is_file()
+    assert "hello" in path.read_text()
+
+
+def test_dm_names_are_sorted(comms: Path):
+    """File name sorts the two ids, independent of call order."""
+    send_mod.send_dm(comms, "zz", "aa", "hi", "aa")
+    path = comms / "dm" / "aa--zz.md"
+    assert path.is_file()
+    assert not (comms / "dm" / "zz--aa.md").exists()
+
+
+def test_dm_writes_block_with_metadata(comms: Path):
+    send_mod.send_dm(comms, "me", "you", "the body", "me")
+    content = (comms / "dm" / "me--you.md").read_text()
+    assert "ts: " in content
+    assert "from: me" in content
+    assert "the body" in content
+
+
+def test_dm_render_shape(comms: Path, capsys):
+    """Reading renders a transcript line: **sender** HH:MM — text."""
+    send_mod.send_dm(comms, "parent", "director", "meet at noon", "parent")
+    lines = send_mod.read_dm(comms, "director", "parent", None, None)
+    assert len(lines) == 1
+    line = lines[0]
+    assert line.startswith("**parent** ")
+    assert " — meet at noon" in line
+
+
+def test_dm_read_marks_read_once(comms: Path):
+    send_mod.send_dm(comms, "a", "b", "one", "a")
+    send_mod.send_dm(comms, "a", "b", "two", "a")
+    first = send_mod.read_dm(comms, "b", "a", None, None)
+    assert len(first) == 2
+    assert "one" in first[0] and "two" in first[1]
+    # second read shows nothing new
+    assert send_mod.read_dm(comms, "b", "a", None, None) == []
+
+
+def test_dm_peek_does_not_mark_read(comms: Path):
+    send_mod.send_dm(comms, "a", "b", "hi", "a")
+    peek = send_mod.peek_dm(comms, "b", "a", None)
+    assert len(peek) == 1
+    # still shows after read is not called; peek twice shows it twice
+    peek2 = send_mod.peek_dm(comms, "b", "a", None)
+    assert len(peek2) == 1
+    # read still returns it
+    got = send_mod.read_dm(comms, "b", "a", None, None)
+    assert len(got) == 1
+    # and now it is marked
+    assert send_mod.peek_dm(comms, "b", "a", None) == []
+
+
+def test_dm_since_filter(comms: Path):
+    send_mod.send_dm(comms, "a", "b", "older", "a")
+    blocks = send_mod._conv_blocks(comms / "dm" / "a--b.md")
+    ts0 = blocks[0]["ts"]
+    send_mod.send_dm(comms, "a", "b", "newer", "a")
+    # since = first ts -> both blocks are >= it
+    assert len(send_mod.read_dm(comms, "b", "a", ts0, None)) == 2
+    # a future anchor -> nothing
+    assert send_mod.read_dm(
+        comms, "b", "a", "9999-01-01T00:00:00+00:00", None) == []
+
+
+# ── room ──────────────────────────────────────────────────────────────────
+
+def test_room_creates_file_and_appends(comms: Path):
+    send_mod.send_room(comms, "tier3-quorum", "first", "parent-a")
+    send_mod.send_room(comms, "tier3-quorum", "second", "parent-b")
+    content = (comms / "room" / "tier3-quorum.md").read_text()
+    assert "first" in content
+    assert "second" in content
+    assert "from: parent-a" in content
+    assert "from: parent-b" in content
+
+
+def test_room_render_transcript(comms: Path):
+    send_mod.send_room(comms, "tier1-directors", "anyone free?", "d1")
+    send_mod.send_room(comms, "tier1-directors", "yes", "d2")
+    lines = send_mod.read_room(comms, "tier1-directors", "d3", None, None)
+    assert len(lines) == 2
+    assert lines[0].startswith("**d1** ")
+    assert " — anyone free?" in lines[0]
+    assert lines[1].startswith("**d2** ")
+    assert " — yes" in lines[1]
+
+
+def test_room_read_positions_are_per_participant(comms: Path):
+    send_mod.send_room(comms, "tier3-quorum", "one", "p1")
+    send_mod.send_room(comms, "tier3-quorum", "two", "p2")
+    # p1 reads both
+    assert len(send_mod.read_room(comms, "tier3-quorum", "p1", None, None)) == 2
+    # a third arrives; p3 (fresh) and p1 differ
+    send_mod.send_room(comms, "tier3-quorum", "three", "p3")
+    assert len(send_mod.read_room(comms, "tier3-quorum", "p1", None, None)) == 1
+    assert len(send_mod.read_room(comms, "tier3-quorum", "p2", None, None)) == 3
+
+
+def test_room_cannot_address_prime(comms: Path, capsys):
+    """A room may never address the prime (inbox-only)."""
+    with pytest.raises(SystemExit):
+        send_mod.send_room(comms, "prime", "how are you", "advisor")
+    assert not (comms / "room" / "prime.md").exists()
+    with pytest.raises(SystemExit):
+        send_mod.send_room(comms, "prime-fans", "hi", "advisor")
+
+
+def test_standing_rooms_constant():
+    assert send_mod.STANDING_ROOMS == (
+        "tier3-quorum", "tier2-directors", "tier2-parents",
+        "tier1-directors", "tier1-parents", "tier0-parents")
+
+
+# ── rooms listing ─────────────────────────────────────────────────────────
+
+def test_rooms_lists_rooms_with_unread_counts(comms: Path):
+    send_mod.send_room(comms, "tier1-directors", "hi", "d1")
+    send_mod.send_room(comms, "tier1-directors", "hello", "d2")
+    send_mod.send_dm(comms, "d1", "d2", "psst", "d1")
+    send_mod.read_room(comms, "tier1-directors", "d1", None, None)  # d1 reads all
+    rows = send_mod.rooms(comms, "d1")
+    kinds = {k for k, _, _ in rows}
+    by_name = {n: u for _, n, u in rows}
+    assert "room" in kinds
+    assert "dm" in kinds
+    assert by_name.get("tier1-directors") == 0  # d1 read both
+    assert by_name.get("d1--d2") == 1  # d1's own dm, never read
+
+
+# ── audience (prime is inbox-only) ────────────────────────────────────────
+
+def test_audience_writes_to_prime_inbox(project: Path, monkeypatch):
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-x")
+    croot = project / "comms"
+    send_mod.audience_prime(croot, project, "need a ruling on g7", None, False)
+    inbox = project / "sessions" / "inbox" / "prime.md"
+    assert inbox.is_file()
+    content = inbox.read_text()
+    assert "to: prime" in content
+    assert "need a ruling on g7" in content
+
+
+def test_audience_one_per_rotation(project: Path, monkeypatch, capsys):
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-y")
+    monkeypatch.setenv("AGI_LOOP", "L3.02@1")
+    croot = project / "comms"
+    send_mod.audience_prime(croot, project, "first", None, False)
+    with pytest.raises(SystemExit):
+        send_mod.audience_prime(croot, project, "second", None, False)
+
+
+def test_audience_morals_bypasses_gate(project: Path, monkeypatch):
+    """--morals bypasses the one-per-rotation gate."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-z")
+    monkeypatch.setenv("AGI_LOOP", "L3.02@1")
+    croot = project / "comms"
+    send_mod.audience_prime(croot, project, "one", None, False)
+    send_mod.audience_prime(croot, project, "two-morals", None, True)  # passes
+
+
+def test_audience_rule_printed_back(project: Path, monkeypatch, capsys):
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-q")
+    croot = project / "comms"
+    send_mod.audience_prime(croot, project, "please", None, False)
+    captured = capsys.readouterr()
+    assert "inbox-only" in captured.out
+    assert "one audience per sender per rotation" in captured.out
+
+
+# ── comms root resolution ─────────────────────────────────────────────────
+
+def test_comms_root_defaults_under_sessions(project: Path, monkeypatch):
+    monkeypatch.setenv("AGI_AGENT_ID", "x")
+    croot = send_mod.comms_root(project)
+    assert str(croot) == str(project / "sessions" / "comms")
+
+
+def test_comms_root_honours_config(tmp_path: Path):
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage",
+         "locations": {"comms_root": "/dev/shm/agi"}}))
+    assert str(send_mod.comms_root(root)) == "/dev/shm/agi"
+
+
+def test_comms_root_flag_wins(tmp_path: Path):
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"locations": {"comms_root": "/dev/shm/agi"}}))
+    assert str(send_mod.comms_root(root, "/tmp/myc")) == "/tmp/myc"

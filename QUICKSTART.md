@@ -130,6 +130,13 @@ Everything else about running it — verdict taxonomy, zoom, the evidence gate,
 model tiering, tmux for long runs, the `iter-001` clobber caveat — is in
 `skills/agi/SKILL.md` and is deliberately not repeated here.
 
+**Agent comms (hypothesis:l3w0-send-rooms).** `send.py` inbox verbs are
+`send <to> <text>` / `read` / `peek`. Rooms: `send --room R TEXT`, `send
+--to X TEXT`, `read --room R`/`read --dm X`, `rooms` — transcripts render as
+`**sender** HH:MM — text` under `sessions/<iter>/comms/`. The prime is
+inbox-only; reach it with `audience prime --reason …` (one per sender per
+rotation unless `--morals`).
+
 ---
 
 ## 4. Glossary (only terms not defined in SKILL.md)
