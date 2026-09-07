@@ -355,3 +355,42 @@ def to_compact(b: Briefing) -> list[str]:
         + (f" · chains {b.chain_count}/{b.longest_len}h"
            if b.chain_engine_available else ""),
     ]
+
+
+def main(argv: list[str] | None = None) -> int:
+    """A real CLI so `--help` works (hypothesis:l3w0-test-skips).
+
+    Library-first: `inject.py` and `viewport.py` import and call `build` /
+    `to_markdown` / `to_compact`. Run as a script, this prints the briefing
+    for a project root, reusing `zoom`'s unified read path rather than
+    reimplementing a loader.
+    """
+    import argparse
+    if argv is None:
+        argv = sys.argv[1:]
+    ap = argparse.ArgumentParser(
+        prog="briefing.py",
+        description="The graph-level facts every agent is handed, computed once "
+                    "(goal:g9.7). Prints the briefing for a project root.")
+    ap.add_argument("root", nargs="?", default=".",
+                    help="project root (enclosing .agi/ wins); default cwd")
+    ap.add_argument("--compact", action="store_true",
+                    help="print the few compact lines instead of the full briefing")
+    args = ap.parse_args(argv)
+    import locations
+    root = Path(args.root)
+    root = locations.find_project_root(root) or root
+    try:
+        import zoom  # noqa: F401
+        g, _ = zoom._load_wired_graph(root)
+    except Exception as exc:  # noqa: BLE001
+        print(f"briefing: could not load the graph: {exc}", file=sys.stderr)
+        return 2
+    b = build(root, g)
+    lines = to_compact(b) if args.compact else to_markdown(b)
+    print("\n".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

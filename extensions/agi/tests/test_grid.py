@@ -268,16 +268,30 @@ def test_sanitize_output_is_a_valid_git_refname():
 
 
 def test_sanitize_real_agi_tree_corpus_round_trips_distinctly():
-    """Not just adversarial cases -- every id actually on disk today."""
-    agi_tree = Path(__file__).resolve().parents[4] / "agi-tree"
-    nodes_dir = agi_tree / "nodes"
-    if not nodes_dir.is_dir():
-        pytest.skip("agi-tree checkout not found beside the engine repo")
+    """Not just adversarial cases -- every id actually on disk today.
+
+    Post-`goal:g11` the corpus lives at the engine repo's own `.agi/nodes`
+    (plus `.agi/nodes/deprecated` for retired nodes), not a sibling
+    `agi-tree/` checkout.
+    """
+    here = Path(__file__).resolve()
+    engine_root = here.parents[3]  # .../extensions/agi/tests -> engine repo root
+    nodes_dirs = []
+    for rel in ((".agi", "nodes"),):
+        d = engine_root.joinpath(*rel)
+        if d.is_dir():
+            nodes_dirs.append(d)
+    dep = engine_root / ".agi" / "nodes" / "deprecated"
+    if dep.is_dir():
+        nodes_dirs.append(dep)
+    if not nodes_dirs:
+        pytest.skip(".agi/nodes not found beside the engine repo")
     ids = []
-    for p in sorted(nodes_dir.rglob("*.md")):
-        nid = grid.parse_node_id(p)
-        if nid:
-            ids.append(nid)
+    for nodes_dir in nodes_dirs:
+        for p in sorted(nodes_dir.rglob("*.md")):
+            nid = grid.parse_node_id(p)
+            if nid:
+                ids.append(nid)
     assert len(ids) > 500, "expected the full live corpus, not a subset"
     seen: dict[str, str] = {}
     collisions = []

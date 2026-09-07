@@ -22,12 +22,7 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 #: These are listed explicitly rather than skipped silently, so the list
 #: shrinks rather than grows when --help is added.
 NO_HELP = {
-    "brief.py": "no argparse; reads stdin or fails, no --help",
-    "briefing.py": "no argparse; same pattern as brief.py",
-    "completion.py": "no argparse; requires positional args, no --help",
     "node_writer.py": "library module, not a CLI tool; no --help",
-    "payload_boundary.py": "no argparse; crashes with positional requirement",
-    "write_guard.py": "uses custom argv parsing; '--help' unknown (exit 2)",
 }
 
 

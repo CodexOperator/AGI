@@ -973,7 +973,12 @@ def goal_attribution(nodes_dir: Path) -> dict:
         "deprecated_open_hypotheses": deprecated_open_hyp,
         "deprecated_excluded_nodes": deprecated_excluded,
         "unattributed_nodes": unattributed,
-        "goals_active": by_status.get("active", 0),
+        # 2026-09-06 owner decision (L3 brainstorm, HANDOFF §6 item 10): the
+        # active-goal COUNT and its cap are gone — long-term goals are
+        # `goal_kind: perpetual` and there is no max_goals_active cap for the
+        # count to trip. `goals_active` was emitted only for that warning;
+        # with the cap removed nothing read it, so per the re-brief it was
+        # dropped too. `goals_horizon` survives as a descriptive status count.
         "goals_horizon": by_status.get("horizon", 0),
         # goal:g5 — `goals_retired` counted `complete` too, which is the same
         # collapse `SCORING_GOAL_STATUSES` used to make. Reporting a finished
@@ -1100,35 +1105,14 @@ def emit(root: Path, out=None) -> dict:
         )
         print(f"METRIC_WARNING gameable_primary={primary}", file=out)
 
-    # goal:g5 / L5 — rotation the engine enforces. `max_goals_active` was a
-    # number in the config that nothing read, so "active" drifted into
-    # meaning "declared" and the field stopped carrying information. This
-    # does not refuse to run: the config value is a commitment about focus,
-    # and the honest response to breaking it is to say so every iteration,
-    # not to block work that is already in flight.
-    #
-    # **Reworded 2026-09-03, on the owner's reading of what `active` means.**
-    # It used to say a goal marked `active` "claims to be in flight". That is
-    # not how this project uses the marker: a long-term goal is *always*
-    # arguably active, and what `active` actually does is **select which goals
-    # chain-building aims at**. So the cap is a focus budget, not an
-    # in-flight census, and the warning now says which of those it is —
-    # otherwise the honest response to it is to mislabel real goals `horizon`
-    # to silence a number, which is the field losing information a second way.
-    max_active = (cfg.get("cc_dispatch") or {}).get("max_goals_active")
-    active = m.get("goals_active", 0)
-    if isinstance(max_active, int) and max_active > 0 and active > max_active:
-        print(
-            f"!! METRIC-WARNING goals_active={active} exceeds "
-            f"cc_dispatch.max_goals_active={max_active}. `active` selects "
-            "what chain-building aims at, so this cap is a FOCUS BUDGET: past "
-            "it, kids spread across more goals than a run can move, and no "
-            "single chain gets enough hops to close. Either raise the cap "
-            "deliberately or move goals you are not aiming at to `horizon` — "
-            "which parks a commitment without retiring it (goal:g5).",
-            file=sys.stderr,
-        )
-        print(f"METRIC_WARNING goal_rotation={active}/{max_active}", file=out)
+    # goal:g5 -> 2026-09-06 owner decision (L3 brainstorm, HANDOFF §6 item
+    # 10): the active-goal cap and its warning are DELETED, not re-designed.
+    # A long-term goal is *always* active, so "active" never meant in-flight;
+    # it only selected what chain-building aims at, and budgeting that with a
+    # number just pressured runs to mislabel real goals `horizon` to silence
+    # it. Long-term goals become `goal_kind: perpetual` instead, and there is
+    # no active-goal cap at all (re-brief of hypothesis:l2-goals-active-exempt
+    # — the fix is to delete, not to exempt).
 
     # goal:g7.10's publish-stall alarm used to live here: a non-empty
     # `publish_blocked_reason` meant the last publish did not land, and this
