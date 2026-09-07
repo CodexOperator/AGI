@@ -196,9 +196,10 @@ def test_accumulated_reads_after_multiple_sends(project: Path, capsys):
 # ── sender detection ───────────────────────────────────────────────────────
 
 
-def test_sender_from_flag(project: Path):
-    send_mod.send(project, "dest", "hi", "--from")
-    # No --from flag in send call above — let's test via the internal function:
+def test_sender_from_flag(monkeypatch):
+    # with no AGI_AGENT_ID and no tmux, --from wins
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "agi-rc")
     assert send_mod._detect_sender("custom-role") == "custom-role"
 
 
@@ -207,8 +208,26 @@ def test_sender_falls_back_to_env(monkeypatch):
     assert send_mod._detect_sender(None) == "env-agent-007"
 
 
-def test_sender_unknown_when_no_env_no_flag():
+def test_sender_unknown_when_no_env_no_flag(monkeypatch):
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "")
+    monkeypatch.delenv("TMUX", raising=False)
     assert send_mod._detect_sender(None) == "unknown"
+
+
+def test_sender_env_beats_flag(monkeypatch):
+    """AGI_AGENT_ID outranks an explicit --from (l3-send-comms-root)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "env-win")
+    assert send_mod._detect_sender("flag-loser") == "env-win"
+
+
+def test_sender_tmux_window_when_no_env_no_flag(monkeypatch):
+    """With no env and no --from, the tmux window name is the sender."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "agi-window-9")
+    assert send_mod._detect_sender(None) == "agi-window-9"
+    # an explicit --from still outranks the tmux window
+    assert send_mod._detect_sender("explicit-flag") == "explicit-flag"
 
 # ══════════════════════════════════════════════════════════════════════════
 # Rooms (hypothesis:l3w0-send-rooms)
@@ -410,12 +429,127 @@ def test_audience_rule_printed_back(project: Path, monkeypatch, capsys):
     assert "one audience per sender per rotation" in captured.out
 
 
+# ── red-first: --from && --comms-root are honored BEFORE the subcommand ──
+
+
+def test_cli_from_flag_before_subcommand_honored(tmp_path, monkeypatch, capsys):
+    """A --from placed before the subcommand is NOT silently dropped
+    (hypothesis:l3-send-comms-root defect 3)."""
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    croot = tmp_path / "CR"
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "")
+    rc = send_mod.main(["--from", "bidder1", "send", "--room", "t1",
+                        "--comms-root", str(croot), "hello"])
+    assert rc == 0
+    assert "from: bidder1" in (croot / "room" / "t1.md").read_text()
+
+
+def test_cli_comms_root_before_subcommand_honored(tmp_path, monkeypatch):
+    """A --comms-root placed before the subcommand is NOT silently dropped;
+    previously it wrote to the live default root (defect 1/3)."""
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    croot = tmp_path / "CR2"
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "")
+    rc = send_mod.main(["--comms-root", str(croot), "send", "--room", "t1",
+                        "message"])
+    assert rc == 0
+    assert (croot / "room" / "t1.md").is_file()
+    assert not (root / ".agi" / "comms").exists()  # nothing wrote to the live root
+
+
+# ── red-first: read --all does not advance the cursor (defect 4) ──────────
+
+
+def test_read_room_all_returns_everything_without_advancing(comms: Path):
+    send_mod.send_room(comms, "t1", "one", "p1")
+    send_mod.send_room(comms, "t1", "two", "p1")
+    send_mod.send_room(comms, "t1", "three", "p2")
+    # --all returns the whole transcript and does NOT advance the cursor
+    assert len(send_mod.read_room(comms, "t1", "reader", None, None,
+                                  all_=True)) == 3
+    # cursor still 0 -> a normal read re-returns everything (and advances)
+    assert len(send_mod.read_room(comms, "t1", "reader", None, None)) == 3
+    # and now it is marked read
+    assert send_mod.read_room(comms, "t1", "reader", None, None) == []
+
+
+def test_read_dm_all_does_not_advance(comms: Path):
+    send_mod.send_dm(comms, "a", "b", "hi", "a")
+    send_mod.read_dm(comms, "b", "a", None, None)  # cursor -> end
+    # --all still returns the message
+    assert len(send_mod.read_dm(comms, "b", "a", None, None, all_=True)) == 1
+    # and the cursor stays put
+    assert send_mod.read_dm(comms, "b", "a", None, None) == []
+
+
+def test_peek_all_shows_transcript(comms: Path):
+    send_mod.send_room(comms, "t1", "unread", "p1")
+    assert len(send_mod.peek_room(comms, "t1", "reader", None, all_=True)) == 1
+    # peek never commits; a later read still sees the message
+    assert len(send_mod.read_room(comms, "t1", "reader", None, None)) == 1
+
+
+def test_cli_read_all_flag(tmp_path, monkeypatch):
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    croot = tmp_path / "CR3"
+    send_mod.send_room(croot, "t1", "hello", "p1")
+    send_mod.send_room(croot, "t1", "world", "p2")
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "")
+    rc = send_mod.main(["read", "--room", "t1", "--me", "reader",
+                        "--comms-root", str(croot), "--all"])
+    assert rc == 0
+    assert len(send_mod._conv_blocks(croot / "room" / "t1.md")) == 2
+    # cursor untouched -> a normal read still returns both
+    assert len(send_mod.read_room(croot, "t1", "reader", None, None)) == 2
+
+
 # ── comms root resolution ─────────────────────────────────────────────────
 
-def test_comms_root_defaults_under_sessions(project: Path, monkeypatch):
-    monkeypatch.setenv("AGI_AGENT_ID", "x")
-    croot = send_mod.comms_root(project)
-    assert str(croot) == str(project / "sessions" / "comms")
+def test_comms_root_defaults_to_season_root(tmp_path: Path):
+    """Default root is <graph_root>/comms/season-<N>, never the newest
+    iteration (hypothesis:l3-send-comms-root). Season from the ladder."""
+    root = tmp_path / "proj"
+    (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 7\n---\n")
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    assert str(send_mod.comms_root(root)) == str(
+        root / ".agi" / "comms" / "season-7")
+
+
+def test_comms_root_default_ignores_newest_iteration(tmp_path: Path):
+    """A per-iteration dir must NOT win: the room must not reset each loop."""
+    root = tmp_path / "proj"
+    (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\n---\n")
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    # an iteration dir exists but must not be the comms root
+    (root / "sessions" / "iter-1088" / "comms").mkdir(parents=True)
+    assert str(send_mod.comms_root(root)) == str(
+        root / ".agi" / "comms" / "season-2")
 
 
 def test_comms_root_honours_config(tmp_path: Path):

@@ -24,12 +24,14 @@ Rooms (hypothesis:l3w0-send-rooms) — conversations as files under
 The room verbs keep the same append-only block shape as the inbox, so reading
 a room prints **sender** HH:MM — text, like a chat channel to a model. A room
 may never address the prime (the prime is inbox-only); the `audience` verb is
-the gated path in. The comms root defaults to `sessions/<iter>/comms` and
-honours `locations.comms_root` in the project config so a project may point it
-at tmpfs.
+the gated path in. The comms root defaults to `<graph_root>/comms/season-<N>/`
+(season read from the ladder node) and honours `locations.comms_root` in the
+project config so a project may point it at tmpfs. `read --all` (and
+`peek --all`) render the whole transcript without advancing the cursor.
 
 Options:
-    --from <sender>    override sender (default: AGI_AGENT_ID env or "unknown")
+    --from <sender>    override sender (default: AGI_AGENT_ID, then --from,
+                       then the tmux window name, then "unknown")
     --comms-root <dir> override the comms root (else config, else default)
 
 Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
@@ -39,12 +41,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import spawn_gate  # noqa: E402
 
 
 #: Subdirectory under sessions/ for per-recipient inbox files.
@@ -57,8 +61,11 @@ MSG_SEP = "---\n"
 #: has been "read"; everything after is "unread".
 READ_MARKER = "# read up to here\n"
 
-#: Comms root defaults to `sessions/<iter>/comms`; config key override.
+#: Comms root defaults to `<graph_root>/comms/season-<N>/`; config key override.
 COMMS_SUBDIR = "comms"
+SEASON_DIR_PREFIX = "season-"
+#: Directory of graph nodes inside the graph root (holds .geometry/ladder.md).
+NODES_DIR = "nodes"
 
 #: Standing rooms — one free-horizontal-comms channel per ladder level. A room
 #: may never address the prime.
@@ -101,13 +108,45 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _tmux_window_name() -> str | None:
+    """The current tmux window name, or None when not in tmux / unobtainable.
+
+    Injectable via $AGI_TMUX_WINDOW_NAME for tests. Only shells out to tmux
+    when $TMUX is set (i.e. we are already inside a tmux session), so the
+    common case costs nothing.
+    """
+    override = os.environ.get("AGI_TMUX_WINDOW_NAME", "").strip()
+    if override:
+        return override
+    if not os.environ.get("TMUX"):
+        return None
+    try:
+        r = subprocess.run(
+            ["tmux", "display-message", "-p", "#{window_name}"],
+            capture_output=True, text=True, timeout=3,
+        )
+        name = r.stdout.strip()
+        return name or None
+    except Exception:
+        return None
+
+
 def _detect_sender(from_flag: str | None) -> str:
-    """Sender from --from flag, AGI_AGENT_ID env, or fallback."""
-    if from_flag:
-        return from_flag
-    env = os.environ.get("AGI_AGENT_ID", "")
+    """Sender: AGI_AGENT_ID env, then --from flag, then the tmux window name,
+    then "unknown".
+
+    The agent's own id (AGI_AGENT_ID, exported by dispatch) signs a message
+    even when the caller forgot a flag; an explicit --from beats the tmux
+    window / unknown (hypothesis:l3-send-comms-root).
+    """
+    env = os.environ.get("AGI_AGENT_ID", "").strip()
     if env:
         return env
+    if from_flag:
+        return from_flag
+    win = _tmux_window_name()
+    if win:
+        return win
     return "unknown"
 
 
@@ -115,19 +154,22 @@ def _detect_sender(from_flag: str | None) -> str:
 
 
 def _default_comms_root(root: Path) -> Path:
-    """`sessions/<iter>/comms` — the newest iteration on disk, else a bare
-    `sessions/comms`. Iterations are the L2/loop-scoped dirs locations knows."""
+    """`<graph_root>/comms/season-<N>/` — a declared, season-level root whose
+    path does not change when a new iteration dir is minted.
+
+    Season from the ladder node's `current_season`, failing open to 1 (a
+    missing ladder must never scatter comms). Never the newest iteration dir: a
+    per-iteration root would RESET the standing rooms on every loop.
+    """
+    graph = locations.find_project_root(root) or root
+    season = 1
     try:
-        iters = locations.list_iterations(root)
-        if iters:
-            iters_sorted = sorted(iters, key=lambda i: (
-                (i if isinstance(i, int) else 0),
-                (0 if isinstance(i, int) else i)))
-            newest = iters_sorted[-1]
-            return locations.iteration_dir(root, newest) / COMMS_SUBDIR
+        s = spawn_gate.read_ladder_season(graph / NODES_DIR)
+        if s is not None:
+            season = s
     except Exception:
         pass
-    return root / "sessions" / COMMS_SUBDIR
+    return graph / COMMS_SUBDIR / f"{SEASON_DIR_PREFIX}{season}"
 
 
 def comms_root(root: Path, override: str | None = None) -> Path:
@@ -236,16 +278,22 @@ def _save_state(path: Path, state: dict) -> None:
 
 
 def _past(blocks: list[dict], since: str | None, read_count: int,
-          participant: str, path: Path, commit: bool) -> list[dict]:
+          participant: str, path: Path, commit: bool,
+          all_: bool = False) -> list[dict]:
     """Blocks to show.
 
-    With an explicit `since` ts: every block at/after it. Otherwise: the
-    blocks after the participant's stored read position (a message *count*, so
-    it is exact even when two messages share a microsecond). If `commit`, the
-    read position advances to the end of what was shown.
+    With `all_`: the whole transcript, and the cursor is never advanced even
+    when `commit` is true (read --all). With an explicit `since` ts: every
+    block at/after it. Otherwise: the blocks after the participant's stored
+    read position (a message *count*, so it is exact even when two messages
+    share a microsecond). If `commit`, the read position advances to the end
+    of what was shown.
     """
     shown: list[dict]
-    if since is not None:
+    if all_:
+        shown = list(blocks)
+        commit = False
+    elif since is not None:
         shown = [b for b in blocks if _after_or_eq(b["ts"], since)]
     else:
         shown = blocks[read_count:]
@@ -399,41 +447,45 @@ def _conv_blocks(path: Path) -> list[dict]:
 
 
 def read_dm(croot: Path, me: str, other: str, since: str | None,
-            sender: str | None) -> list[str]:
+            sender: str | None, all_: bool = False) -> list[str]:
     """Render a dm transcript after `since` (or the reader's read position),
-    and mark the latest shown message read."""
+    and mark the latest shown message read. `all_` shows the whole transcript
+    without advancing the cursor."""
     path = _dm_path(croot, me, other)
     blocks = _conv_blocks(path)
     state = _load_state(path)
-    shown = _past(blocks, since, state.get(me, 0), me, path, commit=True)
+    shown = _past(blocks, since, state.get(me, 0), me, path, commit=True,
+                  all_=all_)
     return render_transcript(shown)
 
 
-def peek_dm(croot: Path, me: str, other: str, since: str | None) -> list[str]:
+def peek_dm(croot: Path, me: str, other: str, since: str | None,
+            all_: bool = False) -> list[str]:
     path = _dm_path(croot, me, other)
     blocks = _conv_blocks(path)
     state = _load_state(path)
-    shown = _past(blocks, since, state.get(me, 0), me, path, commit=False)
+    shown = _past(blocks, since, state.get(me, 0), me, path, commit=False,
+                  all_=all_)
     return render_transcript(shown)
 
 
 def read_room(croot: Path, room: str, participant: str, since: str | None,
-              sender: str | None) -> list[str]:
+              sender: str | None, all_: bool = False) -> list[str]:
     path = _room_path(croot, room)
     blocks = _conv_blocks(path)
     state = _load_state(path)
     shown = _past(blocks, since, state.get(participant, 0), participant, path,
-                  commit=True)
+                  commit=True, all_=all_)
     return render_transcript(shown)
 
 
-def peek_room(croot: Path, room: str, participant: str,
-              since: str | None) -> list[str]:
+def peek_room(croot: Path, room: str, participant: str, since: str | None,
+              all_: bool = False) -> list[str]:
     path = _room_path(croot, room)
     blocks = _conv_blocks(path)
     state = _load_state(path)
     shown = _past(blocks, since, state.get(participant, 0), participant, path,
-                  commit=False)
+                  commit=False, all_=all_)
     return render_transcript(shown)
 
 
@@ -513,10 +565,15 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="one-verb agent comms")
     # shared options on every subparser (and on the main parser) so the flags
     # work whether they precede or follow the subcommand
+    # The parent parser's flags use default=argparse.SUPPRESS so that a flag
+    # placed BEFORE the subcommand (parsed by the main parser) is not clobbered
+    # by the subparser's own (absent) default. With SUPPRESS, an absent flag
+    # leaves the namespace untouched and the main-parser value survives.
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--from", dest="from_id", default=None,
+    common.add_argument("--from", dest="from_id", default=argparse.SUPPRESS,
                         help="override sender id (default: AGI_AGENT_ID or unknown)")
-    common.add_argument("--comms-root", dest="comms_root", default=None,
+    common.add_argument("--comms-root", dest="comms_root",
+                        default=argparse.SUPPRESS,
                         help="override the comms root for room/dm verbs")
     ap.add_argument("--from", dest="from_id", default=None,
                     help="override sender id (default: AGI_AGENT_ID or unknown)")
@@ -544,6 +601,8 @@ def main(argv: list[str] | None = None) -> int:
     p_read.add_argument("--dm", dest="dm", default=None,
                         help="dm partner to read")
     p_read.add_argument("--since", default=None, help="only after this ts (ISO)")
+    p_read.add_argument("--all", dest="all_", action="store_true",
+                        help="show the whole transcript without advancing the cursor")
     p_read.add_argument("--me", default=None,
                         help="participant id for read positions (default: sender)")
 
@@ -553,6 +612,8 @@ def main(argv: list[str] | None = None) -> int:
     p_peek.add_argument("--room", dest="room", default=None, help="room to peek")
     p_peek.add_argument("--dm", dest="dm", default=None, help="dm to peek")
     p_peek.add_argument("--since", default=None, help="only after this ts (ISO)")
+    p_peek.add_argument("--all", dest="all_", action="store_true",
+                        help="show the whole transcript without advancing the cursor")
     p_peek.add_argument("--me", default=None,
                         help="participant id (default: sender)")
 
@@ -604,12 +665,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.verb == "read":
         me = args.me or _detect_sender(sender)
+        all_ = getattr(args, "all_", False)
         if args.room is not None:
-            for line in read_room(croot, args.room, me, args.since, sender):
+            for line in read_room(croot, args.room, me, args.since, sender,
+                                  all_):
                 print(line)
             return 0
         if args.dm is not None:
-            for line in read_dm(croot, me, args.dm, args.since, sender):
+            for line in read_dm(croot, me, args.dm, args.since, sender, all_):
                 print(line)
             return 0
         if not args.target:
@@ -621,12 +684,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.verb == "peek":
         me = args.me or _detect_sender(sender)
+        all_ = getattr(args, "all_", False)
         if args.room is not None:
-            for line in peek_room(croot, args.room, me, args.since):
+            for line in peek_room(croot, args.room, me, args.since, all_):
                 print(line)
             return 0
         if args.dm is not None:
-            for line in peek_dm(croot, me, args.dm, args.since):
+            for line in peek_dm(croot, me, args.dm, args.since, all_):
                 print(line)
             return 0
         if not args.target:

@@ -72,5 +72,8 @@
     "parent_model": "claude-opus-5",
     "director_model": "claude-fable-5-1"
   },
-  "goal_body_cap": 0
+  "goal_body_cap": 0,
+  "locations": {
+    "comms_root": "comms/season-2"
+  }
 }
