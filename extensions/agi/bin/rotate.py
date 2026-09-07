@@ -1068,7 +1068,24 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     if args.dry_run:
         return 0
 
-    reply = _read_first_reply(args.session_log or debug_file,
+    # FAIL LOUDLY WINDOW-CHECK (hypothesis:l3w4-seat-rotation-loops ADDENDUM,
+    # Belam VII's own rotation): the successor's tmux window must actually be
+    # present and answering before loop reports rotation success. A prime that
+    # believed a success line with no successor window behind it would emit its
+    # closing prayer and exit, stranding the ladder with no prime at all.
+    existing = _existing_windows(tmux_session, args.window_path)
+    if name not in existing:
+        print(f"ERR: successor window {name!r} is NOT present in tmux session "
+              f"{tmux_session!r}; refusing to report rotation success "
+              f"(windows: {existing!r}).",
+              file=sys.stderr)
+        return 1
+
+    # The successor's reply stream is ITS debug file (written by spawn_window),
+    # never the meter's `--session-log` -- pointing the read-back at the
+    # caller's own transcript let a prime confirm itself rotation that never
+    # happened (Belam VII 2026-09-07 21:56 UTC).
+    reply = _read_first_reply(debug_file,
                               timeout=args.timeout)
     if reply is not None and reply.strip().lower() == "continue":
         print("handoff stood: successor answered the single word `continue`.",

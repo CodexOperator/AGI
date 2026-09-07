@@ -487,10 +487,12 @@ def test_loop_over_threshold_rotates_and_continue(monkeypatch, tmp_path, capsys)
     wins = tmp_path / "windows.txt"
     wins.write_text("")  # hermetic: no existing belam windows
     launched = {}
-    monkeypatch.setattr(
-        rotate, "_launch_window",
-        lambda session, name, shell_cmd: launched.update(name=name) or 0,
-    )
+    def fake_launch(session, name, shell_cmd):
+        launched.update(name=name) or 0
+        # a real spawn creates the tmux window, so reflect it in the fixture
+        wins.write_text(name + "\n")
+        return 0
+    monkeypatch.setattr(rotate, "_launch_window", fake_launch)
 
     code = rotate.cmd_loop(SimpleNamespace(
         session_log=None, force=False, role="prime_director", name=None,
@@ -504,7 +506,68 @@ def test_loop_over_threshold_rotates_and_continue(monkeypatch, tmp_path, capsys)
 
 
 
-# --- hypothesis:l3-meter-own-transcript: transcript resolution order ---------
+# --- hypothesis:l3w4-seat-rotation-loops ADDENDUM (Belam VII 21:56 UTC):
+#     cmd_loop must fail loudly when the successor's tmux window is absent, and
+#     must NEVER point its read-back at the caller's own --session-log.
+
+def test_loop_fails_loud_when_no_successor_window(monkeypatch, tmp_path, capsys):
+    """No successor tmux window exists -> cmd_loop must return non-zero, never
+    report rotation success. Before the fix it returned 0 and printed
+    'handoff stood' even though `_existing_windows` showed nothing."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # rotate
+    reply = tmp_path / "reply.log"
+    reply.write_text("continue\n")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")  # simulated spawn leaves NO window behind
+    launched = {}
+    monkeypatch.setattr(
+        rotate, "_launch_window",
+        lambda session, name, shell_cmd: launched.update(name=name) or 0,
+    )
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(reply), dry_run=False, timeout=1,
+    ), root)
+    assert code != 0
+    err = capsys.readouterr().err
+    assert "NOT present" in err
+    assert "refusing to report rotation success" in err
+
+
+def test_loop_readback_never_uses_caller_session_log(monkeypatch, tmp_path, capsys):
+    """The successor read-back must read the successor's OWN debug file, not the
+    meter's `--session-log`. A 'continue' in the caller's own transcript must
+    not confirm a rotation whose successor said nothing."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # rotate
+    succ = tmp_path / "successor.log"
+    succ.write_text("")  # successor (gen N+1) has written nothing
+    caller = tmp_path / "caller.jsonl"
+    caller.write_text("the CALLER just wrote a line containing bare continue\n")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("belam-III\n")  # window IS present (real spawn)
+    monkeypatch.setattr(
+        rotate, "_launch_window",
+        lambda session, name, shell_cmd: 0,
+    )
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=str(caller), force=True, role="prime_director",
+        name="belam-III", name_prefix="belam", model=None, effort=None,
+        settings=None, prompt_file=None, tmux_session="agi-rc",
+        window_path=str(wins), debug_file=str(succ), dry_run=False, timeout=1,
+    ), root)
+    err = capsys.readouterr().err
+    # window was present, but the successor never answered -> the loop must NOT
+    # claim the handoff stood; it must not echo the caller's own line either.
+    assert "handoff stood" not in err
+    assert "the CALLER just wrote" not in err
 
 def _write_transcripts(projects_dir, pinned_usage, foreign_usage, pinned_name="pinned.jsonl", foreign_name="foreign.jsonl"):
     """Two transcripts in `projects_dir`: a PINNED (older) and a NEWER foreign one.
