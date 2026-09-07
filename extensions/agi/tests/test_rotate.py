@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -370,3 +371,101 @@ def test_loop_over_threshold_rotates_and_continue(monkeypatch, tmp_path, capsys)
     assert launched.get("name") == "belam-II"
     assert "handoff stood" in capsys.readouterr().err
 
+
+
+# --- hypothesis:l3-meter-own-transcript: transcript resolution order ---------
+
+def _write_transcripts(projects_dir, pinned_usage, foreign_usage, pinned_name="pinned.jsonl", foreign_name="foreign.jsonl"):
+    """Two transcripts in `projects_dir`: a PINNED (older) and a NEWER foreign one.
+    Returns (pinned_path, foreign_path)."""
+    projects_dir.mkdir(parents=True, exist_ok=True)
+    pinned = projects_dir / pinned_name
+    pinned.write_text(
+        f'{{"message": {{"role": "assistant", "usage": '
+        f'{{"input_tokens": {pinned_usage}, "cache_read_input_tokens": 0, '
+        f'"cache_creation_input_tokens": 0}}}}}}\n'
+    )
+    foreign = projects_dir / foreign_name
+    foreign.write_text(
+        f'{{"message": {{"role": "assistant", "usage": '
+        f'{{"input_tokens": {foreign_usage}, "cache_read_input_tokens": 0, '
+        f'"cache_creation_input_tokens": 0}}}}}}\n'
+    )
+    # make foreign strictly newer than pinned
+    import os
+    ot, nt = time.time() - 10, time.time()
+    os.utime(pinned, (ot, ot))
+    os.utime(foreign, (nt, nt))
+    return pinned, foreign
+
+
+def _fake_cc_projects(tmp_path, monkeypatch, pinned_usage=2000, foreign_usage=40000):
+    """A fake ~/.claude/projects/<default-slug> with an older pinned transcript
+    (light usage) and a newer foreign transcript (heavy usage)."""
+    proj = tmp_path / ".claude" / "projects" / rotate.CC_PROJECT_SLUG
+    pinned, foreign = _write_transcripts(proj, 2000, 40000)
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / ".claude" / "projects")
+    return proj, pinned, foreign
+
+
+def _write_pin(root, target, name="prime.meter"):
+    seg = root / ".agi" / "sessions"
+    seg.mkdir(parents=True, exist_ok=True)
+    pin = seg / name
+    pin.write_text(str(target) + "\n", encoding="utf-8")
+    return pin
+
+
+def test_meter_pin_file_wins_over_newer_foreign(monkeypatch, tmp_path, fake_ladder, capsys):
+    # A pin file naming our own transcript must beat the newer foreign .jsonl
+    # in the project dir (the hypothesis: without it, newest wins -> bug).
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    _write_pin(tmp_path, pinned)
+    code = rotate.main(["meter"])
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert "0.020" in out          # 2000/100000 = pinned, not foreign (0.400)
+    assert "pin" in out
+
+
+def test_meter_agi_session_log_env_uses_pinned(monkeypatch, tmp_path, fake_ladder, capsys):
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    monkeypatch.setenv("AGI_SESSION_LOG", str(pinned))
+    code = rotate.main(["meter"])
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert "0.020" in out
+    assert "AGI_SESSION_LOG" in out
+
+
+def test_meter_explicit_session_log_wins(monkeypatch, tmp_path, fake_ladder, capsys):
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    code = rotate.main(["meter", "--session-log", str(pinned)])
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert "0.020" in out
+    assert "explicit" in out
+
+
+def test_meter_fallback_warns_and_picks_newest(monkeypatch, tmp_path, fake_ladder, capsys):
+    # No log, no env, no pin -> newest wins but a WARN names the file it picked.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    code = rotate.main(["meter"])
+    captured = capsys.readouterr()
+    out, err = captured.out, captured.err
+    assert code == 0
+    assert "0.400" in out
+    assert "warn" in err and "foreign.jsonl" in err
+
+
+def test_loop_uses_same_resolver(monkeypatch, tmp_path, fake_ladder, capsys):
+    # cmd_loop meters via cmd_meter, which must see the pin too. We assert the
+    # resolver, not a live rotate (which would spawn), by checking that a
+    # pinned (light) usage stays below threshold while the foreign (heavy)
+    # would trip it.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    _write_pin(tmp_path, pinned)
+    # threshold is 0.25; pinned=0.02 (hold), foreign=0.40 (would rotate)
+    args = SimpleNamespace(session_log=None, check=True)
+    code = rotate.cmd_meter(args, tmp_path)
+    assert code == 0  # pinned keeps us below; loop would hold

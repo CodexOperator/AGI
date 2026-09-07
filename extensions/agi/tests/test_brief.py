@@ -181,6 +181,17 @@ def test_kid_brief_is_untouched_by_the_parent_artefact_change():
     assert "--node-id experiment:x" in kid
 
 
+def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
+    """hypothesis:l3-done-broken-frontmatter -- the kid template must say to
+    edit below the closing `---` only and set frontmatter fields with
+    `write.py set`, never rewrite the `---` block by hand (L3.13 taught the
+    loop the cost of a kid mangling it)."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "below the closing `---`" in kid
+    assert "never rewrite the frontmatter" in kid
+    assert "write.py" in kid and "set FIELD VALUE" in kid
+
+
 # ---------------------------------- l2w3-brief-heads: director + prime_director
 
 

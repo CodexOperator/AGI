@@ -198,6 +198,99 @@ def find_newest_cc_transcript(slug: str = CC_PROJECT_SLUG) -> Path | None:
     return candidates[-1] if candidates else None
 
 
+# The env var a spawner uses to tell the meter which transcript this role owns.
+# Set by the claude-code adapter once it captures the child's session_id
+# (hypothesis:l3-meter-own-transcript).
+AGI_SESSION_LOG_VAR = "AGI_SESSION_LOG"
+
+
+#: The meter pin extension, matching the brief's `<window-name>.meter`.
+METER_PIN_EXT = ".meter"
+
+
+def _derive_cc_slug(cwd: str) -> str:
+    """The Claude Code project slug for a cwd: the absolute path with every
+    `/` replaced by `-`. `claude -p` keys its transcript dir by the child's
+    cwd this way, so an advisor run from its own working dir lands under a
+    DIFFERENT slug than the prime -- which is why a hardcoded slug made every
+    role's meter read the prime's transcript (measured on 2026-09-07: the
+    advisor's `-home-ubuntu-work-agi--agi` vs the prime's
+    `-home-ubuntu-work-agi`)."""
+    return cwd.replace("/", "-")
+
+
+def find_pin_log(root: Path) -> Path | None:
+    """The newest `<root>/.agi/sessions/*.meter` pin, if any.
+
+    A pin's content is a single line: the absolute path to the transcript this
+    agent owns. Written by `rotate.py meter --pin` or by the claude adapter
+    once it captures the child's session_id `(hypothesis:l3-meter-own-
+    transcript)`. Returning the NEWEST lets several agents each pin their own
+    transcript while the meter that is actually running reads its own.
+    """
+    sessions = root / ".agi" / "sessions"
+    if not sessions.is_dir():
+        return None
+    pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
+                  key=lambda p: p.stat().st_mtime)
+    return pins[-1] if pins else None
+
+
+def _read_pin_target(pin: Path) -> Path | None:
+    """The transcript a pin names, or None when the pin is empty/absent."""
+    try:
+        target = pin.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if not target:
+        return None
+    lp = Path(target).expanduser().resolve()
+    return lp if lp.exists() else None
+
+
+def resolve_transcript(*, root: Path, session_log: str | None = None,
+                       env=None) -> tuple[Path | None, str]:
+    """The transcript the meter should read, resolved in strict order
+    (hypothesis:l3-meter-own-transcript):
+
+      1. `--session-log PATH` (explicit, must exist)
+      2. env `AGI_SESSION_LOG` (must exist)
+      3. a pin file `<root>/.agi/sessions/*.meter` naming our transcript
+      4. the transcript dir for OUR cwd slug (the child ran from this cwd)
+      5. newest transcript in the fallback slug dir `.
+
+    Returns `(log_path, source)` where `source` is a short tag naming which
+    rule won. `(None, source)` means the top rules were tried and the file was
+    absent (source ends `-missing`), or nothing at all was found (`no_log`).
+    The caller uses the source to decide whether to warn."""
+    env = os.environ if env is None else env
+    # 1 -- explicit beats everything; absent is an error, not a fallthrough.
+    if session_log is not None:
+        lp = Path(session_log).expanduser().resolve()
+        return (lp, "explicit") if lp.exists() else (None, "explicit-missing")
+    # 2 env
+    ev = env.get(AGI_SESSION_LOG_VAR)
+    if ev:
+        lp = Path(ev).expanduser().resolve()
+        if lp.exists():
+            return lp, "AGI_SESSION_LOG"
+        return None, "AGI_SESSION_LOG-missing"
+    # 3 pin file
+    pin = find_pin_log(root)
+    if pin is not None:
+        target = _read_pin_target(pin)
+        if target is not None:
+            return target, "pin_file"
+        return None, "pin_file-missing"
+    # 4 slug from this cwd
+    slug = _derive_cc_slug(os.getcwd())
+    for cand_slug in (slug, CC_PROJECT_SLUG):
+        cand = find_newest_cc_transcript(cand_slug)
+        if cand is not None:
+            return cand, "cc_transcript_slug"
+    return None, "no-transcript"
+
+
 def parse_usage_from_cc_transcript(path: Path) -> dict | None:
     """Extract usage from the newest assistant message in a CC transcript.
 
@@ -265,7 +358,11 @@ def usage_source_name(source: str) -> str:
     """Human-readable name for the usage data source."""
     return {
         "cc_transcript": "claude-code transcript",
+        "cc_transcript_slug": "claude-code transcript (newest heuristic)",
         "rc_log": "remote-control debug log",
+        "explicit": "claude-code transcript (explicit)",
+        "AGI_SESSION_LOG": "claude-code transcript (AGI_SESSION_LOG)",
+        "pin_file": "claude-code transcript (pinned)",
         "unknown": "unknown source",
     }.get(source, source)
 
@@ -550,40 +647,59 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
         print(guard, file=sys.stderr)
         return 1
 
-    # Determine which log to parse
-    session_log = args.session_log
-    source = "unknown"
+    # Determine which log to parse. Resolution order (hypothesis:l3-meter-
+    # own-transcript): --session-log, then env AGI_SESSION_LOG, then the pin
+    # file, then our cwd's slug dir (newest, with a WARN), then the
+    # remote-control debug log as a last resort.
+    log_path, source = resolve_transcript(root=root, session_log=args.session_log)
 
-    if session_log is not None:
-        # Explicit path — use it directly, must exist
-        log_path = Path(session_log).expanduser().resolve()
-        if not log_path.exists():
-            print(f"ERR: --session-log {session_log} not found", file=sys.stderr)
-            return 1
-        source = "explicit"
-    else:
-        # Try CC transcript first
-        cc_path = find_newest_cc_transcript()
-        if cc_path is not None:
-            log_path = cc_path
-            source = "cc_transcript"
+    if source in ("explicit-missing", "AGI_SESSION_LOG-missing",
+                  "pin_file-missing"):
+        # An explicit/environment pin was set but names a missing file: that is
+        # a fault, not a hint to read someone else's newest transcript on
+        # their behalf. Name what was asked for.
+        hint = {
+            "explicit-missing": f"--session-log {args.session_log}",
+            "AGI_SESSION_LOG-missing": f"${AGI_SESSION_LOG_VAR} "
+                                       f"={os.environ.get(AGI_SESSION_LOG_VAR)}",
+            "pin_file-missing": f"pin file under {root / '.agi' / 'sessions'}",
+        }[source]
+        print(f"ERR: could not read the pinned transcript ({hint}) not found.",
+              file=sys.stderr)
+        return 1
+    if log_path is None:
+        # no transcript anywhere (slug dirs empty): remote-control log fallback
+        rc_path = root / REMOTE_CONTROL_LOG
+        if rc_path.exists():
+            log_path = rc_path
+            source = "rc_log"
         else:
-            # Fall back to remote-control debug log
-            rc_path = root / REMOTE_CONTROL_LOG
-            if rc_path.exists():
-                log_path = rc_path
-                source = "rc_log"
-            else:
-                print("ERR: no session log found. Tried CC transcripts "
-                      f"(~/.claude/projects/{CC_PROJECT_SLUG}/*.jsonl) and "
-                      f"remote-control log ({REMOTE_CONTROL_LOG}). Pass "
-                      "--session-log PATH explicitly.",
-                      file=sys.stderr)
-                return 1
+            print("ERR: no session log found. Tried env "
+                  f"${AGI_SESSION_LOG_VAR}, pin files under "
+                  f"{root / '.agi' / 'sessions'}/*.meter, transcripts for "
+                  f"cwd slug ({_derive_cc_slug(os.getcwd())}), and the "
+                  f"remote-control log ({REMOTE_CONTROL_LOG}).",
+                  file=sys.stderr)
+            return 1
+    if source == "cc_transcript_slug":
+        # The heuristic fallback: nothing pinned this agent to its own
+        # transcript, so the newest file in the slug dir won. Name it so the
+        # operator can see whether it really is this agent's.
+        print(f"warn: no --session-log/env/pin; read the NEWEST transcript in "
+              f"slug dir by heuristic: {log_path}", file=sys.stderr)
+
+    if getattr(args, "pin", None) and log_path is not None:
+        # Write the pin naming the transcript just read, so later meters for
+        # this agent read the SAME file even as newer foreign transcripts land
+        # (hypothesis:l3-meter-own-transcript).
+        pinp = Path(args.pin).expanduser().resolve()
+        pinp.parent.mkdir(parents=True, exist_ok=True)
+        pinp.write_text(str(log_path) + "\n", encoding="utf-8")
 
     # Parse usage
     usage = None
-    if source in ("explicit", "cc_transcript"):
+    if source in ("explicit", "AGI_SESSION_LOG", "pin_file",
+                  "cc_transcript_slug"):
         usage = parse_usage_from_cc_transcript(log_path)
         if usage is None and source == "explicit":
             # Retry as RC log
@@ -897,6 +1013,9 @@ def main(argv: list[str] | None = None) -> int:
                              "remote-control debug log")
     p_meter.add_argument("--check", action="store_true",
                         help="exit 1 if fraction >= threshold; else 0")
+    p_meter.add_argument("--pin", default=None,
+                        help="write a pin file naming the transcript this "
+                             "role owns (hypothesis:l3-meter-own-transcript)")
     p_meter.set_defaults(func=cmd_meter)
 
     # spawn

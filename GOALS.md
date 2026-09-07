@@ -7917,6 +7917,9 @@ intervention. It passes. Then confirm `completion.is_complete` still
 distinguishes the untouched scaffold from a filled one — the fix must not buy
 validity with the completion check.
 
+## Agent Notes
+Judged L3.14 (g15 director a00-4ad19971, lens goal:g15) through outcome:a00-a4a9db7e-ec4e27: ADJUST. Discharged: the derivable half (title seeded at scaffold, verdict:scaffolds-are-born-valid-now; 90 field-instances backfilled in L1.07; residual all non-derivable, parent-reproduced 130/1465 on 2026-09-07). Remaining scope of this goal, narrowed: a scaffolded hypothesis is born without testable_claim, the SCHEMA-WARNING at scaffold is loud but the kid brief still forbids touching frontmatter, so the corpus accrues one invalid hypothesis per scaffold (116 on 2026-09-07). Close when cli.py done lifts testable_claim from the kid body (## Hypothesis) or refuses loudly, and a scaffolded hypothesis finished by a standard kid is schema-valid at done. Round-2 brief: hypothesis:l3-done-lifts-testable-claim.
+
 ## S32 — Finish the embeddings pipeline the build-site started — cache, in-graph storage, and a scatter renderer — status: horizon
 
 **Minted 2026-09-03 in L1.09 from the cavekit build-site survey

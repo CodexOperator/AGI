@@ -831,6 +831,17 @@ def main() -> int:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+        # hypothesis:l3-meter-own-transcript -- once the child prints its
+        # first stream-json event, capture its session_id into this agent's
+        # `.meter` pin so its OWN rotate meter reads its OWN transcript and
+        # never the newest foreign `.jsonl` in the shared project dir. The
+        # pin helper is a generic adapter capability (only the claude harness
+        # defines it -- pi children write no CC transcript), so dispatch stays
+        # harness-agnostic: an adapter that exposes no pinner just skips it.
+        pin_background = getattr(adapter, "pin_child_transcript_in_background", None)
+        if pin_background is not None:
+            pin_background(sess_dir=sess_dir, agent_id=agent_id, cwd=str(root),
+                           log_file=log_file, timeout=300)
         # goal:s28 — merge by agent id rather than append.
         # When re-dispatching the same agent (e.g. healing), update in place.
         existing = [i for i, a in enumerate(manifest["agents"]) if a.get("id") == agent_id]

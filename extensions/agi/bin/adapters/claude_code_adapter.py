@@ -78,6 +78,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -134,6 +135,115 @@ NEVER_HANDED_DOWN = frozenset({provisioning.PROVISIONING_KEY_VAR})
 
 #: The one system-prompt file per agent, beside `context.md` and `agent.json`.
 SYSTEM_PROMPT_FILE = "system-prompt.md"
+
+#: Where Claude Code stores project transcripts, keyed by the child's cwd slug.
+CC_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+
+#: The env var the meter resolves second (`rotate.py meter`, hypothesis:l3-
+#: meter-own-transcript): a spawner that knows its child's transcript sets it
+#: so the child's own meter (and its loop) reads THAT file, never the newest
+#: foreign `.jsonl` in the shared project dir.
+AGI_SESSION_LOG_VAR = "AGI_SESSION_LOG"
+
+#: The meter-pin extension (matches `rotate.METER_PIN_EXT` and the brief's
+#: `<window-name>.meter`). Written once this agent's session_id is captured;
+#: the meter resolves it third, so a running agent whose env was fixed at
+#: launch still reads its OWN transcript after a foreign one lands.
+METER_PIN_EXT = ".meter"
+
+
+def _cc_slug(cwd: str) -> str:
+    """The Claude Code project slug for a cwd: the absolute path with every
+    `/` replaced by `-`. `claude -p` keys its transcript dir this way, so an
+    agent run from its own cwd lands under its own slug (hypothesis:l3-meter-
+    own-transcript -- the hardcoded `-home-ubuntu-work-agi` made every role's
+    meter read the prime's transcript)."""
+    return cwd.replace("/", "-")
+
+
+def session_id_from_stream_json(log_file) -> str | None:
+    """The `session_id` in the first stream-json event line of a `claude -p`
+    output log. Claude Code writes the session on an early line of
+    `--output-format stream-json` output. Returns None while the log is empty,
+    not JSON, or not yet holding a session_id."""
+    with open(log_file, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(ev, dict):
+                sid = ev.get("session_id")
+                if isinstance(sid, str) and sid:
+                    return sid
+    return None
+
+
+def transcript_path_for_session(*, cwd: str, session_id: str) -> Path:
+    """The `~/.claude/projects/<slug>/<session_id>.jsonl` a `claude -p` child
+    running from `cwd` writes its transcript to (hypothesis:l3-meter-own-
+    transcript)."""
+    return CC_PROJECTS_DIR / _cc_slug(cwd) / f"{session_id}.jsonl"
+
+
+def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
+                       transcript: Path | None = None,
+                       log_file=None) -> Path | None:
+    """Pin this agent to the transcript it owns, so its later meters read it.
+
+    The pin is `<root>/.agi/sessions/<agent_id>.meter` (root = the graph the
+    agent's session dir sits under). Content: the transcript path on one line.
+    When `transcript` is not given, read the session_id from `log_file` (the
+    child's stream-json output) and derive the path from it + `cwd`. Returns
+    the pin path, or None when the session_id is not yet available."""
+    if transcript is None:
+        if log_file is None:
+            return None
+        sid = session_id_from_stream_json(log_file)
+        if sid is None:
+            return None
+        transcript = transcript_path_for_session(cwd=cwd, session_id=sid)
+    # The pin must land where rotate's meter scans it. rotate resolves its
+    # root with locations.find_project_root() (the graph dir), so the pin is
+    # `<graph_dir>/.agi/sessions/<agent_id>.meter` -- the same convention
+    # rotate already uses for its legacy remote-control log. Resolving from
+    # sess_dir keeps both sides agreeing even when the agent runs elsewhere.
+    root = locations.find_project_root(Path(sess_dir))
+    if root is None:
+        return None
+    seg = Path(root) / ".agi" / "sessions"
+    seg.mkdir(parents=True, exist_ok=True)
+    pin = seg / f"{agent_id}{METER_PIN_EXT}"
+    pin.write_text(str(transcript) + "\n", encoding="utf-8")
+    return pin
+
+
+def pin_child_transcript_in_background(*, sess_dir, agent_id: str, cwd: str,
+                                       log_file, timeout: int = 120) -> None:
+    """Fire-and-forget: once the child's output holds its first session_id,
+    write this agent's meter pin so its own meters/loop read ITS transcript
+    and never the newest foreign `.jsonl` in the shared project dir
+    (hypothesis:l3-meter-own-transcript).
+
+    The session_id only appears after the child prints its first stream-json
+    event, so the capture is necessarily asynchronous -- a daemon thread polls
+    `log_file`, bounded by `timeout`, and never blocks the spawner. A child
+    that never prints a session_id just times out and writes no pin."""
+    def _work():
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                if record_session_pin(sess_dir=sess_dir, agent_id=agent_id,
+                                      cwd=cwd, log_file=log_file) is not None:
+                    return
+            except OSError:
+                pass
+            time.sleep(1)
+
+    threading.Thread(target=_work, daemon=True).start()
 
 
 def resolve_bin(harness: dict) -> str:
