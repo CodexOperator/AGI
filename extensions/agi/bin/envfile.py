@@ -165,8 +165,18 @@ class Resolution:
 
 
 def resolve(start: Path | str | None = None) -> Resolution:
-    """Resolve the secrets geometry for the project enclosing `start`."""
-    root = locations.find_project_root(start)
+    """Resolve the secrets geometry for the project enclosing `start`.
+
+    Anchored to the SHARED project root, never a per-worktree fork
+    (`hypothesis:l3w4-branch-shared-state`). `.env` is gitignored and exists
+    only in the main checkout, so a call from inside a `--branch` worktree
+    (cwd `.agi/worktrees/<agent>`) must resolve the main checkout's `.env`
+    through `git_common_root`, or the credential lookup is silently
+    unrunnable -- the defect that blocked whole kids under `--branch`.
+    `shared_project_root` is the identity in the main checkout, so
+    non-worktree calls are unchanged.
+    """
+    root = locations.shared_project_root(start)
     if root is None:
         raise SecretsError(
             f"no agi project found from {start or os.getcwd()} — "

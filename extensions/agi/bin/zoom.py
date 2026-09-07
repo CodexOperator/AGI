@@ -563,16 +563,40 @@ def _node_path_hint(root: Path, node_id: str) -> str | None:
         return str(path)
 
 
+def _target_not_found(root: Path, target: str) -> str:
+    """Message for a --target missing from THIS worktree's graph.
+
+    `hypothesis:l3w4-branch-shared-state`. A `--branch` worktree is cut from
+    the last committed tip, so a node minted (or a brief scaffolded) after
+    that tip lives in the MAIN checkout's graph but not in this worktree's
+    fork. The old message sent a reader hunting for a typo in a node id that
+    was correct; name the fork instead so the refusal reads as what it is.
+    """
+    base = (f"--target '{target}' not found in the graph loaded from "
+            f"{root / 'nodes'}.")
+    try:
+        main = locations.git_common_root(root)
+        shared = locations.find_project_root(main) if main else None
+        if (shared is not None
+                and Path(shared).resolve() != Path(root).resolve()
+                and node_writer.find_node_file(shared, target) is not None):
+            return (base + f"\n     The target EXISTS in the main checkout graph "
+                    f"at {shared / 'nodes'} but not in this worktree's fork — a "
+                    f"worktree is cut at the last committed tip so it cannot see "
+                    f"a node minted after that. Commit and push the brief before "
+                    f"dispatching at it, or point this call at the main checkout.")
+    except Exception:
+        pass
+    return base
+
+
 def _compose_small(root: Path, args: argparse.Namespace) -> str:
     """Legacy 2-hop subtree around --target, ANY node type. Unchanged content."""
     g, _loaded = _load_wired_graph(root)
 
     target = args.target
     if not g.has_node(target):
-        raise ZoomUnavailable(
-            f"--target '{target}' not found in the graph loaded from "
-            f"{root / 'nodes'}."
-        )
+        raise ZoomUnavailable(_target_not_found(root, target))
 
     layers = _bfs_neighbors(g, target, hops=2)
     seen = set(layers)
@@ -622,10 +646,7 @@ def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
 
     target = args.target
     if target and not g.has_node(target):
-        raise ZoomUnavailable(
-            f"--target '{target}' not found in the graph loaded from "
-            f"{root / 'nodes'}."
-        )
+        raise ZoomUnavailable(_target_not_found(root, target))
 
     fm_by_id = _frontmatter_for(root, info["dir_name"])
 

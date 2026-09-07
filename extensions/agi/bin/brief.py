@@ -835,17 +835,60 @@ def _is_director_role(tier: str) -> bool:
 # ---- existing tier briefs unchanged -----------------------------------------
 
 
+#: The explicit imperative a BUILD-target brief carries, so a kid reads its
+#: job as a state to bring about rather than a question about the present
+#: (`hypothesis:l3-brief-build-imperative-missing`). Measured six times by
+#: L3.34: a claim phrased as "after the change, X is true" gets read by a
+#: pi/GLM-flash kid as a QUESTION it answers today -- finds X false, reports
+#: the broken state honestly, changes no code, and its parent correctly
+#: accepts the probe. The failure is in the instructions, not the agents; a
+#: kid template is the one string every kid receives, so the remedy is a
+#: template default rather than a hope that each director remembers to
+#: reword. The artefact is named a diff and stated in the imperative:
+#: completing with no changed code is not done.
+_BUILD_IMPERATIVE = (
+    "YOU ARE ON A BUILD TARGET -- BUILD means you change the code. Your "
+    "artefact is a DIFF: real lines of this repo changed, made concrete, "
+    "with the repo's tests passing. Finishing with zero lines of code "
+    "changed is NOT done -- your parent measures this round by the diff you "
+    "leave behind. If the fix you tried is wrong or impossible, state that "
+    "plainly WITH the code that proved it: a real wrong result is a result, "
+    "while silence about the code is not."
+)
+
+
+def _is_build_target(parent_id: str) -> bool:
+    """Is this kid aimed at a BUILD node (a target whose body carries the
+    BUILD-CONTRACT marker)?
+
+    Build nodes are addressed `build:<slug>` (they carry the
+    `BUILD-CONTRACT` block by construction -- `level3.py` writes it into
+    every build node body), so the `build:` address prefix is the exact
+    discriminator. A probe target (hypothesis/experiment/...) is never
+    `build:`-addressed and so never gets the imperative segment.
+    """
+    return (parent_id or "").strip().startswith("build:")
+
+
 def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
     field-note in `SKILL.md` was taken against (kids at 5-7 tool calls with an
     embedded map), and changing it in the same commit that moves it would make
-    any regression impossible to attribute.
+    any regression impossible to attribute. The one addition is the BUILD
+    imperative segment, gated on the target being a build node, because
+    without it a BUILD-round kid reads its brief as a question and builds
+    nothing (`hypothesis:l3-brief-build-imperative-missing`).
     """
+    is_build = _is_build_target((scaffold or {}).get("parent") or "")
     segs = [
         f"You are agent {agent_id} on iteration {iter_n}. "
         f"Your job: fill in the scaffolded node file below, then signal done.",
+    ]
+    if is_build:
+        segs.append(_BUILD_IMPERATIVE)
+    segs += [
         # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
         # and swept up 37 lines of a CLAUDE.md section the director had
         # mid-edit. It was not the kid's fault: `SKILL.md` forbids kids from
