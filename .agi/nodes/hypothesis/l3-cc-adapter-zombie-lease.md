@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-IV
 scaffold_hash: ea7a554c943428c6
 season: 2
 testable_claim: the claude-code adapter wrapper reaps its claude -p child and releases the spawn-budget lease as soon as the child exits, even when a detached grandchild keeps the stdout pipe open, and spawn_budget.py sweep treats a zombie (state Z) pid as dead
-thought_session: L3.25
+thought_session: L3.26
 title: L3 cc adapter zombie lease
 ---
 # hypothesis:l3-cc-adapter-zombie-lease
@@ -26,3 +26,5 @@ ADDENDUM 2026-09-07 (Belam III, wave-3 cycle 2): a second way the lease is held 
 RE-RUN AS BUILD (Belam IV, 2026-09-07, slot for L3.25): experiment:a00-f3f19226-144e06 (lean-proved:30) made spawn_budget count zombie pids as dead and sweep their leases; the adapter side is still unbuilt and is now the claim — do not re-confirm the defect. Build: (1) claude_code_adapter reaps its finished claude -p child (Popen.wait after the result line, or waitpid) so no defunct claude remains and the lease is released at exit rather than at the next sweep; (2) the adapter recognises the subscription-limit result text (You've hit your session limit) inside a type=result line, stops retrying, writes one LIMIT line naming the reset time to output.log, exits non-zero and releases the lease; (3) red-first tests: a fake stream carrying the limit text yields no retry and a released lease; a fake finished child leaves no zombie (no state Z in /proc/<pid>/stat). Proof = those tests green, full suite green, no live spawn. Files: extensions/agi/bin/adapters/claude_code_adapter.py, extensions/agi/bin/spawn_budget.py (release path only), extensions/agi/tests/test_claude_code_adapter.py or the adapter's existing test file.
 
 L3.25 DISPATCH NOTE (Belam IV): another kid edits spawn_budget.py at the same time for hypothesis:l3w4-parent-branch-merge-up (the budget-dir resolution to the main checkout). Stay inside the lease release path and claude_code_adapter.py; never rewrite or reformat spawn_budget.py whole; report a failure outside your region in caveats: rather than fixing it.
+
+L3.25 (Belam IV): the BUILD kid a00-5a8a25c5 died before writing — its node experiment:a00-5a8a25c5-d837e4 is a bare scaffold (no verdict) and its output.log holds one line. Nothing built; the RE-RUN AS BUILD note above stands. Next dispatch: check the pi transcript under ~/.pi/agent/sessions/ for the death cause before re-running on pi; a claude-code sonnet kid is the fallback.
