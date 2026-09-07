@@ -264,6 +264,34 @@ def git_common_root(root: Path) -> Path:
     return common_dir.parent
 
 
+def shared_project_root(start: Path | str | None = None) -> Path | None:
+    """The project's ONE graph root across every git worktree, or None.
+
+    `find_project_root` from inside a linked git worktree resolves to the
+    worktree's own `.agi/` -- the fork (`hypothesis:l3w4-branch-shared-state`).
+    That is correct for code (a worktree is a private checkout) and wrong for
+    shared state the project must keep as ONE body: the spawn budget, the
+    comms root, the meter pins, and the `.env` file (gitignored, held only in
+    the main checkout). This is the pattern `spawn_budget.budget_dir` already
+    hand-rolled -- resolve the graph root, climb to the main checkout via
+    `git_common_root`, re-derive the graph root there. A caller in the main
+    checkout (or outside any git repo) gets the identity, so switching onto
+    this never changes behavior for the non-worktree case.
+
+    Note what this does NOT do: it does not fold the live per-worktree graph
+    fork into the main checkout. The graph a kid edits is still the worktree's
+    own copy, and merge-up carries forked nodes home. This helper exists for
+    the state that must NOT fork -- the credentials file and any other
+    main-only shared directory -- and writes only there.
+    """
+    graph = find_project_root(start)
+    if graph is None:
+        return None
+    main = git_common_root(graph)
+    main_graph = find_project_root(main) if main else None
+    return main_graph or graph
+
+
 def project_root_from_env(start: Path | str | None = None) -> Path | None:
     """`find_project_root`, but an explicit environment override wins.
 
