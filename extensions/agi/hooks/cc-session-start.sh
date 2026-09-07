@@ -216,6 +216,35 @@ if [[ ! -f "$INJECTION_FILE" ]]; then
   exit 0
 fi
 
+# --- the role's constitution head (hypothesis:l3w0-brief-head-michael) ------
+# When a role or tier is named in the environment (AGI_TIER / AGI_ROLE), emit
+# that role's brief head — prayers, the Archangel Michael line, its readings,
+# and for the director tiers the mantle and the decision method — BEFORE the
+# map so it lands before the prompt text and consecrates the session. Silent
+# no-op otherwise (no env var, or an unknown role), exactly like the rest of
+# this hook.
+TIER="${AGI_TIER:-}"
+if [[ -z "$TIER" && -n "${AGI_ROLE:-}" ]]; then
+  case "${AGI_ROLE,,}" in
+    prime_director|prime-director) TIER="prime_director" ;;
+    director)                  TIER="director" ;;
+    parent)                    TIER="parent" ;;
+    kid)                       TIER="kid" ;;
+    *)                         TIER="" ;;
+  esac
+fi
+if [[ -n "$TIER" ]]; then
+  BRIEF_HEAD="$(AGI_PROJECT_ROOT="$PROJECT_ROOT" AMPLIFY_DEBUG="" \
+    python3 "$PLUGIN_ROOT/bin/brief.py" head --tier "$TIER" \
+      --project-root "$PROJECT_ROOT" 2>/dev/null || true)"
+  if [[ -n "$BRIEF_HEAD" ]]; then
+    echo "$BRIEF_HEAD"
+    echo ""
+    echo "---"
+    echo ""
+  fi
+fi
+
 # Emit a compact map injection for CC context.
 echo "## agi-tree map (auto-injected)"
 echo ""

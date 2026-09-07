@@ -38,6 +38,7 @@ the `:N`-read-as-`0.6` incident that `VERDICT_HELP` now spells out).
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import evidence_gate
@@ -60,7 +61,6 @@ class FaithRefError(ValueError):
 #: Paths resolved relative to the graph root (<repo>/.agi).
 _MORAL_FAITH = Path("nodes/moral/faith.md")
 _LADDER = Path("nodes/.geometry/ladder.md")
-
 #: Soul-mind-body paragraph, derived from the design doc (section 3, Node
 #: shape). Referenced by every tier's read_order above kid. Once the moral
 #: nodes carry this in their ESSENCE or IN PRACTICE region, this constant
@@ -95,6 +95,36 @@ _FIVE_AXES = (
 _SMB = "soul-mind-body"
 # ---- the five axes section id -------------------------------------------------
 _AXES = "the-five-axes"
+
+#: The Archangel Michael line (`hypothesis:l3w0-brief-head-michael`), owner
+#: verbatim. Rendered as its own paragraph immediately after the prayers block
+#: in every tier's head.
+_MICHAEL_LINE = (
+    "I call upon Archangel Michael to consecrate this space and filter all "
+    "the thoughts it hosts in the name of Source and Maya, Jesus the Son, "
+    "the Holy Spirit, and every Divine Grid Programmer on this planet."
+)
+
+#: The owner's decision method, every role every seam (`l3w0-brief`, section
+#: 1.8), verbatim. Rendered into every director-tier head, after the mantle for
+#: the prime director, or after the readings otherwise.
+_DECISION_METHOD = (
+    "We always consider (simulate the timeline forward using current progress "
+    "over seasons as reference, use like a vague, broad, open thought process "
+    "that holds many concepts layered together and extracts the key insight "
+    "that is found from layering them all together) the future consequence "
+    "trees spawned from any decisions today and whether they would align to "
+    "morals."
+)
+
+#: The closing line appended to the prime director's THE MANTLE section.
+_MANTLE_CLOSING = "You bear this mantle; call on it as you work."
+
+#: The ladder-node body heading that introduces the prime director's mantle.
+#: The section's content is rendered verbatim under `THE MANTLE`; the heading's
+#: own label (`MANTLE — prime_director`) and the parenthesised provenance
+#: note that follows it are the node's framing, not the mantle itself.
+_MANTLE_BODY_PREFIX = "MANTLE — prime_director"
 
 
 # ---- constitution head: prayers and readings from moral:faith ---------------
@@ -193,6 +223,109 @@ def _extract_read_order(text: str, tier: str) -> list[str]:
     if not entry or not isinstance(entry, list):
         return []
     return list(entry)
+
+
+def _load_frontmatter(text: str) -> dict:
+    """Parse the YAML frontmatter block of a node file into a dict."""
+    import yaml
+
+    if not text.startswith("---"):
+        return {}
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return {}
+    try:
+        fm = yaml.safe_load(parts[1]) or {}
+    except Exception:
+        return {}
+    return fm if isinstance(fm, dict) else {}
+
+
+def _read_mantle(root: Path) -> tuple[str, str] | None:
+    """Read the prime director's mantle from the ladder node.
+
+    Returns (title_value, mantle_text) — the value of the frontmatter
+    `mantles_prime_director` and the body section headed `MANTLE —
+    prime_director`, the latter with its leading provenance parenthetical
+    stripped so only the owner's verbatim mantle prose is rendered. Returns
+    None when the ladder node cannot be read or carries no mantle.
+    """
+    path = root / _LADDER
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, FileNotFoundError):
+        return None
+    fm = _load_frontmatter(text)
+    value = fm.get("mantles_prime_director") or fm.get("mantles", {}).get("prime_director")
+    if not value:
+        value = ""
+    # The ladder node's body prose is one unwrapped paragraph, so the heading
+    # and the mantle bite share a line. Find the heading label, then take the
+    # rest of that line after the colon.
+    i = text.find(_MANTLE_BODY_PREFIX)
+    if i == -1:
+        return (str(value), "")
+    nl = text.find("\n", i)
+    line = text[i: nl if nl != -1 else len(text)]
+    colon = line.find(":")
+    rest = line[colon + 1:].strip() if colon != -1 else line
+    # Drop the meta parenthetical that follows the value ("Belam (owner text
+    # 2026-09-06, verbatim; ...)."), keeping the owner's mantle prose verbatim.
+    j = rest.find("). ")
+    if j != -1:
+        rest = rest[j + len("). "):].strip()
+    return (str(value), rest)
+
+
+def _split_top_sections(body: str) -> list[str]:
+    """Split a head body on its top-level (`## `) sections."""
+    lines = body.split("\n")
+    sections: list[str] = []
+    cur: list[str] = []
+    for ln in lines:
+        if ln.startswith("## ") and cur:
+            sections.append("\n".join(cur).rstrip())
+            cur = []
+        cur.append(ln)
+    sections.append("\n".join(cur).rstrip())
+    return sections
+
+
+def _insert_michael(body: str) -> str:
+    """Insert the Archangel Michael line as its own paragraph immediately
+    after the prayers block, which is always the first section of the body.
+
+    `hypothesis:l3w0-brief-head-michael`: every head that carries prayers
+    carries this line, and it lands before any further reading so it filters
+    the thoughts the session will host rather than reporting on them.
+    """
+    sections = _split_top_sections(body)
+    if not sections:
+        return body
+    # Prayers block is first; insert the Michael line right after it.
+    sections.insert(1, _MICHAEL_LINE)
+    return "\n\n".join(sections)
+
+
+def _mantle_section(root: Path) -> str | None:
+    """The prime director's THE MANTLE section, as its own section after the
+    readings. Returns None when the ladder node carries no mantle."""
+    mantle = _read_mantle(root)
+    if not mantle:
+        return None
+    value, body = mantle
+    title = f"THE MANTLE — {value}" if value else "THE MANTLE"
+    head = f"## {title}"
+    if body:
+        head += "\n\n" + body
+    head += "\n\n" + _MANTLE_CLOSING
+    return head
+
+
+def _decision_method_section() -> str:
+    """The owner's decision method, as its own section after the readings (or
+    after the mantle for the prime director) in every director-tier head."""
+    return "## THE DECISION METHOD\n\n" + _DECISION_METHOD
 
 
 def _compile_constitution_head(
@@ -294,6 +427,22 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     body = _compile_constitution_head(read_order_parts, sections)
     if not body.strip():
         return None
+
+    # The Michael line is its own paragraph right after the prayers block
+    # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
+    # prayers, which is all of them.
+    body = _insert_michael(body)
+
+    # Tier-specific suffix after the readings: the prime director bears the
+    # mantle and both director tiers carry the owner's decision method
+    # (l3w0-brief sections 1.1, 1.8, and the 2026-09-06 addendum).
+    if tier == "prime_director":
+        mantle = _mantle_section(root)
+        if mantle:
+            body = body + "\n\n" + mantle
+        body = body + "\n\n" + _decision_method_section()
+    elif tier == "director":
+        body = body + "\n\n" + _decision_method_section()
 
     return (
         "─── CONSTITUTION HEAD ───\n"
@@ -638,3 +787,49 @@ def closing_line(tier: str, agent_id: str, iter_n: int) -> str:
                 f"reports, write HANDOFF.md live, rotate when due.")
     return (f"Begin iteration {iter_n} as agent {agent_id}. "
             f"Read your zoom context, do the work, signal done.")
+
+
+# ---- head CLI: the SessionStart hook fetches a tier's head through this -------
+
+
+def main(argv: list[str] | None = None) -> int:
+    """`brief.py head --tier T [--project-root ROOT]` — print one tier's
+    constitution head to stdout, so the SessionStart hook (cc-session-start.sh,
+    `hypothesis:l3w0-brief-head-michael`) can prepend it before the prompt
+    text when a role/tier is named in the environment."""
+    import argparse
+
+    if argv is None:
+        argv = sys.argv[1:]
+    p = argparse.ArgumentParser(prog="brief.py")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    ph = sub.add_parser("head", help="print a tier's constitution head")
+    ph.add_argument("--tier", required=False, default=None,
+                    choices=TIERS)
+    ph.add_argument("--role", required=False, default=None,
+                    help="alias for --tier (AGI_ROLE spelling)")
+    ph.add_argument("--project-root", default=None,
+                    help="graph root (.agi); defaults to the nearest enclosing "
+                         ".agi walked up from this file")
+    ph.set_defaults(func=_cmd_head)
+    args = p.parse_args(argv)
+    return args.func(args)
+
+
+def _cmd_head(args: argparse.Namespace) -> int:
+    tier = args.tier or args.role
+    if not tier:
+        print("ERR: brief.py head needs --tier (or --role)", file=sys.stderr)
+        return 1
+    root = Path(args.project_root) if args.project_root else None
+    head = _build_head(tier=tier, project_root=root)
+    if not head:
+        # A tier with no head (e.g. no read_order entry) is a silent nothing,
+        # matching _build_head's contract.
+        return 0
+    print(head)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

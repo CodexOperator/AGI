@@ -123,6 +123,22 @@ short-lived. Director = `tier<N>/<name>` for the season. Prime = master.
 successor reads HANDOFF.md before replacing it. Below prime, the parent
 respawns; the prime self-rotates.
 
+### Skill subcommands (suggestion view)
+
+Two rotation helpers are surfaced as named `agi:` invocations so they show up
+in the suggestion view and can be called without quoting raw free-text args
+(`hypothesis:l3w0-brief-head-michael`):
+
+- **`agi:check-handoff`** → `rotate.py meter --check [--session-log PATH]` —
+  fraction against `director_rotate_at`; exit 0 means the handoff is not yet
+due (name your own successor below that line), exit 1 means rotate.
+- **`agi:rotation-successor`** → `rotate.py loop --role <tier> [--force]` —
+  meter, then (when due) spawn the successor with the constitution head and
+  read back its single-word confirmation; the super-ralph rotation primitive.
+
+Bare `agi` stays valid as the graph skill; these are the two rotation verbs
+enumerated for suggestion.
+
 ## Constitution
 
 Five morals anchor the graph. Every node has a path to one.
