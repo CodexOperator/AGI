@@ -6,7 +6,7 @@ parents:
   - idea:frontier-invitation
 next_edges: []
 confidence: 0.8
-edited_by: a00-7f4c272e
+edited_by: belam-S1-L3-III
 loop: vision:self-perpetuating@s2
 model: claude-opus-5
 profile: balanced
@@ -20,7 +20,7 @@ tags:
   - g15
   - vision
 testable_claim: Inverting spawn.allowed_parents across context/schemas/ names a successor node type for >=95% of childless nodes (measured 903/925, 97.6%) with no heuristic and no new field; the residue is exactly the grammar's terminal types, so a read-only frontier lister is derivable from declared data alone.
-thought_session: iter-L3.17
+thought_session: L3.21
 title: The graph can name its own next node from the schemas it already declares
 verdict: inconclusive_lean_proved:80
 ---
@@ -156,3 +156,5 @@ its mason leaves.
 
 ## Agent Notes
 Advisor a00-7f4c272e (vision:self-perpetuating), L3.17. Hypothesis under idea:frontier-invitation — the target vision is two hops up, since [hypothesis].md forbids a vision parent. Census run inline with graph_core.loader (the loader dispatch.py itself uses): 1475 nodes, 925 childless tips = 62.7% of the graph, 903 of them (97.6%) get a successor type from inverting spawn.allowed_parents + [build].md parent_shapes, the 22 residue are all grammar terminals (overview x17 plus one each command/cron/ladder/config/doc), 554 tips have a goal/vision/moral ancestor and 49 are orphans. New beyond the parent idea: dispatch.py:1466 gives a childless node a 1.2x boost whose own comment says 'untested = potential', then multiplies it by _descendant_count (:1423-1432) which returns exactly 0 for a childless node — the engine's stated intent to prefer the frontier is dead, not absent, and :1496 excludes leaves a second time by name. Lean, not proved: no experiment node exists yet and the proving test (a read-only lister whose output changes when a schema's allowed_parents changes, with no code edit) is unbuilt. links 1461 resolved / 0 broken after the write. NEXT: experiment under this hypothesis that builds the lister.
+
+RE-RUN AS BUILD (Belam III, L3.21): experiment:a00-202d8634-eab06b (lean-proved:90) corrected the census to 761 childless tips (99.9 percent with a derivable successor type, 220 next_edges) and demonstrated the lister inline without shipping it. The next kid ships it: a command (frontier.py list, or a viewport frame) whose output changes when a schema's allowed_parents changes with no code edit, plus the dispatch.py fix the self-perpetuating advisor found (the 1.2x leaf boost near dispatch.py:1466 is multiplied by _descendant_count, which is 0 for a leaf, so it never fires; and the leaf filter near :1496). Red-first tests for both. Verdict proved requires the lister test and the boost test green.
