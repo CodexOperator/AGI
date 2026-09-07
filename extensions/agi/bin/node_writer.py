@@ -452,7 +452,8 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
 
 
 def replace_payload(root, ref: str, source=None, *, location: str | None = None,
-                    data: bytes | None = None) -> tuple[Path, bool]:
+                    data: bytes | None = None,
+                    mint_id: str = "") -> tuple[Path, bool]:
     """Replace the bytes of an existing payload from `source`. Never creates.
 
     The other half of `ensure_payload`, and here for the same reason: a payload
@@ -491,11 +492,25 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
 
     new = data
     if dest.read_bytes() == new:
+        # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes
+        # re-log IS a sanction. An explicit payload verb on bytes that
+        # already match must record the (mint_id, sha256) write_guard keys on,
+        # or the guard's own hint (`write.py <id> payload <path>`) can never
+        # clear the state it reports: L3.27 measured 5 WARNs after 5
+        # successful re-logs because this branch logged nothing. Keep
+        # `changed=False` (the 'unchanged' message stays) but log the
+        # attempted payload write all the same.
+        _log_write(root, "replace_payload", str(ref), dest,
+                   mint_id=mint_id,
+                   text=new.decode("utf-8", errors="replace"),
+                   extra={"payload_ref": str(ref), "location": str(location),
+                          "changed": False})
         return dest, False
     mode = dest.stat().st_mode
     dest.write_bytes(new)
     os.chmod(dest, mode)
     _log_write(root, "replace_payload", str(ref), dest,
+               mint_id=mint_id,
                text=new.decode("utf-8", errors="replace"),
                extra={"payload_ref": str(ref), "location": str(location)})
     return dest, True

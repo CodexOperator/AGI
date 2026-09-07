@@ -366,13 +366,39 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body)
     if payload_ref and res.status != node_writer.REJECTED:
+        # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
+        # is still a sanction. Hand the owning node's mint_id to
+        # replace_payload so the payload-write log entry carries it, matching
+        # write_guard's (mint_id, sha256) key even when the bytes did not
+        # change.
+        mint = _node_mint_id(root, edit.node_id)
         dest, changed = node_writer.replace_payload(
             root, payload_ref, edit.payload_from or None,
             location=location,
-            data=edit.payload_bytes.encode() if edit.payload_bytes else None)
+            data=edit.payload_bytes.encode() if edit.payload_bytes else None,
+            mint_id=mint)
         res.payload_changed = changed
         res.payload_path = str(dest)
     return res
+
+
+def _node_mint_id(root, node_id: str) -> str:
+    """The mint_id of the node an edit targets, for the payload sanction log.
+
+    hypothesis:l3-write-payload-unchanged-unlogged — a payload re-log must
+    carry the owning node's mint_id so write_guard's (mint_id, sha256) lookup
+    matches the node's frontmatter. Read-only; this module performs no file
+    write (test_edit_py_contains_no_file_write).
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+    try:
+        path = node_writer.find_node_file(root, node_id)
+        if path is None:
+            return ""
+        return str(fm_reader.load_node_file(path, body=False).frontmatter
+                   .get("mint_id", "") or "")
+    except BaseException:
+        return ""
 
 
 def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:

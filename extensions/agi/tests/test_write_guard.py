@@ -576,6 +576,69 @@ def test_write_guard_silent_after_write_py_payload_edit(project, context_doc):
     assert _check(project, []) == 0, "logged payload write must stay silent"
 
 
+def test_write_guard_silent_after_same_bytes_payload_relog(project):
+    """An explicit `payload <same path>` re-log on unchanged bytes is a
+    sanction: it clears write_guard on a payload a kid wrote with its own
+    tool (hypothesis:l3-write-payload-unchanged-unlogged).
+
+    Red first — reproduces L3.27's 'unchanged' skip (5 WARNs after 5
+    successful re-logs): `replace_payload` returned without logging when the
+    bytes matched, so the (mint_id, sha256) write_guard keys on never
+    entered the log, and the guard's own hint could not clear the state it
+    reported. The fix: treat an explicit payload verb on unchanged bytes as a
+    sanction — log the entry even when nothing changed.
+    """
+    src = project / "ext"
+    src.mkdir(parents=True, exist_ok=True)
+    payload_file = src / "kid_payload.sh"
+    payload_file.write_text("#!/bin/bash\necho kid\n")
+    node_file = project / ".agi" / "nodes" / "mvp" / "payload-relog.md"
+
+    nw.write_node(project / ".agi", "mvp", "payload-relog",
+                  parents=[],
+                  extra_fm={"payload_ref": "ext/kid_payload.sh",
+                            "link_ref": "ext/kid_payload.sh",
+                            "location": "source_root"},
+                  announce=False, bypass=True)
+    # Commit so git knows both the build node and the payload bytes as
+    # baseline.
+    subprocess.run(["git", "-C", str(project), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m", "base"],
+                   check=True, capture_output=True)
+
+    # A kid writes both the payload bytes and the build node itself directly,
+    # outside the tool (unsanctioned). Touching the node file too is what
+    # makes write_guard's payload pass run on this node.
+    payload_file.write_text("#!/bin/bash\necho kid changed\n")
+    node_file.write_text(node_file.read_text() + "\nsome kid body\n")
+
+    # Before the re-log, write_guard warns (unsanctioned payload.
+    assert _check(project, ["--strict"]) == 1
+
+    # The operator re-logs through write.py `payload <same path>`; the bytes
+    # match the file on disk, so the write is a no-op BUT must still record a
+    # sanctioned payload write carrying the node's mint_id and the sha256.
+    res = write.submit(project / ".agi",
+                        write.Edit(node_id="mvp:payload-relog",
+                                   payload_from=str(payload_file)),
+                        actor="kid", session="L3.28")
+    assert res.payload_changed is False
+
+    # The guard must now be silent: the re-log (not the bytes) is the
+    # sanction.
+    log_lines = (project / ".agi" / "sessions" / "write-log.jsonl").read_text().splitlines()
+    payload_entries = [json.loads(l) for l in log_lines if "replace_payload" in l]
+    latest = payload_entries[-1]
+    import yaml
+    fm = yaml.safe_load(node_file.read_text().split("---", 2)[1])
+    assert latest["mint_id"] == fm["mint_id"], "re-log entry must carry the node's mint_id"
+    assert latest["sha256"], "re-log entry must carry the payload sha256"
+
+    assert _check(project, []) == 0
+    assert _check(project, ["--strict"]) == 0
+
+
 def test_write_guard_silent_on_hand_edit_to_schema_file(project):
     """A schema hand-edit is engine config, not an unsanctioned node write.
 
