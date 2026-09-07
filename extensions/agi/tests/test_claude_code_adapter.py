@@ -574,3 +574,81 @@ def test_record_session_pin_derives_transcript_then_meter_reads_it(monkeypatch, 
     assert result == 0
     assert "0.0500" in out, out          # ours (pinned), not foreign (0.995)
     assert "source=claude-code transcript (pinned)" in out
+
+
+# --- hypothesis:l3-cc-adapter-zombie-lease: session-limit + reaping ---------
+
+
+def test_limit_from_result_text_detects_subscription_limit():
+    """A result line carrying Claude Code's own session-limit text answers the
+    reset time; a clean finished turn answers None."""
+    from adapters import claude_code_adapter as cc
+    hit = "You've hit your session limit \u00b7 resets 5:20am (America/New_York)"
+    assert cc.limit_from_result_text(hit) == "5:20am (America/New_York)"
+    assert cc.limit_from_result_text("The hedging trade closed cleanly.") is None
+    assert cc.limit_from_result_text("") is None
+
+
+def test_scan_log_for_session_limit_yields_no_retry_and_one_limit_line(tmp_path):
+    """The fake stream carrying the limit text yields a detected limit (no
+    retry: the close is a single non-zero return) and exactly one LIMIT line."""
+    from adapters import claude_code_adapter as cc
+    log = tmp_path / "output.log"
+    log.write_text(
+        '{"type":"assistant","message":{"role":"assistant","usage":{"input_tokens":3}}}\n'
+        '{"type":"result","subtype":"success","text":"Work finished.","usage":{"input_tokens":4}}}\n'
+        '{"type":"result","text":"You\'ve hit your session limit \u00b7 resets 5:20am (America/New_York)","usage":{"input_tokens":1}}}\n'
+    )
+    is_limit, reset = cc.scan_log_for_session_limit(log)
+    assert is_limit is True
+    assert reset == "5:20am (America/New_York)"
+
+    # close: one LIMIT line appended, no stream of retries, non-zero return.
+    rc = cc.close_session_limit(log_file=log, reset_time=reset)
+    assert rc == cc.SESSION_LIMIT_EXIT and rc != 0
+    body = log.read_text()
+    assert body.count('"subtype": "session_limit"') == 1
+
+
+def test_close_session_limit_releases_the_lease(tmp_path):
+    """A real spawn-budget lease a session-limited child would hold must be
+    released at close, not left for the next sweep."""
+    from adapters import claude_code_adapter as cc
+    import spawn_budget
+    root = tmp_path / "repo"
+    cap = 10
+    lease = spawn_budget.acquire(root, cap, agent_id="a00-limit",
+                                 tier="director", iter_n=3)
+    assert lease is not None
+    spawn_budget.commit(lease, 12345)
+    assert spawn_budget.live_count(root) == 1
+
+    log = tmp_path / "output.log"
+    rc = cc.close_session_limit(log_file=log, reset_time="5:20am",
+                                lease=lease)
+    assert rc == cc.SESSION_LIMIT_EXIT
+    assert spawn_budget.live_count(root) == 0  # released at exit, not sweep
+    assert not lease.path.exists()
+
+
+def test_finished_child_leaves_no_zombie_not_a_real_spawn():
+    """A completed claude-code child must leave no state-Z entry in
+    /proc/<pid>/stat after its turn -- a fake child that os._exit(0)s and is
+    never wait()ed is exactly the defunct the hypothesis measured holding its
+    slot. We fork for real and reap with the adapter's helper."""
+    from adapters import claude_code_adapter as cc
+    pid = os.fork()
+    if pid == 0:
+        os._exit(0)
+    # leave it un-waited: the parent must not reap before we assert Z
+    import time as _t
+    _t.sleep(0.1)
+    assert cc._procstate(pid) == "Z"          # the unreaped-defunct condition
+    assert cc.is_alive(pid) is False          # a zombie is NOT a live slot
+    assert cc.reap_child(pid, timeout=3.0) is True  # reaped, no Z remains
+    assert cc._procstate(pid) is None
+
+
+def test_is_alive_still_true_for_a_live_pid():
+    from adapters import claude_code_adapter as cc
+    assert cc.is_alive(os.getpid()) is True

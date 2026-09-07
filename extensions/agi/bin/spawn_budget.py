@@ -38,19 +38,30 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+import locations  # NOQA: E402
+
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 
 
 def budget_dir(root: Path) -> Path:
-    """Where leases live: one directory per project tree.
+    """Where leases live: one directory per MAIN checkout.
 
     Under `sessions/` because it is session scratch and already gitignored,
     and *not* under an iteration directory because the population being
     bounded spans iterations — a parent dispatched into iter-107 may spawn
     kids into iter-107 too, but nothing guarantees it.
+
+    **Resolves to the main checkout, never a per-worktree dir
+    (`hypothesis:l3w4-parent-branch-merge-up`).** A parent spawned with
+    `--branch` runs in its own git worktree, so `root` here may be a worktree
+    root; the budget must stay the ONE directory every spawner mutates, or
+    the tree-wide bound silently splits per worktree. `git_common_root`
+    answers that via `git rev-parse --git-common-dir`, identity when the
+    caller is already in the main checkout (or outside any git repo).
     """
-    return Path(root) / "sessions" / ".spawn-budget"
+    main = locations.git_common_root(root)
+    return Path(main) / "sessions" / ".spawn-budget"
 
 
 def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
