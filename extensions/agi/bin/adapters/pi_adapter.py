@@ -107,6 +107,7 @@ def build_command(
     target: str | None = None,
     parallel: int = 1,
     max_live: int = 1,
+    brief_tier: str | None = None,
 ) -> list[str]:
     """The argv that starts one pi agent."""
     args = [resolve_bin(harness)]
@@ -119,15 +120,18 @@ def build_command(
     # This adapter decides only how to SPELL a segment on pi's command line.
     # It used to inline the kid brief here, which is why `--tier parent`
     # selected the parent model correctly and then handed it a kid's job.
+    # hypothesis:l3w3-advisor-brief — `brief_tier` lets a spawn keep the
+    # model tier (parent) while assembling a different tier's brief (advisor).
+    _btier = brief_tier or tier
     for seg in brief.assemble(
-        tier=tier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
+        tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live,
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
         args.extend(["--append-system-prompt", f"@{skill_prompt}"])
-    args.append(brief.closing_line(tier, agent_id, iter_n))
+    args.append(brief.closing_line(_btier, agent_id, iter_n))
     return args
 
 
@@ -162,6 +166,7 @@ def restart(
     parallel: int = 1,
     max_live: int = 1,
     agent_record: dict | None = None,
+    brief_tier: str | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
@@ -181,7 +186,7 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live,
+        max_live=max_live, brief_tier=brief_tier,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ))

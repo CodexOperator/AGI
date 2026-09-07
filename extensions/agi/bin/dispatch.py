@@ -273,6 +273,25 @@ def _default_tier_for_role(role: str) -> int:
         role, 0)
 
 
+def _brief_tier_for(tier: str, ladder_tier: int, target: str | None) -> str:
+    """Route a tier-3 parent spawn aimed at a vision node to the advisor brief.
+
+    `hypothesis:l3w3-advisor-brief` — the three advisors ARE the tier-3
+    parents (claude-code, opus 5, effort max, ultracode), each embodying one
+    vision. `dispatch.py --tier parent --ladder-tier 3 --target vision:<id>`
+    used to assemble the generic parent brief, so an advisor sent out with
+    the parent's job description would never sit the tier3-quorum or spawn
+    its perpetual-goal director. When the spawn tier is parent, the ladder
+    tier is 3 AND the target names a vision node, the BRIEF tier becomes
+    `advisor` even though the model/role still resolve as parent (threaded
+    through the adapter's `brief_tier`).
+    """
+    if (tier == "parent" and int(ladder_tier) == 3
+            and target and target.startswith("vision:")):
+        return "advisor"
+    return tier
+
+
 def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
                       role: str) -> dict:
     """Resolve (tier, role) to {harness, model, effort, settings, from_ladder}.
@@ -644,6 +663,12 @@ def main() -> int:
             spawn_args = adapter.build_command(
                 harness=dispatch_harness,
                 tier=args.tier,
+                # hypothesis:l3w3-advisor-brief — a tier-3 parent spawn
+                # aimed at a vision node must get the ADVISOR brief (vision
+                # body, tier3-quorum seat, perpetual-director spawn), not the
+                # generic parent one. The model/role stay parent-tier; only
+                # the assembled brief changes.
+                brief_tier=_brief_tier_for(args.tier, tier_eff, target),
                 context_file=ctx_path,
                 agent_id=agent_id,
                 iter_n=args.iter_n,

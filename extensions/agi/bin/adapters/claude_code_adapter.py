@@ -326,6 +326,7 @@ def build_command(
     target: str | None = None,
     parallel: int = 1,
     max_live: int = 1,
+    brief_tier: str | None = None,
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -338,6 +339,11 @@ def build_command(
                --add-dir <repo root> [--mcp-config ...]
                --tools T... --allowedTools T... --disallowedTools R...
                -- "<closing line>"
+
+    `brief_tier` (hypothesis:l3w3-advisor-brief) lets a spawn keep the model
+    tier (parent) while assembling a different tier's brief (advisor): the
+    model/effort/settings still resolve from `tier`, only the assembled brief
+    and its closing line change.
     """
     sess_dir = Path(sess_dir)
     root = _root_of(sess_dir)
@@ -345,8 +351,9 @@ def build_command(
     # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
     # This adapter decides only how to SPELL it, and for Claude Code the only
     # spelling that keeps every segment is one file.
+    _btier = brief_tier or tier
     segments = brief.assemble(
-        tier=tier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
+        tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live,
     )
@@ -391,19 +398,24 @@ def build_command(
         args += ["--disallowedTools", *disallowed]
 
     args += ["--", _closing_turn(harness=harness, tier=tier,
-                                  agent_id=agent_id, iter_n=iter_n)]
+                                  agent_id=agent_id, iter_n=iter_n,
+                                  brief_tier=_btier)]
     return args
 
 
-def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int) -> str:
+def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int,
+                  brief_tier: str | None = None) -> str:
     """The `claude -p` closing line (the user turn), keyworded for ultracode.
 
     An ultracode tier's user turn opens with the bare keyword `ultracode` so
     the dynamic-workflow trigger opts the turn in (hypothesis:l3-rotate-
     ultracode-env; the prime measured live that the keyword must be in the
-    user turn for the env var to take effect).
+    user turn for the env var to take effect). The keyword is gated on the
+    MODEL tier (`tier`, the parent row) — an advisor is a tier-3 parent and
+    runs ultracode while closing as an advisor.
     """
-    closing = brief.closing_line(tier, agent_id, iter_n)
+    _btier = brief_tier or tier
+    closing = brief.closing_line(_btier, agent_id, iter_n)
     if _tier_is_ultracode(harness, tier):
         closing = "ultracode\n" + closing
     return closing
@@ -435,6 +447,7 @@ def restart(
     parallel: int = 1,
     max_live: int = 1,
     agent_record: dict | None = None,
+    brief_tier: str | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns the new pid, or None on failure.
 
@@ -450,7 +463,7 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live,
+        max_live=max_live, brief_tier=brief_tier,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)

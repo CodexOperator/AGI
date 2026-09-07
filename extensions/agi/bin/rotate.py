@@ -19,9 +19,9 @@ Subcommands:
       in config.json, then to the ladder's fixed top-tier defaults. The
       prompt is assembled through brief.py so the constitution head precedes
       the prompt text.
-    - The successor name defaults to belam-N (highest existing belam-*
-      tmux window plus one; a belam-* window with no trailing integer counts
-      as N=1). --name overrides.
+    - The successor name defaults to `<prefix>-<ROM>` (Roman numeral) derived
+      from existing windows: the current prime's `bel-S1-L3` yields
+      `bel-S1-L3-II`, then `-III`. --name overrides.
     - --dry-run prints the command and touches nothing.
 
   loop --role TIER [--name-prefix P] [--name NAME] [--force] [--dry-run]
@@ -418,24 +418,84 @@ def _existing_windows(tmux_session: str, window_path: str | None = None) -> list
     return []
 
 
-def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
-    """The next successor name: highest `prefix-<N>` plus one.
+_ROMAN_DIGITS = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+_ROMAN_PAIRS = [
+    (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
+    (100, "C"), (90, "XC"), (50, "L"), (40, "XL"),
+    (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I"),
+]
 
-    A window that starts with `prefix` but carries no trailing integer (bare
-    `belam`, or the live prime's `belam-S1-L3`) counts as N=1. Nothing known
-    about `prefix` yields `prefix-1`.
+
+def _roman_value(s: str) -> int:
+    total = 0
+    prev = 0
+    for ch in reversed(s):
+        v = _ROMAN_DIGITS.get(ch, 0)
+        if v == 0:
+            return 0
+        total += -v if v < prev else v
+        prev = v
+    return total
+
+
+def _is_roman(s: str) -> bool:
+    """True only for a canonical (well-formed) Roman numeral > 0."""
+    if not s:
+        return False
+    v = _roman_value(s)
+    return v > 0 and _int_to_roman(v) == s
+
+
+def _int_to_roman(n: int) -> str:
+    """Integer -> canonical Roman numeral (n >= 1)."""
+    out = []
+    for val, sym in _ROMAN_PAIRS:
+        while n >= val:
+            out.append(sym)
+            n -= val
+    return "".join(out)
+
+
+def _split_roman_suffix(w: str) -> tuple[str, int]:
+    """Split a window name into (base, line_value).
+
+    A window ending in `-<ROM>` (a canonical Roman numeral) yields the name
+    with that suffix stripped and the Roman value (a `-II` window is line 2,
+    so its successor is `-III`). A bare base with no suffix (e.g.
+    `belam-S1-L3`, the current prime) is the FIRST of the line and returns
+    value 1 -- its successor is therefore `-II`.
     """
-    best = 0
+    dash = w.rfind("-")
+    if dash > 0:
+        tok = w[dash + 1:]
+        if _is_roman(tok):
+            return w[:dash], _roman_value(tok)
+    return w, 1
+
+
+def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
+    """The next successor name in the Roman-numeral scheme.
+
+    Windows carry Roman suffixes in the owner's rotation: the prime is
+    `belam-S1-L3` (line value 1), its successors `-II`, `-III`, ... The base
+    of the sequence is the current window's name stripped of any trailing
+    `-<ROM>`. A window that does not start with `prefix` is ignored, and
+    nothing known about `prefix` makes `prefix` itself the base at line 1
+    (so the first derived successor is `<prefix>-II`).
+    """
+    best_val = 0
+    best_base = None
     for w in windows:
         if not (w == prefix or w.startswith(prefix + "-")):
             continue
-        rest = w[len(prefix):]
-        m = re.fullmatch(r"-(\d+)", rest)
-        if m:
-            best = max(best, int(m.group(1)))
-        else:
-            best = max(best, 1)
-    return f"{prefix}-{best + 1}"
+        base, val = _split_roman_suffix(w)
+        if best_base is None or val > best_val:
+            best_val = val
+            best_base = base
+    if best_base is None:
+        best_base = prefix
+        best_val = 1
+    return f"{best_base}-{_int_to_roman(best_val + 1)}"
 
 
 # ---- successor command ----------------------------------------------------
@@ -689,7 +749,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     """The super-ralph rotation primitive: meter, rotate when due, confirm.
 
     Meter; when under director_rotate_at (and not --force), hold with no
-    rotation. Otherwise derive the successor name (`belam-<N>` unless
+    rotation. Otherwise derive the successor name (`<base>-<ROM>` unless
     --name-prefix/-name), spawn it with head + prompt-file body, then read
     the successor's first reply from its log: the single word `continue`
     means the handoff stood with no change.
@@ -843,7 +903,7 @@ def main(argv: list[str] | None = None) -> int:
     p_spawn = sub.add_parser("spawn", help="launch a successor in tmux")
     p_spawn.add_argument("--name", default=None,
                         help="successor name (tmux window + remote-control id); "
-                             "defaults to belam-N derived from existing windows")
+                             "defaults to <base>-<ROM> derived from existing windows")
     p_spawn.add_argument("--tier", default="prime_director",
                         help="role tier for model/effort/settings defaults "
                              "(default: prime_director)")

@@ -608,6 +608,32 @@ def test_parent_tier_without_role_resolves_parent_row():
     assert spec["model"] == "~z-ai/glm-flash-latest"
 
 
+# hypothesis:l3w3-advisor-brief — route tier-3 vision spawns to the advisor brief
+# ------------------------------------------------------------
+
+
+def test_brief_tier_routes_tier3_vision_parent_to_advisor():
+    """The gap from l3w3-advisor-brief (addendum after L3.11): `dispatch.py
+    --tier parent --ladder-tier 3 --target vision:<id>` still assembled the
+    generic parent brief. An advisor sent out with the parent's job
+    description would never sit the tier3-quorum or spawn its perpetual-goal
+    director. When the spawn tier is parent, the ladder tier is 3 AND the
+    target names a vision node, the brief tier must become `advisor` (the
+    model/role still resolve as parent)."""
+    assert dispatch._brief_tier_for("parent", 3, "vision:alive") == "advisor"
+    assert dispatch._brief_tier_for("parent", 3, "vision:self-perpetuating") == "advisor"
+
+
+def test_brief_tier_stays_parent_for_any_other_target():
+    """Only a tier-3 parent aimed at a vision node becomes an advisor. A
+    tier-3 parent aimed at a goal, unaimed, or at a lower ladder tier keeps
+    the generic parent brief."""
+    assert dispatch._brief_tier_for("parent", 3, "goal:g12.3") == "parent"
+    assert dispatch._brief_tier_for("parent", 3, None) == "parent"
+    assert dispatch._brief_tier_for("parent", 2, "vision:alive") == "parent"
+    assert dispatch._brief_tier_for("kid", 3, "vision:alive") == "kid"
+
+
 def test_dispatch_exports_agi_role_env():
     """Every spawn must carry AGI_ROLE so node_writer can stamp `role:` at
     mint. AST check -- dispatch writes spawn_env after Popen is built, so the
