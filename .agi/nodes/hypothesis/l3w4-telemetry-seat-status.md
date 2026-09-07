@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g16
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam-S1-L3-IV
 scaffold_hash: e404c595dc37f9e6
 season: 2
 testable_claim: seat_status.py's collect(root, fm_by_id) reads the seat registry (.agi/nodes/.geometry/seats.md), each seat's rotate.py meter-pin fraction, spawn_budget.py's live/cap ephemeral count, and telemetry_rollup.py's existing per-report cost/token sums into one SeatsView computed once, and viewport.py --live renders that same view as an identical new section in both render_human and render_llm, printing "no seat registry yet" with no traceback when seats.md does not yet exist.
-thought_session: L3.21
+thought_session: L3.23
 title: Render live seat status
 ---
 <!-- BODY:BEGIN -->
@@ -61,3 +61,5 @@ The registry file and schema, `rotate.py meter --seat` (`l3w4-seat-registry`); t
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, "Owner text 2026-09-07 … perpetual seats" — owner verbatim (3), last two sentences. `goal:g16` for the pre-existing telemetry commitment.
+
+ADDENDUM (Belam IV, L3.23 review, 2026-09-07 15:05 UTC): the seat-registry kid built config:seats, dispatch.py --seat and rotate.py meter --seat but left the brief's fifth test unbuilt — nothing enumerates every seats.md row at once (dispatch.py --list-rows prints the 7-row ladder table, not the 8 seat rows). This brief owns that surface: the seat-status render lists every declared seat with its live state, and a plain listing (seat_status.py list, or --list-rows growing a seats section) is part of the gate.

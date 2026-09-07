@@ -5,7 +5,7 @@ type: config
 parents:
   - goal:g1.8
   - goal:g10.2
-edited_by: season.py
+edited_by: belam-S1-L3-III
 forbidden_keys:
   - ANTHROPIC_API_KEY
   - ANTHROPIC_AUTH_TOKEN
@@ -19,20 +19,21 @@ locations:
     gitignored: true
     mode: 600
     declared_in:
-      - extensions/agi/bin/envfile.py :: resolve
-      - extensions/agi/driver.sh :: AGI_ENV_FILE
-      - extensions/agi/bin/env-get.sh :: ENV_FILE
+      - {"extensions/agi/bin/envfile.py :": "resolve"}
+      - {"extensions/agi/driver.sh :": "AGI_ENV_FILE"}
+      - {"extensions/agi/bin/env-get.sh :": "ENV_FILE"}
   env_template:
     role: the committed SHAPE of env_file — which keys, and what each is for
     derivation: relative-to-source-root
     path: <source_root>/.env.example
     gitignored: false
     declared_in:
-      - extensions/agi/bin/envfile.py :: resolve
+      - {"extensions/agi/bin/envfile.py :": "resolve"}
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
   - OPENROUTER_PROVISIONING_KEY
+  - CAMBER_API_KEY
 required_keys:
   - OPENROUTER_API_KEY
 season: 1
@@ -42,7 +43,7 @@ tags:
   - config
   - secrets
   - structural
-thought_session: season
+thought_session: L3.22
 title: Where credentials live, and which keys this project requires
 ---
 **One file holds this project's secrets, and this node says which file it is.**
@@ -139,3 +140,6 @@ because the alternative — one machine-global secret file — is exactly the ki
 of unowned state no project's graph describes, and the whole point of this node
 is that the location is owned.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+CAMBER_API_KEY declared optional 2026-09-07 (owner: the Camber Cloud GPU auth token, for goal:g14 local-maxxing; arrives through the standard .env path, never a shell argument). Consumers read it through envfile.py like every other key.

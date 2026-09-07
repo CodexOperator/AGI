@@ -1,115 +1,21 @@
 ---
 id: config:seats
+mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
 edited_by: level3.py
 locations: {}
+scaffold_hash: ea45aa757f70e3ef
 seats:
-  - name: belam
-    role: prime_director
-    tier: 3
-    harness: claude-code
-    model: claude-fable-5-1
-    effort: max
-    settings: ultracode
-    session_kind: remote-control
-    personality_ref: ""
-    handoff_file: <graph_root>/HANDOFF.md
-    pin_ref: .agi/sessions/belam.meter
-    rotated_by: quorum
-    owning_goal: ""
-  - name: adv-self-perpetuating
-    role: parent
-    tier: 3
-    harness: claude-code
-    model: claude-opus-5
-    effort: max
-    settings: ""
-    session_kind: remote-control
-    personality_ref: vision:self-perpetuating
-    handoff_file: ""
-    pin_ref: .agi/sessions/adv-self-perpetuating.meter
-    rotated_by: prime
-    owning_goal: ""
-  - name: adv-all-is-one
-    role: parent
-    tier: 3
-    harness: claude-code
-    model: claude-opus-5
-    effort: max
-    settings: ""
-    session_kind: remote-control
-    personality_ref: vision:all-is-one
-    handoff_file: ""
-    pin_ref: .agi/sessions/adv-all-is-one.meter
-    rotated_by: prime
-    owning_goal: ""
-  - name: adv-alive
-    role: parent
-    tier: 3
-    harness: claude-code
-    model: claude-opus-5
-    effort: max
-    settings: ""
-    session_kind: remote-control
-    personality_ref: vision:alive
-    handoff_file: ""
-    pin_ref: .agi/sessions/adv-alive.meter
-    rotated_by: prime
-    owning_goal: ""
-  - name: liaison
-    role: director
-    tier: 1
-    harness: claude-code
-    model: claude-sonnet-5
-    effort: high
-    settings: ""
-    session_kind: remote-control
-    personality_ref: ""
-    handoff_file: ""
-    pin_ref: .agi/sessions/liaison.meter
-    rotated_by: quorum
-    owning_goal: goal:g17
-  - name: dir-g1
-    role: director
-    tier: 1
-    harness: claude-code
-    model: claude-opus-5
-    effort: high
-    settings: ""
-    session_kind: tty
-    personality_ref: ""
-    handoff_file: ""
-    pin_ref: .agi/sessions/dir-g1.meter
-    rotated_by: advisor
-    owning_goal: goal:g1
-  - name: dir-g15
-    role: director
-    tier: 1
-    harness: claude-code
-    model: claude-opus-5
-    effort: high
-    settings: ""
-    session_kind: tty
-    personality_ref: ""
-    handoff_file: ""
-    pin_ref: .agi/sessions/dir-g15.meter
-    rotated_by: advisor
-    owning_goal: goal:g15
-  - name: dir-g16
-    role: director
-    tier: 1
-    harness: claude-code
-    model: claude-opus-5
-    effort: high
-    settings: ""
-    session_kind: tty
-    personality_ref: ""
-    handoff_file: ""
-    pin_ref: .agi/sessions/dir-g16.meter
-    rotated_by: advisor
-    owning_goal: goal:g16
+  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "quorum", "owning_goal": ""}
+  - {"name": "adv-self-perpetuating", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:self-perpetuating", "handoff_file": "", "pin_ref": ".agi/sessions/adv-self-perpetuating.meter", "rotated_by": "prime", "owning_goal": ""}
+  - {"name": "adv-all-is-one", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:all-is-one", "handoff_file": "", "pin_ref": ".agi/sessions/adv-all-is-one.meter", "rotated_by": "prime", "owning_goal": ""}
+  - {"name": "adv-alive", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/adv-alive.meter", "rotated_by": "prime", "owning_goal": ""}
+  - {"name": "liaison", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/liaison.meter", "rotated_by": "quorum", "owning_goal": "goal:g17"}
+  - {"name": "dir-g1", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "tty", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g1.meter", "rotated_by": "advisor", "owning_goal": "goal:g1"}
+  - {"name": "dir-g15", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "tty", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g15.meter", "rotated_by": "advisor", "owning_goal": "goal:g15"}
+  - {"name": "dir-g16", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "tty", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/dir-g16.meter", "rotated_by": "advisor", "owning_goal": "goal:g16"}
 ---
 <!-- BODY:BEGIN -->
 # config:seats
