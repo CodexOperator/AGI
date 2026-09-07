@@ -11,7 +11,7 @@ location: repo_root
 payload_ref: .agi/context/l3-command-ladder-brief.md
 scaffold_hash: 6d3b2d7374dbbef5
 season: 2
-thought_session: L3.23
+thought_session: L3.24
 title: "Design doc: l3-command-ladder-brief.md (owner text verbatim + director proposals)"
 ---
 <!-- BODY:BEGIN -->

@@ -890,8 +890,26 @@ def main() -> int:
             print("tier=parent: no scaffold — a parent's artefact is its kids' "
                   "nodes (goal:s27)")
         else:
+            # hypothesis:l3-scaffold-stamps-spawner-env — a dispatch-spawned
+            # scaffold used to be stamped from the DISPATCHER's os.environ
+            # (node_writer reads AGI_LOOP/AGI_MODEL/AGI_PROFILE/AGI_ROLE/
+            # AGI_SEASON at write time), so a kid or advisor spawned under a
+            # parent was born role=parent model=<parent's model> loop=<the
+            # parent's loop>. The child's true identity was computed only
+            # later, into spawn_env, and never reached the scaffold. Resolve
+            # the child's row HERE, before scaffold, and hand it to
+            # node_writer so the node is stamped with the agent it is FOR,
+            # not the agent that made it. Same sources as the spawn_env
+            # exports below, so the node and the running agent agree.
+            child_stamp = {
+                "role": args.role,
+                "loop": f"{target or 'explore'}@s{current_season}",
+                "model": dispatch_harness.get("models", {}).get(args.tier, ""),
+                "profile": dispatch_harness.get("profiles", {}).get(args.tier, "balanced"),
+                "season": str(current_season),
+            }
             scaffold_info = _scaffold_node_for_agent(
-                root, args.iter_n, agent_id, level, target, role)
+                root, args.iter_n, agent_id, level, target, role, stamp=child_stamp)
             if scaffold_info:
                 print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
 
@@ -1428,6 +1446,24 @@ def _explicit_targets(
     return [(level or "small", target, strategy)] * n
 
 
+def _attractiveness(desc: int, recency_boost: float, diversity: float,
+                   node_type: str) -> float:
+    """Attractiveness score for one node (dispatch chain-ranking).
+
+    The recency leaf boost used to be `desc * 1.2` — and `_descendant_count`
+    returns 0 for a leaf, so `0 * 1.2 == 0.0` and the boost never fired:
+    every chain tip scored 0 and sorted last (idea:frontier-invitation
+    measured this at dispatch.py:1466). Flooring the descendant term at 1
+    is what lets a leaf's boost mean anything: a leaf scores 1.2 (not 0.0)
+    and can rank. The floor is identity for every non-leaf, which already
+    has desc >= 1, so nothing else changes.
+    """
+    type_weight = {"hypothesis": 1.4, "experiment": 1.2, "verdict": 1.1}.get(
+        node_type, 1.0
+    )
+    return max(desc, 1.0) * recency_boost * type_weight * (1.0 + 0.1 * diversity)
+
+
 def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
     """Choose (zoom_level, target_node_id, strategy) for each of N slots.
 
@@ -1530,16 +1566,15 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
         return len(sub_types) / max(len(list(g.nodes)), 1)
 
     for node_id in g.node_ids:
-        desc = _descendant_count(node_id)
         node = g.get_node(node_id)
-        # Recency: leaf nodes with no children get a small boost (untested = potential)
+        # Recency: leaf nodes with no children get a small boost.
         recency_boost = 1.2 if (node and not node.children) else 1.0
-        diversity = _type_diversity(node_id)
-        # Type weighting: hypothesis and experiment are high-value chain starts
-        type_weight = {"hypothesis": 1.4, "experiment": 1.2, "verdict": 1.1}.get(
-            node.type if node else "", 1.0
+        scores[node_id] = _attractiveness(
+            _descendant_count(node_id),
+            recency_boost,
+            _type_diversity(node_id),
+            node.type if node else "",
         )
-        scores[node_id] = desc * recency_boost * type_weight * (1.0 + 0.1 * diversity)
 
     # Sort nodes by attractiveness (descending)
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -1623,12 +1658,19 @@ def _node_type_for(level: str, target: str | None, role: str | None) -> str:
 
 
 def _scaffold_node_for_agent(
-    root: Path, iter_n: int, agent_id: str, level: str, target: str | None, role: str | None = None
+    root: Path, iter_n: int, agent_id: str, level: str, target: str | None,
+    role: str | None = None, stamp: dict | None = None,
 ) -> dict | None:
     """Decide what node type to scaffold and pre-create the file skeleton.
 
     Returns `node_writer.NodeWrite.as_info()`, or None when nothing was
     written — a rejected spawn, or a file that already holds real content.
+
+    `stamp` is the resolved identity of the agent this scaffold is FOR
+    (hypothesis:l3-scaffold-stamps-spawner-env), forwarded to node_writer so
+    the mint stamps the child's row -- role/model/loop/profile/season --
+    rather than the DISPATCHER's os.environ a parent handset. Absent means
+    node_writer falls back to the env (a hand scaffold).
 
     goal:s17 -- this function used to carry a duplicated copy of `cli.py
     scaffold`: its own type tuple, its own body prompts and its own
@@ -1644,6 +1686,7 @@ def _scaffold_node_for_agent(
     slug = f"{agent_id}-{(uuid.uuid4().hex[:6])}"
     res = node_writer.write_node(
         root, node_type, slug, [target] if target else [],
+        stamp=stamp,
         on_exists=node_writer.REUSE_SCAFFOLD,
     )
     if not res.written:

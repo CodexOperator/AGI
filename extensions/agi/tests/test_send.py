@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -51,6 +52,55 @@ def test_send_prints_inbox_path(project: Path, capsys):
     captured = capsys.readouterr()
     expected = str((project / "sessions" / "inbox" / "test-agent.md").resolve())
     assert captured.out.strip() == expected
+
+
+# ── hypothesis:l3w4-seat-transport: best-effort tmux nudge ───────────────
+
+
+def _fake_tmux(monkeypatch, window_names):
+    """Fake subprocess.run so send can nudge without a live tmux; records
+    every tmux invocation. `window_names` are returned by list-windows."""
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if cmd[:2] == ["tmux", "list-windows"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout="\n".join(window_names),
+                                               stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    return calls
+
+
+def test_send_nudges_existing_window(project: Path, monkeypatch):
+    calls = _fake_tmux(monkeypatch, ["director"])
+    send_mod.send(project, "director", "hello world", "a00-xxxx")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert nudges, "expected a nudge to the director's tmux window"
+    assert nudges[0][:4] == ["tmux", "send-keys", "-t", "agi-rc:director"]
+    assert nudges[0][4] == "hello world"
+    assert nudges[0][5] == "Enter"
+    # the inbox contract is unchanged
+    assert (project / "sessions" / "inbox" / "director.md").is_file()
+
+
+def test_send_dm_nudges_other_party(project: Path, monkeypatch):
+    calls = _fake_tmux(monkeypatch, ["adv-alive"])
+    send_mod.send_dm(project, "mee", "adv-alive", "psst", "mee")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert nudges
+    assert nudges[0][3] == "agi-rc:adv-alive"
+
+
+def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
+    calls = _fake_tmux(monkeypatch, [])  # an empty/absent window listing
+    send_mod.send(project, "ephemeral-kid", "fire and forget", "parent")
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
+    inbox = project / "sessions" / "inbox" / "ephemeral-kid.md"
+    assert inbox.is_file()
+    assert "fire and forget" in inbox.read_text()
 
 
 def test_read_returns_block_once_and_marks_read(project: Path, capsys):

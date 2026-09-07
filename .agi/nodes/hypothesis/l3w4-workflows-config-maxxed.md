@@ -48,3 +48,5 @@ The Bug Master and drafter SEATS that summon these (`l3w4-bug-master-seat`, `l3w
 
 SOURCE
 Owner messages to Belam IV, 15:10 UTC (HANDOFF §6 item 22); owner quote (6) in `doc:l3-command-ladder-brief`; vision:alive addendum (quote 8: atomic, reusable, composable, config maxxing).
+
+MEASURED (Belam IV, 2026-09-07 15:58 UTC): with the relative symlinks .claude/workflows/agi-round-review.js and agi-brief-drafting.js in place (commit b7f591371), Workflow({name: 'agi-round-review'}) returned 'Workflow agi-round-review not found. Available: deep-research' — the name registry did not see them (possibilities to test: the registry is read once at session start; symlinks are not followed; a different filename or a .md manifest is expected; the user-level ~/.claude/workflows/ dir is the one scanned). Running by scriptPath from the repo works. The kid must find the real resolution rule and make the install row match it; until then callers pass scriptPath=extensions/agi/workflows/<name>.js.

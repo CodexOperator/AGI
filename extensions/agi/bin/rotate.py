@@ -790,6 +790,70 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
         return 0
 
 
+def spawn_window(*, name: str, tier: str, prompt_file: str,
+                 model=None, effort=None, settings=None,
+                 tmux_session: str = DEFAULT_TMUX_SESSION,
+                 window_path: str | None = None, root: Path | None = None,
+                 dry_run: bool = False, debug_file: str | None = None,
+                 extra: str = "") -> tuple[int, str]:
+    """THE one launch path shared by `cmd_spawn` and `cmd_loop`
+    (hypothesis:l3w4-seat-transport).
+
+    Resolves model/effort/settings for `tier` from the ladder row (caller
+    flags already overridden), builds the `claude --remote-control <name>`
+    command, quotes it for the shell and (unless dry-run) opens it in a new
+    tmux window. Refuses when a window of that name already exists. Core is
+    not prime-specific -- any named seat may launch through it.
+
+    Returns `(exit_code, shell_cmd)`. On dry-run the shell line is printed
+    and (0, shell_cmd) returned; every failure prints its ERR and returns
+    a non-zero exit code with an empty string.
+    """
+    if not name or not re.match(r"^[A-Za-z0-9_-]+$", name):
+        print(f"ERR: invalid name {name!r}. Use letters, digits, hyphens, "
+              f"or underscores.", file=sys.stderr)
+        return 1, ""
+
+    pf = Path(prompt_file).expanduser().resolve()
+    if not pf.exists():
+        print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
+        return 1, ""
+
+    # Resolve model / effort / settings (caller flags override role defaults)
+    if root is not None:
+        if not model:
+            model = load_role(root, tier, "model")
+        if not effort:
+            effort = load_role(root, tier, "effort")
+        if settings is None:
+            settings = load_role(root, tier, "settings")
+
+    dbg = debug_file or f".agi/sessions/{name}.log"
+    claude_cmd = _successor_command(
+        name=name, tier=tier, prompt_file=str(pf),
+        model=model, effort=effort, settings=settings, debug_file=dbg,
+        extra=extra,
+    )
+
+    # Quote for shell display (ultracode roles are env-gated + keyworded)
+    shell_cmd = _shell_cmd(claude_cmd, settings)
+
+    if dry_run:
+        print(shell_cmd)
+        return 0, shell_cmd
+
+    # Refuse when a window of that name already exists
+    existing = _existing_windows(tmux_session, window_path)
+    if name in existing:
+        print(f"ERR: tmux window {name!r} already exists in session "
+              f"{tmux_session!r}. Use a different name.",
+              file=sys.stderr)
+        return 1, ""
+
+    rc = _launch_window(tmux_session, name, shell_cmd)
+    return rc, shell_cmd
+
+
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command."""
 
@@ -804,54 +868,21 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         existing = _existing_windows(args.tmux_session or DEFAULT_TMUX_SESSION,
                                      args.window_path)
         name = _derive_successor_name(existing, prefix="belam")
-    if not name or not re.match(r"^[A-Za-z0-9_-]+$", name):
-        print(f"ERR: invalid name {name!r}. Use letters, digits, hyphens, "
-              f"or underscores.", file=sys.stderr)
-        return 1
 
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
-    prompt_file = args.prompt_file or DEFAULT_PROMPT_FILE
-    pf = Path(prompt_file).expanduser().resolve()
-    if not pf.exists():
-        print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
-        return 1
-
-    # Resolve model / effort / settings (flags override role defaults)
-    model = args.model
-    effort = args.effort
-    settings = json.loads(args.settings) if args.settings else None
-    if root is not None:
-        if not model:
-            model = load_role(root, args.tier, "model")
-        if not effort:
-            effort = load_role(root, args.tier, "effort")
-        if settings is None:
-            settings = load_role(root, args.tier, "settings")
-
-    debug_file = f".agi/sessions/{name}.log"
-    claude_cmd = _successor_command(
-        name=name, tier=args.tier, prompt_file=str(pf),
-        model=model, effort=effort, settings=settings, debug_file=debug_file,
+    rc, _ = spawn_window(
+        name=name, tier=args.tier,
+        prompt_file=args.prompt_file or DEFAULT_PROMPT_FILE,
+        model=args.model, effort=args.effort,
+        settings=json.loads(args.settings) if args.settings else None,
+        tmux_session=tmux_session, window_path=args.window_path, root=root,
+        dry_run=args.dry_run,
     )
-
-    # Quote for shell display (ultracode roles are env-gated + keyworded)
-    shell_cmd = _shell_cmd(claude_cmd, settings)
-
-    if args.dry_run:
-        print(shell_cmd)
-        return 0
-
-    # Check for existing tmux window
-    existing = _existing_windows(tmux_session, args.window_path)
-    if name in existing:
-        print(f"ERR: tmux window {name!r} already exists in session "
-              f"{tmux_session!r}. Use a different name.",
-              file=sys.stderr)
-        return 1
-
-    _launch_window(tmux_session, name, shell_cmd)
-    print(f"spawned {name!r} in tmux session {tmux_session!r}")
-    print(f"  watch at: https://claude.ai/chat (remote-control mode)")
+    if rc != 0:
+        return rc
+    if not args.dry_run:
+        print(f"spawned {name!r} in tmux session {tmux_session!r}")
+        print(f"  watch at: https://claude.ai/chat (remote-control mode)")
     return 0
 
 
@@ -904,38 +935,27 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     name = args.name or _derive_successor_name(
         existing, prefix=args.name_prefix or "belam")
 
-    model = args.model or load_role(root, role, "model")
-    effort = args.effort or load_role(root, role, "effort")
-    settings = json.loads(args.settings) if args.settings else \
-        load_role(root, role, "settings")
-
-    pf = Path(args.prompt_file or DEFAULT_PROMPT_FILE).expanduser().resolve()
-    if not pf.exists():
-        print(f"ERR: prompt file not found: {pf}", file=sys.stderr)
-        return 1
-
-    debug_file = args.debug_file or f".agi/sessions/{name}.log"
     continuation = (
         "ROTATION CONTINUATION: if the handoff needs no change, answer "
         "exactly the single word `continue` and stop. Otherwise reply with "
         "the exact diff you would make."
     )
-    claude_cmd = _successor_command(
-        name=name, tier=role, prompt_file=str(pf),
-        model=model, effort=effort, settings=settings, debug_file=debug_file,
-        extra=continuation,
+    rc, _ = spawn_window(
+        name=name, tier=role,
+        prompt_file=args.prompt_file or DEFAULT_PROMPT_FILE,
+        model=args.model, effort=args.effort,
+        settings=json.loads(args.settings) if args.settings else None,
+        tmux_session=tmux_session, window_path=args.window_path, root=root,
+        dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
     )
-    shell_cmd = _shell_cmd(claude_cmd, settings)
+    if rc != 0:
+        return rc
 
+    debug_file = args.debug_file or f".agi/sessions/{name}.log"
     print(f"rotate {role!r} --> successor {name!r}")
 
     if args.dry_run:
-        print(shell_cmd)
         return 0
-
-    rc = _launch_window(tmux_session, name, shell_cmd)
-    if rc != 0:
-        return rc
 
     reply = _read_first_reply(args.session_log or debug_file,
                               timeout=args.timeout)
