@@ -182,8 +182,39 @@ def model_args(harness: dict, tier: str) -> list[str]:
     return args
 
 
+def _tier_is_ultracode(harness: dict, tier: str | None) -> bool:
+    """True when a tier's settings resolve to ultracode.
+
+    Same resolution as `model_args`: a per-tier map names the tier; a whole-
+    harness `ultracode` string (or flag dict) applies to every tier
+    (hypothesis:l3-rotate-ultracode-env).
+    """
+    settings = harness.get("settings")
+    if settings is None or settings == "":
+        return False
+    if isinstance(settings, str):
+        return settings.strip() == "ultracode"
+    if isinstance(settings, dict):
+        if set(settings.keys()) == {"ultracode"}:
+            return bool(settings.get("ultracode"))
+        if tier is not None:
+            val = settings.get(tier)
+            if isinstance(val, str):
+                return val.strip() == "ultracode"
+            if isinstance(val, dict):
+                return bool(val.get("ultracode"))
+    return False
+
+
+#: The env var that opens Claude Code's dynamic ("ultracode") workflows on
+#: this box -- the launch gate the prime confirmed live
+#: (hypothesis:l3-rotate-ultracode-env).
+ULTRACODE_ENV_VAR = "CLAUDE_CODE_WORKFLOWS"
+
+
 def child_env(*, harness: dict, base: dict[str, str],
-              inherited: dict[str, str] | None = None) -> dict[str, str]:
+              inherited: dict[str, str] | None = None,
+              tier: str | None = None) -> dict[str, str]:
     """The environment the `claude` process runs in.
 
     `base` arrives already scrubbed by `dispatch.scrubbed_env`. That scrub is
@@ -206,6 +237,10 @@ def child_env(*, harness: dict, base: dict[str, str],
             env[key] = value
     extra = harness.get("env") or {}
     env.update({k: str(v) for k, v in extra.items() if k not in NEVER_HANDED_DOWN})
+    if _tier_is_ultracode(harness, tier):
+        # the launch gate for ultracode workflows
+        # (hypothesis:l3-rotate-ultracode-env)
+        env[ULTRACODE_ENV_VAR] = "1"
     return env
 
 
@@ -355,8 +390,23 @@ def build_command(
     if disallowed:
         args += ["--disallowedTools", *disallowed]
 
-    args += ["--", brief.closing_line(tier, agent_id, iter_n)]
+    args += ["--", _closing_turn(harness=harness, tier=tier,
+                                  agent_id=agent_id, iter_n=iter_n)]
     return args
+
+
+def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int) -> str:
+    """The `claude -p` closing line (the user turn), keyworded for ultracode.
+
+    An ultracode tier's user turn opens with the bare keyword `ultracode` so
+    the dynamic-workflow trigger opts the turn in (hypothesis:l3-rotate-
+    ultracode-env; the prime measured live that the keyword must be in the
+    user turn for the env var to take effect).
+    """
+    closing = brief.closing_line(tier, agent_id, iter_n)
+    if _tier_is_ultracode(harness, tier):
+        closing = "ultracode\n" + closing
+    return closing
 
 
 def is_alive(pid: int) -> bool:
@@ -403,7 +453,7 @@ def restart(
         max_live=max_live,
     )
     log_file = sess_dir / "output.log"
-    env = child_env(harness=harness, base=dict(os.environ))
+    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(

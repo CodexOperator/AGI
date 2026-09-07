@@ -78,7 +78,8 @@ def model_args(harness: dict, tier: str) -> list[str]:
     return args
 
 
-def child_env(*, harness: dict, base: dict[str, str]) -> dict[str, str]:
+def child_env(*, harness: dict, base: dict[str, str],
+              tier: str | None = None) -> dict[str, str]:
     """The environment the pi process runs in.
 
     pi needs nothing added; what it needs is the Anthropic credentials taken

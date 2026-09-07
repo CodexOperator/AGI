@@ -197,6 +197,63 @@ def test_spawn_normalizes_string_settings_word(monkeypatch, tmp_path, capsys):
     assert '--settings \'"ultracode"\'' not in out
 
 
+def test_spawn_ultracode_prefixes_env_and_keyword(monkeypatch, tmp_path, capsys):
+    # hypothesis:l3-rotate-ultracode-env -- an ultracode role's dry-run spawn
+    # must prefix the tmux launch with `export CLAUDE_CODE_WORKFLOWS=1` and
+    # open the successor's user turn (the prompt body) with the keyword
+    # `ultracode`. The prime measured live that the env var is the launch
+    # gate and the keyword is the opt-in trigger (L3.0x, three throwaways).
+    root = _proj(tmp_path, ladder_roles=(
+        "  - role: prime_director\n"
+        "    harness: claude-code\n"
+        "    model: claude-fable-5-1\n"
+        "    effort: max\n"
+        "    settings: {ultracode: true}\n"
+        "    tier: 3\n"
+    ))
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "belam-u1", "--prompt-file", str(prompt),
+        "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    # the env export gates the whole shell line:
+    assert out.startswith("export CLAUDE_CODE_WORKFLOWS=1")
+    # the user-turn prompt body (the final quoted arg) opens with the keyword
+    # as its first line, e.g. `ultracode\nYou are belam-u1...`:
+    assert "ultracode\nYou are belam-u1" in out
+
+
+def test_spawn_plain_role_no_env_no_keyword(monkeypatch, tmp_path, capsys):
+    # hypothesis:l3-rotate-ultracode-env -- a role whose settings carry no
+    # ultracode gets neither the env export nor the keyword.
+    root = _proj(tmp_path, ladder_roles=(
+        "  - role: kid\n"
+        "    harness: claude-code\n"
+        "    model: claude-sonnet-5\n"
+        "    effort: high\n"
+        "    tier: 1\n"
+    ))
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(root)
+
+    exit_code = rotate.main([
+        "spawn", "--name", "kid-1", "--tier", "kid",
+        "--prompt-file", str(prompt), "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "CLAUDE_CODE_WORKFLOWS" not in out
+    assert out.count("ultracode") == 0
+
+
 def test_spawn_falls_back_to_defaults_without_table(monkeypatch, tmp_path, capsys):
     # No roles table, no config.json: fixed top-tier defaults apply.
     root = _proj(tmp_path)
