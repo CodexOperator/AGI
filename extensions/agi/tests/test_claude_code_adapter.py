@@ -88,6 +88,49 @@ def test_effort_and_settings_combine(rig):
     assert "--settings" in args
 
 
+def test_ultracode_tier_sets_env_var(rig):
+    """hypothesis:l3-rotate-ultracode-env -- the env var gates ultracode for
+    a spawned advisor: a tier whose settings resolve to ultracode must have
+    CLAUDE_CODE_WORKFLOWS set in its child environment."""
+    env = cc.child_env(harness=dict(HARNESS, settings="ultracode"),
+                       base={}, inherited={}, tier="kid")
+    assert env.get("CLAUDE_CODE_WORKFLOWS") == "1"
+
+
+def test_non_ultracode_tier_no_env_var(rig):
+    """An ultracode setting names no tier (or no ultracode at all) injects
+    no env var."""
+    env = cc.child_env(harness=HARNESS, base={}, inherited={}, tier="kid")
+    assert "CLAUDE_CODE_WORKFLOWS" not in env
+    # per-tier map: ultracode on directors, not kids
+    env2 = cc.child_env(
+        harness=dict(HARNESS, settings={"director": "ultracode"}),
+        base={}, inherited={}, tier="kid")
+    assert "CLAUDE_CODE_WORKFLOWS" not in env2
+    env3 = cc.child_env(
+        harness=dict(HARNESS, settings={"director": "ultracode"}),
+        base={}, inherited={}, tier="director")
+    assert env3.get("CLAUDE_CODE_WORKFLOWS") == "1"
+
+
+def test_ultracode_tier_keyword_opens_user_turn(rig):
+    """hypothesis:l3-rotate-ultracode-env -- an ultracode tier's `claude -p`
+    user turn (the closing line fenced behind `--`) opens with the keyword
+    `ultracode`."""
+    harness = dict(HARNESS, settings="ultracode")
+    args = build(rig, "kid", harness=harness)
+    i = args.index("--")
+    assert args[i + 1].startswith("ultracode")
+    assert "Begin iteration" in args[i + 1]
+
+
+def test_non_ultracode_tier_no_keyword(rig):
+    """A plain tier's closing line is untouched."""
+    args = build(rig, "kid")
+    i = args.index("--")
+    assert not args[i + 1].startswith("ultracode")
+
+
 def build(rig, tier="kid", harness=HARNESS, **kw):
     kw.setdefault("scaffold", SCAFFOLD if tier == "kid" else None)
     kw.setdefault("skill_prompt", rig["skill"])

@@ -241,6 +241,17 @@ def _coerce(value: str):
     if low in {"none", "null"}:
         return None
     if text.startswith("[") and text.endswith("]"):
+        import json
+        # hypothesis:l3-write-set-nested-json — a JSON array (e.g. the ladder
+        # roles rows, a list of objects) must parse as one nested value. The
+        # old comma-split turned `[{"tier": 3, ...}, {...}]` into broken string
+        # rows whose inner objects never landed (L3.01). Try the real parse
+        # first; the `[a, b]` comma-split is a fallback for the non-JSON
+        # spelling and round-trips through the existing renderer unchanged.
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, ValueError):
+            pass
         inner = text[1:-1].strip()
         return [_coerce(p.strip()) for p in inner.split(",")] if inner else []
     if text.startswith("{") and text.endswith("}"):

@@ -638,7 +638,8 @@ def main() -> int:
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
             )
-            spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env())
+            spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
+                                           tier=args.tier)
             # goal:l2-agent-git-commit-guard -- belt: refuse git write for
             # automated agent tiers (kid, parent).  AGI_TIER distinguishes
             # machine from human; GIT_CONFIG tells git to use our hooks

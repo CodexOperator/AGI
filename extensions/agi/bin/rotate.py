@@ -125,6 +125,17 @@ SETTINGS_ALIASES = {
     "ultracode": {"ultracode": True},
 }
 
+#: The launch gate and the opt-in trigger for Claude Code's dynamic
+#: ("ultracode") workflows (hypothesis:l3-rotate-ultracode-env). The env var
+#: is what actually enables it on this box (measured live by the prime: a
+#: settings flag alone and the keyword alone both came back `no`; env var +
+#: keyword came back `yes`), and the bare keyword `ultracode` as the first
+#: line of the user turn opts the turn in. `--settings` is retained because
+#: whether it is still needed WITH the env var is unproven (a fourth
+#: throwaway -- env + keyword, no settings -- is still open).
+ULTRACODE_KEYWORD = "ultracode"
+ULTRACODE_ENV_EXPORT = "export CLAUDE_CODE_WORKFLOWS=1"
+
 
 def _normalize_settings(val):
     """Coerce a roles-table settings cell to a dict, or None.
@@ -368,6 +379,17 @@ def load_role(root: Path | None, tier: str, field: str):
     return val
 
 
+def _is_ultracode(settings) -> bool:
+    """True when the resolved settings flag names ultracode.
+
+    The ladder's `settings: ultracode` cell (resolved to `{"ultracode": true}`)
+    is what turns a successor's environment on: rotate must prefix the tmux
+    launch with `export CLAUDE_CODE_WORKFLOWS=1` and open the user turn with
+    the keyword `ultracode` (hypothesis:l3-rotate-ultracode-env).
+    """
+    return bool(settings) and bool(settings.get("ultracode"))
+
+
 # ---- successor name derivation --------------------------------------------
 
 
@@ -444,6 +466,11 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
     substituted, the constitution head prepended through brief.py, then
     model/effort/settings appended as flags."""
     body = Path(prompt_file).read_text(encoding="utf-8").replace("{name}", name)
+    if _is_ultracode(settings):
+        # keyword as the first line of the user turn, right after the head
+        # (the prime's live probe: it must be in the user turn, after the
+        # constitution head is fine).
+        body = ULTRACODE_KEYWORD + "\n" + body
     if extra:
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
@@ -545,6 +572,18 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
 # --- spawn subcommand -----------------------------------------------------
 
 
+def _shell_cmd(claude_cmd: list[str], settings) -> str:
+    """The quoted shell line that launches `claude_cmd`.
+
+    An ultracode role's launch is gated by exporting CLAUDE_CODE_WORKFLOWS=1
+    before the command (hypothesis:l3-rotate-ultracode-env).
+    """
+    joined = " ".join(shlex.quote(c) for c in claude_cmd)
+    if _is_ultracode(settings):
+        return ULTRACODE_ENV_EXPORT + " && " + joined
+    return joined
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success."""
     launch_cmd = f"cd {shlex.quote(os.getcwd())} && {shell_cmd}"
@@ -608,8 +647,8 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         model=model, effort=effort, settings=settings, debug_file=debug_file,
     )
 
-    # Quote for shell display
-    shell_cmd = " ".join(shlex.quote(c) for c in claude_cmd)
+    # Quote for shell display (ultracode roles are env-gated + keyworded)
+    shell_cmd = _shell_cmd(claude_cmd, settings)
 
     if args.dry_run:
         print(shell_cmd)
@@ -699,7 +738,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         model=model, effort=effort, settings=settings, debug_file=debug_file,
         extra=continuation,
     )
-    shell_cmd = " ".join(shlex.quote(c) for c in claude_cmd)
+    shell_cmd = _shell_cmd(claude_cmd, settings)
 
     print(f"rotate {role!r} --> successor {name!r}")
 

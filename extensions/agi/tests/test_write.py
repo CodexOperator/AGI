@@ -117,6 +117,26 @@ def test_values_are_coerced_because_frontmatter_is_typed():
     assert write._coerce("active") == "active"
 
 
+def test_coerce_parses_nested_json_list_and_object():
+    """hypothesis:l3-write-set-nested-json — a value that starts with `[` or
+    `{` shall be parsed as JSON, so a nested rows table can be written through
+    write.py. Comma-splitting a JSON array of objects produced garbage string
+    rows (L3.01). The JSON parse runs first; the legacy `[a, b]` comma-split
+    survives as a fallback for the non-JSON spelling, which is why `[a, b]`
+    still coerces to `["a", "b"]`."""
+    rows = ('[{"tier": 3, "role": "prime_director", "harness": '
+            '"claude-code"}, {"tier": 1, "role": "parent"}]')
+    got = write._coerce(rows)
+    assert isinstance(got, list) and len(got) == 2
+    assert all(isinstance(r, dict) for r in got)
+    assert got[0] == {"tier": 3, "role": "prime_director",
+                      "harness": "claude-code"}
+    assert got[1] == {"tier": 1, "role": "parent"}
+    # a bare JSON object already parses; keep it\.
+    assert write._coerce('{"a": 1, "b": [true, null]}') == {
+        "a": 1, "b": [True, None]}
+
+
 # --------------------------------------------------------------------------
 # Submit
 # --------------------------------------------------------------------------
