@@ -1036,3 +1036,79 @@ def test_post_wire_does_not_define_its_own_serializer():
     spec.loader.exec_module(mod)
     defined_in = Path(mod.write_frontmatter.__code__.co_filename).name
     assert defined_in == "snapshot-goals.py", defined_in
+
+
+# ------------------------------------- goal_kind: perpetual (hypothesis
+# l3w1-goal-kind-perpetual, L3 wave 1) ------------------------------------
+
+
+def _rebase_goal(project: Path, node_id: str, old: str, new: str) -> None:
+    node = goal_nodes(project)[node_id][0]
+    node.write_text(node.read_text(encoding="utf-8").replace(old, new),
+                    encoding="utf-8")
+
+
+def test_render_goals_puts_perpetual_under_its_own_section():
+    """A `goal_kind: perpetual` goal renders last, under a `## Perpetual`
+    section, nested one level, and carries NO `— status:` lifecycle column —
+    while legacy `long-term` goals render exactly as before."""
+    goals = [
+        {"gid": "G1", "title": "Long term thing", "status": "active",
+         "heading_level": 2, "goal_kind": "perpetual", "body": "Long body."},
+        {"gid": "G2", "title": "Second long term", "status": "horizon",
+         "heading_level": 2, "goal_kind": "long-term", "body": "Second body."},
+    ]
+    out = sg.render_goals("pre", goals)
+    assert "## Perpetual" in out
+    assert "### G1 — Long term thing" in out           # nested under `## Perpetual`
+    assert "## G2 — Second long term — status: horizon" in out   # legacy unchanged
+    assert "— status:" not in out.split("## Perpetual", 1)[1]     # no lifecycle column
+    assert out.index("## Perpetual") > out.index("## G2")         # rendered last
+
+
+def test_perpetual_goal_round_trips_via_render(nested):
+    """nodes -> GOALS.md for a perpetual goal: the Perpetual section appears,
+    renders under it, and `--render --check` stays byte-identical on re-run."""
+    assert run(nested).returncode == 0               # import doc -> nodes
+    _rebase_goal(nested, "goal:g1", "goal_kind: long-term",
+                 "goal_kind: perpetual")
+    assert fm_of(goal_nodes(nested)["goal:g1"][0])["goal_kind"] == "perpetual"
+    assert run(nested, "--render").returncode == 0
+    assert run(nested, "--render", "--check").returncode == 0
+    rendered = (nested / "GOALS.md").read_text(encoding="utf-8")
+    assert "## Perpetual" in rendered
+    assert "### G1 — Long term thing" in rendered
+    assert "— status:" not in rendered.split("## Perpetual", 1)[1]
+    assert "## G2 — Second long term — status: horizon" in rendered
+
+
+def test_from_doc_round_trip_keeps_a_perpetual_goal_perpetual(nested):
+    """After a doc -> nodes import of a doc with a Perpetual section, the
+    perpetual goal's node still carries `goal_kind: perpetual`, and a fresh
+    render reproduces the Perpetual section."""
+    assert run(nested).returncode == 0
+    _rebase_goal(nested, "goal:g1", "goal_kind: long-term",
+                 "goal_kind: perpetual")
+    # render the doc (nodes -> GOALS.md), then re-import it (doc -> nodes)
+    assert run(nested, "--render").returncode == 0
+    assert run(nested).returncode == 0                # --from-doc import
+    assert fm_of(goal_nodes(nested)["goal:g1"][0])["goal_kind"] == "perpetual"
+    assert run(nested, "--render", "--check").returncode == 0
+
+
+def test_goal_schema_accepts_perpetual_and_legacy_long_term():
+    """The `[goal].md` schema's goal_kind regex accepts both `perpetual`
+    (canonical) and `long-term` (legacy, accepted forever like `phasing-out`),
+    and both resolve as spawn variants."""
+    import re as _re
+    schema = Path(__file__).resolve().parents[3] / ".agi" / "context" \
+        / "schemas" / "[goal].md"
+    text = schema.read_text(encoding="utf-8")
+    m = _re.search(r"goal_kind:\s*'(\^[^']+)'", text)
+    assert m, "[goal].md goal_kind regex not found"
+    rx = _re.compile(m.group(1))
+    assert rx.match("perpetual")
+    assert rx.match("long-term")
+    assert not rx.match("bogus")
+    # spawn: block declares a perpetual variant
+    assert "perpetual:" in text and "long-term:" in text

@@ -195,69 +195,6 @@ that hides a failure has destroyed the only thing that failure was good for.
 Doc pass 2026-09-06: the preamble still opened with agi-tree as a separate repo and a scope-boundary paragraph saying the two stay separate, both contradicted by goal:g11. Rewritten to name one repo and to keep only the part of the boundary that survives: engine goals here, project goals in the project. Goal bodies keep the old name where they describe that era.
 <!-- THOUGHT:END -->
 
-## G1 — Config-maxxing: every engine action is declared, never improvised — status: horizon
-
-**Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
-step is a command".** The invariant did not change; the framing got one level
-deeper, and the new name is the one that generalises. Recorded as a rename
-rather than a fresh goal because the seeds, the banked results and every
-subgoal below still hold verbatim — this project does not renumber, and it
-does not edit drift away either.
-
-**The owner's statement of it:**
-
-> Everything is in a config, everything is a node, everything is a unified
-> spawn path, everything is a unified read and write path. Every action is
-> defined, config-maxxed. Nothing is just created randomly or freely — the
-> graph is the creation engine, so each engine action must be as mechanical as
-> possible.
-
-**Why the rename is not cosmetic.** "Zero-operations" names a *cost* to be
-driven down: the agent should not spend motion tending the machine. That is
-true and it stays true, but it is a symptom. **Config-maxxing names the
-cause.** An action that is improvised has to be re-derived, re-typed and
-re-checked by whoever meets it next; an action that is *declared* is read once
-and executed identically forever. Zero operations is what you get when
-everything is declared — not a separate target to aim at.
-
-**Invariant, restated at the deeper level:** every engine action is declared in
-a node or a config the engine reads. Any repeated, mechanical step is a named
-command, and every surviving manual handle carries a written reason.
-
-## The four "everything"s, and where each stands
-
-| | claim | status |
-|---|---|---|
-| **everything is in a config** | behaviour is declared data the engine reads, never a fork of engine code | partial — `config.json` is the customization surface; `goal:g1.10` extends it to the commands themselves |
-| **everything is a node** | including the engine's own geometry: crons, secrets, commands | partial — `.geometry/crons.md` and `secrets.md` exist; commands do not |
-| **one spawn path** | a harness is an adapter named in config, not a parallel code path | `goal:g4.6` |
-| **one read/write path** | one way in, one way out of the graph | `goal:g13` — read half landed 2026-09-02 |
-
-**`.geometry/crons.md` is the working precedent and the shape to copy.** It is
-graph content declaring cron cadences; `crons.py apply` is the one command that
-makes reality agree with the declaration; editing the node *is* the change. No
-schedule is typed at a shell. That is config-maxxing built and running, on one
-narrow surface, and `goal:g1.10` is the argument that the surface should be
-wider.
-
-**The counter-example this goal exists to prevent** is the one the repo has
-already paid for: a step that is mechanical but undeclared gets done slightly
-differently each time, and the differences are invisible until one of them is
-wrong. Six node parsers that agree only by accident (`goal:g13`), a manifest
-merge asserted in a commit message and nowhere else (`goal:s28`), a scaffold
-that omits schema-required fields nobody declared it must supply
-(`goal:s31`) — each is an undeclared action drifting.
-
-Already banked — cron owns all remote traffic (H10), embedded maps cut kids from
-11-13 tool calls to 5-7 (L7), the DONE contract makes stopping one line.
-
-Owns: **L11** remainder (one command that renders *and* spawns — the parent's
-last machine-tending chore), **L12** remainder (a runtime flag rather than a
-parallel code path; hook parity audit), **L17** (config schema plus a writer, so
-configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
-project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
-prior session manifests).
-
 ### G1.1 — An agent should need only the graph to orient — status: horizon
 
 **Recon happens in the graph, not in the filesystem.** Today a kid arrives with
@@ -5922,20 +5859,6 @@ replace it with a scored model or a plain check. A rule that has survived a few
 loops as prose is a rule with a labelled dataset behind it. `COMPLETE.md`'s fixed
 failure-category set exists to make those labels.
 
-## G15 — Bugfix and optimization — status: active
-
-# goal:g15
-
-## Agent Notes
-Long-term, always active, exempt from max_goals_active. Parent of every short-term (S) goal: ids never renumbered, goal_kind stays short-term, they stop being roots. Its bigger_outcome each season is the hazard ledger, goal:s34's home. Bugfixes, edge-case hardening, security fixes, optimization and hazard removal are done in-loop under this goal or under the S goal beneath it that fits. Design: .agi/context/season-ladder-and-morals-brief.md section 2.
-
-## G16 — Telemetry per node, propagated up the ladder — status: active
-
-# goal:g16
-
-## Agent Notes
-Per node at done and per session: model, harness, profile, tokens_in, tokens_out, cost_usd, accepted diff bytes (node plus payload, review-accepted only). Roll-up is a descendant sum along parents: outcome is its loop, bigger_outcome the LT goal, overview the season. Ratios: bytes per token and bytes per dollar, always beside aligned-outcome count; cost per aligned outcome is the ranking number. Secondary only, never a target, never read by an agent choosing what to do; it tunes the model lattice, goal:g14. Cost source is OpenRouter's per-generation endpoint through the per-spawn key, to be verified first. Design: .agi/context/season-ladder-and-morals-brief.md section 5. Horizon until L2 wave 2.
-
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
@@ -8115,3 +8038,86 @@ migration was rehearsed four times against exactly this invariant.
 `agent_session.md`, `[overview].md`, `[shape].md` and `[config].md` are in the
 same directory but are not node-type schemas. They move too — they are equally
 nodes — but their `type:` is decided during step 1, not assumed here.
+
+## Perpetual
+
+The following goals are `goal_kind: perpetual` — the long-horizon
+commitments, broadly worded, one director each. Retire stays legal on the
+node; they simply carry no per-goal complete/retired lifecycle line here.
+
+### G1 — Config-maxxing: every engine action is declared, never improvised
+
+**Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
+step is a command".** The invariant did not change; the framing got one level
+deeper, and the new name is the one that generalises. Recorded as a rename
+rather than a fresh goal because the seeds, the banked results and every
+subgoal below still hold verbatim — this project does not renumber, and it
+does not edit drift away either.
+
+**The owner's statement of it:**
+
+> Everything is in a config, everything is a node, everything is a unified
+> spawn path, everything is a unified read and write path. Every action is
+> defined, config-maxxed. Nothing is just created randomly or freely — the
+> graph is the creation engine, so each engine action must be as mechanical as
+> possible.
+
+**Why the rename is not cosmetic.** "Zero-operations" names a *cost* to be
+driven down: the agent should not spend motion tending the machine. That is
+true and it stays true, but it is a symptom. **Config-maxxing names the
+cause.** An action that is improvised has to be re-derived, re-typed and
+re-checked by whoever meets it next; an action that is *declared* is read once
+and executed identically forever. Zero operations is what you get when
+everything is declared — not a separate target to aim at.
+
+**Invariant, restated at the deeper level:** every engine action is declared in
+a node or a config the engine reads. Any repeated, mechanical step is a named
+command, and every surviving manual handle carries a written reason.
+
+## The four "everything"s, and where each stands
+
+| | claim | status |
+|---|---|---|
+| **everything is in a config** | behaviour is declared data the engine reads, never a fork of engine code | partial — `config.json` is the customization surface; `goal:g1.10` extends it to the commands themselves |
+| **everything is a node** | including the engine's own geometry: crons, secrets, commands | partial — `.geometry/crons.md` and `secrets.md` exist; commands do not |
+| **one spawn path** | a harness is an adapter named in config, not a parallel code path | `goal:g4.6` |
+| **one read/write path** | one way in, one way out of the graph | `goal:g13` — read half landed 2026-09-02 |
+
+**`.geometry/crons.md` is the working precedent and the shape to copy.** It is
+graph content declaring cron cadences; `crons.py apply` is the one command that
+makes reality agree with the declaration; editing the node *is* the change. No
+schedule is typed at a shell. That is config-maxxing built and running, on one
+narrow surface, and `goal:g1.10` is the argument that the surface should be
+wider.
+
+**The counter-example this goal exists to prevent** is the one the repo has
+already paid for: a step that is mechanical but undeclared gets done slightly
+differently each time, and the differences are invisible until one of them is
+wrong. Six node parsers that agree only by accident (`goal:g13`), a manifest
+merge asserted in a commit message and nowhere else (`goal:s28`), a scaffold
+that omits schema-required fields nobody declared it must supply
+(`goal:s31`) — each is an undeclared action drifting.
+
+Already banked — cron owns all remote traffic (H10), embedded maps cut kids from
+11-13 tool calls to 5-7 (L7), the DONE contract makes stopping one line.
+
+Owns: **L11** remainder (one command that renders *and* spawns — the parent's
+last machine-tending chore), **L12** remainder (a runtime flag rather than a
+parallel code path; hook parity audit), **L17** (config schema plus a writer, so
+configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
+project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
+prior session manifests).
+
+### G15 — Bugfix and optimization
+
+# goal:g15
+
+## Agent Notes
+Long-term, always active, exempt from max_goals_active. Parent of every short-term (S) goal: ids never renumbered, goal_kind stays short-term, they stop being roots. Its bigger_outcome each season is the hazard ledger, goal:s34's home. Bugfixes, edge-case hardening, security fixes, optimization and hazard removal are done in-loop under this goal or under the S goal beneath it that fits. Design: .agi/context/season-ladder-and-morals-brief.md section 2.
+
+### G16 — Telemetry per node, propagated up the ladder
+
+# goal:g16
+
+## Agent Notes
+Per node at done and per session: model, harness, profile, tokens_in, tokens_out, cost_usd, accepted diff bytes (node plus payload, review-accepted only). Roll-up is a descendant sum along parents: outcome is its loop, bigger_outcome the LT goal, overview the season. Ratios: bytes per token and bytes per dollar, always beside aligned-outcome count; cost per aligned outcome is the ranking number. Secondary only, never a target, never read by an agent choosing what to do; it tunes the model lattice, goal:g14. Cost source is OpenRouter's per-generation endpoint through the per-spawn key, to be verified first. Design: .agi/context/season-ladder-and-morals-brief.md section 5. Horizon until L2 wave 2.

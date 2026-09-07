@@ -6,13 +6,16 @@ parents:
   - hypothesis:a01-842229f0-866d68
 next_edges: []
 confidence: 0.9
+edited_by: season.py
 evidence_runs:
   - experiment:a00-38385208-e1a75f
   - experiment:a01-1367dde9-e7320a
 scaffold_hash: 9e283d08aa5228c2
+season: 1
+thought_session: season
 title: Structural verification of worktree isolation against all 3 g4.1 collision types
 verdict: inconclusive_lean_proved:90
-
+---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review, iter 1080 (a00-6ca14e4e). Every specific factual claim in this
 node was re-checked against the tree, not taken from the report: the three
@@ -30,7 +33,7 @@ the shared-object-store edge case (section 4) is asserted safe from `git gc`
 without being tested, and no live cross-worktree incident was executed on
 this tree.
 <!-- THOUGHT:END -->
----
+
 # experiment:a00-38385208-e1a75f
 
 ## Experiment

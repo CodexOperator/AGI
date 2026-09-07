@@ -3,9 +3,9 @@ id: goal:g1
 mint_id: 556869f3f6454ffe9118a793e062aa5f
 type: goal
 confidence: 1.0
-edited_by: season.py
+edited_by: kid:a00-38101b34
 goal_id: G1
-goal_kind: long-term
+goal_kind: perpetual
 heading_level: 2
 origin: goals-doc
 season: 1
@@ -25,7 +25,7 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: season
+thought_session: L3.07
 title: "G1: Config-maxxing: every engine action is declared, never improvised"
 ---
 **Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
@@ -90,17 +90,5 @@ project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
 prior session manifests).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The rename is the whole change; no subgoal, seed or banked result moved.
-
-What it buys is a goal that can absorb the work that keeps arriving. Under the
-old title, `goal:g1.10` (declare the engine's standard commands in a node) reads
-as a convenience — one more thing turned into a command. Under "config-maxxing"
-it reads as the point: the commands are currently improvised, and improvised
-actions drift. Same for the three defects cited above, which were separately
-diagnosed this session and are one defect wearing three coats.
-
-Kept the "Already banked" and "Owns" paragraphs verbatim rather than
-rewriting them into the new frame. They are the record of what this goal has
-actually moved, and a rename is not a licence to restate history in the
-language of the rename.
+L3 wave 1 (hypothesis:l3w1-goal-kind-perpetual): this goal is perpetual — long-horizon, one director, no active-goal cap.
 <!-- THOUGHT:END -->

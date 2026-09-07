@@ -8,10 +8,13 @@ next_edges: []
 confidence: 0.65
 demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
 demoted_from: disproved
+edited_by: season.py
 scaffold_hash: b309fc2e191c9149
+season: 1
+thought_session: season
 title: A00 8231627c bf9e15
 verdict: inconclusive_lean_disproved:65
-
+---
 <!-- THOUGHT:BEGIN -->
 Parent review (a01-6c98d598, iter 1074). The kid reported `disproved`; the
 code gate caught the self-cited evidence resolving to zero at grid commit
@@ -31,7 +34,7 @@ grid history under shape 3 (hypothesis:a01-4013d44d-a188b8) is a further
 shape-3 cost this node does not touch. Body fixes: `## ##` heading typo,
 stray `"}` pasted at the end of the Key finding paragraph.
 <!-- THOUGHT:END -->
----
+
 # experiment:a00-8231627c-bf9e15
 
 ## Experiment

@@ -6,9 +6,12 @@ parents:
   - goal:s18
 next_edges: []
 confidence: 0.65
+edited_by: season.py
 scaffold_hash: 1e24cbf844c450ee
-title: "3 malformed cavekit_req values are fixable by inlining -- first bottleneck to clear for S18"
-testable_claim: Removing the cavekit_req field from the 3 free-text-valued hypothesis nodes and inlining the description into each body breaks nothing: test suite passes, level3.py scan uncrashed, find_chains() output unchanged for their chains
+season: 1
+testable_claim: "Removing the cavekit_req field from the 3 free-text-valued hypothesis nodes and inlining the description into each body breaks nothing: test suite passes, level3.py scan uncrashed, find_chains() output unchanged for their chains"
+thought_session: season
+title: 3 malformed cavekit_req values are fixable by inlining -- first bottleneck to clear for S18
 verdict: pending
 ---
 # hypothesis:a01-1f2762d5-1d90c0

@@ -4,7 +4,7 @@ derived_from: corpus-survey-2026-08-25 (n=75, 100% field coverage on every requi
 fields:
   title: {type: str}
   goal_id: {type: str}        # G7 | S4 | G7.2 -- never renumbered
-  goal_kind: {type: str}      # THE DISCRIMINATOR: long-term | short-term | subgoal
+  goal_kind: {type: str}      # THE DISCRIMINATOR: perpetual | long-term(legacy) | short-term | subgoal
   status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
   origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
   seeds: {type: list}         # node ids seeded from this goal
@@ -19,14 +19,25 @@ validation:
     confidence: float
   regex:
     goal_id: '^[GS]\d+(\.\d+)*$'
-    goal_kind: '^(long-term|short-term|subgoal)$'
+    # `perpetual` is canonical; `long-term` is the legacy spelling and stays
+    # accepted forever, exactly like `phasing-out` in `status` below — a
+    # drop-in reader must accept it, not survive one migration window.
+    goal_kind: '^(long-term|perpetual|short-term|subgoal)$'
     status: '^(active|horizon|retired|phasing-out|complete)$'
 spawn:
   discriminator: goal_kind
   variants:
-    # goal:long-term and goal:short-term are no longer parentless-legal
+    # goal:perpetual, goal:long-term and goal:short-term top-level goals are
+    # no longer parentless-legal under spawn
     # (parentless_types is now [moral]; the 27 pre-existing roots are
     # season 1, grandfathered, never re-gated).
+    perpetual:
+      allowed_parents: [build, goal, vision]
+      min_parents: 1
+      max_parents: 2
+      # perpetual roots G1, g15, g16 were born rootless and are grandfathered
+      # like every other pre-existing root; a NEW perpetual must hang under a
+      # vision or a goal (the wave-2 directors spawn exactly that way).
     long-term:
       allowed_parents: [build, goal, vision]
       min_parents: 1
@@ -76,20 +87,26 @@ looked authoritative. **Two files is only defensible if `type:` splits too,
 and splitting `type:` renames 75 nodes for no gain.** One file, discriminated
 on `goal_kind`.
 
-## The three variants, and why parentlessness is per-variant
+## The four variants, and why parentlessness is per-variant
 
-Measured over all 75 goal nodes — the correlation is exact, zero exceptions:
+Measured over all 75 goal nodes at survey time — the correlation was exact,
+zero exceptions. `perpetual` is the 2026-09-06 rename of `long-term` (legacy,
+accepted forever); `g1`, `g15` and `g16` carry it today:
 
 | `goal_kind` | n | parents | `goal_id` | example |
 |---|---|---|---|---|
-| `long-term` | 10 | 0 | undotted `G7` | `## G7` → `goal:g7` |
+| `perpetual` | 3 | 0 | undotted `G1` | `## G1` → `goal:g1` |
+| `long-term` (legacy) | 8 | 0 | undotted `G7` | `## G7` → `goal:g7` |
 | `short-term` | 17 | 0 | undotted `S4` | `## S4` → `goal:s4` |
 | `subgoal` | 48 | exactly 1 (`goal`) | dotted `G7.2` | `### G7.2` → `goal:g7.2`, `parents: [goal:g7]` |
 
 So "exactly three types may be parentless: G-goal, S-goal, `idea`" is precise
-only when stated per-variant: **`goal` is parentless-legal in two of its three
-variants and illegal in the third.** `[shape].md`'s `parentless_types`
-therefore lists `goal:long-term` and `goal:short-term`, not `goal`. The table
+only when stated per-variant: **`goal` is parentless-legal in three of its
+four variants and illegal in the fourth** — and even the legal ones are
+creation-time-only, because the `perpetual`/`long-term`/`short-term` variants
+declare `min_parents: 1` and roots G1, g15, g16 are grandfathered like every
+other pre-existing root. A NEW perpetual hangs under a vision or a goal
+(the wave-2 directors spawn exactly that way). The table
 above is the corpus as surveyed on 2026-08-25 and is now a floor rather than a
 ceiling — see the next section.
 
@@ -99,7 +116,8 @@ ceiling — see the next section.
 
 | `goal_kind` | may have | must have |
 |---|---|---|
-| `long-term` | up to 2 parents, each a `build` or a `goal` | nothing — parentless stays legal |
+| `perpetual` | up to 2 parents, each a `build` or a `goal` | nothing — parentless stays legal (grandfathered roots) |
+| `long-term` (legacy) | up to 2 parents, each a `build` or a `goal` | nothing — parentless stays legal (grandfathered roots) |
 | `short-term` | up to 2 parents, each a `build` or a `goal` | nothing — parentless stays legal |
 | `subgoal` | up to 3 parents, each a `build` or a `goal` | **at least one `goal`** (`min_parents_by_type`) |
 

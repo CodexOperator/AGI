@@ -141,8 +141,11 @@ NODES_DIR = PROJECT_ROOT / "nodes"
 # short-term goal is its own root and needs no parent to be legitimate.
 GOAL_RE = re.compile(r"^##\s*([GS]\d+)\b(.*)$")
 SUBGOAL_RE = re.compile(r"^###\s*(G\d+\.\d+)\b(.*)$")
+# A top-level perpetual goal renders under a `## Perpetual` section as `### <gid>`
+# (no dot — a dotted `### G1.2` is a subgoal and matches SUBGOAL_RE).
+PERPETUAL_RE = re.compile(r"^###\s*([GS]\d+)\b(.*)$")
 HEADING_RE = re.compile(r"^##\s")
-STATUS_RE = re.compile(r"[—\-]?\s*status\s*:\s*(.+?)\s*$", re.IGNORECASE)
+STATUS_RE = re.compile(r"[—-]?\s*status\s*:\s*(.+?)\s*$", re.IGNORECASE)
 GOAL_ID_RE = re.compile(r"^goal:")
 
 _GID_RE = re.compile(r"^([A-Za-z]+)(\d+(?:\.\d+)*)$")
@@ -572,6 +575,10 @@ def parse_goals(text: str) -> list[dict]:
             "title": title or gid,
             "status": status or "active",
             "heading_level": level,
+            # `perpetual` is set below for a `### <gid>` heading only; a normal
+            # G/S root and a dotted subgoal leave this empty and the writer
+            # derives the kind from the id shape as before.
+            "goal_kind": "",
             # A sub-goal carries its long-term goal as a parent; a top-level
             # goal (G or S) is a root and carries none.
             "parent_gid": gid.split(".")[0] if "." in gid else None,
@@ -590,6 +597,17 @@ def parse_goals(text: str) -> list[dict]:
             if current is not None:
                 goals.append(current)
             current = _start(m_sub.group(1), m_sub.group(2), 3)
+            continue
+        m_peerp = PERPETUAL_RE.match(line)
+        if m_peerp and "." not in m_peerp.group(1):
+            # A non-dotted `### <gid>` lives under the `## Perpetual` section.
+            # Perpetual roots are mid-document, so this is unambiguous against
+            # a dotted subgoal (which SUBGOAL_RE already claimed). Forced to
+            # heading_level 2 so round trips never drift the node's depth.
+            if current is not None:
+                goals.append(current)
+            current = _start(m_peerp.group(1), m_peerp.group(2), 2)
+            current["goal_kind"] = "perpetual"
             continue
         if HEADING_RE.match(line):
             # A non-goal `## ` heading terminates the current goal body.
@@ -614,6 +632,17 @@ GENERATED_BANNER = (
     "     same way an edit to nodes/goal/ used to be before the arrow flipped.\n"
     "     This document is a flat reading convenience; the graph is the\n"
     "     interface, and the hypergraph viewport (G9.4/G10.3) is the good one. -->"
+)
+
+#: Rendered at the head of the `## Perpetual` section (hypothesis
+#: l3w1-goal-kind-perpetual, L3 wave 1). Perpetual goals are broadly worded,
+#: one director each, meant to outlive seasons; they nevertheless may be
+#: `retired` on the node — retire stays legal, it is just not a lifecycle
+#: column in this section.
+PERPETUAL_INTRO = (
+    "The following goals are `goal_kind: perpetual` — the long-horizon\n"
+    "commitments, broadly worded, one director each. Retire stays legal on the\n"
+    "node; they simply carry no per-goal complete/retired lifecycle line here."
 )
 
 
@@ -661,7 +690,14 @@ def render_goals(preamble: str, goals: list[dict]) -> str:
     (`G2.10` after `G2.9`, `S11` after `S2`).
     """
     out = [GENERATED_BANNER, "", preamble, ""]
-    for g in sorted(goals, key=lambda x: natural_sort_key(x["gid"])):
+    # Perpetual goals get their own section at the end of the document: they
+    # are the long-horizon commitments (one director each, broadly worded),
+    # and grouping them apart keeps the G/S lifecycle view short. They carry no
+    # `— status:` line (no complete/retired lifecycle column); retire is still
+    # legal on the node and is simply not rendered as a per-goal lifecycle here.
+    perpetual = [g for g in goals if g.get("goal_kind") == "perpetual"]
+    regular = [g for g in goals if g.get("goal_kind") != "perpetual"]
+    for g in sorted(regular, key=lambda x: natural_sort_key(x["gid"])):
         hashes = "#" * int(g["heading_level"])
         out.append(f"{hashes} {g['gid']} — {g['title']} — status: {g['status']}")
         out.append("")
@@ -671,6 +707,19 @@ def render_goals(preamble: str, goals: list[dict]) -> str:
         # sides are stripped and the round trip stays byte-identical.
         out.append(strip_thought(g["body"]))
         out.append("")
+    if perpetual:
+        out.append("## Perpetual")
+        out.append("")
+        out.append(PERPETUAL_INTRO)
+        out.append("")
+        for g in sorted(perpetual, key=lambda x: natural_sort_key(x["gid"])):
+            # Lay one level deeper than the node's own heading_level so the
+            # goal nests under the `## Perpetual` section heading.
+            hashes = "#" * (int(g["heading_level"]) + 1)
+            out.append(f"{hashes} {g['gid']} — {g['title']}")
+            out.append("")
+            out.append(strip_thought(g["body"]))
+            out.append("")
     # One trailing newline, no trailing blank line — matches the hand-written
     # document byte for byte, which is what `--check` compares.
     return "\n".join(out).rstrip("\n") + "\n"
@@ -819,6 +868,7 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
             "gid": gid,
             "title": title,
             "status": fm.get("status", "active"),
+            "goal_kind": str(fm.get("goal_kind") or "").strip(),
             "heading_level": int(fm["heading_level"]),
             "body": (node.get("body") or "").strip(),
         })
@@ -987,12 +1037,23 @@ def main(argv: list[str] | None = None) -> int:
         node_id = f"goal:{g['gid'].lower()}"
         title = f"{g['gid']}: {g['title']}"
         parent_gid = g.get("parent_gid")
+        kind = g.get("goal_kind")
+        if not kind:
+            if parent_gid:
+                kind = "subgoal"
+            elif g["gid"].startswith("S"):
+                kind = "short-term"
+            else:
+                kind = "long-term"
+        tags = ["goal"]
         if parent_gid:
-            kind, tags = "subgoal", ["goal", "subgoal"]
+            tags += ["subgoal"]
+        elif kind == "perpetual":
+            tags += ["root", "perpetual"]
         elif g["gid"].startswith("S"):
-            kind, tags = "short-term", ["goal", "root", "short-term"]
+            tags += ["root", "short-term"]
         else:
-            kind, tags = "long-term", ["goal", "root"]
+            tags += ["root"]
         fm = {
             "id": node_id,
             "type": "goal",

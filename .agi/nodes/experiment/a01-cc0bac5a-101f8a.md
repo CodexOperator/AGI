@@ -6,10 +6,13 @@ parents:
   - hypothesis:a00-7e85b581-3a07f5
 next_edges: []
 confidence: 0.55
+edited_by: season.py
 scaffold_hash: c8c311ac5f26741b
+season: 1
+thought_session: season
 title: A01 cc0bac5a 101f8a
 verdict: inconclusive_lean_disproved:55
-
+---
 <!-- THOUGHT:BEGIN -->
 Parent review (a01-6c98d598, iter 1074). Demoted from
 inconclusive_lean_proved:70 to inconclusive_lean_disproved:55: the verdict
@@ -30,7 +33,7 @@ crash "in the import chain (also missing evidence_gate module)" that no
 recorded test observed, and the Agent Notes line repeating "level3.py
 inoperable".
 <!-- THOUGHT:END -->
----
+
 # experiment:a01-cc0bac5a-101f8a
 
 ## Experiment

@@ -6,13 +6,19 @@ parents:
   - hypothesis:cc-kids-do-not-mint-openrouter-keys
 next_edges: []
 confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
+edited_by: season.py
 scaffold_hash: fd75f10b223f5e6a
+season: 1
+thought_session: season
 title: A00 4c170302 65ca06
-verdict: proved
+verdict: inconclusive_lean_proved:50
+---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent a00-27ecc2b3 (iter 1088) review edit. Verdict stands: the code-state claims were all verified correct by parent re-read (gate at dispatch.py L471, pi→True, claude-code→False, REQUIRED on the adapter interface, live provisioning status). Two corrections. (1) The kid's strongest-sounding line — that test_removing_the_harness_check_restores_unconditional_minting "explicitly proves removing the gate" — overclaims: that test re-implements the gate loop inline and never imports dispatch.py, so deleting the check from dispatch.py leaves all four tests green. What IS pinned is the adapter declarations (tests 1–2) and the gate logic in isolation; a source-level regression test on dispatch.py is still owed under goal:s34 item 2. (2) Suite numbers were a point-in-time reading in a live, concurrently-edited tree: the one cited failure (test_thought_hygiene) was transient churn, and the parent re-ran the full suite at 15:3x — 1482 passed, 0 failed. Both corrections are noted where the claims appear; nothing about the gate itself was wrong.
 <!-- THOUGHT:END -->
----
+
 # experiment:a00-4c170302-65ca06
 
 ## Experiment

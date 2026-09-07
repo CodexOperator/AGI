@@ -119,11 +119,15 @@ def _plan_type_for_kind(kind: str) -> str:
 
     The ladder node declares plan types like "short-term goal" and
     "long-term goal", but the actual frontmatter goal_kind stores the shorter
-    "short-term" and "long-term". This normaliser accounts for both.
+    "short-term" and "long-term". `perpetual` is the 2026-09-06 canonical
+    spelling of `long-term` (hypothesis:l3w1-goal-kind-perpetual) and maps to
+    the same ladder plan type, so a perpetual goal still tallies as a tier-1
+    plan and a report under it still resolves it as its plan parent. This
+    normaliser accounts for all three.
     """
     if kind == "short-term":
         return "short-term goal"
-    if kind == "long-term":
+    if kind in ("long-term", "perpetual"):
         return "long-term goal"
     return kind
 
@@ -138,7 +142,10 @@ def _kind_from_goal_type(plan_type: str) -> str | None:
     if plan_type == "short-term goal":
         return "short-term"
     if plan_type == "long-term goal":
-        return "long-term"
+        # `perpetual` is the canonical spelling of `long-term` as of the
+        # l3w1-goal-kind-perpetual rename; a ladder-declared "long-term goal"
+        # plan is written down in nodes as `goal_kind: perpetual`.
+        return "perpetual"
     return None
 
 

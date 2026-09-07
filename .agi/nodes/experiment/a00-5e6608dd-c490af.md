@@ -6,10 +6,13 @@ parents:
   - hypothesis:a00-7e85b581-3a07f5
 next_edges: []
 confidence: 0.75
+edited_by: season.py
 evidence_runs:
   - experiment:a00-5e6608dd-c490af
 scaffold_hash: 9ba3373b5d50f734
-title: A00 5e6608dd c490af — Shape 3 (pip/uv) invariants: 2 of 3 fail, invariant 3 survives
+season: 1
+thought_session: season
+title: "A00 5e6608dd c490af — Shape 3 (pip/uv) invariants: 2 of 3 fail, invariant 3 survives"
 verdict: inconclusive_lean_disproved:75
 ---
 # experiment:a00-5e6608dd-c490af

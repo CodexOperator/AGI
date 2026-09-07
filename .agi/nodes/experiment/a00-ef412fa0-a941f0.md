@@ -6,10 +6,13 @@ parents:
   - hypothesis:l2-agent-git-commit-guard
 next_edges: []
 confidence: 0.8
+edited_by: season.py
 evidence_runs:
   - experiment:a00-ef412fa0-a941f0
 scaffold_hash: 7c4d5f17c473136b
-title: L2 g15: git commit guard — belt (hooksPath) + suspenders (log_experiment patch)
+season: 1
+thought_session: season
+title: "L2 g15: git commit guard — belt (hooksPath) + suspenders (log_experiment patch)"
 verdict: inconclusive_lean_proved:80
 ---
 # experiment:a00-ef412fa0-a941f0

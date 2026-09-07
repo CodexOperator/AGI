@@ -6,10 +6,13 @@ parents:
   - hypothesis:a00-7e85b581-3a07f5
 next_edges: []
 confidence: 0.55
+edited_by: season.py
 evidence_runs:
   - experiment:a01-f200a540-196dea
 scaffold_hash: c3694308d4b05c52
-title: A01 f200a540 196dea — Shape 3 (pip/uv) invariants: only per-env version sharing survives
+season: 1
+thought_session: season
+title: "A01 f200a540 196dea — Shape 3 (pip/uv) invariants: only per-env version sharing survives"
 verdict: inconclusive_lean_proved:55
 ---
 # experiment:a01-f200a540-196dea

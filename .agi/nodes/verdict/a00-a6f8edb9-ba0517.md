@@ -6,10 +6,13 @@ parents:
   - experiment:a00-32130a44-f8496f
 next_edges: []
 confidence: 0.8
-scaffold_hash: 48fcb42241d94573
-title: L9 pinning gap: mechanism demonstrated at negligible cost; entry-point integration still open
+edited_by: season.py
 evidence_runs:
   - experiment:a00-32130a44-f8496f
+scaffold_hash: 48fcb42241d94573
+season: 1
+thought_session: season
+title: "L9 pinning gap: mechanism demonstrated at negligible cost; entry-point integration still open"
 verdict: inconclusive_lean_proved:80
 ---
 # verdict:a00-a6f8edb9-ba0517

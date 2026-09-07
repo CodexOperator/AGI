@@ -6,14 +6,17 @@ parents:
   - hypothesis:a01-390e52ad-e286a2
 next_edges: []
 confidence: 0.6
-scaffold_hash: c0c833826bf7b211
-title: Confirms stale-.pyc cannot reproduce; v5 max-seen detection produces false positives
-verdict: inconclusive_lean_disproved:60
+demote_reason: "'disproved' requires evidence_runs (absent); own v5b result is a null repro (0/4000 both regimes), which cannot disprove; 'in-memory staleness across process boundaries' is incoherent — in-memory caching does not cross processes [caught in parent review, iter 1080, a01-50743e85]"
 demoted_from: disproved
-demote_reason: 'disproved' requires evidence_runs (absent); own v5b result is a null repro (0/4000 both regimes), which cannot disprove; 'in-memory staleness across process boundaries' is incoherent — in-memory caching does not cross processes [caught in parent review, iter 1080, a01-50743e85]
+edited_by: season.py
 evidence_runs:
   - experiment:a00-cce327d4-f2932a
   - experiment:a00-5f8cf404-0f3ef7
+scaffold_hash: c0c833826bf7b211
+season: 1
+thought_session: season
+title: Confirms stale-.pyc cannot reproduce; v5 max-seen detection produces false positives
+verdict: inconclusive_lean_disproved:60
 ---
 # experiment:a01-4851a7c3-602b8a
 
