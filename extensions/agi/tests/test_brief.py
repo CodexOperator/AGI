@@ -261,6 +261,26 @@ def test_director_spawn_primitive_names_the_parent_role_and_ladder_tier():
         " will 'simplify' it back to the bug")
 
 
+def test_director_brief_carries_reasoning_section_with_ascii_diagram():
+    """hypothesis:l3w4-director-kids-on-glm — a GLM-flash director holds no
+    native reasoning, so the brief must teach the decompose-mint-drive-judge
+    process. The REASONING segment must carry the three commands that make a
+    one-shot director self-sufficient: mint the subgoal, drive it with a
+    parent, judge the outcome."""
+    d = _text("director")
+    assert "REASON BEFORE YOU ACT" in d
+    assert "write.py create goal" in d
+    assert "--ladder-tier 0" in d
+    assert "season.py judge" in d
+    # the reasoner is taught, not handed machinery — the diagram is present
+    assert "|" in d and "+" in d
+    assert "continue" in d and "adjust" in d and "done" in d
+    # prime_director reuses the director segments, so it inherits the lesson
+    pd = _text("prime_director")
+    assert "write.py create goal" in pd
+
+
+
 def test_director_cannot_do_kid_work():
     """A director must be told not to do kid work."""
     d = _text("director")
