@@ -221,12 +221,17 @@ def test_sender_env_beats_flag(monkeypatch):
     assert send_mod._detect_sender("flag-loser") == "env-win"
 
 
-def test_sender_tmux_window_when_no_env_no_flag(monkeypatch):
-    """With no env and no --from, the tmux window name is the sender."""
+def test_sender_window_name_is_never_an_identity(monkeypatch):
+    """hypothesis:l3-agent-id-never-exported — a seat/tmux window name is
+    never a sender. With no env and no --from the message is signed
+    "unknown", even inside a window named after the prime (which is exactly
+    what used to sign this advisor as belam-S1-L3-III).
+    """
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "agi-window-9")
-    assert send_mod._detect_sender(None) == "agi-window-9"
-    # an explicit --from still outranks the tmux window
+    # a window that once impersonated the prime must now be ignored
+    monkeypatch.setenv("AGI_TMUX_WINDOW_NAME", "belam-S1-L3-III")
+    assert send_mod._detect_sender(None) == "unknown"
+    # an explicit --from still provides an identity
     assert send_mod._detect_sender("explicit-flag") == "explicit-flag"
 
 # ══════════════════════════════════════════════════════════════════════════

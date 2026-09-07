@@ -483,6 +483,33 @@ def test_commit_never_falls_back_to_node_id_ref_for_missing_mint_id(mint_project
     assert "ERROR" in err and "idea:no-mint" in err and "no mint_id" in err
 
 
+def test_adopted_node_commits_with_zero_errors(mint_project):
+    """hypothesis:l3-node-without-mint-id — the live-proof half of the fix.
+    A node written outside node_writer (no mint_id -> grid refuses to version
+    it) becomes versionable once `node_writer.repair_mint` adopts it: commit
+    --all then reports 0 errors and the node gets a mint-id ref."""
+    import node_writer
+    _write_mint_node(mint_project, "no-mint.md", "idea:no-mint")
+
+    # Before: commit --all refuses (skips, reports an error, keeps going).
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+    assert grid.ref_tip(mint_project, grid.node_ref("idea:no-mint")) is None
+
+    # Adopt it, then re-commit.
+    res = node_writer.repair_mint(mint_project, "idea:no-mint", announce=False)
+    assert res.status == node_writer.UPDATED, res.reason
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+
+    assert grid.ref_tip(mint_project, grid.mint_node_ref(res_mint_id(mint_project))) is not None
+
+
+def res_mint_id(project):
+    import re as _re
+    p = project / "nodes" / "idea" / "no-mint.md"
+    m = _re.search(r"^mint_id:\s*([^\n\s]+)", p.read_text(), _re.M)
+    return m.group(1) if m else ""
+
+
 def test_read_falls_back_to_legacy_ref_when_no_mint_ref_exists(mint_project):
     """A version committed BEFORE the node had a mint_id (or before the
     mint-id ref existed) must stay reachable by log/diff/versions/status."""

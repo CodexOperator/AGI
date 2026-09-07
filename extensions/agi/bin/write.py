@@ -98,12 +98,19 @@ class Edit:
     thought: str = ""
     payload_from: str = ""
     payload_bytes: str = ""
+    # hypothesis:l3-node-without-mint-id -- `adopt` mints a first mint_id on
+    # a node written outside node_writer. Deliberately NOT a `set_fm` entry:
+    # `mint_id` is PROTECTED (goal:g2.5), and adopting is not setting it, it
+    # is Minting it through node_writer.repair_mint, which refuses an already-
+    # minted id. This flag is what lets main route it there rather than into
+    # the ordinary submit -> update_node path (which would refuse it).
+    adopt: bool = False
 
     @property
     def empty(self) -> bool:
         return not (self.set_fm or self.unset_fm or self.body_append
                     or self.thought or self.payload_from
-                    or self.payload_bytes)
+                    or self.payload_bytes or self.adopt)
 
 
 # --------------------------------------------------------------------------
@@ -184,6 +191,22 @@ def verb_payload_text(edit: Edit, text: str) -> Edit:
     return edit
 
 
+def verb_adopt(edit: Edit, *extra: str) -> Edit:
+    """`adopt` — mint a first `mint_id` for a node written outside
+    node_writer (a kid's own file tool), so grid.py can version it.
+
+    hypothesis:l3-node-without-mint-id. Refuses when a `mint_id` already
+    exists. The one sanctioned exception to the `mint_id` PROTECTION: this
+    does not SET the id, it routes through `node_writer.repair_mint`, which
+    mints and refuses an already-minted node. Standalone -- it cannot
+    meaningfully share a line with other verbs.
+    """
+    if extra:
+        raise EditError(f"adopt takes no arguments, got: {' '.join(extra)}")
+    edit.adopt = True
+    return edit
+
+
 def verb_payload(edit: Edit, source: str) -> Edit:
     """`payload <path>` — replace the bytes of the file this node points at.
 
@@ -210,6 +233,7 @@ VERBS = {
     "note": verb_note,
     "payload": verb_payload,
     "payload_text": verb_payload_text,
+    "adopt": verb_adopt,
 }
 
 #: How many arguments each verb takes. The LAST one always absorbs the rest of
@@ -222,7 +246,7 @@ VERBS = {
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
-         "payload": 1, "payload_text": 1}
+         "payload": 1, "payload_text": 1, "adopt": 0}
 
 
 def _coerce(value: str):
@@ -568,6 +592,42 @@ def main(argv: list[str] | None = None) -> int:
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
+
+    # hypothesis:l3-node-without-mint-id -- `adopt` is the one verb that does
+    # NOT accumulate into an Edit and submit through `update_node` (which
+    # would refuse `mint_id` as PROTECTED). It routes through
+    # `node_writer.repair_mint`: mint a first mint_id, refuse an existing one.
+    if edit.adopt:
+        if (edit.set_fm or edit.unset_fm or edit.thought or edit.body_append
+                or edit.payload_from or edit.payload_bytes):
+            print("ERR: adopt is standalone; it cannot share a line with "
+                  "other verbs", file=sys.stderr)
+            return 2
+        if args.dry_run:
+            print(f"adopt {edit.node_id}: would mint a first mint_id "
+                  "(refuses if one exists)")
+            return 0
+        try:
+            res = node_writer.repair_mint(root, edit.node_id, announce=True)
+        except Exception as exc:
+            print(f"ERR: adopt failed: {exc}", file=sys.stderr)
+            return 2
+        if res.status == node_writer.REJECTED:
+            print(f"ERR: {res.reason}", file=sys.stderr)
+            return 2
+        if res.status == node_writer.SKIPPED:
+            print(f"SKIP: {edit.node_id} -- {res.reason}", file=sys.stderr)
+            return 1
+        mint = ""
+        try:
+            import re as _re
+            _mt = _re.search(r"^mint_id:\s*([^\n\s]+)",
+                             res.path.read_text(encoding="utf-8"), _re.M)
+            mint = _mt.group(1) if _mt else ""
+        except Exception:
+            pass
+        print(f"adopted: {edit.node_id} mint_id={mint or '(written)'}")
+        return 0
 
     if args.dry_run:
         print(f"{edit.node_id}:")
