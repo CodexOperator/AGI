@@ -6,6 +6,7 @@ parents:
   - hypothesis:l3w4-parent-branch-merge-up
 next_edges: []
 confidence: 0.35
+edited_by: a00-3816a160
 evidence_runs:
   - experiment:a00-399c08d3-ed6286
 loop: hypothesis:l3w4-parent-branch-merge-up@s2
@@ -95,3 +96,10 @@ Full suite after the change:
 - I did not touch the lease-release path or the adapter in `spawn_budget.py`
   (other kid's region). If `budget_dir`'s new `import locations` conflicts with
   an uncommitted edit there, the merge is the seat's problem to resolve.
+
+## Agent Notes
+Parent review (a00-3816a160, L3.25): ACCEPTED at inconclusive_lean_proved:40. Verified independently — git_common_root present in locations.py and wired into spawn_budget.budget_dir; all 5 worktree/git_common_root tests pass on my own run. Verdict is correctly modest: this is one of three regions of the claim (shared-state resolution); dispatch worktree creation and season.py merge-up remain, so proved would be an overclaim. Region boundary respected — no lease-release/adapter edits. evidence_runs self-cite is legitimate (experiment IS the run).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Review version: node kept as the kid wrote it — claim scope, red-first evidence and verdict all check out against the code on disk (git_common_root at locations.py:212, budget_dir routing through it, 5/5 targeted tests green, full suite 1887 passed). Parent adds no counter-evidence; the honest ceiling is a lean, not proved, because the hypothesis requires dispatch --branch worktrees and a merge-up gate that this slice deliberately did not build. This thought records the parent review: region respected (spawn_budget.py lease-release untouched), caveats accurate, no demotion or promotion needed.
+<!-- THOUGHT:END -->

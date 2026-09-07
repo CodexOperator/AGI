@@ -132,6 +132,22 @@ def _detect_sender(from_flag: str | None) -> str:
 # ── comms root ─────────────────────────────────────────────────────────────
 
 
+def _main_graph_root(root: Path) -> Path:
+    """The graph root of the MAIN checkout, from any depth (worktree or main).
+
+    `hypothesis:l3w4-parent-branch-merge-up` — a `--branch` kid runs in its
+    own git worktree, which carries its own `.agi/`; comms must stay the ONE
+    shared directory for a season, so we resolve the main checkout through
+    `locations.git_common_root` and re-apply graph discovery from there. In
+    the main checkout this is the identity (same `.agi/` comes back), so the
+    default comms location never moves for non-worktree callers.
+    """
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+    return main_graph or graph
+
+
 def _default_comms_root(root: Path) -> Path:
     """`<graph_root>/comms/season-<N>/` — a declared, season-level root whose
     path does not change when a new iteration dir is minted.
@@ -140,7 +156,7 @@ def _default_comms_root(root: Path) -> Path:
     missing ladder must never scatter comms). Never the newest iteration dir: a
     per-iteration root would RESET the standing rooms on every loop.
     """
-    graph = locations.find_project_root(root) or root
+    graph = _main_graph_root(root)
     season = 1
     try:
         s = spawn_gate.read_ladder_season(graph / NODES_DIR)
@@ -155,17 +171,19 @@ def comms_root(root: Path, override: str | None = None) -> Path:
     """The comms root: --comms-root flag > config `locations.comms_root` >
     default `sessions/<iter>/comms`. Config is read from the nearest graph
     root (.agi/); a config value absolute is used as-is, relative resolved
-    against the graph root, so a project may point it at tmpfs."""
+    against the MAIN checkout's graph root (`_main_graph_root`), so under a
+    `--branch` kid the comms dir stays the main checkout's — one room per
+    season, never one per worktree."""
     if override:
         p = Path(override).expanduser()
         return p.resolve() if p.is_absolute() else (root / p).resolve()
-    graph = locations.find_project_root(root) or root
+    graph = _main_graph_root(root)
     cfg = locations.load_config(graph)
     declared = (cfg.get("locations") or {}).get("comms_root")
     if isinstance(declared, str) and declared.strip():
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (graph / p).resolve()
-    return _default_comms_root(root)
+    return _default_comms_root(graph)
 
 
 def _dm_pair(a: str, b: str) -> tuple[str, str, str]:
