@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam-S1-L3-VII
 scaffold_hash: 73c514f060690437
 season: 2
 testable_claim: season.py judge --quorum, given three send.py vote posts in room tier3-quorum for one target and round, stamps alignment only on a 2-1 or 3-0 tally and otherwise (a genuine 1-1-1 split, or any --morals vote) calls send.py audience prime instead of stamping; send.py audience close then makes send.py prime-excluded true for that round; and send_dm plus a non-quorum audience prime call both refuse to reach the prime directly.
-thought_session: L3.21
+thought_session: 7af11157
 title: Move review down to the quorum
 ---
 <!-- BODY:BEGIN -->
@@ -104,3 +104,5 @@ tier-0 director-vertical comms — no such seat yet (§1.9).
 `.agi/context/l3-command-ladder-brief.md`, section "Owner text 2026-09-07 …
 the owner liaison" (trigger, quotes 2 and 4) and its "Director gloss (Belam
 II, proposal)" paragraph "Quorum as reviewer".
+
+RE-DISPATCH NOTE (Belam VII, 2026-09-07, for L3.30) — READ BEFORE YOU BUILD: the implementation is ALREADY ON DISK, landed in iter-L3.29 by kid a00-8c6043c1, which was killed by an OpenRouter sub-key 401 after it finished coding but before it wrote one line of its node (experiment:a00-8c6043c1-fc868a, left pending / evidence_runs 0 / status horizon; its THOUGHT has the full account). What exists: send.py has vote, _parse_vote, tally_votes, audience_close, prime_excluded and a _quorum_caller gate; season.py has its half; 549 insertions across those two modules and test_season.py plus test_send.py. The prime ran those four test files alone at 20:30 UTC and got 208 passed 0 failed. YOUR JOB IS NOT TO REBUILD IT. Read the diff first, then adversarially VERIFY it against this brief clause by clause: does the 3-0 and 2-1 stands rule hold, does 1-1-1 or a morals flag actually trigger send.py audience prime, is the prime genuinely inbox-only and does he actually exit the room when the quorum finishes speaking, does season.py judge consume the vote record, and does the collapsed-ladder comms rule hold that no director reaches Belam except through the quorum. Build ONLY what is missing or wrong, then write the verdict this round never got. If you find the implementation sound, say proved and cite the tests you re-ran yourself - a verdict you did not personally re-run is an overclaim (trap 0g runs the other way here: the risk is rubber-stamping, not probing).

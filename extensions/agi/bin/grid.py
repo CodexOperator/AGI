@@ -702,9 +702,25 @@ class GridLock:
     it in the error. flock is advisory and process-scoped, so the lock is
     released automatically when the holder exits even on an exception path;
     close()/release() also free it on the clean path.
+
+    hypothesis:l3-grid-lock-doubled-path — `root` is the GRAPH root, which is
+    the `.agi/` directory itself under G11 (`locations.project_root_from_env`
+    returns `<repo>/.agi`, the graph dir, never the repo root). So the lock
+    dir is the graph's own `sessions/`, spelled as `root / "sessions"` — NOT
+    `root / ".agi" / "sessions"`, which doubles the `.agi` into a stray
+    `<repo>/.agi/.agi/sessions` (hypothesis:l3-budget-dir-dropped-agi,
+    hypothesis:l3-rotate-pin-path-readback). The pre-fix doubled path was
+    still /shared/ by a cron `cd .agi` run and a repo-root hand run (both
+    resolve to the same graph root), so the flock did serialize them, but it
+    lived in the wrong scratch dir, disagreed with `_grid_lock_path` and every
+    documented path, and let a correct-location holder race it. Legacy bare
+    roots keep `.agi/sessions`; only the G11 graph dir uses the direct form.
     """
     def __init__(self, root: Path, wait_seconds: int) -> None:
-        self._lock_dir = root / ".agi" / "sessions"
+        # G11 graph root => the `.agi` dir itself: sessions sit directly under
+        # it. Legacy bare root => `.agi/sessions`, as the contract documents.
+        self._lock_dir = locations.sessions_dir(root) \
+            if locations.is_graph_dir(root) else root / ".agi" / "sessions"
         self._path = self._lock_dir / ".grid.lock"
         self._wait_seconds = wait_seconds
         self._f = None

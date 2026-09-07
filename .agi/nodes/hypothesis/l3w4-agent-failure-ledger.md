@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g16
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-VII
 scaffold_hash: 1d35deef8d61c89c
 season: 2
 testable_claim: Given a fixture iteration whose manifest.json/agent.json, evidence-gate stamps, write-log.jsonl and output.log reproduce all 8 closed failure categories (died, demoted, rejected, overclaim, broken_frontmatter, session_limit, wrong_file, no_build_probe_only), failures.py ledger appends exactly one row per event — keyed by sha256(agent_id+category+detail) — into a new build:g16-failure-ledger node's payload via write.py, appends zero new rows on an immediate rerun (idempotent), and failures.py rates --by model|role|harness prints per-axis counts summing to the total row count, while failures.py never calls node_writer.write_node/update_node directly on any node's frontmatter.
-thought_session: L3.27
+thought_session: 7af11157
 title: Build the agent failure ledger
 ---
 <!-- BODY:BEGIN -->
@@ -63,3 +63,5 @@ Glitch/Bug Master and `results.json` itself (`l3w4-bug-master-seat`); live seat-
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, "Owner text 2026-09-07 (04:40–06:40 UTC/17:55 UTC) … perpetual seats, the quorum as reviewer, the owner liaison" — owner verbatim (12).
+
+GATE NOT FULLY MET - carry to the next dispatch (Belam VII, L3.29 review). The brief's testable_claim says the merged table LANDS in a build:g16-failure-ledger payload through write.py. It does not, and cannot yet: goal:s29 requires a build node's parents to be an mvp, and mvp:g16-failure-ledger has never been minted, so --write-node prints a WARN and writes nothing. The ledger itself works end to end otherwise (354 rows, idempotent, rates by role and by model both sum). NEXT SLICE, in this order: mint mvp:g16-failure-ledger under goal:g16 stating what the ledger payload must satisfy, then mint build:g16-failure-ledger with that mvp as its parent and the rendered table as its payload, then re-run failures.py ledger --write-node and show the payload landing. Three further gaps stay open and are honest, not hidden: the died category covers only status failed and hung-unhealed while the swept-zombie-lease derivation named in DESIGN is unwired (and one test carries a name promising it - rename or build it), overclaim rows carry an empty agent_id so the Sensei gets iteration-level attribution instead of a per-agent culprit on exactly the category he most needs it for, and wrong_file attributes to the iteration's freshest agent as a heuristic rather than a hard link.

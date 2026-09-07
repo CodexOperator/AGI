@@ -44,6 +44,10 @@ LADDER_NODE_REL = Path("nodes") / ".geometry" / "ladder.md"
 #: write.py path (we shell out, never write files directly).
 WRITE_PY = Path(__file__).resolve().parent / "write.py"
 
+#: send.py path — judge --quorum shells `send.py audience prime ...` on a
+#: deadlock (hypothesis:l3w4-quorum-reviews).
+SEND_PY = Path(__file__).resolve().parent / "send.py"
+
 
 # ---------------------------------------------------------------------------
 # Data types
@@ -406,7 +410,6 @@ def cmd_judge(root: Path, args) -> int:
                     if nf.frontmatter.get("id") == pid_str:
                         parent_type = str(nf.frontmatter.get("type", ""))
                         parent_kind = str(nf.frontmatter.get("goal_kind", ""))
-                        from graph_core.identity import canonical_type
                         # Check if this parent is a known plan type
                         parent_plan_type = _plan_type_for_kind(parent_kind)
                         if parent_type == "goal" and parent_plan_type in tier_plan_types:
@@ -461,6 +464,71 @@ def cmd_judge(root: Path, args) -> int:
         print(f"DEBUG: report={report_id} type={report_type} tier={tier_num}")
         print(f"DEBUG: against={final_against} lens={lens_id} season={season}")
 
+    # ---- quorum review (hypothesis:l3w4-quorum-reviews) ----
+    # The advisors review through their visions in a room; a 3-0/2-1 tally
+    # stamps `alignment` here, a 1-1-1 deadlock or any --morals vote falls
+    # through to `send.py audience prime` instead and leaves alignment unset.
+    quorum_align = None
+    quorum_adjust = None
+    quorum_note = None
+    quorum_audienced = False
+    if getattr(args, "quorum", False):
+        try:
+            import send
+        except ImportError:
+            print(f"ERR: cannot import send.py for --quorum (no sibling "
+                  f"send.py?)", file=sys.stderr)
+            return 1
+        room = getattr(args, "room", "") or "tier3-quorum"
+        round_ = (getattr(args, "judge_round", "")
+                  or os.environ.get("AGI_LOOP", "default"))
+        croot = send.comms_root(root, getattr(args, "comms_root", "") or None)
+        try:
+            tally = send.tally_votes(croot, room, report_id, round_)
+        except SystemExit:
+            # tally_votes prints "ERR: incomplete quorum ..." to stderr
+            return 1
+        any_morals = any(bool(t.get("morals")) for t in tally.values())
+        aligned_n = sum(1 for t in tally.values()
+                        if t.get("alignment") == "aligned")
+        adjust_n = sum(1 for t in tally.values()
+                       if t.get("alignment") == "adjust")
+        tally_desc = "; ".join(f"{v}={tally[v].get('alignment')}"
+                                for v in send.VISIONS if v in tally)
+        quorum_note = f"quorum {room} (round {round_}): {tally_desc}"
+
+        if any_morals or (aligned_n < 2 and adjust_n < 2):
+            # deadlock, or the morals outrank the quorum: the prime decides
+            reason = (f"morals at stake in quorum review of {report_id} "
+                      f"(round {round_})" if any_morals else
+                      f"quorum deadlocked on {report_id} (round {round_})")
+            aud_flags = ["audience", "prime", "--reason",
+                         f"{reason}: {tally_desc}"]
+            if any_morals:
+                aud_flags.append("--morals")
+            res = subprocess.run(
+                [sys.executable, str(SEND_PY)] + aud_flags,
+                capture_output=True, text=True, cwd=str(root))
+            if res.returncode != 0:
+                print(f"ERR: audience prime failed: "
+                      f"{res.stderr.strip() or res.stdout.strip()}",
+                      file=sys.stderr)
+                return 1
+            if res.stdout.strip():
+                print(res.stdout.strip())
+            quorum_audienced = True
+        else:
+            quorum_align = "aligned" if aligned_n >= 2 else "adjust"
+            dissents = [t for t in tally.values()
+                        if t.get("alignment") != quorum_align]
+            quorum_adjust = (dissents[0].get("reason", "") if dissents
+                             else "")
+
+    if quorum_audienced:
+        print(f"quorum did not reach a majority on {report_id}: alignment "
+              f"unset; the disputed call goes to the prime")
+        return 0
+
     # Write the judgment record using write.py
     set_fields = {
         "judged_against": final_against,
@@ -468,8 +536,13 @@ def cmd_judge(root: Path, args) -> int:
     }
     if lens_id:
         set_fields["lens"] = lens_id
+    if quorum_align is not None:
+        set_fields["alignment"] = quorum_align
+        if quorum_adjust:
+            set_fields["adjust"] = quorum_adjust
 
-    rc = _shell_out_write(root, report_id, set_fm=set_fields)
+    rc = _shell_out_write(root, report_id, set_fm=set_fields,
+                          note=quorum_note)
     if rc != 0:
         return rc
 
@@ -500,7 +573,10 @@ def cmd_judge(root: Path, args) -> int:
     print(f"Judgment stamped on {report_id}:")
     print(f"  judged_against: {final_against}")
     print(f"  lens: {lens_id or '(not found)'}")
-    print(f"  alignment: unknown (set manually)")
+    if quorum_align is not None:
+        print(f"  alignment: {quorum_align} (quorum majority)")
+    else:
+        print(f"  alignment: unknown (set manually)")
     print(f"  season: {season}")
 
     if not lens_id:
@@ -1059,6 +1135,16 @@ def main(argv: list[str] | None = None) -> int:
     p_judge.add_argument("--against", default="",
                          help="Plan node ID (default: derived from report's parents)")
     p_judge.add_argument("--debug", action="store_true", help="Show debug info")
+    p_judge.add_argument("--quorum", action="store_true", default=False,
+                         help="review through the advisor quorum: vote on"
+                              " alignment from a room (3-0/2-1 stamps,"
+                              " 1-1-1 or --morals -> audience prime, no stamp)")
+    p_judge.add_argument("--room", default="tier3-quorum",
+                         help="quorum room to tally votes from")
+    p_judge.add_argument("--round", dest="judge_round", default="",
+                         help="round the votes belong to (default: AGI_LOOP)")
+    p_judge.add_argument("--comms-root", default="",
+                         help="override the comms root (default: config)")
 
     # rollover
     p_rollover = sub.add_parser("rollover", help="Print or perform season rollover")
