@@ -358,7 +358,6 @@ def test_horizon_goal_keeps_scoring(project):
     assert (after["scoring_mvp_count"], after["scoring_hypothesis_count"]) == (1, 1)
     assert after["retired_goal_nodes"] == 0
     assert after["goals_horizon"] == 1
-    assert after["goals_active"] == 0
 
 
 def test_goal_status_counts_are_emitted(project):
@@ -370,7 +369,9 @@ def test_goal_status_counts_are_emitted(project):
     m = metrics.compute(project)
     # goal:g5 — `goals_retired` used to include `complete`, the same collapse
     # SCORING_GOAL_STATUSES made. A finished goal is not a retired one.
-    assert (m["goals_active"], m["goals_horizon"]) == (1, 1)
+    # `goals_active` was dropped 2026-09-06 with the max_goals_active cap it
+    # warned against (see re-brief of hypothesis:l2-goals-active-exempt).
+    assert m["goals_horizon"] == 1
     assert m["goals_complete"] == 1
     assert m["goals_retired"] == 2          # phasing-out (legacy) + retired
     assert m["goal_count"] == 5
@@ -482,28 +483,24 @@ def test_legacy_phasing_out_still_reads_as_retired(project):
     assert m["retired_goal_nodes"] == 2
 
 
-def test_exceeding_max_goals_active_warns_but_does_not_refuse(project, capsys):
-    """L5 — rotation the engine enforces. A commitment about focus that
-    nothing reads is not a commitment."""
+def test_far_more_active_goals_than_any_legacy_cap_never_warms(project, capsys):
+    """Red-first for the 2026-09-06 owner decision (re-brief of
+    hypothesis:l2-goals-active-exempt): the active-goal cap and its METRIC-
+    WARNING are deleted, only a descriptive `goals_horizon` count remains.
+    The old cap was 18; 30 active goals must be silent, and the old
+    `max_goals_active` config key must be ignored even if a stale project
+    still carries it in its config."""
     (project / "agi-tree.config.json").write_text(
-        json.dumps({"cc_dispatch": {"max_goals_active": 1}})
+        json.dumps({"cc_dispatch": {"max_goals_active": 1}}
+                   )  # stale key, must be inert
     )
-    _goal(project, "g1", "active")
-    _goal(project, "g2", "active")
+    for i in range(30):
+        _goal(project, f"g{i}", "active")
     m = metrics.emit(project)
     out = capsys.readouterr()
-    assert "METRIC_WARNING goal_rotation=2/1" in out.out
-    assert "max_goals_active" in out.err
-    assert m["goals_active"] == 2      # emitted, not aborted
-
-
-def test_within_max_goals_active_is_silent(project, capsys):
-    (project / "agi-tree.config.json").write_text(
-        json.dumps({"cc_dispatch": {"max_goals_active": 3}})
-    )
-    _goal(project, "g1", "active")
-    metrics.emit(project)
-    assert "goal_rotation" not in capsys.readouterr().out
+    assert "goal_rotation" not in out.out
+    assert "max_goals_active" not in out.err
+    assert "goals_active" not in m      # dropped, not just silenced
 
 
 def test_goal_cycle_does_not_hang_attribution(project):

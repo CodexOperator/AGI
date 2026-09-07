@@ -294,6 +294,9 @@ def main(argv: list[str] | None = None) -> int:
     if not argv:
         print(__doc__)
         return 0
+    if argv[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
     cmd = argv[0]
     rest = argv[1:]
     if cmd == "check":

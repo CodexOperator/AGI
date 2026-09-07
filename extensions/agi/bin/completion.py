@@ -119,9 +119,19 @@ def owns_all_complete(root: Path, node_ids) -> bool:
 
 
 if __name__ == "__main__":
-    # `completion.py <project_root> <node_id>` -> 0 complete, 1 not, 2 no node
+    import argparse
     import locations
-    r = Path(sys.argv[1])
-    root = locations.find_project_root(r) or r
-    nid = sys.argv[2]
-    sys.exit(0 if is_complete(root, nid) else 1)
+
+    def main(argv: list[str] | None = None) -> int:
+        p = argparse.ArgumentParser(
+            prog="completion.py",
+            description="Is the node finished? Exit 0 if complete, 1 if not and "
+                        "reachable, 2 if the root is unresolvable.")
+        p.add_argument("root", help="project root or any path inside it")
+        p.add_argument("node_id", help="node id to check, e.g. experiment:x")
+        args = p.parse_args(argv)
+        r = Path(args.root)
+        root = locations.find_project_root(r) or r
+        return 0 if is_complete(root, args.node_id) else 1
+
+    sys.exit(main())

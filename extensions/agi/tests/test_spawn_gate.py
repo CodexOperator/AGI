@@ -621,6 +621,9 @@ def test_shipped_schemas_load_without_error():
     candidates = [p / "context" / "schemas"
                   for p in here.parents
                   if (p / "context" / "schemas").is_dir()]
+    candidates += [p / ".agi" / "context" / "schemas"
+                   for p in here.parents
+                   if (p / ".agi" / "context" / "schemas").is_dir()]
     candidates += [p / "agi-tree" / "context" / "schemas"
                    for p in here.parents
                    if (p / "agi-tree" / "context" / "schemas").is_dir()]

@@ -31,8 +31,11 @@ from pathlib import Path
 
 ORIGIN = "goals-doc"
 # `horizon` = declared and committed to, but deliberately not being worked yet.
-# It is what lets L5 goal rotation distinguish queued goals from active ones
-# when `cc_dispatch.max_goals_active` is below the number of declared goals.
+# It is what lets L5 goal rotation distinguish queued goals from active ones.
+# The `cc_dispatch.max_goals_active` cap that this used to reference was
+# deleted 2026-09-06 (owner decision, re-brief of hypothesis:
+# l2-goals-active-exempt) — long-term goals are `goal_kind: perpetual` and
+# there is no active-goal cap to trip.
 # `retired` is canonical (goal:g5, renamed 2026-09-02). `phasing-out` is the
 # legacy spelling and stays accepted forever, not through one migration
 # window: projects predating the rename carry it, and this set only decides

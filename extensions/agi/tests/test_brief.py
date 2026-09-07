@@ -116,7 +116,10 @@ def test_a_parent_with_no_target_still_gets_a_usable_brief():
 
 
 def _cmd(tier, **kw):
-    kw.setdefault("harness", {"adapter": "pi", "models": {"kid": "k", "parent": "p"}})
+    kw.setdefault("harness", {"adapter": "pi",
+                               "models": {"kid": "k", "parent": "p",
+                                           "director": "d",
+                                           "prime_director": "pd"}})
     kw.setdefault("context_file", "/tmp/ctx.md")
     kw.setdefault("agent_id", "a00-test")
     kw.setdefault("iter_n", 1)

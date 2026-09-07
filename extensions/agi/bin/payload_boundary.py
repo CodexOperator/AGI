@@ -148,8 +148,18 @@ def classify_paths(repo: Path, rel_paths: list[str]) -> list[tuple[str, str, str
     return rows
 
 
-def main():
-    repo = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
+def main(argv: list[str] | None = None) -> None:
+    import argparse
+    if argv is None:
+        argv = sys.argv[1:]
+    p = argparse.ArgumentParser(
+        prog="payload_boundary.py",
+        description="Classify every tracked file in an `agi` engine repo as `in` "
+                    "(candidate payload for a node) or `out` (no thought attaches).")
+    p.add_argument("repo", nargs="?", default=".",
+                   help="path to the agi engine repo (default: current dir)")
+    args = p.parse_args(argv)
+    repo = Path(args.repo)
     rows = classify(repo)
 
     for path, verdict, reason in rows:

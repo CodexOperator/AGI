@@ -67,7 +67,6 @@
   "injection_file": "context/INJECTION.md",
   "cc_dispatch": {
     "iterations_per_run": 5,
-    "max_goals_active": 18,
     "kids_per_iter": 2,
     "kid_model": "claude-sonnet-5",
     "parent_model": "claude-opus-5",
