@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -979,6 +980,83 @@ class TestMergeUp:
         assert "loop/red-ffffffff@s2" in branches
         wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
         assert str(worktree) in wt
+
+    def test_merge_up_refuses_zero_ahead_branch(
+            self, season_py, temp_graph, tmp_path):
+        """A loop branch that carries ZERO commits beyond its base must be
+        refused loudly, not green-merged into a no-op success (false green).
+        Every empty loop branch used to sail through as 'merged ... (pending
+        suite)' and a human had to finish the round by hand."""
+        _init_project(tmp_path)  # on season/s1
+        # Cut a branch at the base tip with no extra commit: zero ahead.
+        br = _git(tmp_path, "checkout", "-q", "-b", "loop/empty-abc12345@s2")
+        assert br.returncode == 0, br.stderr
+        # Return to the base so the current branch is NOT the loop branch.
+        _git(tmp_path, "checkout", "-q", "season/s1")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/empty-abc12345@s2", "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        combined = result.stdout + result.stderr
+        assert result.returncode == 1, "zero-ahead branch must be refused"
+        assert "REFUSED" in combined
+        assert "zero commits ahead" in combined
+        assert "loop/empty-abc12345@s2" in combined
+        # Nothing was merged: the base still holds exactly its one commit.
+        count = _git(tmp_path, "rev-list", "--count",
+                     "season/s1").stdout.strip()
+        assert count == "1", "refused merge must not leave a merge commit"
+
+    def test_merge_up_treats_false_red_as_green(
+            self, season_py, temp_graph, tmp_path):
+        """When the finalize `git commit` returns non-zero but the merge has in
+        fact landed (MERGE_HEAD already gone), merge-up must NOT report a
+        failure it cannot substantiate (false red) -- it must carry on green.
+        Reproduced by a PATH git shim that lets the real commit finish the
+        merge but then exits non-zero, exactly as git mis-reported at L3.34."""
+        _init_project(tmp_path)
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/misrep-abc12345@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "kid work", content="kid\n")
+
+        real_git = shutil.which("git")
+        assert real_git, "git must be on PATH to build the shim"
+        shim_dir = tmp_path / "shim"
+        shim_dir.mkdir(exist_ok=True)
+        git_shim = shim_dir / "git"
+        git_shim.write_text(
+            "#!/bin/sh\n"
+            f"REAL={real_git}\n"
+            'case \"$*\" in\n'
+            "*'--no-edit'*)\n"
+            "    \"$REAL\" \"$@\"   # do the real commit; merge completes\n"
+            "    if [ \"$?\" -eq 0 ]; then exit 8; fi   # then lie about it\n"
+            "    ;;\n"
+            "esac\n"
+            'exec "$REAL" "$@"\n')
+        git_shim.chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = str(shim_dir) + os.pathsep + env["PATH"]
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/misrep-abc12345@s2", "--suite", "exit 0",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True, env=env,
+        )
+        assert result.returncode == 0, \
+            f"false red must not become a failure: {result.stderr}"
+        assert "treating as green" in result.stdout
+        assert "complete; suite green" in result.stdout
+        # The merge really did land despite the commit's mis-reported code.
+        assert "kid work" in _git(
+            tmp_path, "log", "season/s1", "--format=%s").stdout
+        # And the worktree was removed (success path, not the stranded one).
+        wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
+        assert str(worktree) not in wt
 
     def test_merge_up_never_rebases(self, season_py, temp_graph, tmp_path):
         """Merging upward never rewrites the branch's commit hashes."""
