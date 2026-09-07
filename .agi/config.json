@@ -75,5 +75,13 @@
   "goal_body_cap": 0,
   "locations": {
     "comms_root": "comms/season-2"
+  },
+  "workflows": {
+    "drafting": {
+      "model": "sonnet",
+      "effort": "max",
+      "provider": "claude-code",
+      "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through — owner quote (6), 2026-09-07"
+    }
   }
 }

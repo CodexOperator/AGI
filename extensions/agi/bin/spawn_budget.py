@@ -108,9 +108,32 @@ def _pid_alive(pid: int) -> bool:
     `EPERM` counts as alive: the process exists and is owned by someone else,
     which is still a process holding resources against this tree. Treating it
     as dead would free a lease for a process that is very much running.
+
+    A zombie (state `Z` in `/proc/<pid>/stat`) counts as dead
+    (`hypothesis:l3-cc-adapter-zombie-lease`): a defunct child is gone \u2014 its
+    code has exited and only its reaping by a parent is outstanding. Its pid
+    still answers `os.kill(pid, 0)`, so signal-existence alone would hold a
+    lease forever behind an unreaped child. The process-table state is what
+    the lease is about, so that is what liveness reads.
     """
     if pid <= 0:
         return False
+    try:
+        stat = open(f"/proc/{pid}/stat")
+    except OSError:
+        # Not on Linux, or the pid raced out of the table between checks.
+        # Fall back to signal-existence rather than guess wrong.
+        pass
+    else:
+        with stat:
+            try:
+                # State is field 3, after `pid (comm)`; comm can contain
+                # spaces/parens, so split from the right on `) `.
+                state = stat.read().rsplit(") ", 1)[1].split()[0]
+            except (IndexError, ValueError):
+                state = "?"
+        if state == "Z":
+            return False
     try:
         os.kill(pid, 0)
     except OSError as exc:

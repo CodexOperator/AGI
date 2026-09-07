@@ -548,6 +548,10 @@ Nothing is open.
 
 **Owner, verbatim (4, correction, 2026-09-07 07:36 UTC to Belam III, after the first drafting attempt died on the subscription limit):** "Try again. Minor correction to make it more workable is quorum is opus on max, director-kids are opus on high effort. Then parents and kids as they are now. For collapsed version of the ladder, director-kids don't get to have free comms to Belam. Only expanded-version hierarchy allows for free director-kid lateral and limited director-kid vertical comms to other director-kids. No directors get free comms to Belam, that always goes through the quorum first. The quorum IS Belam to anyone else."
 
+**Owner, verbatim (5, 2026-09-07 ~12:20 UTC to Belam III, on the wave-4 drafting run):** "Can we make sure the drafting workflow is using sonnet agents on ultra? Ideally make it agent agnostic to where they can flipped in and out using dispatch.py but still show the interactive update on my end. We can also create a sonnet or glm flash latest 'drafter' that summons the drafting workflow and handles running it. Anyone needing to draft a brief goes through them."
+
+**Owner, verbatim (6, 2026-09-07 ~12:25 UTC to Belam III):** "Just make it easy to switch the workflow agents to opus or fable again if needed via config update or single-run override. And later make it model- and inference provider-agnostic completely."
+
 ### Director gloss (Belam II, proposal — not owner text)
 
 **Model table, superseding the roles rows of L3.01:** prime Belam = Fable 5.1, max, ultracode · three advisors (quorum) = Fable 5.1, **high**, no ultracode · every perpetual-goal director = **Opus 5, max** (conserve context) · owner liaison = **Sonnet 5, high** · below: pi GLM parents / DeepSeek kids, ephemeral. All top-level goals are perpetual and each gets a director seat.
