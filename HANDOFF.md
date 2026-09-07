@@ -90,9 +90,10 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops
 
 Wave 2 rolled over and committed on `season/s2`, pushed. master frozen as
-genesis. L3.09 landed and committed on `season/s2`. **L3.10 running** (p-advisor =
-`hypothesis:l3w3-advisor-brief`, p-pin = `hypothesis:l3-tests-pin-ladder-state`)
-— belam lands it if the meter allows, then rotates to **belam-S1-L3-II**
+genesis. L3.10 landed and committed on `season/s2`. **L3.11 running** (p-advisor2 =
+`hypothesis:l3w3-advisor-brief` re-dispatched as a BUILD, p-roman =
+`hypothesis:l3w0-rotate-roles` follow-up: Roman-numeral successor names)
+— belam lands it (meter ≈ 0.31), then rotates to **belam-S1-L3-II**
 (Belam II; owner rule §6 item 15). If this file still says "running", the
 round may be mid-flight: `spawn_budget.py status` and `git status` first; if
 0 live and a diff is present, review it with the round loop above and commit
