@@ -669,6 +669,37 @@ def test_resolve_seat_spec_none_when_missing_fails_open():
     assert dispatch.resolve_seat_spec([], "belam") is None
 
 
+def test_resolve_seat_spec_thinking_is_none_when_blank():
+    """Hypothesis l3w4-director-kids-on-glm — a seat row that omits
+    `thinking` (all of today) must resolve the cell to None so the adapter
+    emits no --thinking flag rather than a bare one."""
+    spec = dispatch.resolve_seat_spec(_seats(), "liaison")
+    assert spec is not None
+    assert spec["thinking"] is None
+    sx = dispatch.resolve_seat_spec(
+        [{"name": "glm", "role": "director", "tier": 1,
+          "harness": "pi", "model": "~z-ai/glm-flash-latest",
+          "effort": "", "thinking": "high", "settings": ""}], "glm")
+    assert sx is not None
+    assert sx["thinking"] == "high"
+
+
+def test_thinking_cell_wins_over_config_default():
+    """Hypothesis l3w4-director-kids-on-glm — when a ladder/seat row names
+    `thinking`, that cell is threaded onto the harness so model_args emits
+    `--thinking <cell>` (the configured/tier default loses). On a row with no
+    thinking cell the spec carries None and default stands."""
+    rows = [{"tier": 1, "role": "director", "harness": "pi",
+             "model": "~z-ai/glm-flash-latest", "effort": "",
+             "thinking": "high", "settings": ""}]
+    spec = dispatch.resolve_role_spec(_cfg(), rows, 1, "director")
+    assert spec["from_ladder"] is True
+    assert spec["thinking"] == "high"
+    assert spec["model"] == "~z-ai/glm-flash-latest"
+    blank = dispatch.resolve_role_spec(_cfg(), _roles(), 0, "kid")
+    assert blank["thinking"] is None
+
+
 def test_default_role_follows_tier():
     """hypothesis:l3-dispatch-role-default — a bare --tier must not resolve
     the tier-0 kid row. Tier parent means role parent; tier kid means role
