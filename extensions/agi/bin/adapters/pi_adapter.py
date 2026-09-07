@@ -109,6 +109,14 @@ def build_command(
     max_live: int = 1,
     brief_tier: str | None = None,
     session_dir: Path | None = None,
+    # hypothesis:l3-pi-adapter-role-kwarg -- dispatch.py passes role= and
+    # ladder_tier= to EVERY adapter since hypothesis:l3-cc-tools-by-tier
+    # (iter-L3.13); only the claude-code adapter uses them (its tool bundle
+    # is per role). pi has no tool bundle, so they are accepted and unused --
+    # the alternative was every pi spawn dying on a TypeError at the call
+    # site, which is what happened to the first tier-0 parent of wave 3.
+    role: str | None = None,
+    ladder_tier: int | None = None,
 ) -> list[str]:
     """The argv that starts one pi agent."""
     args = [resolve_bin(harness)]

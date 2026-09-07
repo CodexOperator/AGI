@@ -693,3 +693,34 @@ def test_advisor_goal_pinned_keeps_the_target_using_the_resolved_iter():
     assert "--target goal:g15 --detach" in t
     assert "77" in t, "the resolved iter id must be in the spawn command"
 
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3-pi-adapter-role-kwarg -- dispatch.py passes role= and
+# ladder_tier= to every adapter's build_command (hypothesis:l3-cc-tools-by-tier,
+# iter-L3.13). The claude-code adapter gained them; the pi adapter did not, and
+# the first tier-0 parent spawn of wave 3 died on a TypeError at the call site.
+# Red before the fix: TypeError: unexpected keyword argument 'role'.
+
+
+def test_pi_adapter_accepts_the_role_and_ladder_tier_kwargs_dispatch_passes():
+    argv = _cmd("parent", target="t:1", role="parent", ladder_tier=0)
+    assert argv[0]  # a command was spelled; the kwargs are accepted and unused
+    assert "--model" in argv and argv[argv.index("--model") + 1] == "p"
+
+
+def test_every_adapter_accepts_every_keyword_the_dispatch_call_site_passes():
+    """Signature parity: the call site in dispatch.py is tier-blind and
+    harness-blind on purpose, so a keyword one adapter grows must exist on
+    all of them, or the other harness dies at spawn time."""
+    import inspect
+    from adapters import claude_code_adapter as cc
+    passed_by_dispatch = {
+        "harness", "tier", "brief_tier", "context_file", "agent_id", "iter_n",
+        "sess_dir", "scaffold", "cli_py", "skill_prompt", "dispatch_py",
+        "target", "parallel", "max_live", "role", "ladder_tier",
+    }
+    for mod in (pi_adapter, cc):
+        params = set(inspect.signature(mod.build_command).parameters)
+        missing = passed_by_dispatch - params
+        assert not missing, f"{mod.__name__}.build_command lacks {sorted(missing)}"
