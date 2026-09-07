@@ -192,6 +192,35 @@ def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
     assert "write.py" in kid and "set FIELD VALUE" in kid
 
 
+def test_kid_brief_for_a_build_target_carries_the_imperative_segment():
+    """hypothesis:l3-brief-build-imperative-missing -- a kid brief aimed at a
+    BUILD target must carry an explicit imperative that names the artefact as
+    a DIFF and says finishing with zero changed code is not done. Red before
+    the fix: six BUILD rounds in a row (L3.21, L3.22, L3.25, L3.31, L3.33,
+    L3.34) returned honest probes with zero lines of code -- the kid template
+    read a fix-shaped claim as a question about the present, so no kid built.
+    The trial target's scaffold parent names the build node (`build:`)."""
+    build = dict(SCAFFOLD, parent="build:l3-brief-build-imperative-missing")
+    kid = _text("kid", scaffold=build)
+    assert "YOU ARE ON A BUILD TARGET" in kid
+    assert "DIFF" in kid, "the artefact must be named a diff"
+    assert "zero lines of code" in kid.lower(), \
+        "an empty result must be framed as not-done, not as a finding"
+    assert "silence about the code is not" in kid.lower(), \
+        "stopping with an honest report alone must be called out as useless"
+
+
+def test_kid_brief_probe_target_has_no_build_imperative_segment():
+    """The imperative segment is scoped to BUILD rounds only. A probe target
+    (a hypothesis/experiment the kid investigates) gets no build imperative
+    -- a probe conclusion IS the artefact, zero changed code is its correct
+    output, so saying 'zero changed code is not done' would be wrong there.
+    The probe discriminator is the `build:` address prefix's absence."""
+    kid = _text("kid", scaffold=SCAFFOLD)  # parent hypothesis:y -- a probe
+    assert "YOU ARE ON A BUILD TARGET" not in kid
+    assert "zero lines of code" not in kid.lower()
+
+
 def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
     """L3.30/L3.31 harness defect: the template showed `write.py <id> set
     verdict proved` unquoted -- argparse reads `set` as the script, `verdict`
