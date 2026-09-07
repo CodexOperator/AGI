@@ -184,12 +184,36 @@ claim_iter() {
   python3 "$PLUGIN_ROOT/bin/locations.py" "$PROJECT_ROOT" --claim-iter "$@"
 }
 
+# Dispatched agents inherit AGI_LOOP as a full spawn label (e.g.
+# hypothesis:x@s1), which is never a bare loop label. Honor AGI_LOOP only
+# when it is one, so a kid's `driver.sh --smoke` verification never crashes
+# on the spawn env it was handed (hypothesis:l3-dispatch-env-leaks-into-tests).
+# A conductor passes the loop explicitly via CURRENT_LOOP, which always wins.
+pick_loop() {
+  # $1 = nameref to fill with the resolved loop ('' means: let
+  # locations.py fall back to config loop / newest loop on disk).
+  local -n out="$1"
+  out="${CURRENT_LOOP:-}"
+  # CURRENT_LOOP always wins. Only fall back to AGI_LOOP when it is a bare
+  # loop label; a dispatched spawn label is ignored, and locations.py makes
+  # the fallback (config loop / newest loop on disk) for an empty loop.
+  if [[ -z "$out" ]]; then
+    if [[ -n "${AGI_LOOP:-}" && "$AGI_LOOP" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]]; then
+      out="$AGI_LOOP"
+    else
+      out=""
+    fi
+  fi
+}
+
 iter_run() {
   local raw_iter
   # CURRENT_LOOP is optional: --loop is omitted when neither it nor
   # $AGI_LOOP is set, and locations.py falls back to config `loop`, then
   # the newest loop on disk, then legacy numbering (set -u safe).
-  local loop="${CURRENT_LOOP:-${AGI_LOOP:-}}"
+  # Sanitized so a dispatched AGI_LOOP spawn label is ignored, not crashed on.
+  local loop
+  pick_loop loop
   if [[ -n "$loop" ]]; then
     raw_iter=$(claim_iter --loop "$loop")
   else

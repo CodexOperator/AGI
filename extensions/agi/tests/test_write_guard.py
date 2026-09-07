@@ -116,6 +116,47 @@ def test_write_node_logs(project):
         assert entry["path"].endswith("hypothesis/h2.md")
 
 
+def test_write_log_carries_mint_id(project):
+    """write_node logs the node's mint_id (SETTLED rekey)."""
+    log_path = project / ".agi" / "sessions" / "write-log.jsonl"
+
+    nw.write_node(project / ".agi", "hypothesis", "h-mint",
+                  parents=[], announce=False)
+
+    # Re-read the node to confirm which mint_id it actually carries
+    node_file = project / ".agi" / "nodes" / "hypothesis" / "h-mint.md"
+    import yaml
+    parts = node_file.read_text().split("---", 2)
+    fm = yaml.safe_load(parts[1]) or {}
+    real_mint = fm["mint_id"]
+    assert len(real_mint) == 32
+
+    for line in log_path.read_text().strip().splitlines():
+        entry = json.loads(line)
+        if entry["operation"] == "write_node":
+            assert entry.get("mint_id") == real_mint
+
+
+def test_update_log_carries_mint_id(project):
+    """update_node logs the same mint_id it stamps into the node."""
+    log_path = project / ".agi" / "sessions" / "write-log.jsonl"
+    nw.write_node(project / ".agi", "hypothesis", "h-mint-up",
+                  parents=[], announce=False)
+
+    import yaml
+    node_file = project / ".agi" / "nodes" / "hypothesis" / "h-mint-up.md"
+    parts = node_file.read_text().split("---", 2)
+    fm = yaml.safe_load(parts[1]) or {}
+    real_mint = fm["mint_id"]
+
+    nw.update_node(project / ".agi", "hypothesis:h-mint-up",
+                   set_fm={"status": "active"}, announce=False)
+    tail_ops = [json.loads(l) for l in log_path.read_text().strip().splitlines()
+                if l.strip()]
+    upd = [e for e in tail_ops if e["operation"] == "update_node"]
+    assert upd and upd[-1].get("mint_id") == real_mint
+
+
 def test_update_node_logs(project):
     """update_node creates a log entry."""
     log_path = project / ".agi" / "sessions" / "write-log.jsonl"
@@ -357,3 +398,49 @@ def test_write_guard_ignores_lock_files(project):
 
     rc = _check(project, ["--strict"])
     assert rc == 1, "--strict must still detect node edits even with lock files"
+
+
+# ---------------------------------------------------------------------------
+# Mint-id rekey: git mv of a logged node stays silent, hand edit still warns
+# ---------------------------------------------------------------------------
+
+def test_git_mv_logged_node_stays_silent(project):
+    """A clean git mv of a logged node must not trigger a WARN (SETTLED)."""
+    nw.write_node(project / ".agi", "hypothesis", "h-rename",
+                  parents=[], announce=False)
+    # Commit the node so git knows both the old and new path
+    subprocess.run(["git", "-C", str(project), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m", "add node"],
+                   check=True, capture_output=True)
+
+    old = project / ".agi" / "nodes" / "hypothesis" / "h-rename.md"
+    new_dir = project / ".agi" / "nodes" / "hypothesis"
+    new = new_dir / "h-renamed-away.md"
+    subprocess.run(["git", "-C", str(project), "mv",
+                    str(old), str(new)], check=True, capture_output=True)
+
+    # Untracked node of the story, so check only sees the mv
+    rc = _check(project, ["--strict"])
+    assert rc == 0, "a clean git mv of a logged node must be silent"
+
+
+def test_hand_edit_after_git_mv_still_warns(project):
+    """After a git mv, a hand edit to the moved node's bytes warns (SETTLED)."""
+    nw.write_node(project / ".agi", "hypothesis", "h-rename-edit",
+                  parents=[], announce=False)
+    subprocess.run(["git", "-C", str(project), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m", "add node"],
+                   check=True, capture_output=True)
+
+    old = project / ".agi" / "nodes" / "hypothesis" / "h-rename-edit.md"
+    new = project / ".agi" / "nodes" / "hypothesis" / "h-renamed-edited.md"
+    subprocess.run(["git", "-C", str(project), "mv", str(old), str(new)],
+                   check=True, capture_output=True)
+
+    # Hand edit the moved node's bytes (unsanctioned)
+    new.write_text(new.read_text() + "\nHand edited.\n")
+
+    rc = _check(project, ["--strict"])
+    assert rc == 1, "--strict must warn on a hand edit after a git mv"

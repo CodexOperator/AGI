@@ -628,3 +628,40 @@ def test_zoom_accepts_the_repo_root_and_the_graph_dir(tmp_path):
         outs.append(res.stdout.strip().splitlines()[-1])
 
     assert outs[0] == outs[1] == str(graph / "sessions" / "iter-001" / "kid" / "context.md")
+
+
+# --- dispatch env leak: AGI_LOOP spawn label must not break loop_label ----
+# (hypothesis:l3-dispatch-env-leaks-into-tests) ------------------------------
+
+def test_loop_label_ignores_dispatched_agi_loop_spawn_label(tmp_path, monkeypatch):
+    """A dispatch spawn env (AGI_LOOP=hypothesis:x@s1) must not raise; it
+    falls through to the config 'loop' key instead of crashing on the spawn
+    environment."""
+    graph = make_graph_dir(tmp_path / "repo", loop="L3")
+    monkeypatch.setenv(
+        "AGI_LOOP", "hypothesis:l3-dispatch-env-leaks-into-tests@s1")
+    monkeypatch.delenv("AGI_TREE_PROJECT_ROOT", raising=False)
+    assert locations.loop_label(graph, explicit=None) == "L3"
+
+
+def test_loop_label_ignores_dispatched_agi_loop_without_config(tmp_path, monkeypatch):
+    """No config loop? Still no crash: falls through to DEFAULT_LOOP."""
+    graph = make_graph_dir(tmp_path / "repo")
+    monkeypatch.setenv("AGI_LOOP", "hypothesis:x@s1")
+    monkeypatch.delenv("AGI_TREE_PROJECT_ROOT", raising=False)
+    assert locations.loop_label(graph, explicit=None) == locations.DEFAULT_LOOP
+
+
+def test_loop_label_still_honours_a_real_agi_loop_label(tmp_path, monkeypatch):
+    """A genuine bare loop label in AGI_LOOP is still honoured (conductor env)."""
+    graph = make_graph_dir(tmp_path / "repo", loop="L3")
+    monkeypatch.setenv("AGI_LOOP", "L3")
+    monkeypatch.delenv("AGI_TREE_PROJECT_ROOT", raising=False)
+    assert locations.loop_label(graph, explicit=None) == "L3"
+
+
+def test_loop_label_still_raises_on_invalid_explicit_flag(tmp_path):
+    """An invalid EXPLICIT flag is a programmer error — still raises."""
+    graph = make_graph_dir(tmp_path / "repo")
+    with pytest.raises(ValueError):
+        locations.loop_label(graph, explicit="hypothesis:x@s1")

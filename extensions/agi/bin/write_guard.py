@@ -117,12 +117,44 @@ def _rel_node_prefix(agi_root: Path, git_root: Path) -> str:
         return ".agi/nodes"
 
 
-def _load_log(agi_root: Path) -> dict[str, str]:
-    """sha256 -> path from the write log. Latest entry wins."""
+def _load_log(agi_root: Path):
+    """Index the write log for sanctioned-write matching.
+
+    Returns `(keyed_sets, sha_to_path)`:
+
+    - `keyed_sets`: a `Sanctioned` bundle holding `{mint_id, sha256}` pairs and
+      `{sha256}` (the fallback for bytes written before a node carried a
+      mint_id).
+    - `sha_to_path`: sha256 -> last path, for the redo hint.
+
+    The log is per-box scratch under sessions/ and gitignored; an absent log
+    means nothing is sanctioned yet, which the caller treats as a warning
+    state, not a crash (l2w15-write-guard SETTLED rekey).
+    """
+    class Sanctioned:
+        __slots__ = ("by_key", "by_sha")
+
+        def __init__(self):
+            self.by_key = set()   # (mint_id, sha256)
+            self.by_sha = set()   # sha256 only (fallback)
+
+        def has(self, mint_id: str, sha: str) -> bool:
+            """True when these bytes were written through a sanctioned path.
+
+            Matches by (mint_id, sha256) first; falls back to sha256-alone for
+            bytes logged before a node existed with a mint_id (SETTLED rekey:
+            the grid-ref identifier is what version history keys on, so a clean
+            `git mv` / retitle of an already-logged node stays silent).
+            """
+            if (mint_id, sha) in self.by_key:
+                return True
+            return sha in self.by_sha
+
+    san = Sanctioned()
+    sha_to_path: dict[str, str] = {}
     log_path = agi_root / WRITE_LOG
     if not log_path.is_file():
-        return {}
-    sha_to_path: dict = {}
+        return san, sha_to_path
     try:
         for line in log_path.read_text().strip().splitlines():
             if not line.strip():
@@ -134,10 +166,14 @@ def _load_log(agi_root: Path) -> dict[str, str]:
             sha = entry.get("sha256", "")
             p = entry.get("path", "")
             if sha:
-                sha_to_path[sha] = p
+                san.by_sha.add(sha)
+                mi = entry.get("mint_id", "")
+                if mi:
+                    san.by_key.add((mi, sha))
+                sha_to_path.setdefault(sha, p)
     except BaseException:
         pass
-    return sha_to_path
+    return san, sha_to_path
 
 
 def _read_payload_refs(agi_root: Path) -> list[dict]:
@@ -159,6 +195,7 @@ def _read_payload_refs(agi_root: Path) -> list[dict]:
         except BaseException:
             continue
         nid = fm.get("id", "")
+        mi = str(fm.get("mint_id", "") or "")
         # Every link field that a build node uses to declare its file
         ref = None
         for fld in LINK_FIELDS:
@@ -179,7 +216,7 @@ def _read_payload_refs(agi_root: Path) -> list[dict]:
             sha = hashlib.sha256(payload_path.read_bytes()).hexdigest()
         except BaseException:
             continue
-        payloads.append({"node_id": str(nid), "ref": str(ref),
+        payloads.append({"node_id": str(nid), "mint_id": mi, "ref": str(ref),
                          "path": str(payload_path), "sha256": sha})
     return payloads
 
@@ -230,15 +267,32 @@ def cmd_check(argv: list[str]) -> int:
         return 2 if strict else 0
     root = Path(root)
 
-    log = _load_log(root)
+    log_data = _load_log(root)
+    san, sha_to_path = log_data
     changes = _git_changed_files(root, root)
     warnings = []
+
+    def _node_mint_id(abspath: str) -> str:
+        """Read the changed node's mint_id from its frontmatter, if any."""
+        try:
+            text = Path(abspath).read_text(encoding="utf-8", errors="replace")
+            parts = text.split("---", 2)
+            if len(parts) < 3 or not text.startswith("---"):
+                return ""
+            import yaml
+            fm = yaml.safe_load(parts[1]) or {}
+            return str(fm.get("mint_id", "") or "")
+        except BaseException:
+            return ""
 
     for c in changes:
         sha = c.get("old_sha256", "")
         fpath = c.get("path", "")
-        logged_path = log.get(sha)
-        if logged_path is None and sha:
+        # Sanctioned check keys on (mint_id, sha256), falling back to sha-only.
+        # A clean git mv / retitle of a logged node keeps its mint_id, so it
+        # stays silent; a hand edit changes the bytes, so it warns (SETTLED).
+        mi = _node_mint_id(c.get("abspath", ""))
+        if not san.has(mi, sha) and sha:
             hint = _redo_hint(fpath, root)
             warnings.append(f"WARN unsanctioned write: {fpath}")
             warnings.append(f"  {hint}")
@@ -262,8 +316,7 @@ def cmd_check(argv: list[str]) -> int:
     for p in payloads:
         if p["node_id"] in changed_node_ids:
             sha = p.get("sha256", "")
-            logged_path = log.get(sha)
-            if logged_path is None and sha:
+            if not san.has(p.get("mint_id", ""), sha) and sha:
                 warnings.append(
                     f"WARN unsanctioned write to payload of {p['node_id']}: "
                     f"{p['ref']}")

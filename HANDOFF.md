@@ -56,8 +56,10 @@ then top-up, CC fallback = opus/sonnet at LOWEST effort; wave-3 first slice
 | L3.03 | `l3w0-grid-flock` (p-flock), `l3w0-season-retag` (p-retag) | **LANDED** |
 | L3.04 | `l3w0-test-skips` (p-skips), `hypothesis:l2-goals-active-exempt` re-briefed to DELETE `max_goals_active` (wave 1) | **LANDED** |
 | L3.05 | g15 from L3.01: `hypothesis:l3-rotate-ultracode-env` (p-ultra, FIRST — the rotation gate depends on it), `hypothesis:l3-write-set-nested-json` (p-wset) | **LANDED — WAVE 0 COMPLETE, gate witnessed** |
-| L3.06 | `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env), `hypothesis:l2w15-write-guard` follow-up (mint-id rekey; the 175 WARNs cleared by themselves) | **dispatched** |
-| L3.07 | `hypothesis:l3-corrupt-frontmatter-19` (p-corrupt) + wave-1 `goal_kind: perpetual` | |
+| L3.06 | `hypothesis:l3-dispatch-env-leaks-into-tests` (p-env), `hypothesis:l2w15-write-guard` follow-up (mint-id rekey; the 175 WARNs cleared by themselves) | **LANDED** |
+| L3.07 | `hypothesis:l3-corrupt-frontmatter-19` (p-corrupt), `hypothesis:l3w1-goal-kind-perpetual` (p-perp, wave 1) | **dispatched** |
+| L3.08 | `hypothesis:l3w1-tier0-director-brief` (p-t0dir, wave 1: GLM director role in brief.py + dispatch --role director --ladder-tier 0) + one open g15 item | |
+| then | wave 2: `season.py rollover --dry-run` → real (visions `--actor owner`, season 1 named genesis, `season/s2` opened, prime moves onto it); wave 3 = the g15 slice | |
 | wave 3, slice 2 | owner ask 2026-09-06: `hypothesis:l3-openrouter-codex-spend` (under g16) — gpt-5.1-codex calls on the OpenRouter key; the LIVE ladder investigates and fixes it, never the prime before wave 3 | banked |
 | then | wave 1 rest (`goal_kind: perpetual` + GOALS.md Perpetual section, tier-0 GLM director role in `brief.py`), wave 2 rollover (visions `--actor owner`, season 1 named genesis, `season/s2` opened), wave 3 = the g15 slice | |
 
@@ -85,11 +87,10 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 ### 🔴 Where it stops
 
-L3.05 committed as `iter-L3.05`; wave 0 complete. L3.06 running (p-env,
-p-guard). Next: wait to 0 live, review, commit `iter-L3.06`, grid, push; then
-L3.07 (p-corrupt + wave-1 `goal_kind: perpetual`), then the rest of wave 1
-(grid guard already admits `season/*`; tier-0 GLM director role in brief.py),
-then wave 2 (rollover). Rotation now works through `rotate.py spawn` as-is. Rotation
+L3.06 committed as `iter-L3.06`. L3.07 running (p-corrupt, p-perp). Next:
+wait to 0 live, review, commit `iter-L3.07`, grid, push; then L3.08
+(p-t0dir), then wave 2 (rollover dry-run → real; `season/s2`). Rotation works
+through `rotate.py spawn` as-is (env gate witnessed in L3.05). Rotation
 of the prime must wait for L3.05's ultracode-env fix or export
 `CLAUDE_CODE_WORKFLOWS=1` by hand in the tmux window before `rotate.py spawn`.
 
