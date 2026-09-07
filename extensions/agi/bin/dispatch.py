@@ -447,6 +447,11 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
             "harness": row.get("harness") or None,
             "model": (row.get("model") or "").strip() or None,
             "effort": (row.get("effort") or "").strip() or None,
+            # hypothesis:l3w4-director-kids-on-glm — the `thinking` cell is
+            # pi's analogue of `effort`: a model name alone does not say how
+            # hard to think (pi_adapter threads it as `--thinking`). Row owns
+            # it; blank omits the flag.
+            "thinking": (row.get("thinking") or "").strip() or None,
             "settings": row.get("settings") or None,
             "from_ladder": True,
         }
@@ -464,6 +469,9 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
         "harness": _name,
         "model": model,
         "effort": effort,
+        # hypothesis:l3w4-director-kids-on-glm — no config fallback for
+        # thinking: it is a ladder/seat cell, never a global default.
+        "thinking": None,
         "settings": None,
         "from_ladder": False,
     }
@@ -485,6 +493,9 @@ def resolve_seat_spec(seats: list | None, name: str) -> dict | None:
             "harness": r.get("harness") or None,
             "model": (r.get("model") or "").strip() or None,
             "effort": (r.get("effort") or "").strip() or None,
+            # hypothesis:l3w4-director-kids-on-glm — a seat may dial its own
+            # reasoning effort, so a GLM seat is told to think high.
+            "thinking": (r.get("thinking") or "").strip() or None,
             "settings": r.get("settings") or None,
             "from_seat": True,
         }
@@ -823,6 +834,7 @@ def main() -> int:
             print(f"seats: seat {args.seat} -> "
                   f"{seat_spec['harness'] or '-'}/{seat_spec['model'] or '-'}/"
                   f"effort={seat_spec['effort'] or '-'}/"
+                  f"thinking={seat_spec.get('thinking') or '-'}/"
                   f"settings={seat_spec['settings'] or '-'}")
 
     # hypothesis:l3w0-ladder-roles-table — dry print: resolve every declared
@@ -880,6 +892,12 @@ def main() -> int:
                 dispatch_harness["models"] = _models
                 if _spec["effort"]:
                     dispatch_harness["effort"] = {args.tier: _spec["effort"]}
+                # hypothesis:l3w4-director-kids-on-glm — flat, not tier-keyed:
+                # pi_adapter.model_args reads `harness["thinking"]` directly
+                # (no tier key) and emits `--thinking <val>`. Absent means the
+                # harness's own default stands.
+                if _spec.get("thinking"):
+                    dispatch_harness["thinking"] = _spec["thinking"]
                 if _spec["settings"]:
                     dispatch_harness["settings"] = _spec["settings"]
         else:
@@ -889,7 +907,9 @@ def main() -> int:
         if _spec["from_ladder"]:
             print(f"roles: tier={tier_eff} role={args.role} -> "
                   f"{_spec['harness']}/{_spec['model'] or '-'}/"
-                  f"effort={_spec['effort'] or '-'}/settings={_spec['settings'] or '-'}")
+                  f"effort={_spec['effort'] or '-'}/"
+                  f"thinking={_spec['thinking'] or '-'}/"
+                  f"settings={_spec['settings'] or '-'}")
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
