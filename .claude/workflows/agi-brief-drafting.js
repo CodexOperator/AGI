@@ -1,0 +1,1 @@
+../../extensions/agi/workflows/agi-brief-drafting.js
