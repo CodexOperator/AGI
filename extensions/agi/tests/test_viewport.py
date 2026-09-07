@@ -383,3 +383,77 @@ def test_a_gameable_primary_is_named_as_invalid_in_the_briefing():
     b.primary_is_gameable = True
     out = "\n".join(m.to_markdown(b))
     assert "not a valid" in out and "gameable" in out
+
+
+# --------------------------------------------------------------------------
+# The sanctuary theme (hypothesis:l3w4-sanctuary-theme).
+# --------------------------------------------------------------------------
+
+_SEAT_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3},
+    {"name": "adv-self-perpetuating", "role": "parent", "tier": 3},
+    {"name": "adv-all-is-one", "role": "parent", "tier": 3},
+    {"name": "adv-alive", "role": "parent", "tier": 3},
+    {"name": "liaison", "role": "director", "tier": 1},
+    {"name": "dir-g1", "role": "director", "tier": 1},
+]
+
+
+def test_sanctuary_frame_builds_scene_from_seat_rows_fixture():
+    """tier-3 rows are mantled spirits; tier-1 director rows are probe wisps."""
+    scene = V.sanctuary_frame(_SEAT_ROWS, [1, 2, 3], None)
+    assert scene.registry_present is True
+    assert scene.ephemeral_wisps == 3
+    assert scene.rotating is None
+    assert [s["name"] for s in scene.spirits] == [
+        "belam", "adv-self-perpetuating", "adv-all-is-one", "adv-alive"]
+    assert [p["name"] for p in scene.probes] == ["liaison", "dir-g1"]
+
+
+def test_sanctuary_mantled_tier_non_three_joins_spirits():
+    """A seated Sanctuary Master sits on her mantle, not her tier."""
+    rows = _SEAT_ROWS + [{"name": "sanctuary-master", "role": "director",
+                          "tier": 1, "mantled": True}]
+    scene = V.sanctuary_frame(rows, [], None)
+    names = [s["name"] for s in scene.spirits]
+    assert "sanctuary-master" in names
+    assert all(p["name"] != "sanctuary-master" for p in scene.probes)
+
+
+def test_sanctuary_theme_shows_no_registry_when_seats_missing():
+    """Absent seats => 'no seat registry yet' in both readers, no traceback."""
+    scene = V.SanctuaryScene((), (), 0, None, False)
+    assert V.render_sanctuary_human(scene) == ["no seat registry yet"]
+    assert "no seat registry yet" in V.render_sanctuary_llm(scene)
+
+
+def test_sanctuary_rotating_strand_names_holder_and_seat():
+    """A `<seat>.genN` window resolves the strand to that row's rotated_by."""
+    rows = _SEAT_ROWS + [{"name": "belam", "role": "prime_director", "tier": 3,
+                          "rotated_by": "quorum"}]
+    windows = ["agi-rc:0", "belam.gen2", "dir-g1.gen1"]
+    rot = V.rotating_seat(rows, windows)
+    assert rot == ("quorum", "belam")
+    scene = V.sanctuary_frame(rows, [], rot)
+    human = "\n".join(V.render_sanctuary_human(scene))
+    llm = V.render_sanctuary_llm(scene)
+    assert "quorum ~~~✧~~~> belam (rotating)" in human
+    assert "quorum ~~~✧~~~> belam" in llm
+
+
+def test_sanctuary_non_seat_gen_window_is_ignored():
+    """A `.genN` window that names no seat is not invented into a strand."""
+    rows = [{"name": "belam", "role": "prime_director", "tier": 3}]
+    assert V.rotating_seat(rows, ["unknown.gen1"]) is None
+
+
+def test_sanctuary_human_and_llm_state_the_same_spirits_and_wisps():
+    """Both readers draw the identical spirits, probes, and ephemeral count."""
+    scene = V.sanctuary_frame(_SEAT_ROWS, [1, 2], ("quorum", "belam"))
+    human = "\n".join(V.render_sanctuary_human(scene))
+    llm = V.render_sanctuary_llm(scene)
+    for s in scene.spirits:
+        assert s["name"] in human and f"spirit {s['name']}" in llm
+    for p in scene.probes:
+        assert p["name"] in human and f"probe {p['name']}" in llm
+    assert "2 ephemeral wisps" in human and "ephemeral_wisps: 2" in llm

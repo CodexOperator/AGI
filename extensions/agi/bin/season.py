@@ -14,6 +14,8 @@ Subcommands:
     [--branch]                    — git checkout -b season/s<N> after the write
     [--allow-unjudged]            — bypass the unjudged-overview stage gate
   retag                           — backfill the season stamp
+  merge-up <branch>               — --no-ff merge a loop branch into its recorded
+                                    base branch, suite-green gate, worktree removed
 """
 from __future__ import annotations
 
@@ -909,6 +911,134 @@ def cmd_rollover(root: Path, args) -> int:
 
 
 # ---------------------------------------------------------------------------
+# merge-up — per-parent branch merge into the recorded base branch
+# ---------------------------------------------------------------------------
+#
+# `hypothesis:l3w4-parent-branch-merge-up`: a dispatched parent runs in its own
+# git worktree on `loop/<slug>-<agent8>@s<N>`; a season seat then merges that
+# branch upward with `season.py merge-up <branch>`, which:
+#   * merges `--no-ff` into the branch's recorded BASE_BRANCH (never a
+#     hardcoded season -- layer-agnostic, so a director branch cuts parents
+#     and a parent branch cuts kids and each climbs one layer at a time),
+#   * runs the suite on the merged tree and REFUSES (aborts the merge, leaves
+#     the branch and worktree in place, reports the branch name) on red,
+#   * on green removes the worktree and leaves the merge commit in place --
+#     hashes are never rewritten (no rebase).
+#
+# The layer-agnostic base is windows: git_common_root resolves the MAIN
+# checkout from any worktree depth, so a seat running inside a linked worktree
+# still merges against the main repo's branch namespace.
+
+DEFAULT_SUITE = "python3 -m pytest extensions/agi/tests/ -q"
+
+
+def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
+    """Run git in the given repo root, capturing output."""
+    return subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True)
+
+
+def _current_branch(root: Path) -> str | None:
+    out = _git(root, "branch", "--show-current")
+    if out.returncode != 0:
+        return None
+    name = out.stdout.strip()
+    return name or None
+
+
+def _recorded_field(record_path: Path | None, key: str) -> str | None:
+    """Read `key` from a JSON lease / agent record, if present."""
+    if record_path is None:
+        return None
+    try:
+        data = json.loads(record_path.read_text())
+    except (OSError, ValueError):
+        return None
+    val = data.get(key)
+    return val if isinstance(val, str) and val else None
+
+
+def cmd_merge_up(root: Path, args) -> int:
+    """`season.py merge-up <branch>` -- merge a branch --no-ff into its base."""
+    git_root = locations.git_common_root(root)
+    if git_root is None or not (git_root / ".git").exists():
+        print("ERR: no git repo found", file=sys.stderr)
+        return 1
+
+    branch = args.branch
+    record_path = Path(args.record).resolve() if args.record else None
+
+    base = (args.target
+            or _recorded_field(record_path, "base_branch")
+            or _current_branch(git_root))
+    if not base:
+        print("ERR: cannot determine a base branch (detached HEAD?); "
+              "pass --target", file=sys.stderr)
+        return 1
+
+    suite = (args.suite or _recorded_field(record_path, "suite")
+             or DEFAULT_SUITE)
+    worktree = (args.worktree or _recorded_field(record_path, "worktree"))
+
+    cur = _current_branch(git_root)
+    if cur != base:
+        sw = _git(git_root, "checkout", base)
+        if sw.returncode != 0:
+            print(f"ERR cannot check out base branch {base}: "
+                  f"{sw.stderr.strip()}", file=sys.stderr)
+            return 1
+        print(f"checked out {base}")
+
+    # Stage the merge WITHOUT committing -- the suite votes before the merge
+    # commit is born, so a red suite can still `git merge --abort` and leave
+    # the branch intact. --no-ff so hashes are never rewritten.
+    mg = _git(git_root, "merge", "--no-ff", "--no-commit", branch)
+    if mg.returncode != 0:
+        print(f"ERR merge --no-ff {branch}: {mg.stderr.strip()}",
+              file=sys.stderr)
+        return 1
+    print(f"merged {branch} --no-ff (pending suite) into {base}")
+
+    # Suite-green gate on the merged tree.
+    suite_proc = subprocess.run(suite, shell=True, cwd=str(git_root),
+                                capture_output=True, text=True)
+    if suite_proc.returncode != 0:
+        ab = _git(git_root, "merge", "--abort")
+        print(f"REFUSED: suite red after merging {branch} into {base} -- "
+              f"merge aborted, branch {branch} left in place")
+        if ab.returncode != 0:
+            print(f"  (warn: git merge --abort failed: {ab.stderr.strip()})",
+                  file=sys.stderr)
+        return 1
+
+    # Green: finalize the merge commit (default merge message, two parents).
+    cmt = _git(git_root, "commit", "--no-edit")
+    if cmt.returncode != 0:
+        print(f"ERR finalize merge commit: {cmt.stderr.strip()}", file=sys.stderr)
+        return 1
+    print(f"merged {branch} --no-ff into {base}")
+
+    # Green: remove the worktree (this branch's job is done).
+    if worktree:
+        wt = _git(git_root, "worktree", "remove", worktree)
+        if wt.returncode != 0:
+            # The suite is green and the branch is merged, so any uncommitted
+            # or untracked bytes still in the scratch worktree are throwaway.
+            wt2 = _git(git_root, "worktree", "remove", "--force", worktree)
+            if wt2.returncode != 0:
+                print(f"  (warn: worktree remove failed:"
+                      f" {wt2.stderr.strip()})", file=sys.stderr)
+            else:
+                print(f"removed worktree {worktree} (forced; stray uncommitted"
+                      f" bytes discarded)")
+        else:
+            print(f"removed worktree {worktree}")
+
+    print(f"merge-up of {branch} >> {base} complete; suite green")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -960,6 +1090,22 @@ def main(argv: list[str] | None = None) -> int:
     p_retag.add_argument("--session", default="",
                          help="thought_session for stamps (default: season)")
 
+    # merge-up
+    p_merge = sub.add_parser(
+        "merge-up",
+        help="Merge a loop branch --no-ff into its base, suite-green gate")
+    p_merge.add_argument("branch", help="loop/<slug>-<agent8>@s<N> branch to merge")
+    p_merge.add_argument("--target", default="",
+                         help="base branch to merge into (default: recorded "
+                              "base_branch, else current branch)")
+    p_merge.add_argument("--suite", default="",
+                         help="suite command; non-zero aborts the merge")
+    p_merge.add_argument("--worktree", default="",
+                         help="worktree path to remove on green")
+    p_merge.add_argument("--record", default="",
+                         help="JSON lease/agent record supplying base_branch, "
+                              "suite, worktree")
+
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
@@ -975,6 +1121,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_rollover(root, args)
     elif args.command == "retag":
         return cmd_retag(root, args)
+    elif args.command == "merge-up":
+        return cmd_merge_up(root, args)
 
     return 0
 

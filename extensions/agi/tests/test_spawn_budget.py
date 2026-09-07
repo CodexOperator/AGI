@@ -285,3 +285,38 @@ def test_budget_dir_is_shared_across_a_linked_worktree(tmp_path: Path):
     assert spawn_budget.live_count(wt) == 1
     assert (main_budget / "wt-agent.lease").is_file(), (
         "the lease file lives in the main checkout's budget dir")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3w4-parent-branch-merge-up — the lease records the branch
+# --------------------------------------------------------------------------
+
+
+def test_attach_branch_records_branch_base_and_worktree_on_the_lease(root):
+    """A `--branch` spawn records where its branch belongs on the LEASE, so
+    `season.py merge-up --record <lease>` (or the agent record) can climb the
+    branch into its recorded base even after the agent has gone."""
+    lease = spawn_budget.acquire(root, 2, "branch-agent")
+    assert lease is not None
+    spawn_budget.attach_branch(lease, {
+        "branch": "loop/explore-a00-xy@s2",
+        "base_branch": "season/s1",
+        "worktree": "/tmp/main/.agi/worktrees/a00-xy",
+    })
+    rec = json.loads(lease.path.read_text())
+    assert rec["branch"] == "loop/explore-a00-xy@s2"
+    assert rec["base_branch"] == "season/s1"
+    assert rec["worktree"] == "/tmp/main/.agi/worktrees/a00-xy"
+
+
+def test_attach_branch_ignores_empty_fields(root):
+    """An attach with no branch fields must leave the lease unchanged except
+    its mandatory keys — never write empty-string placeholders."""
+    lease = spawn_budget.acquire(root, 2, "plain-agent")
+    assert lease is not None
+    spawn_budget.attach_branch(lease, {})
+    rec = json.loads(lease.path.read_text())
+    assert "branch" not in rec
+    assert "base_branch" not in rec
+    assert "worktree" not in rec
+    assert rec["agent_id"] == "plain-agent"

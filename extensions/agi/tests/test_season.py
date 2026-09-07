@@ -751,3 +751,217 @@ class TestErrorHandling:
         )
         assert result.returncode == 1
         assert "not an agi project" in result.stderr
+
+# ---------------------------------------------------------------------------
+# merge-up tests (hypothesis:l3w4-parent-branch-merge-up)
+# ---------------------------------------------------------------------------
+
+
+def _git(tmp, *args):
+    return subprocess.run(["git", "-C", str(tmp), *args],
+                          capture_output=True, text=True)
+
+
+def _init_project(tmp_path, season="season/s1"):
+    """git-init the temp project (which already holds .agi/) and make a base
+    commit on season/s1, so merge-up has a branch it can merge into."""
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "checkout", "-q", "-b", season)
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "-c", "user.email=t@t", "-c", "user.name=t",
+         "commit", "-qm", "base")
+    return tmp_path
+
+
+def _commit(tmp, msg, filename="file.txt", content="x\n"):
+    (tmp / filename).write_text(content)
+    _git(tmp, "add", "-A")
+    return _git(tmp, "-c", "user.email=t@t", "-c", "user.name=t",
+                "commit", "-qm", msg)
+
+
+class TestMergeUp:
+    """season.py merge-up subcommand — the branch->base upward merge, green gate.
+
+    goal:g12.3 — landing a branch against its recorded base needs tests red
+    first; these cover the hypothesis's merge-up test list plus the recursion
+    ADDENDUM (recorded base_branch, three-layer rehearsal).
+    """
+
+    def test_merge_up_merges_no_ff_and_removes_worktree(
+            self, season_py, temp_graph, tmp_path):
+        """A passing suite lands a --no-ff merge commit and removes the
+        worktree."""
+        _init_project(tmp_path)
+        base = str(tmp_path)
+        worktree = tmp_path / "wt"
+        br = _git(tmp_path, "worktree", "add", "-b", "loop/slug-abc12345@s2",
+                  str(worktree), "season/s1")
+        assert br.returncode == 0, br.stderr
+        _commit(worktree, "kid commit", content="kid\n")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/slug-abc12345@s2", "--suite", "exit 0",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert f"merged loop/slug-abc12345@s2 --no-ff into season/s1" in result.stdout
+        assert f"removed worktree {worktree}" in result.stdout
+        assert "complete; suite green" in result.stdout
+
+        # A --no-ff merge commit exists with two parents.
+        merge = _git(tmp_path, "log", "-1", "--format=%P", "season/s1")
+        assert len(merge.stdout.split()) == 2, "expected a real (2-parent) merge"
+
+        # The branch's commit is now in the base's history.
+        merged = _git(tmp_path, "log", "season/s1", "--format=%s",
+                      "--") .stdout
+        assert "kid commit" in merged
+
+        # The worktree really is gone.
+        wt = _git(tmp_path, "worktree", "list", "--porcelain")
+        assert str(worktree) not in wt.stdout
+
+    def test_merge_up_refuses_on_red_suite(self, season_py, temp_graph, tmp_path):
+        """A red suite aborts the merge and leaves the branch + worktree."""
+        _init_project(tmp_path)
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/red-ffffffff@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "red commit", content="red\n")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/red-ffffffff@s2", "--suite", "exit 1",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1, "red suite must refuse the merge"
+        assert "REFUSED" in result.stdout
+        assert "loop/red-ffffffff@s2" in result.stdout
+
+        # Merge aborted: the red commit is NOT in the base's history.
+        log = _git(tmp_path, "log", "season/s1", "--format=%s").stdout
+        assert "red commit" not in log
+        # Branch still exists and worktree was NOT removed.
+        branches = _git(tmp_path, "branch", "--list").stdout
+        assert "loop/red-ffffffff@s2" in branches
+        wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
+        assert str(worktree) in wt
+
+    def test_merge_up_never_rebases(self, season_py, temp_graph, tmp_path):
+        """Merging upward never rewrites the branch's commit hashes."""
+        _init_project(tmp_path)
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/no-rebase-aaaa@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "stable commit", content="stable\n")
+        tip_before = _git(tmp_path, "rev-parse", "loop/no-rebase-aaaa@s2").stdout.strip()
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/no-rebase-aaaa@s2", "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+
+        # The branch's tip hash is unchanged...
+        tip_after = _git(tmp_path, "rev-parse", "loop/no-rebase-aaaa@s2").stdout.strip()
+        assert tip_after == tip_before and tip_before, "rebase rewrote the hashes"
+        # ...and present verbatim in the merged base's history (no fast-forward,
+        # no reconstituted commits).
+        assert tip_before in _git(tmp_path, "log", "season/s1",
+                                  "--format=%H").stdout.split()
+
+    def test_merge_up_targets_recorded_base_branch(
+            self, season_py, temp_graph, tmp_path):
+        """When a base_branch is recorded, merge-up targets it, not the
+        currently checked-out branch (layer-agnostic recursion)."""
+        _init_project(tmp_path)
+        # Director layer: cut tier1/director off the season.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work", content="director\n")
+
+        # Parent layer: cut the parent branch off the DIRECTOR branch.
+        _git(tmp_path, "checkout", "-q", "season/s1")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(worktree), "tier1/director")
+        _commit(worktree, "parent work", content="parent\n")
+
+        # A record (lease/agent.json) names the base as tier1/director.
+        record = tmp_path / ".agi" / "sessions" / "lease.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({
+            "branch": "loop/parent-aaaa@s2",
+            "base_branch": "tier1/director",
+            "worktree": str(worktree),
+            "suite": "exit 0",
+        }))
+
+        # Run from season/s1 (a DIFFERENT branch than the recorded base).
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--record", str(record)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "tier1/director" in result.stdout
+        # The parent's work landed in the director branch, not the season.
+        assert "parent work" in _git(
+            tmp_path, "log", "tier1/director", "--format=%s").stdout
+        assert "parent work" not in _git(
+            tmp_path, "log", "season/s1", "--format=%s").stdout
+
+    def test_three_layer_rehearsal(self, season_py, temp_graph, tmp_path):
+        """season -> director branch -> parent branch, merged up in order;
+        hashes never rewritten (the ADDENDUM's recursive rehearsal)."""
+        _init_project(tmp_path)  # on season/s1
+
+        # Director layer, cut from season/s1.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work")
+        dir_before = _git(tmp_path, "rev-parse", "tier1/director").stdout.strip()
+
+        # Parent layer, cut from tier1/director.
+        parent_wt = tmp_path / "pwt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(parent_wt), "tier1/director")
+        _commit(parent_wt, "parent work", content="parent\n")
+        parent_tip = _git(tmp_path, "rev-parse", "loop/parent-aaaa@s2").stdout.strip()
+
+        # 1) Merge the parent up onto the director layer (recorded base).
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--target", "tier1/director",
+             "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+
+        # 2) Merge the director up onto the season.
+        result2 = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "tier1/director", "--target", "season/s1",
+             "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        assert result2.returncode == 0, result2.stderr
+
+        # Both merge steps are --no-ff: two-parent merge commits.
+        for b in ("tier1/director", "season/s1"):
+            parents = _git(tmp_path, "log", "-1", "--format=%P",
+                           b).stdout.split()
+            assert len(parents) == 2, f"{b} should hold a merge commit"
+
+        # Hashes never rewritten: the parent tip and director tip are present
+        # verbatim in the season's history, unchanged.
+        season_hashes = _git(tmp_path, "log", "season/s1",
+                             "--format=%H").stdout.split()
+        assert parent_tip in season_hashes, "parent commit hash must survive"
+        assert dir_before in season_hashes, "director commit hash must survive"
+        # And the first merge still has the SAME parent tip (no rebase of it).
+        assert _git(tmp_path, "rev-parse", "loop/parent-aaaa@s2").stdout.strip() \
+            == parent_tip

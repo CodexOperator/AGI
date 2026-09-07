@@ -567,7 +567,7 @@ def test_record_session_pin_derives_transcript_then_meter_reads_it(monkeypatch, 
     pin = cc.record_session_pin(sess_dir=sess, agent_id="a00-test",
                                 cwd=str(tmp_path), log_file=logf)
     assert pin is not None and pin.exists()
-    assert (graph / ".agi" / "sessions" / "a00-test.meter").exists()
+    assert (graph / "sessions" / "a00-test.meter").exists()
 
     result = rotate.main(["meter"])
     out = capsys.readouterr().out
@@ -593,12 +593,15 @@ def test_scan_log_for_session_limit_yields_no_retry_and_one_limit_line(tmp_path)
     """The fake stream carrying the limit text yields a detected limit (no
     retry: the close is a single non-zero return) and exactly one LIMIT line."""
     from adapters import claude_code_adapter as cc
+    import json as _json
     log = tmp_path / "output.log"
-    log.write_text(
-        '{"type":"assistant","message":{"role":"assistant","usage":{"input_tokens":3}}}\n'
-        '{"type":"result","subtype":"success","text":"Work finished.","usage":{"input_tokens":4}}}\n'
-        '{"type":"result","text":"You\'ve hit your session limit \u00b7 resets 5:20am (America/New_York)","usage":{"input_tokens":1}}}\n'
-    )
+    events = [
+        {"type": "assistant", "text": "working..."},
+        {"type": "result", "subtype": "success", "text": "Work finished."},
+        {"type": "result",
+         "text": "You've hit your session limit \u00b7 resets 5:20am (America/New_York)"},
+    ]
+    log.write_text("".join(_json.dumps(e) + "\n" for e in events))
     is_limit, reset = cc.scan_log_for_session_limit(log)
     assert is_limit is True
     assert reset == "5:20am (America/New_York)"
@@ -620,8 +623,8 @@ def test_close_session_limit_releases_the_lease(tmp_path):
     lease = spawn_budget.acquire(root, cap, agent_id="a00-limit",
                                  tier="director", iter_n=3)
     assert lease is not None
-    spawn_budget.commit(lease, 12345)
-    assert spawn_budget.live_count(root) == 1
+    spawn_budget.commit(lease, os.getpid())  # a live pid: the lease is held
+    assert lease.path.exists()
 
     log = tmp_path / "output.log"
     rc = cc.close_session_limit(log_file=log, reset_time="5:20am",

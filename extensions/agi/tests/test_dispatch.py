@@ -9,6 +9,7 @@ nothing. A defect that quiet deserves a test that is loud.
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 from pathlib import Path
 
@@ -815,3 +816,151 @@ def test_scaffold_stamps_the_child_row_not_the_spawner_env(tmp_path, monkeypatch
     assert fm["loop"] == "hypothesis:seed@s2"
     assert fm["profile"] == "balanced"
     assert fm["season"] == 2
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-parent-branch-merge-up — dispatch.py --branch worktrees
+# ---------------------------------------------------------------------------
+# The dispatch half of the claim: `--branch` cuts each spawn its own git
+# worktree on loop/<slug>-<agent8>@s<N> OFF the SPAWNER's branch, the child
+# edits only that worktree (cwd + AGI_TREE_PROJECT_ROOT), and the lease /
+# agent record carry branch/base_branch/worktree for season.py merge-up.
+# Red-first: these were written before the helpers existed; the real-git
+# tests fail when the worktree is missing or is rooted at the wrong layer.
+
+
+def _git_repo(tmp_path: Path, branch: str = "init") -> Path:
+    """git-init a project-looking repo with a committed `.agi/` graph, so
+    worktrees cut from it carry their own graph (`.agi/` is tracked)."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
+
+
+def test_loop_branch_name_carries_slug_agent_and_season():
+    """ADDENDUM item 3: the agent id rides in the branch name so nested layers
+    never collide; the slug tells a human which aim the branch carries."""
+    assert (dispatch.loop_branch_name("hypothesis:l3w4-x", "a00-abc8", 2)
+            == "loop/hypothesis-l3w4-x-a00-abc8@s2")
+    # colon flattened, explore fallback, season stamped
+    assert dispatch.loop_branch_name(None, "a00-x", 1) == "loop/explore-a00-x@s1"
+    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) == "loop/mvp-g-kid1@s3"
+
+
+def test_spawner_base_branch_returns_the_checked_out_branch(tmp_path):
+    """ADDENDUM item 1: a new branch's base is the SPAWNER's branch, never a
+    hardcoded season. This helper is what reads the spawner's HEAD."""
+    repo = _git_repo(tmp_path)
+    assert dispatch.spawner_base_branch(repo) == "init"
+    subprocess.run(["git", "-C", str(repo), "checkout", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    assert dispatch.spawner_base_branch(repo) == "season/s1"
+
+
+def test_spawner_base_branch_none_when_detached(tmp_path):
+    """A detached HEAD has no branch to base a child on — the helper must say
+    so (return None) rather than hand a caller a wrong branch name."""
+    repo = _git_repo(tmp_path)
+    subprocess.run(["git", "-C", str(repo), "checkout", "--detach"],
+                   check=True, capture_output=True)
+    assert dispatch.spawner_base_branch(repo) is None
+
+
+def test_branch_worktree_for_spawn_cuts_from_the_spawner_branch(tmp_path):
+    """The real claim: `git worktree add <main>/.agi/worktrees/<agent>
+    -b loop/<slug>-<agent8>@s<N> <spawner-branch>`. The worktree lands under
+    the MAIN checkout's `.agi/worktrees/` and its tip EQUALS the recorded base
+    branch (here a director layer, not the season) — so merge-up climbs one
+    layer at a time and not straight to the season."""
+    repo = _git_repo(tmp_path)
+    subprocess.run(["git", "-C", str(repo), "checkout", "-b",
+                    "tier1/director"], check=True, capture_output=True)
+    (repo / "d.txt").write_text("director layer work\n")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "director work"],
+                   check=True, capture_output=True)
+
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/explore-a00-xy@s2", "a00-xy", "tier1/director")
+
+    # Worktree under the MAIN checkout's `.agi/worktrees/<agent>/`.
+    assert str(wt) == str(repo / ".agi" / "worktrees" / "a00-xy")
+    assert wt.is_dir()
+    # The branch exists and is based on the SPAWNER's layer, not the season.
+    branches = subprocess.run(["git", "-C", str(repo), "branch", "--list",
+                               "loop/explore-a00-xy@s2"], capture_output=True,
+                              text=True)
+    assert "loop/explore-a00-xy@s2" in branches.stdout
+    tip = subprocess.run(["git", "-C", str(repo), "log", "--oneline",
+                          "loop/explore-a00-xy@s2", "-1"], capture_output=True,
+                         text=True).stdout.strip()
+    base = subprocess.run(["git", "-C", str(repo), "log", "--oneline",
+                           "tier1/director", "-1"], capture_output=True,
+                          text=True).stdout.strip()
+    assert tip == base, ("the loop branch must sit on the SPAWNER's "
+                         "director layer, not an empty season base")
+
+
+def test_child_graph_resolves_to_the_worktrees_own_agi(tmp_path):
+    """The kid edits only its own worktree: from inside the worktree the graph
+    root resolves to the worktree's `.agi/`, so its node/scaffold writes land
+    there and nowhere near another agent's tree."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-zz@s1", "a00-zz", "init")
+    graph = dispatch.locations.find_project_root(wt)
+    assert graph == (wt / ".agi").resolve()
+
+
+def test_dispatch_branch_flag_is_registered():
+    """The flag has to exist on the dispatch CLI. Structural, AST-free: the
+    literal `--branch` must be handed to add_argument."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    found = any(
+        isinstance(n, ast.Call)
+        and getattr(n.func, "attr", "") == "add_argument"
+        and any(isinstance(a, ast.Constant) and a.value == "--branch"
+                for a in n.args)
+        for n in ast.walk(tree)
+    )
+    assert found, "dispatch.py must register a --branch command-line flag"
+
+
+def test_dispatch_branch_exports_agi_tree_project_root_to_the_child():
+    """Under --branch the child is told its project root is the WORKTREE (via
+    AGI_TREE_PROJECT_ROOT, the env project_root_from_env checks first), so its
+    node + grid ops edit only that tree while shared budget/comms/meter go to
+    the main checkout. AST check — dispatch writes spawn_env after Popen is
+    built, so the literal in the source is the only seam that proves it."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    found = any(
+        isinstance(n, ast.Assign)
+        and any(
+            isinstance(t, ast.Subscript)
+            and isinstance(t.slice, ast.Constant)
+            and t.slice.value == "AGI_TREE_PROJECT_ROOT"
+            for t in n.targets)
+        for n in ast.walk(tree)
+    )
+    assert found, ("dispatch.py must export AGI_TREE_PROJECT_ROOT into the "
+                   "spawn environment on the --branch path")
+    # spawn scripts also route `cwd` to the worktree root, not the main one.
+    assert "cwd=str(branch_root)" in src, (
+        "dispatch.py must launch the child from the worktree root (branch_root)")

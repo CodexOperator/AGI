@@ -196,7 +196,9 @@ def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
                        log_file=None) -> Path | None:
     """Pin this agent to the transcript it owns, so its later meters read it.
 
-    The pin is `<root>/.agi/sessions/<agent_id>.meter` (root = the graph the
+    The pin is `<graph_dir>/sessions/<agent_id>.meter` (graph dir = the .agi/
+    `locations.find_project_root` returns; sessions sit directly under it, never
+    doubled) --
     agent's session dir sits under). Content: the transcript path on one line.
     When `transcript` is not given, read the session_id from `log_file` (the
     child's stream-json output) and derive the path from it + `cwd`. Returns
@@ -209,14 +211,15 @@ def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
             return None
         transcript = transcript_path_for_session(cwd=cwd, session_id=sid)
     # The pin must land where rotate's meter scans it. rotate resolves its
-    # root with locations.find_project_root() (the graph dir), so the pin is
-    # `<graph_dir>/.agi/sessions/<agent_id>.meter` -- the same convention
-    # rotate already uses for its legacy remote-control log. Resolving from
-    # sess_dir keeps both sides agreeing even when the agent runs elsewhere.
+    # root with locations.find_project_root() (the GRAPH dir, the `.agi/`
+    # itself), so the pin is `<graph_dir>/sessions/<agent_id>.meter` -- NOT
+    # `<graph_dir>/.agi/sessions/` (the L3.15 doubling defect, hypothesis:
+    # l3-rotate-pin-path-readback). Resolving from sess_dir keeps both sides
+    # agreeing even when the agent runs elsewhere.
     root = locations.find_project_root(Path(sess_dir))
     if root is None:
         return None
-    seg = Path(root) / ".agi" / "sessions"
+    seg = Path(root) / "sessions"
     seg.mkdir(parents=True, exist_ok=True)
     # hypothesis:l3w4-seat-registry — when the seat key is set, pin under the
     # seat's STABLE name rather than the per-process agent id, so the seat's
@@ -637,7 +640,7 @@ SESSION_LIMIT_TEXT = "You've hit your session limit"
 #: The reset time named after the limit message, e.g. `resets 5:20am
 #: (America/New_York)` -> `5:20am (America/New_York)`.
 SESSION_LIMIT_RESET_PATTERN = re.compile(
-    r"resets?\s+(.*?)(?:\)|\s*)$", re.IGNORECASE
+    r"resets?\s+(.+?)\s*$", re.IGNORECASE
 )
 
 #: The exit code a session-limited handle returns so a parent DONE contract
@@ -691,7 +694,7 @@ def limit_from_result_text(text: str) -> str | None:
         return None
     m = SESSION_LIMIT_RESET_PATTERN.search(text)
     if m and m.group(1).strip():
-        return m.group(1).strip().rstrip(")")
+        return m.group(1).strip()
     return None
 
 

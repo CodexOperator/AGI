@@ -289,6 +289,28 @@ def attach_credential(lease: Lease, key_hash: str) -> None:
     _write_lease(lease.path, rec)
 
 
+def attach_branch(lease: Lease, branch_ref: dict) -> None:
+    """Record which branch/base/worktree this lease's agent runs on.
+
+    `hypothesis:l3w4-parent-branch-merge-up`. A `--branch` spawn cuts its
+    own git worktree off the SPAWNER's branch; the lease is the object whose
+    liveness governs the slot, so it is the right place to hang the target of
+    the eventual `season.py merge-up` — a lease that lingers past the agent
+    still says where its branch belongs, and `merge-up --record <lease>` can
+    climb it into the recorded base. `branch`/`base_branch`/`worktree` are
+    recorded verbatim (never the secret, never a path that later proves
+    wrong); the same tuple is also written to the agent record by dispatch.
+    """
+    try:
+        rec = json.loads(lease.path.read_text())
+    except (json.JSONDecodeError, OSError):
+        rec = {"agent_id": lease.agent_id, "holder_pid": lease.holder_pid}
+    for key in ("branch", "base_branch", "worktree"):
+        if branch_ref.get(key):
+            rec[key] = branch_ref[key]
+    _write_lease(lease.path, rec)
+
+
 def commit(lease: Lease, agent_pid: int) -> None:
     """Hand the lease over to the spawned process once it has a pid."""
     lease.agent_pid = int(agent_pid)

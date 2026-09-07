@@ -622,3 +622,43 @@ def test_comms_root_flag_wins(tmp_path: Path):
     (root / ".agi" / "config.json").write_text(json.dumps(
         {"locations": {"comms_root": "/dev/shm/agi"}}))
     assert str(send_mod.comms_root(root, "/tmp/myc")) == "/tmp/myc"
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-parent-branch-merge-up — comms root stays the main checkout
+# ---------------------------------------------------------------------------
+
+
+def test_comms_root_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
+    """A `--branch` kid runs in its own git worktree carrying its own `.agi/`;
+    the comms root must still be the MAIN checkout's `.agi/comms/season-N/`
+    — one room per season, never one per worktree."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (repo / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 5\n---\n")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x-abc@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+
+    main_comms = send_mod.comms_root(repo / ".agi")
+    # The kid runs inside the worktree (its graph root is the worktree's .agi).
+    wt_comms = send_mod.comms_root(wt / ".agi")
+    assert str(main_comms) == str(repo / ".agi" / "comms" / "season-5")
+    assert wt_comms == main_comms, (
+        "a worktree kid must comms to the MAIN checkout's season room, "
+        "not a per-worktree one")

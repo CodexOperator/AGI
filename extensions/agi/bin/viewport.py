@@ -83,6 +83,8 @@ GLYPH = {
     "leaf": "·",      # ·
     "damaged": "✗",   # ✗  dangling parent / broken edge
     "spider": "✶",    # ✶  an agent, working here
+    "mantle": "✦",    # ✦  a mantled spirit in the sanctuary theme
+    "wisp": "≈",      # ≈  a probe / ephemeral wisp in the sanctuary theme
 }
 
 #: Node type -> single-letter tag. Kept short: at level 1 the tag is all the
@@ -331,6 +333,167 @@ def render_llm(frames: list[Frame], top: int, left: int,
 
 
 # --------------------------------------------------------------------------
+# The sanctuary theme — a third live render, per goal:g9.4 under goal:g9.7
+# (hypothesis:l3w4-sanctuary-theme). `--theme sanctuary`.
+#
+# Same one-render-two-readers discipline as the graph frame: `sanctuary_frame`
+# builds a single frozen `SanctuaryScene` and `render_sanctuary_human` /
+# `render_sanctuary_llm` read it and nothing else. Content: a tree on an
+# outcrop houses one mantled spirit per tier-3 seat; tier-1 director seats and
+# live ephemeral leases draw as wisps; a rotating seat draws a light strand
+# naming its `rotated_by` holder.
+# --------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SanctuaryScene:
+    """One sanctuary frame — the mirror of `Frame`, for the theme renderers."""
+    spirits: tuple          # of {name, label, fraction} — mantled tier-3 avatars
+    probes: tuple           # of {name, label, fraction} — tier-1 director wisps
+    ephemeral_wisps: int    # live ephemeral lease count
+    rotating: tuple         # (holder, seat) when a seat's window is ren-gen'd
+    registry_present: bool  # False => the seats registry is absent
+
+
+def sanctuary_frame(seat_rows: list, ephemeral_leases, rotating):
+    """Build one `SanctuaryScene` from `config:seats` rows (hypothesis L3.24).
+
+    Sprits are the `tier == 3` rows (Belam and the advisors, wearing their
+    mantles) plus any mantled non-tier-3 row (a seated Sanctuary Master sits on
+    her mantle, not her tier). Everything else — the tier-1 director rows — is a
+    probe wisp.
+    """
+    spirits, probes = [], []
+    for r in seat_rows or []:
+        rec = {
+            "name": str(r.get("name") or ""),
+            "label": str(r.get("role") or ""),
+            "fraction": r.get("fraction"),
+        }
+        if r.get("tier") == 3 or r.get("mantled"):
+            spirits.append(rec)
+        else:
+            probes.append(rec)
+    return SanctuaryScene(tuple(spirits), tuple(probes),
+                          len(ephemeral_leases or []), rotating, True)
+
+
+def load_seat_rows(root: Path, fm_by_id: dict):
+    """`(rows, registry_present)` — telemetry when available, else seats.md.
+
+    Matches telemetry's own fallback (`l3w4-telemetry-seat-status`): prefer
+    `seat_status.collect(...).seats` when that module exists, otherwise read
+    `config:seats`'s `seats:` list from `.geometry/seats.md` with `fraction`
+    unset. Whichever lane lands first is safe to render.
+    """
+    try:
+        import seat_status
+        sv = seat_status.collect(root, fm_by_id)
+        rows = getattr(sv, "seats", None)
+        if rows:
+            return list(rows), True
+    except Exception:
+        pass
+    seats_md = root / "nodes" / ".geometry" / "seats.md"
+    present = seats_md.is_file()
+    rows = []
+    if present:
+        gf = zoom._frontmatter_for(root, ".geometry")
+        rows = (gf.get("config:seats") or {}).get("seats") or []
+    return list(rows), present
+
+
+_ROTATING_RE = re.compile(r"^(.+)\.gen\d+$")
+
+
+def rotating_seat(seat_rows: list, windows: list):
+    """`(holder, seat)` for the seat whose tmux window is renamed `<seat>.genN`.
+
+    The rotation loop names a rotating seat's window `<seat>.gen<digits>`
+    (`l3w4-seat-rotation-loops`); resolve that to the row's `rotated_by`
+    holder. Never invented: no matching window returns `None`.
+    """
+    names = {str(r.get("name") or ""): r for r in seat_rows or []}
+    for w in windows or []:
+        m = _ROTATING_RE.match((w or "").strip())
+        if not m:
+            continue
+        row = names.get(m.group(1))
+        if row is not None:
+            return row.get("rotated_by"), m.group(1)
+    return None
+
+
+def render_sanctuary_human(scene: SanctuaryScene, width: int = 120) -> list[str]:
+    """The terminal frame: tree, spirits, probes, wisps, and the light strand."""
+    if not scene.registry_present:
+        return ["no seat registry yet"]
+    lines = [
+        "   ~   ~   ~",
+        "  _/ outcrop \\_",
+        "  / tree of mantled spirits \\",
+        "",
+    ]
+    for s in scene.spirits:
+        frac = f"  {s['fraction']:.0%}" if s["fraction"] is not None else ""
+        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']}{frac}")
+    for p in scene.probes:
+        frac = f"  {p['fraction']:.0%}" if p["fraction"] is not None else ""
+        lines.append(f"  {GLYPH['wisp']}  {p['name']}  probe{frac}")
+    lines.append(f"  {scene.ephemeral_wisps} ephemeral wisps")
+    if scene.rotating:
+        holder, seat = scene.rotating
+        lines.append(f"  {holder} ~~~✧~~~> {seat} (rotating)")
+    return lines
+
+
+def render_sanctuary_llm(scene: SanctuaryScene) -> str:
+    """Exactly what a kid is handed, from the same `SanctuaryScene`."""
+    if not scene.registry_present:
+        return "# sanctuary viewport\n\nno seat registry yet\n"
+    body = [f"- spirit {s['name']} ({s['label']})" for s in scene.spirits]
+    body += [f"- probe {p['name']} ({p['label']})" for p in scene.probes]
+    body.append(f"- ephemeral_wisps: {scene.ephemeral_wisps}")
+    if scene.rotating:
+        body.append(f"- rotating: {scene.rotating[0]} ~~~✧~~~> {scene.rotating[1]}")
+    return "# sanctuary viewport\n\n" + "\n".join(body) + "\n"
+
+
+def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
+    """Static `--theme sanctuary` path for `--emit human|llm|both`."""
+    seat_rows, present = load_seat_rows(root, fm_by_id)
+    ephemeral = []
+    try:
+        import spawn_budget
+        ephemeral = spawn_budget.live_agents(root)
+    except Exception:
+        pass
+    windows = []
+    try:
+        import rotate as _rotate
+        windows = _rotate._existing_windows(_rotate.DEFAULT_TMUX_SESSION)
+    except Exception:
+        pass
+    scene = sanctuary_frame(seat_rows, ephemeral, rotating_seat(seat_rows, windows))
+    status = f"theme=sanctuary registry={'yes' if present else 'absent'}"
+    mode = args.emit or "human"
+    if mode in ("human", "both"):
+        if mode == "both":
+            print("=" * args.width)
+            print("HUMAN VIEW — sanctuary".center(args.width))
+            print("=" * args.width)
+        for ln in render_sanctuary_human(scene, args.width):
+            print(ln[:args.width])
+    if mode in ("llm", "both"):
+        if mode == "both":
+            print("\n" + "=" * args.width)
+            print("LLM VIEW  — same scene".center(args.width))
+            print("=" * args.width)
+        print(render_sanctuary_llm(scene), end="")
+    return 0
+
+
+# --------------------------------------------------------------------------
 # The time axis.
 # --------------------------------------------------------------------------
 
@@ -488,6 +651,8 @@ def main() -> int:
     ap.add_argument("--left", type=int, default=0)
     ap.add_argument("--height", type=int, default=40)
     ap.add_argument("--width", type=int, default=120)
+    ap.add_argument("--theme", choices=("graph", "sanctuary"), default="graph",
+                    help="live-axis view theme (default: graph)")
     args = ap.parse_args()
 
     root = Path(args.project) if args.project else locations.find_project_root(Path.cwd())
@@ -507,6 +672,9 @@ def main() -> int:
     for d in sorted((root / "nodes").glob("*")):
         if d.is_dir():
             fm_by_id.update(zoom._frontmatter_for(root, d.name))
+
+    if args.theme == "sanctuary":
+        return _render_sanctuary(args, root, fm_by_id)
 
     iter_name = args.iter
     if args.live and not iter_name:

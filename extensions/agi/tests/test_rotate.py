@@ -64,7 +64,7 @@ def test_meter_check_threshold(monkeypatch, tmp_path, fake_ladder, fake_transcri
     monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "missing")
 
     rc_base = tmp_path / "nodes"
-    rc_log = rc_base / ".agi" / "sessions"
+    rc_log = rc_base / "sessions"
     rc_log.mkdir(parents=True)
     log_path = rc_log / "remote-control.log"
     log_path.write_text(
@@ -454,7 +454,10 @@ def _fake_cc_projects(tmp_path, monkeypatch, pinned_usage=2000, foreign_usage=40
 
 
 def _write_pin(root, target, name="prime.meter"):
-    seg = root / ".agi" / "sessions"
+    # root here is the GRAPH dir (fake_ladder patches find_project_root to
+    # return tmp_path), so sessions sit directly under it -- `root/sessions`,
+    # never `root/.agi/sessions` (hypothesis:l3-rotate-pin-path-readback).
+    seg = root / "sessions"
     seg.mkdir(parents=True, exist_ok=True)
     pin = seg / name
     pin.write_text(str(target) + "\n", encoding="utf-8")
@@ -471,7 +474,7 @@ def test_seat_pin_stable_across_two_rotations_same_name(monkeypatch, tmp_path, f
     import os
     old, now = time.time() - 10_000, time.time()
     os.utime(seat_pin, (old, old))
-    os.utime(tmp_path / ".agi" / "sessions" / "zzz-newer.meter", (now, now))
+    os.utime(tmp_path / "sessions" / "zzz-newer.meter", (now, now))
     code = rotate.main(["meter", "--seat", "belam"])
     out = capsys.readouterr().out.strip()
     assert code == 0
@@ -532,3 +535,112 @@ def test_loop_uses_same_resolver(monkeypatch, tmp_path, fake_ladder, capsys):
     args = SimpleNamespace(session_log=None, check=True)
     code = rotate.cmd_meter(args, tmp_path)
     assert code == 0  # pinned keeps us below; loop would hold
+
+
+# --- hypothesis:l3-rotate-pin-path-readback (red-first) -------------------
+
+
+def test_pin_path_never_doubles_agi_dir(tmp_path):
+    # The pin must resolve under the graph's sessions dir, NEVER the doubled
+    # `<root>/.agi/.agi/sessions` (the L3.15 defect). root = the REPO root
+    # (<tmp>) and root = the GRAPH dir (<tmp>/.agi) must resolve to the SAME
+    # physical `<tmp>/.agi/sessions/<name>.meter`.
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True)          # marks <tmp>/.agi as the graph
+    seg = graph / "sessions"
+    seg.mkdir(parents=True, exist_ok=True)
+    pin = seg / "belam.meter"
+    pin.write_text("/tmp/some-transcript.jsonl\n", encoding="utf-8")
+
+    from_graph = rotate.find_pin_log(graph)
+    assert str(from_graph) == str(pin), from_graph
+    assert "/.agi/.agi/" not in str(from_graph)   # no doubling in the graph-dir read
+
+    from_repo = rotate.find_pin_log(tmp_path)       # repo root maps to the same dir
+    assert str(from_repo) == str(pin), from_repo
+
+
+def test_is_log_noise_markers():
+    # Bracketed logger lines (bare or timestamped) are noise; a bare answer is not.
+    assert rotate._is_log_noise("[DEBUG] MDM settings load completed in 1ms")
+    assert rotate._is_log_noise("2026-09-07T06:04:39.522Z [INFO] [uds-messaging] listening")
+    assert rotate._is_log_noise("   ")
+    assert rotate._is_log_noise("2026-09-07T06:04:40.398Z [WARN] [3P telemetry] Event dropped")
+    assert not rotate._is_log_noise("continue")
+    assert not rotate._is_log_noise("valuable diff line")
+
+
+def test_readback_skips_bracketed_log_lines(tmp_path):
+    # hypothesis:l3-rotate-pin-path-readback -- the read-back must skip
+    # bracketed logger lines and report `continue` when the FIRST bare answer
+    # line is `continue` (the L3.15 defect read `[DEBUG] MDM settings load` as
+    # the reply and printed "handoff needs change").
+    log = tmp_path / "belam.log"
+    log.write_text(
+        "[DEBUG] MDM settings load completed in 1ms\n"
+        "2026-09-07T06:04:41.633Z [WARN] [bridge] continuing as before\n"
+        "continue\n",
+        encoding="utf-8",
+    )
+    assert rotate._read_first_reply(str(log), timeout=5) == "continue"
+
+
+def test_readback_reports_diff_when_no_continue(tmp_path):
+    # When the first bare answer is NOT `continue`, the read-back reports it
+    # (so the loop knows the handoff needs a change).
+    log = tmp_path / "belam.log"
+    log.write_text(
+        "[DEBUG] MDM settings load completed in 1ms\n"
+        "valuable diff line\n",
+        encoding="utf-8",
+    )
+    assert rotate._read_first_reply(str(log), timeout=5) == "valuable diff line"
+
+
+def test_readback_never_returns_a_bracketed_line(tmp_path):
+    # A log holding ONLY log lines must not surface any of them as the reply;
+    # it should poll and, with no bare answer before the timeout, return None.
+    log = tmp_path / "belam.log"
+    log.write_text(
+        "[DEBUG] MDM settings load completed in 1ms\n"
+        "2026-09-07T06:04:41.633Z [WARN] [bridge] no anchor\n",
+        encoding="utf-8",
+    )
+    assert rotate._read_first_reply(str(log), timeout=1) is None
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-parent-branch-merge-up — meter pins stay the main checkout
+# ---------------------------------------------------------------------------
+
+
+def test_sessions_dir_resolves_to_main_from_a_worktree(tmp_path):
+    """A `--branch` kid carries its own `.agi/`, but the meter pins must stay
+    the ONE shared directory on the main checkout (same rule as the budget
+    dir and comms), or a rotation seat reading pins from a worktree would see
+    a different room than the parents writing it."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x-a@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+
+    main_sess = rotate._sessions_dir(repo / ".agi")
+    wt_sess = rotate._sessions_dir(wt / ".agi")
+    assert str(main_sess) == str(repo / ".agi" / "sessions")
+    assert wt_sess == main_sess, (
+        "a worktree kid's meter pins must resolve to the MAIN checkout's "
+        "sessions dir, not a per-worktree one")

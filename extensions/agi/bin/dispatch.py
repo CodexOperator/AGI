@@ -117,6 +117,107 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     return cmd
 
 
+# hypothesis:l3w4-parent-branch-merge-up — per-parent git worktree on a
+# `loop/<slug>-<agent8>@s<N>` branch. The four helpers below are the
+# dispatch side of the claim: `--branch` cuts each spawn its own worktree
+# OFF THE SPAWNER'S checked-out branch (ADDENDUM items 1 & 3), the worktree
+# lives under the MAIN checkout's `.agi/worktrees/<agent>/` resolved through
+# `locations.git_common_root` (ADDENDUM item 4, so a spawner running inside a
+# worktree never nests one agent's tree inside another's), and the lease /
+# agent record carries `branch`/`base_branch`/`worktree` so `season.py
+# merge-up` knows which base to climb into (item 2).
+
+
+def spawner_base_branch(workdir: Path) -> str | None:
+    """The branch the SPAWNER is ON — the base of any branch it cuts.
+
+    ADDENDUM item 1: the base of a new branch is the spawner's checked-out
+    branch (`git rev-parse --abbrev-ref HEAD` in the spawner's cwd), never a
+    hardcoded `season/sN`. A director on `tier1/<name>` cuts its parents from
+    `tier1/<name>`, an advisor cuts directors from its own branch, and only
+    the prime's layer cuts from `season/sN`. Returns None when git is broken
+    or the HEAD is detached (nothing to base a child branch on).
+    """
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(workdir), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    name = out.stdout.strip()
+    # On a detached HEAD `--abbrev-ref HEAD` prints the literal "HEAD" —
+    # there is no branch to base a child on, which is exactly the case the
+    # helper exists to detect for the caller.
+    if not name or name == "HEAD":
+        return None
+    return name
+
+
+def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
+    """`loop/<slug>-<agent8>@s<N>` — the per-agent branch name.
+
+    ADDENDUM item 3: the agent id rides in the branch name so nested layers
+    never collide — a director, a parent and a kid each cut branches carrying
+    their own id, and the `loop/` prefix keeps them off the tier branches
+    (`tier<N>/<name>` stays reserved for directors/prime per HANDOFF §6 item
+    7). The slug is the target's id with the `:` flattened, so a human can
+    tell which aim the branch carries.
+    """
+    slug = (target or "explore").replace(":", "-")[:32]
+    return f"loop/{slug}-{agent_id}@s{season}"
+
+
+def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
+                              base_branch: str) -> Path:
+    """`git worktree add <main>/.agi/worktrees/<agent> -b <branch> <base>`.
+
+    ADDENDUM item 4: the worktree lives under the MAIN checkout's
+    `.agi/worktrees/<agent>/`, resolved through `locations.git_common_root`,
+    so a spawner that is ITSELF running inside a worktree does not land one
+    agent's tree inside another's — the common git dir is always the main
+    repo's `.git`. The base is the spawner's own branch (item 1), so merges
+    climb one layer at a time. Returns the worktree checkout root. Raises
+    RuntimeError naming the branch and base when the worktree cannot be
+    created.
+    """
+    main = locations.git_common_root(root)  # main checkout, from any depth
+    wt = main / ".agi" / "worktrees" / agent_id
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    out = subprocess.run(
+        ["git", "-C", str(main), "worktree", "add", "-b", branch,
+         str(wt), base_branch],
+        capture_output=True, text=True,
+    )
+    if out.returncode != 0:
+        raise RuntimeError(f"git worktree add -b {branch} from {base_branch}: "
+                           f"{out.stderr.strip()}")
+    return wt
+
+
+def drop_branch_worktree(root: Path, worktree: Path) -> None:
+    """Best-effort remove of a worktree created by `--branch` but never used.
+
+    Called on every spawn-failure path after a worktree was cut, so a botched
+    spawn does not leak a worktree and its branch. `git worktree remove` is
+    issued from the MAIN checkout (`git_common_root`), never the worktree
+    itself; `--force` discards whatever stray bytes landed in it before the
+    abort. Any removal failure is swallowed — the seat's next `merge-up` /
+    `worktree list` pass is the safety net, not this.
+    """
+    try:
+        main = locations.git_common_root(root)
+        subprocess.run(
+            ["git", "-C", str(main), "worktree", "remove", "--force",
+             str(worktree)],
+            capture_output=True, text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 def pi_model_args(cfg: dict, tier: str = "kid") -> list[str]:
     """LEGACY SHIM — the pi flags now live in `adapters/pi_adapter.py`.
 
@@ -618,6 +719,15 @@ def main() -> int:
              "dry-run).",
     )
     ap.add_argument(
+        "--branch",
+        action="store_true",
+        help="Run each spawn in its own git worktree on "
+             "loop/<slug>-<agent>@s<N>, cut from the SPAWNER's checked-out "
+             "branch; the kid edits only that worktree and its lease/record "
+             "carries branch/base_branch/worktree for season.py merge-up "
+             "(hypothesis:l3w4-parent-branch-merge-up)",
+    )
+    ap.add_argument(
         "--detach",
         action="store_true",
         help="Skip the reaper phase and return immediately after spawn. "
@@ -861,7 +971,43 @@ def main() -> int:
             })
             continue
 
-        zoom_cmd = zoom_command(root, args.iter_n, agent_id, level, target)
+        # hypothesis:l3w4-parent-branch-merge-up — `--branch` gives this
+        # spawn its own git worktree on loop/<slug>-<agent8>@s<N>, cut from
+        # the SPAWNER's checked-out branch. The kid edits only that worktree
+        # (child_graph for zoom/scaffold, cwd + AGI_TREE_PROJECT_ROOT for the
+        # process), and the lease + agent record carry branch/base_branch/
+        # worktree so season.py merge-up knows which base this climbs into.
+        # Shared state (budget dir, comms, meter pins) resolves to the MAIN
+        # checkout through git_common_root, so the concurrency bound and the
+        # rooms stay ONE directory even with N worktrees live.
+        child_graph = root
+        branch_root = root
+        branch_ref: dict = {}
+        if args.branch:
+            base = spawner_base_branch(Path.cwd())
+            if not base:
+                print(f"ERR {agent_id} slot={slot}: --branch requires a "
+                      f"checked-out branch (detached HEAD?) to cut a child "
+                      f"from", file=sys.stderr)
+                spawn_budget.release(lease)
+                return 1
+            branch = loop_branch_name(target, agent_id, current_season)
+            try:
+                wt = branch_worktree_for_spawn(root, branch, agent_id, base)
+            except RuntimeError as exc:
+                print(f"ERR {agent_id} slot={slot}: {exc}", file=sys.stderr)
+                spawn_budget.release(lease)
+                return 1
+            branch_root = wt
+            child_graph = locations.find_project_root(wt) or wt
+            branch_ref = {
+                "branch": branch,
+                "base_branch": base,
+                "worktree": str(wt),
+            }
+            spawn_budget.attach_branch(lease, branch_ref)
+
+        zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
@@ -873,6 +1019,8 @@ def main() -> int:
             # instead of surfacing a CalledProcessError traceback.
             print(f"ERR: no context for target {target!r} at level {level}: "
                   f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             return 1
 
@@ -909,7 +1057,7 @@ def main() -> int:
                 "season": str(current_season),
             }
             scaffold_info = _scaffold_node_for_agent(
-                root, args.iter_n, agent_id, level, target, role, stamp=child_stamp)
+                child_graph, args.iter_n, agent_id, level, target, role, stamp=child_stamp)
             if scaffold_info:
                 print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
 
@@ -986,7 +1134,15 @@ def main() -> int:
                 # toplevel with AGI_PROJECT_ROOT to scope the refusal to
                 # only the project repo, so test repos under /tmp are
                 # allowed even under AGI_TIER=kid
-                spawn_env["AGI_PROJECT_ROOT"] = str(root.resolve())
+                spawn_env["AGI_PROJECT_ROOT"] = str(branch_root.resolve())
+            # hypothesis:l3w4-parent-branch-merge-up — under `--branch` the
+            # child is told (cwd AND AGI_TREE_PROJECT_ROOT, which
+            # project_root_from_env and the bash half check first) that its
+            # project root is the WORKTREE, so its node writes and grid ops
+            # edit only that tree while shared budget/comms/meter resolve to
+            # the main checkout through git_common_root.
+            if args.branch:
+                spawn_env["AGI_TREE_PROJECT_ROOT"] = str(branch_root.resolve())
             # goal:g1.11 -- mint AFTER the brief is assembled and BEFORE the
             # process exists, so a key is never issued for a slot that then
             # fails to spawn for some other reason. The secret goes into the
@@ -1012,6 +1168,8 @@ def main() -> int:
             # protect, while reporting success.
             print(f"ERR: could not mint a credential for {agent_id}: {exc}",
                   file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             return 1
         except (KeyError, NotImplementedError) as exc:
@@ -1020,6 +1178,8 @@ def main() -> int:
             # than surfacing a traceback from inside an adapter.
             print(f"ERR: harness {harness_name!r} cannot spawn tier "
                   f"{args.tier!r}: {exc}", file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             return 1
         log_file = sess_dir / "output.log"
@@ -1031,12 +1191,16 @@ def main() -> int:
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
                     start_new_session=True,
-                    cwd=str(root),
+                    cwd=str(branch_root),
                     env=spawn_env,
                 )
         except BaseException:
             # Nothing was started, so nothing holds the slot. Give it back
-            # now rather than leaving it to expire with this process.
+            # now rather than leaving it to expire with this process, and if
+            # a `--branch` worktree was cut for this agent, drop it so a
+            # botched spawn does not leak a worktree and its branch.
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             raise
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
@@ -1061,6 +1225,14 @@ def main() -> int:
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
         }
+        if branch_ref:
+            # hypothesis:l3w4-parent-branch-merge-up — the recorded
+            # base_branch is what season.py merge-up targets (ADDENDUM item
+            # 2), so this agent's branch climbs into the layer that cut it,
+            # one rung at a time. Season.py reads these from --record.
+            agent_record["branch"] = branch_ref["branch"]
+            agent_record["base_branch"] = branch_ref["base_branch"]
+            agent_record["worktree"] = branch_ref["worktree"]
         if scaffold_info:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")

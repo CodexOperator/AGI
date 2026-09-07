@@ -82,8 +82,9 @@ CC_PROJECT_SLUG = "-home-ubuntu-work-agi"
 #: Default tmux session for remote-control.
 DEFAULT_TMUX_SESSION = "agi-rc"
 
-#: Remote-control debug log path (legacy fallback).
-REMOTE_CONTROL_LOG = Path(".agi") / "sessions" / "remote-control.log"
+#: Remote-control debug log path (legacy fallback), relative to the graph
+#: dir (which `find_project_root()` returns) -- so `<graph>/sessions/`.
+REMOTE_CONTROL_LOG = Path("sessions") / "remote-control.log"
 
 #: Default prompt file, alongside this script.
 DEFAULT_PROMPT_FILE = (
@@ -219,10 +220,44 @@ def _derive_cc_slug(cwd: str) -> str:
     return cwd.replace("/", "-")
 
 
-def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
-    """The newest `<root>/.agi/sessions/*.meter` pin, or the seat's own pin.
+def _sessions_dir(root: Path) -> Path:
+    """The graph's sessions dir, never the doubled `<root>/.agi/.agi` path
+    (hypothesis:l3-rotate-pin-path-readback).
 
-    When `seat` is given, the seat-stable pin `<root>/.agi/sessions/"
+    `find_project_root()` returns the GRAPH dir (the `.agi/` itself), so the
+    sessions dir usually sits directly under it: `<graph>/sessions/`. A caller
+    that passes the REPO root instead (`<repo>` root = `<graph>`'s parent)
+    gets `<repo>/.agi/sessions` -- the SAME physical dir. Detection is by
+    content (`nodes/` marks a graph dir), so a leftover doubled
+    `<graph>/.agi` from before the fix (which holds old pins but no `nodes/`)
+    is NOT mistaken for the graph.
+
+    **hypothesis:l3w4-parent-branch-merge-up** — a `--branch` kid runs in its
+    own git worktree with its own `.git`/`.agi`; the meter pins must stay the
+    ONE shared directory on the main checkout (same rule as the budget dir
+    and comms), so a rotation seat in a worktree reads the same room the
+    parent wrote. Route through the main checkout (`git_common_root`) and
+    re-resolve the graph from there; identity for a non-worktree caller."""
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    if main is not None:
+        mg = locations.find_project_root(main) or graph
+        graph = mg
+    if (graph / "nodes").is_dir():
+        return graph / "sessions"
+    if (graph / ".agi" / "nodes").is_dir():
+        return graph / ".agi" / "sessions"
+    # Unknown shape: default to the graph-dir reading, the production path.
+    return graph / "sessions"
+
+
+def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
+    """The newest `<root>/sessions/*.meter` pin, or the seat's own pin.
+
+    `root` is the GRAPH dir (as `find_project_root()` returns), so the pins
+    live at `<graph>/sessions/` -- the same dir the debug logs land in, never
+    the doubled `<graph>/.agi/sessions/` (hypothesis:l3-rotate-pin-path-
+    readback). When `seat` is given, the seat-stable pin `<root>/sessions/"
     "<seat>.meter` wins over every other pin regardless of mtime
     (hypothesis:l3w4-seat-registry) -- the meter for a named seat reads its
     own pin even as newer foreign pins land.
@@ -233,7 +268,7 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
     transcript)`. Returning the NEWEST lets several agents each pin their own
     transcript while the meter that is actually running reads its own.
     """
-    sessions = root / ".agi" / "sessions"
+    sessions = _sessions_dir(root)
     if not sessions.is_dir():
         return None
     if seat is not None:
@@ -673,7 +708,7 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
             "explicit-missing": f"--session-log {args.session_log}",
             "AGI_SESSION_LOG-missing": f"${AGI_SESSION_LOG_VAR} "
                                        f"={os.environ.get(AGI_SESSION_LOG_VAR)}",
-            "pin_file-missing": f"pin file under {root / '.agi' / 'sessions'}",
+            "pin_file-missing": f"pin file under {_sessions_dir(root)}",
         }[source]
         print(f"ERR: could not read the pinned transcript ({hint}) not found.",
               file=sys.stderr)
@@ -687,7 +722,7 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
         else:
             print("ERR: no session log found. Tried env "
                   f"${AGI_SESSION_LOG_VAR}, pin files under "
-                  f"{root / '.agi' / 'sessions'}/*.meter, transcripts for "
+                  f"{_sessions_dir(root)}/*.meter, transcripts for "
                   f"cwd slug ({_derive_cc_slug(os.getcwd())}), and the "
                   f"remote-control log ({REMOTE_CONTROL_LOG}).",
                   file=sys.stderr)
@@ -889,16 +924,36 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
 # --- loop subcommand ------------------------------------------------------
 
 
+def _is_log_noise(line: str) -> bool:
+    """True when `line` is a bracketed logger line, not a successor's answer.
+
+    The debug pane/joblog mixes claude's own lines `[DEBUG] MDM settings load
+    completed`, `<ts> [INFO] ...`, `<ts> [WARN] ...` with the successor's bare
+    reply. A bracketed line starts with `[` (bare) or is a timestamp followed
+    by a bracket (joblog `2026-09-07T..:..Z [DEBUG] ...`). The continuation
+    answer `continue` is neither, so it survives the filter
+    (hypothesis:l3-rotate-pin-path-readback)."""
+    s = line.strip()
+    if not s:
+        return True
+    if s.startswith("["):
+        return True
+    return re.match(r"^\S+\s+\[[^\]]+\]", s) is not None
+
+
 def _read_first_reply(path: str | Path, timeout: int = 120) -> str | None:
-    """Poll `path` until it carries content; return the first non-empty line,
-    or None if the timeout is hit first."""
+    """Poll `path` until it carries an answer; return the first non-empty line
+    that is NOT a bracketed logger line (e.g. `[DEBUG] MDM settings load
+    completed`), or None if the timeout is hit first."""
     p = Path(path).expanduser()
     deadline = time.time() + timeout
     while time.time() < deadline:
         if p.exists() and p.stat().st_size > 0:
             text = p.read_text(encoding="utf-8", errors="replace").strip()
-            if text:
-                return text.splitlines()[0].strip() or text
+            for line in text.splitlines():
+                if _is_log_noise(line):
+                    continue
+                return line.strip()
         time.sleep(2)
     return None
 
