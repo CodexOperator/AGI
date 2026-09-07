@@ -21,7 +21,7 @@ telemetry, comms — and every wave below mints nodes from it. Do not re-derive 
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1257** expected / 194 at rotation (1252 at L3.09 smoke; +5 nodes since — verify with `--smoke`; never lower) |
+| active nodes / deprecated | **1278 / 194** (node_count 1472) at Belam II's rotation, smoke 06:05 UTC — verify with `--smoke`; never lower. `evidence_fraction` 0.434 (was 0.385), `outcome_coverage` 0.157 (denominator growth from 6 new hypothesis briefs, not regression) |
 | goals | 127 (20 active — **`METRIC-WARNING` live**: exceeds `max_goals_active=18`, see `hypothesis:l2-goals-active-exempt`, not yet fixed) |
 | `outcome_coverage` (primary) | 0.171 (stable since L2.12; new hypothesis/experiment nodes in the denominator, not regression) |
 | `evidence_fraction` | 0.385 after L2.13 (0.38 at L2.12 close) |
