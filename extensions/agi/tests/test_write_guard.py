@@ -27,6 +27,7 @@ def _load(name, filename=None):
 
 nw = _load("node_writer")
 wg = _load("write_guard", "write_guard.py")
+write = _load("write")
 
 
 SHAPE = """\
@@ -48,6 +49,7 @@ SCHEMAS = {
     "[experiment].md": "allowed_parents: [hypothesis, idea]\n  min_parents: 1\n  max_parents: 2",
     "[verdict].md": "allowed_parents: [experiment, hypothesis, verdict]\n  min_parents: 1\n  max_parents: 2",
     "[idea].md": "allowed_parents: [goal]\n  min_parents: 0\n  max_parents: 1",
+    "[doc].md": "allowed_parents: [goal]\n  min_parents: 1\n  max_parents: 1",
 }
 
 
@@ -185,6 +187,16 @@ def _check(project, extra_args=None):
     if extra_args:
         args.extend(extra_args)
     return wg.cmd_check(args)
+
+
+def _check_capture(project, extra_args=None):
+    """Run write_guard check and return its stdout text."""
+    import io
+    from contextlib import redirect_stdout
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        _check(project, extra_args)
+    return buf.getvalue()
 
 
 def test_write_guard_silent_after_sanctioned_write(project):
@@ -496,3 +508,69 @@ def test_foreign_bare_file_is_not_leaked_into_caller_log(project, tmp_path):
 
     assert not (real_root / "sessions" / "write-log.jsonl").exists(), \
         "a foreign bare file must not be logged into the caller's project"
+
+
+# ---------------------------------------------------------------------------
+# doc nodes: .agi/context/*.md design docs get link_ref, guarded like nodes
+# (l3w4-context-doc-nodes)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def context_doc(project):
+    """Baseline a .agi/context/*.md design doc into git, committed."""
+    cd = project / ".agi" / "context"
+    cd.mkdir(parents=True, exist_ok=True)
+    f = cd / "l3-brief.md"
+    f.write_text("# bottom line\n\nfirst design-doc bytes.\n")
+    subprocess.run(["git", "-C", str(project), "add", ".agi/context/l3-brief.md"],
+                   check=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m", "context",
+                    "--quiet"], check=True)
+    return f
+
+
+def test_write_create_doc_stamps_link_ref_to_context_file(project, context_doc):
+    """write.py create doc links an untouched existing context file."""
+    before = context_doc.read_text()
+    res, made = write.create(
+        project / ".agi", "doc", "l3-brief", ["goal:g1"],
+        payload=".agi/context/l3-brief.md", set_fm={"tags": ["doc"]})
+    assert res.written
+    assert made is None, "an existing file is linked, never recreated"
+    # The file is untouched.
+    assert context_doc.read_text() == before
+    # The node declares it as link_ref.
+    import yaml
+    parts = Path(res.path).read_text().split("---", 2)
+    fm = yaml.safe_load(parts[1]) or {}
+    assert fm["type"] == "doc"
+    assert fm["link_ref"] == ".agi/context/l3-brief.md"
+    assert fm["location"] == "source_root"
+
+
+def test_write_guard_warns_on_hand_edit_under_context(project, context_doc):
+    """A hand edit to a context doc prints WARN naming the path."""
+    write.create(project / ".agi", "doc", "l3-brief", ["goal:g1"],
+                 payload=".agi/context/l3-brief.md",
+                 set_fm={"tags": ["doc"]})
+    # Sanctioned create: no WARN yet.
+    assert _check(project, []) == 0
+    # Hand edit bytes (unsanctioned).
+    context_doc.write_text(context_doc.read_text() + "\nHand edit.\n")
+    log = _check_capture(project, [])
+    assert "unsanctioned write under .agi/context/" in log
+    assert ".agi/context/l3-brief.md" in log
+
+
+def test_write_guard_silent_after_write_py_payload_edit(project, context_doc):
+    """Editing the same file through a logged payload write stays silent."""
+    write.create(project / ".agi", "doc", "l3-brief", ["goal:g1"],
+                 payload=".agi/context/l3-brief.md",
+                 set_fm={"tags": ["doc"]})
+    # A logged payload write (what write.py <id> "payload <path>" calls).
+    dest, changed = nw.replace_payload(
+        project / ".agi", ".agi/context/l3-brief.md",
+        data=b"# bottom line\n\nvia write.py payload edit.\n")
+    assert changed
+    assert _check(project, []) == 0, "logged payload write must stay silent"

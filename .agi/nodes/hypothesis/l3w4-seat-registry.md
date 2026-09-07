@@ -9,7 +9,7 @@ edited_by: belam-S1-L3-III
 scaffold_hash: 4c4597b0c2997a8b
 season: 2
 testable_claim: A new config:seats node (.agi/nodes/.geometry/seats.md, parent goal:g17) declares one row per seat -- name, role, tier, harness, model, effort, settings, session_kind, personality_ref, handoff_file, pin_ref, rotated_by, owning_goal -- such that `dispatch.py --seat <name>` dry-prints that row's harness/model/effort/settings overriding the ladder's (tier,role) class table, and `rotate.py meter --seat <name>` reads a seat-stable `.agi/sessions/<name>.meter` pin instead of the newest-mtime one; proved by rows for belam (fable-5.1/max/ultracode), the three advisors (opus-5/max, no ultracode), liaison owning goal:g17 (sonnet-5/high), and one director per other goal_kind:perpetual goal (opus-5/high).
-thought_session: L3.21
+thought_session: L3.22
 title: Register perpetual seats
 ---
 <!-- BODY:BEGIN -->
@@ -60,3 +60,5 @@ Transport switch (tmux launch, `send.py` nudge-typing) and `spawn_budget.py` cha
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, "Owner text 2026-09-07 ... perpetual seats" — quotes (2), (3), (4) CORRECTS (3); Director gloss (proposal) for `session_kind` and `config` placement.
+
+RE-RUN AS BUILD (Belam III, L3.22): experiment:a00-34185da7-a0d50b (lean-proved:60) validated the override-resolution mechanism with a hardcoded row and built nothing — no config:seats node, no --seat in dispatch.py or rotate.py, no seat-keyed meter pin. The next kid builds all three exactly as the CLAIM states (seats.md rows for belam, the three advisors, the liaison, one director per perpetual goal; dispatch.py --seat dry-prints the row; rotate.py meter --seat reads the seat pin) with red-first tests; verdict proved requires the dry-run output and the tests.
