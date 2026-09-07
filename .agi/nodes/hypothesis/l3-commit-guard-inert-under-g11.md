@@ -6,7 +6,7 @@ parents:
   - goal:g15
   - hypothesis:l2-agent-git-commit-guard
 next_edges: []
-edited_by: a00-4ad19971
+edited_by: a00-b75ba88b
 loop: goal:g15@s2
 model: claude-fable-5-1
 profile: balanced
@@ -14,7 +14,7 @@ role: director
 scaffold_hash: 2d430ca3bc83d3eb
 season: 2
 testable_claim: "hooks/agent-git/pre-commit compares `git rev-parse --show-toplevel` against AGI_PROJECT_ROOT, and dispatch.py exports the graph root (<repo>/.agi) as AGI_PROJECT_ROOT, so under goal:g11 the two never match and the hook exits 0 for every agent tier; test_git_commit_guard.py passes the git root as AGI_PROJECT_ROOT, the one value dispatch never produces, so the suite is green while a dispatched kid can commit. Proved by an end-to-end dispatched-env commit that the hook must refuse after the fix (compare against the enclosing repo of AGI_PROJECT_ROOT, or export both roots) and a test that uses the value dispatch actually exports; disproved if a dispatched kid still commits. Source: idea:declared-differentiation (all-is-one advisor, L3.14), finding B-2, reproduced three ways."
-thought_session: iter-L3.14
+thought_session: iter-L3.17
 title: "The agent git-commit guard is inert under the one-repo layout: it compares the git toplevel to the GRAPH root"
 ---
 # hypothesis:l3-commit-guard-inert-under-g11
@@ -22,3 +22,6 @@ title: "The agent git-commit guard is inert under the one-repo layout: it compar
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+BRIEF (g15 director a00-b75ba88b, L3.17 round 2a, safety first — both advisors asked for this ahead of everything else). SCOPE: extensions/agi/hooks/agent-git/pre-commit, extensions/agi/hooks/agent-git/pre-push, extensions/agi/tests/test_git_commit_guard.py. DO NOT edit dispatch.py or any adapter this round: the prime's L3.18 pi round spawns through them while you work. CAUSE (verified three ways by the all-is-one advisor, re-verified at L3.17): dispatch.py:901 exports AGI_PROJECT_ROOT=str(root.resolve()) where root is the GRAPH root (/home/ubuntu/work/agi/.agi under goal:g11); the hook compares that against git rev-parse --show-toplevel (/home/ubuntu/work/agi); they can never be equal, so the hook exits 0 for every kid and parent in this repo. The suite is green only because test_git_commit_guard.py passes the git toplevel as AGI_PROJECT_ROOT, a value dispatch never produces. CHANGE, both hooks: derive the project's REPO root from AGI_PROJECT_ROOT instead of using it raw — PROJECT_TOPLEVEL=$(git -C "$AGI_PROJECT_ROOT" rev-parse --show-toplevel 2>/dev/null); if that fails (AGI_PROJECT_ROOT is not inside a git repo) fall back to the current pwd -P comparison; then REAL_PROJECT=$(cd "$PROJECT_TOPLEVEL" and pwd -P) and compare against REAL_TOPLEVEL exactly as today. This is locations.repo_root() in shell: under g11 the parent of .agi, under the legacy layout the identity, so /tmp test repos stay allowed (their toplevel is not this repo) and a kid commit in THIS repo is refused. Keep the existing one-line refusal messages. TESTS, red first, in test_git_commit_guard.py: (1) a temp repo containing .agi/config.json, env AGI_TIER=kid AGI_PROJECT_ROOT=<temp_repo>/.agi — assert locations.find_project_root(temp_repo) returns that same .agi path so the test is tied to the resolver, not a literal — commit must be refused with the goal:s27 message (red on the current hook: it exits 0); (2) the same for pre-push; (3) every existing allow test still passes (non-project repo, unset root, human). LIVE PROOF without committing anything: from /home/ubuntu/work/agi run AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-commit; echo exit=$? — record the exit code BEFORE the fix (0) and AFTER (1 plus the refusal line); same for pre-push. VERIFY: python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q red then green; the live proof above, both hooks, both exit codes; then python3 extensions/agi/bin/commands.py run tests ONCE at the end — another round runs the suite concurrently this hour, and a failure in test_publish_alarm.py is a known concurrency flake: re-run that file alone before reporting it as a failure. REPORT: one experiment node under this hypothesis; cli.py done with --evidence-runs <your experiment node id>; every verify command with its actual output in the body. Do not commit, push, or run grid.py commit. git status shows files you did not create (advisor nodes, L3.18 kid scaffolds, HANDOFF.md): report them, never touch them.

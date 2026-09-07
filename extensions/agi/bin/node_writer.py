@@ -928,6 +928,26 @@ def update_node(
 
 #: Fields this module knows how to derive without a model. Everything else
 #: required-but-absent is reported, never invented.
+def _node_project_root(path: Path) -> Path | None:
+    """The project root hosting a node file, derived from its own path.
+
+    A node file lives under `<root>/nodes/<type>/...` (legacy layout) or
+    `<root>/.agi/nodes/<type>/...`; the parent of the `nodes` component is the
+    project root the node belongs to. Returning it lets the write log travel
+    with the file rather than follow whatever `root` a caller happened to pass
+    (l2w15-write-guard test-pollution fix). None when `path` has no `nodes`
+    component (a payload file, or any non-node path).
+    """
+    try:
+        parts = path.parts
+        for i, part in enumerate(parts):
+            if part == "nodes" and i >= 1 and i + 2 < len(parts):
+                return Path(*parts[:i])
+    except BaseException:
+        pass
+    return None
+
+
 def _log_write(root, operation: str, node_id: str, path: Path,
                 text: str = "", *,
                 mint_id: str = "",
@@ -940,9 +960,36 @@ def _log_write(root, operation: str, node_id: str, path: Path,
     mint_id. Absent is fine (a payload created before its node exists, or a
     legacy writer that does not pass one) — write_guard then falls back to
     sha256-only matching, which covers bytes written before a node existed.
+
+    The log location follows the *written node*, not the caller's `root`
+    (l2w15-write-guard test-pollution fix): the project hosting a node file
+    is the parent of the `nodes/` component of `path`, so a write is recorded
+    in that project's own sessions/ dir. A caller whose module-global root
+    defaults to the real repo (snapshot_goals/level3 reusing this writer)
+    cannot then leak a test-fixture node into the box's real write-log.
+    Payload writes (no `nodes` component) keep the passed `root` **only when
+    the file really belongs to that project** — a payload always does (it is
+    resolved off `root`), but a bare fixture path in another tree (e.g. a test
+    writing `tmp/n.md` under pytest) is a foreign write with no project here,
+    and is **not logged anywhere** rather than leaked into the box's real
+    `.agi/sessions/write-log.jsonl`.
     """
     try:
         root_p = Path(root)
+        derived = _node_project_root(path)
+        if derived is not None:
+            root_p = derived.resolve()
+        else:
+            root_p = root_p.resolve()
+            proj = root_p.parent if root_p.name == ".agi" else root_p
+            p = path.resolve()
+            inside = (str(p) == str(root_p) or str(p).startswith(str(root_p) + os.sep)
+                      or str(p) == str(proj) or str(p).startswith(str(proj) + os.sep))
+            if not inside:
+                # Not this project's file (no node-tree component, and not
+                # under root/project): it has no home in this log. Skip rather
+                # than leak a foreign write into a real project's log.
+                return
         log_path = root_p / WRITE_LOG
         log_path.parent.mkdir(parents=True, exist_ok=True)
         entry = {

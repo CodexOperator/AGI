@@ -21,6 +21,11 @@ import pytest
 BIN = Path(__file__).resolve().parents[1] / "bin"
 HOOKS = BIN.parent / "hooks" / "agent-git"
 
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("agi_locations", BIN / "locations.py")
+_locations = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_locations)
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -91,6 +96,71 @@ def test_pre_commit_rejects_kid_in_project_repo(temp_repo: Path):
     )
     assert result.returncode == 1, f"hook allowed kid commit: {result.stdout}"
     assert "kid may not commit" in result.stderr
+
+
+@pytest.fixture
+def g11_repo(tmp_path: Path) -> Path:
+    """A repo in the goal:g11 one-repo layout: the graph root is a `.agi/`
+    directory INSIDE the repo, so AGI_PROJECT_ROOT (the graph root) is a child
+    of the git toplevel, never equal to it."""
+    repo = tempfile.mkdtemp(dir=tmp_path)
+    subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+    (Path(repo) / "readme.md").write_text("# test")
+    subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, capture_output=True, check=True)
+    # graph root: a .agi dir holding config.json, exactly as dispatch.py sees it
+    graph_dir = Path(repo) / ".agi"
+    graph_dir.mkdir()
+    (graph_dir / "config.json").write_text('{"metric_primary": "x", "metric_unit": "", "best_direction": "higher"}')
+    return Path(repo)
+
+
+def _graph_root(g11_repo: Path) -> Path:
+    """The graph root of a g11 repo, asserted through the real resolver so the
+    test is tied to locations.find_project_root, not a hard-coded literal."""
+    resolved = _locations.find_project_root(g11_repo)
+    assert resolved is not None, "resolver did not find the .agi graph root"
+    assert resolved == (g11_repo / ".agi").resolve(), (
+        f"resolver returned {resolved}, expected {g11_repo}/.agi"
+    )
+    return resolved
+
+
+def test_pre_commit_rejects_kid_in_g11_layout(g11_repo: Path):
+    """goal:g11 — AGI_PROJECT_ROOT is the GRAPH root (<repo>/.agi), a child of
+    the git toplevel. A dispatched kid must be refused. Red on the current hook:
+    it compares AGI_PROJECT_ROOT raw against toplevel, they differ, it exits 0."""
+    with_hook(g11_repo)
+    graph_root = _graph_root(g11_repo)
+    (g11_repo / "file_g11.md").write_text("kid change in g11 repo")
+    subprocess.run(["git", "add", "."], cwd=g11_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "kid commit in g11 repo"],
+        cwd=g11_repo, capture_output=True, text=True,
+        env={**os.environ, "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(graph_root)},
+    )
+    assert result.returncode == 1, (
+        f"g11 kid commit allowed: {result.stdout} / {result.stderr}"
+    )
+    assert "kid may not commit" in result.stderr
+
+
+def test_pre_push_rejects_kid_in_g11_layout(g11_repo: Path):
+    """goal:g11 — the pre-push hook must refuse a kid push when AGI_PROJECT_ROOT
+    is the graph root (<repo>/.agi). Red on the current hook (exits 0)."""
+    graph_root = _graph_root(g11_repo)
+    result = subprocess.run(
+        ["bash", str(HOOKS / "pre-push")],
+        capture_output=True, text=True,
+        cwd=g11_repo,
+        env={**os.environ, "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(graph_root)},
+    )
+    assert result.returncode == 1, (
+        f"g11 kid push allowed: {result.stdout} / {result.stderr}"
+    )
+    assert "kid may not push" in result.stderr
 
 
 def test_pre_commit_allows_kid_in_non_project_repo(temp_repo: Path):

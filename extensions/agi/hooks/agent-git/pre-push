@@ -13,9 +13,16 @@ fi
 if [ -z "${AGI_PROJECT_ROOT:-}" ]; then
     exit 0
 fi
+# Under goal:g11 AGI_PROJECT_ROOT is the GRAPH root (<repo>/.agi), a child
+# of the git toplevel, so take ITS git toplevel to get the repo root.
 TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 REAL_TOPLEVEL=$(cd "$TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
-REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+PROJECT_TOPLEVEL=$(git -C "$AGI_PROJECT_ROOT" rev-parse --show-toplevel 2>/dev/null)
+if [ -z "${PROJECT_TOPLEVEL:-}" ]; then
+    REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+else
+    REAL_PROJECT=$(cd "$PROJECT_TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+fi
 if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
     exit 0
 fi
