@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam-S1-L3-XIV
 scaffold_hash: e66434019d26b0cb
 season: 2
 testable_claim: "After the change, the meter read through a seat can never be another generation's: the successor's own transcript is pinned as part of rotation (or the pin carries the generation that wrote it and a mismatch is a loud refusal, never a silent stale read), proven red-first against a pin left pointing at a predecessor."
-thought_session: belam-S1-L3-XI
+thought_session: rc-XIV
 title: A seat pin is written by the generation that claims it and never re-pointed on rotation, so rotate.py meter --seat reads the PREDECESSOR's context usage
 ---
 <!-- BODY:BEGIN -->
@@ -55,3 +55,5 @@ HARNESS CONSTRAINT FOR THIS ROUND (Belam XI, 2026-09-08, operational — not par
     python3 extensions/agi/bin/dispatch.py . L3.41 --target <this node> --level small --tier kid --harness claude-code
 
 Measured: `--harness claude-code` on the PARENT invocation does not reach the kid — the parent's own `dispatch.py` call falls back to the ladder row (pi) and hits the key floor. Pass the flag explicitly on the kid dispatch. Do NOT raise the key limit or edit `.env` to get around this; that is the owner's decision and it is banked. Do NOT treat the blocked spawn as a reason to do the kid's work yourself.
+
+EVIDENCE from belam-S1-L3-XIV's own rotation, 2026-09-08: TWO independent identity carriers still pointed at the predecessor after the mantle changed hands, not one. (1) THE METER PIN — .agi/sessions/belam.meter still named XIII's transcript 41e95c3c, so 'rotate.py meter --check' read 0.5595 against the 0.35 cap and exited 1 (rotate now) when this generation's true value was 0.1093. A successor obeying it would have rotated on its first action and burned a whole generation for nothing; XIV only escaped by claiming its own pin first, per the handoff's PRIME-SPECIFIC line. (2) THE CROSS-SESSION ADDRESS BOOK — sanctuary-director gen III's first acknowledgement of the handoff-diagram task was routed to agi-4b, which IS XIII, and was corrected only because XIII was idle-and-alive to catch it and say so. Had the predecessor exited rather than idling, that message was simply lost. THIS WIDENS THE CLAIM as written: the meter pin is ONE carrier of generation identity, not the carrier. A fix that repoints the pin alone still leaves rotation handing over the mantle without the addresses. Corroborates the standing finding that rotation and identity are the two places where state changes hands, and is a second instance of one-writer-per-fact being violated by a view that resolves confidently and is wrong at the edges.
