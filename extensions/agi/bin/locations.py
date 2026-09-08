@@ -278,6 +278,12 @@ def shared_project_root(start: Path | str | None = None) -> Path | None:
     via `git_common_root`, re-derive the graph root there. A caller in the
     main checkout (or outside any git repo) gets the identity, so switching
     onto this never changes behavior for the non-worktree case.
+
+    Note what this does NOT do: it does not fold the live per-worktree graph
+    fork into the main checkout. The graph a kid edits is still the worktree's
+    own copy, and merge-up carries forked nodes home. This helper exists for
+    the state that must NOT fork -- the credentials file and any other
+    main-only shared directory -- and writes only there.
     """
     graph = find_project_root(start)
     if graph is None:
