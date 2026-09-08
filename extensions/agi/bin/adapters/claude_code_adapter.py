@@ -525,6 +525,7 @@ def build_command(
     cli_py: str | Path = "",
     skill_prompt: Path | None = None,
     dispatch_py: str | Path = "",
+    source_root: str | Path | None = None,
     target: str | None = None,
     parallel: int = 1,
     max_live: int = 1,
@@ -563,7 +564,7 @@ def build_command(
     segments = brief.assemble(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
-        parallel=parallel, max_live=max_live,
+        parallel=parallel, max_live=max_live, source_root=source_root,
     )
     prompt_file = write_system_prompt(
         sess_dir=sess_dir, context_file=context_file, segments=segments,

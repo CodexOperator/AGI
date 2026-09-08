@@ -870,7 +870,8 @@ def _is_build_target(parent_id: str) -> bool:
     return (parent_id or "").strip().startswith("build:")
 
 
-def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> list[str]:
+def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
+          source_root: str | None = None) -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -886,6 +887,16 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
         f"You are agent {agent_id} on iteration {iter_n}. "
         f"Your job: fill in the scaffolded node file below, then signal done.",
     ]
+    if source_root:
+        # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- name the
+        # checkout the kid owns, OUT LOUD, before any relative source
+        # instruction appears, so a model that guesses which tree it edits
+        # cannot guess the main checkout. Every source path in this brief is
+        # relative to it.
+        segs.insert(1, (f"YOUR CHECKOUT: {source_root}. Every source path "
+                        f"below is relative to it. Do not edit any other "
+                        f"checkout, even one whose path appears elsewhere in "
+                        f"this prompt."))
     if is_build:
         segs.append(_BUILD_IMPERATIVE)
     segs += [
@@ -971,7 +982,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             target: str | None, parallel: int, max_live: int = 1,
             branch_name: str | None = None,
             branch_worktree: str | None = None,
-            branch_base: str | None = None) -> list[str]:
+            branch_base: str | None = None,
+            source_root: str | None = None) -> list[str]:
     """A loop, not a node. `goal:g4.8`.
 
     Three things a parent needs that a kid does not, and each is here because
@@ -1054,6 +1066,13 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
+        # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
+        # parent edits kids' nodes and shells out to `write.py` and
+        # `dispatch.py` by relative path, so it too is told which checkout it
+        # owns before any relative source instruction appears.
+        (f"YOUR CHECKOUT: {source_root}. Every source path below is relative "
+         f"to it. Do not edit any other checkout, even one whose path appears "
+         f"elsewhere in this prompt." if source_root else None),
         f"TARGET: {aim}\n"
         f"Your job, in order:\n"
         f"1. SPAWN kids with:\n"
@@ -1131,7 +1150,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              dispatch_py: str | Path = "", scaffold: dict | None = None,
              target: str | None = None, parallel: int = 1,
              max_live: int = 1, goal: str | None = None,
-             session_dir: Path | str | None = None) -> list[str]:
+             session_dir: Path | str | None = None,
+             source_root: str | Path | None = None) -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
     Returns segments rather than one string so a harness can spell them
@@ -1207,14 +1227,17 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        parallel=parallel, max_live=max_live,
                        branch_name=os.environ.get("AGI_PARENT_BRANCH"),
                        branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
-                       branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"))
+                       branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
+                       source_root=str(source_root) if source_root else None)
+        segs = [s for s in segs if s is not None]
         head = _build_head(tier=tier)
         if head:
             segs.insert(0, head)
         return segs
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
-                scaffold=scaffold)
+                scaffold=scaffold,
+                source_root=str(source_root) if source_root else None)
     head = _build_head(tier=tier)
     if head:
         segs.insert(0, head)
