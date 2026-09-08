@@ -147,7 +147,13 @@ def build_command(
     # Headless: process the prompt and exit. Without this flag the prompt is
     # fed to the interactive TUI, which hangs forever off a TTY (empty log).
     args += ["-p"]
-    args += ["--append-system-prompt", f"@{context_file}"]
+    # pi loads a system-prompt file by PLAIN PATH: resolvePromptInput() is
+    # `existsSync(input) ? readFileSync(input) : input`. An `@` prefix fails
+    # the stat and pi appends the PATH STRING as literal text instead — so
+    # every pi agent ran without its rendered graph context, silently, until
+    # 2026-09-08 (hypothesis:l3-pi-context-never-delivered). Measured: 79
+    # bytes of pathname where a real kid's context.md was 16654 bytes.
+    args += ["--append-system-prompt", str(context_file)]
     # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
     # This adapter decides only how to SPELL a segment on pi's command line.
     # It used to inline the kid brief here, which is why `--tier parent`
@@ -163,7 +169,7 @@ def build_command(
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
-        args.extend(["--append-system-prompt", f"@{skill_prompt}"])
+        args.extend(["--append-system-prompt", str(skill_prompt)])
     args.append(brief.closing_line(_btier, agent_id, iter_n))
     return args
 

@@ -866,3 +866,34 @@ def test_every_adapter_accepts_every_keyword_the_dispatch_call_site_passes():
         params = set(inspect.signature(mod.build_command).parameters)
         missing = passed_by_dispatch - params
         assert not missing, f"{mod.__name__}.build_command lacks {sorted(missing)}"
+
+
+# --- hypothesis:l3-pi-context-never-delivered ------------------------------
+
+def test_pi_gets_the_context_file_as_a_bare_path_not_an_at_prefix(tmp_path):
+    """pi loads a system-prompt file by PLAIN PATH, and an `@` prefix silently
+    turns it into literal text.
+
+    `resolvePromptInput()` in pi's resource-loader is
+    `if (existsSync(input)) readFileSync(input) else return input` — there is no
+    `@` spelling anywhere in that path (the `@` handling in pi's arg parser is
+    for positional attachments, a different flag entirely). So
+    `--append-system-prompt @/abs/path` fails `existsSync` and pi appends the
+    79-byte path string in place of the file. Measured 2026-09-08: a real kid's
+    context.md was 16654 bytes and the model received 79 bytes of pathname.
+
+    Every pi agent this project ever spawned ran without its rendered graph
+    context, silently, in the direction of looking fine.
+    """
+    ctx = tmp_path / "context.md"
+    ctx.write_text("RENDERED GRAPH CONTEXT\n", encoding="utf-8")
+    cmd = _cmd("kid", context_file=str(ctx), scaffold=SCAFFOLD)
+
+    appended = [cmd[i + 1] for i, a in enumerate(cmd)
+                if a == "--append-system-prompt"]
+    assert str(ctx) in appended, (
+        "the context file must be passed as a bare path pi can stat; "
+        f"got {[a for a in appended if 'context' in a]!r}")
+    assert not any(a.startswith("@") for a in appended), (
+        "no --append-system-prompt argument may carry an `@` prefix: pi does "
+        f"not expand it and appends it as literal text. got {appended!r}")
