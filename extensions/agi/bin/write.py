@@ -109,6 +109,27 @@ class Edit:
     # thought_session, the write guard and the grid version all still happen.
     patch_from: str = ""
     patch_diff: str = ""
+    # hypothesis:l3w4-hierarchy-one-source, body leg -- `body_patch` is
+    # `patch` for a graph node's BODY. `patch` targets a build node's payload
+    # file and REFUSES a graph node (no payload_ref), so a stale pipe table
+    # in a node body could not be removed as a sanctioned write -- the
+    # standing unsanctioned-write failure class that deferred the one-source
+    # deletion for three rounds. `body_patch` reuses the same fail-closed
+    # unified diff against the body text and lands through `update_node`, so
+    # the THOUGHT region is carried, provenance is stamped, and write_guard
+    # sees a sanctioned write. `body_patch_from` names the source (`-` for
+    # stdin, or a path); `body_patch_diff` holds the bytes once read.
+    body_patch_from: str = ""
+    body_patch_diff: str = ""
+    # hypothesis:l3-write-partial-diffs-as-writes, build item 1 — `read` is
+    # the read half of the line-addressing: fetch a line RANGE of the node
+    # body or of the payload, cheaply, instead of loading the whole file.
+    # Read-only — this verb never writes and is handled as a terminal verb in
+    # main (it short-circuits before submit), so it carries no provenance
+    # stamp of its own. `read_target` is `payload` or `body`; `read_range` is
+    # the 1-based inclusive `START:END` with either side optional.
+    read_target: str = ""
+    read_range: str = ""
     # hypothesis:l3-node-without-mint-id -- `adopt` mints a first mint_id on
     # a node written outside node_writer. Deliberately NOT a `set_fm` entry:
     # `mint_id` is PROTECTED (goal:g2.5), and adopting is not setting it, it
@@ -122,7 +143,9 @@ class Edit:
         return not (self.set_fm or self.unset_fm or self.body_append
                     or self.thought or self.payload_from
                     or self.payload_bytes or self.adopt
-                    or self.patch_from or self.patch_diff)
+                    or self.patch_from or self.patch_diff
+                    or self.body_patch_from or self.body_patch_diff
+                    or self.read_target or self.read_range)
 
 
 # --------------------------------------------------------------------------
@@ -181,6 +204,26 @@ def verb_note(edit: Edit, text: str) -> Edit:
     is the shell's job; hand-editing frontmatter is the thing being replaced.
     """
     edit.body_append = text
+    return edit
+
+
+def verb_body_patch(edit: Edit, source: str) -> Edit:
+    """`body_patch <path|->` — apply a unified diff to the node's BODY, in place.
+
+    The missing half of the delete-duplicates leg of
+    hypothesis:l3w4-hierarchy-one-source: `patch` covers the payload file
+    behind a build node and REFUSES a graph node (no payload_ref), so a stale
+    pipe table in a node body could not be removed as a sanctioned write — the
+    standing unsanctioned-write failure class that deferred the one-source
+    deletion for three rounds. `body_patch` reuses the same fail-closed
+    unified-diff vocabulary (`apply_unified_diff`) against the BODY text and
+    lands through `update_node`, so the THOUGHT region is carried across,
+    provenance is stamped, and write_guard sees a sanctioned write. Diff bytes
+    arrive by file path or `-` for stdin, never inline in the `&&` script — a
+    diff contains almost any character, including the doubled ampersand that
+    splits the script form.
+    """
+    edit.body_patch_from = source
     return edit
 
 
@@ -244,6 +287,61 @@ def verb_patch(edit: Edit, source: str) -> Edit:
     return edit
 
 
+def verb_read(edit: Edit, target: str, rng: str) -> Edit:
+    """`read <payload|body> <START:END>` — fetch a line range, cheaply.
+
+    hypothesis:l3-write-partial-diffs-as-writes, build item 1. The read half
+    of line-addressing: a node becomes something you read in pieces, not just
+    whole. For a payload the range is streamed so only the requested lines are
+    ever materialised — a ranged read of a big module costs a few lines, not
+    a whole-file reload. For a body the node's own canonical reader yields it
+    and the range is sliced from that.
+
+    The range is 1-based and inclusive, with either side optional: `10:20`
+    lines 10..20, `10:` line 10 to the end, `:20` the start to line 20.
+
+    Read-only: this verb never writes and is handled as a terminal verb in
+    `main` before `submit` is reached, so no `edited_by` / `thought_session`
+    stamp is implied — reading a node must not look like editing it.
+    """
+    if target not in ("payload", "body"):
+        raise EditError(
+            f"read target must be 'payload' or 'body', got {target!r}")
+    _parse_range(rng)   # validates and raises early, so a typo refuses here
+    edit.read_target = target
+    edit.read_range = rng
+    return edit
+
+
+def _parse_range(rng: str) -> tuple[int | None, int | None]:
+    """`10:20` -> (10, 20); `10:` -> (10, None); `:20` -> (None, 20).
+
+    1-based inclusive. At least one bound must be present and the range must
+    be non-empty (start <= end when both are given); anything else refuses
+    loudly rather than guessing at a slice.
+    """
+    text = str(rng).strip()
+    if ":" not in text:
+        raise EditError(f"bad read range {rng!r}: expected START:END "
+                        f"(1-based inclusive, either side optional)")
+    lo_s, hi_s = text.split(":", 1)
+
+    def _side(s: str) -> int | None:
+        s = s.strip()
+        if not s:
+            return None
+        if not s.isdigit():
+            raise EditError(f"bad read range {rng!r}")
+        return int(s)
+
+    lo, hi = _side(lo_s), _side(hi_s)
+    if lo is None and hi is None:
+        raise EditError(f"bad read range {rng!r}: need at least one bound")
+    if lo is not None and hi is not None and lo > hi:
+        raise EditError(f"bad read range {rng!r}: {lo} > {hi}")
+    return lo, hi
+
+
 def verb_payload(edit: Edit, source: str) -> Edit:
 
     """`payload <path>` — replace the bytes of the file this node points at.
@@ -272,6 +370,8 @@ VERBS = {
     "payload": verb_payload,
     "payload_text": verb_payload_text,
     "patch": verb_patch,
+    "body_patch": verb_body_patch,
+    "read": verb_read,
     "adopt": verb_adopt,
 }
 
@@ -285,7 +385,8 @@ VERBS = {
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
-         "payload": 1, "payload_text": 1, "patch": 1, "adopt": 0}
+         "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
+         "read": 2, "adopt": 0}
 
 
 def _coerce(value: str):
@@ -390,6 +491,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     body = None
     if edit.body_append or edit.thought:
         body = _compose_body(root, edit)
+    if edit.body_patch_diff:
+        # hypothesis:l3w4-hierarchy-one-source — `body_patch` resolves against
+        # the node's CURRENT body (not a build-node payload) and lands it
+        # through `update_node` below, so the THOUGHT region is carried across
+        # and write_guard sees a sanctioned write. Exclusive with note/thought:
+        # one body writer per submit keeps a single writer author of the body.
+        if edit.body_append or edit.thought:
+            raise EditError(
+                "body_patch is standalone; it cannot share a line with note "
+                "or thought (one body writer per submit)")
+        body = apply_unified_diff(_read_body_text(root, edit.node_id),
+                                  edit.body_patch_diff)
 
     # Everything that can refuse, refuses BEFORE anything is written: a
     # payload swap that lands next to a rejected node edit is a file whose
@@ -415,6 +528,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
         edit.payload_bytes = apply_unified_diff(
             _read_payload_bytes(root, payload_ref, location),
             edit.patch_diff)
+    if edit.body_patch_from and not edit.body_patch_diff and edit.body_patch_from != "-":
+        from pathlib import Path as _P
+        edit.body_patch_diff = _P(edit.body_patch_from).read_text(encoding="utf-8")
     # A `location` set in this same edit wins over the one on disk: naming the
     # new base and moving the bytes is one intention, not two.
     if "location" in set_fm:
@@ -467,6 +583,18 @@ def _read_payload_bytes(root, ref: str, location: str | None) -> str:
     if not dest.is_file():
         raise EditError(f"payload {dest} does not exist — nothing to patch.")
     return dest.read_text(encoding="utf-8")
+
+
+def _read_body_text(root, node_id: str) -> str:
+    """The node body's current text, via the canonical reader. Read-only;
+    this module performs no write. `body_patch` resolves its diff against
+    this so line numbers are relative to the body, not the whole file.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+    path = node_writer.find_node_file(root, node_id)
+    if path is None:
+        raise EditError(f"no node file for {node_id}")
+    return fm_reader.load_node_file(path).body
 
 
 _HUNK_RE = re.compile(
@@ -839,6 +967,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  patch   ({len(edit.patch_diff)} bytes of diff, {_src})")
         if edit.patch_from and not edit.patch_diff:
             print(f"  patch   from {edit.patch_from}")
+        if edit.body_patch_diff:
+            _src2 = "stdin" if edit.body_patch_from == "-" else edit.body_patch_from
+            print(f"  body_patch ({len(edit.body_patch_diff)} bytes of diff, {_src2})")
+        if edit.body_patch_from and not edit.body_patch_diff:
+            print(f"  body_patch from {edit.body_patch_from}")
         return 0
 
     if edit.payload_from == "-":
@@ -847,6 +980,13 @@ def main(argv: list[str] | None = None) -> int:
         # in it, or a whole file being piped in.
         edit.payload_from = ""
         edit.payload_bytes = sys.stdin.read()
+
+    if edit.body_patch_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
+        # stdin because a diff can contain the doubled ampersand that would
+        # split the `&&` script form. Read once, here, never in the library.
+        edit.body_patch_from = ""
+        edit.body_patch_diff = sys.stdin.read()
 
     try:
         res = submit(root, edit, actor=args.actor, session=args.session)
