@@ -1075,3 +1075,70 @@ def test_rotate_self_throwaway_forwards_successor_argv(fake_ladder, tmp_path,
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
     assert seen["argv"] == "printf continue"
+
+
+# --- _launch_window: the two silent failures (hypothesis:l3-rotate-launch-
+# window-silent-failure, measured 2026-09-08) --------------------------------
+
+
+def test_launch_window_returns_tmux_failure_instead_of_swallowing_it(
+        monkeypatch, capsys):
+    """tmux said `command too long` and the caller was told 0.
+
+    This is why `rotate.py loop` reported a rotation with no successor window
+    behind it for three primes running: the return code was discarded and the
+    captured stderr thrown away.
+    """
+    def fake_run(argv, **kw):
+        return subprocess.CompletedProcess(argv, 1, stdout="",
+                                           stderr="command too long")
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+
+    rc = rotate._launch_window("agi-rc", "belam-test", "echo hi")
+
+    assert rc == 1, "a failed tmux new-window must not report success"
+    assert "command too long" in capsys.readouterr().err
+
+
+def test_launch_window_hands_tmux_a_short_argv_for_a_long_command(monkeypatch):
+    """A rotation line carries the constitution head and runs ~16KB.
+
+    tmux refuses past its own buffer, so a long command goes through a script
+    file and tmux receives a few dozen bytes instead. The script must still
+    exist afterwards -- bash reads a script incrementally, so deleting it
+    early can truncate a running successor.
+    """
+    seen = {}
+
+    def fake_run(argv, **kw):
+        seen["argv"] = argv
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+
+    long_cmd = "claude --remote-control x " + ("y" * 20000)
+    rc = rotate._launch_window("agi-rc", "belam-test", long_cmd)
+
+    assert rc == 0
+    passed = seen["argv"][-1]
+    assert len(passed) < 512, f"tmux still handed {len(passed)} bytes"
+    assert passed.startswith("bash ")
+    script = Path(passed.split(" ", 1)[1].strip("'"))
+    assert script.exists(), "the script must outlive the launch call"
+    assert long_cmd in script.read_text()
+    script.unlink()
+
+
+def test_launch_window_leaves_a_short_command_inline(monkeypatch):
+    """Below the threshold nothing changes -- no script, no new failure mode."""
+    seen = {}
+
+    def fake_run(argv, **kw):
+        seen["argv"] = argv
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+
+    rc = rotate._launch_window("agi-rc", "belam-test", "echo hi")
+
+    assert rc == 0
+    assert seen["argv"][-1].endswith("echo hi")
+    assert "bash /" not in seen["argv"][-1]
