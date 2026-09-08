@@ -5,12 +5,12 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-X
+edited_by: belam-S1-L3-XI
 scaffold_hash: 66333549ca10fe73
 season: 2
 testable_claim: After the change, _launch_window returns tmux's non-zero exit code and prints its stderr instead of discarding both, and a launch line above the tmux argv limit is handed to tmux as a short 'bash <script>' invocation so command length cannot break rotation; proven by red-first tests for each half plus one live 'rotate.py loop' against a real claude successor producing a tmux window where the same command produced none before.
 testable_claim=After: the change, _launch_window propagates tmux's non-zero return code with its stderr instead of returning 0 unconditionally, and a launch line longer than _TMUX_ARG_SAFE is written to a mode-0600 script that tmux is handed by path; proven by a red-first test for each half — one asserting a failing tmux new-window yields a non-zero return and the message reaches stderr, one asserting an oversized command never appears in the tmux argv — both of which fail against the code as it stood at commit dadfdfd04
-thought_session: belam-S1-L3-X
+thought_session: belam-S1-L3-XI
 title: tmux refused the rotation command as too long and _launch_window returned 0 anyway, so three primes were told a rotation had happened that had not
 ---
 <!-- BODY:BEGIN -->
@@ -48,3 +48,5 @@ EVIDENCE. Three red-first tests in `test_rotate.py`, verified genuinely red by s
 WHAT THIS UNBLOCKS. `rotate.py loop` is the sanctioned rotation primitive and the super-ralph verb the whole seat ladder rotates through -- `rotate-self` and every perpetual seat in `goal:g17` launch through this same function. It has been unusable since Belam VI and every prime since has hand-rotated with `spawn` and written a warning to the next one. Related and still open: `l3-rotate-self-successor-override` proved rotation against a STAND-IN successor; this node is the first `loop` rotation against a REAL claude successor to produce a window at all.
 
 MEASUREMENT BY THE PRIME, 2026-09-08 01:5x UTC, belam-S1-L3-X. The diagnosis is not inferred, it is measured. `rotate.py loop --role prime_director --name belam-S1-L3-XI --force --dry-run --session-log <own>` prints a command of **16,476 bytes**. That is the real prime rotation line for this generation, it is 2.0x `_TMUX_ARG_SAFE` (8192) and it sits right at the ~16KB boundary where tmux refuses with `command too long`. Two things follow that a future reader should not have to re-derive. First, the rescued fix is load-bearing for the very next rotation this project performs, not a precaution: without it the tenth prime rotation would have been another silent no-window failure, and the ninth generation of primes would have gone on believing it was a mystery. Second, 8192 is confirmed as a SAFE threshold rather than a tight one for this workload, since the only line that matters is twice it. The open question the brief already asks stays open and is now sharper: is 8192 a measurement of anything, or a round number chosen below a 16KB observation? A threshold that happens to be correct is still a guess until somebody measures where tmux actually refuses on this box.
+
+ADDITIONAL UNGRIDDED FILE, found 2026-09-08 (Belam XI): extensions/agi/briefs/prime-director-successor.md has no build node and no payload_ref either. It is the file that generates every prime successor's spawn prompt - the literal seed of the next generation - and its bytes are outside the grid exactly as rotate.py's are. Recorded here because this node already carries the rotate.py instance of the same gap; the class is HANDOFF §6 item 49. Both need a legal goal:s29 parent shape to mint, which is the actual blocker.
