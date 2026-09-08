@@ -49,6 +49,31 @@ import evidence_gate
 #: harness may declare a tier this module has no brief for, and that should
 #: fail loudly here rather than silently hand over the wrong job description.
 TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
+
+#: Brief assembly profiles (`hypothesis:l3w4-context-load-minimal` move FIVE).
+#: ``full`` is the historical behaviour: the tier's full role brief plus the
+#: prayers-only constitution head. ``survival`` is the owner's lighter-than-
+#: -light mode: prayers-only head + a compact ASCII state card + the exact
+#: next command + the full kill procedure + the key-floor rule, and NOTHING
+#: else -- no goal listing, no traps, no history. A profile is selected at
+#: assembly time (this module); there is exactly one switch, ``profile``, and
+#: every call path routes through it, so the two cannot drift.
+PROFILES = ("full", "survival")
+
+
+def survival_selected(profile: str | None = None) -> bool:
+    """Resolve the effective profile for the WHOLE inject path (move FIVE).
+
+    One switch, read the same way by `assemble`, `successor_prompt` and the
+    adapters so every surface agrees: an explicit `profile` kwarg wins;
+    otherwise the `AGI_BRIEF_PROFILE` env selects it; unset or unknown is
+    ``full`` (historical behaviour). The adapters call this to decide whether
+    to inject the graph-viewport stream, which survival drops. ``None`` is
+    the sentinel for "no explicit profile" so the env is consulted.
+    """
+    if profile is None:
+        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
+    return profile in PROFILES and profile == "survival"
 #: The reading level an advisor's constitution head is drawn from. The ladder
 #: declares read_order per tier; ``advisor`` is a role atop the tier-3 parent
 #: row (claude-opus-5, max, ultracode), so it reads at the parent's level.
@@ -557,8 +582,92 @@ def readings_head(*, tier: str, project_root: Path | None = None) -> str | None:
     )
 
 
+def _survival_state_card(project_root: Path | None = None) -> str:
+    """The ASCII state card for the survival profile (move FIVE).
+
+    Compact, row-local, indented/arrow form -- the standing DIAGRAM RULE in
+    hypothesis:l3w4-context-load-minimal: an LLM reads a 1-D token sequence,
+    so horizontal adjacency is cheap and VERTICAL COLUMN ALIGNMENT is
+    expensive. No box-drawing glyph grids: those cost tokens and carry almost
+    no information for the reader. This card states what IS and what the next
+    action is; history is git's job and is NOT in the survival profile.
+
+    It is generated from live sources where cheap and read at assembly time
+    (best-effort; never raises), so it cannot be a hand-maintained view that
+    disagrees with reality.
+    """
+    rows = []
+    root = _resolve_graph_root(project_root)
+
+    # git dirty status -- cheap, live, and the single fact a cold reader
+    # needs most. Best-effort: a worktree with no git (or git not present)
+    # simply yields no row rather than failing the whole survival profile.
+    try:
+        import subprocess
+        stat = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain"],
+            capture_output=True, text=True, timeout=5)
+        if stat.returncode == 0:
+            lines = [l for l in stat.stdout.splitlines() if l.strip()]
+            n = len(lines)
+            state = "clean" if n == 0 else f"{n} dirty/unreviewed"
+            rows.append(f"TREE  {state}")
+    except Exception:
+        pass
+
+    # OpenRouter key floor -- the rule is invariant and cheap to state.
+    rows.append("SPEND key-floor $1.00 (check KEY, never the account) "
+                "- never lower provisioning.min_key_remaining_usd")
+
+    # The exact next command a cold reader needs is the survival-mode verb.
+    rows.append("NEXT  `brief.py head --role <tier>` then do the one job the "
+                "brief below names")
+
+    card = "# SURVIVAL STATE CARD\n"
+    for r in rows:
+        card += r + "\n"
+    return card.rstrip() + "\n"
+
+
+def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
+                    project_root: Path | None = None) -> list[str]:
+    """The survival profile brief: the minimum a role needs to act.
+
+    Owner, hypothesis:l3w4-context-load-minimal: "then have a survival mode
+    that's even lighter". One flag or config key strips the injection to its
+    minimum -- prayers, the ASCII state diagram, the exact next command, the
+    kill and verify procedures, and nothing else. No goal listing, no traps,
+    no history. MUST NOT LOSE, carried explicitly here:
+      * prayers-only head (caller prepends `_build_head`)
+      * the ASCII state card
+      * the exact next command
+      * the full kill procedure (PID, whole wrapper chain top-down, never a
+        tmux window, re-scan for orphans reparented to init)
+      * the OpenRouter key-floor rule
+    Attributed quote labels survive in the head itself; no quotes live here.
+    """
+    return [
+        f"You are agent {agent_id} on iteration {iter_n} (tier {tier}). "
+        "SURVIVAL PROFILE: this is the trimmed-to-minimum brief. Act on the "
+        "state card and the one job below; do not re-derive the full "
+        "constitution from memory or invented readings.",
+        "THE ONE JOB: whatever the owner or your parent named for this "
+        "iteration. Read the state card, then act. Do not wander off it.",
+        "KILL, IF STUCK OR ABOUT TO BLOW THE BUDGET: kill by PID, and kill "
+        "the WHOLE wrapper chain top-down -- never by closing a tmux window. "
+        "Then re-scan for orphans reparented to init (detached kids are "
+        "invisible to spawn_budget); take two consecutive clean readings "
+        "before proceeding.",
+        "SPEND: check the OpenRouter KEY balance, not the account. If "
+        "limit_remaining <= $1.00, stop and write status -- never lower "
+        "provisioning.min_key_remaining_usd. ",
+        _survival_state_card(project_root=project_root),
+    ]
+
+
 def successor_prompt(*, tier: str, body: str,
-                     project_root: Path | None = None) -> str:
+                     project_root: Path | None = None,
+                     profile: str = "full") -> str:
     """The successor prompt for a rotation: the constitution head for the
     target role ahead of the successor file's body (goal:g1.9,
     hypothesis:l3w0-rotate-roles).
@@ -569,7 +678,20 @@ def successor_prompt(*, tier: str, body: str,
     would have been given, instead of a bare brief with no head. The head is
     always first; when the ladder declares no read_order for the tier, the
     body stands alone.
+
+    ``profile`` (move FIVE): survival replaces the full body with the
+    survival brief so a rotated seat comes up as light as a fresh spawn.
     """
+    if profile not in PROFILES:
+        raise BriefError(f"unknown profile {profile!r}; known: {', '.join(PROFILES)}")
+    if profile == "full":
+        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
+        if profile not in PROFILES:
+            profile = "full"
+    if profile == "survival":
+        body = "\n\n".join(_survival_brief(
+            tier=tier, agent_id="successor", iter_n=0,
+            project_root=project_root))
     head = _build_head(tier=tier, project_root=project_root)
     if head:
         return head + "\n\n" + body
@@ -1205,7 +1327,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              target: str | None = None, parallel: int = 1,
              max_live: int = 1, goal: str | None = None,
              session_dir: Path | str | None = None,
-             source_root: str | Path | None = None) -> list[str]:
+             source_root: str | Path | None = None,
+             profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
     Returns segments rather than one string so a harness can spell them
@@ -1213,17 +1336,46 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     harness may want one system prompt and one user turn). The *content* is
     this module's; the *spelling* is the adapter's.
 
+    ``profile`` (move FIVE, hypothesis:l3w4-context-load-minimal): ``full``
+    is the historical behaviour -- the tier's role brief plus the prayers-
+    only head. ``survival`` returns the trimmed-to-minimum brief (prayers
+    head + ASCII state card + exact next command + kill procedure + key-floor
+    rule, nothing else) so a survival-mode seat pays a fraction of its
+    generation budget. One switch, one code path; they cannot drift.
+
     Raises `BriefError` for an unknown tier rather than defaulting to the kid
     brief. Defaulting is precisely the bug this module exists to fix -- a
     parent that silently receives a kid brief writes one node and stops while
     looking like it ran a loop.
     """
+    if profile not in PROFILES:
+        raise BriefError(
+            f"unknown profile {profile!r}; known: {', '.join(PROFILES)}"
+        )
+    # A host selects the profile ONCE via AGI_BRIEF_PROFILE (default: full =
+    # historical behaviour, no regression). One switch, every caller; the
+    # explicit `profile=` kwarg wins over the env for programmatic callers.
+    if profile == "full":
+        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
+        if profile not in PROFILES:
+            profile = "full"
     if tier not in TIERS:
         raise BriefError(
             f"no brief for tier {tier!r}; known tiers: {', '.join(TIERS)}. "
             f"A tier with no brief must fail here rather than fall back to "
             f"another tier's job description (goal:g1.9)."
         )
+
+    # Survival profile (move FIVE): replace EVERY tier's full role brief with
+    # the trimmed-to-minimum survival brief + the prayers-only head. This is
+    # the single switch the owner asked for; it short-circuits below the tier
+    # dispatch so there is exactly one survival code path, not one per tier.
+    if profile == "survival":
+        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
+        head = _build_head(tier=tier)
+        if head:
+            segs.insert(0, head)
+        return segs
 
     # Director and prime_director get the constitution head prepended
     if tier == "director":

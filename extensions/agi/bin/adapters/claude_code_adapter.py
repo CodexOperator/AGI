@@ -503,7 +503,14 @@ def write_system_prompt(
     ctx = Path(context_file)
     if not ctx.exists():
         raise FileNotFoundError(f"{NAME}: context file {ctx} does not exist")
-    parts = [ctx.read_text(encoding="utf-8"), *segments]
+    # Survival profile (move FIVE, hypothesis:l3w4-context-load-minimal): the
+    # INJECTION graph stream is goal-listing/traps/history — exactly what
+    # survival drops. skip the ctx first-part so a survival seat pays ~0 for
+    # the map and reads it on demand; same switch (AGI_BRIEF_PROFILE) as pi.
+    parts = []
+    if not brief.survival_selected():
+        parts.append(ctx.read_text(encoding="utf-8"))
+    parts.extend(segments)
     if skill_prompt is not None and Path(skill_prompt).exists():
         parts.append(Path(skill_prompt).read_text(encoding="utf-8"))
     sess_dir = Path(sess_dir)
