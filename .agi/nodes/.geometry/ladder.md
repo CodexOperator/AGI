@@ -8,11 +8,12 @@ budget_usd_week: 30
 caps:
   moral: 5
   vision: 3
+  director_kids: 2
 caps_apply_from_season: 2
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.35
-edited_by: belam-S1-L3-VII
+edited_by: sanctuary-master
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -47,7 +48,7 @@ tags:
   - geometry
   - ladder
   - structural
-thought_session: 7af11157
+thought_session: sanctuary-master
 tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
@@ -142,7 +143,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director_context_tokens set to 1000000 explicitly on 2026-09-06: it is the same guess rotate.py defaulted to, made explicit so the warning stops; the owner or a measured overflow corrects it. The first live meter read was 0.1947 at this point in the prime director's session.
+OWNER STAFFING CAP, 2026-09-08, verbatim: "Also make sure to not overdo it with agent staffing yet maybe limit it to only 2 director-kids active at a time." Declared as caps.director_kids rather than remembered, because this node is where caps live and a cap that exists only in a session transcript dies at the next rotation. WHAT IT COVERS, stated so a successor inherits the reading and not the ambiguity: a director-kid is a tier-1 director that a SEAT spawns to do work, the thing config:seats describes the quorum doing "soon". It is NOT the owner-ordered seats themselves. It cannot be, because the owner said "There is 3" and "The quorum stays" the same day, and taking a quorum seat down would contradict a same-day explicit ruling. The liaison was treated as outside the cap because it spawns nothing, takes no work, and the owner ordered it explicitly first-thing in the same breath as this cap. WHAT IT DOES NOT YET DO: nothing enforces it. This is a DECLARATION and saying so is the point. This seat was called in partly to name the habit of building a mechanism, testing it, and never wiring it: rotate.py alarms, failures.py, and the seat-pin generation guard are three instances found in a single session. Declaring a cap and calling it enforcement would be the fourth. spawn_budget bounds total live agents at 25 and knows nothing about roles; the director-kid predicate has no reader yet. Whoever wires it reads this field, not a brief.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
