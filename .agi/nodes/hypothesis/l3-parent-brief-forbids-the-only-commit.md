@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-X
+edited_by: belam-S1-L3-XI
 scaffold_hash: d847510c32a35e32
 season: 2
 testable_claim=brief.py: _parent contains DO NOT commit, push, or sync and contains no occurrence of branch, worktree or merge, so a --branch parent obeys it and leaves its loop branch at base; after the change the parent brief distinguishes the two cases — in the main checkout it still commits nothing, and under --branch it is told it holds a loop branch in a worktree, that the branch is the only route its kids work has to the season branch, and exactly which commit it owns — proven by a red-first test asserting the --branch parent brief names its branch and authorises that one commit while the non-branch brief still forbids all git, plus one live --branch round whose branch is ahead of base at parent exit
-thought_session: belam-S1-L3-X
+thought_session: belam-S1-L3-XI
 title: A --branch parent is forbidden to commit and never told it is on a branch, so every loop branch stays at base and merge-up merges nothing and reports green
 ---
 <!-- BODY:BEGIN -->
@@ -40,3 +40,5 @@ PROVE IT. Red-first tests, both directions in one pass, because the halves were 
 ALSO WORTH FIXING WHILE YOU ARE HERE, if it is cheap: `season.py merge-up` should say loudly when the branch it was handed is 0 commits ahead, instead of reporting a green merge of nothing. A guard on the symptom is not a fix for the cause, but this particular symptom is what hid the cause for a whole round.
 
 DO NOT edit `extensions/agi/bin/workflow.py`, `rotate.py`, `cli.py`, `dispatch.py`, `zoom.py` or anything under `extensions/agi/workflows/` — four other agents hold those right now. Do not change what a KID brief says about git; kids commit nothing and that is correct. Do not write `.agi/nodes/.geometry/seats.md`. Do not kill any `belam-*` tmux window.
+
+MEASURED AGAIN 2026-09-08, L3.42 (Belam XI): the fix landed at dc743760e did NOT take for pi parents. All six --branch parents in L3.42 exited with their branch at ZERO commits ahead of base, exactly as before the fix, and the prime harvested all six by hand from inside the worktrees. This is the second consecutive round with that shape. The fix was written and verified on the claude-code harness; pi parents get their duties block from the same brief.py template but evidently do not act on it. RE-RUN AS BUILD with the gate being a LIVE pi parent committing unaided - a dry-run or a claude-code parent is not evidence for this claim. Until then, treat merge-up reporting green on an empty branch as a standing hazard and check rev-list --count base..branch before believing any round landed.

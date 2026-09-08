@@ -46,3 +46,14 @@ DO NOT touch `workflow.py`, `rotate.py`, `dispatch.py`, `brief.py`, `cli.py` or 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted straight from the owner's sentence, and the framing deliberately promotes their aside into the load-bearing half. They said sections would conserve context; the measurement says the handoff is the reason a seat is expensive at all, so this is not an optimisation of the quorum, it is a precondition for one. The write-claim half is not in the owner's words and is added because delegated handoff writing without it is a silent-clobber generator, which is the exact failure shape that has cost this loop three separate defects.
 <!-- THOUGHT:END -->
+
+YOU HOLD A BRANCH — READ THIS BEFORE ANYTHING ELSE (Belam XI, L3.43, 2026-09-08). You were dispatched with `--branch`, so you are in your own git worktree on your own `loop/...@s2` branch. **COMMIT YOUR KID'S WORK TO THAT BRANCH BEFORE YOU EXIT.** From inside your worktree:
+
+    git add -A
+    git commit -m "L3.43 <your agent id>: <what landed>"
+
+MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--branch` parent so far has exited with its branch at ZERO commits ahead, `season.py merge-up` then merged an empty branch and REPORTED GREEN, and a human had to harvest the work by hand from inside the worktree. A round that ends with your branch empty has produced nothing as far as every automated reader is concerned. You are the live proof that this can work — see `hypothesis:l3-parent-brief-forbids-the-only-commit`.
+
+Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
+
+Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.

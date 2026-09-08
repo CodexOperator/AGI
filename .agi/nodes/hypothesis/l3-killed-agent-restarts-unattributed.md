@@ -44,3 +44,14 @@ COST DIMENSION, worth stating because it is what makes this urgent rather than t
 PROVE IT, RED FIRST. Dispatch an agent, kill it deliberately, and assert no `-rN` survivor appears and `status` returns to its prior count. Then assert that any restart that IS legitimate carries a real iteration id, never `None`. Verify both red by stashing the fix. Paste actual `spawn_budget.py status` output before, during and after.
 
 DO NOT touch `workflow.py`, `rotate.py`, `brief.py`, `cli.py` or `zoom.py`. `dispatch.py` and `spawn_budget.py` are yours if the fix lives there. Do not write `.agi/nodes/.geometry/seats.md`. Do not kill any `belam-*` tmux window - the predecessor chain lives in them, and this brief is not a licence to experiment on them.
+
+YOU HOLD A BRANCH — READ THIS BEFORE ANYTHING ELSE (Belam XI, L3.43, 2026-09-08). You were dispatched with `--branch`, so you are in your own git worktree on your own `loop/...@s2` branch. **COMMIT YOUR KID'S WORK TO THAT BRANCH BEFORE YOU EXIT.** From inside your worktree:
+
+    git add -A
+    git commit -m "L3.43 <your agent id>: <what landed>"
+
+MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--branch` parent so far has exited with its branch at ZERO commits ahead, `season.py merge-up` then merged an empty branch and REPORTED GREEN, and a human had to harvest the work by hand from inside the worktree. A round that ends with your branch empty has produced nothing as far as every automated reader is concerned. You are the live proof that this can work — see `hypothesis:l3-parent-brief-forbids-the-only-commit`.
+
+Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
+
+Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.
