@@ -54,7 +54,17 @@ import zoom  # noqa: E402
 #: How many frames the written map carries. `render-context.py` capped its
 #: ASCII block at 200 lines for the same reason: both injectors truncate, and
 #: a map longer than the truncation is a map whose tail nobody reads.
-DEFAULT_FRAMES = 200
+#:
+#: 200 -> 90 (SD.08, hypothesis:l3w4-context-load-minimal): the graph frame
+#: stream is 85% of the injected file (7187 of 8407 tok, measured o200k on
+#: 2026-09-08) and is paid by EVERY role EVERY turn. Deep navigation does not
+#: need to be always-on: this is the map's TOP view, and a role that needs a
+#: deeper or anchored slice reads it on demand (`viewport.py --anchor`, zoom),
+#: which is cheaper than carrying 8.4k tokens of static tree per turn. 90
+#: frames keeps the tree under the parent-targeted ~3k-token stream while
+#: preserving the node-catalog top view; `--frames` still overrides for a full
+#: dump.
+DEFAULT_FRAMES = 90
 
 
 def build_text(root: Path, max_frames: int = DEFAULT_FRAMES) -> str:
