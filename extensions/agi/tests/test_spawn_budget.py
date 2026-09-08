@@ -321,6 +321,35 @@ def test_attach_branch_records_branch_base_and_worktree_on_the_lease(root):
     assert rec["worktree"] == "/tmp/main/.agi/worktrees/a00-xy"
 
 
+def test_a_lease_without_an_iteration_is_loud_in_status(root, capsys):
+    """hypothesis:l3-killed-agent-restarts-unattributed — `iter=None` on a live
+    lease must be loud, not a silent count that holds a round open forever.
+    Every spawner passes iter_n, so None here is a defect and status flags it.
+    """
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+    lease = spawn_budget.acquire(root, 10, "a00-orphan-r1", tier="parent")  # no iter_n
+    assert lease is not None
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "UNATTRIBUTED" in out, out
+    assert "iter=None" in out, out
+
+
+def test_a_lease_recorded_with_an_iteration_is_attributed(root, capsys):
+    """The attribution seam: a lease acquired with an iteration id renders it
+    plainly in status, so a restart that inherits its round is visible to it.
+    """
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+    lease = spawn_budget.acquire(root, 10, "a00-healthy-r1", tier="kid", iter_n=342)
+    assert lease is not None
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "iter=342" in out, out
+    assert "UNATTRIBUTED" not in out, out
+
+
 def test_attach_branch_ignores_empty_fields(root):
     """An attach with no branch fields must leave the lease unchanged except
     its mandatory keys — never write empty-string placeholders."""

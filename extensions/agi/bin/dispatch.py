@@ -1616,8 +1616,15 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     # A restart is a new process and must be admitted like one. A recovery
     # path that ignores the concurrency bound can cause the outage it is
     # recovering from.
+    # hypothesis:l3-killed-agent-restarts-unattributed — a restart is a new
+    # PROCESS but the SAME round. The `-rN` lease must inherit the round's
+    # iteration id, or the survivor shows `iter=None` in `spawn_budget status`
+    # and the round's stop-condition (a loop on the live count, filtered by
+    # iter) never sees it. A deliberate kill is distinguishable from a crash
+    # elsewhere; when a restart IS legitimate it must be attributable.
     lease = spawn_budget.acquire(root, cap, f"{agent_id}-r{restarts + 1}",
-                                 tier=rec.get("tier", "kid"))
+                                 tier=rec.get("tier", "kid"),
+                                 iter_n=locations.iteration_id(rec.get("iter", 0) or 0))
     if lease is None:
         return {"record": failed,
                 "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "
