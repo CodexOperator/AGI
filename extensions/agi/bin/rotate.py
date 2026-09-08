@@ -859,7 +859,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  tmux_session: str = DEFAULT_TMUX_SESSION,
                  window_path: str | None = None, root: Path | None = None,
                  dry_run: bool = False, debug_file: str | None = None,
-                 extra: str = "") -> tuple[int, str]:
+                 extra: str = "",
+                 successor_argv: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -868,6 +869,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     command, quotes it for the shell and (unless dry-run) opens it in a new
     tmux window. Refuses when a window of that name already exists. Core is
     not prime-specific -- any named seat may launch through it.
+
+    `successor_argv` (hypothesis:l3-rotate-self-successor-override) is an
+    EXPLICIT stand-in command that replaces the real claude successor. When
+    given, that shell line is launched verbatim (still through _launch_window,
+    still gated by the same-name window refusal, still reading its `continue`
+    back from the successor's own debug file). It is impossible to trip by
+    accident: it only takes effect when an explicit override string is passed,
+    so the DEFAULT is byte-for-byte today's real `claude --remote-control`.
 
     Returns `(exit_code, shell_cmd)`. On dry-run the shell line is printed
     and (0, shell_cmd) returned; every failure prints its ERR and returns
@@ -889,31 +898,38 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
 
     dbg = debug_file or f".agi/sessions/{name}.log"
 
-    # A non-prime seat spawned with no explicit --prompt-file gets its body
-    # from the assembled brief. assemble() already inserts the constitution
-    # head, so we skip successor_prompt() — calling both would double-insert it
-    # (hypothesis:l3w4-liaison-seat). The prime's static-file path, and any
-    # explicit --prompt-file, are untouched.
-    if prompt_file is None and tier != "prime_director":
-        claude_cmd = _assembled_successor_command(
-            name=name, tier=tier, model=model, effort=effort,
-            settings=settings, debug_file=dbg, extra=extra,
-        )
+    # An explicit stand-in successor command (hypothesis:l3-rotate-self-
+    # successor-override): the override REPLACES the claude argv entirely.
+    # It only takes effect when passed explicitly — the default below is
+    # byte-for-byte today's real claude successor.
+    if successor_argv is not None:
+        shell_cmd = successor_argv
     else:
-        if prompt_file is None:
-            prompt_file = DEFAULT_PROMPT_FILE
-        pf = Path(prompt_file).expanduser().resolve()
-        if not pf.exists():
-            print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
-            return 1, ""
-        claude_cmd = _successor_command(
-            name=name, tier=tier, prompt_file=str(pf),
-            model=model, effort=effort, settings=settings, debug_file=dbg,
-            extra=extra,
-        )
+        # A non-prime seat spawned with no explicit --prompt-file gets its body
+        # from the assembled brief. assemble() already inserts the constitution
+        # head, so we skip successor_prompt() — calling both would double-insert it
+        # (hypothesis:l3w4-liaison-seat). The prime's static-file path, and any
+        # explicit --prompt-file, are untouched.
+        if prompt_file is None and tier != "prime_director":
+            claude_cmd = _assembled_successor_command(
+                name=name, tier=tier, model=model, effort=effort,
+                settings=settings, debug_file=dbg, extra=extra,
+            )
+        else:
+            if prompt_file is None:
+                prompt_file = DEFAULT_PROMPT_FILE
+            pf = Path(prompt_file).expanduser().resolve()
+            if not pf.exists():
+                print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
+                return 1, ""
+            claude_cmd = _successor_command(
+                name=name, tier=tier, prompt_file=str(pf),
+                model=model, effort=effort, settings=settings, debug_file=dbg,
+                extra=extra,
+            )
 
-    # Quote for shell display (ultracode roles are env-gated + keyworded)
-    shell_cmd = _shell_cmd(claude_cmd, settings)
+        # Quote for shell display (ultracode roles are env-gated + keyworded)
+        shell_cmd = _shell_cmd(claude_cmd, settings)
 
     if dry_run:
         print(shell_cmd)
@@ -954,6 +970,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         settings=json.loads(args.settings) if args.settings else None,
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
+        successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
         return rc
@@ -1058,6 +1075,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         settings=json.loads(args.settings) if args.settings else None,
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
+        successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
         return rc
@@ -1401,11 +1419,21 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print(guard, file=sys.stderr)
         return 1
     seat = args.name
-    row = _find_seat(root, seat)
-    if row is None:
-        print(f"ERR: no seat {seat!r} in the seats registry "
-              f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
-        return 1
+    row = None
+    # A THROWAWAY seat (hypothesis:l3-rotate-self-successor-override) is a
+    # rehearsal-only registration that NEVER writes seats.md: it skips the
+    # registry gate the Sanctuary Master owns and builds a default row instead
+    # (role from --role, default parent; model/effort/settings resolved from
+    # the ladder inside spawn_window). Without --throwaway the gate holds
+    # exactly as before — an unregistered name errors `no seat`.
+    if not getattr(args, "throwaway", False):
+        row = _find_seat(root, seat)
+        if row is None:
+            print(f"ERR: no seat {seat!r} in the seats registry "
+                  f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
+            return 1
+    else:
+        row = {}  # default row; never consulted against seats.md
 
     gen = _read_generation(root, seat) + 1
     new_name = f"{seat}.gen{gen}"
@@ -1424,16 +1452,19 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
-    role = row.get("role") or "parent"
+    role = (row.get("role") if row else None) \
+        or getattr(args, "role", None) or "parent"
     rc, _ = spawn_window(
         name=seat, tier=role,
         prompt_file=args.prompt_file,
-        model=args.model or (row.get("model") or None),
-        effort=args.effort or (row.get("effort") or None),
+        model=args.model or ((row.get("model") if row else None) or None),
+        effort=args.effort or ((row.get("effort") if row else None) or None),
         settings=(json.loads(args.settings) if args.settings
-                  else _normalize_settings(row.get("settings") or None)),
+                  else _normalize_settings(row.get("settings") if row
+                                           else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=dbg,
+        successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
         return rc
@@ -1511,6 +1542,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="successor body file (default: "
                              "prime-director-successor.md); the constitution "
                              "head is always prepended through brief.py")
+    p_spawn.add_argument("--successor-argv", default=None,
+                        help="explicit stand-in successor command run verbatim "
+                             "instead of the real claude --remote-control "
+                             "(hypothesis:l3-rotate-self-successor-override)")
     p_spawn.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                         help="tmux session to create the window in "
                              f"(default: {DEFAULT_TMUX_SESSION})")
@@ -1546,6 +1581,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="JSON settings flag, e.g. '{\"ultracode\":true}'")
     p_loop.add_argument("--prompt-file", default=None,
                         help="successor body file (head prepended)")
+    p_loop.add_argument("--successor-argv", default=None,
+                        help="explicit stand-in successor command run verbatim "
+                             "instead of the real claude --remote-control "
+                             "(hypothesis:l3-rotate-self-successor-override)")
     p_loop.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                         help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
     p_loop.add_argument("--window-path", default=None,
@@ -1601,6 +1640,16 @@ def main(argv: list[str] | None = None) -> int:
                       help="JSON settings flag")
     p_rs.add_argument("--prompt-file", default=None,
                       help="successor body file (default by tier)")
+    p_rs.add_argument("--throwaway", action="store_true",
+                      help="rehearsal-only seat: skip the seats.md registry "
+                           "gate, never write seats.md "
+                           "(hypothesis:l3-rotate-self-successor-override)")
+    p_rs.add_argument("--role", default=None,
+                      help="role tier for a --throwaway seat (default: parent)")
+    p_rs.add_argument("--successor-argv", default=None,
+                      help="explicit stand-in successor command run verbatim "
+                           "instead of the real claude --remote-control "
+                           "(hypothesis:l3-rotate-self-successor-override)")
     p_rs.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                       help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
     p_rs.add_argument("--window-path", default=None,
