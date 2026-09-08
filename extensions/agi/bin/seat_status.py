@@ -59,24 +59,24 @@ class SeatsView:
 def _load_registry_rows(root: Path) -> tuple[list, bool]:
     """`(rows, present)` for `config:seats`'s `seats:` list.
 
-    Reads `.geometry/seats.md` frontmatter, the same file `dispatch.py --seat`
-    and `rotate.py meter --seat` read. Absent file -> `([], False)`, which is
-    the fail-open contract everything else degrades to.
+    Reads THROUGH `hierarchy.load_seats` — the single reader of the two
+    declared frontmatter sources (hypothesis:l3w4-hierarchy-one-source) — the
+    same file `dispatch.py --seat` and `rotate.py meter --seat` read. The
+    seat_status copy of the seats.md read is gone so the view cannot drift
+    from the chart. Absent file -> `([], False)`, the fail-open contract
+    everything else degrades to.
     """
     seats_md = Path(root) / "nodes" / ".geometry" / "seats.md"
-    if not seats_md.is_file():
-        return [], False
+    present = seats_md.is_file()
+    rows = []
     try:
-        from graph_core.persistence import frontmatter as _fm
-        rows = (_fm.load_node_file(seats_md).frontmatter or {}).get("seats") or []
-        if rows:
-            return list(rows), True
+        import hierarchy as _hier
+        rows = _hier.load_seats(root)
     except Exception as exc:                                        # noqa: BLE001
-        print(f"warn: seat_status could not read {seats_md}: "
+        print(f"warn: seat_status could not read seats via hierarchy: "
               f"{type(exc).__name__}: {exc}", file=sys.stderr)
-    # Fallback: zoom's unified frontmatter reader, which advertises a `config`
-    # under `.geometry` keyed by its node id.
-    return list(_rows_via_zoom(root)), True
+        return list(_rows_via_zoom(root)), True
+    return list(rows), True if rows or present else False
 
 
 def _rows_via_zoom(root: Path) -> list:

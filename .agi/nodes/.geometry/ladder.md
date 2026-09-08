@@ -13,7 +13,7 @@ caps_apply_from_season: 2
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.35
-edited_by: sanctuary-master
+edited_by: a00-260a392b
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -48,7 +48,7 @@ tags:
   - geometry
   - ladder
   - structural
-thought_session: sanctuary-master
+thought_session: SD.04
 tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
@@ -83,16 +83,8 @@ row here; config `harnesses.*.models` is the fallback when there is no row.
 `--settings {"ultracode": true}`. Every role the graph knows — `kid`,
 `parent`, `director`, `prime_director`, `liaison` — resolves through this table.
 
-| tier | role | harness | model | effort | settings |
-|---|---|---|---|---|---|
-| 3 | prime_director | claude-code | claude-fable-5-1 | max | ultracode |
-| 3 | parent (advisors) | claude-code | claude-opus-5 | max | ultracode |
-| 1 | director (perpetual) | claude-code | claude-fable-5-1 | max | — |
-| 1 | liaison (owner) | claude-code | claude-sonnet-5 | high | — |
-| 1 | parent | pi | ~z-ai/glm-flash-latest | — | — |
-| 0 | director (per LT subgoal) | pi | ~z-ai/glm-flash-latest | — | — |
-| 0 | parent | pi | ~z-ai/glm-flash-latest | — | — |
-| 0 | kid | pi | ~deepseek/deepseek-v4-flash-latest | — | — |
+The live chart is printed by ``hierarchy.py render`` from this same ``roles:``
+declaration — the duplicate body table is gone, not re-derived.
 
 L3 focus: the top three levels are fixed, tier-2 rows are dropped (the three
 advisors embody the visions and spawn the Fable directors directly), and the

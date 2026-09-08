@@ -462,8 +462,15 @@ def load_seat_rows(root: Path, fm_by_id: dict):
     present = seats_md.is_file()
     rows = []
     if present:
-        gf = zoom._frontmatter_for(root, ".geometry")
-        rows = (gf.get("config:seats") or {}).get("seats") or []
+        # The view derives from the one reader (hypothesis:l3w4-hierarchy-
+        # one-source): both seat sources are read through hierarchy.py, never
+        # re-parsed here, so the renderings cannot drift from the chart.
+        try:
+            import hierarchy as _hier
+            rows = _hier.load_seats(root)
+        except Exception:
+            gf = zoom._frontmatter_for(root, ".geometry")
+            rows = (gf.get("config:seats") or {}).get("seats") or []
     return list(rows), present
 
 

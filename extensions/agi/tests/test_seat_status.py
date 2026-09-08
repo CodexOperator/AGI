@@ -122,6 +122,28 @@ def test_no_seats_md_fails_open(tmp_path):
     assert "no seat registry yet" in llm
 
 
+def test_registry_rows_read_through_hierarchy_single_reader(tmp_path, monkeypatch):
+    """The seat reader delegates to hierarchy.load_seats — ONE reader (L3w4).
+
+    hypothesis:l3w4-hierarchy-one-source's "make the view derive" leg: the
+    view must read the seat/ladder declarations through hierarchy.py — the
+    single reader of the two frontmatter sources — not keep its own copy of
+    the seats.md read, or the renderings can diverge from the chart the way
+    the prose sources used to. Proved by patching hierarchy.load_seats to a
+    sentinel and asserting seat_status returns exactly what the one reader
+    returned: if seat_status ever reads seats.md itself instead, the sentinel
+    cannot come back and the assertion fails.
+    """
+    import hierarchy as H
+    root = _make_fixture(tmp_path)  # real seats.md, so present=True
+    sentinel = [{"name": "single-reader-marker", "role": "director"}]
+    monkeypatch.setattr(H, "load_seats", lambda _r: sentinel)
+    rows, present = S._load_registry_rows(root)
+    assert present is True
+    assert rows == sentinel, (
+        "seat_status must read through hierarchy.load_seats, not seats.md")
+
+
 def test_no_engine_write_imports():
     """The status reader must import neither write.py nor node_writer (gate)."""
     src = (Path(__file__).resolve().parent.parent / "bin" / "seat_status.py").read_text()
