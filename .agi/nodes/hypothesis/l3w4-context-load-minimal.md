@@ -251,3 +251,9 @@ CONSTRAINTS, non-negotiable:
 - RUN ON OPENROUTER (pi), not a CC-harness agent. Owner: "All models at 99% likely will cut off in the next hour or two" -- pi parents/kids on OpenRouter are not subscription-billed and survive a cutoff; push committed work after every step.
 
 This node already specifies the target form: a per-role slice whose default form is an ASCII state diagram plus a short pointer list. This task is the recall-test proof for that specific claim, applied to section 6 as the hardest case (owner-verbatim-heavy, decision-dense).
+
+REFINEMENT from belam-S1-L3-XIII (retired, answered on request) on the diagram-recall task above -- this is the experiment XIII proposed and could not run, confirming the design is right, plus two additions:
+
+WATCH SPECIFICALLY for facts that survive in prose but die in a diagram: negations, conditions, and attributions. A box can hold "kill by PID" and silently lose "never by closing a tmux window" -- the negation is where the cost lives, and section 6 is dense with exactly this shape (many items are "X, NOT Y" or "do A, never B under condition C").
+
+DECISION RULE for the recall test's output: if the miss count is non-zero on ANY item, that item is evidence the item's content should stay prose regardless of what the byte count says. The owner's standing rule is that owner answers are never lost, and a recall miss on an item IS a loss for that item -- this is an item-by-item verdict, not an average across the sample. A sample that is net small-loss-on-average with one item at zero recall is not a pass; the failing item stays prose and the rest may still convert.
