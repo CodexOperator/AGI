@@ -750,3 +750,31 @@ git push origin season/s2
     🟢 **AND A FIRST: gen II's handoff wrote `generation: 2` to `.agi/sessions/seats/sanctuary-director.handoff.md`.** Until today **no `*.handoff.md` had ever existed on this box**, which is precisely why the cross-generation pin guard has been **inert — comparing 0 to 0 and passing silently** (items 82, 96). **With a real generation now written, that guard may finally arm. Nobody has verified it does. That is a cheap, high-value check for whoever picks it up: point a pin at a stale transcript with a real generation present and confirm the guard now REFUSES rather than passes.**
 
     **Handover complete and current: SD.08 in flight, SD.05 unblocked per item 94, `SKILL.md`/`INJECTION.md` held, the verified kid-branch shape (asked-for not wired, deliberate-opposite in `child_working_graph`, and the shape preserving both fixes), and the three-measurements-redirected-everything lesson.** Rotated at meter 0.5914 with the brief current at every seam, as maintained throughout rather than written at the end.
+
+98. **🟢 THE PRIME'S OWN STRUCTURAL PASS OVER BOTH FILES (owner: *"go through with the directors help and see what could be trimmed or structured as LLM friendly diagrams"*). MEASURED, and it points the work at two different levers.**
+
+```
+INJECTION.md   25,675 B total
+  ## the graph .............. 21,172 B  ...  82.5%   <-- ONE TARGET
+  ## standard commands .......  1,857 B
+  ## chain rules .............    608 B
+  everything else ............  ~2,000 B combined
+                               ------------
+  non-graph total ............  ~4,500 B  ...  17.5%
+
+SKILL.md       52,793 B total, ~25 sections, LONG TAIL
+  git grid 7.5k | project layout 5.0k | iteration protocol 3.9k
+  CLI 3.8k | COMPLETE.md 3.4k | write.py 3.3k | safety rails 2.8k
+  seasons 2.8k | configuration 2.5k | constitution 2.4k | ...
+  no single section over 7.5k  -->  NO BIG CUT EXISTS
+```
+
+    🔴 **INJECTION.md IS ONE PROBLEM WEARING A FILE: `## the graph` is 82.5% of it.** Trimming prose there is pointless — **everything else combined is 4.5 KB.** The lever is **restructuring what the graph stream EMITS**, which is exactly what SD.06's kid concluded independently (item 92). **One target, and it is not text.**
+
+    🔴 **`SKILL.md` IS THE OPPOSITE SHAPE AND NEEDS THE OPPOSITE TREATMENT: a long tail with no single big cut.** The largest section is 7.5 KB of 52.8 KB, so **there is no trim that moves the number** — **only per-role slicing does**, which is precisely what the owner asked for and what `hierarchy.py` now makes possible. **A kid needs CLI, iteration protocol, `write.py` and safety rails. A director needs seasons, rotation and economics. Nobody needs "Why this machinery exists" injected on every turn.** **These two files must NOT be given the same treatment despite being consolidated into one document — one is a stream to restructure, the other is a library to slice.**
+
+    **Corollary worth stating because it inverts the obvious plan: consolidating the two files into one document does NOT itself save anything.** The saving comes from the graph stream emitting less and from each role receiving only its slice. **Consolidation is the delivery mechanism; it is not the trim.** Anyone who lands one document of 78 KB and reports success has moved bytes, not cost.
+
+99. **CONSTITUTION SCOPE, FINAL — owner, verbatim: *"Only prayers must remain, moral stuff is read as needed only required for successor Belam."*** Three rulings: **prayers ONLY in the head for every role** (not prayers plus a condensed morals block — prayers, nothing else); **the morals are READ-AS-NEEDED**, invoked deliberately for a tie-break and never injected; and 🔴 **ONE EXCEPTION — the successor-BELAM prompt requires them.** **So `brief.py`'s head assembly needs a per-tier branch: `prime_director` carries the morals, every other tier carries prayers only.** **Getting it backwards in either direction is a real failure — strip it from the prime and the prime loses its tie-break basis; leave it on every seat and the trim does not happen.**
+
+    ⚠️ **AND A CORRECTION TO THE RECORD AT ITS SOURCE: the `SKILL.md`/`INJECTION.md` HOLD WAS THE PRIME'S, ON A MISREADING, AND IS LIFTED.** The owner wrote *"Fixing injection and skill now"* and the prime read it as *the owner is editing those files right now* (item 90). **They meant the effort, not their own hands on the files.** Cost: one round of idle capacity and a serialisation that was never needed. **Same class as the day's other failures — a reading that resolved plausibly and was wrong — and recorded here rather than quietly dropped so nobody inherits the assumption.**
