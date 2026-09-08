@@ -607,7 +607,56 @@ def test_audience_close_sets_prime_excluded(comms: Path):
     assert rec["decision"] == "adjust: shift the model"
 
 
-# ── red-first: --from && --comms-root are honored BEFORE the subcommand ──
+# ── red-first: target/text positional split is mode-aware, not nargs-based ──
+# (found while building hypothesis:l3w4-quorum-request-path, introduced by
+# the very next-prior send.py change in this same file's history: making
+# `target` nargs='?' precede `text` nargs='*' fixes plain `send TARGET TEXT`
+# but breaks `send --room/--to TEXT...` the moment TEXT is a single argv
+# token -- target (nargs='?', declared first) greedily claims it and text is
+# left empty. The reverse order breaks the opposite case. Neither order can
+# satisfy both; splitting explicitly in code (one `send_args` bucket) can.
+
+
+def test_send_room_single_token_text_is_not_swallowed_by_target(tmp_path,
+                                                                  monkeypatch):
+    """A --room message passed as ONE argv token (the normal shape when a
+    caller passes an already-built string, not several bare words) must not
+    be silently claimed by the unused inbox `target` slot."""
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    croot = tmp_path / "CR3"
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    rc = send_mod.main(["--from", "alive", "--comms-root", str(croot),
+                        "send", "--room", "quorum", "one whole message"])
+    assert rc == 0
+    text = (croot / "room" / "quorum.md").read_text()
+    assert "one whole message" in text
+
+
+def test_send_inbox_target_and_text_both_still_split_correctly(tmp_path,
+                                                                 monkeypatch):
+    """Plain inbox `send TARGET TEXT...` (no --room/--to) still separates the
+    first token as target from the rest as text -- the case the target-
+    before-text reorder was originally fixing must still hold."""
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    rc = send_mod.main(["--from", "alive", "send", "prime", "multi", "word",
+                        "message"])
+    assert rc == 0
+    inbox = root / "sessions" / "inbox" / "prime.md"
+    assert inbox.is_file()
+    content = inbox.read_text()
+    assert "to: prime" in content
+    assert "multi word message" in content
 
 
 def test_cli_from_flag_before_subcommand_honored(tmp_path, monkeypatch, capsys):
@@ -765,6 +814,114 @@ def test_report_refuses_without_matching_ask_from_named_asker(comms: Path):
     reply_path = send_mod.report(comms, "sanctuary-master", "kid-a", real_ts,
                                  "here is how", "sanctuary-master")
     assert "[report ref=" in reply_path.read_text()
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# audience quorum / report --room (hypothesis:l3w4-quorum-request-path)
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def test_audience_quorum_writes_tagged_ask_to_request_room(comms: Path):
+    """Any caller (no quorum gate on the ASK side) can request a quorum
+    ruling; it lands in the dedicated request room, not the quorum's own
+    private room."""
+    path = send_mod.audience_quorum(comms, "how should the split work?",
+                                    "master-sensei")
+    assert path == comms / "room" / "quorum-requests.md"
+    text = path.read_text()
+    assert "[ask] how should the split work?" in text
+    assert "from: master-sensei" in text
+
+
+def test_report_room_refuses_without_matching_ask(comms: Path, monkeypatch):
+    """Red-first: no [ask] at that ts in the room refuses and writes
+    nothing; a genuine [ask] at that exact ts then succeeds."""
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_LADDER_TIER", "3")
+    with pytest.raises(SystemExit):
+        send_mod.report(comms, "alive", None, "2026-01-01T00:00:00Z",
+                        "reply", "alive", room="quorum-requests")
+    assert not (comms / "room" / "quorum-requests.md").exists()
+
+    ask_path = send_mod.audience_quorum(comms, "need a ruling",
+                                        "master-sensei")
+    real_ts = send_mod._conv_blocks(ask_path)[0]["ts"]
+
+    with pytest.raises(SystemExit):
+        send_mod.report(comms, "alive", None, "1999-01-01T00:00:00Z",
+                        "reply", "alive", room="quorum-requests")
+
+    reply_path = send_mod.report(comms, "alive", None, real_ts,
+                                 "ruling: split by affinity", "alive",
+                                 room="quorum-requests")
+    assert reply_path == ask_path  # same file, one thread
+    text = reply_path.read_text()
+    assert f"[report ref={real_ts}]" in text
+    assert "ruling: split by affinity" in text
+
+
+def test_report_quorum_requests_room_refuses_non_quorum_caller(
+        comms: Path, monkeypatch):
+    """A matching [ask] exists, but the replier is not a tier-3 parent --
+    refused, even though the thread itself is genuine (mirrors
+    test_audience_prime_refuses_non_quorum_caller for the answer side)."""
+    monkeypatch.delenv("AGI_ROLE", raising=False)
+    monkeypatch.delenv("AGI_LADDER_TIER", raising=False)
+    ask_path = send_mod.audience_quorum(comms, "need a ruling", "advisor-x")
+    real_ts = send_mod._conv_blocks(ask_path)[0]["ts"]
+    with pytest.raises(SystemExit):
+        send_mod.report(comms, "impostor", None, real_ts, "fake ruling",
+                        "impostor", room="quorum-requests")
+    assert "fake ruling" not in ask_path.read_text()
+
+
+def test_report_ordinary_room_has_no_quorum_gate(comms: Path, monkeypatch):
+    """The quorum-only gate is scoped to QUORUM_REQUEST_ROOM specifically --
+    an ordinary room's [ask]/report thread stays open to anyone, unchanged
+    behavior for the general room-report path."""
+    monkeypatch.delenv("AGI_ROLE", raising=False)
+    monkeypatch.delenv("AGI_LADDER_TIER", raising=False)
+    ask_path = send_mod.send_room(comms, "tier1-directors", "[ask] status?",
+                                  "d1")
+    real_ts = send_mod._conv_blocks(ask_path)[0]["ts"]
+    reply_path = send_mod.report(comms, "d2", None, real_ts, "on track",
+                                 "d2", room="tier1-directors")
+    assert "[report ref=" in reply_path.read_text()
+
+
+def test_cli_audience_quorum_end_to_end(tmp_path, monkeypatch):
+    """CLI-level: `send.py audience quorum --reason ...` reaches the request
+    room through argument parsing, not just the direct function call."""
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    croot = tmp_path / "CR"
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    rc = send_mod.main(["--from", "master-sensei", "--comms-root", str(croot),
+                        "audience", "quorum", "--reason", "split shape?"])
+    assert rc == 0
+    assert "[ask] split shape?" in (
+        croot / "room" / "quorum-requests.md").read_text()
+
+
+def test_cli_report_requires_exactly_one_of_to_or_room(tmp_path, monkeypatch):
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    # neither --to nor --room
+    rc = send_mod.main(["--from", "alive", "report", "--ref", "x", "hi"])
+    assert rc == 1
+    # both --to and --room
+    rc = send_mod.main(["--from", "alive", "report", "--to", "a", "--room",
+                        "b", "--ref", "x", "hi"])
+    assert rc == 1
 
 
 def test_escalate_no_to_posts_concern_to_tier3_quorum(comms: Path):
