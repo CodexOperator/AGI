@@ -95,7 +95,7 @@ _scrubbed_env = scrubbed_env
 
 
 def zoom_command(root: Path, iter_n: int, agent_id: str,
-                 level: str, target: str | None) -> list[str]:
+                 level: str, target: str | None, push_further: bool = False) -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -114,6 +114,11 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
            "--level", level, "--runtime", "pi"]
     if level == "small" and target:
         cmd.extend(["--target", target])
+    if push_further:
+        # hypothesis:l3w4-push-further-loops — re-dispatch at the SAME target
+        # id so a continuation kid composes from the parent's push_further
+        # text and stamps `pushed_from: <target>` (see _scaffold_node_for_agent).
+        cmd.append("--push-further")
     return cmd
 
 
@@ -760,6 +765,15 @@ def main() -> int:
         help="Zoom level for --target (default: small)",
     )
     ap.add_argument(
+        "--push-further",
+        action="store_true",
+        help="hypothesis:l3w4-push-further-loops — re-dispatch at --target, "
+             "composing from the target's push_further text and stamping "
+             "pushed_from: <target> on the continuation kid. Refused "
+             "(exit 2, no lease, no session dir) when --target is an "
+             "overview/vision/moral node: the push stops at the quorum.",
+    )
+    ap.add_argument(
         "--strategy",
         default="extend_existing",
         help="Strategy label recorded for an aimed slot (default: extend_existing)",
@@ -1034,6 +1048,20 @@ def main() -> int:
     else:
         targets = _pick_targets(root, n)
 
+    # hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum.
+    # `--push-further --target <id>` is REFUSED before any slot is admitted
+    # when <id> is an overview/vision/moral node (the quorum-judged tiers),
+    # so a push-further chain can re-dispatch at the same target id through
+    # the kid/parent/director tiers but can never auto-continue INTO that
+    # territory. Exit 2, before iter_dir.mkdir (no session dir) and before
+    # any spawn_budget lease.
+    if args.push_further:
+        refused = _push_further_gate(root, args.target)
+        if refused:
+            code, msg = refused
+            print(msg, file=sys.stderr)
+            return code
+
     # hypothesis:l3-dispatch-dry-run — a dry run resolves everything the live
     # path resolves (target, tier, role, ladder tier, brief tier via
     # `_brief_tier_for`, model and effort rows, env exports) then assembles the
@@ -1182,7 +1210,8 @@ def main() -> int:
         # constants when the child's source tree has no engine.
         engine_paths = child_engine_paths(child_graph)
 
-        zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target)
+        zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target,
+                               push_further=args.push_further)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
@@ -1231,10 +1260,16 @@ def main() -> int:
                 "profile": dispatch_harness.get("profiles", {}).get(args.tier, "balanced"),
                 "season": str(current_season),
             }
+            extra_fm = ({"pushed_from": args.target}
+                        if args.push_further and args.target else None)
             scaffold_info = _scaffold_node_for_agent(
-                child_graph, args.iter_n, agent_id, level, target, role, stamp=child_stamp)
+                child_graph, args.iter_n, agent_id, level, target, role,
+                stamp=child_stamp, extra_fm=extra_fm)
             if scaffold_info:
                 print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
+                if args.push_further:
+                    print(f"push-further: {args.target} -> "
+                          f"{scaffold_info['node_id']}")
 
         # Spawn pi (detached). Output -> sess_dir/output.log
         try:
@@ -2026,6 +2061,53 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
     return out
 
 
+# hypothesis:l3w4-push-further-loops — the node types a push-further chain
+# is mechanically refused to auto-continue into: the quorum-judged tiers.
+PUSH_FURTHER_REFUSED_TYPES = frozenset({"overview", "vision", "moral"})
+
+
+def _target_node_type(root: Path, target: str) -> str | None:
+    """The `type:` of the node `target` names, or None when unresolved.
+
+    Resolves through node_writer's id index so an abbreviated id
+    (`hypothesis:l3w4-push-further-loops@...`) resolves the same way an aimed
+    dispatch's zoom render does. Reads the leading frontmatter line; absent
+    type (odd hand-written file) reads as None and is NOT the quorum stop.
+    """
+    f = node_writer.find_node_file(root, target)
+    if not f:
+        return None
+    try:
+        txt = f.read_text()
+    except OSError:
+        return None
+    # frontmatter `type:<sp><value>` — first non-`-` line of the `---` block
+    for line in txt.splitlines():
+        line = line.strip()
+        if line.startswith("type:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def _push_further_gate(root: Path, target: str | None):
+    """The push-further refusal, as (exit_code, stderr_msg) or None (allowed).
+
+    hypothesis:l3w4-push-further-loops — a push-further re-dispatch is the
+    mechanical stop at the quorum: it needs a --target, and it is refused
+    outright when that target is an overview/vision/moral node so the chain
+    can never auto-continue INTO quorum-judged territory via the flag. Pure
+    and deterministic so the gate is unit-testable without a spawn.
+    """
+    if not target:
+        return (2, "ERR: --push-further requires --target (re-dispatch at the "
+                   "same node id)")
+    ttype = _target_node_type(root, target)
+    if ttype in PUSH_FURTHER_REFUSED_TYPES:
+        return (2, f"ERR: --push-further refuses {target}: node type "
+                   f"'{ttype}' is quorum-judged; push stops at the quorum")
+    return None
+
+
 def _node_type_for(level: str, target: str | None, role: str | None) -> str:
     """Which chain step this agent is being asked to write.
 
@@ -2065,6 +2147,7 @@ def _node_type_for(level: str, target: str | None, role: str | None) -> str:
 def _scaffold_node_for_agent(
     root: Path, iter_n: int, agent_id: str, level: str, target: str | None,
     role: str | None = None, stamp: dict | None = None,
+    extra_fm: dict | None = None,
 ) -> dict | None:
     """Decide what node type to scaffold and pre-create the file skeleton.
 
@@ -2092,6 +2175,7 @@ def _scaffold_node_for_agent(
     res = node_writer.write_node(
         root, node_type, slug, [target] if target else [],
         stamp=stamp,
+        extra_fm=extra_fm,
         on_exists=node_writer.REUSE_SCAFFOLD,
     )
     if not res.written:

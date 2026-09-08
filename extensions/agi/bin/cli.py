@@ -494,7 +494,8 @@ def cmd_done(args: argparse.Namespace) -> int:
             _append_verdict_to_node(node_file, verdict, args.confidence, args.notes,
                                     args.next_edge, gate, root=root,
                                     node_id=args.node_id,
-                                    evidence_runs=args.evidence_runs)
+                                    evidence_runs=args.evidence_runs,
+                                    push_further=getattr(args, "push_further", None))
             # goal:s31 -- the completion half. A scaffold is born with what the
             # engine can derive from a slug; the rest is content only the kid
             # has, and the kid wrote it into the BODY because a kid writing
@@ -765,7 +766,8 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                             next_edge: str | None = None, gate=None,
                             root: Path | None = None,
                             node_id: str | None = None,
-                            evidence_runs: list | tuple | None = None) -> None:
+                            evidence_runs: list | tuple | None = None,
+                            push_further: str | None = None) -> None:
     """Add verdict frontmatter fields to an existing node file.
 
     `root`/`node_id` are how this reaches `node_writer.update_node`; both
@@ -802,6 +804,8 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
             set_fm["evidence_gate"] = "bypassed"
     if next_edge:
         set_fm["next_edges"] = [next_edge]
+    if push_further:
+        set_fm["push_further"] = push_further
 
     # The status shadow, demoted in lockstep: after a demotion nothing in the
     # frontmatter may still read 'proved'/'disproved'. Only a decisive value is
@@ -963,6 +967,14 @@ def main() -> int:
     p_done.add_argument("--parent", default=None)
     p_done.add_argument("--notes", default="")
     p_done.add_argument("--next-edge", default=None)
+    p_done.add_argument(
+        "--push-further",
+        default=None,
+        help="hypothesis:l3w4-push-further-loops — stamp `push_further: TEXT` "
+             "on the node through the same gated writer --next-edge uses, so "
+             "a later re-dispatch at this node id composes the continuation "
+             "kid from this text.",
+    )
     p_done.add_argument(
         "--owns", nargs="+", default=None, metavar="NODE_ID",
         help="goal:s27 — the kid node ids this agent is responsible for. A "
