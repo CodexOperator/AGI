@@ -32,6 +32,7 @@ import errno
 import fcntl
 import json
 import os
+import sys
 import tempfile
 import time
 from contextlib import contextmanager
@@ -75,6 +76,53 @@ def budget_dir(root: Path) -> Path:
     main_graph = locations.find_project_root(main) if main else None
     base = main_graph or graph
     return base / locations.SESSIONS_DIR_NAME / ".spawn-budget"
+
+
+def _pause_flag_path(root: Path) -> Path:
+    """Where the pause flag lives — inside `budget_dir`, so it resolves to
+    the same main-checkout directory every worktree-based caller already
+    reaches for a lease (`hypothesis:l3-reaper-restarts-through-stop`). A
+    worktree-scoped pause flag would be invisible from the main tree for
+    exactly the reason a worktree-scoped seat-pin was invisible from it
+    earlier the same day — reusing `budget_dir`'s anchor avoids a second
+    instance of that bug rather than re-deriving the fix.
+    """
+    return budget_dir(root) / ".paused"
+
+
+def is_paused(root: Path) -> dict | None:
+    """The active pause record, or `None` if dispatch is not paused.
+
+    Checked by `acquire()` (refuses every new spawn) and by dispatch.py's
+    inline reaper (refuses to restart a dead agent) — the two chokepoints
+    that together make an owner stop order a structural refusal instead of
+    a broadcast every seat has to separately remember not to violate.
+    Record shape: `{paused: True, reason: str, actor: str, paused_at: int}`.
+    """
+    try:
+        rec = json.loads(_pause_flag_path(root).read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    return rec if rec.get("paused") else None
+
+
+def pause(root: Path, reason: str = "", actor: str = "") -> None:
+    """Set the pause flag. Every `acquire()` and every reaper restart is
+    refused until `resume()` clears it."""
+    path = _pause_flag_path(root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _atomic_write_json(path, {
+        "paused": True, "reason": reason, "actor": actor,
+        "paused_at": int(time.time()),
+    })
+
+
+def resume(root: Path) -> dict | None:
+    """Clear the pause flag. Returns the cleared record, or `None` if it
+    was not set."""
+    prev = is_paused(root)
+    _pause_flag_path(root).unlink(missing_ok=True)
+    return prev
 
 
 def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
@@ -257,8 +305,18 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
 
     Non-blocking on purpose — see the module docstring. A caller that is
     refused should skip that slot and say so, not wait.
+
+    Refuses unconditionally while paused (`hypothesis:l3-reaper-restarts-
+    through-stop`), before the cap is even consulted — an owner stop order
+    means no new agent anywhere in the tree, not "no agent past the cap".
     """
     root = Path(root)
+    paused = is_paused(root)
+    if paused:
+        reason = paused.get("reason") or "owner stop order"
+        print(f"spawn_budget: refusing {agent_id} — dispatch paused "
+              f"({reason}); spawn_budget.py resume to lift", file=sys.stderr)
+        return None
     with _budget_lock(root):
         live, orphaned = _sweep_locked(root)
         if len(live) >= cap:
@@ -355,7 +413,14 @@ def release(lease: Lease) -> None:
 
 def _write_lease(path: Path, rec: dict) -> None:
     """Write a lease atomically, so a reader never sees half of one."""
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".lease.", suffix=".tmp")
+    _atomic_write_json(path, rec)
+
+
+def _atomic_write_json(path: Path, rec: dict) -> None:
+    """Write `rec` as JSON to `path` atomically (tmp file + rename), so a
+    reader never sees a half-written file. Shared by lease writes and the
+    pause flag — same requirement, same fix, one helper."""
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".tmp.", suffix=".tmp")
     try:
         with os.fdopen(fd, "w") as fh:
             json.dump(rec, fh)
@@ -366,7 +431,14 @@ def _write_lease(path: Path, rec: dict) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """`spawn_budget.py [--root R] status|sweep` — inspect the live population."""
+    """`spawn_budget.py [--root R] status|sweep|pause|resume`.
+
+    `status` (default) inspects the live population, `sweep` reclaims dead
+    leases. `pause [--reason R] [--actor A]` refuses every new spawn and
+    every reaper restart tree-wide until `resume` clears it — the
+    structural form of an owner stop order
+    (`hypothesis:l3-reaper-restarts-through-stop`).
+    """
     import argparse
     import sys
 
@@ -374,18 +446,45 @@ def main(argv: list[str] | None = None) -> int:
     import locations  # noqa: E402
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", choices=["status", "sweep"], nargs="?", default="status")
+    ap.add_argument("action", choices=["status", "sweep", "pause", "resume"],
+                     nargs="?", default="status")
     ap.add_argument("--root", default=".", help="Any path inside the project")
+    ap.add_argument("--reason", default="", help="with pause: why (recorded, shown on every refusal)")
+    ap.add_argument("--actor", default="", help="with pause: who paused it")
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+
+    if args.action == "pause":
+        pause(root, reason=args.reason, actor=args.actor)
+        who = f" by {args.actor}" if args.actor else ""
+        why = f": {args.reason}" if args.reason else ""
+        print(f"paused{who}{why} — every acquire() and reaper restart "
+              f"refuses until resume")
+        return 0
+    if args.action == "resume":
+        prev = resume(root)
+        if prev is None:
+            print("not paused — nothing to resume")
+        else:
+            print(f"resumed (was paused since "
+                  f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(prev.get('paused_at', 0)))}"
+                  f"{': ' + prev['reason'] if prev.get('reason') else ''})")
+        return 0
+
     cfg_path = locations.config_path(root)
     cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
     cap = max_live(cfg)
     live = live_agents(root)
+    paused = is_paused(root)
+    if paused:
+        who = f" by {paused['actor']}" if paused.get("actor") else ""
+        why = f": {paused['reason']}" if paused.get("reason") else ""
+        print(f"🔴 PAUSED{who}{why} — acquire() and reaper restarts are "
+              f"refused; `spawn_budget.py resume` to lift")
     print(f"budget: {len(live)}/{cap} live  dir={budget_dir(root)}")
     for rec in live:
         it = rec.get("iter")

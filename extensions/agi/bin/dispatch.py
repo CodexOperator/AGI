@@ -1142,6 +1142,25 @@ def main() -> int:
         lease = spawn_budget.acquire(
             root, cap, agent_id, tier=args.tier, iter_n=args.iter_n)
         if lease is None:
+            # hypothesis:l3-reaper-restarts-through-stop — a refused lease
+            # while paused is not "full"; "0/25, refused" read as a budget
+            # message is exactly the confident-wrong-number shape this
+            # loop has been chasing all day.
+            paused = spawn_budget.is_paused(root)
+            if paused:
+                reason = paused.get("reason") or "owner stop order"
+                print(f"unadmitted {agent_id} slot={slot}: dispatch paused "
+                      f"({reason}) — skipping, not waiting", file=sys.stderr)
+                unadmitted.append({
+                    "id": agent_id,
+                    "slot": slot,
+                    "tier": args.tier,
+                    "target": target,
+                    "status": "unadmitted",
+                    "reason": f"dispatch paused ({reason})",
+                    "at": int(time.time()),
+                })
+                continue
             live = spawn_budget.live_count(root)
             print(f"unadmitted {agent_id} slot={slot}: spawn budget full "
                   f"({live}/{cap} live tree-wide) — skipping, not waiting",
@@ -1683,6 +1702,24 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
             # An unreadable node is not evidence of completion. Fall through to
             # the restart path and say why, rather than guessing either way.
             print(f"reaper: could not check {node_id}: {exc}", file=sys.stderr)
+
+    # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
+    # evidence the reaper should restart it; a pid killed as part of an
+    # owner stop order looks identical to a crash from here; checked BEFORE
+    # the restart budget so a paused tree never spends a restart slot.
+    paused = spawn_budget.is_paused(root)
+    if paused:
+        reason = paused.get("reason") or "owner stop order"
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": (f"pid {pid} disappeared; NOT restarted — "
+                                 f"dispatch paused ({reason})"),
+            },
+            "message": (f"agent {agent_id} not restarted: dispatch paused "
+                        f"({reason})"),
+        }
 
     restarts = int(rec.get("restart_count", 0))
     max_restarts = int(((cfg or {}).get("reaper") or {}).get("max_restarts", 1))
