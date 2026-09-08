@@ -104,14 +104,17 @@ def test_parent_brief_forbids_committing_and_bypassing():
     assert "commit" in parent.lower()
 
 
-def test_branch_parent_brief_names_branch_and_authorises_one_commit(monkeypatch):
+def test_branch_parent_brief_names_branch_and_defers_the_commit(monkeypatch):
     """hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch parent
     must be told it holds a loop branch in a worktree, that the branch is the
-    only route its kids' work has to the season branch, and that it may make
-    exactly ONE git commit (stage by explicit path, commit onto its own loop
-    branch). Red on the old brief: item 5 forbade all git and never mentioned
-    a branch, so every loop branch exited at base and merge-up completed green
-    on nothing (L3.39)."""
+    only route its kids' work has to the season branch, and that its accepted
+    work is committed automatically when it calls `cli.py done` — so it runs
+    no git itself. Red on the old brief: item 5 forbade all git and never
+    mentioned a branch, so every loop branch exited at base and merge-up
+    completed green on nothing (L3.39). The authorisation prose is GONE since
+    `cli.py done` (_auto_commit_worktree) commits the dirty worktree at
+    finish time: handing the model git-add/git-commit commands was wrong, not
+    just redundant — hand-committing before done leaves done nothing to write."""
     monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
     monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
     monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
@@ -120,15 +123,19 @@ def test_branch_parent_brief_names_branch_and_authorises_one_commit(monkeypatch)
     assert "/repo/.agi/worktrees/abc" in parent, "brief must name the worktree"
     assert "season/s3" in parent, "brief must name the base branch"
     assert "only route" in parent.lower(), "brief must say the branch is the route to the season branch"
-    assert "git add" in parent and "git commit" in parent, (
-        "brief must authorise the single commit with concrete commands"
+    # The commit is deferred to done-time; the model runs no git.
+    assert "automatic" in parent.lower(), (
+        "brief must say the accepted work is committed automatically"
     )
-    assert "NEVER `git add -A`" in parent, (
-        "the one authorised commit must be staged by explicit path, never "
-        "a whole-tree add"
+    assert "cli.py done" in parent or "done` below" in parent, (
+        "brief must say the commit happens at cli.py done"
     )
-    # Everything else stays forbidden.
-    assert "no push, no sync, no rebase" in parent
+    assert "git add" not in parent and "git commit" not in parent, (
+        "the model must not be handed commit commands to run"
+    )
+    # Daylight between the two halves: a --branch parent still knows it holds
+    # a branch, but the prohibit/reason halves are otherwise identical.
+    assert "NO git commands yourself" in parent
 
 
 def test_non_branch_parent_brief_still_forbids_all_git():

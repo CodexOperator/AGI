@@ -1016,7 +1016,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        node's high-LOD view and never needs compressing into prose. Telling
        the parent that now costs one sentence and stops the compression from
        being mistaken for the design.
-    5. **The one authorised commit — only under `--branch`.**
+    5. **The done-time commit — defers to `cli.py done`, only under `--branch`.**
        `hypothesis:l3-parent-brief-forbids-the-only-commit`. A parent in the
        main checkout commits nothing, exactly as before. A `--branch` parent
        runs in a git worktree on `loop/<slug>-<agent>@s<N>`, which is the only
@@ -1024,39 +1024,35 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        merges as nothing and still reports green (L3.39 lost a whole round
        that way). So when dispatch threads the branch context as
        `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_PARENT_BASE_BRANCH`,
-       item 5 names the branch and authorises exactly ONE git operation —
-       staging the accepted node files by explicit path and committing them
-       onto its own loop branch — while push, sync, rebase, `git add -A` and
-       `grid.py commit --all` stay forbidden. The commit guard must allow that
-       one branch so the authorisation is real, not theatre.
+       item 5 names the branch, worktree and base and DEFERS the one commit
+       to `cli.py done`, which commits the dirty worktree automatically the
+       moment the parent finishes — the parent runs no git itself. Push, sync,
+       rebase and `grid.py commit --all` stay forbidden, and the model is no
+       longer handed the commit commands to run at all.
     """
     aim = target or "(pick from the injected map)"
     if branch_name:
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch
-        # parent's brief names its branch and authorises the single commit a
-        # loop branch needs to carry its kids' work home. This is the ONLY git
-        # operation a parent may perform; everything else stays forbidden.
+        # parent's brief names its branch, worktree and base and DEFERS the one
+        # commit a loop branch needs to `cli.py done`, which commits the dirty
+        # worktree automatically at finish time. The model runs no git itself;
+        # hand-committing before done would double-work or leave done nothing
+        # to write, so the old git-add/git-commit commands are gone from the
+        # brief entirely.
         worktree = branch_worktree or "(worktree)"
         base = branch_base or "(base)"
         ship = (
             f"5. YOUR BRANCH IS THE ONLY ROUTE YOUR KIDS' WORK HAS TO THE SEASON "
             f"BRANCH. You are on `{branch_name}` in worktree `{worktree}`, cut "
             f"from `{base}`. A loop branch left at base merges as NOTHING and "
-            f"still reports green — that is already measured waste. So THIS "
-            f"parent may make exactly ONE git commit: stage the node files and "
-            f"payloads you accepted, BY EXPLICIT PATH, and commit them onto your "
-            f"own loop branch:\n"
-            f"     git add <path-to-each-accepted-node> <payload...>\n"
-            f"     git commit -m \"loop: {branch_name} -- accepted <node-id> "
-            f"[<node-id> ...]\"\n"
-            f"   NEVER `git add -A`. This tree has lost work twice to a "
-            f"whole-tree add sweeping another agent's in-flight edits into one "
-            f"commit. Everything else stays forbidden: no push, no sync, no "
-            f"rebase, no `grid.py commit --all`, no touching any other branch "
-            f"or the main checkout. The commit guard permits only this one "
-            f"commit because you are on a loop/* branch. Automation still owns "
-            f"remote traffic; the loop owns your branch's merge; you own only "
-            f"this commit."
+            f"still reports green — that is already measured waste. Your "
+            f"accepted work on this branch is committed AUTOMATICALLY the moment "
+            f"you call `cli.py done` below, onto your own loop branch. So you run "
+            f"NO git commands yourself, on this branch or any other: nothing is "
+            f"pushed, synced, rebased or staged by hand, and no other branch or "
+            f"the main checkout is touched. Automation still owns remote "
+            f"traffic; the loop owns your branch's merge; the done-time commit "
+            f"is the only write your branch carries and it is automatic."
         )
     else:
         ship = (

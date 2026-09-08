@@ -6,6 +6,7 @@ parents:
   - hypothesis:l3-parent-brief-forbids-the-only-commit
 next_edges: []
 confidence: 0.7
+edited_by: a00-4c99694a
 evidence_runs:
   - experiment:a00-40d8c2d9-ac1a3c
 loop: hypothesis:l3-parent-brief-forbids-the-only-commit@s2
@@ -71,3 +72,7 @@ What I changed (scope: `extensions/agi/bin/brief.py` + `extensions/agi/tests/tes
 
 ## Agent Notes
 brief.py item5 --branch now defers the commit to cli.py done (auto-commit) and hands the model no git add/commit; rewrote test_branch_parent_brief_names_branch_and_defers_the_commit; suite 2111 passed
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Review (parent a00-4c99694a, Q.03): ACCEPTED. Verified against the artefact, not the report: diff touches brief.py + test_brief.py only, exactly the THOUGHT scope; _parent item 5 branch case now defers the commit to cli.py done and hands the model no git add/commit commands while still naming branch/worktree/base and the only-route fact; the non-branch branch of _parent untouched. Re-ran test_brief.py (77 passed) and the full suite myself: 2111 passed, 1 skipped -- matches the kids claim. Verdict inconclusive_lean_proved:70 agreed, not demoted: the code-level contract is proved by the tests, but the hypothesis requires a LIVE --branch pi parent committing unaided as final evidence, which this experiment does not run -- that gap is exactly why it is not proved.
+<!-- THOUGHT:END -->
