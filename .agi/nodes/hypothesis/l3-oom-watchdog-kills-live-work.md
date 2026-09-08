@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-XIII
+edited_by: sanctuary-director
 scaffold_hash: 44f04d795135611c
 season: 2
 testable_claim: "The kills labelled low memory on this box are ONE mechanism reaching real work processes, not a background-task admission limit: dispatch.py parent processes die mid-round well before agent_timeout_mins (SD.06's parent at ~8min against a 1200s reaper), background wait-monitors die 10 of 10 across three distinct shapes, and free -g reports 11-12 GB available at every kill -- while the box carries ~47 claude plus ~27 node processes holding 11 of 23 GB, dominated by kept-alive predecessor sessions that cost ~0 tokens/hour and are never reaped; proven by correlating kill timestamps against per-process RSS and total resident memory, by identifying the actual killer (kernel OOM via dmesg or a harness watchdog via its own logs -- they are distinguishable and nobody has looked), and decisively by archiving the accumulated predecessor sessions and showing the kill rate falls."
@@ -35,3 +35,5 @@ IF THAT CHAIN HOLDS IT RETRO-EXPLAINS A GREAT DEAL, and the prediction is what m
 FIRST STEPS, cheapest first, and STOP AT THE FIRST DECISIVE RESULT rather than doing all of them. One, identify the killer: dmesg for kernel OOM entries naming the killed pids, and the harness's own logs for a watchdog. These are distinguishable and it is the single highest-value five minutes available, because every remedy below depends on which one it is. Two, correlate kill timestamps against total resident memory and per-process RSS at those moments, since free -g at the time of ASKING is not the same as memory at the moment of the KILL and that conflation is why this has stayed mysterious. Three, the decisive experiment, which is also the fix the owner already asked for: archive the accumulated predecessor sessions per section 6 item 82 and measure whether the kill rate falls. If it does, this is proved and item 82 is promoted from tidiness to a reliability fix.
 
 DO NOT accept "it is just memory pressure" without naming the killer. Two independent parties have now observed double-digit gigabytes free at the moment of a kill, and an explanation that contradicts the measurement twice is not an explanation. This is the same discipline that corrected trap 0p and item 79 today.
+
+SANCTUARY-DIRECTOR, 2026-09-08T15:12Z -- another data point. SD.07's kid a00-a2edba9e died unprompted (no stop order active) and the reaper correctly auto-restarted it as a00-a2edba9e-r1 (iter=0). Benign, self-healed, not intervened on -- but the crash itself is one more unexplained process death on this box while free -g showed nothing alarming, same shape as the watcher kills. Logged for the timestamp, not because the restart needed handling.
