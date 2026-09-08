@@ -249,6 +249,59 @@ def child_working_graph(*, passed_root: Path | None,
     return env_graph
 
 
+def child_engine_paths(child_graph: Path | None) -> dict:
+    """Re-root the child's ENGINE paths to its own checkout, not main's.
+
+    `hypothesis:l3-branch-source-paths-never-rerooted`. dispatch.py re-roots
+    the child GRAPH thoroughly (`child_working_graph`) but leaves
+    `PLUGIN_ROOT`, `CLI_PY`, `skill_prompt` and `dispatch_py` as module
+    constants derived from `Path(__file__)` of the dispatch.py that is
+    RUNNING — which, under `--branch`, is the main checkout's dispatch.py. So
+    a kid's argv carried a worktree node path beside main-absolute engine
+    paths, and the model followed the only source anchor it was given: main.
+    `locations.source_root` already computes exactly the checkout root this
+    needs and was wired to nothing; it is the resolver for precisely this.
+
+    The same four values are computed against the child's own source root and
+    returned, falling back per-path to the module constants when a candidate
+    does not exist — a non-agi project's source tree has no engine, and its
+    kid must keep using the engine that spawned it. Call once `child_graph`
+    is settled (on BOTH the `--branch` and the plain spawn), and pass the
+    returned values at the `build_command` site.
+    """
+
+    def _fallback() -> dict:
+        return {
+            "source_root": PLUGIN_ROOT,
+            "cli_py": CLI_PY,
+            "skill_prompt": PLUGIN_ROOT / "lib" / "agent-prompt.md",
+            "dispatch_py": Path(__file__).resolve(),
+        }
+
+    if child_graph is None:
+        return _fallback()
+    try:
+        src = locations.source_root(child_graph)
+    except Exception:
+        src = None
+    if src is None:
+        return _fallback()
+
+    out = _fallback()
+    out["source_root"] = src
+    # The engine layout inside an agi-project checkout: <src>/extensions/agi.
+    _candidates = {
+        "cli_py": ("extensions", "agi", "bin", "cli.py"),
+        "skill_prompt": ("extensions", "agi", "lib", "agent-prompt.md"),
+        "dispatch_py": ("extensions", "agi", "bin", "dispatch.py"),
+    }
+    for key, rel in _candidates.items():
+        candidate = Path(src, *rel)
+        if candidate.exists():
+            out[key] = candidate
+    return out
+
+
 def pi_model_args(cfg: dict, tier: str = "kid") -> list[str]:
     """LEGACY SHIM — the pi flags now live in `adapters/pi_adapter.py`.
 
@@ -582,8 +635,10 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         current_season = 1
     cap = spawn_budget.max_live(cfg)
     parallel = adapters.parallelism(cfg)
-    skill_prompt = PLUGIN_ROOT / "lib" / "agent-prompt.md"
-    dispatch_py = Path(__file__).resolve()
+    # hypothesis:l3-branch-source-paths-never-rerooted -- mirror the live
+    # loop's re-rooted engine paths in the dry report (which dry-prints the
+    # same argv a real spawn would get).
+    engine_paths = child_engine_paths(root)
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
@@ -610,8 +665,10 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 harness=dispatch_harness, tier=args.tier,
                 brief_tier=brief_tier, context_file=str(ctx_file),
                 agent_id=agent_id, iter_n=args.iter_n,
-                sess_dir=sess_dir, scaffold=None, cli_py=CLI_PY,
-                skill_prompt=skill_prompt, dispatch_py=dispatch_py,
+                sess_dir=sess_dir, scaffold=None, cli_py=engine_paths["cli_py"],
+                skill_prompt=engine_paths["skill_prompt"],
+                dispatch_py=engine_paths["dispatch_py"],
+                source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 role=args.role, ladder_tier=tier_eff,
             )
@@ -645,7 +702,9 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # spells the prompt to disk.
             segments = _brief.assemble(
                 tier=brief_tier, agent_id=agent_id, iter_n=args.iter_n,
-                cli_py=CLI_PY, dispatch_py=dispatch_py, scaffold=None,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"], scaffold=None,
+                source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 session_dir=sess_dir)
         brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
@@ -1080,7 +1139,16 @@ def main() -> int:
         # checkout through git_common_root, so the concurrency bound and the
         # rooms stay ONE directory even with N worktrees live.
         child_graph = root
-        branch_root = root
+        # hypothesis:l3-branch-source-paths-never-rerooted part 3 -- a plain
+        # (non-`--branch`) spawn previously got `branch_root = root`, where
+        # `root` is the `.agi` GRAPH DIR, not the checkout. That born the kid
+        # in `<graph>/.agi` with no `extensions/` beside it, so every relative
+        # source instruction its own brief gave it resolvers nothing while
+        # every graph reference resolved. The checkout root is what relative
+        # source paths resolve against -- and what the agent-git commit guard
+        # compares to `git rev-parse --show-toplevel`. Under `--branch`
+        # `branch_root` is already the worktree checkout root below.
+        branch_root = locations.source_root(root)
         branch_ref: dict = {}
         if args.branch:
             base = spawner_base_branch(Path.cwd())
@@ -1105,6 +1173,14 @@ def main() -> int:
                 "worktree": str(wt),
             }
             spawn_budget.attach_branch(lease, branch_ref)
+
+        # hypothesis:l3-branch-source-paths-never-rerooted parts 1-2 -- the
+        # GRAPH is re-rooted above; re-root the ENGINE paths to the same child
+        # checkout (the `--branch` worktree, or the checkout-rooted plain
+        # spawn) so one argv no longer mixes a worktree node path with
+        # main-absolute source paths. Fallbacks inside preserve the pre-fix
+        # constants when the child's source tree has no engine.
+        engine_paths = child_engine_paths(child_graph)
 
         zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target)
         try:
@@ -1176,13 +1252,16 @@ def main() -> int:
                 iter_n=args.iter_n,
                 sess_dir=sess_dir,
                 scaffold=scaffold_info,
-                cli_py=CLI_PY,
-                skill_prompt=PLUGIN_ROOT / "lib" / "agent-prompt.md",
+                cli_py=engine_paths["cli_py"],
+                skill_prompt=engine_paths["skill_prompt"],
                 # goal:g1.9 / goal:g4.8 -- a parent brief needs the spawn
                 # command, its aim, and the concurrency bound. A kid brief
                 # ignores all three; passing them unconditionally keeps the
                 # call site tier-blind, which is the point of the assembler.
-                dispatch_py=Path(__file__).resolve(),
+                dispatch_py=engine_paths["dispatch_py"],
+                # hypothesis:l3-branch-source-paths-never-rerooted part 4 --
+                # tell the agent, out loud, which checkout it owns.
+                source_root=engine_paths["source_root"],
                 target=target,
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
