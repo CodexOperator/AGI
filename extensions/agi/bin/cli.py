@@ -60,6 +60,22 @@ def _find_root() -> Path:
     return root
 
 
+def _session_root() -> Path:
+    """The project's ONE session-dir root across every git worktree.
+
+    hypothesis:l3-cli-done-worktree-manifest — a `--branch` agent's session
+    state lives in the MAIN checkout, and `cli.py done` must find it from the
+    agent's own cwd. Agent session state (the per-agent `agent.json` and the
+    iteration `manifest.json`) is the LOOP'S bookkeeping, and bookkeeping is
+    one body across worktrees — the same rule as the spawn budget, the comms
+    root, the meter pins and `.env`, which all resolve through
+    `locations.shared_project_root`. The graph a kid edits is FORKED (that is
+    the worktree); the record `done`/`scaffold` read and write is SHARED.
+    """
+    local = _find_root()
+    return locations.shared_project_root(local) or local
+
+
 def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
     # `iter_n` is a legacy int (`iter-007`) or a loop-scoped str (`iter-L1.08`);
     # `locations` is the one place either is spelled as a directory.
@@ -360,7 +376,11 @@ def cmd_done(args: argparse.Namespace) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
     root = _find_root()
-    ap = _agent_path(root, args.iter_n, args.agent_id)
+    # Session record is SHARED (main checkout) so a `--branch` parent running
+    # in its worktree resolves the same agent.json its dispatch (from main)
+    # wrote — not an empty worktree copy (hypothesis:l3-cli-done-worktree-manifest).
+    sroot = _session_root()
+    ap = _agent_path(sroot, args.iter_n, args.agent_id)
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -536,7 +556,7 @@ def cmd_done(args: argparse.Namespace) -> int:
 
 def cmd_pending(args: argparse.Namespace) -> int:
     root = _find_root()
-    ap = _agent_path(root, args.iter_n, args.agent_id)
+    ap = _agent_path(_session_root(), args.iter_n, args.agent_id)
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -552,6 +572,7 @@ def cmd_pending(args: argparse.Namespace) -> int:
 def cmd_scaffold(args: argparse.Namespace) -> int:
     """Pre-create a node file skeleton so the agent just fills in the body."""
     root = _find_root()
+    sroot = _session_root()
     # `--parent` repeats. Before goal:s17 it was a single REQUIRED flag, which
     # meant argparse -- not the schema -- decided how many parents a node may
     # have, and it decided "exactly one" for every type. That is the rule the
@@ -583,8 +604,9 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         return 0
     print(f"scaffolded: {res.path}")
 
-    # Record scaffold in agent.json so cli.py done knows what to update
-    ap = _agent_path(root, args.iter_n, args.agent_id)
+    # Record scaffold in agent.json so cli.py done knows what to update.
+    # The record is SHARED (main checkout), same as `done` reads it.
+    ap = _agent_path(sroot, args.iter_n, args.agent_id)
     if ap.exists():
         rec = json.loads(ap.read_text())
         rec["scaffolded_node"] = res.node_id
@@ -825,8 +847,12 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
 
 
 def cmd_status(args: argparse.Namespace) -> int:
+    # Manifest + agent records are SHARED across worktrees
+    # (hypothesis:l3-cli-done-worktree-manifest); resolve the session-side
+    # root to the main checkout, never the worktree a caller stands in.
     root = _find_root()
-    iter_dir = locations.iteration_dir(root, args.iter_n)
+    sroot = _session_root()
+    iter_dir = locations.iteration_dir(sroot, args.iter_n)
     manifest = iter_dir / "manifest.json"
     if not manifest.exists():
         print(f"ERR: no manifest at {manifest}", file=sys.stderr)
@@ -834,7 +860,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     m = json.loads(manifest.read_text())
     print(f"iter {args.iter_n}: {len(m['agents'])} agents")
     for a in m["agents"]:
-        ap = _agent_path(root, args.iter_n, a["id"])
+        ap = _agent_path(sroot, args.iter_n, a["id"])
         rec = json.loads(ap.read_text()) if ap.exists() else a
         print(f"  {rec['id']}: status={rec.get('status')} verdict={rec.get('verdict', '-')} pid={rec.get('pid')}")
     return 0

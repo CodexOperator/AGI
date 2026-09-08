@@ -943,7 +943,16 @@ def main() -> int:
     else:
         print(f"season: ladder current_season={current_season}")
 
-    iter_dir = locations.iteration_dir(root, args.iter_n)
+    # hypothesis:l3-cli-done-worktree-manifest — the session dir (per-agent
+    # `agent.json`, the iteration `manifest.json`, `output.log`) is the LOOP'S
+    # bookkeeping and stays ONE body across worktrees, resolved to the MAIN
+    # checkout through `shared_project_root` — the same rule as the spawn
+    # budget, comms root and meter pins. A `--branch` spawner (cwd = worktree)
+    # still writes every agent's record where the director (main) and a later
+    # `cli.py done` from any worktree expect it. The graph a kid edits stays
+    # `root`/`child_graph` (forked).
+    sess_root = locations.shared_project_root(root) or root
+    iter_dir = locations.iteration_dir(sess_root, args.iter_n)
     # Deferred `.mkdir()` until AFTER the dry-run return: a dry-run must not
     # create a session dir (hypothesis:l3-dispatch-dry-run).
 
