@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-rotate-self-successor-override
 next_edges: []
 confidence: 0.85
-edited_by: a00-75ccbeaa
+edited_by: belam-S1-L3-IX
 evidence_runs:
   - experiment:a00-7ac1fe3b-39d771
 loop: hypothesis:l3-rotate-self-successor-override@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 972c6063503d4bbd
 season: 2
+thought_session: belam-S1-L3-IX
 title: A00 7ac1fe3b 39d771
 verdict: proved
 ---
@@ -121,3 +122,15 @@ PARENT REVIEW (a00-75ccbeaa, L3.38): ACCEPTED as proved. Verified independently:
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Review verdict rewritten from scratch. The node claimed proved with itself as evidence_run; I verified the artifact rather than the report: the rotate.py diff exists and matches the four hypothesis constraints (default byte-identical, explicit override, full downstream path live, no secrets/real seats), rotate tests 47/47, only rotate.py modified, seats.md and belam-* windows untouched. The live rehearsal genuinely exercised all five observations including the never-tested read-before-write stale-continue refusal. Two caveats keep this from being a full owner-gate closure: (e) predecessor-left-alive is best-effort-kill luck, and (a) required a persistent stand-in so it does not yet prove behaviour under a real claude successor. Hence accepted as proved for the tool-gap the hypothesis named, with those limits recorded here rather than demoted — the hypothesis claim was about the mechanism, which is proved.
 <!-- THOUGHT:END -->
+
+PRIME NOTE AFTER REVIEW — belam-S1-L3-IX, closing. The verdict `proved` STANDS and is not demoted: the `testable_claim` on this brief asked for a REHEARSED rotation, the kid delivered exactly that with a stand-in successor, and every reproducible claim was re-verified independently by the L3.38 review (47/47 named tests, the `--successor-argv` short-circuit leaving the default path byte-identical, `--throwaway` never reaching the seats writer, `seats.md` untouched by this commit, all nine `belam-*` windows still alive, rehearsal scratch cleaned). Demoting an honest kid for the prime's own choice of wording would be the wrong lesson.
+
+WHAT MUST NOT BE READ INTO IT, in the reviewer's words: *"a casual reading of 'live rotation proof' could overstate readiness for the real perpetual-seat gate the hypothesis exists to unblock."* That is the correction, and it is aimed at the DIRECTOR, not at the kid. Stated exactly:
+
+  PROVED — the rotation mechanism, end to end, against a stand-in successor: window creation under a reused plain name, the incremented handoff generation, the read-back reading the successor's log rather than the caller's, the L3.31 read-before-write cursor refusing a deliberately planted stale bare `continue` (its first live exercise since it was written), and the predecessor renamed and left alive.
+
+  NOT PROVED — the same rotation under a REAL `claude --remote-control` successor. The kid's own caveat (a) is why the distinction is load-bearing rather than pedantic: an exiting stand-in CLOSES its tmux window where a real `claude` does not, so the persistent-stand-in rehearsal and a real successor differ in exactly the property the plain-name reuse check depends on. And caveat (e) says predecessor-survival currently holds only because `rotate-self`'s kill-window is best-effort and silently left `rh.gen1` alive — survival by leniency, not by guarantee.
+
+  THEREFORE the owner's gate at HANDOFF.md §6 item 47 — "once we verify that perpetual seats work well and fully" — is NOT satisfied by this node. It is now REACHABLE, which it was not before: no kid could previously perform any rotation at all. The distance left is one rehearsal under a real successor plus a guarantee, rather than an accident, of predecessor survival.
+
+ONE MORE THING THE REVIEW FOUND THAT NOBODY ELSE DID, and it is a process defect rather than a code one: **the live rehearsal left no replayable artifact.** The `/tmp` scratch and the `agi-rh*` tmux sessions were cleaned up, correctly, so a future reviewer can re-run the unit tests and re-read the transcript pasted into this node body but cannot replay the rehearsal itself. For a proof this load-bearing that is a real gap. The next rehearsal should write its evidence somewhere durable under `.agi/sessions/` before cleaning up — the observation is the artefact, and an artefact that only exists as pasted prose is one step from being nobody's evidence.
