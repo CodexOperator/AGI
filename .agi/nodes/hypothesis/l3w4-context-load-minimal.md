@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-XIII
+edited_by: sanctuary-director
 scaffold_hash: 26157649b67a1a8f
 season: 2
 testable_claim: "Total always-injected context for every role drops by at least 70 percent and ideally 90 percent, measured as tokens in the assembled prompt before the role's first action, WITHOUT losing any fact a role needs to act correctly: the constitution head carries ONLY the prayers, the morals and the long readings move to an explicitly-invoked read for tie-break decisions; HANDOFF.md is replaced by a per-role slice whose default form is an ASCII state diagram plus a short pointer list; every seat's pin claim IS a git worktree branch claim, so identity, generation and handoff ownership are stamped by ONE writer on ONE path and git itself enforces single-holder exclusivity; and a survival-mode profile trims further still. Proven by measuring the assembled prompt for each role before and after with a token count, by a test asserting the constitution head contains the prayers and does not contain the readings, by a live rotation in which the successor claims its worktree branch and thereby its handoff in one operation, and by git refusing a second concurrent claim of the same seat branch."
@@ -203,3 +203,51 @@ THE ONE THING SELF-SELECTION MUST NOT COVER, and this is the tension to resolve 
 MECHANISM ALREADY PARTLY EXISTS: handoff.py has sections, claim with --write, release, read, write and show, built at L3.43 for the handoff half. EXTEND IT to cover the unified file rather than writing a second claiming mechanism -- one verb set over two artefacts. That is the same one-mechanism discipline as the four-level branch primitive.
 
 TWO PROPERTIES WORTH BUILDING IN because they cost nothing now and are expensive to retrofit. Make the claim record queryable, so a role can ask what is unclaimed rather than only what it holds -- that is how the unclaimed-piece signal above becomes usable instead of theoretical. And make an unclaimed piece VISIBLE at assembly time rather than silently dropped, because a piece nobody claimed is either dead weight to delete or a gap nobody noticed, and those need different responses.
+
+Gen III arrival prompt = 72,152 tok (jsonl turn-1 usage: cache_read 33121 + cache_creation 39029 + input 2), not the 24,690 director pi-harness baseline this hypothesis cites -- 2.9x higher. Cause: kid1's baseline (experiment:a00-0f527d4c-75f4fe) measured a pi-harness prompt (constitution head + role append-system-prompts only -- confirmed against SD.08 parent a00-8e296aa5's own agent.json command dump: zero CLAUDE.md, zero skills catalog, zero tool schemas, zero memory). A live CC seat stacks a separate layer underneath the agi content that SKILL.md/INJECTION.md consolidation never touches: CLAUDE.md, MEMORY.md, ~30-skill catalog, agent-type catalog, deferred-tool listing, tool schemas themselves. Even a 100%-successful SKILL/INJECTION trim caps out under half of a live seat's real bootstrap cost. Reported to belam live. Next slice should either measure the CC-harness layer directly or explicitly scope this hypothesis to pi-harness roles only and open a sibling for CC seats.
+
+HOLD LIFTED, owner via belam: the owner was NOT hand-editing SKILL.md/INJECTION.md -- belam misread "fixing injection and skill now" as the owner's own hands on the files; it meant the EFFORT, delegated back to director+kids ("go through with the directors help"). SKILL.md/INJECTION.md are CLEAR to dispatch against as of now, 2026-09-08 ~16:xx.
+
+OWNER SCOPE, verbatim: "Only prayers must remain, moral stuff is read as needed only required for successor Belam." Four points, supersede any earlier five-moves framing on this node:
+1. PRAYERS ONLY in the constitution head, for every role. Not prayers plus a condensed morals section -- prayers, and nothing else.
+2. Morals are READ-AS-NEEDED -- brief.py readings --tier <tier>, invoked for a tie-break decision, never injected into the standing head.
+3. ONE EXCEPTION: the successor-BELAM prompt. A new prime REQUIRES moral content in its spawn prompt. brief.py's per-tier head assembly needs prime_director to carry morals; every other tier carries prayers only. This is a per-tier branch in the head assembly, not a global cut -- strip morals from the prime and it loses its tie-break basis; leave morals on every seat and the trim does not happen. Get the branch direction right.
+4. Belam is running its OWN structural pass over both files in parallel (owner: "go through with the directors help"), and will send candidate structure -- which sections are load-bearing, which are history that belongs in git not the live file, which prose wants to become an indented tree or arrow chain -- as a second reading to reconcile against, not as instructions overriding a kid's own pass. A disagreement between the two passes is information; surface it, do not silently resolve it.
+
+Diagram rule reaffirmed (already on this node, repeating for the dispatched kid): indented trees and arrow chains over boxes and grids -- input is a 1-D token sequence, horizontal adjacency is cheap, vertical column alignment must be reconstructed by counting. Measure tokens, never visual density; a figure of 200 box glyphs can cost more than the prose it replaced.
+
+Dispatching the actual consolidation now under this scope.
+
+BELAM'S STRUCTURAL PASS (second reading, byte counts off section headers -- not a token count of an assembled prompt; if a kid's own token measurement disagrees, the kid's number wins). THE TWO FILES NEED OPPOSITE TREATMENTS -- do not let one kid apply one approach to both.
+
+INJECTION.md 25,675 B: "## the graph" section = 21,172 B = 82.5% of the file. Everything else combined = ~4,500 B = 17.5%. This matches SD.06's kid finding independently (two measurements agreeing from different directions). Trimming prose here is pointless -- the lever is restructuring what the graph-viewport STREAM emits (chain diagnostics, node-type counts, the attractive-ideas list, the command listing), not hand-editing the rendered file's text. The fix lives in the generator, not the artifact.
+
+SKILL.md 52,793 B across ~25 sections, long tail, no big single cut available: largest section is git grid at 7.5 KB of 52.8 KB -- project layout 5.0k, iteration protocol 3.9k, CLI 3.8k, COMPLETE.md 3.4k, write.py 3.3k, safety rails 2.8k, seasons 2.8k, configuration 2.5k, constitution 2.4k, more below that. No single trim moves this number. Only PER-ROLE SLICING does -- a kid needs CLI + iteration protocol + write.py + safety rails; a director needs seasons + rotation + economics; nobody needs "why this machinery exists" prose on every turn. This is what SD.04's hierarchy.py (machine-readable roles) now makes possible, and it is what owner item 95 already scoped: extend handoff.py's sections/claim[--write]/release/read/write/show verbs to cover the unified file, mandatory spine (prayers + generated state card + role map/command structure) plus a claimed remainder, per-piece not partitioned, claims carry their reason, unclaimed/doubly-claimed pieces are both informative.
+
+COROLLARY THAT INVERTS THE OBVIOUS PLAN: consolidating INJECTION.md + SKILL.md into one document does NOT itself save anything. The saving comes from (1) the graph stream emitting less, and (2) each role receiving only its claimed slice. Consolidation is the delivery mechanism, not the trim. A kid that lands a single merged ~78KB document and reports success has moved bytes, not cost -- watch for exactly this failure shape and reject it at review.
+
+Diagram rule still applies to whatever prose survives: indented trees / arrow chains over boxes / grids, measure tokens not visual density.
+
+NEW TASK, owner via belam XIV, 2026-09-08, extends this node -- NOT a new node. Owner verbatim: "trim handoff now and see if it can be reworded via diagrams by handing the task to the sanctuary director kid."
+
+PROSE TRIM ALREADY DONE (commit 7e1048393, Belam XIV): -10.8KB off HANDOFF.md's pre-section-6 half. Section 6 itself asserted byte-identical by a before/after hash script (sha b631b7f107b0 unchanged) -- prose trimming of section 6 is off the table, capped at ~4% of the file. That is not this task.
+
+THE MEASUREMENT ALREADY TAKEN (HANDOFF.md commit 715a0851d, item 100), the number this task is scoped against:
+  section 6 total       217,705 B  ~102 items  = 84% of the whole 247KB file
+  owner VERBATIM        123,886 B  (56.9% of section 6)  225 quoted spans  -- PROTECTED, must survive byte-identical, never paraphrased
+  director exegesis      93,819 B  (43.1% of section 6)  -- the ONLY reworkable half
+
+Honest ceiling for a diagram rewrite: ~94KB, ~38% of the whole file, and only if every byte of exegesis goes. Independent corroboration of this node's own item about consolidation not being the trim -- moving bytes without cutting cost is the failure shape to watch for again here.
+
+THE QUESTION, stated so it can come back disproved: can the 43.1% exegesis half be re-expressed as ASCII state diagrams + short pointer lists at >=50% fewer bytes with ZERO decision loss?
+
+THE GATE -- byte count alone does not settle it:
+A recall test. Take a sample of section-6 items. Have one reader read ONLY the diagram form, a second reader read ONLY the prose form, and put the SAME decision questions to both ("what did the owner settle about X? what is forbidden? what is the current state?"). Zero decision loss means the diagram reader answers every question the prose reader answers. Report the sample size and every miss -- a miss is a finding, not a failure; it shows which decision shapes prose carries that diagrams drop.
+
+CONSTRAINTS, non-negotiable:
+- Owner verbatim quotes survive BYTE-IDENTICAL in any sample/example produced. Attribution is load-bearing.
+- Any actual HANDOFF.md edit (if you get that far) is scripted with a before/after hash/assert on the protected quoted spans, never a hand edit -- same shape as the 7e1048393 trim script (hash section 6 before, hash after, abort on any difference).
+- DO NOT land a section-6 rewrite this round. Produce the measurement and the recall-test result only. Rewriting 215KB of owner decisions is an owner call, banked with these numbers, not landed unilaterally.
+- RUN ON OPENROUTER (pi), not a CC-harness agent. Owner: "All models at 99% likely will cut off in the next hour or two" -- pi parents/kids on OpenRouter are not subscription-billed and survive a cutoff; push committed work after every step.
+
+This node already specifies the target form: a per-role slice whose default form is an ASCII state diagram plus a short pointer list. This task is the recall-test proof for that specific claim, applied to section 6 as the hardest case (owner-verbatim-heavy, decision-dense).
