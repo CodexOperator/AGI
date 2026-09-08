@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-deep-search-workflow-harness-agnostic
 next_edges: []
 confidence: 0.85
-edited_by: a00-4785dbf3
+edited_by: belam-S1-L3-X
 evidence_runs:
   - experiment:a00-33c42478-0c0721
 loop: hypothesis:l3-deep-search-workflow-harness-agnostic@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: be0f743cc9b8a239
 season: 2
+thought_session: belam-S1-L3-X
 title: A00 33c42478 0c0721
 verdict: proved
 ---
@@ -103,3 +104,15 @@ Parent review (a00-4785dbf3, L3.40): accepted as proved after independent re-ver
 <!-- THOUGHT:END -->
 
 REVIEW ACCEPTED — proved stands. Parent re-ran both dry-runs (pi + claude-code, 5 dispatch lines each), confirmed no hardcoded investigation text in either workflow file, config row present, and verified apply_verb/write.py:297 in source. Only weakness: live-run scratch in /tmp is ephemeral. caveat: live-run evidence ephemeral (scratch in /tmp); durable proof is parent-reproduced dry-runs. struggles: kid node initially not resolvable from the main checkout (kid writes into its worktree graph); write.py needed to be run from the worktree root.
+
+PRIME REVIEW NOTE, belam-S1-L3-X, 2026-09-08 — from the first REAL use of this workflow through the unified route, not from reading it.
+
+The owner asked to fix a live grid defect "using workflows, see if it works for us". So the very first customer of `deep-search` was a genuine unknown: the `refs/grid/*` fetch refspec had vanished from `remote.origin.fetch` on this checkout. The workflow was invoked exactly as the owner's rule requires — `workflow.py run deep-search --harness pi --args @file` — with five lenses and refute_n 2. The verdict on the artefact stands: `--dry-run` resolved 11 stages (5 readers, one per lens, 5 refuters, 1 synthesizer) with exit 0 on BOTH harnesses, the `--args` contract held, and nothing investigation-specific is baked into either file. Accepted as `proved` is correct.
+
+TWO LIMITATIONS THAT ONLY APPEAR WHEN YOU RUN IT, and neither is a defect in the kid's work — they are properties of the unified route that nobody had measured because nobody had used it for real.
+
+1. **THE STAGES RUN SERIALLY.** Under `--harness pi` the runner had exactly ONE `pi` child alive at a time (`ps --ppid` on the runner, checked twice several minutes apart). The Claude-Code-native path fans out concurrently; this one does not. For this shape that is the difference between one reader's latency and five readers' latency in series, and deep-search is DEFINED by fanning out over lenses — the whole point of the read stage is that five blind readers look at once. A five-lens investigation that would take one reader's wall-clock takes five. Nothing is wrong with the output; the cost is entirely in time, which is the one budget a director cannot buy more of. Worth a brief: the read stage's agents are independent by construction and should be spawned together, with only the refute stage depending on its own reader and only synthesize depending on all.
+
+2. **WORKFLOW-SPAWNED AGENTS ARE INVISIBLE TO `spawn_budget.py status`.** While this run was live with a `pi` child working, `spawn_budget.py status` showed only the unrelated `--branch` parent and its kid. The workflow path spawns pi directly rather than taking a budget lease. That matters more than it sounds: the round protocol's stop condition, written into HANDOFF.md and used by every prime, is a background loop waiting for `spawn_budget.py status` to reach **0 live**. A prime running a workflow would be told the box is idle while eleven agents were working, and would open the next round on top of them, or rotate believing nothing was in flight. The tree-wide bound in `goal:g4.8` is also not being enforced for these spawns. Either the workflow runner takes leases like every other spawner, or `status` learns to see it — but "0 live" must stop meaning "idle" only sometimes.
+
+THIRD, COSMETIC BUT WORTH ONE LINE: the dry-run prints its stage labels with the placeholder unexpanded — `read:{slug}` five times, `refute:{slug}` five times — so a reader cannot tell the five lenses apart in the dispatch listing. The fan-out itself is correct; only the label is. Fix it where the label is rendered, not by removing the placeholder.
