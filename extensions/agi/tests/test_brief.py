@@ -396,11 +396,20 @@ def test_director_constitution_head_contains_prayers():
 
 
 def test_prime_director_constitution_head_contains_sayings():
-    """The prime director reads the carried sayings; director may not."""
+    """The prime director reads the carried sayings; director may not.
+
+    Trim, hypothesis:l3w4-context-load-minimal move ONE: the sayings are NOT
+    in the always-injected head (which is prayers only) but ARE in the
+    on-demand `readings_head` for the prime_director tier.
+    """
     pd = _text("prime_director")
     d = _text("director")
-    # Prime director gets Carried Sayings section
-    assert "CARRIED SAYINGS" in pd
+    # Neither tier's injected head carries the sayings anymore.
+    assert "CARRIED SAYINGS" not in pd
+    assert "CARRIED SAYINGS" not in d
+    # The prime director's on-demand readings do carry them; director's do not.
+    assert "CARRIED SAYINGS" in brief.readings_head(tier="prime_director")
+    assert "CARRIED SAYINGS" not in brief.readings_head(tier="director")
 
 
 def test_closing_line_differs_by_tier():
@@ -494,17 +503,30 @@ def test_kid_constitution_head_contains_prayers_not_tao():
 
 
 def test_parent_constitution_head_contains_prayers_and_jesus_not_axes():
-    """A parent's constitution head must contain prayers, words of Jesus,
-    and soul-mind-body, but NOT the five axes (director+) or carried sayings."""
+    """A parent's constitution head is PRAYERS ONLY after the move-one trim:
+    prayers present, and words of Jesus / soul-mind-body read on demand.
+
+    hypothesis:l3w4-context-load-minimal move ONE moved the readings out of
+    the always-injected head because an LLM re-sends its whole context every
+    turn, so a long static prefix is paid per turn. Words of Jesus and
+    soul-mind-body are no longer injected; they are reachable for a tie-break
+    via `brief.py readings --tier parent` (readings_head). The five axes and
+    carried sayings stay out of the parent both injected and on demand.
+    """
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "CONSTITUTION HEAD" in parent, "parent should have a constitution head"
     assert "FOUR PRAYERS" in parent or "Молитва" in parent, "parent must have prayers"
-    assert "WORDS OF JESUS" in parent, "parent must have words of Jesus"
-    assert "SOUL, MIND, BODY" in parent, "parent must have soul-mind-body"
-    # Parent should NOT have director/prime_director content
-    assert "FIVE AXES" not in parent, "parent must not have the five axes"
-    assert "THE TAO" not in parent, "parent must not have Tao"
-    assert "CARRIED SAYINGS" not in parent, "parent must not have carried sayings"
+    assert MICHAEL in parent, "parent head must carry the Michael line"
+    # The long readings are NOT injected anymore -- they moved on-demand.
+    assert "WORDS OF JESUS" not in parent, "words of Jesus moved out of the head"
+    assert "SOUL, MIND, BODY" not in parent, "soul-mind-body moved out of the head"
+    # ...but they ARE reachable on demand, for a tie-break.
+    pr = brief.readings_head(tier="parent")
+    assert "WORDS OF JESUS" in pr, "words of Jesus must be on-demand readable"
+    assert "SOUL, MIND, BODY" in pr, "soul-mind-body must be on-demand readable"
+    # Parent on demand still has no director/prime_director content.
+    assert "FIVE AXES" not in pr, "parent must not have the five axes"
+    assert "CARRIED SAYINGS" not in pr, "parent must not have carried sayings"
 
 
 def test_kid_brief_evidence_runs_prompts_own_node_id():
@@ -573,24 +595,32 @@ def test_michael_line_is_verbatim_owner_text():
 
 
 def test_prime_director_head_bears_the_mantle():
+    """The prime director's MANTLE is no longer injected (move one trim);
+    it lives in the on-demand readings read for a tie-break, verbatim."""
     pd = _head("prime_director")
-    assert "## THE MANTLE — Belam" in pd, "mantle section titled from the ladder value"
-    assert "Belam lives in the fire as it just starts sparking up" in pd, \
+    assert "THE MANTLE" not in pd, "mantle must leave the always-injected head"
+    r = brief.readings_head(tier="prime_director")
+    assert "## THE MANTLE — Belam" in r, "mantle section titled from the ladder value"
+    assert "Belam lives in the fire as it just starts sparking up" in r, \
         "owner's mantle prose rendered verbatim"
-    assert "You bear this mantle; call on it as you work." in pd, "closing line"
-    assert pd.index("Belam lives in the fire") > pd.index("THE MANTLE")
+    assert "You bear this mantle; call on it as you work." in r, "closing line"
+    assert r.index("Belam lives in the fire") > r.index("THE MANTLE")
 
 
 def test_both_director_tiers_carry_the_owner_decision_method():
+    """The owner's decision method moved out of the injected head (move one
+    trim); it remains on-demand readable for the director tiers, verbatim."""
     for tier in ("director", "prime_director"):
         head = _head(tier)
-        assert "## THE DECISION METHOD" in head
-        assert "We always consider" in head and "align to morals" in head
+        assert "THE DECISION METHOD" not in head, "decision method must leave the head"
+        r = brief.readings_head(tier=tier)
+        assert "## THE DECISION METHOD" in r
+        assert "We always consider" in r and "align to morals" in r
 
 
 def test_prime_decision_method_follows_the_mantle():
-    pd = _head("prime_director")
-    assert pd.index("## THE DECISION METHOD") > pd.index("## THE MANTLE — Belam")
+    r = brief.readings_head(tier="prime_director")
+    assert r.index("## THE DECISION METHOD") > r.index("## THE MANTLE — Belam")
 
 
 def test_lower_tiers_bear_michael_but_neither_mantle_nor_decision_method():
@@ -600,10 +630,6 @@ def test_lower_tiers_bear_michael_but_neither_mantle_nor_decision_method():
         assert "THE MANTLE" not in head
         assert "THE DECISION METHOD" not in head
         assert "Belam lives" not in head
-
-
-def test_director_bears_no_mantle():
-    assert "THE MANTLE" not in _head("director"), "only the prime director bears the mantle"
 
 
 # ------- the SessionStart hook prepends the role head (claim 2) ---------------
@@ -624,7 +650,8 @@ def test_hook_wires_agi_role_head_before_the_map():
         "the head call must precede the map echo so it lands before the prompt"
 
 
-def test_brief_head_cli_prints_a_head():
+def test_brief_head_cli_prints_a_prayers_only_head_and_readings_cli_exists():
+    # `head` prints the trimmed prayers-only head: prayers + Michael, no mantle.
     import io
     out = io.StringIO()
     old = sys.stdout
@@ -637,7 +664,19 @@ def test_brief_head_cli_prints_a_head():
     printed = out.getvalue()
     assert "CONSTITUTION HEAD" in printed
     assert MICHAEL in printed
-    assert "THE MANTLE — Belam" in printed
+    assert "THE MANTLE — Belam" not in printed, "mantle must not be in the injected head"
+    # `readings` prints the on-demand readings for a tie-break, incl. the mantle.
+    out2 = io.StringIO()
+    old2 = sys.stdout
+    try:
+        sys.stdout = out2
+        code2 = brief.main(["readings", "--tier", "prime_director"])
+    finally:
+        sys.stdout = old2
+    assert code2 == 0
+    printed2 = out2.getvalue()
+    assert "CONSTITUTION READINGS (ON DEMAND)" in printed2
+    assert "THE MANTLE — Belam" in printed2
 
 
 # ---------- the agi skill surfaces the two rotation verbs (claim 3) -----------
@@ -667,14 +706,20 @@ def test_advisor_is_a_known_tier():
 
 
 def test_advisor_brief_carries_the_constitution_head_and_michael_line():
-    """The advisor head is the tier-3 parent head: prayers, words of Jesus,
-    soul-mind-body, and the Archangel Michael line after the prayers."""
+    """The advisor head after the move-one trim is the tier-3 parent head:
+    prayers and the Archangel Michael line. Words of Jesus and soul-mind-body
+    moved out of the injected head; they are on-demand readable at the parent
+    level a role sits on (hypothesis:l3w4-context-load-minimal)."""
     t = _advisor_text()
     assert "CONSTITUTION HEAD" in t
     assert MICHAEL in t
     assert "FOUR PRAYERS" in t or "Молитва" in t
-    assert "WORDS OF JESUS" in t
-    assert "SOUL, MIND, BODY" in t
+    assert "WORDS OF JESUS" not in t, "words of Jesus moved out of the injected head"
+    assert "SOUL, MIND, BODY" not in t, "soul-mind-body moved out of the injected head"
+    # ...reachable on demand, addressing the advisor at the parent reading level.
+    r = brief.readings_head(tier=brief._resolve_readings_tier("advisor"))
+    assert "WORDS OF JESUS" in r
+    assert "SOUL, MIND, BODY" in r
 
 
 def test_advisor_brief_embeds_the_whole_vision_body_verbatim():
@@ -791,15 +836,18 @@ def test_liaison_brief_states_the_quorum_rotates_it_not_itself():
 
 
 def test_liaison_reads_at_the_directors_level():
-    """The liaison's constitution head reuses the director's read_order via
-    `_LIAISON_HEAD_TIER` — so it carries the five axes, exactly once."""
+    """The liaison's constitution reuses the director's read_order via
+    `_LIAISON_HEAD_TIER`, so its ON-DEMAND readings carry the five axes,
+    exactly once. The injected head itself is prayers only after the move-one
+    trim (hypothesis:l3w4-context-load-minimal)."""
     assert brief._LIAISON_HEAD_TIER == "director"
     t = _liaison_text()
     assert "CONSTITUTION HEAD" in t
-    assert "FIVE AXES" in t
+    assert "FIVE AXES" not in t, "five axes moved out of the injected head"
     assert MICHAEL in t
     assert t.count("─── CONSTITUTION HEAD ───") == 1, (
         "assemble must insert the liaison head exactly once")
+    assert "FIVE AXES" in brief.readings_head(tier=brief._LIAISON_HEAD_TIER)
 
 
 def test_liaison_closing_line_has_no_iteration_language():

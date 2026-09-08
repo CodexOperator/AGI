@@ -447,7 +447,16 @@ def _resolve_part(part: str, sections: dict[str, str]) -> str | None:
 
 
 def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
-    """The constitution head for a tier: prayers and readings from moral:faith.
+    """The constitution head for a tier: PRAYERS ONLY, from moral:faith.
+
+    Trim, `hypothesis:l3w4-context-load-minimal` move ONE: the always-injected
+    head carries ONLY the four prayers (+ the project's own prayer) and the
+    Archangel Michael line. The longer readings that used to follow -- words
+    of Jesus, the Tao, the carried sayings, the five axes, the decision
+    method and the mantle -- are NOT injected; they live in `readings_head()`
+    behind the `brief.py readings --tier` verb, read explicitly for a
+    tie-break. Content is preserved, never deleted (must-not-lose), and still
+    sourced at run time from moral:faith's REFERENCE region.
 
     Returns None when the ladder node has no read_order for this tier, or
     when the faith node cannot be read (the tier's brief still works without
@@ -456,7 +465,60 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     """
     root = _resolve_graph_root(project_root)
 
-    # Read the ladder node for read_order
+    # Read the ladder node for read_order. Still gate on it so a tier with no
+    # entry gets no head (existing contract), but the head no longer renders
+    # the readings -- only the prayers.
+    try:
+        ladder_text = (root / _LADDER).read_text(encoding="utf-8")
+    except (OSError, FileNotFoundError):
+        return None
+
+    read_order_parts = _extract_read_order(ladder_text, tier)
+    if not read_order_parts:
+        return None
+
+    try:
+        sections = _read_faith_ref(root)
+    except FaithRefError:
+        return None
+
+    prayers = sections.get("prayers")
+    if not prayers:
+        return None
+
+    body = "## THE FOUR PRAYERS\n\n" + prayers
+
+    # The Michael line is its own paragraph right after the prayers block
+    # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
+    # prayers, which is all of them.
+    body = _insert_michael(body)
+
+    return (
+        "─── CONSTITUTION HEAD ───\n"
+        "Prayers, sourced from moral:faith at run time. The long readings "
+        "moved out (trim, hypothesis:l3w4-context-load-minimal): read them "
+        "on demand \u2014 `brief.py readings --tier <tier>` \u2014 for a tie-break.\n\n"
+        + body
+    )
+
+
+def readings_head(*, tier: str, project_root: Path | None = None) -> str | None:
+    """The full constitution readings for a tier, ON DEMAND.
+
+    `hypothesis:l3w4-context-load-minimal` move ONE moved the readings out of
+    the always-injected head; this is the explicit read a role invokes for a
+    tie-break decision. It mirrors the pre-trim head: the readings per the
+    ladder read_order for this tier, then the mantle (prime_director) and the
+    owner's decision method (director tiers). Content is preserved exactly
+    and still sourced at run time from moral:faith's REFERENCE region.
+
+    Takes the LADDER tier (callers that map a role -- advisor\u2192parent,
+    liaison\u2192director -- pass the mapped tier, exactly as `assemble` does
+    for `_build_head`). Returns None when the ladder has no read_order for
+    this tier.
+    """
+    root = _resolve_graph_root(project_root)
+
     try:
         ladder_text = (root / _LADDER).read_text(encoding="utf-8")
     except (OSError, FileNotFoundError):
@@ -475,14 +537,9 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     if not body.strip():
         return None
 
-    # The Michael line is its own paragraph right after the prayers block
-    # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
-    # prayers, which is all of them.
-    body = _insert_michael(body)
-
-    # Tier-specific suffix after the readings: the prime director bears the
-    # mantle and both director tiers carry the owner's decision method
-    # (l3w0-brief sections 1.1, 1.8, and the 2026-09-06 addendum).
+    # Tier-specific suffix, matching the pre-trim head (l3w0-brief sections
+    # 1.1, 1.8, and the 2026-09-06 addendum): the prime director bears the
+    # mantle and both director tiers carry the owner's decision method.
     if tier == "prime_director":
         mantle = _mantle_section(root)
         if mantle:
@@ -492,9 +549,10 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
         body = body + "\n\n" + _decision_method_section()
 
     return (
-        "─── CONSTITUTION HEAD ───\n"
-        "Prayers and readings from moral:faith's REFERENCE region, sourced at "
-        "run time.\n\n"
+        "\u2500\u2500\u2500 CONSTITUTION READINGS (ON DEMAND) \u2500\u2500\u2500\n"
+        "The readings moved out of the always-injected head "
+        "(hypothesis:l3w4-context-load-minimal). Sourced from moral:faith's "
+        "REFERENCE region at run time; for a tie-break decision.\n\n"
         + body
     )
 
@@ -1287,8 +1345,40 @@ def main(argv: list[str] | None = None) -> int:
                     help="graph root (.agi); defaults to the nearest enclosing "
                          ".agi walked up from this file")
     ph.set_defaults(func=_cmd_head)
+
+    pr = sub.add_parser(
+        "readings",
+        help="print the full on-demand constitution readings for a tier "
+             "(tie-break read; moved out of the injected head by "
+             "hypothesis:l3w4-context-load-minimal move ONE)")
+    pr.add_argument("--tier", required=False, default=None,
+                    choices=_READING_TIERS)
+    pr.add_argument("--role", required=False, default=None,
+                    help="alias for --tier (AGI_ROLE spelling)")
+    pr.add_argument("--project-root", default=None,
+                    help="graph root (.agi); defaults to the nearest enclosing "
+                         ".agi walked up from this file")
+    pr.set_defaults(func=_cmd_readings)
+
     args = p.parse_args(argv)
     return args.func(args)
+
+
+#: Ladder tiers a role's readings resolve to. advisor and liaison are roles
+#: on top of a ladder row, so their readings come from the row they sit on
+#: (`_ADVISOR_HEAD_TIER`, `_LIAISON_HEAD_TIER`) -- exactly as `assemble` maps
+#: them for `_build_head`.
+_READING_TIERS = ("kid", "parent", "advisor", "director", "prime_director",
+                  "liaison")
+
+
+def _resolve_readings_tier(tier: str) -> str:
+    """Map a role to the ladder tier its readings draw from."""
+    if tier == "advisor":
+        return _ADVISOR_HEAD_TIER
+    if tier == "liaison":
+        return _LIAISON_HEAD_TIER
+    return tier
 
 
 def _cmd_head(args: argparse.Namespace) -> int:
@@ -1301,6 +1391,21 @@ def _cmd_head(args: argparse.Namespace) -> int:
     if not head:
         # A tier with no head (e.g. no read_order entry) is a silent nothing,
         # matching _build_head's contract.
+        return 0
+    print(head)
+    return 0
+
+
+def _cmd_readings(args: argparse.Namespace) -> int:
+    tier = args.tier or args.role
+    if not tier:
+        print("ERR: brief.py readings needs --tier (or --role)", file=sys.stderr)
+        return 1
+    root = Path(args.project_root) if args.project_root else None
+    head = readings_head(tier=_resolve_readings_tier(tier), project_root=root)
+    if not head:
+        # A tier with no read_order resolves to no readings, matching
+        # readings_head's contract.
         return 0
     print(head)
     return 0

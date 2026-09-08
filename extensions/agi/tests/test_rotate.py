@@ -1787,9 +1787,16 @@ def test_refused_loop_does_not_advance_sequence(fake_ladder, tmp_path,
 # caught live before this landed: `root / ".env"` silently found nothing
 # because `.env` lives one level up, at `repo_root(root)`.
 
-def test_openrouter_key_env_file_found_via_repo_root_not_graph_root(tmp_path):
+def test_openrouter_key_env_file_found_via_repo_root_not_graph_root(tmp_path, monkeypatch):
     # root passed to _openrouter_key is the GRAPH root (name == ".agi"),
     # exactly what find_project_root returns -- .env lives at its PARENT.
+    # Must isolate from the ambient env var: dispatch.py mints and exports
+    # a per-spawn OPENROUTER_API_KEY into every kid's own process, so this
+    # test passes in an interactive shell (nothing exported) and fails
+    # under a dispatched kid (something exported) unless explicitly
+    # cleared -- caught live by a00-9a175ddd's own suite run, reported
+    # correctly as environmental rather than silently worked around.
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     graph_root = tmp_path / ".agi"
     graph_root.mkdir()
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=sk-or-v1-test123\n")

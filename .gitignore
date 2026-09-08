@@ -94,3 +94,8 @@ sessions/
 !.agi/sessions/rotations/*
 !.agi/sessions/quorum/
 !.agi/sessions/quorum/*
+
+# repo-root scratch a kid's own measurement tooling lands in (e.g. a throwaway
+# venv for tiktoken) -- disposable, never a work product; see .agi/tmp/ for
+# the durable equivalent inside a worktree.
+/tmp/
