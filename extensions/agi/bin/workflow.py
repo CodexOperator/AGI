@@ -15,6 +15,17 @@ with no script edit — that is the config-maxxed contract.
 
 Usage:
     workflow.py run <name> [--harness pi|claude-code] [--args JSON] [--dry-run]
+    workflow.py register <name> --script <path> [--from-run <dir>]
+    workflow.py list
+    workflow.py validate
+
+    run       the ONLY sanctioned dispatch route; `review` and `drafting` are
+              registered manifest pairs
+    register  land an inline script as a manifest pair as it runs, deriving
+              the stage manifest from the script (refuses to overwrite)
+    list      enumerate the registry: script, stage count, default harness
+    validate  the registry invariant: every agi-*.js has a sibling *.json and
+              every manifest names only stages the script implements
 
     name      config row key, e.g. `review` or `drafting` (the agi-*.js script
               names also resolve, normalized to the config key)
@@ -30,6 +41,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -75,6 +87,221 @@ def _repo_root(project_root: Path) -> Path:
         if cand == cand.parent:
             break
     return project_root
+
+
+def _script_stage_labels(script_text: str) -> set[str]:
+    """Base stage labels a Claude Code workflow script implements.
+
+    Pulled from `label:` args (both quoted `'critic'` and backtick-template
+    `` `draft:${b.slug}` ``) and `phase('Title')` calls. A template label's
+    trailing ':' is stripped (`draft:` -> `draft`). This is the source of
+    truth for the unified-route invariant: a manifest may name only stages
+    the script implements (hypothesis:l3-workflows-unified-route).
+    """
+    labels: set[str] = set()
+    for m in re.finditer(r"""label:\s*['"`]([^'"`$]*)""", script_text):
+        base = m.group(1).strip().rstrip(":")
+        if base:
+            labels.add(base)
+    for m in re.finditer(r"""phase\(\s*['"`]([^'"`]+)""", script_text):
+        labels.add(m.group(1).strip())
+    return labels
+
+
+def _derive_stages(script_text: str) -> list[dict]:
+    """Derive a stage manifest from a Claude Code workflow script body.
+
+    Each distinct base `label:` becomes one stage entry in first-seen order
+    (label args are the real stage machinery — `phase()` only groups display,
+    so it is NOT a source of stages). A backtick template label
+    (`` `draft:${b.slug}` ``) is a repeat stage: its `repeat.label_template`
+    is normalized to a `{word}` placeholder and `repeat.of` is left an honest
+    TODO (the --args list key lives in the run, not the script). `prompt` and
+    `schema` are marked TODO rather than invented — a pi runner needs real
+    prompt text and fabricating one would be the exact dishonest-registry
+    failure this closes.
+    """
+    entries: list[tuple[str, bool, str | None]] = []
+    seen: set[str] = set()
+
+    def _add(base: str, is_repeat: bool, label_template: str | None):
+        if base and base not in seen:
+            seen.add(base)
+            entries.append((base, is_repeat, label_template))
+
+    for m in re.finditer(r"""label:\s*`([^`]*)`""", script_text):
+        raw = m.group(1).strip()
+        base, sep, _tail = raw.partition(":")
+        base = base.strip()
+        var = "item"
+        vtm = re.search(r"\$\{([^}]+)\}", raw)
+        if vtm:
+            var = vtm.group(1).split(".")[-1].strip() or "item"
+        tpl = f"{base}:{{{var}}}" if (sep and base) else "{%s}" % var
+        _add(base, True, tpl)
+    for m in re.finditer(r"""label:\s*['"]([^'"]*)['"]""", script_text):
+        _add(m.group(1).strip(), False, None)
+
+    stages = []
+    for base, is_repeat, label_template in entries:
+        stage = {
+            "label": base,
+            "role": "kid",
+            "prompt": f"<TODO: author the stage prompt for stage "
+                       f"'{base}' from the script's agent brief>",
+        }
+        if is_repeat:
+            stage["repeat"] = {
+                "of": "<TODO: the --args list key, e.g. briefs or targets>",
+                "label_template": label_template,
+            }
+        stages.append(stage)
+    return stages
+
+
+def register_workflow(root: Path, name: str, script: Path,
+                      from_dir: Path | None = None, out=sys.stdout) -> int:
+    """Land an inline script as a proper manifest pair under workflows/.
+
+    Copies the script to `agi-<key>.js` and derives `<key>.json` from it. A
+    key is already registered when EITHER file exists — this verb refuses to
+    silently overwrite, because an overwritten manifest is a registered
+    workflow whose stage list no longer names what its script implements.
+    Returns 0 on a fresh registration; 2 on refusal or an underivable script.
+    """
+    repo = _repo_root(root)
+    wf = repo.joinpath(*WORKFLOWS_DIR_REL)
+    key = _config_key_for(name).strip()
+    if not key:
+        print("workflow.py: register needs a non-empty name", file=sys.stderr)
+        return 2
+    js_target = wf / f"agi-{key}.js"
+    manifest_target = wf / f"{key}.json"
+    if js_target.exists() or manifest_target.exists():
+        existing = js_target if js_target.exists() else manifest_target
+        print(f"workflow.py: register refused: '{key}' already registered at "
+              f"{existing.name} — refusing to silently overwrite. Inspect "
+              f"with `workflow.py list` first.", file=sys.stderr)
+        return 2
+    try:
+        script_text = Path(script).read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"workflow.py: register: cannot read --script {script}: "
+              f"{exc}", file=sys.stderr)
+        return 2
+    stages = _derive_stages(script_text)
+    if not stages:
+        print(f"workflow.py: register: no stage labels found in {script} — "
+              "cannot derive a manifest; refusing to land a prompt-less pair.",
+              file=sys.stderr)
+        return 2
+    manifest = {
+        "name": key,
+        "script": js_target.name,
+        "description": (f"Registered from inline script {Path(script).name}"
+                         + (f" (originally run from {from_dir})" if from_dir else "")
+                         + " — stages derived from the script, prompts TODO"),
+        "stages": stages,
+    }
+    if from_dir:
+        manifest["_from_run"] = str(from_dir)
+    js_target.write_text(script_text, encoding="utf-8")
+    manifest_target.write_text(json.dumps(manifest, indent=2) + chr(10),
+                               encoding="utf-8")
+    out.write(f"[registered] {key} -> {js_target.name} + {key}.json "
+              f"({len(stages)} stage(s) derived)\n")
+    return 0
+
+
+def list_workflows(root: Path, out=sys.stdout) -> int:
+    """Enumerate the registry: every agi-*.js with its manifest name (the
+    config row key), stage count, and the harness the config row defaults to.
+    The script<->manifest link resolves through the manifest's `script` field
+    (review.json -> agi-round-review.js), never a filename heuristic."""
+    repo = _repo_root(root)
+    wf = repo.joinpath(*WORKFLOWS_DIR_REL)
+    cfg = _load_config(root)
+    by_script: dict[str, dict] = {}
+    for mf in wf.glob("*.json"):
+        try:
+            m = json.loads(mf.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            m = {}
+        if m.get("script"):
+            by_script[m["script"]] = m
+    js_files = sorted(wf.glob("agi-*.js"))
+    if not js_files:
+        out.write("(no workflows registered)\n")
+        return 0
+    rows = []
+    for js in js_files:
+        manifest = by_script.get(js.name)
+        key = (manifest or {}).get("name")
+        stage_count = len((manifest or {}).get("stages", []))
+        row_cfg = (cfg.get("workflows") or {}).get(key) or {}
+        harness = row_cfg.get("provider") or (manifest or {}).get("provider") \
+            or "pi"
+        rows.append((key or js.name, js.name, stage_count, harness, manifest))
+    width = max(len(r[0]) for r in rows)
+    out.write(f"{'NAME':<{width}} SCRIPT                 STAGES  HARNESS\n")
+    for key, script, n, h, manifest in rows:
+        flag = "" if manifest else "  <-- NO MANIFEST!"
+        out.write(f"{key:<{width}} {script:<20} {n:<6} {h}{flag}\n")
+    return 0
+
+
+def validate_registry(root: Path, wf: Path | None = None,
+                      out=sys.stdout) -> int:
+    """The unified-route invariant, both directions.
+
+    1. Every `agi-*.js` under workflows/ is named as the `script` of some
+       `<name>.json` manifest (a script with no sibling manifest is the
+       un-registered inline case).
+    2. Every manifest's `script` field names an existing `agi-*.js`, and it
+       names only stages that script implements.
+
+    Returns 0 when sound; 1 when any violation is found (each printed). A
+    workflows dir can be passed directly so the invariant is testable in
+    isolation from the live repo (deep-search is mid-build there).
+    """
+    repo = _repo_root(root)
+    wf = wf or repo.joinpath(*WORKFLOWS_DIR_REL)
+    violations: list[str] = []
+    manifests: dict[str, dict] = {}
+    for mf in sorted(wf.glob("*.json")):
+        try:
+            manifests[mf.stem] = json.loads(mf.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            violations.append(f"{mf.name} is not valid JSON: {exc}")
+    referenced = {m.get("script") for m in manifests.values() if m.get("script")}
+    for js in sorted(wf.glob("agi-*.js")):
+        if js.name not in referenced:
+            violations.append(f"{js.name} has no manifest naming it as its "
+                              "script (no sibling <name>.json)")
+    for mf_name in sorted(manifests):
+        manifest = manifests[mf_name]
+        mf = wf / f"{mf_name}.json"
+        script_name = manifest.get("script")
+        js = wf / script_name if script_name else None
+        if not script_name or not js or not js.is_file():
+            violations.append(f"{mf.name} names script "
+                              f"{script_name or '(none)'} which does not exist")
+            continue
+        script_labels = _script_stage_labels(js.read_text(encoding="utf-8"))
+        for st in manifest.get("stages", []):
+            base = (st.get("label") or "").split(":")[0].strip()
+            if base and base not in script_labels:
+                violations.append(
+                    f"{mf.name} stage '{base}' is not implemented by {js.name} "
+                    f"(script implements: {sorted(script_labels) or 'none'})")
+    for v in violations:
+        out.write(f"[registry] {v}\n")
+    if violations:
+        out.write(f"[registry] {len(violations)} violation(s)\n")
+        return 1
+    out.write("[registry] sound: every agi-*.js is named by a sibling manifest "
+              "and every manifest stage is implemented by its script\n")
+    return 0
 
 
 def _load_manifest(root: Path, name: str) -> dict:
@@ -357,22 +584,40 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="workflow.py",
-        description="Harness-agnostic workflow runner (hypothesis:l3w4-workflows-config-maxxed).",
+        description="Harness-agnostic workflow runner (hypothesis:l3-workflows-unified-route).",
     )
     sub = ap.add_subparsers(dest="cmd", required=True)
-    rp = sub.add_parser("run", help="resolve and run a workflow")
+    rp = sub.add_parser("run", help="resolve and run a workflow (the only sanctioned dispatch route)")
     rp.add_argument("name", help="config key (e.g. review, drafting) or agi-*.js script name")
     rp.add_argument("--harness", default=None, choices=["pi", "claude-code"],
                     help="harness to run through (default: config row provider, else pi)")
     rp.add_argument("--args", default="{}", help="JSON of per-run overrides merged over the config row")
     rp.add_argument("--dry-run", action="store_true",
                     help="print one dispatch per stage with the resolved model, spawn nothing")
+    reg = sub.add_parser("register",
+                         help="land an inline script as a manifest pair (hypothesis:l3-workflows-unified-route)")
+    reg.add_argument("name", help="workflow key to register (e.g. draft-briefs)")
+    reg.add_argument("--script", required=True,
+                     help="path to the inline Claude Code .js script")
+    reg.add_argument("--from-run", default=None,
+                     help="run dir the script originally lived in (provenance note)")
+    lst = sub.add_parser("list", help="enumerate the registered workflows")
+    val = sub.add_parser("validate",
+                         help="check the registry invariant: agi-*.js <-> sibling <name>.json, and only implemented stages")
     args = ap.parse_args(argv)
 
     root = _loc.find_project_root()
     if root is None:
         print("workflow.py: no .agi project root found from cwd", file=sys.stderr)
         return 2
+
+    if args.cmd == "register":
+        return register_workflow(root, args.name, Path(args.script),
+                                 Path(args.from_run) if args.from_run else None)
+    if args.cmd == "list":
+        return list_workflows(root)
+    if args.cmd == "validate":
+        return validate_registry(root)
 
     try:
         run_args = json.loads(args.args)
