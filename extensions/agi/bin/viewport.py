@@ -84,6 +84,9 @@ GLYPH = {
     "damaged": "✗",   # ✗  dangling parent / broken edge
     "spider": "✶",    # ✶  an agent, working here
     "seat": "◆",     # ◆  a perpetual seat, sitting on this node
+    "apex": "◆",     # ◆  the prime director at the top of the hierarchy
+    "advisor": "◈",   # ◈  a quorum advisor, one per vision node
+    "director": "◎",  # ◎  a director-kid owning a perpetual goal
     "mantle": "✦",    # ✦  a mantled spirit in the sanctuary theme
     "wisp": "≈",      # ≈  a probe / ephemeral wisp in the sanctuary theme
 }
@@ -272,7 +275,8 @@ def default_roots(g, fm_by_id: dict) -> list[str]:
 
 def render_human(frames: list[Frame], top: int, left: int,
                  height: int, width: int, status: str = "",
-                 brief=None, seats=None, occupants=None) -> list[str]:
+                 brief=None, seats=None, occupants=None, anchors=None,
+                 layer="graph") -> list[str]:
     """The terminal viewport: a window onto a graph larger than the screen.
 
     `brief` is the same `Briefing` object `render_llm` receives, rendered
@@ -283,6 +287,11 @@ def render_human(frames: list[Frame], top: int, left: int,
     perpetual seats it maps are drawn INLINE on the node they sit on, and the
     seats it lists as idle are drawn in a named idle band beneath the window
     so none is invisible. The same object reaches `render_llm`.
+
+    `anchors` is an `AnchorIndex` (round 2 — the layered map): the agent
+    hierarchy layer. `layer` is which of the two layers is on top; the layer
+    beneath is rendered faint (`~ `-prefixed) so it peeks around the top one.
+    Both formatters read the SAME `anchors` and `layer`, so goal:g9.7 holds.
     """
     lines: list[str] = []
     for f in frames:
@@ -295,7 +304,18 @@ def render_human(frames: list[Frame], top: int, left: int,
         seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
         lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{v}{spider}{seat_mark}{note}")
 
-    window = lines[top:top + height]
+    # Round 2 — stacked layers. Top renders full; the layer beneath is
+    # faint-prefixed so it peeks around the top one in a plain terminal.
+    if anchors is not None:
+        hier = hierarchy_lines(anchors)
+        if layer == "hierarchy":
+            body = hier + ["~ " + ln for ln in lines]
+        else:
+            body = lines + ["~ " + ln for ln in hier]
+    else:
+        body = lines
+
+    window = body[top:top + height]
     out = [ln[left:left + width].ljust(width) for ln in window]
 
     # Named idle band: seats with no current node, so empty seats are seen,
@@ -311,6 +331,9 @@ def render_human(frames: list[Frame], top: int, left: int,
     if seats is not None:
         import seat_status as _ss
         head += [ln[:width] for ln in _ss.to_compact(seats)]
+    if anchors is not None:
+        head += [f"map layers: on top = {layer}, other = "
+                 + ("agent hierarchy" if layer == "graph" else "graph")]
     if head:
         head += ["-" * min(width, 80)]
     out = head + out
@@ -319,7 +342,8 @@ def render_human(frames: list[Frame], top: int, left: int,
 
 def render_llm(frames: list[Frame], top: int, left: int,
                height: int, width: int, status: str = "",
-               brief=None, seats=None, occupants=None) -> str:
+               brief=None, seats=None, occupants=None, anchors=None,
+               layer="graph") -> str:
     """Exactly what a kid is handed for this position.
 
     Same frames, same slice, same order. The markdown wrapper differs because
@@ -332,6 +356,11 @@ def render_llm(frames: list[Frame], top: int, left: int,
     271**, and the missing 226 were the entire contract a kid's work is judged
     against. A "view of what an LLM sees" that omits the rules is not a view
     of what an LLM sees.
+
+    `anchors` / `layer` (round 2) state the same hierarchy layer and on-top
+    fact the human pane does: the graph frame lines are kept un-prefixed so
+    `_FRAME_LINE` still parses them, and the two layers are marked instead of
+    visually stacked.
     """
     body = []
     for f in frames[top:top + height]:
@@ -358,6 +387,11 @@ def render_llm(frames: list[Frame], top: int, left: int,
     if occupants is not None and occupants.idle:
         head += ["## idle seats", "",
                  *[f"- seat {nm}" for nm in occupants.idle], ""]
+    if anchors is not None:
+        head += ["## agent hierarchy", "",
+                 *hierarchy_markdown(anchors),
+                 "",
+                 f"_map_layer_on_top: {layer}_", ""]
     head += ["## the graph", ""]
     return "\n".join(head + body) + "\n"
 
@@ -689,6 +723,154 @@ def seat_index(manifest_agents: list, registry_rows: list,
     return at_nodes, idle
 
 
+# --------------------------------------------------------------------------
+# ROUND 2 — the layered map (hypothesis:l3w4-seat-graph-view, owner's fuller
+# design). TWO layers over one structure, not two views: the AGENT HIERARCHY
+# (seats by tier, each drawn at its anchor) and the GRAPH (goals, visions,
+# hypotheses). The layer on top renders full; the layer beneath peeks through
+# faintly. One keypress swaps which is on top. Both layers read the SAME
+# `AnchorIndex`, so goal:g9.7 holds one level down from the frame stream.
+#
+# THE TIE IS THE POINT: every non-ephemeral seat is anchored at a graph node
+# -- each quorum advisor by `personality_ref` to ONE vision, each director-kid
+# by `owning_goal` to ONE perpetual goal. Both ties were already on disk in
+# `config:seats`; this renders them for the first time.
+# --------------------------------------------------------------------------
+
+#: Hierarchy role -> glyph. Unknown roles fall back to the plain seat mark, so
+#: a future role renders rather than disappearing.
+HIER_GLYPH = {
+    "prime_director": "apex",
+    "parent": "advisor",
+    "director": "director",
+}
+
+_HIER_ROLE_ORDER = {
+    "prime_director": 0,
+    "parent": 1,
+    "director": 2,
+    "kid": 3,
+}
+
+
+def _anchor_sort_key(rec: dict):
+    """Deterministic hierarchy order: tier desc, then role, then name."""
+    return (-int(rec.get("tier") or 0),
+            _HIER_ROLE_ORDER.get(str(rec.get("role") or ""), 9),
+            str(rec.get("name") or ""))
+
+
+@dataclass(frozen=True)
+class AnchorIndex:
+    """The hierarchy layer as ONE object both formatters render.
+
+    `anchored` — `{name, role, tier, anchor}` for seats whose tie to a graph
+    node resolves (the advisor->vision, director-kid->goal bindings).
+    `unanchored` — `{name, role, tier}` for seats with no resolvable anchor;
+    they still appear in the hierarchy, marked unanchored, never invented onto
+    a node. Mandatory for `add_directory`/parity: both readers consume this
+    same object (goal:g9.7 one level down).
+    """
+    anchored: tuple = ()
+    unanchored: tuple = ()
+
+    @classmethod
+    def _from(cls, anchored, unanchored) -> "AnchorIndex":
+        return cls(tuple(anchored or ()), tuple(unanchored or ()))
+
+
+
+def build_anchor_index(registry_rows: list, fm_by_id: dict) -> AnchorIndex:
+    """Read the tie off `config:seats` rows.
+
+    For each seat, anchor = `personality_ref` if it resolves to a node that
+    exists, else `owning_goal` if that resolves, else unanchored. Absent or
+    unresolvable -> unanchored, never a fabricated tie. Fail-open, read-only.
+    """
+    anchored, unanchored, seen = [], [], set()
+    for r in registry_rows or []:
+        name = str(r.get("name") or "")
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        pr = str(r.get("personality_ref") or "").strip()
+        og = str(r.get("owning_goal") or "").strip()
+        cand = ""
+        if pr and pr in fm_by_id:
+            cand = pr
+        elif og and og in fm_by_id:
+            cand = og
+        rec = {"name": name,
+               "role": str(r.get("role") or ""),
+               "tier": r.get("tier") or 0}
+        if cand:
+            rec["anchor"] = cand
+            anchored.append(rec)
+        else:
+            unanchored.append(rec)
+    return AnchorIndex._from(anchored, unanchored)
+
+
+
+def _hier_glyph(role: str) -> str:
+    return GLYPH[HIER_GLYPH.get(str(role or ""), "seat")]
+
+
+
+def hierarchy_lines(anchors: AnchorIndex, width: int = 100_000) -> list:
+    """The agent-hierarchy layer for the human pane: tiered command tree,
+    each seat at its anchor, `→` naming the graph node it is tied to."""
+    if anchors is None:
+        return []
+    rows = sorted(list(anchors.anchored) + list(anchors.unanchored),
+                  key=_anchor_sort_key)
+    lines = ["agent hierarchy  (tier · role · → graph anchor)"]
+    if not rows:
+        lines.append("(no seats)")
+        return lines
+    for r in rows:
+        ln = (f"{_hier_glyph(r['role'])} {r['name']}  "
+              f"{r['role'] or '?'}  tier{r['tier']}")
+        if r.get("anchor"):
+            ln += f"  → {r['anchor']}"
+        else:
+            ln += "  (unanchored)"
+        lines.append(ln)
+    return [ln[:width] for ln in lines]
+
+
+
+def hierarchy_markdown(anchors: AnchorIndex) -> list:
+    """The same hierarchy layer for the llm pane. `- seat …` lines never match
+    `_FRAME_LINE` (no backtick), so the graph ids in `## the graph` stay
+    parseable -- the invariant `--verify` leans on."""
+    if anchors is None:
+        return [""]
+    rows = sorted(list(anchors.anchored) + list(anchors.unanchored),
+                  key=_anchor_sort_key)
+    out = []
+    for r in rows:
+        if r.get("anchor"):
+            out.append(f"- seat {r['name']} ({r['role']}, tier {r['tier']}) "
+                       f"→ {r['anchor']}")
+        else:
+            out.append(f"- seat {r['name']} ({r['role']}, tier {r['tier']}) "
+                       f"(unanchored)")
+    return out or ["- (no seats)"]
+
+
+
+def _anchor_index(root: Path, fm_by_id: dict) -> AnchorIndex:
+    """Build an `AnchorIndex` for the live map from `config:seats`. Read-only;
+    the Sanctuary Master owns the registry -- we only read it."""
+    try:
+        gf = zoom._frontmatter_for(root, ".geometry")
+        rows = (gf.get("config:seats") or {}).get("seats") or []
+    except Exception:                                   # noqa: BLE001
+        rows = []
+    return build_anchor_index(rows, fm_by_id)
+
+
 def grid_versions(node_id: str) -> list[str]:
     """A node's grid versions, newest last. Read-only (`grid.py versions`)."""
     try:
@@ -718,6 +900,7 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
         iters = iteration_points(root)
         t_idx = len(iters) - 1
         live = args.live
+        layer = getattr(args, "layer", "graph") or "graph"
         msg = ""
 
         while True:
@@ -728,6 +911,7 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
 
             seats = None
             occupants = None
+            anchors = None
             if live:
                 try:
                     import seat_status as _ss
@@ -739,13 +923,19 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
                     occupants = OccupantIndex._from(at_nodes, idle)
                 except Exception:                                    # noqa: BLE001
                     pass
+                try:
+                    anchors = _anchor_index(root, fm_by_id)
+                except Exception:                                    # noqa: BLE001
+                    anchors = None
 
             status = (f"anchor={anchor or 'roots'} depth={depth} "
                       f"frames={len(frames)} "
                       f"time={iter_name or '-'} live={'on' if live else 'off'}"
+                      + (f" layer_top={layer}" if anchors is not None else "")
                       + (f" | {msg}" if msg else ""))
             body = render_human(frames, top, left, h - 2, w - 1, seats=seats,
-                                occupants=occupants)
+                                occupants=occupants, anchors=anchors,
+                                layer=layer)
 
             scr.erase()
             for i, ln in enumerate(body[:h - 2]):
@@ -756,7 +946,8 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             try:
                 scr.addstr(h - 2, 0, status[:w - 1], curses.A_REVERSE)
                 scr.addstr(h - 1, 0,
-                           "arrows/hjkl pan  +/- depth  [/] time  a live  q quit"[:w - 1])
+                           "arrows/hjkl pan  +/- depth  [/] time  a live  "
+                           "m swap layer  q quit"[:w - 1])
             except curses.error:
                 pass
             scr.refresh()
@@ -765,6 +956,10 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             msg = ""
             if k in (ord("q"), 27):
                 return 0
+            elif k == ord("m") and anchors is not None:
+                layer = "hierarchy" if layer == "graph" else "graph"
+                msg = f"map layer: {layer} on top"
+                top = 0
             elif k in (curses.KEY_DOWN, ord("j")):
                 top += 1
             elif k in (curses.KEY_UP, ord("k")):
@@ -814,6 +1009,8 @@ def main() -> int:
     ap.add_argument("--width", type=int, default=120)
     ap.add_argument("--theme", choices=("graph", "sanctuary"), default="graph",
                     help="live-axis view theme (default: graph)")
+    ap.add_argument("--layer", choices=("graph", "hierarchy"), default="graph",
+                    help="layered map (round 2): which layer sits on top")
     args = ap.parse_args()
 
     root = Path(args.project) if args.project else locations.find_project_root(Path.cwd())
@@ -863,6 +1060,7 @@ def main() -> int:
     # the seat board. Fails open to an absent registry, never a traceback.
     occupants = None
     seats = None
+    anchors = None
     if args.live:
         try:
             import seat_status as _ss
@@ -878,6 +1076,12 @@ def main() -> int:
         except Exception as exc:                                   # noqa: BLE001
             print(f"viewport: seat status unavailable "
                   f"({type(exc).__name__}: {exc})", file=sys.stderr)
+        # round 2 — the layered map's hierarchy layer (agent anchors).
+        # Read-only from config:seats, fails open; never printed early.
+        try:
+            anchors = _anchor_index(root, fm_by_id)
+        except Exception:                                   # noqa: BLE001
+            anchors = None
 
     if args.verify:
         return _verify(frames, args, brief)
@@ -887,7 +1091,8 @@ def main() -> int:
 
     mode = args.emit or "human"
     status = (f"anchor={args.anchor or 'roots'} depth={args.depth} "
-              f"frames={len(frames)} time={iter_name or '-'}")
+              f"frames={len(frames)} time={iter_name or '-'} "
+              f"layer={args.layer if anchors is not None else '-'}")
     if mode in ("human", "both"):
         if mode == "both":
             print("=" * args.width)
@@ -895,7 +1100,7 @@ def main() -> int:
             print("=" * args.width)
         print("\n".join(render_human(frames, args.top, args.left,
                                      args.height, args.width, status, brief,
-                                     seats, occupants)))
+                                     seats, occupants, anchors, args.layer)))
     if mode in ("llm", "both"):
         if mode == "both":
             print("\n" + "=" * args.width)
@@ -903,7 +1108,7 @@ def main() -> int:
             print("=" * args.width)
         print(render_llm(frames, args.top, args.left,
                          args.height, args.width, status, brief, seats,
-                         occupants), end="")
+                         occupants, anchors, args.layer), end="")
     return 0
 
 
