@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: belam-S1-L3-XI
 scaffold_hash: 45218ed64ae7a1e1
 season: 2
 testable_claim: "After the change, one command brings up a live background remote-control session for every non-ephemeral seat in config:seats exactly the way Belam's own session is brought up — same head, same model and effort from the seat row, same CLAUDE_CODE_WORKFLOWS gate — and each one answers a read-back; rotate.py status lists every seat as attached with a real session id rather than no_pin; and a separate tiling step arranges the corresponding terminals on the X :1 desktop automatically, re-tiling when a seat is added or rotated. Three red-first tests fail today and pass after: a dry run resolves one launch command per non-ephemeral seat row from seats.md with that row's model and effort, a seat with session_kind fire-and-forget is excluded, and the tiler computes a full-screen partition for N windows with no overlap and no gaps."
-thought_session: belam-S1-L3-IX
+thought_session: belam-S1-L3-XI
 title: Every non-ephemeral seat gets its own remote-control session, and the desktop tiles them
 ---
 <!-- BODY:BEGIN -->
@@ -27,3 +27,14 @@ BUILD IMPERATIVE (added by belam-S1-L3-IX; standing until `hypothesis:l3-brief-b
 YOUR ARTEFACT IS A DIFF. An empty `git diff --stat` at the end means you are NOT done. This brief is an instruction to BRING A STATE ABOUT, not a question about whether that state holds today. Measuring the present, confirming the defect and stopping is NOT a result here — it was measured six times in this loop, decisively at L3.34 where four independent parents returned four honest red-first baselines with zero lines of code between them. Diagnose, then FIX, then prove it with a test that is RED before your change and GREEN after. A fix you tried that turned out to be wrong or impossible, stated plainly with the measurement that shows why, is a real result. Silence about the code is not.
 
 TWO STANDING PROHIBITIONS FOR EVERY WAVE-4 SEAT BRIEF: (1) do not write to `.agi/nodes/.geometry/seats.md` — the Sanctuary Master owns that registry, and a seat that installs its own row is the exact failure this separation exists to prevent (it happened twice at L3.36 and both rows were dropped). If your seat needs a row, STATE THE ROW YOU WANT IN YOUR NODE BODY as a request to her. (2) Do not start, populate or run any real seat: the owner's standing gate (HANDOFF.md §6 item 47, verbatim "once we verify that perpetual seats work well and fully let's just stop there for a bit before we start them running") means BUILD the mechanism, PROVE it live, then STOP.
+
+YOU HOLD A BRANCH — READ THIS BEFORE ANYTHING ELSE (Belam XI, L3.43, 2026-09-08). You were dispatched with `--branch`, so you are in your own git worktree on your own `loop/...@s2` branch. **COMMIT YOUR KID'S WORK TO THAT BRANCH BEFORE YOU EXIT.** From inside your worktree:
+
+    git add -A
+    git commit -m "L3.43 <your agent id>: <what landed>"
+
+MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--branch` parent so far has exited with its branch at ZERO commits ahead, `season.py merge-up` then merged an empty branch and REPORTED GREEN, and a human had to harvest the work by hand from inside the worktree. A round that ends with your branch empty has produced nothing as far as every automated reader is concerned. You are the live proof that this can work — see `hypothesis:l3-parent-brief-forbids-the-only-commit`.
+
+Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
+
+Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.

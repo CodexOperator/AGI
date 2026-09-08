@@ -45,3 +45,14 @@ RELATED, DO NOT ABSORB IT: `hypothesis:l3w4-handoff-sections-claimable` is the s
 PROVE IT, RED FIRST. A one-line change to a real engine module landed through `write.py patch`, with the diff shown and the resulting `grid.py diff` shown beside it. A ranged read of a real node body with the two size numbers. A malformed hunk refused with the file byte-identical afterwards, verified by checksum. A patched executable still executable. Verify the red half by stashing the fix. Paste actual output, not a description.
 
 DO NOT touch `workflow.py`, `rotate.py`, `dispatch.py`, `brief.py` or `zoom.py`. Do not write `.agi/nodes/.geometry/seats.md`. Do not kill any `belam-*` tmux window. Do not weaken or bypass `write_guard.py` to make your tests pass — if the guard fires on your own writes, that is the guard working and your write is the thing to fix.
+
+YOU HOLD A BRANCH — READ THIS BEFORE ANYTHING ELSE (Belam XI, L3.43, 2026-09-08). You were dispatched with `--branch`, so you are in your own git worktree on your own `loop/...@s2` branch. **COMMIT YOUR KID'S WORK TO THAT BRANCH BEFORE YOU EXIT.** From inside your worktree:
+
+    git add -A
+    git commit -m "L3.43 <your agent id>: <what landed>"
+
+MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--branch` parent so far has exited with its branch at ZERO commits ahead, `season.py merge-up` then merged an empty branch and REPORTED GREEN, and a human had to harvest the work by hand from inside the worktree. A round that ends with your branch empty has produced nothing as far as every automated reader is concerned. You are the live proof that this can work — see `hypothesis:l3-parent-brief-forbids-the-only-commit`.
+
+Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
+
+Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.

@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g12.3
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam-S1-L3-XI
 scaffold_hash: a89f65b899623a39
 season: 2
 testable_claim: "cli.py done accepts an optional --push-further TEXT that stamps push_further: TEXT on the target node through the same write --next-edge uses for next_edges, zoom.py's shared completion_contract() reports push_further as one more optional DONE-contract line on both harnesses, and dispatch.py's new --push-further flag refuses to spawn (exit 2, no spawn_budget lease, no session dir) whenever --target names a node of type overview, vision, or moral, but otherwise threads the flag into zoom_command so _compose_small prepends the target's push_further text to the continuation kid's context and stamps the newly scaffolded node's frontmatter pushed_from: <target> — so a push-further chain can re-dispatch at the same target id through kid/parent/director tiers but is mechanically refused the instant it would auto-continue into quorum-judged territory."
-thought_session: L3.24
+thought_session: belam-S1-L3-XI
 title: Push further, stop at the quorum
 ---
 <!-- BODY:BEGIN -->
@@ -99,3 +99,14 @@ Quorum vote tally (`l3w4-quorum-reviews`); rotation alarms
 
 `.agi/context/l3-command-ladder-brief.md`, owner verbatim (7)/(7b) (Belam III)
 and (8) (Belam IV). `idea:push-further`.
+
+YOU HOLD A BRANCH — READ THIS BEFORE ANYTHING ELSE (Belam XI, L3.43, 2026-09-08). You were dispatched with `--branch`, so you are in your own git worktree on your own `loop/...@s2` branch. **COMMIT YOUR KID'S WORK TO THAT BRANCH BEFORE YOU EXIT.** From inside your worktree:
+
+    git add -A
+    git commit -m "L3.43 <your agent id>: <what landed>"
+
+MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--branch` parent so far has exited with its branch at ZERO commits ahead, `season.py merge-up` then merged an empty branch and REPORTED GREEN, and a human had to harvest the work by hand from inside the worktree. A round that ends with your branch empty has produced nothing as far as every automated reader is concerned. You are the live proof that this can work — see `hypothesis:l3-parent-brief-forbids-the-only-commit`.
+
+Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
+
+Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.

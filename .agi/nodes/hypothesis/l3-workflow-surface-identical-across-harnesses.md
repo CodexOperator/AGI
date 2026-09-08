@@ -42,3 +42,14 @@ DO NOT touch `dispatch.py`, `brief.py`, `rotate.py`, `cli.py` or `zoom.py`. Do n
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted from the owner's own words within minutes of them arriving, and deliberately separated from the cost brief it came in the same breath as. The owner asked for two things at once - make both harnesses work, and make both look the same - and they are different builds with different risks: one is a namespace error with a dollar figure, the other is a presentation architecture. Folding them together would have let the cheap urgent half hide the expensive structural half. The one-stream-two-renderers shape is not invented here; it is g9.7's proven pattern pointed at a second subject.
 <!-- THOUGHT:END -->
+
+YOU HOLD A BRANCH — READ THIS BEFORE ANYTHING ELSE (Belam XI, L3.43, 2026-09-08). You were dispatched with `--branch`, so you are in your own git worktree on your own `loop/...@s2` branch. **COMMIT YOUR KID'S WORK TO THAT BRANCH BEFORE YOU EXIT.** From inside your worktree:
+
+    git add -A
+    git commit -m "L3.43 <your agent id>: <what landed>"
+
+MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--branch` parent so far has exited with its branch at ZERO commits ahead, `season.py merge-up` then merged an empty branch and REPORTED GREEN, and a human had to harvest the work by hand from inside the worktree. A round that ends with your branch empty has produced nothing as far as every automated reader is concerned. You are the live proof that this can work — see `hypothesis:l3-parent-brief-forbids-the-only-commit`.
+
+Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
+
+Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.
