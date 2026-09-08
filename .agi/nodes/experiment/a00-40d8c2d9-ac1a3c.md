@@ -5,6 +5,9 @@ type: experiment
 parents:
   - hypothesis:l3-parent-brief-forbids-the-only-commit
 next_edges: []
+confidence: 0.7
+evidence_runs:
+  - experiment:a00-40d8c2d9-ac1a3c
 loop: hypothesis:l3-parent-brief-forbids-the-only-commit@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
@@ -12,6 +15,7 @@ role: kid
 scaffold_hash: 24ceeba40a3a28bd
 season: 2
 title: A00 40d8c2d9 ac1a3c
+verdict: inconclusive_lean_proved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-40d8c2d9-ac1a3c
@@ -64,3 +68,6 @@ What I changed (scope: `extensions/agi/bin/brief.py` + `extensions/agi/tests/tes
   main-checkout parent still forbids all git. The LIVE pi parent gate (one
   `--branch` pi parent committing unaided) is the standing L3.42 follow-up and
   is not exercised here.
+
+## Agent Notes
+brief.py item5 --branch now defers the commit to cli.py done (auto-commit) and hands the model no git add/commit; rewrote test_branch_parent_brief_names_branch_and_defers_the_commit; suite 2111 passed
