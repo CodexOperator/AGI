@@ -75,6 +75,31 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 ### 🔴 Where it stops — Belam XII, closing
 
+## 🟢 CLOSING STATE — the seats landed the branching issue in one session
+
+**Suite GREEN: 2152 passed / 1 skipped.** Tree pushed, zero unpushed. **SIX seats live**: `self-perpetuating`, `alive`, `all-is-one` (quorum), `master-sensei`, `sanctuary-master`, and **`liaison`** — which `sanctuary-master` brought up as its first act, exactly as the owner ordered (§6 item 65).
+
+**🔑 THE ROOT CAUSE OF 14-OF-14, FOUND BY `self-perpetuating`, AND IT ANSWERS A QUESTION THREE PRIMES CIRCLED.** `dispatch.py` **never exports `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_BASE_BRANCH`**, so L3.40's brief fix **never fired in production on ANY harness** — not just pi. Everyone assumed a harness difference; there was none. The fix was correct and unreachable.
+
+**Landed and pushed by the seats, three pieces:** (1) `merge-up` zero-ahead refusal — already there, `season.py:1077`, pinned by `test_season.py:1040 test_merge_up_refuses_zero_ahead_branch`; (2) parent worktree **auto-commit on `cli.py done`** (`a3aaf5dfc`); (3) reap-time **`commits_ahead` telemetry** into `agent.json`+`manifest.json`. Plus the **quorum request door** (`42355982b`) and the `send.py` positional fix.
+
+### 🔴 Corrections the seats made to the prime — all three were right
+
+1. **`test_merge_up_refuses_zero_ahead_branch` EXISTS.** Belam XII told the owner there was no test pinning the refusal; `alive` found it at `test_season.py:1040` and verified it red-first by stubbing the guard. **The prime's grep was too narrow.** Record corrected.
+2. **🔴 `ps -p` BEFORE YOU HARVEST — this is now a standing rule.** Belam XII harvested `a00-85beb9ba` **while its parent pid was still alive**; the harvest emptied `git status` moments before that parent's own `cli.py done` ran, so the brand-new auto-commit correctly found nothing and silently no-op'd. **Zero-commits-ahead alone conflates crashed-and-abandoned with still-working.** Consequence worth carrying: the auto-commit path has **still never been observed producing a commit in a genuinely live run**, only in its unit test.
+3. **The `--harness` non-propagation instruction works.** `master-sensei` confirmed its dispatched parent's kid also ran on pi.
+
+### Three more defects found by seats, all today's signature shape
+
+- **🔴 The constitution head is NOT injected on the seat-launch path.** `master-sensei` noticed its own brief told it to close with a prayer from a head that was never in its prompt, then narrowed it with a `--dry-run`: parent/kid dispatch injects correctly, **seat launch does not**. That affects every seat stood up today.
+- **🔴 `write.py "note X && note Y"` silently keeps only the LAST note.** `verb_note` does `edit.body_append = text` — a plain overwrite, not an accumulate. No error, no warning, and the dry-run summary just shows one shorter note. Caught by char-count before committing.
+- **`failures.py` never invoked in the whole loop** (404 rows waiting) — `MS.01` dispatched for the plumbing.
+
+**That makes FIVE instances in one session of *built, tested, reports success, delivers nothing*.** It is one habit, not five bugs, and `master-sensei` has landed it as a ledger category under **BUILT-TESTED-NEVER-WIRED**.
+
+**§6 item 66 (the owner's deep-research ask) may now be moot** — the `test_publish_alarm` failures are gone at 2152/1. **Verify before spending a workflow on it; if they are gone, say so plainly rather than researching a ghost.**
+
+
 **Branch `season/s2`, clean, pushed, zero unpushed. Suite green. The seats are LIVE and working while you read this — do not treat them as something to start.**
 
 ## 🔴 THE FIRST THING YOU DO, BEFORE THE SMOKE RUN
