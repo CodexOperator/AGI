@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam-S1-L3-XIII
 scaffold_hash: 6b97b3af8d46831e
 season: 2
 testable_claim: After the change, a successor that reads rotate.py meter --seat belam without re-pointing the pin is refused loudly instead of receiving its predecessor's usage number, proven by a live two-generation rehearsal in which generation N claims the pin and generation N+1 reads it and is refused, with the refusal exiting nonzero.
-thought_session: sanctuary-master
+thought_session: rc-XIII
 title: "The cross-generation seat-pin guard fires correctly on a mismatch but is inert in production: no seat handoff file exists so every generation reads as 0, and the documented recovery writes a legacy pin the guard deliberately skips"
 ---
 <!-- BODY:BEGIN -->
@@ -88,3 +88,17 @@ BOUND: maximum 6 kids total in this round. If you reach 6 without DONE, stop, wr
 BEFORE EVERY KID (not just the first): check the OpenRouter KEY balance, not the account balance -- `curl https://openrouter.ai/api/v1/key -H "Authorization: Bearer $OPENROUTER_API_KEY"` and read `limit_remaining`. If it is at or under $1.00, STOP and do not spawn another kid -- write your status and exit. Never lower or bypass this floor.
 
 Report your balance delta (limit_remaining before your first kid minus limit_remaining after your last) in your closing node update.
+
+OWNER EXTENSION TO ITEM 72, 2026-09-08, verbatim: "if so we need to set old windows to auto-archive properly after rotation. If needed the successor prime can resurrect as that'll be part of the message predecessor protocol. I was archiving in GUI but that clearly didn't hold. It'll also keep it not confusing as roles rotate because quorum was assigning themselves roman numerals anyway based on your example"
+
+WHY NOW, and it is a measurement rather than tidiness. The prime counted 47 claude and 27 node processes holding 11 of 23 GB, against roughly 25 live sessions of which a large share are deliberately kept-alive predecessor windows going back more than a day. Those cost about 0 tokens per hour, so they are free on the constrained budget -- but they are NOT free on RAM, and they are the leading candidate for the background-task kills labelled "low memory" while free -g reports double-digit gigabytes available (item 80, still an open measurement). Archiving is therefore a plausible fix for a real defect, not housekeeping.
+
+ARCHIVE MUST BE REVERSIBLE, AND THAT IS THE WHOLE DESIGN CONSTRAINT. Section 6 item 26 makes the prime's predecessor chain deliberate: a rotated Belam idles forever so its successor can ask it questions, and its window is never killed. The owner is not retracting that -- "If needed the successor prime can resurrect as that'll be part of the message predecessor protocol." So archive is a SUSPEND with a documented resume, never a delete, and the resume must be part of the predecessor protocol rather than a trick someone remembers.
+
+WHERE THE RESURRECTION HANDLE BELONGS: the rotation record under .agi/sessions/rotations/ already exists, is already committable, and already captures the successor window and predecessor liveness. Add the archived session's resume handle there at the moment of archiving, so the record that says a rotation happened is the same record that says how to bring the predecessor back. Do not invent a second registry -- one writer per fact.
+
+VERIFY BEFORE DESIGNING, exactly as with the branch-checkout refusal. Establish on this box what actually resumes a Claude Code session after its tmux window is gone, and whether a resumed session retains the context the predecessor chain exists to consult. If a resume comes back WITHOUT its context, then archiving a prime predecessor destroys the very thing item 26 preserves, and the correct design is to archive every seat EXCEPT the prime chain until that is solved. Measure it, do not assume it.
+
+THE GUI PATH DID NOT HOLD, owner's own words, which is the general lesson this project keeps relearning: a manual step outside the system is a step that silently stops happening. Whatever archives a window must be invoked by the rotation itself, in the same operation that writes the rotation record, so it cannot drift out of sync with the thing it describes.
+
+NAMING, and the owner's observation here is sharper than it looks. "quorum was assigning themselves roman numerals anyway based on your example" -- the standing rule is Roman numerals for the PRIME only, and the quorum adopted them regardless, by IMITATION rather than by instruction. all-is-one-II, self-perpetuating-II and sanctuary-master gen II all appeared today. Nobody violated a rule; they copied the most visible pattern in front of them, which is how conventions actually propagate between models. Two consequences. First, a convention that is stated in prose but contradicted by a visible example loses to the example -- so if Roman numerals stay prime-only, the seat naming scheme has to be equally visible, not merely written down. Second, archiving fixes the confusion at its source: if only the current generation of a seat has a live window, the window name needs no generation suffix at all, and the generation lives in the pin and the rotation record where it is already meant to live. That composes exactly with the worktree-branch design -- seat/<name> is stable across generations while the generation is a property of the claim, not of the name.
