@@ -1532,13 +1532,15 @@ def test_compose_announcement_carries_all_five_fields():
     body = rotate._compose_announcement(
         seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
         trigger="meter due", handoff_path=".agi/sessions/belam-III.log",
-        in_flight="master-sensei handoff in progress")
+        in_flight="master-sensei handoff in progress", seq=41)
     assert body.startswith(rotate.ROTATION_ALERT_TAG)
     assert "belam-II" in body and "belam-III" in body
     assert "2 -> 3" in body
     assert "trigger: meter due" in body
     assert "handoff: .agi/sessions/belam-III.log" in body
     assert "in flight: master-sensei handoff in progress" in body
+    # scope extension: the monotonic sequence stamp is part of the payload
+    assert "seq: 41" in body
 
 
 def test_derive_receivers_drops_gone_window_and_self(tmp_path):
@@ -1672,3 +1674,104 @@ def test_rotate_self_success_announces_once_refusal_never(
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc != 0
     assert calls == [], f"refused rotate-self announced {calls}, want none"
+
+
+# ── l3w4-rotation-announces-itself SCOPE EXTENSION (2026-09-08): the
+# monotonic durable sequence counter. The incident that sharpened this brief:
+# two seats held contradictory world-states for 18 minutes because everyone
+# had timestamps and nobody compared them. A seat that must CHECK a counter
+# cannot silently hold a superseded order. These RED-FIRST tests lock the
+# counter's monotonicity, durability, and its refusal immunity — the parts of
+# the build with no prior coverage.
+def test_sequence_counter_is_monotonic_and_durable(tmp_path):
+    root = tmp_path / "proj"
+    (root / "nodes").mkdir(parents=True)
+    rot = root / "sessions" / "rotations"
+    assert rotate._current_sequence(root) == 0, "no rotations yet -> seq 0"
+    assert rotate._next_sequence(root) == 1
+    assert rotate._next_sequence(root) == 2
+    # durable: a fresh read (as a different seat/process would) sees the same
+    # counter from disk, not from memory.
+    assert rotate._current_sequence(root) == 2
+    seq_file = rot / rotate.SEQUENCE_FILE
+    assert seq_file.is_file()
+    assert json.loads(seq_file.read_text()) == {"sequence": 2}
+
+
+def test_announce_stamps_payload_with_seq_and_writes_sequence_file(
+        monkeypatch, tmp_path):
+    root = tmp_path / "proj"
+    (root / "nodes").mkdir(parents=True)
+    rows = [{"name": "kid-a", "role": "director"}]
+    _write_seats_sheet(root, rows)
+    import send as _send
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=root, croot=tmp_path / "comms", seat="liason",
+        successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
+        handoff_path=".agi/sessions/liason.handoff.md", in_flight="none",
+        live_names=["kid-a"])
+    assert delivered == ["kid-a"]
+    assert rotate._current_sequence(root) == 1
+    (_, text), = sent
+    assert "seq: 1" in text
+
+
+def test_cmd_sequence_is_the_seat_visible_one_read(tmp_path, capsys):
+    # The whole scope extension stands on a seat being able to ask, cheaply
+    # and without a round trip, "is the order I am holding still current?".
+    # `rotate.py seq` is that read, and it was the seat-visible half with NO
+    # coverage. Lock it: it prints the durable counter, 0 before any rotation,
+    # 0 when the counter file is absent or corrupt (so a stale order whose
+    # seq is 1 is always comparable to a fresh read).
+    root = tmp_path / "proj"
+    (root / "nodes").mkdir(parents=True)
+    assert rotate.cmd_sequence(SimpleNamespace(), root) == 0
+    assert capsys.readouterr().out.strip() == "0", \
+        "no rotations yet -> seq reads 0"
+
+    # absent counter file must read clean (default), not raise
+    root2 = tmp_path / "proj2"
+    (root2 / "nodes").mkdir(parents=True)
+    rotate.cmd_sequence(SimpleNamespace(), root2)
+    assert capsys.readouterr().out.strip() == "0"
+
+    # corrupt counter file reads clean too; the durable file recovers on the
+    # next announce rather than making the read path throw mid-flight.
+    seq_file = root / "sessions" / "rotations" / rotate.SEQUENCE_FILE
+    seq_file.parent.mkdir(parents=True, exist_ok=True)
+    seq_file.write_text("not json\n", encoding="utf-8")
+    assert rotate._current_sequence(root) == 0
+    assert rotate._next_sequence(root) == 1
+    rotate.cmd_sequence(SimpleNamespace(), root)
+    assert capsys.readouterr().out.strip() == "1"
+
+
+def test_refused_loop_does_not_advance_sequence(fake_ladder, tmp_path,
+                                                monkeypatch):
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    calls = []
+    monkeypatch.setattr(rotate, "_announce_rotation",
+                        lambda **kw: calls.append(kw) or [])
+    # successor window NEVER appears -> cmd_loop refuses before announcing.
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window", lambda s, n, c: 0)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(tmp_path / "reply.log"), dry_run=False, timeout=1,
+    ), root)
+    assert code != 0, "refused rotation must not report success"
+    assert calls == [], f"refused loop announced {calls}, want none"
+    assert rotate._current_sequence(root) == 0, \
+        "refused rotation must not advance the sequence counter"

@@ -1809,8 +1809,52 @@ ROTATION_ALERT_TAG = "[rotation-alert]"
 ROTATION_ALERT_ROOM = "rotation-alerts"
 
 
+#: Monotonic per-project rotation-alert sequence counter — hypothesis
+#: :l3w4-rotation-announces-itself scope extension (2026-09-08). A timestamp
+#: is not enough: everyone involved in the 06:25Z stop / 12:14Z resume
+#: incident had timestamps and nobody compared them. A seat that must CHECK a
+#: counter cannot silently hold a superseded order. The counter lives in the
+#: SAME directory as the rotation records (`sessions/rotations/sequence.json`),
+#: so it is durable, committed, and "recorded alongside the rotation record".
+SEQUENCE_FILE = "sequence.json"
+
+
+def _seq_file(root: Path) -> Path:
+    return _rotations_dir(root) / SEQUENCE_FILE
+
+
+def _current_sequence(root: Path) -> int:
+    """The last-issued rotation-alert sequence number, or 0 when none yet.
+
+    This is the seat-visible read a peer uses to tell "is the order I am
+    holding still current?": one cheap read, no round trip. An order stamped
+    with a sequence OLDER than this value is superseded.
+    """
+    p = _seq_file(root)
+    if p.is_file():
+        try:
+            return int(json.loads(p.read_text()).get("sequence", 0))
+        except Exception:
+            return 0
+    return 0
+
+
+def _next_sequence(root: Path) -> int:
+    """Advance the durable per-project rotation-alert counter and return it.
+
+    Called once per SUCCESSFUL rotation, at the same moment the record is
+    written. A refused or inconclusive rotation never reaches it.
+    """
+    nxt = _current_sequence(root) + 1
+    rot = _rotations_dir(root)
+    rot.mkdir(parents=True, exist_ok=True)
+    _seq_file(root).write_text(json.dumps({"sequence": nxt}) + "\n",
+                               encoding="utf-8")
+    return nxt
+
+
 def _compose_announcement(*, seat, successor, gen_before, gen_after,
-                          trigger, handoff_path, in_flight) -> str:
+                          trigger, handoff_path, in_flight, seq=0) -> str:
     """The five-field announcement payload — one message, never more.
 
     Every field is spelled because each has already cost a peer a turn: the
@@ -1822,7 +1866,7 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
     return (f"{ROTATION_ALERT_TAG} {seat} -> {successor} | "
             f"generation {gen_before} -> {gen_after} | "
             f"trigger: {trigger} | handoff: {handoff_path} | "
-            f"in flight: {in_flight}")
+            f"seq: {seq} | in flight: {in_flight}")
 
 
 def _derive_receivers(root: Path, *, seat: str,
@@ -1860,10 +1904,11 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     proof, not a gate. Returns the recipients reached.
     """
     import send  # local: same dir
+    seq = _next_sequence(root)
     text = _compose_announcement(
         seat=seat, successor=successor, gen_before=gen_before,
         gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
-        in_flight=in_flight)
+        in_flight=in_flight, seq=seq)
     receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
         try:
@@ -1888,6 +1933,16 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     print(f"announced rotation -> {len(delivered)} recipient(s) "
           f"{delivered!r}", file=sys.stderr)
     return delivered
+
+
+def cmd_sequence(args: argparse.Namespace, root: Path) -> int:
+    """Print the current rotation-alert sequence number.
+
+    The seat-visible read a peer uses to tell whether an order it holds is
+    superseded: a value older than this is stale.
+    """
+    print(_current_sequence(root))
+    return 0
 
 
 def _rename_own_window(seat: str, new_name: str, tmux_session: str,
@@ -2287,6 +2342,12 @@ def main(argv: list[str] | None = None) -> int:
                                "fraction/age, one line per row)")
     p_status.set_defaults(func=cmd_status)
 
+    # seq: print the current rotation-alert sequence number (one read)
+    p_seq = sub.add_parser(
+        "seq", help="print the current rotation-alert sequence number "
+                      "(a seat's one-read check for a superseded order)")
+    p_seq.set_defaults(func=cmd_sequence)
+
     # alarms --holder S: meter held seats, dm `rotate now` when a pin crosses
     # director_rotate_at (hypothesis:l3w4-seat-rotation-loops)
     p_alarms = sub.add_parser(
@@ -2399,7 +2460,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     # meter, loop, alarms and rotate-self need the project root
-    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "seats-launch"):
+    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "seats-launch", "seq"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
