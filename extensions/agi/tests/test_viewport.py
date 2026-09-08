@@ -542,3 +542,125 @@ def test_seat_index_never_invents_a_node_for_a_rowless_session():
                                   {"liaison": "/g/.agi/sessions/a00-ghost/log"})
     assert at_nodes == {}
     assert idle == ["liaison"]
+
+
+# --------------------------------------------------------------------------
+# ROUND 2 — the layered map (hypothesis:l3w4-seat-graph-view). THE TIE IS
+# THE POINT: each quorum advisor is anchored to its ONE vision by
+# `personality_ref`, each director-kid to its ONE perpetual goal by
+# `owning_goal`. One `AnchorIndex`, two readers (goal:g9.7 one level down).
+# --------------------------------------------------------------------------
+
+_FULL_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3},
+    {"name": "adv-self-perpetuating", "role": "parent", "tier": 3,
+     "personality_ref": "vision:self-perpetuating"},
+    {"name": "adv-all-is-one", "role": "parent", "tier": 3,
+     "personality_ref": "vision:all-is-one"},
+    {"name": "adv-alive", "role": "parent", "tier": 3,
+     "personality_ref": "vision:alive"},
+    {"name": "liaison", "role": "director", "tier": 1,
+     "owning_goal": "goal:g17"},
+    {"name": "dir-g1", "role": "director", "tier": 1,
+     "owning_goal": "goal:g1"},
+]
+
+_FM = {"vision:self-perpetuating": {"title": "V"},
+       "vision:all-is-one": {"title": "V"},
+       "vision:alive": {"title": "V"},
+       "goal:g17": {"title": "G"},
+       "goal:g1": {"title": "G"}}
+
+
+def test_the_tie_resolves_advisor_to_vision_and_director_to_goal():
+    """Round 2's falsifier: an advisor's `personality_ref` and a director's
+    `owning_goal` both bind the seat to a graph node — the tie rendered for
+    the first time. It must resolve, not be guessed."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    by_name = {r["name"]: r for r in ai.anchored}
+    assert by_name["adv-self-perpetuating"]["anchor"] == "vision:self-perpetuating"
+    assert by_name["adv-all-is-one"]["anchor"] == "vision:all-is-one"
+    assert by_name["adv-alive"]["anchor"] == "vision:alive"
+    assert by_name["liaison"]["anchor"] == "goal:g17"
+    assert by_name["dir-g1"]["anchor"] == "goal:g1"
+
+
+def test_a_seat_with_no_tie_is_unanchored_never_invented():
+    """belam has neither personality_ref nor owning_goal, and an unresolvable
+    ref (engine-gone vision) must not become a fabricated anchor."""
+    rows = [{"name": "belam", "role": "prime_director", "tier": 3},
+            {"name": "ghost", "role": "parent", "tier": 3,
+             "personality_ref": "vision:GONE"}]
+    ai = V.build_anchor_index(rows, _FM)
+    assert ai.anchored == ()
+    assert {r["name"] for r in ai.unanchored} == {"belam", "ghost"}
+
+
+def test_hierarchy_renders_each_seat_at_its_anchor_both_readers(graph, fm):
+    """The layered-map falsifier: the hierarchy layer names each seat's anchor
+    in the HUMAN pane and the LLM pane, g9.7 one level down."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    human = "\n".join(V.hierarchy_lines(ai))
+    for needle in ("→ vision:self-perpetuating", "→ goal:g17",
+                   "belam", "adv-alive"):
+        assert needle in human
+
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=None,
+                       anchors=ai, layer="graph")
+    for needle in ("## agent hierarchy",
+                   "seat adv-self-perpetuating (parent, tier 3) "
+                   "→ vision:self-perpetuating",
+                   "seat liaison (director, tier 1) → goal:g17",
+                   "_map_layer_on_top: graph_"):
+        assert needle in llm, f"llm view omits {needle!r}"
+
+
+def test_layer_on_top_swaps_which_layer_renders_faint(graph, fm):
+    """The toggle's render half: with the graph on top the hierarchy is the
+    faint under-layer, and vice versa — the same `AnchorIndex`, one edit."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+
+    graph_top = V.render_human(frames, 0, 0, 30, 300, occupants=None,
+                               anchors=ai, layer="graph")
+    hier_top = V.render_human(frames, 0, 0, 30, 300, occupants=None,
+                              anchors=ai, layer="hierarchy")
+    assert "map layers: on top = graph" in "\n".join(graph_top)
+    assert "map layers: on top = hierarchy" in "\n".join(hier_top)
+    # under-layer is faint-prefixed; the top layer's blocks are not
+    assert any(ln.startswith("~ agent hierarchy") for ln in graph_top)
+    assert not any(ln.startswith("~ agent hierarchy") for ln in hier_top)
+    # graph frame lines stay full whenever the graph is on top
+    assert not any(ln.startswith("~ ●") and "Goal A" in ln for ln in graph_top)
+
+
+def test_the_layered_llm_keeps_frame_ids_parseable(graph, fm):
+    r"""Adding the hierarchy block must not break _verify's frame-id scan:
+    the graph lines stay in `- id` backticked form, and `- seat …` lines
+    never match _FRAME_LINE."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=None,
+                       anchors=ai, layer="hierarchy")
+    ids = [m.group(1) for m in (V._FRAME_LINE.match(ln) for ln in llm.splitlines())
+           if m]
+    assert ids == [f.node_id for f in frames]
+
+
+def test_the_live_map_prints_no_secret():
+    """The owner is about to livestream this view; NO pane may carry a secret.
+    The round-2 code must not reference creds or files that hold them."""
+    src = (BIN / "viewport.py").read_text()
+    round2 = src[src.index("ROUND 2"):]
+    for forbidden in ("Authorization", "token", "api_key", "api-key",
+                      "secret", ".env", "password"):
+        assert forbidden.lower() not in round2.lower(), (
+            f"layered map may not print a secret: found {forbidden!r}")
+
+
+def test_the_map_toggle_is_bound_in_the_interactive_tui():
+    """The keypress half of the toggle must exist, not just the render half."""
+    src = (BIN / "viewport.py").read_text()
+    assert "m swap layer" in src
+    assert 'layer = "hierarchy" if layer == "graph" else "graph"' in src
