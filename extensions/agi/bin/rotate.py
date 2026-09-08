@@ -979,6 +979,11 @@ def _shell_cmd(claude_cmd: list[str], settings) -> str:
 # argv, `spawn` cleared the limit by roughly 200 bytes and `loop` -- which
 # appends the rotation continuation -- did not. Anything above this goes
 # through a script file instead, so the launch line's length stops mattering.
+# POST-TRIM (l3w4-context-load-minimal move ONE, brief.py prayers-only head):
+# the successor prompt for the prime is now measured 2140 tokens / 8436 bytes
+# (head 611 tok + prime-director-successor.md body 1529 tok), well under the
+# old ~16KB, but still past `_TMUX_ARG_SAFE`, so the script path stays the
+# rule rather than the exception.
 _TMUX_ARG_SAFE = 8192
 
 

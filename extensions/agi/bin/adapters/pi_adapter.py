@@ -154,7 +154,12 @@ def build_command(
     # every pi agent ran without its rendered graph context, silently, until
     # 2026-09-08 (hypothesis:l3-pi-context-never-delivered). Measured: 79
     # bytes of pathname where a real kid's context.md was 16654 bytes.
-    args += ["--append-system-prompt", str(context_file)]
+    # Survival profile (move FIVE, hypothesis:l3w4-context-load-minimal): the
+    # INJECTION graph stream is goal-listing/traps/history — exactly what
+    # survival drops. One switch (survival_selected reads AGI_BRIEF_PROFILE),
+    # so a survival seat pays ~0 for the map and reads it on demand instead.
+    if not brief.survival_selected():
+        args += ["--append-system-prompt", str(context_file)]
     # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
     # This adapter decides only how to SPELL a segment on pi's command line.
     # It used to inline the kid brief here, which is why `--tier parent`
