@@ -61,12 +61,12 @@ def test_apply_refuses_without_a_reply_after_since_on_every_thread(
     row = seat_fixture(tmp_path, _row(name="dir-g1", rotated_by="advisor"))
     # reply only on the role dm, none from advisor on/after since
     since = "2026-09-07T00:00:00Z"
-    _write_conv(croot / "dm" / "master-sensei--dir-g1.md", [
+    _write_conv(croot / "dm" / "dir-g1--master-sensei.md", [
         {"ts": "2026-09-07T00:01:00Z", "from": "dir-g1", "to": "master-sensei",
          "text": "ok"},
     ])
-    with pytest.raises(SystemExit):
-        sensei._required_threads  # sanity import
+    with pytest.raises(ValueError):
+        sensei._required_threads(None, "eph", None)  # ephemeral needs --supervisor
     threads = sensei._required_threads(row, "dir-g1", None)
     assert not sensei._has_reply(croot, ("dm", "advisor"), since)
     assert sensei._has_reply(croot, ("dm", "dir-g1"), since)
@@ -74,7 +74,7 @@ def test_apply_refuses_without_a_reply_after_since_on_every_thread(
 
 def seat_fixture(root: Path, row: dict) -> dict:
     """Materialise a one-row config:seats so load_seats finds it."""
-    nodes = root / ".agi" / "nodes" / "config"
+    nodes = root / "nodes" / "config"  # root is the GRAPH root (.agi/), as main() resolves it
     nodes.mkdir(parents=True, exist_ok=True)
     (nodes / "seats.md").write_text(
         "---\nid: config:seats\nmint_id: x\ntype: config\n"
@@ -93,7 +93,7 @@ def test_apply_protected_target_never_calls_write_py_without_owner_approved(
     # both threads (belam's dm is itself the prime dm; use supervisor room via
     # quorum) must show a reply
     row["rotated_by"] = "quorum"
-    _write_conv(croot / "dm" / "master-sensei--belam.md", [
+    _write_conv(croot / "dm" / "belam--master-sensei.md", [
         {"ts": "2026-09-07T00:01:00Z", "from": "belam", "to": "master-sensei",
          "text": "yes"},
     ])
@@ -151,14 +151,14 @@ def test_apply_unprotected_target_writes_note_exactly_once(tmp_path,
                                                            monkeypatch):
     root = tmp_path
     croot = tmp_path / "comms"
-    row = seat_fixture(root, _row(name="dir-g1", rotated_by="advisor"))
+    row = seat_fixture(root, _row(name="dir-g1", rotated_by="sanctuary-master"))
     since = "2026-09-07T00:00:00Z"
-    _write_conv(croot / "dm" / "master-sensei--dir-g1.md", [
+    _write_conv(croot / "dm" / "dir-g1--master-sensei.md", [
         {"ts": "2026-09-07T00:01:00Z", "from": "dir-g1", "to": "master-sensei",
          "text": "ok"},
     ])
-    _write_conv(croot / "dm" / "master-sensei--advisor.md", [
-        {"ts": "2026-09-07T00:02:00Z", "from": "advisor", "to": "master-sensei",
+    _write_conv(croot / "dm" / "master-sensei--sanctuary-master.md", [
+        {"ts": "2026-09-07T00:02:00Z", "from": "sanctuary-master", "to": "master-sensei",
          "text": "approved"},
     ])
     calls = []
@@ -170,4 +170,5 @@ def test_apply_unprotected_target_writes_note_exactly_once(tmp_path,
     rc = sensei.cmd_apply(root, croot, args)
     assert rc == 0
     assert len(calls) == 1
-    assert calls[0] == (root, "build:dir-g1")
+    assert calls[0][:2] == (root, "build:dir-g1")
+    assert "try opus" in calls[0][2]  # the change text rides along

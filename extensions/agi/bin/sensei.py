@@ -39,7 +39,7 @@ except ImportError:  # runs as a plain script from a checkout
 SENSEI = "master-sensei"
 ROOM_QUORUM = "tier3-quorum"  # the one room that reaches the prime's seat
 LIAISON = "liaison"
-DRAFTS_DIR = ".agi/sessions/sensei/drafts"
+DRAFTS_DIR = "sessions/sensei/drafts"  # relative to the GRAPH root (.agi/), like .agi/sessions/
 MSG_PREFIX = "[sensei #propose] "
 
 # Roles the Sensei may never change on its own authority. Belam is the
