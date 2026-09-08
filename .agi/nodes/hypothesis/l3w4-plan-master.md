@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-XI
 scaffold_hash: e5c23e9229f75373
 season: 2
 testable_claim: "config:seats gains a plan-master row (director, tier 1, claude-opus-5, effort high, settings ultracode, rotated_by: sanctuary-master, owning_goal: goal:g17) that dispatch.py --seat plan-master --role director --ladder-tier 1 --dry-run resolves to opus-5/high with CLAUDE_CODE_WORKFLOWS=1 exported and Workflow in --tools; the plan-master seat supersedes hypothesis:l3w4-drafter-seat's seat by answering the identical send.py send --to <name> request shape and two-stage acceptance gate (the workflow's critic pass, then the requester's own reply) under the name plan-master instead of drafter; its summon/accept cycle calls the unedited extensions/agi/workflows/agi-brief-drafting.js and mints via write.py create hypothesis only the slugs absent from the returned critic.left; and new plan_master.py record-run appends one {ts,iter,n_drafts,n_fixed,fixes_per_draft} line per summon to a seat-local log that plan_master.py trend --last N reads back to report whether fixes_per_draft is rising, falling, or flat."
-thought_session: L3.26
+thought_session: belam-S1-L3-XI
 title: Stand up the Plan Master seat
 ---
 <!-- BODY:BEGIN -->
@@ -66,3 +66,21 @@ One, red-first: `test_record_run_then_trend_classifies_falling_fixes_per_draft` 
 ## SOURCE
 
 `.agi/context/l3-command-ladder-brief.md`, the 2026-09-07 owner section — verbatim (9), the Masters layer naming the Plan Master; (5)/(6), the seat superseded; (4), the director-kid model row. `HANDOFF.md` §6 item 24.
+
+HARNESS CONSTRAINT FOR THIS ROUND (Belam XI, 2026-09-08, operational — not part of the claim). The `.env` OpenRouter runtime key is at its cap, so `dispatch.py` refuses every pi spawn with `ERR: runtime key ... below the configured floor`. Spawn your kid on the subscription:
+
+    python3 extensions/agi/bin/dispatch.py . L3.42 --target <this node> --level small --tier kid --harness claude-code
+
+Measured this session: `--harness claude-code` on the PARENT invocation does NOT reach the kid — the parent's own dispatch call falls back to the ladder row's pi harness and is refused. Pass the flag explicitly. Do NOT raise the key limit or edit `.env`; that is the owner's decision and it is banked. Do NOT do the kid's work yourself because the spawn was refused — report `pending` and say so, as two parents correctly did earlier this session.
+
+YOU HOLD A BRANCH. You were dispatched with `--branch`, so you are working in your own git worktree on your own `loop/...@s2` branch, cut from the spawner's tip. Commit your kid's work there — a `--branch` parent that lands nothing leaves `merge-up` merging an empty branch and reporting green, which is exactly the defect fixed at L3.40 and never yet exercised live. You are the live proof of that fix. Do not push, do not merge, do not touch `season/s2`; the director merges.
+
+HARNESS CORRECTION — SUPERSEDES THE claude-code CONSTRAINT NOTE ABOVE (Belam XI, 2026-09-08). Owner instruction, verbatim: "Use openrouter" / "Subscription will get drained". The runtime key cap was raised to $15 (usage $5.02, headroom ~$9.98) and pi spawns resolve again. **Run on pi/OpenRouter, not on the subscription.** Your kid:
+
+    python3 extensions/agi/bin/dispatch.py . L3.42 --target <this node> --level small --tier kid --harness pi
+
+Ignore the earlier paragraph telling you to pass `--harness claude-code`; it was written while the key was at its cap and is no longer true. `dispatch.py` resolves the correct cheap OpenRouter slugs by itself (`~z-ai/glm-flash-latest` parent, `~deepseek/deepseek-v4-flash-latest` kid) — that path was never the leaky one.
+
+DO NOT run `workflow.py run` on the pi harness in this round for any reason. The fail-closed model guard that makes it safe landed minutes ago and is not yet merged into your branch. A workflow run before that guard is what burned an entire monthly key cap on `anthropic/claude-sonnet-4.6` (`hypothesis:l3-workflow-model-crosses-harness-namespace`). Rounds are cheap; workflows currently are not.
+
+The BRANCH paragraph above still applies in full: you hold a worktree, commit your kid's work to your own `loop/...@s2` branch, never push, never touch `season/s2`.

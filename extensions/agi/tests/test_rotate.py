@@ -631,6 +631,46 @@ def test_seat_pin_stable_across_two_rotations_same_name(monkeypatch, tmp_path, f
     assert "0.4" not in out, out     # NOT the newer foreign pin newest would pick
 
 
+def test_seat_pin_refuses_predecessors_generation(monkeypatch, tmp_path, fake_ladder, capsys):
+    # hypothesis:l3-seat-pin-not-repointed-on-rotation — Belam X pinned its
+    # OWN transcript into the belam seat pin and rotated. Belam XI (the next
+    # generation) read `--seat belam` and got Belam X's usage back with total
+    # confidence (`source=seat_pin`), because nothing re-points or checks the
+    # pin on rotation. A pin written by generation 1 read by generation 2
+    # must be a loud refusal, never a silent stale number.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    # generation 1 (the predecessor) pins its own transcript...
+    rotate._write_handoff(tmp_path, "belam", 1)
+    code = rotate.main(["meter", "--seat", "belam", "--pin",
+                        str(tmp_path / "sessions" / "belam.meter"),
+                        "--session-log", str(pinned)])
+    assert code == 0
+    # ...then rotation advances the seat to generation 2 (the successor)
+    # without ever re-pointing the pin -- the exact gap the hypothesis names.
+    rotate._write_handoff(tmp_path, "belam", 2)
+    code = rotate.main(["meter", "--seat", "belam"])
+    err = capsys.readouterr().err
+    assert code == 1, err
+    assert "generation 1" in err and "generation 2" in err, err
+    assert "refus" in err.lower(), err
+
+
+def test_seat_pin_same_generation_reads_clean(monkeypatch, tmp_path, fake_ladder, capsys):
+    # The matching case must NOT regress into a refusal: the generation that
+    # wrote the pin reading its own pin back still works.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    rotate._write_handoff(tmp_path, "belam", 1)
+    code = rotate.main(["meter", "--seat", "belam", "--pin",
+                        str(tmp_path / "sessions" / "belam.meter"),
+                        "--session-log", str(pinned)])
+    assert code == 0
+    code = rotate.main(["meter", "--seat", "belam"])
+    out = capsys.readouterr().out.strip()
+    assert code == 0, out
+    assert "0.020" in out, out
+    assert "seat_pin" in out, out
+
+
 def test_meter_pin_file_wins_over_newer_foreign(monkeypatch, tmp_path, fake_ladder, capsys):
     # A pin file naming our own transcript must beat the newer foreign .jsonl
     # in the project dir (the hypothesis: without it, newest wins -> bug).

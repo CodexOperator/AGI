@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-XI
 scaffold_hash: b3e620cb1818abce
 season: 2
 testable_claim: A `drafter` row on the ladder's `roles:` table (claude-code, claude-sonnet-5, effort max, settings ultracode) is resolved by `dispatch.py --role drafter --ladder-tier 1` and a new `brief.py assemble(tier="drafter")`, whose DUTIES turn a `send.py send --to drafter` request into a scratch draft that a mechanical lint must clear before `write.py create hypothesis` mints it under the requester's own named parents and only the requester's own reply closes the acceptance gate, while the drafting workflow itself, `extensions/agi/workflows/draft-briefs.js`, exists as a `build` node under `goal:g17` (parents `[mvp:l3w4-draft-workflow, goal:g17]`) so any harness — claude-code Sonnet or a pi GLM drafter — can summon the same workflow by editing only that row's harness and model.
-thought_session: L3.27
+thought_session: belam-S1-L3-XI
 title: Stand up the drafter seat
 ---
 <!-- BODY:BEGIN -->
@@ -49,3 +49,21 @@ SOURCE: "Owner text 2026-09-07 ... perpetual seats, the quorum as reviewer, the 
 OWNER QUOTE (6), 2026-09-07 (verbatim in the brief doc): "Just make it easy to switch the workflow agents to opus or fable again if needed via config update or single-run override. And later make it model- and inference provider-agnostic completely." Requirement: the drafting workflow reads its model/effort from .agi/config.json workflows.drafting (landed) with a per-run override (landed); the seat design must make the drafter fully model- and inference-provider-agnostic — dispatch.py picks harness/provider/model from the seat row and the workflow script must not hardcode a vendor.
 
 Belam V 2026-09-07 18:40 UTC: owner layer 8 (HANDOFF section 6 item 24, doc quote 9): brief drafting happens through the PLAN MASTER — hypothesis:l3w4-plan-master supersedes this seat's SEAT while keeping this brief's mechanism (config-maxxed drafting workflow, model/effort from config with a single-run override, provider-agnostic). Build the mechanism here, the seat there.
+
+HARNESS CONSTRAINT FOR THIS ROUND (Belam XI, 2026-09-08, operational — not part of the claim). The `.env` OpenRouter runtime key is at its cap, so `dispatch.py` refuses every pi spawn with `ERR: runtime key ... below the configured floor`. Spawn your kid on the subscription:
+
+    python3 extensions/agi/bin/dispatch.py . L3.42 --target <this node> --level small --tier kid --harness claude-code
+
+Measured this session: `--harness claude-code` on the PARENT invocation does NOT reach the kid — the parent's own dispatch call falls back to the ladder row's pi harness and is refused. Pass the flag explicitly. Do NOT raise the key limit or edit `.env`; that is the owner's decision and it is banked. Do NOT do the kid's work yourself because the spawn was refused — report `pending` and say so, as two parents correctly did earlier this session.
+
+YOU HOLD A BRANCH. You were dispatched with `--branch`, so you are working in your own git worktree on your own `loop/...@s2` branch, cut from the spawner's tip. Commit your kid's work there — a `--branch` parent that lands nothing leaves `merge-up` merging an empty branch and reporting green, which is exactly the defect fixed at L3.40 and never yet exercised live. You are the live proof of that fix. Do not push, do not merge, do not touch `season/s2`; the director merges.
+
+HARNESS CORRECTION — SUPERSEDES THE claude-code CONSTRAINT NOTE ABOVE (Belam XI, 2026-09-08). Owner instruction, verbatim: "Use openrouter" / "Subscription will get drained". The runtime key cap was raised to $15 (usage $5.02, headroom ~$9.98) and pi spawns resolve again. **Run on pi/OpenRouter, not on the subscription.** Your kid:
+
+    python3 extensions/agi/bin/dispatch.py . L3.42 --target <this node> --level small --tier kid --harness pi
+
+Ignore the earlier paragraph telling you to pass `--harness claude-code`; it was written while the key was at its cap and is no longer true. `dispatch.py` resolves the correct cheap OpenRouter slugs by itself (`~z-ai/glm-flash-latest` parent, `~deepseek/deepseek-v4-flash-latest` kid) — that path was never the leaky one.
+
+DO NOT run `workflow.py run` on the pi harness in this round for any reason. The fail-closed model guard that makes it safe landed minutes ago and is not yet merged into your branch. A workflow run before that guard is what burned an entire monthly key cap on `anthropic/claude-sonnet-4.6` (`hypothesis:l3-workflow-model-crosses-harness-namespace`). Rounds are cheap; workflows currently are not.
+
+The BRANCH paragraph above still applies in full: you hold a worktree, commit your kid's work to your own `loop/...@s2` branch, never push, never touch `season/s2`.

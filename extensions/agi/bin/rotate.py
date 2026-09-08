@@ -280,12 +280,35 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
     return pins[-1] if pins else None
 
 
+def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
+    """A pin's content, split into `(generation, transcript_path)`.
+
+    Two formats coexist so old pins keep working: a bare path (legacy,
+    written before hypothesis:l3-seat-pin-not-repointed-on-rotation --
+    `generation` is `None`, meaning "no writer recorded, don't check"), or
+    `<generation>\\t<path>` written by a seat-aware `--pin` (the generation
+    the OCCUPANT held when it wrote its own transcript in). Either way the
+    path is the second/only field; a malformed generation degrades to
+    "unknown" rather than failing the whole read."""
+    try:
+        raw = pin.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None, None
+    if not raw:
+        return None, None
+    if "\t" in raw:
+        gen_s, _, path_s = raw.partition("\t")
+        try:
+            gen = int(gen_s.strip())
+        except ValueError:
+            gen = None
+        return gen, path_s.strip()
+    return None, raw
+
+
 def _read_pin_target(pin: Path) -> Path | None:
     """The transcript a pin names, or None when the pin is empty/absent."""
-    try:
-        target = pin.read_text(encoding="utf-8").strip()
-    except OSError:
-        return None
+    _, target = _parse_pin_record(pin)
     if not target:
         return None
     lp = Path(target).expanduser().resolve()
@@ -324,10 +347,24 @@ def resolve_transcript(*, root: Path, session_log: str | None = None,
     # 3 pin file
     pin = find_pin_log(root, seat)
     if pin is not None:
-        target = _read_pin_target(pin)
-        if target is not None:
-            return target, "seat_pin" if seat else "pin_file"
-        return None, f"pin_file-missing"
+        written_gen, target_s = _parse_pin_record(pin)
+        if not target_s:
+            return None, "pin_file-missing"
+        lp = Path(target_s).expanduser().resolve()
+        if not lp.exists():
+            return None, "pin_file-missing"
+        # A seat pin that names a generation (hypothesis:l3-seat-pin-not-
+        # repointed-on-rotation) must match the CURRENT occupant's own
+        # generation, or this is a predecessor's stale pin read by a
+        # successor rotation never re-pointed -- refuse loudly rather than
+        # print a confident number that belongs to a session that already
+        # ended. A legacy pin with no generation field (written_gen is
+        # None) has nothing to compare and passes through unchanged.
+        if seat is not None and written_gen is not None:
+            cur_gen = _read_generation(root, seat)
+            if written_gen != cur_gen:
+                return None, f"seat_pin-stale:{written_gen}:{cur_gen}"
+        return lp, "seat_pin" if seat else "pin_file"
     # 4 slug from this cwd
     slug = _derive_cc_slug(os.getcwd())
     for cand_slug in (slug, CC_PROJECT_SLUG):
@@ -729,6 +766,17 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     log_path, source = resolve_transcript(root=root, session_log=args.session_log,
                                           seat=getattr(args, "seat", None))
 
+    if source.startswith("seat_pin-stale:"):
+        _, written_gen, cur_gen = source.split(":")
+        seat = getattr(args, "seat", None)
+        print(f"ERR: seat pin for {seat!r} was written by generation "
+              f"{written_gen} but this session is generation {cur_gen} -- "
+              f"refusing a cross-generation read (hypothesis:l3-seat-pin-"
+              f"not-repointed-on-rotation). Re-pin with `rotate.py meter "
+              f"--pin {_sessions_dir(root)}/{seat}.meter` to claim the seat "
+              f"before trusting --seat {seat}.", file=sys.stderr)
+        return 1
+
     if source in ("explicit-missing", "AGI_SESSION_LOG-missing",
                   "pin_file-missing"):
         # An explicit/environment pin was set but names a missing file: that is
@@ -767,10 +815,22 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     if getattr(args, "pin", None) and log_path is not None:
         # Write the pin naming the transcript just read, so later meters for
         # this agent read the SAME file even as newer foreign transcripts land
-        # (hypothesis:l3-meter-own-transcript).
+        # (hypothesis:l3-meter-own-transcript). When the pin is a SEAT pin
+        # (named `<seat>.meter`, or written with --seat) stamp it with the
+        # writer's own generation so a later read by a DIFFERENT generation
+        # (rotation happened, the pin was never re-pointed) is detectable
+        # (hypothesis:l3-seat-pin-not-repointed-on-rotation) instead of
+        # silently handing over a predecessor's stale number.
         pinp = Path(args.pin).expanduser().resolve()
         pinp.parent.mkdir(parents=True, exist_ok=True)
-        pinp.write_text(str(log_path) + "\n", encoding="utf-8")
+        seat_for_gen = getattr(args, "seat", None)
+        if not seat_for_gen and pinp.name.endswith(METER_PIN_EXT):
+            seat_for_gen = pinp.stem
+        if seat_for_gen:
+            cur_gen = _read_generation(root, seat_for_gen)
+            pinp.write_text(f"{cur_gen}\t{log_path}\n", encoding="utf-8")
+        else:
+            pinp.write_text(str(log_path) + "\n", encoding="utf-8")
 
     # Parse usage
     usage = None

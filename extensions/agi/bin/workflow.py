@@ -53,7 +53,11 @@ import locations as _loc  # noqa: E402
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
 
 # Builtin defaults last in precedence: args > config row > stage JSON hint.
-_DEFAULT_MODEL = "sonnet"
+# NO _DEFAULT_MODEL. hypothesis:l3-workflow-model-crosses-harness-namespace —
+# a silent fallback model is exactly how a Claude Code subscription alias
+# ("sonnet") reached an OpenRouter --model flag and billed Anthropic Sonnet at
+# 33x this project's declared price. A model must be named by config, args or
+# stage hint, or the run refuses; nothing is chosen for the caller.
 _DEFAULT_EFFORT = "medium"
 
 
@@ -350,10 +354,61 @@ def _expand_stages(manifest: dict, args: dict) -> list[dict]:
 
 
 def _resolve_knobs(stage: dict, cfg_row: dict, args: dict) -> dict:
-    """Precedence: per-run args > config row > stage JSON hint > builtin."""
-    model = args.get("model") or cfg_row.get("model") or stage.get("model_hint") or _DEFAULT_MODEL
+    """Precedence: per-run args > config row > stage JSON hint. No builtin
+    model default (hypothesis:l3-workflow-model-crosses-harness-namespace) —
+    a stage with nothing to say raises rather than spending on a name nobody
+    chose. Callers on the pi harness overwrite this model with
+    `_resolve_pi_model` before it is ever used, since `workflows.NAME.model`
+    is shared with claude-code and its namespace is disjoint from
+    OpenRouter's."""
+    model = args.get("model") or cfg_row.get("model") or stage.get("model_hint")
+    if not model:
+        raise ValueError(
+            f"stage {stage.get('label')!r}: no model resolved from --args, "
+            "the config row or the stage hint — refusing to guess")
     effort = args.get("effort") or cfg_row.get("effort") or stage.get("effort_hint") or _DEFAULT_EFFORT
     return {"model": model, "effort": effort}
+
+
+_OPENROUTER_ALIAS_ERR = (
+    "model {model!r} is not an OpenRouter slug (no 'provider/name') but the "
+    "target provider is {provider!r} — refusing to spend a Claude Code "
+    "subscription alias against an OpenRouter key "
+    "(hypothesis:l3-workflow-model-crosses-harness-namespace)"
+)
+
+
+def _assert_model_in_provider_namespace(model: str, provider: str) -> None:
+    """FAIL CLOSED before any network call. An OpenRouter slug always has the
+    shape `provider/name` (optionally `~`-prefixed); a Claude Code
+    subscription alias (`sonnet`, `opus`, `claude-sonnet-5`, ...) never
+    contains '/'. This is the guard the incident had none of: the wrong
+    model used to run and bill, now it refuses and names both names."""
+    if provider != "openrouter":
+        return
+    bare = model.lstrip("~")
+    if "/" not in bare:
+        raise ValueError(_OPENROUTER_ALIAS_ERR.format(model=model, provider=provider))
+
+
+def _resolve_pi_model(cfg: dict, stage: dict, args: dict) -> str:
+    """The pi harness's model comes from `harnesses.pi.models`, keyed by the
+    stage's role (falling back to the 'kid' entry for a role the block does
+    not name, e.g. 'global'/'reviewer') — NEVER from the harness-agnostic
+    `workflows.NAME.model`, which is shared with claude-code and whose
+    namespace (subscription aliases) is disjoint from OpenRouter's (`provider
+    /name` slugs). `--args model` still wins, since that is how a human
+    deliberately asks for a specific model."""
+    if args.get("model"):
+        return args["model"]
+    role = stage.get("role") or "kid"
+    pi_models = ((cfg.get("harnesses") or {}).get("pi") or {}).get("models") or {}
+    model = pi_models.get(role) or pi_models.get("kid")
+    if not model:
+        raise ValueError(
+            f"stage {stage.get('label')!r}: no harnesses.pi.models entry for "
+            f"role {role!r} (or 'kid') and no --args model override")
+    return model
 
 
 def validate_return(schema: dict | None, value) -> list[str]:
@@ -501,7 +556,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     thinking = run_args.get("thinking") or _effort_to_thinking(k.get("effort"))
     cmd = [hc["bin"], "-p",
            "--provider", hc["provider"],
-           "--model", k.get("model", _DEFAULT_MODEL),
+           "--model", k["model"],
            "--thinking", thinking,
            prompt]
     out.write(f"# {_dispatching_line(stage, k)}\n")
@@ -546,6 +601,15 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
 
     harness = harness or cfg_row.get("provider") or "pi"
     knobs = {st["label"]: _resolve_knobs(st, cfg_row, args) for st in stages}
+    if harness == "pi":
+        # The pi model is resolved and namespace-checked here, BEFORE any
+        # dry-run print or spawn — the config row's model is claude-code's,
+        # not pi's (hypothesis:l3-workflow-model-crosses-harness-namespace).
+        hc = _pi_harness_cfg(cfg)
+        for st in stages:
+            model = _resolve_pi_model(cfg, st, args)
+            _assert_model_in_provider_namespace(model, hc["provider"])
+            knobs[st["label"]]["model"] = model
 
     if dry_run:
         for st in stages:

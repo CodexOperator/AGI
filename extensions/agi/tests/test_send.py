@@ -679,6 +679,117 @@ def test_peek_all_shows_transcript(comms: Path):
     assert len(send_mod.read_room(comms, "t1", "reader", None, None)) == 1
 
 
+# ══════════════════════════════════════════════════════════════════════════
+# ask / report / escalate (hypothesis:l3w4-masters-comms-and-escalation)
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _seats_project(tmp_path: Path, rows: list[str]) -> Path:
+    """A project with `.agi/nodes/.geometry/seats.md` declaring `rows`."""
+    root = tmp_path / "seatproj"
+    nodes = root / ".agi" / "nodes"
+    (nodes / ".geometry").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    seats_yaml = "\n".join(f"  - {row}" for row in rows)
+    (nodes / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n" + seats_yaml +
+        "\n---\n<!-- BODY:BEGIN -->\n")
+    return root
+
+
+def test_ask_writes_tagged_dm_to_registered_master(tmp_path):
+    root = _seats_project(tmp_path, [
+        '{"name": "sanctuary-master"}',
+    ])
+    comms = tmp_path / "comms"
+    path = send_mod.ask(comms, root / ".agi", "kid-a", "sanctuary-master",
+                        "how do I rotate?", "kid-a")
+    assert path.is_file()
+    text = path.read_text()
+    assert "[ask] how do I rotate?" in text
+
+
+def test_ask_refuses_non_master_suffix(tmp_path):
+    root = _seats_project(tmp_path, ['{"name": "sanctuary-master"}'])
+    comms = tmp_path / "comms"
+    with pytest.raises(SystemExit):
+        send_mod.ask(comms, root / ".agi", "kid-a", "liaison", "hi", "kid-a")
+
+
+def test_ask_refuses_unregistered_master_name(tmp_path):
+    """A present registry that doesn't list the name fails closed."""
+    root = _seats_project(tmp_path, ['{"name": "sanctuary-master"}'])
+    comms = tmp_path / "comms"
+    with pytest.raises(SystemExit):
+        send_mod.ask(comms, root / ".agi", "kid-a", "ghost-master", "hi",
+                    "kid-a")
+
+
+def test_ask_fails_open_to_suffix_when_registry_absent(tmp_path):
+    """No seats.md at all -> suffix-only check, per read_seat_registry's own
+    fail-open contract."""
+    root = tmp_path / "noseats"
+    (root / ".agi" / "nodes").mkdir(parents=True)
+    comms = tmp_path / "comms"
+    path = send_mod.ask(comms, root / ".agi", "kid-a", "some-master", "hi",
+                        "kid-a")
+    assert path.is_file()
+
+
+def test_report_refuses_without_matching_ask_from_named_asker(comms: Path):
+    """Red-first: no prior [ask] from the named asker at that ts refuses and
+    writes nothing; the identical call succeeds once a genuine [ask] from
+    that asker sits at that exact ts."""
+    with pytest.raises(SystemExit):
+        send_mod.report(comms, "sanctuary-master", "kid-a", "2026-01-01T00:00:00Z",
+                        "reply text", "sanctuary-master")
+    assert not (comms / "dm" / "kid-a--sanctuary-master.md").exists()
+
+    ask_path = send_mod.send_dm(comms, "kid-a", "sanctuary-master",
+                                "[ask] how do I rotate?", "kid-a")
+    blocks = send_mod._conv_blocks(ask_path)
+    real_ts = blocks[0]["ts"]
+
+    # wrong ts still refuses
+    with pytest.raises(SystemExit):
+        send_mod.report(comms, "sanctuary-master", "kid-a", "1999-01-01T00:00:00Z",
+                        "reply text", "sanctuary-master")
+    # wrong from (asker) at the right ts still refuses
+    with pytest.raises(SystemExit):
+        send_mod.report(comms, "sanctuary-master", "kid-b", real_ts,
+                        "reply text", "sanctuary-master")
+
+    # right ts and right asker succeeds
+    reply_path = send_mod.report(comms, "sanctuary-master", "kid-a", real_ts,
+                                 "here is how", "sanctuary-master")
+    assert "[report ref=" in reply_path.read_text()
+
+
+def test_escalate_no_to_posts_concern_to_tier3_quorum(comms: Path):
+    path = send_mod.escalate(comms, "context budget", None, "vision", "dir-g1")
+    assert path == comms / "room" / "tier3-quorum.md"
+    assert "[concern:vision]" in path.read_text()
+
+
+def test_escalate_to_owner_refuses_without_quorum_env(comms: Path, monkeypatch):
+    monkeypatch.delenv("AGI_ROLE", raising=False)
+    monkeypatch.delenv("AGI_LADDER_TIER", raising=False)
+    with pytest.raises(SystemExit):
+        send_mod.escalate(comms, "need owner call", "owner", "vision", "dir-g1")
+    assert not (comms / "dm" / "dir-g1--liaison.md").exists()
+
+
+def test_escalate_to_owner_dms_liaison_never_prime(comms: Path, monkeypatch):
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_LADDER_TIER", "3")
+    monkeypatch.setenv("AGI_AGENT_ID", "dir-g1")
+    path = send_mod.escalate(comms, "need owner call", "owner", "vision", None)
+    assert path == comms / "dm" / "dir-g1--liaison.md"
+    assert "[owner-decision] need owner call" in path.read_text()
+
+
 def test_cli_read_all_flag(tmp_path, monkeypatch):
     root = tmp_path / "proj"
     (root / ".agi").mkdir(parents=True)

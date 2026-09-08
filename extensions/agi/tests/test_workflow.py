@@ -46,37 +46,70 @@ def test_args_override_config_row_and_hint():
     assert k == {"model": "glm", "effort": "max"}, k  # args top
 
 
-def test_missing_row_falls_back_to_hint_then_builtin_default():
-    assert _resolve_knobs({"effort_hint": "low"}, {}, {})["effort"] == "low"
-    assert _resolve_knobs({}, {}, {}) == {
-        "model": workflow._DEFAULT_MODEL,
-        "effort": workflow._DEFAULT_EFFORT,
-    }
+def test_missing_row_falls_back_to_hint_then_raises_on_no_model():
+    assert _resolve_knobs({"model_hint": "m", "effort_hint": "low"}, {}, {})["effort"] == "low"
+    # No builtin model default (hypothesis:l3-workflow-model-crosses-harness-
+    # namespace) — a stage with nothing to say about its model must refuse,
+    # not silently spend on a name nobody chose.
+    try:
+        _resolve_knobs({}, {}, {})
+        raise AssertionError("expected ValueError for a stage with no model")
+    except ValueError as exc:
+        assert "no model resolved" in str(exc)
 
 
 # ---------- config maxxed end-to-end: row flips the model, no script edit ---
 
 def test_config_flip_changes_dispatched_model():
-    import json
+    """The pi harness resolves its model from harnesses.pi.models, NOT from
+    workflows.review.model — that field is claude-code's namespace
+    (hypothesis:l3-workflow-model-crosses-harness-namespace). Flipping
+    workflows.review.model must NOT move the dispatched pi model; flipping
+    harnesses.pi.models must."""
     from workflow import run_workflow
     buf = io.StringIO()
-    # run_workflow reads the REAL config row (review.model = sonnet)
     rc = run_workflow(REPO / ".agi", "review", "pi", {}, True, out=buf)
     assert rc == 0
     txt = buf.getvalue()
-    assert "model=sonnet" in txt, txt
-    # a flipped config row must change the resolved model WITHOUT touching the
-    # stage manifest — monkeypatch the config loader to prove the knob path.
+    assert "model=sonnet" not in txt, txt  # never a claude-code alias on pi
+    assert "model=~deepseek/deepseek-v4-flash-latest" in txt, txt
     saved = workflow._load_config
     try:
+        # flipping the harness-agnostic row does nothing on the pi path
         workflow._load_config = lambda root: {
-            "workflows": {"review": {"model": "glm-flash", "effort": "low"}}
+            "workflows": {"review": {"model": "glm-flash", "effort": "low"}},
+            "harnesses": {"pi": {"provider": "openrouter",
+                                  "models": {"kid": "z-ai/glm-flash-latest"}}},
         }
         buf2 = io.StringIO()
         rc2 = run_workflow(REPO / ".agi", "review", "pi", {}, True, out=buf2)
         assert rc2 == 0
-        assert "model=glm-flash" in buf2.getvalue(), buf2.getvalue()
-        assert "model=sonnet" not in buf2.getvalue(), buf2.getvalue()
+        assert "model=glm-flash" not in buf2.getvalue(), buf2.getvalue()
+        # flipping harnesses.pi.models DOES move the dispatched model
+        assert "model=z-ai/glm-flash-latest" in buf2.getvalue(), buf2.getvalue()
+    finally:
+        workflow._load_config = saved
+
+
+def test_pi_model_refuses_claude_code_alias_before_spawn():
+    """FAIL CLOSED: a model with no 'provider/name' shape handed to the
+    openrouter provider must refuse before any dispatch line prints, naming
+    both the model and the provider."""
+    from workflow import run_workflow
+    saved = workflow._load_config
+    try:
+        workflow._load_config = lambda root: {
+            "workflows": {"review": {}},
+            "harnesses": {"pi": {"provider": "openrouter",
+                                  "models": {"kid": "sonnet"}}},
+        }
+        buf = io.StringIO()
+        try:
+            run_workflow(REPO / ".agi", "review", "pi", {}, True, out=buf)
+            raise AssertionError("expected ValueError for a bare alias on openrouter")
+        except ValueError as exc:
+            assert "sonnet" in str(exc) and "openrouter" in str(exc), exc
+        assert "[dispatch]" not in buf.getvalue(), buf.getvalue()
     finally:
         workflow._load_config = saved
 
@@ -102,7 +135,9 @@ def test_runner_pi_harness_dry_run_prints_one_dispatch_per_stage():
     assert rc == 0
     lines = [l for l in buf.getvalue().splitlines() if l.startswith("[dispatch]")]
     assert len(lines) == 3, lines  # global-checks + review:t1 + review:t2
-    assert "model=sonnet" in lines[0], lines
+    # pi harness: model comes from harnesses.pi.models, never workflows.review
+    assert "model=sonnet" not in lines[0], lines
+    assert "model=~deepseek/deepseek-v4-flash-latest" in lines[0], lines
     assert any("global-checks" in l for l in lines), lines
     assert any("review:t1" in l for l in lines), lines
     assert any("review:t2" in l for l in lines), lines

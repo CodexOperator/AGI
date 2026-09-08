@@ -514,6 +514,68 @@ def _conv_blocks(path: Path) -> list[dict]:
     return _read_conv(path)
 
 
+# ── master comms and escalation (hypothesis:l3w4-masters-comms-and-escalation)
+
+
+def ask(croot: Path, root: Path, me: str, to: str, text: str,
+        sender: str | None) -> Path:
+    """`ask --to NAME`: dm a Master (a `-master` seat), tagged `[ask]`.
+
+    `to` must end `-master` and, when the seat registry is readable, be a
+    registered row in it (fail-closed on a present-but-unknown name);
+    fail-open to the suffix check alone when `seats.md` is absent/unreadable
+    (spawn_gate.read_seat_registry's own contract).
+    """
+    if not to.endswith("-master"):
+        print(f"ERR: {to!r} is not a -master seat", file=sys.stderr)
+        raise SystemExit(1)
+    seats = spawn_gate.read_seat_registry(root / "nodes")
+    if seats is not None and not any(row.get("name") == to for row in seats):
+        print(f"ERR: {to!r} is not a registered -master seat", file=sys.stderr)
+        raise SystemExit(1)
+    return send_dm(croot, me, to, f"[ask] {text}", sender)
+
+
+def report(croot: Path, me: str, asker: str, ref: str, text: str,
+           sender: str | None) -> Path:
+    """`report --to ASKER --ref TS`: reply only inside a matching `[ask]`.
+
+    Requires a block in the `<me>--<asker>.md` dm with `ts == ref` and
+    `from == asker` whose text starts `[ask]`; else refuses and writes
+    nothing.
+    """
+    blocks = _conv_blocks(_dm_path(croot, me, asker))
+    matched = any(
+        _norm(b.get("ts", "")) == _norm(ref)
+        and b.get("from") == asker
+        and b.get("text", "").lstrip().startswith("[ask]")
+        for b in blocks
+    )
+    if not matched:
+        print(f"ERR: no [ask] from {asker} at {ref}", file=sys.stderr)
+        raise SystemExit(1)
+    return send_dm(croot, me, asker, f"[report ref={ref}] {text}", sender)
+
+
+def escalate(croot: Path, text: str, to: str | None, concern: str,
+             sender: str | None) -> Path:
+    """`escalate [--to owner] [--concern V] TEXT`.
+
+    No `--to`: posts `[concern:V]` into room `tier3-quorum`. `--to owner`:
+    dms `liaison` (never `prime`), gated to a parent at ladder tier 3.
+    """
+    if to == "owner":
+        if (os.environ.get("AGI_ROLE") != "parent"
+                or os.environ.get("AGI_LADDER_TIER") != "3"):
+            print("ERR: escalate --to owner requires AGI_ROLE=parent and "
+                  "AGI_LADDER_TIER=3", file=sys.stderr)
+            raise SystemExit(1)
+        return send_dm(croot, _detect_sender(sender), "liaison",
+                       f"[owner-decision] {text}", sender)
+    return send_room(croot, "tier3-quorum", f"[concern:{concern}] {text}",
+                     sender)
+
+
 def read_dm(croot: Path, me: str, other: str, since: str | None,
             sender: str | None, all_: bool = False) -> list[str]:
     """Render a dm transcript after `since` (or the reader's read position),
@@ -859,6 +921,26 @@ def main(argv: list[str] | None = None) -> int:
                   help="exit 0 if the prime is excluded for a round, else 1")
     p_pe.add_argument("--round", required=True)
 
+    p_ask = sub.add_parser("ask", parents=[common],
+                  help="dm a Master seat, tagged [ask]")
+    p_ask.add_argument("--to", required=True, help="a -master seat")
+    p_ask.add_argument("text", nargs="*", help="message text")
+
+    p_report = sub.add_parser("report", parents=[common],
+                  help="a Master reports back to a matching [ask]")
+    p_report.add_argument("--to", dest="asker", required=True,
+                          help="the asker to reply to")
+    p_report.add_argument("--ref", required=True,
+                          help="ts of the [ask] block being answered")
+    p_report.add_argument("text", nargs="*", help="message text")
+
+    p_esc = sub.add_parser("escalate", parents=[common],
+                  help="post a concern, or escalate to owner via liaison")
+    p_esc.add_argument("--to", default=None, help="'owner' or omit")
+    p_esc.add_argument("--concern", default="vision",
+                       help="concern tag when --to is omitted")
+    p_esc.add_argument("text", nargs="*", help="message text")
+
     args = ap.parse_args(argv)
 
     root = _project_root()
@@ -963,6 +1045,32 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.verb == "prime-excluded":
         return prime_excluded(croot, args.round)
+
+    if args.verb == "ask":
+        text = " ".join(args.text) if args.text else ""
+        if not text:
+            print("ERR: message text is required for ask", file=sys.stderr)
+            return 1
+        print(ask(croot, root, _detect_sender(sender), args.to, text,
+                  sender).resolve())
+        return 0
+
+    if args.verb == "report":
+        text = " ".join(args.text) if args.text else ""
+        if not text:
+            print("ERR: message text is required for report", file=sys.stderr)
+            return 1
+        print(report(croot, _detect_sender(sender), args.asker, args.ref,
+                     text, sender).resolve())
+        return 0
+
+    if args.verb == "escalate":
+        text = " ".join(args.text) if args.text else ""
+        if not text:
+            print("ERR: message text is required for escalate", file=sys.stderr)
+            return 1
+        print(escalate(croot, text, args.to, args.concern, sender).resolve())
+        return 0
 
     return 0
 
