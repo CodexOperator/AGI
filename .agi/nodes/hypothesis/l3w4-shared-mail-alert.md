@@ -1,0 +1,22 @@
+---
+id: hypothesis:l3w4-shared-mail-alert
+mint_id: d64a91ee84914843905eb02bca7882a4
+type: hypothesis
+parents:
+  - goal:g15
+next_edges: []
+edited_by: ubuntu
+scaffold_hash: 1e210e8787c0ec87
+season: 2
+testable_claim: "A hook fired at a natural per-turn seam (UserPromptSubmit, not SessionStart -- quorum seats run long) shells out to send.py's existing rooms(croot, me) unread-count call plus a plain-inbox unread check for the current seat (AGI_SEAT/AGI_AGENT_ID), and when anything is unread injects one system-reminder-tagged block distinguishable from user text, stamping a per-seat per-thread alerted_at record; proven by a test asserting a seat with unread mail gets the injection and a clean seat gets none, then live: rotate.py alarms' rotation-due DM to a seat actually surfaces via this channel instead of sitting unread the way master-sensei's and the owner's own audience-quorum request both did this session."
+title: "Shared mail-alert side channel: one hook, dm+room+audience unified, no agent-side polling"
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l3w4-shared-mail-alert
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+BUILD, NOT A PROBE. Owner ask (item 62, verbatim via belam): agents need a shared side-channel alert so they stop brute-forcing each other's attention via pane injection (user sends impersonating the owner). Two live incidents this session: master-sensei's DM to belam sat unread until the owner noticed in chat; the owner's own audience-quorum request sat unread until belam manually relayed it. THE FIVE CONSTRAINTS, owner's own words via belam, not negotiable in substance though the shape is yours: (1) no agent-side polling -- an agent must never spend a turn checking its own inbox; the injection has to arrive for free at a seam the harness already visits. (2) survives the recipient being mid-turn -- nothing is lost if the seam is busy, it just fires at the next one. (3) distinguishable from the owner -- a seat must always be able to tell another-agent-needs-me from the-human-is-talking-to-me. (4) leaves a record that an alert was raised and when -- never got it and ignored it must stay distinguishable failures. (5) one mechanism for dm, room and audience alike, not three. SUGGESTED SHAPE, yours to refine or replace: a new hook script under extensions/agi/hooks/ (silent no-op outside an agi project, same contract cc-session-start.sh already has), registered on UserPromptSubmit (fires every turn, unlike SessionStart which fires once -- quorum seats are long-lived), that calls send.py's existing rooms(croot, me) for dm+room unread counts plus whatever the plain inbox path needs for the same, and on nonzero unread prints a small system-reminder-tagged injection block (same shape CC hook output already takes) naming the room/sender and how long it's waited. Stamp alerted_at per seat+thread (a small state file is fine) so constraint 4 holds. INTEGRATION REQUIREMENT, from belam directly: rotate.py alarms already DMs a seat when its rotation meter is due, on a 300s loop, and has NEVER been switched on -- wiring it without this alert channel existing first would be a fourth instance of the same built-never-wired pattern already found three times today (this mechanism, failures.py, the seat-pin guard). Make alarms' rotation-due DM one of the live payloads this channel is proven against. SCOPE: this touches send.py (read-only use of existing functions, ideally no changes needed there) and a NEW hook script plus its settings.json registration. Do not touch seats.md. Do not touch moral:*. If registering globally in ~/.claude/settings.json feels wrong for blast radius, a project-scoped .claude/settings.json is the safer default -- your call, say which and why. PROVE: a test with a seat holding unread mail (dm, room, and inbox if that path is separate) asserting the hook's stdout contains the injection block and a clean seat asserting it does not; then one live check -- have this agent's own parent verify ITS OWN next natural seam shows nothing (clean), then have a kid send it a dm and confirm the NEXT seam shows the alert. Report struggles/caveats honestly if the live half can't be exercised in one round -- an honest inconclusive_lean_proved beats a claimed proved with no live check, this session has three examples of exactly that mistake already.

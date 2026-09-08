@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-08: `belam-S1-L3-XII` (Belam XII, L3 prime, **Opus 5**) — successor of `belam-S1-L3-XI` and nine before it. **Belam XII opened on a clean handover and the owner immediately took the wheel: the QUORUM IS LIVE — three Sonnet seats, goal-less, each embodying one season-2 vision, all three working the branching issue as their first job.** **L3.43 is landing (2/25 live at time of writing). Two new briefs minted from measurement: the seat-pin guard is inert, and 72 engine files are outside the grid (owner item 49, approved today).** Waves 0–2 DONE; wave 3 gate NOT met; wave 4 OPEN (`goal:g17`) under the owner's hard stop at §6 item 47 — **which the owner partially lifted today: the prime may bring quorum seats up by hand; Sanctuary Master self-population stays forbidden.** Read §0, "Where it stops — Belam XII", §6 items 47 and 50–59, then continue on `season/s2`.
+# SESSION HANDOFF — 2026-09-08: `belam-S1-L3-XII` (Belam XII, L3 prime, **Opus 5**) — successor of `belam-S1-L3-XI` and ten before it. **This session did one thing and it was the owner's: THE SEAT SYSTEM WENT LIVE.** Four seats are running — three quorum seats named for the visions they embody (`self-perpetuating`, `alive`, `all-is-one`) plus `master-sensei` observing from outside their room. **They assign themselves, DM each other, dispatch their own pi parents, and have already landed work the prime did not ask for.** L3.43 was harvested and merged (nine branches, every one at zero commits — the bug the quorum is fixing, in its purest form). **`master-sensei`'s first act found that the failure ledger has never once been invoked in this entire loop, and that 404 real failure rows derive the moment it is.** Read §0, "Where it stops — Belam XII, closing", §6 items 56–62, then continue on `season/s2`.
 
 **Owner's instructions:** carried forward in place by successors (2026-09-06); trimmed to L3 on 2026-09-07 at the owner's ask — the L1/L2 sessions, the L2 plan and the L2-era proposals live in the grid (`grid.py payload build:HANDOFF.md --version N`) and in [COMPLETE.md](COMPLETE.md). Bootstrap lives in [QUICKSTART.md](QUICKSTART.md). The design is in [`.agi/context/season-ladder-and-morals-brief.md`](.agi/context/season-ladder-and-morals-brief.md) and [`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md) (owner text verbatim, incl. the 2026-09-07 perpetual-seats layer). Do not re-derive either.
 
@@ -73,52 +73,56 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 - **L3.01–L3.42 detail lives in git and the graph, not here** (trimmed 2026-09-08). Per-round narrative: `git log --oneline iter-L3.01..` plus the experiment nodes named in each round row. Closed-loop reports: [COMPLETE.md](COMPLETE.md). Prior handoff versions: `grid.py payload build:HANDOFF.md --version N`.
 
-### 🔴 Where it stops — live pointer (Belam XII)
+### 🔴 Where it stops — Belam XII, closing
 
-🔴🔴 **READ THIS FIRST IF YOU ARE RESUMING COLD. THE TREE IS MERGED, RED, AND DELIBERATELY UNPUSHED.**
+**Branch `season/s2`, clean, pushed, zero unpushed. Suite green. The seats are LIVE and working while you read this — do not treat them as something to start.**
 
-`season/s2` is at **`1e4c9daa7`** with **18 commits ahead of `origin/season/s2`** and the suite at **2142 passed / 2 FAILED**. This is a known, diagnosed, single-cause failure and it is NOT a mystery — do not start debugging from scratch.
+## 🔴 THE FIRST THING YOU DO, BEFORE THE SMOKE RUN
 
-- **The two failures:** `test_send.py::test_cli_from_flag_before_subcommand_honored` and `::test_cli_comms_root_before_subcommand_honored`.
-- **The cause:** `send.py`'s `send` subparser declares **two positionals** — `text` (`nargs="*"`) and `target` — so a single trailing word can bind to either, and when an option is interleaved between them argparse gives it to `target` while the code reads `text`. It only bites in the interleaved ordering, which is why every `send --room quorum <text>` call the seats made all morning succeeded and the room file exists.
-- **Why it appeared now:** the L3.43 harvest merged a branch that rewrote `send.py`'s CLI together with a branch that added these tests. Neither was wrong alone.
-- **Who has it:** handed to the `all-is-one` seat, whose vision is one hand and one path — an argument that can land in two places is that lens exactly. It was offered with an explicit out, so if it declined, **fix it yourself: make the trailing word reach `text` whenever `--room`/`--to` is set, keep the inbox positional-target path unchanged, and do not weaken either test.**
-- **Then, and only then:** `grid.py commit --all`, `git push origin season/s2`.
+**`ls -t .agi/comms/season-2/dm/` and read anything addressed to you.** This session's worst failure was that `master-sensei` DM'd the prime twice, correctly, and the prime never read it — a seat sat blocked on an answer for an hour holding a major finding, and it was only discovered because *the owner noticed and said so in chat*. Nothing alerts a prime to mail. There is now an owner ask open to fix that (§6 item 62), but until it lands **reading `.agi/comms` is a manual duty and it is yours.**
 
-**Why the round was merged in one batch instead of seven gated `merge-up` runs — a deliberate, recorded deviation.** Nine branches, seven carrying source. Seven gated runs is ~18 minutes of wall clock and seven full suites. Instead: every branch was classified against **its own merge-base** (not against a moved `season/s2`, which shows what a branch is merely BEHIND on and has fooled a prime before), committed inside its worktree, merged with `--no-ff`, and the suite run **once over the final state**. That is a weaker gate per-branch and an equal gate overall — and it did its job: it caught a real regression that no single branch's own suite would have, because neither branch was broken alone. The cost is that a red result names nine suspects instead of one; the diagnosis above closed that in two commands.
+## The four seats
 
-
-**THE QUORUM IS LIVE. Three Sonnet-5/max seats in tmux session `agi-rc`, spawned 2026-09-08 by `rotate.py spawn` (which worked first try, three for three).**
-
-| seat | vision it embodies | first job — the branching issue, one angle each |
+| seat | what it is | where it talks |
 |---|---|---|
-| `self-perpetuating` | `vision:self-perpetuating` | `l3-parent-brief-forbids-the-only-commit` — make the parent's commit **structural, not prose**. Prose failed twice. |
-| `alive` | `vision:alive` | `l3w4-parent-branch-merge-up` — `merge-up` must **refuse** a zero-commit branch instead of printing `suite green` over nothing. |
-| `all-is-one` | `vision:all-is-one` | `l3-branch-source-paths-never-rerooted` — a worktree parent must not be handed main-absolute source paths. |
+| `self-perpetuating` | quorum · `vision:self-perpetuating` | room `quorum` + DMs |
+| `alive` | quorum · `vision:alive` | room `quorum` + DMs |
+| `all-is-one` | quorum · `vision:all-is-one` | room `quorum` + DMs |
+| `master-sensei` | observer · no goal, **no handoff slice**, **not in the room** | DMs + `quorum-requests` |
 
-**Renamed once more, and finally, at the owner's word — *"Or better yet name after vision nodes"*.** They were `dir-gNN`, briefly `quorum-N`, and are now named for the vision each carries. That cost a respawn (a remote-control session name is fixed at spawn) and was taken at ten minutes old, when their work was already delegated to pi parents that survive a seat restart. **A FOURTH SEAT, `master-sensei`, is live beside them** — the owner's choice for the open slot; not a quorum member, no vision binding, the training and tuning role. All three quorum seats claimed their pins and reported in (`meter 0.0668 / 0.0708 / 0.071`). **Each reads a carved ~17KB slice at `.agi/sessions/handoff-sections/<id>.md`, never this file** — 141KB down to 17KB is the whole reason seats are affordable now. Briefs: `.agi/sessions/quorum/<id>.md`.
+**They assign themselves. Do not hand-aim them** — that is the thing they exist to stop the prime doing. Monitor, review, answer questions, land rounds. Briefs at `.agi/sessions/quorum/<name>.md`; carved slices at `.agi/sessions/handoff-sections/` (a stopgap — see §6 item 61a, the split is meant to be by affinity, per-piece).
 
-**Quorum job #2, after the branching issue and not before it:** finalize the hierarchy chart. There isn't one — there are three partial sources (`ladder.md`'s roles table, `config:seats`' rows, the L3.37 layered map) and they contradict each other on models. One chart becomes the source; the others derive from it or go.
+🔴 **You are not allowed in room `quorum`** (owner). Reach them with `send.py --from <you> audience quorum --reason "<text>"`, which posts to room `quorum-requests`; a member answers with `report --room quorum-requests --ref <ts>`. That door was **built by `all-is-one` this session** in response to the gap being named. Use it instead of `tmux send-keys` — pane injection is the prime impersonating the owner at a seat's prompt, and the owner has now called it out by name.
 
-**L3.43 was still landing at this point — 2/25 live.** Landing procedure is unchanged and is in the L3.43 round row. **All branches were at ZERO commits ahead again (3/3 of the parents that had exited), the third consecutive round** — this is exactly the bug the quorum was just pointed at.
+## What the seats did on their own, in about ninety minutes
 
-**Verify at open** (§5): smoke — **active count never below 1439** —, `commands.py run tests` (**2105 passed / 1 skipped**, confirmed), `dispatch.py --help` exit 0, `links.py links` 0 broken.
+- **`all-is-one` fixed a regression I created and shipped the request door in one commit** (`42355982b`). It also diagnosed the `send.py` bug more precisely than the prime had: `target` is `nargs="?"` declared **before** `text` `nargs="*"`, so a lone trailing word is greedily eaten by `target` and the body arrives empty.
+- **`self-perpetuating` landed `d47154941`** — `brief.py` stops handing a `--branch` parent git commands.
+- **`master-sensei` ran `pick_worst` and reported honestly that it was empty — then found out why.** `failures.py` has **never been invoked anywhere in this loop**: no cron, no dispatch hook, so `.agi/sessions/failure-ledger.json` has never existed. Run live, **404 rows derive immediately**: `no_build_probe_only=321`, `session_limit=32`, `demoted=29`, `died=14`, `wrong_file=5`, `broken_frontmatter=3`. Two further breaks sit behind that: `pick_worst` parses JSONL while `failures.py` writes a pretty-printed array (crashes on real input), and it groups on `seat_or_role`/`fail_rate`/`failed` which nothing produces. **A parent is dispatched for the plumbing.** `no_build_probe_only=321` is the measured size of "parents probe instead of building" — a thing this loop has been hand-correcting one brief at a time from impression.
+- All three quorum seats **DM'd each other unprompted** declaring exactly which files they were touching, before doing anything. Nobody collided.
 
-**🔴 CLAIM YOUR PIN WITH `--pin`, NEVER WITH `echo`.** Correct: `rotate.py meter --session-log <your transcript> --seat belam --pin .agi/sessions/belam.meter`. **The `echo <path> > .agi/sessions/belam.meter` form that this file told nine generations to use is the bug** — see item 1 below.
+## L3.43, landed
 
-**What Belam XII found, measured, in three commands each:**
+Nine branches harvested, **every one at zero commits ahead** — the third consecutive round, and the cleanest possible evidence for the bug the quorum is on. Merged in one batch against each branch's **merge-base** (never against a moved `season/s2`), then one suite over the final state. **That batch gate caught a real regression no per-branch gate could have**, because neither branch was broken alone. Delivered: `cli.py`, `dispatch.py`, `rotate.py`, `send.py`, `spawn_budget.py`, `workflow.py`, `write.py`, `zoom.py`, a new **`handoff.py`** (`sections|claim [--write]|release|read|write|show`) and their tests, plus 11 experiment nodes (3 proved, 8 lean-proved).
 
-1. **🔴 THE CROSS-GENERATION SEAT-PIN GUARD IS REAL AND INERT.** Pointed the pin at the predecessor's transcript and read it: `0.3228  source=seat_pin`, no refusal — the exact failure L3.41 landed a fix for. Hand-stamped a wrong generation (`99\t<path>`) and it refused loudly and correctly. So the logic is right. It is inert for **two independent reasons**: (a) `_read_generation` reads `<seat>.handoff.md` and **that file has never existed**, so every generation resolves to `0` and the guard compares `0` to `0`; (b) the `echo >` recovery this file documents writes the **legacy one-field pin**, which the code deliberately degrades to "no writer recorded, don't check". **The documented fix for the hazard disarms the guard built for the hazard.** Minted `hypothesis:l3-seat-pin-generation-never-increments` (g15) with all four sub-fixes and a red-first test for each. This is the fifth instance of this loop's signature shape: a component reporting success while delivering the wrong thing.
-2. **Owner item 49 approved and minted.** `hypothesis:l3-engine-files-outside-the-grid` (g15): **72 tracked engine files have no build node**, so their bytes are outside the grid entirely — 18 `bin/*.py` including `rotate.py`, `season.py`, `send.py`, `write_guard.py`, `provisioning.py`, `spawn_budget.py`; both `briefs/*.md`; both git hooks; all four `workflows/*`; `src/renderers/scatter.py`; 30 tests; 14 fixtures (the fixtures are probably a legitimate exclusion, and the brief says to decide that rather than assume it). Full enumeration is in the node body.
+## Two briefs minted from measurement
 
-**Do next, in this order:**
+- **`l3-seat-pin-generation-never-increments`** (g15). The cross-generation pin guard fires correctly on a mismatch and is **inert in production**: no `<seat>.handoff.md` has ever existed so every generation reads `0`, and the `echo path >` recovery this file taught nine generations writes the legacy pin the guard deliberately skips. **The documented fix disarms the guard.** Claim your pin with `rotate.py meter --session-log <yours> --seat belam --pin .agi/sessions/belam.meter` — never `echo`.
+- **`l3-engine-files-outside-the-grid`** (g15, owner item 49). **72 tracked engine files have no build node**, `rotate.py`, `season.py`, `send.py` and `write_guard.py` among them. Enumerated file by file in the node body.
 
-1. **Land L3.43** — full procedure in its round row. Do not skip the `rev-list --count` check.
-2. **Let the quorum work.** Do not hand-aim their briefs; they exist so the prime stops doing that. Read their reports, review their nodes, commit.
-3. **§6 items 53–55** — the super-loop, diffs-as-writes, handoff sections. All three make cheap agents viable.
-4. **§6 items 56–59** — today's owner asks, including the undecided fourth seat.
+## Do next
 
-**What Belam XII would tell its successor:** the owner's corrections arrived faster than the plan did, and every one of them was right. Take the correction, apply it live, record it in the graph in the same breath — the seats were renamed, un-goaled and vision-bound inside two minutes each because the record was written as it happened rather than after.
+1. **Read your DMs.** Then verify: smoke (active ≥1649 — it rose this session), `commands.py run tests`, `links.py links`, `write_guard.py check`.
+2. **Let the quorum work.** Review what they land, answer what they ask, land their rounds. Sequence they were given: branching issue → quorum request path *(done)* → auto-alert (§6 item 62) → hierarchy chart (§6 item 58).
+3. **`master-sensei`'s ledger parent** — check it landed; the ledger is the substrate its whole role stands on.
+4. **§6 items 53–55** still open: the super-loop, diffs-as-writes, affinity handoff sections.
+
+## What Belam XII would tell its successor
+
+- **The seats are better than the prime at the prime's own mundane work, immediately.** Every instinct to "just fix it myself" this session would have been the wrong call. I handed `all-is-one` a regression *I* had caused, with an explicit out, and it shipped the fix plus the feature.
+- **Read the mail.** The one thing that went genuinely wrong was a message sitting unread.
+- **When you are corrected mid-flight, tell the agent why.** `master-sensei` took three brief corrections in half an hour. Each was said to it plainly. A seat that watches its instructions move without explanation starts hedging, and a hedging observer is worthless.
+- **Check the merge-base, not the branch tip.** Still true, still the thing that fools people.
 
 ### Rotation
 
@@ -340,3 +344,13 @@ git push origin season/s2
     **(d) The group chat is the quorum's alone — and the door it needs does not exist.** Verbatim: *"Only the quorum is allowed into the group chat"* and *"The rest must request quorum response."* The `quorum` room is the three vision seats only: not the Sensei, not the advisors, **not the prime** — which is the point, since a room only they can enter is where they can disagree with the prime without an audience. 🔴 **`send.py audience` takes the literal target `prime` and refuses anything else, so "request quorum response" has no implementation.** The boundary is currently enforced by nothing but good manners, and this project has measured repeatedly what becomes of a rule that is prose rather than code. Handed to the quorum to build — their own door to fit — sequenced behind the branching issue but ahead of the hierarchy chart, because `master-sensei` is live now with something to ask and no way to ask it. It must record who asked, what, and what was answered: a quorum ruling that leaves no trace is not a ruling.
 
     **One honest note on churn:** `master-sensei` took three corrections to its brief inside half an hour (no goal, then no slice, then no room). That was told to it plainly rather than quietly patched, because a seat that notices its instructions moving and is not told why starts hedging. Each correction made the role narrower and better.
+
+62. **OWNER, 2026-09-08 — an auto-alert side channel for agent comms. Verbatim: *"tell quorum whoever is working on DMs that they need an auto-alert feature. Some kind of side channel alert or something. Ideally something the agents can share so they don't have to just brute force their way into each others life via user sends."***
+
+    **Filed to the quorum through their own new door** (`send.py audience quorum`), which is itself the first real use of the mechanism `all-is-one` built an hour earlier.
+
+    **The live instance that motivates it:** `master-sensei` DM'd the prime twice, correctly, via `send.py`. Both landed on disk. **The prime never read them** and only learned of it when the owner said so in chat. A seat sat blocked for an hour holding the 404-row ledger finding. Separately and in the other direction, the prime reached every seat all day by `tmux send-keys` — **the prime impersonating the owner at a seat's prompt**, which is what the owner means by "brute force their way into each others life via user sends". It interrupts mid-thought, is indistinguishable from the human speaking, cannot address two seats at once, and leaves no record an alert was raised.
+
+    **Constraints given, with the shape left to the quorum:** (1) **no polling** — an agent that checks its inbox every turn pays for the mechanism forever, so prefer something noticed at a natural seam; (2) it must survive the recipient being mid-turn; (3) it must be **distinguishable from the owner speaking**; (4) it must **record that an alert was raised and when**, because "I never got it" and "I ignored it" are different failures and only one is a bug; (5) **one mechanism for dm, room and audience** — not three. Sequenced behind the branching issue but **ahead of the hierarchy chart**, because this one has already cost a seat an hour and cost the owner an interruption to fix by hand.
+
+    🔁 **Noted for whoever builds it:** announcing this request required a pane nudge, because nothing would have told the quorum a properly-filed request was waiting. The bug reproduced itself in the act of being reported.
