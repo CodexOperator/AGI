@@ -236,6 +236,21 @@ def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
 
 # ---------------------------------- l2w3-brief-heads: director + prime_director
 
+def test_kid_brief_teaches_the_edit_tool_edits_call_shape():
+    """L3.37/L3.38 defect: two independent kids in one round each spent a turn
+    on the `edit` tool rejecting `edits` passed as a single JSON string or
+    wrapped one level too deep as `[{ edits: [...] }]`. The template must teach
+    the canonical array-of-objects shape and warn off both mis-shapes -- the
+    same content-vs-rendering gap that hid the L3.31 write.py defect."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "EDIT-TOOL CALL SHAPE" in kid
+    assert "edits" in kid and "oldText" in kid and "newText" in kid
+    # the canonical array-of-objects shape must be shown spelled out
+    assert 'edits=[{"oldText"' in kid
+    # the two mis-shapes that cost the L3.37 kids a turn must be flagged
+    assert "single JSON string" in kid
+    assert "[{ edits: [...] }]" in kid
+
 
 def test_director_tier_has_a_brief():
     """The director tier must produce a brief with its role name visible."""
