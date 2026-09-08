@@ -126,6 +126,12 @@ def completion_contract(runtime: str, iter_n, agent_id, target: str | None = Non
         "you reasoned in. They are read by name.",
         "**Report a struggle even when you worked around it.** A workaround you",
         "found is still a defect someone else will hit.",
+        # hypothesis:l3w4-push-further-loops — a continuation kid may also carry
+        # a `push_further:` field, so the structured report names it as the one
+        # extra optional DONE line. Present on BOTH runtimes; absent means the
+        # kid found nothing further to push.
+        "push_further: <optional, one line — what the next run at this same",
+        "            node id should push further, or absent to stop>",
     ]
 
     if runtime == "cc":
@@ -429,6 +435,13 @@ def main() -> int:
         help="which completion contract to hand the kid. Default: 'cc' when "
              "the project config has a cc_dispatch block, else 'pi' (goal:s8).",
     )
+    ap.add_argument(
+        "--push-further",
+        action="store_true",
+        help="hypothesis:l3w4-push-further-loops — prepend the target node's "
+             "push_further text above 'Extend or fork from' so a continuation "
+             "kid composes from the prior run's instruction.",
+    )
     args = ap.parse_args()
 
     # goal:g11.1 — resolve the given path the same way every other entry point
@@ -637,12 +650,52 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         f"Extend or fork from `{target}`. Stay tight — don't wander to other chains.",
         "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).",
     ])
+    if getattr(args, "push_further", False):
+        pf = _push_further_text(root, target)
+        if pf:
+            lines.extend([
+                "",
+                "> PUSH FURTHER (left on " + target + "):",
+                ">",
+                "> " + "\n> ".join(line for line in pf.splitlines()),
+            ])
     lines.extend(completion_contract(args.runtime, args.iter_n, args.agent_id, target))
     lines.extend([
         "",
         "If stuck >2 attempts → write `pending` verdict and stop.",
     ])
     return "\n".join(lines) + "\n"
+
+
+def _push_further_text(root: Path, target: str) -> str:
+    """The target node's `push_further:` frontmatter, or "" when absent.
+
+    hypothesis:l3w4-push-further-loops — a parent leaves a push-further on a
+    node; a continuation kid composes from it. Read directly off the node
+    file so the composition carries exactly what the parent stamped, not a
+    re-derivation.
+    """
+    f = node_writer.find_node_file(root, target)
+    if not f:
+        return ""
+    try:
+        txt = f.read_text()
+    except OSError:
+        return ""
+    capture = False
+    out = []
+    for line in txt.splitlines():
+        if line.startswith("push_further:"):
+            v = line.split(":", 1)[1].strip()
+            if v:
+                out.append(v)
+                capture = True
+            continue
+        if capture and (line.startswith(" ") or line.startswith("\t")) and line.strip():
+            out.append(line)
+        elif capture:
+            break
+    return "\n".join(out).strip()
 
 
 def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
