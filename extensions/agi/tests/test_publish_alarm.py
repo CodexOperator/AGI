@@ -137,9 +137,9 @@ def _dirty(root: Path):
         fh.write("\nuncommitted\n")
 
 
-def _run_publish(root: Path, *args):
+def _run_publish(root: Path, *args, env=None):
     return subprocess.run(["bash", str(PUBLISH_SH), *args],
-                          cwd=root, capture_output=True, text=True)
+                          cwd=root, capture_output=True, text=True, env=env)
 
 
 def _run_hook(cwd: Path):
@@ -463,8 +463,8 @@ def _dirty_a_node(project: Path):
         fh.write("\nuncommitted\n")
 
 
-def _publish(project: Path, engine: Path, *args):
-    return _run_publish(project, "--engine-root", str(engine), *args)
+def _publish(project: Path, engine: Path, *args, env=None):
+    return _run_publish(project, "--engine-root", str(engine), *args, env=env)
 
 
 def test_a_blocked_publish_parks_the_bytes_instead_of_stranding_them(tmp_path):
@@ -517,14 +517,17 @@ def test_the_fallback_leaves_no_worktree_behind(tmp_path):
     be its own slow failure."""
     project, engine = _pair(tmp_path)
     before = _git_out(engine, "worktree", "list")
-    tmproot = Path(os.environ.get("TMPDIR", "/tmp"))
+    tmproot, env = _hermetic_tmp_env(tmp_path)
     leaked = len(list(tmproot.glob("agi-publish-fallback.*")))
     _dirty_a_node(project)
 
-    _publish(project, engine)
+    _publish(project, engine, env=env)
 
     assert _git_out(engine, "worktree", "list") == before
-    # counted, not asserted absent: this tree is shared with other agents (G4.1)
+    # counted, not asserted absent: hermetic now (private TMPDIR), but kept as
+    # a count rather than an absence assert -- a genuine fallback dir this
+    # call itself needed to leave (if that were ever the correct behavior)
+    # should still be tolerated, only another process's can't intrude anymore
     assert len(list(tmproot.glob("agi-publish-fallback.*"))) == leaked
 
 
@@ -751,8 +754,23 @@ def _grid_tips(root: Path) -> dict[str, str]:
     return dict(line.split() for line in out.splitlines() if line)
 
 
-def _scratch_dirs() -> int:
-    return len(list(Path(os.environ.get("TMPDIR", "/tmp")).glob("agi-publish-derive.*")))
+def _scratch_dirs(tmproot: Path | None = None) -> int:
+    root = tmproot if tmproot is not None else Path(os.environ.get("TMPDIR", "/tmp"))
+    return len(list(root.glob("agi-publish-derive.*")))
+
+
+def _hermetic_tmp_env(tmp_path: Path) -> tuple[Path, dict]:
+    """A private TMPDIR for one test, so its agi-publish-*.XXXXXX scratch-dir
+    count can never be perturbed by another concurrent process's own call
+    (publish-engine.sh's mktemp already guarantees globally-unique names --
+    the flake this fixes was purely a shared-glob COUNT racing against
+    unrelated concurrent activity, never a real name collision; both
+    tmproot derivations in publish-engine.sh (_scratch_tmp_root and the
+    plain fallback path) honor $TMPDIR, so this makes the whole scratch tree
+    private, not just the count-check)."""
+    scratch_tmp = tmp_path / "scratch-tmp"
+    scratch_tmp.mkdir()
+    return scratch_tmp, {**os.environ, "TMPDIR": str(scratch_tmp)}
 
 
 def test_a_contracts_disagree_refusal_leaves_nodes_byte_identical(tmp_path):
@@ -799,13 +817,14 @@ def test_the_scratch_worktree_never_survives_the_run(tmp_path):
     of slow failure the whole goal exists to remove."""
     project, engine = _pair(tmp_path, extra_nodes={"ghost": GHOST_NODE})
     worktrees = _git_out(project, "worktree", "list")
-    leaked = _scratch_dirs()
+    tmproot, env = _hermetic_tmp_env(tmp_path)
+    leaked = _scratch_dirs(tmproot)
 
-    _publish(project, engine)
+    _publish(project, engine, env=env)
 
     assert _git_out(project, "worktree", "list") == worktrees
-    # counted, not asserted absent: this tree is shared with other agents (G4.1)
-    assert _scratch_dirs() == leaked
+    # hermetic now (private TMPDIR) -- see _hermetic_tmp_env
+    assert _scratch_dirs(tmproot) == leaked
 
 
 def test_the_derivation_never_touches_the_real_nodes_dir(tmp_path):
@@ -903,10 +922,12 @@ def test_dry_run_writes_neither_nodes_nor_grid_versions(tmp_path):
     """`--dry-run` is a report. It now builds a whole scratch tree to make one,
     which is a new set of ways for it to stop being one."""
     project, engine = _pair(tmp_path, staged=True)
-    nodes, tips, leaked = _nodes_digest(project), _grid_tips(project), _scratch_dirs()
+    tmproot, env = _hermetic_tmp_env(tmp_path)
+    nodes, tips, leaked = (_nodes_digest(project), _grid_tips(project),
+                           _scratch_dirs(tmproot))
     worktrees = _git_out(project, "worktree", "list")
 
-    r = _publish(project, engine, "--dry-run")
+    r = _publish(project, engine, "--dry-run", env=env)
 
     assert r.returncode == 0, r.stdout + r.stderr
     assert _nodes_digest(project) == nodes
@@ -914,7 +935,8 @@ def test_dry_run_writes_neither_nodes_nor_grid_versions(tmp_path):
     assert not (project / STATE_REL).exists()
     assert _git_out(engine, "status", "--porcelain") == ""
     assert _git_out(project, "worktree", "list") == worktrees
-    assert _scratch_dirs() == leaked
+    # hermetic now (private TMPDIR) -- see _hermetic_tmp_env
+    assert _scratch_dirs(tmproot) == leaked
 
 
 def test_dry_run_does_not_adopt_a_newly_minted_node(tmp_path):
