@@ -1,0 +1,35 @@
+# rotation record — seat belam, belam-S1-L3-X -> belam-S1-L3-XI
+captured_at_utc: 2026-09-08T03:18:31Z
+successor_kind: REAL claude --remote-control session (not a stand-in)
+rotate_cmd: rotate.py loop --role prime_director --name belam-S1-L3-XI --model claude-opus-5 --effort max --force
+rotate_stdout_said: 'warn: could not read a reply from the successor log' then "rotate 'prime_director' --> successor 'belam-S1-L3-XI'"
+
+## (a) successor window EXISTS — by tmux list-windows, never the tool return value
+agi-rc:9: belam-S1-L3-XI* (1 panes) [80x24] 
+
+## (e) predecessor windows ALL still alive
+11
+agi-rc:0: belam-S1-L3-IX
+agi-rc:1: belam-S1-L3-X
+agi-rc:5: belam-S1-L3
+agi-rc:9: belam-S1-L3-XI*
+agi-rc:25: belam-S1-L3-II
+agi-rc:35: belam-S1-L3-III
+agi-rc:51: belam-S1-L3-IV
+agi-rc:63: belam-S1-L3-V
+agi-rc:72: belam-S1-L3-VI
+agi-rc:74: belam-S1-L3-VII
+agi-rc:83: belam-S1-L3-VIII
+
+## successor is genuinely working (pane capture)
+● continue
+✻ Churned for 1m 41s · done 11:17 PM
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+  ⏵⏵ bypass permissions on (shift+tab to cycle) · PR #1 · ← for agents     /rc
+
+## FINDING: loop's read-back warning is a FALSE NEGATIVE
+loop warned it could not read a reply, yet the window exists and the successor had already run commands and emitted 'continue'.
+This is trap 0l residue: --session-log is used for BOTH the meter and the successor read-back.
+Confirm rotations by tmux capture-pane. Never by loop's return value, and never by its warning either.
