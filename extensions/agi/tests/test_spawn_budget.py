@@ -48,6 +48,48 @@ def test_acquire_admits_up_to_the_cap_and_then_refuses(root: Path):
         "the fourth agent must be refused, not queued")
 
 
+def test_acquire_refuses_while_paused_and_admits_once_resumed(root: Path):
+    """hypothesis:l3-reaper-restarts-through-stop — the structural form of
+    an owner stop order. Refuses even with the cap wide open; resumes
+    cleanly once cleared."""
+    assert spawn_budget.acquire(root, 25, "before-pause") is not None
+    spawn_budget.pause(root, reason="owner: low on tokens", actor="belam")
+    assert spawn_budget.acquire(root, 25, "during-pause") is None, (
+        "acquire must refuse every new admission while paused, "
+        "regardless of how much of the cap is free")
+    assert spawn_budget.live_count(root) == 1, (
+        "the refused acquire must not have written a lease")
+    prev = spawn_budget.resume(root)
+    assert prev is not None and prev["reason"] == "owner: low on tokens"
+    assert spawn_budget.acquire(root, 25, "after-resume") is not None
+
+
+def test_is_paused_reports_reason_and_actor(root: Path):
+    assert spawn_budget.is_paused(root) is None
+    spawn_budget.pause(root, reason="survival mode", actor="belam")
+    rec = spawn_budget.is_paused(root)
+    assert rec is not None
+    assert rec["reason"] == "survival mode"
+    assert rec["actor"] == "belam"
+    assert rec["paused"] is True
+    assert isinstance(rec["paused_at"], int)
+
+
+def test_resume_without_a_prior_pause_is_a_no_op(root: Path):
+    assert spawn_budget.resume(root) is None
+    assert spawn_budget.is_paused(root) is None
+
+
+def test_refusal_while_paused_is_not_a_wait(root: Path):
+    """Same non-blocking guarantee the cap refusal already has (see
+    `test_refusal_is_not_a_wait` below) — a paused refusal must not stall
+    either."""
+    spawn_budget.pause(root, reason="test")
+    t0 = time.monotonic()
+    assert spawn_budget.acquire(root, 25, "blocked-by-pause") is None
+    assert time.monotonic() - t0 < 0.5
+
+
 def test_refusal_is_not_a_wait(root: Path):
     """Admission returns immediately when full.
 
@@ -361,3 +403,43 @@ def test_attach_branch_ignores_empty_fields(root):
     assert "base_branch" not in rec
     assert "worktree" not in rec
     assert rec["agent_id"] == "plain-agent"
+
+
+# --------------------------------------------------------------------------
+# The pause flag, CLI surface (hypothesis:l3-reaper-restarts-through-stop)
+# --------------------------------------------------------------------------
+
+def test_cli_pause_then_status_shows_the_banner_then_resume_clears_it(root, capsys):
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+
+    rc = spawn_budget.main(["--root", str(root), "pause",
+                            "--reason", "owner: low on tokens", "--actor", "belam"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "paused" in out.lower()
+
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "PAUSED" in out
+    assert "owner: low on tokens" in out
+    assert "belam" in out
+
+    rc = spawn_budget.main(["--root", str(root), "resume"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "resumed" in out.lower()
+    assert "owner: low on tokens" in out
+
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "PAUSED" not in out
+
+
+def test_cli_resume_with_nothing_to_resume_says_so(root, capsys):
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+    rc = spawn_budget.main(["--root", str(root), "resume"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "not paused" in out.lower()

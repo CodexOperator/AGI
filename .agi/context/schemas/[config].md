@@ -9,7 +9,26 @@ fields:
   required_keys: {type: list}        # env keys a project cannot run without
   optional_keys: {type: list}        # env keys it will use if present
   forbidden_keys: {type: list}       # env keys that must never be set
-  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat
+  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat:
+                                      # {name, role, tier, harness, model, effort, settings,
+                                      #  session_kind, personality_ref, handoff_file, pin_ref,
+                                      #  rotated_by, owning_goal, worktree, session_ref}.
+                                      #  `worktree` (added hypothesis:l3w4-hierarchy-one-source,
+                                      #  goal:g17): the seat's git worktree path relative to
+                                      #  graph_root, empty string for a seat that runs in the main
+                                      #  checkout. Owner policy: perpetual seats get their own
+                                      #  worktree; a director-kid's bootstrap should read this
+                                      #  field rather than carry the path only in its spawn brief.
+                                      #  `session_ref` (added same node, 2026-09-08): the
+                                      #  disambiguating ref ListAgents shows in brackets, e.g.
+                                      #  `518293` for row name `agi-4b` -- ListAgents names like
+                                      #  `agi-32`/`agi-9d` are NOT unique (several live sessions
+                                      #  share one), so a bare-name SendMessage can silently reach
+                                      #  the wrong seat. Empty until the seat's own session states
+                                      #  its ref (a seat cannot know its ref before ListAgents
+                                      #  shows it any more than it can know its own pin transcript
+                                      #  before claiming it) -- write it via the seat's own report
+                                      #  to its rotator, never guessed by a third party.
 validation:
   required: [locations]
   types:
