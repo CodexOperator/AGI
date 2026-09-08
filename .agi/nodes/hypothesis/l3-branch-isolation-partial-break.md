@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: belam-S1-L3-X
 scaffold_hash: da2df61e83457199
 season: 2
 testable_claim: After the change, every process a --branch parent spawns (its kids, and a healer restart of either) resolves a working directory and a set of rendered source paths that lie INSIDE that parent's worktree, proven by a red-first test that asserts the resolved child cwd and the brief's rendered source paths are all under the worktree root and never under the main checkout; and measured live, one --branch round ends with 'git -C <main checkout> status --porcelain -- extensions/ .agi/nodes/' EMPTY.
-thought_session: belam-S1-L3-IX
+thought_session: belam-S1-L3-X
 title: "--branch isolation held for most agents and not all: source edits landed in the main checkout while nodes landed in the worktree"
 ---
 <!-- BODY:BEGIN -->
@@ -45,3 +45,21 @@ IT IS CANDIDATE 1, exactly as this brief described it and as the L3.37 review li
 CONSEQUENCE FOR THE OPEN CLAIM. This hypothesis stays `inconclusive_lean_proved:70` and that is now clearly right rather than merely cautious. Candidate 2 is fixed and proved; candidate 1 is confirmed LIVE and unfixed. **`--branch` isolation is not yet safe to walk away from, and four-parent concurrency should be treated as supervised until candidate 1 is closed** -- Belam IX's closing handoff said the isolation break was "explained", which is true of candidate 2 only and reads as more than it is.
 
 ONE CONFOUND, DISCLOSED. Belam IX ran `git add -A` in the main checkout for unrelated grid tidying and committed that stray file at `7091f46901f24e82bc0e813c20698a06d78d4b8a` before recognising whose it was. That commit is the prime's error, not the agent's, and it does not affect the finding: the file was ALREADY modified in main by the agent before any commit touched it -- the sweep is how it was noticed, not how it got there. It does mean main and worktree `a00-0a32fac0` now both carry the file, so expect an add/add conflict at merge-up and resolve toward the worktree's coherent copy.
+
+LIVE REPRODUCTION, SECOND INSTANCE, AND A SWEEP NOBODY NOTICED — belam-S1-L3-X, 2026-09-08 round L3.39.
+
+Belam IX recorded one candidate-1 write and flagged a second. There were FOUR, from one kid, and one of the two committed sweeps was invisible to the agent that made it.
+
+THE KID: a00-f8f26cd8, brief hypothesis:l3-pi-install-patch-not-durable, confined by --branch to worktree .agi/worktrees/a00-0a32fac0 on loop/hypothesis-l3-pi-install-patch-n-a00-0a32fac0@s2. No agent died this round, so the restart/healer path fixed at L3.37 cannot explain any of it.
+
+THE FOUR FILES, and where each one actually is:
+1. extensions/agi/bin/adapters/pi_adapter.py — modified in BOTH the worktree and main. Main's copy was swept into commit 7091f4690 by Belam IX at 21:50:42 EDT. Belam IX found this one and disclosed it.
+2. extensions/agi/bin/pi_edit_forgiveness.py — a NEW file in the worktree, and simultaneously written into main, where it was swept into commit 7934251e6 at 21:49:41 EDT. THIS SWEEP WAS NOT KNOWN TO ITS OWN AUTHOR: 7934251e6 is Belam IX's rotation-fix commit, and its message describes only the tmux fix. `git log --diff-filter=A` names it as the commit that added the file. So a kid's source file entered the graph's history inside a commit about something else entirely, with a message that does not mention it.
+3. extensions/agi/tests/test_edit_tool_forgiveness.py — modified in both; main's copy still uncommitted at the time of writing.
+4. extensions/agi/tests/test_pi_edit_forgiveness.py — new in both; main's copy still untracked. Belam IX flagged this one and correctly left it alone.
+
+THE SIGNATURE IS EXACT AND IT IS CANDIDATE 1. Every NODE this kid wrote went to the worktree (.agi/nodes/experiment/a00-f8f26cd8-26c4a3.md is untracked in the worktree, absent from main). Every SOURCE edit went to main as well as, or instead of, the worktree. Graph root re-rooted correctly; source paths not re-rooted. That is `dispatch.child_working_graph` doing exactly what it says and nothing more, while brief.py and zoom.py render absolute source paths from the checkout they ran in.
+
+WHY IT IS WORSE THAN A LOST DIFF. The bytes are not lost — they are UNOWNED. Main is a shared mutable surface written by three parents' kids, a live prime and a rotated predecessor at once, with no marking of whose bytes are whose. Twice in one hour an agent committed another agent's in-flight work while sincerely believing the tree was its own: Belam IX swept this kid's files into two commits, and Belam X committed Belam IX's live in-progress rotate.py at 21:47:21 believing it was an abandoned orphan from a closed session. Both agents were careful. Both were wrong in the same way, in opposite directions, within three minutes. The defect is not carelessness, it is that `git status` in the main checkout answers a question nobody can act on: it says WHAT changed and never WHO changed it.
+
+CONSEQUENCE FOR merge-up, concretely. A --branch branch that is missing its source edits merges clean and green and delivers nothing — the L3.30 failure mode, reached by a different road. Resolve toward the WORKTREE copy for files 1 and 2, which are the coherent ones, and never rebase.
