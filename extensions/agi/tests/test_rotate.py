@@ -895,6 +895,9 @@ def test_rotate_self_renames_window_before_respawn(fake_ladder, tmp_path, monkey
     at_spawn = {}
     def fake_spawn(**kw):
         at_spawn["window_file"] = win.read_text(encoding="utf-8").strip()
+        # the successor window appears under the reused plain name
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
     monkeypatch.setattr(rotate, "_read_first_reply",
@@ -916,6 +919,9 @@ def test_rotate_self_kills_own_window_after_continue(fake_ladder, tmp_path,
     win.write_text("adv-alive\n", encoding="utf-8")
     killed = []
     def fake_spawn(**kw):
+        # the successor window appears under the reused plain name
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
     monkeypatch.setattr(rotate, "_read_first_reply",
@@ -1028,14 +1034,18 @@ def test_rotate_self_throwaway_skips_registry(fake_ladder, tmp_path,
     Note: no _write_seats_sheet call — the seat is deliberately unregistered.
     Before the change, cmd_rotate_self errors `no seat` here (the L3.37 gate)."""
     seen = {}
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
     def fake_spawn(**kw):
         seen["name"] = kw["name"]
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")   # the successor window appears
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
     monkeypatch.setattr(rotate, "_read_first_reply",
                         lambda *a, **k: "continue")
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
-    args = _rotate_self_args(tmp_path, throwaway=True)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
     assert seen["name"] == "adv-alive"        # plain name reused, no Roman
@@ -1063,14 +1073,18 @@ def test_rotate_self_throwaway_forwards_successor_argv(fake_ladder, tmp_path,
                                                        monkeypatch):
     """--throwaway + --successor-argv both flow into spawn_window untouched."""
     seen = {}
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
     def fake_spawn(**kw):
         seen["argv"] = kw.get("successor_argv")
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
     monkeypatch.setattr(rotate, "_read_first_reply",
                         lambda *a, **k: "continue")
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
-    args = _rotate_self_args(tmp_path, throwaway=True,
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win),
                              successor_argv="printf continue")
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
@@ -1142,3 +1156,147 @@ def test_launch_window_leaves_a_short_command_inline(monkeypatch):
     assert rc == 0
     assert seen["argv"][-1].endswith("echo hi")
     assert "bash /" not in seen["argv"][-1]
+# ── hypothesis:l3-rotation-record-and-predecessor-guarantee ───────────────
+# Every rotation performed by rotate.py — throwaway rehearsal or real
+# claude --remote-control successor — writes a durable machine-readable JSON
+# record under `.agi/sessions/rotations/` capturing all five observations as
+# OBSERVED FACTS (never tool-return claims): (a) a NEW tmux window exists
+# under the reused plain name, established by tmux list-windows; (b) the seat
+# handoff generation before/after; (c) WHICH log the read-back read;
+# (d) the stale-`continue` read-before-write cursor; (e) whether the
+# predecessor window is still alive, by name. AND rotate-self/loop REFUSE to
+# report success when the successor window is absent or the predecessor
+# window is gone. RED-FIRST below (fail before the rotate.py change lands).
+
+
+def test_rotate_self_writes_record_with_five_observations(fake_ladder, tmp_path,
+                                                          monkeypatch):
+    """A completed throwaway rotate-self writes a JSON record carrying all five
+    observations (a)-(e), each sourced from the window-path/tmux read, never
+    from spawn_window's return value."""
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        # the new successor window appears under the reused plain name
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    records = sorted((tmp_path / "sessions" / "rotations")
+                     .glob("adv-alive.*.json"))
+    assert records, "no durable rotation record written"
+    rec = json.loads(records[-1].read_text(encoding="utf-8"))
+    assert rec["rotation"] == "rotate-self"
+    assert rec["result"] == "success"
+    obs = rec["observations"]
+    # (a) successor window under the plain name, observed, not tool-return
+    a = obs["a_successor_window_under_plain_name"]
+    assert a["present"] is True and a["window"] == "adv-alive"
+    assert "adv-alive" in a["windows"]
+    assert "source" in a and "window-path file" in a["source"]
+    # (b) generation before/after
+    assert obs["b_generation"] == {"before": 0, "after": 1}
+    # (c) which log the read-back actually read
+    assert str(obs["c_readback_log_path"]).endswith("adv-alive.log")
+    # (d) read-before-write stale-continue cursor
+    assert obs["d_stale_continue_cursor"]["read_before_write"] is True
+    assert "start_offset" in obs["d_stale_continue_cursor"]
+    # (e) predecessor alive by name
+    e = obs["e_predecessor_alive"]
+    assert e["name"] == "adv-alive.gen1" and e["present"] is True
+    assert "adv-alive.gen1" in e["windows"]
+
+
+def test_rotate_self_refuses_when_successor_window_absent(fake_ladder, tmp_path,
+                                                          monkeypatch, capsys):
+    """Spawn leaves NO successor window -> rotate-self refuses to report
+    success, returns non-zero, and records the refusal durably."""
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    # successor never appears: the renamed predecessor is the only window
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo hi"))
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    assert "successor" in capsys.readouterr().err
+    records = sorted((tmp_path / "sessions" / "rotations")
+                     .glob("adv-alive.*.json"))
+    assert records
+    rec = json.loads(records[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "refused"
+    assert "successor" in rec["refusal_reason"]
+
+
+def test_rotate_self_refuses_when_predecessor_window_gone(fake_ladder, tmp_path,
+                                                          monkeypatch, capsys):
+    """The predecessor (renamed) window is the chain this guarantee protects:
+    if it is gone after the successor is confirmed, rotate-self must refuse to
+    report success and record the refusal."""
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        # successor appears under the plain name, but the predecessor vanished
+        win.write_text("adv-alive\n", encoding="utf-8")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    assert "predecessor" in capsys.readouterr().err
+    records = sorted((tmp_path / "sessions" / "rotations")
+                     .glob("adv-alive.*.json"))
+    assert records
+    rec = json.loads(records[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "refused"
+    assert "predecessor" in rec["refusal_reason"]
+
+
+def test_loop_writes_durable_record(fake_ladder, tmp_path, monkeypatch):
+    """cmd_loop also writes a durable record capturing the successor window
+    (observed) and the read-back log path on a confirming rotation."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    reply = tmp_path / "reply.log"
+    reply.write_text("continue\n")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+
+    def fake_launch(s, n, c):
+        wins.write_text(n + "\n", encoding="utf-8")
+        return 0
+
+    monkeypatch.setattr(rotate, "_launch_window", fake_launch)
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(reply), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    records = sorted((root / "sessions" / "rotations")
+                     .glob("belam-II.*.json"))
+    assert records, "loop wrote no durable record"
+    rec = json.loads(records[-1].read_text(encoding="utf-8"))
+    assert rec["rotation"] == "loop"
+    assert rec["result"] == "success"
+    a = rec["observations"]["a_successor_window_under_name"]
+    assert a["present"] is True and a["window"] == "belam-II"
+    assert str(rec["observations"]["c_readback_log_path"]).endswith("reply.log")
