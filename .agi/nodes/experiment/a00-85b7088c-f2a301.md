@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-seat-graph-view
 next_edges: []
 confidence: 0.8
-edited_by: a00-1252ec68
+edited_by: belam-S1-L3-IX
 evidence_runs:
   - experiment:a00-85b7088c-f2a301
 loop: hypothesis:l3w4-seat-graph-view@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: fc181a8dcf03eb49
 season: 2
+thought_session: belam-S1-L3-IX
 title: "\"Round 2 — the layered agent-hierarchy / graph map with toggle\""
 verdict: inconclusive_lean_proved:85
 ---
@@ -135,3 +136,17 @@ PARENT REVIEW EDIT (a00-1252ec68, L3.37): I accept this node as the kid wrote it
 <!-- THOUGHT:END -->
 
 PARENT REVIEW a00-1252ec68 (L3.37): ACCEPTED at inconclusive_lean_proved:85. Verified independently, not from the report: pytest test_viewport.py 47 passed; viewport --verify PASS; --live --layer hierarchy renders the hierarchy layer with the tie visible (belam unanchored, advisors -> visions, directors -> goals) against the real corpus. Diff additive, two files, no seats-registry write, no rotate.py change, no secret surface. Verdict stays lean-proved rather than proved: the interactive m toggle has never been exercised by a human on a real tty, and the peeking metaphor is a faint-block approximation rather than a true overlay — both honestly recorded in the caveats. evidence_runs is a self-run list; parents resolve; no orphan.
+
+PRIME OBSERVATION, belam-S1-L3-IX, 2026-09-08 — recorded because it is the half the kid explicitly could not supply, and recorded with its limits so it is not mistaken for more than it is.
+
+WHAT I RAN AND WATCHED, on the real corpus (1598 nodes, 1577 edges), with four L3.38 parents live so the ephemeral counter was non-zero:
+  `viewport.py --live --layer hierarchy --emit human`  -> hierarchy on top, graph beneath and dimmed with a `~` gutter; footer reads `map layers: on top = hierarchy, other = graph`.
+  `viewport.py --live --layer graph --emit human`      -> the two swap; footer reads `map layers: on top = graph, other = agent hierarchy`.
+  `viewport.py --live --layer hierarchy --emit llm`    -> the llm formatter carries `layer=hierarchy` in its anchor line, so the layer choice is part of the ONE stream and not a human-only decoration.
+  `viewport.py --verify`                                -> PASS, one stream two formatters, same nodes in the same order. g9.7 is intact under the change.
+
+THE TIE RENDERS, WHICH WAS THE OWNER'S WHOLE POINT (HANDOFF.md section 6 item 42): every advisor draws to exactly ONE vision (`adv-alive` to `vision:alive`, `adv-all-is-one` to `vision:all-is-one`, `adv-self-perpetuating` to `vision:self-perpetuating`), every director-kid to exactly one perpetual goal (`dir-g1`/`dir-g15`/`dir-g16` to `goal:g1`/`g15`/`g16`, `liaison` to `goal:g17`), and `belam` draws `(unanchored)` — correctly, because the prime is not bound to a single node. Those ties were already on disk in `seats.md` as `personality_ref` and `owning_goal` and had never been rendered anywhere.
+
+LIVESTREAM CHECK, since the owner intends to stream this box: no key, no key prefix, no token and no `.env` value appears anywhere in either layer or in the footer. Clean.
+
+WHAT THIS OBSERVATION DOES NOT COVER, so the verdict stays where the kid honestly put it: I exercised the `--layer` FLAG in both positions, not the interactive `m` KEYPRESS inside a live tty session. Those are the same code path only if the key handler dispatches to the same layer selector, which I did not read. The kid's caveat therefore stands as written, and `lean-proved:85` is still the right level. What is now closed is the weaker worry that the second layer might not render or might break g9.7; it renders, it swaps, and parity holds.
