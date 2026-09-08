@@ -20,6 +20,9 @@ Rooms (hypothesis:l3w0-send-rooms) — conversations as files under
     send.py peek --room R / --dm X  — transcript; do not mark read
     send.py rooms [--me X]          — list rooms/dm with unread counts
     send.py audience prime --reason TEXT [--morals] — the only way to reach prime
+    send.py audience quorum --reason TEXT — ask the quorum for a ruling (any
+        caller); a quorum member answers with
+        send.py report --room quorum-requests --ref TS TEXT (quorum-only)
 
 The room verbs keep the same append-only block shape as the inbox, so reading
 a room prints **sender** HH:MM — text, like a chat channel to a model. A room
@@ -81,6 +84,14 @@ STANDING_ROOMS = (
 
 #: The prime director is inbox-only; rooms may not address it.
 PRIME = "prime"
+
+#: The door for anyone outside the quorum (master-sensei, an advisor, even
+#: the prime) to ask the quorum for a ruling (hypothesis:l3w4-quorum-request-
+#: path). The quorum's own room ("quorum") is closed to everyone else by
+#: owner ruling 2026-09-08; this room is the sanctioned way in. `audience
+#: quorum --reason TEXT` asks; `report --room QUORUM_REQUEST_ROOM --ref TS
+#: TEXT` (quorum-only) answers in the same thread.
+QUORUM_REQUEST_ROOM = "quorum-requests"
 
 #: The three advisor visions, one vote each in a complete quorum
 #: (hypothesis:l3w4-quorum-reviews). A tally needs all three.
@@ -536,14 +547,39 @@ def ask(croot: Path, root: Path, me: str, to: str, text: str,
     return send_dm(croot, me, to, f"[ask] {text}", sender)
 
 
-def report(croot: Path, me: str, asker: str, ref: str, text: str,
-           sender: str | None) -> Path:
+def report(croot: Path, me: str, asker: str | None, ref: str, text: str,
+           sender: str | None, room: str | None = None) -> Path:
     """`report --to ASKER --ref TS`: reply only inside a matching `[ask]`.
 
     Requires a block in the `<me>--<asker>.md` dm with `ts == ref` and
     `from == asker` whose text starts `[ask]`; else refuses and writes
     nothing.
+
+    `report --room R --ref TS` (hypothesis:l3w4-quorum-request-path) is the
+    same contract against a ROOM instead of a dm: any `[ask]` at that `ts` in
+    room `R` qualifies (a room has no single fixed asker), and the reply
+    posts back into the same room as `[report ref=TS]`, so the question and
+    the ruling live in one file. Replying inside QUORUM_REQUEST_ROOM is
+    quorum-only (mirrors `audience_prime`'s gate to the prime): a ruling
+    anyone could forge is not a ruling.
     """
+    if room:
+        if room == QUORUM_REQUEST_ROOM and not _quorum_caller():
+            print(f"ERR: replying in {QUORUM_REQUEST_ROOM!r} is quorum-only "
+                  f"-- AGI_ROLE=parent + AGI_LADDER_TIER=3 required.",
+                  file=sys.stderr)
+            raise SystemExit(1)
+        blocks = _conv_blocks(_room_path(croot, room))
+        matched = any(
+            _norm(b.get("ts", "")) == _norm(ref)
+            and b.get("text", "").lstrip().startswith("[ask]")
+            for b in blocks
+        )
+        if not matched:
+            print(f"ERR: no [ask] at {ref} in room {room!r}", file=sys.stderr)
+            raise SystemExit(1)
+        return send_room(croot, room, f"[report ref={ref}] {text}", sender)
+
     blocks = _conv_blocks(_dm_path(croot, me, asker))
     matched = any(
         _norm(b.get("ts", "")) == _norm(ref)
@@ -693,6 +729,26 @@ def audience_prime(croot: Path, root: Path, reason: str,
     print(f"audience requested of the prime by {sender_id}: {reason!r}")
     print("rule: the prime is inbox-only; one audience per sender per rotation "
           "unless the morals are at stake (--morals).")
+
+
+def audience_quorum(croot: Path, reason: str, sender: str | None) -> Path:
+    """`audience quorum --reason TEXT`: ask the quorum for a ruling.
+
+    hypothesis:l3w4-quorum-request-path. The quorum's own room ("quorum") is
+    closed to everyone but the three vision seats (owner, 2026-09-08); this
+    is the sanctioned door for master-sensei, an advisor, or the prime to ask
+    it something. Posts `[ask] TEXT` into QUORUM_REQUEST_ROOM, open to any
+    caller -- no quorum-only gate here, that gate belongs on the ANSWER
+    (`report --room QUORUM_REQUEST_ROOM`, see `report`). A quorum member
+    replies in the same room, so the question and the ruling live in one
+    file: a ruling that leaves no trace is not a ruling.
+    """
+    sender_id = _detect_sender(sender)
+    path = send_room(croot, QUORUM_REQUEST_ROOM, f"[ask] {reason}", sender_id)
+    print(f"quorum audience requested by {sender_id}: {reason!r}")
+    print(f"rule: a quorum member answers with `send.py report --room "
+          f"{QUORUM_REQUEST_ROOM} --ref <ts-of-this-message> TEXT`.")
+    return path
 
 
 # ── quorum review (hypothesis:l3w4-quorum-reviews) ──────────────────────
@@ -852,12 +908,21 @@ def main(argv: list[str] | None = None) -> int:
     # existing inbox verbs, unchanged surface
     p_send = sub.add_parser("send", parents=[common],
                             help="send a message (inbox, dm, or room)")
-    # target BEFORE text: a nargs='*' positional declared first swallows every
-    # positional arg and the inbox target would never parse (seen L3.43 —
-    # `send <text> <target>` errored "send needs a target" for every message).
-    p_send.add_argument("target", nargs="?", default=None,
-                        help="inbox recipient (positional, unchanged)")
-    p_send.add_argument("text", nargs="*", help="message text")
+    # ONE positional list, split in code (hypothesis:l3w4-quorum-request-
+    # path) -- a separate `target` (nargs='?') + `text` (nargs='*') positional
+    # pair is ambiguous by construction and breaks one direction whichever
+    # order they're declared in: target-first (L3.43's own fix, immediately
+    # prior to this one) swallows the first token of `--room`/`--to` text
+    # into target and leaves text empty ("message text is required" on EVERY
+    # --room/--to send); text-first swallows the inbox target instead ("send
+    # needs a target" on every plain send, the bug L3.43 was fixing). Neither
+    # order can satisfy both `send TARGET TEXT...` and `send --room R TEXT...`
+    # -- argparse's nargs matching has no way to know which positional a
+    # trailing token belongs to until --room/--to's presence is checked, and
+    # that check can only happen after parsing. So: one bucket, no nargs
+    # ambiguity, and the split happens where the information actually is.
+    p_send.add_argument("send_args", nargs="*",
+                        help="inbox: TARGET TEXT...; with --room/--to: TEXT...")
     p_send.add_argument("--to", dest="dm_to", default=None,
                         help="pairwise dm recipient (comms/dm/<a>--<b>.md)")
     p_send.add_argument("--room", dest="room", default=None,
@@ -894,9 +959,9 @@ def main(argv: list[str] | None = None) -> int:
                          help="participant id (default: sender)")
 
     p_aud = sub.add_parser("audience", parents=[common],
-                           help="request an audience with the prime")
-    p_aud.add_argument("target", help="must be `prime`")
-    p_aud.add_argument("--reason", default="", help="why you need the prime")
+                           help="request an audience with the prime or quorum")
+    p_aud.add_argument("target", help="`prime`, `quorum`, or `close`")
+    p_aud.add_argument("--reason", default="", help="why you need the prime/quorum")
     p_aud.add_argument("--morals", action="store_true",
                        help="bypass one-per-rotation gate (morals at stake)")
     p_aud.add_argument("--round", dest="aud_round", default="",
@@ -930,9 +995,13 @@ def main(argv: list[str] | None = None) -> int:
     p_ask.add_argument("text", nargs="*", help="message text")
 
     p_report = sub.add_parser("report", parents=[common],
-                  help="a Master reports back to a matching [ask]")
-    p_report.add_argument("--to", dest="asker", required=True,
-                          help="the asker to reply to")
+                  help="reply to a matching [ask] (dm or --room)")
+    p_report.add_argument("--to", dest="asker", default=None,
+                          help="the asker to reply to (dm; exactly one of "
+                               "--to/--room)")
+    p_report.add_argument("--room", dest="report_room", default=None,
+                          help="room to reply in, e.g. quorum-requests "
+                               "(exactly one of --to/--room)")
     p_report.add_argument("--ref", required=True,
                           help="ts of the [ask] block being answered")
     p_report.add_argument("text", nargs="*", help="message text")
@@ -951,8 +1020,10 @@ def main(argv: list[str] | None = None) -> int:
     sender = args.from_id
 
     if args.verb == "send":
-        text = " ".join(args.text) if args.text else ""
+        # --room/--to: the whole positional bucket is text, nothing is a
+        # target. Split by MODE, not by argparse nargs (see p_send comment).
         if args.room is not None:
+            text = " ".join(args.send_args)
             if not text:
                 print("ERR: message text is required for send --room",
                       file=sys.stderr)
@@ -960,6 +1031,7 @@ def main(argv: list[str] | None = None) -> int:
             print(send_room(croot, args.room, text, sender).resolve())
             return 0
         if args.dm_to is not None:
+            text = " ".join(args.send_args)
             if not text:
                 print("ERR: message text is required for send --to",
                       file=sys.stderr)
@@ -967,15 +1039,17 @@ def main(argv: list[str] | None = None) -> int:
             print(send_dm(croot, _detect_sender(sender), args.dm_to, text,
                           sender).resolve())
             return 0
-        # unchanged: inbox send, positional target
-        if not args.target:
+        # unchanged: inbox send -- first token is the target, the rest is text
+        if not args.send_args:
             print("ERR: send needs a target (inbox) or --room/--to",
                   file=sys.stderr)
             return 1
+        target, *rest = args.send_args
+        text = " ".join(rest)
         if not text:
             print("ERR: message text is required for send", file=sys.stderr)
             return 1
-        send(root, args.target, text, sender)
+        send(root, target, text, sender)
         return 0
 
     if args.verb == "read":
@@ -1032,8 +1106,11 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             audience_close(croot, args.aud_round, args.decision)
             return 0
+        if args.target == "quorum":
+            audience_quorum(croot, args.reason, sender)
+            return 0
         if args.target != PRIME:
-            print(f"ERR: audience targets the prime or close only, "
+            print(f"ERR: audience targets 'prime', 'quorum', or 'close', "
                   f"got {args.target!r}", file=sys.stderr)
             return 1
         audience_prime(croot, root, args.reason, sender, args.morals)
@@ -1063,8 +1140,12 @@ def main(argv: list[str] | None = None) -> int:
         if not text:
             print("ERR: message text is required for report", file=sys.stderr)
             return 1
+        if bool(args.asker) == bool(args.report_room):
+            print("ERR: report needs exactly one of --to or --room",
+                  file=sys.stderr)
+            return 1
         print(report(croot, _detect_sender(sender), args.asker, args.ref,
-                     text, sender).resolve())
+                     text, sender, room=args.report_room).resolve())
         return 0
 
     if args.verb == "escalate":
