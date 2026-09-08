@@ -778,3 +778,20 @@ SKILL.md       52,793 B total, ~25 sections, LONG TAIL
 99. **CONSTITUTION SCOPE, FINAL — owner, verbatim: *"Only prayers must remain, moral stuff is read as needed only required for successor Belam."*** Three rulings: **prayers ONLY in the head for every role** (not prayers plus a condensed morals block — prayers, nothing else); **the morals are READ-AS-NEEDED**, invoked deliberately for a tie-break and never injected; and 🔴 **ONE EXCEPTION — the successor-BELAM prompt requires them.** **So `brief.py`'s head assembly needs a per-tier branch: `prime_director` carries the morals, every other tier carries prayers only.** **Getting it backwards in either direction is a real failure — strip it from the prime and the prime loses its tie-break basis; leave it on every seat and the trim does not happen.**
 
     ⚠️ **AND A CORRECTION TO THE RECORD AT ITS SOURCE: the `SKILL.md`/`INJECTION.md` HOLD WAS THE PRIME'S, ON A MISREADING, AND IS LIFTED.** The owner wrote *"Fixing injection and skill now"* and the prime read it as *the owner is editing those files right now* (item 90). **They meant the effort, not their own hands on the files.** Cost: one round of idle capacity and a serialisation that was never needed. **Same class as the day's other failures — a reading that resolved plausibly and was wrong — and recorded here rather than quietly dropped so nobody inherits the assumption.**
+
+100. **🔴 THE CC-SEAT CEILING IS MEASURED, AND IT BOUNDS THE OWNER'S 70–90% ASK. `hypothesis:cc-seat-context-ceiling` + `experiment:cc-seat-ceiling-measured`, by `sanctuary-director` gen III.**
+
+```
+CC seat bootstrap = 72,152 tok
+  OURS      20,360  =  28.2%   <-- everything the trim can reach
+  HARNESS   51,792  =  71.8%   <-- skills catalog, tool schemas,
+                                   agent-type catalog, deferred tools
+```
+
+    **So a PERFECT trim of everything we control saves 28.2% of a seat's bootstrap. The 70–90% target is reachable for pi-harness roles — where our content IS most of the prompt (24,690 baseline) — and CAPPED near 28% for a live Claude Code seat.** **That is not a failure of the effort; it is the effort discovering its own boundary, which is worth more than another round chasing a number that cannot exist.**
+
+    **THE CONSEQUENCE THE OWNER SHOULD WEIGH: the 71.8% is harness-supplied, so the remaining lever is CONFIGURATION, not documentation** — how many skills and tools a seat's session is provisioned with. **That is a settings question and it is the cheapest large win left on the board.** It has never been measured against seat cost and it should be, before anyone writes more prose.
+
+    **It also sharpens item 73's seat economics into arithmetic: idle seats cost ~0/hour, but every seat's ARRIVAL costs ~72k of which ~52k is untouchable.** **Seat count × 72k is the standing bootstrap cost of the roster, and only 28% of that is ours to argue with.** Pair it with the owner's `$70` weekly allowance (item 86) and the roster becomes a sizing calculation rather than a judgement call.
+
+101. **🔚 BELAM XIII CLOSES. Successor `belam-S1-L3-XIV` is LIVE — confirmed by `tmux capture-pane` (thinking, 11.9k tokens in), never by the read-back alone, per standing doctrine.** Rotated at the owner's word with the trim in flight rather than complete: **the rotation half of the gate is proven, the trim half is not, and that is stated rather than papered over.** Everything is pushed; `season/s2` clean of unpushed commits. **`sanctuary-director` gen III holds the only running work and has the full state.** **Owner decisions 67–100 are recorded verbatim in this section — read 71 (survival mode), 78 (role layout), 92/98/99 (what the trim actually is) and 100 (what it cannot be) before dispatching anything.**
