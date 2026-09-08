@@ -160,6 +160,30 @@ def is_alive(pid: int) -> bool:
     return True
 
 
+def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
+    """The working directory a restarted agent must be born into.
+
+    `hypothesis:l3-branch-isolation-partial-break`. A `--branch` spawn's
+    agent_record carries `worktree` (dispatch.py writes branch_ref["worktree"]
+    into it), and the restarted process must re-enter THAT worktree or its
+    relative source edits land in the MAIN checkout. The old default,
+    `sess_dir.parent.parent.parent`, resolves iter_dir against the dispatch's
+    OWN root -- for a top-level dispatch that root is the main checkout, so a
+    reaped `--branch` parent was re-spawned with cwd = main, which is exactly
+    the observed partial break (source edits in main, coherent worktree).
+
+    A record with no usable `worktree` falls back to the historical derivation
+    untouched, so non-branch restarts behave exactly as before.
+    """
+    if agent_record:
+        wt = agent_record.get("worktree")
+        if wt:
+            worktree = Path(wt).resolve()
+            if worktree.is_dir():
+                return worktree
+    return Path(sess_dir).parent.parent.parent
+
+
 def restart(
     *,
     harness: dict,
@@ -208,7 +232,7 @@ def restart(
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
                 start_new_session=True,
-                cwd=str(sess_dir.parent.parent.parent),
+                cwd=str(_restart_cwd(sess_dir, agent_record)),
                 env=env,
             )
     except OSError as exc:

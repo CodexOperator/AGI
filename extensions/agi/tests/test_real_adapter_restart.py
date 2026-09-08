@@ -86,6 +86,77 @@ class TestPiAdapterRestartWithRealProcess:
     """Validate that `pi_adapter.restart()` spawns a real process with a real
     pid that can be killed, detected dead, and restarted."""
 
+    def test_restart_reenters_the_branch_worktree_not_main(self, project_root, monkeypatch):
+        """hypothesis:l3-branch-isolation-partial-break — a reaper restart
+        of a `--branch` spawn must be born with its cwd INSIDE its own
+        worktree, or its relative source edits land in the MAIN checkout. The
+        old `cwd=sess_dir.parent.parent.parent` resolved iter_dir against the
+        dispatch's own root (main for a top-level dispatch) and re-spawned the
+        restarted parent in main. Red-first: with mocked pi recording `pwd`,
+        restart must report the worktree, never main."""
+        import adapters
+        pi = adapters.load("pi")
+
+        # A branch agent's record carries `worktree`; the session dir lives in
+        # MAIN (top-level dispatch resolves iter_dir against the main root).
+        wt = project_root / ".agi" / "worktrees" / "a00-branchy"
+        wt.mkdir(parents=True)
+        sess_dir = project_root / "sessions" / "iter-996" / "a00-branchy"
+        sess_dir.mkdir(parents=True)
+        (sess_dir / "context.md").write_text("ctx")
+
+        pwd_marker = project_root / "restart_cwd.txt"
+        pwd_pi = project_root / "pwd_pi.sh"
+        pwd_pi.write_text(
+            f"#!/bin/bash\npwd > {pwd_marker}\nexit 0\n")
+        pwd_pi.chmod(0o755)
+        monkeypatch.setenv("PI_BIN", str(pwd_pi))
+
+        harness = {"adapter": "pi", "bin": str(pwd_pi),
+                   "provider": "openrouter", "models": {"kid": "test-model"}}
+        agent_record = {
+            "id": "a00-branchy", "tier": "kid", "iter": 996,
+            "status": "failed", "pid": 0, "worktree": str(wt),
+        }
+
+        new_pid = pi.restart(
+            harness=harness, tier="kid",
+            context_file=str(sess_dir / "context.md"),
+            agent_id="a00-branchy", iter_n=996, sess_dir=sess_dir,
+            agent_record=agent_record,
+        )
+        assert new_pid, "restart must spawn"
+        try:
+            import time
+            for _ in range(50):
+                if pwd_marker.exists():
+                    break
+                time.sleep(0.05)
+            assert pwd_marker.exists(), "mock pi never ran"
+            cwd = pwd_marker.read_text().strip()
+        finally:
+            try:
+                os.kill(new_pid, signal.SIGKILL)
+            except OSError:
+                pass
+        wt_res = str(wt.resolve())
+        assert os.path.realpath(cwd) == wt_res, (
+            f"restarted --branch agent must have cwd inside its worktree "
+            f"{wt_res}, got {cwd!r}")
+        assert cwd != str(project_root.resolve()), (
+            "restarted agent must NOT be born in the main checkout")
+
+    def test_restart_cwd_helper_falls_back_without_a_worktree(self, project_root):
+        """Non-branch records (no `worktree`) keep the historical cwd
+        derivation, so restarts of ordinary kids are unchanged."""
+        import adapters
+        pi = adapters.load("pi")
+        sess_dir = project_root / "sessions" / "iter-1" / "a00-plain"
+        sess_dir.mkdir(parents=True)
+        # No worktree in the record → historical sess_dir.parent.parent.parent.
+        cwd = pi._restart_cwd(sess_dir, {"id": "a00-plain"})
+        assert cwd == sess_dir.parent.parent.parent
+
     def test_restart_returns_real_pid(self, mock_pi_bin, project_root, monkeypatch):
         """The core claim: pi_adapter.restart() through subprocess.Popen produces
         a real, valid OS pid — not a synthetic one returned by a mock."""
