@@ -90,3 +90,40 @@ def test_broken_config_costs_the_preference_not_the_healer(broken, tmp_path):
 
 def test_missing_project_returns_no_args(tmp_path):
     assert heal._pi_model_args(tmp_path / "nowhere") == []
+
+
+# --- hypothesis:l3-branch-isolation-partial-break --------------------------
+# A healer's cwd decides which tree its source edits touch. For a `--branch`
+# spawn the record carries the agent's own worktree; the healer must re-enter
+# it, not the main checkout.
+
+def test_healer_cwd_reenters_the_branch_worktree(tmp_path):
+    main_graph = tmp_path / "main" / ".agi"
+    main_graph.mkdir(parents=True)
+    wt = main_graph / "worktrees" / "a00-x"
+    wt.mkdir(parents=True)
+    rec = {"worktree": str(wt)}
+    assert heal._heal_cwd(main_graph, rec).resolve() == wt.resolve()
+
+
+def test_healer_cwd_falls_back_to_root_without_a_worktree(tmp_path):
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True)
+    assert heal._heal_cwd(graph, {}) == graph
+
+
+def test_healer_cwd_ignores_a_gone_worktree(tmp_path):
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True)
+    rec = {"worktree": str(graph / "worktrees" / "a00-gone")}
+    # Not on disk (dropped) → healers fall back to the resolved root rather
+    # than spawning into a directory that does not exist.
+    assert heal._heal_cwd(graph, rec) == graph
+
+def test_healer_spawn_sets_cwd_from_worktree_record(tmp_path):
+    """The Popen on the healer path must route cwd through `_heal_cwd`, not
+    a re-entry of the caller's root."""
+    source = (BIN / "heal.py").read_text()
+    assert "cwd=str(heal_root)" in source, (
+        "healer Popen must use the worktree-aware heal_root")
+    assert "_heal_cwd(root, rec)" in source
