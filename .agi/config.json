@@ -91,6 +91,12 @@
       "effort": "max",
       "provider": "claude-code",
       "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through — owner quote (6), 2026-09-07"
+    },
+    "deep-search": {
+      "model": "sonnet",
+      "effort": "high",
+      "provider": "pi",
+      "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07"
     }
   }
 }
