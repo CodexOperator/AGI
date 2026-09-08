@@ -1,0 +1,26 @@
+# rotation baseline — seat belam, generation belam-S1-L3-XI -> XII, captured immediately BEFORE the rotate call
+captured_at_utc: 2026-09-08T05:04:13Z
+meter: 0.3198	319828/1000000 tokens	source=seat_pin	threshold=0.35
+head: 77580f272 HANDOFF: Belam XI closing — money leak sealed, four owner asks banked, L3.43 handed over live
+live_agents: budget: 8/25 live  dir=/home/ubuntu/work/agi/.agi/sessions/.spawn-budget
+--- belam windows BEFORE ---
+0: belam-S1-L3-IX (1 panes) [80x24] [layout 2ce3,80x24,0,0,151] @151
+1: belam-S1-L3-X (1 panes) [80x24] [layout ace7,80x24,0,0,165] @165
+5: belam-S1-L3 (1 panes) [80x24] [layout d965,80x24,0,0,45] @45
+9: belam-S1-L3-XI (1 panes) [80x24] [layout ace3,80x24,0,0,180] @180
+25: belam-S1-L3-II (1 panes) [80x24] [layout 5964,80x24,0,0,72] @72
+35: belam-S1-L3-III (1 panes) [80x24] [layout d966,80x24,0,0,84] @84
+51: belam-S1-L3-IV (1 panes) [80x24] [layout acdf,80x24,0,0,100] @100
+63: belam-S1-L3-V (1 panes) [80x24] [layout 2ce2,80x24,0,0,112] @112
+72: belam-S1-L3-VI (1 panes) [80x24] [layout ace1,80x24,0,0,121] @121
+74: belam-S1-L3-VII (1 panes) [80x24] [layout ace3,80x24,0,0,123] @123
+83: belam-S1-L3-VIII (1 panes) [80x24] [layout 2ce3,80x24,0,0,132] @132
+
+--- POST-ROTATION, captured after confirming the successor by tmux capture-pane (never by loop's read-back) ---
+confirmed_at_utc: 2026-09-08T05:07:27Z
+successor_window: 26: belam-S1-L3-XII* (1 panes) [80x24] [layout ece4,80x24,0,0,205] @205 (active)
+rotate_loop_output: 'warn: could not read a reply from the successor log' THEN 'rotate prime_director --> successor belam-S1-L3-XII'
+NOTE: loop reported success AND warned it could not read the reply. The window was real and the successor was working.
+      This is the tenth generation and the second recorded rotation. The L3.41 cross-generation pin refusal was NOT triggered,
+      because the pin was re-pointed by hand at open; a successor that does not re-point still gets a stale read.
+left_in_flight: L3.43, 7 --branch parents (see the L3.43 round row for the exact landing procedure)
