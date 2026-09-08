@@ -78,3 +78,12 @@ sessions/
 .env.bak*
 .env.old*
 .env.save*
+
+# rotation records are the durable evidence of a rotation; committed, unlike
+# the transient session logs beside them. Git cannot re-include a path under
+# an ignored dir, so un-ignore .agi/sessions/ and re-ignore every child EXCEPT
+# rotations/ (future transients land under .agi/sessions/* and stay ignored).
+!.agi/sessions/
+.agi/sessions/*
+!.agi/sessions/rotations/
+!.agi/sessions/rotations/*

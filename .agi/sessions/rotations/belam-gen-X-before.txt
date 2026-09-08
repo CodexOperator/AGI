@@ -1,0 +1,17 @@
+# rotation baseline — seat belam, generation belam-S1-L3-X, captured BEFORE rotation
+captured_at_utc: 2026-09-08T01:50:09Z
+seat_pin: /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/49835b37-20b1-4e39-a867-a03d0b377b4d.jsonl
+meter_at_capture: 0.1541	154077/1000000 tokens	source=seat_pin	threshold=0.35
+--- tmux list-windows -a (belam only) ---
+agi-rc:0: belam-S1-L3-IX (1 panes) [80x24] 
+agi-rc:1: belam-S1-L3-X (1 panes) [80x24] 
+agi-rc:5: belam-S1-L3 (1 panes) [80x24] 
+agi-rc:25: belam-S1-L3-II (1 panes) [80x24] 
+agi-rc:35: belam-S1-L3-III (1 panes) [80x24] 
+agi-rc:51: belam-S1-L3-IV (1 panes) [80x24] 
+agi-rc:63: belam-S1-L3-V (1 panes) [80x24] 
+agi-rc:72: belam-S1-L3-VI (1 panes) [80x24] 
+agi-rc:74: belam-S1-L3-VII (1 panes) [80x24] 
+agi-rc:83: belam-S1-L3-VIII (1 panes) [80x24] 
+--- tmux list-windows -a (count) ---
+18
