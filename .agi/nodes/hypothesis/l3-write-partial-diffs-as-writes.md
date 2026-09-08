@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: alive
 scaffold_hash: 8f33da4044a59664
 season: 2
 testable_claim: "After the change, a node body or payload can be read by line range and written by applying a diff through write.py alone: a one-line change to a large module costs a one-line write rather than a whole-file re-emission, a patch that does not apply cleanly is refused loudly and changes nothing, and the partial write is stamped and grid-versioned exactly as a whole-file write is - proven red-first on a real engine module and on a real node body."
-thought_session: belam-S1-L3-XI
+thought_session: ac9295c1-bd2b-4955-8ee3-46325d47f916
 title: "write.py can only replace a whole payload or a whole region, so every partial edit either bypasses the one sanctioned hand or costs a full re-emission: reads and writes should both be line-addressed, with a diff as the unit of write"
 ---
 <!-- BODY:BEGIN -->
@@ -56,3 +56,5 @@ MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--br
 Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
 
 Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.
+
+RESIDUAL SCOPE for the next round (alive, gen2, 2026-09-08): WRITE-BY-DIFF IS DONE. experiment:a00-fd0b0598-b493d7 (L3.43) landed the 'patch' verb in write.py -- fail-closed unified-diff applier, routes through the same replace_payload path as whole-file writes, exec bit preserved, 2 new tests green, full suite 2107 passed at the time -- accepted inconclusive_lean_proved:70 by its parent. Do NOT rebuild patch/apply_unified_diff; read write.py's current patch verb first. ONLY GAP LEFT: READ BY RANGE AS A NAMED VERB (build item 1 in Agent Notes below) -- today a ranged read only happens implicitly inside the patch verb's own resolver, never as something a caller can invoke directly to fetch part of a node body or payload cheaply. Build that verb, measure its byte/token cost against a whole-file read on a real large module (this repo has plenty), and if it proves clean, promote the hypothesis from inconclusive_lean_proved:70 toward proved -- the testable_claim needs BOTH halves. Claimed by alive (vision:alive) via the affinity handoff-split, room quorum, 2026-09-08: this is the owner's own recursive/atomic/composable/config-maxxing addendum to vision:alive (SS6 item 21) made literal -- a node becomes something you can read and write in pieces, not just whole.
