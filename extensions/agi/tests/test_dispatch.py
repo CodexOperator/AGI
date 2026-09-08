@@ -9,6 +9,7 @@ nothing. A defect that quiet deserves a test that is loud.
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -954,6 +955,65 @@ def test_child_graph_resolves_to_the_worktrees_own_agi(tmp_path):
         repo, "loop/guide-a00-zz@s1", "a00-zz", "init")
     graph = dispatch.locations.find_project_root(wt)
     assert graph == (wt / ".agi").resolve()
+
+
+def test_branch_kid_argv_shares_the_worktree_prefix(tmp_path, monkeypatch):
+    """hypothesis:l3-branch-source-paths-never-rerooted, the red-first proof.
+
+    dispatch.py re-roots the child GRAPH (`child_working_graph`) but, before
+    the fix, left `cli_py` / `skill_prompt` / `dispatch_py` as module
+    constants of the RUNNING (main) dispatch.py. A `--branch` kid's argv
+    therefore carried a worktree-absolute scaffold path BESIDE main-absolute
+    engine paths — and the model followed the only source anchor it was
+    given, main. `child_engine_paths` re-roots all four through
+    `locations.source_root` and the brief states the checkout out loud, so a
+    `--branch` kid's argv must contain NO absolute path outside the worktree
+    prefix: the real main checkout must never appear in it.
+    """
+    monkeypatch.setenv("AGI_PI_FORGIVENESS_BYPASS", "1")
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/explore-a00-test@s2", "a00-test", "init")
+    child_graph = dispatch.locations.find_project_root(wt)
+    assert child_graph == (wt / ".agi").resolve()
+
+    # The re-rooted candidates only exist when the worktree carries an engine
+    # layout; the minimal test repo has none, so give the worktree one.
+    for rel in ("extensions/agi/bin/cli.py",
+                "extensions/agi/bin/dispatch.py",
+                "extensions/agi/lib/agent-prompt.md"):
+        p = wt / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# engine placeholder\n", encoding="utf-8")
+
+    engine_paths = dispatch.child_engine_paths(child_graph)
+
+    ctx = wt / "ctx.md"
+    ctx.write_text("placeholder\n", encoding="utf-8")
+    sess = wt / "sess"
+    sess.mkdir(parents=True, exist_ok=True)
+    argv = dispatch.adapters.load("pi").build_command(
+        harness={"adapter": "pi", "models": {}}, tier="kid",
+        context_file=str(ctx), agent_id="a00-test", iter_n=1,
+        sess_dir=sess, scaffold=None,
+        cli_py=engine_paths["cli_py"],
+        skill_prompt=engine_paths["skill_prompt"],
+        dispatch_py=engine_paths["dispatch_py"],
+        source_root=engine_paths["source_root"],
+    )
+
+    text = "\n".join(str(a) for a in argv)
+    wt_pref = str(wt.resolve())
+    bad = [p for p in re.findall(r"/\\S+", text)
+           if not p.startswith(wt_pref)]
+    assert not bad, (
+        "a --branch kid's argv carries an absolute path outside its own "
+        f"worktree ({wt_pref}): {bad}. The engine must be re-rooted to the "
+        "child checkout, never left at the running dispatch's main "
+        "constants."
+    )
+    assert f"YOUR CHECKOUT: {wt_pref}" in text, (
+        "the brief must state the kid's own checkout out loud")
 
 
 def test_dispatch_branch_flag_is_registered():
