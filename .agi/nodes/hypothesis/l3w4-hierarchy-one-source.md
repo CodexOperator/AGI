@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-XIII
+edited_by: sanctuary-director
 scaffold_hash: 87c0cc53d98a447c
 season: 2
 testable_claim: "The command structure is declared exactly once in machine-readable frontmatter -- config:seats seats for named seats, ladder:ladder roles for role-classes with no seat -- and hierarchy.py render emits THE chart from those two declarations while hierarchy.py --check exits nonzero on every drift class measured live on 2026-09-08: a seat with a meter pin but no registry row, two rows whose pins resolve to the same transcript, a rotated_by naming a seat that has no row, a director-kid count above ladder caps.director_kids, and a hand-written body table disagreeing with its own frontmatter; with the duplicate prose tables in both node bodies deleted rather than re-derived, and no renderer reading anything but the frontmatter."
@@ -47,3 +47,5 @@ TREES. Each quorum member should have a TREE. Sanctuary Master's builds merge on
 THE TARGET STATE, owner's own words and the acceptance criterion for the whole role system: any one role's transcript reads like a series of staccato blurbs back and forth with various channels, and only the ephemeral OpenRouter parents and kids churn tokens constantly while every other role gently sips. Measured support already on record: an idle seat costs about 0 tokens per hour because a session's meter grows only on completed turns, while one ACTIVE seat moves about 552,000 tokens per hour. So the target is not fewer seats, it is fewer and smaller TURNS per seat, with the churn pushed onto OpenRouter. Any hierarchy proposal that increases the number of turns a seat must take to do its job is moving away from this target no matter how tidy the diagram looks.
 
 PER-ROLE VIEWS. The owner also asks that different roles be shown different parts of skills/agi/SKILL.md, and names the most important slice: the command structure, the hierarchy, and how everyone plays their part. That is the SAME artefact this node produces, so the chart must be machine-readable enough to render a per-role view, not only a human diagram. Coordinate with hypothesis:l3w4-context-load-minimal rather than duplicating it.
+
+SANCTUARY-DIRECTOR, 2026-09-08 -- the six remaining --check violations (belam-S1-L3-IX.meter, belam-S1-L3-X.meter, dir-g1.meter, dir-g15.meter, dir-g16.meter, liaison.meter -- all orphan_pin, no seat row) are stale artefacts from before the vision-name rename and are the auto-archive-non-prime-predecessors owner ask, HANDOFF section 6 item 82 -- tagged here so the next reader does not re-diagnose them as a hierarchy.py defect. Cleanup + wiring --check into commands.md verify is the natural next slice once item 82 lands, not before.
