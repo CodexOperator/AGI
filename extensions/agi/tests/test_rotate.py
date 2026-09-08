@@ -1775,3 +1775,106 @@ def test_refused_loop_does_not_advance_sequence(fake_ladder, tmp_path,
     assert calls == [], f"refused loop announced {calls}, want none"
     assert rotate._current_sequence(root) == 0, \
         "refused rotation must not advance the sequence counter"
+
+
+# --- fresh_spend_status: owner, 2026-09-08, "shown on pin accept fresh" ----
+#
+# The exact error this closes: a report carried the per-spawn provisioning
+# KEY's own sub-cap as though it were the whole ceiling, when the ACCOUNT
+# behind it held several dollars more. `fresh_spend_status` must always
+# surface BOTH numbers, and `_openrouter_key` must find `.env` at the REPO
+# root even though `root` here is the GRAPH root (`.agi/`) -- the exact bug
+# caught live before this landed: `root / ".env"` silently found nothing
+# because `.env` lives one level up, at `repo_root(root)`.
+
+def test_openrouter_key_env_file_found_via_repo_root_not_graph_root(tmp_path):
+    # root passed to _openrouter_key is the GRAPH root (name == ".agi"),
+    # exactly what find_project_root returns -- .env lives at its PARENT.
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    (tmp_path / ".env").write_text("OPENROUTER_API_KEY=sk-or-v1-test123\n")
+    assert rotate._openrouter_key(graph_root) == "sk-or-v1-test123"
+
+
+def test_openrouter_key_prefers_env_var_over_dotenv_file(tmp_path, monkeypatch):
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    (tmp_path / ".env").write_text("OPENROUTER_API_KEY=sk-or-v1-fromfile\n")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-fromenv")
+    assert rotate._openrouter_key(graph_root) == "sk-or-v1-fromenv"
+
+
+def test_openrouter_key_none_when_neither_configured(tmp_path, monkeypatch):
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    assert rotate._openrouter_key(graph_root) is None
+
+
+def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkeypatch):
+    # The bug being pinned: showing the key sub-cap alone reads as "all
+    # there is". Both numbers must appear, and the key must read as a
+    # sub-cap on ONE key (raisable), never as the account ceiling.
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-test")
+
+    def fake_get(url, key):
+        if url.endswith("/key"):
+            return {"limit_remaining": 9.260199335, "limit": 15}
+        if url.endswith("/credits"):
+            return {"total_credits": 92, "total_usage": 75.766608581}
+        raise AssertionError(f"unexpected url {url}")
+
+    monkeypatch.setattr(rotate, "_openrouter_get", fake_get)
+    status = rotate.fresh_spend_status(graph_root)
+    assert "9.26" in status and "15" in status, status
+    assert "sub-cap" in status, "key figure must be labelled a sub-cap, not the ceiling"
+    assert "raisable" in status, status
+    assert "16.23" in status and "92.00" in status, status
+    assert "account" in status, status
+
+
+def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch):
+    # A balance check must never fail a pin claim -- silent None, not a raise.
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-test")
+    monkeypatch.setattr(rotate, "_openrouter_get", lambda url, key: None)
+    assert rotate.fresh_spend_status(graph_root) is None
+
+
+def test_fresh_spend_status_none_without_a_key(tmp_path, monkeypatch):
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    assert rotate.fresh_spend_status(graph_root) is None
+
+
+def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder, capsys):
+    # The actual owner ask: --pin (a fresh claim) shows spend, unprompted.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        rotate, "fresh_spend_status",
+        lambda root: "key sub-cap: $9.26 remaining of $15 (raisable); "
+                     "account: $16.23 remaining of $92.00 total")
+    code = rotate.main(["meter", "--session-log", str(pinned), "--pin",
+                        str(tmp_path / "sessions" / "claim-test.meter")])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "spend" in out and "9.26" in out and "16.23" in out, out
+
+
+def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_path, fake_ladder, capsys):
+    # Spend is only ever checked at CLAIM time (--pin), not on every plain
+    # read -- a bare `meter --seat X` must not add a network call.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    _write_pin(tmp_path, pinned)
+    called = []
+    monkeypatch.setattr(rotate, "fresh_spend_status",
+                        lambda root: called.append(1) or "should not appear")
+    code = rotate.main(["meter"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert called == [], "a plain read (no --pin) must not check spend at all"
+    assert "should not appear" not in out
