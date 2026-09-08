@@ -54,6 +54,8 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -752,6 +754,72 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
 # ---- meter subcommand -----------------------------------------------------
 
 
+def _openrouter_key(root: Path) -> str | None:
+    """`OPENROUTER_API_KEY`, env first, then `.env` at the repo root.
+
+    `root` here is the GRAPH root (`.agi/`, per `find_project_root`), not
+    the repo root -- `.env` lives one level up, so this must resolve
+    through `locations.repo_root` rather than join onto `root` directly.
+    """
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if key:
+        return key
+    env_path = locations.repo_root(root) / ".env"
+    if not env_path.exists():
+        return None
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("OPENROUTER_API_KEY="):
+            return line.split("=", 1)[1].strip()
+    return None
+
+
+def _openrouter_get(url: str, key: str) -> dict | None:
+    """One best-effort GET against an OpenRouter endpoint. Never raises --
+    a spend check must not fail a pin claim over a network hiccup."""
+    try:
+        req = urllib.request.Request(
+            url, headers={"Authorization": f"Bearer {key}"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return json.loads(resp.read().decode("utf-8")).get("data")
+    except (urllib.error.URLError, TimeoutError, ValueError, OSError):
+        return None
+
+
+def fresh_spend_status(root: Path) -> str | None:
+    """Live OpenRouter balance, both scopes, at the moment a pin is claimed.
+
+    Owner, 2026-09-08: "someone got something wrong regarding spend cap,
+    it needs to be shown on pin accept fresh." What went wrong, named so it
+    is not repeated: a report carried the per-spawn provisioning KEY's own
+    sub-cap ("~$9.4 remaining") as though it were the ceiling, when the
+    ACCOUNT behind it held several dollars more and the key's own limit is
+    raisable (`PATCH /api/v1/keys/<hash>`, already used twice this loop).
+    Showing only one of the two numbers is that exact error reproduced in
+    the tool, so this always prints BOTH, the key labelled as a sub-cap on
+    ONE key, never as "all there is". Returns None (silently) if no key is
+    configured or the network call fails -- a pin claim must still succeed
+    with no spend visibility rather than fail loudly over it.
+    """
+    key = _openrouter_key(root)
+    if not key:
+        return None
+    key_data = _openrouter_get("https://openrouter.ai/api/v1/key", key)
+    credits_data = _openrouter_get("https://openrouter.ai/api/v1/credits", key)
+    parts = []
+    if key_data and key_data.get("limit_remaining") is not None:
+        parts.append(f"key sub-cap: ${key_data['limit_remaining']:.2f} "
+                     f"remaining of ${key_data.get('limit')} (raisable)")
+    if credits_data:
+        total = credits_data.get("total_credits")
+        used = credits_data.get("total_usage")
+        if total is not None and used is not None:
+            parts.append(f"account: ${total - used:.2f} remaining of "
+                         f"${total:.2f} total")
+    if not parts:
+        return None
+    return "; ".join(parts)
+
+
 def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     """Print context-usage fraction and optionally check against threshold."""
 
@@ -832,6 +900,14 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
             pinp.write_text(f"{cur_gen}\t{log_path}\n", encoding="utf-8")
         else:
             pinp.write_text(str(log_path) + "\n", encoding="utf-8")
+
+        # A pin claim is a fresh generation's first act, so it is the moment
+        # a stale spend assumption is most expensive to carry forward
+        # (owner, 2026-09-08 -- see fresh_spend_status's docstring for the
+        # exact error this closes). Best-effort: silent on no key/network.
+        spend = fresh_spend_status(root)
+        if spend:
+            print(f"spend (fresh at claim): {spend}")
 
     # Parse usage
     usage = None
