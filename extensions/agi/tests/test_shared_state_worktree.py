@@ -159,3 +159,76 @@ def test_zoom_refusal_names_the_main_checkout_when_target_exists_there(tmp_path)
     assert "not found in the graph" in p.stderr
     # The refusal NAMES the fork instead of implying a typo:
     assert "main checkout" in p.stderr
+
+
+# --- clause 3: cli.py done from a worktree resolves the MAIN session record --
+
+
+def _commit_graph(repo: Path) -> None:
+    """A committed graph with the three nodes `done` needs: the kid's
+    experiment, its backer experiment (so `proved` resolves real evidence) and
+    the parent hypothesis. Committed BEFORE the worktree is cut, so the fork
+    carries them too."""
+    hyp = repo / ".agi" / "nodes" / "hypothesis"
+    exp = repo / ".agi" / "nodes" / "experiment"
+    hyp.mkdir(parents=True, exist_ok=True)
+    exp.mkdir(parents=True, exist_ok=True)
+    (hyp / "h1.md").write_text(
+        "---\nid: hypothesis:h1\ntype: hypothesis\n---\n\nbody\n", encoding="utf-8")
+    (exp / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\nparents:\n- hypothesis:h1\n"
+        "---\n\nbody\n", encoding="utf-8")
+    (exp / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n- hypothesis:h1\n"
+        "---\n\nbody\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add nodes")
+
+
+_AGENT_JSON = ('{"id": "a00-x", "node_id": "experiment:e1", '
+               '"parent": "hypothesis:h1", "status": "running"}')
+
+
+def test_cli_done_from_a_worktree_resolves_the_main_session_record(tmp_path, monkeypatch):
+    """Red-first for hypothesis:l3-cli-done-worktree-manifest.
+
+    A `--branch` parent's `agent.json` is written by the DIRECTOR's dispatch
+    into the MAIN checkout's session dir (session state is SHARED, like the
+    spawn budget and comms root). The parent then runs `cli.py done` from its
+    own git WORKTREE, where `find_project_root` resolves the worktree's own
+    `.agi/` and finds no record there. Before the fix `done` exited 1
+    ("no agent record") and every --branch parent had to cd to the main repo
+    or copy its record around (three of four parents hit this in L3.38). Now
+    the session surface resolves through `shared_project_root` and `done`
+    completes from the worktree cwd, against the MAIN checkout record.
+    """
+    import argparse
+    import cli
+
+    repo = _make_project_repo(tmp_path)
+    _commit_graph(repo)
+    wt = _make_worktree(repo, tmp_path)
+
+    # The spawn: dispatch (run from MAIN) wrote the record to the shared main
+    # session dir. The worktree — the fork the agent edits — never sees it.
+    main_sess = repo / ".agi" / "sessions" / "iter-001" / "a00-x"
+    main_sess.mkdir(parents=True)
+    (main_sess / "agent.json").write_text(_AGENT_JSON, encoding="utf-8")
+    assert not (wt / ".agi" / "sessions" / "iter-001" / "a00-x").exists()
+
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    monkeypatch.chdir(wt)  # the parent's cwd is the WORKTREE
+
+    rc = cli.cmd_done(args)
+    assert rc == 0
+
+    # The verdict landed in the MAIN (shared) record, not an empty fork copy.
+    rec = __import__("json").loads((main_sess / "agent.json").read_text())
+    assert rec["status"] == "done"
+    assert rec["verdict"] == "proved"
+    assert rec["node_id"] == "experiment:e1"
