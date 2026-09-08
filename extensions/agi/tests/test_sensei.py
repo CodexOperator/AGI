@@ -83,6 +83,34 @@ def seat_fixture(root: Path, row: dict) -> dict:
     return row
 
 
+def test_pick_worst_ledger_reads_json_array_and_jsonl(tmp_path):
+    """pick_worst --ledger must read the indented JSON array that
+    failures.py.ledger()/aggregate() write, and fall back to JSONL for
+    legacy files (the defect that crashed JSONDecodeError on a real ledger)."""
+    arr = tmp_path / "rates.json"
+    arr.write_text(json.dumps([
+        {"seat_or_role": "kid", "model": "deepseek-v4",
+         "fail_rate": 0.4, "failed": 4},
+        {"seat_or_role": "director", "model": "deepseek-v4",
+         "fail_rate": 0.6, "failed": 6},
+    ], indent=2), encoding="utf-8")
+    rows = sensei.load_ledger_rows(arr)
+    assert len(rows) == 2
+    worst = sensei.pick_worst(rows)
+    assert worst["seat_or_role"] == "director"
+
+    jl = tmp_path / "legacy.jsonl"
+    jl.write_text(json.dumps({"seat_or_role": "kid", "model": "m",
+                              "fail_rate": 0.2, "failed": 1}) + "\n" +
+                  json.dumps({"seat_or_role": "liaison", "model": "m",
+                              "fail_rate": 0.5, "failed": 2}) + "\n",
+                  encoding="utf-8")
+    rows2 = sensei.load_ledger_rows(jl)
+    assert len(rows2) == 2
+    assert sensei.pick_worst(rows2)["seat_or_role"] == "liaison"
+    assert sensei.load_ledger_rows(tmp_path / "missing") == []
+
+
 def test_apply_protected_target_never_calls_write_py_without_owner_approved(
         tmp_path, monkeypatch):
     root = tmp_path

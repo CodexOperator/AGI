@@ -1515,3 +1515,160 @@ def test_tile_apply_degrades_gracefully_without_wm(monkeypatch, tmp_path):
                            tmux_session="agi-rc", width=100, height=100)
     rc = rotate._cmd_tile_apply(args, tmp_path, 100, 100)
     assert rc == 0
+
+
+# ── l3w4-rotation-announces-itself: rotation announces itself over the alert channel ──
+# RED-FIRST for experiment:a00-67a5c714-9c8cd8. Tests assert: (1) the five-field
+# payload, (2) recipient derivation drops a gone window + the rotating seat, (3) a
+# non-prime rotation dms every derived recipient exactly one announcement carrying
+# all five fields, (4) the prime routes to the alert room, never quorum, (5) the
+# loop and rotate-self success paths each announce EXACTLY once, (6) a refused
+# rotation announces NOTHING.
+
+FIVE_FIELDS = ("outgoing", "successor", "generation", "trigger", "handoff")
+
+
+def test_compose_announcement_carries_all_five_fields():
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="meter due", handoff_path=".agi/sessions/belam-III.log",
+        in_flight="master-sensei handoff in progress")
+    assert body.startswith(rotate.ROTATION_ALERT_TAG)
+    assert "belam-II" in body and "belam-III" in body
+    assert "2 -> 3" in body
+    assert "trigger: meter due" in body
+    assert "handoff: .agi/sessions/belam-III.log" in body
+    assert "in flight: master-sensei handoff in progress" in body
+
+
+def test_derive_receivers_drops_gone_window_and_self(tmp_path):
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "liason", "role": "parent"},
+            {"name": "kid-b", "role": "director"}]
+    _write_seats_sheet(tmp_path, rows)
+    # seats -> live windows intersection: kid-b's window is GONE -> dropped;
+    # the rotating seat (whatever its row) is never told of its own rotation.
+    got = rotate._derive_receivers(tmp_path, seat="liason",
+                                   live_names=["kid-a", "liason"])
+    assert got == ["kid-a"]
+
+
+def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "liason", "role": "parent"},
+            {"name": "kid-b", "role": "director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="liason",
+        successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
+        handoff_path=".agi/sessions/liason.handoff.md", in_flight="none",
+        live_names=["kid-a", "liason", "kid-b"])
+    assert delivered == ["kid-a", "kid-b"]
+    assert [to for to, _ in sent] == ["kid-a", "kid-b"]
+    for _, text in sent:
+        assert "trigger: rotate-self" in text
+        assert "in flight: none" in text
+
+
+def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
+        monkeypatch, tmp_path):
+    room_posts = []
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    monkeypatch.setattr(_send, "send_room",
+                        lambda croot, room, text, sender: room_posts.append(
+                            (room, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="prime",
+        successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
+        handoff_path=".agi/sessions/belam-III.log", in_flight="none",
+        live_names=["kid-a", "prime"])
+    assert delivered == [rotate.ROTATION_ALERT_ROOM]
+    assert len(room_posts) == 1
+    room, text = room_posts[0]
+    assert room == rotate.ROTATION_ALERT_ROOM
+    assert "quorum" not in room
+    assert "generation 2 -> 3" in text
+    assert "trigger: --force" in text
+
+
+def test_loop_success_announces_exactly_once_refusal_never(
+        fake_ladder, tmp_path, monkeypatch):
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    calls = []
+    monkeypatch.setattr(rotate, "_announce_rotation",
+                        lambda **kw: calls.append(kw) or [])
+
+    success_reply = tmp_path / "reply.log"
+    success_reply.write_text("continue\n")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+
+    def fake_launch(s, n, c):
+        wins.write_text(n + "\n", encoding="utf-8")
+        return 0
+    monkeypatch.setattr(rotate, "_launch_window", fake_launch)
+
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(success_reply), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    assert len(calls) == 1, f"loop success announced {len(calls)}x, want 1"
+    kw = calls[0]
+    assert kw["seat"] == "belam-II" and kw["successor"] == "belam-II"
+
+    # refusal path: successor window never appears -> record written, NO announce
+    calls.clear()
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window", lambda s, n, c: 0)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(success_reply), dry_run=False, timeout=1,
+    ), root)
+    assert code != 0
+    assert calls == [], f"refused loop announced {calls}, want none"
+
+
+def test_rotate_self_success_announces_once_refusal_never(
+        fake_ladder, tmp_path, monkeypatch):
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    calls = []
+    monkeypatch.setattr(rotate, "_announce_rotation",
+                        lambda **kw: calls.append(kw) or [])
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert len(calls) == 1, f"rotate-self success announced {len(calls)}x, want 1"
+    assert calls[0]["seat"] == "adv-alive"
+
+    # refusal: successor window never appears -> record, NO announce
+    calls.clear()
+    win.write_text("adv-alive\n", encoding="utf-8")
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo hi"))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    assert calls == [], f"refused rotate-self announced {calls}, want none"

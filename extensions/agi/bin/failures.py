@@ -71,6 +71,9 @@ DIED_STATUSES = {"failed", "hung-unhealed"}
 #: Default ledger file, relative to a project root's sessions dir.
 DEFAULT_LEDGER = "failure-ledger.json"
 
+#: Aggregated rate table (`sensei.pick_worst` shape), written by `sensei`.
+DEFAULT_RATES = "failure-rates.json"
+
 _ERR_MSG = re.compile(r"EVIDENCE-GATE REJECTED")
 _WARN_MSG = re.compile(r"WARN unsanctioned write:\s+(\S+)")
 _MODEL_RE = re.compile(r"--model\s+['\"]?([^'\"\s]+)")
@@ -370,6 +373,34 @@ def _land_via_write(root: Path, write_node: str, new_rows: list[dict],
               file=sys.stderr)
 
 
+def aggregate(rows: list[dict], by: str = "role") -> list[dict]:
+    """Compress raw per-event failure rows into the rate-table shape that
+    `sensei.pick_worst` groups on.
+
+    Every ledger row *is* a failure event, so there is no separate run count
+    to divide by here; `failed` is the count of failure rows in a group and
+    `fail_rate` is that group's share of all failure rows. Each output row
+    carries `seat_or_role` (the grouped axis value), `model`, `failed` and
+    `fail_rate` — the exact four keys pick_worst reads.
+    """
+    from collections import defaultdict
+    groups: dict[tuple[str, str], int] = defaultdict(int)
+    for r in rows:
+        seat = str(r.get(by) or r.get("role") or r.get("agent_id") or "?")
+        model = str(r.get("model") or "")
+        groups[(seat, model)] += 1
+    total = sum(groups.values()) or 1
+    out: list[dict] = []
+    for (seat, model), cnt in sorted(groups.items()):
+        out.append({
+            "seat_or_role": seat,
+            "model": model,
+            "failed": cnt,
+            "fail_rate": round(cnt / total, 4),
+        })
+    return out
+
+
 def rates(root: Path, by: str, in_path: Path | None = None) -> tuple[dict[str, int], int, bool]:
     """Group ledger rows by axis; return (counts, total, sum_matches)."""
     session_dir = Path(root) / locations.SESSIONS_DIR_NAME
@@ -391,6 +422,23 @@ def _cmd_ledger(args) -> int:
     new, total, appended = ledger(root, args.since, out, args.write_node)
     print(f"{appended} rows appended ({len(new)} new of {total} total)")
     return 0 if appended >= 0 else 1
+
+
+def _cmd_sensei(args) -> int:
+    """Aggregate the raw ledger into the rate table sensei.pick_worst reads,
+    written as a JSON array to `<sessions>/failure-rates.json` by default.
+    """
+    root = Path(args.root).resolve()
+    session_dir = Path(root) / locations.SESSIONS_DIR_NAME
+    src = Path(args.in_path) if args.in_path else (session_dir / DEFAULT_LEDGER)
+    rows, _ = _load_ledger(src)
+    table = aggregate(rows, args.by)
+    out = Path(args.out) if args.out else (session_dir / DEFAULT_RATES)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(table, indent=2), encoding="utf-8")
+    print(f"wrote {len(table)} rate rows ({sum(r['failed'] for r in table)} "
+          f"failure events) -> {out}")
+    return 0 if table else 2
 
 
 def _cmd_rates(args) -> int:
@@ -423,6 +471,14 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--by", choices=("model", "role", "harness"), required=True)
     pr.add_argument("--in", dest="in_path", default=None)
     pr.set_defaults(fn=_cmd_rates)
+
+    ps = sub.add_parser("sensei", help="write the rate table pick_worst reads")
+    ps.add_argument("root")
+    ps.add_argument("--by", choices=("role", "model", "harness", "agent_id"),
+                    default="role")
+    ps.add_argument("--in", dest="in_path", default=None)
+    ps.add_argument("--out", default=None)
+    ps.set_defaults(fn=_cmd_sensei)
     return p
 
 
