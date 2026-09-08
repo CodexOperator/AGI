@@ -1,0 +1,85 @@
+{
+  "name": "deep-search",
+  "script": "agi-deep-search.js",
+  "description": "Multi-lens deep investigation, harness-agnostic: fan out one reader per lens on the same ground truth, hand every finding that claims to explain the phenomenon to an adversarial refuter (default: refuted), then synthesize the survivors into a ranked mechanism list with a fix and a red-first test. All investigation-specific content arrives through --args; neither file carries any.",
+  "stages": [
+    {
+      "label": "read",
+      "role": "reader",
+      "repeat": {
+        "of": "lenses",
+        "label_template": "read:{slug}"
+      },
+      "model_hint": "sonnet",
+      "effort_hint": "medium",
+      "prompt": "You are one reader in a multi-lens investigation. Ground truth you MUST explain, not re-litigate: {facts}. The question under investigation: {question}. Your lens is '{slug}': {instruction}.\n\nRead the relevant code/history and gather findings that EXPLAIN the phenomenon. Different lenses find different things on purpose; do not try to match other lenses. For every finding that claims to explain the phenomenon, write one JSON record to the findings file below with a concrete mechanism, the evidence (file:line where possible), and a confidence 0..1.\n\nWrite your findings to {scratch}/read-{slug}.json as an ARRAY of {\"mechanism\":\"...\",\"evidence\":\"...\",\"confidence\":0.0} objects (mkdir -p {scratch} first, overwrite if present). Then respond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"slug\":\"...\",\"found\":0}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "found": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "found"
+        ]
+      }
+    },
+    {
+      "label": "refute",
+      "role": "critic",
+      "repeat": {
+        "of": "lenses",
+        "label_template": "refute:{slug}"
+      },
+      "model_hint": "sonnet",
+      "effort_hint": "high",
+      "prompt": "You are the adversarial refuter for lens '{slug}' in a multi-lens investigation. The question: {question}. Ground truth (do not re-litigate): {facts}.\n\nRead every findings file {scratch}/read-*.json (each lens wrote an array of {\"mechanism\",\"evidence\",\"confidence\"}). For EACH finding that claims to explain the phenomenon, try to kill it: check the cited evidence, look for a competing or simpler explanation, and DEFAULT TO REFUTED whenever the evidence is weak, ambiguous or unverified. Admit as a survivor only a finding whose explanation survives genuine adversarial pressure. Keep at most {refute_n} admitted findings for your lens; refute the rest.\n\nWrite your survivors to {scratch}/refute-{slug}.json as an ARRAY of {\"mechanism\":\"...\",\"evidence\":\"...\",\"confidence\":0.0,\"why_survives\":\"...\"} (mkdir -p {scratch} first, overwrite if present). Then respond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"slug\":\"...\",\"admitted\":0,\"refuted\":0}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "admitted": {
+            "type": "integer"
+          },
+          "refuted": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "admitted",
+          "refuted"
+        ]
+      }
+    },
+    {
+      "label": "synthesize",
+      "role": "reviewer",
+      "model_hint": "sonnet",
+      "effort_hint": "high",
+      "prompt": "You synthesize a multi-lens investigation. The question: {question}. Ground truth: {facts}.\n\nRead every survivor file {scratch}/refute-*.json (each lens wrote an ARRAY of {\"mechanism\",\"evidence\",\"confidence\",\"why_survives\"}). Merge duplicates across lenses, rank the distinct mechanisms by weighted confidence and breadth of independent evidence, and produce a ranked list of the TOP {refute_n} mechanisms most likely to explain the phenomenon. For each ranked mechanism give a concrete fix and, where code can be tested, a red-first test that would fail before the fix and pass after.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"ranked\":[{\"mechanism\":\"...\",\"evidence\":\"...\",\"confidence\":0.0,\"fix\":\"...\",\"red_first_test\":\"...\"}],\"top_mechanism\":\"...\"}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "ranked": {
+            "type": "array"
+          },
+          "top_mechanism": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ranked",
+          "top_mechanism"
+        ]
+      }
+    }
+  ]
+}
