@@ -918,6 +918,19 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
         "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
         "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs experiment:x'\n"
         "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'",
+        # L3.37/38: the edit tool rejected, across two independent kids in one
+        # round, an `edits` argument passed as a single JSON string and one
+        # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.
+        # State the shape plainly so the NEXT kid emits the array form first
+        # time. The edit tool is now also forgiving of both mis-shapes, but
+        # the intended call is the canonical array -- never guess otherwise.
+        "EDIT-TOOL CALL SHAPE: the `edit` tool takes `edits` as an ARRAY of "
+        "{oldText, newText} objects. Pass the array directly -- never as a "
+        "single JSON string, and never wrapped one level too deep as "
+        "`[{ edits: [...] }]`; both are refused and cost you a turn. "
+        "Correct shape:\n"
+        "  edit(path=\"extensions/agi/bin/some.py\", "
+        "edits=[{\"oldText\": \"old line\", \"newText\": \"new line\"}])",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
     ]
