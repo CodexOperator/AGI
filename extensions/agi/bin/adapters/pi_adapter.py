@@ -119,6 +119,29 @@ def build_command(
     ladder_tier: int | None = None,
 ) -> list[str]:
     """The argv that starts one pi agent."""
+    # hypothesis:l3-pi-install-patch-not-durable -- the L3.38 edit-tool
+    # forgiveness patch lives in the SHARED pi install outside this repo, so a
+    # `pi` upgrade silently drops it and every kid quietly pays the lost turn
+    # again. This is the repo-owned, durable half: at every spawn (and every
+    # restart, which also funnels through build_command) gate the installed
+    # tool -- re-applying the patch when an upgrade dropped it, and failing
+    # LOUDLY naming the fix when re-apply cannot be anchored. Set
+    # AGI_PI_FORGIVENESS_BYPASS=1 to disable the gate on an unusual host.
+    import pi_edit_forgiveness as _pi_fg
+    _fg_status, _fg_detail = _pi_fg.ensure_pi_edit_forgiveness()
+    if _fg_status == "fail":
+        raise RuntimeError(
+            "pi edit tool is missing the L3.38 edits-forgiveness patch and the "
+            "repo could not re-apply it automatically; refusing to spawn kids "
+            f"who will each waste a turn. {_fg_detail} Fix: repair pi upstream, "
+            "or re-apply the _normalizeEditsShapes patch (see "
+            "extensions/agi/bin/pi_edit_forgiveness.py). "
+            "Set AGI_PI_FORGIVENESS_BYPASS=1 to override."
+        )
+    if _fg_status == "patched":
+        import sys as _sys
+        print(_fg_detail, file=_sys.stderr)
+
     args = [resolve_bin(harness)]
     args += model_args(harness, tier)
     # Headless: process the prompt and exit. Without this flag the prompt is

@@ -12,6 +12,13 @@ It shells out to node because the repo suite is Python and the tool is npm JS.
 Where pi (or node) is not installed the whole file skips rather than failing
 the suite on unrelated machines; on a machine that actually runs kids it is
 live, which is the environment it protects.
+
+DURABILITY (hypothesis:l3-pi-install-patch-not-durable): this probe only
+DETECTS a dropped patch once it is run; it does not re-apply it. The spawn-
+time gate in `bin/pi_edit_forgiveness.py` (wired into `pi_adapter.build_command`)
+re-applies the patch at the first spawn after a `pi` upgrade drops it, or
+fails loudly naming the fix -- so the probe keeps passing because the install
+is kept patched, not merely checked.
 """
 import json
 import shutil
