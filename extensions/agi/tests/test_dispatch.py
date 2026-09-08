@@ -1016,6 +1016,67 @@ def test_branch_kid_argv_shares_the_worktree_prefix(tmp_path, monkeypatch):
         "the brief must state the kid's own checkout out loud")
 
 
+def test_branch_spawn_anchors_cohere_on_the_single_worktree_root(tmp_path, monkeypatch):
+    """hypothesis:l3-branch-isolation-partial-break. The candidate-1 fix at
+    hypothesis:l3-branch-source-paths-never-rerooted re-roots engine paths and
+    states the checkout out loud, but each anchor is asserted separately: the
+    argv test checks paths, the env test checks AGI_TREE_PROJECT_ROOT, and
+    nothing checks that the Popen cwd, the env root, the re-rooted engine
+    paths AND the brief's stated checkout all resolve to the SAME single
+    worktree root. A disagreement among the four -- a main checkout serving as
+    cwd or as the brief's source root while the nodes land in a worktree -- is
+    exactly the partial-break signature this hypothesis named. Cohesion is the
+    property the partial break destroyed: assert one worktree root holds all
+    four, and that the real main checkout never appears in the launch bundle.
+    """
+    import os
+    monkeypatch.setenv("AGI_PI_FORGIVENESS_BYPASS", "1")
+    repo = _git_repo(tmp_path)
+    main_root = os.path.realpath(str(repo))
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/explore-a00-test@s2", "a00-test", "init")
+
+    # The re-rooted candidates only exist when the worktree carries an engine
+    # layout; the minimal test repo has none, so give the worktree one.
+    for rel in ("extensions/agi/bin/cli.py",
+                "extensions/agi/bin/dispatch.py",
+                "extensions/agi/lib/agent-prompt.md"):
+        p = wt / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# engine placeholder\n", encoding="utf-8")
+
+    child_graph = dispatch.locations.find_project_root(wt)
+    engine_paths = dispatch.child_engine_paths(child_graph)
+
+    # The four anchors exactly as dispatch.main assembles them for --branch.
+    wt_root = os.path.realpath(str(wt))
+    cwd = os.path.realpath(str(wt))            # Popen(cwd=str(branch_root))
+    env_root = os.path.realpath(str(wt))       # AGI_TREE_PROJECT_ROOT
+    src_root = os.path.realpath(str(engine_paths["source_root"]))
+    cli = os.path.realpath(str(engine_paths["cli_py"]))
+    skill = os.path.realpath(str(engine_paths["skill_prompt"]))
+    dp = os.path.realpath(str(engine_paths["dispatch_py"]))
+
+    assert wt_root != main_root, "sanity: the worktree is a distinct checkout"
+
+    # No anchor may escape the worktree, and the main checkout must never appear.
+    for name, a in (("cwd", cwd), ("env_root", env_root), ("source_root", src_root),
+                    ("cli_py", cli), ("skill_prompt", skill), ("dispatch_py", dp)):
+        assert a.startswith(wt_root), (
+            f"anchor {name}={a} escapes the worktree root {wt_root}; "
+            f"main is {main_root}. The --branch spawn must launch wholly inside "
+            "the worktree, not split across trees.")
+        assert not a.startswith(main_root) or a.startswith(wt_root), (
+            f"anchor {name}={a} resolves into the MAIN checkout {main_root}")
+
+    # Cohesion: cwd, env root, and the brief's stated checkout are one root.
+    assert src_root == wt_root, (
+        f"the brief's stated checkout {src_root} must equal the process cwd "
+        f"{cwd} - a split is the partial-break signature")
+    assert env_root == wt_root, (
+        f"AGI_TREE_PROJECT_ROOT {env_root} must equal the brief root {wt_root}")
+
+
 def test_dispatch_branch_flag_is_registered():
     """The flag has to exist on the dispatch CLI. Structural, AST-free: the
     literal `--branch` must be handed to add_argument."""
