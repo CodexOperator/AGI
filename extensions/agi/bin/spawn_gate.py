@@ -590,10 +590,12 @@ def read_seat_registry(nodes_dir: Path | None) -> list | None:
 
     hypothesis:l3w4-seat-registry. Returns the list of seat-row dicts
     (name, role, tier, harness, model, effort, settings, session_kind,
-    personality_ref, handoff_file, pin_ref, rotated_by, owning_goal), or
-    None when the seats node is missing or unreadable. None means "no seat
-    registry, fail open to the ladder/config" -- a missing seats node must
-    never block dispatch.
+    personality_ref, handoff_file, pin_ref, rotated_by, owning_goal,
+    worktree), or None when the seats node is missing or unreadable. None
+    means "no seat registry, fail open to the ladder/config" -- a missing
+    seats node must never block dispatch. `worktree` is the seat's git
+    worktree path relative to graph_root, empty for a seat that runs in
+    the main checkout (hypothesis:l3w4-hierarchy-one-source).
     """
     seats = Path(nodes_dir) / ".geometry" / "seats.md" if nodes_dir else None
     if seats is None or not seats.is_file():

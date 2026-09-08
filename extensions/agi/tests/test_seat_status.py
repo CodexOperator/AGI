@@ -48,7 +48,7 @@ def _make_fixture(tmp_path):
         '  - {"name": "belam", "role": "prime_director", "session_kind": '
         '"remote-control", "rotated_by": "quorum"}\n'
         '  - {"name": "dir-g16", "role": "director", "session_kind": "tty", '
-        '"rotated_by": "advisor"}\n'
+        '"rotated_by": "advisor", "worktree": ".agi/worktrees/seat-dir-g16"}\n'
         "---\n",
         encoding="utf-8")
     # one healthy transcript shared by both pins
@@ -97,6 +97,11 @@ def test_seat_status_reaches_both_readers(tmp_path):
     assert "cost_usd_total=12.50" in llm
     assert "rollup" in human
     assert "15%" in human
+    # worktree (hypothesis:l3w4-hierarchy-one-source): a row that declares
+    # one surfaces it; a row that doesn't (belam here) renders fine empty.
+    assert "worktree=.agi/worktrees/seat-dir-g16" in llm
+    by_name = {s["name"]: s for s in view.seats}
+    assert by_name["belam"]["worktree"] == ""
 
 
 def test_no_seats_md_fails_open(tmp_path):

@@ -9,7 +9,16 @@ fields:
   required_keys: {type: list}        # env keys a project cannot run without
   optional_keys: {type: list}        # env keys it will use if present
   forbidden_keys: {type: list}       # env keys that must never be set
-  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat
+  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat:
+                                      # {name, role, tier, harness, model, effort, settings,
+                                      #  session_kind, personality_ref, handoff_file, pin_ref,
+                                      #  rotated_by, owning_goal, worktree}. `worktree` (added
+                                      #  hypothesis:l3w4-hierarchy-one-source, goal:g17): the
+                                      #  seat's git worktree path relative to graph_root, empty
+                                      #  string for a seat that runs in the main checkout. Owner
+                                      #  policy: perpetual seats get their own worktree; a
+                                      #  director-kid's bootstrap should read this field rather
+                                      #  than carry the path only in its spawn brief.
 validation:
   required: [locations]
   types:
