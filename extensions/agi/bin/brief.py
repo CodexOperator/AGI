@@ -968,7 +968,10 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
 
 
 def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
-            target: str | None, parallel: int, max_live: int = 1) -> list[str]:
+            target: str | None, parallel: int, max_live: int = 1,
+            branch_name: str | None = None,
+            branch_worktree: str | None = None,
+            branch_base: str | None = None) -> list[str]:
     """A loop, not a node. `goal:g4.8`.
 
     Three things a parent needs that a kid does not, and each is here because
@@ -1001,8 +1004,53 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        node's high-LOD view and never needs compressing into prose. Telling
        the parent that now costs one sentence and stops the compression from
        being mistaken for the design.
+    5. **The one authorised commit — only under `--branch`.**
+       `hypothesis:l3-parent-brief-forbids-the-only-commit`. A parent in the
+       main checkout commits nothing, exactly as before. A `--branch` parent
+       runs in a git worktree on `loop/<slug>-<agent>@s<N>`, which is the only
+       route its kids' work has to the season branch; a branch left at base
+       merges as nothing and still reports green (L3.39 lost a whole round
+       that way). So when dispatch threads the branch context as
+       `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_PARENT_BASE_BRANCH`,
+       item 5 names the branch and authorises exactly ONE git operation —
+       staging the accepted node files by explicit path and committing them
+       onto its own loop branch — while push, sync, rebase, `git add -A` and
+       `grid.py commit --all` stay forbidden. The commit guard must allow that
+       one branch so the authorisation is real, not theatre.
     """
     aim = target or "(pick from the injected map)"
+    if branch_name:
+        # hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch
+        # parent's brief names its branch and authorises the single commit a
+        # loop branch needs to carry its kids' work home. This is the ONLY git
+        # operation a parent may perform; everything else stays forbidden.
+        worktree = branch_worktree or "(worktree)"
+        base = branch_base or "(base)"
+        ship = (
+            f"5. YOUR BRANCH IS THE ONLY ROUTE YOUR KIDS' WORK HAS TO THE SEASON "
+            f"BRANCH. You are on `{branch_name}` in worktree `{worktree}`, cut "
+            f"from `{base}`. A loop branch left at base merges as NOTHING and "
+            f"still reports green — that is already measured waste. So THIS "
+            f"parent may make exactly ONE git commit: stage the node files and "
+            f"payloads you accepted, BY EXPLICIT PATH, and commit them onto your "
+            f"own loop branch:\n"
+            f"     git add <path-to-each-accepted-node> <payload...>\n"
+            f"     git commit -m \"loop: {branch_name} -- accepted <node-id> "
+            f"[<node-id> ...]\"\n"
+            f"   NEVER `git add -A`. This tree has lost work twice to a "
+            f"whole-tree add sweeping another agent's in-flight edits into one "
+            f"commit. Everything else stays forbidden: no push, no sync, no "
+            f"rebase, no `grid.py commit --all`, no touching any other branch "
+            f"or the main checkout. The commit guard permits only this one "
+            f"commit because you are on a loop/* branch. Automation still owns "
+            f"remote traffic; the loop owns your branch's merge; you own only "
+            f"this commit."
+        )
+    else:
+        ship = (
+            "5. DO NOT commit, push, or sync. Automation owns all remote "
+            "traffic"
+        )
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
@@ -1035,8 +1083,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   with it is not review -- read the kid's ARTIFACT, not its report.\n"
         f"4. DO NOT bypass the gate. `--no-evidence-gate` stamps the node\n"
         f"   `evidence_gate: bypassed` and marks it unreviewed.\n"
-        f"5. DO NOT commit, push, or sync. Automation owns all remote traffic.\n"
-        f"6. SIGNAL DONE when every kid is finished:\n"
+        f"{ship}\n"
+        f"{'6' if branch_name else '5'}. SIGNAL DONE when every kid is finished:\n"
         f"     python3 {cli_py} done {iter_n} {agent_id} --verdict pending \\\n"
         f"       --owns <kid-node-id> [<kid-node-id> ...]\n"
         f"   `--owns`, NOT `--node-id`. You author no node of your own.",
@@ -1148,9 +1196,18 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         return segs
 
     if tier == "parent":
+        # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
+        # spawn's branch context is threaded through the env (same seam as
+        # `AGI_ADVISOR_GOAL`, so no harness adapter needs a new keyword):
+        # dispatch exports AGI_PARENT_BRANCH / AGI_PARENT_WORKTREE /
+        # AGI_PARENT_BASE_BRANCH only when it cut the parent its own worktree.
+        # Absent = main-checkout parent, which still commits nothing.
         segs = _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                        dispatch_py=str(dispatch_py), target=target,
-                       parallel=parallel, max_live=max_live)
+                       parallel=parallel, max_live=max_live,
+                       branch_name=os.environ.get("AGI_PARENT_BRANCH"),
+                       branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
+                       branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"))
         head = _build_head(tier=tier)
         if head:
             segs.insert(0, head)
