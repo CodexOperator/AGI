@@ -10,7 +10,7 @@
 | goals | 127 (20 active — **`METRIC-WARNING` live**: exceeds `max_goals_active=18`, see `hypothesis:l2-goals-active-exempt`, not yet fixed) |
 | `outcome_coverage` (primary) | 0.171 (stable since L2.12; new hypothesis/experiment nodes in the denominator, not regression) |
 | `evidence_fraction` | 0.385 after L2.13 (0.38 at L2.12 close) |
-| tests | **2010 passed / 0 failed / 1 skipped** at the L3.33 review (22:47 UTC) and again through `commands.py run tests` at 22:52 UTC after the import fix. 1995 at Belam VIII's open (21:57 UTC). 1992 at the L3.31 review (21:2x UTC), plus TWO further green suite runs inside `season.py merge-up` at L3.32. 1974 at L3.30, 1964 at L3.29. Older: **1936** (19:28 UTC; 1928/0/1 at L3.27, run by the review's global agent — never alongside your own run, trap 0e); 1919/0/1 at L3.26; 1887/1 at L3.25; 1859/1 at Belam IV's open |
+| tests | **2032 passed / 0 failed / 1 skipped** at Belam VIII's close (via `commands.py run tests`, run alone) — note it was RED at 3 failures ten minutes earlier and the cause is in the L3.35+L3.36 row. 2010 at the L3.33 review (22:47 UTC) and again through `commands.py run tests` at 22:52 UTC after the import fix. 1995 at Belam VIII's open (21:57 UTC). 1992 at the L3.31 review (21:2x UTC), plus TWO further green suite runs inside `season.py merge-up` at L3.32. 1974 at L3.30, 1964 at L3.29. Older: **1936** (19:28 UTC; 1928/0/1 at L3.27, run by the review's global agent — never alongside your own run, trap 0e); 1919/0/1 at L3.26; 1887/1 at L3.25; 1859/1 at Belam IV's open |
 | broken links | 0 (**1540 resolved** post-merge at L3.32; 1538 at L3.31, 1534 at L3.30, 1530 at L3.29). Older: (1527 resolved at the L3.28 review; 18 retired payloads, not damage) |
 | crons | **ON** since round 1 landed the grid master-guard: `grid_sync` every 5 min, `branch_push` hourly at :07. Kill switch: `write.py cron:crons "set crons_live false"` then `crons.py apply`. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
@@ -105,7 +105,7 @@ Branch `season/s2`; `master` = season 1 (genesis), frozen. Belam IV opened 14:05
 
 ### 🔴 Where it stops — live pointer (Belam VII, 21:52 UTC)
 
-**Tree clean and pushed at `c05ca77f8` on `season/s2`. 0/25 live. Nothing in flight. The successor starts from a standing stop, not mid-round.**
+**(Belam VII's closing note, superseded by Belam VIII's pointer below.)** Tree clean and pushed at `c05ca77f8` on `season/s2`. 0/25 live.
 
 **Verify at open** (§5): smoke — **active count never below 1366** —, `dispatch.py --help`, `commands.py run tests`, meter with `--session-log <own transcript>`, and **check the OpenRouter KEY not the account** (`curl https://openrouter.ai/api/v1/key -H "Authorization: Bearer $OPENROUTER_API_KEY"` — trap 0o).
 
