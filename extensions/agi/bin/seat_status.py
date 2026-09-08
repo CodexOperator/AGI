@@ -48,7 +48,7 @@ class SeatsView:
     registry_present: bool = False
     seats: list = field(default_factory=list)
     #: Each seat: {name, role, session_kind, rotated_by, worktree,
-    #:            fraction: float|None, fraction_source: str}
+    #:            session_ref, fraction: float|None, fraction_source: str}
     ephemeral_live: int = 0
     ephemeral_cap: int = 0
     rollup_config_read: bool = False
@@ -214,6 +214,7 @@ def collect(root: Path, fm_by_id: dict) -> SeatsView:
             "session_kind": str(r.get("session_kind") or ""),
             "rotated_by": str(r.get("rotated_by") or ""),
             "worktree": str(r.get("worktree") or ""),
+            "session_ref": str(r.get("session_ref") or ""),
             "fraction": fraction,
             "fraction_source": fsrc,
         })
@@ -240,7 +241,8 @@ def to_markdown(v: SeatsView) -> list[str]:
     for s in v.seats:
         frac = f" {s['fraction']:.0%}" if s["fraction"] is not None else ""
         wt = f" worktree={s['worktree']}" if s.get("worktree") else ""
-        out.append(f"- seat {s['name']} ({s['role']}/{s['session_kind']})"
+        addr = f" [{s['session_ref']}]" if s.get("session_ref") else ""
+        out.append(f"- seat {s['name']}{addr} ({s['role']}/{s['session_kind']})"
                    f" rotated_by={s['rotated_by'] or '-'}{frac}{wt}")
     out.append(f"- ephemeral live/cap: {v.ephemeral_live}/{v.ephemeral_cap}"
                + ("" if v.rollup_config_read else " (spawn-budget unread)"))
@@ -294,7 +296,7 @@ def main(argv: list[str] | None = None) -> int:
                 print("\t".join([
                     s['name'], s['role'], s['session_kind'],
                     s['rotated_by'] or '-', s['worktree'] or '-',
-                    frac, s['fraction_source']]))
+                    s['session_ref'] or '-', frac, s['fraction_source']]))
         return 0
     print("\n".join(lines or []))
     return 0
