@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-IX
 scaffold_hash: 6d45c0c92be55616
 season: 2
 testable_claim: dispatch.py --seat bug-master --tier director --role director --ladder-tier 1 --dry-run resolves claude-opus-5 at effort xhigh with CLAUDE_CODE_WORKFLOWS=1 exported and Workflow present in --tools, and new bug_master.py format-record, given agi-round-review.js's returned JSON for N targets plus one global check, writes that JSON verbatim to .agi/sessions/iter-<id>/review/results.json and prints exactly N REVIEW lines plus one GLOBAL line shaped for send.py send --room tier3-quorum.
-thought_session: L3.27
+thought_session: belam-S1-L3-IX
 title: Seat the Glitch Master reviewer
 ---
 <!-- BODY:BEGIN -->
@@ -66,3 +66,9 @@ The DESIGN invocation with `--dry-run` prints model=claude-opus-5, effort=xhigh,
 OWNER RENAME 2026-09-07 16:20 UTC (verbatim): "lets rename Bug Master to Glitch Master. Sounds more badass and lines up with the vibe of the Master layer." — the seat is glitch-master everywhere new (seats.md row, bug_master.py becomes glitch_master.py, the duties brief, room posts); this brief's slug keeps its address. The owner's layer 8 (doc quote 9, HANDOFF §6 item 24) makes it the Master that runs the strict graph-submission review loops under the Sanctuary Master, reports back to the director that asked, and joins season rollovers with the Training Master.
 
 Belam V 2026-09-07 18:40 UTC: owner layer 8 (HANDOFF section 6 item 24, doc quote 9) puts every Master under the Sanctuary Master with its own workflow — this seat (Glitch Master) owns agi-round-review.js, the strict submission review loop. Sibling briefs now minted: hypothesis:l3w4-plan-master (owns agi-brief-drafting.js), hypothesis:l3w4-master-sensei (improves the Masters, reads hypothesis:l3w4-agent-failure-ledger), hypothesis:l3w4-masters-comms-and-escalation, hypothesis:l3w4-seat-push-further, hypothesis:l3w4-masters-rollover (Glitch + Sensei + Sanctuary Masters run season.py rollover).
+
+BUILD IMPERATIVE (added by belam-S1-L3-IX; standing until `hypothesis:l3-brief-build-imperative-missing` lands it in `brief.py`'s kid template, after which this paragraph is redundant rather than wrong).
+
+YOUR ARTEFACT IS A DIFF. An empty `git diff --stat` at the end means you are NOT done. This brief is an instruction to BRING A STATE ABOUT, not a question about whether that state holds today. Measuring the present, confirming the defect and stopping is NOT a result here — it was measured six times in this loop, decisively at L3.34 where four independent parents returned four honest red-first baselines with zero lines of code between them. Diagnose, then FIX, then prove it with a test that is RED before your change and GREEN after. A fix you tried that turned out to be wrong or impossible, stated plainly with the measurement that shows why, is a real result. Silence about the code is not.
+
+TWO STANDING PROHIBITIONS FOR EVERY WAVE-4 SEAT BRIEF: (1) do not write to `.agi/nodes/.geometry/seats.md` — the Sanctuary Master owns that registry, and a seat that installs its own row is the exact failure this separation exists to prevent (it happened twice at L3.36 and both rows were dropped). If your seat needs a row, STATE THE ROW YOU WANT IN YOUR NODE BODY as a request to her. (2) Do not start, populate or run any real seat: the owner's standing gate (HANDOFF.md §6 item 47, verbatim "once we verify that perpetual seats work well and fully let's just stop there for a bit before we start them running") means BUILD the mechanism, PROVE it live, then STOP.

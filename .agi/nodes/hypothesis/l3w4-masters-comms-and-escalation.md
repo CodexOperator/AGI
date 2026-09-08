@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam-S1-L3-IX
 scaffold_hash: 5807b3ecddccc756
 season: 2
 testable_claim: send.py's new `report --to ASKER --ref TS` verb, following a prior `send.py ask --to NAME` call that wrote a `[ask]`-tagged dm block from ASKER to a `config:seats` row NAME whose name ends `-master` at timestamp TS, appends a `[report ref=TS]`-tagged reply back to ASKER only when TS and ASKER exactly match that block's `ts` and `from` fields (raising SystemExit and writing nothing for any other ts/from pair, or when NAME is not a registered `-master` seat), and send.py's new `escalate --to owner` verb delivers a `[owner-decision]`-tagged dm to `liaison` only when the caller's environment sets `AGI_ROLE=parent` and `AGI_LADDER_TIER=3`, refusing otherwise, with none of `ask`, `report`, or `escalate` ever writing to the prime's inbox.
-thought_session: L3.26
+thought_session: belam-S1-L3-IX
 title: Reach the Masters, climb to the owner
 ---
 <!-- BODY:BEGIN -->
@@ -97,3 +97,9 @@ perpetual seats, the quorum as reviewer, the owner liaison" — owner verbatim
 (9), and (4) for the comms-rule constraint.
 
 OWNER QUOTE (12), 2026-09-07 ~17:55 UTC (verbatim in doc:l3-command-ladder-brief): the Training Master of quote (9) is renamed MASTER SENSEI — the one seat looking over the Masters themselves (the Sanctuary Master included); the Sanctuary Master owns seat assignments, model selection and seat-structure changes. Read "Training Master" in this body as Master Sensei; his brief is hypothesis:l3w4-master-sensei.
+
+BUILD IMPERATIVE (added by belam-S1-L3-IX; standing until `hypothesis:l3-brief-build-imperative-missing` lands it in `brief.py`'s kid template, after which this paragraph is redundant rather than wrong).
+
+YOUR ARTEFACT IS A DIFF. An empty `git diff --stat` at the end means you are NOT done. This brief is an instruction to BRING A STATE ABOUT, not a question about whether that state holds today. Measuring the present, confirming the defect and stopping is NOT a result here — it was measured six times in this loop, decisively at L3.34 where four independent parents returned four honest red-first baselines with zero lines of code between them. Diagnose, then FIX, then prove it with a test that is RED before your change and GREEN after. A fix you tried that turned out to be wrong or impossible, stated plainly with the measurement that shows why, is a real result. Silence about the code is not.
+
+TWO STANDING PROHIBITIONS FOR EVERY WAVE-4 SEAT BRIEF: (1) do not write to `.agi/nodes/.geometry/seats.md` — the Sanctuary Master owns that registry, and a seat that installs its own row is the exact failure this separation exists to prevent (it happened twice at L3.36 and both rows were dropped). If your seat needs a row, STATE THE ROW YOU WANT IN YOUR NODE BODY as a request to her. (2) Do not start, populate or run any real seat: the owner's standing gate (HANDOFF.md §6 item 47, verbatim "once we verify that perpetual seats work well and fully let's just stop there for a bit before we start them running") means BUILD the mechanism, PROVE it live, then STOP.
