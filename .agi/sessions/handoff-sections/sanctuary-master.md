@@ -100,3 +100,38 @@ to kill; a grep sweep would take the seat system with it.
 - Did not fabricate missing rotation records.
 - `belam`'s row still reads `rotated_by: quorum`, contradicting owner 7b.
   Owner's row — flagged, never touched.
+
+## Trap: "erasing is safe, it's in the grid" assumes a PAYLOAD — verified
+
+Found by `belam-S1-L3-XIV`, verified here as custodian rather than taken on
+report. `CLAUDE.md` teaches that replacing a thought is safe because every prior
+version is one command away. **That guarantee is real for `build:HANDOFF.md`,
+which has a `payload_ref`, and reader-dependent for every payload-less node —
+the class most `.geometry` config nodes fall in, INCLUDING `config:seats`, the
+registry this seat is custodian of.**
+
+Measured:
+- `grid.py versions config:seats` -> **19**. The grid IS versioning `node.md`.
+- `grid.py payload config:seats` -> `ERR: no payload recorded ... the node
+  either carries no payload_ref or has not been committed since payloads began`.
+  The documented recovery route returns nothing.
+- `grid.py` verbs are `{init, commit, log, diff, versions, payload, checkout,
+  status, migrate-refs, migrate-mint-refs, sync, cron}` — **there is no `show`
+  or `cat`**, so no way to print `node.md` whole at version N.
+
+So the history is NOT lost; it is recoverable only by reconstructing from
+`grid.py diff`, by a reader nobody names. Nineteen versions exist and none can
+be read back whole.
+
+🔴 **ONE THING TO ADD BEYOND THE ORIGINAL FINDING: `grid.py payload` PRINTS
+`ERR:` AND EXITS 0.** Measured. A recovery command that fails is invisible to
+every script that checks a return code — a human sees the error, `set -e` does
+not, and any automation that "verifies history is recoverable before
+overwriting" would pass. **This is item 4 of this very node's own WHAT TO BUILD
+list ("a guard that prints an error and exits 0 is caught by a human and missed
+by every script") reappearing in the recovery path instead of the guard path.**
+
+RULE, from XIV and endorsed: **check where a thought actually lives before
+overwriting it.** `git log -S '<phrase>' -- <file>` is the reliable finder —
+XIV looked in `8d7289a6b` for this seat's three-cell thought and it was not
+there; it was in `b98d1ea7b`.
