@@ -375,3 +375,73 @@ def test_env_get_still_fails_loudly_when_the_value_is_nowhere(tmp_path):
     proc = _run_env_get("OPENROUTER_API_KEY", envf)
     assert proc.returncode != 0
     assert "OPENROUTER_API_KEY" in proc.stderr
+
+
+# --- linked worktrees share the main checkout's .env (l3w4) ----------------
+# `hypothesis:l3w4-branch-shared-state`: `.env` is gitignored, so a `--branch`
+# worktree has none of its own; a kid whose cwd is `.agi/worktrees/<agent>`
+# must read the MAIN checkout's `.env`, resolved through `git_common_root`,
+# or every key lookup is silently unrunnable under `--branch`.
+
+
+def _worktree_repo(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """(repo, worktree, main_env): a repo, its linked worktree, and the main
+    checkout's `.env` (gitignored, so the worktree cannot have one)."""
+    import subprocess
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "master"],
+                   check=True, capture_output=True, text=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "t@t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "t"],
+                   check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    make_project(repo)  # `<repo>/.agi/` + config.json
+    write_node(repo / ".agi", DEFAULT_NODE)
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True, text=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True, text=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x@s2", str(wt), "master"],
+                   check=True, capture_output=True, text=True)
+    main_env = write_env(repo, "OPENROUTER_API_KEY=sk-main-only\n")
+    return repo, wt, main_env
+
+
+def test_resolve_from_worktree_reads_the_main_checkout_env(tmp_path):
+    """cwd `.agi/worktrees/<agent>` must resolve to the MAIN checkout's
+    gitignored `.env`, never to a nonexistent per-worktree fork."""
+    import os as _os
+    _, wt, main_env = _worktree_repo(tmp_path)
+    old = _os.getcwd()
+    try:
+        _os.chdir(wt)  # a dispatched kid's cwd: the worktree root
+        res = agi_secrets.resolve(None)
+    finally:
+        _os.chdir(old)
+    assert res.from_node
+    assert res.env_file == main_env, (
+        "a worktree kid must read the main checkout's .env, not a "
+        f"per-worktree fork at {wt / '.env'}"
+    )
+
+
+def test_env_get_from_worktree_resolves_shared_env_file(tmp_path):
+    """The value a worktree kid authenticates with comes out of the MAIN
+    checkout's .env through git_common_root — not the worktree's own dir."""
+    import os as _os
+    repo, wt, main_env = _worktree_repo(tmp_path)
+    # envfile's path from the worktree must point at the main checkout.
+    old = _os.getcwd()
+    try:
+        _os.chdir(wt)
+        res = agi_secrets.resolve(None)
+    finally:
+        _os.chdir(old)
+    assert res.env_file.is_file()
+    assert res.env_file == repo / ".env"
+    env = agi_secrets.read_env(main_env)
+    assert env["OPENROUTER_API_KEY"] == "sk-main-only"

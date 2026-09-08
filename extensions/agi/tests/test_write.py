@@ -627,3 +627,65 @@ def test_adopt_dry_run_writes_nothing(project):
     assert rc == 0
     text = (project / "nodes/experiment/e2.md").read_text()
     assert "mint_id:" not in text
+
+
+# --- a kid in a linked worktree addresses its own node without --root (l3w4)
+# `hypothesis:l3w4-branch-shared-state`: the scaffolded node a dispatched kid
+# is given lives ONLY in the kid's worktree graph (untracked, created after
+# the worktree was cut). `write.py <node-id> "set …"` from the worktree cwd
+# must resolve and write THAT node without an explicit `--root`, so a brief
+# whose whole body is `write.py … set … && write.py … done` runs as written.
+
+
+def _write_worktree_repo(tmp_path: Path, node_id: str, body: str) -> tuple[Path, Path]:
+    """(repo, worktree): a git repo + linked worktree; the scaffolded node is
+    placed ONLY in the worktree's graph, exactly as `dispatch` does."""
+    import os
+    import subprocess
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "master"],
+                   check=True, capture_output=True, text=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "t@t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "t"],
+                   check=True, capture_output=True)
+    graph = repo / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True, text=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True, text=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x@s2", str(wt), "master"],
+                   check=True, capture_output=True, text=True)
+    # The kid's scaffold: only in the worktree, untracked (not in the main).
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "experiment").mkdir(parents=True, exist_ok=True)
+    (wt_graph / "nodes" / "experiment" / "e1.md").write_text(body)
+    assert not (repo / ".agi" / "nodes" / "experiment" / "e1.md").exists(), \
+        "the scaffolded node must live ONLY in the worktree (the fork)"
+    return repo, wt
+
+
+def test_write_resolves_own_node_from_worktree_without_root(tmp_path):
+    """The P2 claim of `hypothesis:l3w4-branch-shared-state`: a kid whose cwd
+    is `.agi/worktrees/<agent>` can `write.py <node-id> "set …"` with no
+    `--root` and the write lands on its own scaffolded node."""
+    import os
+    body = ('---\nid: "experiment:e1"\ntype: experiment\nmint_id: abc123\n'
+            'title: "t"\nscaffold_hash: deadbeef\nstatus: pending\n'
+            'parents: [hypothesis:h1]\n---\n\nbody\n\n')
+    _, wt = _write_worktree_repo(tmp_path, "experiment:e1", body)
+    old = os.getcwd()
+    try:
+        os.chdir(wt)                       # the kid's dispatch cwd
+        rc = write.main(["experiment:e1", "set verdict proved"])
+    finally:
+        os.chdir(old)
+    assert rc == 0
+    text = (wt / ".agi" / "nodes" / "experiment" / "e1.md").read_text()
+    assert "verdict: proved" in text
