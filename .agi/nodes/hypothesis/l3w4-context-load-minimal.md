@@ -53,3 +53,55 @@ BEFORE EVERY KID (not just the first): check the OpenRouter KEY balance, not the
 Report your balance delta (limit_remaining before your first kid minus limit_remaining after your last) in your closing node update.
 
 OWNER EXTENSION, 2026-09-08: PER-ROLE SKILL.md SLICES, and the gate on the prime's own rotation. Verbatim: 'I was thinking different roles also would be shown different parts of the skill.md as well like the command structure and hierarchy and how everyone plays their part. That's the biggest one any role needs to know.' So the trim is not only SHRINKING the injection, it is SLICING it per role -- and the owner names the highest-value slice explicitly: command structure, hierarchy, and how everyone plays their part. Build the per-role view from the SAME machine-readable hierarchy that hypothesis:l3w4-hierarchy-one-source produces; do not author a second description of the roles, which is the exact failure that node exists to end (three partial sources today, all contradicting). GATE, owner: 'Good to rotate just make sure the context dump shrink lands first and works with rotate properly.' THIS NODE BLOCKS THE PRIME'S ROTATION. It must land AND be demonstrated working through a real rotation before belam-S1-L3-XIII hands over. Concretely that means: the successor's assembled prompt is measured smaller by the reported percentage, the successor comes up and can act, and the per-role slice it receives is the right one for its tier. A trim that shrinks the file but breaks or degrades rotation is a regression, not a win, and the rotation is the one path with no second chance if it fails. THE TARGET STATE the owner states for the whole system, worth building toward rather than merely under: 'any one role transcript reads like just a series of stocato blurbs back and forth with various other channels and only the ephemeral openrouter parents+kids are actively constantly churning tokens as the rest just gently sip on tokens ever so slowly.' Measured support: an idle seat costs ~0 tokens/hour (a meter grows only on completed turns) while one ACTIVE seat moves ~552,000 tokens/hour. The lever is therefore fewer and SMALLER turns per seat, with churn pushed onto OpenRouter -- not fewer seats.
+
+WORKED TARGET FOR THE ASCII FORM, from the prime, 2026-09-08. This is a TARGET to beat or replace, not a specification to copy: the owner asked for "graphic ascii diagrams still easy to ingest" and a description of a diagram is not a diagram, so here is one, sized against the real state at the time of writing. If you build something better, build that instead and say why.
+
+BLOCK 1 -- THE STATE CARD. Replaces most of what section 0 does today. Roughly 90 tokens against section 0's current ~1,500.
+
+  +- BELAM . prime . season/s2 --------------- meter 0.41 / cap 0.46 -+
+  | MODE  survival: 1 active seat, all others idle (~0 tok/h)         |
+  | TREE  season/s2   pushed, 0 unpushed   3 dirty = unreviewed draft |
+  | GATE  my rotation BLOCKED on l3w4-context-load-minimal            |
+  | SPEND openrouter key $9.26 / $15   floor $1.00 NEVER lower        |
+  +-------------------------------------------------------------------+
+  NEXT   wait SD.03 -> commit rotate.py -> dispatch ctx-trim -> SD.05
+  READ   S6.71 state . S6.75 trim . S6.78 roles       <- these three only
+
+BLOCK 2 -- THE ROLE MAP. This is the slice the owner named as "the biggest one any role needs to know", so every role gets it. Note it encodes the BUILD BOUNDARY, which is the ruling the prose kept losing.
+
+                       owner
+                         |
+                      liaison ......... the owner's channel
+                         |
+      +------------------+------------------+
+      |                  |                  |
+  sanctuary-master   master-sensei        belam ......... prime
+  seats/pins/rot     briefs/model-tests   loop, rounds
+  = THE GRAPH        = LOCAL-MAXXING          |
+      |    ^              |                   |
+      |    +--- findings -+  (SM applies what Sensei measures: a LOOP)
+      |                  |
+   director-kid      director-kid
+      |                  |
+      +----- ONLY THESE MAY BUILD ------+
+                         |
+                  pi parents (openrouter)  <- the only constant churn
+                         |
+                       kids
+      -------------------------------------------------
+      quorum: self-perpetuating . alive . all-is-one
+      one TREE each . SM builds merge -> self-perpetuating
+
+BLOCK 3 -- THE LOOP, replacing the prose walkthrough in SKILL.md for roles that only need to run it.
+
+  dispatch --harness pi --tier parent
+      |
+      v
+  parent --+--> kid --> node --> review --+--> continue (next slice)
+           |                              +--> adjust  (say what was wrong)
+           ^------------------------------+--> done -> exit
+  ceiling: max 6 kids . check KEY before each . stop at $1.00 floor
+
+RULES THAT MADE THESE WORK, and the reason each is here rather than a style preference. ONE, a box states what IS, an arrow states what happens NEXT, and nothing states what already happened -- history is git's job and the single largest source of the bloat being removed. TWO, every diagram must survive being read by a model with no other context, so no glyph carries meaning that is not also written in words somewhere in the same block. THREE, pointers not prose: "S6.71" beats a paragraph summarising item 71, because a role that needs it can read it and a role that does not has paid 4 tokens instead of 400. FOUR, the state card must be GENERATED from live sources -- git status, spawn_budget, the meter, the key balance -- never hand-maintained, or it becomes another view that resolves confidently and is wrong, which is the defect class that cost this loop seven separate incidents in one day. FIVE, keep it under 100 lines total across all blocks for the fattest role; if a role needs more than that to act, the fix is a pointer, not a bigger diagram.
+
+WHAT TO MEASURE WHEN YOU HAVE BUILT IT: assembled prompt tokens per role, before and after, reported per role rather than in aggregate, plus the percentage. And the honest check the owner asked for -- if 90 percent is only reachable by dropping something on the must-not-lose list, report 70 percent with everything intact instead and say which item forced it.
