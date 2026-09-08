@@ -689,3 +689,72 @@ def test_write_resolves_own_node_from_worktree_without_root(tmp_path):
     assert rc == 0
     text = (wt / ".agi" / "nodes" / "experiment" / "e1.md").read_text()
     assert "verdict: proved" in text
+
+
+# hypothesis:l3-write-partial-diffs-as-writes
+ORIG_MOD = ("def alpha():\n    return 1\n\n"
+            "def beta():\n    return 2\n\n"
+            "def gamma():\n    return 3\n")
+# `def beta():` is original line 4; the hunk moves both cursors to beta's body.
+VALID_HUNK = ("--- a/mod.py\n+++ b/mod.py\n"
+              "@@ -4,2 +4,2 @@\n"
+              " def beta():\n"
+              "-    return 2\n"
+              "+    return 20\n")
+
+
+def test_patch_applies_unified_diff_and_refuses_mismatch():
+    changed = write.apply_unified_diff(ORIG_MOD, VALID_HUNK)
+    assert "    return 20" in changed
+    assert "    return 2\n" not in changed
+
+    # A hunk naming a line that is not there must refuse the WHOLE diff,
+    # raising, not partially applying.
+    bad = VALID_HUNK.replace("-    return 2", "-    return ZZZ-NOT-HERE")
+    with pytest.raises(write.EditError):
+        write.apply_unified_diff(ORIG_MOD, bad)
+
+    # A malformed hunk header is a refusal too.
+    with pytest.raises(write.EditError):
+        write.apply_unified_diff(ORIG_MOD, "@@ -x +y @@\n foo\n")
+
+
+def test_patch_verb_fails_closed_and_preserves_exec(tmp_path):
+    """Drive the real in-memory patch path against a scratch build node+payload
+    with an exec bit set: payload byte-for-byte unchanged on refusal, diff
+    landing on success, destination still executable after both."""
+    import os
+    import stat as _stat
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    os.chmod(payload, 0o755)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+
+    # Refusal: a mismatched hunk raises and must not have touched the file.
+    bad = VALID_HUNK.replace("-    return 2", "-    return ZZZ-NOT-HERE")
+    with pytest.raises(write.EditError):
+        write.apply_unified_diff(payload.read_text(), bad)
+    assert payload.read_text() == ORIG_MOD, "a refused patch must change nothing"
+    assert _stat.S_IMODE(payload.stat().st_mode) == 0o755, \
+        "exec bit must survive a refused patch"
+
+    # Success: the one-line diff lands through submit; exec is preserved.
+    # NB root is the `.agi` DIR (matching the project fixture), not the
+    # project dir -- find_node_file resolves under `<root>/nodes`.
+    root = graph
+    edit = write.Edit(node_id="build:b1")
+    write.verb_patch(edit, "-")
+    edit.patch_diff = VALID_HUNK
+    res = write.submit(root, edit, actor="kid", session="s1")
+    text = payload.read_text()
+    assert res.status != node_writer.REJECTED
+    assert "    return 20" in text and "    return 2\n" not in text
+    assert _stat.S_IMODE(payload.stat().st_mode) == 0o755, \
+        "the destination must stay executable after a successful patch"
