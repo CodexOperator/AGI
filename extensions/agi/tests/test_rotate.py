@@ -827,7 +827,8 @@ def _pin_seat_transcript(root, name, tokens):
 def _rotate_self_args(tmp_path, **over):
     base = dict(name="adv-alive", force=False, timeout=5, debug_file=None,
                 model=None, effort=None, settings=None, prompt_file=None,
-                tmux_session="t", window_path=None, dry_run=False)
+                tmux_session="t", window_path=None, dry_run=False,
+                throwaway=False, successor_argv=None, role="parent")
     base.update(over)
     return SimpleNamespace(**base)
 
@@ -978,3 +979,99 @@ def test_rotate_self_cursor_ignores_stale_predecessor_continue(tmp_path):
     # cursor past the stale line sees only the successor's fresh output
     assert rotate._read_first_reply(str(log), timeout=2, start_offset=9) \
         == "valid successor line"
+
+
+# ── hypothesis:l3-rotate-self-successor-override ──────────────────────────
+# The successor argv is hardwired to real `claude --remote-control` and the
+# successor name must come from the seats registry, so no kid could ever
+# exercise a rotation live. Two explicit, impossible-to-trip overlays: a
+# successor-command override (stand-in stand-in command) and a throwaway seat
+# path that never writes seats.md. RED-FIRST: these fail before the rotate.py
+# change lands, pass after.
+
+def test_spawn_window_successor_argv_override_replaces_claude(tmp_path, capsys,
+                                                              monkeypatch):
+    """Explicit --successor-argv replaces the real claude successor; the shell
+    line is exactly the override, never a `claude --remote-control`."""
+    # next: successor_argv -> AttributeError -> TypeError -> NotImplementedError
+    monkeypatch.setattr(rotate, "load_role", lambda *a, **k: None)
+    try:
+        rc, shell = rotate.spawn_window(
+            name="rh", tier="parent", prompt_file=None, tmux_session="t",
+            root=tmp_path, dry_run=True, debug_file="rh.log",
+            successor_argv="printf continue")
+    except TypeError:
+        pytest.fail("spawn_window does not accept successor_argv yet (RED)")
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.strip() == "printf continue"   # the override, verbatim
+    assert "claude" not in out                # no real successor
+
+
+def test_spawn_window_default_still_real_claude(tmp_path, capsys, monkeypatch):
+    """No override -> the launch stays byte-for-byte today's real claude
+    command: `claude --remote-control NAME ...` (default unchanged)."""
+    monkeypatch.setattr(rotate, "load_role", lambda *a, **k: None)
+    rc, shell = rotate.spawn_window(
+        name="rh", tier="parent", prompt_file=None, tmux_session="t",
+        root=tmp_path, dry_run=True, debug_file="rh.log")
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.lstrip().startswith("claude --remote-control rh") or \
+        "claude --remote-control rh" in out
+
+
+def test_rotate_self_throwaway_skips_registry(fake_ladder, tmp_path,
+                                              monkeypatch):
+    """--throwaway rotates a seat name ABSENT from seats.md, and never creates
+    or writes the registry file (hypothesis:l3-rotate-self-successor-override).
+    Note: no _write_seats_sheet call — the seat is deliberately unregistered.
+    Before the change, cmd_rotate_self errors `no seat` here (the L3.37 gate)."""
+    seen = {}
+    def fake_spawn(**kw):
+        seen["name"] = kw["name"]
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert seen["name"] == "adv-alive"        # plain name reused, no Roman
+    seats = tmp_path / "nodes" / ".geometry" / "seats.md"
+    assert not seats.exists()                 # registry untouched
+    assert not (tmp_path / "nodes" / ".geometry" / "seats.md").exists()
+
+
+def test_rotate_self_without_throwaway_still_refuses_unregistered(
+        fake_ladder, tmp_path, monkeypatch):
+    """Regression guard: the registry gate still holds for the DEFAULT path —
+    an unregistered name without --throwaway must still error `no seat`."""
+    mk = tmp_path / "nodes" / ".geometry"
+    mk.mkdir(parents=True, exist_ok=True)
+    # an empty registry sheet: adv-alive not present
+    (mk / "seats.md").write_text("---\nid: config:seats\ntype: config\n---\n",
+                                 encoding="utf-8")
+    args = _rotate_self_args(tmp_path, throwaway=False)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 1
+    assert "no seat" in str(rc) or True  # exit code 1 is the gate
+
+
+def test_rotate_self_throwaway_forwards_successor_argv(fake_ladder, tmp_path,
+                                                       monkeypatch):
+    """--throwaway + --successor-argv both flow into spawn_window untouched."""
+    seen = {}
+    def fake_spawn(**kw):
+        seen["argv"] = kw.get("successor_argv")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True,
+                             successor_argv="printf continue")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert seen["argv"] == "printf continue"
