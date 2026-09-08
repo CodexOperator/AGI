@@ -51,6 +51,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -835,15 +836,51 @@ def _shell_cmd(claude_cmd: list[str], settings) -> str:
     return joined
 
 
+# tmux refuses a command longer than its own buffer with `command too long`.
+# Measured 2026-09-08 (hypothesis:l3-rotate-launch-window-silent-failure): the
+# prime's own rotation line is ~16KB because the constitution head rides in
+# argv, `spawn` cleared the limit by roughly 200 bytes and `loop` -- which
+# appends the rotation continuation -- did not. Anything above this goes
+# through a script file instead, so the launch line's length stops mattering.
+_TMUX_ARG_SAFE = 8192
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
-    """Run `shell_cmd` in a new tmux window. Returns 0 on success."""
+    """Run `shell_cmd` in a new tmux window. Returns 0 on success.
+
+    Two failures were live here until 2026-09-08 and both were silent, which
+    is why three primes in a row saw `loop` report a rotation that had not
+    happened (traps 0o and the Rotation section of HANDOFF.md):
+
+    1. **tmux's `command too long`.** The whole `claude` invocation, including
+       the constitution head, was handed to `tmux new-window` as one argv
+       element. Past roughly 16KB tmux refuses outright. `spawn` and `loop`
+       build the same line and differ only by the 214-byte continuation, so
+       one worked and one did not -- a knife-edge, not a design. Above
+       `_TMUX_ARG_SAFE` the command is written to a mode-0600 script and tmux
+       is handed `bash <script>`, a few dozen bytes, so growth in the head or
+       the prompt can no longer break rotation. The script is deliberately
+       NOT deleted: bash reads a script incrementally, so removing it early
+       can truncate a running successor.
+    2. **The return code was discarded.** `subprocess.run` captured tmux's
+       stderr into a variable that was thrown away and the function returned
+       0 unconditionally, so `command too long` never reached a human. The
+       downstream window-existence check added at L3.33 caught the *symptom*;
+       this returns the *cause*.
+    """
     launch_cmd = f"cd {shlex.quote(os.getcwd())} && {shell_cmd}"
+    if len(launch_cmd) > _TMUX_ARG_SAFE:
+        fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
+                                      suffix=".sh")
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write("#!/usr/bin/env bash\n")
+            fh.write(launch_cmd + "\n")
+        launch_cmd = f"bash {shlex.quote(script)}"
     try:
-        subprocess.run(
+        proc = subprocess.run(
             ["tmux", "new-window", "-t", tmux_session, "-n", name, launch_cmd],
             capture_output=True, text=True, timeout=10,
         )
-        return 0
     except FileNotFoundError:
         print("ERR: tmux not found. Install tmux or pass --dry-run to preview.",
               file=sys.stderr)
@@ -852,6 +889,12 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
         print("warn: tmux new-window timed out — window may still be created.",
               file=sys.stderr)
         return 0
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
+        print(f"ERR: tmux new-window failed for {name!r} "
+              f"(rc={proc.returncode}): {detail}", file=sys.stderr)
+        return proc.returncode
+    return 0
 
 
 def spawn_window(*, name: str, tier: str, prompt_file: str,
