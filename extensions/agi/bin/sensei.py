@@ -25,6 +25,7 @@ The `ts` a `propose` prints is the `--since` handle for a matching `apply`.
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -134,6 +135,48 @@ def _required_threads(row: dict | None, target: str,
 
 
 # ── pick_worst ───────────────────────────────────────────────────────────
+
+
+def load_ledger_rows(path: Path) -> list[dict]:
+    """Read a failure ledger file into `pick_worst`-shaped rows.
+
+    Failures.py `ledger()` writes an indented JSON **array** (and the
+    `aggregate()` step writes the `seat_or_role/fail_rate/failed` rate table
+    the same way), while any hand-made or legacy file may be JSONL (one
+    record per line). This reads both: try the whole file as one JSON array
+    (or object), fall back to JSONL. Returns [] for an empty or unreadable
+    file.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    if not text.strip():
+        return []
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        data = None
+    if isinstance(data, list):
+        return [r for r in data if isinstance(r, dict)]
+    if isinstance(data, dict):
+        # tolerate a bare object / the failure-rates table
+        if isinstance(data.get("rows"), list):
+            return [r for r in data["rows"] if isinstance(r, dict)]
+        return [data]
+    rows: list[dict] = []
+    for ln in text.splitlines():
+        ln = ln.strip()
+        if not ln:
+            continue
+        try:
+            obj = json.loads(ln)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict):
+            rows.append(obj)
+    return rows
+
 
 
 def pick_worst(rows: list[dict]) -> dict | None:
@@ -350,8 +393,7 @@ def main(argv: list[str] | None = None) -> int:
             except Exception:
                 continue
         if args.ledger and Path(args.ledger).is_file():
-            with open(args.ledger, encoding="utf-8") as f:
-                rows = [_json.loads(ln) for ln in f if ln.strip()]
+            rows = load_ledger_rows(Path(args.ledger))
         worst = pick_worst(rows)
         if worst is None:
             print("no rows; nothing to pick")

@@ -244,6 +244,45 @@ def test_rates_by_model_and_by_harness_sum_to_total(fx, tmp_path):
         assert total == len(json.loads(out.read_text()))
 
 
+def test_aggregate_produces_pick_worst_shape_from_raw_rows(fx):
+    """The `sensei` aggregation compresses raw per-event rows into the
+    seat_or_role/fail_rate/failed shape pick_worst groups on, with per-group
+    counts that sum to the total failure-row count."""
+    root, _ = fx
+    rows = failures.derive_rows(root)
+    table = failures.aggregate(rows, by="role")
+    assert table, "expected at least one rate row"
+    for r in table:
+        assert set(r) == {"seat_or_role", "model", "failed", "fail_rate"}
+        assert r["failed"] >= 1
+    assert sum(r["failed"] for r in table) == len(rows)
+    assert all(0 < r["fail_rate"] <= 1.0 for r in table)
+    assert failures.aggregate([]) == []
+
+
+def test_sensei_command_writes_rates_table(fx, tmp_path):
+    """failures.py sensei writes the rate table pick_worst reads as a plain
+    JSON array; pick_worst consumes it with no JSONDecodeError."""
+    root, _ = fx
+    out = tmp_path / "raw.json"
+    failures.ledger(root, out_path=out)
+    rates_out = tmp_path / "rates.json"
+    rc = failures._cmd_sensei(_ns(root=str(root), by="role",
+                                  in_path=str(out), out=str(rates_out)))
+    assert rc == 0
+    data = json.loads(rates_out.read_text(encoding="utf-8"))
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+    import sensei as _sensei
+    worst = _sensei.pick_worst(data)
+    assert worst is not None and "seat_or_role" in worst
+
+
+class _ns:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
 def test_ledger_never_writes_node_frontmatter_directly(fx, tmp_path):
     """ledger() lands the table via write.py when asked to; the module never
     calls node_writer/log_write itself (no repair-frontmatter is triggered by

@@ -1222,6 +1222,18 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             reply_decision="continue"))
         print("handoff stood: successor answered the single word `continue`.",
               file=sys.stderr)
+        # The rotation succeeded: announce it to every live seat NOW, at the
+        # same moment the record was written (L3.44). A refused or
+        # inconclusive rotation above already returned without announcing.
+        import send  # local: same dir
+        _announce_rotation(
+            root=root,
+            croot=send.comms_root(root, getattr(args, "comms_root", None)),
+            seat=name, successor=name, gen_before=None, gen_after=None,
+            trigger="--force" if getattr(args, "force", False) else "meter due",
+            handoff_path=str(rb),
+            in_flight="successor confirmed `continue`; handoff stood",
+            live_names=succ.get("names", []))
         return 0
     if reply is None:
         _write_rotation_record(root, _loop_record(
@@ -1778,6 +1790,106 @@ def _loop_record(*, name: str, result: str, refusal: str | None = None,
     return rec
 
 
+# ── rotation announcement (hypothesis:l3w4-rotation-announces-itself) ──────
+# One announcement per SUCCESSFUL rotation, to every live seat, carrying the
+# five fields that have each already cost someone a turn. Delivery rides
+# send.py's EXISTING verbs (dm for non-prime seats; the alert room for the
+# prime, which is inbox-only and must never post into quorum — the audience
+# door is the claim's word for it). This module owns the payload and the
+# recipient derivation; the transport verb is the swap point for
+# channel:l3w4-shared-mail-alert when it lands. A refused or inconclusive
+# rotation writes its record and announces NOTHING.
+
+#: Tags every rotation alert so a reader can tell a machine rotation from the
+#: owner speaking (hypothesis:l3w4-shared-mail-alert constraint 3).
+ROTATION_ALERT_TAG = "[rotation-alert]"
+
+#: The PRIME's only announce door — a dedicated alert room, NOT quorum. The
+#: owner's rule: the prime posts into the audience door, never into quorum.
+ROTATION_ALERT_ROOM = "rotation-alerts"
+
+
+def _compose_announcement(*, seat, successor, gen_before, gen_after,
+                          trigger, handoff_path, in_flight) -> str:
+    """The five-field announcement payload — one message, never more.
+
+    Every field is spelled because each has already cost a peer a turn: the
+    outgoing seat, the successor name, generation before/after, the trigger
+    (meter due / --force / fable-limit), and the handoff path the successor
+    is reading, plus one line of what is in flight so a peer can tell whether
+    its own round is orphaned.
+    """
+    return (f"{ROTATION_ALERT_TAG} {seat} -> {successor} | "
+            f"generation {gen_before} -> {gen_after} | "
+            f"trigger: {trigger} | handoff: {handoff_path} | "
+            f"in flight: {in_flight}")
+
+
+def _derive_receivers(root: Path, *, seat: str,
+                      live_names: list[str]) -> list[str]:
+    """Every live seat to be told of a rotation: config:seats rows
+    intersected with live tmux windows, minus the rotating seat itself.
+
+    A seat whose tmux window is absent — never lived or already killed —
+    drops out of the set: there is no point announcing to a corpse. Derived,
+    never hand-typed, so shelter-master owns the registry and this stays in
+    lock-step with it. Returns sorted for determinism.
+    """
+    live = set(live_names or [])
+    out = []
+    for row in _load_seats(root):
+        name = row.get("name")
+        if not name or name == seat:
+            continue
+        if live and name not in live:
+            continue
+        out.append(name)
+    return sorted(out)
+
+
+def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
+                       gen_before, gen_after, trigger: str, handoff_path: str,
+                       in_flight: str, live_names: list[str]) -> list[str]:
+    """Emit exactly ONE announcement to every derived live recipient.
+
+    The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
+    once to ROTATION_ALERT_ROOM instead — never into quorum. Every non-prime
+    seat dms each derived recipient via send.send_dm, which also nudges the
+    recipient's tmux window on the existing seat-transport hop. A delivery
+    failure is logged and NEVER fails the rotation — the announcement is the
+    proof, not a gate. Returns the recipients reached.
+    """
+    import send  # local: same dir
+    text = _compose_announcement(
+        seat=seat, successor=successor, gen_before=gen_before,
+        gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
+        in_flight=in_flight)
+    receivers = _derive_receivers(root, seat=seat, live_names=live_names)
+    if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
+        try:
+            path = send.send_room(croot, ROTATION_ALERT_ROOM, text,
+                                  sender=seat)
+            print(f"announced rotation -> {ROTATION_ALERT_ROOM} ({path})",
+                  file=sys.stderr)
+            return [ROTATION_ALERT_ROOM]
+        except SystemExit as exc:
+            print(f"warn: rotation announcement to {ROTATION_ALERT_ROOM!r} "
+                  f"failed: {exc}", file=sys.stderr)
+            return []
+    delivered = []
+    for recv in receivers:
+        try:
+            send.send_dm(croot, seat, recv, text, sender=seat)
+            delivered.append(recv)
+        except SystemExit as exc:
+            print(f"warn: could not dm {recv!r} the rotation: {exc}",
+                  file=sys.stderr)
+            continue
+    print(f"announced rotation -> {len(delivered)} recipient(s) "
+          f"{delivered!r}", file=sys.stderr)
+    return delivered
+
+
 def _rename_own_window(seat: str, new_name: str, tmux_session: str,
                        window_path: str | None = None) -> None:
     """Rename the seat's own tmux window `<seat>` aside to `new_name`.
@@ -2046,6 +2158,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset))
 
+    # (6.5) the rotation succeeded: announce it to every live seat NOW, at
+    #     the same moment the record was written, BEFORE the own-window kill
+    #     (L3.39 ordering — evidence and announcement both survive cleanup).
+    import send  # local: same dir
+    _announce_rotation(
+        root=root,
+        croot=send.comms_root(root, getattr(args, "comms_root", None)),
+        seat=seat, successor=seat, gen_before=gen_before, gen_after=gen,
+        trigger=getattr(args, "trigger", "rotate-self"),
+        handoff_path=f".agi/sessions/seats/{seat}.handoff.md",
+        in_flight=getattr(args, "in_flight",
+                          f"successor {seat} confirmed; gen {gen}"),
+        live_names=succ.get("names", []))
+
     # (7) confirmed: kill the renamed predecessor window
     _kill_window(new_name, tmux_session, args.window_path)
     print(f"(7) successor confirmed `continue`; killed own window "
@@ -2148,6 +2274,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="read existing window names from this file (tests)")
     p_loop.add_argument("--dry-run", action="store_true",
                         help="print the command instead of running it")
+    p_loop.add_argument("--comms-root", default=None,
+                        help="override the comms dir the rotation announcement "
+                             "is delivered to (default: send.py's comms_root)")
     p_loop.set_defaults(func=cmd_loop)
 
     # status
@@ -2213,6 +2342,15 @@ def main(argv: list[str] | None = None) -> int:
                       help="read/write window names from this file (tests)")
     p_rs.add_argument("--dry-run", action="store_true",
                       help="print all five steps and touch nothing")
+    p_rs.add_argument("--comms-root", default=None,
+                      help="override the comms dir the rotation announcement "
+                           "is delivered to (default: send.py's comms_root)")
+    p_rs.add_argument("--trigger", default="rotate-self",
+                      help="spell the rotation's trigger in the announcement "
+                           "(meter due / --force / fable-limit)")
+    p_rs.add_argument("--in-flight", default=None,
+                      help="one line of what is in flight, for peers to know "
+                           "if their round is orphaned")
     p_rs.set_defaults(func=cmd_rotate_self)
 
     # seats-launch
