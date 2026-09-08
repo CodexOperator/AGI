@@ -388,8 +388,17 @@ def main(argv: list[str] | None = None) -> int:
     live = live_agents(root)
     print(f"budget: {len(live)}/{cap} live  dir={budget_dir(root)}")
     for rec in live:
+        it = rec.get("iter")
+        # hypothesis:l3-killed-agent-restarts-unattributed — a live lease with
+        # no iteration is invisible to the round it belongs to, so it can hold
+        # that round open forever (mirror of the workflow-spawn no-lease
+        # defect: there the count was too low, here the attribution is
+        # missing). Every spawner in the tree passes iter_n, so `None` here is
+        # a defect, not a state — make it loud rather than a silent count.
+        loud = ("   <-- UNATTRIBUTED: iter is None (restarted lease "
+                "lost its round)\n" if it is None else "")
         print(f"  {rec.get('agent_id')} tier={rec.get('tier')} "
-              f"iter={rec.get('iter')} pid={rec.get('agent_pid') or rec.get('holder_pid')}")
+              f"iter={it} pid={rec.get('agent_pid') or rec.get('holder_pid')}{loud}")
     return 0
 
 

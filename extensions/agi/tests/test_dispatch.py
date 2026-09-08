@@ -30,6 +30,52 @@ def _load_dispatch():
 dispatch = _load_dispatch()
 
 
+def test_reaper_restart_inherits_the_iteration_id(tmp_path):
+    """hypothesis:l3-killed-agent-restarts-unattributed, red first.
+
+    A killed agent that is legitimately restarted (`_reap_one`) must acquire
+    its `-rN` lease with the round's iteration id, so `spawn_budget status`
+    attributes the survivor to the round it belongs to instead of iter=None.
+    The 2026-09-08 kill measured three live survivors carrying iter=None that
+    held a round open invisibly; this pins the seam that produced them.
+    """
+    import json as _json
+    root = tmp_path
+    (root / "sessions").mkdir()
+    iter_dir = root / "sessions" / "iter-342"
+    (iter_dir / "a00-abc123-r1").mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            self.called = kw
+            return 12345
+
+    ada = FakeAdapter()
+    rec = {
+        "id": "a00-abc123",
+        "tier": "parent",
+        "node_id": "",
+        "status": "running",
+        "pid": 999,
+        "restart_count": 0,
+        "iter": 342,
+    }
+    outcome = dispatch._reap_one(
+        root, iter_dir, ada, rec, "a00-abc123", 999,
+        cap=10, cfg={"reaper": {"max_restarts": 1}})
+    assert outcome["record"]["status"] == "running"
+    import spawn_budget as _sb
+    leases = [_json.loads(p.read_text())
+              for p in _sb.budget_dir(root).glob("*.lease")]
+    assert leases, "a restart should have left a lease"
+    assert any(r.get("agent_id", "").endswith("-r1")
+               and r.get("iter") == 342 for r in leases), (
+        f"restart lease must carry the round's iteration, got {leases}")
+
+
 def build(cfg: dict, tmp_path: Path) -> list[str]:
     return dispatch._build_pi_args(cfg, str(tmp_path / "ctx.md"), "agent-0", 1, tmp_path)
 
