@@ -990,3 +990,103 @@ def test_pi_gets_the_context_file_as_a_bare_path_not_an_at_prefix(tmp_path):
     assert not any(a.startswith("@") for a in appended), (
         "no --append-system-prompt argument may carry an `@` prefix: pi does "
         f"not expand it and appends it as literal text. got {appended!r}")
+
+
+# --- hypothesis:l3w4-context-load-minimal move FIVE: survival profile --------
+
+def test_profile_survival_is_prayers_statecard_kill_keyfloor_nothing_else():
+    """Survival profile (move FIVE): prayers-only head + ASCII state card +
+    exact next command + full kill procedure + key-floor rule — and NOTHING
+    that a survival seat must not carry (no goal listing, no traps, no
+    history). The owner's lighter-than-light mode, one switch (AGI_BRIEF_PROFILE).
+    """
+    s = _text("kid", profile="survival")
+    low = s.lower()
+    # must carry
+    assert "CONSTITUTION HEAD" in s
+    assert "FOUR PRAYERS" in s or "Молитва" in s
+    assert "SURVIVAL STATE CARD" in s
+    assert "kill" in low and "pid" in low
+    assert "tmux" in low       # the never-by-closing-a-tmux-window rule
+    assert "orphans" in low    # re-scan for orphans reparented to init
+    assert "key" in low and "1.00" in s
+    # the brief segment is the survival brief, not the full role brief
+    assert "SURVIVAL PROFILE" in s
+
+
+def test_profile_survival_replaces_role_specifics():
+    """A survival kid brief must not carry the full kid role brief's
+    scaffolding (git-rule, write.py syntax, edit-tool shape) — those are the
+    fat survival exists to drop."""
+    s = _text("kid", profile="survival")
+    assert "WRITE.PY SYNTAX" not in s
+    assert "EDIT-TOOL CALL SHAPE" not in s
+    assert "scaffolded node file below" not in s.lower()
+
+
+def test_profile_unknown_raises():
+    """An unknown profile must fail loudly, not silently default."""
+    with pytest.raises(brief.BriefError):
+        _text("kid", profile="bogus")
+
+
+def test_profile_default_is_full_no_regression():
+    """Default profile is full = historical behaviour. A regression in the
+    default surface is a broken spawn, not a style regression."""
+    f = _text("kid")
+    s = _text("kid", profile="survival")
+    assert "scaffolded node file below" in f
+    assert "scaffolded node file below" not in s
+    assert len(f) > len(s)
+
+
+def test_survival_selected_env_switch():
+    """survival_selected() reads AGI_BRIEF_PROFILE as THE switch, and the
+    adapters gate the INJECTION context stream on it."""
+    import os
+    os.environ.pop("AGI_BRIEF_PROFILE", None)
+    try:
+        assert brief.survival_selected() is False        # default full
+        os.environ["AGI_BRIEF_PROFILE"] = "survival"
+        assert brief.survival_selected() is True
+        assert brief.survival_selected("full") is False  # explicit wins
+        assert brief.survival_selected("survival") is True
+    finally:
+        os.environ.pop("AGI_BRIEF_PROFILE", None)
+
+
+def test_pi_adapter_skips_context_stream_in_survival(tmp_path):
+    """In survival profile the pi adapter drops the INJECTION graph-viewport
+    stream (goal-listing/traps/history), keeping only the survival brief + head."""
+    import os
+    ctx = tmp_path / "context.md"
+    ctx.write_text("RENDERED GRAPH CONTEXT\n", encoding="utf-8")
+    os.environ.pop("AGI_BRIEF_PROFILE", None)
+    try:
+        # full: context stream present
+        cmd_full = _cmd("kid", context_file=str(ctx), scaffold=SCAFFOLD)
+        appended_full = [cmd_full[i + 1] for i, a in enumerate(cmd_full)
+                         if a == "--append-system-prompt"]
+        assert any(str(ctx) == a for a in appended_full)
+        # survival: context stream dropped
+        os.environ["AGI_BRIEF_PROFILE"] = "survival"
+        cmd_surv = _cmd("kid", context_file=str(ctx), scaffold=SCAFFOLD)
+        appended_surv = [cmd_surv[i + 1] for i, a in enumerate(cmd_surv)
+                         if a == "--append-system-prompt"]
+        assert not any(str(ctx) == a for a in appended_surv)
+        joined = "\n".join(appended_surv)
+        assert "SURVIVAL PROFILE" in joined
+    finally:
+        os.environ.pop("AGI_BRIEF_PROFILE", None)
+
+
+def test_successor_prompt_honors_survival_profile():
+    """successor_prompt(profile='survival') swaps the full body for the
+    survival brief so a rotated seat comes up as light as a fresh spawn."""
+    body = "SUCCESSOR FILE BODY\nkeep this if full"
+    full = brief.successor_prompt(tier="kid", body=body)
+    surv = brief.successor_prompt(tier="kid", body=body, profile="survival")
+    assert "SUCCESSOR FILE BODY" in full
+    assert "SUCCESSOR FILE BODY" not in surv
+    assert "SURVIVAL PROFILE" in surv
+    assert surv.startswith("CONSTITUTION HEAD") or "CONSTITUTION HEAD" in surv
