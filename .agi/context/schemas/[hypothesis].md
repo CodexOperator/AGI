@@ -5,6 +5,7 @@ fields:
   title: {type: str}
   parents: {type: list}     # idea | goal | experiment | hypothesis ids
   next_edges: {type: list}
+  push_further: {type: str}  # hypothesis:l3w4-push-further-loops — what a continuation run at this id should push further
   subgraph: {type: bool}    # body is a CoT subgraph?
   testable_claim: {type: str}
   confidence: {type: float}
