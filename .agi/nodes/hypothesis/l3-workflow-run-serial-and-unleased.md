@@ -37,3 +37,26 @@ DEFECT 3 — COSMETIC, ONE LINE. `--dry-run` prints its stage labels with the pl
 PROVE IT. Red-first, both of the real defects: a test asserting that an independent stage produces more than one concurrent child, and a test asserting the live lease count rises for the duration of a run and returns to its starting value after. Then one real `--dry-run` on both harnesses showing distinct, interpolated labels. Paste actual output.
 
 DO NOT change what the existing `review`, `drafting` or `deep-search` manifests MEAN — their stages and prompts are settled and other work depends on them; you are changing how the runner executes them. Do not touch `brief.py` (another parent holds it), `rotate.py`, `cli.py`, `dispatch.py` or `zoom.py`. Do not write `.agi/nodes/.geometry/seats.md`. Do not kill any `belam-*` tmux window.
+
+THE LIVE RUN FAILED, AND THE FAILURE UNIFIES ALL OF IT INTO ONE DEFECT. Appended by belam-S1-L3-X after `workflow.py run deep-search --harness pi` was actually executed against the owner's grid question.
+
+It died at the FIRST read stage:
+
+    workflow.py: stage read:{slug} pi exited rc=1
+     402 This request requires more credits, or fewer max_tokens. You requested up
+     to 32000 tokens, but can only afford 26055. ... adjust the key's monthly limit
+    workflow.py: workflow=deep-search failed at stage read:{slug} (rc=3)
+
+And the resolved command it printed shows the second half:
+
+    /home/ubuntu/.npm-global/bin/pi -p --provider openrouter --model sonnet --thinking high ...
+
+TWO MORE CONSEQUENCES, AND THEY ARE NOT SEPARATE BUGS. Everything in this node has ONE cause: **`workflow.py` spawns pi directly instead of going through `dispatch.py`.** Every capability that lives in dispatch is therefore absent, and they are absent all at once:
+- no spawn_budget lease, so `status` reports an idle box (defect 2 above);
+- no concurrency, because dispatch's fan-out is where that lives (defect 1 above);
+- **no per-spawn key.** `provisioning.py` mints a fresh $5/60-min OpenRouter key for each dispatched agent, which is precisely why ordinary `--branch` rounds keep running. A workflow spawn skips that and falls back to the `.env` `OPENROUTER_API_KEY` — the RUNTIME FALLBACK key, deliberately capped at $5/month since the owner rotated it (§6 item 45). Measured immediately after the failure: that key read `usage: 4.809` of `limit: 5`, `limit_remaining: 0.19`. The workflow route burned the fallback key's entire monthly cap and then 402'd, while `dispatch.py` rounds continued untouched on minted keys. **The capped fallback key is doing exactly its job here — it converted an unbounded spend into a bounded one and then stopped. The defect is that the workflow route is reaching for it at all.**
+- **the model hint is never resolved for pi.** `--model sonnet` was handed to `--provider openrouter` verbatim. `sonnet` is not an OpenRouter slug; the pi harness's real rows are `~z-ai/glm-flash-latest` and `~deepseek/deepseek-v4-flash-latest`, resolved by `dispatch.py` from `.agi/config.json harnesses.pi.models[tier]`. So even with unlimited credit this stage would have been asking for a model that does not exist on that provider. A `model_hint` is a HINT and something has to resolve it per harness; nothing does.
+
+WHAT THIS CHANGES ABOUT THE FIX. Do not patch four things. Route workflow stage spawns through `dispatch.py` the way every other spawn in this project goes, and the lease, the concurrency, the minted key and the model resolution all arrive together because that is what dispatch already does. If there is a genuine reason a workflow stage cannot be a dispatched agent, state it explicitly with file:line and propose the narrowest alternative — but the default answer is the one this project keeps arriving at: one route, no second path that happens to also work.
+
+HONEST SCOPE NOTE FOR WHOEVER TAKES THIS. The `--dry-run` path is genuinely correct and was verified on both harnesses by two independent agents; nothing here demotes `experiment:a00-33c42478-0c0721`, whose brief asked for exactly what it delivered. What failed is the live execution path underneath it, which no brief had ever asked anyone to exercise. That is the whole reason the owner's instruction to actually USE it was worth more than another review of it.
