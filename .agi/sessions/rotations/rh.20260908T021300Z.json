@@ -1,0 +1,37 @@
+{
+  "rotation": "rotate-self",
+  "seat": "rh",
+  "recorded_at": "2026-09-08T02:13:00.280854Z",
+  "result": "refused",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "rh",
+      "windows": [
+        "bash",
+        "rh.gen1"
+      ],
+      "source": "tmux list-windows -t agi-rh-l339b -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 0,
+      "after": 1
+    },
+    "c_readback_log_path": "/tmp/rh-graph-l339b/rh.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 18,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "rh.gen1",
+      "windows": [
+        "bash",
+        "rh.gen1"
+      ],
+      "source": "tmux list-windows -t agi-rh-l339b -F #{window_name}"
+    }
+  },
+  "refusal_reason": "successor window absent"
+}

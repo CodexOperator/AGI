@@ -1091,11 +1091,18 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     # present and answering before loop reports rotation success. A prime that
     # believed a success line with no successor window behind it would emit its
     # closing prayer and exit, stranding the ladder with no prime at all.
-    existing = _existing_windows(tmux_session, args.window_path)
-    if name not in existing:
+    # The observation is taken from tmux list-windows (or the window-path
+    # stand-in), NEVER from the spawn tool's return value, and the rotation
+    # records itself durably either way.
+    succ = _observed_windows(tmux_session, args.window_path)
+    if name not in succ["names"]:
+        _write_rotation_record(root, _loop_record(
+            name=name, result="refused",
+            succ=succ, readback_log=Path(debug_file).expanduser().resolve(),
+            refusal="successor window absent"))
         print(f"ERR: successor window {name!r} is NOT present in tmux session "
               f"{tmux_session!r}; refusing to report rotation success "
-              f"(windows: {existing!r}).",
+              f"(windows: {succ['names']!r}).",
               file=sys.stderr)
         return 1
 
@@ -1103,16 +1110,25 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     # never the meter's `--session-log` -- pointing the read-back at the
     # caller's own transcript let a prime confirm itself rotation that never
     # happened (Belam VII 2026-09-07 21:56 UTC).
-    reply = _read_first_reply(debug_file,
-                              timeout=args.timeout)
+    reply = _read_first_reply(debug_file, timeout=args.timeout)
+    rb = Path(debug_file).expanduser().resolve()
     if reply is not None and reply.strip().lower() == "continue":
+        _write_rotation_record(root, _loop_record(
+            name=name, result="success", succ=succ, readback_log=rb,
+            reply_decision="continue"))
         print("handoff stood: successor answered the single word `continue`.",
               file=sys.stderr)
         return 0
     if reply is None:
+        _write_rotation_record(root, _loop_record(
+            name=name, result="inconclusive-no-reply", succ=succ,
+            readback_log=rb, reply_decision="no_reply"))
         print("warn: could not read a reply from the successor log "
               "(give it time, then re-run loop).", file=sys.stderr)
         return 0
+    _write_rotation_record(root, _loop_record(
+        name=name, result="diff", succ=succ, readback_log=rb,
+        reply_decision="diff"))
     print("successor replied (handoff needs change):", file=sys.stderr)
     print("  " + reply.strip().replace("\n", "\n  "), file=sys.stderr)
     return 0
@@ -1269,6 +1285,136 @@ def _write_handoff(root: Path, name: str, generation: int,
         encoding="utf-8",
     )
     return hp
+
+
+# ---- durable rotation record (hypothesis:l3-rotation-record-and-
+#      predecessor-guarantee) -----------------------------------------------
+
+#: Subdir of the graph's sessions dir where every rotation records ITSELF.
+ROTATIONS_DIR_NAME = "rotations"
+
+
+def _rotations_dir(root: Path) -> Path:
+    """`<graph>/sessions/rotations/` — the durable rotation-record dir.
+
+    Created on demand. The record survives cleanup and is committed, so a
+    rotation whose proof would otherwise exist only as pasted prose keeps a
+    replayable artefact behind it.
+    """
+    return _sessions_dir(root) / ROTATIONS_DIR_NAME
+
+
+def _observed_windows(tmux_session: str, window_path: str | None = None) -> dict:
+    """The window list as an OBSERVED FACT with its source, so a record never
+    has to trust the tool's own return value.
+
+    Returns `{"names": [...], "source": ...}` where `source` names the read
+    that established it: `tmux list-windows -t <session> -F #{window_name}`
+    for a real session, or the window-path file under test (which is a
+    stand-in for exactly that read, never the spawn tool's return).
+    """
+    if window_path:
+        names = _existing_windows(tmux_session, window_path)
+        source = f"window-path file {window_path}"
+    else:
+        names = _existing_windows(tmux_session, None)
+        source = f"tmux list-windows -t {tmux_session} -F #{{window_name}}"
+    return {"names": names, "source": source}
+
+
+def _write_rotation_record(root: Path, record: dict) -> Path:
+    """Write one JSON rotation record under `.agi/sessions/rotations/`.
+
+    One file per rotation, named `<seat>.<UTC timestamp>.json` so a reader can
+    glob `<seat>.*.json` and see that seat's whole rotation history. Returns
+    the written path.
+    """
+    rot = _rotations_dir(root)
+    rot.mkdir(parents=True, exist_ok=True)
+    seat = str(record.get("seat") or "anonymous")
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    path = rot / f"{seat}.{stamp}.json"
+    path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
+                        gen_before: int | None = None, gen_after: int | None = None,
+                        succ=None, pred=None, readback_log=None,
+                        cursor_offset: int | None = None) -> dict:
+    """One durable JSON record for a rotate-self rotation: observations (a)-(e)
+    of hypothesis:l3-rotation-record-and-predecessor-guarantee, each an
+    observed fact with the command output that established it.
+    """
+    obs: dict = {}
+    if succ is not None:
+        obs["a_successor_window_under_plain_name"] = {
+            "present": seat in succ["names"],
+            "window": seat,
+            "windows": succ["names"],
+            "source": succ["source"],
+        }
+    if gen_before is not None:
+        obs["b_generation"] = {"before": gen_before, "after": gen_after}
+    if readback_log is not None:
+        obs["c_readback_log_path"] = str(readback_log)
+    if cursor_offset is not None:
+        obs["d_stale_continue_cursor"] = {
+            "start_offset": cursor_offset,
+            "read_before_write": True,
+            "note": "only bytes AFTER start_offset can confirm the successor; "
+                    "a stale pre-spawn `continue` at/before the cursor is refused",
+        }
+    if pred is not None:
+        # `pred` carries name (the renamed aside window) + the observed list.
+        obs["e_predecessor_alive"] = {
+            "present": pred.get("name") in pred.get("windows", []),
+            "name": pred.get("name"),
+            "windows": pred.get("windows", []),
+            "source": pred.get("source"),
+        }
+    rec = {
+        "rotation": "rotate-self",
+        "seat": seat,
+        "recorded_at": datetime.utcnow().isoformat() + "Z",
+        "result": result,
+        "observations": obs,
+    }
+    if refusal:
+        rec["refusal_reason"] = refusal
+    return rec
+
+
+def _loop_record(*, name: str, result: str, refusal: str | None = None,
+                 succ=None, readback_log=None,
+                 reply_decision: str | None = None) -> dict:
+    """One durable JSON record for a cmd_loop rotation: the successor window
+    (observed, never tool-return), the read-back log path, and the reply
+    decision. `loop` does not rename a predecessor aside, so it has no (e)
+    observation of its own; the successor-absent refusal is its guarantee.
+    """
+    obs: dict = {}
+    if succ is not None:
+        obs["a_successor_window_under_name"] = {
+            "present": name in succ["names"],
+            "window": name,
+            "windows": succ["names"],
+            "source": succ["source"],
+        }
+    if readback_log is not None:
+        obs["c_readback_log_path"] = str(readback_log)
+    if reply_decision is not None:
+        obs["d_reply_decision"] = reply_decision
+    rec = {
+        "rotation": "loop",
+        "seat": name,
+        "recorded_at": datetime.utcnow().isoformat() + "Z",
+        "result": result,
+        "observations": obs,
+    }
+    if refusal:
+        rec["refusal_reason"] = refusal
+    return rec
 
 
 def _rename_own_window(seat: str, new_name: str, tmux_session: str,
@@ -1435,7 +1581,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     else:
         row = {}  # default row; never consulted against seats.md
 
-    gen = _read_generation(root, seat) + 1
+    gen_before = _read_generation(root, seat)
+    gen = gen_before + 1
     new_name = f"{seat}.gen{gen}"
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     dbg = args.debug_file or f".agi/sessions/{seat}.log"
@@ -1477,7 +1624,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"generation: {gen} (never a Roman numeral)")
         return 0
 
-    # (4) read back. Record the successor log's size BEFORE the spawn
+    # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
+    #     reused PLAIN seat name, established by tmux list-windows and NEVER
+    #     by spawn_window's return value (which has previously reported a
+    #     successful rotation and spawned no window at all). Refuse to report
+    #     success when it is absent.
+    succ = _observed_windows(tmux_session, args.window_path)
+    if seat not in succ["names"]:
+        pred_o = _observed_windows(tmux_session, args.window_path)
+        _write_rotation_record(root, _rotate_self_record(
+            seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
+            succ=succ, pred={"name": new_name, "windows": pred_o["names"],
+                             "source": pred_o["source"]},
+            readback_log=Path(dbg).expanduser().resolve(),
+            cursor_offset=(Path(dbg).expanduser().resolve().stat().st_size
+                           if Path(dbg).expanduser().resolve().exists() else 0),
+            refusal="successor window absent"))
+        print(f"ERR: successor window {seat!r} is NOT present in tmux session "
+              f"{tmux_session!r}; refusing to report rotation success "
+              f"(windows: {succ['names']!r}).", file=sys.stderr)
+        return 1
+
+    # (5) read back. Record the successor log's size BEFORE the spawn
     #     completed so the read cursor ignores anything (a stale `continue`)
     #     written before the successor started (read-before-write cursor).
     log = Path(dbg).expanduser().resolve()
@@ -1490,10 +1658,38 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               file=sys.stderr)
         return 1
 
-    # (5) confirmed: kill the renamed predecessor window
+    # (5) PREDECESSOR-SURVIVAL GUARANTEE: the predecessor window (renamed
+    #     aside to new_name) must still exist AFTER the successor is confirmed
+    #     — a rotation that silently killed its predecessor would destroy the
+    #     Belam chain in the direction nobody notices until they need it.
+    #     Refuse to report success when it is gone.
+    pred_raw = _observed_windows(tmux_session, args.window_path)
+    pred = {"name": new_name, "windows": pred_raw["names"],
+            "source": pred_raw["source"]}
+    pred_alive = new_name in pred_raw["names"]
+    if not pred_alive:
+        _write_rotation_record(root, _rotate_self_record(
+            seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
+            succ=succ, pred=pred, readback_log=log, cursor_offset=offset,
+            refusal=f"predecessor window {new_name!r} gone"))
+        print(f"ERR: predecessor window {new_name!r} is NOT present in tmux "
+              f"session {tmux_session!r}; refusing to report rotation "
+              f"success (windows: {pred_raw['names']!r}).",
+              file=sys.stderr)
+        return 1
+
+    # (6) the record is the deliverable — write it, durably, BEFORE the own
+    #     window is killed, so it survives regardless of what the kill does.
+    record_path = _write_rotation_record(root, _rotate_self_record(
+        seat=seat, result="success", gen_before=gen_before, gen_after=gen,
+        succ=_observed_windows(tmux_session, args.window_path),
+        pred=pred, readback_log=log, cursor_offset=offset))
+
+    # (7) confirmed: kill the renamed predecessor window
     _kill_window(new_name, tmux_session, args.window_path)
-    print(f"(5) successor confirmed `continue`; killed own window "
+    print(f"(7) successor confirmed `continue`; killed own window "
           f"{new_name!r}")
+    print(f"rotation recorded: {record_path}")
     return 0
 
 
