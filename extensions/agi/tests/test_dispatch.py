@@ -1096,3 +1096,81 @@ def test_child_working_root_unchanged_without_a_worktree_spawner(tmp_path):
     # Env names the SAME tree as passed → identity.
     assert dispatch.child_working_graph(passed_root=main_graph,
                                         spawner_env_root=str(repo)) == main_graph
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum
+# ---------------------------------------------------------------------------
+# A `--push-further` re-dispatch is REFUSED (exit 2) before any slot is
+# admitted when --target names an overview/vision/moral node, so a
+# push-further chain can loop through kid/parent/director tiers but never
+# auto-continue INTO quorum-judged territory. Red-first: the gate and the
+# flag threading are unit-tested against the real dispatch helpers.
+
+
+def _make_node(root: Path, node_type: str, slug: str, fm: dict | None = None):
+    d = root / "nodes" / node_type
+    d.mkdir(parents=True, exist_ok=True)
+    body = "---\n" + f"id: {node_type}:{slug}\ntype: {node_type}\n"
+    for k, v in (fm or {}).items():
+        if isinstance(v, str):
+            body += f"{k}: {v}\n"
+        else:
+            body += f"{k}: {v}\n"
+    body += "---\n"
+    (d / f"{slug}.md").write_text(body)
+    return f"{node_type}:{slug}"
+
+
+def test_push_further_gate_refuses_quorum_targets(tmp_path):
+    """overview/vision/moral are the node types a push stops before."""
+    for t in ("overview", "vision", "moral"):
+        node_id = _make_node(tmp_path, t, f"seed-{t}")
+        gate = dispatch._push_further_gate(tmp_path, node_id)
+        assert gate is not None, f"must refuse {t}"
+        code, msg = gate
+        assert code == 2
+        assert "quorum-judged" in msg
+
+
+def test_push_further_gate_requires_a_target(tmp_path):
+    code, msg = dispatch._push_further_gate(tmp_path, None)
+    assert code == 2
+    assert "--target" in msg
+
+
+def test_push_further_gate_allows_hypothesis_and_missing(tmp_path):
+    """A hypothesis (or an unresolved id) is NOT the quorum stop — the flag
+    threads through and the dispatch proceeds (zoom will surface a bad id)."""
+    assert dispatch._push_further_gate(tmp_path, "hypothesis:seed") is None
+    node_id = _make_node(tmp_path, "hypothesis", "seed")
+    assert dispatch._push_further_gate(tmp_path, node_id) is None
+
+
+def test_target_node_type_resolves_frontmatter(tmp_path):
+    _make_node(tmp_path, "vision", "seed")
+    assert dispatch._target_node_type(tmp_path, "vision:seed") == "vision"
+    assert dispatch._target_node_type(tmp_path, "hypothesis:absent") is None
+
+
+def test_zoom_command_threads_push_further(tmp_path):
+    cmd = dispatch.zoom_command(tmp_path, 3, "a00", "small", "hypothesis:x",
+                                push_further=True)
+    assert "--push-further" in cmd
+    cmd2 = dispatch.zoom_command(tmp_path, 3, "a00", "small", "hypothesis:x")
+    assert "--push-further" not in cmd2
+
+
+def test_scaffold_push_further_stamps_pushed_from(tmp_path):
+    """A continuation kid's scaffold carries `pushed_from: <target>` so the
+    re-dispatch leaves a trace of which node it was pushed from."""
+    import yaml as _yaml
+    root = tmp_path
+    node_id = _make_node(root, "hypothesis", "seed")
+    info = dispatch._scaffold_node_for_agent(
+        root, 1, "a00-push", "small", node_id, role="kid",
+        stamp={"role": "kid", "loop": f"{node_id}@s2", "model": "m", "profile": "b", "season": 2},
+        extra_fm={"pushed_from": node_id})
+    assert info, "push-further scaffold must write a node"
+    fm = _yaml.safe_load(Path(info["path"]).read_text().split("---", 2)[1])
+    assert fm["pushed_from"] == node_id
