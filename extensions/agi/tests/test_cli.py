@@ -256,3 +256,149 @@ def test_confidence_percent_is_normalized_not_stored_raw():
     for bad in (-1, 101, 1000):
         with pytest.raises(ValueError):
             cli._normalize_confidence(bad)
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3w4-branch-parent-commits — parent owns the worktree commit
+# --------------------------------------------------------------------------
+
+def _ggit(tmp, *args):
+    import subprocess
+    return subprocess.run(["git", "-C", str(tmp), *args],
+                          capture_output=True, text=True)
+
+
+def _gitc(tmp, msg):
+    (tmp / "file.txt").write_text("x\n")
+    _ggit(tmp, "add", "-A")
+    return _ggit(tmp, "-c", "user.email=t@t", "-c", "user.name=t",
+                 "commit", "-qm", msg)
+
+
+def test_done_auto_commits_parent_worktree(tmp_path, monkeypatch):
+    """The remaining half of hypothesis:l3w4-branch-parent-commits. A
+    `--branch` parent accepts its kid's node while resident in a linked
+    worktree (nothing else commits there), so `cli.py done` must own the
+    commit: the worktree's uncommitted node write lands at base+1 with a
+    clean tree, and season.py merge-up against that branch now succeeds
+    instead of REFUSING a zero-ahead empty branch."""
+    import argparse
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    # The agent's session record lives in the MAIN checkout (shared across
+    # worktrees); the kid's node lives in the worktree.
+    (graph / "sessions" / "iter-001" / "a00-p").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-p" / "agent.json").write_text(
+        '{"id": "a00-p", "node_id": "experiment:e1", '
+        '"parent": "hypothesis:h1", "status": "running"}')
+
+    # git-init main on season/s1, one base commit.
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    # A linked worktree holding the loop branch.
+    br = "loop/slug-abc12345@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+
+    # The worktree's own graph + the kid's UNCOMMITTED node write.
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "experiment").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    (wt_graph / "nodes" / "experiment" / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\nparents:\n- hypothesis:h1\n"
+        "---\n\n# experiment:e1\n\nThe kid wrote this body.\n")
+    (wt_graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    assert _ggit(wt, "status", "--porcelain").stdout.strip(), \
+        "precondition: the worktree must be dirty before done"
+
+    # `done` resolves its root to the worktree's graph (the parent's cwd).
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-p", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    assert cli.cmd_done(args) == 0
+
+    # The worktree branch landed at base+1 and the tree is clean.
+    ahead = _ggit(main, "rev-list", "--count",
+                  f"season/s1..{br}").stdout.strip()
+    assert ahead == "1", \
+        "parent `done` must commit the worktree's node once (base+1)"
+    assert not _ggit(wt, "status", "--porcelain").stdout.strip(), \
+        "worktree must be clean after done"
+
+    # season.py merge-up against that branch now lands (was REFUSED at 0 ahead).
+    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    result = subprocess.run(
+        [sys.executable, str(bin_dir / "season.py"),
+         "--root", str(graph), "merge-up", br,
+         "--suite", "exit 0", "--worktree", str(wt)],
+        capture_output=True, text=True,
+    )
+    combined = result.stdout + result.stderr
+    assert result.returncode == 0, \
+        f"merge-up must succeed on a committed branch: {combined}"
+    assert "merge-up" in result.stdout
+    assert "complete; suite green" in result.stdout
+    # The node really landed in the base's history via the merge.
+    merged = _ggit(main, "log", "season/s1", "--format=%s").stdout
+    assert "verdict=proved" in merged or "base" in merged
+
+
+def test_done_does_not_commit_main_checkout(tmp_path, monkeypatch):
+    """The goal:g4.1 guard — a parent running in the MAIN checkout (not a
+    linked worktree) must NOT `git add -A` the shared tree on its own `done`.
+    The loop owns commits in main; sweeping up sibling agents' work would be
+    the exact hazard this whole guard exists to prevent."""
+    import argparse
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "sessions" / "iter-001" / "a00-p").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-p" / "agent.json").write_text(
+        '{"id": "a00-p", "node_id": "experiment:e1", '
+        '"parent": "hypothesis:h1", "status": "running"}')
+    (graph / "nodes" / "experiment" / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\nparents:\n- hypothesis:h1\n"
+        "---\n\nbody\n")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+    # an UNCOMMITTED sibling write in main must be left alone
+    (main / "sibling.md").write_text("sibling's work\n")
+
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-p", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    assert cli.cmd_done(args) == 0
+    # main still sits exactly at base: nothing was committed, sibling intact.
+    assert _ggit(main, "rev-list", "--count",
+                 "season/s1").stdout.strip() == "1"
+    assert _ggit(main, "status", "--porcelain").stdout.strip(), \
+        "main's uncommitted work must survive done untouched"
+    assert (main / "sibling.md").exists()

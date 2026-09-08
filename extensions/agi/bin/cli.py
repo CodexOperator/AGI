@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -550,6 +551,12 @@ def cmd_done(args: argparse.Namespace) -> int:
                 return 2
             print(f"wrote verdict: {res.path}")
 
+    # hypothesis:l3w4-branch-parent-commits -- the parent's ONE finishing
+    # action, so it owns the worktree commit too. Commits the linked worktree
+    # this parent runs in, if it holds uncommitted node writes; a no-op in
+    # main (the loop owns main) and outside git. Never fatal.
+    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict)
+
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     return 0
 
@@ -844,6 +851,83 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
         except Exception as exc:
             print(f"warn: could not add notes to {node_id}: {exc}",
                   file=sys.stderr)
+
+
+def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
+                         owns: list | None, verdict: str) -> Path | None:
+    """Give the commit to the parent at the moment it accepts its kid's node.
+
+    hypothesis:l3w4-branch-parent-commits — a `--branch` parent runs inside a
+    linked git worktree, and nothing commits there (a kid is contractually
+    forbidden to commit, and the loop owns the main checkout), so a loop branch
+    reaches merge-up holding one or more uncommitted node writes. `done` is the
+    parent's ONE finishing action, so it owns that commit: when `root` resolves
+    inside a linked worktree and that worktree is dirty, add + commit it so
+    merge-up has a real commit to (merely-zero-ahead) refuse, a branch that
+    previously reached the gate empty.
+
+    ONLY in a linked worktree. In the main checkout — or outside any git repo —
+    this is a silent no-op: the loop owns commits in main, and a parent running
+    in main must not `git add -A` a tree it shares with sibling agents (that is
+    the goal:g4.1 hazard, exactly). Worktree-ness is tested by the same probe
+    the rest of the engine uses: the worktree's own git-dir resolving to a
+    DIFFERENT repo than the project's common-dir, i.e.
+    `locations.git_common_root(root)` != this checkout's own toplevel.
+
+    Returns the committed checkout root on success, None otherwise. A commit
+    failure prints a loud named ERR to stderr but NEVER discards the verdict
+    already recorded — the same principle `cmd_done` applies a few lines above
+    when the schema-fill step fails: the kid's work is on disk and is worth
+    more than the commit.
+    """
+    try:
+        checkout = locations.source_root(root)
+        common = locations.git_common_root(root)
+        toplevel = subprocess.run(
+            ["git", "-C", str(checkout), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True)
+        if toplevel.returncode != 0 or not toplevel.stdout.strip():
+            return None   # not inside a git repo -> nothing to commit
+        checkout_root = Path(toplevel.stdout.strip())
+        # Main checkout (or a config declared elsewhere): the loop owns commits
+        # here, and this tree is shared, so never sweep it. Only a linked
+        # worktree is this parent's private branch.
+        if common.resolve() == checkout_root.resolve():
+            return None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+    status = subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain"],
+        capture_output=True, text=True)
+    if status.returncode != 0 or not status.stdout.strip():
+        return None   # clean worktree -> nothing to commit
+
+    # `<agent_id> done: <node_id or owns[0]> verdict=<verdict>`
+    ref = node_id or (owns[0] if owns else "node")
+    subject = f"{agent_id} done: {ref} verdict={verdict}"
+
+    add = subprocess.run(["git", "-C", str(checkout), "add", "-A"],
+                         capture_output=True, text=True)
+    if add.returncode != 0:
+        print(f"ERR: worktree commit add failed in {checkout_root}: "
+              f"{add.stderr.strip() or '(no stderr from git)'}",
+              file=sys.stderr)
+        return None
+
+    commit = subprocess.run(
+        ["git", "-C", str(checkout),
+         "-c", "user.email=agi@local", "-c", "user.name=agi",
+         "commit", "-qm", subject],
+        capture_output=True, text=True)
+    if commit.returncode != 0:
+        print(f"ERR: worktree commit failed in {checkout_root}: "
+              f"{commit.stderr.strip() or '(no stderr from git)'}",
+              file=sys.stderr)
+        return None
+
+    print(f"committed worktree {checkout_root}: {subject}")
+    return checkout_root
 
 
 def cmd_status(args: argparse.Namespace) -> int:

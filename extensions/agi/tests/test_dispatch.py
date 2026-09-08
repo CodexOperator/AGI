@@ -497,6 +497,125 @@ def test_an_unavailable_restart_fails_the_agent_rather_than_raising(tmp_path, mo
     assert "restart unavailable" in out["record"]["fail_reason"]
 
 
+def _branch_repo(tmp_path):
+    """A real little git repo: `main` with one commit, `loop/x` cut from it
+    with `n` commits on top. Returns (graph_root, branch, base)."""
+    from subprocess import run
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / ".agi").mkdir()
+    (root / "config.json").write_text("{}")
+
+    def g(*args):
+        run(["git", "-C", str(root), *args], check=True,
+            capture_output=True, text=True)
+
+    g("init", "-q", "-b", "main")
+    g("config", "user.email", "t@t")
+    g("config", "user.name", "t")
+    (root / "f").write_text("base\n")
+    g("add", "f")
+    g("commit", "-q", "-m", "base")
+    g("checkout", "-q", "-b", "loop/x")
+    for i in range(2):
+        (root / "f").write_text((root / "f").read_text() + f"{i}\n")
+        g("add", "f")
+        g("commit", "-q", "-m", f"c{i}")
+    # back on main so the worktree state mirrors a real main checkout
+    g("checkout", "-q", "main")
+    return root, "loop/x", "main"
+
+
+def test_a_branch_agent_reaped_carries_commits_ahead(tmp_path, monkeypatch):
+    """hypothesis:l3w4-branch-visibility — a `--branch` agent reaped by the
+    reaper gets `commits_ahead` COMPUTED (rev-list main..branch == 2), never
+    hand-counted, in the record that lands in agent.json."""
+    d = _load_dispatch()
+    graph, branch, base = _branch_repo(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid",
+                       "branch": branch, "base_branch": base},
+                      "a00", 999, cap=5, cfg={})
+
+    assert out["record"]["status"] == "done-unreported"
+    assert out["record"]["commits_ahead"] == 2
+    assert isinstance(out["record"]["commits_ahead"], int)
+    assert adapter.calls == []
+
+
+def test_commits_ahead_is_present_and_zero_for_no_commits(tmp_path, monkeypatch):
+    """A branch cut but never advanced still stamps `commits_ahead == 0` —
+    present and correct, not dropped as 'not ahead'."""
+    d = _load_dispatch()
+    graph, branch, base = _branch_repo(tmp_path)
+    from subprocess import run as _run
+    _run(["git", "-C", str(graph), "checkout", "-q", "-b", "loop/zero",
+          "main"], check=True)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid",
+                       "branch": "loop/zero", "base_branch": base},
+                      "a00", 999, cap=5, cfg={})
+
+    assert out["record"]["commits_ahead"] == 0
+
+
+def test_a_non_branch_agents_record_is_unchanged(tmp_path, monkeypatch):
+    """No branch/base_branch -> no commits_ahead key at all; the record is
+    byte-for-byte the same shape as before the change."""
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid"},
+                      "a00", 999, cap=5, cfg={})
+
+    assert "commits_ahead" not in out["record"]
+    assert out["record"]["status"] == "done-unreported"
+
+
+def test_reaped_branch_agent_manifest_entry_gets_commits_ahead(tmp_path, monkeypatch):
+    """The manifest.json entry mirrors agent.json: after a branch agent is
+    reaped, both carry the same commits_ahead, so the round file and the
+    manifest agree (hypothesis:l3w4-branch-visibility, 'in both')."""
+    d = _load_dispatch()
+    graph, branch, base = _branch_repo(tmp_path)
+    iter_dir = graph / "sessions" / "iter-1"
+    sess_dir = iter_dir / "a00"
+    sess_dir.mkdir(parents=True)
+    rec = {"id": "a00", "pid": 4242, "status": "running", "tier": "kid",
+           "node_id": "hypothesis:h1", "branch": branch,
+           "base_branch": base}
+    (sess_dir / "agent.json").write_text(d.json.dumps(rec, indent=2))
+    manifest = {"agents": [dict(rec)]}
+    (iter_dir / "manifest.json").write_text(d.json.dumps(manifest, indent=2))
+
+    class _Dead(_FakeAdapter):
+        def is_alive(self, pid):
+            return False
+
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+    d._reaper_phase(graph, iter_dir, _Dead(), timeout_s=1, max_wait_s=1,
+                    cap=5, cfg={})
+
+    from json import loads
+    agent = loads((sess_dir / "agent.json").read_text())
+    man = loads((iter_dir / "manifest.json").read_text())
+    assert agent["commits_ahead"] == 2
+    assert man["agents"][0]["commits_ahead"] == 2
+
+
 def test_the_mint_call_is_guarded_by_needs_credential():
     """goal:s34 item 2 — the red-on-purpose half of the experiment
     experiment:a00-d315f97b-8ec39a. The simulation the first draft of this
