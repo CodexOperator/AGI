@@ -12,6 +12,7 @@ config-maxxed contract breaking.
 from __future__ import annotations
 
 import io
+import json
 import os
 import re
 import sys
@@ -261,3 +262,123 @@ def test_review_and_drafting_stage_json_matches_js_prompts():
         base = stage["label"]
         assert base in jsd or base + ":" in jsd, (base,)
     assert m2["script"] == "agi-brief-drafting.js"
+
+
+# ---------- unified route: register / list / the registry invariant ---------
+# hypothesis:l3-workflows-unified-route. Every agi-*.js must have a sibling
+# <name>.json and every manifest must name only stages its script implements.
+# Validation is run against an explicit tmp workflows dir so the live repo
+# (where deep-search is mid-build) never makes these flaky.
+
+
+def _write_registry_pair(wf: Path, key: str, script_text: str, stages: list):
+    (wf / f"agi-{key}.js").write_text(script_text, encoding="utf-8")
+    (wf / f"{key}.json").write_text(
+        json.dumps({"name": key, "script": f"agi-{key}.js", "stages": stages},
+                   indent=2) + "\n", encoding="utf-8")
+
+
+def test_registry_flag_script_without_sibling_manifest(tmp_path):
+    """RED direction 1: an agi-*.js with no sibling <name>.json is an error."""
+    from workflow import validate_registry
+    wf = tmp_path
+    (wf / "agi-orphan.js").write_text(
+        "phase('Orphan')\n"
+        "await agent('x', {label: 'orphan'})\n", encoding="utf-8")
+    buf = io.StringIO()
+    rc = validate_registry(REPO / ".agi", wf=wf, out=buf)
+    assert rc == 1, buf.getvalue()
+    assert "agi-orphan.js has no manifest naming it" in buf.getvalue()
+    # direction 2 must stay quiet: a lone manifest with a missing script too
+    (wf / "ghost.json").write_text(
+        json.dumps({"name": "ghost", "script": "agi-ghost.js", "stages": []}),
+        encoding="utf-8")
+    buf2 = io.StringIO()
+    rc2 = validate_registry(REPO / ".agi", wf=wf, out=buf2)
+    assert rc2 == 1, buf2.getvalue()
+    assert "agi-ghost.js" in buf2.getvalue()
+
+
+def test_registry_flag_manifest_naming_unimplemented_stage(tmp_path):
+    """RED direction 2: a manifest naming a stage the script does not
+    implement is an error — the script is the source of truth."""
+    from workflow import validate_registry
+    wf = tmp_path
+    _write_registry_pair(wf, "good",
+                         "phase('A')\nawait agent('x', {label: 'a'})\n",
+                         [{"label": "a"}, {"label": "b"}])  # 'b' not implemented
+    buf = io.StringIO()
+    rc = validate_registry(REPO / ".agi", wf=wf, out=buf)
+    assert rc == 1, buf.getvalue()
+    assert "stage 'b' is not implemented by agi-good.js" in buf.getvalue()
+    # sound pair -> green (separate dir so the broken pair above stays isolated)
+    wf2 = tmp_path / "sound"
+    wf2.mkdir()
+    _write_registry_pair(wf2, "sound",
+                         "phase('A')\nawait agent('x', {label: 'a'})\n",
+                         [{"label": "a"}])
+    buf2 = io.StringIO()
+    rc2 = validate_registry(REPO / ".agi", wf=wf2, out=buf2)
+    assert rc2 == 0, buf2.getvalue()
+    assert "sound" in buf2.getvalue()
+
+
+def test_register_derives_stages_and_refuses_overwrite(tmp_path, monkeypatch):
+    """A real register round trip in an isolated workflows dir: derives the
+    stage manifest from the inline script, then refuses a silent overwrite."""
+    from workflow import register_workflow
+    script = tmp_path / "inline-script.js"
+    script.write_text(
+        "phase('Draft')\n"
+        "const drafts = await parallel(briefs.map(b => agent(`write {b.slug}`, "
+        "{label: `draft:${b.slug}`, schema: DRAFT_SCHEMA})))\n"
+        "phase('Critic')\n"
+        "const critic = await agent(prompt, {label: 'critic', schema: "
+        "CRITIC_SCHEMA})\n"
+        "return {drafts, critic}\n", encoding="utf-8")
+    reg_dir = tmp_path / "wf"
+    reg_dir.mkdir()
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    buf = io.StringIO()
+    rc = register_workflow(tmp_path, "draft-briefs", script,
+                           from_dir=tmp_path / "some-run", out=buf)
+    assert rc == 0, buf.getvalue()
+    assert "[registered] draft-briefs" in buf.getvalue()
+    js = reg_dir / "agi-draft-briefs.js"
+    mf = reg_dir / "draft-briefs.json"
+    assert js.is_file() and mf.is_file()
+    manifest = json.loads(mf.read_text(encoding="utf-8"))
+    labels = {st["label"] for st in manifest["stages"]}
+    assert labels == {"draft", "critic"}, labels
+    assert manifest["script"] == "agi-draft-briefs.js"
+    assert manifest["_from_run"] == str(tmp_path / "some-run")
+    # the derived repeat stage carries an honest label_template
+    repeat = [s for s in manifest["stages"] if s["label"] == "draft"][0]
+    assert repeat["repeat"]["label_template"] == "draft:{slug}", repeat
+    # and the derived pair is a SOUND registry (the invariant is green on it)
+    from workflow import validate_registry
+    buf_v = io.StringIO()
+    assert validate_registry(tmp_path, wf=reg_dir, out=buf_v) == 0, buf_v.getvalue()
+    # refuses to overwrite an existing registration (exit code 2, files intact)
+    buf2 = io.StringIO()
+    rc2 = register_workflow(tmp_path, "draft-briefs", script, out=buf2)
+    assert rc2 == 2, buf2.getvalue()
+    assert js.read_text(encoding="utf-8") == script.read_text(encoding="utf-8")
+
+
+def test_list_workflows_enumerates_registry(tmp_path, monkeypatch):
+    from workflow import list_workflows
+    wf = tmp_path / "wf"
+    wf.mkdir()
+    _write_registry_pair(wf, "alpha",
+                         "phase('A')\nawait agent('x', {label: 'a'})\n",
+                         [{"label": "a"}])
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    buf = io.StringIO()
+    rc = list_workflows(tmp_path, out=buf)
+    assert rc == 0, buf.getvalue()
+    assert "alpha" in buf.getvalue()
+    assert "agi-alpha.js" in buf.getvalue()
+    assert "1" in buf.getvalue()  # one stage
