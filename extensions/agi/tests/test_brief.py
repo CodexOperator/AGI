@@ -104,6 +104,44 @@ def test_parent_brief_forbids_committing_and_bypassing():
     assert "commit" in parent.lower()
 
 
+def test_branch_parent_brief_names_branch_and_authorises_one_commit(monkeypatch):
+    """hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch parent
+    must be told it holds a loop branch in a worktree, that the branch is the
+    only route its kids' work has to the season branch, and that it may make
+    exactly ONE git commit (stage by explicit path, commit onto its own loop
+    branch). Red on the old brief: item 5 forbade all git and never mentioned
+    a branch, so every loop branch exited at base and merge-up completed green
+    on nothing (L3.39)."""
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "loop/slug-abc@s3" in parent, "brief must name the loop branch"
+    assert "/repo/.agi/worktrees/abc" in parent, "brief must name the worktree"
+    assert "season/s3" in parent, "brief must name the base branch"
+    assert "only route" in parent.lower(), "brief must say the branch is the route to the season branch"
+    assert "git add" in parent and "git commit" in parent, (
+        "brief must authorise the single commit with concrete commands"
+    )
+    assert "NEVER `git add -A`" in parent, (
+        "the one authorised commit must be staged by explicit path, never "
+        "a whole-tree add"
+    )
+    # Everything else stays forbidden.
+    assert "no push, no sync, no rebase" in parent
+
+
+def test_non_branch_parent_brief_still_forbids_all_git():
+    """The other half, in the same pass — a parent in the main checkout must
+    still be told to commit nothing. The two halves were separately correct
+    and jointly broken, so both directions are asserted together."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "DO NOT commit, push, or sync" in parent
+    assert "git add" not in parent, (
+        "a main-checkout parent must not be handed the commit commands"
+    )
+
+
 def test_a_parent_with_no_target_still_gets_a_usable_brief():
     """An unaimed parent is legal — `_pick_targets` may choose. The brief must
     say so rather than interpolating an empty string."""
