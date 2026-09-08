@@ -1557,6 +1557,11 @@ def _reaper_phase(
                 rec.update(outcome["record"])
                 agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
                 entry["status"] = rec["status"]
+                # hypothesis:l3w4-branch-visibility — the commit count is on
+                # the record and must reach the manifest too, so the round
+                # file and the manifest agree on how far the branch climbed.
+                if "commits_ahead" in rec:
+                    entry["commits_ahead"] = rec["commits_ahead"]
                 if rec.get("pid"):
                     entry["pid"] = rec["pid"]
                 updated = True
@@ -1571,6 +1576,35 @@ def _reaper_phase(
     print("reaper: finished")
 
 
+def _commits_ahead(root, rec):
+    """How far a `--branch` agent's branch is ahead of its base, or None.
+
+    hypothesis:l3w4-branch-visibility — the commit count is COMPUTED via
+    `git rev-list --count base_branch..branch` from the main checkout
+    (`locations.git_common_root`), never hand-counted, so the round record
+    and the manifest agree on how far the branch climbed even though the
+    reaper runs in the main checkout while the branch lives in a worktree.
+    Zero and positive both stamp; a record with no branch/base_branch is left
+    untouched (None), so a non-branch agent's record is unchanged.
+    """
+    branch = rec.get("branch")
+    base = rec.get("base_branch")
+    if not (branch and base):
+        return None
+    main = locations.git_common_root(root)
+    commits = 0
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(main), "rev-list", "--count",
+             f"{base}..{branch}"],
+            capture_output=True, text=True, timeout=30)
+        if r.returncode == 0:
+            commits = int(r.stdout.strip())
+    except (subprocess.TimeoutExpired, ValueError, OSError):
+        commits = 0
+    return commits
+
+
 def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
@@ -1578,7 +1612,21 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     load-bearing part** (`goal:g4.7`). A kid that died after writing its node
     lost only its report; respawning it would redo finished work and hand a
     second agent the same scaffolded node.
+
+    hypothesis:l3w4-branch-visibility — the returned record also carries
+    `commits_ahead` for a `--branch` agent (computed in `_commits_ahead`), so
+    whatever the reap decided, the round file records how far the branch had
+    climbed.
     """
+    out = _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid,
+                         cap=cap, cfg=cfg)
+    commits = _commits_ahead(root, rec)
+    if commits is not None:
+        out["record"]["commits_ahead"] = commits
+    return out
+
+
+def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     import completion
 
     node_id = rec.get("node_id") or ""
