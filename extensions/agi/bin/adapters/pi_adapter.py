@@ -179,12 +179,29 @@ def build_command(
 def is_alive(pid: int) -> bool:
     """Is the process with `pid` still running?
 
-    `os.kill(pid, 0)` sends no signal; it only checks existence. Same pattern
-    as `heal.py._pid_alive`, now part of the adapter interface so dispatch.py
-    can detect dead agents without importing heal.py (goal:g4.7).
+    A zombie (state `Z`) counts as **dead** (`hypothesis:l3-cc-adapter-
+    zombie-lease`), same rule as `claude_code_adapter.is_alive` and
+    `spawn_budget._pid_alive`: its code has exited and only reaping by its
+    parent is outstanding, but `os.kill(pid, 0)` answers true for a defunct
+    child regardless. This adapter had drifted from that fix — it still
+    trusted signal-existence alone (`hypothesis:l3-reaper-restarts-through-
+    stop`) — which is one truth (is a pid dead) read two different ways by
+    two adapters in the same reaper loop. Off `/proc` (non-Linux, or the pid
+    raced out of the table) falls back to signal-existence rather than
+    guess wrong.
     """
+    import os
     try:
-        import os
+        with open(f"/proc/{pid}/stat", encoding="utf-8") as fh:
+            # State is field 3, after `pid (comm)`; comm can hold spaces/
+            # parens, so split from the right on `) ` (same as
+            # spawn_budget._pid_alive / claude_code_adapter._procstate).
+            state = fh.read().rsplit(") ", 1)[1].split()[0]
+        if state == "Z":
+            return False
+    except (OSError, IndexError, ValueError):
+        pass
+    try:
         os.kill(pid, 0)
     except OSError:
         return False
