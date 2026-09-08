@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
@@ -232,3 +233,46 @@ def ensure_pi_edit_forgiveness(edit_js: Path | None = None) -> tuple[str, str]:
 
 def is_bypassed() -> bool:
     return os.environ.get("AGI_PI_FORGIVENESS_BYPASS") == "1"
+
+
+def _usage() -> str:
+    return (
+        "pi_edit_forgiveness.py -- gate the pi install's edit-tool forgiveness.\n"
+        "The L3.38 patch (hypothesis:l3-pi-install-patch-not-durable) shields kids "
+        "from the pi `edit` tool rejecting mis-shaped `edits`. It lives in the SHARED\n"
+        "pi install outside this repo, so a `pi` upgrade silently drops it. Wired\n"
+        "into pi_adapter.build_command, this gate re-applies the patch at every\n"
+        "spawn when an upgrade removed it -- or fails loudly naming the fix.\n"
+        "\n"
+        "usage: pi_edit_forgiveness.py [--check] [--edit-js PATH]\n"
+        "  (no args)        re-apply when missing (same gate the spawn runs)\n"
+        "  --check          print install status; exit 0 only on ok/re-applied\n"
+        "  --edit-js PATH   target a specific edit.js (operators/tests)\n"
+        "  --help           this message\n"
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    if "--help" in args or "-h" in args:
+        print(_usage())
+        return 0
+    path = None
+    if "--edit-js" in args:
+        i = args.index("--edit-js")
+        if i + 1 >= len(args):
+            print("--edit-js needs a path", file=sys.stderr)
+            return 2
+        path = args[i + 1]
+    status, detail = ensure_pi_edit_forgiveness(path)
+    print(f"{status}: {detail}")
+    if status == "fail":
+        print("FIX: repair pi upstream, or re-apply the _normalizeEditsShapes "
+              "patch (see extensions/agi/bin/pi_edit_forgiveness.py).",
+              file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
