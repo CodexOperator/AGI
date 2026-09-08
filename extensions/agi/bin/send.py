@@ -852,13 +852,16 @@ def main(argv: list[str] | None = None) -> int:
     # existing inbox verbs, unchanged surface
     p_send = sub.add_parser("send", parents=[common],
                             help="send a message (inbox, dm, or room)")
+    # target BEFORE text: a nargs='*' positional declared first swallows every
+    # positional arg and the inbox target would never parse (seen L3.43 —
+    # `send <text> <target>` errored "send needs a target" for every message).
+    p_send.add_argument("target", nargs="?", default=None,
+                        help="inbox recipient (positional, unchanged)")
     p_send.add_argument("text", nargs="*", help="message text")
     p_send.add_argument("--to", dest="dm_to", default=None,
                         help="pairwise dm recipient (comms/dm/<a>--<b>.md)")
     p_send.add_argument("--room", dest="room", default=None,
                         help="quorum room (comms/room/<name>.md)")
-    p_send.add_argument("target", nargs="?", default=None,
-                        help="inbox recipient (positional, unchanged)")
 
     p_read = sub.add_parser("read", parents=[common],
                             help="read a conversation / inbox")

@@ -1340,3 +1340,178 @@ def test_loop_writes_durable_record(fake_ladder, tmp_path, monkeypatch):
     a = rec["observations"]["a_successor_window_under_name"]
     assert a["present"] is True and a["window"] == "belam-II"
     assert str(rec["observations"]["c_readback_log_path"]).endswith("reply.log")
+
+
+# ── l3w4-seat-sessions-and-tiling: seats-launch & tile ────────────────────
+
+
+def test_seats_launch_resolves_one_per_remote_seat(tmp_path, capsys,
+                                                   monkeypatch):
+    """A dry run resolves exactly one launch per non-ephemeral seat row, with
+    THAT row's model/effort/tier; only fire-and-forget is excluded — tty and
+    remote-control rows both get a launch line (owner ask "all of the
+    non-ephemeral roles", claim test 1)."""
+    rows = [
+        {"name": "belam", "role": "prime_director", "model": "claude-fable-5-1",
+         "effort": "max", "settings": "ultracode", "session_kind": "remote-control"},
+        {"name": "adv-alive", "role": "parent", "model": "claude-opus-5",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "ff-one", "role": "kid", "model": "glm", "effort": "high",
+         "settings": "", "session_kind": "fire-and-forget"},
+        {"name": "tty-one", "role": "director", "model": "claude-sonnet-5",
+         "effort": "max", "settings": "", "session_kind": "tty"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    calls = []
+    def fake_spawn(**kw):
+        calls.append(kw)
+        return 0, "echo ok"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
+                           window_path=None, dry_run=True, successor_argv=None)
+    rc = rotate.cmd_seats_launch(args, tmp_path)
+    assert rc == 0
+    names = [c["name"] for c in calls]
+    # fire-and-forget excluded; remote-control AND tty included
+    assert names == ["belam", "adv-alive", "tty-one"], f"got {names}"
+    # each resolved with ITS model and effort
+    by_name = {c["name"]: c for c in calls}
+    assert by_name["belam"]["model"] == "claude-fable-5-1"
+    assert by_name["belam"]["effort"] == "max"
+    assert by_name["belam"]["tier"] == "prime_director"
+    assert by_name["adv-alive"]["model"] == "claude-opus-5"
+    assert by_name["adv-alive"]["effort"] == "max"
+    assert by_name["tty-one"]["model"] == "claude-sonnet-5"
+    assert by_name["tty-one"]["tier"] == "director"
+
+
+def test_seats_launch_read_back_confirms_all_windows(tmp_path, monkeypatch):
+    """A non-dry launch read-backs every launched seat as a live window;
+    a seat that spawns rc-ok but never appears as a window fails the
+    read-back (trap-0c class: successful rotation, no window)."""
+    rows = [
+        {"name": "belam", "role": "prime_director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "tty-one", "role": "director", "model": "m2",
+         "effort": "max", "settings": "", "session_kind": "tty"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: (0, "echo ok"))
+    wpath = tmp_path / "windows.txt"
+
+    # (a) all launched windows appear -> rc 0
+    wpath.write_text("belam\ntty-one\n", encoding="utf-8")
+    args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
+                           window_path=str(wpath), dry_run=False,
+                           successor_argv=None)
+    rc = rotate.cmd_seats_launch(args, tmp_path)
+    assert rc == 0
+
+    # (b) belam fails to appear -> read-back fails, rc 1
+    wpath.write_text("tty-one\n", encoding="utf-8")
+    rc = rotate.cmd_seats_launch(args, tmp_path)
+    assert rc == 1
+
+
+def test_seats_launch_no_remote_seats_returns_1(tmp_path, capsys):
+    """All-fire-and-forget registry: nothing to launch, rc 1, no crash."""
+    rows = [
+        {"name": "ff-one", "role": "kid", "model": "glm", "effort": "high",
+         "settings": "", "session_kind": "fire-and-forget"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
+                           window_path=None, dry_run=True, successor_argv=None)
+    rc = rotate.cmd_seats_launch(args, tmp_path)
+    assert rc == 1
+
+
+def test_tiler_partitions_full_screen_no_overlap_no_gaps():
+    """For N=1..12 the partition covers width*height exactly (no gaps) and no
+    two rects overlap."""
+    W, H = 1920, 1080
+    for n in range(1, 13):
+        tiles = rotate.partition_tiles(n, 0, 0, W, H)
+        assert len(tiles) == n, f"n={n}: {len(tiles)} tiles"
+        area = sum(tw * th for _, _, tw, th in tiles)
+        assert area == W * H, f"n={n}: area {area} != {W*H}"
+        for i, (x1, y1, w1, h1) in enumerate(tiles):
+            for x2, y2, w2, h2 in tiles[i + 1:]:
+                overlap = (x1 < x2 + w2 and x2 < x1 + w1
+                           and y1 < y2 + h2 and y2 < y1 + h1)
+                assert not overlap, f"n={n}: overlap {(x1,y1,w1,h1)} vs {(x2,y2,w2,h2)}"
+
+
+def test_tile_command_dry_run_prints_one_rect_per_window(monkeypatch, tmp_path,
+                                                         capsys):
+    monkeypatch.setattr(rotate, "find_project_root", lambda: tmp_path)
+    root = tmp_path / "nodes" / ".geometry"
+    root.mkdir(parents=True, exist_ok=True)
+    rc = rotate.main(["tile", "--count", "4", "--width", "100", "--height", "100",
+                      "--dry-run"])
+    assert rc == 0
+    lines = [l for l in capsys.readouterr().out.splitlines() if l.strip()]
+    assert len(lines) == 4
+    # 4 tiles over 100x100 must sum to full area
+    total = 0
+    for l in lines:
+        _, rest = l.split(":", 1)
+        kv = dict(p.split("=") for p in rest.strip().split())
+        total += int(kv["w"]) * int(kv["h"])
+    assert total == 100 * 100
+
+
+def test_tile_apply_places_live_windows_via_wmctrl(monkeypatch, tmp_path):
+    """tile --apply reads the live seat windows and issues a wmctrl resize per
+    window at its no-gap rect — geometry covers the whole screen."""
+    rows = [
+        {"name": "belam", "role": "prime_director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "tty-one", "role": "director", "model": "m2",
+         "effort": "max", "settings": "", "session_kind": "tty"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    wpath = tmp_path / "live.txt"
+    wpath.write_text("belam\ntty-one\n", encoding="utf-8")
+    monkeypatch.setattr(rotate, "_screen_tool", lambda: "wmctrl")
+    issued = []
+    class _Proc:
+        returncode = 0
+        stderr = ""
+    def fake_run(argv, **kw):
+        issued.append(argv)
+        return _Proc()
+    monkeypatch.setattr(rotate, "_RUN", fake_run)
+    args = SimpleNamespace(names=None, window_path=str(wpath),
+                           tmux_session="agi-rc", width=100, height=100)
+    rc = rotate._cmd_tile_apply(args, tmp_path, 100, 100)
+    assert rc == 0
+    # one command per live window, each a wmctrl resize by name
+    assert len(issued) == 2
+    for argv, name in zip(issued, ("belam", "tty-one")):
+        assert argv[0] == "wmctrl" and argv[2] == name and argv[3] == "-e"
+    # geometry covers 100x100 exactly, no overlap (partition_tiles invariant)
+    rects = []
+    for argv in issued:
+        g = argv[4].split(",")
+        rects.append(tuple(int(v) for v in (g[1], g[2], g[3], g[4])))
+    area = sum(w * h for _, _, w, h in rects)
+    assert area == 100 * 100
+
+
+def test_tile_apply_degrades_gracefully_without_wm(monkeypatch, tmp_path):
+    """No wmctrl/xdotool on PATH => geometry printed, X :1 not reached, still
+    rc 0 and the full set of rects shown."""
+    rows = [{"name": "belam", "role": "prime_director", "model": "m",
+             "effort": "max", "settings": "", "session_kind": "remote-control"}]
+    _write_seats_sheet(tmp_path, rows)
+    wpath = tmp_path / "live.txt"
+    wpath.write_text("belam\n", encoding="utf-8")
+    monkeypatch.setattr(rotate, "_screen_tool", lambda: None)
+    placed, issued = rotate._place_windows({"belam": (0, 0, 100, 100)}, None)
+    assert placed == 0 and issued == 0
+    args = SimpleNamespace(names=None, window_path=str(wpath),
+                           tmux_session="agi-rc", width=100, height=100)
+    rc = rotate._cmd_tile_apply(args, tmp_path, 100, 100)
+    assert rc == 0

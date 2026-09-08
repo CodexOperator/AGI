@@ -49,6 +49,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1345,6 +1346,263 @@ def _find_seat(root: Path | None, name: str) -> dict | None:
     return None
 
 
+# --- seats-launch & tiling (hypothesis:l3w4-seat-sessions-and-tiling) -----
+
+
+#: The one session_kind that is ephemeral and earns NO launched window.
+#: fire-and-forget is ephemeral by definition and excluded. remote-control and
+#: tty are BOTH non-ephemeral and each gets a launch line, per the owner ask
+#: "all of the non-ephemeral roles" and claim test 1, which excludes ONLY
+#: fire-and-forget (hypothesis:l3w4-seat-sessions-and-tiling).
+EPHEMERAL_KIND = "fire-and-forget"
+
+
+def _seats_that_launch(rows: list[dict]) -> list[dict]:
+    """The seats.md rows that get their own launched session.
+
+    A seat is ephemeral (skipped) only when its `session_kind` is
+    `fire-and-forget`. remote-control and tty rows are both non-ephemeral and
+    are returned intact, because the launch reads model+effort+name+pin from
+    the row.
+    """
+    return [r for r in rows if r.get("session_kind") != EPHEMERAL_KIND]
+
+
+def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
+    """Launch one remote-control session per non-ephemeral seat, through the
+    SAME `spawn_window` path the prime uses — never a second launcher
+    (hypothesis:l3w4-seat-sessions-and-tiling).
+
+    Each seat row resolves one launch with ITS model, effort and settings;
+    each gets its own debug/pin file under `.agi/sessions/<name>.*` so
+    rotate.py meter reads ITS transcript and not the prime's. fire-and-forget
+    and tty seats are skipped. `--dry-run` prints/returns every line and
+    touches nothing; a real run refuses any already-open window by name.
+    """
+    rows = _load_seats(root)
+    targets = _seats_that_launch(rows)
+    if not targets:
+        print("no non-ephemeral (remote-control/tty) seats in config:seats",
+              file=sys.stderr)
+        return 1
+
+    tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
+    rc_all = 0
+    for row in targets:
+        name = row.get("name")
+        if not name:
+            continue
+        tier = row.get("role") or "parent"
+        settings = _normalize_settings(row.get("settings"))
+        rc, _ = spawn_window(
+            name=name,
+            tier=tier,
+            prompt_file=args.prompt_file,
+            model=row.get("model"),
+            effort=row.get("effort"),
+            settings=settings,
+            tmux_session=tmux_session,
+            window_path=args.window_path,
+            root=root,
+            dry_run=args.dry_run,
+            extra="",
+            successor_argv=getattr(args, "successor_argv", None),
+        )
+        if rc != 0:
+            print(f"ERR: launch failed for seat {name!r} (rc={rc})",
+                  file=sys.stderr)
+            rc_all = 1
+    if not args.dry_run and rc_all == 0:
+        # READ-BACK: never trust the printed success — a rotation has reported
+        # fine and spawned no window at all (trap-0c class, L3.32/33). Confirm
+        # each launched seat is now a real window in the session.
+        launched = [r.get("name") for r in targets if r.get("name")]
+        live = _existing_windows(tmux_session, args.window_path)
+        missing = [n for n in launched if n not in live]
+        if missing:
+            print(f"ERR: launch reported ok but read-back found no window: "
+                  f"{', '.join(missing)}", file=sys.stderr)
+            return 1
+        print(f"seats-launch: launched {len(targets)} non-ephemeral session(s) "
+              f"in tmux session {tmux_session!r}; read-back confirmed "
+              f"{len(launched)}/{len(launched)} window(s)")
+    return rc_all
+
+
+def partition_tiles(n: int, x: int, y: int, width: int, height: int):
+    """Partition rect (x,y,width,height) into exactly `n` leaf rectangles.
+
+    Recursive balanced binary split along the longer axis, integer pixels:
+    n leaves in, n rects out, no overlap, no gaps, covering `width*height`
+    exactly. This is the geometry the tiler feeds a WM on X :1 so the
+    livestream shows every seat session with nothing hidden behind another.
+    """
+    if n <= 1:
+        return [(x, y, width, height)]
+    a = (n + 1) // 2
+    b = n - a
+    if width >= height and width > 0:
+        # vertical split: left column holds `a` leaves, right holds `b`
+        aw = min(max(width * a // n, a), width - b)
+        bw = width - aw
+        return (partition_tiles(a, x, y, aw, height)
+                + partition_tiles(b, x + aw, y, bw, height))
+    # horizontal split: top band holds `a`, bottom holds `b`
+    ah = min(max(height * a // n, a), height - b)
+    bh = height - ah
+    return (partition_tiles(a, x, y, width, ah)
+            + partition_tiles(b, x, y + ah, width, bh))
+
+
+def cmd_tile(args: argparse.Namespace, root: Path) -> int:
+    """Compute (and optionally place) a full-screen partition for N windows.
+
+    Pure geometry: reads N / W / H and prints the per-window rects, no gaps,
+    no overlap. `--apply` additionally reads the LIVE window set and hands
+    each rect to a WM on X :1 (wmctrl or xdotool) so the livestream shows
+    every seat session with nothing hidden. Kept a separate command on
+    purpose (hypothesis:l3w4-seat-sessions-and-tiling): it reads the live
+    window set and re-runs whenever the set of seats changes, rather than
+    being wired into spawn.
+    """
+    w, h = args.width, args.height
+    if w < 1 or h < 1:
+        print("ERR: --width/--height must be >= 1", file=sys.stderr)
+        return 1
+    if args.apply:
+        return _cmd_tile_apply(args, root, w, h)
+    n = args.count
+    if n is None or n < 1:
+        print("ERR: --apply, or --count N (>=1), is required",
+              file=sys.stderr)
+        return 1
+    tiles = partition_tiles(n, 0, 0, w, h)
+    if args.dry_run or not args.json:
+        for i, (tx, ty, tw, th) in enumerate(tiles):
+            print(f"{i}: x={tx} y={ty} w={tw} h={th}")
+    if args.json:
+        import json as _json
+        print(_json.dumps([list(t) for t in tiles]))
+    return 0
+
+
+#: WM tools able to place/geometry windows on X :1, in preference order.
+_WM_TOOLS = ("wmctrl", "xdotool")
+
+#: The process runner used to issue WM commands. Indirection so tests can
+#: inject a fake without touching the shared `subprocess` module.
+_RUN = subprocess.run
+
+
+def _screen_tool() -> str | None:
+    """The first WM tool on PATH that can place a window on X :1, else None."""
+    for tool in _WM_TOOLS:
+        if shutil.which(tool):
+            return tool
+    return None
+
+
+def _wm_tool_argv(tool: str, name: str, rect: tuple) -> list[str]:
+    """The argv that moves/resizes window `name` to `rect` (x,y,w,h).
+
+    wmctrl matches a window by title (our seat name) and moves/resizes in
+    one call; xdotool searches by name then moves and resizes. Both target
+    exactly the named terminal, so geometry never lands on the wrong pane
+    (the livestream constraint: only the intended window moves).
+    """
+    x, y, tw, th = rect
+    if tool == "wmctrl":
+        return ["wmctrl", "-r", name, "-e", f"0,{x},{y},{tw},{th}"]
+    if tool == "xdotool":
+        return ["xdotool", "search", "--name", name,
+                "windowmove", str(x), str(y),
+                "windowsize", str(tw), str(th)]
+    raise ValueError(f"unknown WM tool {tool!r}")
+
+
+def _place_windows(rects: dict, tool: str | None,
+                   run=None) -> tuple[int, int]:
+    """Place each named window at its rect on X :1.
+
+    `rects` maps name -> (x,y,w,h). `tool` None degrades to (placed=0,
+    issued=0) — the caller prints the graceful-degradation note. `run` is
+    injected for tests (None => the module `_RUN`). A non-zero rc for one
+    window is logged and skipped, never fatal: a terminal may legitimately be
+    closed.
+    Returns (windows_placed, commands_issued).
+    """
+    if not tool:
+        return 0, 0
+    if run is None:
+        run = _RUN
+    issued, placed = 0, 0
+    for name, rect in rects.items():
+        argv = _wm_tool_argv(tool, name, rect)
+        try:
+            proc = run(argv, capture_output=True, text=True, timeout=5)
+            issued += 1
+            if proc.returncode == 0:
+                placed += 1
+            else:
+                detail = (getattr(proc, "stderr", None) or "").strip()
+                print(f"warn: {tool} could not place {name!r}:"
+                      f" {detail or proc.returncode}", file=sys.stderr)
+        except Exception as e:  # noqa: BLE001 — per-window, never fatal
+            issued += 1
+            print(f"warn: {tool} failed for {name!r}: {e}", file=sys.stderr)
+    return placed, issued
+
+
+def _live_window_names(root: Path | None, window_path: str | None,
+                       tmux_session: str) -> list[str]:
+    """Windows open in the seat tmux session, in tile order.
+
+    Intersects the live window set with the non-ephemeral seat registry so
+    only seat sessions (what the livestream shows) are tiled. Falls back to
+    the whole live set when no seat names show up (e.g. tiling before the
+    registry is read).
+    """
+    live = _existing_windows(tmux_session, window_path)
+    if not live:
+        return []
+    seats = {r.get("name") for r in _seats_that_launch(_load_seats(root))}
+    keep = [n for n in live if n in seats]
+    return keep or live
+
+
+def _cmd_tile_apply(args: argparse.Namespace, root: Path, w: int, h: int) -> int:
+    """Place the live seat windows on X :1 at a full-screen partition.
+
+    Reads the live window names (or `--names`), computes the no-gap partition
+    over W/H, and hands each rect to the available WM tool. Graceful
+    degradation: no wmctrl/xdotool on PATH => geometry printed, exit 0.
+    """
+    tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
+    if args.names:
+        names = [n.strip() for n in args.names.split(",") if n.strip()]
+    else:
+        names = _live_window_names(root, args.window_path, tmux_session)
+    if not names:
+        print("ERR: no live windows to tile (nothing open in tmux session "
+              f"{tmux_session!r}); pass --names or open the seats first",
+              file=sys.stderr)
+        return 1
+    n = len(names)
+    tiles = partition_tiles(n, 0, 0, w, h)
+    rects = {name: tiles[i] for i, name in enumerate(names)}
+    tool = _screen_tool()
+    placed, issued = _place_windows(rects, tool)
+    if not tool:
+        print(f"tile --apply: no wmctrl/xdotool on PATH — X :1 not reached. "
+              f"Geometry for {len(rects)} window(s):")
+    else:
+        print(f"tile --apply: placed {placed}/{len(rects)} window(s) on X :1 "
+              f"via {tool} ({issued} command(s) issued)")
+    for name, (tx, ty, tw, th) in rects.items():
+        print(f"  {name}: x={tx} y={ty} w={tw} h={th}")
+    return 0
+
+
 def _seat_hands(root: Path) -> Path:
     """The seat handoff dir: `<graph>/sessions/seats/` (created on demand).
 
@@ -1957,15 +2215,62 @@ def main(argv: list[str] | None = None) -> int:
                       help="print all five steps and touch nothing")
     p_rs.set_defaults(func=cmd_rotate_self)
 
+    # seats-launch
+    p_sl = sub.add_parser(
+        "seats-launch", help="launch one remote-control session per "
+                             "non-ephemeral seat in config:seats")
+    p_sl.add_argument("--prompt-file", default=None,
+                      help="successor body file (default by tier; None uses "
+                           "the assembled brief for non-prime seats)")
+    p_sl.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
+                        help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
+    p_sl.add_argument("--window-path", default=None,
+                      help="read existing window names from this file (tests)")
+    p_sl.add_argument("--successor-argv", default=None,
+                      help="explicit stand-in successor command run verbatim "
+                           "instead of the real claude --remote-control")
+    p_sl.add_argument("--dry-run", action="store_true",
+                      help="print/return every launch line and touch nothing")
+    p_sl.set_defaults(func=cmd_seats_launch)
+
+    # tile
+    p_tile = sub.add_parser(
+        "tile", help="full-screen partition for N windows: no overlap, no gaps")
+    p_tile.add_argument("--count", type=int, default=None,
+                        help="number of windows to tile (required unless --apply)")
+    p_tile.add_argument("--width", type=int, default=1920,
+                        help="screen width px (default: 1920)")
+    p_tile.add_argument("--height", type=int, default=1080,
+                        help="screen height px (default: 1080)")
+    p_tile.add_argument("--apply", action="store_true",
+                        help="place live seat windows on X :1 via wmctrl/xdotool "
+                             "(graceful if neither is installed)")
+    p_tile.add_argument("--names", default=None,
+                        help="comma-separated window names to tile (else live "
+                             "seat windows from the tmux session)")
+    p_tile.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
+                        help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
+    p_tile.add_argument("--window-path", default=None,
+                        help="read live window names from this file (tests)")
+    p_tile.add_argument("--dry-run", action="store_true",
+                        help="print one rect per line (default behaviour)")
+    p_tile.add_argument("--json", action="store_true",
+                        help="print rects as JSON instead of lines")
+    p_tile.set_defaults(func=cmd_tile)
+
     args = ap.parse_args(argv)
 
     # meter, loop, alarms and rotate-self need the project root
-    if args.cmd in ("meter", "loop", "alarms", "rotate-self"):
+    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "seats-launch"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
             return 1
         return args.func(args, root)
+
+    # tile needs the project root only to resolve root (geometry-free cmd)
+    if args.cmd == "tile":
+        return args.func(args, find_project_root())
 
     # spawn tolerates a missing project root (chiefly for --dry-run previews)
     if args.cmd == "spawn":
