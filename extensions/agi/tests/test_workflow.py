@@ -417,3 +417,79 @@ def test_list_workflows_enumerates_registry(tmp_path, monkeypatch):
     assert "alpha" in buf.getvalue()
     assert "agi-alpha.js" in buf.getvalue()
     assert "1" in buf.getvalue()  # one stage
+
+# ---------- ONE run-event stream, TWO renderers (surface parity) -----------
+# hypothesis:l3-workflow-surface-identical-across-harnesses: both harness
+# paths feed RunView and nothing else; the summary renders from stage order
+# and statuses only, with no harness token, so the same outcomes end
+# byte-identically whichever harness fed the stream.
+
+def test_run_view_summary_has_no_harness_token():
+    from workflow import RunView
+    stages = [{"label": "a"}, {"label": "b"}]
+    for harness in ("pi", "claude-code"):
+        buf = io.StringIO()
+        v = RunView("review", stages, harness, out=buf)
+        v.stage_finished("a", {"x": 1})
+        v.stage_failed("b", "boom")
+        v.summary()
+        tail = [l for l in buf.getvalue().splitlines()
+                if l.startswith(("[stage]", "[summary]"))]
+        assert tail[-1] == "[summary] workflow=review stages=2 ok=1 failed=1", tail
+        assert all(harness not in l for l in tail), tail
+
+
+def test_summary_byte_identical_across_harnesses():
+    from workflow import RunView
+    stages = [{"label": "a"}, {"label": "b"}]
+    summaries = []
+    for harness in ("pi", "claude-code"):
+        buf = io.StringIO()
+        v = RunView("review", stages, harness, out=buf)
+        v.stage_finished("a", {"x": 1})   # same outcomes, fed from either side
+        v.stage_failed("b", "boom")
+        v.summary()
+        text = buf.getvalue()
+        summaries.append(text[text.index("[stage]"):])
+    assert summaries[0] == summaries[1]
+
+
+def test_pi_live_run_renders_tree_through_view():
+    """The pi path redraws the stage tree live per event and ends with the
+    same summary shape — no more flat log lines."""
+    import subprocess as _sp
+    from unittest import mock
+    from workflow import run_workflow
+    # one JSON valid under BOTH review stages' schemas (extra keys allowed)
+    good = ('preamble glue {"git_status": [], "links_broken": 0, "goals_check_ok": true, '
+            '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
+            '"verdict": "v", "overclaims": [], "open_gaps": []}')
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+    buf = io.StringIO()
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc = run_workflow(REPO / ".agi", "review", "pi",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+    assert rc == 0
+    text = buf.getvalue()
+    assert "workflow review (harness=pi)" in text
+    assert "[~] global-checks" in text and "[~] review:t1" in text
+    assert "└─ [✓] review:t1" in text          # final tree: both done
+    assert "[stage] global-checks ok" in text and "[stage] review:t1 ok" in text
+    assert "[summary] workflow=review stages=2 ok=2 failed=0" in text
+    assert "[claude-code]" not in text and "[ok]" not in text
+
+
+def test_claude_code_path_feeds_the_same_view():
+    from workflow import run_workflow
+    buf = io.StringIO()
+    rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                      {"targets": [{"window": "t1"}]}, False, out=buf)
+    assert rc == 0
+    text = buf.getvalue()
+    assert "workflow review (harness=claude-code)" in text
+    assert "[·] global-checks" in text          # resolved, not executed here
+    tail = [l for l in text.splitlines()
+            if l.startswith(("[stage]", "[summary]"))]
+    assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
+    assert all("claude-code" not in l for l in tail), tail

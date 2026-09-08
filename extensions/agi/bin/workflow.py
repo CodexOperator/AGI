@@ -442,6 +442,87 @@ def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
     return lines
 
 
+# ---- ONE run-event stream, TWO renderers (the goal:g9.7 pattern) -----------
+# hypothesis:l3-workflow-surface-identical-across-harnesses: both harness
+# paths feed THIS object and nothing else. The stage tree and the final
+# summary render from the same events, so no presentation detail can appear
+# on one harness and not the other — there is only one source.
+_GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
+          "failed": "[✗]", "resolved": "[·]"}
+
+
+class RunView:
+    """The single run-event stream both harness paths render through.
+
+    Events: run_started, stage_resolved (claude-code path, where the .js
+    script is the runner and workflow.py cannot observe completion),
+    stage_started / stage_finished / stage_failed (pi path), summary. After
+    every event the full stage tree redraws, so a watcher sees which stages
+    exist, which are running, which are done, and what each returned —
+    live, not as a transcript after the fact.
+    """
+
+    def __init__(self, key: str, stages: list[dict], harness: str,
+                 out=sys.stdout):
+        self.key = key
+        self.harness = harness
+        self.out = out
+        self.order = [st["label"] for st in stages]
+        self.state = {lb: {"status": "pending", "detail": ""}
+                      for lb in self.order}
+
+    def _tree(self) -> None:
+        o = self.out
+        o.write(f"workflow {self.key} (harness={self.harness})\n")
+        last = len(self.order) - 1
+        for i, lb in enumerate(self.order):
+            s = self.state[lb]
+            branch = "└─" if i == last else "├─"
+            detail = f" — {s['detail']}" if s["detail"] else ""
+            o.write(f"{branch} {_GLYPH[s['status']]} {lb}{detail}\n")
+        o.flush()
+
+    def _set(self, label: str, status: str, detail: str) -> None:
+        if label not in self.state:
+            return
+        self.state[label].update(status=status, detail=detail)
+        self._tree()
+
+    def run_started(self) -> None:
+        self._tree()
+
+    def stage_resolved(self, label: str, detail: str = "") -> None:
+        """claude-code path: the script is the runner there, so a stage can
+        only be RESOLVED here, never observed to completion."""
+        self._set(label, "resolved", detail)
+
+    def stage_started(self, label: str, detail: str = "") -> None:
+        self._set(label, "running", detail)
+
+    def stage_finished(self, label: str, value) -> None:
+        try:
+            detail = json.dumps(value, ensure_ascii=False, sort_keys=True)[:120]
+        except (TypeError, ValueError):
+            detail = str(value)[:120]
+        self._set(label, "ok", detail)
+
+    def stage_failed(self, label: str, reason: str) -> None:
+        self._set(label, "failed", reason.replace("\n", " ")[:120])
+
+    def summary(self) -> None:
+        """The ONE summary both harnesses print. Renders from stage order and
+        statuses only — no harness token, no per-harness wording — so two runs
+        with the same stage outcomes end byte-identically."""
+        o = self.out
+        for lb in self.order:
+            o.write(f"[stage] {lb} {self.state[lb]['status']}\n")
+        counts: dict[str, int] = {}
+        for s in self.state.values():
+            counts[s["status"]] = counts.get(s["status"], 0) + 1
+        o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
+                f"ok={counts.get('ok', 0)} failed={counts.get('failed', 0)}\n")
+
+
 def _dispatching_line(st, k):
     return (
         f"[dispatch] {st['label']} :: role={st.get('role', 'kid')} "
@@ -540,7 +621,7 @@ def _parse_last_json(text: str):
 
 
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
-                  out=sys.stdout) -> int:
+                  out=sys.stdout, view: "RunView | None" = None) -> int:
     """Execute ONE stage on the pi harness: spin the pi binary headlessly with
     the resolved provider/model/thinking and the rendered prompt, capture its
     stdout, parse the last JSON object, and validate it against the stage's
@@ -559,17 +640,29 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
            "--model", k["model"],
            "--thinking", thinking,
            prompt]
-    out.write(f"# {_dispatching_line(stage, k)}\n")
-    out.write(f"$ {' '.join(cmd)}\n")
+    if view is not None:
+        # The tree IS the surface now: one redraw per event, from the same
+        # stream the claude-code path feeds (hypothesis:l3-workflow-surface-
+        # identical-across-harnesses). Flat log lines stay only for the
+        # view-less legacy callers (the test stubs).
+        view.stage_started(stage["label"],
+                           f"model={k['model']} effort={k.get('effort')}")
+    else:
+        out.write(f"# {_dispatching_line(stage, k)}\n")
+        out.write(f"$ {' '.join(cmd)}\n")
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
                               env=_pi_env(), timeout=600)
     except (OSError, subprocess.SubprocessError) as exc:
+        if view is not None:
+            view.stage_failed(stage["label"], f"could not start pi: {exc}")
         print(f"workflow.py: stage {stage['label']} could not start pi: "
               f"{exc}", file=sys.stderr)
         return 2
     output = proc.stdout or ""
     if proc.returncode != 0:
+        if view is not None:
+            view.stage_failed(stage["label"], f"pi exited rc={proc.returncode}")
         print(f"workflow.py: stage {stage['label']} pi exited rc="
               f"{proc.returncode}\n{output[-2000:]} {proc.stderr or ''}",
               file=sys.stderr)
@@ -577,16 +670,23 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     try:
         value = _parse_last_json(output)
     except (ValueError, json.JSONDecodeError) as exc:
+        if view is not None:
+            view.stage_failed(stage["label"], f"did not return JSON: {exc}")
         print(f"workflow.py: stage {stage['label']} did not return JSON: "
               f"{exc}\n--- output tail ---\n{output[-2000:]}", file=sys.stderr)
         return 4
     violations = validate_return(stage.get("schema"), value)
     if violations:
+        if view is not None:
+            view.stage_failed(stage["label"], "returned JSON fails its schema")
         print(f"workflow.py: stage {stage['label']} returned JSON that fails "
               f"its schema:\n  " + "\n  ".join(violations), file=sys.stderr)
         return 5
-    out.write(f"[ok] {stage['label']} -> "
-              f"{json.dumps(value, ensure_ascii=False, sort_keys=True)[:200]}\n")
+    if view is not None:
+        view.stage_finished(stage["label"], value)
+    else:
+        out.write(f"[ok] {stage['label']} -> "
+                  f"{json.dumps(value, ensure_ascii=False, sort_keys=True)[:200]}\n")
     return 0
 
 
@@ -618,12 +718,17 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                   f"stages={len(stages)} via dispatch.py kids when harness=pi\n")
         return 0
 
+    view = RunView(key, stages, harness, out=out)
+    view.run_started()
     if harness != "pi":
         # claude-code harness: the Workflow script is the runner; we only
-        # resolve and describe, never spawn from here.
+        # resolve and describe — but through the SAME event stream the pi
+        # path feeds, so the two surfaces differ only where execution does.
         for st in stages:
-            out.write(f"[claude-code] {st['label']} :: script={manifest.get('script')} "
-                      f"model={knobs[st['label']].get('model')}\n")
+            view.stage_resolved(st["label"],
+                                f"model={knobs[st['label']].get('model')} "
+                                f"script={manifest.get('script')}")
+        view.summary()
         return 0
 
     # pi harness: execute each stage for real — one headless pi process per
@@ -635,13 +740,13 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # (Belam VII, L3.28: three concrete defects).
     import subprocess
     for st in stages:
-        rc = _run_stage_pi(cfg, st, knobs, args, out=out)
+        rc = _run_stage_pi(cfg, st, knobs, args, out=out, view=view)
         if rc != 0:
             print(f"workflow.py: workflow={key} failed at stage "
                   f"{st['label']} (rc={rc})", file=sys.stderr)
+            view.summary()
             return rc
-    out.write(f"[summary] workflow={key} harness=pi stages={len(stages)} "
-              f"all schema-valid\n")
+    view.summary()
     return 0
 
 
