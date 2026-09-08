@@ -683,6 +683,62 @@ class TestRolloverGenesis:
                             capture_output=True, text=True)
         assert br.stdout.strip() == "season/s2"
 
+    def test_second_rollover_names_its_own_season_and_attributes_each_write(
+            self, season_py, temp_graph, tmp_path):
+        """A second rollover writes its OWN season's key and stamps the seat.
+
+        hypothesis:l3w4-masters-rollover — `season_names[1] = name` hardcodes
+        season 1 (today a second rollover clobbers genesis), and judge/rollover
+        write `edited_by: season.py`. With `--actor into the ladder write, the
+        season-2 version's edited_by is the passed seat and the 2→3 name lands
+        under season 2, not season 1.
+        """
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        # Rehearse 1 → 2, naming season 1, acting as Sanctuary Master.
+        r1 = self._run(season_py, temp_graph,
+                       "--name", "genesis", "--actor", "sanctuary-master")
+        assert r1.returncode == 0, f"stderr: {r1.stderr}"
+        assert "season_names[1] = genesis" in r1.stdout
+
+        # Rehearse 2 → 3, naming season 2, still acting as Sanctuary Master.
+        r2 = self._run(season_py, temp_graph,
+                       "--name", "wave-4-masters",
+                       "--actor", "sanctuary-master")
+        assert r2.returncode == 0, f"stderr: {r2.stderr}"
+        assert "season_names[2] = wave-4-masters" in r2.stdout
+
+        # Each season keeps its own name (today genesis is clobbered), and the
+        # ladder write is attributed to the seat, not the hardcoded season.py.
+        ladder = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
+        assert ladder.frontmatter.get("current_season") == 3
+        assert ladder.frontmatter.get("season_names", {}) == {
+            1: "genesis", 2: "wave-4-masters"}
+        assert ladder.frontmatter.get("edited_by") == "sanctuary-master"
+
+    def test_judge_actor_stamps_edited_by(self, season_py, temp_graph):
+        """`judge --actor` threads the seat into the write's edited_by."""
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", "outcome:o1", "--against", "goal:sub1",
+             "--actor", "glitch-master", "--session", "season-3"],
+            capture_output=True, text=True)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+
+        out = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        fm = out.frontmatter
+        assert fm.get("judged_against") == "goal:sub1"
+        assert fm.get("edited_by") == "glitch-master"
+        assert fm.get("thought_session") == "season-3"
+
     """season.py is discoverable via commands.py list or json."""
 
     def test_commands_json_includes_season_py(self, engine_on_path):

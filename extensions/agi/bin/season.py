@@ -338,6 +338,8 @@ def cmd_judge(root: Path, args) -> int:
     report_id = args.report_id
     against_id = args.against
     debug = args.debug
+    actor = getattr(args, "actor", "") or "season.py"
+    session = getattr(args, "session", "") or "season"
 
     # Load ladder to get tier info
     ladder_fm = _load_ladder(root)
@@ -542,7 +544,8 @@ def cmd_judge(root: Path, args) -> int:
             set_fields["adjust"] = quorum_adjust
 
     rc = _shell_out_write(root, report_id, set_fm=set_fields,
-                          note=quorum_note)
+                          note=quorum_note,
+                          actor=actor, session=session)
     if rc != 0:
         return rc
 
@@ -817,8 +820,10 @@ def cmd_rollover(root: Path, args) -> int:
     Wave-2 genesis rollover (brief §1.8, §2.8, §2.9):
       * mint three visions from `--visions-from` (dir or file), bodies taken
         **verbatim** from the owner text (text + gloss); `--actor owner`;
-      * `--name <name>` names season 1 in the ladder's `season_names` through
-        write.py (e.g. `genesis`);
+      * `--name <name>` names the CURRENT season in the ladder's
+        `season_names` through write.py (e.g. `genesis`);
+      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+        graph writes, then prints the next commands — never pushes;
       * `--branch` opens `season/s<new>` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
       * a stage gate (brief 2.9) refuses the rollover while any season-current
@@ -835,6 +840,8 @@ def cmd_rollover(root: Path, args) -> int:
     name = (getattr(args, "name", "") or "").strip()
     want_branch = bool(getattr(args, "branch", False))
     visions_from = (getattr(args, "visions_from", "") or "").strip()
+    actor = getattr(args, "actor", "") or "season.py"
+    session = getattr(args, "session", "") or "season"
 
     ladder_fm = _load_ladder(root)
     season = int(ladder_fm.get("current_season", 1))
@@ -905,7 +912,7 @@ def cmd_rollover(root: Path, args) -> int:
     # ---- Ladder fields (through write.py).
     print("Ladder writes:")
     if name:
-        print(f"  season_names[1] = {name}")
+        print(f"  season_names[{season}] = {name}")
     print(f"  Bump ladder current_season: {season} → {new_season}")
     print()
 
@@ -953,14 +960,15 @@ def cmd_rollover(root: Path, args) -> int:
     ladder_set = {}
     if name:
         season_names = dict(ladder_fm.get("season_names") or {})
-        season_names[1] = name
+        season_names[season] = name
         ladder_set["season_names"] = season_names
     ladder_set["current_season"] = new_season
-    rc = _shell_out_write(root, "ladder:ladder", set_fm=ladder_set)
+    rc = _shell_out_write(root, "ladder:ladder", set_fm=ladder_set,
+                          actor=actor, session=session)
     if rc != 0:
         return rc
     if name:
-        print(f"season_names[1] = {name} written on the ladder")
+        print(f"season_names[{season}] = {name} written on the ladder")
     print(f"ladder current_season: {season} → {new_season}")
 
     # 3. Open the season branch (never pushes).
@@ -1181,6 +1189,10 @@ def main(argv: list[str] | None = None) -> int:
                          help="round the votes belong to (default: AGI_LOOP)")
     p_judge.add_argument("--comms-root", default="",
                          help="override the comms root (default: config)")
+    p_judge.add_argument("--actor", default="",
+                         help="edited_by for the judgment write (default: season.py)")
+    p_judge.add_argument("--session", default="",
+                         help="thought_session for the judgment write (default: season)")
 
     # rollover
     p_rollover = sub.add_parser("rollover", help="Print or perform season rollover")
@@ -1201,6 +1213,10 @@ def main(argv: list[str] | None = None) -> int:
     p_rollover.add_argument("--allow-unjudged", action="store_true", default=False,
                             help="proceed even while a season-current overview lacks "
                                  "a judgment")
+    p_rollover.add_argument("--actor", default="",
+                            help="edited_by for the ladder write (default: season.py)")
+    p_rollover.add_argument("--session", default="",
+                            help="thought_session for the ladder write (default: season)")
 
     # retag
     p_retag = sub.add_parser("retag",
