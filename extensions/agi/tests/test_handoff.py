@@ -204,3 +204,30 @@ def test_cli_write_missing_holder_names_the_flag(root: Path, capsys):
     assert rc == 1
     assert "--holder" in err
     assert "None" not in err
+
+def test_cli_release_accepts_the_seat_alias(root: Path, capsys):
+    """SD.16 director review — the alias must work on `release` too.
+
+    Regression: `_holder_opts(p_r, required=True)` marked `--holder` required
+    in argparse, which makes argparse demand that exact spelling and REJECT
+    `--seat`. The alias worked on claim/read/write and failed on the one
+    subcommand that passed required=True — measured live, not in fixture,
+    because no test covered release with the alias.
+    """
+    assert handoff.main(["--root", str(root), "claim", "§5 Verify",
+                         "--seat", "s-dir"]) == 0
+    capsys.readouterr()
+    rc = handoff.main(["--root", str(root), "release", "§5 Verify",
+                       "--seat", "s-dir"])
+    out, _ = capsys.readouterr()
+    assert rc == 0, "release must accept --seat, not only --holder"
+    assert "released" in out
+
+
+def test_cli_release_missing_holder_names_the_flag(root: Path, capsys):
+    """argparse no longer enforces --holder, so the handler must."""
+    rc = handoff.main(["--root", str(root), "release", "§5 Verify"])
+    _, err = capsys.readouterr()
+    assert rc == 1
+    assert "--holder" in err
+    assert "None" not in err

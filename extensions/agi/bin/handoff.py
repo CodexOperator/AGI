@@ -150,9 +150,14 @@ def _holder_opts(subp, *, required=False):
 
     Every other seat-aware entry point spells it `--seat`; `handoff.py` alone
     used `--holder`. Both write to the same dest so a seat may use either.
+
+    `required` is enforced by the CALLER, never by argparse: marking
+    `--holder` required makes argparse demand that exact spelling and reject
+    `--seat`, which defeats the alias on the one subcommand that used it
+    (measured on `release`, SD.16). The flag stays optional here and the
+    handler refuses a missing holder by name.
     """
-    subp.add_argument("--holder", required=required,
-                      help="seat holding the claim")
+    subp.add_argument("--holder", help="seat holding the claim")
     subp.add_argument("--seat", dest="holder",
                       help="alias for --holder")
 
@@ -488,6 +493,13 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.cmd == "release":
+            # argparse no longer enforces --holder (it would reject the
+            # --seat alias), so the handler refuses it by name, as the other
+            # subcommands already do.
+            if not args.holder:
+                print("REFUSED: release needs --holder <seat> (or --seat)",
+                      file=sys.stderr)
+                return 1
             ok = release(root, args.section, args.holder)
             if ok:
                 print(f"released ## {args.section} ({args.holder})")
