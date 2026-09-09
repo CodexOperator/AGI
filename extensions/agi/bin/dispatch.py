@@ -983,6 +983,18 @@ def main() -> int:
                   f"effort={_spec['effort'] or '-'}/"
                   f"thinking={_spec['thinking'] or '-'}/"
                   f"settings={_spec['settings'] or '-'}")
+        # hypothesis:l3-workflow-model-crosses-harness-namespace — the guard
+        # workflow.py has carried since the incident, now on the spawn path
+        # too. Every source of a model (ladder row, seat row, config fallback)
+        # has landed in `dispatch_harness["models"]` by this line, so this is
+        # the one place that sees all three. Refuse BEFORE a credential is
+        # minted or a process starts: a Claude alias resolved onto an
+        # OpenRouter provider bills Anthropic against an OpenRouter key, and
+        # the failure looks like a bill, not like a wrong flag.
+        _eff_model = (dispatch_harness.get("models") or {}).get(args.tier)
+        if _eff_model:
+            adapters.assert_model_in_provider_namespace(
+                str(_eff_model), str(dispatch_harness.get("provider") or ""))
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
