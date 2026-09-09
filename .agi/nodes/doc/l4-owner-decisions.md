@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: sanctuary-director
+edited_by: owner
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: sanctuary-director-genVI
+thought_session: rc-XVI
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -123,3 +123,37 @@ FIXED IN PASSING, a stale doc claim: `SKILL.md` still warned that `body_patch` "
 Tests 2256 -> **2270 passed, 1 skipped** (+14, no regressions). links 1766 resolved 0 broken; goals 128 byte-identical; coverage clean; write_guard silent; smoke 1786 / 1592 / 194, node count steady.
 
 STILL OPEN, deliberately not done: `patch` and `body_patch` remain two parallel code paths. `replace` unifies the PARTIAL-OVERWRITE path across both targets, which is what was asked; folding the two diff verbs into one dispatcher is a separate, larger change and is not needed for the offset problem.
+## L4 PLAN — owner's whiteboard and brief, 2026-09-09 ~14:4xZ (to Belam XVI in chat; voice transcription, homophones in brackets)
+
+**Owner, verbatim:** "There is not a specific item. I just want to do next. It's more of setting up l four [L4] as a whole. So I want to briefly share a part of my plan that we can include into the l four info card before we can go ahead and rotate you into a fresh plank [plan] session about that whole card and this little extra piece I'm gonna share now. Please lower the resolution of the attached photo significantly by converting it to web p because it does not need all of that data passed into your context. If you can see, the plan has to do with who acts on what, so we can finalize that staccato communication structure that allows all of the Claude based subscription powered, uh, agents to just sit on their use and their context field a little bit at a time while allowing all the pie [pi] open router parents and kid minions to do vast majority of the work. As you can see, we have the existing knowledge that every long term perpetual goal gets a director kid. One modification we need to make is that all top level g goals are perpetual goals. There is no such thing as just a long term top level g goal. Now the sanctuary master determines all the seating assignments, what models go where, and how many persistent or permanent or perpetual, rather, goals are active with our old director kids dispatching off parents and kids on pie [pi]. Now one requirement is that the sanctuary perpetual gold [goal] itself always have an active director kid watching over it. This way, if either the master sensei or the sanctuary master have any recommendations or changes that need to be done, those will go straight to that director kid who can then implement those changes using either drafting workflows or just direct lead by spawning his own parent kid combos. The one thing I'm still not clear on fully is how exactly we're gonna make sure that nobody does more than the exact slice they need to do. My idea right now was to create kind of a general guideline that just like we have five morals, each individual role should have no more than five general overarching things it is trying to track and do."
+
+**Owner, verbatim (the brainstorm asking for input):** "The part I need some input on as I'm still brainstorming is: we could split those into two things that each role tracks. Two things that each role communicates to other roles. And one thing that is the critical decision type that this role must make. Those are the 3 kinda categories I had in mind for the 5 main points. This way we can move away from using every role as an independent builder and also a lot more roles could be sonnet powered and active in parallel to save sub use. And also this could significantly trim each roles bootstrap even more. Again, we're just in plan mode now briefly before we hand this off to your successor."
+
+**The whiteboard** (photo: `.agi/context/owner/l4-whiteboard-2026-09-09.webp`, 16 KB, 480x640 — this transcription is the LLM form; open the image only if a detail is disputed):
+
+```
+LEGEND  arrow colour = WHO ACTS:   blue = Belam acts   ·   red = Quorum acts (or Masters)   ·   black = Director-kid acts
+OUTPUT  belam -> "output node" (blue) · Quorum -> "output node" (red) · Director-kids -> "output node / chain" (black)
+
+  moral ──blue──> vision(N+1)                 Belam authors the next vision from the morals
+  moral ──red──>  vision(N)                   the quorum/masters act on the current vision from the morals
+  vision(N) ──red──> vision(N+1)   and   overview ──red──> vision(N+1)      the quorum's overview feeds the next vision
+  outcome / bigger-outcome ──red──> overview
+  vision(N) ──black──> goals ──black──> outcome/bigger-outcome ──black loop──> goals      director-kids run the goal loops
+  goals ──black──> goal1 Dir-kid · goal# Dir-kid   (one director-kid per perpetual goal, looping back into goals)
+  vision(N) ──blue/black──> Sanctuary (p-goal)      the sanctuary is itself a perpetual goal
+  Sanctuary (p-goal) ──red──> goal1 Dir-kid          its director-kid — always active (owner requirement above)
+  Sanctuary Master ──red──> Sanctuary (p-goal) · goal# Dir-kid · draft Dir-kid · review Dir-kid · "etc jobs, no goals"
+  Master-sensei ──red──> draft Dir-kid · review Dir-kid · "etc jobs, no goals"
+```
+
+**Prime's input (Belam XVI, 2026-09-09 — the prime's reading, NOT owner text):**
+
+1. Make the 2+2+1 card a SCHEMA, not prose: five fields on each `config:seats` row — `tracks: [2]`, `tells: [2]` (each = target role + trigger), `decides: 1` (a closed outcome set) — validated by the write guard (a row with more than 2/2/1 is refused) and rendered by `brief.py` as the role's WHOLE bootstrap. Then: tracks = what the role READS (files and nodes, cost ~0, nobody woken); tells = what it SENDS (trigger-bound, so the staccato cadence is in the card, not in the model's mood); decides = the ONE node type it may WRITE. The write surface per role falls out of `decides`, and that is what makes "nobody does more than its slice" enforceable rather than hoped.
+2. Encode the whiteboard's arrow colours as edge rules in the schemas: `vision(N+1)` written by belam only; `overview` by the quorum; `goal`/`outcome`/`bigger_outcome` by director-kids; seat rows by sanctuary-master. "Who acts on what" becomes a check (`links.py schema` / `write_guard`), not a brief line.
+3. The one decision per role should be a closed set (`continue|adjust|done`, `aligned|adjust`, `accept|demote`): checkable, and it becomes training data the way COMPLETE.md's closed failure categories do.
+4. Belam's own card under this: TRACKS vision(N) alignment of the season's outcomes, and seat-system health; TELLS the owner (banked decisions) and the sanctuary director-kid (orders); DECIDES vision(N+1). Belam becomes nearly idle — the Fable subscription conserved by design, which is the point.
+5. "All top-level g goals are perpetual": `goal_kind: perpetual` on every top-level goal node; one director-kid seat row per perpetual goal; Sanctuary Master owns how many are active and which model each seat runs — the `config:seats` write moves to it fully (today the prime writes while it is down); the ladder's tier-1 "long-term goal" IS the perpetual g goal.
+6. The sanctuary p-goal's director-kid card: TRACKS the registry against live processes, and the masters' recommendation inbox; TELLS the prime what changed, and the masters done/refused; DECIDES adopt-or-refuse a recommendation (then a drafting workflow or a pi parent — under survival mode the pi route is the default, drafting workflows spend Claude).
+7. Risk to design out: a "tells" without a trigger and a target brings the chatter back (item 71: woken spends). A "tracks" that needs a live session to observe is not tracking, it is polling.
+8. Open for the plan session: which roles are Sonnet (cheap, parallel) vs Opus; how the quorum's output node (the overview) is minted per season; whether the "etc jobs, no goals" director-kids (draft, review) are seats or plain pi parents; and the migration path from today's seat rows to the 2+2+1 rows.

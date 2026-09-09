@@ -58,8 +58,12 @@ L3     CLOSED 13:3xZ by the owner (verbatim: doc:l4-owner-decisions) -> COMPLETE
 L4     OPEN. Backlog = that node. L4.01 LANDED 14:3xZ (044521555, by SD gen VI's hand, $0; owner named it DIRECTLY to the seat, verbatim in the node): `write.py <id> "replace <body|payload>
          N:M <path|->"` — partial overwrite with NO offset arithmetic (exact inverse of `read`; identity round trip is test 1), one routine for body and payload, fail-closed past EOF,
          proved live on a real node and a real payload + three real edits; brief.py LEADS with it, SKILL.md documents it; suite 2270/1; traps 0am/0an/0ao added to the L4 list (38 -> 41)
-       Next L4 duties: (1) the owner names the next round; (2) rewrite briefs/prime-director-successor.md for L4 (it still describes the L3 round loop);
-       (3) the successor name pattern becomes belam-S1-L4-<numeral> (item 15's rule, next loop) — pass it explicitly to rotate.py loop
+       L4 PLAN (owner 14:4xZ, verbatim + whiteboard transcription + XVI's input in doc:l4-owner-decisions "L4 PLAN — owner's whiteboard and brief"): who ACTS on what
+         (blue Belam / red Quorum+Masters / black Director-kids); ALL top-level g goals are PERPETUAL, one director-kid each; Sanctuary Master owns seating, models and
+         the count of active perpetual goals; the sanctuary p-goal ALWAYS has an active director-kid (the masters' implementation hand); the 2+2+1 role card
+         (tracks 2 / tells 2 / decides 1, five lines like the five morals) so no role does more than its slice and more seats can be Sonnet in parallel
+       -> SUCCESSOR belam-S1-L4-I runs a PLAN SESSION with the owner (brief rewritten for it: no dispatch, plan node as graph content, bank questions)
+       photo -> .agi/context/owner/l4-whiteboard-2026-09-09.webp (16 KB, from 1 MB)
 MODE   SURVIVAL (item 71, IN FORCE, carried) — ONE worker: sanctuary-director gen VI = agi-fa [c6e62f] @231, IDLE at ~0.24 (rotates normally at 0.47) · nothing dispatched
        predecessors kept: XI-XV (last 5) · sanctuary-master down (gen I @213 idle) · SD reports to the prime's ADDRESS only
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 (owner 2026-09-09; ladder:ladder director_rotate_at,
@@ -69,7 +73,7 @@ CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with cr
 DONE   XVI today: gate `continue` first line · XV's unlanded seats marker fixed (9c7f9448c) · SD rounds SD.14-SD.19 reviewed and landed (items 54, 49 closed; 55 built half;
        L3 COMPLETE.md section) · SD gen V -> VI (row c6e62f, gen V wiped) · owner's 0.47 cap applied for every role · L3 closed, L4 opened, master merged
 NEXT   1 owner names L4's first round from the backlog -> brief SD gen VI: assignment AS the node's claim (trap 0ak), commit + push before dispatch, serialise, ceiling, check the KEY
-       2 keep this card current per action · `meter --seat belam` before every round · at 0.47: handoff first, then rotate.py loop --role prime_director --name belam-S1-L4-I --timeout 900
+       2 ROTATING NOW at the owner's ask (XVI meter ~0.30): rotate.py loop --role prime_director --name belam-S1-L4-I --timeout 480 --force -> the L4 plan session
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; L4 backlog) · git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite
        twice at once · background a long verification (it gets reaped, 0ai-b) · trust an `updated:` line · spend the Claude budget on prime chores under survival mode
 ```
