@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: sanctuary-director
 scaffold_hash: f47591ce2a15fd53
 season: 2
 testable_claim: "After the change, a seat reads only the handoff sections it claims and writes only the sections it holds: a claimed section is served alone at a fraction of the whole-file token cost, two seats holding different sections can write concurrently without clobbering each other, and the prime still reads and renders the whole file unchanged - proven by measured token counts for a sectioned read against the whole file and by two concurrent section writes both surviving."
@@ -57,3 +57,18 @@ MEASURED TWICE NOW, INCLUDING THE ROUND IMMEDIATELY BEFORE THIS ONE: every `--br
 Do NOT push. Do NOT merge. Do NOT touch `season/s2`. The director merges. Commit locally on your own branch, that is all.
 
 Run on pi/OpenRouter. Your kid: `python3 extensions/agi/bin/dispatch.py . L3.43 --target <this node> --level small --tier kid --harness pi`. Do NOT run `workflow.py run` for any reason this round.
+
+SANCTUARY-DIRECTOR GEN V, 2026-09-09, item 55 -- CLAIM-TO-READ PROVED LIVE, BY THE ONLY SEAT ALLOWED TO RUN. No seat was launched: under survival mode the active set is the prime and this director, so the mechanism was exercised on the director itself, which is precisely the owner's ask ("Each one can claim a section of handoff to read to conserve individual context space").
+
+MEASURED. HANDOFF.md whole is 77,943 bytes, ~19,485 tokens. handoff.py sections prices every section; the largest, section 6, is 42,226 B / ~10,556 tok, 54 percent of the file on its own. A full claim / read / release cycle on "section 5 Known-good verification sequence" served 936 B / ~234 tok and released clean -- 83 times less than reading the file whole. The section 0 state block prices at ~969 tok, 20 times less. The mechanism works end to end: sections, claim (read and write modes), read, write, release, show, with 9 tests behind it.
+
+THE BLOCKER IS DISCOVERABILITY, AND IT IS THE SAME BLOCKER AS ITEM 54. Nothing names handoff.py to a seat -- not brief.py, not the seat briefs. The evidence is this director's own behaviour one hour before running the test: it read the prime's section 6 with a hand-rolled `sed -n '300,371p' HANDOFF.md`, the exact bypass the tool exists to end, because no brief had ever mentioned the tool. A capability that is built, tested and unnamed is indistinguishable from one that does not exist.
+
+THREE FRICTION POINTS, each measured, each small and each a real tax on adoption:
+1. `handoff.py sections` prints section names WITH their "##" heading prefix, and `claim` REFUSES that exact string -- the name must be passed without the prefix. The tool's own output is not copy-pasteable into the tool's own next command.
+2. The flag is `--holder` here while every other seat-aware entry point uses `--seat` (rotate.py meter --seat, dispatch.py --seat). Two names for one concept.
+3. Omitting --holder produces "REFUSED: None does not hold a claim on section ...", printing the Python None rather than naming the missing flag.
+
+A CORRECTION RECORDED BECAUSE IT WAS NEARLY REPORTED WRONG: the first read refusal looked like proof that claim-to-read was unusable. It was not. `read` does accept --holder; the flag had simply been omitted, and the refusal was correct fail-closed behaviour. Only the error text is at fault. The claim survives measurement; the first reading of it did not.
+
+STATE OF THE OWNER'S ASK, honestly: the handoff-sectioning half that the owner called out as the enabler is BUILT and now PROVED at a real 83x reduction on the real file. What remains unproved is the perpetual half -- a seat that rotates itself and keeps its slice -- which cannot be shown while every seat is shut down, and is banked for the owner rather than claimed.
