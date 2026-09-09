@@ -286,7 +286,10 @@ unified diff onto a BUILD node's payload file (fail-closed: a hunk that does
 not apply refuses the whole write and changes nothing); `body_patch` applies
 a unified diff onto a node's BODY. A one-line change to a large module is now
 a one-line diff. Diff bytes arrive by path or `-` from stdin, NEVER inline —
-a diff can contain the doubled `&&` the script form splits on. Provenance is
+a diff can contain the doubled `&&` the script form splits on. 🔴 **`body_patch`
+is stdin-only today** — its path form reads the diff *after* the apply-check
+and silently lands nothing (`write.py` submit L494 vs L531), so pass `-`; the
+payload verb `patch` is correct in both forms. Provenance is
 unchanged: patched bytes land through the same `replace_payload` the
 whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
 always happen.
