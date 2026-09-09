@@ -51,7 +51,8 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
 
 ```
-BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 06:1xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.99/$92
+BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 06:5xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.70/$92
+SPEND  SD.09 cost $0.29 on the ACCOUNT via per-spawn key agi-2 (provisioning.py status) — the runtime key did not move; read /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
 L3     CLOSED TO NEW WORK (owner 2026-09-09) -> new items go to doc:l4-owner-decisions (L4 backlog)
