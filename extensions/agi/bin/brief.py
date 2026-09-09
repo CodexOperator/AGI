@@ -1051,7 +1051,8 @@ def _is_build_target(parent_id: str) -> bool:
 
 
 def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
-          source_root: str | None = None) -> list[str]:
+          source_root: str | None = None,
+          addendum: str | None = None) -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -1077,6 +1078,26 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
                         f"below is relative to it. Do not edit any other "
                         f"checkout, even one whose path appears elsewhere in "
                         f"this prompt."))
+    # hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    # -- the per-kid brief channel. WHAT the last kid actually produced,
+    # threaded from the parent via `dispatch.py --prompt-file`. Segments are
+    # labelled so a kid can tell inherited result from its own assignment;
+    # ABSENT (None) means no parent addendum and the brief must be
+    # byte-identical to the pre-primitive kid brief. Never inline through an
+    # argv string -- a kid's result carries arbitrary characters including
+    # quotes, newlines and the doubled-ampersand sequence the writer's script
+    # parser splits on, which is exactly the hazard the parent hit when
+    # landing SD.12 itself.
+    if addendum:
+        segs.insert(1 + (1 if source_root else 0), (
+            "WHAT THE LAST KID PRODUCED -- from your parent, not from the "
+            "node. Where the work you are about to do fits, this is the "
+            "result the previous kid actually landed; build on it rather "
+            "than rerunning it blind. If it is stale or wrong, say so and "
+            "diverge. This is inherited context, not your assignment -- your "
+            "assignment is your target node."
+            f"\n{addendum.rstrip()}"
+        ))
     if is_build:
         segs.append(_BUILD_IMPERATIVE)
     segs += [
@@ -1275,9 +1296,16 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"judgement -- you are not told by anyone else when to stop:\n"
         f"  - **continue** -- the target still has work in it. Spawn the next "
         f"    kid. Its brief MUST carry what the last kid actually produced, so "
-        f"    the second is never a blind rerun of the first. If it cannot "
-        f"    build on the last result, say how it differs and why you went "
-        f"    the other way.\n"
+        f"    the second is never a blind rerun of the first. The lever that "
+        f"    makes that possible is `--prompt-file <path|->` on the spawn "
+        f"    command below: write the last kid's result to a file (or leave it "
+        f"    on stdin for `-`) and pass that path to the NEXT kid's spawn, and "
+        f"    the result lands in the next brief as its OWN labelled segment "
+        f"    ('WHAT THE LAST KID PRODUCED'). Use it whenever you continue. Do "
+        f"    NOT inline the result as an argv string -- it holds arbitrary "
+        f"    characters (quotes, newlines) that will break the spawn command. "
+        f"    If it cannot build on the last result, say how it differs and why "
+        f"    you went the other way.\n"
         f"  - **adjust** -- the brief was wrong or the kid misread it. Re-brief "
         f"    and spawn again against the correction.\n"
         f"  - **done** -- signal and exit.\n"
@@ -1380,6 +1408,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              session_dir: Path | str | None = None,
              source_root: str | Path | None = None,
              kid_ceiling: int | None = None,
+             addendum: str | None = None,
              profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
@@ -1496,7 +1525,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
-                source_root=str(source_root) if source_root else None)
+                source_root=str(source_root) if source_root else None,
+                addendum=addendum)
     head = _build_head(tier=tier)
     if head:
         segs.insert(0, head)

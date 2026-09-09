@@ -611,6 +611,21 @@ def apply_advisor_goal_env(value: str | None) -> None:
         os.environ.pop("AGI_ADVISOR_GOAL", None)
 
 
+def _read_prompt_file(path: str | None) -> str | None:
+    """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    -- read the per-kid brief channel text. `-` means stdin; anything else is
+    a UTF-8 file path. The text is passed as the KID'S `addendum` brief
+    segment, never inlined on the argv -- a kid's result holds arbitrary
+    characters including quotes and newlines. None (no flag) returns None,
+    which leaves the kid brief byte-identical to a non-addendum spawn.
+    """
+    if path is None:
+        return None
+    if path == "-":
+        return sys.stdin.read()
+    return Path(path).read_text(encoding="utf-8")
+
+
 def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                     dispatch_harness: dict, adapter: object, args,
                     targets, tier_eff: int) -> int:
@@ -680,6 +695,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
+                addendum=_read_prompt_file(args.prompt_file),
                 role=args.role, ladder_tier=tier_eff,
             )
             # The env a child WOULD have been spawned with — same exports the
@@ -717,6 +733,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
+                addendum=_read_prompt_file(args.prompt_file),
                 session_dir=sess_dir)
         brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
@@ -855,6 +872,19 @@ def main() -> int:
              "The caller (e.g. a parent agent) polls cli.py status to "
              "detect completion. Without this flag dispatch blocks until "
              "all agents finish or the timeout expires.",
+    )
+    ap.add_argument(
+        "--prompt-file",
+        default=None,
+        help="hypothesis:l3-parent-never-told-to-iterate, carry-forward axis "
+             "(SD.12) -- per-kid brief channel. Path to a file (or `-` for "
+             "stdin) whose text is threaded into the spawned kid's brief as "
+             "its OWN labelled segment ('WHAT THE LAST KID PRODUCED'). Give "
+             "this to the NEXT kid's spawn with the last kid's result written "
+             "to a file, so the second is never a blind rerun of the first. "
+             "Read by path, never inlined as an argv string: a kid's result "
+             "holds arbitrary characters (quotes, newlines) that would break "
+             "the command line.",
     )
     args = ap.parse_args()
 
@@ -1340,6 +1370,10 @@ def main() -> int:
                 # hypothesis:l3-parent-never-told-to-iterate -- the
                 # per-dispatch kid ceiling threaded to the parent brief.
                 kid_ceiling=spawn_budget.parent_max_kids(cfg),
+                # hypothesis:l3-parent-never-told-to-iterate, carry-forward
+                # axis (SD.12) -- the per-kid brief channel. Read once per
+                # invocation so the same text threads the whole batch.
+                addendum=_read_prompt_file(args.prompt_file),
                 # hypothesis:l3-cc-tools-by-tier -- who this agent is on the
                 # ladder selects its tool bundle (kids keep the closed list;
                 # advisors/directors add the ultracode/loop tools).

@@ -151,6 +151,65 @@ def test_kid_brief_carries_no_iteration_contract():
     assert "FAN-OUT AND BRANCHES" not in kid
 
 
+def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
+    """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    -- the per-kid brief channel. THREADING addendum through assemble must
+    grow the kid brief by EXACTLY one segment, labelled so a kid can tell
+    inherited result from its own assignment, and containing the parent's
+    text verbatim. The brief must also be clear this is inherited context,
+    not the assignment.
+    """
+    result = "KID1 disproved hypothesis:x\nsecond line with && and \"quotes\""
+    base = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                          scaffold=SCAFFOLD)
+    grown = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                           scaffold=SCAFFOLD, addendum=result)
+    # Nothing was dropped, nothing retyped -- the channel adds, it does not edit.
+    for s in base:
+        assert s in grown
+    new = [s for s in grown if s not in base]
+    assert len(new) == 1, f"expected exactly one added segment, got {len(new)}"
+    seg = new[0]
+    assert "WHAT THE LAST KID PRODUCED" in seg
+    assert "from your parent, not from the node" in seg
+    assert "not your assignment" in seg
+    assert result in seg, "the parent's text must land verbatim, quotes/newlines intact"
+
+
+def test_kid_addendum_absent_leaves_the_brief_unchanged():
+    """The no-flag no-regression half of the carry-forward proof: a dispatch
+    WITHOUT --prompt-file must assemble a byte-identical kid brief to today.
+    addendum=None is the default; the channel may only ADD a segment when
+    text is actually supplied -- never a placeholder, never an empty label.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "WHAT THE LAST KID PRODUCED" not in kid
+    assert "--prompt-file" not in kid
+    # default kwarg is None, not an empty string that would emit a stray label
+    segs = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                          scaffold=SCAFFOLD)
+    segs_explicit = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                                   scaffold=SCAFFOLD, addendum=None)
+    assert segs == segs_explicit
+
+
+def test_parent_brief_names_the_carry_forward_lever():
+    """The other half of SD.12: an order with no lever is the same defect as
+    a lever nobody is told about. The parent ITERATION CONTRACT says the next
+    kid's brief MUST carry what the last kid produced -- so it must also name
+    the mechanism (dispatch.py --prompt-file <path|->) that makes that
+    possible, with the exact command shape, or the parent cannot comply.
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="t:1",
+                   max_live=25, kid_ceiling=3)
+    assert "--prompt-file" in parent
+    assert "<path|->" in parent
+    assert "WHAT THE LAST KID PRODUCED" in parent, (
+        "the brief must name the labelled segment so the parent knows what "
+        "it is handing down"
+    )
+
+
 
 def test_parent_brief_forbids_committing_and_bypassing():
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
