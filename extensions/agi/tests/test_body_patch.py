@@ -123,6 +123,50 @@ def test_body_patch_is_standalone_and_refuses_note_on_the_same_line(project):
         write.submit(project, edit, actor="kid-a00")
 
 
+def test_body_patch_from_path_applies(project, tmp_path):
+    """hypothesis:l3-partial-write-adoption — the path form must APPLY the
+    diff, not silently discard it (ordering bug in submit: the path file was
+    read AFTER the apply-check, so body_patch_diff was empty at apply time and
+    only the file got read into a variable nothing used). Red-first: this
+    failed against pre-fix write.py with `unchanged: nothing to change`; the
+    diff never landed."""
+    before = _body()
+    after = before.replace("rest of the body", "rest of the body EDITED")
+    assert after != before
+    diff = "\n".join(
+        ["--- a/h1.md", "+++ b/h1.md"] +
+        _pending_hunks(before, after))
+    diff_path = tmp_path / "diff.txt"
+    diff_path.write_text(diff, encoding="utf-8")
+
+    edit = write.Edit("hypothesis:h1")
+    write.apply_verb(edit, "body_patch", [str(diff_path)])
+    res = write.submit(project, edit, actor="kid-a00", session="SD.15")
+    assert res.status == node_writer.UPDATED, \
+        f"path-form body_patch must apply, got {res.status}"
+    new_body = (project / "nodes" / "hypothesis" / "h1.md").read_text()
+    assert "rest of the body EDITED" in new_body, \
+        "the path-form diff must actually land in the body"
+    # Every other byte identical: the authored THOUGHT region is carried and
+    # the only change is the one intended line.
+    assert "the old reason" in new_body
+    assert "# h1\n\ndeclared in frontmatter" in new_body
+
+
+def test_body_patch_from_path_is_standalone(project, tmp_path):
+    """hypothesis:l3-partial-write-adoption — the standalone guard must fire
+    for the PATH form too. Pre-fix it sat INSIDE `if edit.body_patch_diff:`,
+    which a path form never entered, so a chained attempt reported success
+    while landing only the thought."""
+    diff_path = tmp_path / "diff.txt"
+    diff_path.write_text("@@ -1 +1 @@\n-# h1\n+# h2\n", encoding="utf-8")
+    edit = write.Edit("hypothesis:h1")
+    write.apply_verb(edit, "body_patch", [str(diff_path)])
+    write.apply_verb(edit, "note", ["appended by mistake"])
+    with pytest.raises(write.EditError):
+        write.submit(project, edit, actor="kid-a00")
+
+
 def test_every_verb_declares_its_arity(project):
     assert set(write.ARITY) == set(write.VERBS)
 
