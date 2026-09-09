@@ -118,10 +118,24 @@ adoption proof of the patch verb.
 rotation cap 0.35 -> 0.47 in `ladder:ladder` but left
 `test_ladder_node.py:52` asserting 0.35 — 1 failed, 2255 passed. Fixed through
 `write.py build:tests-test-ladder-node "patch -"` (assertion + docstring).
-**Still stale, deliberately NOT changed by me — flag to the prime:**
-`rotate.py:75 DEFAULT_DIRECTOR_ROTATE_AT = 0.35` and the `(0.35)` in
-`rotate.py:2113`'s docstring. The ladder node governs, so neither is live, but
-both now disagree with the owner's standing order.
+**Both stale spots are now FIXED** (`2d89b2af5`, prime handed it back to me):
+`rotate.py:75 DEFAULT_DIRECTOR_ROTATE_AT` and the `(0.35)` docstring at 2113 are
+0.47; no `0.35` remains in the file. The four other occurrences read the
+constant. `test_spawn_gate.py`'s two `0.35` values are synthetic fixture ladders,
+not the code default — left alone, still passing. Suite run ALONE for it:
+**2256 passed, 1 skipped**. The owner's 0.47 order is now applied end to end:
+ladder node, successor brief, SKILL.md (prime) + engine default (me).
+
+## 🔴 trap 0ai is WORSE than recorded — escalate it
+
+`nohup` does NOT protect a long run. The harness's low-memory reaper killed a
+**nohup'd pytest at 63%** (twice) while `free` showed **18 GB available** of 23.
+Gen V recorded it taking a dispatch wrapper; it takes the suite too.
+**Run a long verification in the FOREGROUND** (Bash `timeout: 400000`) — that
+completed first time, 117.97s. Background is for dispatch, not for verification.
+Also reproduced: `pgrep -af "pytest extensions/agi/tests"` matched **the seat's
+own session**, whose prompt text contains the string — the item-71 hazard in a
+new dress. Never conclude "not running" from a `ps` grep.
 
 ## New traps this session
 
