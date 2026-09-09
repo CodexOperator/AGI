@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: season.py
+edited_by: a00-6a1a360e
 origin: build-scan
 payload_ref: COMPLETE.md
 scaffold_hash: d8b43e6e0045d164
