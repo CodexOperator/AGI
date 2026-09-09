@@ -91,6 +91,41 @@ def test_pi_dry_run_creates_no_session_dir(project):
         "a dry run must not create a session dir")
 
 
+def test_prompt_file_threads_the_carry_forward_addendum_into_the_command(project, tmp_path):
+    """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    -- the per-kid brief channel lands in the RECORDED COMMAND STRING, which
+    is exactly how the live gate reads it (kid 2's agent.json command field).
+    The addendum is read by FILE PATH (the writer already chose path|-> for
+    the same reason: a kid's result holds arbitrary characters), is never
+    inlined as an argv string, and appears as its own labelled
+    --append-system-prompt segment in the dry-reported command line.
+    """
+    add = tmp_path / "kid1-result.txt"
+    add.write_text("KID1 disproved hypothesis:x\nline two with && and \"quotes\"")
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run",
+             "--prompt-file", str(add))
+    assert r.returncode == 0, r.stderr
+    assert "WHAT THE LAST KID PRODUCED" in r.stdout
+    # The full addendum text is truncated by the dry-run's compact command
+    # display (_compact shortens args >200 chars); verbatim carry of the text
+    # itself is asserted at the assemble level (test_kid_addendum_lands_as_a_
+    # labelled_segment_and_names_the_flag). Here the LABEL in the reported
+    # command line is what proves the flag threaded the segment.
+    assert "from your parent, not from the node" in r.stdout
+
+
+def test_prompt_file_absent_adds_no_addendum_and_does_not_name_the_segment(project):
+    """The no-flag no-regression half: a --dry-run WITHOUT --prompt-file
+    must not inject the carry-forward segment or its label into a kid's
+    reported command, i.e. the spawn is byte-identical to a non-addendum one.
+    """
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "WHAT THE LAST KID PRODUCED" not in r.stdout
+
+
 def test_claude_advisor_dry_run_resolves_model_effort_and_env(project):
     """The verify's advisor case: a tier-3 parent aimed at a vision node gets
     the advisor brief and the full ultracode spawn, resolved without
