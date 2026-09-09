@@ -64,24 +64,16 @@ RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner v
 CRONS  ON: grid_sync */5 + push season/s2 at :07 (verified crontab -l 06:1xZ; XIV's row said OFF) -> push by hand anyway
 LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its detached kids' work LANDED (spawn_budget never showed them)
        SD gen IV: round A LANDED (65443426d, 5ce66d035: standing trim rule -> CLAUDE.md + SKILL.md, verify green) · C done (session_ref)
-       round B LANDED eb9dc5d67 (SD.09, done clean, SD re-verified UTF-8/verbatim/tokens itself): RECALL TEST items 18/20/24/27
-         decision loss 0/0/0/0 (all four shapes survived, verbatim byte-identical) BUT tokens +14.3% (2978->3404, every item worse)
-         => diagram rewrite of §6 DOES NOT PAY (lean_disproved:65) · item 102 CLOSED by measurement · survival profile is the real win
-       SD.10 LANDED 5765c7635 (17 min, $0.06): ITEM 75 CLOSED WITH STATED DENOMINATORS
-         A pi (o200k, py3.12): survival cut 65% off CURRENT full; 76.5-77.1% off the PRE-TRIM baseline -> 70% MET there, 90% UNREACHABLE (harness floor 1,869 tok)
-         B CC seat cold: head 611 + INJECTION slice 1,268 = 1,879 TRUE MINIMUM; + CLAUDE.md 6,403 (harness-loaded) = ~8,282 standing
-           SKILL.md 13,264 and HANDOFF.md 20,712 are NOT auto-injected (zero refs in cc-session-start.sh, kid + SD independently)
-         L4 remainder: rotate.py + SessionStart hook do not wire the survival profile for a rotating seat (AGI_BRIEF_PROFILE ignored)
-       SD.11 IN FLIGHT (a00-3afbadd9, glm-flash, $5/60min, --branch, cap 3 kids, full suite before done): §6 ITEM 53 — brief.py _parent() (~L1161)
-         still lists spawn/review/lease/artefact/commit and never ITERATE; 10/10 parents one-shot incl. SD.09/SD.10 -> hypothesis:l3-parent-never-told-to-iterate
-         08:4xZ: 4 live incl. a SECOND tier=parent = the nested live-proof spawn the brief asked for; owner: pi parent+kid spawns STAY through any sweep
+       LANDED: SD.09 recall test (item 102 closed) · SD.10 denominators (item 75 closed) · SD.11 item 53 iteration proved — detail in §6 index + git
+         owner: pi parent+kid spawns STAY through any sweep · L4: survival profile not wired for a rotating seat (AGI_BRIEF_PROFILE ignored)
        OUT-OF-ROUND, owner-authorized (SD): dispatch.py now REFUSES a Claude alias on a pi/OpenRouter provider at the one choke point, rule lives once in adapters/
          (99f3f0302, l3-workflow-model-crosses-harness-namespace dispatch half; suite 2225/1). Sonnet never billed OpenRouter — checked four ways.
        config:seats: sanctuary-director.model sonnet -> opus-5 on self-report (prime wrote it; SM is down). Registry must match the process.
        SD.11 LANDED d7b3a3ba9 (review a617251e7, $0.29): ITEM 53 SPLIT — ITERATION PROVED (nested parent a00-3f745c2f: 3 kids from ONE dispatch,
          brief carried YOU ITERATE + HARD CEILING 4; vs 10/10 one-shot before) · CARRY-FORWARD NOT HAPPENING, mechanically: a kid's brief is built
          from --target only, dispatch.py has no per-kid brief channel (no --prompt-file) -> kids 2/3 never saw kid 1. Node stays pending, reason now specific.
-       NEXT SD.12: the PRIMITIVE — per-kid brief channel threaded like kid_ceiling (brief.py + dispatch.py), same node, item 53's own second axis (not new work)
+       SD.12 IN FLIGHT (a00-e2b96672, glm-flash, $5/60min, --branch): the PRIMITIVE — per-kid brief channel on dispatch.py threaded into brief.py like kid_ceiling,
+         PLUS the _parent iteration contract naming the flag; live gate = kid 2's recorded agent.json command literally contains kid 1's node id. acct before $13.35
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
@@ -134,6 +126,7 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 **Owner 2026-09-07 19:46/19:52 UTC — rotate at meter 0.35 OR at 99% of the Fable limit, whichever comes first; Opus is the acceptable fallback** (verbatim archived: `doc:l3-command-ladder-brief`, item 29). Read the limit from the pane: `tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1`. At the Fable trigger the successor runs on Opus: `python3 extensions/agi/bin/rotate.py loop --role prime_director --name belam-S1-L3-<next> --model claude-opus-5 --effort max --force --session-log <own transcript>`; the handoff is written first, as always.
 
 ## §4 Traps to carry (L3)
+0ag. **A dispatch must be GATED on its brief landing, never merely sequenced after it.** SD.12's first brief failed at `write.py` (`no verb` — the note text contained the doubled ampersand the script form splits on) and the dispatch in the same batch, newline-separated, launched a parent seconds later against a node that did NOT carry its assignment. Killed by PID at a few seconds old only because SD read the write's output. **`write.py … || exit` before any dispatch; no `note`/`thought` text ever contains the doubled ampersand (trap 1).**
 0af. **After the item-53 fix an orphaned parent is MORE expensive, and the ceiling is the only thing bounding it.** SD.11's nested test parent outlived its spawner and kept iterating into SD.11's worktree (`worktree=None`); killing or merging early would have stranded a live kid mid-write, so it was left to self-terminate at its HARD CEILING of 4. **A parent that outlives its spawner now spends until its ceiling — never dispatch an iterating parent without one, and never merge-up while its kids are writing.**
 0ae. **`git diff season/s2..HEAD` on a branch is NOT a change list** — measured again by SD.11's merge-up: the two-dot diff showed `seats.md` modified and FOUR owner-verbatim entries in `doc:l4-owner-decisions` apparently DELETED; both were divergence artefacts of a branch cut before the prime's writes. `git diff $(git merge-base season/s2 <branch>)..<branch>` showed neither. **A director who "resolves" a two-dot diff would delete owner verbatim out of the graph. Merge-base, always.**
 0ac. **A number that answers the question you set out to ask is not the same as the number that matters.** The prime measured the survival profile through `rotate.py` and its OWN OUTPUT printed `body-sentinel present=False` — which IS the content-loss defect — and it wrote "body replaced by fixed survival brief", read it as a design detail, and reported a clean 63.8% win. **Fifth instance of the day's shape and the sharpest, because the evidence was not one hop away in a callee or a validator; it was on the prime's own screen.** The seat caught it by DRY-RUNNING rather than trusting. **Ask what a result destroys, not only what it proves.**
