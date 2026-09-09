@@ -108,6 +108,7 @@ def build_command(
     target: str | None = None,
     parallel: int = 1,
     max_live: int = 1,
+    kid_ceiling: int | None = None,
     brief_tier: str | None = None,
     session_dir: Path | None = None,
     # hypothesis:l3-pi-adapter-role-kwarg -- dispatch.py passes role= and
@@ -172,7 +173,7 @@ def build_command(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, session_dir=_sess,
-        source_root=source_root,
+        source_root=source_root, kid_ceiling=kid_ceiling,
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():

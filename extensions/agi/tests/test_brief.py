@@ -98,6 +98,60 @@ def test_parent_brief_carries_the_grandchild_bound():
         "the brief must name what a refused slot looks like in the manifest")
 
 
+def test_parent_brief_tells_it_to_iterate_continue_adjust_done():
+    """hypothesis:l3-parent-never-told-to-iterate — the brief's own defect
+    was that it named a loop and described a straight line: every measured
+    parent spawned exactly one kid and exited (8/8 then 10/10) because nothing
+    told it it could keep going. The ITERATION CONTRACT must hand the parent
+    the continue/adjust/done judgement (the SAME words the director block
+    already uses, not new ones), a hard per-dispatch kid ceiling, and the
+    rule that the next kid's brief carries what the last kid produced. The
+    ceiling is the refused-condition defence: an unbounded iterating parent is
+    the first thing able to multiply agents without a human in the loop, so
+    the number must be visible and small, and "done" must be the default when
+    the parent is unsure.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1",
+                   max_live=25, kid_ceiling=3)
+    # The three judgements, in the mode's own vocabulary.
+    assert "continue" in parent and "adjust" in parent and "done" in parent
+    # The ceiling is visible and respected as a bound, not the whole capacity.
+    assert "AT MOST 3 KIDS TOTAL" in parent
+    assert "25 KIDS" not in parent, ("ceiling must not be silently the whole "
+                                      "tree's max_live")
+    # The carry-forward rule, so the second kid is not a blind rerun.
+    assert "carry what the last kid" in parent.lower() or (
+        "carry what the last kid" in parent)
+    # Done is the default when unsure — the money-leak guard.
+    assert "DONE, not continue" in parent
+    # Fan-out and per-kid branches are available but not forced.
+    assert "FAN-OUT AND BRANCHES" in parent
+    assert "--branch" in parent
+
+
+def test_parent_brief_defaults_the_kid_ceiling_to_a_small_bound():
+    """A caller that does not thread kid_ceiling (e.g. a hand assemble, or a
+    restart path) must still get a bounded, visible ceiling — deliberately
+    small, never the tree's whole capacity, so an uninstrumented parent plans
+    against a number rather than discovering an unbounded loop.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1",
+                   max_live=25)
+    assert "AT MOST 4 KIDS TOTAL" in parent
+    assert "25 KIDS" not in parent
+
+
+def test_kid_brief_carries_no_iteration_contract():
+    """The ITERATION CONTRACT is parent-tier-only: a kid must not be handed
+    continue/adjust/done or a spawn ceiling, or it will copy the loop
+    vocabulary into child work it spawns nothing for.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "HARD CEILING" not in kid
+    assert "FAN-OUT AND BRANCHES" not in kid
+
+
+
 def test_parent_brief_forbids_committing_and_bypassing():
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "--no-evidence-gate" in parent

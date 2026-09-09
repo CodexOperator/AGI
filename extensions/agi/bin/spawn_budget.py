@@ -142,6 +142,25 @@ def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
     return int(legacy.get("claude_max_parallel", default))
 
 
+def parent_max_kids(cfg: dict, default: int = 4) -> int:
+    """The per-dispatch kid ceiling a parent's brief must name
+    (hypothesis:l3-parent-never-told-to-iterate).
+
+    A parent that iterates AND fans out is the first thing in this system
+    capable of multiplying agents without a human in the loop, so the
+    multiplicative bound needs its own knob rather than being silently equal
+    to max_live. `spawn.parent_max_kids` wins; otherwise the ceiling is a
+    small constant, never the whole tree's capacity. The ceiling is
+    advisory-in-brief -- a hard, visible number the parent plans around --
+    not an admission lease: `max_live` leases still bound the LIVE population
+    and ``unadmitted`` refusals are unchanged.
+    """
+    spawn = cfg.get("spawn") or {}
+    if "parent_max_kids" in spawn:
+        return int(spawn["parent_max_kids"])
+    return int(default)
+
+
 @dataclass
 class Lease:
     """One admitted agent's claim on the budget."""
