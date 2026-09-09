@@ -278,11 +278,18 @@ than defaulted, because a base that silently resolves somewhere plausible
 writes real bytes into the wrong tree and reports success. Move a tree by
 editing the config, never by sweeping every node that points into it.
 
-🔴 **Known gap:** payload writes are whole-file only. There is no anchored or
-partial edit, so a one-line change to a large module still means emitting the
-whole file — which is why engine surgery across several modules is still done
-with ordinary tools plus a `thought` afterwards. That is a real hole in
-`goal:g13.1`, not a licence.
+🚫 ~~Known gap~~ — **resolved:** payload/body writes are no longer whole-file
+only. `write.py` carries three partial verbs (hypothesis:l3-write-partial-diffs-as-writes):
+`read payload|body START:END` fetches a line range (read-only — it never
+restamps `edited_by`, so a read cannot look like an edit); `patch` applies a
+unified diff onto a BUILD node's payload file (fail-closed: a hunk that does
+not apply refuses the whole write and changes nothing); `body_patch` applies
+a unified diff onto a node's BODY. A one-line change to a large module is now
+a one-line diff. Diff bytes arrive by path or `-` from stdin, NEVER inline —
+a diff can contain the doubled `&&` the script form splits on. Provenance is
+unchanged: patched bytes land through the same `replace_payload` the
+whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
+always happen.
 
 **If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
 with anything but `write.py`, stop** — that is the untraceable write this
