@@ -9,6 +9,7 @@ edited_by: sanctuary-director
 scaffold_hash: 9bd55933eaff1181
 season: 2
 testable_claim: After the change, write.py read prints only the requested line range to stdout and leaves the node byte-identical on disk - no edited_by restamp, no body mutation, no grid version - asserted red-first by a test that fails against todays code; brief.py hands the engine-working tiers the patch, body_patch and read verbs with the stdin rule; SKILL.md no longer declares partial writes an open gap; and at least one REAL engine change lands on a build-noded file through write.py patch with edited_by and thought_session stamped and a new grid version cut, shown by command and output rather than by unit test alone.
+thought_session: SD.15-director
 title: "the partial-write verbs landed and nobody uses them: read silently falls through to the write path and restamps edited_by, no test covers it, brief.py never names the verbs and SKILL.md still calls the gap open"
 ---
 <!-- BODY:BEGIN -->
@@ -73,7 +74,7 @@ WHAT THIS ADDS TO YOUR PROOF CONDITION. The live proof is now TWO writes, not on
   2. a REAL node-body change through `write.py body_patch` (body), from a PATH and not only from stdin.
 Red-first for both: a test that a one-line body_patch from a file path applies the change and leaves every other byte of the node identical, failing against today's code; and a test that body_patch chained with note or thought still raises the standalone error for the path form. Then the fix.
 
-A REAL TARGET FOR THE BODY PROOF, offered by the prime so you do not invent one: .agi/nodes/.geometry/seats.md, file lines 37-38. Prefix the owner-4 sentence with a marker reading "[SUPERSEDED for the three director-kid seats by the OWNER REVERSAL of 2026-09-07 23:0x UTC recorded under Agent Notes below ...]". WORDING OTHERWISE UNTOUCHED. THE SEAT ROWS ARE NOT TO BE TOUCHED BY ANY MEANS -- they are correct and they are the prime's alone to write. If you use this target, change nothing but those two lines.
+[SUPERSEDED — the seats.md target was spent before any kid reached it; THE SEATS TARGET IS SPENT, below, is the instruction in force.] A REAL TARGET FOR THE BODY PROOF, offered by the prime so you do not invent one: .agi/nodes/.geometry/seats.md, file lines 37-38. Prefix the owner-4 sentence with a marker reading "[SUPERSEDED for the three director-kid seats by the OWNER REVERSAL of 2026-09-07 23:0x UTC recorded under Agent Notes below ...]". WORDING OTHERWISE UNTOUCHED. THE SEAT ROWS ARE NOT TO BE TOUCHED BY ANY MEANS -- they are correct and they are the prime's alone to write. If you use this target, change nothing but those two lines.
 
 THE PATTERN ALL THREE SHARE, AND IT IS THE REAL LESSON OF THIS ROUND: read paths and second paths are exercised by nobody, so they ship broken. `read` falls through to the write path. `body_patch` from a path never applies. Both passed a green 2241-test suite. The write path that the work itself uses every day is fine. WHEN YOU ADD A VERB, THE TEST THAT MATTERS IS THE ONE THAT RUNS IT THE WAY A STRANGER WOULD.
 
