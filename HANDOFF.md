@@ -51,8 +51,8 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
 
 ```
-BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 07:2xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.64/$92
-SPEND  SD.09 $0.29 · SD.10 $0.06 on the ACCOUNT via per-spawn keys (provisioning.py status) — the runtime key does not move; read /credits for the delta
+BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 09:0xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.35/$92
+SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 on the ACCOUNT via per-spawn keys — the runtime key does not move; read /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
        OWNER 08:2xZ: SWEPT 46/53 agi-rc windows by PID; KEPT Belam X-XIV (last 5 predecessors), XV, SD · L4: generation wipe + verify + pin + announce + skill load ALL become harness code
@@ -78,12 +78,16 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        OUT-OF-ROUND, owner-authorized (SD): dispatch.py now REFUSES a Claude alias on a pi/OpenRouter provider at the one choke point, rule lives once in adapters/
          (99f3f0302, l3-workflow-model-crosses-harness-namespace dispatch half; suite 2225/1). Sonnet never billed OpenRouter — checked four ways.
        config:seats: sanctuary-director.model sonnet -> opus-5 on self-report (prime wrote it; SM is down). Registry must match the process.
+       SD.11 LANDED d7b3a3ba9 (review a617251e7, $0.29): ITEM 53 SPLIT — ITERATION PROVED (nested parent a00-3f745c2f: 3 kids from ONE dispatch,
+         brief carried YOU ITERATE + HARD CEILING 4; vs 10/10 one-shot before) · CARRY-FORWARD NOT HAPPENING, mechanically: a kid's brief is built
+         from --target only, dispatch.py has no per-kid brief channel (no --prompt-file) -> kids 2/3 never saw kid 1. Node stays pending, reason now specific.
+       NEXT SD.12: the PRIMITIVE — per-kid brief channel threaded like kid_ceiling (brief.py + dispatch.py), same node, item 53's own second axis (not new work)
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
        XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
 NEXT   1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
-       2 SD's next round from the open L3 items: 53 (does brief.py's parent block say ITERATE yet?), 49 (engine files outside the grid), 54 adoption, 55
+       2 SD's rounds from the open L3 items: 53 second half (per-kid brief channel) -> 49 (engine files outside the grid) -> 54 adoption -> 55
        3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
        git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once
@@ -130,6 +134,8 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 **Owner 2026-09-07 19:46/19:52 UTC — rotate at meter 0.35 OR at 99% of the Fable limit, whichever comes first; Opus is the acceptable fallback** (verbatim archived: `doc:l3-command-ladder-brief`, item 29). Read the limit from the pane: `tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1`. At the Fable trigger the successor runs on Opus: `python3 extensions/agi/bin/rotate.py loop --role prime_director --name belam-S1-L3-<next> --model claude-opus-5 --effort max --force --session-log <own transcript>`; the handoff is written first, as always.
 
 ## §4 Traps to carry (L3)
+0af. **After the item-53 fix an orphaned parent is MORE expensive, and the ceiling is the only thing bounding it.** SD.11's nested test parent outlived its spawner and kept iterating into SD.11's worktree (`worktree=None`); killing or merging early would have stranded a live kid mid-write, so it was left to self-terminate at its HARD CEILING of 4. **A parent that outlives its spawner now spends until its ceiling — never dispatch an iterating parent without one, and never merge-up while its kids are writing.**
+0ae. **`git diff season/s2..HEAD` on a branch is NOT a change list** — measured again by SD.11's merge-up: the two-dot diff showed `seats.md` modified and FOUR owner-verbatim entries in `doc:l4-owner-decisions` apparently DELETED; both were divergence artefacts of a branch cut before the prime's writes. `git diff $(git merge-base season/s2 <branch>)..<branch>` showed neither. **A director who "resolves" a two-dot diff would delete owner verbatim out of the graph. Merge-base, always.**
 0ac. **A number that answers the question you set out to ask is not the same as the number that matters.** The prime measured the survival profile through `rotate.py` and its OWN OUTPUT printed `body-sentinel present=False` — which IS the content-loss defect — and it wrote "body replaced by fixed survival brief", read it as a design detail, and reported a clean 63.8% win. **Fifth instance of the day's shape and the sharpest, because the evidence was not one hop away in a callee or a validator; it was on the prime's own screen.** The seat caught it by DRY-RUNNING rather than trusting. **Ask what a result destroys, not only what it proves.**
 0ad. **`ListAgents` display names collide LIVE, not just historically** — while messaging `agi-ea` about this very defect, `SendMessage` warned *"1 other live session is also named 'agi-ea'"*. It routed to the confirmed one because this conversation had established it. **Always send with `name [ref]`.**
 0ab. **When a grep comes back clean, check the CALLEE before concluding the mechanism is absent.** `rotate.py` has zero references to `AGI_BRIEF_PROFILE` and is nonetheless fully governed by it, because the env read lives in `brief.successor_prompt`, one hop down. **This is the day's fourth instance of a correct local measurement with a wrong conclusion one hop out** (the others: `$?` through a pipe; `rotated_by: self` reasoned without its validator; "one line of arithmetic" costed without its denominator). It has caught the prime twice and the seat twice. **Right about what is in front of you, wrong about what it implies — measure the end state, do not infer it from the absence of a reference.**
@@ -183,7 +189,7 @@ git push origin season/s2
 STILL OPEN (prose kept below)      | pointer
 -----------------------------------+--------------------------------------------------
  49  engine files with no build node | briefs/, rotate.py … bytes outside the grid
- 53  parent super-loop               | owner ask; unbuilt
+ 53  parent super-loop               | ITERATION PROVED (SD.11, d7b3a3ba9); carry-forward needs a per-kid brief channel — SD.12
  54  partial reads / diffs-as-writes | write.py patch / body_patch LANDED; adoption open
  55  perpetual quorum + handoff slices| l3w4-seat-rotation-loops · l3w4-handoff-sections
  71  SURVIVAL MODE — IN FORCE         | ONE worker: sanctuary-director; idle seats cost ~0
