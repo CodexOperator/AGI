@@ -54,3 +54,27 @@ YOUR GUARDRAILS. HARD CEILING 3 kids for your loop. Check the OpenRouter KEY, no
 DO NOT: run level3.py without --dry-run, git rm any node, touch moral:*, write config:seats, run workflow.py run, or launch any seat.
 
 Write your result into THIS node via write.py note labeled "PARTIAL-WRITE ADOPTION" -- the red-first test name, the ranged-read byte and token numbers, the exact write.py patch command that landed a real engine change with its provenance and grid version, the brief.py and SKILL.md diffs in one line each, the suite counts, and the OpenRouter account delta. Note text must not contain a doubled-ampersand sequence: the script parser splits on it and your note will silently not land. If the live adoption proof does not pass, say so plainly and report how far it got -- a truthful partial beats a claimed pass.
+
+ADDENDUM TO THE SD.14 BRIEF -- THIRD DEFECT, SAME FAMILY, CAUSE LOCATED. Sanctuary-director gen V, 2026-09-09, from a finding measured by the prime on config:seats and then traced in the source by me. Read this as part of build item 1: there are now THREE broken verbs, not one, and all three ship green.
+
+THE DEFECT: `body_patch <path>` NEVER APPLIES THE DIFF. The prime ran a valid hunk against config:seats -- 2 context lines, one changed line, body-relative numbering from the line after BODY:BEGIN, context matching the body exactly -- and got `unchanged: config:seats - nothing to change`. Chained as `body_patch <path>` plus a `thought`, it printed `updated:` and landed ONLY the thought. The diff was silently discarded both times.
+
+THE CAUSE, EXACT, so no kid spends a turn hunting it. It is an ORDERING bug inside submit() in extensions/agi/bin/write.py:
+  - line 494  `if edit.body_patch_diff:` -> apply_unified_diff against the current body (line 504-505)
+  - line 531  `if edit.body_patch_from and not edit.body_patch_diff ...:` -> read the diff FILE into body_patch_diff
+Line 531 runs AFTER line 494. So for the path form, body_patch_diff is still empty at the moment of the apply-check, the apply is skipped, and the file is then read into a variable that nothing ever reads again.
+
+CONTRAST, AND IT IS THE SHAPE OF THE FIX: the payload verb `patch` does NOT have this bug, because at lines 525-528 it reads the file AND applies it in the same block. The two sibling verbs were written to different shapes; body_patch got the read without the apply. The stdin forms are fine on both -- main() populates patch_diff at line 941 and body_patch_diff at lines 984-988 before submit is reached -- so the practical rule today is: `body_patch -` works, `body_patch <path>` silently does nothing.
+
+A SECOND-ORDER CONSEQUENCE, do not miss it while fixing the first: the standalone guard that raises "body_patch is standalone; it cannot share a line with note or thought" sits INSIDE the `if edit.body_patch_diff:` block at lines 499-503. For the path form that block never runs, so the exclusivity rule is silently unenforced -- which is exactly why the prime's chained attempt reported success. Fixing the ordering must not leave that guard unreachable for either form.
+
+WHAT THIS ADDS TO YOUR PROOF CONDITION. The live proof is now TWO writes, not one:
+  1. a REAL engine change onto a build-noded file through `write.py patch` (payload), and
+  2. a REAL node-body change through `write.py body_patch` (body), from a PATH and not only from stdin.
+Red-first for both: a test that a one-line body_patch from a file path applies the change and leaves every other byte of the node identical, failing against today's code; and a test that body_patch chained with note or thought still raises the standalone error for the path form. Then the fix.
+
+A REAL TARGET FOR THE BODY PROOF, offered by the prime so you do not invent one: .agi/nodes/.geometry/seats.md, file lines 37-38. Prefix the owner-4 sentence with a marker reading "[SUPERSEDED for the three director-kid seats by the OWNER REVERSAL of 2026-09-07 23:0x UTC recorded under Agent Notes below ...]". WORDING OTHERWISE UNTOUCHED. THE SEAT ROWS ARE NOT TO BE TOUCHED BY ANY MEANS -- they are correct and they are the prime's alone to write. If you use this target, change nothing but those two lines.
+
+THE PATTERN ALL THREE SHARE, AND IT IS THE REAL LESSON OF THIS ROUND: read paths and second paths are exercised by nobody, so they ship broken. `read` falls through to the write path. `body_patch` from a path never applies. Both passed a green 2241-test suite. The write path that the work itself uses every day is fine. WHEN YOU ADD A VERB, THE TEST THAT MATTERS IS THE ONE THAT RUNS IT THE WAY A STRANGER WOULD.
+
+🔴 TRAP 0ah, STANDING FROM NOW ON, and it applies to your own work in this round: VERIFY THE BYTES, NEVER THE "updated:" LINE. write.py printing `updated:` is not evidence that anything you intended actually landed -- it printed `updated:` for a read that corrupted a node and for a body_patch that discarded its diff. After every write.py call, grep the file for the bytes you meant to write.
