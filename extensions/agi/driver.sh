@@ -295,6 +295,13 @@ iter_run() {
   # 4b. Write guard: detect unsanctioned node edits (warn only, non-fatal)
   python3 "$PLUGIN_ROOT/bin/write_guard.py" check 2>&1 | tee -a "$LOG" || true
 
+  # 4c. Grid coverage: tracked engine code file with no payload_ref and no
+  # declared exclusion (hypothesis:l3-engine-files-outside-the-grid). Warn
+  # only while the mint backlog is non-zero; exits 1 once the next kid's
+  # additive mint lands and any file is left uncovered. Non-fatal so a live
+  # loop never blocks on an honest red we already know about.
+  python3 "$PLUGIN_ROOT/bin/grid_coverage_check.py" --engine "$PROJECT_ROOT" 2>&1 | tee -a "$LOG" || true
+
   if [[ "$SMOKE" == "true" ]]; then
     echo "[smoke] skipping agent dispatch + heal" | tee -a "$LOG"
     return
