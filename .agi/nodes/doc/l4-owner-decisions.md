@@ -381,4 +381,13 @@ COUNCIL   on a * Master return (channel B) may FORWARD to the Keep anything unde
 TOOLING   a Master or a keeper who needs more tooling drafts a brief of the need through the Draft (Policy) Master and submits it to the Council for review · a councilor who needs council-specific tooling is not doing the job right (no tooling asks from the Council)
 ```
 
+
+### L4 PLAN, part 7 — owner 2026-09-09 ~22:54Z: FINAL — Draft Master; the plan is confirmed; GO for the successor in survival mode
+
+**Owner, verbatim:** "I like Draft Master so their finalized title is Draft Master. Everything else sounds good and lined up. Let's relay to successor and let them start on the loop using survival mode as you specified. That seemed to work phenomenally last time. Let make sure all brief points get their corresponding goal/subgoal/subsubgoal and/or idea/hypothesis chains as needed based on existing rules."
+
+**FINAL NAMES (supersedes parts 4–6 where they differ):** the brief-drafting Master is the **Draft Master** ("Policy Master" is the superseded name). Everything else in diagram v3 + the v4 deltas stands as confirmed by the owner.
+
+**GO (owner):** the L4 loop starts in SURVIVAL MODE — the Prime (belam-S1-L4-I) + ONE director (the sanctuary-director seat, gen VI) aimed at a loop brief; first work: every brief point in parts 1–7 gets its goal / subgoal / sub-subgoal and/or idea → hypothesis chain under the existing rules (perpetual top-level goals, `goal:s29` build-node shapes, the assignment IS the node's claim, commit + push before dispatch, one round at a time, hard ceilings, check the KEY not the account, the $1.00 floor never lowered).
+
 8. Open for the plan session: which roles are Sonnet (cheap, parallel) vs Opus; how the quorum's output node (the overview) is minted per season; whether the "etc jobs, no goals" director-kids (draft, review) are seats or plain pi parents; and the migration path from today's seat rows to the 2+2+1 rows.
