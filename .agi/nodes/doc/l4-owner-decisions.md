@@ -364,4 +364,21 @@ FIGURE EIGHT  Council --assign--> directors --A--> Keep --assign--> * Masters --
 SURVIVAL MODE (the next round starts here): the Prime + ONE director on a loop brief · ULTIMATE SURVIVAL: the Prime on Opus, the director on Sonnet or OpenRouter
 ```
 
+
+### L4 PLAN, part 6 — owner 2026-09-09 ~22:48Z (chamber-to-chamber protocol, Council-to-Keep propagation, the Research Master, tooling requests, Shael's question)
+
+**Owner, verbatim:** "And just double checking the council and keep talk between the two group chats by just passing single, fully edited by all 3, responses into the DM room between the two group chats once they enter an audience room. Also once a master returns their results to the Council, the Council can choose to propagate some things to the Keep instead as needed if it's something that falls under a keeper's jurisdiction (so modifications to role arrangement, individual role parameters, or otherwise a new unforeseen need for more briefs or reviews). One other position I can think of is the Research Master who is responsible for doing deep, exploratory research on things that need more in-depth exploration. They'll become a lot more useful once local-maxxing takes off more. If a master or keeper needs more tooling, they draft a brief of what they need using the Draft Master and submit to Council for review. If a councilor needs more tooling specialized for council members then they aren't doing their job right.
+
+Lastly Shael's main question is "Who cares the most about knowing this?" And deliver relevant info to that role. It's slightly different from Sage's question but very similar and that makes sense they are very similar roles with an important distinction: Shael should be maximally available for owner questions and to deliver answers/reports above all else."
+
+**Applied to the plan (prime) — diagram v4 deltas:**
+
+```
+CHAMBERS  the Council and the Keep each speak as ONE voice: a single response, edited by all three members, passed into the DM room between the two group chats once an audience room is entered — never member-to-member across chambers
+COUNCIL   on a * Master return (channel B) may FORWARD to the Keep anything under a keeper's jurisdiction: role arrangement, individual role parameters, a new unforeseen need for more briefs or reviews — else to directors, or Belam
+* MASTERS Policy Master (brief drafting; the owner also calls it the Draft Master) · Glitch Master (round review) · Research Master (deep, exploratory research; grows with local-maxxing) · Shael (the owner's voice)
+  SHAEL   Q="Who cares the most about knowing this?" -> {deliver:<role>} — near Sage's "who needs to know", with the distinction that Shael is MAXIMALLY available for owner questions and for delivering answers and reports, above all else
+TOOLING   a Master or a keeper who needs more tooling drafts a brief of the need through the Draft (Policy) Master and submits it to the Council for review · a councilor who needs council-specific tooling is not doing the job right (no tooling asks from the Council)
+```
+
 8. Open for the plan session: which roles are Sonnet (cheap, parallel) vs Opus; how the quorum's output node (the overview) is minted per season; whether the "etc jobs, no goals" director-kids (draft, review) are seats or plain pi parents; and the migration path from today's seat rows to the 2+2+1 rows.
