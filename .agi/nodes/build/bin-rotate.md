@@ -1,20 +1,21 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-rotate"
+id: build:bin-rotate
 mint_id: 37e33a765afd451797fcceff54c3157b
-origin: build-scan
+type: build
 parents:
   - mvp:bin-modules
+build_kind: code
+confidence: 1.0
+edited_by: sanctuary-director
+origin: build-scan
 payload_ref: extensions/agi/bin/rotate.py
 tags:
   - build
   - code
   - g2.1
+thought_session: sanctuary-director-genVI
 title: "Build: extensions/agi/bin/rotate.py"
-type: build
 ---
-
 `extensions/agi/bin/rotate.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:bin-modules`.

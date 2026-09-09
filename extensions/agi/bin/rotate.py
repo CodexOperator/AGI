@@ -72,7 +72,7 @@ from graph_core.persistence import frontmatter  # noqa: E402
 DEFAULT_DIRECTOR_CONTEXT_TOKENS = 1_000_000
 
 #: Default rotate-at fraction when the ladder node does not declare one.
-DEFAULT_DIRECTOR_ROTATE_AT = 0.35
+DEFAULT_DIRECTOR_ROTATE_AT = 0.47
 
 #: Engine root for resolving <engine> placeholders.
 ENGINE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -2110,7 +2110,7 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
 def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """Meter every seat whose registry row names `--holder` as `rotated_by`.
 
-    For each such seat: at/over `director_rotate_at` (0.35) send exactly ONE
+    For each such seat: at/over `director_rotate_at` (0.47) send exactly ONE
     dm `rotate now` to the holder (never more), nothing else — no spawn, no
     tmux. Below threshold prints `hold <seat> <fraction>`. `--once` meters
     each held seat once and returns so the parent's regression test is
