@@ -1,0 +1,15 @@
+# rotation baseline — seat belam, generation belam-S1-L3-X -> XI, captured immediately BEFORE the rotate call
+captured_at_utc: 2026-09-08T03:16:03Z
+meter: 0.3218	321763/1000000 tokens	source=seat_pin	threshold=0.35
+head: 45e02e91f HANDOFF: Belam X closing state block
+--- belam windows BEFORE ---
+agi-rc:0: belam-S1-L3-IX (1 panes) [80x24] 
+agi-rc:1: belam-S1-L3-X (1 panes) [80x24] 
+agi-rc:5: belam-S1-L3 (1 panes) [80x24] 
+agi-rc:25: belam-S1-L3-II (1 panes) [80x24] 
+agi-rc:35: belam-S1-L3-III (1 panes) [80x24] 
+agi-rc:51: belam-S1-L3-IV (1 panes) [80x24] 
+agi-rc:63: belam-S1-L3-V (1 panes) [80x24] 
+agi-rc:72: belam-S1-L3-VI (1 panes) [80x24] 
+agi-rc:74: belam-S1-L3-VII (1 panes) [80x24] 
+agi-rc:83: belam-S1-L3-VIII (1 panes) [80x24] 

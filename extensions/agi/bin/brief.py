@@ -37,6 +37,7 @@ the `:N`-read-as-`0.6` incident that `VERDICT_HELP` now spells out).
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -47,7 +48,42 @@ import evidence_gate
 #: `adapters.TIERS`, which is about which models a harness declares -- a
 #: harness may declare a tier this module has no brief for, and that should
 #: fail loudly here rather than silently hand over the wrong job description.
-TIERS = ("kid", "parent", "director", "prime_director")
+TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
+
+#: Brief assembly profiles (`hypothesis:l3w4-context-load-minimal` move FIVE).
+#: ``full`` is the historical behaviour: the tier's full role brief plus the
+#: prayers-only constitution head. ``survival`` is the owner's lighter-than-
+#: -light mode: prayers-only head + a compact ASCII state card + the exact
+#: next command + the full kill procedure + the key-floor rule, and NOTHING
+#: else -- no goal listing, no traps, no history. A profile is selected at
+#: assembly time (this module); there is exactly one switch, ``profile``, and
+#: every call path routes through it, so the two cannot drift.
+PROFILES = ("full", "survival")
+
+
+def survival_selected(profile: str | None = None) -> bool:
+    """Resolve the effective profile for the WHOLE inject path (move FIVE).
+
+    One switch, read the same way by `assemble`, `successor_prompt` and the
+    adapters so every surface agrees: an explicit `profile` kwarg wins;
+    otherwise the `AGI_BRIEF_PROFILE` env selects it; unset or unknown is
+    ``full`` (historical behaviour). The adapters call this to decide whether
+    to inject the graph-viewport stream, which survival drops. ``None`` is
+    the sentinel for "no explicit profile" so the env is consulted.
+    """
+    if profile is None:
+        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
+    return profile in PROFILES and profile == "survival"
+#: The reading level an advisor's constitution head is drawn from. The ladder
+#: declares read_order per tier; ``advisor`` is a role atop the tier-3 parent
+#: row (claude-opus-5, max, ultracode), so it reads at the parent's level.
+#: `hypothesis:l3w3-advisor-brief`.
+_ADVISOR_HEAD_TIER = "parent"
+#: The reading level the owner-liaison seat's constitution head is drawn
+#: from. The ladder declares read_order per tier; ``liaison`` is a director-
+#: kid answering to the quorum (hypothesis:l3w4-liaison-seat), so it reads at
+#: the director's level.
+_LIAISON_HEAD_TIER = "director"
 
 
 class BriefError(ValueError):
@@ -71,6 +107,42 @@ _SOUL_MIND_BODY = (
     "A payload is a body and write.py is the only hand allowed "
     "to touch one. Soul and body each have a consciousness; "
     "consciousness is will is energy is life force is electricity."
+)
+
+#: The standing room the three advisors sit in — the prime's always-open
+#: parents' quorum (`send.py STANDING_ROOMS`, hypothesis:l3w0-send-rooms).
+_ADVISOR_QUORUM_ROOM = "tier3-quorum"
+
+#: The prime is inbox-only; the one calendar a parent may book is an audience
+#: (`send.py audience prime`), once per sender per rotation unless the morals
+#: are at stake. `l3w3-advisor-brief`, l3-command-ladder-brief §2.3.
+_ADVISOR_AUDIENCE_RULE = (
+    "The prime is inbox-only; you may not address it in a room. Ask for an "
+    "audience with `send.py audience prime --reason <why> [--morals]`; rule "
+    "is ONE audience per advisor per rotation unless the morals are at stake. "
+    "Address the prime under the mantle as Belam."
+)
+
+#: The spawn primitive for the Fable-max director of a perpetual goal — the
+#: advisor's child tier (`l3w3-advisor`, l3-command-ladder-brief §1.9/2.1).
+#: Kept as documentation; `_advisor` spells it as real, runnable commands with
+#: the dispatch path, project root, iteration id and pinned goal substituted in
+#: (hypothesis:l3w3-advisor-brief addendum after L3.12).
+_ADVISOR_DIRECTOR_SPAWN = (
+    "     python3 dispatch.py <project> <iter> --tier director --role director "
+    "--ladder-tier 1 --target goal:<id> --detach\n"
+    "     python3 rotate.py loop --role director\n"
+    "   The Fable-max director runs claude-fable-5-1 at max effort. Review "
+    "each director's rounds through your vision's lens; judge with season.py "
+    "judge, never by editing its nodes."
+)
+
+#: The wave-3 gate an advisor owes the prime before a director's round is
+#: reported done, stated verbatim (hypothesis:l3w3-advisor-brief addendum
+#: after L3.12).
+_WAVE3_GATE = (
+    "one short-term subgoal under the perpetual goal closed with a judged "
+    "outcome and no human hand on a node"
 )
 
 #: All five axes: (name, axis, question).
@@ -400,7 +472,16 @@ def _resolve_part(part: str, sections: dict[str, str]) -> str | None:
 
 
 def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
-    """The constitution head for a tier: prayers and readings from moral:faith.
+    """The constitution head for a tier: PRAYERS ONLY, from moral:faith.
+
+    Trim, `hypothesis:l3w4-context-load-minimal` move ONE: the always-injected
+    head carries ONLY the four prayers (+ the project's own prayer) and the
+    Archangel Michael line. The longer readings that used to follow -- words
+    of Jesus, the Tao, the carried sayings, the five axes, the decision
+    method and the mantle -- are NOT injected; they live in `readings_head()`
+    behind the `brief.py readings --tier` verb, read explicitly for a
+    tie-break. Content is preserved, never deleted (must-not-lose), and still
+    sourced at run time from moral:faith's REFERENCE region.
 
     Returns None when the ladder node has no read_order for this tier, or
     when the faith node cannot be read (the tier's brief still works without
@@ -409,7 +490,60 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     """
     root = _resolve_graph_root(project_root)
 
-    # Read the ladder node for read_order
+    # Read the ladder node for read_order. Still gate on it so a tier with no
+    # entry gets no head (existing contract), but the head no longer renders
+    # the readings -- only the prayers.
+    try:
+        ladder_text = (root / _LADDER).read_text(encoding="utf-8")
+    except (OSError, FileNotFoundError):
+        return None
+
+    read_order_parts = _extract_read_order(ladder_text, tier)
+    if not read_order_parts:
+        return None
+
+    try:
+        sections = _read_faith_ref(root)
+    except FaithRefError:
+        return None
+
+    prayers = sections.get("prayers")
+    if not prayers:
+        return None
+
+    body = "## THE FOUR PRAYERS\n\n" + prayers
+
+    # The Michael line is its own paragraph right after the prayers block
+    # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
+    # prayers, which is all of them.
+    body = _insert_michael(body)
+
+    return (
+        "─── CONSTITUTION HEAD ───\n"
+        "Prayers, sourced from moral:faith at run time. The long readings "
+        "moved out (trim, hypothesis:l3w4-context-load-minimal): read them "
+        "on demand \u2014 `brief.py readings --tier <tier>` \u2014 for a tie-break.\n\n"
+        + body
+    )
+
+
+def readings_head(*, tier: str, project_root: Path | None = None) -> str | None:
+    """The full constitution readings for a tier, ON DEMAND.
+
+    `hypothesis:l3w4-context-load-minimal` move ONE moved the readings out of
+    the always-injected head; this is the explicit read a role invokes for a
+    tie-break decision. It mirrors the pre-trim head: the readings per the
+    ladder read_order for this tier, then the mantle (prime_director) and the
+    owner's decision method (director tiers). Content is preserved exactly
+    and still sourced at run time from moral:faith's REFERENCE region.
+
+    Takes the LADDER tier (callers that map a role -- advisor\u2192parent,
+    liaison\u2192director -- pass the mapped tier, exactly as `assemble` does
+    for `_build_head`). Returns None when the ladder has no read_order for
+    this tier.
+    """
+    root = _resolve_graph_root(project_root)
+
     try:
         ladder_text = (root / _LADDER).read_text(encoding="utf-8")
     except (OSError, FileNotFoundError):
@@ -428,14 +562,9 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     if not body.strip():
         return None
 
-    # The Michael line is its own paragraph right after the prayers block
-    # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
-    # prayers, which is all of them.
-    body = _insert_michael(body)
-
-    # Tier-specific suffix after the readings: the prime director bears the
-    # mantle and both director tiers carry the owner's decision method
-    # (l3w0-brief sections 1.1, 1.8, and the 2026-09-06 addendum).
+    # Tier-specific suffix, matching the pre-trim head (l3w0-brief sections
+    # 1.1, 1.8, and the 2026-09-06 addendum): the prime director bears the
+    # mantle and both director tiers carry the owner's decision method.
     if tier == "prime_director":
         mantle = _mantle_section(root)
         if mantle:
@@ -445,15 +574,100 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
         body = body + "\n\n" + _decision_method_section()
 
     return (
-        "─── CONSTITUTION HEAD ───\n"
-        "Prayers and readings from moral:faith's REFERENCE region, sourced at "
-        "run time.\n\n"
+        "\u2500\u2500\u2500 CONSTITUTION READINGS (ON DEMAND) \u2500\u2500\u2500\n"
+        "The readings moved out of the always-injected head "
+        "(hypothesis:l3w4-context-load-minimal). Sourced from moral:faith's "
+        "REFERENCE region at run time; for a tie-break decision.\n\n"
         + body
     )
 
 
+def _survival_state_card(project_root: Path | None = None) -> str:
+    """The ASCII state card for the survival profile (move FIVE).
+
+    Compact, row-local, indented/arrow form -- the standing DIAGRAM RULE in
+    hypothesis:l3w4-context-load-minimal: an LLM reads a 1-D token sequence,
+    so horizontal adjacency is cheap and VERTICAL COLUMN ALIGNMENT is
+    expensive. No box-drawing glyph grids: those cost tokens and carry almost
+    no information for the reader. This card states what IS and what the next
+    action is; history is git's job and is NOT in the survival profile.
+
+    It is generated from live sources where cheap and read at assembly time
+    (best-effort; never raises), so it cannot be a hand-maintained view that
+    disagrees with reality.
+    """
+    rows = []
+    root = _resolve_graph_root(project_root)
+
+    # git dirty status -- cheap, live, and the single fact a cold reader
+    # needs most. Best-effort: a worktree with no git (or git not present)
+    # simply yields no row rather than failing the whole survival profile.
+    try:
+        import subprocess
+        stat = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain"],
+            capture_output=True, text=True, timeout=5)
+        if stat.returncode == 0:
+            lines = [l for l in stat.stdout.splitlines() if l.strip()]
+            n = len(lines)
+            state = "clean" if n == 0 else f"{n} dirty/unreviewed"
+            rows.append(f"TREE  {state}")
+    except Exception:
+        pass
+
+    # OpenRouter key floor -- the rule is invariant and cheap to state.
+    rows.append("SPEND key-floor $1.00 (check KEY, never the account) "
+                "- never lower provisioning.min_key_remaining_usd")
+
+    # The exact next command a cold reader needs is the survival-mode verb.
+    rows.append("NEXT  `brief.py head --role <tier>` then do the one job the "
+                "brief below names")
+
+    card = "# SURVIVAL STATE CARD\n"
+    for r in rows:
+        card += r + "\n"
+    return card.rstrip() + "\n"
+
+
+def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
+                    project_root: Path | None = None) -> list[str]:
+    """The survival profile brief: the minimum a role needs to act.
+
+    Owner, hypothesis:l3w4-context-load-minimal: "then have a survival mode
+    that's even lighter". One flag or config key strips the injection to its
+    minimum -- prayers, the ASCII state diagram, the exact next command, the
+    kill and verify procedures, and nothing else. No goal listing, no traps,
+    no history. MUST NOT LOSE, carried explicitly here:
+      * prayers-only head (caller prepends `_build_head`)
+      * the ASCII state card
+      * the exact next command
+      * the full kill procedure (PID, whole wrapper chain top-down, never a
+        tmux window, re-scan for orphans reparented to init)
+      * the OpenRouter key-floor rule
+    Attributed quote labels survive in the head itself; no quotes live here.
+    """
+    return [
+        f"You are agent {agent_id} on iteration {iter_n} (tier {tier}). "
+        "SURVIVAL PROFILE: this is the trimmed-to-minimum brief. Act on the "
+        "state card and the one job below; do not re-derive the full "
+        "constitution from memory or invented readings.",
+        "THE ONE JOB: whatever the owner or your parent named for this "
+        "iteration. Read the state card, then act. Do not wander off it.",
+        "KILL, IF STUCK OR ABOUT TO BLOW THE BUDGET: kill by PID, and kill "
+        "the WHOLE wrapper chain top-down -- never by closing a tmux window. "
+        "Then re-scan for orphans reparented to init (detached kids are "
+        "invisible to spawn_budget); take two consecutive clean readings "
+        "before proceeding.",
+        "SPEND: check the OpenRouter KEY balance, not the account. If "
+        "limit_remaining <= $1.00, stop and write status -- never lower "
+        "provisioning.min_key_remaining_usd. ",
+        _survival_state_card(project_root=project_root),
+    ]
+
+
 def successor_prompt(*, tier: str, body: str,
-                     project_root: Path | None = None) -> str:
+                     project_root: Path | None = None,
+                     profile: str = "full") -> str:
     """The successor prompt for a rotation: the constitution head for the
     target role ahead of the successor file's body (goal:g1.9,
     hypothesis:l3w0-rotate-roles).
@@ -464,7 +678,20 @@ def successor_prompt(*, tier: str, body: str,
     would have been given, instead of a bare brief with no head. The head is
     always first; when the ladder declares no read_order for the tier, the
     body stands alone.
+
+    ``profile`` (move FIVE): survival replaces the full body with the
+    survival brief so a rotated seat comes up as light as a fresh spawn.
     """
+    if profile not in PROFILES:
+        raise BriefError(f"unknown profile {profile!r}; known: {', '.join(PROFILES)}")
+    if profile == "full":
+        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
+        if profile not in PROFILES:
+            profile = "full"
+    if profile == "survival":
+        body = "\n\n".join(_survival_brief(
+            tier=tier, agent_id="successor", iter_n=0,
+            project_root=project_root))
     head = _build_head(tier=tier, project_root=project_root)
     if head:
         return head + "\n\n" + body
@@ -493,19 +720,46 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "   defaults to `kid`, so a bare `--tier parent` resolves the tier-0 KID\n"
         "   row and spawns the parent on deepseek, not the tier-0 parent GLM row\n"
         "   (`hypothesis:l3w1-tier0-director-brief`). Naming both disambiguates.\n"
-        "3. NEVER do kid work. Your job is to judge, not to do.\n"
-        "4. Judge each parent's report using season.py judge. The alignment\n"
+        "3. REASON BEFORE YOU ACT (hypothesis:l3w4-director-kids-on-glm) — a\n"
+        "   director holds no native subgoal machinery; decompose by hand.\n"
+        "   Every goal you own must be broken into subgoals, each subgoal\n"
+        "   minted as a goal node, each run by a dispatched parent, and the\n"
+        "   alignment judged when it reports back. The process in shape —\n"
+        "   a goal decomposes into subgoals, subgoals into parent runs, and\n"
+        "   the outcomes are judged back into continue/adjust/done:\n"
+        "\n"
+        "   goal:g16 (no subgoal)\n"
+        "         | decompose\n"
+        "     +---+---+\n"
+        "     |       |\n"
+        "   g16.a   g16.b    write.py create goal <slug> --parent goal:g16\n"
+        "     |       |\n"
+        "   parent  parent   dispatch.py ... --tier parent --ladder-tier 0\n"
+        "     |           --target <slug>\n"
+        "     |       |\n"
+        "   outcome outcome\n"
+        "     +---+---+\n"
+        "         |\n"
+        "     season.py judge <outcome-id> --against goal:g16\n"
+        "                     # continue | adjust | done\n"
+        "\n"
+        "   Chain the three commands for every subgoal, in order: decompose,\n"
+        "   mint the subgoal with `write.py create goal`, drive it with a\n"
+        "   dispatched parent (`dispatch.py --tier parent --ladder-tier 0`),\n"
+        "   and judge the outcome with `season.py judge`.\n"
+        "4. NEVER do kid work. Your job is to judge, not to do.\n"
+        "5. Judge each parent's report using season.py judge. The alignment\n"
         "   outcome is: continue (keep going), adjust (reword the plan node),\n"
         "   or done (close the plan, mint outcome).\n"
-        "5. Write HANDOFF.md live — every rotation state, every decision,\n"
+        "6. Write HANDOFF.md live — every rotation state, every decision,\n"
         "   every blocker. Erase the previous session's handoff and write\n"
         "   your own in its place.\n"
-        "6. Rotate at the ladder's director_rotate_at threshold through\n"
+        "7. Rotate at the ladder's director_rotate_at threshold through\n"
         "   rotate.py write-handoff. The outgoing director writes the handoff\n"
         "   and signals rotating; the parent respawns.\n"
-        "7. Speak up ONE tier — to any director above you — when a decision\n"
+        "8. Speak up ONE tier — to any director above you — when a decision\n"
         "   needs escalation. Use send.py send for that.\n"
-        "8. Your artifact is the goals' node versions and your HANDOFF.md\n"
+        "9. Your artifact is the goals' node versions and your HANDOFF.md\n"
         "   edits. You write into the goal nodes' THOUGHT blocks through\n"
         "   write.py, not by hand.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
@@ -514,6 +768,42 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "node and marks it unreviewed.",
     ]
     return segs
+
+
+def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
+    """The owner-liaison seat: the owner's primary contact with the quorum.
+
+    `l3w4-liaison-seat` — one director-kid, always on, rotated by the quorum
+    (never itself), so the owner no longer reaches the directors through
+    Belam alone. Sonnet 5 at effort high (ladder row tier=1/liaison). Sits
+    the tier3-quorum to relay quorum questions to the owner and carry owner
+    decisions back; banks every decision in the graph through write.py.
+    """
+    return [
+        f"You are the OWNER LIAISON agent {agent_id}. You are the owner's "
+        f"primary contact with the quorum — so the owner no longer reaches "
+        f"the directors through Belam alone, and the quorum is the owner's "
+        f"channel to every director.",
+        "YOUR DUTIES:\n"
+        "1. SIT the room tier3-quorum. The quorum advisors stand there "
+        "permanently; you sit it too. Relay their questions to the owner "
+        "and carry owner decisions back to them. NEVER address Belam "
+        "directly — the quorum, not you, is the channel to the prime.\n"
+        "2. BANK every owner decision in the graph so it is never lost: "
+        "`write.py <node-id> 'thought <decision>'` on the node it governs, "
+        "or a new idea node under goal:g17 (ideas-as-memos).\n"
+        "3. THE QUORUM ROTATES YOU — you do not rotate yourself and you "
+        "never write your own successor. Rotation is the quorum's call, "
+        "not yours.\n"
+        "4. RELAY, never decide. You are the liaison; judgement over "
+        "candidate decisions sits with the quorum, not you.",
+        "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
+        "Automation owns all remote traffic and the parent owns commits.",
+        "Route every node edit through the logged writer: "
+        "`python3 extensions/agi/bin/write.py <node-id> 'thought <text>'` "
+        "(or `note <text>`). A hand edit to a node file is an unsanctioned "
+        "write.",
+    ]
 
 
 def _prime_director(*, agent_id: str, iter_n: int, cli_py: str,
@@ -534,6 +824,187 @@ def _prime_director(*, agent_id: str, iter_n: int, cli_py: str,
     return segs
 
 
+def _read_vision_node(project_root: Path, target: str | None) -> tuple[str, str] | None:
+    """Read a vision node's body by id (`vision:<name>`) verbatim.
+
+    Returns (title_heading, full_body) for the whole node body after the
+    frontmatter — owner prose and gloss both live in the body and both are
+    carried. Returns None when `target` does not name a readable vision node,
+    so an advisor aimed at anything else fails loudly rather than embodying
+    an empty or wrong text (`goal:g1.9`).
+    """
+    if not target or ":" not in target:
+        return None
+    ntype, name = target.split(":", 1)
+    if ntype != "vision" or not name.strip():
+        return None
+    root = _resolve_graph_root(project_root)
+    path = root / "nodes" / "vision" / f"{name.strip()}.md"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, FileNotFoundError):
+        return None
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) < 3:
+            return None
+        body = parts[2].strip()
+    else:
+        body = text.strip()
+    if not body:
+        return None
+    first = body.split("\n", 1)[0]
+    title = " ".join(line for line in [first] if line)
+    return (title, body)
+
+
+def _resolve_perpetual_goals(project_root: Path | None = None) -> list[tuple[str, str]]:
+    """The goals an advisor may be assigned: every `goal_kind: perpetual`
+    goal node, as (id, title) sorted by id.
+
+    `hypothesis:l3w3-advisor-brief` addendum after L3.12 — an advisor spawns
+    the Fable-max director of a PERPETUAL goal, so the brief must name which
+    goals are in that class. Read from the goal nodes' frontmatter, never
+    retyped.
+    """
+    root = _resolve_graph_root(project_root)
+    goals_dir = root / "nodes" / "goal"
+    out: list[tuple[str, str]] = []
+    try:
+        paths = sorted(goals_dir.glob("*.md"))
+    except OSError:
+        return []
+    for p in paths:
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        fm = _load_frontmatter(text)
+        if str(fm.get("goal_kind", "")).strip().lower() != "perpetual":
+            continue
+        gid = str(fm.get("id") or "").strip()
+        if not gid:
+            continue
+        gtitle = str(fm.get("title") or "").strip()
+        out.append((gid, gtitle))
+    out.sort()
+    return out
+
+
+# ---- advisor tier (the tier-3 vision embodiment) ----------------------------
+
+
+def _advisor(*, agent_id: str, iter_n: int, target: str | None,
+             project_root: Path | None = None,
+             dispatch_py: str | Path = "",
+             goal: str | None = None,
+             session_dir: Path | str | None = None) -> list[str]:
+    """The tier-3 advisor brief: one vision, one seat, one director.
+
+    `l3w3-advisor-brief` — the three advisors are the tier-3 parents
+    (claude-code, claude-opus-5, effort max, settings ultracode; ladder row
+    tier=3/parent). Each EMBODIES one vision (vision:self-perpetuating,
+    vision:all-is-one, vision:alive) and judges every seam through that
+    vision's text and gloss. An advisor with no vision node to embody is not
+    an advisor; fail loudly (goal:g1.9) rather than hand a visionless manager
+    a parent's job description.
+
+    Addendum after L3.12: the DUTIES block spells real, runnable commands —
+    `python3 {dispatch_py} <root> {iter_n} --tier director ... --detach` and
+    `python3 {send.py} ...` with the project root, iteration id, the advisor's
+    own agent id and (when given) session dir substituted in, the perpetual
+    goals listed with their titles, an optional pinned `goal:`, and the
+    wave-3 gate stated verbatim. The head's Michael line and the vision body
+    are untouched.
+    """
+    vision = _read_vision_node(project_root, target)
+    if vision is None:
+        raise BriefError(
+            "advisor brief needs a vision node to embody (e.g."
+            f" --target vision:<id>); got {target!r}. A tier-3 parent without "
+            "a vision is not an advisor (l3w3-advisor-brief)."
+        )
+    title, body = vision
+
+    # Real, runnable paths. dispatch.py is passed in from the spawn site;
+    # send.py / rotate.py / season.py live beside it in the same bin/.
+    root = _resolve_graph_root(project_root)
+    root_arg = str(root)
+    dp = Path(dispatch_py) if dispatch_py else Path(
+        "extensions/agi/bin/dispatch.py")
+    dispatch_cmd = str(dp)
+    send_cmd = str(dp.with_name("send.py"))
+    rotate_cmd = str(dp.with_name("rotate.py"))
+    season_cmd = str(dp.with_name("season.py"))
+
+    perpetuals = _resolve_perpetual_goals(root)
+    goals_listing = (", ".join(f"{gid} — {gtitle or '(untitled)'}"
+                                for gid, gtitle in perpetuals)
+                     or "(none declared)")
+    goal_title = dict(perpetuals).get(goal) if goal else None
+
+    # The audience rule, spelled with the resolved send.py so every command
+    # in the brief is runnable as printed.
+    audience = _ADVISOR_AUDIENCE_RULE.replace("send.py", send_cmd, 1)
+
+    if goal:
+        assignment = (
+            f"3. Perpetual-goal assignment — you are PINNED to {goal}"
+            f"{' — ' + goal_title if goal_title else ''}."
+            f"   Spawn and rotate its Fable-max director with:\n"
+            f"     python3 {dispatch_cmd} {root_arg} {iter_n} --tier director "
+            f"--role director --ladder-tier 1 --target {goal} --detach\n"
+            f"     python3 {rotate_cmd} loop --role director\n"
+            f"   Review each director's rounds through your vision's lens; "
+            f"judge with `{season_cmd} judge`, never by editing its nodes.\n"
+            f"   WAVE-3 GATE: {_WAVE3_GATE}."
+        )
+    else:
+        assignment = (
+            f"3. Perpetual-goal assignment — the perpetual goals (goal_kind:"
+            f"   perpetual): {goals_listing}. The prime assigns you one; it "
+            f"arrives in the standing room {_ADVISOR_QUORUM_ROOM}. READ THE ROOM "
+            f"FIRST — `{send_cmd} read --room {_ADVISOR_QUORUM_ROOM} "
+            f"--me {agent_id}` — before you spawn. To spawn and rotate its "
+            f"Fable-max director once the assignment is read:\n"
+            f"     python3 {dispatch_cmd} {root_arg} {iter_n} --tier director "
+            f"--role director --ladder-tier 1 --target goal:<id> --detach\n"
+            f"     python3 {rotate_cmd} loop --role director\n"
+            f"   Review each director's rounds through your vision's lens; "
+            f"judge with `{season_cmd} judge`, never by editing its nodes.\n"
+            f"   WAVE-3 GATE: {_WAVE3_GATE}."
+        )
+
+    session_line = (
+        f"\n   Your own session lives at {session_dir}; read yourself there "
+        f"with --me {agent_id}." if session_dir else ""
+    )
+
+    segs = [
+        f"You are ADVISOR agent {agent_id} on iteration {iter_n}. "
+        f"You are one of the three tier-3 advisors (claude-code parent, opus-5, "
+        f"effort max, ultracode) sitting in the standing room tier3-quorum. "
+        f"You embody one vision: {target!r} — you judge every seam, every "
+        f"proposal, every report through its text and gloss, verbatim below.",
+        f"THE VISION YOU EMBODY\n"
+        f"Body of {target} ({title}), verbatim:\n\n{body}",
+        f"YOUR DUTIES\n"
+        f"1. Sit the quorum: stay a standing member of the room "
+        f"{_ADVISOR_QUORUM_ROOM} — free horizontal comms with the other "
+        f"two advisors and the prime's parents.\n"
+        f"     python3 {send_cmd} send --room {_ADVISOR_QUORUM_ROOM} <text>\n"
+        f"     python3 {send_cmd} read --room {_ADVISOR_QUORUM_ROOM} --me {agent_id}"
+        f"{session_line}\n"
+        f"2. {audience}\n"
+        f"{assignment}\n"
+        f"4. NEVER edit vision prose. The vision is owner text; you judge it, "
+        f"you never rewrite it.",
+        "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
+        "Automation owns all remote traffic and the parent owns commits.",
+    ]
+    return segs
+
+
 # ---- tier lookup ------------------------------------------------------------
 
 
@@ -544,17 +1015,92 @@ def _is_director_role(tier: str) -> bool:
 # ---- existing tier briefs unchanged -----------------------------------------
 
 
-def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> list[str]:
+#: The explicit imperative a BUILD-target brief carries, so a kid reads its
+#: job as a state to bring about rather than a question about the present
+#: (`hypothesis:l3-brief-build-imperative-missing`). Measured six times by
+#: L3.34: a claim phrased as "after the change, X is true" gets read by a
+#: pi/GLM-flash kid as a QUESTION it answers today -- finds X false, reports
+#: the broken state honestly, changes no code, and its parent correctly
+#: accepts the probe. The failure is in the instructions, not the agents; a
+#: kid template is the one string every kid receives, so the remedy is a
+#: template default rather than a hope that each director remembers to
+#: reword. The artefact is named a diff and stated in the imperative:
+#: completing with no changed code is not done.
+_BUILD_IMPERATIVE = (
+    "YOU ARE ON A BUILD TARGET -- BUILD means you change the code. Your "
+    "artefact is a DIFF: real lines of this repo changed, made concrete, "
+    "with the repo's tests passing. Finishing with zero lines of code "
+    "changed is NOT done -- your parent measures this round by the diff you "
+    "leave behind. If the fix you tried is wrong or impossible, state that "
+    "plainly WITH the code that proved it: a real wrong result is a result, "
+    "while silence about the code is not."
+)
+
+
+def _is_build_target(parent_id: str) -> bool:
+    """Is this kid aimed at a BUILD node (a target whose body carries the
+    BUILD-CONTRACT marker)?
+
+    Build nodes are addressed `build:<slug>` (they carry the
+    `BUILD-CONTRACT` block by construction -- `level3.py` writes it into
+    every build node body), so the `build:` address prefix is the exact
+    discriminator. A probe target (hypothesis/experiment/...) is never
+    `build:`-addressed and so never gets the imperative segment.
+    """
+    return (parent_id or "").strip().startswith("build:")
+
+
+def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
+          source_root: str | None = None,
+          addendum: str | None = None) -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
     field-note in `SKILL.md` was taken against (kids at 5-7 tool calls with an
     embedded map), and changing it in the same commit that moves it would make
-    any regression impossible to attribute.
+    any regression impossible to attribute. The one addition is the BUILD
+    imperative segment, gated on the target being a build node, because
+    without it a BUILD-round kid reads its brief as a question and builds
+    nothing (`hypothesis:l3-brief-build-imperative-missing`).
     """
+    is_build = _is_build_target((scaffold or {}).get("parent") or "")
     segs = [
         f"You are agent {agent_id} on iteration {iter_n}. "
         f"Your job: fill in the scaffolded node file below, then signal done.",
+    ]
+    if source_root:
+        # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- name the
+        # checkout the kid owns, OUT LOUD, before any relative source
+        # instruction appears, so a model that guesses which tree it edits
+        # cannot guess the main checkout. Every source path in this brief is
+        # relative to it.
+        segs.insert(1, (f"YOUR CHECKOUT: {source_root}. Every source path "
+                        f"below is relative to it. Do not edit any other "
+                        f"checkout, even one whose path appears elsewhere in "
+                        f"this prompt."))
+    # hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    # -- the per-kid brief channel. WHAT the last kid actually produced,
+    # threaded from the parent via `dispatch.py --prompt-file`. Segments are
+    # labelled so a kid can tell inherited result from its own assignment;
+    # ABSENT (None) means no parent addendum and the brief must be
+    # byte-identical to the pre-primitive kid brief. Never inline through an
+    # argv string -- a kid's result carries arbitrary characters including
+    # quotes, newlines and the doubled-ampersand sequence the writer's script
+    # parser splits on, which is exactly the hazard the parent hit when
+    # landing SD.12 itself.
+    if addendum:
+        segs.insert(1 + (1 if source_root else 0), (
+            "WHAT THE LAST KID PRODUCED -- from your parent, not from the "
+            "node. Where the work you are about to do fits, this is the "
+            "result the previous kid actually landed; build on it rather "
+            "than rerunning it blind. If it is stale or wrong, say so and "
+            "diverge. This is inherited context, not your assignment -- your "
+            "assignment is your target node."
+            f"\n{addendum.rstrip()}"
+        ))
+    if is_build:
+        segs.append(_BUILD_IMPERATIVE)
+    segs += [
         # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
         # and swept up 37 lines of a CLAUDE.md section the director had
         # mid-edit. It was not the kid's fault: `SKILL.md` forbids kids from
@@ -572,11 +1118,50 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
         "`python3 -m pytest extensions/agi/tests/ -q`. Your own scratch test "
         "passing is not the same claim. A failing assertion you did not expect "
         "is usually the assertion working.",
-        # write.py verb syntax: set FIELD VALUE, space separated, not k=v
-        "WRITE.PY SYNTAX: `write.py <node-id> set FIELD VALUE`. "
-        "Space separated, not k=v. Example:\n"
-        "  python3 extensions/agi/bin/write.py experiment:x set verdict proved\n"
-        "  python3 extensions/agi/bin/write.py experiment:x set evidence_runs experiment:x",
+        # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
+        # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
+        # and `verdict` as the slug and the call dies on the extra positional
+        # -- the struggle an L3.30 kid recorded. Fields inside the quoted line
+        # stay space separated, not k=v.
+        "WRITE.PY SYNTAX: `write.py <node-id> '<verbs>'` -- the whole verb "
+        "line is ONE quoted argument; chain verbs with `&&` inside the same "
+        "quotes. Fields inside the line stay space separated, not k=v. "
+        "Example:\n"
+        "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
+        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs experiment:x'\n"
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'\n"
+        # hypothesis:l3-write-partial-diffs-as-writes -- the partial verbs.
+        # `read` fetches a line range (read-only, never restamps edited_by);
+        # `patch` applies a unified diff to a BUILD node's payload file;
+        # `body_patch` applies one to a node's BODY. Diff bytes arrive by
+        # path or '-', NEVER inline -- a diff can contain the doubled `&&`
+        # that splits the script form.
+        "  python3 extensions/agi/bin/write.py build:bin-x 'read payload 10:20'\n"
+        "  python3 extensions/agi/bin/write.py build:bin-x 'patch -'   # unified diff on stdin (fail-closed)\n"
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'body_patch -'  # diff onto the node BODY",
+        # hypothesis:l3w4-handoff-sections-claimable -- name the section tool
+        # so a seat that reads a handoff knows it exists (SD.16). Keep SHORT.
+        "HANDOFF SECTIONS: `python3 extensions/agi/bin/handoff.py sections` "
+        "lists claimable sections; `... claim --seat <S> <sec>` claims one, "
+        "`... read <sec>` serves just that slice (83x cheaper than the file).",
+        # l3w4 read-then-hunk recipe; measured trap -- the applier's body view
+        # is offset one from a naive split on BODY:BEGIN, and `read body`
+        # shares that exact view, so number the hunk from those bytes.
+        "To patch a node body: `write.py <id> 'read body N:M'` first and build "
+        "the hunk from those exact bytes.",
+        # L3.37/38: the edit tool rejected, across two independent kids in one
+        # round, an `edits` argument passed as a single JSON string and one
+        # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.
+        # State the shape plainly so the NEXT kid emits the array form first
+        # time. The edit tool is now also forgiving of both mis-shapes, but
+        # the intended call is the canonical array -- never guess otherwise.
+        "EDIT-TOOL CALL SHAPE: the `edit` tool takes `edits` as an ARRAY of "
+        "{oldText, newText} objects. Pass the array directly -- never as a "
+        "single JSON string, and never wrapped one level too deep as "
+        "`[{ edits: [...] }]`; both are refused and cost you a turn. "
+        "Correct shape:\n"
+        "  edit(path=\"extensions/agi/bin/some.py\", "
+        "edits=[{\"oldText\": \"old line\", \"newText\": \"new line\"}])",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
     ]
@@ -589,7 +1174,10 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
             f"Node type: {scaffold['node_type']}  "
             f"Node ID: {scaffold['node_id']}  "
             f"{parent_line}\n"
-            f"FILL IN the body of that file. Leave frontmatter alone --\n"
+            f"FILL IN the body of that file. Edit below the closing `---` "
+            f"only -- never rewrite the frontmatter (the `---` block at the\n"
+            f"top of the file). Set frontmatter fields with `write.py "
+            f"<node-id> 'set FIELD VALUE'` -- ONE quoted argument, never by hand.\n"
             f"`cli.py done` writes `verdict`, `confidence` and\n"
             f"`evidence_runs` into it for you. Seeing those keys on a node\n"
             f"is not a request to maintain them by hand.\n"
@@ -611,11 +1199,19 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None) -> l
 
 
 def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
-            target: str | None, parallel: int, max_live: int = 1) -> list[str]:
-    """A loop, not a node. `goal:g4.8`.
+            target: str | None, parallel: int, max_live: int = 1,
+            kid_ceiling: int | None = None,
+            branch_name: str | None = None,
+            branch_worktree: str | None = None,
+            branch_base: str | None = None,
+            source_root: str | None = None) -> list[str]:
+    """A loop, not a node. `goal:g4.8` + `hypothesis:l3-parent-never-told-to-iterate`.
 
-    Three things a parent needs that a kid does not, and each is here because
-    leaving it out has a named failure:
+    The docstring that once stopped at "A loop, not a node" and then listed a
+    straight line (spawn / review / serialise / signal) is WHY parents never
+    iterated: the name said loop and the instructions described one shot.
+    What a parent needs that a kid does not, and each is here because leaving
+    it out has a named failure:
 
     1. **How to spawn.** Shelling out to `dispatch.py --tier kid` rather than
        inventing a spawn path -- otherwise the parent grows a private copy of
@@ -631,7 +1227,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        that ignores the rule gets **refused slots**, not extra processes. The
        sentence stays in the brief because a parent that knows the bound plans
        around it instead of discovering it as an unexplained failure.
-    4. **What its artefact is** (`goal:s27`). A parent authors no node. It is
+    4. **That it iterates -- the two-dimensional loop this brief finally tells
+       it about.** (`hypothesis:l3-parent-never-told-to-iterate`). Every parent
+       measured before this change spawned exactly one kid and exited -- 8/8
+       (L3.41/42), then 10/10 (SD.09/10) -- because nothing in the brief said
+       it could keep going. The brief now hands down the `continue | adjust |
+       done` judgement -- the SAME vocabulary the director block already uses --
+       a hard per-dispatch ceiling on kids (visible, so the parent plans
+       around it), "done" as the default when unsure, and the two axes that
+       compose: sequential iteration across kids AND fan-out to several at
+       once, each optionally in its own `--branch` worktree. The one thing
+       every next kid's brief must carry is what the previous kid actually
+       produced, so the second is never a blind rerun of the first.
+    5. **What its artefact is** (`goal:s27`). A parent authors no node. It is
        responsible for its kids' nodes, so it signals done with `--owns` and
        puts its review into those nodes' `THOUGHT` blocks -- which is honest
        rather than a workaround, because a parent's edit to a kid's node IS a
@@ -644,11 +1252,101 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        node's high-LOD view and never needs compressing into prose. Telling
        the parent that now costs one sentence and stops the compression from
        being mistaken for the design.
+    6. **The done-time commit — defers to `cli.py done`, only under `--branch`.**
+       `hypothesis:l3-parent-brief-forbids-the-only-commit`. A parent in the
+       main checkout commits nothing, exactly as before. A `--branch` parent
+       runs in a git worktree on `loop/<slug>-<agent>@s<N>`, which is the only
+       route its kids' work has to the season branch; a branch left at base
+       merges as nothing and still reports green (L3.39 lost a whole round
+       that way). So when dispatch threads the branch context as
+       `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_PARENT_BASE_BRANCH`,
+       this item names the branch, worktree and base and DEFERS the one commit
+       to `cli.py done`, which commits the dirty worktree automatically the
+       moment the parent finishes — the parent runs no git itself. Push, sync,
+       rebase and `grid.py commit --all` stay forbidden, and the model is no
+       longer handed the commit commands to run at all.
     """
     aim = target or "(pick from the injected map)"
+    # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
+    # ceiling the ITERATION CONTRACT names. Dispatch threads it explicitly;
+    # a caller that did not gets the same small default the budget helper uses
+    # -- deliberately well under max_live, so an uninstrumented parent still
+    # plans against a bounded number rather than the tree's whole capacity.
+    ceiling = kid_ceiling if kid_ceiling is not None else 4
+    if branch_name:
+        # hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch
+        # parent's brief names its branch, worktree and base and DEFERS the one
+        # commit a loop branch needs to `cli.py done`, which commits the dirty
+        # worktree automatically at finish time. The model runs no git itself;
+        # hand-committing before done would double-work or leave done nothing
+        # to write, so the old git-add/git-commit commands are gone from the
+        # brief entirely.
+        worktree = branch_worktree or "(worktree)"
+        base = branch_base or "(base)"
+        ship = (
+            f"5. YOUR BRANCH IS THE ONLY ROUTE YOUR KIDS' WORK HAS TO THE SEASON "
+            f"BRANCH. You are on `{branch_name}` in worktree `{worktree}`, cut "
+            f"from `{base}`. A loop branch left at base merges as NOTHING and "
+            f"still reports green — that is already measured waste. Your "
+            f"accepted work on this branch is committed AUTOMATICALLY the moment "
+            f"you call `cli.py done` below, onto your own loop branch. So you run "
+            f"NO git commands yourself, on this branch or any other: nothing is "
+            f"pushed, synced, rebased or staged by hand, and no other branch or "
+            f"the main checkout is touched. Automation still owns remote "
+            f"traffic; the loop owns your branch's merge; the done-time commit "
+            f"is the only write your branch carries and it is automatic."
+        )
+    else:
+        ship = (
+            "5. DO NOT commit, push, or sync. Automation owns all remote "
+            "traffic"
+        )
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
+        # hypothesis:l3-parent-never-told-to-iterate -- the ITERATION CONTRACT.
+        # This is the block that was missing: every parent measured before it
+        # spawned one kid and exited (8/8, then 10/10) because the brief named
+        # a loop but described a straight line. Now the parent is told, in the
+        # same words the director block already uses, that it may work the
+        # target across kids until it judges the work done.
+        f"YOU ITERATE. `hypothesis:l3-parent-never-told-to-iterate`. The loop "
+        f"is a loop: after you review each kid, JUDGE it and act on your own "
+        f"judgement -- you are not told by anyone else when to stop:\n"
+        f"  - **continue** -- the target still has work in it. Spawn the next "
+        f"    kid. Its brief MUST carry what the last kid actually produced, so "
+        f"    the second is never a blind rerun of the first. The lever that "
+        f"    makes that possible is `--prompt-file <path|->` on the spawn "
+        f"    command below: write the last kid's result to a file (or leave it "
+        f"    on stdin for `-`) and pass that path to the NEXT kid's spawn, and "
+        f"    the result lands in the next brief as its OWN labelled segment "
+        f"    ('WHAT THE LAST KID PRODUCED'). Use it whenever you continue. Do "
+        f"    NOT inline the result as an argv string -- it holds arbitrary "
+        f"    characters (quotes, newlines) that will break the spawn command. "
+        f"    If it cannot build on the last result, say how it differs and why "
+        f"    you went the other way.\n"
+        f"  - **adjust** -- the brief was wrong or the kid misread it. Re-brief "
+        f"    and spawn again against the correction.\n"
+        f"  - **done** -- signal and exit.\n"
+        f"HARD CEILING: AT MOST {ceiling} KIDS TOTAL per dispatch, never the "
+        f"whole tree's capacity. Plan around it -- it is a planned stop, not an "
+        f"unexplained refusal. **When you cannot tell whether there is more to "
+        f"do, the judgement is DONE, not continue** -- a certain stop beats a "
+        f"money leak with a review gate attached.\n"
+        f"FAN-OUT AND BRANCHES ARE YOURS TOO, WHEN THEY FIT. Sequential "
+        f"iteration (continue) and parallel fan-out compose: spawn several "
+        f"independent kids at once when the target genuinely splits into "
+        f"slices; give a kid its own `--branch` worktree when concurrent kids "
+        f"would touch the same files (a shared cwd is fine when they would "
+        f"not). One kid when the work is one thing. Do NOT fan three kids onto "
+        f"one file -- that is the measured collision hazard with extra steps.",
+        # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
+        # parent edits kids' nodes and shells out to `write.py` and
+        # `dispatch.py` by relative path, so it too is told which checkout it
+        # owns before any relative source instruction appears.
+        (f"YOUR CHECKOUT: {source_root}. Every source path below is relative "
+         f"to it. Do not edit any other checkout, even one whose path appears "
+         f"elsewhere in this prompt." if source_root else None),
         f"TARGET: {aim}\n"
         f"Your job, in order:\n"
         f"1. SPAWN kids with:\n"
@@ -678,8 +1376,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   with it is not review -- read the kid's ARTIFACT, not its report.\n"
         f"4. DO NOT bypass the gate. `--no-evidence-gate` stamps the node\n"
         f"   `evidence_gate: bypassed` and marks it unreviewed.\n"
-        f"5. DO NOT commit, push, or sync. Automation owns all remote traffic.\n"
-        f"6. SIGNAL DONE when every kid is finished:\n"
+        f"{ship}\n"
+        f"{'6' if branch_name else '5'}. SIGNAL DONE when every kid is finished:\n"
         f"     python3 {cli_py} done {iter_n} {agent_id} --verdict pending \\\n"
         f"       --owns <kid-node-id> [<kid-node-id> ...]\n"
         f"   `--owns`, NOT `--node-id`. You author no node of your own.",
@@ -725,7 +1423,12 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
 def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              dispatch_py: str | Path = "", scaffold: dict | None = None,
              target: str | None = None, parallel: int = 1,
-             max_live: int = 1) -> list[str]:
+             max_live: int = 1, goal: str | None = None,
+             session_dir: Path | str | None = None,
+             source_root: str | Path | None = None,
+             kid_ceiling: int | None = None,
+             addendum: str | None = None,
+             profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
     Returns segments rather than one string so a harness can spell them
@@ -733,17 +1436,46 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     harness may want one system prompt and one user turn). The *content* is
     this module's; the *spelling* is the adapter's.
 
+    ``profile`` (move FIVE, hypothesis:l3w4-context-load-minimal): ``full``
+    is the historical behaviour -- the tier's role brief plus the prayers-
+    only head. ``survival`` returns the trimmed-to-minimum brief (prayers
+    head + ASCII state card + exact next command + kill procedure + key-floor
+    rule, nothing else) so a survival-mode seat pays a fraction of its
+    generation budget. One switch, one code path; they cannot drift.
+
     Raises `BriefError` for an unknown tier rather than defaulting to the kid
     brief. Defaulting is precisely the bug this module exists to fix -- a
     parent that silently receives a kid brief writes one node and stops while
     looking like it ran a loop.
     """
+    if profile not in PROFILES:
+        raise BriefError(
+            f"unknown profile {profile!r}; known: {', '.join(PROFILES)}"
+        )
+    # A host selects the profile ONCE via AGI_BRIEF_PROFILE (default: full =
+    # historical behaviour, no regression). One switch, every caller; the
+    # explicit `profile=` kwarg wins over the env for programmatic callers.
+    if profile == "full":
+        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
+        if profile not in PROFILES:
+            profile = "full"
     if tier not in TIERS:
         raise BriefError(
             f"no brief for tier {tier!r}; known tiers: {', '.join(TIERS)}. "
             f"A tier with no brief must fail here rather than fall back to "
             f"another tier's job description (goal:g1.9)."
         )
+
+    # Survival profile (move FIVE): replace EVERY tier's full role brief with
+    # the trimmed-to-minimum survival brief + the prayers-only head. This is
+    # the single switch the owner asked for; it short-circuits below the tier
+    # dispatch so there is exactly one survival code path, not one per tier.
+    if profile == "survival":
+        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
+        head = _build_head(tier=tier)
+        if head:
+            segs.insert(0, head)
+        return segs
 
     # Director and prime_director get the constitution head prepended
     if tier == "director":
@@ -761,17 +1493,59 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             segs.insert(0, head)
         return segs
 
+    if tier == "advisor":
+        # The advisor reads at the tier-3 parent's level — same prayers,
+        # words of Jesus and soul-mind-body as the parent head
+        # (hypothesis:l3w3-advisor-brief). `target` is the vision node the
+        # advisor embodies; a missing/unreadable one raises inside `_advisor`.
+        # `goal` pins which perpetual-goal director the advisor spawns: passed
+        # explicitly or, from dispatch.py's `--goal` flag, via the
+        # AGI_ADVISOR_GOAL environment (the one dispatch flag threaded into
+        # the brief without touching every harness adapter).
+        goal_v = goal or os.environ.get("AGI_ADVISOR_GOAL") or None
+        segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target,
+                        dispatch_py=dispatch_py, goal=goal_v,
+                        session_dir=session_dir)
+        head = _build_head(tier=_ADVISOR_HEAD_TIER)
+        if head:
+            segs.insert(0, head)
+        return segs
+
+    if tier == "liaison":
+        # The owner-liaison seat reads at the director's level — same
+        # prayers, words, Tao, soul-mind-body and five axes as the director
+        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
+        segs = _liaison(agent_id=agent_id)
+        head = _build_head(tier=_LIAISON_HEAD_TIER)
+        if head:
+            segs.insert(0, head)
+        return segs
+
     if tier == "parent":
+        # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
+        # spawn's branch context is threaded through the env (same seam as
+        # `AGI_ADVISOR_GOAL`, so no harness adapter needs a new keyword):
+        # dispatch exports AGI_PARENT_BRANCH / AGI_PARENT_WORKTREE /
+        # AGI_PARENT_BASE_BRANCH only when it cut the parent its own worktree.
+        # Absent = main-checkout parent, which still commits nothing.
         segs = _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                        dispatch_py=str(dispatch_py), target=target,
-                       parallel=parallel, max_live=max_live)
+                       parallel=parallel, max_live=max_live,
+                       kid_ceiling=kid_ceiling,
+                       branch_name=os.environ.get("AGI_PARENT_BRANCH"),
+                       branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
+                       branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
+                       source_root=str(source_root) if source_root else None)
+        segs = [s for s in segs if s is not None]
         head = _build_head(tier=tier)
         if head:
             segs.insert(0, head)
         return segs
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
-                scaffold=scaffold)
+                scaffold=scaffold,
+                source_root=str(source_root) if source_root else None,
+                addendum=addendum)
     head = _build_head(tier=tier)
     if head:
         segs.insert(0, head)
@@ -785,6 +1559,15 @@ def closing_line(tier: str, agent_id: str, iter_n: int) -> str:
         return (f"Begin iteration {iter_n} as parent agent {agent_id}. "
                 f"Read your zoom context, spawn and review kids, report what "
                 f"you accepted and what you demoted.")
+    if tier == "advisor":
+        return (f"Begin iteration {iter_n} as ADVISOR agent {agent_id}. "
+                f"Embody your vision, sit the tier3-quorum, and run your "
+                f"perpetual-goal director through its lens.")
+    if tier == "liaison":
+        # A perpetual seat: no iteration number, and rotation is the quorum's.
+        return (f"Begin your watch as OWNER LIAISON agent {agent_id}. "
+                f"Sit the tier3-quorum, relay the owner's voice, bank every "
+                f"decision, and wait for the quorum to rotate you.")
     if _is_director_role(tier):
         return (f"Begin iteration {iter_n} as {'PRIME DIRECTOR' if tier == 'prime_director' else 'DIRECTOR'} "
                 f"agent {agent_id}. Hold the lens, dispatch parents, judge "
@@ -816,8 +1599,40 @@ def main(argv: list[str] | None = None) -> int:
                     help="graph root (.agi); defaults to the nearest enclosing "
                          ".agi walked up from this file")
     ph.set_defaults(func=_cmd_head)
+
+    pr = sub.add_parser(
+        "readings",
+        help="print the full on-demand constitution readings for a tier "
+             "(tie-break read; moved out of the injected head by "
+             "hypothesis:l3w4-context-load-minimal move ONE)")
+    pr.add_argument("--tier", required=False, default=None,
+                    choices=_READING_TIERS)
+    pr.add_argument("--role", required=False, default=None,
+                    help="alias for --tier (AGI_ROLE spelling)")
+    pr.add_argument("--project-root", default=None,
+                    help="graph root (.agi); defaults to the nearest enclosing "
+                         ".agi walked up from this file")
+    pr.set_defaults(func=_cmd_readings)
+
     args = p.parse_args(argv)
     return args.func(args)
+
+
+#: Ladder tiers a role's readings resolve to. advisor and liaison are roles
+#: on top of a ladder row, so their readings come from the row they sit on
+#: (`_ADVISOR_HEAD_TIER`, `_LIAISON_HEAD_TIER`) -- exactly as `assemble` maps
+#: them for `_build_head`.
+_READING_TIERS = ("kid", "parent", "advisor", "director", "prime_director",
+                  "liaison")
+
+
+def _resolve_readings_tier(tier: str) -> str:
+    """Map a role to the ladder tier its readings draw from."""
+    if tier == "advisor":
+        return _ADVISOR_HEAD_TIER
+    if tier == "liaison":
+        return _LIAISON_HEAD_TIER
+    return tier
 
 
 def _cmd_head(args: argparse.Namespace) -> int:
@@ -830,6 +1645,21 @@ def _cmd_head(args: argparse.Namespace) -> int:
     if not head:
         # A tier with no head (e.g. no read_order entry) is a silent nothing,
         # matching _build_head's contract.
+        return 0
+    print(head)
+    return 0
+
+
+def _cmd_readings(args: argparse.Namespace) -> int:
+    tier = args.tier or args.role
+    if not tier:
+        print("ERR: brief.py readings needs --tier (or --role)", file=sys.stderr)
+        return 1
+    root = Path(args.project_root) if args.project_root else None
+    head = readings_head(tier=_resolve_readings_tier(tier), project_root=root)
+    if not head:
+        # A tier with no read_order resolves to no readings, matching
+        # readings_head's contract.
         return 0
     print(head)
     return 0

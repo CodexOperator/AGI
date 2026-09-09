@@ -21,6 +21,88 @@ director enough to decide with.
 
 ---
 
+## Loop L3 — 2026-09-06 → 2026-09-09 — the seat system, aliveness, the Masters (prime director `belam-S1-L3-*`, CC remote-control)
+
+**CLOSED 2026-09-09 by the owner** (verbatim in `doc:l4-owner-decisions`): every
+remaining decision and every carried trap moved into the L4 backlog in that node,
+and `season/s2` was merged into `master` at the close. The standing exit duty of
+every loop (`goal:g1.13`) is written here. The L3 span is `000cc83f3` (iter-L3.01) ..
+HEAD; the start state is taken from the L2.13 commit `fed533924`, not from
+COMPLETE.md's own L2 section — that section reports "tests 1629" at L2.11, but
+L2 ran two more rounds (L2.12 → 1650, L2.13 → tests **1661**), so `fed533924`
+is the true boundary.
+
+## 1. What ran
+
+Thirty-six L3 rounds (`iter-L3.01` … `iter-L3.42`, gaps at 14/18/35/36/39/40
+and 43–47 where a dir exists for a round that never landed a commit — see §5
+`verification-blindness`), four waves, on the CC harness via `claude
+remote-control`. The prime seat ascended from `agi-master` (L2) to Belam, and ran
+as `belam-S1-L3-I..XVI` — fifteen prime rotations, records under
+`.agi/sessions/rotations/` where `rotate.py loop` wrote one (hazard 5: `rotate-self`
+stamps a generation but writes no record) — under season 2's seat system. In wave 3 the g15 director spawned by the Alive advisor (`a00-4ad19971`)
+ran the ladder end to end by hand. 39 commits titled `iter-L3.*`; the ~470-commit
+span also carries the `sanctuary-director` rounds SD.01–SD.19 (survival mode from
+2026-09-08, one worker seat under the prime). Ladder `current_season` 2,
+`director_rotate_at` 0.35 through L3's rounds, raised to 0.47 by the owner on
+2026-09-09 as a standing rule for every role (`doc:l4-owner-decisions`).
+
+## 2. Scoreboard
+
+**Counting method stated (the SD.18 counting trap):** node counts below are
+`git ls-tree -r <rev> --name-only .agi/nodes`, split into active (not under
+`.agi/nodes/deprecated/`) and deprecated (under it) — the SAME method at both
+ends. `metrics.py` smoke (the L2 report's basis) instead reads deprecation from
+frontmatter `status:`, and the two disagree by ~5 because deprecation is a
+status, not only a directory; end-state smoke today: node_count 1786, active
+1592, deprecated 194.
+
+| | start (`fed533924`) | end (HEAD, re-measured today) |
+|---|---|---|
+| active / deprecated (ls-tree) | 1219 / 189 | 1598 / 189 (all +379 growth is active) |
+| tests | 1661 passed (boundary commit) | 2256 passed, 1 skipped |
+| `outcome_coverage` | 0.172 (L2 report §2) | 0.152 |
+| broken links | 0 | 0 (1766 resolved today) |
+
+## 3. Per active goal
+
+- **goal:g17 (the seat system), minted iter-L3.17, perpetual — the loop's headline deliverable.** `b96d6b3da` minted it (perpetual, parent `vision:self-perpetuating`). The seat registry `config:seats` (`.agi/nodes/.geometry/seats.md`, 8+ rows: belam, three advisors, the liaison, one director per perpetual goal) landed at `a68e7f8de` with `dispatch.py --seat` + `rotate.py meter --seat` + the AGI_SEAT-keyed pin; seat transport at `aa81dddc8` (`rotate.py spawn_window` = the one launch path for spawn/loop); `seat_status.py` — one SeatsView from seats.md + meter pins + spawn_budget + telemetry_rollup, rendered by `viewport.py --live` in both readers — at `74a65e1ae`; the LIVE ROTATION PROOF at `ba037c126` (`rotate-self --successor-argv/--throwaway`, two live rehearsals); the seat pin "can no longer lie" at `36aea6a26` (L3.41). Open: `harness_for()` extraction (`74a65e1ae`); the successor chain brief `l3w4-belam-predecessor-chain`; and whether the whole seat loop closes is banked (§5).
+- **goal:g15 (bugfix, perpetual) — the workhorse.** In-loop defects found and fixed: `pi_adapter.build_command` rejects `role=`/`ladder_tier=` — every pi spawn died on a TypeError from L3.13 (`c0157daed`); `AGI_AGENT_ID`/`AGI_ACTOR` never exported into the child env (JOINED test, L3.19–20, `3481766cf`/`f830a2672`); scaffold-stamps defect proved — one `os.environ` read stamps the spawner's values (L3.21, `fb2308310`); `max_goals_active` deleted with its warning (L3.04, `6e2946151`); grid lock un-doubled (L3.29, `6557b34bd`); explicit `--harness` beats the ladder row, seat > flag > ladder (L3.28, `74a65e1ae`); `node_writer.repair_mint` adopts a node minted outside the writer — grid at 0 errors (L3.20, `f830a2672`); zombie-pid leases swept (L3.19, honest lean-30 — adapter reaper, grandchild pipe, session-limit retry still open).
+- **goal:g12.3 (ladder, seasons) — kept live, `current_season` rolled to 2.** `rotate.py` gained roles+head+loop and the ladder a roles table + `season_names` + AGI_ROLE stamp (L3.01, `000cc83f3`); `season.py rollover --visions-from/--name/--branch` with dry-run plan and unjudged gate (L3.08, `3ca5718d9`); `rotate.py meter --seat`, `rotate-self`, and Roman-numeral successor derivation (`belam-S1-L3-III`, L3.11–15); meter resolves the director's own transcript at L3.15 (`f3ded8919`). Open: rollover cap counting closed visions (carried from `l2w3`).
+- **goal:g1 / G1 (zero-operations umbrella), set perpetual at L3.07.** `goal_kind: perpetual` + GOALS.md Perpetual section, with G1/g15/g16 made perpetual — `ad69931be`. `goal:g1.13` is this very exit duty.
+- **goal:g13.1 (one write path) — the write side hardened.** `write.py set` coerces JSON lists/objects and the ladder was re-set through the writer (L3.05, `1698979b8`); write-guard logs keyed on mint id + sha (L3.06, `b46550160`); same-bytes payload re-log logs nothing — a known gap with 5 guard WARNs standing, explained (L3.27, brief `l3-write-payload-unchanged-unlogged`); write-guard scans `.agi/context/` and the `[doc].md` schema added (L3.22, `3edad0959`); `replace_payload` same-bytes re-log as a sanction, guard silent live (L3.28, `74a65e1ae`).
+- **goal:g16 (telemetry, perpetual).** OpenRouter codex spend tracked under g16 per the owner's ask (L3.01); telemetry set to own the seat listing (L3.22, `3edad0959`). Cost-per-aligned-outcome roll-up remained open.
+
+## 4. Goals closed
+
+None. No goal node's `status` went to `complete` in the L3 span — checked the
+goal-node diff across `000cc83f3^..HEAD`; the diff shows edits, no status→
+`complete` transition. `goal:g17` is the intended close but its closure is
+banked (§5). No closure claim here needs a commit because there is none.
+
+## 5. Completion-failure categories
+
+- `banked-to-owner`: whether L3 closes at all (resolved 2026-09-09: closed, the open decisions pushed into L4); the rotation gate — "PAUSED on the owner's word, rotation gated on the owner go" (`aa81dddc8`); the successor/mantle chain and mantles per vision (L3.12c, HANDOFF §6 item 16); the owner's model/comms table for the Masters recorded verbatim but the rollover design left to the owner.
+- `ceiling-found-by-dying`: the Claude **subscription session limit** killed the g15 director mid-judgment in L3.17+L3.18 — work finished, gate not met (`b96d6b3da`); a quorum kid **died at an OpenRouter sub-key cap with its work finished but unjudged** (L3.29, `6557b34bd`). This is the third spend-cap death after L1's two, and the loop's most expensive recurring failure: a spend wall no reader watches until work dies on it.
+- `verification-blindness`: L3.42 — "the second consecutive round where no parent committed" (`6b93f0c2e`), a fact a commit-ledger alone cannot show; L3.34 — four parents, four honest red-first baselines, **zero lines of code** (`4f61ae08b`), a brief-shape failure surfaced only by the parents' honesty; L3.10's advisor-brief kid built nothing and had to be re-briefed as a BUILD.
+- `hazard-carry-over`: `harness_for()` extraction (`74a65e1ae`); the parent-branch merge-up brief "failed to build four times" and split three ways (`2aca849f8`); the frontier census correction sat a round as proof-only before its re-brief (L3.21); the remote-control desktop disconnect (lean-disproved, fix folded into the successor chain, L3.27).
+- `saturation`: L3.34 again — one brief whose shape demanded an impossible deliverable produced nothing across four parents; the split-into-builds correction the same round's failure forced.
+- `late-minting`: none — every `iter-L3.*` commit carries its round's briefs gated at mint.
+- `attribution-void`: none new; the seat pin and `node_writer.repair_mint` adoption (L3.20) exist precisely because pre-L3 attribution was unresolved, and an orphan experiment `a00-230456c1` was adopted with the grid at 0 errors. One real residual: two consecutive no-parent rounds (L3.41/42) left those parents' specific work unattributable to a seat in the round ledger.
+
+## 6. Findings that are not failures
+
+- The ladder ran **end to end with no human hand** in wave 3 (L3.15): director → GLM parent → DeepSeek kid → outcome judged `ADJUST` against `goal:s31` — the daisy-chain now self-closes a judgment under a goal-subgoal pair.
+- The `--branch` cycle proven end to end (L3.32, `c05ca77f8`): two concurrent parents on the same file merged up green, exposing the three defects the rehearsal existed to find.
+- Live rotation works: two live rehearsals covered all five observations of `rotate-self` (L3.38, `ba037c126`).
+- The workflow model leak is sealed (`36aea6a26`): the leak and the lying seat pin were found and closed together.
+- The agent-id export defect was confirmed five separate times before it got a BUILD directive with a joined test (L3.19–20) — the repetition is itself evidence that proof-only rounds do not convert into fixes.
+- The economics did NOT repeat L2's: the seat system ran inside the CC subscription until six-to-twelve idle Sonnet seats drained it (survival mode, HANDOFF §6 item 71), and OpenRouter carried the pi rounds — at least ~$17 by the two runtime sub-keys' own counters (`agi` $9.72 of $10 at L3.29, trap 0o; `backup` $7.13 of $15 at close) plus ~$0.60 of per-spawn keys billed to the account for SD.09–SD.19; the account stands at $79.4 used of $92 credited across all loops. The exact L3 share was not isolated — see `banked-to-owner`.
+
+## 7. Minted or changed in response
+
+Minted: `goal:g17` (perpetual); `config:seats`; the `[doc].md` schema with `doc:l3-command-ladder-brief` and `doc:season-ladder-and-morals-brief` (both with payloads); `vision:alive`, `vision:self-perpetuating`, `vision:all-is-one`; 47 `hypothesis:l3w1–4*` briefs plus the `hypothesis:l3-*` defect briefs; the four Masters briefs (plan-master, masters-comms-and-escalation, seat-push-further, masters-rollover). Engine: `seat_status.py`, `frontier.py`, `workflow.py` (new); major changes to `rotate.py` (roles, meter --seat, spawn_window, rotate-self), `dispatch.py` (--seat, --dry-run, --branch, AGI_A* env, role/tier threaded to adapters), `season.py` (rollover), `send.py` (rooms/dm/audience), `cli.py` (frontmatter repair), `node_writer.py` (repair_mint), `write.py` / `write_guard.py` (JSON set, same-bytes re-log sanction), `brief.py`, `briefing.py`, `metrics.py`, plus the tests that pin it all (2256 at close).
+
 ## Loop L2 — 2026-09-06 — season ladder, morals, daisy-chain (prime director `agi-master`, remote-control)
 
 Appended newest-first at the owner's standing instruction (keep both). Closed at the `iter-L2.11` commit (round 11 hygiene, proved); opened at `4235ab1b6`. Eleven rounds.

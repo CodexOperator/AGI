@@ -138,6 +138,39 @@ def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     return "pi", harness
 
 
+#: The refusal a cross-namespace model carries. It names BOTH names because
+#: the incident this exists for read as a mysterious OpenRouter bill rather
+#: than a wrong flag (`hypothesis:l3-workflow-model-crosses-harness-namespace`).
+OPENROUTER_ALIAS_ERR = (
+    "model {model!r} is not an OpenRouter slug (no 'provider/name') but the "
+    "target provider is {provider!r} — refusing to spend a Claude Code "
+    "subscription alias against an OpenRouter key "
+    "(hypothesis:l3-workflow-model-crosses-harness-namespace)"
+)
+
+
+def assert_model_in_provider_namespace(model: str, provider: str) -> None:
+    """FAIL CLOSED before any spawn, credential mint or network call.
+
+    An OpenRouter slug always has the shape `provider/name` (optionally
+    `~`-prefixed); a Claude Code subscription alias (`sonnet`, `opus`,
+    `claude-sonnet-5`, ...) never contains '/'. The two namespaces are
+    disjoint, so the crossing is decidable from the string alone.
+
+    **This lives here rather than in one caller because both callers need the
+    same answer.** `workflow.py` has had this guard since the incident;
+    `dispatch.py` had none, and was safe only because every seat row and every
+    `harnesses.pi.models` entry happened to hold a slug -- safe by data, not by
+    rule. A seat row pairing `harness: pi` with `model: claude-sonnet-5` is one
+    cell edit, and nothing refused it.
+    """
+    if provider != "openrouter":
+        return
+    if "/" not in str(model).lstrip("~"):
+        raise AdapterError(
+            OPENROUTER_ALIAS_ERR.format(model=model, provider=provider))
+
+
 def parallelism(cfg: dict, default: int = 1) -> int:
     """How many slots to spawn. `spawn.parallel` wins; legacy key survives.
 

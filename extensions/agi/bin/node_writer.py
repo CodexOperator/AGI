@@ -113,6 +113,16 @@ BODY_PROMPTS = {
 #: so two writers producing the same node produce the same bytes.
 LEADING_KEYS = ("id", "mint_id", "type", "parents", "next_edges")
 
+#: One-line HTML comment the scaffold writes right after the closing `---`,
+#: marking where the body starts (hypothesis:l3-done-broken-frontmatter).
+#: `cli.py done`'s repair path uses it as the one reliable boundary between a
+#: mangled frontmatter block and the kid's body: without it there is no safe
+#: way to tell the two apart, so a broken `---` block becomes unrecoverable
+#: rather than repairable. `graph_core` treats everything after the closing
+#: `---` as body, so the comment is inert to every reader that parses the
+#: frontmatter.
+BODY_BEGIN = "<!-- BODY:BEGIN -->"
+
 WRITE_LOG = "sessions/write-log.jsonl"
 
 WRITTEN = "written"
@@ -442,7 +452,8 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
 
 
 def replace_payload(root, ref: str, source=None, *, location: str | None = None,
-                    data: bytes | None = None) -> tuple[Path, bool]:
+                    data: bytes | None = None,
+                    mint_id: str = "") -> tuple[Path, bool]:
     """Replace the bytes of an existing payload from `source`. Never creates.
 
     The other half of `ensure_payload`, and here for the same reason: a payload
@@ -481,11 +492,25 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
 
     new = data
     if dest.read_bytes() == new:
+        # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes
+        # re-log IS a sanction. An explicit payload verb on bytes that
+        # already match must record the (mint_id, sha256) write_guard keys on,
+        # or the guard's own hint (`write.py <id> payload <path>`) can never
+        # clear the state it reports: L3.27 measured 5 WARNs after 5
+        # successful re-logs because this branch logged nothing. Keep
+        # `changed=False` (the 'unchanged' message stays) but log the
+        # attempted payload write all the same.
+        _log_write(root, "replace_payload", str(ref), dest,
+                   mint_id=mint_id,
+                   text=new.decode("utf-8", errors="replace"),
+                   extra={"payload_ref": str(ref), "location": str(location),
+                          "changed": False})
         return dest, False
     mode = dest.stat().st_mode
     dest.write_bytes(new)
     os.chmod(dest, mode)
     _log_write(root, "replace_payload", str(ref), dest,
+               mint_id=mint_id,
                text=new.decode("utf-8", errors="replace"),
                extra={"payload_ref": str(ref), "location": str(location)})
     return dest, True
@@ -506,6 +531,7 @@ def write_node(
     fm_for_gate=None,
     on_exists=SKIP,
     announce=True,
+    stamp=None,
 ) -> NodeWrite:
     """Create one node file, gated. The only routine that does this.
 
@@ -513,6 +539,14 @@ def write_node(
     common one-parent call). `extra_fm` is per-caller frontmatter — a
     verdict's `verdict:`/`confidence:`, say — merged over the four keys every
     node gets. `body` defaults to the type's `BODY_PROMPTS` entry.
+
+    `stamp` is the resolved identity of the agent the node is FOR — the
+    role/model/loop/profile/season a dispatch-spawned agent will actually
+    run under (hypothesis:l3-scaffold-stamps-spawner-env). When present it
+    wins over os.environ for the mint stamps; the env is the fallback for a
+    caller with no spawn record (a hand scaffold). Absent stays absent —
+    never fabricate.
+
 
     The spawn check runs **before anything is written**, so a rejection leaves
     no node behind — the same convention `cli.py done` uses for an
@@ -556,6 +590,12 @@ def write_node(
         return res
 
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
+    if body is None:
+        # hypothesis:l3-done-broken-frontmatter -- anchor the body start with
+        # the marker, right after the closing `---`. A kid's write tool that
+        # later mangles the frontmatter leaves this line intact; `cli.py done`
+        # repairs the broken `---` block up to that boundary, never past it.
+        scaffold_body = BODY_BEGIN + scaffold_body
     scaffold_body += BODY_PROMPTS.get(ntype, "") if body is None else body
     node_file = node_dir(root, ntype) / f"{slug}.md"
     res.path = node_file
@@ -599,7 +639,7 @@ def write_node(
     # current_season for season only. loop, model, profile are stamped only
     # when their env vars are present (never fabricated). Updates do NOT
     # stamp — `update_node` is deliberately separate.
-    _stamp_env_fields(fm, current_season=current_season)
+    _stamp_env_fields(fm, current_season=current_season, stamp=stamp)
     spawn_gate.stamp(fm, gate)
 
     text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + scaffold_body
@@ -620,19 +660,30 @@ def write_node(
     return res
 
 
-def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
-    """Stamp season / loop / model / profile into a new node's frontmatter.
+def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
+                      stamp: dict | None = None) -> None:
+    """Stamp season / loop / model / profile / role into a new node's fm.
 
     Called from `write_node` at mint time only. `update_node` does NOT call
     this: existing nodes keep their stamps or their absence.
 
-    - **season:** env AGI_SEASON > ladder current_season > 1
-    - **loop:** env AGI_LOOP only; absent means absent
-    - **model:** env AGI_MODEL only; absent means absent
-    - **profile:** env AGI_PROFILE only; absent means absent
-    - **role:** env AGI_ROLE only; absent means absent
+    - **season:** `stamp['season']` > env AGI_SEASON > ladder current_season
+      > 1
+    - **loop:** `stamp['loop']` if set else env AGI_LOOP; absent means absent
+    - **model:** `stamp['model']` if set else env AGI_MODEL; absent = absent
+    - **profile:** `stamp['profile']` if set else env AGI_PROFILE; absent =
+      absent
+    - **role:** `stamp['role']` if set else env AGI_ROLE; absent = absent
 
-    A missing env var with no ladder fallback leaves the field absent — never
+    `stamp` is the resolved identity of the agent a scaffold is FOR, handed
+    in by the spawner at write time (hypothesis:l3-scaffold-stamps-
+    spawner-env). A dispatch-spawned scaffold used to be stamped from the
+    DISPATCHER's os.environ, so a kid born under a parent inherited the
+    PARENT's role/model/loop. The spawner now resolves the child's row and
+    passes it here; the env is the fallback for a caller with no record (a
+    hand scaffold).
+
+    A missing value with no fallback leaves the field absent — never
     fabricates a value (hypothesis:l2w2-writer-stamps).
 
     A deliberate non-`return` in the season branch: the old implementation
@@ -645,7 +696,12 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     """
     import os as _os
 
-    env_season = _os.environ.get("AGI_SEASON")
+    def _pick(key: str, env: str):
+        if stamp and stamp.get(key):
+            return stamp[key]
+        return _os.environ.get(env)
+
+    env_season = _pick("season", "AGI_SEASON")
     if env_season is not None:
         try:
             fm["season"] = int(env_season)
@@ -655,21 +711,21 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None) -> None:
     else:
         fm["season"] = current_season if current_season is not None else 1
 
-    loop = _os.environ.get("AGI_LOOP")
+    loop = _pick("loop", "AGI_LOOP")
     if loop is not None:
         fm["loop"] = loop.strip()
 
-    model = _os.environ.get("AGI_MODEL")
+    model = _pick("model", "AGI_MODEL")
     if model is not None:
         fm["model"] = model.strip()
 
-    profile = _os.environ.get("AGI_PROFILE")
+    profile = _pick("profile", "AGI_PROFILE")
     if profile is not None:
         fm["profile"] = profile.strip()
 
     # hypothesis:l3w0-ladder-roles-table — dispatch exports AGI_ROLE for
     # every spawn so a minted node records which role made it.
-    role = _os.environ.get("AGI_ROLE")
+    role = _pick("role", "AGI_ROLE")
     if role is not None:
         fm["role"] = role.strip()
 
@@ -725,6 +781,50 @@ def _carry_thought(old_body: str, new_body: str) -> str:
     return new_body.rstrip("\n") + "\n\n" + thought + "\n"
 
 
+def _absorb_leading_frontmatter(fm: dict, body: str) -> tuple[dict, str, list[str]]:
+    """Merge a duplicate `---` frontmatter block that opens the body.
+
+    A kid that kept the scaffold's frontmatter in its body (L2.01,
+    hypothesis:l2-done-doubled-frontmatter) leaves a second `---` YAML block
+    at the top of the body. Serializing the file back with that block present
+    produces a node with TWO frontmatter blocks -- which is exactly how
+    `experiment:a00-e65beccc-ac5309` arrived.
+
+    When the body (after optional leading newlines) opens with `---` and
+    contains a parseable YAML mapping block, that block is merged INTO `fm`
+    (**later keys winning** -- the body block is physically later in the
+    file), stripped from the body, and the absorbed key names are returned.
+    A body with no leading block, an unclosed block, or an unparseable
+    non-mapping block is returned untouched, so kid-authored content that
+    merely resembles frontmatter is never mangled.
+    """
+    stripped = body.lstrip("\n")
+    lead = body[: len(body) - len(stripped)]
+    if not stripped.startswith("---\n"):
+        return fm, body, []
+    lines = stripped.split("\n")
+    close_idx = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            close_idx = i
+            break
+    if close_idx is None or close_idx == 1:
+        return fm, body, []
+    yaml_block = "\n".join(lines[1:close_idx])
+    try:
+        import yaml
+        dup = yaml.safe_load(yaml_block)
+    except yaml.YAMLError:
+        return fm, body, []
+    if not isinstance(dup, dict):
+        return fm, body, []
+    absorbed = [k for k in dup if dup[k] != fm.get(k)]
+    merged = dict(fm)
+    merged.update(dup)  # later (body) keys win over the real frontmatter
+    remaining = "\n".join(lines[close_idx + 1:])
+    return merged, lead + remaining.lstrip("\n"), absorbed
+
+
 def update_node(
     root,
     node_id,
@@ -773,9 +873,26 @@ def update_node(
 
     for key in unset_fm:
         fm.pop(key, None)
-    fm.update(set_fm or {})
 
     new_body = nf.body if body is None else _carry_thought(nf.body, body)
+
+    # hypothesis:l2-done-doubled-frontmatter — a kid that kept the scaffold's
+    # frontmatter in its body (L2.01: experiment:a00-e65beccc-ac5309) leaves a
+    # duplicate `---` block at the top of the body. Once this writer
+    # serializes the file back it would read as TWO frontmatter blocks. Absorb
+    # the duplicate into the real frontmatter (later keys winning) and strip it
+    # from the body, ONE writer -- the shared `cli.py done`/`post_wire` path.
+    fm, new_body, _absorbed = _absorb_leading_frontmatter(fm, new_body)
+    if _absorbed:
+        print(
+            f"warn: absorbed duplicate frontmatter from body of {node_id} "
+            f"(merged {len(_absorbed)} key(s), first {_absorbed[0]!r}); "
+            f"duplicate removed (l2-done-doubled-frontmatter)",
+            file=sys.stderr)
+
+    # The verdict/confidence delta wins over anything the duplicate carried,
+    # so it is applied AFTER the absorb -- never clobbered by a body block.
+    fm.update(set_fm or {})
 
     if fm == nf.frontmatter and new_body == nf.body:
         res.status = UNCHANGED
@@ -817,6 +934,82 @@ def update_node(
     return res
 
 
+def repair_mint(root, node_id, *, announce=True) -> NodeWrite:
+    """Mint a first `mint_id` for a node written outside node_writer.
+
+    hypothesis:l3-node-without-mint-id — a kid that writes its own node file
+    with its own file tool (not through this module) leaves a node with no
+    `mint_id` and no `scaffold_hash`, and `grid.py commit --all` refuses to
+    version it on every grid_sync tick. No verb can adopt it either: `write.py`
+    refuses `set mint_id` by design (goal:g2.5: identity is assigned once,
+    never by a verb). This is that adoption — the one sanctioned path from
+    "argument" to writing a node someone else left behind with no identity.
+
+    Mints through the SAME identity source as every mint
+    (`mint_permanent_id`) and stamps `scaffold_hash` of the *placeholder*
+    body, so the adopted node reads complete under `completion.is_complete`
+    exactly like a node `write_node` produced (real content differs from the
+    placeholder -> complete). Logs the final bytes to the write-guard.
+
+    Refuses when a non-empty `mint_id` already exists — a mint id is assigned
+    once and never changed (goal:g2.5).
+
+    Returns a `NodeWrite` with status `UPDATED` (adopted), `SKIPPED` (already
+    carries a `mint_id` — the refusal), or `REJECTED` (could not find or
+    parse the node). Never raises for a refusal.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    root = Path(root)
+    res = NodeWrite(node_id=str(node_id))
+    path = find_node_file(root, node_id)
+    if path is None:
+        res.status = REJECTED
+        res.reason = f"no node file for {node_id}"
+        return res
+    res.path = path
+    try:
+        nf = fm_reader.load_node_file(path)
+    except Exception as exc:
+        res.status = REJECTED
+        res.reason = f"{node_id} could not be parsed: {exc}"
+        return res
+    fm = dict(nf.frontmatter)
+    res.node_type = canonical_node_type(fm.get("type") or path.parent.name)
+    res.slug = path.stem
+    res.parents = list(fm.get("parents") or [])
+    existing = fm.get("mint_id")
+    if isinstance(existing, str) and existing.strip():
+        res.status = SKIPPED
+        res.reason = (f"{node_id} already carries mint_id {existing.strip()}; "
+                      "a mint id is assigned once and never changed "
+                      "(goal:g2.5) -- refusing")
+        return res
+    mint = mint_permanent_id()
+    fm["mint_id"] = mint
+    # Stamp as complete, not as an untouched scaffold: this node already holds
+    # real content (the reason it is being adopted at all), so the stamp is
+    # the *placeholder* hash -- completion reads "body differs from stamp" ->
+    # complete, drift-safe against a future BODY_PROMPTS change.
+    ph = f"\n# {node_id}\n\n" + BODY_PROMPTS.get(res.node_type, "")
+    fm["scaffold_hash"] = scaffold_hash(ph)
+    text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + nf.body
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+    _log_write(root, "repair_mint", node_id, path, text, mint_id=mint)
+    res.status = UPDATED
+    if announce:
+        print(f"adopted {node_id}: minted {mint} "
+              f"(was missing on a node written outside node_writer)",
+              file=sys.stderr)
+    return res
+
+
 # ---------------------------------------------------------------------------
 # goal:s31 -- a scaffolded node ships schema-invalid.
 #
@@ -851,6 +1044,26 @@ def update_node(
 
 #: Fields this module knows how to derive without a model. Everything else
 #: required-but-absent is reported, never invented.
+def _node_project_root(path: Path) -> Path | None:
+    """The project root hosting a node file, derived from its own path.
+
+    A node file lives under `<root>/nodes/<type>/...` (legacy layout) or
+    `<root>/.agi/nodes/<type>/...`; the parent of the `nodes` component is the
+    project root the node belongs to. Returning it lets the write log travel
+    with the file rather than follow whatever `root` a caller happened to pass
+    (l2w15-write-guard test-pollution fix). None when `path` has no `nodes`
+    component (a payload file, or any non-node path).
+    """
+    try:
+        parts = path.parts
+        for i, part in enumerate(parts):
+            if part == "nodes" and i >= 1 and i + 2 < len(parts):
+                return Path(*parts[:i])
+    except BaseException:
+        pass
+    return None
+
+
 def _log_write(root, operation: str, node_id: str, path: Path,
                 text: str = "", *,
                 mint_id: str = "",
@@ -863,9 +1076,36 @@ def _log_write(root, operation: str, node_id: str, path: Path,
     mint_id. Absent is fine (a payload created before its node exists, or a
     legacy writer that does not pass one) — write_guard then falls back to
     sha256-only matching, which covers bytes written before a node existed.
+
+    The log location follows the *written node*, not the caller's `root`
+    (l2w15-write-guard test-pollution fix): the project hosting a node file
+    is the parent of the `nodes/` component of `path`, so a write is recorded
+    in that project's own sessions/ dir. A caller whose module-global root
+    defaults to the real repo (snapshot_goals/level3 reusing this writer)
+    cannot then leak a test-fixture node into the box's real write-log.
+    Payload writes (no `nodes` component) keep the passed `root` **only when
+    the file really belongs to that project** — a payload always does (it is
+    resolved off `root`), but a bare fixture path in another tree (e.g. a test
+    writing `tmp/n.md` under pytest) is a foreign write with no project here,
+    and is **not logged anywhere** rather than leaked into the box's real
+    `.agi/sessions/write-log.jsonl`.
     """
     try:
         root_p = Path(root)
+        derived = _node_project_root(path)
+        if derived is not None:
+            root_p = derived.resolve()
+        else:
+            root_p = root_p.resolve()
+            proj = root_p.parent if root_p.name == ".agi" else root_p
+            p = path.resolve()
+            inside = (str(p) == str(root_p) or str(p).startswith(str(root_p) + os.sep)
+                      or str(p) == str(proj) or str(p).startswith(str(proj) + os.sep))
+            if not inside:
+                # Not this project's file (no node-tree component, and not
+                # under root/project): it has no home in this log. Skip rather
+                # than leak a foreign write into a real project's log.
+                return
         log_path = root_p / WRITE_LOG
         log_path.parent.mkdir(parents=True, exist_ok=True)
         entry = {
@@ -990,8 +1230,19 @@ def seed_required(root, node_type, fm, slug) -> list[str]:
 #: derive -- the kid holds that content and writes it into the body, which is
 #: exactly where a kid is supposed to write.
 _BODY_SECTIONS = {
-    "testable_claim": ("testable claim", "claim"),
+    "testable_claim": ("testable claim", "claim", "hypothesis", "the claim"),
     "title": ("title",),
+}
+
+
+#: The scaffold's own question prompts. A kid who answers replaces these with
+#: real prose; lifting an untouched prompt would INVENT a claim the kid never
+#: made -- exactly the failure `*_invents_nothing*` guards against. A section
+#: whose text is one of these is treated as absent.
+_PLACEHOLDER_PARAS = {
+    # the one our own scaffold ships to every hypothesis kid
+    "testable_claim": "What is the testable claim? What would prove it? "
+                      "What would disprove it?",
 }
 
 
@@ -1056,6 +1307,11 @@ def derive_required_from_body(root, node_id, announce=False) -> NodeWrite:
     set_fm = {}
     for name in missing_required(root, ntype, nf.frontmatter, node_id):
         text = _section_text(nf.body, _BODY_SECTIONS.get(name, ()))
+        if text:
+            # An untouched scaffold leaves its question prompt in place; that is
+            # a non-answer, not a claim. Skip it so the field stays reported.
+            if _PLACEHOLDER_PARAS.get(name) == text.strip():
+                text = None
         if text:
             set_fm[name] = text
         elif name == "title":

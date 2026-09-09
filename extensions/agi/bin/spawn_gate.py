@@ -585,6 +585,32 @@ def resolve_nodes_root(root, schemas_dir=None) -> Path:
     return root / DEFAULT_NODES_SUBDIR
 
 
+def read_seat_registry(nodes_dir: Path | None) -> list | None:
+    """Read the `seats:` table from `.geometry/seats.md`.
+
+    hypothesis:l3w4-seat-registry. Returns the list of seat-row dicts
+    (name, role, tier, harness, model, effort, settings, session_kind,
+    personality_ref, handoff_file, pin_ref, rotated_by, owning_goal,
+    worktree, session_ref), or None when the seats node is missing or
+    unreadable. None means "no seat registry, fail open to the
+    ladder/config" -- a missing seats node must never block dispatch.
+    `worktree` is the seat's git worktree path relative to graph_root,
+    empty for a seat that runs in the main checkout. `session_ref` is the
+    disambiguating ListAgents ref (e.g. `518293`) for seats whose plain
+    name collides across multiple live sessions, so a cross-session
+    SendMessage can address `<name> [<session_ref>]` instead of a bare
+    name that may resolve to the wrong seat (hypothesis:l3w4-hierarchy-
+    one-source).
+    """
+    seats = Path(nodes_dir) / ".geometry" / "seats.md" if nodes_dir else None
+    if seats is None or not seats.is_file():
+        return None
+    fm = _read_frontmatter(seats)
+    if not fm:
+        return None
+    return fm.get("seats")
+
+
 def read_ladder_season(nodes_dir: Path) -> int | None:
     """Read `current_season` from `.geometry/ladder.md`.
 

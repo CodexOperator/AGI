@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -417,6 +418,135 @@ moral_audit:
             assert audit[mk].get("evidence") is None
 
 
+class TestJudgeQuorum:
+    """season.py judge --quorum: reviews through the advisor quorum.
+
+    hypothesis:l3w4-quorum-reviews — three advisor votes (one per vision) in
+    a room; a 3-0/2-1 majority stamps alignment here, a 1-1-1 deadlock or any
+    --morals vote falls through to `send.py audience prime` instead and leaves
+    alignment unset.
+    """
+
+    @staticmethod
+    def _post_quorum(croot, target, votes, round_):
+        """Post votes [(vision, alignment, morals, reason)] into tier3-quorum."""
+        sys.path.insert(0, str(BIN_DIR))
+        import send
+        for vision, alignment, morals, reason in votes:
+            send.vote(croot, "tier3-quorum", target, vision, alignment,
+                      "adv-" + vision, morals, reason, round_)
+
+    @staticmethod
+    def _quorum_env():
+        env = dict(os.environ)
+        env["AGI_ROLE"] = "parent"
+        env["AGI_LADDER_TIER"] = "3"
+        env["AGI_LOOP"] = "L3.29@s2"
+        return env
+
+    def _judge(self, season_py, temp_graph, croot, round_, target="outcome:o1"):
+        return subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", target, "--quorum", "--room", "tier3-quorum",
+             "--round", round_, "--comms-root", str(croot)],
+            capture_output=True, text=True, env=self._quorum_env(),
+        )
+
+    def test_judge_quorum_stamps_alignment_on_majority(self, season_py,
+                                                       temp_graph, tmp_path):
+        """2 aligned + 1 adjust -> alignment: aligned stamped + quorum note."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, "good fit"),
+            ("all-is-one", "adjust", False, "needs a tweak"),
+            ("self-perpetuating", "aligned", False, "keep it"),
+        ], "R1")
+        result = self._judge(season_py, temp_graph, croot, "R1")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") == "aligned"
+        assert nf.frontmatter.get("judged_against") == "goal:sub1"
+        body = nf.body or ""
+        assert "quorum tier3-quorum" in body  # the quorum note landed
+
+    def test_judge_quorum_three_zero_stamps(self, season_py, temp_graph,
+                                            tmp_path):
+        """3-0 aligned also stamps alignment (unanimity)."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "aligned", False, ""),
+            ("self-perpetuating", "aligned", False, ""),
+        ], "R3")
+        result = self._judge(season_py, temp_graph, croot, "R3")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") == "aligned"
+
+    def test_judge_quorum_deadlock_calls_audience_not_stamp(self, season_py,
+                                                            temp_graph, tmp_path):
+        """A literal 1-1-1 calls audience prime instead and stamps nothing:
+        alignment is unset and no judged_against is written."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "adjust", False, "shift"),
+            ("self-perpetuating", "unknown", False, "on the fence"),
+        ], "R2")
+        result = self._judge(season_py, temp_graph, croot, "R2")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "audience requested" in result.stdout  # reached the prime
+        assert "alignment unset" in result.stdout
+
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") is None
+        assert nf.frontmatter.get("judged_against") is None
+        assert "quorum" not in (nf.body or "")
+
+    def test_judge_quorum_morals_forces_audience_despite_majority(
+            self, season_py, temp_graph, tmp_path):
+        """Any --morals vote forces an audience even on a 2-1 majority;
+        alignment stays unset."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "adjust", True, "life is at stake"),
+            ("self-perpetuating", "aligned", False, ""),
+        ], "R4")
+        result = self._judge(season_py, temp_graph, croot, "R4")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "audience requested" in result.stdout
+        assert "morals" in result.stdout
+
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        nf = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        assert nf.frontmatter.get("alignment") is None
+
+    def test_judge_quorum_incomplete_quorum_refuses(self, season_py,
+                                                    temp_graph, tmp_path):
+        """Fewer than three visions -> incomplete quorum, judge refuses."""
+        croot = tmp_path / "comms"
+        self._post_quorum(croot, "outcome:o1", [
+            ("alive", "aligned", False, ""),
+            ("all-is-one", "adjust", False, ""),
+        ], "R5")
+        result = self._judge(season_py, temp_graph, croot, "R5")
+        assert result.returncode == 1
+        assert "incomplete quorum" in result.stderr
+
+
 # ---------------------------------------------------------------------------
 # Integration: commands.py can discover season.py
 # ---------------------------------------------------------------------------
@@ -552,6 +682,62 @@ class TestRolloverGenesis:
         br = subprocess.run(["git", "-C", str(tmp_path), "branch", "--show-current"],
                             capture_output=True, text=True)
         assert br.stdout.strip() == "season/s2"
+
+    def test_second_rollover_names_its_own_season_and_attributes_each_write(
+            self, season_py, temp_graph, tmp_path):
+        """A second rollover writes its OWN season's key and stamps the seat.
+
+        hypothesis:l3w4-masters-rollover — `season_names[1] = name` hardcodes
+        season 1 (today a second rollover clobbers genesis), and judge/rollover
+        write `edited_by: season.py`. With `--actor into the ladder write, the
+        season-2 version's edited_by is the passed seat and the 2→3 name lands
+        under season 2, not season 1.
+        """
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        # Rehearse 1 → 2, naming season 1, acting as Sanctuary Master.
+        r1 = self._run(season_py, temp_graph,
+                       "--name", "genesis", "--actor", "sanctuary-master")
+        assert r1.returncode == 0, f"stderr: {r1.stderr}"
+        assert "season_names[1] = genesis" in r1.stdout
+
+        # Rehearse 2 → 3, naming season 2, still acting as Sanctuary Master.
+        r2 = self._run(season_py, temp_graph,
+                       "--name", "wave-4-masters",
+                       "--actor", "sanctuary-master")
+        assert r2.returncode == 0, f"stderr: {r2.stderr}"
+        assert "season_names[2] = wave-4-masters" in r2.stdout
+
+        # Each season keeps its own name (today genesis is clobbered), and the
+        # ladder write is attributed to the seat, not the hardcoded season.py.
+        ladder = frontmatter.load_node_file(root / "nodes" / ".geometry" / "ladder.md")
+        assert ladder.frontmatter.get("current_season") == 3
+        assert ladder.frontmatter.get("season_names", {}) == {
+            1: "genesis", 2: "wave-4-masters"}
+        assert ladder.frontmatter.get("edited_by") == "sanctuary-master"
+
+    def test_judge_actor_stamps_edited_by(self, season_py, temp_graph):
+        """`judge --actor` threads the seat into the write's edited_by."""
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(temp_graph)
+        assert root is not None
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "judge", "outcome:o1", "--against", "goal:sub1",
+             "--actor", "glitch-master", "--session", "season-3"],
+            capture_output=True, text=True)
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+
+        out = frontmatter.load_node_file(root / "nodes" / "outcome" / "o1.md")
+        fm = out.frontmatter
+        assert fm.get("judged_against") == "goal:sub1"
+        assert fm.get("edited_by") == "glitch-master"
+        assert fm.get("thought_session") == "season-3"
 
     """season.py is discoverable via commands.py list or json."""
 
@@ -751,3 +937,294 @@ class TestErrorHandling:
         )
         assert result.returncode == 1
         assert "not an agi project" in result.stderr
+
+# ---------------------------------------------------------------------------
+# merge-up tests (hypothesis:l3w4-parent-branch-merge-up)
+# ---------------------------------------------------------------------------
+
+
+def _git(tmp, *args):
+    return subprocess.run(["git", "-C", str(tmp), *args],
+                          capture_output=True, text=True)
+
+
+def _init_project(tmp_path, season="season/s1"):
+    """git-init the temp project (which already holds .agi/) and make a base
+    commit on season/s1, so merge-up has a branch it can merge into."""
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "checkout", "-q", "-b", season)
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "-c", "user.email=t@t", "-c", "user.name=t",
+         "commit", "-qm", "base")
+    return tmp_path
+
+
+def _commit(tmp, msg, filename="file.txt", content="x\n"):
+    (tmp / filename).write_text(content)
+    _git(tmp, "add", "-A")
+    return _git(tmp, "-c", "user.email=t@t", "-c", "user.name=t",
+                "commit", "-qm", msg)
+
+
+class TestMergeUp:
+    """season.py merge-up subcommand — the branch->base upward merge, green gate.
+
+    goal:g12.3 — landing a branch against its recorded base needs tests red
+    first; these cover the hypothesis's merge-up test list plus the recursion
+    ADDENDUM (recorded base_branch, three-layer rehearsal).
+    """
+
+    def test_merge_up_merges_no_ff_and_removes_worktree(
+            self, season_py, temp_graph, tmp_path):
+        """A passing suite lands a --no-ff merge commit and removes the
+        worktree."""
+        _init_project(tmp_path)
+        base = str(tmp_path)
+        worktree = tmp_path / "wt"
+        br = _git(tmp_path, "worktree", "add", "-b", "loop/slug-abc12345@s2",
+                  str(worktree), "season/s1")
+        assert br.returncode == 0, br.stderr
+        _commit(worktree, "kid commit", content="kid\n")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/slug-abc12345@s2", "--suite", "exit 0",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert f"merged loop/slug-abc12345@s2 --no-ff into season/s1" in result.stdout
+        assert f"removed worktree {worktree}" in result.stdout
+        assert "complete; suite green" in result.stdout
+
+        # A --no-ff merge commit exists with two parents.
+        merge = _git(tmp_path, "log", "-1", "--format=%P", "season/s1")
+        assert len(merge.stdout.split()) == 2, "expected a real (2-parent) merge"
+
+        # The branch's commit is now in the base's history.
+        merged = _git(tmp_path, "log", "season/s1", "--format=%s",
+                      "--") .stdout
+        assert "kid commit" in merged
+
+        # The worktree really is gone.
+        wt = _git(tmp_path, "worktree", "list", "--porcelain")
+        assert str(worktree) not in wt.stdout
+
+    def test_merge_up_refuses_on_red_suite(self, season_py, temp_graph, tmp_path):
+        """A red suite aborts the merge and leaves the branch + worktree."""
+        _init_project(tmp_path)
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/red-ffffffff@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "red commit", content="red\n")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/red-ffffffff@s2", "--suite", "exit 1",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1, "red suite must refuse the merge"
+        assert "REFUSED" in result.stdout
+        assert "loop/red-ffffffff@s2" in result.stdout
+
+        # Merge aborted: the red commit is NOT in the base's history.
+        log = _git(tmp_path, "log", "season/s1", "--format=%s").stdout
+        assert "red commit" not in log
+        # Branch still exists and worktree was NOT removed.
+        branches = _git(tmp_path, "branch", "--list").stdout
+        assert "loop/red-ffffffff@s2" in branches
+        wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
+        assert str(worktree) in wt
+
+    def test_merge_up_refuses_zero_ahead_branch(
+            self, season_py, temp_graph, tmp_path):
+        """A loop branch that carries ZERO commits beyond its base must be
+        refused loudly, not green-merged into a no-op success (false green).
+        Every empty loop branch used to sail through as 'merged ... (pending
+        suite)' and a human had to finish the round by hand."""
+        _init_project(tmp_path)  # on season/s1
+        # Cut a branch at the base tip with no extra commit: zero ahead.
+        br = _git(tmp_path, "checkout", "-q", "-b", "loop/empty-abc12345@s2")
+        assert br.returncode == 0, br.stderr
+        # Return to the base so the current branch is NOT the loop branch.
+        _git(tmp_path, "checkout", "-q", "season/s1")
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/empty-abc12345@s2", "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        combined = result.stdout + result.stderr
+        assert result.returncode == 1, "zero-ahead branch must be refused"
+        assert "REFUSED" in combined
+        assert "zero commits ahead" in combined
+        assert "loop/empty-abc12345@s2" in combined
+        # Nothing was merged: the base still holds exactly its one commit.
+        count = _git(tmp_path, "rev-list", "--count",
+                     "season/s1").stdout.strip()
+        assert count == "1", "refused merge must not leave a merge commit"
+
+    def test_merge_up_treats_false_red_as_green(
+            self, season_py, temp_graph, tmp_path):
+        """When the finalize `git commit` returns non-zero but the merge has in
+        fact landed (MERGE_HEAD already gone), merge-up must NOT report a
+        failure it cannot substantiate (false red) -- it must carry on green.
+        Reproduced by a PATH git shim that lets the real commit finish the
+        merge but then exits non-zero, exactly as git mis-reported at L3.34."""
+        _init_project(tmp_path)
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/misrep-abc12345@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "kid work", content="kid\n")
+
+        real_git = shutil.which("git")
+        assert real_git, "git must be on PATH to build the shim"
+        shim_dir = tmp_path / "shim"
+        shim_dir.mkdir(exist_ok=True)
+        git_shim = shim_dir / "git"
+        git_shim.write_text(
+            "#!/bin/sh\n"
+            f"REAL={real_git}\n"
+            'case \"$*\" in\n'
+            "*'--no-edit'*)\n"
+            "    \"$REAL\" \"$@\"   # do the real commit; merge completes\n"
+            "    if [ \"$?\" -eq 0 ]; then exit 8; fi   # then lie about it\n"
+            "    ;;\n"
+            "esac\n"
+            'exec "$REAL" "$@"\n')
+        git_shim.chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = str(shim_dir) + os.pathsep + env["PATH"]
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/misrep-abc12345@s2", "--suite", "exit 0",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True, env=env,
+        )
+        assert result.returncode == 0, \
+            f"false red must not become a failure: {result.stderr}"
+        assert "treating as green" in result.stdout
+        assert "complete; suite green" in result.stdout
+        # The merge really did land despite the commit's mis-reported code.
+        assert "kid work" in _git(
+            tmp_path, "log", "season/s1", "--format=%s").stdout
+        # And the worktree was removed (success path, not the stranded one).
+        wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
+        assert str(worktree) not in wt
+
+    def test_merge_up_never_rebases(self, season_py, temp_graph, tmp_path):
+        """Merging upward never rewrites the branch's commit hashes."""
+        _init_project(tmp_path)
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/no-rebase-aaaa@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "stable commit", content="stable\n")
+        tip_before = _git(tmp_path, "rev-parse", "loop/no-rebase-aaaa@s2").stdout.strip()
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/no-rebase-aaaa@s2", "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+
+        # The branch's tip hash is unchanged...
+        tip_after = _git(tmp_path, "rev-parse", "loop/no-rebase-aaaa@s2").stdout.strip()
+        assert tip_after == tip_before and tip_before, "rebase rewrote the hashes"
+        # ...and present verbatim in the merged base's history (no fast-forward,
+        # no reconstituted commits).
+        assert tip_before in _git(tmp_path, "log", "season/s1",
+                                  "--format=%H").stdout.split()
+
+    def test_merge_up_targets_recorded_base_branch(
+            self, season_py, temp_graph, tmp_path):
+        """When a base_branch is recorded, merge-up targets it, not the
+        currently checked-out branch (layer-agnostic recursion)."""
+        _init_project(tmp_path)
+        # Director layer: cut tier1/director off the season.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work", content="director\n")
+
+        # Parent layer: cut the parent branch off the DIRECTOR branch.
+        _git(tmp_path, "checkout", "-q", "season/s1")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(worktree), "tier1/director")
+        _commit(worktree, "parent work", content="parent\n")
+
+        # A record (lease/agent.json) names the base as tier1/director.
+        record = tmp_path / ".agi" / "sessions" / "lease.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({
+            "branch": "loop/parent-aaaa@s2",
+            "base_branch": "tier1/director",
+            "worktree": str(worktree),
+            "suite": "exit 0",
+        }))
+
+        # Run from season/s1 (a DIFFERENT branch than the recorded base).
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--record", str(record)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "tier1/director" in result.stdout
+        # The parent's work landed in the director branch, not the season.
+        assert "parent work" in _git(
+            tmp_path, "log", "tier1/director", "--format=%s").stdout
+        assert "parent work" not in _git(
+            tmp_path, "log", "season/s1", "--format=%s").stdout
+
+    def test_three_layer_rehearsal(self, season_py, temp_graph, tmp_path):
+        """season -> director branch -> parent branch, merged up in order;
+        hashes never rewritten (the ADDENDUM's recursive rehearsal)."""
+        _init_project(tmp_path)  # on season/s1
+
+        # Director layer, cut from season/s1.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work")
+        dir_before = _git(tmp_path, "rev-parse", "tier1/director").stdout.strip()
+
+        # Parent layer, cut from tier1/director.
+        parent_wt = tmp_path / "pwt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(parent_wt), "tier1/director")
+        _commit(parent_wt, "parent work", content="parent\n")
+        parent_tip = _git(tmp_path, "rev-parse", "loop/parent-aaaa@s2").stdout.strip()
+
+        # 1) Merge the parent up onto the director layer (recorded base).
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--target", "tier1/director",
+             "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+
+        # 2) Merge the director up onto the season.
+        result2 = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "tier1/director", "--target", "season/s1",
+             "--suite", "exit 0"],
+            capture_output=True, text=True,
+        )
+        assert result2.returncode == 0, result2.stderr
+
+        # Both merge steps are --no-ff: two-parent merge commits.
+        for b in ("tier1/director", "season/s1"):
+            parents = _git(tmp_path, "log", "-1", "--format=%P",
+                           b).stdout.split()
+            assert len(parents) == 2, f"{b} should hold a merge commit"
+
+        # Hashes never rewritten: the parent tip and director tip are present
+        # verbatim in the season's history, unchanged.
+        season_hashes = _git(tmp_path, "log", "season/s1",
+                             "--format=%H").stdout.split()
+        assert parent_tip in season_hashes, "parent commit hash must survive"
+        assert dir_before in season_hashes, "director commit hash must survive"
+        # And the first merge still has the SAME parent tip (no rebase of it).
+        assert _git(tmp_path, "rev-parse", "loop/parent-aaaa@s2").stdout.strip() \
+            == parent_tip

@@ -104,46 +104,144 @@ def build_command(
     cli_py: str | Path = "",
     skill_prompt: Path | None = None,
     dispatch_py: str | Path = "",
+    source_root: str | Path | None = None,
     target: str | None = None,
     parallel: int = 1,
     max_live: int = 1,
+    kid_ceiling: int | None = None,
+    # hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    # -- per-kid brief channel threaded into the assembled brief. dispatch.py
+    # reads --prompt-file <path|-> and passes the text here; absent (None)
+    # leaves the brief byte-identical to today.
+    addendum: str | None = None,
+    brief_tier: str | None = None,
+    session_dir: Path | None = None,
+    # hypothesis:l3-pi-adapter-role-kwarg -- dispatch.py passes role= and
+    # ladder_tier= to EVERY adapter since hypothesis:l3-cc-tools-by-tier
+    # (iter-L3.13); only the claude-code adapter uses them (its tool bundle
+    # is per role). pi has no tool bundle, so they are accepted and unused --
+    # the alternative was every pi spawn dying on a TypeError at the call
+    # site, which is what happened to the first tier-0 parent of wave 3.
+    role: str | None = None,
+    ladder_tier: int | None = None,
 ) -> list[str]:
     """The argv that starts one pi agent."""
+    # hypothesis:l3-pi-install-patch-not-durable -- the L3.38 edit-tool
+    # forgiveness patch lives in the SHARED pi install outside this repo, so a
+    # `pi` upgrade silently drops it and every kid quietly pays the lost turn
+    # again. This is the repo-owned, durable half: at every spawn (and every
+    # restart, which also funnels through build_command) gate the installed
+    # tool -- re-applying the patch when an upgrade dropped it, and failing
+    # LOUDLY naming the fix when re-apply cannot be anchored. Set
+    # AGI_PI_FORGIVENESS_BYPASS=1 to disable the gate on an unusual host.
+    import pi_edit_forgiveness as _pi_fg
+    _fg_status, _fg_detail = _pi_fg.ensure_pi_edit_forgiveness()
+    if _fg_status == "fail":
+        raise RuntimeError(
+            "pi edit tool is missing the L3.38 edits-forgiveness patch and the "
+            "repo could not re-apply it automatically; refusing to spawn kids "
+            f"who will each waste a turn. {_fg_detail} Fix: repair pi upstream, "
+            "or re-apply the _normalizeEditsShapes patch (see "
+            "extensions/agi/bin/pi_edit_forgiveness.py). "
+            "Set AGI_PI_FORGIVENESS_BYPASS=1 to override."
+        )
+    if _fg_status == "patched":
+        import sys as _sys
+        print(_fg_detail, file=_sys.stderr)
+
     args = [resolve_bin(harness)]
     args += model_args(harness, tier)
     # Headless: process the prompt and exit. Without this flag the prompt is
     # fed to the interactive TUI, which hangs forever off a TTY (empty log).
     args += ["-p"]
-    args += ["--append-system-prompt", f"@{context_file}"]
+    # pi loads a system-prompt file by PLAIN PATH: resolvePromptInput() is
+    # `existsSync(input) ? readFileSync(input) : input`. An `@` prefix fails
+    # the stat and pi appends the PATH STRING as literal text instead — so
+    # every pi agent ran without its rendered graph context, silently, until
+    # 2026-09-08 (hypothesis:l3-pi-context-never-delivered). Measured: 79
+    # bytes of pathname where a real kid's context.md was 16654 bytes.
+    # Survival profile (move FIVE, hypothesis:l3w4-context-load-minimal): the
+    # INJECTION graph stream is goal-listing/traps/history — exactly what
+    # survival drops. One switch (survival_selected reads AGI_BRIEF_PROFILE),
+    # so a survival seat pays ~0 for the map and reads it on demand instead.
+    if not brief.survival_selected():
+        args += ["--append-system-prompt", str(context_file)]
     # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
     # This adapter decides only how to SPELL a segment on pi's command line.
     # It used to inline the kid brief here, which is why `--tier parent`
     # selected the parent model correctly and then handed it a kid's job.
+    # hypothesis:l3w3-advisor-brief — `brief_tier` lets a spawn keep the
+    # model tier (parent) while assembling a different tier's brief (advisor).
+    _btier = brief_tier or tier
+    _sess = session_dir or sess_dir
     for seg in brief.assemble(
-        tier=tier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
+        tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
-        parallel=parallel, max_live=max_live,
+        parallel=parallel, max_live=max_live, session_dir=_sess,
+        source_root=source_root, kid_ceiling=kid_ceiling,
+        addendum=addendum,
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
-        args.extend(["--append-system-prompt", f"@{skill_prompt}"])
-    args.append(brief.closing_line(tier, agent_id, iter_n))
+        args.extend(["--append-system-prompt", str(skill_prompt)])
+    args.append(brief.closing_line(_btier, agent_id, iter_n))
     return args
 
 
 def is_alive(pid: int) -> bool:
     """Is the process with `pid` still running?
 
-    `os.kill(pid, 0)` sends no signal; it only checks existence. Same pattern
-    as `heal.py._pid_alive`, now part of the adapter interface so dispatch.py
-    can detect dead agents without importing heal.py (goal:g4.7).
+    A zombie (state `Z`) counts as **dead** (`hypothesis:l3-cc-adapter-
+    zombie-lease`), same rule as `claude_code_adapter.is_alive` and
+    `spawn_budget._pid_alive`: its code has exited and only reaping by its
+    parent is outstanding, but `os.kill(pid, 0)` answers true for a defunct
+    child regardless. This adapter had drifted from that fix — it still
+    trusted signal-existence alone (`hypothesis:l3-reaper-restarts-through-
+    stop`) — which is one truth (is a pid dead) read two different ways by
+    two adapters in the same reaper loop. Off `/proc` (non-Linux, or the pid
+    raced out of the table) falls back to signal-existence rather than
+    guess wrong.
     """
+    import os
     try:
-        import os
+        with open(f"/proc/{pid}/stat", encoding="utf-8") as fh:
+            # State is field 3, after `pid (comm)`; comm can hold spaces/
+            # parens, so split from the right on `) ` (same as
+            # spawn_budget._pid_alive / claude_code_adapter._procstate).
+            state = fh.read().rsplit(") ", 1)[1].split()[0]
+        if state == "Z":
+            return False
+    except (OSError, IndexError, ValueError):
+        pass
+    try:
         os.kill(pid, 0)
     except OSError:
         return False
     return True
+
+
+def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
+    """The working directory a restarted agent must be born into.
+
+    `hypothesis:l3-branch-isolation-partial-break`. A `--branch` spawn's
+    agent_record carries `worktree` (dispatch.py writes branch_ref["worktree"]
+    into it), and the restarted process must re-enter THAT worktree or its
+    relative source edits land in the MAIN checkout. The old default,
+    `sess_dir.parent.parent.parent`, resolves iter_dir against the dispatch's
+    OWN root -- for a top-level dispatch that root is the main checkout, so a
+    reaped `--branch` parent was re-spawned with cwd = main, which is exactly
+    the observed partial break (source edits in main, coherent worktree).
+
+    A record with no usable `worktree` falls back to the historical derivation
+    untouched, so non-branch restarts behave exactly as before.
+    """
+    if agent_record:
+        wt = agent_record.get("worktree")
+        if wt:
+            worktree = Path(wt).resolve()
+            if worktree.is_dir():
+                return worktree
+    return Path(sess_dir).parent.parent.parent
 
 
 def restart(
@@ -162,6 +260,7 @@ def restart(
     parallel: int = 1,
     max_live: int = 1,
     agent_record: dict | None = None,
+    brief_tier: str | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
@@ -181,7 +280,7 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live,
+        max_live=max_live, brief_tier=brief_tier,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ))
@@ -193,7 +292,7 @@ def restart(
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
                 start_new_session=True,
-                cwd=str(sess_dir.parent.parent.parent),
+                cwd=str(_restart_cwd(sess_dir, agent_record)),
                 env=env,
             )
     except OSError as exc:

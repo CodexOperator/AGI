@@ -383,3 +383,284 @@ def test_a_gameable_primary_is_named_as_invalid_in_the_briefing():
     b.primary_is_gameable = True
     out = "\n".join(m.to_markdown(b))
     assert "not a valid" in out and "gameable" in out
+
+
+# --------------------------------------------------------------------------
+# The sanctuary theme (hypothesis:l3w4-sanctuary-theme).
+# --------------------------------------------------------------------------
+
+_SEAT_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3},
+    {"name": "adv-self-perpetuating", "role": "parent", "tier": 3},
+    {"name": "adv-all-is-one", "role": "parent", "tier": 3},
+    {"name": "adv-alive", "role": "parent", "tier": 3},
+    {"name": "liaison", "role": "director", "tier": 1},
+    {"name": "dir-g1", "role": "director", "tier": 1},
+]
+
+
+def test_sanctuary_frame_builds_scene_from_seat_rows_fixture():
+    """tier-3 rows are mantled spirits; tier-1 director rows are probe wisps."""
+    scene = V.sanctuary_frame(_SEAT_ROWS, [1, 2, 3], None)
+    assert scene.registry_present is True
+    assert scene.ephemeral_wisps == 3
+    assert scene.rotating is None
+    assert [s["name"] for s in scene.spirits] == [
+        "belam", "adv-self-perpetuating", "adv-all-is-one", "adv-alive"]
+    assert [p["name"] for p in scene.probes] == ["liaison", "dir-g1"]
+
+
+def test_sanctuary_mantled_tier_non_three_joins_spirits():
+    """A seated Sanctuary Master sits on her mantle, not her tier."""
+    rows = _SEAT_ROWS + [{"name": "sanctuary-master", "role": "director",
+                          "tier": 1, "mantled": True}]
+    scene = V.sanctuary_frame(rows, [], None)
+    names = [s["name"] for s in scene.spirits]
+    assert "sanctuary-master" in names
+    assert all(p["name"] != "sanctuary-master" for p in scene.probes)
+
+
+def test_sanctuary_theme_shows_no_registry_when_seats_missing():
+    """Absent seats => 'no seat registry yet' in both readers, no traceback."""
+    scene = V.SanctuaryScene((), (), 0, None, False)
+    assert V.render_sanctuary_human(scene) == ["no seat registry yet"]
+    assert "no seat registry yet" in V.render_sanctuary_llm(scene)
+
+
+def test_sanctuary_rotating_strand_names_holder_and_seat():
+    """A `<seat>.genN` window resolves the strand to that row's rotated_by."""
+    rows = _SEAT_ROWS + [{"name": "belam", "role": "prime_director", "tier": 3,
+                          "rotated_by": "quorum"}]
+    windows = ["agi-rc:0", "belam.gen2", "dir-g1.gen1"]
+    rot = V.rotating_seat(rows, windows)
+    assert rot == ("quorum", "belam")
+    scene = V.sanctuary_frame(rows, [], rot)
+    human = "\n".join(V.render_sanctuary_human(scene))
+    llm = V.render_sanctuary_llm(scene)
+    assert "quorum ~~~✧~~~> belam (rotating)" in human
+    assert "quorum ~~~✧~~~> belam" in llm
+
+
+def test_sanctuary_non_seat_gen_window_is_ignored():
+    """A `.genN` window that names no seat is not invented into a strand."""
+    rows = [{"name": "belam", "role": "prime_director", "tier": 3}]
+    assert V.rotating_seat(rows, ["unknown.gen1"]) is None
+
+
+def test_sanctuary_human_and_llm_state_the_same_spirits_and_wisps():
+    """Both readers draw the identical spirits, probes, and ephemeral count."""
+    scene = V.sanctuary_frame(_SEAT_ROWS, [1, 2], ("quorum", "belam"))
+    human = "\n".join(V.render_sanctuary_human(scene))
+    llm = V.render_sanctuary_llm(scene)
+    for s in scene.spirits:
+        assert s["name"] in human and f"spirit {s['name']}" in llm
+    for p in scene.probes:
+        assert p["name"] in human and f"probe {p['name']}" in llm
+    assert "2 ephemeral wisps" in human and "ephemeral_wisps: 2" in llm
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3w4-seat-graph-view — seats render ON the graph, not beside it.
+# One OccupantIndex, two readers (goal:g9.7 applied one level down). Three
+# red-first tests from the claim: an attached seat appears on its node's line;
+# that seat is NOT in the idle band; a seat with no target IS in the idle band
+# and on no node line.
+# --------------------------------------------------------------------------
+
+
+def _occ(at_nodes, idle):
+    return V.OccupantIndex._from(at_nodes, idle)
+
+
+def test_an_attached_seat_renders_inline_on_its_nodes_line(graph, fm):
+    """The claim's first falsifier, rendered both ways: a seat joined to a node
+    appears on that node's rendered line, in the human view and the llm view."""
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    occ = _occ({"hypothesis:h1": ["belam"]}, ())
+
+    human = V.render_human(frames, 0, 0, 30, 300, occupants=occ)
+    h_line = [ln for ln in human if "H one" in ln][0]
+    assert V.GLYPH["seat"] in h_line and "belam" in h_line
+    # the node id the seat was joined to carries the seat; a sibling does not
+    other = [ln for ln in human if "H two" in ln][0]
+    assert "belam" not in other
+
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=occ)
+    assert "seats=belam" in [ln for ln in llm.splitlines() if "h1" in ln][0]
+
+
+def test_the_idle_band_does_not_contain_an_attached_seat(graph, fm):
+    """The claim's second falsifier: attachment removes a seat from the band."""
+    frames = V.frame_stream(graph, fm, "goal:a", 1)
+    occ = _occ({"hypothesis:h1": ["liaison"]}, ("dir-g1", "dir-g15"))
+
+    human = "\n".join(V.render_human(frames, 0, 0, 30, 300, occupants=occ))
+    band = human.split("idle:")[1]
+    assert "dir-g1" in band
+    assert "liaison" not in band
+
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=occ)
+    idle_section = llm.split("## idle seats")[1].split("## the graph")[0]
+    assert "dir-g1" in idle_section and "dir-g15" in idle_section
+    assert "liaison" not in idle_section
+
+
+def test_a_seat_with_no_target_is_idle_and_on_no_node_line(graph, fm):
+    """The claim's third falsifier: an unattached seat sits in the band and
+    nowhere on the tree — a view that hides emptiness is worse than none."""
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    occ = _occ({}, ("spare-seat",))
+
+    human = V.render_human(frames, 0, 0, 30, 300, occupants=occ)
+    on_lines = [ln for ln in human if "spare-seat" in ln]
+    assert len(on_lines) == 1
+    assert "idle:" in on_lines[0]
+
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=occ)
+    assert "spare-seat" in llm.split("## idle seats")[1].split("## the graph")[0]
+    assert "spare-seat" not in [ln for ln in llm.splitlines() if "- `" in ln]
+
+
+def test_seat_index_joins_a_pinned_seat_through_its_manifest_target():
+    """The join itself: a seat's meter pin names its session, whose agent id is
+    the manifest row carrying the node it works on."""
+    agents = [{"id": "a00-abc123", "target": "hypothesis:h1",
+               "tier": "parent", "role": None}]
+    rows = [{"name": "belam", "role": "prime_director"},
+            {"name": "dir-g16", "role": "director"}]
+    sessions = {"belam": "/g/.agi/sessions/a00-abc123/output.log"}
+    at_nodes, idle = V.seat_index(agents, rows, sessions)
+    assert at_nodes == {"hypothesis:h1": ["belam"]}
+    assert idle == ["dir-g16"]
+
+
+def test_seat_index_never_invents_a_node_for_a_rowless_session():
+    """A session whose agent id is absent from the manifest is idle, not placed."""
+    agents = [{"id": "a00-other", "target": "goal:x"}]
+    rows = [{"name": "liaison", "role": "director"}]
+    at_nodes, idle = V.seat_index(agents, rows,
+                                  {"liaison": "/g/.agi/sessions/a00-ghost/log"})
+    assert at_nodes == {}
+    assert idle == ["liaison"]
+
+
+# --------------------------------------------------------------------------
+# ROUND 2 — the layered map (hypothesis:l3w4-seat-graph-view). THE TIE IS
+# THE POINT: each quorum advisor is anchored to its ONE vision by
+# `personality_ref`, each director-kid to its ONE perpetual goal by
+# `owning_goal`. One `AnchorIndex`, two readers (goal:g9.7 one level down).
+# --------------------------------------------------------------------------
+
+_FULL_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3},
+    {"name": "adv-self-perpetuating", "role": "parent", "tier": 3,
+     "personality_ref": "vision:self-perpetuating"},
+    {"name": "adv-all-is-one", "role": "parent", "tier": 3,
+     "personality_ref": "vision:all-is-one"},
+    {"name": "adv-alive", "role": "parent", "tier": 3,
+     "personality_ref": "vision:alive"},
+    {"name": "liaison", "role": "director", "tier": 1,
+     "owning_goal": "goal:g17"},
+    {"name": "dir-g1", "role": "director", "tier": 1,
+     "owning_goal": "goal:g1"},
+]
+
+_FM = {"vision:self-perpetuating": {"title": "V"},
+       "vision:all-is-one": {"title": "V"},
+       "vision:alive": {"title": "V"},
+       "goal:g17": {"title": "G"},
+       "goal:g1": {"title": "G"}}
+
+
+def test_the_tie_resolves_advisor_to_vision_and_director_to_goal():
+    """Round 2's falsifier: an advisor's `personality_ref` and a director's
+    `owning_goal` both bind the seat to a graph node — the tie rendered for
+    the first time. It must resolve, not be guessed."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    by_name = {r["name"]: r for r in ai.anchored}
+    assert by_name["adv-self-perpetuating"]["anchor"] == "vision:self-perpetuating"
+    assert by_name["adv-all-is-one"]["anchor"] == "vision:all-is-one"
+    assert by_name["adv-alive"]["anchor"] == "vision:alive"
+    assert by_name["liaison"]["anchor"] == "goal:g17"
+    assert by_name["dir-g1"]["anchor"] == "goal:g1"
+
+
+def test_a_seat_with_no_tie_is_unanchored_never_invented():
+    """belam has neither personality_ref nor owning_goal, and an unresolvable
+    ref (engine-gone vision) must not become a fabricated anchor."""
+    rows = [{"name": "belam", "role": "prime_director", "tier": 3},
+            {"name": "ghost", "role": "parent", "tier": 3,
+             "personality_ref": "vision:GONE"}]
+    ai = V.build_anchor_index(rows, _FM)
+    assert ai.anchored == ()
+    assert {r["name"] for r in ai.unanchored} == {"belam", "ghost"}
+
+
+def test_hierarchy_renders_each_seat_at_its_anchor_both_readers(graph, fm):
+    """The layered-map falsifier: the hierarchy layer names each seat's anchor
+    in the HUMAN pane and the LLM pane, g9.7 one level down."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    human = "\n".join(V.hierarchy_lines(ai))
+    for needle in ("→ vision:self-perpetuating", "→ goal:g17",
+                   "belam", "adv-alive"):
+        assert needle in human
+
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=None,
+                       anchors=ai, layer="graph")
+    for needle in ("## agent hierarchy",
+                   "seat adv-self-perpetuating (parent, tier 3) "
+                   "→ vision:self-perpetuating",
+                   "seat liaison (director, tier 1) → goal:g17",
+                   "_map_layer_on_top: graph_"):
+        assert needle in llm, f"llm view omits {needle!r}"
+
+
+def test_layer_on_top_swaps_which_layer_renders_faint(graph, fm):
+    """The toggle's render half: with the graph on top the hierarchy is the
+    faint under-layer, and vice versa — the same `AnchorIndex`, one edit."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+
+    graph_top = V.render_human(frames, 0, 0, 30, 300, occupants=None,
+                               anchors=ai, layer="graph")
+    hier_top = V.render_human(frames, 0, 0, 30, 300, occupants=None,
+                              anchors=ai, layer="hierarchy")
+    assert "map layers: on top = graph" in "\n".join(graph_top)
+    assert "map layers: on top = hierarchy" in "\n".join(hier_top)
+    # under-layer is faint-prefixed; the top layer's blocks are not
+    assert any(ln.startswith("~ agent hierarchy") for ln in graph_top)
+    assert not any(ln.startswith("~ agent hierarchy") for ln in hier_top)
+    # graph frame lines stay full whenever the graph is on top
+    assert not any(ln.startswith("~ ●") and "Goal A" in ln for ln in graph_top)
+
+
+def test_the_layered_llm_keeps_frame_ids_parseable(graph, fm):
+    r"""Adding the hierarchy block must not break _verify's frame-id scan:
+    the graph lines stay in `- id` backticked form, and `- seat …` lines
+    never match _FRAME_LINE."""
+    ai = V.build_anchor_index(_FULL_ROWS, _FM)
+    frames = V.frame_stream(graph, fm, "goal:a", 2)
+    llm = V.render_llm(frames, 0, 0, 30, 300, occupants=None,
+                       anchors=ai, layer="hierarchy")
+    ids = [m.group(1) for m in (V._FRAME_LINE.match(ln) for ln in llm.splitlines())
+           if m]
+    assert ids == [f.node_id for f in frames]
+
+
+def test_the_live_map_prints_no_secret():
+    """The owner is about to livestream this view; NO pane may carry a secret.
+    The round-2 code must not reference creds or files that hold them."""
+    src = (BIN / "viewport.py").read_text()
+    round2 = src[src.index("ROUND 2"):]
+    for forbidden in ("Authorization", "token", "api_key", "api-key",
+                      "secret", ".env", "password"):
+        assert forbidden.lower() not in round2.lower(), (
+            f"layered map may not print a secret: found {forbidden!r}")
+
+
+def test_the_map_toggle_is_bound_in_the_interactive_tui():
+    """The keypress half of the toggle must exist, not just the render half."""
+    src = (BIN / "viewport.py").read_text()
+    assert "m swap layer" in src
+    assert 'layer = "hierarchy" if layer == "graph" else "graph"' in src

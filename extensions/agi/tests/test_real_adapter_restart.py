@@ -28,6 +28,7 @@ sys.path.insert(0, str(BIN))
 
 # Import pi_adapter directly (the real one, not a mock)
 import adapters  # noqa: E402
+import spawn_budget  # noqa: E402
 
 
 def _load_dispatch():
@@ -85,6 +86,77 @@ def project_root(tmp_path: Path) -> Path:
 class TestPiAdapterRestartWithRealProcess:
     """Validate that `pi_adapter.restart()` spawns a real process with a real
     pid that can be killed, detected dead, and restarted."""
+
+    def test_restart_reenters_the_branch_worktree_not_main(self, project_root, monkeypatch):
+        """hypothesis:l3-branch-isolation-partial-break — a reaper restart
+        of a `--branch` spawn must be born with its cwd INSIDE its own
+        worktree, or its relative source edits land in the MAIN checkout. The
+        old `cwd=sess_dir.parent.parent.parent` resolved iter_dir against the
+        dispatch's own root (main for a top-level dispatch) and re-spawned the
+        restarted parent in main. Red-first: with mocked pi recording `pwd`,
+        restart must report the worktree, never main."""
+        import adapters
+        pi = adapters.load("pi")
+
+        # A branch agent's record carries `worktree`; the session dir lives in
+        # MAIN (top-level dispatch resolves iter_dir against the main root).
+        wt = project_root / ".agi" / "worktrees" / "a00-branchy"
+        wt.mkdir(parents=True)
+        sess_dir = project_root / "sessions" / "iter-996" / "a00-branchy"
+        sess_dir.mkdir(parents=True)
+        (sess_dir / "context.md").write_text("ctx")
+
+        pwd_marker = project_root / "restart_cwd.txt"
+        pwd_pi = project_root / "pwd_pi.sh"
+        pwd_pi.write_text(
+            f"#!/bin/bash\npwd > {pwd_marker}\nexit 0\n")
+        pwd_pi.chmod(0o755)
+        monkeypatch.setenv("PI_BIN", str(pwd_pi))
+
+        harness = {"adapter": "pi", "bin": str(pwd_pi),
+                   "provider": "openrouter", "models": {"kid": "test-model"}}
+        agent_record = {
+            "id": "a00-branchy", "tier": "kid", "iter": 996,
+            "status": "failed", "pid": 0, "worktree": str(wt),
+        }
+
+        new_pid = pi.restart(
+            harness=harness, tier="kid",
+            context_file=str(sess_dir / "context.md"),
+            agent_id="a00-branchy", iter_n=996, sess_dir=sess_dir,
+            agent_record=agent_record,
+        )
+        assert new_pid, "restart must spawn"
+        try:
+            import time
+            for _ in range(50):
+                if pwd_marker.exists():
+                    break
+                time.sleep(0.05)
+            assert pwd_marker.exists(), "mock pi never ran"
+            cwd = pwd_marker.read_text().strip()
+        finally:
+            try:
+                os.kill(new_pid, signal.SIGKILL)
+            except OSError:
+                pass
+        wt_res = str(wt.resolve())
+        assert os.path.realpath(cwd) == wt_res, (
+            f"restarted --branch agent must have cwd inside its worktree "
+            f"{wt_res}, got {cwd!r}")
+        assert cwd != str(project_root.resolve()), (
+            "restarted agent must NOT be born in the main checkout")
+
+    def test_restart_cwd_helper_falls_back_without_a_worktree(self, project_root):
+        """Non-branch records (no `worktree`) keep the historical cwd
+        derivation, so restarts of ordinary kids are unchanged."""
+        import adapters
+        pi = adapters.load("pi")
+        sess_dir = project_root / "sessions" / "iter-1" / "a00-plain"
+        sess_dir.mkdir(parents=True)
+        # No worktree in the record → historical sess_dir.parent.parent.parent.
+        cwd = pi._restart_cwd(sess_dir, {"id": "a00-plain"})
+        assert cwd == sess_dir.parent.parent.parent
 
     def test_restart_returns_real_pid(self, mock_pi_bin, project_root, monkeypatch):
         """The core claim: pi_adapter.restart() through subprocess.Popen produces
@@ -148,6 +220,44 @@ class TestPiAdapterRestartWithRealProcess:
         proc.wait(timeout=5)
         time.sleep(0.2)
         assert not pi.is_alive(proc.pid), "a dead process must report not alive"
+
+    def test_is_alive_reports_an_unreaped_zombie_as_dead(self, mock_pi_bin, monkeypatch):
+        """hypothesis:l3-reaper-restarts-through-stop. A killed child is a
+        ZOMBIE (state Z) until its parent reaps it -- `os.kill(pid, 0)`
+        answers true for a zombie, so signal-existence alone (the old
+        `pi_adapter.is_alive`) reports it alive for a window that can span
+        several reaper polls. `claude_code_adapter.is_alive` and
+        `spawn_budget._pid_alive` were already fixed for exactly this
+        (hypothesis:l3-cc-adapter-zombie-lease); pi_adapter had drifted.
+        Deliberately does NOT waitpid before asserting, so this only passes
+        if is_alive() itself reads process STATE rather than mere
+        existence."""
+        monkeypatch.setenv("PI_BIN", mock_pi_bin)
+        pi = adapters.load("pi")
+
+        proc = subprocess.Popen(
+            ["bash", "-c", "sleep 60"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        proc.send_signal(signal.SIGKILL)
+        # Give the kernel a moment to transition the process to Z, but do
+        # NOT wait()/waitpid() it — that would reap it and defeat the test.
+        for _ in range(50):
+            try:
+                with open(f"/proc/{proc.pid}/stat") as fh:
+                    state = fh.read().rsplit(") ", 1)[1].split()[0]
+            except (OSError, IndexError):
+                state = "?"
+            if state == "Z":
+                break
+            time.sleep(0.02)
+        assert state == "Z", (
+            f"test setup: expected pid {proc.pid} to be a zombie, got "
+            f"state {state!r} -- the test proves nothing if it was "
+            f"already reaped before is_alive() ran")
+        assert not pi.is_alive(proc.pid), (
+            "an unreaped zombie must report dead, not alive")
+        proc.wait(timeout=5)  # clean up: reap it for real
 
     def test_restart_produces_a_killable_process(self, mock_pi_bin, project_root, monkeypatch):
         """A process spawned via restart() can be terminated and detected dead,
@@ -279,6 +389,70 @@ class TestPiAdapterRestartWithRealProcess:
             os.waitpid(new_pid, 0)
         except OSError:
             pass
+
+    def test_reaper_does_not_restart_a_killed_agent_while_paused(self, mock_pi_bin, project_root, monkeypatch):
+        """hypothesis:l3-reaper-restarts-through-stop — the actual bug this
+        node exists to fix. Reproduced live at least six times today
+        (L3.42, L3.44, this seat's own SD.01 first attempt): an agent
+        killed as part of a declared owner stop is respawned by the
+        reaper seconds to hours later and resumes spending. Red before the
+        fix (the reaper restarted unconditionally on any dead pid);
+        green after (a paused tree must never produce a new pid here)."""
+        monkeypatch.setenv("PI_BIN", mock_pi_bin)
+        pi = adapters.load("pi")
+
+        iter_dir = project_root / "sessions" / "iter-993"
+        iter_dir.mkdir(parents=True)
+        agent_id = "a00-pausetest"
+        sess_dir = iter_dir / agent_id
+        sess_dir.mkdir(parents=True)
+        ctx_file = sess_dir / "context.md"
+        ctx_file.write_text("Test context")
+
+        sleep_bin = project_root / "pause_sleep.sh"
+        sleep_bin.write_text("#!/bin/bash\nsleep 30\necho done\n")
+        sleep_bin.chmod(0o755)
+
+        proc = subprocess.Popen(
+            [str(sleep_bin)],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        os.kill(proc.pid, signal.SIGKILL)
+        try:
+            os.waitpid(proc.pid, 0)
+        except OSError:
+            pass
+        assert not pi.is_alive(proc.pid), "process must be dead before reaper"
+
+        import completion
+        monkeypatch.setattr(completion, "is_complete", lambda root, nid: False)
+
+        # THE pause, at the exact anchor a worktree-based seat also reaches
+        # (budget_dir's main-checkout resolution) — project_root here IS
+        # the main checkout for this fixture, so this is the direct case.
+        spawn_budget.pause(project_root, reason="owner: low on tokens", actor="belam")
+        try:
+            out = dispatch._reap_one(
+                project_root, iter_dir, pi,
+                {
+                    "node_id": "", "tier": "kid", "pid": proc.pid,
+                    "status": "running", "restart_count": 0,
+                    "context_file": str(ctx_file), "iter": 993,
+                    "harness_spec": {"adapter": "pi", "bin": mock_pi_bin},
+                },
+                agent_id, proc.pid, cap=5,
+                cfg={"reaper": {"max_restarts": 1}},
+            )
+        finally:
+            spawn_budget.resume(project_root)
+
+        assert out["record"]["status"] == "failed", (
+            f"a paused tree must never restart, got "
+            f"{out['record']['status']}: {out['message']}")
+        assert "paused" in out["message"].lower(), out["message"]
+        assert "paused" in out["record"]["fail_reason"].lower(), out["record"]
+        assert out["record"].get("pid") is None or out["record"].get("pid") == proc.pid, (
+            "no new pid may appear in the record — nothing was spawned")
 
     def test_done_unreported_path_with_real_dead_process(self, mock_pi_bin, project_root, monkeypatch):
         """A kid that died after its node landed must NOT be restarted — even

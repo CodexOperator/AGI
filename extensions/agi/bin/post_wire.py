@@ -205,6 +205,45 @@ def _update_via_writer(root, node_id, path, original_fm, fm,
         _write_node(path, fm, body)
 
 
+def _done_line(log_file: str | None) -> str:
+    """'present' when the kid's output.log has a line starting with DONE.
+
+    hypothesis:l2-done-doubled-frontmatter -- a kid whose final report
+    skipped the `DONE <node-id>` contract line (L2.01:
+    `experiment:a00-fc43bb62-4500f1`) was visible only by reading the log.
+    This lets a parent see it in the manifest without reading the log, and it
+    never fails a kid: the field is informational.
+    """
+    if not log_file:
+        return "missing"
+    try:
+        text = Path(log_file).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return "missing"
+    for line in text.splitlines():
+        if line.strip().startswith("DONE"):
+            return "present"
+    return "missing"
+
+
+def stamp_done_lines(manifest_path: Path) -> int:
+    """Set `done_line: present|missing` on every manifest agent entry.
+
+    Reads the manifest, stamps each agent entry from its own `log_file`, and
+    writes it back so a parent can name the kid that skipped its DONE report
+    without opening any output.log. Returns how many entries were stamped.
+    """
+    if not Path(manifest_path).is_file():
+        return 0
+    manifest = json.loads(Path(manifest_path).read_text())
+    agents = manifest.get("agents", [])
+    for a in agents:
+        if isinstance(a, dict):
+            a["done_line"] = _done_line(a.get("log_file"))
+    Path(manifest_path).write_text(json.dumps(manifest, indent=2))
+    return len(agents)
+
+
 def _merged_agent(iter_dir: Path, entry: dict) -> dict:
     """Dispatch-time record overlaid with what the kid actually reported.
 
@@ -313,6 +352,12 @@ def cmd_wire(args: argparse.Namespace) -> int:
         return 0
 
     manifest = json.loads(manifest_path.read_text())
+
+    # hypothesis:l2-done-doubled-frontmatter — mark each kid's done_line from
+    # its output.log so a parent can name the kid that skipped its DONE report
+    # without reading the log. Informational; never fails a kid.
+    stamp_done_lines(manifest_path)
+
     load_directory, Edge, Node = _load_graph_core()
 
     # H4c / goal:g3.1 — the corpus evidence_runs entries resolve against.

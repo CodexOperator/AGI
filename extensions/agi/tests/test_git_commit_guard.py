@@ -22,6 +22,28 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 HOOKS = BIN.parent / "hooks" / "agent-git"
 
 
+def hook_env() -> dict:
+    """os.environ with the injected git config REPLACED, not merged.
+
+    This environment pins core.hooksPath at the MAIN checkout's hooks dir via
+    GIT_CONFIG_COUNT/KEY_0/VALUE_0, which overrides both .git/hooks and any
+    local core.hooksPath — so tests would silently exercise a stale hook from
+    another worktree instead of the copy under test (review of
+    hypothesis:l3-parent-brief-forbids-the-only-commit: the loop-branch allow
+    existed in this tree and the test still failed because git was reading the
+    main checkout's hook). Point the injected config at HOOKS instead."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_CONFIG_")}
+    env["GIT_CONFIG_COUNT"] = "1"
+    env["GIT_CONFIG_KEY_0"] = "core.hooksPath"
+    env["GIT_CONFIG_VALUE_0"] = str(HOOKS)
+    return env
+
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("agi_locations", BIN / "locations.py")
+_locations = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_locations)
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -42,13 +64,24 @@ def temp_repo(tmp_path: Path) -> Path:
 
 def with_hook(repo: Path, hook_name: str = "pre-commit") -> Path:
     """Install one of the agent-git hooks into the test repo's hooks dir,
-    so git finds it without GIT_CONFIG trickery."""
+    so git finds it without GIT_CONFIG trickery.
+
+    Also points the repo's LOCAL core.hooksPath at the source hooks dir
+    under test: a global core.hooksPath (set on this box for the live
+    project) overrides .git/hooks entirely, so without this the tests
+    silently exercise whichever checkout that global path points at —
+    not the copy in this tree (hypothesis:l3-parent-brief-forbids-the-only-commit
+    review fix; the loop-branch allow was being tested against the stale hook)."""
     hook_dir = repo / ".git" / "hooks"
     hook_dir.mkdir(parents=True, exist_ok=True)
     src = HOOKS / hook_name
     dst = hook_dir / hook_name
     dst.write_text(src.read_text())
     dst.chmod(0o755)
+    subprocess.run(
+        ["git", "config", "core.hooksPath", str(HOOKS)],
+        cwd=repo, capture_output=True, check=True,
+    )
     return dst
 
 
@@ -73,7 +106,7 @@ def test_pre_commit_allows_human_when_no_tier(temp_repo: Path):
     result = subprocess.run(
         ["git", "commit", "-m", "human commit"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": ""},
+        env={**hook_env(), "AGI_TIER": ""},
     )
     assert result.returncode == 0, f"hook rejected human commit: {result.stderr}"
 
@@ -87,10 +120,75 @@ def test_pre_commit_rejects_kid_in_project_repo(temp_repo: Path):
     result = subprocess.run(
         ["git", "commit", "-m", "kid commit"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "kid", "AGI_PROJECT_ROOT": toplevel},
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": toplevel},
     )
     assert result.returncode == 1, f"hook allowed kid commit: {result.stdout}"
     assert "kid may not commit" in result.stderr
+
+
+@pytest.fixture
+def g11_repo(tmp_path: Path) -> Path:
+    """A repo in the goal:g11 one-repo layout: the graph root is a `.agi/`
+    directory INSIDE the repo, so AGI_PROJECT_ROOT (the graph root) is a child
+    of the git toplevel, never equal to it."""
+    repo = tempfile.mkdtemp(dir=tmp_path)
+    subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+    (Path(repo) / "readme.md").write_text("# test")
+    subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, capture_output=True, check=True)
+    # graph root: a .agi dir holding config.json, exactly as dispatch.py sees it
+    graph_dir = Path(repo) / ".agi"
+    graph_dir.mkdir()
+    (graph_dir / "config.json").write_text('{"metric_primary": "x", "metric_unit": "", "best_direction": "higher"}')
+    return Path(repo)
+
+
+def _graph_root(g11_repo: Path) -> Path:
+    """The graph root of a g11 repo, asserted through the real resolver so the
+    test is tied to locations.find_project_root, not a hard-coded literal."""
+    resolved = _locations.find_project_root(g11_repo)
+    assert resolved is not None, "resolver did not find the .agi graph root"
+    assert resolved == (g11_repo / ".agi").resolve(), (
+        f"resolver returned {resolved}, expected {g11_repo}/.agi"
+    )
+    return resolved
+
+
+def test_pre_commit_rejects_kid_in_g11_layout(g11_repo: Path):
+    """goal:g11 — AGI_PROJECT_ROOT is the GRAPH root (<repo>/.agi), a child of
+    the git toplevel. A dispatched kid must be refused. Red on the current hook:
+    it compares AGI_PROJECT_ROOT raw against toplevel, they differ, it exits 0."""
+    with_hook(g11_repo)
+    graph_root = _graph_root(g11_repo)
+    (g11_repo / "file_g11.md").write_text("kid change in g11 repo")
+    subprocess.run(["git", "add", "."], cwd=g11_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "kid commit in g11 repo"],
+        cwd=g11_repo, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(graph_root)},
+    )
+    assert result.returncode == 1, (
+        f"g11 kid commit allowed: {result.stdout} / {result.stderr}"
+    )
+    assert "kid may not commit" in result.stderr
+
+
+def test_pre_push_rejects_kid_in_g11_layout(g11_repo: Path):
+    """goal:g11 — the pre-push hook must refuse a kid push when AGI_PROJECT_ROOT
+    is the graph root (<repo>/.agi). Red on the current hook (exits 0)."""
+    graph_root = _graph_root(g11_repo)
+    result = subprocess.run(
+        ["bash", str(HOOKS / "pre-push")],
+        capture_output=True, text=True,
+        cwd=g11_repo,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(graph_root)},
+    )
+    assert result.returncode == 1, (
+        f"g11 kid push allowed: {result.stdout} / {result.stderr}"
+    )
+    assert "kid may not push" in result.stderr
 
 
 def test_pre_commit_allows_kid_in_non_project_repo(temp_repo: Path):
@@ -108,7 +206,7 @@ def test_pre_commit_allows_kid_in_non_project_repo(temp_repo: Path):
     result = subprocess.run(
         ["git", "commit", "-m", "kid commit outside"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(other_root)},
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(other_root)},
     )
     assert result.returncode == 0, (
         f"hook rejected kid commit in non-project repo: {result.stderr}"
@@ -128,7 +226,7 @@ def test_pre_commit_allows_kid_when_project_root_unset(temp_repo: Path):
     result = subprocess.run(
         ["git", "commit", "-m", "kid commit no root"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "kid"},
+        env={**hook_env(), "AGI_TIER": "kid"},
     )
     assert result.returncode == 0, (
         f"hook rejected when AGI_PROJECT_ROOT unset: {result.stderr}"
@@ -144,10 +242,78 @@ def test_pre_commit_rejects_parent(temp_repo: Path):
     result = subprocess.run(
         ["git", "commit", "-m", "parent commit"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "parent", "AGI_PROJECT_ROOT": toplevel},
+        env={**hook_env(), "AGI_TIER": "parent", "AGI_PROJECT_ROOT": toplevel},
     )
     assert result.returncode == 1, f"hook allowed parent commit: {result.stdout}"
     assert "parent may not commit" in result.stderr
+
+
+def test_pre_commit_allows_parent_on_loop_branch(temp_repo: Path):
+    """hypothesis:l3-parent-brief-forbids-the-only-commit — the ONE authorised
+    parent commit: a --branch parent committing onto its own loop/* branch.
+    The loop branch is the only route its kids' work has to the season branch;
+    a branch left at base merges as nothing and reports green (L3.39 loss). So
+    the guard must permit exactly this parent commit and no other.
+
+    Red on the pre-change hook: it refused every parent commit in the project
+    repo regardless of branch, so the brief's authorisation would have been
+    theatre."""
+    with_hook(temp_repo)
+    toplevel = repo_toplevel(temp_repo)
+    subprocess.run(["git", "checkout", "-b", "loop/slug-a00-x@s2"],
+                   cwd=temp_repo, capture_output=True, check=True)
+    (temp_repo / "file_loop.md").write_text("parent loop-branch commit")
+    subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "loop: loop/slug-a00-x@s2 -- accepted kid:n"],
+        cwd=temp_repo, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "parent", "AGI_PROJECT_ROOT": toplevel},
+    )
+    assert result.returncode == 0, (
+        f"hook blocked the one authorised parent commit: {result.stdout} / {result.stderr}"
+    )
+
+
+def test_pre_commit_still_rejects_parent_on_loop_branch_in_wrong_repo(temp_repo: Path):
+    """The loop/* allowance is scoped to the PROJECT repo. A parent on a
+    loop/* branch in a repo that is NOT AGI_PROJECT_ROOT must still be allowed
+    (non-project repos pass the scope check and exit 0 regardless of tier) --
+    this pins that the branch allowance never weakens the OUTSIDE-project rule."""
+    with_hook(temp_repo)
+    other_root = temp_repo.parent / "other-project"
+    other_root.mkdir()
+    subprocess.run(["git", "checkout", "-b", "loop/slug-a00-x@s2"],
+                   cwd=temp_repo, capture_output=True, check=True)
+    (temp_repo / "file_loop2.md").write_text("change")
+    subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "parent commit outside"],
+        cwd=temp_repo, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "parent", "AGI_PROJECT_ROOT": str(other_root)},
+    )
+    assert result.returncode == 0, (
+        f"hook blocked parent commit in non-project repo: {result.stderr}"
+    )
+
+
+def test_pre_commit_still_rejects_kid_on_loop_branch(g11_repo: Path):
+    """The loop/* allowance is for PARENT only. A KID on a loop/* branch in
+    the project repo stays blocked -- kids commit nothing, ever."""
+    with_hook(g11_repo)
+    graph_root = _graph_root(g11_repo)
+    subprocess.run(["git", "checkout", "-b", "loop/slug-a00-y@s2"],
+                   cwd=g11_repo, capture_output=True, check=True)
+    (g11_repo / "file_kid_loop.md").write_text("kid change on loop branch")
+    subprocess.run(["git", "add", "."], cwd=g11_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "kid loop commit"],
+        cwd=g11_repo, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(graph_root)},
+    )
+    assert result.returncode == 1, (
+        f"hook allowed kid commit on loop branch: {result.stdout}"
+    )
+    assert "kid may not commit" in result.stderr
 
 
 def test_pre_push_script_rejects_kid_in_project_repo(temp_repo: Path):
@@ -159,7 +325,7 @@ def test_pre_push_script_rejects_kid_in_project_repo(temp_repo: Path):
         ["bash", str(pre_push)],
         capture_output=True, text=True,
         cwd=temp_repo,
-        env={**os.environ, "AGI_TIER": "kid", "AGI_PROJECT_ROOT": toplevel},
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": toplevel},
     )
     assert result.returncode == 1
     assert "kid may not push" in result.stderr
@@ -174,7 +340,7 @@ def test_pre_push_script_allows_kid_in_non_project_repo(temp_repo: Path):
         ["bash", str(pre_push)],
         capture_output=True, text=True,
         cwd=temp_repo,
-        env={**os.environ, "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(other_root)},
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(other_root)},
     )
     assert result.returncode == 0
     # When hook allows, stderr is empty (no message)
@@ -187,7 +353,7 @@ def test_pre_push_script_allows_human():
     result = subprocess.run(
         ["bash", str(pre_push)],
         capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": ""},
+        env={**hook_env(), "AGI_TIER": ""},
     )
     assert result.returncode == 0
     assert result.stderr.strip() == ''
@@ -202,7 +368,7 @@ def test_git_read_commands_work_despite_hook(temp_repo: Path):
     result = subprocess.run(
         ["git", "status"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "kid"},
+        env={**hook_env(), "AGI_TIER": "kid"},
     )
     assert result.returncode == 0, f"git status failed under AGI_TIER=kid: {result.stderr}"
     assert "file_status.md" in result.stdout
@@ -211,7 +377,7 @@ def test_git_read_commands_work_despite_hook(temp_repo: Path):
     result = subprocess.run(
         ["git", "diff", "--cached"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "kid"},
+        env={**hook_env(), "AGI_TIER": "kid"},
     )
     assert result.returncode == 0, f"git diff failed under AGI_TIER=kid: {result.stderr}"
 
@@ -219,7 +385,7 @@ def test_git_read_commands_work_despite_hook(temp_repo: Path):
     result = subprocess.run(
         ["git", "log", "--oneline", "-1"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": "kid"},
+        env={**hook_env(), "AGI_TIER": "kid"},
     )
     assert result.returncode == 0, f"git log failed under AGI_TIER=kid: {result.stderr}"
 
@@ -234,7 +400,7 @@ def test_hook_exits_zero_for_human_on_pre_push(temp_repo: Path):
     result = subprocess.run(
         ["git", "push", "origin", "master"],
         cwd=temp_repo, capture_output=True, text=True,
-        env={**os.environ, "AGI_TIER": ""},
+        env={**hook_env(), "AGI_TIER": ""},
     )
     combined = result.stdout + result.stderr
     assert "may not push" not in combined, (
@@ -290,7 +456,7 @@ def test_git_config_hooks_path_rejects_commit_in_project(temp_repo: Path):
     (temp_repo / "file_gitcfg.md").write_text("git config test")
     subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
     env = {
-        **os.environ,
+        **hook_env(),
         "AGI_TIER": "kid",
         "AGI_PROJECT_ROOT": toplevel,
         "GIT_CONFIG_COUNT": "1",
@@ -321,7 +487,7 @@ def test_git_config_hooks_path_allows_commit_outside_project(temp_repo: Path):
     (temp_repo / "file_outside.md").write_text("outside project test")
     subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
     env = {
-        **os.environ,
+        **hook_env(),
         "AGI_TIER": "kid",
         "AGI_PROJECT_ROOT": str(other_root),
         "GIT_CONFIG_COUNT": "1",

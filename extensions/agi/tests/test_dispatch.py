@@ -9,6 +9,8 @@ nothing. A defect that quiet deserves a test that is loud.
 from __future__ import annotations
 
 import importlib.util
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -26,6 +28,52 @@ def _load_dispatch():
 
 
 dispatch = _load_dispatch()
+
+
+def test_reaper_restart_inherits_the_iteration_id(tmp_path):
+    """hypothesis:l3-killed-agent-restarts-unattributed, red first.
+
+    A killed agent that is legitimately restarted (`_reap_one`) must acquire
+    its `-rN` lease with the round's iteration id, so `spawn_budget status`
+    attributes the survivor to the round it belongs to instead of iter=None.
+    The 2026-09-08 kill measured three live survivors carrying iter=None that
+    held a round open invisibly; this pins the seam that produced them.
+    """
+    import json as _json
+    root = tmp_path
+    (root / "sessions").mkdir()
+    iter_dir = root / "sessions" / "iter-342"
+    (iter_dir / "a00-abc123-r1").mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            self.called = kw
+            return 12345
+
+    ada = FakeAdapter()
+    rec = {
+        "id": "a00-abc123",
+        "tier": "parent",
+        "node_id": "",
+        "status": "running",
+        "pid": 999,
+        "restart_count": 0,
+        "iter": 342,
+    }
+    outcome = dispatch._reap_one(
+        root, iter_dir, ada, rec, "a00-abc123", 999,
+        cap=10, cfg={"reaper": {"max_restarts": 1}})
+    assert outcome["record"]["status"] == "running"
+    import spawn_budget as _sb
+    leases = [_json.loads(p.read_text())
+              for p in _sb.budget_dir(root).glob("*.lease")]
+    assert leases, "a restart should have left a lease"
+    assert any(r.get("agent_id", "").endswith("-r1")
+               and r.get("iter") == 342 for r in leases), (
+        f"restart lease must carry the round's iteration, got {leases}")
 
 
 def build(cfg: dict, tmp_path: Path) -> list[str]:
@@ -174,6 +222,39 @@ def test_aiming_does_not_scaffold_a_parentless_idea():
     level, target, _s = dispatch._explicit_targets("hypothesis:x", None, "s", 1)[0]
     assert dispatch._node_type_for(level, target, None) == "experiment"
     assert dispatch._node_type_for("big", None, None) == "idea"
+
+
+def test_leaf_recency_boost_fires():
+    """idea:frontier-invitation / l3-frontier-successor-derivable.
+
+    The 1.2x leaf bump used to be `desc * 1.2`, and `_descendant_count`
+    returns 0 for a leaf, so the boost was dead on arrival: `0 * 1.2 == 0.0`
+    and every chain tip scored 0.0 and sorted last. The fix floors the
+    descendant term at 1; these assert the boost now means something.
+    """
+    boosted = dispatch._attractiveness(0, 1.2, 0.0, "idea")
+    plain = dispatch._attractiveness(0, 1.0, 0.0, "idea")
+    assert boosted > 0.0, "a leaf must no longer be condemned to score 0"
+    assert boosted > plain, "the 1.2x leaf bump must actually change the score"
+    # And the floor is identity for every non-leaf (desc >= 1 already).
+    assert dispatch._attractiveness(3, 1.0, 0.0, "idea") == 3.0
+    assert dispatch._attractiveness(3, 1.2, 0.0, "idea") == pytest.approx(3.6)
+
+
+def test_leaf_boost_is_small_relative_to_an_extended_chain():
+    """The floor must not let a lone leaf dwarf a real chain: one descendant
+    (desc=1, no leaf bump) must still outrank an empty leaf (desc floored to
+    1 with the bump) for the same type and diversity."""
+    chain = dispatch._attractiveness(2, 1.0, 0.0, "idea")
+    leaf = dispatch._attractiveness(0, 1.2, 0.0, "idea")
+    assert chain > leaf
+
+
+def test_attractiveness_type_weighting_preserved():
+    assert dispatch._attractiveness(1, 1.0, 0.0, "hypothesis") == pytest.approx(1.4)
+    assert dispatch._attractiveness(1, 1.0, 0.0, "experiment") == pytest.approx(1.2)
+    assert dispatch._attractiveness(1, 1.0, 0.0, "verdict") == pytest.approx(1.1)
+    assert dispatch._attractiveness(1, 1.0, 0.0, "idea") == pytest.approx(1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -462,6 +543,125 @@ def test_an_unavailable_restart_fails_the_agent_rather_than_raising(tmp_path, mo
     assert "restart unavailable" in out["record"]["fail_reason"]
 
 
+def _branch_repo(tmp_path):
+    """A real little git repo: `main` with one commit, `loop/x` cut from it
+    with `n` commits on top. Returns (graph_root, branch, base)."""
+    from subprocess import run
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / ".agi").mkdir()
+    (root / "config.json").write_text("{}")
+
+    def g(*args):
+        run(["git", "-C", str(root), *args], check=True,
+            capture_output=True, text=True)
+
+    g("init", "-q", "-b", "main")
+    g("config", "user.email", "t@t")
+    g("config", "user.name", "t")
+    (root / "f").write_text("base\n")
+    g("add", "f")
+    g("commit", "-q", "-m", "base")
+    g("checkout", "-q", "-b", "loop/x")
+    for i in range(2):
+        (root / "f").write_text((root / "f").read_text() + f"{i}\n")
+        g("add", "f")
+        g("commit", "-q", "-m", f"c{i}")
+    # back on main so the worktree state mirrors a real main checkout
+    g("checkout", "-q", "main")
+    return root, "loop/x", "main"
+
+
+def test_a_branch_agent_reaped_carries_commits_ahead(tmp_path, monkeypatch):
+    """hypothesis:l3w4-branch-visibility — a `--branch` agent reaped by the
+    reaper gets `commits_ahead` COMPUTED (rev-list main..branch == 2), never
+    hand-counted, in the record that lands in agent.json."""
+    d = _load_dispatch()
+    graph, branch, base = _branch_repo(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid",
+                       "branch": branch, "base_branch": base},
+                      "a00", 999, cap=5, cfg={})
+
+    assert out["record"]["status"] == "done-unreported"
+    assert out["record"]["commits_ahead"] == 2
+    assert isinstance(out["record"]["commits_ahead"], int)
+    assert adapter.calls == []
+
+
+def test_commits_ahead_is_present_and_zero_for_no_commits(tmp_path, monkeypatch):
+    """A branch cut but never advanced still stamps `commits_ahead == 0` —
+    present and correct, not dropped as 'not ahead'."""
+    d = _load_dispatch()
+    graph, branch, base = _branch_repo(tmp_path)
+    from subprocess import run as _run
+    _run(["git", "-C", str(graph), "checkout", "-q", "-b", "loop/zero",
+          "main"], check=True)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid",
+                       "branch": "loop/zero", "base_branch": base},
+                      "a00", 999, cap=5, cfg={})
+
+    assert out["record"]["commits_ahead"] == 0
+
+
+def test_a_non_branch_agents_record_is_unchanged(tmp_path, monkeypatch):
+    """No branch/base_branch -> no commits_ahead key at all; the record is
+    byte-for-byte the same shape as before the change."""
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    adapter = _FakeAdapter(pid=4242)
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+
+    out = d._reap_one(graph, graph / "sessions" / "iter-1", adapter,
+                      {"node_id": "hypothesis:h1", "tier": "kid"},
+                      "a00", 999, cap=5, cfg={})
+
+    assert "commits_ahead" not in out["record"]
+    assert out["record"]["status"] == "done-unreported"
+
+
+def test_reaped_branch_agent_manifest_entry_gets_commits_ahead(tmp_path, monkeypatch):
+    """The manifest.json entry mirrors agent.json: after a branch agent is
+    reaped, both carry the same commits_ahead, so the round file and the
+    manifest agree (hypothesis:l3w4-branch-visibility, 'in both')."""
+    d = _load_dispatch()
+    graph, branch, base = _branch_repo(tmp_path)
+    iter_dir = graph / "sessions" / "iter-1"
+    sess_dir = iter_dir / "a00"
+    sess_dir.mkdir(parents=True)
+    rec = {"id": "a00", "pid": 4242, "status": "running", "tier": "kid",
+           "node_id": "hypothesis:h1", "branch": branch,
+           "base_branch": base}
+    (sess_dir / "agent.json").write_text(d.json.dumps(rec, indent=2))
+    manifest = {"agents": [dict(rec)]}
+    (iter_dir / "manifest.json").write_text(d.json.dumps(manifest, indent=2))
+
+    class _Dead(_FakeAdapter):
+        def is_alive(self, pid):
+            return False
+
+    import completion
+    monkeypatch.setattr(completion, "is_complete", lambda root, nid: True)
+    d._reaper_phase(graph, iter_dir, _Dead(), timeout_s=1, max_wait_s=1,
+                    cap=5, cfg={})
+
+    from json import loads
+    agent = loads((sess_dir / "agent.json").read_text())
+    man = loads((iter_dir / "manifest.json").read_text())
+    assert agent["commits_ahead"] == 2
+    assert man["agents"][0]["commits_ahead"] == 2
+
+
 def test_the_mint_call_is_guarded_by_needs_credential():
     """goal:s34 item 2 — the red-on-purpose half of the experiment
     experiment:a00-d315f97b-8ec39a. The simulation the first draft of this
@@ -587,6 +787,132 @@ def test_default_tier_for_role():
     assert dispatch._default_tier_for_role("prime_director") == 3
 
 
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-seat-registry — resolve a named seat -> spec.
+#
+# config:seats declares one row per seat; a seat's own cells override the
+# ladder's (tier, role) class table. Missing registry / no row fails open.
+# ---------------------------------------------------------------------------
+
+
+def _seats():
+    return [
+        {"name": "belam", "role": "prime_director", "tier": 3,
+         "harness": "claude-code", "model": "claude-fable-5-1",
+         "effort": "max", "settings": "ultracode"},
+        {"name": "liaison", "role": "director", "tier": 1,
+         "harness": "claude-code", "model": "claude-sonnet-5",
+         "effort": "high", "settings": ""},
+    ]
+
+
+def test_resolve_seat_spec_liaison_returns_sonnet_high_not_opus():
+    """The liaison seat diverges from its director class (opus/max): the seat
+    row names sonnet/high. Seat cells override the (tier, role) table."""
+    spec = dispatch.resolve_seat_spec(_seats(), "liaison")
+    assert spec is not None
+    assert spec["from_seat"] is True
+    assert spec["model"] == "claude-sonnet-5"
+    assert spec["effort"] == "high"
+    assert spec["model"] != "claude-opus-5"   # not the class table's opus
+
+
+def test_dispatch_seat_flag_overrides_role_and_ladder_tier():
+    """A seat is a more specific key than (tier, role): belam resolves its own
+    fable-5.1/max row, not the tier-3 parent class opus/max."""
+    spec = dispatch.resolve_seat_spec(_seats(), "belam")
+    assert spec is not None
+    assert spec["model"] == "claude-fable-5-1"
+    assert spec["effort"] == "max"
+    assert spec["settings"] == "ultracode"
+
+
+def test_resolve_seat_spec_none_when_missing_fails_open():
+    """No registry or no row -> None, so dispatch falls back to the ladder's
+    (tier, role) lookup. A missing seat must never break dispatch."""
+    assert dispatch.resolve_seat_spec(None, "liaison") is None
+    assert dispatch.resolve_seat_spec(_seats(), "nobody") is None
+    assert dispatch.resolve_seat_spec([], "belam") is None
+
+
+def test_resolve_seat_spec_thinking_is_none_when_blank():
+    """Hypothesis l3w4-director-kids-on-glm — a seat row that omits
+    `thinking` (all of today) must resolve the cell to None so the adapter
+    emits no --thinking flag rather than a bare one."""
+    spec = dispatch.resolve_seat_spec(_seats(), "liaison")
+    assert spec is not None
+    assert spec["thinking"] is None
+    sx = dispatch.resolve_seat_spec(
+        [{"name": "glm", "role": "director", "tier": 1,
+          "harness": "pi", "model": "~z-ai/glm-flash-latest",
+          "effort": "", "thinking": "high", "settings": ""}], "glm")
+    assert sx is not None
+    assert sx["thinking"] == "high"
+
+
+def test_thinking_cell_wins_over_config_default():
+    """Hypothesis l3w4-director-kids-on-glm — when a ladder/seat row names
+    `thinking`, that cell is threaded onto the harness so model_args emits
+    `--thinking <cell>` (the configured/tier default loses). On a row with no
+    thinking cell the spec carries None and default stands."""
+    rows = [{"tier": 1, "role": "director", "harness": "pi",
+             "model": "~z-ai/glm-flash-latest", "effort": "",
+             "thinking": "high", "settings": ""}]
+    spec = dispatch.resolve_role_spec(_cfg(), rows, 1, "director")
+    assert spec["from_ladder"] is True
+    assert spec["thinking"] == "high"
+    assert spec["model"] == "~z-ai/glm-flash-latest"
+    blank = dispatch.resolve_role_spec(_cfg(), _roles(), 0, "kid")
+    assert blank["thinking"] is None
+
+
+def test_default_role_follows_tier():
+    """hypothesis:l3-dispatch-role-default — a bare --tier must not resolve
+    the tier-0 kid row. Tier parent means role parent; tier kid means role
+    kid; an explicit --role still wins over both."""
+    assert dispatch._default_role_for_tier("parent") == "parent"
+    assert dispatch._default_role_for_tier("kid") == "kid"
+    assert dispatch._default_role_for_tier("prime_director") == "prime_director"
+
+
+def test_parent_tier_without_role_resolves_parent_row():
+    """The bug this pins: dispatch --tier parent (no --role) used to fall
+    through to the tier-0 kid row (deepseek) because --role defaulted to
+    'kid'. After the fix the resolved spec must be the tier-1 parent row
+    (glm-flash-latest), not the kid model."""
+    role = dispatch._default_role_for_tier("parent")
+    spec = dispatch.resolve_role_spec(_cfg(), _roles(),
+                                      dispatch._default_tier_for_role(role), role)
+    assert spec["from_ladder"] is True
+    assert spec["model"] == "~z-ai/glm-flash-latest"
+
+
+# hypothesis:l3w3-advisor-brief — route tier-3 vision spawns to the advisor brief
+# ------------------------------------------------------------
+
+
+def test_brief_tier_routes_tier3_vision_parent_to_advisor():
+    """The gap from l3w3-advisor-brief (addendum after L3.11): `dispatch.py
+    --tier parent --ladder-tier 3 --target vision:<id>` still assembled the
+    generic parent brief. An advisor sent out with the parent's job
+    description would never sit the tier3-quorum or spawn its perpetual-goal
+    director. When the spawn tier is parent, the ladder tier is 3 AND the
+    target names a vision node, the brief tier must become `advisor` (the
+    model/role still resolve as parent)."""
+    assert dispatch._brief_tier_for("parent", 3, "vision:alive") == "advisor"
+    assert dispatch._brief_tier_for("parent", 3, "vision:self-perpetuating") == "advisor"
+
+
+def test_brief_tier_stays_parent_for_any_other_target():
+    """Only a tier-3 parent aimed at a vision node becomes an advisor. A
+    tier-3 parent aimed at a goal, unaimed, or at a lower ladder tier keeps
+    the generic parent brief."""
+    assert dispatch._brief_tier_for("parent", 3, "goal:g12.3") == "parent"
+    assert dispatch._brief_tier_for("parent", 3, None) == "parent"
+    assert dispatch._brief_tier_for("parent", 2, "vision:alive") == "parent"
+    assert dispatch._brief_tier_for("kid", 3, "vision:alive") == "kid"
+
+
 def test_dispatch_exports_agi_role_env():
     """Every spawn must carry AGI_ROLE so node_writer can stamp `role:` at
     mint. AST check -- dispatch writes spawn_env after Popen is built, so the
@@ -602,3 +928,520 @@ def test_dispatch_exports_agi_role_env():
                         and t.slice.value == "AGI_ROLE"):
                     return
     pytest.fail("dispatch.py must export AGI_ROLE into the spawn environment")
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w3-advisor-brief addendum after L3.12 — the --goal flag threads
+# the pinned perpetual goal into the advisor brief via the environment, so a
+# spawn reads it through assemble without every harness adapter gaining a new
+# keyword (claude_code_adapter.py is another kid's this round).
+# ---------------------------------------------------------------------------
+
+def test_goal_flag_sets_the_advisor_goal_env():
+    """`apply_advisor_goal_env` seeds AGI_ADVISOR_GOAL from --goal and clears
+    it when the flag is absent (a fresh process per dispatch, so a stale value
+    from a prior test never leaks into a real spawn here)."""
+    dispatch.apply_advisor_goal_env("goal:g15")
+    assert os.environ.get("AGI_ADVISOR_GOAL") == "goal:g15"
+    dispatch.apply_advisor_goal_env(None)
+    assert "AGI_ADVISOR_GOAL" not in os.environ
+
+
+def test_goal_flag_is_accepted_by_the_dispatch_argparser():
+    """The flag has to exist on the dispatch CLI, not just the env helper. An
+    AST-free structural check: `--goal` is registered as a command-line
+    argument, so `dispatch.py ... --goal goal:g15` parses."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    found = any(
+        isinstance(n, ast.Call)
+        and getattr(n.func, "attr", "") == "add_argument"
+        and any(isinstance(a, ast.Constant) and a.value == "--goal" for a in n.args)
+        for n in ast.walk(tree)
+    )
+    assert found, "dispatch.py must register a --goal command-line flag"
+
+
+def test_scaffold_stamps_the_child_row_not_the_spawner_env(tmp_path, monkeypatch):
+    """hypothesis:l3-scaffold-stamps-spawner-env — the red-first build gate.
+
+    A dispatch-spawned scaffold used to be stamped from the DISPATCHER's
+    os.environ (node_writer reads AGI_LOOP/AGI_MODEL/AGI_PROFILE/AGI_ROLE at
+    mint time), so a kid or advisor spawned under a parent inherited the
+    PARENT's role/model/loop: every child was born role=parent model=glm. The
+    fix resolves the child's row in dispatch BEFORE scaffolding and hands it
+    to node_writer as an explicit `stamp`, which wins over the env.
+
+    This test simulates the parent dispatcher's env still holding the spawner
+    identity while the child row names the kid, scaffolds through the actual
+    dispatch routine, and asserts the minted node carries the CHILD's stamps
+    -- not the parent's env. Green here is the build Verdict-proved requires.
+    """
+    import yaml as _yaml
+
+    d = _load_dispatch()
+    root = tmp_path
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    (root / "nodes" / "hypothesis" / "seed.md").write_text(
+        "---\nid: hypothesis:seed\n---\nseed\n")
+    (root / "agi-tree.config.json").write_text("{}")
+
+    # The spawner (parent dispatcher) holds its OWN identity in os.environ.
+    monkeypatch.setenv("AGI_ROLE", "parent")
+    monkeypatch.setenv("AGI_MODEL", "claude-opus-5")
+    monkeypatch.setenv("AGI_LOOP", "vision:alive@s2")
+    monkeypatch.setenv("AGI_PROFILE", "ultracode")
+    monkeypatch.setenv("AGI_SEASON", "7")
+
+    # The child row dispatch resolves before scaffolding: a kid on the pi
+    # harness aimed at a hypothesis extends it into an experiment.
+    child = {
+        "role": "kid",
+        "loop": "hypothesis:seed@s2",
+        "model": "~deepseek/deepseek-v4-flash-latest",
+        "profile": "balanced",
+        "season": "2",
+    }
+
+    info = d._scaffold_node_for_agent(root, 1, "a00-stubchild", "small",
+                                      "hypothesis:seed", role="kid", stamp=child)
+    assert info, "scaffold must write a node"
+    fm = _yaml.safe_load(Path(info["path"]).read_text().split("---", 2)[1])
+    assert fm["role"] == "kid", "node must carry the CHILD's role, not the parent's env"
+    assert fm["model"] == "~deepseek/deepseek-v4-flash-latest"
+    assert fm["loop"] == "hypothesis:seed@s2"
+    assert fm["profile"] == "balanced"
+    assert fm["season"] == 2
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-parent-branch-merge-up — dispatch.py --branch worktrees
+# ---------------------------------------------------------------------------
+# The dispatch half of the claim: `--branch` cuts each spawn its own git
+# worktree on loop/<slug>-<agent8>@s<N> OFF the SPAWNER's branch, the child
+# edits only that worktree (cwd + AGI_TREE_PROJECT_ROOT), and the lease /
+# agent record carry branch/base_branch/worktree for season.py merge-up.
+# Red-first: these were written before the helpers existed; the real-git
+# tests fail when the worktree is missing or is rooted at the wrong layer.
+
+
+def _git_repo(tmp_path: Path, branch: str = "init") -> Path:
+    """git-init a project-looking repo with a committed `.agi/` graph, so
+    worktrees cut from it carry their own graph (`.agi/` is tracked)."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
+
+
+def test_loop_branch_name_carries_slug_agent_and_season():
+    """ADDENDUM item 3: the agent id rides in the branch name so nested layers
+    never collide; the slug tells a human which aim the branch carries."""
+    assert (dispatch.loop_branch_name("hypothesis:l3w4-x", "a00-abc8", 2)
+            == "loop/hypothesis-l3w4-x-a00-abc8@s2")
+    # colon flattened, explore fallback, season stamped
+    assert dispatch.loop_branch_name(None, "a00-x", 1) == "loop/explore-a00-x@s1"
+    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) == "loop/mvp-g-kid1@s3"
+
+
+def test_spawner_base_branch_returns_the_checked_out_branch(tmp_path):
+    """ADDENDUM item 1: a new branch's base is the SPAWNER's branch, never a
+    hardcoded season. This helper is what reads the spawner's HEAD."""
+    repo = _git_repo(tmp_path)
+    assert dispatch.spawner_base_branch(repo) == "init"
+    subprocess.run(["git", "-C", str(repo), "checkout", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    assert dispatch.spawner_base_branch(repo) == "season/s1"
+
+
+def test_spawner_base_branch_none_when_detached(tmp_path):
+    """A detached HEAD has no branch to base a child on — the helper must say
+    so (return None) rather than hand a caller a wrong branch name."""
+    repo = _git_repo(tmp_path)
+    subprocess.run(["git", "-C", str(repo), "checkout", "--detach"],
+                   check=True, capture_output=True)
+    assert dispatch.spawner_base_branch(repo) is None
+
+
+def test_branch_worktree_for_spawn_cuts_from_the_spawner_branch(tmp_path):
+    """The real claim: `git worktree add <main>/.agi/worktrees/<agent>
+    -b loop/<slug>-<agent8>@s<N> <spawner-branch>`. The worktree lands under
+    the MAIN checkout's `.agi/worktrees/` and its tip EQUALS the recorded base
+    branch (here a director layer, not the season) — so merge-up climbs one
+    layer at a time and not straight to the season."""
+    repo = _git_repo(tmp_path)
+    subprocess.run(["git", "-C", str(repo), "checkout", "-b",
+                    "tier1/director"], check=True, capture_output=True)
+    (repo / "d.txt").write_text("director layer work\n")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "director work"],
+                   check=True, capture_output=True)
+
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/explore-a00-xy@s2", "a00-xy", "tier1/director")
+
+    # Worktree under the MAIN checkout's `.agi/worktrees/<agent>/`.
+    assert str(wt) == str(repo / ".agi" / "worktrees" / "a00-xy")
+    assert wt.is_dir()
+    # The branch exists and is based on the SPAWNER's layer, not the season.
+    branches = subprocess.run(["git", "-C", str(repo), "branch", "--list",
+                               "loop/explore-a00-xy@s2"], capture_output=True,
+                              text=True)
+    assert "loop/explore-a00-xy@s2" in branches.stdout
+    tip = subprocess.run(["git", "-C", str(repo), "log", "--oneline",
+                          "loop/explore-a00-xy@s2", "-1"], capture_output=True,
+                         text=True).stdout.strip()
+    base = subprocess.run(["git", "-C", str(repo), "log", "--oneline",
+                           "tier1/director", "-1"], capture_output=True,
+                          text=True).stdout.strip()
+    assert tip == base, ("the loop branch must sit on the SPAWNER's "
+                         "director layer, not an empty season base")
+
+
+def test_child_graph_resolves_to_the_worktrees_own_agi(tmp_path):
+    """The kid edits only its own worktree: from inside the worktree the graph
+    root resolves to the worktree's `.agi/`, so its node/scaffold writes land
+    there and nowhere near another agent's tree."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-zz@s1", "a00-zz", "init")
+    graph = dispatch.locations.find_project_root(wt)
+    assert graph == (wt / ".agi").resolve()
+
+
+def test_branch_kid_argv_shares_the_worktree_prefix(tmp_path, monkeypatch):
+    """hypothesis:l3-branch-source-paths-never-rerooted, the red-first proof.
+
+    dispatch.py re-roots the child GRAPH (`child_working_graph`) but, before
+    the fix, left `cli_py` / `skill_prompt` / `dispatch_py` as module
+    constants of the RUNNING (main) dispatch.py. A `--branch` kid's argv
+    therefore carried a worktree-absolute scaffold path BESIDE main-absolute
+    engine paths — and the model followed the only source anchor it was
+    given, main. `child_engine_paths` re-roots all four through
+    `locations.source_root` and the brief states the checkout out loud, so a
+    `--branch` kid's argv must contain NO absolute path outside the worktree
+    prefix: the real main checkout must never appear in it.
+    """
+    monkeypatch.setenv("AGI_PI_FORGIVENESS_BYPASS", "1")
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/explore-a00-test@s2", "a00-test", "init")
+    child_graph = dispatch.locations.find_project_root(wt)
+    assert child_graph == (wt / ".agi").resolve()
+
+    # The re-rooted candidates only exist when the worktree carries an engine
+    # layout; the minimal test repo has none, so give the worktree one.
+    for rel in ("extensions/agi/bin/cli.py",
+                "extensions/agi/bin/dispatch.py",
+                "extensions/agi/lib/agent-prompt.md"):
+        p = wt / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# engine placeholder\n", encoding="utf-8")
+
+    engine_paths = dispatch.child_engine_paths(child_graph)
+
+    ctx = wt / "ctx.md"
+    ctx.write_text("placeholder\n", encoding="utf-8")
+    sess = wt / "sess"
+    sess.mkdir(parents=True, exist_ok=True)
+    argv = dispatch.adapters.load("pi").build_command(
+        harness={"adapter": "pi", "models": {}}, tier="kid",
+        context_file=str(ctx), agent_id="a00-test", iter_n=1,
+        sess_dir=sess, scaffold=None,
+        cli_py=engine_paths["cli_py"],
+        skill_prompt=engine_paths["skill_prompt"],
+        dispatch_py=engine_paths["dispatch_py"],
+        source_root=engine_paths["source_root"],
+    )
+
+    text = "\n".join(str(a) for a in argv)
+    wt_pref = str(wt.resolve())
+    bad = [p for p in re.findall(r"/\\S+", text)
+           if not p.startswith(wt_pref)]
+    assert not bad, (
+        "a --branch kid's argv carries an absolute path outside its own "
+        f"worktree ({wt_pref}): {bad}. The engine must be re-rooted to the "
+        "child checkout, never left at the running dispatch's main "
+        "constants."
+    )
+    assert f"YOUR CHECKOUT: {wt_pref}" in text, (
+        "the brief must state the kid's own checkout out loud")
+
+
+def test_branch_spawn_anchors_cohere_on_the_single_worktree_root(tmp_path, monkeypatch):
+    """hypothesis:l3-branch-isolation-partial-break. The candidate-1 fix at
+    hypothesis:l3-branch-source-paths-never-rerooted re-roots engine paths and
+    states the checkout out loud, but each anchor is asserted separately: the
+    argv test checks paths, the env test checks AGI_TREE_PROJECT_ROOT, and
+    nothing checks that the Popen cwd, the env root, the re-rooted engine
+    paths AND the brief's stated checkout all resolve to the SAME single
+    worktree root. A disagreement among the four -- a main checkout serving as
+    cwd or as the brief's source root while the nodes land in a worktree -- is
+    exactly the partial-break signature this hypothesis named. Cohesion is the
+    property the partial break destroyed: assert one worktree root holds all
+    four, and that the real main checkout never appears in the launch bundle.
+    """
+    import os
+    monkeypatch.setenv("AGI_PI_FORGIVENESS_BYPASS", "1")
+    repo = _git_repo(tmp_path)
+    main_root = os.path.realpath(str(repo))
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/explore-a00-test@s2", "a00-test", "init")
+
+    # The re-rooted candidates only exist when the worktree carries an engine
+    # layout; the minimal test repo has none, so give the worktree one.
+    for rel in ("extensions/agi/bin/cli.py",
+                "extensions/agi/bin/dispatch.py",
+                "extensions/agi/lib/agent-prompt.md"):
+        p = wt / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# engine placeholder\n", encoding="utf-8")
+
+    child_graph = dispatch.locations.find_project_root(wt)
+    engine_paths = dispatch.child_engine_paths(child_graph)
+
+    # The four anchors exactly as dispatch.main assembles them for --branch.
+    wt_root = os.path.realpath(str(wt))
+    cwd = os.path.realpath(str(wt))            # Popen(cwd=str(branch_root))
+    env_root = os.path.realpath(str(wt))       # AGI_TREE_PROJECT_ROOT
+    src_root = os.path.realpath(str(engine_paths["source_root"]))
+    cli = os.path.realpath(str(engine_paths["cli_py"]))
+    skill = os.path.realpath(str(engine_paths["skill_prompt"]))
+    dp = os.path.realpath(str(engine_paths["dispatch_py"]))
+
+    assert wt_root != main_root, "sanity: the worktree is a distinct checkout"
+
+    # No anchor may escape the worktree, and the main checkout must never appear.
+    for name, a in (("cwd", cwd), ("env_root", env_root), ("source_root", src_root),
+                    ("cli_py", cli), ("skill_prompt", skill), ("dispatch_py", dp)):
+        assert a.startswith(wt_root), (
+            f"anchor {name}={a} escapes the worktree root {wt_root}; "
+            f"main is {main_root}. The --branch spawn must launch wholly inside "
+            "the worktree, not split across trees.")
+        assert not a.startswith(main_root) or a.startswith(wt_root), (
+            f"anchor {name}={a} resolves into the MAIN checkout {main_root}")
+
+    # Cohesion: cwd, env root, and the brief's stated checkout are one root.
+    assert src_root == wt_root, (
+        f"the brief's stated checkout {src_root} must equal the process cwd "
+        f"{cwd} - a split is the partial-break signature")
+    assert env_root == wt_root, (
+        f"AGI_TREE_PROJECT_ROOT {env_root} must equal the brief root {wt_root}")
+
+
+def test_dispatch_branch_flag_is_registered():
+    """The flag has to exist on the dispatch CLI. Structural, AST-free: the
+    literal `--branch` must be handed to add_argument."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    found = any(
+        isinstance(n, ast.Call)
+        and getattr(n.func, "attr", "") == "add_argument"
+        and any(isinstance(a, ast.Constant) and a.value == "--branch"
+                for a in n.args)
+        for n in ast.walk(tree)
+    )
+    assert found, "dispatch.py must register a --branch command-line flag"
+
+
+def test_dispatch_branch_exports_agi_tree_project_root_to_the_child():
+    """Under --branch the child is told its project root is the WORKTREE (via
+    AGI_TREE_PROJECT_ROOT, the env project_root_from_env checks first), so its
+    node + grid ops edit only that tree while shared budget/comms/meter go to
+    the main checkout. AST check — dispatch writes spawn_env after Popen is
+    built, so the literal in the source is the only seam that proves it."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    found = any(
+        isinstance(n, ast.Assign)
+        and any(
+            isinstance(t, ast.Subscript)
+            and isinstance(t.slice, ast.Constant)
+            and t.slice.value == "AGI_TREE_PROJECT_ROOT"
+            for t in n.targets)
+        for n in ast.walk(tree)
+    )
+    assert found, ("dispatch.py must export AGI_TREE_PROJECT_ROOT into the "
+                   "spawn environment on the --branch path")
+    # spawn scripts also route `cwd` to the worktree root, not the main one.
+    assert "cwd=str(branch_root)" in src, (
+        "dispatch.py must launch the child from the worktree root (branch_root)")
+
+
+def test_child_working_root_inherits_spawner_worktree_not_main(tmp_path):
+    """L3.30 runtime defect (Belam VII): a parent spawned with `--branch`
+    runs in its own worktree, and when it spawns a KID (--tier kid, no
+    --branch) the kid must inherit that worktree as its working tree.
+    Red-first: with the spawner's AGI_TREE_PROJECT_ROOT naming the worktree,
+    `child_working_graph` must re-root the kid to the worktree's `.agi/`
+    EVEN WHEN the passed project path resolves to the main checkout — the
+    exact collapse Belam measured, where both worktrees stood empty while
+    every kid's edits landed in the main tree."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-zz@s1", "a00-zz", "init")
+    main_graph = dispatch.locations.find_project_root(repo)
+    wt_graph = dispatch.locations.find_project_root(wt)
+    assert main_graph != wt_graph, "sanity: the worktree has its own graph"
+
+    # Parent passed the MAIN checkout path, but AGI_TREE_PROJECT_ROOT names
+    # the spawner's worktree → the kid edits the worktree, not main.
+    kid_root = dispatch.child_working_graph(
+        passed_root=main_graph,
+        spawner_env_root=str(wt.resolve()))
+    assert kid_root == wt_graph, (
+        "a kid spawned by a --branch parent must edit the parent's worktree, "
+        "not walk back out to the main checkout")
+
+
+def test_child_working_root_unchanged_without_a_worktree_spawner(tmp_path):
+    """The re-root only fires when a dispatched --branch parent is the
+    spawner. A top-level dispatch (seat/cron, no AGI_TREE_PROJECT_ROOT) must
+    resolve exactly as before; so must a spawn whose env value names the same
+    tree it was passed."""
+    repo = _git_repo(tmp_path)
+    main_graph = dispatch.locations.find_project_root(repo)
+    # No spawner env → identity.
+    assert dispatch.child_working_graph(passed_root=main_graph,
+                                        spawner_env_root=None) == main_graph
+    # Env names the SAME tree as passed → identity.
+    assert dispatch.child_working_graph(passed_root=main_graph,
+                                        spawner_env_root=str(repo)) == main_graph
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum
+# ---------------------------------------------------------------------------
+# A `--push-further` re-dispatch is REFUSED (exit 2) before any slot is
+# admitted when --target names an overview/vision/moral node, so a
+# push-further chain can loop through kid/parent/director tiers but never
+# auto-continue INTO quorum-judged territory. Red-first: the gate and the
+# flag threading are unit-tested against the real dispatch helpers.
+
+
+def _make_node(root: Path, node_type: str, slug: str, fm: dict | None = None):
+    d = root / "nodes" / node_type
+    d.mkdir(parents=True, exist_ok=True)
+    body = "---\n" + f"id: {node_type}:{slug}\ntype: {node_type}\n"
+    for k, v in (fm or {}).items():
+        if isinstance(v, str):
+            body += f"{k}: {v}\n"
+        else:
+            body += f"{k}: {v}\n"
+    body += "---\n"
+    (d / f"{slug}.md").write_text(body)
+    return f"{node_type}:{slug}"
+
+
+def test_push_further_gate_refuses_quorum_targets(tmp_path):
+    """overview/vision/moral are the node types a push stops before."""
+    for t in ("overview", "vision", "moral"):
+        node_id = _make_node(tmp_path, t, f"seed-{t}")
+        gate = dispatch._push_further_gate(tmp_path, node_id)
+        assert gate is not None, f"must refuse {t}"
+        code, msg = gate
+        assert code == 2
+        assert "quorum-judged" in msg
+
+
+def test_push_further_gate_requires_a_target(tmp_path):
+    code, msg = dispatch._push_further_gate(tmp_path, None)
+    assert code == 2
+    assert "--target" in msg
+
+
+def test_push_further_gate_allows_hypothesis_and_missing(tmp_path):
+    """A hypothesis (or an unresolved id) is NOT the quorum stop — the flag
+    threads through and the dispatch proceeds (zoom will surface a bad id)."""
+    assert dispatch._push_further_gate(tmp_path, "hypothesis:seed") is None
+    node_id = _make_node(tmp_path, "hypothesis", "seed")
+    assert dispatch._push_further_gate(tmp_path, node_id) is None
+
+
+def test_target_node_type_resolves_frontmatter(tmp_path):
+    _make_node(tmp_path, "vision", "seed")
+    assert dispatch._target_node_type(tmp_path, "vision:seed") == "vision"
+    assert dispatch._target_node_type(tmp_path, "hypothesis:absent") is None
+
+
+def test_zoom_command_threads_push_further(tmp_path):
+    cmd = dispatch.zoom_command(tmp_path, 3, "a00", "small", "hypothesis:x",
+                                push_further=True)
+    assert "--push-further" in cmd
+    cmd2 = dispatch.zoom_command(tmp_path, 3, "a00", "small", "hypothesis:x")
+    assert "--push-further" not in cmd2
+
+
+def test_scaffold_push_further_stamps_pushed_from(tmp_path):
+    """A continuation kid's scaffold carries `pushed_from: <target>` so the
+    re-dispatch leaves a trace of which node it was pushed from."""
+    import yaml as _yaml
+    root = tmp_path
+    node_id = _make_node(root, "hypothesis", "seed")
+    info = dispatch._scaffold_node_for_agent(
+        root, 1, "a00-push", "small", node_id, role="kid",
+        stamp={"role": "kid", "loop": f"{node_id}@s2", "model": "m", "profile": "b", "season": 2},
+        extra_fm={"pushed_from": node_id})
+    assert info, "push-further scaffold must write a node"
+    fm = _yaml.safe_load(Path(info["path"]).read_text().split("---", 2)[1])
+    assert fm["pushed_from"] == node_id
+
+
+# --------------------------- the model/provider guard on the SPAWN path ----
+
+def _guard_project(tmp_path: Path, model: str) -> Path:
+    """Minimal project whose pi harness resolves `model` for the kid tier."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text(
+        '{"metric_primary": "outcome_coverage",'
+        ' "spawn": {"harness": "pi", "parallel": 1},'
+        ' "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",'
+        '                      "models": {"kid": "' + model + '"}}}}')
+    return tmp_path
+
+
+def _run_dispatch(root: Path):
+    return subprocess.run(
+        [sys.executable, str(BIN / "dispatch.py"), str(root), "1",
+         "--tier", "kid", "--dry-run"],
+        capture_output=True, text=True)
+
+
+def test_dispatch_refuses_a_claude_alias_on_an_openrouter_harness(tmp_path):
+    """hypothesis:l3-workflow-model-crosses-harness-namespace, spawn-path half.
+
+    workflow.py has refused this since the incident; dispatch.py did not, and
+    was safe only because every seat row and every `harnesses.pi.models` entry
+    happened to hold a slug -- safe by data, not by rule. One cell edit
+    (`harness: pi` beside `model: claude-sonnet-5`) was all it took to bill
+    Anthropic against an OpenRouter key. It must refuse, before a credential
+    is minted or a process starts -- so even `--dry-run` refuses.
+    """
+    res = _run_dispatch(_guard_project(tmp_path, "claude-sonnet-5"))
+    combined = res.stdout + res.stderr
+    assert res.returncode != 0, combined
+    assert "claude-sonnet-5" in combined and "openrouter" in combined, combined
+
+
+def test_dispatch_allows_a_real_openrouter_slug(tmp_path):
+    """The control: the guard refuses a crossing, not every model. A real
+    slug must still resolve, or the guard has broken every live dispatch."""
+    res = _run_dispatch(_guard_project(tmp_path, "~z-ai/glm-flash-latest"))
+    combined = res.stdout + res.stderr
+    assert "not an OpenRouter slug" not in combined, combined

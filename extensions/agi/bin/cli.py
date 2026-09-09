@@ -16,6 +16,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -58,10 +61,66 @@ def _find_root() -> Path:
     return root
 
 
+def _session_root() -> Path:
+    """The project's ONE session-dir root across every git worktree.
+
+    hypothesis:l3-cli-done-worktree-manifest — a `--branch` agent's session
+    state lives in the MAIN checkout, and `cli.py done` must find it from the
+    agent's own cwd. Agent session state (the per-agent `agent.json` and the
+    iteration `manifest.json`) is the LOOP'S bookkeeping, and bookkeeping is
+    one body across worktrees — the same rule as the spawn budget, the comms
+    root, the meter pins and `.env`, which all resolve through
+    `locations.shared_project_root`. The graph a kid edits is FORKED (that is
+    the worktree); the record `done`/`scaffold` read and write is SHARED.
+    """
+    local = _find_root()
+    return locations.shared_project_root(local) or local
+
+
 def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
     # `iter_n` is a legacy int (`iter-007`) or a loop-scoped str (`iter-L1.08`);
     # `locations` is the one place either is spelled as a directory.
     return locations.iteration_dir(root, iter_n) / agent_id / "agent.json"
+
+
+def _evidence_corpus(root: Path) -> frozenset:
+    """The evidence gate's corpus: the trees the cite-able nodes live in.
+
+    hypothesis:l3w4-branch-tooling-blind (claim i). A `--branch` kid's node
+    lives ONLY in its own git worktree (`<main>/.agi/worktrees/<slug>/`),
+    so a parent reviewing that kid from the main checkout sees the gate
+    built from `build_corpus(root / "nodes")` alone -> the kid's id does not
+    resolve -> the parent's decisive `proved` is auto-demoted to a lean even
+    though a real node was cited (L3.33/L3.34: every kid verdict under
+    `--branch` silently under-scored). This unions in every linked worktree's
+    corpus so a worktree-resident experiment resolves.
+
+    Worktrees are a MAJOR-checkout layout under this repo (`.agi/worktrees/`
+    resolved via `locations.git_common_root`); under the legacy layout there
+    are none and `root / "worktrees"` is simply absent, so the corpus is the
+    main graph alone -- unchanged behaviour.
+
+    Deliberately tolerant: a half-created worktree (no `.agi/nodes` yet) must
+    not take the gate down, and an unreadable tree contributes nothing. The
+    gate's fail-closed rule still applies inside each tree -- `build_corpus`
+    is what does the actual scan, so nothing here lets a bare word or a
+    dangling id resolve.
+    """
+    corpus = set(evidence_gate.build_corpus(root / "nodes"))
+    wt_root = root / "worktrees"
+    if wt_root.is_dir():
+        for tree in sorted(wt_root.glob("*")):
+            if not tree.is_dir():
+                continue
+            nodes = tree / ".agi" / "nodes"
+            if not nodes.is_dir():
+                continue
+            try:
+                corpus |= set(evidence_gate.build_corpus(nodes))
+            except evidence_gate.CorpusRootError:
+                # A stray root with a nodes/ child, not a real worktree graph.
+                continue
+    return frozenset(corpus)
 
 
 def _node_evidence_runs_raw(root: Path, node_id: str | None):
@@ -84,6 +143,194 @@ def _node_evidence_runs_raw(root: Path, node_id: str | None):
     except Exception:
         return None
     return fm.get("evidence_runs")
+
+
+#: One-line HTML comment the scaffold writes right after the closing `---` to
+#: mark where the body starts (hypothesis:l3-done-broken-frontmatter). It is the
+#: one reliable anchor `_ensure_frontmatter` repairs up to but never past: a
+#: mangled frontmatter block with this line below it is provably all the kid's
+#: body from here down, so the `---` block above it can be rebuilt safely.
+_BODY_BEGIN = "<!-- BODY:BEGIN -->"
+#: The fields a node's frontmatter must carry to be remotely usable: identity
+#: (`id`), kind (`type`) and lineage (`parents`). Missing any of these is a
+#: defect that makes a node the graph cannot place.
+_FM_REQUIRED = ("id", "type", "parents")
+#: write-log operation for a sanctioned frontmatter repair.
+_FM_REPAIR_OP = "repair-frontmatter"
+
+
+def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
+    """Parse a node file's leading frontmatter block.
+
+    Returns ``(ok, fm, defect)``. ``ok=True`` means the ``---`` block is
+    present, terminates, parses as a YAML mapping, and carries ``id``, ``type``
+    and ``parents``. Anything short of that returns a defect the caller must
+    either repair or refuse on -- NEVER a silent pass, because a node that
+    cannot be read must not be mistaken for a node with no evidence
+    (hypothesis:l3-done-broken-frontmatter, the L3.13 parse-failure incident).
+    """
+    import yaml
+
+    if not text.startswith("---"):
+        return False, None, "missing opening `---` delimiter"
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return False, None, "unterminated `---` block (no closing delimiter)"
+    try:
+        fm = yaml.safe_load(parts[1])
+    except Exception as exc:
+        return False, None, f"frontmatter YAML parse failure: {exc}"
+    if not isinstance(fm, dict):
+        return False, None, "frontmatter is not a YAML mapping"
+    missing = [k for k in _FM_REQUIRED if not fm.get(k)]
+    if missing:
+        return False, fm, "frontmatter missing required field(s): " + ", ".join(missing)
+    return True, fm, None
+
+
+def _coerce_fm_value(v: str):
+    """Turn a salvaged frontmatter scalar string back into a Python value."""
+    v = v.strip()
+    if not v:
+        return v
+    low = v.lower()
+    if low in ("true", "false"):
+        return low == "true"
+    if low in ("null", "~", "none"):
+        return None
+    if (v.startswith("{") and v.endswith("}")) or (
+            v.startswith("[") and v.endswith("]")) or (
+            (v.startswith('"') and v.endswith('"')) or
+            (v.startswith("'") and v.endswith("'"))):
+        try:
+            import ast
+            return ast.literal_eval(v)
+        except Exception:
+            pass
+    try:
+        return int(v)
+    except Exception:
+        return v
+
+
+def _salvage_frontmatter(header: str) -> dict:
+    """Recover ``key: value`` lines from a broken frontmatter block.
+
+    A mangled ``---`` block can still carry valid scalar lines -- most
+    importantly ``mint_id``, the durable identity the grid and write_guard key
+    on. Keep what parses, drop the rest. Canonical identity
+    (``id``/``type``/``parents``) always comes from the spawn manifest, never
+    from salvage.
+    """
+    out: dict = {}
+    for line in header.splitlines():
+        m = re.match(r"^([A-Za-z][\w\-]*):\s*(.*?)\s*$", line)
+        if not m:
+            continue
+        key, raw = m.group(1), m.group(2)
+        if raw.startswith("---"):
+            continue
+        out[key] = _coerce_fm_value(raw)
+    return out
+
+
+def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
+                        node_id: str | None) -> tuple[bool, str]:
+    """Validate a node's frontmatter before `done` records anything; repair it
+    when safe (hypothesis:l3-done-broken-frontmatter).
+
+    Returns ``(True, msg)`` when the frontmatter is valid, or was repaired from
+    the spawn manifest (``ap``, the agent.json in the session dir -- which
+    carries node id/type/parent). Returns ``(False, defect)`` when the node is
+    damaged beyond safe repair; the caller must refuse, recording no demotion
+    and no verdict change.
+
+    Repair rebuilds the ``---`` block from the manifest **only when the body
+    below is intact**, proven by the ``BODY_BEGIN`` marker the scaffold writes
+    after the closing ``---``. Without that anchor there is no safe way to
+    separate a mangled frontmatter from the start of the body: a repair might
+    swallow the kid's work, which is worse than the defect.
+    """
+    text = node_file.read_text(errors="replace")
+    ok, _fm, defect = _load_frontmatter(text)
+    if ok:
+        return True, "frontmatter ok"
+
+    # Determine the body. A *cleanly closed* `---` block delimits it as
+    # `parts[2]` even when the block itself is YAML-broken or missing required
+    # fields -- the close means the body below is intact by construction, so it
+    # can be repaired without the marker. Only when there is no closed block to
+    # delimit the body (missing / unterminated `---`) is the BODY:BEGIN anchor
+    # required: without it there is no safe way to tell a mangled frontmatter
+    # from the start of the body, and a repair might swallow the kid's work.
+    body = None
+    header = None
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) == 3:
+            body = parts[2]
+            header = parts[1]
+    if body is None:
+        if _BODY_BEGIN not in text:
+            return False, (
+                f"{node_file.name}: {defect}, and the body-start marker "
+                f"({_BODY_BEGIN!r}) is absent -- cannot separate a mangled "
+                "frontmatter from the body safely. Restore the `---` block "
+                "(or edit below the closing `---` only) and re-run done."
+            )
+        header, _marker, body = text.partition(_BODY_BEGIN)
+    manifest: dict = {}
+    if ap and ap.exists():
+        try:
+            manifest = json.loads(ap.read_text())
+        except Exception:
+            manifest = {}
+    # Preserve a block that parsed (it may just be missing fields); salvage
+    # line-by-line only when it did not parse at all.
+    new_fm = dict(_fm) if isinstance(_fm, dict) else _salvage_frontmatter(header or "")
+    nid = manifest.get("node_id") or node_id or new_fm.get("id") or ""
+    ntype = manifest.get("scaffolded_node_type") or (_fm or {}).get("type") or new_fm.get("type")
+    if ":" in str(nid) and not ntype:
+        ntype = str(nid).split(":", 1)[0]
+    try:
+        mparent = manifest.get("parent")
+    except Exception:
+        mparent = None
+    if nid:
+        new_fm["id"] = nid
+    if ntype:
+        new_fm["type"] = ntype
+    if mparent:
+        new_fm["parents"] = [mparent] if isinstance(mparent, str) else list(mparent)
+    if isinstance(new_fm.get("parents"), str):
+        new_fm["parents"] = [new_fm["parents"]]
+    if not nid or not new_fm.get("type"):
+        return False, (
+            f"{node_file.name}: {defect} and the spawn manifest gives no node "
+            "id/type to repair from -- cannot rebuild the frontmatter. Fix by "
+            "hand, then re-run done."
+        )
+    # `body` is the raw remainder from either branch (the closed-block split or
+    # the marker partition); it already carries the BODY:BEGIN marker when one
+    # was present, so it is written through untouched.
+    new_body = body
+    repaired = "\n".join(
+        ["---", *node_writer.render_frontmatter(new_fm), "---", ""]
+    ) + new_body
+    tmp = node_file.with_suffix(node_file.suffix + ".tmp")
+    try:
+        tmp.write_text(repaired, encoding="utf-8")
+        os.replace(tmp, node_file)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+    node_writer.log_write(root, _FM_REPAIR_OP, str(new_fm.get("id", "")),
+                          node_file, repaired,
+                          mint_id=str(new_fm.get("mint_id", "") or ""),
+                          extra={"defect": defect})
+    print(f"repaired broken frontmatter on {new_fm.get('id')} "
+          f"from the spawn manifest ({defect})", file=sys.stderr)
+    return True, "frontmatter repaired"
 
 
 def _normalize_confidence(value: float) -> float:
@@ -130,10 +377,43 @@ def cmd_done(args: argparse.Namespace) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
     root = _find_root()
-    ap = _agent_path(root, args.iter_n, args.agent_id)
+    # Session record is SHARED (main checkout) so a `--branch` parent running
+    # in its worktree resolves the same agent.json its dispatch (from main)
+    # wrote — not an empty worktree copy (hypothesis:l3-cli-done-worktree-manifest).
+    sroot = _session_root()
+    ap = _agent_path(sroot, args.iter_n, args.agent_id)
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
+
+    # hypothesis:l3-done-broken-frontmatter -- validate the node's frontmatter
+    # BEFORE the evidence gate runs. The gate's job is to weigh evidence; it
+    # must not run against a node it cannot even read. L3.13: a kid's write
+    # tool mangled the `---` block, `done` first demoted `proved` then could
+    # not parse the node at all, and the kid had to hand-restore the
+    # frontmatter and re-run. A parse failure is not missing evidence. Repair
+    # the `---` block from the spawn manifest when the body is intact;
+    # otherwise refuse with a non-zero exit -- recording no demotion, no
+    # `demoted_from`, and no verdict change.
+    node_file = None
+    if args.node_id:
+        node_file = _find_node_file(root, args.node_id)
+        if node_file and node_file.exists():
+            _ok, _msg = _ensure_frontmatter(root, node_file, ap, args.node_id)
+            if not _ok:
+                print(f"ERR: {_msg}", file=sys.stderr)
+                return 1
+            # hypothesis:l3-node-without-mint-id -- a kid that wrote its own
+            # node file with its own file tool leaves no `mint_id`, and
+            # grid.py commit --all refuses to version it on every grid_sync
+            # tick. Adopt it here, through node_writer (which refuses if a
+            # `mint_id` already exists), so `done` turns an orphan the kid
+            # left behind into a node the grid can version -- keyed from the
+            # spawn manifest, exactly like the frontmatter repair above.
+            adopted = node_writer.repair_mint(root, args.node_id, announce=True)
+            if adopted.status == node_writer.REJECTED:
+                print(f"ERR: {adopted.reason}", file=sys.stderr)
+                return 1
 
     # H4 evidence gate. `--evidence-runs` wins; otherwise infer from the node
     # file the agent already wrote, so a real experiment isn't punished for a
@@ -150,7 +430,17 @@ def cmd_done(args: argparse.Namespace) -> int:
         runs = max((int(str(r).strip()) for r in runs), default=0)
     if runs is None:
         runs = _node_evidence_runs_raw(root, args.node_id)
-    corpus = evidence_gate.build_corpus(root / "nodes")
+    # L3.33: a parent signals done with `--owns <kid-node-id>` and no
+    # `--node-id` of its own — the kid's node IS the run being attested. The
+    # gate above read only `args.node_id`, found nothing, and demoted every
+    # decisive parent verdict to inconclusive_lean_*:50 even when the owned
+    # node carried a resolvable `evidence_runs`. Read the owned node first.
+    if runs is None and args.owns:
+        for _owned in args.owns:
+            runs = _node_evidence_runs_raw(root, _owned)
+            if runs:
+                break
+    corpus = _evidence_corpus(root)
     gate = evidence_gate.apply_gate(
         args.verdict, runs, bypass=args.no_evidence_gate, corpus=corpus,
         # An `experiment` may name itself (it IS the run); anything else must
@@ -204,7 +494,8 @@ def cmd_done(args: argparse.Namespace) -> int:
             _append_verdict_to_node(node_file, verdict, args.confidence, args.notes,
                                     args.next_edge, gate, root=root,
                                     node_id=args.node_id,
-                                    evidence_runs=args.evidence_runs)
+                                    evidence_runs=args.evidence_runs,
+                                    push_further=getattr(args, "push_further", None))
             # goal:s31 -- the completion half. A scaffold is born with what the
             # engine can derive from a slug; the rest is content only the kid
             # has, and the kid wrote it into the BODY because a kid writing
@@ -217,7 +508,22 @@ def cmd_done(args: argparse.Namespace) -> int:
                 if filled.status == node_writer.UPDATED:
                     print(f"schema: filled required field(s) on {args.node_id} "
                           f"from its body (goal:s31)")
+                # goal:s31 -- loud-but-never-fatal: if the lift left any
+                # schema-required field still missing, say so on stderr. The
+                # kid's work is already on disk; rc is unchanged either way.
+                still_missing = _missing_after_lift(root, args.node_id)
+                if still_missing:
+                    print(
+                        f"SCHEMA-WARNING: {args.node_id} still missing required "
+                        f"field(s): {', '.join(still_missing)} (goal:s31). The "
+                        f"kid's work is saved; backfill these or have a parent "
+                        f"complete them.",
+                        file=sys.stderr,
+                    )
             except Exception as exc:
+                # The derive above already warned loudly on a live failure via
+                # its own except; this catch keeps `done` from ever dying on a
+                # lift misstep. The lift is never fatal by design.
                 print(f"warn: could not complete {args.node_id} from its body: "
                       f"{exc}", file=sys.stderr)
             print(f"updated verdict in: {node_file}")
@@ -261,13 +567,19 @@ def cmd_done(args: argparse.Namespace) -> int:
                 return 2
             print(f"wrote verdict: {res.path}")
 
+    # hypothesis:l3w4-branch-parent-commits -- the parent's ONE finishing
+    # action, so it owns the worktree commit too. Commits the linked worktree
+    # this parent runs in, if it holds uncommitted node writes; a no-op in
+    # main (the loop owns main) and outside git. Never fatal.
+    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict)
+
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     return 0
 
 
 def cmd_pending(args: argparse.Namespace) -> int:
     root = _find_root()
-    ap = _agent_path(root, args.iter_n, args.agent_id)
+    ap = _agent_path(_session_root(), args.iter_n, args.agent_id)
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -283,6 +595,7 @@ def cmd_pending(args: argparse.Namespace) -> int:
 def cmd_scaffold(args: argparse.Namespace) -> int:
     """Pre-create a node file skeleton so the agent just fills in the body."""
     root = _find_root()
+    sroot = _session_root()
     # `--parent` repeats. Before goal:s17 it was a single REQUIRED flag, which
     # meant argparse -- not the schema -- decided how many parents a node may
     # have, and it decided "exactly one" for every type. That is the rule the
@@ -314,12 +627,18 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         return 0
     print(f"scaffolded: {res.path}")
 
-    # Record scaffold in agent.json so cli.py done knows what to update
-    ap = _agent_path(root, args.iter_n, args.agent_id)
+    # Record scaffold in agent.json so cli.py done knows what to update.
+    # The record is SHARED (main checkout), same as `done` reads it.
+    ap = _agent_path(sroot, args.iter_n, args.agent_id)
     if ap.exists():
         rec = json.loads(ap.read_text())
         rec["scaffolded_node"] = res.node_id
         rec["scaffolded_file"] = str(res.path)
+        # hypothesis:l3-done-broken-frontmatter -- the spawn manifest is what a
+        # later `done` repairs a mangled frontmatter from. Carry type + parent
+        # here so the manifest alone can rebuild the `---` block.
+        rec["scaffolded_node_type"] = res.node_type
+        rec["scaffolded_parent"] = res.parents[0] if res.parents else ""
         ap.write_text(json.dumps(rec, indent=2))
 
     return 0
@@ -336,6 +655,24 @@ def _find_node_file(root: Path, node_id: str) -> Path | None:
     here and the name is the more readable one at each of them.
     """
     return node_writer.find_node_file(root, node_id)
+
+
+def _missing_after_lift(root, node_id) -> list[str]:
+    """Which schema-required fields a node still lacks after the lift.
+
+    goal:s31 -- the loud, never-fatal tail of the completion half: `done` lifts
+    what the body advertises, then reports what common scaffolding still
+    leaves missing rather than silently finishing with an invalid node. A
+    parse failure returns [] -- the derive above already warned on stderr.
+    """
+    path = node_writer.find_node_file(root, node_id)
+    if path is None:
+        return []
+    ok, fm, _ = _load_frontmatter(path.read_text())
+    if not ok or not fm:
+        return []
+    ntype = node_writer.canonical_node_type(fm.get("type") or path.parent.name)
+    return node_writer.missing_required(root, ntype, fm, node_id)
 
 
 def _claim_node(root: Path, node_id: str, session_id: str, force: bool = False) -> tuple[bool, str]:
@@ -462,7 +799,8 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                             next_edge: str | None = None, gate=None,
                             root: Path | None = None,
                             node_id: str | None = None,
-                            evidence_runs: list | tuple | None = None) -> None:
+                            evidence_runs: list | tuple | None = None,
+                            push_further: str | None = None) -> None:
     """Add verdict frontmatter fields to an existing node file.
 
     `root`/`node_id` are how this reaches `node_writer.update_node`; both
@@ -499,6 +837,8 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
             set_fm["evidence_gate"] = "bypassed"
     if next_edge:
         set_fm["next_edges"] = [next_edge]
+    if push_further:
+        set_fm["push_further"] = push_further
 
     # The status shadow, demoted in lockstep: after a demotion nothing in the
     # frontmatter may still read 'proved'/'disproved'. Only a decisive value is
@@ -550,9 +890,90 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                   file=sys.stderr)
 
 
+def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
+                         owns: list | None, verdict: str) -> Path | None:
+    """Give the commit to the parent at the moment it accepts its kid's node.
+
+    hypothesis:l3w4-branch-parent-commits — a `--branch` parent runs inside a
+    linked git worktree, and nothing commits there (a kid is contractually
+    forbidden to commit, and the loop owns the main checkout), so a loop branch
+    reaches merge-up holding one or more uncommitted node writes. `done` is the
+    parent's ONE finishing action, so it owns that commit: when `root` resolves
+    inside a linked worktree and that worktree is dirty, add + commit it so
+    merge-up has a real commit to (merely-zero-ahead) refuse, a branch that
+    previously reached the gate empty.
+
+    ONLY in a linked worktree. In the main checkout — or outside any git repo —
+    this is a silent no-op: the loop owns commits in main, and a parent running
+    in main must not `git add -A` a tree it shares with sibling agents (that is
+    the goal:g4.1 hazard, exactly). Worktree-ness is tested by the same probe
+    the rest of the engine uses: the worktree's own git-dir resolving to a
+    DIFFERENT repo than the project's common-dir, i.e.
+    `locations.git_common_root(root)` != this checkout's own toplevel.
+
+    Returns the committed checkout root on success, None otherwise. A commit
+    failure prints a loud named ERR to stderr but NEVER discards the verdict
+    already recorded — the same principle `cmd_done` applies a few lines above
+    when the schema-fill step fails: the kid's work is on disk and is worth
+    more than the commit.
+    """
+    try:
+        checkout = locations.source_root(root)
+        common = locations.git_common_root(root)
+        toplevel = subprocess.run(
+            ["git", "-C", str(checkout), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True)
+        if toplevel.returncode != 0 or not toplevel.stdout.strip():
+            return None   # not inside a git repo -> nothing to commit
+        checkout_root = Path(toplevel.stdout.strip())
+        # Main checkout (or a config declared elsewhere): the loop owns commits
+        # here, and this tree is shared, so never sweep it. Only a linked
+        # worktree is this parent's private branch.
+        if common.resolve() == checkout_root.resolve():
+            return None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+    status = subprocess.run(
+        ["git", "-C", str(checkout), "status", "--porcelain"],
+        capture_output=True, text=True)
+    if status.returncode != 0 or not status.stdout.strip():
+        return None   # clean worktree -> nothing to commit
+
+    # `<agent_id> done: <node_id or owns[0]> verdict=<verdict>`
+    ref = node_id or (owns[0] if owns else "node")
+    subject = f"{agent_id} done: {ref} verdict={verdict}"
+
+    add = subprocess.run(["git", "-C", str(checkout), "add", "-A"],
+                         capture_output=True, text=True)
+    if add.returncode != 0:
+        print(f"ERR: worktree commit add failed in {checkout_root}: "
+              f"{add.stderr.strip() or '(no stderr from git)'}",
+              file=sys.stderr)
+        return None
+
+    commit = subprocess.run(
+        ["git", "-C", str(checkout),
+         "-c", "user.email=agi@local", "-c", "user.name=agi",
+         "commit", "-qm", subject],
+        capture_output=True, text=True)
+    if commit.returncode != 0:
+        print(f"ERR: worktree commit failed in {checkout_root}: "
+              f"{commit.stderr.strip() or '(no stderr from git)'}",
+              file=sys.stderr)
+        return None
+
+    print(f"committed worktree {checkout_root}: {subject}")
+    return checkout_root
+
+
 def cmd_status(args: argparse.Namespace) -> int:
+    # Manifest + agent records are SHARED across worktrees
+    # (hypothesis:l3-cli-done-worktree-manifest); resolve the session-side
+    # root to the main checkout, never the worktree a caller stands in.
     root = _find_root()
-    iter_dir = locations.iteration_dir(root, args.iter_n)
+    sroot = _session_root()
+    iter_dir = locations.iteration_dir(sroot, args.iter_n)
     manifest = iter_dir / "manifest.json"
     if not manifest.exists():
         print(f"ERR: no manifest at {manifest}", file=sys.stderr)
@@ -560,7 +981,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     m = json.loads(manifest.read_text())
     print(f"iter {args.iter_n}: {len(m['agents'])} agents")
     for a in m["agents"]:
-        ap = _agent_path(root, args.iter_n, a["id"])
+        ap = _agent_path(sroot, args.iter_n, a["id"])
         rec = json.loads(ap.read_text()) if ap.exists() else a
         print(f"  {rec['id']}: status={rec.get('status')} verdict={rec.get('verdict', '-')} pid={rec.get('pid')}")
     return 0
@@ -579,6 +1000,14 @@ def main() -> int:
     p_done.add_argument("--parent", default=None)
     p_done.add_argument("--notes", default="")
     p_done.add_argument("--next-edge", default=None)
+    p_done.add_argument(
+        "--push-further",
+        default=None,
+        help="hypothesis:l3w4-push-further-loops — stamp `push_further: TEXT` "
+             "on the node through the same gated writer --next-edge uses, so "
+             "a later re-dispatch at this node id composes the continuation "
+             "kid from this text.",
+    )
     p_done.add_argument(
         "--owns", nargs="+", default=None, metavar="NODE_ID",
         help="goal:s27 — the kid node ids this agent is responsible for. A "

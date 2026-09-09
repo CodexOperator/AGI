@@ -117,7 +117,7 @@ def test_writer_stamps_the_scaffold_identity(project):
     res = _scaffold(project)
     fm = _fm(res.path)
     expected = nw.scaffold_hash(
-        f"\n# {res.node_id}\n\n" + nw.BODY_PROMPTS["experiment"])
+        nw.BODY_BEGIN + f"\n# {res.node_id}\n\n" + nw.BODY_PROMPTS["experiment"])
     assert fm["scaffold_hash"] == expected
 
 

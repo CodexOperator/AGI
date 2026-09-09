@@ -32,25 +32,97 @@ import errno
 import fcntl
 import json
 import os
+import sys
 import tempfile
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+import locations  # NOQA: E402
+
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 
 
 def budget_dir(root: Path) -> Path:
-    """Where leases live: one directory per project tree.
+    """Where leases live: one directory per MAIN checkout.
 
     Under `sessions/` because it is session scratch and already gitignored,
     and *not* under an iteration directory because the population being
     bounded spans iterations — a parent dispatched into iter-107 may spawn
     kids into iter-107 too, but nothing guarantees it.
+
+    **Resolves to the main checkout, never a per-worktree dir
+    (`hypothesis:l3w4-parent-branch-merge-up`).** A parent spawned with
+    `--branch` runs in its own git worktree, so `root` here may be a worktree
+    root; the budget must stay the ONE directory every spawner mutates, or
+    the tree-wide bound silently splits per worktree. `git_common_root`
+    answers that via `git rev-parse --git-common-dir`, identity when the
+    caller is already in the main checkout (or outside any git repo).
+
+    **Keeps the graph-dir segment (`hypothesis:l3-budget-dir-dropped-agi`).**
+    Under G11 the graph root is `<repo>/.agi`, and `git_common_root` returns
+    the repo root — naively joining `main/sessions` would DROP the `.agi`
+    segment and write leases into a stray `<repo>/sessions/`. So the main
+    checkout's graph root is re-derived (`find_project_root(main)`, the same
+    re-root `send.py` and `rotate.py` use) and the budget lives under IT:
+    `<repo>/.agi/sessions/.spawn-budget`, shared by every worktree. In the
+    legacy layout the graph root IS the repo root, so this is the identity
+    and the budget keeps resolving to `<repo>/sessions/.spawn-budget`.
     """
-    return Path(root) / "sessions" / ".spawn-budget"
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+    base = main_graph or graph
+    return base / locations.SESSIONS_DIR_NAME / ".spawn-budget"
+
+
+def _pause_flag_path(root: Path) -> Path:
+    """Where the pause flag lives — inside `budget_dir`, so it resolves to
+    the same main-checkout directory every worktree-based caller already
+    reaches for a lease (`hypothesis:l3-reaper-restarts-through-stop`). A
+    worktree-scoped pause flag would be invisible from the main tree for
+    exactly the reason a worktree-scoped seat-pin was invisible from it
+    earlier the same day — reusing `budget_dir`'s anchor avoids a second
+    instance of that bug rather than re-deriving the fix.
+    """
+    return budget_dir(root) / ".paused"
+
+
+def is_paused(root: Path) -> dict | None:
+    """The active pause record, or `None` if dispatch is not paused.
+
+    Checked by `acquire()` (refuses every new spawn) and by dispatch.py's
+    inline reaper (refuses to restart a dead agent) — the two chokepoints
+    that together make an owner stop order a structural refusal instead of
+    a broadcast every seat has to separately remember not to violate.
+    Record shape: `{paused: True, reason: str, actor: str, paused_at: int}`.
+    """
+    try:
+        rec = json.loads(_pause_flag_path(root).read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    return rec if rec.get("paused") else None
+
+
+def pause(root: Path, reason: str = "", actor: str = "") -> None:
+    """Set the pause flag. Every `acquire()` and every reaper restart is
+    refused until `resume()` clears it."""
+    path = _pause_flag_path(root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _atomic_write_json(path, {
+        "paused": True, "reason": reason, "actor": actor,
+        "paused_at": int(time.time()),
+    })
+
+
+def resume(root: Path) -> dict | None:
+    """Clear the pause flag. Returns the cleared record, or `None` if it
+    was not set."""
+    prev = is_paused(root)
+    _pause_flag_path(root).unlink(missing_ok=True)
+    return prev
 
 
 def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
@@ -68,6 +140,25 @@ def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
         return int(spawn["parallel"])
     legacy = cfg.get("agent_dispatch") or {}
     return int(legacy.get("claude_max_parallel", default))
+
+
+def parent_max_kids(cfg: dict, default: int = 4) -> int:
+    """The per-dispatch kid ceiling a parent's brief must name
+    (hypothesis:l3-parent-never-told-to-iterate).
+
+    A parent that iterates AND fans out is the first thing in this system
+    capable of multiplying agents without a human in the loop, so the
+    multiplicative bound needs its own knob rather than being silently equal
+    to max_live. `spawn.parent_max_kids` wins; otherwise the ceiling is a
+    small constant, never the whole tree's capacity. The ceiling is
+    advisory-in-brief -- a hard, visible number the parent plans around --
+    not an admission lease: `max_live` leases still bound the LIVE population
+    and ``unadmitted`` refusals are unchanged.
+    """
+    spawn = cfg.get("spawn") or {}
+    if "parent_max_kids" in spawn:
+        return int(spawn["parent_max_kids"])
+    return int(default)
 
 
 @dataclass
@@ -108,9 +199,32 @@ def _pid_alive(pid: int) -> bool:
     `EPERM` counts as alive: the process exists and is owned by someone else,
     which is still a process holding resources against this tree. Treating it
     as dead would free a lease for a process that is very much running.
+
+    A zombie (state `Z` in `/proc/<pid>/stat`) counts as dead
+    (`hypothesis:l3-cc-adapter-zombie-lease`): a defunct child is gone \u2014 its
+    code has exited and only its reaping by a parent is outstanding. Its pid
+    still answers `os.kill(pid, 0)`, so signal-existence alone would hold a
+    lease forever behind an unreaped child. The process-table state is what
+    the lease is about, so that is what liveness reads.
     """
     if pid <= 0:
         return False
+    try:
+        stat = open(f"/proc/{pid}/stat")
+    except OSError:
+        # Not on Linux, or the pid raced out of the table between checks.
+        # Fall back to signal-existence rather than guess wrong.
+        pass
+    else:
+        with stat:
+            try:
+                # State is field 3, after `pid (comm)`; comm can contain
+                # spaces/parens, so split from the right on `) `.
+                state = stat.read().rsplit(") ", 1)[1].split()[0]
+            except (IndexError, ValueError):
+                state = "?"
+        if state == "Z":
+            return False
     try:
         os.kill(pid, 0)
     except OSError as exc:
@@ -210,8 +324,18 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
 
     Non-blocking on purpose — see the module docstring. A caller that is
     refused should skip that slot and say so, not wait.
+
+    Refuses unconditionally while paused (`hypothesis:l3-reaper-restarts-
+    through-stop`), before the cap is even consulted — an owner stop order
+    means no new agent anywhere in the tree, not "no agent past the cap".
     """
     root = Path(root)
+    paused = is_paused(root)
+    if paused:
+        reason = paused.get("reason") or "owner stop order"
+        print(f"spawn_budget: refusing {agent_id} — dispatch paused "
+              f"({reason}); spawn_budget.py resume to lift", file=sys.stderr)
+        return None
     with _budget_lock(root):
         live, orphaned = _sweep_locked(root)
         if len(live) >= cap:
@@ -255,6 +379,28 @@ def attach_credential(lease: Lease, key_hash: str) -> None:
     _write_lease(lease.path, rec)
 
 
+def attach_branch(lease: Lease, branch_ref: dict) -> None:
+    """Record which branch/base/worktree this lease's agent runs on.
+
+    `hypothesis:l3w4-parent-branch-merge-up`. A `--branch` spawn cuts its
+    own git worktree off the SPAWNER's branch; the lease is the object whose
+    liveness governs the slot, so it is the right place to hang the target of
+    the eventual `season.py merge-up` — a lease that lingers past the agent
+    still says where its branch belongs, and `merge-up --record <lease>` can
+    climb it into the recorded base. `branch`/`base_branch`/`worktree` are
+    recorded verbatim (never the secret, never a path that later proves
+    wrong); the same tuple is also written to the agent record by dispatch.
+    """
+    try:
+        rec = json.loads(lease.path.read_text())
+    except (json.JSONDecodeError, OSError):
+        rec = {"agent_id": lease.agent_id, "holder_pid": lease.holder_pid}
+    for key in ("branch", "base_branch", "worktree"):
+        if branch_ref.get(key):
+            rec[key] = branch_ref[key]
+    _write_lease(lease.path, rec)
+
+
 def commit(lease: Lease, agent_pid: int) -> None:
     """Hand the lease over to the spawned process once it has a pid."""
     lease.agent_pid = int(agent_pid)
@@ -286,7 +432,14 @@ def release(lease: Lease) -> None:
 
 def _write_lease(path: Path, rec: dict) -> None:
     """Write a lease atomically, so a reader never sees half of one."""
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".lease.", suffix=".tmp")
+    _atomic_write_json(path, rec)
+
+
+def _atomic_write_json(path: Path, rec: dict) -> None:
+    """Write `rec` as JSON to `path` atomically (tmp file + rename), so a
+    reader never sees a half-written file. Shared by lease writes and the
+    pause flag — same requirement, same fix, one helper."""
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".tmp.", suffix=".tmp")
     try:
         with os.fdopen(fd, "w") as fh:
             json.dump(rec, fh)
@@ -297,7 +450,14 @@ def _write_lease(path: Path, rec: dict) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """`spawn_budget.py [--root R] status|sweep` — inspect the live population."""
+    """`spawn_budget.py [--root R] status|sweep|pause|resume`.
+
+    `status` (default) inspects the live population, `sweep` reclaims dead
+    leases. `pause [--reason R] [--actor A]` refuses every new spawn and
+    every reaper restart tree-wide until `resume` clears it — the
+    structural form of an owner stop order
+    (`hypothesis:l3-reaper-restarts-through-stop`).
+    """
     import argparse
     import sys
 
@@ -305,22 +465,58 @@ def main(argv: list[str] | None = None) -> int:
     import locations  # noqa: E402
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", choices=["status", "sweep"], nargs="?", default="status")
+    ap.add_argument("action", choices=["status", "sweep", "pause", "resume"],
+                     nargs="?", default="status")
     ap.add_argument("--root", default=".", help="Any path inside the project")
+    ap.add_argument("--reason", default="", help="with pause: why (recorded, shown on every refusal)")
+    ap.add_argument("--actor", default="", help="with pause: who paused it")
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+
+    if args.action == "pause":
+        pause(root, reason=args.reason, actor=args.actor)
+        who = f" by {args.actor}" if args.actor else ""
+        why = f": {args.reason}" if args.reason else ""
+        print(f"paused{who}{why} — every acquire() and reaper restart "
+              f"refuses until resume")
+        return 0
+    if args.action == "resume":
+        prev = resume(root)
+        if prev is None:
+            print("not paused — nothing to resume")
+        else:
+            print(f"resumed (was paused since "
+                  f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(prev.get('paused_at', 0)))}"
+                  f"{': ' + prev['reason'] if prev.get('reason') else ''})")
+        return 0
+
     cfg_path = locations.config_path(root)
     cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
     cap = max_live(cfg)
     live = live_agents(root)
+    paused = is_paused(root)
+    if paused:
+        who = f" by {paused['actor']}" if paused.get("actor") else ""
+        why = f": {paused['reason']}" if paused.get("reason") else ""
+        print(f"🔴 PAUSED{who}{why} — acquire() and reaper restarts are "
+              f"refused; `spawn_budget.py resume` to lift")
     print(f"budget: {len(live)}/{cap} live  dir={budget_dir(root)}")
     for rec in live:
+        it = rec.get("iter")
+        # hypothesis:l3-killed-agent-restarts-unattributed — a live lease with
+        # no iteration is invisible to the round it belongs to, so it can hold
+        # that round open forever (mirror of the workflow-spawn no-lease
+        # defect: there the count was too low, here the attribution is
+        # missing). Every spawner in the tree passes iter_n, so `None` here is
+        # a defect, not a state — make it loud rather than a silent count.
+        loud = ("   <-- UNATTRIBUTED: iter is None (restarted lease "
+                "lost its round)\n" if it is None else "")
         print(f"  {rec.get('agent_id')} tier={rec.get('tier')} "
-              f"iter={rec.get('iter')} pid={rec.get('agent_pid') or rec.get('holder_pid')}")
+              f"iter={it} pid={rec.get('agent_pid') or rec.get('holder_pid')}{loud}")
     return 0
 
 

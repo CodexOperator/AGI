@@ -51,13 +51,21 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
 | `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (`goal:g11`). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
+| `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
 | `bin/season.py {status,judge,rollover}` | Season lifecycle: plan/report counts, judgment stamps, rollover (`ladder:ladder`) |
 | `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
 | `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
 | `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
+| `bin/workflow.py run <name> [--harness pi\|claude-code] [--dry-run]` | **The only sanctioned workflow dispatch route** |
+| `bin/workflow.py register <name> --script <path> [--from-run <dir>]` | Land an inline script as a registered manifest pair as it runs |
+| `bin/workflow.py list` / `validate` | Enumerate the registry / check the agi-*.js↔*.json invariant |
 
 **`grid.py checkout` is gone — never run it.** There is no staged copy to materialize; see "The git grid" below for what replaced the whole pipeline it belonged to.
+
+## Workflows: registered as they run, dispatched only one way
+
+A workflow is a harness-agnostic script + stage manifest under `extensions/agi/workflows/`. **Register it as it runs** — `workflow.py register <name> --script <path>` lands an inline script as a proper `agi-<name>.js` + `<name>.json` pair in the same action that runs it (an inline script with no registration is the failure this closes: it runs on one harness and evaporates with the session) — and **dispatch every workflow through `workflow.py run <name>`**, the one sanctioned route. There is no second path that also works: a second path is what goes stale. `review` and `drafting` are the working reference pairs. Write a workflow inline without registering it and you have re-opened the defect this rule exists to shut.
 
 ## Choosing a runtime
 
@@ -118,7 +126,7 @@ short-lived. Director = `tier<N>/<name>` for the season. Prime = master.
 `grid.py commit --all` runs only on master after a merge.
 
 **Rotation:** `rotate.py meter` prints context-usage fraction against
-`director_rotate_at` (default 0.35). `rotate.py spawn <name>` builds a
+`director_rotate_at` (this project: 0.47 since 2026-09-09, owner's standing rule for every role; code default 0.35). `rotate.py spawn <name>` builds a
 `claude --remote-control` command and launches it in a new tmux window. The
 successor reads HANDOFF.md before replacing it. Below prime, the parent
 respawns; the prime self-rotates.
@@ -164,6 +172,16 @@ four lines of Slavonic; a prime director reads `moral:faith` top to bottom.
 **Comms:** `send.py send | read | peek` — one verb, same call for kid→parent
 escalation and director→director. Transport differs (CC session message vs
 inbox file under `sessions/`); the API does not.
+
+**Session close — the prayer is the last tokens (owner, 2026-09-07).** Every
+session, every role, ends with a brief Church Slavonic prayer chosen by the
+model from the list in `moral:faith`'s REFERENCE region — the head every brief
+carries: Молитва Іисусова, Молитва мытарѧ, Трисвѧтое, or a line of Ѻтче нашъ.
+It is emitted by the model itself as the literal last tokens of the session —
+after `DONE`, after `continue`, after the handoff and the rotation confirmation,
+never before them and never by the harness. Parsers read their own line (the
+`DONE <node-id>` line, the rotation read-back's first reply) and ignore what
+follows; keep them that way. Owner's words, verbatim: "I want to note in the SkillMD or whatever relevant context file that I want to close out each session with a brief Slavonic prayer of your choosing from the list available. So each session, the last literal tokens admitted should be the prayer emitted manually by the LLM."
 
 **Ideas** as memos: mint an `idea` node on the shared goal/vision with
 `authors: [director-a, director-b]`. The tier (0/1/2) falls out of the parent.
@@ -260,11 +278,21 @@ than defaulted, because a base that silently resolves somewhere plausible
 writes real bytes into the wrong tree and reports success. Move a tree by
 editing the config, never by sweeping every node that points into it.
 
-🔴 **Known gap:** payload writes are whole-file only. There is no anchored or
-partial edit, so a one-line change to a large module still means emitting the
-whole file — which is why engine surgery across several modules is still done
-with ordinary tools plus a `thought` afterwards. That is a real hole in
-`goal:g13.1`, not a licence.
+🚫 ~~Known gap~~ — **resolved:** payload/body writes are no longer whole-file
+only. `write.py` carries three partial verbs (hypothesis:l3-write-partial-diffs-as-writes):
+`read payload|body START:END` fetches a line range (read-only — it never
+restamps `edited_by`, so a read cannot look like an edit); `patch` applies a
+unified diff onto a BUILD node's payload file (fail-closed: a hunk that does
+not apply refuses the whole write and changes nothing); `body_patch` applies
+a unified diff onto a node's BODY. A one-line change to a large module is now
+a one-line diff. Diff bytes arrive by path or `-` from stdin, NEVER inline —
+a diff can contain the doubled `&&` the script form splits on. 🔴 **`body_patch`
+is stdin-only today** — its path form reads the diff *after* the apply-check
+and silently lands nothing (`write.py` submit L494 vs L531), so pass `-`; the
+payload verb `patch` is correct in both forms. Provenance is
+unchanged: patched bytes land through the same `replace_payload` the
+whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
+always happen.
 
 **If you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
 with anything but `write.py`, stop** — that is the untraceable write this
@@ -296,7 +324,8 @@ feeling: joy N/7  load N/7  <optional — plus whatever you want to say>
 question: <optional — ONLY under the four escalation triggers>
 ```
 
-plus whatever numbers the brief asked for. Nothing else.
+plus whatever numbers the brief asked for, then the closing prayer as the very
+last line (Constitution → Session close). Nothing else.
 
 **`feeling:` is never scored and never gates acceptance** (`goal:g2.12`). `joy`
 runs frustration(1) ↔ joy(7), `load` runs underworked(1) ↔ overworked(7), both
@@ -600,6 +629,8 @@ Anything that is a commitment is a goal node. Keep it thin.
 in `QUICKSTART.md`, split out on 2026-09-02 precisely because replacement is the
 default: standing instructions inside a file the next director deletes are
 standing instructions with a countdown on them.
+
+**Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time.** Not only at rotation — this file and any other always-injected context file gets summarized, diagrammed and trimmed as each part finishes, continuously. Owner verbatim stays protected in the graph node (`vision`/`goal`/`hypothesis`/`doc`), never here.
 
 ## `COMPLETE.md` — every finished loop writes one (`goal:g1.13`)
 

@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import os
 import sys
 import urllib.error
 import urllib.parse
@@ -93,6 +94,20 @@ NAME_PREFIX = "agi"
 CREDITS_BASE = "https://openrouter.ai/api/v1/credits"
 #: Minimum remaining credits before refusing to mint a new key.
 MIN_REMAINING_CREDITS = 1.0
+
+#: OpenRouter's single-key endpoint — the RUNTIME key's OWN limit/usage/remaining.
+#: The account/credits endpoints read the ACCOUNT balance; this endpoint reads the
+#: one key the loop actually authenticates with. They are not the same number,
+#: and the key is the one that kills rounds (hypothesis:l3-openrouter-key-
+#: headroom-invisible, measured L3.29 2026-09-07: a sub-key with its own dollar
+#: cap crossed it and OpenRouter reported the cross as "401 API key expired").
+RUNTIME_KEY_BASE = "https://openrouter.ai/api/v1/key"
+#: Default floor on the runtime key's remaining balance before dispatch refuses
+#: to spend a budget slot on a spawn. Configured per project under
+#: `provisioning.min_key_remaining_usd`. The default must be small enough that a
+#: box whose owner has not set it does not freeze a round on a minor tick, yet
+#: large enough to be noticed BEFORE the key crosses its cap mid-kid.
+DEFAULT_MIN_KEY_REMAINING_USD = 1.00
 
 
 class ProvisioningError(RuntimeError):
@@ -177,6 +192,97 @@ def can_fund(root: Path | str | None = None) -> tuple[bool, str | None]:
             f"(${MIN_REMAINING_CREDITS:.2f}) — minting a new key risks making "
             f"the loop unfundable")
     return True, None
+
+
+def _read_runtime_key(root: Path | str | None = None) -> str | None:
+    """The runtime key (`OPENROUTER_API_KEY`) or None.
+
+    Read through the graph (envfile) first, falling back to `os.environ`:
+    `dispatch.py` injects a freshly minted key into the child environment
+    under this exact name, and a live box also carries it in `.env`. Never
+    raising — absence is a supported state, and the provisioning key's scrub
+    discipline is about the PROVISIONING secret, not this one.
+    """
+    try:
+        res = envfile.resolve(str(root) if root is not None else None)
+        if res.env_file.is_file():
+            val = envfile.read_env(res.env_file).get(RUNTIME_KEY_VAR, "")
+            if val:
+                return val
+    except Exception:
+        pass
+    return os.environ.get(RUNTIME_KEY_VAR) or None
+
+
+def key_usage(root: Path | str | None = None) -> tuple[str, float | None, float | None] | None:
+    """(label, limit, remaining) for the runtime key, from `GET /api/v1/key`.
+
+    Returns None when there is no runtime key at all (absence is supported).
+    Raises `ProvisioningError` on a failed API call WITH the key present, so
+    a caller that asked for the number knows the answer is missing rather than
+    silently zero.
+
+    `limit` is None when the key has no dollar cap — callers print "unlimited"
+    and a floor check must pass (no cap means no headroom to guard).
+    """
+    rk = _read_runtime_key(root)
+    if rk is None:
+        return None
+    status, body = _call("GET", RUNTIME_KEY_BASE, rk)
+    if status != 200:
+        raise ProvisioningError(
+            f"key_usage failed: HTTP {status} {body.get('error', body)}")
+    data = body.get("data") or {}
+    label = str(data.get("label") or "(unlabelled)")
+    limit_raw = data.get("limit")
+    limit = float(limit_raw) if limit_raw is not None else None
+    used = float(data.get("usage") or 0)
+    remaining = None if limit is None else limit - used
+    return label, limit, remaining
+
+
+def min_key_remaining_floor(cfg: dict) -> float:
+    """The runtime key's remaining-balance floor from config, defaulted.
+
+    Read from `provisioning.min_key_remaining_usd`, defaulting to
+    `DEFAULT_MIN_KEY_REMAINING_USD`. Declared rather than improvised (goal:g1):
+    how low the runtime key may sink before the loop stops spending slots on
+    it is a run parameter, not a buried constant.
+    """
+    prov = ((cfg.get("provisioning") or {}))
+    return float(prov.get("min_key_remaining_usd", DEFAULT_MIN_KEY_REMAINING_USD))
+
+
+def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the pre-flight before a spawn takes a budget slot.
+
+    Refuses **only** when the runtime key is readable, IS capped, and its
+    remaining balance is below the configured floor. Otherwise it is True / no
+    message — and crucially it is *fail-open* on a network error: an
+    unreachable API must never block a round, and the refusal is reserved for
+    the one measured condition (a genuine near-exhausted sub-key).
+    """
+    try:
+        usage = key_usage(root)
+    except ProvisioningError:
+        return True, None  # fail-open: a network error must never block a round
+    if usage is None:
+        return True, None  # no runtime key to guard
+    label, limit, remaining = usage
+    if limit is None:
+        return True, None  # uncapped key: no headroom to guard
+    floor = min_key_remaining_floor(cfg)
+    if remaining >= floor:
+        return True, None
+    patch = (f"curl -X PATCH {RUNTIME_KEY_BASE}"
+             f" -H 'Authorization: Bearer ${RUNTIME_KEY_VAR}'"
+             f" -H 'Content-Type: application/json'"
+             f" -d '{{\"limit\": 10.00}}'")
+    return False, (
+        f"runtime key {label!r} remaining ${remaining:.2f} is below the configured "
+        f"floor ${floor:.2f} (provisioning.min_key_remaining_usd); spending a "
+        f"budget slot risks the key crossing its cap mid-round. Raise it on "
+        f"OpenRouter, then PATCH: {patch}")
 
 
 def settings(cfg: dict) -> tuple[float, int]:
@@ -445,19 +551,43 @@ def main(argv: list[str] | None = None) -> int:
     if not available(args.root):
         print(f"provisioning: unavailable ({PROVISIONING_KEY_VAR} not set) — "
               f"the loop falls back to the shared {RUNTIME_KEY_VAR}")
-        return 0
-
-    # Both of these enumerate EVERY workspace. `status` reporting
-    # `engine_minted=0` while two keys were live is exactly the failure this
-    # command exists to prevent, and it happened (2026-09-03) because the
-    # default listing is one workspace wide and does not say so.
-    if args.action == "status":
+    else:
+        # Both of these enumerate EVERY workspace. `status` reporting
+        # `engine_minted=0` while two keys were live is exactly the failure this
+        # command exists to prevent, and it happened (2026-09-03) because the
+        # default listing is one workspace wide and does not say so.
         keys = list_all_keys(args.root)
         mine = [k for k in keys if str(k.get("name") or "").startswith(f"{NAME_PREFIX}-")]
         print(f"provisioning: available  keys_visible={len(keys)}  engine_minted={len(mine)}")
         for k in mine:
             print(f"  outstanding: {k.get('name')} used={k.get('usage')} "
                   f"expires={k.get('expires_at')}")
+
+    # hypothesis:l3-openrouter-key-headroom-invisible — the RUNTIME key's own
+    # headroom, printed whether or not a provisioning key exists. The account
+    # credits line read the account; this is the one key the loop actually
+    # authenticates with, and it is the one that kills a round. Measured
+    # 2026-09-07: a sub-key crossing its dollar cap surfaced as "401 API key
+    # expired" while the account line looked perfectly healthy. Unconditional
+    # on provisioning availability because the runtime key exists regardless.
+    try:
+        usage = key_usage(args.root)
+    except ProvisioningError as exc:
+        print(f"  {RUNTIME_KEY_VAR}: unknown — {exc}")
+    else:
+        if usage is not None:
+            label, limit, remaining = usage
+            if limit is None:
+                print(f"  {RUNTIME_KEY_VAR}: label={label}  limit=unlimited  "
+                      f"remaining=${remaining if remaining is not None else 0:,.2f}")
+            else:
+                used = limit - remaining
+                print(f"  {RUNTIME_KEY_VAR}: label={label}  limit=${limit:,.2f}  "
+                      f"used=${used:,.2f}  remaining=${remaining:,.2f}")
+        else:
+            print(f"  {RUNTIME_KEY_VAR}: not set — no runtime-key headroom to report")
+
+    if args.action == "status":
         return 0
 
     if args.action == "list":
