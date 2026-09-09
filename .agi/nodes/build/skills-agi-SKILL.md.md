@@ -7,7 +7,7 @@ parents:
   - goal:g13.1
 build_kind: prose
 confidence: 1.0
-edited_by: belam-S1-L3-VI
+edited_by: sanctuary-director
 origin: build-scan
 payload_ref: skills/agi/SKILL.md
 season: 1

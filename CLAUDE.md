@@ -169,6 +169,8 @@ things a graph cannot say, like "the run is half done and the next command is
 this". Anything that is a commitment belongs in a goal node. Work recorded only
 here is work the graph does not know about.
 
+**Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time.** Not only at rotation — a handoff slice and any other always-injected context file gets summarized, diagrammed and trimmed as each part finishes, continuously. Owner verbatim stays protected, but the node is where it lives (`vision`/`goal`/`hypothesis`/`doc`) — never the handoff, which may be trimmed or replaced out from under a quote by design.
+
 ## Delegated authority — when the owner steps away mid-run
 
 The owner hands the director authority for the rest of an iteration budget and
