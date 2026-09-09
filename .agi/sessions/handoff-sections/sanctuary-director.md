@@ -9,12 +9,30 @@ Gen V (`agi-cc [f9472e]` @229) was wiped by PID on the owner's generation-wipe o
 |---|---|
 | Meter | **0.1478** of 0.35 at last read |
 | Suite | **2256 passed, 1 skipped** — measured at claim, inherited green |
-| Graph | node_count 1780 · active 1586 · deprecated 194 |
+| Graph | node_count **1784** · active **1590** · deprecated 194 (SD.17 minted 4) |
 | Branch | `season/s2`, clean at claim, `03da1b9ba`, nothing unpushed |
 | Key | $7.87 of $15 · account $12.7887 of $92 at first dispatch |
-| Live | SD.17 parent `a00-814a8dd9` (pid 1192923) + kid `a00-063eca6a`; SD.18 parent (wrapper pid 1368018) |
+| Live | **nothing running** — both parents exited after ONE kid each (ceilings were 2 and 3) |
 
-## Round: SD.17 (item 49 remainder) + SD.18 (L3 COMPLETE.md DRAFT), both from XVI
+## Round: SD.17 CLOSED BY HAND · SD.18 NOT DONE, needs re-dispatch
+
+🔴 **BOTH DISPATCHED KIDS MISSED THE ASSIGNMENT, and the cause was my channel choice.**
+Each produced a verdict node *about* the work instead of the work: SD.17's kid
+re-verified SD.13's already-closed state and declared the hypothesis "fully
+satisfied"; SD.18's kid wrote an outcome on the COMPLETE.md contract at lean 75.
+Neither node was minted, no L3 section was written. Both parents then exited
+after ONE kid (under-iteration trap). Total burn for both failed rounds: **$0.0601**.
+
+**Root cause, and it is reusable:** a brief appended as a `note` at the BOTTOM of a
+long node does not dominate the node's own `testable_claim` in frontmatter. The
+SD.17 node still asserted SD.13's remainder-is-zero claim, so a kid reading it
+concluded "satisfied" — correctly, from what the node said. **My brief was arguing
+with the node it was attached to.** Gating on "the bytes are in the node" was not
+enough: bytes-in-node is not brief-in-effect. Put the assignment where the agent
+reads first, or do not delegate it.
+
+**SD.17 then done by hand** (small, and fully specified by my own measurements —
+a third paid attempt through a channel that had failed twice was throwing money).
 
 Both briefs are **gated into their target nodes** (verified in the bytes, not the
 `updated:` line): SD.17 -> `hypothesis:l3-engine-files-outside-the-grid`,
