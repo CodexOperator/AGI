@@ -1,0 +1,88 @@
+{
+  "name": "review",
+  "script": "agi-round-review.js",
+  "description": "Review one agi round: per-target parent/kid outputs with claim re-verification, plus one global-checks stage",
+  "stages": [
+    {
+      "label": "global-checks",
+      "role": "global",
+      "model_hint": "sonnet",
+      "effort_hint": "low",
+      "prompt": "You run the global health checks for an agi round review. Inspect the repo at /home/ubuntu/work/agi and report: git status dirtiness, broken graph links, whether GOALS.md and the goal nodes are byte-identical inverses, and the pytest suite result counts.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"git_status\":[\"...\"],\"links_broken\":0,\"goals_check_ok\":true,\"suite_passed\":0,\"suite_failed\":0,\"summary\":\"...\"}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "git_status": {
+            "type": "array"
+          },
+          "links_broken": {
+            "type": "integer"
+          },
+          "goals_check_ok": {
+            "type": "boolean"
+          },
+          "suite_passed": {
+            "type": "integer"
+          },
+          "suite_failed": {
+            "type": "integer"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "git_status",
+          "links_broken",
+          "goals_check_ok",
+          "summary"
+        ]
+      }
+    },
+    {
+      "label": "review",
+      "role": "reviewer",
+      "repeat": {
+        "of": "targets",
+        "label_template": "review:{window}"
+      },
+      "model_hint": "sonnet",
+      "effort_hint": "medium",
+      "prompt": "You review one agi round target window reported by a parent agent. Assess the hypothesis, the parent's verdict and confidence against the actual evidence, and list any overclaim and any open gap.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"hypothesis\":\"...\",\"parent_agent\":\"...\",\"verdict\":\"...\",\"confidence\":\"...\",\"overclaims\":[\"...\"],\"open_gaps\":[\"...\"],\"summary\":\"...\"}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "hypothesis": {
+            "type": "string"
+          },
+          "parent_agent": {
+            "type": "string"
+          },
+          "verdict": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "overclaims": {
+            "type": "array"
+          },
+          "open_gaps": {
+            "type": "array"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hypothesis",
+          "parent_agent",
+          "verdict",
+          "overclaims",
+          "open_gaps",
+          "summary"
+        ]
+      }
+    }
+  ]
+}

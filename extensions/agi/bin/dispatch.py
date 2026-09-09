@@ -95,7 +95,7 @@ _scrubbed_env = scrubbed_env
 
 
 def zoom_command(root: Path, iter_n: int, agent_id: str,
-                 level: str, target: str | None) -> list[str]:
+                 level: str, target: str | None, push_further: bool = False) -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -114,7 +114,197 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
            "--level", level, "--runtime", "pi"]
     if level == "small" and target:
         cmd.extend(["--target", target])
+    if push_further:
+        # hypothesis:l3w4-push-further-loops — re-dispatch at the SAME target
+        # id so a continuation kid composes from the parent's push_further
+        # text and stamps `pushed_from: <target>` (see _scaffold_node_for_agent).
+        cmd.append("--push-further")
     return cmd
+
+
+# hypothesis:l3w4-parent-branch-merge-up — per-parent git worktree on a
+# `loop/<slug>-<agent8>@s<N>` branch. The four helpers below are the
+# dispatch side of the claim: `--branch` cuts each spawn its own worktree
+# OFF THE SPAWNER'S checked-out branch (ADDENDUM items 1 & 3), the worktree
+# lives under the MAIN checkout's `.agi/worktrees/<agent>/` resolved through
+# `locations.git_common_root` (ADDENDUM item 4, so a spawner running inside a
+# worktree never nests one agent's tree inside another's), and the lease /
+# agent record carries `branch`/`base_branch`/`worktree` so `season.py
+# merge-up` knows which base to climb into (item 2).
+
+
+def spawner_base_branch(workdir: Path) -> str | None:
+    """The branch the SPAWNER is ON — the base of any branch it cuts.
+
+    ADDENDUM item 1: the base of a new branch is the spawner's checked-out
+    branch (`git rev-parse --abbrev-ref HEAD` in the spawner's cwd), never a
+    hardcoded `season/sN`. A director on `tier1/<name>` cuts its parents from
+    `tier1/<name>`, an advisor cuts directors from its own branch, and only
+    the prime's layer cuts from `season/sN`. Returns None when git is broken
+    or the HEAD is detached (nothing to base a child branch on).
+    """
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(workdir), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    name = out.stdout.strip()
+    # On a detached HEAD `--abbrev-ref HEAD` prints the literal "HEAD" —
+    # there is no branch to base a child on, which is exactly the case the
+    # helper exists to detect for the caller.
+    if not name or name == "HEAD":
+        return None
+    return name
+
+
+def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
+    """`loop/<slug>-<agent8>@s<N>` — the per-agent branch name.
+
+    ADDENDUM item 3: the agent id rides in the branch name so nested layers
+    never collide — a director, a parent and a kid each cut branches carrying
+    their own id, and the `loop/` prefix keeps them off the tier branches
+    (`tier<N>/<name>` stays reserved for directors/prime per HANDOFF §6 item
+    7). The slug is the target's id with the `:` flattened, so a human can
+    tell which aim the branch carries.
+    """
+    slug = (target or "explore").replace(":", "-")[:32]
+    return f"loop/{slug}-{agent_id}@s{season}"
+
+
+def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
+                              base_branch: str) -> Path:
+    """`git worktree add <main>/.agi/worktrees/<agent> -b <branch> <base>`.
+
+    ADDENDUM item 4: the worktree lives under the MAIN checkout's
+    `.agi/worktrees/<agent>/`, resolved through `locations.git_common_root`,
+    so a spawner that is ITSELF running inside a worktree does not land one
+    agent's tree inside another's — the common git dir is always the main
+    repo's `.git`. The base is the spawner's own branch (item 1), so merges
+    climb one layer at a time. Returns the worktree checkout root. Raises
+    RuntimeError naming the branch and base when the worktree cannot be
+    created.
+    """
+    main = locations.git_common_root(root)  # main checkout, from any depth
+    wt = main / ".agi" / "worktrees" / agent_id
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    out = subprocess.run(
+        ["git", "-C", str(main), "worktree", "add", "-b", branch,
+         str(wt), base_branch],
+        capture_output=True, text=True,
+    )
+    if out.returncode != 0:
+        raise RuntimeError(f"git worktree add -b {branch} from {base_branch}: "
+                           f"{out.stderr.strip()}")
+    return wt
+
+
+def drop_branch_worktree(root: Path, worktree: Path) -> None:
+    """Best-effort remove of a worktree created by `--branch` but never used.
+
+    Called on every spawn-failure path after a worktree was cut, so a botched
+    spawn does not leak a worktree and its branch. `git worktree remove` is
+    issued from the MAIN checkout (`git_common_root`), never the worktree
+    itself; `--force` discards whatever stray bytes landed in it before the
+    abort. Any removal failure is swallowed — the seat's next `merge-up` /
+    `worktree list` pass is the safety net, not this.
+    """
+    try:
+        main = locations.git_common_root(root)
+        subprocess.run(
+            ["git", "-C", str(main), "worktree", "remove", "--force",
+             str(worktree)],
+            capture_output=True, text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def child_working_graph(*, passed_root: Path | None,
+                        spawner_env_root: str | None) -> Path | None:
+    """Re-root the child's working graph to the SPAWNER's worktree.
+
+    `hypothesis:l3w4-parent-branch-merge-up` recursion fix. A parent spawned
+    with `--branch` runs in its own git worktree (dispatch exports that
+    worktree as `AGI_TREE_PROJECT_ROOT` to the child env), and when it spawns
+    a KID (`--tier kid`, no `--branch`) the kid must INHERIT that worktree as
+    its working tree — not walk back out to the main checkout, which is what
+    resolving the kid's root from the passed project path alone used to do.
+    L3.30 runtime rehearsal (Belam VII): both worktrees stood EMPTY while
+    every kid's edits and session dirs landed in the main checkout, so
+    `merge-up` would have merged two empty branches — a green result meaning
+    the opposite of what it says.
+
+    Only the tree the CHILD edits changes here. Shared state (spawn budget,
+    comms root, meter pins) re-resolves to the main checkout through
+    `git_common_root` in the callees that own it, so this never weakens the
+    tree-wide concurrency bound (ADDENDUM item 4).
+    """
+    if passed_root is None:
+        return passed_root
+    if not spawner_env_root:
+        return passed_root
+    env_graph = locations.find_project_root(spawner_env_root) \
+        or Path(spawner_env_root).resolve()
+    if env_graph == passed_root:
+        return passed_root
+    return env_graph
+
+
+def child_engine_paths(child_graph: Path | None) -> dict:
+    """Re-root the child's ENGINE paths to its own checkout, not main's.
+
+    `hypothesis:l3-branch-source-paths-never-rerooted`. dispatch.py re-roots
+    the child GRAPH thoroughly (`child_working_graph`) but leaves
+    `PLUGIN_ROOT`, `CLI_PY`, `skill_prompt` and `dispatch_py` as module
+    constants derived from `Path(__file__)` of the dispatch.py that is
+    RUNNING — which, under `--branch`, is the main checkout's dispatch.py. So
+    a kid's argv carried a worktree node path beside main-absolute engine
+    paths, and the model followed the only source anchor it was given: main.
+    `locations.source_root` already computes exactly the checkout root this
+    needs and was wired to nothing; it is the resolver for precisely this.
+
+    The same four values are computed against the child's own source root and
+    returned, falling back per-path to the module constants when a candidate
+    does not exist — a non-agi project's source tree has no engine, and its
+    kid must keep using the engine that spawned it. Call once `child_graph`
+    is settled (on BOTH the `--branch` and the plain spawn), and pass the
+    returned values at the `build_command` site.
+    """
+
+    def _fallback() -> dict:
+        return {
+            "source_root": PLUGIN_ROOT,
+            "cli_py": CLI_PY,
+            "skill_prompt": PLUGIN_ROOT / "lib" / "agent-prompt.md",
+            "dispatch_py": Path(__file__).resolve(),
+        }
+
+    if child_graph is None:
+        return _fallback()
+    try:
+        src = locations.source_root(child_graph)
+    except Exception:
+        src = None
+    if src is None:
+        return _fallback()
+
+    out = _fallback()
+    out["source_root"] = src
+    # The engine layout inside an agi-project checkout: <src>/extensions/agi.
+    _candidates = {
+        "cli_py": ("extensions", "agi", "bin", "cli.py"),
+        "skill_prompt": ("extensions", "agi", "lib", "agent-prompt.md"),
+        "dispatch_py": ("extensions", "agi", "bin", "dispatch.py"),
+    }
+    for key, rel in _candidates.items():
+        candidate = Path(src, *rel)
+        if candidate.exists():
+            out[key] = candidate
+    return out
 
 
 def pi_model_args(cfg: dict, tier: str = "kid") -> list[str]:
@@ -246,6 +436,20 @@ def _merge_manifest(iter_dir: Path, base: dict, new_records: list[dict],
 # hypothesis's VERIFY asks for.
 
 
+def _default_role_for_tier(tier: str) -> str:
+    """hypothesis:l3-dispatch-role-default — the ladder role a spawn
+    defaults to when `--role` is not given.
+
+    The bug this closes: `--role` defaulted to ``kid`` whatever `--tier`
+    said, so a director's bare `--tier parent` spawn resolved the tier-0
+    kid row and loaded the deepseek kid model instead of the parent model.
+    Tier and role are the same ladder column in the roles table (a row is
+    keyed by both), so the default role is the spawn tier itself. An
+    explicit `--role` still wins over this in `main()`.
+    """
+    return tier or "kid"
+
+
 def _default_tier_for_role(role: str) -> int:
     """The ladder tier a role lives at when `--ladder-tier` is not given.
 
@@ -257,6 +461,25 @@ def _default_tier_for_role(role: str) -> int:
     """
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
+
+
+def _brief_tier_for(tier: str, ladder_tier: int, target: str | None) -> str:
+    """Route a tier-3 parent spawn aimed at a vision node to the advisor brief.
+
+    `hypothesis:l3w3-advisor-brief` — the three advisors ARE the tier-3
+    parents (claude-code, opus 5, effort max, ultracode), each embodying one
+    vision. `dispatch.py --tier parent --ladder-tier 3 --target vision:<id>`
+    used to assemble the generic parent brief, so an advisor sent out with
+    the parent's job description would never sit the tier3-quorum or spawn
+    its perpetual-goal director. When the spawn tier is parent, the ladder
+    tier is 3 AND the target names a vision node, the BRIEF tier becomes
+    `advisor` even though the model/role still resolve as parent (threaded
+    through the adapter's `brief_tier`).
+    """
+    if (tier == "parent" and int(ladder_tier) == 3
+            and target and target.startswith("vision:")):
+        return "advisor"
+    return tier
 
 
 def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
@@ -282,6 +505,11 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
             "harness": row.get("harness") or None,
             "model": (row.get("model") or "").strip() or None,
             "effort": (row.get("effort") or "").strip() or None,
+            # hypothesis:l3w4-director-kids-on-glm — the `thinking` cell is
+            # pi's analogue of `effort`: a model name alone does not say how
+            # hard to think (pi_adapter threads it as `--thinking`). Row owns
+            # it; blank omits the flag.
+            "thinking": (row.get("thinking") or "").strip() or None,
             "settings": row.get("settings") or None,
             "from_ladder": True,
         }
@@ -299,9 +527,37 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
         "harness": _name,
         "model": model,
         "effort": effort,
+        # hypothesis:l3w4-director-kids-on-glm — no config fallback for
+        # thinking: it is a ladder/seat cell, never a global default.
+        "thinking": None,
         "settings": None,
         "from_ladder": False,
     }
+
+
+def resolve_seat_spec(seats: list | None, name: str) -> dict | None:
+    """Resolve one seat row by NAME to {harness, model, effort, settings}.
+
+    hypothesis:l3w4-seat-registry. A seat's own cells override the ladder's
+    (tier, role) class table -- that is how the liaison diverges from the
+    director class (sonnet/high, not opus/max) while staying privileged as a
+    director on tier 1. Returns None when the registry is absent or has no
+    row for `name`, which fails open to the (tier, role) ladder lookup.
+    """
+    for r in (seats or []):
+        if r.get("name") != name:
+            continue
+        return {
+            "harness": r.get("harness") or None,
+            "model": (r.get("model") or "").strip() or None,
+            "effort": (r.get("effort") or "").strip() or None,
+            # hypothesis:l3w4-director-kids-on-glm — a seat may dial its own
+            # reasoning effort, so a GLM seat is told to think high.
+            "thinking": (r.get("thinking") or "").strip() or None,
+            "settings": r.get("settings") or None,
+            "from_seat": True,
+        }
+    return None
 
 
 def _compile_role_rows(roles: list | None) -> list[tuple[int, str, dict]]:
@@ -339,6 +595,178 @@ def _list_rows(root: Path, cfg: dict) -> int:
     return 0
 
 
+def apply_advisor_goal_env(value: str | None) -> None:
+    """Seed/clear the advisor-goal env read by `brief.assemble(tier=advisor)`.
+
+    `hypothesis:l3w3-advisor-brief` addendum after L3.12 — a `--goal goal:<id>`
+    pins which perpetual-goal director the advisor brief says to spawn. The
+    brief is assembled inside `adapter.build_command`, and every harness calls
+    it, so the goal is threaded through the ENVIRONMENT rather than a new
+    keyword on every adapter (claude_code_adapter.py belongs to another kid
+    this round). Set once per invocation, before the spawn loop.
+    """
+    if value:
+        os.environ["AGI_ADVISOR_GOAL"] = value
+    else:
+        os.environ.pop("AGI_ADVISOR_GOAL", None)
+
+
+def _read_prompt_file(path: str | None) -> str | None:
+    """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    -- read the per-kid brief channel text. `-` means stdin; anything else is
+    a UTF-8 file path. The text is passed as the KID'S `addendum` brief
+    segment, never inlined on the argv -- a kid's result holds arbitrary
+    characters including quotes and newlines. None (no flag) returns None,
+    which leaves the kid brief byte-identical to a non-addendum spawn.
+    """
+    if path is None:
+        return None
+    if path == "-":
+        return sys.stdin.read()
+    return Path(path).read_text(encoding="utf-8")
+
+
+def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
+                    dispatch_harness: dict, adapter: object, args,
+                    targets, tier_eff: int) -> int:
+    """hypothesis:l3-dispatch-dry-run — resolve and print every slot's spawn.
+
+    Resolves exactly what the live path resolves (target, tier, role, ladder
+    tier, brief tier via `_brief_tier_for`, model and effort rows, env
+    exports), assembles the brief, prints a compact report (quoted, shell-safe
+    command line; exported env; brief tier; brief line count and first 20
+    lines) and exits 0. It never registers a spawn-budget slot, never writes a
+    manifest or a session dir, and never calls Popen — the caller has already
+    deferred `iter_dir.mkdir`, so nothing lands on disk.
+
+    The command line is built through each harness's OWN `build_command` (the
+    same call the live spawn loop makes), so model/effort/settings routing,
+    the advisor brief swap, the tool bundles and the ultracode env gate are
+    all exercised for real; only the `context_file` is a placeholder (a dry
+    run does not want to pay for a zoom render), and the `sess_dir` is a
+    disposable temp dir that is removed before this returns.
+    """
+    import brief as _brief
+    import tempfile
+
+    current_season = spawn_gate.read_ladder_season(
+        root / "nodes" if root else None)
+    if current_season is None:
+        current_season = 1
+    cap = spawn_budget.max_live(cfg)
+    parallel = adapters.parallelism(cfg)
+    # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
+    # ceiling, named in the parent brief so an iterating parent plans around
+    # it instead of discovering an unexplained stop.
+    kid_ceiling = spawn_budget.parent_max_kids(cfg)
+    # hypothesis:l3-branch-source-paths-never-rerooted -- mirror the live
+    # loop's re-rooted engine paths in the dry report (which dry-prints the
+    # same argv a real spawn would get).
+    engine_paths = child_engine_paths(root)
+
+    for slot, target_entry in enumerate(targets):
+        if len(target_entry) == 4:
+            level, target, strategy, _role = target_entry
+        else:
+            level, target, strategy = target_entry
+        if level == "auto":
+            # Resolution-only: we need one deterministic level for the report.
+            level = "big"
+        agent_id = f"dry{slot:02d}-{uuid.uuid4().hex[:8]}"
+        brief_tier = _brief_tier_for(args.tier, tier_eff, target)
+        with tempfile.TemporaryDirectory() as td:
+            sess_dir = Path(td)
+            # Placeholder context — we resolve the spawn, not the map.
+            # Written via open().write rather than a node-writer call: the
+            # suite asserts dispatch.py only ever writes named session
+            # artefacts.
+            ctx_file = sess_dir / "context.md"
+            with open(ctx_file, "w", encoding="utf-8") as _fh:
+                _fh.write(
+                    f"# dry-run context (placeholder, no zoom render)\n\n"
+                    f"target: {target}\nlevel: {level}\n")
+            cmd = adapter.build_command(
+                harness=dispatch_harness, tier=args.tier,
+                brief_tier=brief_tier, context_file=str(ctx_file),
+                agent_id=agent_id, iter_n=args.iter_n,
+                sess_dir=sess_dir, scaffold=None, cli_py=engine_paths["cli_py"],
+                skill_prompt=engine_paths["skill_prompt"],
+                dispatch_py=engine_paths["dispatch_py"],
+                source_root=engine_paths["source_root"],
+                target=target, parallel=parallel, max_live=cap,
+                kid_ceiling=kid_ceiling,
+                addendum=_read_prompt_file(args.prompt_file),
+                role=args.role, ladder_tier=tier_eff,
+            )
+            # The env a child WOULD have been spawned with — same exports the
+            # live loop builds in main(), kept here so the dry report shows
+            # the real values (AGI_*, CLAUDE_CODE_WORKFLOWS) without a spawn.
+            env = adapter.child_env(harness=dispatch_harness,
+                                    base=scrubbed_env(), tier=args.tier)
+            env["AGI_TIER"] = args.tier
+            env["AGI_ROLE"] = args.role
+            env["AGI_LADDER_TIER"] = str(tier_eff)
+            env["AGI_SEASON"] = str(current_season)
+            loop_ref = target or "explore"
+            env["AGI_LOOP"] = f"{loop_ref}@s{current_season}"
+            model_val = dispatch_harness.get("models", {}).get(args.tier, "")
+            if model_val:
+                env["AGI_MODEL"] = str(model_val)
+            profile_val = dispatch_harness.get("profiles", {}).get(
+                args.tier, "balanced")
+            env["AGI_PROFILE"] = str(profile_val)
+            # hypothesis:l3-agent-id-never-exported — mirror of the live
+            # spawn_env identity exports, kept so the dry report shows the
+            # child WOULD receive its own id and actor.
+            env["AGI_AGENT_ID"] = agent_id
+            env["AGI_ACTOR"] = agent_id
+            if args.tier in ("kid", "parent"):
+                env["GIT_CONFIG_COUNT"] = "1"
+
+            # The brief, assembled directly so the report can show ITS line
+            # count and first 20 lines without depending on how a harness
+            # spells the prompt to disk.
+            segments = _brief.assemble(
+                tier=brief_tier, agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"], scaffold=None,
+                source_root=engine_paths["source_root"],
+                target=target, parallel=parallel, max_live=cap,
+                kid_ceiling=kid_ceiling,
+                addendum=_read_prompt_file(args.prompt_file),
+                session_dir=sess_dir)
+        brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
+        brief_lines = [l for l in brief_text.splitlines() if l.strip()]
+
+        print(f"[dry-run] slot={slot} harness={harness_name} "
+              f"tier={args.tier} role={args.role} ladder_tier={tier_eff} "
+              f"level={level} target={target or '-'} "
+              f"brief_tier={brief_tier}")
+        # Compact: pi inlines every brief segment as its own flag, so the raw
+        # command would print hundreds of lines of the brief itself. The brief
+        # is shown separately below; here a long argument is shortened to a
+        # marker. claude-code keeps the brief in a file, so its line stays
+        # clean and short.
+        def _compact(a: str) -> str:
+            q = shlex.quote(a)
+            if len(q) > 200:
+                return q[:180] + f"...<{len(q)} chars>"
+            return q
+        print(f"  command: {' '.join(_compact(a) for a in cmd)}")
+        export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
+                       "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
+                       "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
+                       "GIT_CONFIG_COUNT", "CLAUDE_CODE_WORKFLOWS"]
+        shown = [f"{k}={env[k]}" for k in export_keys if k in env]
+        print(f"  env: {' '.join(shown)}")
+        print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
+              f"first 20:")
+        for ln in brief_lines[:20]:
+            print(f"    {ln}")
+    print("dry-run: nothing spawned, nothing written, no budget slot taken")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
@@ -360,6 +788,15 @@ def main() -> int:
         help="Zoom level for --target (default: small)",
     )
     ap.add_argument(
+        "--push-further",
+        action="store_true",
+        help="hypothesis:l3w4-push-further-loops — re-dispatch at --target, "
+             "composing from the target's push_further text and stamping "
+             "pushed_from: <target> on the continuation kid. Refused "
+             "(exit 2, no lease, no session dir) when --target is an "
+             "overview/vision/moral node: the push stops at the quorum.",
+    )
+    ap.add_argument(
         "--strategy",
         default="extend_existing",
         help="Strategy label recorded for an aimed slot (default: extend_existing)",
@@ -376,9 +813,10 @@ def main() -> int:
     )
     ap.add_argument(
         "--role",
-        default="kid",
+        default=None,
         help="Ladder role to spawn (kid|parent|director|prime_director); "
-             "resolved against the ladder's roles table (default: kid)",
+             "resolved against the ladder's roles table (default: derived "
+             "from --tier, so a parent tier means role parent)",
     )
     ap.add_argument(
         "--ladder-tier",
@@ -388,10 +826,44 @@ def main() -> int:
              "--role when a row exists, else config fallback",
     )
     ap.add_argument(
+        "--goal",
+        default=None,
+        help="Perpetual goal pinned for an advisor's spawned director "
+             "(advisor brief only): --tier parent --ladder-tier 3 "
+             "--target vision:<id> --goal goal:<id>",
+    )
+    ap.add_argument(
+        "--seat",
+        default=None,
+        help="Seat name to dispatch as (hypothesis:l3w4-seat-registry). The "
+             "seat's own row in config:seats overrides harness/model/effort/"
+             "settings from the ladder's (tier, role) class table. No row for "
+             "the name falls back to the ladder. Export AGI_SEAT=<name> for "
+             "the meter pin to land seat-stable.",
+    )
+    ap.add_argument(
         "--list-rows",
         action="store_true",
         help="Dry print: resolve every role in the ladder's roles table and "
              "exit without spawning (hypothesis:l3w0-ladder-roles-table)",
+    )
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Resolve and print the fully-resolved spawn for every slot -- "
+             "command line, exported env, brief tier, brief line count and "
+             "first 20 lines -- WITHOUT spawning, writing a session dir, or "
+             "taking a spawn-budget slot. Exits 0 (hypothesis:l3-dispatch-\n"
+             "dry-run).",
+    )
+    ap.add_argument(
+        "--branch",
+        action="store_true",
+        help="Run each spawn in its own git worktree on "
+             "loop/<slug>-<agent>@s<N>, cut from the SPAWNER's checked-out "
+             "branch; the kid edits only that worktree and its lease/record "
+             "carries branch/base_branch/worktree for season.py merge-up "
+             "(hypothesis:l3w4-parent-branch-merge-up)",
     )
     ap.add_argument(
         "--detach",
@@ -401,18 +873,78 @@ def main() -> int:
              "detect completion. Without this flag dispatch blocks until "
              "all agents finish or the timeout expires.",
     )
+    ap.add_argument(
+        "--prompt-file",
+        default=None,
+        help="hypothesis:l3-parent-never-told-to-iterate, carry-forward axis "
+             "(SD.12) -- per-kid brief channel. Path to a file (or `-` for "
+             "stdin) whose text is threaded into the spawned kid's brief as "
+             "its OWN labelled segment ('WHAT THE LAST KID PRODUCED'). Give "
+             "this to the NEXT kid's spawn with the last kid's result written "
+             "to a file, so the second is never a blind rerun of the first. "
+             "Read by path, never inlined as an argv string: a kid's result "
+             "holds arbitrary characters (quotes, newlines) that would break "
+             "the command line.",
+    )
     args = ap.parse_args()
+
+    # hypothesis:l3w3-advisor-brief addendum after L3.12 — thread the advisor's
+    # pinned --goal into the assembled brief through the env (see
+    # apply_advisor_goal_env). Set before any build_command runs.
+    apply_advisor_goal_env(args.goal)
+
+    # hypothesis:l3-dispatch-role-default — a bare --tier parent must mean
+    # role parent (so it resolves the parent ladder row, never the tier-0
+    # kid model). An explicit --role always wins over the tier-derived
+    # default.
+    if args.role is None:
+        args.role = _default_role_for_tier(args.tier)
 
     # goal:g11.1 — resolve the given path the way every entry point resolves
     # cwd, rather than demanding it already BE the graph root. Identity on a
     # legacy root (phase 1), so no existing project resolves differently.
     given = Path(args.project_root).resolve()
     root = locations.find_project_root(given)
+    # hypothesis:l3w4-parent-branch-merge-up — recursion fix (L3.30 defect):
+    # when THIS dispatch is itself a spawned --branch parent running in its
+    # worktree, AGI_TREE_PROJECT_ROOT names that worktree, and any kid it
+    # spawns heredits it as the working tree instead of collapsing back to
+    # the main checkout. Re-rooting uses project_root_from_env's seam (the
+    # env dispatch itself exports to --branch children) and only fires when
+    # it names a DIFFERENT graph than the passed path resolved to, so a
+    # top-level dispatch from the seat/cron resolves exactly as before.
+    _spawner_env_root = os.environ.get(locations.PROJECT_ROOT_ENV_VARS[0])
+    root = child_working_graph(passed_root=root,
+                               spawner_env_root=_spawner_env_root)
     cfg_path = locations.config_path(root) if root is not None else None
     if cfg_path is None:
         print(f"ERR: not an agi project: {given}", file=sys.stderr)
         return 1
     cfg = json.loads(cfg_path.read_text())
+
+    # hypothesis:l3w4-seat-registry — a named seat overrides the (tier, role)
+    # ladder class table with the seat's own row. Resolved here, after `root`
+    # exists and before the harness block reads the ladder.
+    if args.seat is not None:
+        seat_spec = resolve_seat_spec(
+            spawn_gate.read_seat_registry(root / "nodes" if root else None),
+            args.seat)
+        if seat_spec is None:
+            print(f"seats: no row for seat '{args.seat}'; falling back to "
+                  f"ladder/config", file=sys.stderr)
+        else:
+            # Reuse the (tier, role) override branch below by substituting the
+            # seat's cells for the ladder spec's. The model cell is keyed to
+            # the adapter's tier string later, so the seat's model wins.
+            _seat_override = dict(seat_spec)
+            _seat_override["from_ladder"] = True
+            _seat_override["from_seat"] = True
+            args._seat_override = _seat_override
+            print(f"seats: seat {args.seat} -> "
+                  f"{seat_spec['harness'] or '-'}/{seat_spec['model'] or '-'}/"
+                  f"effort={seat_spec['effort'] or '-'}/"
+                  f"thinking={seat_spec.get('thinking') or '-'}/"
+                  f"settings={seat_spec['settings'] or '-'}")
 
     # hypothesis:l3w0-ladder-roles-table — dry print: resolve every declared
     # role row and exit without spawning anything. Nothing is written.
@@ -433,26 +965,50 @@ def main() -> int:
         tier_eff = (args.ladder_tier if args.ladder_tier is not None
                     else _default_tier_for_role(args.role))
         _spec = resolve_role_spec(cfg, ladder_roles, tier_eff, args.role)
+        # hypothesis:l3w4-seat-registry — a named seat's row replaces the
+        # ladder spec; the seat's harness/model/effort/settings win.
+        if getattr(args, "_seat_override", None):
+            _spec = args._seat_override
         dispatch_harness = harness
+        explicit_harness = args.harness is not None
+        from_seat = bool(_spec.get("from_seat"))
         if _spec["from_ladder"]:
             if _spec["harness"] and _spec["harness"] != harness_name:
-                # A ladder row may name a different harness (e.g. an opus
-                # parent on claude-code while the invocation defaulted to pi).
-                harness_name, dispatch_harness = adapters.resolve(
-                    cfg, _spec["harness"])
-                dispatch_harness = dict(dispatch_harness)
+                if from_seat or not explicit_harness:
+                    # A seat row, or no explicit flag: the declared
+                    # (seat/ladder) harness wins, as it always has.
+                    harness_name, dispatch_harness = adapters.resolve(
+                        cfg, _spec["harness"])
+                    dispatch_harness = dict(dispatch_harness)
+                else:
+                    # hypothesis:l3-dispatch-harness-flag-overridden — an
+                    # explicit --harness beats a ladder row that names a
+                    # different harness. The row's model/effort/settings
+                    # belong to THAT harness, so drop them and take this
+                    # harness's own tier model. One notice naming both.
+                    print(f"harness: --harness {harness_name} overrides "
+                          f"ladder row harness {_spec['harness']} (using "
+                          f"{harness_name} models for tier {args.tier})")
             else:
                 dispatch_harness = dict(harness)
-            _models = dict(dispatch_harness.get("models") or {})
-            if _spec["model"]:
-                # Keyed by the adapter's tier string so model_args(harness,
-                # args.tier) returns the ladder row's model.
-                _models[args.tier] = _spec["model"]
-            dispatch_harness["models"] = _models
-            if _spec["effort"]:
-                dispatch_harness["effort"] = {args.tier: _spec["effort"]}
-            if _spec["settings"]:
-                dispatch_harness["settings"] = _spec["settings"]
+            if (from_seat or not explicit_harness
+                    or _spec["harness"] == harness_name):
+                _models = dict(dispatch_harness.get("models") or {})
+                if _spec["model"]:
+                    # Keyed by the adapter's tier string so model_args(harness,
+                    # args.tier) returns the ladder row's model.
+                    _models[args.tier] = _spec["model"]
+                dispatch_harness["models"] = _models
+                if _spec["effort"]:
+                    dispatch_harness["effort"] = {args.tier: _spec["effort"]}
+                # hypothesis:l3w4-director-kids-on-glm — flat, not tier-keyed:
+                # pi_adapter.model_args reads `harness["thinking"]` directly
+                # (no tier key) and emits `--thinking <val>`. Absent means the
+                # harness's own default stands.
+                if _spec.get("thinking"):
+                    dispatch_harness["thinking"] = _spec["thinking"]
+                if _spec["settings"]:
+                    dispatch_harness["settings"] = _spec["settings"]
         else:
             print(f"roles: no ladder row for (tier={tier_eff}, "
                   f"role={args.role}); falling back to config "
@@ -460,7 +1016,21 @@ def main() -> int:
         if _spec["from_ladder"]:
             print(f"roles: tier={tier_eff} role={args.role} -> "
                   f"{_spec['harness']}/{_spec['model'] or '-'}/"
-                  f"effort={_spec['effort'] or '-'}/settings={_spec['settings'] or '-'}")
+                  f"effort={_spec['effort'] or '-'}/"
+                  f"thinking={_spec['thinking'] or '-'}/"
+                  f"settings={_spec['settings'] or '-'}")
+        # hypothesis:l3-workflow-model-crosses-harness-namespace — the guard
+        # workflow.py has carried since the incident, now on the spawn path
+        # too. Every source of a model (ladder row, seat row, config fallback)
+        # has landed in `dispatch_harness["models"]` by this line, so this is
+        # the one place that sees all three. Refuse BEFORE a credential is
+        # minted or a process starts: a Claude alias resolved onto an
+        # OpenRouter provider bills Anthropic against an OpenRouter key, and
+        # the failure looks like a bill, not like a wrong flag.
+        _eff_model = (dispatch_harness.get("models") or {}).get(args.tier)
+        if _eff_model:
+            adapters.assert_model_in_provider_namespace(
+                str(_eff_model), str(dispatch_harness.get("provider") or ""))
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
@@ -494,8 +1064,18 @@ def main() -> int:
     else:
         print(f"season: ladder current_season={current_season}")
 
-    iter_dir = locations.iteration_dir(root, args.iter_n)
-    iter_dir.mkdir(parents=True, exist_ok=True)
+    # hypothesis:l3-cli-done-worktree-manifest — the session dir (per-agent
+    # `agent.json`, the iteration `manifest.json`, `output.log`) is the LOOP'S
+    # bookkeeping and stays ONE body across worktrees, resolved to the MAIN
+    # checkout through `shared_project_root` — the same rule as the spawn
+    # budget, comms root and meter pins. A `--branch` spawner (cwd = worktree)
+    # still writes every agent's record where the director (main) and a later
+    # `cli.py done` from any worktree expect it. The graph a kid edits stays
+    # `root`/`child_graph` (forked).
+    sess_root = locations.shared_project_root(root) or root
+    iter_dir = locations.iteration_dir(sess_root, args.iter_n)
+    # Deferred `.mkdir()` until AFTER the dry-run return: a dry-run must not
+    # create a session dir (hypothesis:l3-dispatch-dry-run).
 
     # Two-agent research pipeline: architect (slot 0) + builder (slot 1)
     # Slot 1 waits for slot 0 to produce a node, then implements it.
@@ -515,6 +1095,34 @@ def main() -> int:
         targets = _research_pipeline_targets(root, n, iter_dir)
     else:
         targets = _pick_targets(root, n)
+
+    # hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum.
+    # `--push-further --target <id>` is REFUSED before any slot is admitted
+    # when <id> is an overview/vision/moral node (the quorum-judged tiers),
+    # so a push-further chain can re-dispatch at the same target id through
+    # the kid/parent/director tiers but can never auto-continue INTO that
+    # territory. Exit 2, before iter_dir.mkdir (no session dir) and before
+    # any spawn_budget lease.
+    if args.push_further:
+        refused = _push_further_gate(root, args.target)
+        if refused:
+            code, msg = refused
+            print(msg, file=sys.stderr)
+            return code
+
+    # hypothesis:l3-dispatch-dry-run — a dry run resolves everything the live
+    # path resolves (target, tier, role, ladder tier, brief tier via
+    # `_brief_tier_for`, model and effort rows, env exports) then assembles the
+    # brief, prints a compact report and exits 0 — without spawning, let a
+    # single spawn-budget slot, write a manifest or session dir, or call
+    # Popen. It also must not create the iteration dir — hence the deferred
+    # `.mkdir()` above.
+    if args.dry_run:
+        return _dry_run_report(
+            root=root, cfg=cfg, harness_name=harness_name,
+            dispatch_harness=dispatch_harness, adapter=adapter,
+            args=args, targets=targets, tier_eff=tier_eff)
+    iter_dir.mkdir(parents=True, exist_ok=True)
 
     # goal:s28 — merge into existing manifest rather than overwriting.
     # A parent dispatch into the same iter dir must not clobber its own
@@ -545,6 +1153,20 @@ def main() -> int:
     # race produced.
     unadmitted: list[dict] = []
 
+    # hypothesis:l3-openrouter-key-headroom-invisible — pre-flight BEFORE any
+    # slot takes a budget lease. The one number that can kill every pi agent
+    # (the runtime sub-key's remaining balance, which OpenRouter reports as
+    # "401 API key expired" when crossed) should surface as a named refusal
+    # rather than a silent round-destroying death 60 minutes in. The check is
+    # fail-open on absence or a network error — an unreachable API must never
+    # block a round — and applies only to an openrouter harness, whose runtime
+    # key carries its own dollar cap.
+    if dispatch_harness.get("provider") == "openrouter":
+        _hkey_ok, _hkey_msg = provisioning.check_runtime_key_floor(cfg, root)
+        if not _hkey_ok:
+            print(f"ERR: {_hkey_msg}", file=sys.stderr)
+            return 1
+
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
             level, target, strategy, role = target_entry
@@ -568,6 +1190,25 @@ def main() -> int:
         lease = spawn_budget.acquire(
             root, cap, agent_id, tier=args.tier, iter_n=args.iter_n)
         if lease is None:
+            # hypothesis:l3-reaper-restarts-through-stop — a refused lease
+            # while paused is not "full"; "0/25, refused" read as a budget
+            # message is exactly the confident-wrong-number shape this
+            # loop has been chasing all day.
+            paused = spawn_budget.is_paused(root)
+            if paused:
+                reason = paused.get("reason") or "owner stop order"
+                print(f"unadmitted {agent_id} slot={slot}: dispatch paused "
+                      f"({reason}) — skipping, not waiting", file=sys.stderr)
+                unadmitted.append({
+                    "id": agent_id,
+                    "slot": slot,
+                    "tier": args.tier,
+                    "target": target,
+                    "status": "unadmitted",
+                    "reason": f"dispatch paused ({reason})",
+                    "at": int(time.time()),
+                })
+                continue
             live = spawn_budget.live_count(root)
             print(f"unadmitted {agent_id} slot={slot}: spawn budget full "
                   f"({live}/{cap} live tree-wide) — skipping, not waiting",
@@ -583,7 +1224,61 @@ def main() -> int:
             })
             continue
 
-        zoom_cmd = zoom_command(root, args.iter_n, agent_id, level, target)
+        # hypothesis:l3w4-parent-branch-merge-up — `--branch` gives this
+        # spawn its own git worktree on loop/<slug>-<agent8>@s<N>, cut from
+        # the SPAWNER's checked-out branch. The kid edits only that worktree
+        # (child_graph for zoom/scaffold, cwd + AGI_TREE_PROJECT_ROOT for the
+        # process), and the lease + agent record carry branch/base_branch/
+        # worktree so season.py merge-up knows which base this climbs into.
+        # Shared state (budget dir, comms, meter pins) resolves to the MAIN
+        # checkout through git_common_root, so the concurrency bound and the
+        # rooms stay ONE directory even with N worktrees live.
+        child_graph = root
+        # hypothesis:l3-branch-source-paths-never-rerooted part 3 -- a plain
+        # (non-`--branch`) spawn previously got `branch_root = root`, where
+        # `root` is the `.agi` GRAPH DIR, not the checkout. That born the kid
+        # in `<graph>/.agi` with no `extensions/` beside it, so every relative
+        # source instruction its own brief gave it resolvers nothing while
+        # every graph reference resolved. The checkout root is what relative
+        # source paths resolve against -- and what the agent-git commit guard
+        # compares to `git rev-parse --show-toplevel`. Under `--branch`
+        # `branch_root` is already the worktree checkout root below.
+        branch_root = locations.source_root(root)
+        branch_ref: dict = {}
+        if args.branch:
+            base = spawner_base_branch(Path.cwd())
+            if not base:
+                print(f"ERR {agent_id} slot={slot}: --branch requires a "
+                      f"checked-out branch (detached HEAD?) to cut a child "
+                      f"from", file=sys.stderr)
+                spawn_budget.release(lease)
+                return 1
+            branch = loop_branch_name(target, agent_id, current_season)
+            try:
+                wt = branch_worktree_for_spawn(root, branch, agent_id, base)
+            except RuntimeError as exc:
+                print(f"ERR {agent_id} slot={slot}: {exc}", file=sys.stderr)
+                spawn_budget.release(lease)
+                return 1
+            branch_root = wt
+            child_graph = locations.find_project_root(wt) or wt
+            branch_ref = {
+                "branch": branch,
+                "base_branch": base,
+                "worktree": str(wt),
+            }
+            spawn_budget.attach_branch(lease, branch_ref)
+
+        # hypothesis:l3-branch-source-paths-never-rerooted parts 1-2 -- the
+        # GRAPH is re-rooted above; re-root the ENGINE paths to the same child
+        # checkout (the `--branch` worktree, or the checkout-rooted plain
+        # spawn) so one argv no longer mixes a worktree node path with
+        # main-absolute source paths. Fallbacks inside preserve the pre-fix
+        # constants when the child's source tree has no engine.
+        engine_paths = child_engine_paths(child_graph)
+
+        zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target,
+                               push_further=args.push_further)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
@@ -595,6 +1290,8 @@ def main() -> int:
             # instead of surfacing a CalledProcessError traceback.
             print(f"ERR: no context for target {target!r} at level {level}: "
                   f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             return 1
 
@@ -612,31 +1309,76 @@ def main() -> int:
             print("tier=parent: no scaffold — a parent's artefact is its kids' "
                   "nodes (goal:s27)")
         else:
+            # hypothesis:l3-scaffold-stamps-spawner-env — a dispatch-spawned
+            # scaffold used to be stamped from the DISPATCHER's os.environ
+            # (node_writer reads AGI_LOOP/AGI_MODEL/AGI_PROFILE/AGI_ROLE/
+            # AGI_SEASON at write time), so a kid or advisor spawned under a
+            # parent was born role=parent model=<parent's model> loop=<the
+            # parent's loop>. The child's true identity was computed only
+            # later, into spawn_env, and never reached the scaffold. Resolve
+            # the child's row HERE, before scaffold, and hand it to
+            # node_writer so the node is stamped with the agent it is FOR,
+            # not the agent that made it. Same sources as the spawn_env
+            # exports below, so the node and the running agent agree.
+            child_stamp = {
+                "role": args.role,
+                "loop": f"{target or 'explore'}@s{current_season}",
+                "model": dispatch_harness.get("models", {}).get(args.tier, ""),
+                "profile": dispatch_harness.get("profiles", {}).get(args.tier, "balanced"),
+                "season": str(current_season),
+            }
+            extra_fm = ({"pushed_from": args.target}
+                        if args.push_further and args.target else None)
             scaffold_info = _scaffold_node_for_agent(
-                root, args.iter_n, agent_id, level, target, role)
+                child_graph, args.iter_n, agent_id, level, target, role,
+                stamp=child_stamp, extra_fm=extra_fm)
             if scaffold_info:
                 print(f"scaffolded {scaffold_info['node_type']} node: {scaffold_info['node_id']}")
+                if args.push_further:
+                    print(f"push-further: {args.target} -> "
+                          f"{scaffold_info['node_id']}")
 
         # Spawn pi (detached). Output -> sess_dir/output.log
         try:
             spawn_args = adapter.build_command(
                 harness=dispatch_harness,
                 tier=args.tier,
+                # hypothesis:l3w3-advisor-brief — a tier-3 parent spawn
+                # aimed at a vision node must get the ADVISOR brief (vision
+                # body, tier3-quorum seat, perpetual-director spawn), not the
+                # generic parent one. The model/role stay parent-tier; only
+                # the assembled brief changes.
+                brief_tier=_brief_tier_for(args.tier, tier_eff, target),
                 context_file=ctx_path,
                 agent_id=agent_id,
                 iter_n=args.iter_n,
                 sess_dir=sess_dir,
                 scaffold=scaffold_info,
-                cli_py=CLI_PY,
-                skill_prompt=PLUGIN_ROOT / "lib" / "agent-prompt.md",
+                cli_py=engine_paths["cli_py"],
+                skill_prompt=engine_paths["skill_prompt"],
                 # goal:g1.9 / goal:g4.8 -- a parent brief needs the spawn
                 # command, its aim, and the concurrency bound. A kid brief
                 # ignores all three; passing them unconditionally keeps the
                 # call site tier-blind, which is the point of the assembler.
-                dispatch_py=Path(__file__).resolve(),
+                dispatch_py=engine_paths["dispatch_py"],
+                # hypothesis:l3-branch-source-paths-never-rerooted part 4 --
+                # tell the agent, out loud, which checkout it owns.
+                source_root=engine_paths["source_root"],
                 target=target,
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
+                # hypothesis:l3-parent-never-told-to-iterate -- the
+                # per-dispatch kid ceiling threaded to the parent brief.
+                kid_ceiling=spawn_budget.parent_max_kids(cfg),
+                # hypothesis:l3-parent-never-told-to-iterate, carry-forward
+                # axis (SD.12) -- the per-kid brief channel. Read once per
+                # invocation so the same text threads the whole batch.
+                addendum=_read_prompt_file(args.prompt_file),
+                # hypothesis:l3-cc-tools-by-tier -- who this agent is on the
+                # ladder selects its tool bundle (kids keep the closed list;
+                # advisors/directors add the ultracode/loop tools).
+                role=args.role,
+                ladder_tier=tier_eff,
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)
@@ -662,6 +1404,13 @@ def main() -> int:
             profile_val = dispatch_harness.get("profiles", {}).get(
                 args.tier, "balanced")
             spawn_env["AGI_PROFILE"] = str(profile_val)
+            # hypothesis:l3-agent-id-never-exported — tell every agent its own
+            # name: export the id dispatch minted and the actor under which it
+            # records provenance, so send.py and write.py resolve the same
+            # identity the engine already wrote into agent.json, instead of
+            # inventing a per-tool fallback (tmux window name / $USER).
+            spawn_env["AGI_AGENT_ID"] = agent_id
+            spawn_env["AGI_ACTOR"] = agent_id
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"
@@ -672,7 +1421,15 @@ def main() -> int:
                 # toplevel with AGI_PROJECT_ROOT to scope the refusal to
                 # only the project repo, so test repos under /tmp are
                 # allowed even under AGI_TIER=kid
-                spawn_env["AGI_PROJECT_ROOT"] = str(root.resolve())
+                spawn_env["AGI_PROJECT_ROOT"] = str(branch_root.resolve())
+            # hypothesis:l3w4-parent-branch-merge-up — under `--branch` the
+            # child is told (cwd AND AGI_TREE_PROJECT_ROOT, which
+            # project_root_from_env and the bash half check first) that its
+            # project root is the WORKTREE, so its node writes and grid ops
+            # edit only that tree while shared budget/comms/meter resolve to
+            # the main checkout through git_common_root.
+            if args.branch:
+                spawn_env["AGI_TREE_PROJECT_ROOT"] = str(branch_root.resolve())
             # goal:g1.11 -- mint AFTER the brief is assembled and BEFORE the
             # process exists, so a key is never issued for a slot that then
             # fails to spawn for some other reason. The secret goes into the
@@ -698,6 +1455,8 @@ def main() -> int:
             # protect, while reporting success.
             print(f"ERR: could not mint a credential for {agent_id}: {exc}",
                   file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             return 1
         except (KeyError, NotImplementedError) as exc:
@@ -706,6 +1465,8 @@ def main() -> int:
             # than surfacing a traceback from inside an adapter.
             print(f"ERR: harness {harness_name!r} cannot spawn tier "
                   f"{args.tier!r}: {exc}", file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             return 1
         log_file = sess_dir / "output.log"
@@ -717,12 +1478,16 @@ def main() -> int:
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
                     start_new_session=True,
-                    cwd=str(root),
+                    cwd=str(branch_root),
                     env=spawn_env,
                 )
         except BaseException:
             # Nothing was started, so nothing holds the slot. Give it back
-            # now rather than leaving it to expire with this process.
+            # now rather than leaving it to expire with this process, and if
+            # a `--branch` worktree was cut for this agent, drop it so a
+            # botched spawn does not leak a worktree and its branch.
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
             raise
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
@@ -747,10 +1512,29 @@ def main() -> int:
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
         }
+        if branch_ref:
+            # hypothesis:l3w4-parent-branch-merge-up — the recorded
+            # base_branch is what season.py merge-up targets (ADDENDUM item
+            # 2), so this agent's branch climbs into the layer that cut it,
+            # one rung at a time. Season.py reads these from --record.
+            agent_record["branch"] = branch_ref["branch"]
+            agent_record["base_branch"] = branch_ref["base_branch"]
+            agent_record["worktree"] = branch_ref["worktree"]
         if scaffold_info:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+        # hypothesis:l3-meter-own-transcript -- once the child prints its
+        # first stream-json event, capture its session_id into this agent's
+        # `.meter` pin so its OWN rotate meter reads its OWN transcript and
+        # never the newest foreign `.jsonl` in the shared project dir. The
+        # pin helper is a generic adapter capability (only the claude harness
+        # defines it -- pi children write no CC transcript), so dispatch stays
+        # harness-agnostic: an adapter that exposes no pinner just skips it.
+        pin_background = getattr(adapter, "pin_child_transcript_in_background", None)
+        if pin_background is not None:
+            pin_background(sess_dir=sess_dir, agent_id=agent_id, cwd=str(root),
+                           log_file=log_file, timeout=300)
         # goal:s28 — merge by agent id rather than append.
         # When re-dispatching the same agent (e.g. healing), update in place.
         existing = [i for i, a in enumerate(manifest["agents"]) if a.get("id") == agent_id]
@@ -882,6 +1666,11 @@ def _reaper_phase(
                 rec.update(outcome["record"])
                 agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
                 entry["status"] = rec["status"]
+                # hypothesis:l3w4-branch-visibility — the commit count is on
+                # the record and must reach the manifest too, so the round
+                # file and the manifest agree on how far the branch climbed.
+                if "commits_ahead" in rec:
+                    entry["commits_ahead"] = rec["commits_ahead"]
                 if rec.get("pid"):
                     entry["pid"] = rec["pid"]
                 updated = True
@@ -896,6 +1685,35 @@ def _reaper_phase(
     print("reaper: finished")
 
 
+def _commits_ahead(root, rec):
+    """How far a `--branch` agent's branch is ahead of its base, or None.
+
+    hypothesis:l3w4-branch-visibility — the commit count is COMPUTED via
+    `git rev-list --count base_branch..branch` from the main checkout
+    (`locations.git_common_root`), never hand-counted, so the round record
+    and the manifest agree on how far the branch climbed even though the
+    reaper runs in the main checkout while the branch lives in a worktree.
+    Zero and positive both stamp; a record with no branch/base_branch is left
+    untouched (None), so a non-branch agent's record is unchanged.
+    """
+    branch = rec.get("branch")
+    base = rec.get("base_branch")
+    if not (branch and base):
+        return None
+    main = locations.git_common_root(root)
+    commits = 0
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(main), "rev-list", "--count",
+             f"{base}..{branch}"],
+            capture_output=True, text=True, timeout=30)
+        if r.returncode == 0:
+            commits = int(r.stdout.strip())
+    except (subprocess.TimeoutExpired, ValueError, OSError):
+        commits = 0
+    return commits
+
+
 def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
@@ -903,7 +1721,21 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     load-bearing part** (`goal:g4.7`). A kid that died after writing its node
     lost only its report; respawning it would redo finished work and hand a
     second agent the same scaffolded node.
+
+    hypothesis:l3w4-branch-visibility — the returned record also carries
+    `commits_ahead` for a `--branch` agent (computed in `_commits_ahead`), so
+    whatever the reap decided, the round file records how far the branch had
+    climbed.
     """
+    out = _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid,
+                         cap=cap, cfg=cfg)
+    commits = _commits_ahead(root, rec)
+    if commits is not None:
+        out["record"]["commits_ahead"] = commits
+    return out
+
+
+def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     import completion
 
     node_id = rec.get("node_id") or ""
@@ -926,6 +1758,24 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
             # the restart path and say why, rather than guessing either way.
             print(f"reaper: could not check {node_id}: {exc}", file=sys.stderr)
 
+    # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
+    # evidence the reaper should restart it; a pid killed as part of an
+    # owner stop order looks identical to a crash from here; checked BEFORE
+    # the restart budget so a paused tree never spends a restart slot.
+    paused = spawn_budget.is_paused(root)
+    if paused:
+        reason = paused.get("reason") or "owner stop order"
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": (f"pid {pid} disappeared; NOT restarted — "
+                                 f"dispatch paused ({reason})"),
+            },
+            "message": (f"agent {agent_id} not restarted: dispatch paused "
+                        f"({reason})"),
+        }
+
     restarts = int(rec.get("restart_count", 0))
     max_restarts = int(((cfg or {}).get("reaper") or {}).get("max_restarts", 1))
     failed = {
@@ -941,8 +1791,15 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     # A restart is a new process and must be admitted like one. A recovery
     # path that ignores the concurrency bound can cause the outage it is
     # recovering from.
+    # hypothesis:l3-killed-agent-restarts-unattributed — a restart is a new
+    # PROCESS but the SAME round. The `-rN` lease must inherit the round's
+    # iteration id, or the survivor shows `iter=None` in `spawn_budget status`
+    # and the round's stop-condition (a loop on the live count, filtered by
+    # iter) never sees it. A deliberate kill is distinguishable from a crash
+    # elsewhere; when a restart IS legitimate it must be attributable.
     lease = spawn_budget.acquire(root, cap, f"{agent_id}-r{restarts + 1}",
-                                 tier=rec.get("tier", "kid"))
+                                 tier=rec.get("tier", "kid"),
+                                 iter_n=locations.iteration_id(rec.get("iter", 0) or 0))
     if lease is None:
         return {"record": failed,
                 "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "
@@ -1121,6 +1978,24 @@ def _explicit_targets(
     return [(level or "small", target, strategy)] * n
 
 
+def _attractiveness(desc: int, recency_boost: float, diversity: float,
+                   node_type: str) -> float:
+    """Attractiveness score for one node (dispatch chain-ranking).
+
+    The recency leaf boost used to be `desc * 1.2` — and `_descendant_count`
+    returns 0 for a leaf, so `0 * 1.2 == 0.0` and the boost never fired:
+    every chain tip scored 0 and sorted last (idea:frontier-invitation
+    measured this at dispatch.py:1466). Flooring the descendant term at 1
+    is what lets a leaf's boost mean anything: a leaf scores 1.2 (not 0.0)
+    and can rank. The floor is identity for every non-leaf, which already
+    has desc >= 1, so nothing else changes.
+    """
+    type_weight = {"hypothesis": 1.4, "experiment": 1.2, "verdict": 1.1}.get(
+        node_type, 1.0
+    )
+    return max(desc, 1.0) * recency_boost * type_weight * (1.0 + 0.1 * diversity)
+
+
 def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
     """Choose (zoom_level, target_node_id, strategy) for each of N slots.
 
@@ -1223,16 +2098,15 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
         return len(sub_types) / max(len(list(g.nodes)), 1)
 
     for node_id in g.node_ids:
-        desc = _descendant_count(node_id)
         node = g.get_node(node_id)
-        # Recency: leaf nodes with no children get a small boost (untested = potential)
+        # Recency: leaf nodes with no children get a small boost.
         recency_boost = 1.2 if (node and not node.children) else 1.0
-        diversity = _type_diversity(node_id)
-        # Type weighting: hypothesis and experiment are high-value chain starts
-        type_weight = {"hypothesis": 1.4, "experiment": 1.2, "verdict": 1.1}.get(
-            node.type if node else "", 1.0
+        scores[node_id] = _attractiveness(
+            _descendant_count(node_id),
+            recency_boost,
+            _type_diversity(node_id),
+            node.type if node else "",
         )
-        scores[node_id] = desc * recency_boost * type_weight * (1.0 + 0.1 * diversity)
 
     # Sort nodes by attractiveness (descending)
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -1279,6 +2153,53 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
     return out
 
 
+# hypothesis:l3w4-push-further-loops — the node types a push-further chain
+# is mechanically refused to auto-continue into: the quorum-judged tiers.
+PUSH_FURTHER_REFUSED_TYPES = frozenset({"overview", "vision", "moral"})
+
+
+def _target_node_type(root: Path, target: str) -> str | None:
+    """The `type:` of the node `target` names, or None when unresolved.
+
+    Resolves through node_writer's id index so an abbreviated id
+    (`hypothesis:l3w4-push-further-loops@...`) resolves the same way an aimed
+    dispatch's zoom render does. Reads the leading frontmatter line; absent
+    type (odd hand-written file) reads as None and is NOT the quorum stop.
+    """
+    f = node_writer.find_node_file(root, target)
+    if not f:
+        return None
+    try:
+        txt = f.read_text()
+    except OSError:
+        return None
+    # frontmatter `type:<sp><value>` — first non-`-` line of the `---` block
+    for line in txt.splitlines():
+        line = line.strip()
+        if line.startswith("type:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def _push_further_gate(root: Path, target: str | None):
+    """The push-further refusal, as (exit_code, stderr_msg) or None (allowed).
+
+    hypothesis:l3w4-push-further-loops — a push-further re-dispatch is the
+    mechanical stop at the quorum: it needs a --target, and it is refused
+    outright when that target is an overview/vision/moral node so the chain
+    can never auto-continue INTO quorum-judged territory via the flag. Pure
+    and deterministic so the gate is unit-testable without a spawn.
+    """
+    if not target:
+        return (2, "ERR: --push-further requires --target (re-dispatch at the "
+                   "same node id)")
+    ttype = _target_node_type(root, target)
+    if ttype in PUSH_FURTHER_REFUSED_TYPES:
+        return (2, f"ERR: --push-further refuses {target}: node type "
+                   f"'{ttype}' is quorum-judged; push stops at the quorum")
+    return None
+
+
 def _node_type_for(level: str, target: str | None, role: str | None) -> str:
     """Which chain step this agent is being asked to write.
 
@@ -1316,12 +2237,20 @@ def _node_type_for(level: str, target: str | None, role: str | None) -> str:
 
 
 def _scaffold_node_for_agent(
-    root: Path, iter_n: int, agent_id: str, level: str, target: str | None, role: str | None = None
+    root: Path, iter_n: int, agent_id: str, level: str, target: str | None,
+    role: str | None = None, stamp: dict | None = None,
+    extra_fm: dict | None = None,
 ) -> dict | None:
     """Decide what node type to scaffold and pre-create the file skeleton.
 
     Returns `node_writer.NodeWrite.as_info()`, or None when nothing was
     written — a rejected spawn, or a file that already holds real content.
+
+    `stamp` is the resolved identity of the agent this scaffold is FOR
+    (hypothesis:l3-scaffold-stamps-spawner-env), forwarded to node_writer so
+    the mint stamps the child's row -- role/model/loop/profile/season --
+    rather than the DISPATCHER's os.environ a parent handset. Absent means
+    node_writer falls back to the env (a hand scaffold).
 
     goal:s17 -- this function used to carry a duplicated copy of `cli.py
     scaffold`: its own type tuple, its own body prompts and its own
@@ -1337,6 +2266,8 @@ def _scaffold_node_for_agent(
     slug = f"{agent_id}-{(uuid.uuid4().hex[:6])}"
     res = node_writer.write_node(
         root, node_type, slug, [target] if target else [],
+        stamp=stamp,
+        extra_fm=extra_fm,
         on_exists=node_writer.REUSE_SCAFFOLD,
     )
     if not res.written:

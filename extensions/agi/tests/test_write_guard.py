@@ -27,6 +27,7 @@ def _load(name, filename=None):
 
 nw = _load("node_writer")
 wg = _load("write_guard", "write_guard.py")
+write = _load("write")
 
 
 SHAPE = """\
@@ -48,6 +49,7 @@ SCHEMAS = {
     "[experiment].md": "allowed_parents: [hypothesis, idea]\n  min_parents: 1\n  max_parents: 2",
     "[verdict].md": "allowed_parents: [experiment, hypothesis, verdict]\n  min_parents: 1\n  max_parents: 2",
     "[idea].md": "allowed_parents: [goal]\n  min_parents: 0\n  max_parents: 1",
+    "[doc].md": "allowed_parents: [goal]\n  min_parents: 1\n  max_parents: 1",
 }
 
 
@@ -185,6 +187,16 @@ def _check(project, extra_args=None):
     if extra_args:
         args.extend(extra_args)
     return wg.cmd_check(args)
+
+
+def _check_capture(project, extra_args=None):
+    """Run write_guard check and return its stdout text."""
+    import io
+    from contextlib import redirect_stdout
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        _check(project, extra_args)
+    return buf.getvalue()
 
 
 def test_write_guard_silent_after_sanctioned_write(project):
@@ -444,3 +456,203 @@ def test_hand_edit_after_git_mv_still_warns(project):
 
     rc = _check(project, ["--strict"])
     assert rc == 1, "--strict must warn on a hand edit after a git mv"
+
+
+# ---------------------------------------------------------------------------
+# Log follows the written node's project, not a caller's module-global root
+# ---------------------------------------------------------------------------
+
+def test_write_log_follows_node_path_not_caller_root(tmp_path, project):
+    """A write whose node lives in one project but whose passed root is another
+    must log to the node's own project (test-pollution fix, l2w15-write-guard).
+
+    snapshot_goals/level3 reuse this writer with a module-global root that
+    defaults to the real repo during pytest; without this rule every
+    test-fixture node would append to the box's real .agi/sessions/write-log.
+    """
+    real_root = project / ".agi"                      # the 'real' graph root
+    fixture = tmp_path / "some-pytest-project"        # where the node actually lives
+    (fixture / "nodes" / "hypothesis").mkdir(parents=True)
+    node_file = fixture / "nodes" / "hypothesis" / "hv.md"
+    node_file.write_text(
+        "---\nid: hypothesis:hv\ntype: hypothesis\n---\n\nbody\n")
+
+    nw.log_write(real_root, "write_node", "hypothesis:hv", node_file,
+                 node_file.read_text())
+
+    # The log lands with the node, in the fixture's own project...
+    assert (fixture / "sessions" / "write-log.jsonl").is_file()
+    # ...and the caller's root is untouched.
+    assert not (real_root / "sessions" / "write-log.jsonl").exists()
+
+
+def test_foreign_bare_file_is_not_leaked_into_caller_log(project, tmp_path):
+    """A write whose file is a bare fixture path with no `nodes/` component and
+    outside the passed root's project must not append to that root's log.
+
+    This is the exact shape that used to pollute the box's real write log with
+    /tmp/pytest entries: snapshot_goals tests write a `tmp/n.md` while its
+    module-global PROJECT_ROOT points at the real repo. The file has no project
+    of its own, so it is a no-log write, not a leak.
+    """
+    real_root = (tmp_path / "box") / ".agi"          # the 'real' graph root
+    real_root.mkdir(parents=True, exist_ok=True)
+    (real_root / "config.json").write_text("{}")
+    bare = tmp_path / "some-pytest-fixture"           # an unrelated tmp tree
+    bare.mkdir(parents=True)
+    n_file = bare / "n.md"
+    n_file.write_text("---\nid: build:x\ntype: build\n---\n\nbody\n")
+
+    nw.log_write(real_root, "write_frontmatter", "build:x", n_file,
+                 n_file.read_text())
+
+    assert not (real_root / "sessions" / "write-log.jsonl").exists(), \
+        "a foreign bare file must not be logged into the caller's project"
+
+
+# ---------------------------------------------------------------------------
+# doc nodes: .agi/context/*.md design docs get link_ref, guarded like nodes
+# (l3w4-context-doc-nodes)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def context_doc(project):
+    """Baseline a .agi/context/*.md design doc into git, committed."""
+    cd = project / ".agi" / "context"
+    cd.mkdir(parents=True, exist_ok=True)
+    f = cd / "l3-brief.md"
+    f.write_text("# bottom line\n\nfirst design-doc bytes.\n")
+    subprocess.run(["git", "-C", str(project), "add", ".agi/context/l3-brief.md"],
+                   check=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m", "context",
+                    "--quiet"], check=True)
+    return f
+
+
+def test_write_create_doc_stamps_link_ref_to_context_file(project, context_doc):
+    """write.py create doc links an untouched existing context file."""
+    before = context_doc.read_text()
+    res, made = write.create(
+        project / ".agi", "doc", "l3-brief", ["goal:g1"],
+        payload=".agi/context/l3-brief.md", set_fm={"tags": ["doc"]})
+    assert res.written
+    assert made is None, "an existing file is linked, never recreated"
+    # The file is untouched.
+    assert context_doc.read_text() == before
+    # The node declares it as link_ref.
+    import yaml
+    parts = Path(res.path).read_text().split("---", 2)
+    fm = yaml.safe_load(parts[1]) or {}
+    assert fm["type"] == "doc"
+    assert fm["link_ref"] == ".agi/context/l3-brief.md"
+    assert fm["location"] == "source_root"
+
+
+def test_write_guard_warns_on_hand_edit_under_context(project, context_doc):
+    """A hand edit to a context doc prints WARN naming the path."""
+    write.create(project / ".agi", "doc", "l3-brief", ["goal:g1"],
+                 payload=".agi/context/l3-brief.md",
+                 set_fm={"tags": ["doc"]})
+    # Sanctioned create: no WARN yet.
+    assert _check(project, []) == 0
+    # Hand edit bytes (unsanctioned).
+    context_doc.write_text(context_doc.read_text() + "\nHand edit.\n")
+    log = _check_capture(project, [])
+    assert "unsanctioned write under .agi/context/" in log
+    assert ".agi/context/l3-brief.md" in log
+
+
+def test_write_guard_silent_after_write_py_payload_edit(project, context_doc):
+    """Editing the same file through a logged payload write stays silent."""
+    write.create(project / ".agi", "doc", "l3-brief", ["goal:g1"],
+                 payload=".agi/context/l3-brief.md",
+                 set_fm={"tags": ["doc"]})
+    # A logged payload write (what write.py <id> "payload <path>" calls).
+    dest, changed = nw.replace_payload(
+        project / ".agi", ".agi/context/l3-brief.md",
+        data=b"# bottom line\n\nvia write.py payload edit.\n")
+    assert changed
+    assert _check(project, []) == 0, "logged payload write must stay silent"
+
+
+def test_write_guard_silent_after_same_bytes_payload_relog(project):
+    """An explicit `payload <same path>` re-log on unchanged bytes is a
+    sanction: it clears write_guard on a payload a kid wrote with its own
+    tool (hypothesis:l3-write-payload-unchanged-unlogged).
+
+    Red first — reproduces L3.27's 'unchanged' skip (5 WARNs after 5
+    successful re-logs): `replace_payload` returned without logging when the
+    bytes matched, so the (mint_id, sha256) write_guard keys on never
+    entered the log, and the guard's own hint could not clear the state it
+    reported. The fix: treat an explicit payload verb on unchanged bytes as a
+    sanction — log the entry even when nothing changed.
+    """
+    src = project / "ext"
+    src.mkdir(parents=True, exist_ok=True)
+    payload_file = src / "kid_payload.sh"
+    payload_file.write_text("#!/bin/bash\necho kid\n")
+    node_file = project / ".agi" / "nodes" / "mvp" / "payload-relog.md"
+
+    nw.write_node(project / ".agi", "mvp", "payload-relog",
+                  parents=[],
+                  extra_fm={"payload_ref": "ext/kid_payload.sh",
+                            "link_ref": "ext/kid_payload.sh",
+                            "location": "source_root"},
+                  announce=False, bypass=True)
+    # Commit so git knows both the build node and the payload bytes as
+    # baseline.
+    subprocess.run(["git", "-C", str(project), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(project), "commit", "-m", "base"],
+                   check=True, capture_output=True)
+
+    # A kid writes both the payload bytes and the build node itself directly,
+    # outside the tool (unsanctioned). Touching the node file too is what
+    # makes write_guard's payload pass run on this node.
+    payload_file.write_text("#!/bin/bash\necho kid changed\n")
+    node_file.write_text(node_file.read_text() + "\nsome kid body\n")
+
+    # Before the re-log, write_guard warns (unsanctioned payload.
+    assert _check(project, ["--strict"]) == 1
+
+    # The operator re-logs through write.py `payload <same path>`; the bytes
+    # match the file on disk, so the write is a no-op BUT must still record a
+    # sanctioned payload write carrying the node's mint_id and the sha256.
+    res = write.submit(project / ".agi",
+                        write.Edit(node_id="mvp:payload-relog",
+                                   payload_from=str(payload_file)),
+                        actor="kid", session="L3.28")
+    assert res.payload_changed is False
+
+    # The guard must now be silent: the re-log (not the bytes) is the
+    # sanction.
+    log_lines = (project / ".agi" / "sessions" / "write-log.jsonl").read_text().splitlines()
+    payload_entries = [json.loads(l) for l in log_lines if "replace_payload" in l]
+    latest = payload_entries[-1]
+    import yaml
+    fm = yaml.safe_load(node_file.read_text().split("---", 2)[1])
+    assert latest["mint_id"] == fm["mint_id"], "re-log entry must carry the node's mint_id"
+    assert latest["sha256"], "re-log entry must carry the payload sha256"
+
+    assert _check(project, []) == 0
+    assert _check(project, ["--strict"]) == 0
+
+
+def test_write_guard_silent_on_hand_edit_to_schema_file(project):
+    """A schema hand-edit is engine config, not an unsanctioned node write.
+
+    (l3w4-context-doc-nodes FOLLOW-UP) The broadcast .agi/context/ scan sweeps
+    .agi/context/schemas/*.md too, but a schema has no node type and nothing
+    claims it as a payload, so a legitimate edit to engine configuration would
+    WARN with no sanctioned way to clear it. Schemas are versioned by git,
+    not node content, so the sweep must exempt them while still covering the
+    top-level .agi/context/*.md design docs.
+    """
+    schema = project / ".agi" / "context" / "schemas" / "[doc].md"
+    before = schema.read_text()
+    schema.write_text(before + "# engine-edit note\n")
+    out = _check_capture(project, [])
+    assert "schemas" not in out, \
+        "a schema edit is git-versioned engine config, not a node write"
+    assert _check(project, []) == 0

@@ -63,19 +63,30 @@ MCP servers are off by default (`--strict-mcp-config` with none named). The
 director's interactive session may carry trading, calendar and browser
 servers; a detached kid inheriting them is the same shape of leak the env
 scrub exists to close, one layer up.
+
+Tools resolve per (role, ladder tier) (`hypothesis:l3-cc-tools-by-tier`): a
+kid keeps the closed default list and the full block list, while an advisor
+(parent at ladder tier 3) and a director (tier 1) may reach the ultracode
+workflow suite (Workflow, Agent, ToolSearch, Monitor, TaskOutput, TaskStop)
+and run the loop verbs -- the dispatch.py refusal is the one rule that drops,
+because the loop ladder is exactly what those seats exist to run. Git verbs,
+HANDOFF.md and CLAUDE.md stay refused for every role below the prime.
 """
 from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
 import brief
 import locations
 import provisioning
+import spawn_budget
 
 NAME = "claude-code"
 
@@ -99,6 +110,17 @@ DEFAULT_DISALLOWED_TOOLS = tuple(
     "Bash(*dispatch.py:*)",
 )
 
+#: Built-in tools the loop-ladder seats (advisor, director) may additionally
+#: reach -- the dynamic "ultracode" workflow suite plus the loop duties those
+#: roles are the seat of. A kid never sees any of them.
+ULTRA_TOOLS = ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput",
+               "TaskStop")
+
+#: The one block-list rule that falls away on a privileged seat: dispatch.py.
+#: Everything else (git verbs, HANDOFF.md, CLAUDE.md) stays refused below the
+#: prime director.
+DISPATCH_RULE = "Bash(*dispatch.py:*)"
+
 #: Output formats `claude -p` accepts. `stream-json` is the default because it
 #: logs as it goes -- see the module docstring.
 OUTPUT_FORMATS = ("stream-json", "json", "text")
@@ -115,6 +137,124 @@ NEVER_HANDED_DOWN = frozenset({provisioning.PROVISIONING_KEY_VAR})
 
 #: The one system-prompt file per agent, beside `context.md` and `agent.json`.
 SYSTEM_PROMPT_FILE = "system-prompt.md"
+
+#: Where Claude Code stores project transcripts, keyed by the child's cwd slug.
+CC_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+
+#: The env var the meter resolves second (`rotate.py meter`, hypothesis:l3-
+#: meter-own-transcript): a spawner that knows its child's transcript sets it
+#: so the child's own meter (and its loop) reads THAT file, never the newest
+#: foreign `.jsonl` in the shared project dir.
+AGI_SESSION_LOG_VAR = "AGI_SESSION_LOG"
+
+#: The meter-pin extension (matches `rotate.METER_PIN_EXT` and the brief's
+#: `<window-name>.meter`). Written once this agent's session_id is captured;
+#: the meter resolves it third, so a running agent whose env was fixed at
+#: launch still reads its OWN transcript after a foreign one lands.
+METER_PIN_EXT = ".meter"
+
+
+def _cc_slug(cwd: str) -> str:
+    """The Claude Code project slug for a cwd: the absolute path with every
+    `/` replaced by `-`. `claude -p` keys its transcript dir this way, so an
+    agent run from its own cwd lands under its own slug (hypothesis:l3-meter-
+    own-transcript -- the hardcoded `-home-ubuntu-work-agi` made every role's
+    meter read the prime's transcript)."""
+    return cwd.replace("/", "-")
+
+
+def session_id_from_stream_json(log_file) -> str | None:
+    """The `session_id` in the first stream-json event line of a `claude -p`
+    output log. Claude Code writes the session on an early line of
+    `--output-format stream-json` output. Returns None while the log is empty,
+    not JSON, or not yet holding a session_id."""
+    with open(log_file, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(ev, dict):
+                sid = ev.get("session_id")
+                if isinstance(sid, str) and sid:
+                    return sid
+    return None
+
+
+def transcript_path_for_session(*, cwd: str, session_id: str) -> Path:
+    """The `~/.claude/projects/<slug>/<session_id>.jsonl` a `claude -p` child
+    running from `cwd` writes its transcript to (hypothesis:l3-meter-own-
+    transcript)."""
+    return CC_PROJECTS_DIR / _cc_slug(cwd) / f"{session_id}.jsonl"
+
+
+def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
+                       transcript: Path | None = None,
+                       log_file=None) -> Path | None:
+    """Pin this agent to the transcript it owns, so its later meters read it.
+
+    The pin is `<graph_dir>/sessions/<agent_id>.meter` (graph dir = the .agi/
+    `locations.find_project_root` returns; sessions sit directly under it, never
+    doubled) --
+    agent's session dir sits under). Content: the transcript path on one line.
+    When `transcript` is not given, read the session_id from `log_file` (the
+    child's stream-json output) and derive the path from it + `cwd`. Returns
+    the pin path, or None when the session_id is not yet available."""
+    if transcript is None:
+        if log_file is None:
+            return None
+        sid = session_id_from_stream_json(log_file)
+        if sid is None:
+            return None
+        transcript = transcript_path_for_session(cwd=cwd, session_id=sid)
+    # The pin must land where rotate's meter scans it. rotate resolves its
+    # root with locations.find_project_root() (the GRAPH dir, the `.agi/`
+    # itself), so the pin is `<graph_dir>/sessions/<agent_id>.meter` -- NOT
+    # `<graph_dir>/.agi/sessions/` (the L3.15 doubling defect, hypothesis:
+    # l3-rotate-pin-path-readback). Resolving from sess_dir keeps both sides
+    # agreeing even when the agent runs elsewhere.
+    root = locations.find_project_root(Path(sess_dir))
+    if root is None:
+        return None
+    seg = Path(root) / "sessions"
+    seg.mkdir(parents=True, exist_ok=True)
+    # hypothesis:l3w4-seat-registry — when the seat key is set, pin under the
+    # seat's STABLE name rather than the per-process agent id, so the seat's
+    # meter finds its own pin even across rotations that change the agent id.
+    # No graph write, no race on seats.md: the seat name rides the env.
+    seat = os.environ.get("AGI_SEAT")
+    pin_id = seat if seat else agent_id
+    pin = seg / f"{pin_id}{METER_PIN_EXT}"
+    pin.write_text(str(transcript) + "\n", encoding="utf-8")
+    return pin
+
+
+def pin_child_transcript_in_background(*, sess_dir, agent_id: str, cwd: str,
+                                       log_file, timeout: int = 120) -> None:
+    """Fire-and-forget: once the child's output holds its first session_id,
+    write this agent's meter pin so its own meters/loop read ITS transcript
+    and never the newest foreign `.jsonl` in the shared project dir
+    (hypothesis:l3-meter-own-transcript).
+
+    The session_id only appears after the child prints its first stream-json
+    event, so the capture is necessarily asynchronous -- a daemon thread polls
+    `log_file`, bounded by `timeout`, and never blocks the spawner. A child
+    that never prints a session_id just times out and writes no pin."""
+    def _work():
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                if record_session_pin(sess_dir=sess_dir, agent_id=agent_id,
+                                      cwd=cwd, log_file=log_file) is not None:
+                    return
+            except OSError:
+                pass
+            time.sleep(1)
+
+    threading.Thread(target=_work, daemon=True).start()
 
 
 def resolve_bin(harness: dict) -> str:
@@ -270,12 +410,74 @@ def _tool_list(harness: dict, key: str, default) -> list[str]:
     """
     if key not in harness:
         return [str(t) for t in default]
-    value = harness[key]
+    return _coerce_list(harness[key], default)
+
+
+def _coerce_list(value, default) -> list[str]:
+    """The shared normalizer for a tool-list value, whatever its shape."""
     if value is None:
         return []
     if isinstance(value, str):
         return [t.strip() for t in value.split(",") if t.strip()]
     return [str(t) for t in value]
+
+
+def _is_privileged_tool_seat(role: str | None, ladder_tier: int | None) -> bool:
+    """The two roles the ladder confides the loop's dynamics to: an advisor
+    (parent at ladder tier 3) and a director at tier 1. Everyone else --
+    including a bare `kid`, and a parent/director at any other tier -- keeps
+    the closed default list.
+    """
+    if role is None or ladder_tier is None:
+        return False
+    lt = int(ladder_tier)
+    return (role == "parent" and lt == 3) or (role == "director" and lt == 1)
+
+
+def _role_override(harness: dict, role: str | None, ladder_tier: int | None,
+                   key: str):
+    """(value, matched) for a per-role tool-list override.
+
+    `tools_by_role` / `disallowed_tools_by_role` map role-or-tier to a list or
+    comma-string. A map that does not name this role/tier returns un-matched,
+    so the flat key then the tier-aware default apply.
+    """
+    m = harness.get(key)
+    if not isinstance(m, dict):
+        return None, False
+    if role is not None and role in m:
+        return m[role], True
+    if ladder_tier is not None:
+        for cand in (str(ladder_tier), f"tier{ladder_tier}"):
+            if cand in m:
+                return m[cand], True
+    return None, False
+
+
+def _resolved_tools(harness: dict, *, role: str | None,
+                    ladder_tier: int | None):
+    """The (tools, allowed, disallowed) lists for a (role, ladder tier).
+
+    Defaults are tier-aware: a privileged seat adds the ultracode/loop tools
+    and drops the dispatch.py rule. Per-role config override wins over the
+    flat keys (`tools` / `disallowed_tools`), which win over the defaults.
+    """
+    privileged = _is_privileged_tool_seat(role, ladder_tier)
+    base_tools = tuple(DEFAULT_TOOLS) + (tuple(ULTRA_TOOLS) if privileged else ())
+    base_deny = tuple(
+        d for d in DEFAULT_DISALLOWED_TOOLS
+        if not (privileged and d == DISPATCH_RULE)
+    )
+
+    rv, matched = _role_override(harness, role, ladder_tier, "tools_by_role")
+    tools = _coerce_list(rv, base_tools) if matched else _tool_list(
+        harness, "tools", base_tools)
+    allowed = _tool_list(harness, "allowed_tools", tools)
+    rv, matched = _role_override(harness, role, ladder_tier,
+                                 "disallowed_tools_by_role")
+    disallowed = (_coerce_list(rv, base_deny) if matched else _tool_list(
+        harness, "disallowed_tools", base_deny))
+    return tools, allowed, disallowed
 
 
 def write_system_prompt(
@@ -301,7 +503,14 @@ def write_system_prompt(
     ctx = Path(context_file)
     if not ctx.exists():
         raise FileNotFoundError(f"{NAME}: context file {ctx} does not exist")
-    parts = [ctx.read_text(encoding="utf-8"), *segments]
+    # Survival profile (move FIVE, hypothesis:l3w4-context-load-minimal): the
+    # INJECTION graph stream is goal-listing/traps/history — exactly what
+    # survival drops. skip the ctx first-part so a survival seat pays ~0 for
+    # the map and reads it on demand; same switch (AGI_BRIEF_PROFILE) as pi.
+    parts = []
+    if not brief.survival_selected():
+        parts.append(ctx.read_text(encoding="utf-8"))
+    parts.extend(segments)
     if skill_prompt is not None and Path(skill_prompt).exists():
         parts.append(Path(skill_prompt).read_text(encoding="utf-8"))
     sess_dir = Path(sess_dir)
@@ -323,9 +532,18 @@ def build_command(
     cli_py: str | Path = "",
     skill_prompt: Path | None = None,
     dispatch_py: str | Path = "",
+    source_root: str | Path | None = None,
     target: str | None = None,
     parallel: int = 1,
     max_live: int = 1,
+    kid_ceiling: int | None = None,
+    # hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    # -- per-kid brief channel threaded into the assembled brief (see
+    # pi_adapter for the same seam). absent (None) leaves the brief unchanged.
+    addendum: str | None = None,
+    brief_tier: str | None = None,
+    role: str | None = None,
+    ladder_tier: int | None = None,
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -338,6 +556,15 @@ def build_command(
                --add-dir <repo root> [--mcp-config ...]
                --tools T... --allowedTools T... --disallowedTools R...
                -- "<closing line>"
+
+    `brief_tier` (hypothesis:l3w3-advisor-brief) lets a spawn keep the model
+    tier (parent) while assembling a different tier's brief (advisor): the
+    model/effort/settings still resolve from `tier`, only the assembled brief
+    and its closing line change.
+
+    `role` and `ladder_tier` (hypothesis:l3-cc-tools-by-tier) are who this
+    agent is, which selects the tool bundle: kids keep the closed default
+    list, advisors and directors add the ultracode/loop tools.
     """
     sess_dir = Path(sess_dir)
     root = _root_of(sess_dir)
@@ -345,10 +572,12 @@ def build_command(
     # goal:g1.9 -- the brief is assembled once, by tier, outside every harness.
     # This adapter decides only how to SPELL it, and for Claude Code the only
     # spelling that keeps every segment is one file.
+    _btier = brief_tier or tier
     segments = brief.assemble(
-        tier=tier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
+        tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
-        parallel=parallel, max_live=max_live,
+        parallel=parallel, max_live=max_live, source_root=source_root,
+        kid_ceiling=kid_ceiling, addendum=addendum,
     )
     prompt_file = write_system_prompt(
         sess_dir=sess_dir, context_file=context_file, segments=segments,
@@ -380,38 +609,90 @@ def build_command(
     mcp = harness.get("mcp_config")
     if mcp:
         args += ["--mcp-config", *([mcp] if isinstance(mcp, str) else [str(m) for m in mcp])]
-    tools = _tool_list(harness, "tools", DEFAULT_TOOLS)
+    tools, allowed, disallowed = _resolved_tools(
+        harness, role=role, ladder_tier=ladder_tier)
+    if os.environ.get("AGI_DEBUG"):
+        print(f"{NAME}: tools role={role!r} ladder_tier={ladder_tier!r}")
+        print(f"  --tools {tools}")
+        print(f"  --allowedTools {allowed}")
+        print(f"  --disallowedTools {disallowed}")
     if tools:
         args += ["--tools", *tools]
-    allowed = _tool_list(harness, "allowed_tools", tools)
     if allowed:
         args += ["--allowedTools", *allowed]
-    disallowed = _tool_list(harness, "disallowed_tools", DEFAULT_DISALLOWED_TOOLS)
     if disallowed:
         args += ["--disallowedTools", *disallowed]
 
     args += ["--", _closing_turn(harness=harness, tier=tier,
-                                  agent_id=agent_id, iter_n=iter_n)]
+                                  agent_id=agent_id, iter_n=iter_n,
+                                  brief_tier=_btier)]
     return args
 
 
-def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int) -> str:
+def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int,
+                  brief_tier: str | None = None) -> str:
     """The `claude -p` closing line (the user turn), keyworded for ultracode.
 
     An ultracode tier's user turn opens with the bare keyword `ultracode` so
     the dynamic-workflow trigger opts the turn in (hypothesis:l3-rotate-
     ultracode-env; the prime measured live that the keyword must be in the
-    user turn for the env var to take effect).
+    user turn for the env var to take effect). The keyword is gated on the
+    MODEL tier (`tier`, the parent row) — an advisor is a tier-3 parent and
+    runs ultracode while closing as an advisor.
     """
-    closing = brief.closing_line(tier, agent_id, iter_n)
+    _btier = brief_tier or tier
+    closing = brief.closing_line(_btier, agent_id, iter_n)
     if _tier_is_ultracode(harness, tier):
         closing = "ultracode\n" + closing
     return closing
 
 
+# = The Claude Code subscription-session-limit text and its reaping path.
+#: (`hypothesis:l3-cc-adapter-zombie-lease`)
+SESSION_LIMIT_TEXT = "You've hit your session limit"
+
+#: The reset time named after the limit message, e.g. `resets 5:20am
+#: (America/New_York)` -> `5:20am (America/New_York)`.
+SESSION_LIMIT_RESET_PATTERN = re.compile(
+    r"resets?\s+(.+?)\s*$", re.IGNORECASE
+)
+
+#: The exit code a session-limited handle returns so a parent DONE contract
+#: reads the turn as *do not retry* (`hypothesis:l3-cc-adapter-zombie-lease`).
+#: Non-zero on purpose: a success status is a lie for a run the subscription
+#: ended -- the message is from the limit, not from the model.
+SESSION_LIMIT_EXIT = 3
+
+
+#: The `result` subtype written for a subscription-limited turn.
+SESSION_LIMIT_SUBTYPE = "session_limit"
+
+
+def _procstate(pid: int) -> str | None:
+    """The Linux process-state letter for `pid`, or None off /proc."""
+    try:
+        with open(f"/proc/{pid}/stat", encoding="utf-8") as fh:
+            # State is field 3, after `pid (comm)`; comm can hold spaces/parens,
+            # so split from the right on `)` (same as spawn_budget._pid_alive).
+            return fh.read().rsplit(") ", 1)[1].split()[0]
+    except (OSError, IndexError, ValueError):
+        return None
+
+
 def is_alive(pid: int) -> bool:
-    """Is the process with `pid` still running? `os.kill(pid, 0)` sends no
-    signal; it only checks existence. Same as `pi_adapter.is_alive`."""
+    """Is the process with `pid` still running?
+
+    A zombie (state `Z`) counts as **dead** (`hypothesis:l3-cc-adapter-zombie-
+    lease`): its code has exited and only reaping by its parent is outstanding.
+    `os.kill(pid, 0)` answers true for a defunct child, so trusting signal-
+    existence alone leaves a slot behind a process that is gone. The reaper
+    polls through this function, so treating Z as dead is what lets it stop
+    believing a finished claude `-p` is still live. Same rule as
+    `spawn_budget._pid_alive`; off /proc we fall back to signal-existence and
+    answer as `pi_adapter.is_alive` does.
+    """
+    if _procstate(pid) == "Z":
+        return False
     try:
         os.kill(pid, 0)
     except OSError:
@@ -419,6 +700,114 @@ def is_alive(pid: int) -> bool:
     return True
 
 
+def limit_from_result_text(text: str) -> str | None:
+    """The subscription reset time named in a `type=result` event's text when
+    the run turned the session limit, else None (a clean finished turn --
+    nothing to act on)."""
+    if SESSION_LIMIT_TEXT not in text:
+        return None
+    m = SESSION_LIMIT_RESET_PATTERN.search(text)
+    if m and m.group(1).strip():
+        return m.group(1).strip()
+    return None
+
+
+def scan_log_for_session_limit(log_file) -> tuple[bool, str | None]:
+    """Read a `--output-format stream-json` log and decide whether the final
+    `type=result` event is a subscription-limit termination.
+
+    Returns `(is_limit, reset_time)` -- `reset_time` is the reset string from
+    the last result line (None when the turn is clean). Scans the whole file so
+    a reader that only ever saw an open pipe (the grandchild-holds-the-pipe
+    case this hypothesis is named for) still finds the limit once the child has
+    exited and the file is complete.
+    """
+    found = False
+    reset: str | None = None
+    with open(log_file, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(ev, dict) or ev.get("type") != "result":
+                continue
+            r = limit_from_result_text(ev.get("text") or "")
+            if r is not None:
+                found = True
+                reset = r or None
+    return found, reset
+
+
+def append_limit_line(log_file, reset_time: str | None = None) -> Path:
+    """Append one ``result`` event naming the subscription reset (or text).
+
+    One line, never a stream of retries -- the line is what a parent DONE
+    contract reads to bank the round instead of re-running it. Stream-json
+    compatible, so the same reader that parses result lines sees it.
+    """
+    ev = {"type": "result", "subtype": SESSION_LIMIT_SUBTYPE,
+          "text": SESSION_LIMIT_TEXT, "reset_at": reset_time}
+    log_file = Path(log_file)
+    with open(log_file, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(ev) + "\n")
+    return log_file
+
+
+def reap_child(pid: int, timeout: float = 5.0) -> bool:
+    """Reap a finished `claude -p` child so no defunct (state `Z`) remains.
+
+    `os.waitpid` is the only call that releases a child's process-table entry;
+    `os.kill(pid, 0)` and `is_alive` keep reporting the zombie until it is
+    reaped. Returns True once the pid is gone (reaped or never ours) and False
+    when it was another owner's child. Never blocks: WNOHANG, bounded by
+    `timeout`, so a still-running child is left for its owner to wait on.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if _procstate(pid) is None:
+            return True
+        try:
+            waited, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            # The pid is gone from OUR table; nothing to reap. If it still has
+            # no /proc z-entry it is done.
+            return True
+        except OSError:
+            return False
+        if waited == 0:
+            return _procstate(pid) is None
+        # No-op: a child was reaped on this pass; loop for the table to clear.
+    return False
+
+
+def close_session_limit(*, log_file, reset_time: str | None = None,
+                        lease=None) -> int:
+    """The adapter-side close of a subscription-limited child: the whole
+    `hypothesis:l3-cc-adapter-zombie-lease` lease-release path, one call.
+
+    1. Append exactly ONE `result`/`session_limit` line (``append_limit_line``)
+       so a parent DONE contract can bank the round instead of re-running it;
+    2. release the spawn-budget lease immediately, not at the next sweep;
+    3. return a non-zero exit code so the retry loop stops against the same
+       limit instead of burning five more 1s turns.
+
+    Returns `SESSION_LIMIT_EXIT` (3).
+    """
+    if log_file is not None:
+        append_limit_line(log_file, reset_time)
+    if lease is not None:
+        try:
+            spawn_budget.release(lease)
+        except Exception:
+            # A lease that is already gone is a success, not a fault; the
+            # sweep reclamation is the safety net. Never let the release stop
+            # the close from returning its exit code.
+            pass
+    return SESSION_LIMIT_EXIT
 def restart(
     *,
     harness: dict,
@@ -435,6 +824,9 @@ def restart(
     parallel: int = 1,
     max_live: int = 1,
     agent_record: dict | None = None,
+    brief_tier: str | None = None,
+    role: str | None = None,
+    ladder_tier: int | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns the new pid, or None on failure.
 
@@ -450,7 +842,8 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live,
+        max_live=max_live, brief_tier=brief_tier, role=role,
+        ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)

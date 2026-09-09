@@ -483,6 +483,33 @@ def test_commit_never_falls_back_to_node_id_ref_for_missing_mint_id(mint_project
     assert "ERROR" in err and "idea:no-mint" in err and "no mint_id" in err
 
 
+def test_adopted_node_commits_with_zero_errors(mint_project):
+    """hypothesis:l3-node-without-mint-id — the live-proof half of the fix.
+    A node written outside node_writer (no mint_id -> grid refuses to version
+    it) becomes versionable once `node_writer.repair_mint` adopts it: commit
+    --all then reports 0 errors and the node gets a mint-id ref."""
+    import node_writer
+    _write_mint_node(mint_project, "no-mint.md", "idea:no-mint")
+
+    # Before: commit --all refuses (skips, reports an error, keeps going).
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+    assert grid.ref_tip(mint_project, grid.node_ref("idea:no-mint")) is None
+
+    # Adopt it, then re-commit.
+    res = node_writer.repair_mint(mint_project, "idea:no-mint", announce=False)
+    assert res.status == node_writer.UPDATED, res.reason
+    grid.cmd_commit(mint_project, [], do_all=True, session=None)
+
+    assert grid.ref_tip(mint_project, grid.mint_node_ref(res_mint_id(mint_project))) is not None
+
+
+def res_mint_id(project):
+    import re as _re
+    p = project / "nodes" / "idea" / "no-mint.md"
+    m = _re.search(r"^mint_id:\s*([^\n\s]+)", p.read_text(), _re.M)
+    return m.group(1) if m else ""
+
+
 def test_read_falls_back_to_legacy_ref_when_no_mint_ref_exists(mint_project):
     """A version committed BEFORE the node had a mint_id (or before the
     mint-id ref existed) must stay reachable by log/diff/versions/status."""
@@ -1557,7 +1584,7 @@ def test_commit_path_drives_the_metric_to_zero(gated_project):
 
 
 def _grid_lock_path(root):
-    return root / ".agi" / "sessions" / ".grid.lock"
+    return grid.GridLock(root, 1)._path
 
 
 def _hold_grid_lock(root, seconds):
@@ -1635,3 +1662,73 @@ def test_commit_all_still_refuses_plain_non_master_branch(guard_project):
     with pytest.raises(SystemExit) as exc:
         grid.cmd_commit(guard_project, [], do_all=True, session=None)
     assert exc.value.code == 2
+
+
+# --- hypothesis:l3-grid-lock-doubled-path — the grid lock must NOT double .agi
+#
+# In the G11 layout the graph root passed to cmd_commit IS the `<repo>/.agi`
+# directory. The lock must therefore live at `<graph>/sessions/.grid.lock`
+# (== `<repo>/.agi/sessions/.grid.lock`), NOT at `<graph>/.agi/sessions`
+# (`<repo>/.agi/.agi/sessions`), which doubles the `.agi` into a stray scratch
+# dir that never serializes against the documented path. The SAME single path
+# must resolve whether commit --all is run from the repo root or from inside
+# `<repo>/.agi`, and committing must never create a `.agi/.agi` directory.
+
+def _make_g11_project(tmp_path):
+    """A G11-layout project: config + nodes live under `<tmp>/.agi`."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    agi = tmp_path / ".agi"
+    (agi / "nodes" / "idea").mkdir(parents=True)
+    (agi / "config.json").write_text("{}")
+    (agi / "nodes" / "idea" / "g.md").write_text(
+        f'---\nid: "idea:g"\nmint_id: {MINT_X}\ntype: idea\n---\n\nhi\n'
+    )
+    return agi
+
+
+def test_g11_grid_lock_path_is_single_non_doubled(tmp_path):
+    """The lock path resolves to one correct file from a G11 graph root, and
+    commit --all creates no doubled `.agi/.agi` directory."""
+    agi = _make_g11_project(tmp_path)
+    graph = grid.find_project_root(agi)
+    assert graph == agi                       # graph root IS the .agi dir
+    assert grid.GridLock(graph, 1)._path == agi / "sessions" / ".grid.lock"
+    assert not (agi / ".agi").exists()        # no doubled dir before commit
+
+    grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)
+    assert (agi / "sessions" / ".grid.lock").exists()   # lock is the real one
+    assert not (agi / ".agi").exists()        # and no .agi/.agi was ever made
+
+
+def test_g11_grid_lock_serializes_across_cwds(tmp_path, capsys):
+    """Holding the lock at the single CORRECT path makes commit --all from the
+    other cwd (same resolved graph root) time out naming the lock. Locking on
+    the doubled path instead would NOT meet the held lock, so this is red
+    against the doubling bug."""
+    agi = _make_g11_project(tmp_path)
+    graph = grid.find_project_root(agi)
+    correct = graph / "sessions" / ".grid.lock"
+    _hold_grid_lock_at(correct, 5)            # hold the CORRECT path, > wait
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert "could not acquire the grid lock" in err
+    assert grid.GridLock(graph, 1)._path == correct
+
+
+def _hold_grid_lock_at(lock, seconds):
+    """Acquire an exclusive flock on `lock` and hold it `seconds` in a thread."""
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    f = open(lock, "a+")
+    fcntl.flock(f, fcntl.LOCK_EX)
+
+    def _hold():
+        time.sleep(seconds)
+        fcntl.flock(f, fcntl.LOCK_UN)
+        f.close()
+
+    t = threading.Thread(target=_hold, daemon=True)
+    t.start()
+    return t
+

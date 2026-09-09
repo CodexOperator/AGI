@@ -942,3 +942,105 @@ def test_no_engine_signature_contains_an_fstring():
                 offenders.append(f"{path.name}:{node.lineno} {node.name}")
     assert n_sigs > 100, f"scanned only {n_sigs} signatures — the glob is wrong"
     assert offenders == [], offenders
+
+
+# --- trap 0i — --mint-missing-only is ADDITIVE ONLY ----------------------------
+#
+# default level3.py is destructive (it prunes stale build-scan nodes), which is
+# why trap 0i forbids running it without --dry-run. Hypothesis
+# l3-engine-files-outside-the-grid's fix is a mode that CANNOT destroy: mint a
+# build node + payload_ref ONLY for a tracked code file that has none; never
+# prune, never resurrect a deprecated node, never touch an existing node. These
+# tests prove the additive property on a fixture tree holding a LIVE node, a
+# DEPRECATED node, and an UN-NODED file.
+
+
+def _tot_build_nodes(project):
+    return (len(list((project / "nodes" / "build").glob("*.md"))) +
+            len(list((project / "nodes" / "deprecated" / "build").glob("*.md"))))
+
+
+def test_mint_missing_only_is_additive_and_never_resurrects(project, engine, tmp_path):
+    """The additive property, end to end, on one fixture tree holding a LIVE
+    node, a DEPRECATED node, and an un-noded file.
+
+    Before/after: `active + deprecated` build-node count must only GROW. On a
+    delta of one mint exactly one node must appear, the deprecated node must
+    stay retarded where it is (a deprecated node whose file still exists is a
+    DELIBERATE state — reviving it destroys a decision), and no live node may
+    be pruned or rewritten into a different file.
+    """
+    # 1. seed the engine with two code files; default scan gives both live nodes.
+    write_engine_tree(engine, {
+        "extensions/agi/bin/live.py": "def live():\n    return 1\n",
+        "extensions/agi/bin/tolive.py": "def tolive():\n    return 2\n",
+    })
+    assert run(project, engine).returncode == 0
+    live_dir = project / "nodes" / "build"
+    assert "bin-live.md" in [p.name for p in live_dir.glob("*.md")]
+    assert "bin-tolive.md" in [p.name for p in live_dir.glob("*.md")]
+
+    # 2. retire tolive into nodes/deprecated/build/ (the deprecate-never-delete
+    #    move) — its engine file still exists, which is the resurrect trap.
+    retired_dir = project / "nodes" / "deprecated" / "build"
+    retired_dir.mkdir(parents=True, exist_ok=True)
+    (live_dir / "bin-tolive.md").rename(retired_dir / "bin-tolive.md")
+    live_hash = (live_dir / "bin-live.md").read_bytes()
+    retired_hash = (retired_dir / "bin-tolive.md").read_bytes()
+    before = _tot_build_nodes(project)
+
+    # 3. add an un-noded code file to the engine (git-tracked) and a subsystem
+    #    mvp so the minted node gets a legal goal:s29 parent.
+    (engine / "extensions" / "agi" / "bin" / "newmissing.py").write_text(
+        "def new():\n    return 3\n")
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    mvp_path = project / "nodes" / "mvp" / "bin-modules.md"
+    mvp_path.parent.mkdir(parents=True, exist_ok=True)
+    l3.write_frontmatter(mvp_path,
+                         {"id": "mvp:bin-modules", "type": "mvp",
+                          "title": "t", "parents": ["hyp:l3"]}, "body")
+    mvp_map = tmp_path / "mvp-map.md"
+    mvp_map.write_text("extensions/agi/bin/ | mvp:bin-modules\n")
+
+    # 4. DRY-RUN: must propose ONLY the un-noded file, and write nothing.
+    r = run(project, engine, "--mint-missing-only", "--mvp-map", str(mvp_map),
+            "--dry-run")
+    assert r.returncode == 0
+    proposed = [l for l in r.stdout.splitlines() if "DRY-RUN: would mint" in l]
+    assert len(proposed) == 1, proposed
+    assert "build:bin-newmissing" in proposed[0]
+    assert "parent mvp:bin-modules" in proposed[0], "goal:s29 parent missing"
+    # dry-run must not write a single node file under either address
+    assert not (live_dir / "bin-newmissing.md").exists()
+    live_names = set(p.name for p in live_dir.glob("*.md"))
+    retired_names = set(p.name for p in retired_dir.glob("*.md"))
+    assert "bin-newmissing.md" not in live_names
+    assert "bin-tolive.md" not in live_names, "resurrected at live address in dry-run"
+    assert retired_names == {"bin-tolive.md"}
+
+    # 5. REAL run: count only GROWS by exactly the one mint; nothing else moves.
+    r = run(project, engine, "--mint-missing-only", "--mvp-map", str(mvp_map))
+    assert r.returncode == 0
+    assert _tot_build_nodes(project) == before + 1, "count must only grow by 1"
+    # the minted node exists at the live address...
+    new_fm = fm_of(live_dir / "bin-newmissing.md")
+    assert new_fm["payload_ref"] == "extensions/agi/bin/newmissing.py"
+    assert new_fm["parents"] == ["mvp:bin-modules"]
+    assert identity.is_valid_mint_id(new_fm["mint_id"])
+    # ...the deprecated node is NOT resurrected (no live re-mint, file untouched)
+    assert not (live_dir / "bin-tolive.md").exists(), \
+        "a deprecated node was resurrected at its live address"
+    assert (retired_dir / "bin-tolive.md").read_bytes() == retired_hash
+    # ...and the live node was neither pruned nor rewritten into a different file
+    assert (live_dir / "bin-live.md").read_bytes() == live_hash
+
+
+def test_mint_missing_only_dry_run_writes_nothing_and_reports_zero(project, engine):
+    """With nothing missing the mode reports nothing-to-mint and writes nothing."""
+    write_engine_tree(engine, {"extensions/agi/bin/live.py": "x = 1\n"})
+    assert run(project, engine).returncode == 0
+    before = _tot_build_nodes(project)
+    r = run(project, engine, "--mint-missing-only")
+    assert r.returncode == 0
+    assert "nothing to mint" in r.stdout
+    assert _tot_build_nodes(project) == before

@@ -1,0 +1,22 @@
+{
+  "name": "l3w-route-probe",
+  "script": "agi-l3w-route-probe.js",
+  "description": "Registered from inline script l3w-route-probe.js (originally run from .agi/sessions/iter-L3.40/a00-f48956c1/scratch) \u2014 stages derived from the script, prompts TODO",
+  "stages": [
+    {
+      "label": "emit",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'emit' from the script's agent brief>",
+      "repeat": {
+        "of": "<TODO: the --args list key, e.g. briefs or targets>",
+        "label_template": "emit:{slug}"
+      }
+    },
+    {
+      "label": "critic",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'critic' from the script's agent brief>"
+    }
+  ],
+  "_from_run": ".agi/sessions/iter-L3.40/a00-f48956c1/scratch"
+}

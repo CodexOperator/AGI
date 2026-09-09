@@ -16,12 +16,32 @@ fi
 if [ -z "${AGI_PROJECT_ROOT:-}" ]; then
     exit 0
 fi
-# Resolve toplevel, resolve AGI_PROJECT_ROOT, compare them
+# Resolve toplevel of the repo a kid would commit in, then derive the
+# project's REPO root from AGI_PROJECT_ROOT. Under goal:g11 AGI_PROJECT_ROOT
+# is the GRAPH root (<repo>/.agi), a child of the git toplevel, so we take
+# ITS git toplevel to get back to the repo root. If AGI_PROJECT_ROOT is not
+# inside a git repo (legacy layout / non-repo), fall back to using it raw.
 TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 REAL_TOPLEVEL=$(cd "$TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
-REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+PROJECT_TOPLEVEL=$(git -C "$AGI_PROJECT_ROOT" rev-parse --show-toplevel 2>/dev/null)
+if [ -z "${PROJECT_TOPLEVEL:-}" ]; then
+    REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+else
+    REAL_PROJECT=$(cd "$PROJECT_TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+fi
 if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
     exit 0
+fi
+# The ONE authorised commit: a --branch PARENT committing onto its own
+# loop/* branch. hypothesis:l3-parent-brief-forbids-the-only-commit — the
+# loop branch is the only route a parent's kids' work has to the season
+# branch, and dispatch authorises exactly that single gamble of a commit.
+# No other parent commit, and NO kid commit ever, in the project repo.
+if [ "${AGI_TIER}" = "parent" ]; then
+    CUR_BRANCH=$(git branch --show-current 2>/dev/null)
+    case "$CUR_BRANCH" in
+        loop/*) exit 0 ;;
+    esac
 fi
 echo "agi: tier ${AGI_TIER} may not commit — automation owns git (goal:s27)" >&2
 exit 1

@@ -14,6 +14,8 @@ Subcommands:
     [--branch]                    — git checkout -b season/s<N> after the write
     [--allow-unjudged]            — bypass the unjudged-overview stage gate
   retag                           — backfill the season stamp
+  merge-up <branch>               — --no-ff merge a loop branch into its recorded
+                                    base branch, suite-green gate, worktree removed
 """
 from __future__ import annotations
 
@@ -41,6 +43,10 @@ LADDER_NODE_REL = Path("nodes") / ".geometry" / "ladder.md"
 
 #: write.py path (we shell out, never write files directly).
 WRITE_PY = Path(__file__).resolve().parent / "write.py"
+
+#: send.py path — judge --quorum shells `send.py audience prime ...` on a
+#: deadlock (hypothesis:l3w4-quorum-reviews).
+SEND_PY = Path(__file__).resolve().parent / "send.py"
 
 
 # ---------------------------------------------------------------------------
@@ -332,6 +338,8 @@ def cmd_judge(root: Path, args) -> int:
     report_id = args.report_id
     against_id = args.against
     debug = args.debug
+    actor = getattr(args, "actor", "") or "season.py"
+    session = getattr(args, "session", "") or "season"
 
     # Load ladder to get tier info
     ladder_fm = _load_ladder(root)
@@ -404,7 +412,6 @@ def cmd_judge(root: Path, args) -> int:
                     if nf.frontmatter.get("id") == pid_str:
                         parent_type = str(nf.frontmatter.get("type", ""))
                         parent_kind = str(nf.frontmatter.get("goal_kind", ""))
-                        from graph_core.identity import canonical_type
                         # Check if this parent is a known plan type
                         parent_plan_type = _plan_type_for_kind(parent_kind)
                         if parent_type == "goal" and parent_plan_type in tier_plan_types:
@@ -459,6 +466,71 @@ def cmd_judge(root: Path, args) -> int:
         print(f"DEBUG: report={report_id} type={report_type} tier={tier_num}")
         print(f"DEBUG: against={final_against} lens={lens_id} season={season}")
 
+    # ---- quorum review (hypothesis:l3w4-quorum-reviews) ----
+    # The advisors review through their visions in a room; a 3-0/2-1 tally
+    # stamps `alignment` here, a 1-1-1 deadlock or any --morals vote falls
+    # through to `send.py audience prime` instead and leaves alignment unset.
+    quorum_align = None
+    quorum_adjust = None
+    quorum_note = None
+    quorum_audienced = False
+    if getattr(args, "quorum", False):
+        try:
+            import send
+        except ImportError:
+            print(f"ERR: cannot import send.py for --quorum (no sibling "
+                  f"send.py?)", file=sys.stderr)
+            return 1
+        room = getattr(args, "room", "") or "tier3-quorum"
+        round_ = (getattr(args, "judge_round", "")
+                  or os.environ.get("AGI_LOOP", "default"))
+        croot = send.comms_root(root, getattr(args, "comms_root", "") or None)
+        try:
+            tally = send.tally_votes(croot, room, report_id, round_)
+        except SystemExit:
+            # tally_votes prints "ERR: incomplete quorum ..." to stderr
+            return 1
+        any_morals = any(bool(t.get("morals")) for t in tally.values())
+        aligned_n = sum(1 for t in tally.values()
+                        if t.get("alignment") == "aligned")
+        adjust_n = sum(1 for t in tally.values()
+                       if t.get("alignment") == "adjust")
+        tally_desc = "; ".join(f"{v}={tally[v].get('alignment')}"
+                                for v in send.VISIONS if v in tally)
+        quorum_note = f"quorum {room} (round {round_}): {tally_desc}"
+
+        if any_morals or (aligned_n < 2 and adjust_n < 2):
+            # deadlock, or the morals outrank the quorum: the prime decides
+            reason = (f"morals at stake in quorum review of {report_id} "
+                      f"(round {round_})" if any_morals else
+                      f"quorum deadlocked on {report_id} (round {round_})")
+            aud_flags = ["audience", "prime", "--reason",
+                         f"{reason}: {tally_desc}"]
+            if any_morals:
+                aud_flags.append("--morals")
+            res = subprocess.run(
+                [sys.executable, str(SEND_PY)] + aud_flags,
+                capture_output=True, text=True, cwd=str(root))
+            if res.returncode != 0:
+                print(f"ERR: audience prime failed: "
+                      f"{res.stderr.strip() or res.stdout.strip()}",
+                      file=sys.stderr)
+                return 1
+            if res.stdout.strip():
+                print(res.stdout.strip())
+            quorum_audienced = True
+        else:
+            quorum_align = "aligned" if aligned_n >= 2 else "adjust"
+            dissents = [t for t in tally.values()
+                        if t.get("alignment") != quorum_align]
+            quorum_adjust = (dissents[0].get("reason", "") if dissents
+                             else "")
+
+    if quorum_audienced:
+        print(f"quorum did not reach a majority on {report_id}: alignment "
+              f"unset; the disputed call goes to the prime")
+        return 0
+
     # Write the judgment record using write.py
     set_fields = {
         "judged_against": final_against,
@@ -466,8 +538,14 @@ def cmd_judge(root: Path, args) -> int:
     }
     if lens_id:
         set_fields["lens"] = lens_id
+    if quorum_align is not None:
+        set_fields["alignment"] = quorum_align
+        if quorum_adjust:
+            set_fields["adjust"] = quorum_adjust
 
-    rc = _shell_out_write(root, report_id, set_fm=set_fields)
+    rc = _shell_out_write(root, report_id, set_fm=set_fields,
+                          note=quorum_note,
+                          actor=actor, session=session)
     if rc != 0:
         return rc
 
@@ -498,7 +576,10 @@ def cmd_judge(root: Path, args) -> int:
     print(f"Judgment stamped on {report_id}:")
     print(f"  judged_against: {final_against}")
     print(f"  lens: {lens_id or '(not found)'}")
-    print(f"  alignment: unknown (set manually)")
+    if quorum_align is not None:
+        print(f"  alignment: {quorum_align} (quorum majority)")
+    else:
+        print(f"  alignment: unknown (set manually)")
     print(f"  season: {season}")
 
     if not lens_id:
@@ -739,8 +820,10 @@ def cmd_rollover(root: Path, args) -> int:
     Wave-2 genesis rollover (brief §1.8, §2.8, §2.9):
       * mint three visions from `--visions-from` (dir or file), bodies taken
         **verbatim** from the owner text (text + gloss); `--actor owner`;
-      * `--name <name>` names season 1 in the ladder's `season_names` through
-        write.py (e.g. `genesis`);
+      * `--name <name>` names the CURRENT season in the ladder's
+        `season_names` through write.py (e.g. `genesis`);
+      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+        graph writes, then prints the next commands — never pushes;
       * `--branch` opens `season/s<new>` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
       * a stage gate (brief 2.9) refuses the rollover while any season-current
@@ -757,6 +840,8 @@ def cmd_rollover(root: Path, args) -> int:
     name = (getattr(args, "name", "") or "").strip()
     want_branch = bool(getattr(args, "branch", False))
     visions_from = (getattr(args, "visions_from", "") or "").strip()
+    actor = getattr(args, "actor", "") or "season.py"
+    session = getattr(args, "session", "") or "season"
 
     ladder_fm = _load_ladder(root)
     season = int(ladder_fm.get("current_season", 1))
@@ -827,7 +912,7 @@ def cmd_rollover(root: Path, args) -> int:
     # ---- Ladder fields (through write.py).
     print("Ladder writes:")
     if name:
-        print(f"  season_names[1] = {name}")
+        print(f"  season_names[{season}] = {name}")
     print(f"  Bump ladder current_season: {season} → {new_season}")
     print()
 
@@ -875,14 +960,15 @@ def cmd_rollover(root: Path, args) -> int:
     ladder_set = {}
     if name:
         season_names = dict(ladder_fm.get("season_names") or {})
-        season_names[1] = name
+        season_names[season] = name
         ladder_set["season_names"] = season_names
     ladder_set["current_season"] = new_season
-    rc = _shell_out_write(root, "ladder:ladder", set_fm=ladder_set)
+    rc = _shell_out_write(root, "ladder:ladder", set_fm=ladder_set,
+                          actor=actor, session=session)
     if rc != 0:
         return rc
     if name:
-        print(f"season_names[1] = {name} written on the ladder")
+        print(f"season_names[{season}] = {name} written on the ladder")
     print(f"ladder current_season: {season} → {new_season}")
 
     # 3. Open the season branch (never pushes).
@@ -909,6 +995,170 @@ def cmd_rollover(root: Path, args) -> int:
 
 
 # ---------------------------------------------------------------------------
+# merge-up — per-parent branch merge into the recorded base branch
+# ---------------------------------------------------------------------------
+#
+# `hypothesis:l3w4-parent-branch-merge-up`: a dispatched parent runs in its own
+# git worktree on `loop/<slug>-<agent8>@s<N>`; a season seat then merges that
+# branch upward with `season.py merge-up <branch>`, which:
+#   * merges `--no-ff` into the branch's recorded BASE_BRANCH (never a
+#     hardcoded season -- layer-agnostic, so a director branch cuts parents
+#     and a parent branch cuts kids and each climbs one layer at a time),
+#   * runs the suite on the merged tree and REFUSES (aborts the merge, leaves
+#     the branch and worktree in place, reports the branch name) on red,
+#   * on green removes the worktree and leaves the merge commit in place --
+#     hashes are never rewritten (no rebase).
+#
+# The layer-agnostic base is windows: git_common_root resolves the MAIN
+# checkout from any worktree depth, so a seat running inside a linked worktree
+# still merges against the main repo's branch namespace.
+
+DEFAULT_SUITE = "python3 -m pytest extensions/agi/tests/ -q"
+
+
+def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
+    """Run git in the given repo root, capturing output."""
+    return subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True)
+
+
+def _current_branch(root: Path) -> str | None:
+    out = _git(root, "branch", "--show-current")
+    if out.returncode != 0:
+        return None
+    name = out.stdout.strip()
+    return name or None
+
+
+def _recorded_field(record_path: Path | None, key: str) -> str | None:
+    """Read `key` from a JSON lease / agent record, if present."""
+    if record_path is None:
+        return None
+    try:
+        data = json.loads(record_path.read_text())
+    except (OSError, ValueError):
+        return None
+    val = data.get(key)
+    return val if isinstance(val, str) and val else None
+
+
+def cmd_merge_up(root: Path, args) -> int:
+    """`season.py merge-up <branch>` -- merge a branch --no-ff into its base."""
+    git_root = locations.git_common_root(root)
+    if git_root is None or not (git_root / ".git").exists():
+        print("ERR: no git repo found", file=sys.stderr)
+        return 1
+
+    branch = args.branch
+    record_path = Path(args.record).resolve() if args.record else None
+
+    base = (args.target
+            or _recorded_field(record_path, "base_branch")
+            or _current_branch(git_root))
+    if not base:
+        print("ERR: cannot determine a base branch (detached HEAD?); "
+              "pass --target", file=sys.stderr)
+        return 1
+
+    suite = (args.suite or _recorded_field(record_path, "suite")
+             or DEFAULT_SUITE)
+    worktree = (args.worktree or _recorded_field(record_path, "worktree"))
+
+    # FALSE-GREEN guard: refuse a branch that carries no commits beyond its
+    # base. Merging a zero-ahead branch produces a no-op merge commit that
+    # reads as a green merge of nothing -- exactly how an empty loop branch
+    # used to sail through every round and a human had to finish by hand.
+    ahead = _git(git_root, "rev-list", "--count", f"{base}..{branch}")
+    if ahead.returncode != 0:
+        print(f"ERR cannot count {branch} ahead of {base}: "
+              f"{ahead.stderr.strip()}", file=sys.stderr)
+        return 1
+    n_ahead = ahead.stdout.strip()
+    if n_ahead == "0":
+        print(f"REFUSED: {branch} is zero commits ahead of {base} -- "
+              f"nothing to merge", file=sys.stderr)
+        return 1
+    print(f"{branch} is {n_ahead} commit(s) ahead of {base}")
+
+    cur = _current_branch(git_root)
+    if cur != base:
+        sw = _git(git_root, "checkout", base)
+        if sw.returncode != 0:
+            print(f"ERR cannot check out base branch {base}: "
+                  f"{sw.stderr.strip()}", file=sys.stderr)
+            return 1
+        print(f"checked out {base}")
+
+    # Stage the merge WITHOUT committing -- the suite votes before the merge
+    # commit is born, so a red suite can still `git merge --abort` and leave
+    # the branch intact. --no-ff so hashes are never rewritten.
+    mg = _git(git_root, "merge", "--no-ff", "--no-commit", branch)
+    if mg.returncode != 0:
+        print(f"ERR merge --no-ff {branch}: {mg.stderr.strip()}",
+              file=sys.stderr)
+        return 1
+    # Never claim the merge before its commit exists -- a pretence of green is
+    # indistinguishable from a real green, which is why the old success line
+    # printed before anything had landed.
+    print(f"staged merge of {branch} into {base} (suite gate pending)")
+
+    # Suite-green gate on the merged tree.
+    suite_proc = subprocess.run(suite, shell=True, cwd=str(git_root),
+                                capture_output=True, text=True)
+    if suite_proc.returncode != 0:
+        ab = _git(git_root, "merge", "--abort")
+        print(f"REFUSED: suite red after merging {branch} into {base} -- "
+              f"merge aborted, branch {branch} left in place")
+        if ab.returncode != 0:
+            print(f"  (warn: git merge --abort failed: {ab.stderr.strip()})",
+                  file=sys.stderr)
+        return 1
+
+    # Green: finalize the merge commit (default merge message, two parents).
+    cmt = _git(git_root, "commit", "--no-edit")
+    if cmt.returncode != 0:
+        # FALSE-RED guard: `git commit` can return non-zero even after the
+        # merge has in fact landed, and with blank stderr -- reporting failure
+        # then lies in the same direction as the old false green. Judge by the
+        # merge state, not the code: MERGE_HEAD exists only while a merge is
+        # still unborn, so its absence after a failed commit means the merge
+        # commit really exists and we should treat it as green.
+        still_merging = (_git(git_root, "rev-parse", "--verify",
+                              "MERGE_HEAD").returncode == 0)
+        if still_merging:
+            print(f"ERR finalize merge commit: "
+                  f"{cmt.stderr.strip() or '(no stderr from git)'}",
+                  file=sys.stderr)
+            return 1
+        # The merge actually landed; git merely mis-reported. Say so rather
+        # than cry wolf and strand the worktree on a success.
+        print(f"merged {branch} --no-ff into {base} (finalize returned "
+              f"non-zero {cmt.returncode} but the merge commit exists; "
+              f"treating as green)")
+    else:
+        print(f"merged {branch} --no-ff into {base}")
+
+    # Green: remove the worktree (this branch's job is done).
+    if worktree:
+        wt = _git(git_root, "worktree", "remove", worktree)
+        if wt.returncode != 0:
+            # The suite is green and the branch is merged, so any uncommitted
+            # or untracked bytes still in the scratch worktree are throwaway.
+            wt2 = _git(git_root, "worktree", "remove", "--force", worktree)
+            if wt2.returncode != 0:
+                print(f"  (warn: worktree remove failed:"
+                      f" {wt2.stderr.strip()})", file=sys.stderr)
+            else:
+                print(f"removed worktree {worktree} (forced; stray uncommitted"
+                      f" bytes discarded)")
+        else:
+            print(f"removed worktree {worktree}")
+
+    print(f"merge-up of {branch} >> {base} complete; suite green")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -929,6 +1179,20 @@ def main(argv: list[str] | None = None) -> int:
     p_judge.add_argument("--against", default="",
                          help="Plan node ID (default: derived from report's parents)")
     p_judge.add_argument("--debug", action="store_true", help="Show debug info")
+    p_judge.add_argument("--quorum", action="store_true", default=False,
+                         help="review through the advisor quorum: vote on"
+                              " alignment from a room (3-0/2-1 stamps,"
+                              " 1-1-1 or --morals -> audience prime, no stamp)")
+    p_judge.add_argument("--room", default="tier3-quorum",
+                         help="quorum room to tally votes from")
+    p_judge.add_argument("--round", dest="judge_round", default="",
+                         help="round the votes belong to (default: AGI_LOOP)")
+    p_judge.add_argument("--comms-root", default="",
+                         help="override the comms root (default: config)")
+    p_judge.add_argument("--actor", default="",
+                         help="edited_by for the judgment write (default: season.py)")
+    p_judge.add_argument("--session", default="",
+                         help="thought_session for the judgment write (default: season)")
 
     # rollover
     p_rollover = sub.add_parser("rollover", help="Print or perform season rollover")
@@ -949,6 +1213,10 @@ def main(argv: list[str] | None = None) -> int:
     p_rollover.add_argument("--allow-unjudged", action="store_true", default=False,
                             help="proceed even while a season-current overview lacks "
                                  "a judgment")
+    p_rollover.add_argument("--actor", default="",
+                            help="edited_by for the ladder write (default: season.py)")
+    p_rollover.add_argument("--session", default="",
+                            help="thought_session for the ladder write (default: season)")
 
     # retag
     p_retag = sub.add_parser("retag",
@@ -959,6 +1227,22 @@ def main(argv: list[str] | None = None) -> int:
                          help="edited_by for non-moral stamps (default: season.py)")
     p_retag.add_argument("--session", default="",
                          help="thought_session for stamps (default: season)")
+
+    # merge-up
+    p_merge = sub.add_parser(
+        "merge-up",
+        help="Merge a loop branch --no-ff into its base, suite-green gate")
+    p_merge.add_argument("branch", help="loop/<slug>-<agent8>@s<N> branch to merge")
+    p_merge.add_argument("--target", default="",
+                         help="base branch to merge into (default: recorded "
+                              "base_branch, else current branch)")
+    p_merge.add_argument("--suite", default="",
+                         help="suite command; non-zero aborts the merge")
+    p_merge.add_argument("--worktree", default="",
+                         help="worktree path to remove on green")
+    p_merge.add_argument("--record", default="",
+                         help="JSON lease/agent record supplying base_branch, "
+                              "suite, worktree")
 
     args = ap.parse_args(argv)
 
@@ -975,6 +1259,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_rollover(root, args)
     elif args.command == "retag":
         return cmd_retag(root, args)
+    elif args.command == "merge-up":
+        return cmd_merge_up(root, args)
 
     return 0
 

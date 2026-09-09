@@ -126,6 +126,12 @@ def completion_contract(runtime: str, iter_n, agent_id, target: str | None = Non
         "you reasoned in. They are read by name.",
         "**Report a struggle even when you worked around it.** A workaround you",
         "found is still a defect someone else will hit.",
+        # hypothesis:l3w4-push-further-loops — a continuation kid may also carry
+        # a `push_further:` field, so the structured report names it as the one
+        # extra optional DONE line. Present on BOTH runtimes; absent means the
+        # kid found nothing further to push.
+        "push_further: <optional, one line — what the next run at this same",
+        "            node id should push further, or absent to stop>",
     ]
 
     if runtime == "cc":
@@ -429,6 +435,13 @@ def main() -> int:
         help="which completion contract to hand the kid. Default: 'cc' when "
              "the project config has a cc_dispatch block, else 'pi' (goal:s8).",
     )
+    ap.add_argument(
+        "--push-further",
+        action="store_true",
+        help="hypothesis:l3w4-push-further-loops — prepend the target node's "
+             "push_further text above 'Extend or fork from' so a continuation "
+             "kid composes from the prior run's instruction.",
+    )
     args = ap.parse_args()
 
     # goal:g11.1 — resolve the given path the same way every other entry point
@@ -459,7 +472,13 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    sess_dir = locations.iteration_dir(root, args.iter_n) / args.agent_id
+    # hypothesis:l3-cli-done-worktree-manifest — session files are the LOOP'S
+    # bookkeeping and stay ONE body across worktrees (same rule as budget /
+    # comms / meter / .env): resolve the sess_dir to the MAIN checkout even
+    # when this zoom runs inside a --branch worktree, so context.md lands next
+    # to the agent.json dispatch writes. The graph read (`root`) stays forked.
+    sess_root = locations.shared_project_root(root) or root
+    sess_dir = locations.iteration_dir(sess_root, args.iter_n) / args.agent_id
     sess_dir.mkdir(parents=True, exist_ok=True)
     out_path = sess_dir / "context.md"
 
@@ -563,16 +582,40 @@ def _node_path_hint(root: Path, node_id: str) -> str | None:
         return str(path)
 
 
+def _target_not_found(root: Path, target: str) -> str:
+    """Message for a --target missing from THIS worktree's graph.
+
+    `hypothesis:l3w4-branch-shared-state`. A `--branch` worktree is cut from
+    the last committed tip, so a node minted (or a brief scaffolded) after
+    that tip lives in the MAIN checkout's graph but not in this worktree's
+    fork. The old message sent a reader hunting for a typo in a node id that
+    was correct; name the fork instead so the refusal reads as what it is.
+    """
+    base = (f"--target '{target}' not found in the graph loaded from "
+            f"{root / 'nodes'}.")
+    try:
+        main = locations.git_common_root(root)
+        shared = locations.find_project_root(main) if main else None
+        if (shared is not None
+                and Path(shared).resolve() != Path(root).resolve()
+                and node_writer.find_node_file(shared, target) is not None):
+            return (base + f"\n     The target EXISTS in the main checkout graph "
+                    f"at {shared / 'nodes'} but not in this worktree's fork — a "
+                    f"worktree is cut at the last committed tip so it cannot see "
+                    f"a node minted after that. Commit and push the brief before "
+                    f"dispatching at it, or point this call at the main checkout.")
+    except Exception:
+        pass
+    return base
+
+
 def _compose_small(root: Path, args: argparse.Namespace) -> str:
     """Legacy 2-hop subtree around --target, ANY node type. Unchanged content."""
     g, _loaded = _load_wired_graph(root)
 
     target = args.target
     if not g.has_node(target):
-        raise ZoomUnavailable(
-            f"--target '{target}' not found in the graph loaded from "
-            f"{root / 'nodes'}."
-        )
+        raise ZoomUnavailable(_target_not_found(root, target))
 
     layers = _bfs_neighbors(g, target, hops=2)
     seen = set(layers)
@@ -607,12 +650,52 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         f"Extend or fork from `{target}`. Stay tight — don't wander to other chains.",
         "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).",
     ])
+    if getattr(args, "push_further", False):
+        pf = _push_further_text(root, target)
+        if pf:
+            lines.extend([
+                "",
+                "> PUSH FURTHER (left on " + target + "):",
+                ">",
+                "> " + "\n> ".join(line for line in pf.splitlines()),
+            ])
     lines.extend(completion_contract(args.runtime, args.iter_n, args.agent_id, target))
     lines.extend([
         "",
         "If stuck >2 attempts → write `pending` verdict and stop.",
     ])
     return "\n".join(lines) + "\n"
+
+
+def _push_further_text(root: Path, target: str) -> str:
+    """The target node's `push_further:` frontmatter, or "" when absent.
+
+    hypothesis:l3w4-push-further-loops — a parent leaves a push-further on a
+    node; a continuation kid composes from it. Read directly off the node
+    file so the composition carries exactly what the parent stamped, not a
+    re-derivation.
+    """
+    f = node_writer.find_node_file(root, target)
+    if not f:
+        return ""
+    try:
+        txt = f.read_text()
+    except OSError:
+        return ""
+    capture = False
+    out = []
+    for line in txt.splitlines():
+        if line.startswith("push_further:"):
+            v = line.split(":", 1)[1].strip()
+            if v:
+                out.append(v)
+                capture = True
+            continue
+        if capture and (line.startswith(" ") or line.startswith("\t")) and line.strip():
+            out.append(line)
+        elif capture:
+            break
+    return "\n".join(out).strip()
 
 
 def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
@@ -622,10 +705,7 @@ def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
 
     target = args.target
     if target and not g.has_node(target):
-        raise ZoomUnavailable(
-            f"--target '{target}' not found in the graph loaded from "
-            f"{root / 'nodes'}."
-        )
+        raise ZoomUnavailable(_target_not_found(root, target))
 
     fm_by_id = _frontmatter_for(root, info["dir_name"])
 

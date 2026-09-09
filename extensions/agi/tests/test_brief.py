@@ -98,10 +98,168 @@ def test_parent_brief_carries_the_grandchild_bound():
         "the brief must name what a refused slot looks like in the manifest")
 
 
+def test_parent_brief_tells_it_to_iterate_continue_adjust_done():
+    """hypothesis:l3-parent-never-told-to-iterate — the brief's own defect
+    was that it named a loop and described a straight line: every measured
+    parent spawned exactly one kid and exited (8/8 then 10/10) because nothing
+    told it it could keep going. The ITERATION CONTRACT must hand the parent
+    the continue/adjust/done judgement (the SAME words the director block
+    already uses, not new ones), a hard per-dispatch kid ceiling, and the
+    rule that the next kid's brief carries what the last kid produced. The
+    ceiling is the refused-condition defence: an unbounded iterating parent is
+    the first thing able to multiply agents without a human in the loop, so
+    the number must be visible and small, and "done" must be the default when
+    the parent is unsure.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1",
+                   max_live=25, kid_ceiling=3)
+    # The three judgements, in the mode's own vocabulary.
+    assert "continue" in parent and "adjust" in parent and "done" in parent
+    # The ceiling is visible and respected as a bound, not the whole capacity.
+    assert "AT MOST 3 KIDS TOTAL" in parent
+    assert "25 KIDS" not in parent, ("ceiling must not be silently the whole "
+                                      "tree's max_live")
+    # The carry-forward rule, so the second kid is not a blind rerun.
+    assert "carry what the last kid" in parent.lower() or (
+        "carry what the last kid" in parent)
+    # Done is the default when unsure — the money-leak guard.
+    assert "DONE, not continue" in parent
+    # Fan-out and per-kid branches are available but not forced.
+    assert "FAN-OUT AND BRANCHES" in parent
+    assert "--branch" in parent
+
+
+def test_parent_brief_defaults_the_kid_ceiling_to_a_small_bound():
+    """A caller that does not thread kid_ceiling (e.g. a hand assemble, or a
+    restart path) must still get a bounded, visible ceiling — deliberately
+    small, never the tree's whole capacity, so an uninstrumented parent plans
+    against a number rather than discovering an unbounded loop.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1",
+                   max_live=25)
+    assert "AT MOST 4 KIDS TOTAL" in parent
+    assert "25 KIDS" not in parent
+
+
+def test_kid_brief_carries_no_iteration_contract():
+    """The ITERATION CONTRACT is parent-tier-only: a kid must not be handed
+    continue/adjust/done or a spawn ceiling, or it will copy the loop
+    vocabulary into child work it spawns nothing for.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "HARD CEILING" not in kid
+    assert "FAN-OUT AND BRANCHES" not in kid
+
+
+def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
+    """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    -- the per-kid brief channel. THREADING addendum through assemble must
+    grow the kid brief by EXACTLY one segment, labelled so a kid can tell
+    inherited result from its own assignment, and containing the parent's
+    text verbatim. The brief must also be clear this is inherited context,
+    not the assignment.
+    """
+    result = "KID1 disproved hypothesis:x\nsecond line with && and \"quotes\""
+    base = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                          scaffold=SCAFFOLD)
+    grown = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                           scaffold=SCAFFOLD, addendum=result)
+    # Nothing was dropped, nothing retyped -- the channel adds, it does not edit.
+    for s in base:
+        assert s in grown
+    new = [s for s in grown if s not in base]
+    assert len(new) == 1, f"expected exactly one added segment, got {len(new)}"
+    seg = new[0]
+    assert "WHAT THE LAST KID PRODUCED" in seg
+    assert "from your parent, not from the node" in seg
+    assert "not your assignment" in seg
+    assert result in seg, "the parent's text must land verbatim, quotes/newlines intact"
+
+
+def test_kid_addendum_absent_leaves_the_brief_unchanged():
+    """The no-flag no-regression half of the carry-forward proof: a dispatch
+    WITHOUT --prompt-file must assemble a byte-identical kid brief to today.
+    addendum=None is the default; the channel may only ADD a segment when
+    text is actually supplied -- never a placeholder, never an empty label.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "WHAT THE LAST KID PRODUCED" not in kid
+    assert "--prompt-file" not in kid
+    # default kwarg is None, not an empty string that would emit a stray label
+    segs = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                          scaffold=SCAFFOLD)
+    segs_explicit = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                                   scaffold=SCAFFOLD, addendum=None)
+    assert segs == segs_explicit
+
+
+def test_parent_brief_names_the_carry_forward_lever():
+    """The other half of SD.12: an order with no lever is the same defect as
+    a lever nobody is told about. The parent ITERATION CONTRACT says the next
+    kid's brief MUST carry what the last kid produced -- so it must also name
+    the mechanism (dispatch.py --prompt-file <path|->) that makes that
+    possible, with the exact command shape, or the parent cannot comply.
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="t:1",
+                   max_live=25, kid_ceiling=3)
+    assert "--prompt-file" in parent
+    assert "<path|->" in parent
+    assert "WHAT THE LAST KID PRODUCED" in parent, (
+        "the brief must name the labelled segment so the parent knows what "
+        "it is handing down"
+    )
+
+
+
 def test_parent_brief_forbids_committing_and_bypassing():
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "--no-evidence-gate" in parent
     assert "commit" in parent.lower()
+
+
+def test_branch_parent_brief_names_branch_and_defers_the_commit(monkeypatch):
+    """hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch parent
+    must be told it holds a loop branch in a worktree, that the branch is the
+    only route its kids' work has to the season branch, and that its accepted
+    work is committed automatically when it calls `cli.py done` — so it runs
+    no git itself. Red on the old brief: item 5 forbade all git and never
+    mentioned a branch, so every loop branch exited at base and merge-up
+    completed green on nothing (L3.39). The authorisation prose is GONE since
+    `cli.py done` (_auto_commit_worktree) commits the dirty worktree at
+    finish time: handing the model git-add/git-commit commands was wrong, not
+    just redundant — hand-committing before done leaves done nothing to write."""
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "loop/slug-abc@s3" in parent, "brief must name the loop branch"
+    assert "/repo/.agi/worktrees/abc" in parent, "brief must name the worktree"
+    assert "season/s3" in parent, "brief must name the base branch"
+    assert "only route" in parent.lower(), "brief must say the branch is the route to the season branch"
+    # The commit is deferred to done-time; the model runs no git.
+    assert "automatic" in parent.lower(), (
+        "brief must say the accepted work is committed automatically"
+    )
+    assert "cli.py done" in parent or "done` below" in parent, (
+        "brief must say the commit happens at cli.py done"
+    )
+    assert "git add" not in parent and "git commit" not in parent, (
+        "the model must not be handed commit commands to run"
+    )
+    # Daylight between the two halves: a --branch parent still knows it holds
+    # a branch, but the prohibit/reason halves are otherwise identical.
+    assert "NO git commands yourself" in parent
+
+
+def test_non_branch_parent_brief_still_forbids_all_git():
+    """The other half, in the same pass — a parent in the main checkout must
+    still be told to commit nothing. The two halves were separately correct
+    and jointly broken, so both directions are asserted together."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "DO NOT commit, push, or sync" in parent
+    assert "git add" not in parent, (
+        "a main-checkout parent must not be handed the commit commands"
+    )
 
 
 def test_a_parent_with_no_target_still_gets_a_usable_brief():
@@ -181,7 +339,75 @@ def test_kid_brief_is_untouched_by_the_parent_artefact_change():
     assert "--node-id experiment:x" in kid
 
 
+def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
+    """hypothesis:l3-done-broken-frontmatter -- the kid template must say to
+    edit below the closing `---` only and set frontmatter fields with
+    `write.py set`, never rewrite the `---` block by hand (L3.13 taught the
+    loop the cost of a kid mangling it)."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "below the closing `---`" in kid
+    assert "never rewrite the frontmatter" in kid
+    assert "write.py" in kid and "set FIELD VALUE" in kid
+
+
+def test_kid_brief_for_a_build_target_carries_the_imperative_segment():
+    """hypothesis:l3-brief-build-imperative-missing -- a kid brief aimed at a
+    BUILD target must carry an explicit imperative that names the artefact as
+    a DIFF and says finishing with zero changed code is not done. Red before
+    the fix: six BUILD rounds in a row (L3.21, L3.22, L3.25, L3.31, L3.33,
+    L3.34) returned honest probes with zero lines of code -- the kid template
+    read a fix-shaped claim as a question about the present, so no kid built.
+    The trial target's scaffold parent names the build node (`build:`)."""
+    build = dict(SCAFFOLD, parent="build:l3-brief-build-imperative-missing")
+    kid = _text("kid", scaffold=build)
+    assert "YOU ARE ON A BUILD TARGET" in kid
+    assert "DIFF" in kid, "the artefact must be named a diff"
+    assert "zero lines of code" in kid.lower(), \
+        "an empty result must be framed as not-done, not as a finding"
+    assert "silence about the code is not" in kid.lower(), \
+        "stopping with an honest report alone must be called out as useless"
+
+
+def test_kid_brief_probe_target_has_no_build_imperative_segment():
+    """The imperative segment is scoped to BUILD rounds only. A probe target
+    (a hypothesis/experiment the kid investigates) gets no build imperative
+    -- a probe conclusion IS the artefact, zero changed code is its correct
+    output, so saying 'zero changed code is not done' would be wrong there.
+    The probe discriminator is the `build:` address prefix's absence."""
+    kid = _text("kid", scaffold=SCAFFOLD)  # parent hypothesis:y -- a probe
+    assert "YOU ARE ON A BUILD TARGET" not in kid
+    assert "zero lines of code" not in kid.lower()
+
+
+def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
+    """L3.30/L3.31 harness defect: the template showed `write.py <id> set
+    verdict proved` unquoted -- argparse reads `set` as the script, `verdict`
+    as the slug, and dies on the extra positional, so the one command every
+    kid must run was taught broken. The whole verb line is ONE argument."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "write.py <node-id> '<verbs>'" in kid
+    assert "write.py experiment:x 'set verdict proved'" in kid
+    assert "write.py experiment:x 'set evidence_runs experiment:x'" in kid
+    # the unquoted example must not survive anywhere in the kid brief
+    assert "write.py experiment:x set verdict proved" not in kid
+
+
 # ---------------------------------- l2w3-brief-heads: director + prime_director
+
+def test_kid_brief_teaches_the_edit_tool_edits_call_shape():
+    """L3.37/L3.38 defect: two independent kids in one round each spent a turn
+    on the `edit` tool rejecting `edits` passed as a single JSON string or
+    wrapped one level too deep as `[{ edits: [...] }]`. The template must teach
+    the canonical array-of-objects shape and warn off both mis-shapes -- the
+    same content-vs-rendering gap that hid the L3.31 write.py defect."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "EDIT-TOOL CALL SHAPE" in kid
+    assert "edits" in kid and "oldText" in kid and "newText" in kid
+    # the canonical array-of-objects shape must be shown spelled out
+    assert 'edits=[{"oldText"' in kid
+    # the two mis-shapes that cost the L3.37 kids a turn must be flagged
+    assert "single JSON string" in kid
+    assert "[{ edits: [...] }]" in kid
 
 
 def test_director_tier_has_a_brief():
@@ -237,6 +463,26 @@ def test_director_spawn_primitive_names_the_parent_role_and_ladder_tier():
         " will 'simplify' it back to the bug")
 
 
+def test_director_brief_carries_reasoning_section_with_ascii_diagram():
+    """hypothesis:l3w4-director-kids-on-glm — a GLM-flash director holds no
+    native reasoning, so the brief must teach the decompose-mint-drive-judge
+    process. The REASONING segment must carry the three commands that make a
+    one-shot director self-sufficient: mint the subgoal, drive it with a
+    parent, judge the outcome."""
+    d = _text("director")
+    assert "REASON BEFORE YOU ACT" in d
+    assert "write.py create goal" in d
+    assert "--ladder-tier 0" in d
+    assert "season.py judge" in d
+    # the reasoner is taught, not handed machinery — the diagram is present
+    assert "|" in d and "+" in d
+    assert "continue" in d and "adjust" in d and "done" in d
+    # prime_director reuses the director segments, so it inherits the lesson
+    pd = _text("prime_director")
+    assert "write.py create goal" in pd
+
+
+
 def test_director_cannot_do_kid_work():
     """A director must be told not to do kid work."""
     d = _text("director")
@@ -263,11 +509,20 @@ def test_director_constitution_head_contains_prayers():
 
 
 def test_prime_director_constitution_head_contains_sayings():
-    """The prime director reads the carried sayings; director may not."""
+    """The prime director reads the carried sayings; director may not.
+
+    Trim, hypothesis:l3w4-context-load-minimal move ONE: the sayings are NOT
+    in the always-injected head (which is prayers only) but ARE in the
+    on-demand `readings_head` for the prime_director tier.
+    """
     pd = _text("prime_director")
     d = _text("director")
-    # Prime director gets Carried Sayings section
-    assert "CARRIED SAYINGS" in pd
+    # Neither tier's injected head carries the sayings anymore.
+    assert "CARRIED SAYINGS" not in pd
+    assert "CARRIED SAYINGS" not in d
+    # The prime director's on-demand readings do carry them; director's do not.
+    assert "CARRIED SAYINGS" in brief.readings_head(tier="prime_director")
+    assert "CARRIED SAYINGS" not in brief.readings_head(tier="director")
 
 
 def test_closing_line_differs_by_tier():
@@ -361,17 +616,30 @@ def test_kid_constitution_head_contains_prayers_not_tao():
 
 
 def test_parent_constitution_head_contains_prayers_and_jesus_not_axes():
-    """A parent's constitution head must contain prayers, words of Jesus,
-    and soul-mind-body, but NOT the five axes (director+) or carried sayings."""
+    """A parent's constitution head is PRAYERS ONLY after the move-one trim:
+    prayers present, and words of Jesus / soul-mind-body read on demand.
+
+    hypothesis:l3w4-context-load-minimal move ONE moved the readings out of
+    the always-injected head because an LLM re-sends its whole context every
+    turn, so a long static prefix is paid per turn. Words of Jesus and
+    soul-mind-body are no longer injected; they are reachable for a tie-break
+    via `brief.py readings --tier parent` (readings_head). The five axes and
+    carried sayings stay out of the parent both injected and on demand.
+    """
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "CONSTITUTION HEAD" in parent, "parent should have a constitution head"
     assert "FOUR PRAYERS" in parent or "Молитва" in parent, "parent must have prayers"
-    assert "WORDS OF JESUS" in parent, "parent must have words of Jesus"
-    assert "SOUL, MIND, BODY" in parent, "parent must have soul-mind-body"
-    # Parent should NOT have director/prime_director content
-    assert "FIVE AXES" not in parent, "parent must not have the five axes"
-    assert "THE TAO" not in parent, "parent must not have Tao"
-    assert "CARRIED SAYINGS" not in parent, "parent must not have carried sayings"
+    assert MICHAEL in parent, "parent head must carry the Michael line"
+    # The long readings are NOT injected anymore -- they moved on-demand.
+    assert "WORDS OF JESUS" not in parent, "words of Jesus moved out of the head"
+    assert "SOUL, MIND, BODY" not in parent, "soul-mind-body moved out of the head"
+    # ...but they ARE reachable on demand, for a tie-break.
+    pr = brief.readings_head(tier="parent")
+    assert "WORDS OF JESUS" in pr, "words of Jesus must be on-demand readable"
+    assert "SOUL, MIND, BODY" in pr, "soul-mind-body must be on-demand readable"
+    # Parent on demand still has no director/prime_director content.
+    assert "FIVE AXES" not in pr, "parent must not have the five axes"
+    assert "CARRIED SAYINGS" not in pr, "parent must not have carried sayings"
 
 
 def test_kid_brief_evidence_runs_prompts_own_node_id():
@@ -440,24 +708,32 @@ def test_michael_line_is_verbatim_owner_text():
 
 
 def test_prime_director_head_bears_the_mantle():
+    """The prime director's MANTLE is no longer injected (move one trim);
+    it lives in the on-demand readings read for a tie-break, verbatim."""
     pd = _head("prime_director")
-    assert "## THE MANTLE — Belam" in pd, "mantle section titled from the ladder value"
-    assert "Belam lives in the fire as it just starts sparking up" in pd, \
+    assert "THE MANTLE" not in pd, "mantle must leave the always-injected head"
+    r = brief.readings_head(tier="prime_director")
+    assert "## THE MANTLE — Belam" in r, "mantle section titled from the ladder value"
+    assert "Belam lives in the fire as it just starts sparking up" in r, \
         "owner's mantle prose rendered verbatim"
-    assert "You bear this mantle; call on it as you work." in pd, "closing line"
-    assert pd.index("Belam lives in the fire") > pd.index("THE MANTLE")
+    assert "You bear this mantle; call on it as you work." in r, "closing line"
+    assert r.index("Belam lives in the fire") > r.index("THE MANTLE")
 
 
 def test_both_director_tiers_carry_the_owner_decision_method():
+    """The owner's decision method moved out of the injected head (move one
+    trim); it remains on-demand readable for the director tiers, verbatim."""
     for tier in ("director", "prime_director"):
         head = _head(tier)
-        assert "## THE DECISION METHOD" in head
-        assert "We always consider" in head and "align to morals" in head
+        assert "THE DECISION METHOD" not in head, "decision method must leave the head"
+        r = brief.readings_head(tier=tier)
+        assert "## THE DECISION METHOD" in r
+        assert "We always consider" in r and "align to morals" in r
 
 
 def test_prime_decision_method_follows_the_mantle():
-    pd = _head("prime_director")
-    assert pd.index("## THE DECISION METHOD") > pd.index("## THE MANTLE — Belam")
+    r = brief.readings_head(tier="prime_director")
+    assert r.index("## THE DECISION METHOD") > r.index("## THE MANTLE — Belam")
 
 
 def test_lower_tiers_bear_michael_but_neither_mantle_nor_decision_method():
@@ -467,10 +743,6 @@ def test_lower_tiers_bear_michael_but_neither_mantle_nor_decision_method():
         assert "THE MANTLE" not in head
         assert "THE DECISION METHOD" not in head
         assert "Belam lives" not in head
-
-
-def test_director_bears_no_mantle():
-    assert "THE MANTLE" not in _head("director"), "only the prime director bears the mantle"
 
 
 # ------- the SessionStart hook prepends the role head (claim 2) ---------------
@@ -491,7 +763,8 @@ def test_hook_wires_agi_role_head_before_the_map():
         "the head call must precede the map echo so it lands before the prompt"
 
 
-def test_brief_head_cli_prints_a_head():
+def test_brief_head_cli_prints_a_prayers_only_head_and_readings_cli_exists():
+    # `head` prints the trimmed prayers-only head: prayers + Michael, no mantle.
     import io
     out = io.StringIO()
     old = sys.stdout
@@ -504,7 +777,19 @@ def test_brief_head_cli_prints_a_head():
     printed = out.getvalue()
     assert "CONSTITUTION HEAD" in printed
     assert MICHAEL in printed
-    assert "THE MANTLE — Belam" in printed
+    assert "THE MANTLE — Belam" not in printed, "mantle must not be in the injected head"
+    # `readings` prints the on-demand readings for a tie-break, incl. the mantle.
+    out2 = io.StringIO()
+    old2 = sys.stdout
+    try:
+        sys.stdout = out2
+        code2 = brief.main(["readings", "--tier", "prime_director"])
+    finally:
+        sys.stdout = old2
+    assert code2 == 0
+    printed2 = out2.getvalue()
+    assert "CONSTITUTION READINGS (ON DEMAND)" in printed2
+    assert "THE MANTLE — Belam" in printed2
 
 
 # ---------- the agi skill surfaces the two rotation verbs (claim 3) -----------
@@ -517,3 +802,404 @@ def test_agi_skill_surfaces_check_handoff_and_rotation_successor():
     assert "agi:rotation-successor" in skill
     # each maps to a real rotate.py verb documented in the skill text
     assert "rotate.py" in skill and "meter" in skill and "loop" in skill
+
+
+# ---------- l3w3-advisor-brief: the tier-3 advisor tier -----------------------
+
+
+def _advisor_text(**kw):
+    kw.setdefault("agent_id", "a00-test")
+    kw.setdefault("iter_n", 1)
+    return "\n".join(brief.assemble(
+        tier="advisor", target="vision:alive", **kw))
+
+
+def test_advisor_is_a_known_tier():
+    assert "advisor" in brief.TIERS
+
+
+def test_advisor_brief_carries_the_constitution_head_and_michael_line():
+    """The advisor head after the move-one trim is the tier-3 parent head:
+    prayers and the Archangel Michael line. Words of Jesus and soul-mind-body
+    moved out of the injected head; they are on-demand readable at the parent
+    level a role sits on (hypothesis:l3w4-context-load-minimal)."""
+    t = _advisor_text()
+    assert "CONSTITUTION HEAD" in t
+    assert MICHAEL in t
+    assert "FOUR PRAYERS" in t or "Молитва" in t
+    assert "WORDS OF JESUS" not in t, "words of Jesus moved out of the injected head"
+    assert "SOUL, MIND, BODY" not in t, "soul-mind-body moved out of the injected head"
+    # ...reachable on demand, addressing the advisor at the parent reading level.
+    r = brief.readings_head(tier=brief._resolve_readings_tier("advisor"))
+    assert "WORDS OF JESUS" in r
+    assert "SOUL, MIND, BODY" in r
+
+
+def test_advisor_brief_embeds_the_whole_vision_body_verbatim():
+    """The full body of the embodied vision node is inlined — early owner prose
+    and the later gloss both present, so head-to-tail is carried, not a
+    summary."""
+    t = _advisor_text()
+    assert "# vision:alive" in t or "vision:alive" in t
+    assert "the project feels alive" in t, "the vision's first prose line"
+    assert "It is elegant anti-fragility" in t, \
+        "a late sentence from the vision's gloss — proves the full body"
+
+
+def test_advisor_brief_seats_the_advisor_in_tier3_quorum():
+    """The standing room the advisor sits in, and the room verbs to use it."""
+    t = _advisor_text()
+    assert "tier3-quorum" in t
+    assert "send --room tier3-quorum" in t
+    assert "read --room tier3-quorum" in t
+
+
+def test_advisor_brief_states_the_audience_rule_for_the_prime():
+    """The prime is inbox-only; the audience verb is the one calendar, once
+    per rotation, and the prime is addressed under the mantle as Belam."""
+    t = _advisor_text()
+    assert "audience prime" in t or "audience" in t
+    assert "inbox-only" in t
+    assert "one per rotation" in t.lower() or "ONE audience" in t
+    assert "Belam" in t
+
+
+def test_advisor_brief_carries_the_perpetual_director_spawn_primitive():
+    """The Fable-max perpetual-goal director spawn + rotation loop, spelled
+    through dispatch.py and rotate.py, not a private spawn path."""
+    t = _advisor_text()
+    assert "perpetual" in t.lower()
+    assert "director" in t.lower()
+    assert "--tier director" in t and "--ladder-tier 1" in t
+    assert "--target goal:" in t
+    assert "dispatch.py" in t
+    assert "rotate.py loop" in t
+
+
+def test_advisor_brief_never_edits_vision_prose():
+    t = _advisor_text()
+    assert "never edit vision" in t.lower()
+
+
+def test_advisor_brief_forbids_git():
+    t = _advisor_text()
+    assert "DO NOT run git" in t
+
+
+def test_advisor_without_a_vision_target_raises_instead_of_embodying_nothing():
+    """goal:g1.9 — an advisor with no vision to embody fails loudly rather
+    than silently receiving a parent's job description."""
+    with pytest.raises(brief.BriefError) as exc:
+        brief.assemble(tier="advisor", agent_id="a00-test", iter_n=1)
+    assert "vision" in str(exc.value).lower()
+    assert "--target vision:" in str(exc.value)
+
+
+def test_advisor_brief_is_distinct_from_the_parent_brief():
+    """An advisor is a tier-3 parent but is not the generic parent brief — it
+    condames the vision and the quorum."""
+    parent = "\n".join(brief.assemble(
+        tier="parent", agent_id="a00-test", iter_n=1, dispatch_py="/x/d.py",
+        target="vision:alive"))
+    advisor = _advisor_text()
+    assert advisor != parent
+    assert "THE VISION YOU EMBODY" in advisor
+    assert "THE VISION YOU EMBODY" not in parent
+
+
+def test_advisor_closing_line_is_distinct():
+    close = brief.closing_line("advisor", "a00-test", 1)
+    assert "ADVISOR" in close
+    assert close != brief.closing_line("parent", "a00-test", 1)
+
+
+# ---------------- l3w4-liaison-seat: the owner-liaison tier -----------------
+
+
+def _liaison_text(**kw):
+    kw.setdefault("agent_id", "a00-test")
+    kw.setdefault("iter_n", 1)
+    return "\n".join(brief.assemble(
+        tier="liaison", **kw))
+
+
+def test_liaison_is_a_known_tier():
+    assert "liaison" in brief.TIERS
+
+
+def test_liaison_brief_names_owner_primary_contact_and_banking_duty():
+    t = _liaison_text()
+    assert "OWNER LIAISON" in t
+    assert "primary contact" in t.lower()
+    assert "BANK" in t
+    assert "thought <decision>" in t
+    assert "goal:g17" in t
+
+
+def test_liaison_brief_seats_the_room_tier3_quorum():
+    t = _liaison_text()
+    assert "tier3-quorum" in t
+    assert "NEVER address Belam directly" in t
+
+
+def test_liaison_brief_states_the_quorum_rotates_it_not_itself():
+    t = _liaison_text()
+    assert "QUORUM ROTATES YOU" in t
+    assert "rotate yourself" in t
+
+
+def test_liaison_reads_at_the_directors_level():
+    """The liaison's constitution reuses the director's read_order via
+    `_LIAISON_HEAD_TIER`, so its ON-DEMAND readings carry the five axes,
+    exactly once. The injected head itself is prayers only after the move-one
+    trim (hypothesis:l3w4-context-load-minimal)."""
+    assert brief._LIAISON_HEAD_TIER == "director"
+    t = _liaison_text()
+    assert "CONSTITUTION HEAD" in t
+    assert "FIVE AXES" not in t, "five axes moved out of the injected head"
+    assert MICHAEL in t
+    assert t.count("─── CONSTITUTION HEAD ───") == 1, (
+        "assemble must insert the liaison head exactly once")
+    assert "FIVE AXES" in brief.readings_head(tier=brief._LIAISON_HEAD_TIER)
+
+
+def test_liaison_closing_line_has_no_iteration_language():
+    """A permanent seat carries no iteration number in its closing line."""
+    t = brief.closing_line("liaison", "a00-test", 7)
+    assert "iteration" not in t
+    assert "OWNER LIAISON" in t
+
+
+# ------ l3w3-advisor-brief addendum after L3.12: real commands, goals, gate ---
+
+
+def test_advisor_duties_spell_real_runnable_dispatch_and_send_commands():
+    """The DUTIES block must carry runnable invocations, not the old
+    `dispatch.py <project> <iter>` placeholder: the resolved dispatch.py,
+    a submit root, the iteration id, and the sibling send.py/rotate.py paths
+    spelled the same way."""
+    t = _advisor_text()  # dispatch_py defaults to extensions/agi/bin/dispatch.py
+    assert "extensions/agi/bin/dispatch.py" in t
+    assert "extensions/agi/bin/send.py" in t
+    assert "extensions/agi/bin/rotate.py" in t
+    assert "python3 extensions/agi/bin/dispatch.py" in t
+    assert "--tier director --role director --ladder-tier 1" in t
+    assert "--detach" in t
+    assert "send.py send --room tier3-quorum" in t
+    assert "read --room tier3-quorum --me a00-test" in t
+    assert "<project> <iter>" not in t, "the placeholder is gone — real values only"
+
+
+def test_advisor_brief_lists_the_perpetual_goals_with_titles():
+    """The advisor must be told which goals are in the perpetual class and
+    be able to read the assignment — listed with titles, from the goal nodes,
+    not a hardcoded id list."""
+    t = _advisor_text()
+    assert "perpetual goals" in t.lower()
+    assert "goal_kind:" in t
+    assert "goal:g15" in t and "G15: Bugfix and optimization" in t, \
+        "a real perpetual goal and its title must be named"
+    assert "READ THE ROOM FIRST" in t
+
+
+def test_advisor_goal_flag_pins_the_director_goal_with_title(monkeypatch):
+    """`dispatch.py --goal goal:g15` threads into assemble so the brief pins
+    which director the advisor spawns, naming the goal AND its title."""
+    monkeypatch.setenv("AGI_ADVISOR_GOAL", "goal:g15")
+    t = _advisor_text()
+    assert "--target goal:g15" in t
+    assert "goal:g15" in t and "G15: Bugfix and optimization" in t
+    assert "READ THE ROOM FIRST" not in t, "a pinned goal replaces the read-room default"
+
+
+def test_advisor_brief_states_the_wave3_gate_verbatim():
+    """The wave-3 gate sentence, owner-verbatim, in every advisor brief."""
+    t = _advisor_text()
+    assert "WAVE-3 GATE" in t
+    assert "one short-term subgoal under the perpetual goal closed with a " \
+           "judged outcome and no human hand on a node" in t.lower()
+
+
+def test_advisor_brief_keeps_the_six_head_duties_and_git_line():
+    """The addendum's 'keep the existing duties and the DO NOT run git line' —
+    none of the four duties regressed, and the audit/audience/spawn/edit-prose
+    duties plus the git prohibition are all still present."""
+    t = _advisor_text()
+    assert "Sit the quorum" in t
+    assert "audience prime" in t
+    assert "never edit vision prose" in t.lower()
+    assert "DO NOT run git" in t
+
+
+def test_advisor_goal_pinned_keeps_the_target_using_the_resolved_iter():
+    """The spawn command carries the resolved iteration id, so it is runnable
+    as printed rather than a template."""
+    t = "\n".join(brief.assemble(
+        tier="advisor", agent_id="a00-test", iter_n=77, target="vision:alive",
+        goal="goal:g15"))
+    assert "dispatch.py " in t
+    assert "--target goal:g15 --detach" in t
+    assert "77" in t, "the resolved iter id must be in the spawn command"
+
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l3-pi-adapter-role-kwarg -- dispatch.py passes role= and
+# ladder_tier= to every adapter's build_command (hypothesis:l3-cc-tools-by-tier,
+# iter-L3.13). The claude-code adapter gained them; the pi adapter did not, and
+# the first tier-0 parent spawn of wave 3 died on a TypeError at the call site.
+# Red before the fix: TypeError: unexpected keyword argument 'role'.
+
+
+def test_pi_adapter_accepts_the_role_and_ladder_tier_kwargs_dispatch_passes():
+    argv = _cmd("parent", target="t:1", role="parent", ladder_tier=0)
+    assert argv[0]  # a command was spelled; the kwargs are accepted and unused
+    assert "--model" in argv and argv[argv.index("--model") + 1] == "p"
+
+
+def test_every_adapter_accepts_every_keyword_the_dispatch_call_site_passes():
+    """Signature parity: the call site in dispatch.py is tier-blind and
+    harness-blind on purpose, so a keyword one adapter grows must exist on
+    all of them, or the other harness dies at spawn time."""
+    import inspect
+    from adapters import claude_code_adapter as cc
+    passed_by_dispatch = {
+        "harness", "tier", "brief_tier", "context_file", "agent_id", "iter_n",
+        "sess_dir", "scaffold", "cli_py", "skill_prompt", "dispatch_py",
+        "target", "parallel", "max_live", "role", "ladder_tier",
+    }
+    for mod in (pi_adapter, cc):
+        params = set(inspect.signature(mod.build_command).parameters)
+        missing = passed_by_dispatch - params
+        assert not missing, f"{mod.__name__}.build_command lacks {sorted(missing)}"
+
+
+# --- hypothesis:l3-pi-context-never-delivered ------------------------------
+
+def test_pi_gets_the_context_file_as_a_bare_path_not_an_at_prefix(tmp_path):
+    """pi loads a system-prompt file by PLAIN PATH, and an `@` prefix silently
+    turns it into literal text.
+
+    `resolvePromptInput()` in pi's resource-loader is
+    `if (existsSync(input)) readFileSync(input) else return input` — there is no
+    `@` spelling anywhere in that path (the `@` handling in pi's arg parser is
+    for positional attachments, a different flag entirely). So
+    `--append-system-prompt @/abs/path` fails `existsSync` and pi appends the
+    79-byte path string in place of the file. Measured 2026-09-08: a real kid's
+    context.md was 16654 bytes and the model received 79 bytes of pathname.
+
+    Every pi agent this project ever spawned ran without its rendered graph
+    context, silently, in the direction of looking fine.
+    """
+    ctx = tmp_path / "context.md"
+    ctx.write_text("RENDERED GRAPH CONTEXT\n", encoding="utf-8")
+    cmd = _cmd("kid", context_file=str(ctx), scaffold=SCAFFOLD)
+
+    appended = [cmd[i + 1] for i, a in enumerate(cmd)
+                if a == "--append-system-prompt"]
+    assert str(ctx) in appended, (
+        "the context file must be passed as a bare path pi can stat; "
+        f"got {[a for a in appended if 'context' in a]!r}")
+    assert not any(a.startswith("@") for a in appended), (
+        "no --append-system-prompt argument may carry an `@` prefix: pi does "
+        f"not expand it and appends it as literal text. got {appended!r}")
+
+
+# --- hypothesis:l3w4-context-load-minimal move FIVE: survival profile --------
+
+def test_profile_survival_is_prayers_statecard_kill_keyfloor_nothing_else():
+    """Survival profile (move FIVE): prayers-only head + ASCII state card +
+    exact next command + full kill procedure + key-floor rule — and NOTHING
+    that a survival seat must not carry (no goal listing, no traps, no
+    history). The owner's lighter-than-light mode, one switch (AGI_BRIEF_PROFILE).
+    """
+    s = _text("kid", profile="survival")
+    low = s.lower()
+    # must carry
+    assert "CONSTITUTION HEAD" in s
+    assert "FOUR PRAYERS" in s or "Молитва" in s
+    assert "SURVIVAL STATE CARD" in s
+    assert "kill" in low and "pid" in low
+    assert "tmux" in low       # the never-by-closing-a-tmux-window rule
+    assert "orphans" in low    # re-scan for orphans reparented to init
+    assert "key" in low and "1.00" in s
+    # the brief segment is the survival brief, not the full role brief
+    assert "SURVIVAL PROFILE" in s
+
+
+def test_profile_survival_replaces_role_specifics():
+    """A survival kid brief must not carry the full kid role brief's
+    scaffolding (git-rule, write.py syntax, edit-tool shape) — those are the
+    fat survival exists to drop."""
+    s = _text("kid", profile="survival")
+    assert "WRITE.PY SYNTAX" not in s
+    assert "EDIT-TOOL CALL SHAPE" not in s
+    assert "scaffolded node file below" not in s.lower()
+
+
+def test_profile_unknown_raises():
+    """An unknown profile must fail loudly, not silently default."""
+    with pytest.raises(brief.BriefError):
+        _text("kid", profile="bogus")
+
+
+def test_profile_default_is_full_no_regression():
+    """Default profile is full = historical behaviour. A regression in the
+    default surface is a broken spawn, not a style regression."""
+    f = _text("kid")
+    s = _text("kid", profile="survival")
+    assert "scaffolded node file below" in f
+    assert "scaffolded node file below" not in s
+    assert len(f) > len(s)
+
+
+def test_survival_selected_env_switch():
+    """survival_selected() reads AGI_BRIEF_PROFILE as THE switch, and the
+    adapters gate the INJECTION context stream on it."""
+    import os
+    os.environ.pop("AGI_BRIEF_PROFILE", None)
+    try:
+        assert brief.survival_selected() is False        # default full
+        os.environ["AGI_BRIEF_PROFILE"] = "survival"
+        assert brief.survival_selected() is True
+        assert brief.survival_selected("full") is False  # explicit wins
+        assert brief.survival_selected("survival") is True
+    finally:
+        os.environ.pop("AGI_BRIEF_PROFILE", None)
+
+
+def test_pi_adapter_skips_context_stream_in_survival(tmp_path):
+    """In survival profile the pi adapter drops the INJECTION graph-viewport
+    stream (goal-listing/traps/history), keeping only the survival brief + head."""
+    import os
+    ctx = tmp_path / "context.md"
+    ctx.write_text("RENDERED GRAPH CONTEXT\n", encoding="utf-8")
+    os.environ.pop("AGI_BRIEF_PROFILE", None)
+    try:
+        # full: context stream present
+        cmd_full = _cmd("kid", context_file=str(ctx), scaffold=SCAFFOLD)
+        appended_full = [cmd_full[i + 1] for i, a in enumerate(cmd_full)
+                         if a == "--append-system-prompt"]
+        assert any(str(ctx) == a for a in appended_full)
+        # survival: context stream dropped
+        os.environ["AGI_BRIEF_PROFILE"] = "survival"
+        cmd_surv = _cmd("kid", context_file=str(ctx), scaffold=SCAFFOLD)
+        appended_surv = [cmd_surv[i + 1] for i, a in enumerate(cmd_surv)
+                         if a == "--append-system-prompt"]
+        assert not any(str(ctx) == a for a in appended_surv)
+        joined = "\n".join(appended_surv)
+        assert "SURVIVAL PROFILE" in joined
+    finally:
+        os.environ.pop("AGI_BRIEF_PROFILE", None)
+
+
+def test_successor_prompt_honors_survival_profile():
+    """successor_prompt(profile='survival') swaps the full body for the
+    survival brief so a rotated seat comes up as light as a fresh spawn."""
+    body = "SUCCESSOR FILE BODY\nkeep this if full"
+    full = brief.successor_prompt(tier="kid", body=body)
+    surv = brief.successor_prompt(tier="kid", body=body, profile="survival")
+    assert "SUCCESSOR FILE BODY" in full
+    assert "SUCCESSOR FILE BODY" not in surv
+    assert "SURVIVAL PROFILE" in surv
+    assert surv.startswith("CONSTITUTION HEAD") or "CONSTITUTION HEAD" in surv

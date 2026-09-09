@@ -48,6 +48,48 @@ def test_acquire_admits_up_to_the_cap_and_then_refuses(root: Path):
         "the fourth agent must be refused, not queued")
 
 
+def test_acquire_refuses_while_paused_and_admits_once_resumed(root: Path):
+    """hypothesis:l3-reaper-restarts-through-stop — the structural form of
+    an owner stop order. Refuses even with the cap wide open; resumes
+    cleanly once cleared."""
+    assert spawn_budget.acquire(root, 25, "before-pause") is not None
+    spawn_budget.pause(root, reason="owner: low on tokens", actor="belam")
+    assert spawn_budget.acquire(root, 25, "during-pause") is None, (
+        "acquire must refuse every new admission while paused, "
+        "regardless of how much of the cap is free")
+    assert spawn_budget.live_count(root) == 1, (
+        "the refused acquire must not have written a lease")
+    prev = spawn_budget.resume(root)
+    assert prev is not None and prev["reason"] == "owner: low on tokens"
+    assert spawn_budget.acquire(root, 25, "after-resume") is not None
+
+
+def test_is_paused_reports_reason_and_actor(root: Path):
+    assert spawn_budget.is_paused(root) is None
+    spawn_budget.pause(root, reason="survival mode", actor="belam")
+    rec = spawn_budget.is_paused(root)
+    assert rec is not None
+    assert rec["reason"] == "survival mode"
+    assert rec["actor"] == "belam"
+    assert rec["paused"] is True
+    assert isinstance(rec["paused_at"], int)
+
+
+def test_resume_without_a_prior_pause_is_a_no_op(root: Path):
+    assert spawn_budget.resume(root) is None
+    assert spawn_budget.is_paused(root) is None
+
+
+def test_refusal_while_paused_is_not_a_wait(root: Path):
+    """Same non-blocking guarantee the cap refusal already has (see
+    `test_refusal_is_not_a_wait` below) — a paused refusal must not stall
+    either."""
+    spawn_budget.pause(root, reason="test")
+    t0 = time.monotonic()
+    assert spawn_budget.acquire(root, 25, "blocked-by-pause") is None
+    assert time.monotonic() - t0 < 0.5
+
+
 def test_refusal_is_not_a_wait(root: Path):
     """Admission returns immediately when full.
 
@@ -118,6 +160,32 @@ def test_a_lease_whose_holder_died_before_spawning_is_reclaimed(root: Path):
     }))
     assert spawn_budget.live_count(root) == 0
     assert not (d / "ghost.lease").exists(), "a dead lease is swept, not kept"
+
+
+def test_a_zombie_lease_is_reclaimed_hypothesis_l3_zombie(root: Path):
+    """A defunct (state Z) child does not hold a slot.
+
+    `hypothesis:l3-cc-adapter-zombie-lease`: an unreaped child still answers
+    `os.kill(pid, 0)`, so signal-existence alone would hold every finished
+    claude-code agent's lease forever. Liveness reads the process-table state:
+    a zombie is dead and is swept.
+    """
+    pid = os.fork()
+    if pid == 0:  # child exits; parent never waits before the sweep
+        os._exit(0)
+    try:
+        time.sleep(0.2)  # let the child die and the defunct state settle
+        state = open(f"/proc/{pid}/stat").read().rsplit(") ", 1)[1].split()[0]
+        assert state == "Z", f"expected a zombie, got state {state!r}"
+        assert not spawn_budget._pid_alive(pid), "a zombie is dead, not live"
+        lease = spawn_budget.acquire(root, 1, "zombie-agent")
+        assert lease is not None
+        spawn_budget.commit(lease, pid)
+        assert lease.path.exists(), "lease exists before the sweep that frees it"
+        assert spawn_budget.live_count(root) == 0, "a zombie-held slot is freed"
+        assert not lease.path.exists(), "the sweep removed the dead lease"
+    finally:
+        os.waitpid(pid, 0)
 
 
 def test_a_corrupt_lease_cannot_wedge_the_budget_shut(root: Path):
@@ -214,3 +282,164 @@ def test_a_second_independent_spawner_counts_against_the_first(root: Path):
     assert out == ["1", "0"], (
         "the second spawner saw the first's lease and was cut off at the "
         "shared bound, not at its own")
+
+
+# --------------------------------------------------------------------------
+# The budget is ONE directory across worktrees (hypothesis:l3w4)
+# --------------------------------------------------------------------------
+
+def test_budget_dir_is_shared_across_a_linked_worktree(tmp_path: Path):
+    """A lease taken from a worktree lands in the MAIN checkout's budget.
+
+    `hypothesis:l3w4-parent-branch-merge-up`: a parent dispatched with
+    `--branch` runs in its own git worktree; its kids edit only that worktree.
+    The budget must NOT follow the worktree root or the tree-wide bound
+    silently splits per worktree — the whole thing
+    `spawn_budget.py` exists to enforce (goal:g4.8 item 3).
+
+    `hypothesis:l3-budget-dir-dropped-agi`: under G11 the graph lives at
+    `<repo>/.agi` and the budget must resolve to `<repo>/.agi/sessions/
+    .spawn-budget` — never a stray `<repo>/sessions/` and never a
+    per-worktree split. The exact `.agi` path is asserted so a regression
+    that drops the graph-dir segment fails red on both the main checkout and
+    the worktree.
+    """
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "master"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    # G11 layout: the graph root is a resolveable `.agi` dir with a config.
+    graph = repo / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text("{}")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/slug@s2", str(wt), "master"],
+                   check=True, capture_output=True)
+
+    expected = repo / ".agi" / "sessions" / ".spawn-budget"
+    assert spawn_budget.budget_dir(repo) == expected, (
+        "the main checkout's budget must keep the .agi graph-dir segment: "
+        "<repo>/.agi/sessions/.spawn-budget, not <repo>/sessions/.spawn-budget")
+    assert spawn_budget.budget_dir(wt) == expected, (
+        "a worktree's budget must be the MAIN checkout's `.agi` graph dir, "
+        "never a per-worktree split and never a dropped `.agi` segment")
+    assert spawn_budget.acquire(wt, 2, "wt-agent") is not None
+    # The lease is visible from the main checkout and from the worktree alike.
+    assert spawn_budget.live_count(repo) == 1
+    assert spawn_budget.live_count(wt) == 1
+    assert (expected / "wt-agent.lease").is_file(), (
+        "the lease file lives in the main checkout's budget dir")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3w4-parent-branch-merge-up — the lease records the branch
+# --------------------------------------------------------------------------
+
+
+def test_attach_branch_records_branch_base_and_worktree_on_the_lease(root):
+    """A `--branch` spawn records where its branch belongs on the LEASE, so
+    `season.py merge-up --record <lease>` (or the agent record) can climb the
+    branch into its recorded base even after the agent has gone."""
+    lease = spawn_budget.acquire(root, 2, "branch-agent")
+    assert lease is not None
+    spawn_budget.attach_branch(lease, {
+        "branch": "loop/explore-a00-xy@s2",
+        "base_branch": "season/s1",
+        "worktree": "/tmp/main/.agi/worktrees/a00-xy",
+    })
+    rec = json.loads(lease.path.read_text())
+    assert rec["branch"] == "loop/explore-a00-xy@s2"
+    assert rec["base_branch"] == "season/s1"
+    assert rec["worktree"] == "/tmp/main/.agi/worktrees/a00-xy"
+
+
+def test_a_lease_without_an_iteration_is_loud_in_status(root, capsys):
+    """hypothesis:l3-killed-agent-restarts-unattributed — `iter=None` on a live
+    lease must be loud, not a silent count that holds a round open forever.
+    Every spawner passes iter_n, so None here is a defect and status flags it.
+    """
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+    lease = spawn_budget.acquire(root, 10, "a00-orphan-r1", tier="parent")  # no iter_n
+    assert lease is not None
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "UNATTRIBUTED" in out, out
+    assert "iter=None" in out, out
+
+
+def test_a_lease_recorded_with_an_iteration_is_attributed(root, capsys):
+    """The attribution seam: a lease acquired with an iteration id renders it
+    plainly in status, so a restart that inherits its round is visible to it.
+    """
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+    lease = spawn_budget.acquire(root, 10, "a00-healthy-r1", tier="kid", iter_n=342)
+    assert lease is not None
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "iter=342" in out, out
+    assert "UNATTRIBUTED" not in out, out
+
+
+def test_attach_branch_ignores_empty_fields(root):
+    """An attach with no branch fields must leave the lease unchanged except
+    its mandatory keys — never write empty-string placeholders."""
+    lease = spawn_budget.acquire(root, 2, "plain-agent")
+    assert lease is not None
+    spawn_budget.attach_branch(lease, {})
+    rec = json.loads(lease.path.read_text())
+    assert "branch" not in rec
+    assert "base_branch" not in rec
+    assert "worktree" not in rec
+    assert rec["agent_id"] == "plain-agent"
+
+
+# --------------------------------------------------------------------------
+# The pause flag, CLI surface (hypothesis:l3-reaper-restarts-through-stop)
+# --------------------------------------------------------------------------
+
+def test_cli_pause_then_status_shows_the_banner_then_resume_clears_it(root, capsys):
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+
+    rc = spawn_budget.main(["--root", str(root), "pause",
+                            "--reason", "owner: low on tokens", "--actor", "belam"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "paused" in out.lower()
+
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "PAUSED" in out
+    assert "owner: low on tokens" in out
+    assert "belam" in out
+
+    rc = spawn_budget.main(["--root", str(root), "resume"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "resumed" in out.lower()
+    assert "owner: low on tokens" in out
+
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "PAUSED" not in out
+
+
+def test_cli_resume_with_nothing_to_resume_says_so(root, capsys):
+    (root / ".agi").mkdir()
+    (root / ".agi" / "config.json").write_text('{}')
+    rc = spawn_budget.main(["--root", str(root), "resume"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "not paused" in out.lower()

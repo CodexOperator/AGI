@@ -226,3 +226,36 @@ def test_adding_a_harness_touches_only_config_and_one_file():
         assert cmd == ["third", "kid", "a00"]
     finally:
         src.unlink()
+
+
+# ------------------------------------------- model/provider namespace guard
+
+def test_claude_alias_on_openrouter_is_refused():
+    """hypothesis:l3-workflow-model-crosses-harness-namespace. A Claude Code
+    subscription alias resolved onto an OpenRouter provider bills Anthropic
+    against an OpenRouter key -- the failure that reads as a mysterious bill
+    rather than a wrong flag. It must refuse, and name both names."""
+    with pytest.raises(adapters.AdapterError) as exc:
+        adapters.assert_model_in_provider_namespace(
+            "claude-sonnet-5", "openrouter")
+    msg = str(exc.value)
+    assert "claude-sonnet-5" in msg and "openrouter" in msg
+
+
+@pytest.mark.parametrize("model", [
+    "~z-ai/glm-flash-latest",
+    "z-ai/glm-flash-latest",
+    "~deepseek/deepseek-v4-flash-latest",
+])
+def test_openrouter_slugs_pass(model):
+    """A slug is `provider/name`, optionally `~`-prefixed. Both spellings are
+    in live use in this repo's own config and must not be refused."""
+    adapters.assert_model_in_provider_namespace(model, "openrouter")
+
+
+@pytest.mark.parametrize("provider", ["", "claude-code", "anthropic"])
+def test_non_openrouter_providers_keep_their_aliases(provider):
+    """The guard is one-directional on purpose: `sonnet` is CORRECT on the
+    claude-code harness, whose namespace is subscription aliases. Refusing it
+    there would break the drafting workflow, which names sonnet deliberately."""
+    adapters.assert_model_in_provider_namespace("claude-sonnet-5", provider)

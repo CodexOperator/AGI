@@ -193,6 +193,35 @@ def test_hyphenated_input_writes_the_canonical_spelling(project):
     assert "bigger-outcome" not in text
 
 
+def test_the_scaffold_marks_where_the_body_begins(project):
+    """hypothesis:l3-done-broken-frontmatter -- the scaffold writes the one-line
+    `BODY:BEGIN` comment right after the closing `---`, so a later `cli.py done`
+    can repair a mangled frontmatter block up to that boundary without ever
+    swallowing the kid's body."""
+    res = nw.write_node(project, "experiment", "fresh", ["hypothesis:h1"])
+    assert res.written
+    text = res.path.read_text()
+    parts = text.split("---\n", 2)
+    assert len(parts) == 3
+    body = parts[2]
+    assert body.startswith(nw.BODY_BEGIN + "\n"), \
+        "body must begin with the marker, immediately after the closing `---`"
+    # the marker is anchored in the same body the scaffold_hash certifies
+    assert "scaffold_hash:" in parts[1]
+
+
+def test_a_caller_supplied_body_gets_no_marker(project):
+    """The marker is a scaffold concept, not a body mandate: a caller that passes
+    an explicit body (e.g. `cli.py done`'s verdict-fallback path) keeps its body
+    exactly as supplied -- no marker prepended."""
+    res = nw.write_node(project, "experiment", "explicit", ["hypothesis:h1"],
+                        body="## Verdict\n\nproved\n")
+    assert res.written
+    text = res.path.read_text()
+    assert nw.BODY_BEGIN not in text
+    assert "## Verdict" in text
+
+
 def test_an_unaliased_hyphen_still_lands_canonical():
     # The alias table is the documented surface; the general rule is the
     # backstop, so a type nobody remembered to alias cannot mint a hyphen.
@@ -843,3 +872,139 @@ def test_env_season_that_cannot_be_parsed_falls_back_to_ladder(
     fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
     # Falls back to ladder's current_season: 1
     assert fm.get("season") == 1
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l2-done-doubled-frontmatter — a duplicate leading frontmatter
+# block living in the body (a kid that kept the scaffold's frontmatter) is
+# absorbed into the real frontmatter, later keys winning, and stripped.
+# Reproduces L2.01: experiment:a00-e65beccc-ac5309 arrived with a duplicate
+# scaffold FM block left in the body after cli.py done wrote the verdict.
+# --------------------------------------------------------------------------
+
+def test_update_node_absorbs_a_duplicate_leading_frontmatter_block(project):
+    """A body that opens with a second --- block is merged, dup removed."""
+    import yaml
+    nf = project / "nodes" / "experiment" / "e1.md"
+    dup = ("---\nid: experiment:e1\ntype: experiment\n"
+           "title: Kid Kept The Scaffold Frontmatter\n---\n")
+    # The kid's rewrite: real scaffold frontmatter, then the scaffold's own
+    # frontmatter pasted again at the top of the body.
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\ntitle: Real Title\n---"
+        f"\n\n{dup}\n# experiment:e1\n\nkid content\n")
+
+    res = nw.update_node(project, "experiment:e1",
+                         set_fm={"verdict": "proved", "confidence": 0.9})
+    assert res.status == nw.UPDATED, res.reason
+
+    text = nf.read_text()
+    # One real frontmatter block (open + close = exactly two --- lines).
+    assert text.count("---") == 2, text
+    # The verdict landed in the real frontmatter.
+    fm = yaml.safe_load(text.split("---", 2)[1])
+    assert fm.get("verdict") == "proved"
+    assert fm.get("confidence") == 0.9
+    # The duplicate's keys were absorbed into the real block, later keys
+    # winning (the body's title is the one that survives).
+    assert fm.get("title") == "Kid Kept The Scaffold Frontmatter"
+    # And the duplicate text is gone from the body.
+    body = text.split("---", 2)[2]
+    assert "id: experiment:e1" not in body
+    assert "Kid Kept The Scaffold Frontmatter" not in body
+    # The kid's real content survived.
+    assert "kid content" in body
+
+
+def test_update_node_leaves_a_body_without_leading_frontmatter_alone(project):
+    """No leading dup -> normally equivalent update, verdict still written."""
+    import yaml
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\ntitle: Real Title\n---"
+        "\n\n# experiment:e1\n\nplain content\n")
+    res = nw.update_node(project, "experiment:e1",
+                         set_fm={"verdict": "disproved", "confidence": 0.3})
+    assert res.status == nw.UPDATED
+    text = nf.read_text()
+    assert text.count("---") == 2
+    fm = yaml.safe_load(text.split("---", 2)[1])
+    assert fm.get("verdict") == "disproved"
+    assert "plain content" in text.split("---", 2)[2]
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3-node-without-mint-id — a node written outside node_writer (a
+# kid's own file tool) carries no `mint_id`, so grid.py refuses to version it.
+# `repair_mint` is the one sanctioned adoption: mint a FIRST mint_id through
+# the same identity source as every mint, stamp scaffold_hash so it reads
+# complete, and refuse when a `mint_id` already exists.
+# --------------------------------------------------------------------------
+
+def _no_mint_node(project, body="the kid wrote this body\n"):
+    """A kid-written node: valid frontmatter, real content, no mint_id, no
+    scaffold_hash — exactly experiment:a00-230456c1-1abcda's shape."""
+    p = project / "nodes" / "experiment" / "e1.md"
+    p.write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        f"parents:\n- hypothesis:h1\n---\n\n{body}")
+    return p
+
+
+def test_repair_mint_mints_a_first_mint_id_and_preserves_the_body(project):
+    import yaml
+    nf = _no_mint_node(project)
+    res = nw.repair_mint(project, "experiment:e1", announce=False)
+    assert res.status == nw.UPDATED, res.reason
+    text = nf.read_text()
+    assert text.count("---") == 2
+    fm = yaml.safe_load(text.split("---", 2)[1])
+    # a durable mint_id was minted
+    assert isinstance(fm.get("mint_id"), str) and fm["mint_id"].strip()
+    # scaffold_hash stamped so the adopted node reads complete
+    assert isinstance(fm.get("scaffold_hash"), str) and fm["scaffold_hash"]
+    # the kid's content survived untouched
+    assert "the kid wrote this body" in text.split("---", 2)[2]
+
+
+def test_repair_mint_refuses_when_a_mint_id_already_exists(project):
+    import yaml
+    nf = _no_mint_node(project)
+    # give it a mint_id first
+    nf.write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        "mint_id: existing-mint-123\nparents:\n- hypothesis:h1\n---\n\nbody\n")
+    res = nw.repair_mint(project, "experiment:e1", announce=False)
+    assert res.status == nw.SKIPPED
+    assert "already" in res.reason
+    # the mint_id is untouched
+    text = nf.read_text()
+    assert "existing-mint-123" in text
+
+
+def test_repair_mint_reads_complete_after_adoption(project):
+    """Stamping scaffold_hash of the placeholder (not of the real body) means
+    the adopted node reads COMPLETE under completion.is_complete — a kid node
+    already holds real content, so it is not an untouched scaffold."""
+    import completion
+    _no_mint_node(project)
+    # After adoption the node reads COMPLETE by the SAME predicate dispatch
+    # uses (the fallback path, without a scaffold_hash, also reads complete
+    # here because the kid's real content differs from the prompt -- the
+    # stamp pins that answer drift-free).
+    res = nw.repair_mint(project, "experiment:e1", announce=False)
+    assert res.status == nw.UPDATED
+    assert completion.is_complete(project, "experiment:e1") is True
+
+
+def test_repair_mint_refuses_an_unparseable_node(project):
+    nf = project / "nodes" / "experiment" / "e1.md"
+    nf.write_text("no frontmatter here\n")
+    res = nw.repair_mint(project, "experiment:e1", announce=False)
+    assert res.status == nw.REJECTED
+
+
+def test_repair_mint_refuses_unknown_node(project):
+    res = nw.repair_mint(project, "experiment:nope", announce=False)
+    assert res.status == nw.REJECTED
+    assert "no node file" in res.reason

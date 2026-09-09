@@ -61,6 +61,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -206,6 +207,90 @@ def find_project_root(start: Path | str | None = None) -> Path | None:
         cur = cur.parent
 
     return _descend(d)
+
+
+def git_common_root(root: Path) -> Path:
+    """The MAIN checkout root when `root` sits inside a linked git worktree.
+
+    `git worktree add` makes a linked worktree carry its own `.git` file
+    pointing at `..main/.git/worktrees/<name>`, so `find_project_root` from
+    inside one resolves to the worktree's own `.agi/` -- which is correct for
+    the graph (kids edit only their worktree). But shared state that must be
+    ONE directory across every worktree of a project -- the spawn budget, the
+    comms root, the meter pins -- has to resolve to the main checkout, or the
+    tree-wide concurrency bound silently splits per worktree
+    (`hypothesis:l3w4-parent-branch-merge-up`).
+
+    Resolution: walk up for the enclosing repo, then compare `git rev-parse
+    --git-common-dir` (the main repo's `.git`) with the worktree's own
+    `--git-dir`. Equal means we are *in* the main checkout and return it;
+    different means we are inside a linked worktree and the main checkout
+    root is the parent of the common git dir. A path with no enclosing repo is
+    returned unchanged, so a legacy project that never touches git keeps
+    resolving to itself.
+    """
+    root = Path(root).resolve()
+
+    d = root
+    while True:
+        if (d / ".git").exists():
+            break
+        if d.parent == d:
+            return root
+        d = d.parent
+
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(d), "rev-parse", "--git-dir", "--git-common-dir"],
+            capture_output=True, text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return root
+    if out.returncode != 0:
+        return root
+    parts = out.stdout.split()
+    if len(parts) != 2:
+        return root
+    worktree_git_dir, common_dir = (Path(p) for p in parts)
+    if not worktree_git_dir.is_absolute():
+        worktree_git_dir = (d / worktree_git_dir).resolve()
+    if not common_dir.is_absolute():
+        common_dir = (d / common_dir).resolve()
+
+    # Same git dir => this is the main checkout.
+    if worktree_git_dir.resolve() == common_dir.resolve():  # realpath, symlinks
+        return d
+    # Inside a linked worktree: the main checkout root parents the common dir.
+    return common_dir.parent
+
+
+def shared_project_root(start: Path | str | None = None) -> Path | None:
+    """The project's ONE graph root across every git worktree, or None.
+
+    `find_project_root` from inside a linked git worktree resolves to the
+    worktree's own `.agi/` -- the fork (`hypothesis:l3w4-branch-shared-state`).
+    That is correct for code (a worktree is a private checkout) and for the
+    working graph a kid edits (merge-up carries forked nodes home). It is
+    wrong for state that must stay ONE body across every worktree: the spawn
+    budget, the comms root, the meter pins, and the gitignored `.env` held
+    only in the main checkout. This is the pattern `spawn_budget.budget_dir`
+    already hand-rolled -- resolve the graph root, climb to the main checkout
+    via `git_common_root`, re-derive the graph root there. A caller in the
+    main checkout (or outside any git repo) gets the identity, so switching
+    onto this never changes behavior for the non-worktree case.
+
+    Note what this does NOT do: it does not fold the live per-worktree graph
+    fork into the main checkout. The graph a kid edits is still the worktree's
+    own copy, and merge-up carries forked nodes home. This helper exists for
+    the state that must NOT fork -- the credentials file and any other
+    main-only shared directory -- and writes only there.
+    """
+    graph = find_project_root(start)
+    if graph is None:
+        return None
+    main = git_common_root(graph)
+    main_graph = find_project_root(main) if main else None
+    return main_graph or graph
 
 
 def project_root_from_env(start: Path | str | None = None) -> Path | None:
