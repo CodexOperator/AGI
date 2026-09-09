@@ -620,6 +620,8 @@ in `QUICKSTART.md`, split out on 2026-09-02 precisely because replacement is the
 default: standing instructions inside a file the next director deletes are
 standing instructions with a countdown on them.
 
+**Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time.** Not only at rotation — this file and any other always-injected context file gets summarized, diagrammed and trimmed as each part finishes, continuously. Owner verbatim stays protected in the graph node (`vision`/`goal`/`hypothesis`/`doc`), never here.
+
 ## `COMPLETE.md` — every finished loop writes one (`goal:g1.13`)
 
 **`HANDOFF.md` bridges sessions and is deleted by the next director. Nothing
