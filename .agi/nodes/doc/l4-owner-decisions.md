@@ -103,3 +103,23 @@ Open decisions and unfinished items, each with where it stands:
 - 2. `write.py create --payload` stamps `link_ref`, not `payload_ref`
 - 3. Payload writes are whole-file.
 - 4. Attribution is load-bearing in the constitution.
+
+OWNER, 2026-09-09, VERBATIM (to sanctuary-director gen VI, L4's first named item): "Make it so that partial overwrites don't require a manual offset calculation and use. And make sure it also works the same way for payload files as well so they're editable using the same unified routine as non payload nodes. Ad to l4"
+
+APPLIED, same session, shipped green. New verb **`write.py <id> "replace <body|payload> <START:END> <path|->"`**.
+
+WHAT IT REMOVES. Before: a partial edit meant `read <t> N:M`, then hand-building a unified diff whose `@@` line numbers had to match the applier's coordinate system, then `patch`/`body_patch`. Getting that arithmetic wrong is a SILENT corruption, which is why trap 0ah and the read-then-hunk recipe existed at all. After: `read <t> N:M` then `replace <t> N:M` — the same range, no arithmetic, no hunk. `_splice_range` is the exact inverse of the `_slice_range` the read uses, so the round trip is provably the identity; that property is the first test.
+
+ONE ROUTINE FOR BOTH TARGETS, which was the second half of the ask. `body` and `payload` go through ONE reader (`_target_text`) and ONE transform (`_splice_range`) and share one range vocabulary. They differ only in where the result lands, and that difference is forced rather than chosen: a body lands through `update_node` so the THOUGHT region and provenance are carried, a payload through `replace_payload`. Both are sanctioned writes the guard sees. A payload file is now editable by exactly the routine a node body is.
+
+FAIL-CLOSED, like the diff verbs: a range past the end refuses before anything is written, and the payload is byte-identical after a refusal (tested). Replacement text rides a path or stdin, never the argv chunk, because content can contain the doubled ampersand the script parser splits on. One trailing newline is absorbed so an edit does not grow the target by a blank line each time.
+
+PROVED LIVE, not only in tests: identity round trip on a real node body (`doc:l4-owner-decisions`) and on a real payload (`extensions/agi/bin/write.py`), both sha-identical before and after, with the tool correctly reporting `unchanged` rather than claiming a false update; plus three real changes landed through the verb itself — two into `brief.py` and one into `SKILL.md`.
+
+DISCOVERABILITY, because a verb nobody is told about is a verb nobody uses (the standing lesson from `read`, `handoff.py` and `body_patch`): `brief.py` now leads its partial-edit guidance with `replace` and demotes the diff verbs to "only when you already hold a diff", and `SKILL.md` documents it.
+
+FIXED IN PASSING, a stale doc claim: `SKILL.md` still warned that `body_patch` "is stdin-only today" because its path form landed nothing. Gen V fixed that path form (item 54) and this session used it successfully; the warning was stale and is removed.
+
+Tests 2256 -> **2270 passed, 1 skipped** (+14, no regressions). links 1766 resolved 0 broken; goals 128 byte-identical; coverage clean; write_guard silent; smoke 1786 / 1592 / 194, node count steady.
+
+STILL OPEN, deliberately not done: `patch` and `body_patch` remain two parallel code paths. `replace` unifies the PARTIAL-OVERWRITE path across both targets, which is what was asked; folding the two diff verbs into one dispatcher is a separate, larger change and is not needed for the offset problem.

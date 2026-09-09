@@ -1137,6 +1137,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # path or '-', NEVER inline -- a diff can contain the doubled `&&`
         # that splits the script form.
         "  python3 extensions/agi/bin/write.py build:bin-x 'read payload 10:20'\n"
+        "  python3 extensions/agi/bin/write.py build:bin-x 'replace payload 10:20 -'  # new text on stdin, NO diff\n"
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'replace body 4:9 -'      # same verb, node BODY\n"
         "  python3 extensions/agi/bin/write.py build:bin-x 'patch -'   # unified diff on stdin (fail-closed)\n"
         "  python3 extensions/agi/bin/write.py hypothesis:x 'body_patch -'  # diff onto the node BODY",
         # hypothesis:l3w4-handoff-sections-claimable -- name the section tool
@@ -1147,8 +1149,11 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # l3w4 read-then-hunk recipe; measured trap -- the applier's body view
         # is offset one from a naive split on BODY:BEGIN, and `read body`
         # shares that exact view, so number the hunk from those bytes.
-        "To patch a node body: `write.py <id> 'read body N:M'` first and build "
-        "the hunk from those exact bytes.",
+        "PARTIAL EDITS, no offset arithmetic: `write.py <id> 'read <body|payload> "
+        "N:M'` then `write.py <id> 'replace <body|payload> N:M -'` with the new text "
+        "on stdin. The two ranges are the SAME -- replace is the exact inverse of "
+        "read -- and it behaves identically on a node BODY and a build PAYLOAD. "
+        "Reach for `patch`/`body_patch` only when you already hold a diff.",
         # L3.37/38: the edit tool rejected, across two independent kids in one
         # round, an `edits` argument passed as a single JSON string and one
         # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.

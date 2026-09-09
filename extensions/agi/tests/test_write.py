@@ -885,3 +885,125 @@ def test_patch_verb_fails_closed_and_preserves_exec(tmp_path):
     assert "    return 20" in text and "    return 2\n" not in text
     assert _stat.S_IMODE(payload.stat().st_mode) == 0o755, \
         "the destination must stay executable after a successful patch"
+
+
+# --------------------------------------------------------------------------
+# `replace` — the offset-free partial write (L4, owner 2026-09-09)
+# --------------------------------------------------------------------------
+
+REPLACE_TEXT = "\n".join(f"line{i}" for i in range(1, 9))
+
+
+@pytest.mark.parametrize("rng", ["3:5", "1:1", "6:", ":2", "8:8"])
+def test_replace_is_the_exact_inverse_of_read(rng):
+    """The property the verb exists for. Overwriting a range with exactly what
+    a read of that range returned is the IDENTITY, so `read N:M` then
+    `replace N:M` needs no arithmetic between them — which is what removes the
+    manual offset step the caller used to have to get right (trap 0ah)."""
+    assert write._splice_range(
+        REPLACE_TEXT, rng, write._slice_range(REPLACE_TEXT, rng)) == REPLACE_TEXT
+
+
+def test_replace_overwrites_only_the_named_lines():
+    assert write._splice_range(REPLACE_TEXT, "3:5", "X\nY").split("\n") == [
+        "line1", "line2", "X", "Y", "line6", "line7", "line8"]
+
+
+def test_replace_absorbs_one_trailing_newline_so_a_target_does_not_grow():
+    """Replacement text from a file or stdin carries a trailing newline;
+    inserting it verbatim would add a blank line on every single edit."""
+    assert (write._splice_range(REPLACE_TEXT, "3:3", "Z\n")
+            == write._splice_range(REPLACE_TEXT, "3:3", "Z"))
+
+
+def test_replace_with_empty_text_deletes_the_range():
+    assert write._splice_range(REPLACE_TEXT, "3:5", "").split("\n") == [
+        "line1", "line2", "line6", "line7", "line8"]
+
+
+def test_replace_refuses_a_range_past_the_end_before_writing():
+    with pytest.raises(write.EditError):
+        write._splice_range(REPLACE_TEXT, "99:", "x")
+
+
+def test_replace_refuses_an_unknown_target():
+    with pytest.raises(write.EditError):
+        write.verb_replace(write.Edit(node_id="x"), "frontmatter", "1:2", "-")
+
+
+def test_replace_body_uses_the_same_coordinates_as_read(project):
+    """End to end on a real node: the range `read` reports is the range
+    `replace` writes, with no conversion in between."""
+    cur = write._read_body_text(project, "hypothesis:h1")
+    n = len(cur.split("\n"))
+    whole = f"1:{n}"
+    assert write._splice_range(cur, whole, write._slice_range(cur, whole)) == cur
+
+    idx = next(i for i, ln in enumerate(cur.split("\n"), 1)
+               if ln.strip() == "the body")
+    edit = write.Edit(node_id="hypothesis:h1")
+    write.verb_replace(edit, "body", f"{idx}:{idx}", "-")
+    edit.replace_text = "REPLACED"
+    res = write.submit(project, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert "REPLACED" in after and "the body" not in after
+    assert len(after.split("\n")) == n, \
+        "a one-line range replace must not change the line count"
+
+
+def test_replace_payload_goes_through_the_same_routine_as_a_body(tmp_path):
+    """The owner's ask: a payload file is editable by the SAME routine as a
+    node body — one reader (`_target_text`), one transform (`_splice_range`),
+    one range vocabulary — differing only in where the result lands."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+
+    before = payload.read_text()
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", "-")
+    edit.replace_text = "# REPLACED HEADER"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = payload.read_text()
+    assert after.split("\n")[0] == "# REPLACED HEADER"
+    assert after.split("\n")[1:] == before.split("\n")[1:], \
+        "only the named line may change"
+
+
+def test_replace_payload_refusal_leaves_the_file_untouched(tmp_path):
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "9999:", "-")
+    edit.replace_text = "nope"
+    with pytest.raises(write.EditError):
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert payload.read_text() == ORIG_MOD, \
+        "a refused range must change nothing on disk"
+
+
+def test_replace_body_is_standalone_like_body_patch(project):
+    edit = write.Edit(node_id="hypothesis:h1")
+    write.verb_replace(edit, "body", "1:1", "-")
+    edit.replace_text = "x"
+    write.verb_note(edit, "a note")
+    with pytest.raises(write.EditError):
+        write.submit(project, edit, actor="kid", session="s1")

@@ -281,15 +281,18 @@ editing the config, never by sweeping every node that points into it.
 🚫 ~~Known gap~~ — **resolved:** payload/body writes are no longer whole-file
 only. `write.py` carries three partial verbs (hypothesis:l3-write-partial-diffs-as-writes):
 `read payload|body START:END` fetches a line range (read-only — it never
-restamps `edited_by`, so a read cannot look like an edit); `patch` applies a
-unified diff onto a BUILD node's payload file (fail-closed: a hunk that does
-not apply refuses the whole write and changes nothing); `body_patch` applies
-a unified diff onto a node's BODY. A one-line change to a large module is now
-a one-line diff. Diff bytes arrive by path or `-` from stdin, NEVER inline —
-a diff can contain the doubled `&&` the script form splits on. 🔴 **`body_patch`
-is stdin-only today** — its path form reads the diff *after* the apply-check
-and silently lands nothing (`write.py` submit L494 vs L531), so pass `-`; the
-payload verb `patch` is correct in both forms. Provenance is
+restamps `edited_by`, so a read cannot look like an edit).
+`replace payload|body START:END <path|->` **overwrites that range** with new
+text — and it is the exact inverse of `read`, in the same coordinates, so
+`read N:M` then `replace N:M` is the whole round trip with **no offset
+arithmetic and no hand-built hunk**. It behaves identically on a node BODY and
+on a build node's PAYLOAD: one reader, one transform, differing only in where
+the result lands. Reach for the diff verbs only when you already hold a diff:
+`patch` applies a unified diff onto a BUILD node's payload file and
+`body_patch` onto a node's BODY, both fail-closed — a hunk that does not apply
+refuses the whole write and changes nothing. Replacement text and diff bytes
+arrive by path or `-` from stdin, NEVER inline — either can contain the
+doubled `&&` the script form splits on. Provenance is
 unchanged: patched bytes land through the same `replace_payload` the
 whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
 always happen.
