@@ -51,22 +51,24 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter 0.11 at claim, cap 0.47)   season/s2   2026-09-09 17:0xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.19, cap 0.47)   season/s2   2026-09-09 19:3xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     PLAN SESSION (owner watches; plan mode: NO dispatch, NO seat launch, NO engine edit beyond doc:l4-plan + this file). Sources read: §0.7 card · doc:l4-owner-decisions
        "L4 BACKLOG" / "TRAPS CARRIED INTO L4" / "L4 PLAN — owner's whiteboard and brief" (owner verbatim + whiteboard transcription + XVI's input)
        DELIVERABLE doc:l4-plan (graph content; [doc] schema = exactly one goal parent): (1) actor legend as schema rules (node type -> writer role) · (2) 2+2+1 card per seat
          (tracks 2 / tells 2 = target+trigger / decides 1 = closed set) as config:seats fields, write-guard validated, brief.py renders it as the WHOLE bootstrap
          · (3) every top-level g goal PERPETUAL, one director-kid each, Sanctuary Master owns count + models · (4) sanctuary p-goal's ALWAYS-active director-kid =
          the masters' implementation hand · (5) first L4 rounds, serialised, pi/OpenRouter · open questions -> doc:l4-owner-decisions, a recommendation each
-       IN FLIGHT workflow l4-plan-research (Workflow tool run wf_6a92add5-be7; scratch /tmp/claude-1001/-home-ubuntu-work-agi/6633fdec-*/scratchpad/l4plan/):
-         Understand x5 -> Design x3 -> Judge x2 -> Synthesize -> Verify x3 (owner-fidelity / mechanism-reality / completeness) -> final/l4-plan.md + banked-questions.md
+       PLAN DRAFTED, NOT MINTED (owner said STOP 17:0xZ while still feeding XVI parts 2+3; both recorded verbatim in doc:l4-owner-decisions "L4 PLAN, part 2/3" by XVI):
+         workflows l4-plan-research (14 agents, REGISTERED 19bc74b53) -> fold-part2 (3) -> fold-part3 + consolidate (4): final = 23.3k words, 136 owner quotes byte-verified,
+         13 seat cards, linear role diagram (§0.9, XVI's draft corrected x11), season loop 1-10, 22 banked questions. Files: .agi/sessions/l4plan/ (gitignored copy) and
+         /tmp/claude-1001/-home-ubuntu-work-agi/6633fdec-*/scratchpad/l4plan/final/ · sent to the owner 19:2xZ (diagram, plan body, questions)
 MODE   SURVIVAL (item 71, IN FORCE) — ONE worker: sanctuary-director gen VI = agi-fa [c6e62f] @231, IDLE · nothing dispatched · predecessors kept XI–XVI
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 · partial edits: write.py read N:M then replace N:M
 CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with crontab -l, never this file) -> push by hand anyway
-DONE   L4-I so far: gate `continue` first line · verify green (smoke 1592/194/1786, suite 2270/1) · pin 0.1132 · workflow launched · handoff carried forward in place
-NEXT   1 workflow lands -> read final/l4-plan.md ONCE -> write.py create doc l4-plan --parent <goal> -> body via replace body (stdin) -> bank §6 questions into
-         doc:l4-owner-decisions -> workflow.py register l4-plan-research --script <persisted .js> --from-run <dir> (item 22) -> commit + grid + push
-       2 owner reviews the plan in this session -> owner's words go into nodes verbatim -> owner approves -> L4 rounds run the L3 way (SD dispatches pi parents)
+DONE   L4-I: gate `continue` first line · verify green (smoke 1592/194/1786, suite 2270/1) · pin 0.1132 · seats row -> cd7648 · plan drafted+folded+verified in scratch
+NEXT   1 OWNER GO needed (holding): write.py create doc l4-plan --parent goal:g13.1 (dry-run clean; tags list coerced) -> body = l4-plan.node.md via replace body (stdin)
+         -> bank the 22 questions into doc:l4-owner-decisions (replace body at its tail, stdin) -> commit + grid + push -> handoff
+       2 owner corrects the diagram / answers Q16 (2/2/1: rec = at most 2 / at most 2 / exactly 1) -> corrections land in the node verbatim -> approves -> L4 rounds run the L3 way
 NEVER  dispatch or launch a seat in plan mode · rotate a seat with AGI_BRIEF_PROFILE=survival · git add -A · read $? through a pipe · sweep off a ps grep · run the
        suite twice at once · background a long verification · trust an `updated:` line · spend the Claude budget on prime chores under survival mode
 ```
