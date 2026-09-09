@@ -126,7 +126,7 @@ short-lived. Director = `tier<N>/<name>` for the season. Prime = master.
 `grid.py commit --all` runs only on master after a merge.
 
 **Rotation:** `rotate.py meter` prints context-usage fraction against
-`director_rotate_at` (default 0.35). `rotate.py spawn <name>` builds a
+`director_rotate_at` (this project: 0.47 since 2026-09-09, owner's standing rule for every role; code default 0.35). `rotate.py spawn <name>` builds a
 `claude --remote-control` command and launches it in a new tmux window. The
 successor reads HANDOFF.md before replacing it. Below prime, the parent
 respawns; the prime self-rotates.

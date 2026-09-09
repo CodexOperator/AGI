@@ -7,7 +7,7 @@ parents:
   - goal:g13.1
 build_kind: prose
 confidence: 1.0
-edited_by: sanctuary-director
+edited_by: owner
 origin: build-scan
 payload_ref: skills/agi/SKILL.md
 season: 1
@@ -15,7 +15,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: SD.14-director
+thought_session: rc-XVI
 title: "Build: skills/agi/SKILL.md"
 ---
 `skills/agi/SKILL.md` — level-3 code node (one file, one canonical node).
