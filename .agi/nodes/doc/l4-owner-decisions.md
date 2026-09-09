@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L3-XVI
+edited_by: sanctuary-director
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: rc-XVI
+thought_session: sanctuary-director-genVI
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -61,6 +61,9 @@ Open decisions and unfinished items, each with where it stands:
 
 ## TRAPS CARRIED INTO L4 (headlines; full text = HANDOFF.md §4 at commit 91d33742d, the last L3 version)
 
+- 0ao. A PARENT MAY UNDER-ITERATE. Both SD.17 and SD.18 parents spent ONE kid against ceilings of 2 and 3, then exited with the deliverable unwritten. Read what a round actually left before believing it complete; a verdict node about the work is not the work.
+- 0an. COMMIT AND PUSH A BRIEF BEFORE DISPATCHING AT IT — a worktree is cut at the last committed tip and cannot see a node minted after it. Refuses loudly, naming the fix, which is the good kind of failure.
+- 0am. `--prompt-file` CANNOT CARRY AN ASSIGNMENT. Dropped silently for `--tier parent`; and where it DOES land (kid) the brief introduces it as "inherited context, not your assignment", so it frames the work as secondary. Assignments belong in the target node's `testable_claim` (see 0ak).
 - 0al. A NODE THE SUITE PINS IS CODE — run the suite after any `.geometry` write.
 - 0ak. BYTES-IN-NODE IS NOT BRIEF-IN-EFFECT.
 - 0aj. `dispatch.py --dry-run` TRUNCATES the brief it prints (`...<N chars>`)
