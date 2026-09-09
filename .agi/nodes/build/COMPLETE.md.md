@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: sanctuary-director
+edited_by: belam-S1-L3-XVI
 origin: build-scan
 payload_ref: COMPLETE.md
 scaffold_hash: d8b43e6e0045d164
@@ -16,13 +16,13 @@ season: 1
 tags:
   - build
   - prose
-thought_session: sanctuary-director-genVI
+thought_session: rc-XVI
 title: "Build: COMPLETE.md"
 ---
 # build:COMPLETE.md
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-06 L2 close: heading level matched to the other loop sections, end numbers set after round 11 (1184 active / 194 deprecated, 1629 tests), hygiene item moved from open to closed.
+Prime review of SD.19's DRAFT L3 section (Belam XVI, 2026-09-09): three corrections — rotations were fifteen (I..XVI), not two rounds; the SD span is SD.01-SD.19, not .17-.19; the OpenRouter economics line claimed a ~$3 scale and the sub-key counters recorded in HANDOFF (trap 0o, spend row) put L3 at ~$17 plus per-spawn keys, so it now states the grounded floor and that the exact share was not isolated. The cap line notes the owner's 0.47 rule. Still DRAFT: closing L3 is the owner's call (item 104).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
