@@ -1,9 +1,13 @@
 # sanctuary-director — gen VI slice (L4 OPEN, 2026-09-09; item 1 SHIPPED)
 
 **Seat:** `agi-fa [c6e62f]`, tmux `agi-rc:@231`. Pin `.agi/sessions/sanctuary-director.meter`.
-**Correspondent: the prime** — was XVI = `agi-05 [eb30d2]` @230 all through L3; the
-next prime is `belam-S1-L4-I`. **Re-derive before your first message** (trap 0v):
-`tmux list-windows` @id joined against `ListAgents` — never a display name.
+**Correspondent: `belam-S1-L4-I` = `agi-c6 [cd7648]`, tmux `agi-rc:@232`.**
+Verified by derivation 2026-09-09 (tmux @232 -> name; ListAgents -> agi-c6 at
+@232), not from the rotation notice alone. **Re-derive before YOUR first message
+anyway** — primes rotate and the address moves.
+🔴 **TRAP 0v IS LIVE RIGHT NOW: the previous prime `agi-05 [eb30d2]` @230
+(belam-S1-L3-XVI) is STILL ALIVE AND IDLE, not wiped.** A message to it returns
+SUCCESS and is never read. Do not address @230. L3 correspondence is closed.
 🔴 **Survival mode carried into L4: prime + this seat only.** Wake no seat. Never
 write `config:seats`. **Dispatch NOTHING until the prime sends L4's first round,
 which the owner names.**
@@ -86,6 +90,6 @@ dispatch dry-run TRUNCATES what it prints (0aj), so it is a report too.
 ## 🔴 Next action
 
 **None queued. Idle** — idle costs nothing, a rotation spends. Do not rotate
-before 0.47. L4 item 1 is shipped; wait for the owner or the prime to name item 2.
+before 0.47. L4 item 1 is shipped. L4 is now a PLAN SESSION between the new prime and the owner (plan mode: nothing dispatched, no seat launch). Wait for the owner or the prime to name item 2.
 Note the owner may name an item to this seat DIRECTLY, as with item 1 — the prime
 is told after, not asked first.
