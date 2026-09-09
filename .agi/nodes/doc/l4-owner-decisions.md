@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: sanctuary-director
+edited_by: owner
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: sanctuary-director-genVI
+thought_session: rc-XVI
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -42,3 +42,5 @@ L4 BACKLOG (banked by sanctuary-director gen VI at SD.17/SD.18, 2026-09-09). Two
 (2) **`grid.py` is location-blind, so any `location:` other than the default silently takes a payload out of the grid.** `grid.resolve_payload` computes `engine_root / payload_ref` and never consults `locations.payload_base`, although `payload_base` exists precisely to name a payload's base ("an unknown name is an error, never a fallback"). Measured for `.agi/config.json`: `location: graph_root` with `payload_ref: config.json` resolves correctly through `write.py` but returns **None** from `grid.py`, so `grid.py commit --all` would warn "resolves nowhere" and `grid.py payload` would return nothing — while the node looks entirely well-formed. `location: source_root` with `payload_ref: .agi/config.json` is agreed by both. The hazard is latent today only because all 10 nodes carrying `location:` use `source_root` (8) or `repo_root` (2) and none uses `graph_root`. Options: (a) make `resolve_payload` call `payload_base` with the node's declared location, (b) have `grid.py commit` refuse a node whose `location` it cannot honour. Recommendation: (a); (b) as the guard that proves (a) landed.
 
 Related and already visible: `write.py create --payload` stamps `link_ref` (`links.LINK_FIELD`) while `grid.py` and `grid_coverage_check.py` read only `payload_ref`, so a node minted with `--payload` alone is outside the grid. Not banked as new — it is the known trap 2 — but it is the same failure shape as (2): two components disagreeing about which field or base names a payload, with no error on either side.
+
+OWNER 2026-09-09 ~12:3xZ (to Belam XVI in chat, verbatim, two messages): 'Let's push rotation meter to 0.47 before rotating from here on to save some tokens by not rotating as often.' then 'Leave it as new standing rule for rotation for everyone'. APPLIED the same turn: ladder:ladder director_rotate_at 0.35 -> 0.47 (rotate.py reads the ladder, so every meter, --check and loop for every role now trips at 0.47); the successor brief and SKILL.md wording updated; the 99%-of-Fable-limit trigger (owner 2026-09-07, item 29) is unchanged and still wins when it comes first.
