@@ -47,6 +47,35 @@ def project(tmp_path: Path) -> Path:
 # Not a second way to write
 # --------------------------------------------------------------------------
 
+def _open_mode(node) -> str | None:
+    """The static mode of an `open(...)` call, or None if undecidable.
+
+    hypothesis:l3-write-partial-diffs-as-writes -- `read` streams a payload
+    range with a READ-mode `open(...)`. The invariant this test guards is
+    *no file WRITE in this module*; a read-only open is not a write, so the
+    guard must flag a write/add/truncate mode (or a mode it cannot prove is
+    read-only) and allow a provably read-only one. The default mode is read.
+    """
+    for kw in node.keywords:
+        if kw.arg == "mode":
+            if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                return kw.value.value
+            return None
+    if len(node.args) >= 2:
+        m = node.args[1]
+        if isinstance(m, ast.Constant) and isinstance(m.value, str):
+            return m.value
+        return None
+    return "r"
+
+
+def _is_read_only_open(mode: str | None) -> bool:
+    if mode is None:
+        return False          # cannot prove it is a read -> treat as a write
+    stripped = mode.replace("b", "").replace("t", "")
+    return stripped in ("", "r")
+
+
 def test_edit_py_contains_no_file_write(project):
     """Every verb ends in `update_node`. If a change can be made here that
     `write.py` cannot make, edit mode is a bypass, not a front end."""
@@ -61,10 +90,30 @@ def test_edit_py_contains_no_file_write(project):
             if node.func.attr == "replace" and isinstance(node.func.value, ast.Name) \
                     and node.func.value.id == "os":
                 offenders.append((node.lineno, "os.replace"))
+        # An `open()` is only the flagged hazard when it can WRITE: a
+        # provably read-only open (the `read` verb's payload streamer) is not.
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) \
-                and node.func.id == "open":
+                and node.func.id == "open" and not _is_read_only_open(_open_mode(node)):
             offenders.append((node.lineno, "open"))
     assert offenders == [], f"write.py writes files directly: {offenders}"
+
+
+def test_open_guard_still_flags_a_write_mode_open():
+    """The refinement must not gut the guard: a write-mode open is still the
+    hazard, and so is an open whose mode cannot be proven read-only."""
+    import ast as _ast
+    def call(mode_arg):
+        src = f"open('x', {mode_arg})" if mode_arg else "open('x')"
+        n = _ast.parse(src).body[0].value
+        return not _is_read_only_open(_open_mode(n))
+    assert call('"w"') is True
+    assert call('"a"') is True
+    assert call('"r+"') is True
+    assert call('mode="wb"') is True
+    assert call(None) is False        # default mode is read
+    assert call('"r"') is False
+    assert call('"rb"') is False
+    assert call('opts') is True       # non-literal mode: cannot prove read-only
 
 
 def test_identity_and_completion_fields_are_refused(project):
@@ -717,6 +766,84 @@ def test_patch_applies_unified_diff_and_refuses_mismatch():
     # A malformed hunk header is a refusal too.
     with pytest.raises(write.EditError):
         write.apply_unified_diff(ORIG_MOD, "@@ -x +y @@\n foo\n")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3-write-partial-diffs-as-writes, build item 1 — the `read`
+# terminal verb (read-only line addressing).
+# 🔴 RED FIRST: a ranged read must print the requested lines to stdout and
+# leave the node file BYTE-IDENTICAL on disk — no edited_by restamp, no body
+# mutation, no trailing-newline loss, no grid version. A read that looks like
+# an edit is worse than no read at all.
+# --------------------------------------------------------------------------
+
+def _run(argv):
+    """Run write.main, capturing stdout/stderr, returning (out, err, rc)."""
+    import io
+    from contextlib import redirect_stderr, redirect_stdout
+    out, err = io.StringIO(), io.StringIO()
+    with redirect_stdout(out), redirect_stderr(err):
+        rc = write.main(argv)
+    return out.getvalue(), err.getvalue(), rc
+
+
+def test_read_body_prints_range_and_leaves_node_byte_identical(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_bytes()
+    out, err, rc = _run(["hypothesis:h1", "read body 1:3",
+                         "--root", str(project)])
+    assert rc == 0, err
+    assert "the body" in out, f"a body read should print the lines, got {out!r}"
+    assert node.read_bytes() == before, (
+        "a read must leave the node byte-identical: no edited_by restamp, "
+        "no body mutation, no trailing-newline loss, no grid version")
+
+
+def test_read_payload_prints_the_range_and_writes_nothing(project, tmp_path):
+    _build_node(project, ref=str(tmp_path / "mod.py"))
+    payload = tmp_path / "mod.py"
+    payload.write_text("".join(f"line {i}\n" for i in range(1, 31)))
+    node = project / "nodes" / "build" / "b1.md"
+    before_file = payload.read_bytes()
+    before_node = node.read_bytes()
+    out, err, rc = _run(["build:b1", "read payload 10:20",
+                         "--root", str(project)])
+    assert rc == 0, err
+    lines = out.splitlines()
+    assert lines and lines[0] == "line 10" and lines[-1] == "line 20"
+    assert len(lines) == 11, f"10:20 is 11 lines, got {len(lines)}"
+    assert payload.read_bytes() == before_file, "the payload must be untouched"
+    assert node.read_bytes() == before_node, "the node must be byte-identical"
+
+
+def test_read_supports_open_ended_ranges(project, tmp_path):
+    _build_node(project, ref=str(tmp_path / "mod.py"))
+    payload = tmp_path / "mod.py"
+    payload.write_text("".join(f"line {i}\n" for i in range(1, 31)))
+    out, err, rc = _run(["build:b1", "read payload 28:",
+                         "--root", str(project)])
+    assert rc == 0 and out.splitlines() == ["line 28", "line 29", "line 30"]
+    out, err, rc = _run(["build:b1", "read payload :3",
+                         "--root", str(project)])
+    assert rc == 0 and out.splitlines() == ["line 1", "line 2", "line 3"]
+
+
+def test_read_refuses_a_bad_range(project):
+    out, err, rc = _run(["hypothesis:h1", "read body 10:2",
+                         "--root", str(project)])
+    assert rc == 2 and not out, f"an inverted range must refuse, got {out!r} {rc}"
+
+
+def test_read_is_terminal_and_cannot_share_a_line_with_write_verbs(project,
+                                                                  tmp_path):
+    _build_node(project, ref=str(tmp_path / "mod.py"))
+    (tmp_path / "mod.py").write_text("x\n")
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    out, err, rc = _run(["build:b1", "read payload 1:1 && set title changed",
+                         "--root", str(project)])
+    assert rc == 2, "a read mixed with a write verb must refuse, not silently drop the write"
+    assert node.read_bytes() == before
 
 
 def test_patch_verb_fails_closed_and_preserves_exec(tmp_path):
