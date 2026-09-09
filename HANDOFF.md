@@ -69,7 +69,7 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
        XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
-NEXT   1 let SD work: read its DMs/messages before every action, review what it lands (verdicts + struggles), never aim it
+NEXT   1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
        2 item 75: SD STATES THE DENOMINATOR per role (pi parent argv after survival profile; CC seat cold read) before any % — 21,586 counted SKILL.md, which pi never received
        3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
