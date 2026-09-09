@@ -54,6 +54,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 07:2xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.64/$92
 SPEND  SD.09 $0.29 · SD.10 $0.06 on the ACCOUNT via per-spawn keys (provisioning.py status) — the runtime key does not move; read /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
+       OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
        idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
        sanctuary-master gen II (agi-80 [1ba35d] @223): FULL STOP by owner order 07:4xZ ("Make sanctuary master stop.") — nobody messages it; SD reports to the prime only
 L3     CLOSED TO NEW WORK (owner 2026-09-09) -> new items go to doc:l4-owner-decisions (L4 backlog)
