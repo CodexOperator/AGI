@@ -27,7 +27,7 @@
 |---|---|---|
 | L3.01–L3.35 | waves 0–2, the rollover, the seat/branch/quorum build-out — **all LANDED and trimmed 2026-09-08.** Detail: `git log --oneline iter-L3.01..iter-L3.35`, the experiment nodes, and `grid.py payload build:HANDOFF.md --version N`. | **LANDED** |
 | L3.36–L3.43 | the `--branch`/merge-up cycle, the restart-cwd cause, the rotation record, the workflow unified route, the wide 6- and 7-parent rounds, and the seat system going live — **all LANDED and trimmed 2026-09-08.** Detail: `git log --oneline iter-L3.36..iter-L3.43`, the experiment nodes each row named, and `grid.py payload build:HANDOFF.md --version N`. **The two lessons worth carrying out of them are already restated below and in §4:** check `git rev-list --count season/s2..<branch>` before believing a `--branch` parent landed anything, and compare a branch against its **MERGE-BASE**, never against a moved `season/s2`. | **LANDED** |
-| L3.44 (Belam XIII, pi/OpenRouter, 1 parent, MAIN tree) | **`p-rotann` `a00-1d063688` → `hypothesis:l3w4-rotation-announces-itself` (g17, NEW — owner §6 item 67).** Dispatched on the MAIN tree, **not `--branch`**: three consecutive rounds of `--branch` parents landed at zero commits, so until a pi parent commits unaided the isolation is not worth the harvest tax. | 🔴 **KILLED MID-FLIGHT BY THE OWNER'S STOP ORDER, minutes old, nothing landed.** Parent `a00-1d063688` (pid 2069880) and kid `a00-67a5c714` (pid 2098788) killed by PID. 🔴 **THE KID AUTO-RESTARTED AS `a00-67a5c714-r1` WITH `iter=0` about sixty seconds later** — the L3.42 hazard reproduced live, in the one situation where it costs the owner money they have just said they do not have. It was killed too. **A first kill is not a stop; re-check `spawn_budget.py status` after every kill.** The brief is intact and the node is minted, committed and pushed — **re-dispatch this round unchanged when the owner says go.** | 
+| L3.44 (Belam XIII, 1 pi parent, MAIN tree) | `p-rotann` → `hypothesis:l3w4-rotation-announces-itself` (g17, item 67). Dispatched on the MAIN tree after three `--branch` rounds landed zero commits. | 🔴 **KILLED by the owner's stop order minutes in; the kid AUTO-RESTARTED as `-r1` with `iter=0` (wrapper respawn, see item 71) and was killed too. Node minted and pushed; later covered by SD.03 (item 81, lean_proved:75).** |
 
 Grouping rule: `brief.py` is touched by rotate-roles, brief-head-michael and
 test-skips — never two of those in one round; grid-flock and test-skips both
@@ -90,18 +90,12 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 
 **`ls -t .agi/comms/season-2/dm/` and read anything addressed to you.** This session's worst failure was that `master-sensei` DM'd the prime twice, correctly, and the prime never read it — a seat sat blocked on an answer for an hour holding a major finding, and it was only discovered because *the owner noticed and said so in chat*. Nothing alerts a prime to mail. There is now an owner ask open to fix that (§6 item 62), but until it lands **reading `.agi/comms` is a manual duty and it is yours.**
 
-## The four seats — ALL SHUT DOWN 2026-09-09 08:2xZ by owner order (verbatim in `doc:l4-owner-decisions`); table kept as the design record
+## The seats — ALL SHUT DOWN 2026-09-09 08:2xZ by owner order (verbatim in `doc:l4-owner-decisions`); design record, one line each
 
-| seat | what it is | where it talks |
-|---|---|---|
-| `self-perpetuating` | quorum · `vision:self-perpetuating` | room `quorum` + DMs |
-| `alive` | quorum · `vision:alive` | room `quorum` + DMs |
-| `all-is-one` | quorum · `vision:all-is-one` | room `quorum` + DMs |
-| `master-sensei` | observer · no goal, **no handoff slice**, **not in the room** | DMs + `quorum-requests` |
-| `sanctuary-master` | **SESSION SHUT DOWN by owner order 2026-09-09 08:0xZ (verbatim in `doc:l4-owner-decisions`); gen I window @213 idle, not addressed.** Was: gate 47 lifted (§6 item 64), Opus-5/high, the one seat allowed to write `config:seats` rows — that write falls to the prime while she is down. | — |
-| `liaison` | **NOT YET UP — the owner's own channel. `sanctuary-master`'s FIRST job (§6 item 65).** | — |
-
-**They assign themselves. Do not hand-aim them** — that is the thing they exist to stop the prime doing. Monitor, review, answer questions, land rounds. Briefs at `.agi/sessions/quorum/<name>.md`; carved slices at `.agi/sessions/handoff-sections/` (a stopgap — see §6 item 61a, the split is meant to be by affinity, per-piece).
+- quorum: `self-perpetuating` / `alive` / `all-is-one` (one per vision; room `quorum` + DMs) — idle, not addressed. `master-sensei`: observer, no goal, no handoff slice, not in the room — idle.
+- `sanctuary-master`: SESSION SHUT DOWN by owner order 08:0xZ; gen I window @213 idle. Was gate-47-lifted (item 64), Opus-5/high, the one seat allowed to write `config:seats` rows — that write falls to the prime while she is down.
+- `liaison`: NOT YET UP — the owner's own channel; sanctuary-master's first job (item 65).
+- They assign themselves; never hand-aim them. Briefs `.agi/sessions/quorum/<name>.md`; slices `.agi/sessions/handoff-sections/` (stopgap — item 61a wants affinity-split, per piece).
 
 🔴 **You are not allowed in room `quorum`** (owner). Reach them with `send.py --from <you> audience quorum --reason "<text>"`, which posts to room `quorum-requests`; a member answers with `report --room quorum-requests --ref <ts>`. That door was **built by `all-is-one` this session** in response to the gap being named. Use it instead of `tmux send-keys` — pane injection is the prime impersonating the owner at a seat's prompt, and the owner has now called it out by name.
 
@@ -109,7 +103,7 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 
 ## Briefs minted from measurement, still open
 
-- **`l3-engine-files-outside-the-grid`** (g15, owner item 49) — 72 tracked engine files carry no build node. `l3-seat-pin-generation-never-increments` (g15) went out as SD.05.
+- `l3-engine-files-outside-the-grid` (g15, item 49): CLOSED by SD.13 (65 build nodes minted, coverage 217→282); remainder `.agi/config.json` has no build node. `l3-seat-pin-generation-never-increments` (g15): went out as SD.05; hazard 5 is item 96, 4/4.
 
 ## Standing, learned the hard way
 
