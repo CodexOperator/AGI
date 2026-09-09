@@ -74,6 +74,10 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
          L4 remainder: rotate.py + SessionStart hook do not wire the survival profile for a rotating seat (AGI_BRIEF_PROFILE ignored)
        SD.11 IN FLIGHT (a00-3afbadd9, glm-flash, $5/60min, --branch, cap 3 kids, full suite before done): §6 ITEM 53 — brief.py _parent() (~L1161)
          still lists spawn/review/lease/artefact/commit and never ITERATE; 10/10 parents one-shot incl. SD.09/SD.10 -> hypothesis:l3-parent-never-told-to-iterate
+         08:4xZ: 4 live incl. a SECOND tier=parent = the nested live-proof spawn the brief asked for; owner: pi parent+kid spawns STAY through any sweep
+       OUT-OF-ROUND, owner-authorized (SD): dispatch.py now REFUSES a Claude alias on a pi/OpenRouter provider at the one choke point, rule lives once in adapters/
+         (99f3f0302, l3-workflow-model-crosses-harness-namespace dispatch half; suite 2225/1). Sonnet never billed OpenRouter — checked four ways.
+       config:seats: sanctuary-director.model sonnet -> opus-5 on self-report (prime wrote it; SM is down). Registry must match the process.
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
