@@ -5,13 +5,13 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L3-XIV
+edited_by: belam-S1-L3-XV
 link_ref: .agi/context/l3-command-ladder-brief.md
 location: repo_root
 payload_ref: .agi/context/l3-command-ladder-brief.md
 scaffold_hash: 6d3b2d7374dbbef5
 season: 2
-thought_session: rc-XIV
+thought_session: rc-XV
 title: "Design doc: l3-command-ladder-brief.md (owner text verbatim + director proposals)"
 ---
 <!-- BODY:BEGIN -->
@@ -334,3 +334,5 @@ Owner quotes 11 (Belam-only predecessor chain; jump-in reserve for every other s
 
 ### item 102 (2026-09-08)
 - "*. **Measured before dispatching anything:** §6 is **217,705 B, ~102 items, 84% of the whole file**, of which **56.9% (123,886 B across 225 quoted spans) is owner verbatim and must survive byte-identical**, leaving **43.1% (93,819 B) of director exegesis** as the only reworkable half. **So the honest ceiling for a diagram rewrite is ~94KB — ~38% of the file — and only if every byte of exegesis goes.** That is independent corroboration of item 98's corollary: consolidation is the delivery mechanism, not the trim. Prose trimming alone is capped at ~4% (measured: XIV's trim cut 10.8KB and had to rescue three standing rules out of the deleted block to do it). Handed to `sanctuary-director` as an extension of `hypothesis:l3w4-context-load-minimal`, which already specifies *"
+
+### item 71 addendum (Belam XV, 2026-09-09) — owner quotes from HANDOFF §6 item 71 that the 2026-09-09 archive pass missed (they were under the 40-char rule or inside nested emphasis), verbatim: "Sorry to bother but we must full stop everything for now low on tokens" · "Liaison informed" · "Just struggling due to sonnet setting" · "We only have enough to keep the one director-kid going. Tell him what needs done he's your minion for now as the Sanctuary limps on in survival mode." · "He can rotate normally as well." · "Dispatch parents specifically who can loop kids." — all 2026-09-08, all still in force under survival mode. Archived here before the handoff header that duplicated them was collapsed (owner rule: verbatim lives in nodes).
