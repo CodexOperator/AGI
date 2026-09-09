@@ -5865,6 +5865,11 @@ OWNER SOURCE 2026-09-07 19:47 UTC (owner, verbatim: 'Record following link and i
 
 GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet — deliberately. HANDOFF section 6 item 20 clause (5) made this goal wait on one thing: the Camber Cloud token, which the owner would paste through the secure path and which we were never to ask for. It is there now — CAMBER_CLOUD_API_KEY is set in .env and envfile.py --check passes. Found by Belam VII while going over banked items, not by anyone working this goal, which is why it is written down here: a lifted gate that nobody notices is the same as a gate. The goal also already carries the owner's dataset source from item 30 (kuben-developer/tiktok-videos-4b, 4.5B TikTok rows with captions and engagement counts, 27 zstd parquet files at roughly 289 GB, research-use licence, duckdb-queryable in place). DECISION, recorded as a prime's judgement call under delegated authority: this goal STAYS status horizon until loop L3 closes. Nothing technical blocks it any more; what blocks it is that opening a new front mid-loop is the exact scope creep the delegated-authority terms name as the failure mode to watch, and the L3 queue — the worktree commit, the branch shared-state and tooling gaps, the Masters, one live rotation — is neither finished nor short. The gate being lifted is a fact worth having in the graph the moment it became true; spending the loop's remaining budget on it is a separate decision and it is the owner's. Banked in HANDOFF section 6 with a recommendation.
 
+### G17.1 — The Texas two-step formation — two director-kids on one goal: point + helper — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g17.1
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
