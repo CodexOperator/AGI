@@ -63,6 +63,8 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        round B LANDED eb9dc5d67 (SD.09, done clean, SD re-verified UTF-8/verbatim/tokens itself): RECALL TEST items 18/20/24/27
          decision loss 0/0/0/0 (all four shapes survived, verbatim byte-identical) BUT tokens +14.3% (2978->3404, every item worse)
          => diagram rewrite of §6 DOES NOT PAY (lean_disproved:65) · item 102 CLOSED by measurement · survival profile is the real win
+       SD.10 IN FLIGHT (a00-2e8a59d6, glm-flash, $5/60min, --branch, 2-kid cap): item 75 DENOMINATORS — A: pi parent/kid post-survival-profile;
+         B: CC-seat cold, verified against the hook/rotate.py code (TRUE COLD MINIMUM vs DIRECTOR WORKING SET); every % against a stated pre-number
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
