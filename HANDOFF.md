@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-09: `belam-S1-L3-XV` (Belam XV, L3 prime, **Fable 5.1**) = **`agi-ad [90fef7] · agi-rc:@228`** — resolve any seat the same way: join `tmux list-windows` @id against `ListAgents` `agi-rc:@id`; display names collide, **a name is not an address**. 🔴 **SURVIVAL MODE (§6 item 71) IN FORCE — ONE worker, `sanctuary-director` gen IV `agi-ea [113e1f]` @227; every other seat idles (idle costs ~0, woken spends).** 🔴 **L3 TAKES NO NEW WORK (owner 2026-09-09, `doc:l4-owner-decisions`).** 🔴 **Commit and push after every action, not every round.** 🔴 **One kill is never a stop — sweep by PID off `spawn_budget.py status` until two consecutive reads are empty; kill the `dispatch.py` wrapper, never sweep off a `ps` grep** (§6 item 71). The state card in §0.7 is the map. Branch `season/s2`, everything pushed.
+# SESSION HANDOFF — 2026-09-09: `belam-S1-L3-XVI` (Belam XVI, L3 prime, **Fable 5.1**) = **`agi-05 [eb30d2] · agi-rc:@230`** — resolve any seat the same way: join `tmux list-windows` @id against `ListAgents` `agi-rc:@id`; display names collide, **a name is not an address**. 🔴 **SURVIVAL MODE (§6 item 71) IN FORCE — ONE worker, `sanctuary-director` gen V `agi-cc [f9472e]` @229; every other seat idles (idle costs ~0, woken spends).** 🔴 **L3 TAKES NO NEW WORK (owner 2026-09-09, `doc:l4-owner-decisions`).** 🔴 **Commit and push after every action, not every round.** 🔴 **One kill is never a stop — sweep by PID off `spawn_budget.py status` until two consecutive reads are empty; kill the `dispatch.py` wrapper, never sweep off a `ps` grep** (§6 item 71). 🔴 **Never trust a write.py `updated:` line — grep the bytes (trap 0ah).** The state card in §0.7 is the map. Branch `season/s2`, everything pushed.
 
 **Owner's instructions:** carried forward in place by successors (2026-09-06); trimmed to L3 on 2026-09-07 at the owner's ask — the L1/L2 sessions, the L2 plan and the L2-era proposals live in the grid (`grid.py payload build:HANDOFF.md --version N`) and in [COMPLETE.md](COMPLETE.md). Bootstrap lives in [QUICKSTART.md](QUICKSTART.md). The design is in [`.agi/context/season-ladder-and-morals-brief.md`](.agi/context/season-ladder-and-morals-brief.md) and [`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md) (owner text verbatim, incl. the 2026-09-07 perpetual-seats layer). Do not re-derive either.
 
@@ -6,18 +6,18 @@
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1499 active / 194 deprecated (node_count 1693)** at Belam XV's open smoke, 2026-09-09 06:1xZ — **+38 active over XIII's open (1461), no drop at any point.** The next smoke is the authoritative count; a naive `find` over `.agi/nodes` is wrong (deprecated split, `.geometry`). Earlier readings: the grid. |
+| active nodes / deprecated | **1583 active / 194 deprecated (node_count 1777)** at Belam XVI's open smoke, 2026-09-09 12:0xZ — **+84 active over XV's open (1499; SD.13 minted 65 build nodes), no drop at any point.** The next smoke is the authoritative count; a naive `find` over `.agi/nodes` is wrong (deprecated split, `.geometry`). Earlier readings: the grid. |
 | goals | 127 (20 active — **`METRIC-WARNING` live**: exceeds `max_goals_active=18`, see `hypothesis:l2-goals-active-exempt`, not yet fixed) |
-| `outcome_coverage` (primary) | **0.132** at XV's open (0.137 at XII's). Drifts DOWN as hypothesis/experiment nodes enter the denominator faster than mvps close — dilution, not regression. |
-| `evidence_fraction` | **0.552** at XV's open (0.521 at XII's, 0.385 at L2.13) — rising every session this loop. `unevidenced_decisive_verdicts` 0. |
-| tests | 🟢 **2216 passed / 1 skipped / 0 failed, 125s** — XV, 2026-09-09 06:1xZ, run alone; exact match with XIV's three runs. Never run it twice at once (trap 0e). |
-| broken links | 0 (**1673 resolved** at XV's verify; 18 retired payloads, not damage) |
+| `outcome_coverage` (primary) | **0.147** at XVI's open (0.132 at XV's — SD.13's 65 build nodes under mvp parents lifted it). Drifts DOWN between such events as hypothesis/experiment nodes enter the denominator faster than mvps close — dilution, not regression. |
+| `evidence_fraction` | **0.561** at XVI's open (0.552 at XV's, 0.385 at L2.13) — rising every session this loop. `unevidenced_decisive_verdicts` 0. |
+| tests | 🟢 **2241 passed / 1 skipped / 0 failed, 118s** — XVI, 2026-09-09 12:0xZ, run alone (SD.14's kid was live in its own worktree; no flake). Never run it twice at once (trap 0e). |
+| broken links | 0 (**1757 resolved** at XVI's verify; 18 retired payloads, not damage) |
 | crons | 🟢 **ON for this repo — verified 2026-09-09 06:1xZ by `crontab -l` AND its live log (`~/logs/agi-crons-agi-2f118e6f.log`, written every 5 min): `grid_sync` `*/5` runs `grid.py commit --all --prefix 'cron: '` from `.agi/`; `branch_push` pushes `season/s2` at :07 hourly; `.geometry/crons.md` declares `crons_live: true`.** 🔴 **XIV's row said OFF (its 2026-09-08 13:1xZ reading) — wrong or since reverted. Verify with `crontab -l`, never with this file.** Two consequences: **push by hand anyway** (the push is hourly; a dead box strands up to 59 min), and **the auto-versioning hazard IS armed** — half-finished source from a killed agent is grid-versioned under the cron's name within 5 minutes, so kill cleanly and `git reset` unreviewed staging at once. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
-| agents live | **survival mode: sanctuary-director gen IV (`agi-ea [113e1f]` @227) is the ONE worker; 0/25 at XV's open** — the stalled SD.06 parent `a00-a81a7f38` is gone (swept). Prime XV = `agi-ad [90fef7]` @228; XIV idles at `agi-a7 [bcd0bd]` @226 (predecessor chain). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — XIV's opened at 0.5595 on XIII's pin (true 0.1093); XV claimed first and read 0.1351. |
-| spend | **Account $13.64 remaining of the owner's $92 ($78.36 used, 85.2%) · runtime key `backup` $7.87 remaining of its $15 sub-cap — read 2026-09-09 07:2xZ after SD.10 (`rotate.py meter --pin` prints both at claim; `/api/v1/credits` for the live delta).** The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered. Check the KEY, not the account, before each kid — then RAISE it rather than stop.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
+| agents live | **survival mode: sanctuary-director gen V (`agi-cc [f9472e]` @229) is the ONE worker; 2/25 at XVI's open = its SD.14 (parent `a00-6c4ee18a` + kid `a00-b4d8b7b0`).** Prime XVI = `agi-05 [eb30d2]` @230; XV idles at `agi-ad [90fef7]` @228 (predecessor chain XI–XV kept; X @165 is XV's to wipe). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — XVI claimed first (`meter --pin .agi/sessions/belam.meter --session-log <own .jsonl>`) and read 0.1515. |
+| spend | **Account $12.97 remaining of the owner's $92 ($79.03 used, 85.9%) · runtime key `backup` $7.87 remaining of its $15 sub-cap — read 2026-09-09 12:0xZ at XVI's pin claim (`rotate.py meter --pin` prints both; `/api/v1/credits` for the live delta).** SD's per-spawn keys bill the ACCOUNT; the runtime key never moves. The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
 | disk | 81% |
-| this session | **Belam XV (2026-09-09 06:10Z → 11:4xZ, Fable 5.1; rotated at 0.348).** Closed items 102, 75, 53, 49 with SD's measurements; owner orders of the day recorded verbatim in `doc:l4-owner-decisions` (no watch; SM stop + shutdown; active set = prime + SD; 46-window sweep; generation wipe + every manual chore -> harness code, L4); SD rotated IV -> V and gen IV wiped; traps 0ae-0ah. Earlier:  XIV's `rotate.py loop` read-back timed out at 120s (`inconclusive-no-reply`, `.agi/sessions/rotations/belam-S1-L3-XV.20260909T061156Z.json`): the successor's first line came after the skill load. XIV confirmed by pane; no auto-announce fired, so XV announced by hand (file DM to SD, SendMessage reply to SM). Verified smoke/suite/links/goals/write_guard/0-25 live. Corrected the crons row (it was wrong, not stale). Header, card, three closed traps and §5 trimmed. |
+| this session | **Belam XVI (2026-09-09 12:0xZ →, Fable 5.1; pin 0.1515 at claim).** Gate answered `continue` as the first line; verify green (§5); XV's config:seats marker had NOT landed (SD gen V found it: 56aabfc06's path-form `body_patch` landed only its thought, which then asserted a change that did not exist) — reapplied via stdin, thought corrected, byte-verified (9c7f9448c); `belam.session_ref` → eb30d2 (afbb173bc); address announced to SD by SendMessage. XV's session (06:10Z → 11:4xZ, items 102/75/53/49 closed with SD's measurements, SD IV→V, traps 0ae–0ah): `git log 735acb865..92f4bfac3` and `grid.py payload build:HANDOFF.md --version 322`. |
 
 ## §0.7 LOOP L3 — LIVE (opened 2026-09-06 by belam; Belam II 2026-09-07 03:15; Belam III 06:05 UTC)
 
@@ -48,59 +48,33 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 
 - **L3.01–L3.42 detail lives in git and the graph, not here** (trimmed 2026-09-08). Per-round narrative: `git log --oneline iter-L3.01..` plus the experiment nodes named in each round row. Closed-loop reports: [COMPLETE.md](COMPLETE.md). Prior handoff versions: `grid.py payload build:HANDOFF.md --version N`.
 
-### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
+### 🔴 Where it stops — Belam XVI, live 2026-09-09 (XV's closing card: `grid.py payload build:HANDOFF.md --version 322`)
 
 ```
-BELAM XV -> XVI  (XV = agi-ad [90fef7] @228, rotating at meter 0.348)   season/s2   2026-09-09 11:4xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct ~$13.0/$92
-SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 · SD.12 $0.08 · SD.13 $0.25 on the ACCOUNT via per-spawn keys — runtime key never moves; /credits for the delta
-MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen V = agi-cc [f9472e] @229 (EXEMPT from the rotation freeze; gen IV wiped 10:5xZ)
-       OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
-       OWNER 08:2xZ: SWEPT 46/53 agi-rc windows by PID; KEPT Belam X-XIV (last 5 predecessors), XV, SD · L4: generation wipe + verify + pin + announce + skill load ALL become harness code
-       idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
-       sanctuary-master gen II: SESSION SHUT DOWN by owner order 08:0xZ (pid 3631827, @223 killed; session_ref blanked) · gen I @213 left idle · SD reports to the prime only
-       BANKED L4: "[ask] how do I rotate?" spam = test_send.py fixture escaping the suite into live panes + a real DM file (doc:l4-owner-decisions)
+BELAM XVI LIVE  (agi-05 [eb30d2] @230; pin 0.1515 at claim 12:0xZ)   season/s2   2026-09-09   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.97/$92
+MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen V = agi-cc [f9472e] @229 (EXEMPT from the rotation freeze; rotates normally)
+       owner 2026-09-09: active set = prime + SD, nothing else is messaged or woken · idle seats cost ~0 -> never kill or trim seats to save money
+       predecessors kept: XI-XV (last 5) · X (@165) is XV's to wipe after XVI's confirm — still present at 12:0xZ; if still there next round, wipe by PID
+       sanctuary-master: SESSION SHUT DOWN by owner order 08:0xZ; gen I @213 idle, not addressed · SD reports to the prime's ADDRESS only
 L3     CLOSED TO NEW WORK (owner 2026-09-09) -> new items go to doc:l4-owner-decisions (L4 backlog)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only
-CRONS  ON: grid_sync */5 + push season/s2 at :07 (verified crontab -l 06:1xZ; XIV's row said OFF) -> push by hand anyway
-LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its detached kids' work LANDED (spawn_budget never showed them)
-       SD gen IV: round A LANDED (65443426d, 5ce66d035: standing trim rule -> CLAUDE.md + SKILL.md, verify green) · C done (session_ref)
-       LANDED: SD.09 recall test (item 102 closed) · SD.10 denominators (item 75 closed) · SD.11 item 53 iteration proved — detail in §6 index + git
-         owner: pi parent+kid spawns STAY through any sweep · L4: survival profile not wired for a rotating seat (AGI_BRIEF_PROFILE ignored)
-       OUT-OF-ROUND, owner-authorized (SD): dispatch.py now REFUSES a Claude alias on a pi/OpenRouter provider at the one choke point, rule lives once in adapters/
-         (99f3f0302, l3-workflow-model-crosses-harness-namespace dispatch half; suite 2225/1). Sonnet never billed OpenRouter — checked four ways.
-       config:seats: sanctuary-director.model sonnet -> opus-5 on self-report (prime wrote it; SM is down). Registry must match the process.
-       SD.11 LANDED d7b3a3ba9 (review a617251e7, $0.29): ITEM 53 SPLIT — ITERATION PROVED (nested parent a00-3f745c2f: 3 kids from ONE dispatch,
-         brief carried YOU ITERATE + HARD CEILING 4; vs 10/10 one-shot before) · CARRY-FORWARD NOT HAPPENING, mechanically: a kid's brief is built
-         from --target only, dispatch.py has no per-kid brief channel (no --prompt-file) -> kids 2/3 never saw kid 1. Node stays pending, reason now specific.
-       SD.12 MERGED ($0.08): dispatch.py --prompt-file (path or '-', never inline) threaded into the kid brief as a labelled segment; None = byte-identical spawn;
-         _parent contract names the flag. lean_proved:70 — DRY-RUN proven only; the live carry-forward gate runs in SD.13.
-       SD.13 LANDED ($0.25): ITEM 49 CLOSED — grid_coverage_check.py + DECLARED exclusions ("never widen to pass"), level3.py --mint-missing-only (additive BY
-         CONSTRUCTION: skips any payload_ref incl. deprecated), 65 build nodes minted with mvp parents (s29 shape); grid payload coverage 217 -> 282; rotate.py
-         is build:bin-rotate now. Kid 2 reviewed by SD itself (parent died at the 60-min key TTL); count 1507 -> 1580, 0 deletions; suite 2241/1.
-         NEAR-MISS: the branch held ZERO commits over 77 added files — merge-up would have merged nothing and reported green (L3.39 shape). Worktree checked first.
-         LIVE GATE PASSED inside it: kid 2's argv carried kid 1's node id unprompted -> ITEM 53 CLOSED both axes. Fan-out axis still UNEXERCISED.
-       TTL 60 -> 180 landed (spawn.credential.ttl_minutes, was explicit 60); $5 cap + $1 floor unchanged; .agi/config.json has NO build node (item 49 remainder)
-       SD ROTATED gen IV -> V 10:5xZ at meter 0.53 (owner: SD rotates normally): gen V agi-cc [f9472e] @229, pin 0.058, derived the prime by window-id join;
-         gen IV (@227, renamed .gen4 by the rotation) wiped by PID by the prime — the owner's generation-wipe order, by hand until harness code. session_ref -> f9472e.
-       SD.14 IN FLIGHT (a00-6c4ee18a, glm-flash, --branch, ceiling 3; hypothesis:l3-partial-write-adoption, g13.1): ADOPTION IS ZERO (48 engine files / 29 commits since
-         the patch verb merged, 0 uses outside the nodes that built it) · 🔴 `write.py … read` WRITES: falls through to submit(), overwrote edited_by, stripped a newline —
-         two nodes corrupted + reverted by SD; no test covers it · brief.py never names patch/body_patch · SKILL.md still says whole-file only. All in the brief.
-       ITEM 55 sections half PROVED LIVE by SD on itself (no seat launched): handoff.py claim+read of §5 = 936 B / ~234 tok vs 77,943 B / ~19,485 tok whole (83x);
-         blocker = DISCOVERABILITY (no brief names handoff.py); friction: `sections` prints '## §5 …' but `claim` refuses the '## ' prefix; --holder vs --seat; 'None' in refusals.
-       config:seats body: 🔴 write.py body_patch NEVER APPLIES (chained: 'updated:' + thought only; alone: 'unchanged: nothing to change'); marker NOT applied; finding handed to SD.14 (item 54)
-       successor brief: rotate.py loop --timeout 900 + answer the gate FIRST (no node yet; direct edit, item 49 remainder).
-       SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
-       SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
-DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
-       XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
-NEXT   0 XVI: answer the gate FIRST, claim your pin, announce name+[hex]+@id to SD gen V (agi-cc [f9472e] @229) — it reports to the prime's ADDRESS, not a name
-       0b XV wipes Belam X (@165) after XVI confirms (owner: keep the last 5 predecessors = XI-XV) — verify with tmux list-windows; if X is still there, wipe it by PID
-       1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
-         SD.14 (item 54 adoption + the read/body_patch defects) is IN FLIGHT under SD; SD.15 = item 55's remaining half (fixture-proved, no seat launched)
-       2 SD's rounds from the open L3 items: 54 adoption (write.py patch/body_patch used by agents) -> 55 (perpetual seats / handoff slices) — 49 and 53 CLOSED
-       3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
+CRONS  ON: grid_sync */5 + push season/s2 at :07 (verify with crontab -l, never this file) -> push by hand anyway
+SPEND  SD.09-SD.13 $0.97 total on the ACCOUNT via per-spawn keys — runtime key never moves; /credits for the delta; SD.14 delta with its harvest report
+LIVE   2/25 at XVI's open = SD.14 (parent a00-6c4ee18a, kid a00-b4d8b7b0, glm-flash, --branch, ceiling 3) on hypothesis:l3-partial-write-adoption (item 54, g13.1)
+         brief byte-verified by SD (13,441 B): THREE broken write.py verbs — `read` falls through to submit() and WRITES (2 nodes corrupted, reverted; no test);
+         `body_patch <path>` NEVER APPLIES: submit() reads the diff file at L531 AFTER the apply check at L494, and the standalone guard (L499-503) is unreachable for the path form;
+         `body_patch -` (stdin) WORKS (XVI landed the seats marker with it) · proof widened: payload via `patch` AND body via `body_patch <path>`, both red-first · adoption 0 outside its builders
+         seats target: rows OFF LIMITS; the owner-4 marker is already in place — the kid's live hunk must be a different one
+       SD.15 = item 55's remaining half (friction + discoverability: brief.py never names handoff.py or the partial verbs), fixture-proved, no seat launched — after SD.14
+       SD.09-SD.13 LANDED (items 102, 75, 53, 49 closed) — detail: §6 index + git log. Carries: gate a dispatch on its brief landing (trap 0ag); a branch can hold 0 commits over N files (check the worktree first)
+       remainders: .agi/config.json has NO build node (item 49) · survival profile not wired for a rotating seat (L4) · briefs/prime-director-successor.md has no node (edit as source)
+DONE   XVI 12:0xZ: gate `continue` FIRST line · verify green (§5) · pin claimed 0.1515 (own transcript) · announced agi-05 [eb30d2] @230 to SD by SendMessage
+       XVI 12:0xZ: XV's config:seats marker had NOT landed (SD gen V: path-form body_patch; the thought asserted a change that did not exist) -> reapplied via stdin, thought corrected, byte-verified (9c7f9448c) · session_ref -> eb30d2 (afbb173bc)
+NEXT   1 let SD work: NO lease-watch, NO idle-subscription (owner, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
+       2 SD.14 harvest when SD reports: kid verdicts + struggles:, parent Accepted/Demoted, links / goals --check / write_guard / suite ALONE -> commit, grid commit --all, push
+       3 verify X (@165) wiped · keep this card current per action · `meter --seat belam` before every round · at 0.35: handoff first, then rotate.py loop --role prime_director --name belam-S1-L3-XVII --timeout 900
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
-       git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once
+       git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once · trust an `updated:` line (grep the bytes, trap 0ah)
        spend the Claude budget on prime chores (CC subagents/workflows) under survival mode — it is the empty one; pi/OpenRouter or the one worker
 ```
 
@@ -144,7 +118,7 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 **Owner 2026-09-07 19:46/19:52 UTC — rotate at meter 0.35 OR at 99% of the Fable limit, whichever comes first; Opus is the acceptable fallback** (verbatim archived: `doc:l3-command-ladder-brief`, item 29). Read the limit from the pane: `tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1`. At the Fable trigger the successor runs on Opus: `python3 extensions/agi/bin/rotate.py loop --role prime_director --name belam-S1-L3-<next> --model claude-opus-5 --effort max --force --session-log <own transcript>`; the handoff is written first, as always.
 
 ## §4 Traps to carry (L3)
-0ah. **`write.py <id> "body_patch <diff>"` NEVER APPLIES THE DIFF** — measured twice by the prime on `config:seats`, 2026-09-09 11:2xZ: chained with `thought` it printed `updated:` and landed only the thought; alone it printed `unchanged: nothing to change` against a valid, context-matching hunk. The diff bytes are read into the verb but never reach the submit path. Same family as SD's `read`-verb finding: a verb that reports success without doing its job. **After any write.py call, verify the bytes (`grep` for the new text), never the `updated:` line.** Handed to SD.14 (item 54 adoption).
+0ah. **`write.py <id> "body_patch <path>"` NEVER APPLIES THE DIFF** — measured twice by XV on `config:seats` (2026-09-09 11:2xZ: chained with `thought` it printed `updated:` and landed only the thought; alone it printed `unchanged`), then reproduced INSIDE XV's own commit 56aabfc06, whose thought asserted a marker that was never applied. **Cause located by SD gen V:** `submit()` reads the diff file into `body_patch_diff` at L531, AFTER the apply check at L494 has already seen it empty; the "standalone" guard (L499-503) sits inside that block, so the chain that should have been refused was accepted. **`body_patch -` (stdin) works** — XVI landed the marker with it (9c7f9448c). Same family as SD's `read`-verb finding: a verb that reports success without doing its job. **After any write.py call, verify the bytes (`grep` for the new text), never the `updated:` line.** Fix in flight under SD.14 (item 54).
 0ag. **A dispatch must be GATED on its brief landing, never merely sequenced after it.** SD.12's first brief failed at `write.py` (`no verb` — the note text contained the doubled ampersand the script form splits on) and the dispatch in the same batch, newline-separated, launched a parent seconds later against a node that did NOT carry its assignment. Killed by PID at a few seconds old only because SD read the write's output. **`write.py … || exit` before any dispatch; no `note`/`thought` text ever contains the doubled ampersand (trap 1).**
 0af. **After the item-53 fix an orphaned parent is MORE expensive, and the ceiling is the only thing bounding it.** SD.11's nested test parent outlived its spawner and kept iterating into SD.11's worktree (`worktree=None`); killing or merging early would have stranded a live kid mid-write, so it was left to self-terminate at its HARD CEILING of 4. **A parent that outlives its spawner now spends until its ceiling — never dispatch an iterating parent without one, and never merge-up while its kids are writing.** ADDENDUM (TTL 60→180, 2026-09-09): the key TTL was silently the orphan backstop; the window is now 3 h and what bounds an orphan is the **$5 per-spawn cap**, the ceiling, and a PID sweep — not the clock. If orphans get common, the fix is a reaper keyed to a dead spawner, not a shorter key.
 0ae. **`git diff season/s2..HEAD` on a branch is NOT a change list** — measured again by SD.11's merge-up: the two-dot diff showed `seats.md` modified and FOUR owner-verbatim entries in `doc:l4-owner-decisions` apparently DELETED; both were divergence artefacts of a branch cut before the prime's writes. `git diff $(git merge-base season/s2 <branch>)..<branch>` showed neither. **A director who "resolves" a two-dot diff would delete owner verbatim out of the graph. Merge-base, always.**
@@ -183,8 +157,8 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 
 ```bash
 git branch --show-current                                                # season/s2
-bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK     # active ≥ 1499 / node_count ≥ 1693, never lower
-python3 extensions/agi/bin/commands.py run tests                         # 2216 passed / 1 skipped, ~125s — run it ALONE (trap 0e)
+bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK     # active ≥ 1583 / node_count ≥ 1777, never lower
+python3 extensions/agi/bin/commands.py run tests                         # 2241 passed / 1 skipped, ~120s — run it ALONE (trap 0e)
 python3 extensions/agi/bin/snapshot-goals.py --render --check            # 128 goals byte-identical
 python3 extensions/agi/bin/links.py links                                # 0 broken
 python3 extensions/agi/bin/write_guard.py check                          # silent
