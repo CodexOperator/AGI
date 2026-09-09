@@ -585,6 +585,47 @@ def _read_payload_bytes(root, ref: str, location: str | None) -> str:
     return dest.read_text(encoding="utf-8")
 
 
+def _slice_range(text: str, rng: str) -> str:
+    """The 1-based inclusive line range of a text, ready to print.
+
+    hypothesis:l3-write-partial-diffs-as-writes, build item 1. `10:20` ->
+    lines 10..20, `10:` -> 10..end, `:20` -> start..20. `_parse_range` has
+    already validated `rng`, so a slice here can only produce the lines the
+    shape names. Returns an empty string for a range past EOF.
+    """
+    lo, hi = _parse_range(rng)
+    lines = text.split("\n")
+    start = 0 if lo is None else lo - 1
+    end = len(lines) if hi is None else hi
+    return "\n".join(lines[start:end])
+
+
+def _read_payload_text(root, ref: str, location: str | None, rng: str) -> str:
+    """The requested line range of a build node's payload file, as text.
+
+    Read-only; this module performs no file write and no node write. Only the
+    requested lines are ever materialised: the walk starts at the first
+    wanted line and stops at the last, so a ranged read of a large module
+    costs a few lines, not a whole-file reload.
+    """
+    import locations as _loc
+    dest = _loc.resolve_payload_path(Path(root), ref, location)
+    if not dest.is_file():
+        raise EditError(f"payload {dest} does not exist — nothing to read.")
+    lo, hi = _parse_range(rng)
+    start = 1 if lo is None else lo
+    wanted: list[str] = []
+    with open(dest, "r", encoding="utf-8") as fh:
+        for idx, line in enumerate(fh, 1):
+            if idx < start:
+                continue
+            if hi is not None and idx > hi:
+                break
+            wanted.append(line.rstrip("\n"))
+    return "\n".join(wanted)
+
+
+
 def _read_body_text(root, node_id: str) -> str:
     """The node body's current text, via the canonical reader. Read-only;
     this module performs no write. `body_patch` resolves its diff against
@@ -814,6 +855,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
 def main(argv: list[str] | None = None) -> int:
     """`write.py <node-id> "set k v && link self && thought why"`
+    or `write.py build:bin-x "read payload 10:20"` / `"patch -"` (diff on
+    stdin, fail-closed; `body_patch -` for a node body).
 
     or `write.py create <type> <slug> --parent <id> [--payload PATH]`.
     """
@@ -901,6 +944,40 @@ def main(argv: list[str] | None = None) -> int:
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
+
+    # hypothesis:l3-write-partial-diffs-as-writes, build item 1 — `read` is a
+    # TERMINAL, read-only verb: render the requested range to stdout and
+    # return BEFORE `submit` is reached. This is the branch whose absence let
+    # a read fall through the write path and restamp edited_by while printing
+    # nothing (measured 2026-09-09). A read that looks like an edit is worse
+    # than no read at all, so it cannot share a line with write verbs either.
+    if edit.read_target:
+        if (edit.set_fm or edit.unset_fm or edit.body_append or edit.thought
+                or edit.payload_from or edit.payload_bytes
+                or edit.patch_from or edit.patch_diff
+                or edit.body_patch_from or edit.body_patch_diff):
+            print("ERR: read is a terminal verb; it cannot share a line with "
+                  "write verbs", file=sys.stderr)
+            return 2
+        try:
+            if edit.read_target == "payload":
+                payload_ref, location = _payload_ref(root, edit)
+                text = _read_payload_text(root, payload_ref, location,
+                                          edit.read_range)
+            else:
+                text = _slice_range(_read_body_text(root, edit.node_id),
+                                    edit.read_range)
+        except (EditError, FileNotFoundError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        if args.dry_run:
+            print(f"read {edit.read_target} {edit.read_range} "
+                  f"({len(text)} chars) of {edit.node_id}")
+            return 0
+        sys.stdout.write(text)
+        if text:
+            sys.stdout.write("\n")
+        return 0
 
     # hypothesis:l3-node-without-mint-id -- `adopt` is the one verb that does
     # NOT accumulate into an Edit and submit through `update_node` (which

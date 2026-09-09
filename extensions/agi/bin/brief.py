@@ -1129,7 +1129,16 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "Example:\n"
         "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
         "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs experiment:x'\n"
-        "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'",
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'\n"
+        # hypothesis:l3-write-partial-diffs-as-writes -- the partial verbs.
+        # `read` fetches a line range (read-only, never restamps edited_by);
+        # `patch` applies a unified diff to a BUILD node's payload file;
+        # `body_patch` applies one to a node's BODY. Diff bytes arrive by
+        # path or '-', NEVER inline -- a diff can contain the doubled `&&`
+        # that splits the script form.
+        "  python3 extensions/agi/bin/write.py build:bin-x 'read payload 10:20'\n"
+        "  python3 extensions/agi/bin/write.py build:bin-x 'patch -'   # unified diff on stdin (fail-closed)\n"
+        "  python3 extensions/agi/bin/write.py hypothesis:x 'body_patch -'  # diff onto the node BODY",
         # L3.37/38: the edit tool rejected, across two independent kids in one
         # round, an `edits` argument passed as a single JSON string and one
         # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.
