@@ -100,3 +100,29 @@ MUST NOT REGRESS, check each explicitly: a dispatch WITHOUT the new flag must as
 YOUR OWN GUARDRAILS (prime's standing rules, and two are new traps from last round): HARD CEILING max 3 kids for your own loop -- and note trap 0af, an orphaned parent now spends to its ceiling because parents iterate, so do not leave one running past your own exit. Use MERGE-BASE diffs only when you inspect anything (trap 0ae): `git diff <merge-base>..<branch>` answers "what did this branch change"; `git diff season/s2..HEAD` does NOT and last round it falsely showed owner verbatim as deleted. Check the OpenRouter KEY before every kid (provisioning.py status), floor $1.00 never lowered. Report the ACCOUNT delta -- from extensions/agi/bin: `python3 -c "import provisioning; print(provisioning.credit_balance('.'))"` before your first kid and after your last; per-spawn keys are the spend path and the shared key does not move.
 
 Write your result into THIS node via write.py note labeled "CARRY-FORWARD PRIMITIVE" -- include the flag's exact usage, the kid-2-brief grep with its output, the no-flag no-regression evidence, and the account delta. If the live gate does not pass, say so plainly and report how far it got; a truthful partial beats a claimed pass, and last round's honest `pending` is exactly why this round exists at all.
+
+CARRY-FORWARD LIVE GATE: PASSED. Director-run, sanctuary-director gen IV, 2026-09-09. This closes the second axis of this node's testable claim, and it is the same check that DISPROVED carry-forward two rounds ago -- run again against the merged primitive, with the result inverted.
+
+THE CHECK, unchanged from the disproof so the two are comparable: read the SECOND kid's RECORDED brief (its agent.json `command` field, which is the argv actually handed to the process) and ask whether it literally contains the FIRST kid's node id. Last time: False for kid 2 and kid 3, no reference to kid 1 at all. This time: True.
+
+EVIDENCE. Parent a00-ccfa5c0b (dispatched at hypothesis:l3-engine-files-outside-the-grid) spawned two kids from ONE dispatch:
+  kid 1 = a00-839b1ec4 -> experiment:a00-839b1ec4-b6603a (done, verdict proved)
+  kid 2 = a00-9d7c3546 -> experiment:a00-9d7c3546-c9efcb
+Kid 2's brief carries, as its own labelled `--append-system-prompt` segment ("WHAT THE LAST KID PRODUCED -- from your parent, not from the node"), a parent-authored brief that reads in part:
+
+  "# KID BRIEF - additive mint mode + mint the missing nodes (parent a00-ccfa5c0b, iteration 1)
+   Parent node: hypothesis:l3-engine-files-outside-the-grid - read it AND its Agent Notes in full;
+   it is your spec. Kid 1 (experiment:a00-839b1ec4-b6603a) already landed slice 1:
+   extensions/agi/bin/grid_coverage_check.py + declared exclusion list
+   .agi/context/grid-coverage-exclusions.md + tests. Verified current state:
+   checker reports 65 tracked code files outside the grid"
+
+That is carry-forward in the full sense the claim asks for, not merely a string match: the parent names the previous kid's NODE ID, states what it actually LANDED (the checker, the exclusion list, the tests), reports the number it produced, and assigns the next kid the following slice rather than a blind rerun. Kid 1's own addendum shows the other half of the same behaviour -- the parent sliced the work up front ("Your slice: THE CHECKER + THE VERIFIED COUNT + THE DECLARED EXCLUSION LIST ... a later kid does the minting").
+
+THE CONFOUND WAS CHECKED AND RULED OUT. Kid 1 wrote to the shared target node, so its node id could have reached kid 2 incidentally through the node's own content rather than through the channel. It did not: the match sits at offset 3039 of kid 2's argv, INSIDE the labelled addendum segment, and the node itself reaches a kid as a context FILE PATH, not as inlined argv text. The id is there because the parent put it there.
+
+NOT SHEPHERDED, which is the part that makes this worth more than a mechanism test. The SD.13 brief deliberately never mentioned `--prompt-file`. The flag is named only in brief.py's `_parent` ITERATION CONTRACT -- the parent's own standing instructions -- so what is proved is that the CONTRACT ALONE is sufficient to make a parent reach for the lever. That was the open question after SD.12, whose verdict was honestly held at inconclusive_lean_proved:70 because the mechanism was dry-run proven only.
+
+SO THE NODE'S FULL CLAIM IS NOW MET, both axes, each proved live rather than by unit test: a parent works one target across successive kids (SD.11: three kid nodes from one dispatch), judges between them, carries what the last kid produced into the next kid's brief (this note), and stops on an explicit bounded condition (kid_ceiling, default 4, visible in the brief). The remaining unexercised axis is the owner's fan-out extension -- several kids at once, each optionally in its own `--branch` worktree -- which is available and untested; say so rather than claiming it.
+
+`--prompt-file` does not appear in a kid's own recorded command and that is expected, not a gap: the flag is passed to dispatch.py by the PARENT, and what lands in the kid's argv is the resulting inlined segment. Anyone re-running this check should grep the kid's command for the PRIOR KID'S NODE ID, never for the flag.
