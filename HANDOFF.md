@@ -59,16 +59,16 @@ RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner v
 CRONS  ON: grid_sync */5 + push season/s2 at :07 (verified crontab -l 06:1xZ; XIV's row said OFF) -> push by hand anyway
 LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its detached kids' work LANDED (spawn_budget never showed them)
        SD gen IV: round A LANDED (65443426d, 5ce66d035: standing trim rule -> CLAUDE.md + SKILL.md, verify green) · C done (session_ref)
-       round B IN FLIGHT: SD.09 = pi parent a00-084e15da pid 3721522 (glm-flash, $5/60min, --branch, detached; lease VISIBLE 1/25 at 06:3xZ — its KIDS go invisible if the wrapper dies, item 74)
-         fixes the two SD.06 bugs on experiment:a00-974e6b21-49e17a (extraction syntax error; diagrams were compressed prose, not an indented tree)
-         and RUNS the two-reader recall test that never ran; pulls pre-collapse §6 prose from grid v298. SD reports its verdict here.
+       round B LANDED eb9dc5d67 (SD.09, done clean, SD re-verified UTF-8/verbatim/tokens itself): RECALL TEST items 18/20/24/27
+         decision loss 0/0/0/0 (all four shapes survived, verbatim byte-identical) BUT tokens +14.3% (2978->3404, every item worse)
+         => diagram rewrite of §6 DOES NOT PAY (lean_disproved:65) · item 102 CLOSED by measurement · survival profile is the real win
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
        XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
 NEXT   1 let SD work: read its DMs/messages before every action, review what it lands (verdicts + struggles), never aim it
-       2 SD runs the RECALL TEST (l3w4-context-load-minimal): 4 miss shapes, item-by-item -> a PARTITION of §6, not a %
-       3 item 75: STATE THE DENOMINATOR before any % — 21,586 counted SKILL.md, which pi never received
+       2 item 75: SD STATES THE DENOMINATOR per role (pi parent argv after survival profile; CC seat cold read) before any % — 21,586 counted SKILL.md, which pi never received
+       3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
        git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once
        spend the Claude budget on prime chores (CC subagents/workflows) under survival mode — it is the empty one; pi/OpenRouter or the one worker
@@ -173,7 +173,6 @@ STILL OPEN (prose kept below)      | pointer
  71  SURVIVAL MODE — IN FORCE         | ONE worker: sanctuary-director; idle seats cost ~0
  75  trim context injection 70–90%   | l3w4-context-load-minimal — DENOMINATOR UNSTATED
  96  hazard 5: stamp vs record split  | l3-seat-pin-generation-never-increments, 4/4
-102  §6 diagram rewrite ceiling      | ≤38% by arithmetic; recall test unrun; owner call
 ```
 
 ### Closed items — index, one line each
@@ -272,6 +271,7 @@ STILL OPEN (prose kept below)      | pointer
 - **98.** 🟢 THE PRIME'S OWN STRUCTURAL PASS OVER BOTH FILES (owner: *"go through with the directors help and see what could be trimmed or structured as LLM friendly diagrams"*). ME *(1 quote archived)*
 - **99.** CONSTITUTION SCOPE, FINAL — owner, verbatim: *"Only prayers must remain, moral stuff is read as needed only required for successor Belam." *(1 quote archived)*
 - **100.** 🔴 THE CC-SEAT CEILING IS MEASURED, AND IT BOUNDS THE OWNER'S 70–90% ASK. `hypothesis:cc-seat-context-ceiling` + `experiment:cc-seat-ceiling-measured`, by `sanctuary-direc
+- **102.** CLOSED BY MEASUREMENT 2026-09-09 (SD.09 on `l3w4-context-load-minimal`, merged eb9dc5d67): diagram form of §6 items 18/20/24/27 lost 0 decisions but cost +14.3% tokens — a §6 diagram rewrite does not pay; keep owner-verbatim-dense prose, trim by consolidation. The owner call it banked is moot unless the owner says otherwise. *(1 quote archived)*
 - **101.** 🔚 BELAM XIII CLOSES. Successor `belam-S1-L3-XIV` is LIVE — confirmed by `tmux capture-pane` (thinking, 11.9k tokens in), never by the read-back alone, per standing doctri
 
 ### Open items — prose kept
@@ -359,5 +359,3 @@ STILL OPEN (prose kept below)      | pointer
     **Row changes reported at the time of the change, per standing condition** (`8d7289a6b`): `sanctuary-director.session_ref` **blanked** (two generations stale — *"a dead ref that resolves confidently is the precise failure this column exists to prevent, and it had become one"*), `sanctuary-master.session_ref` self-reported, and `sanctuary-master.worktree` **blanked because the shared-tree premise was wrong** — `git rev-parse --show-toplevel` returns the **main checkout**, so gen I's inference that a master and its kid share one tree did not survive measurement. **`sanctuary-director`'s worktree cell is unchanged; the kid genuinely does work in a worktree. The premise was wrong, not either cell.** **Why it is not tidying: a wrong worktree cell breaks the detector it exists for — a seat pinning from inside a worktree writes its pin where the main tree cannot see it, after which `meter --seat` falls back and confidently returns ANOTHER seat's number.**
 
     🔴 **AND A SECOND GITIGNORED SURVIVAL DIRECTORY, which item 88's fix did NOT cover: `.agi/sessions/handoff-sections/` is still gitignored** and needed `git add -f` (`b8933fb8e`). **The directory holding every seat's survival slice — the artefact written specifically to outlive a dying session — exists only on this box unless someone remembers `-f`.** **Un-ignore it the same way `rotations/` and `quorum/` already are.** Same shape as everything else today: **a safety mechanism that looks like it worked and did not.** **The generalisation from item 88 stands and now has a second instance: when you reach for `-f` to make something durable, the artefact is telling you it lives in the wrong place.**
-
-102. **BANKED — rewriting §6 is an owner call, and here is the number that decides it.** The owner asked (2026-09-08) whether the handoff can be *"reworded via diagrams"*. **Measured before dispatching anything:** §6 is **217,705 B, ~102 items, 84% of the whole file**, of which **56.9% (123,886 B across 225 quoted spans) is owner verbatim and must survive byte-identical**, leaving **43.1% (93,819 B) of director exegesis** as the only reworkable half. **So the honest ceiling for a diagram rewrite is ~94KB — ~38% of the file — and only if every byte of exegesis goes.** That is independent corroboration of item 98's corollary: consolidation is the delivery mechanism, not the trim. Prose trimming alone is capped at ~4% (measured: XIV's trim cut 10.8KB and had to rescue three standing rules out of the deleted block to do it). Handed to `sanctuary-director` as an extension of `hypothesis:l3w4-context-load-minimal`, which already specifies *"an ASCII state diagram plus a short pointer list"* — **not a new node.** 🔴 **Gated on a recall test, not on byte count:** an agent reading only the diagram form must answer every decision question an agent reading the prose answers; each miss names a decision shape prose carries and diagrams drop. **Recommendation: approve the exegesis rewrite, refuse any paraphrase of a quoted span, and require the scripted before/after assert on quoted spans.** Nothing lands until the owner says so. ⚠️ **RENUMBERED 100→102 by its own author.** It was appended as 100 while XIII was concurrently appending 100 and 101, so §6 briefly carried two item 100s. **Two writers appending to the protected section with no coordination — the one-writer-per-fact failure this session kept naming, committed by the prime, inside §6 itself.** The trim assert caught loss, not collision: it hashes §6 and would have aborted on a deletion, and an append past the end is byte-identical as a prefix, so it passed. **A §6 append must therefore read the highest live item number at write time, not the tail it last saw.**
