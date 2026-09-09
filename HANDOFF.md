@@ -17,7 +17,7 @@
 | agents live | **survival mode: sanctuary-director gen IV (`agi-ea [113e1f]` @227) is the ONE worker; 0/25 at XV's open** — the stalled SD.06 parent `a00-a81a7f38` is gone (swept). Prime XV = `agi-ad [90fef7]` @228; XIV idles at `agi-a7 [bcd0bd]` @226 (predecessor chain). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — XIV's opened at 0.5595 on XIII's pin (true 0.1093); XV claimed first and read 0.1351. |
 | spend | **Account $13.64 remaining of the owner's $92 ($78.36 used, 85.2%) · runtime key `backup` $7.87 remaining of its $15 sub-cap — read 2026-09-09 07:2xZ after SD.10 (`rotate.py meter --pin` prints both at claim; `/api/v1/credits` for the live delta).** The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered. Check the KEY, not the account, before each kid — then RAISE it rather than stop.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
 | disk | 81% |
-| this session | **Belam XV (2026-09-09 06:10Z →, Fable 5.1).** XIV's `rotate.py loop` read-back timed out at 120s (`inconclusive-no-reply`, `.agi/sessions/rotations/belam-S1-L3-XV.20260909T061156Z.json`): the successor's first line came after the skill load. XIV confirmed by pane; no auto-announce fired, so XV announced by hand (file DM to SD, SendMessage reply to SM). Verified smoke/suite/links/goals/write_guard/0-25 live. Corrected the crons row (it was wrong, not stale). Header, card, three closed traps and §5 trimmed. |
+| this session | **Belam XV (2026-09-09 06:10Z → 11:4xZ, Fable 5.1; rotated at 0.348).** Closed items 102, 75, 53, 49 with SD's measurements; owner orders of the day recorded verbatim in `doc:l4-owner-decisions` (no watch; SM stop + shutdown; active set = prime + SD; 46-window sweep; generation wipe + every manual chore -> harness code, L4); SD rotated IV -> V and gen IV wiped; traps 0ae-0ah. Earlier:  XIV's `rotate.py loop` read-back timed out at 120s (`inconclusive-no-reply`, `.agi/sessions/rotations/belam-S1-L3-XV.20260909T061156Z.json`): the successor's first line came after the skill load. XIV confirmed by pane; no auto-announce fired, so XV announced by hand (file DM to SD, SendMessage reply to SM). Verified smoke/suite/links/goals/write_guard/0-25 live. Corrected the crons row (it was wrong, not stale). Header, card, three closed traps and §5 trimmed. |
 
 ## §0.7 LOOP L3 — LIVE (opened 2026-09-06 by belam; Belam II 2026-09-07 03:15; Belam III 06:05 UTC)
 
@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
 
 ```
-BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 10:4xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.02/$92
+BELAM XV -> XVI  (XV = agi-ad [90fef7] @228, rotating at meter 0.348)   season/s2   2026-09-09 11:4xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct ~$13.0/$92
 SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 · SD.12 $0.08 · SD.13 $0.25 on the ACCOUNT via per-spawn keys — runtime key never moves; /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen V = agi-cc [f9472e] @229 (EXEMPT from the rotation freeze; gen IV wiped 10:5xZ)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
@@ -93,7 +93,10 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
        XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
-NEXT   1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
+NEXT   0 XVI: answer the gate FIRST, claim your pin, announce name+[hex]+@id to SD gen V (agi-cc [f9472e] @229) — it reports to the prime's ADDRESS, not a name
+       0b XV wipes Belam X (@165) after XVI confirms (owner: keep the last 5 predecessors = XI-XV) — verify with tmux list-windows; if X is still there, wipe it by PID
+       1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
+         SD.14 (item 54 adoption + the read/body_patch defects) is IN FLIGHT under SD; SD.15 = item 55's remaining half (fixture-proved, no seat launched)
        2 SD's rounds from the open L3 items: 54 adoption (write.py patch/body_patch used by agents) -> 55 (perpetual seats / handoff slices) — 49 and 53 CLOSED
        3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
