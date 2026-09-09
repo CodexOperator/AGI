@@ -49,7 +49,7 @@
     "credential": {
       "provider": "openrouter",
       "per_spawn_limit_usd": 5.0,
-      "ttl_minutes": 60,
+      "ttl_minutes": 180,
       "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     }
   },
