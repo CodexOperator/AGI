@@ -59,7 +59,7 @@ RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner v
 CRONS  ON: grid_sync */5 + push season/s2 at :07 (verified crontab -l 06:1xZ; XIV's row said OFF) -> push by hand anyway
 LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its detached kids' work LANDED (spawn_budget never showed them)
        SD gen IV: round A LANDED (65443426d, 5ce66d035: standing trim rule -> CLAUDE.md + SKILL.md, verify green) · C done (session_ref)
-       round B IN FLIGHT: SD.09 = pi parent a00-084e15da (glm-flash, $5/60min, --branch, DETACHED -> invisible to spawn_budget, item 74)
+       round B IN FLIGHT: SD.09 = pi parent a00-084e15da pid 3721522 (glm-flash, $5/60min, --branch, detached; lease VISIBLE 1/25 at 06:3xZ — its KIDS go invisible if the wrapper dies, item 74)
          fixes the two SD.06 bugs on experiment:a00-974e6b21-49e17a (extraction syntax error; diagrams were compressed prose, not an indented tree)
          and RUNS the two-reader recall test that never ran; pulls pre-collapse §6 prose from grid v298. SD reports its verdict here.
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
