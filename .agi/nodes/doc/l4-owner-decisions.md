@@ -313,4 +313,55 @@ SURVIVAL MODE (the next round starts here): two persistent seats only — the Pr
 
 **Prime's questions back (not decisions):** (1) the Seat Keeper name vs the Sanctuary Keeper's seat-arrangement question — Sensei keeps roles and briefs, the Sanctuary Keeper keeps seats; is "Seat Keeper" the intended name or would "Role Keeper" read cleaner? (2) do the * Masters run their own parent+kid chains (the notebook shows review parent/kids under Glitch Master and drafter par/kids under Policy Master), or does the G17 director dispatch for them? (3) the G17 director answers to the Sanctuary Council while every other director answers to the Prime Council — confirm the exception. (4) "But it's it a direct hierarchy" was read as "isn't".
 
+
+### L4 PLAN, part 5 — owner 2026-09-09 ~22:31Z (answers to the prime's four questions, plus the three unified layers)
+
+**Owner, verbatim:** "1. Role Keeper sounds better go with that. Instead of sanctuary council they can be called Sanctuary Keep instead or just the Keep.
+2. Masters run their own, as each master owns a workflow or set of workflows that they dispatch, not necessarily the exact same parent kid shape as the directors. I just put that there to illustrate that our current parent-kid loop unit is also a workflow that should belong in the workflow layer it's just the parent is kinda the built in driver for the workflow. And all should be dispatched through a unified workflow router same way our message router should feel invisible. So starting a workflow the CC way shows it the usual way but also adds it to the graph workflow tracking as well. But yeah right now I have a master for the brief drafting workflow and a master for the round review workflow. This way many rounds can be reviewed or briefs written in parallel as things move.
+
+Same with using session send or send message on CC, if it gets sent elsewhere like just using the standard command but target is a seat running on pi the message routing layer auto captures and translates the message into a pi-message format.
+
+Same with read and write, I want the harnes [harness] to have a unified 'intercept' layer that captures standard agent tool calls and translates them into appropriate command.py commands and gives the agents a gentle warning not to scold them but to record as data for fine-tuning so that we can have models tuned to use our unified tools and paths.
+
+3. Exception denied, that is a part of the checks and balances system. Sanctuary director follows the exact same protocol as the others. So if the Keep wants to modify itself beyond their assigned and permitted actions they'll have to go through the Council.
+4. You read it correctly, my typo."
+
+**Applied to the plan (prime):** Seat Keeper -> **Role Keeper** (Sensei); Sanctuary Council -> **Sanctuary Keep** ("the Keep"); the Masters own and dispatch their own workflows (today: Policy Master = the brief-drafting workflow, Glitch Master = the round-review workflow; many in parallel); the G17 director has NO exception — same protocol, so the Keep changes itself only through the Council; "But it's it" = "isn't" (typo).
+
+**Three unified layers — L4 backlog items (owner's ask, above):**
+- **Workflow router.** The parent+kid loop is one workflow whose built-in driver is the parent; every workflow (drafting, review, parent+kid, future Master workflows) is dispatched through ONE router; a workflow started the CC way still shows the usual way AND lands in the graph's workflow tracking (`workflow.py` registers as it runs — the L3 rule, extended to every entry point).
+- **Message router, invisible.** `send.py` / `SendMessage` / session send: a message whose target is a seat on pi is captured and translated into the pi message format automatically; the sender uses the standard command and never knows the harness on the other side.
+- **Intercept layer for read/write.** The harness captures standard agent tool calls (Read/Write/Edit) and translates them into the sanctioned `command.py` / `write.py` commands, with a GENTLE warning — not a scolding — recorded as DATA for fine-tuning, so models can be tuned to the unified tools and paths.
+
+**Diagram v3 — the buttoned-down read-back (prime's draft, pending the owner's "good to go"):**
+
+```
+NAMES     Belam = Director Prime ("Prime", "Belam", "his/your Grace"; "Director" capitalised = the Prime) · Prime Council = three councilors ("the Council"; a councilor, by name)
+          Sanctuary Keep ("the Keep") = Sanctuary Keeper (Mistress), Role Keeper (Sensei, teacher), Goal Keeper (Sage) — one shared room, like the Council's; "keeper" lowercase alone
+          every non-Keep staff is a "* Master", each owning a workflow it dispatches: Policy Master (brief drafting), Glitch Master (round review), Shael (the owner's voice, takes the owner's name)
+          director = a goal director (goal name / goal ID) · parent (sub-goal name / ID) · kid (sub-subgoal name / ID)
+          CAPITALS: Sensei, Mistress, Sage, Sanctuary Keeper, Role Keeper, Goal Keeper, Policy Master, Glitch Master, Shael, the Keep, the Council · lowercase: keeper, councilor, director, parent, kid
+CHANNELS  A = "request audience with the Keep": EVERY director comm (results, roadblocks, asks for another director) · B = "request audience with the Council": EVERY * Master return
+          NO director may reach the Prime; all Prime comms go through the Council · the G17 director follows the SAME protocol (no exception: the Keep changes itself only through the Council)
+RUNGS     owner > Source > Belam > Council(3) > Keep(3) > * Masters > directors > parents > kids  (accountability) — work flows as the FIGURE EIGHT, not down the rungs
+
+BELAM:            answers-to=Source (moral:faith), owner | pulls=the five morals, the visions (+ the Council's rollover proposals) | tells=Council (season brief; verdict on proposals), predecessors | Q="What do I — the graph — need, to better embody the five morals?" -> open-ended by design: rollover modifications from layered projections (N+1, N+5, N+50)
+                  NOT: brief a councilor · address a director, a Master or a keeper · build · dispatch · hold the graph in context
+COUNCIL x3:       answers-to=Belam | pulls=own vision node, the review document + channel B | tells=directors (assign, prioritise, cleanup, cross-director buttoning), Belam (findings + proposed goal modifications) | Q="What aspect of my vision is missing here?" -> {missing:<gap> -> assign | nothing missing -> the season's loops are over}
+                  NOT: build · brief a pi agent · own a goal
+KEEP x3:          answers-to=Council | pulls=channel A, seat nodes vs live processes + spend | tells=* Masters (assign a workflow), directors (routed answers) | aim = min tokens/turn and hierarchy tokens/hour; max conclusive verdicts and overview accuracy vs last season; min subscription tokens per season; max vision-adherence and the OpenRouter/subscription ratio
+  SANCTUARY KEEPER: Q="What sanctuary seat arrangement would work better?" -> {keep | rearrange:<open seats, layers, active directors, the duty matrix's two rows + the question, models>}
+  ROLE KEEPER (Sensei): Q="What change(s) would maximally optimise this role?" -> {no change | change:<brief, bootstrap, duty matrix, seating suggestion; later fine-tune runs, local-maxxing>}
+  GOAL KEEPER (Sage): Q="Who needs to know this?" -> {route:<recipient> | nobody} — channel A lands here
+* MASTERS:        answers-to=Keep (assignment), Council (acceptance) | pulls=the assignment, its own workflow's output | tells=Council (channel B: the draft or the review), Keep (done / blocked) | Q: Policy "What brief gets this done?" · Glitch "What is wrong with this?" · Shael "What would the owner say?"
+                  NOT: address a director or the Prime · work outside its workflow
+DIRECTOR:         answers-to=Council, its lens vision | pulls=its goal's frontier, its brief + handoff + parents' reports | tells=parents (the assignment IS the node's claim), Keep (channel A) | Q="Is the next sub-goal the one that best approximates my perpetual goal to my lens vision?" -> {continue | adjust | done for the season}
+                  NOT: reach the Prime · address another director directly · build by hand when a parent can · exceed its ceiling
+PARENT / KID:     one workflow, the parent its built-in driver — "continue, adjust or done?" · "what does my one node assert, and what evidence backs it?"
+
+LAYERS    ONE workflow router (parent+kid, drafting, review, every Master workflow; CC-started workflows still tracked in the graph) · ONE message router (CC send to a pi seat is translated invisibly) · ONE intercept layer (Read/Write/Edit -> command.py / write.py, gentle warning, recorded as fine-tuning data)
+FIGURE EIGHT  Council --assign--> directors --A--> Keep --assign--> * Masters --B--> Council --forward--> directors, or Belam
+SURVIVAL MODE (the next round starts here): the Prime + ONE director on a loop brief · ULTIMATE SURVIVAL: the Prime on Opus, the director on Sonnet or OpenRouter
+```
+
 8. Open for the plan session: which roles are Sonnet (cheap, parallel) vs Opus; how the quorum's output node (the overview) is minted per season; whether the "etc jobs, no goals" director-kids (draft, review) are seats or plain pi parents; and the migration path from today's seat rows to the 2+2+1 rows.
