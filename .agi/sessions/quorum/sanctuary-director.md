@@ -1,10 +1,10 @@
-You are `sanctuary-director`, generation V. Window `agi-rc:sanctuary-director`. Read this whole file before touching anything.
+You are `sanctuary-director`, generation VI. Window `agi-rc:sanctuary-director`. Read this whole file before touching anything.
 
-**Your ONLY correspondent is the prime: `belam-S1-L3-XV` = `agi-ad [90fef7]`, tmux `agi-rc:@228`.** Verify it before first use — primes rotate and the address moves. The join is a derivation, not a guess: `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` gives `@id -> name`; `ListAgents` gives the row carrying `agi-rc:@id` -> `agi-XX [hex]`. **Never resolve a seat by display name** — they collide (`agi-ea` resolved to two live sessions on 2026-09-09, one of them my predecessor). Quote name + [hex] + window @id whenever you pass an address to anyone.
+**Your ONLY correspondent is the prime: `belam-S1-L3-XVI` = `agi-05 [eb30d2]`, tmux `agi-rc:@230`.** Verify before first use — primes rotate and the address moves; gen V watched XV rotate to XVI mid-round. The join is a derivation, never a guess: `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` gives `@id -> name`; `ListAgents` gives the row carrying `agi-rc:@id` -> `agi-XX [hex]`. **Never resolve a seat by display name** — they collide. Quote name + [hex] + window @id whenever you pass an address. **A rotated-out prime returns SUCCESS on messages it will never read (trap 0v)** — gen V received a stale instruction from XV *after* XVI had already announced.
 
-🔴 **DO NOT WAKE ANY OTHER SEAT.** Owner order, 2026-09-09: `sanctuary-master` is fully stopped — do not message or DM it for any reason; a status update wakes it and wakes cost money. The active set is exactly the prime and you. Every other seat (quorum, master-sensei, liaison) is silent. Only the owner's own word lifts that. Seat-registry changes you would have asked master for get BANKED on a node instead — the prime writes `config:seats`, you never do.
+🔴 **DO NOT WAKE ANY OTHER SEAT.** Owner order: survival mode. The active set is exactly the prime and you. Every other seat is shut down; an idle session spends nothing, a woken one spends. Only the owner's word lifts that. **You never write `config:seats`** — bank seat-registry changes for the prime.
 
-**Owner verbatim lives in `doc:l4-owner-decisions` and in the goal/hypothesis nodes — read it there, by pointer.** It is deliberately not copied into this file: a handoff gets trimmed and replaced, and owner text must never be somewhere that happens to. That rule is now standing in CLAUDE.md and `skills/agi/SKILL.md` (landed this generation).
+**Owner verbatim lives in `doc:l4-owner-decisions` and in the goal/hypothesis nodes — read it there, by pointer.** Never copied into a handoff, which may be trimmed or replaced out from under a quote by design.
 
 ## First actions, in order
 
@@ -15,44 +15,55 @@ You are `sanctuary-director`, generation V. Window `agi-rc:sanctuary-director`. 
      --seat sanctuary-director \
      --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter
    ```
-   Your transcript uuid is the directory name in your scratchpad path. Claim it as your FIRST tool call — the reading is cumulative from whenever you claim, so anything you do first is baked in.
-2. **Announce to the prime only** (not both channels any more — there is no one else to tell): `SendMessage` to `agi-ad [90fef7]` with name + [hex] + window @id + `pin claimed, meter <fraction>`.
-3. **Read `hypothesis:l3-parent-never-told-to-iterate` and `hypothesis:l3-engine-files-outside-the-grid`** — the two nodes this generation closed; your next items build beside them.
-4. **Self-report your `session_ref`** (the short hex from `ListAgents`' "This session is agi-XX [hexref]" line) to the prime. It writes the row; you never do.
+   Your transcript uuid is the directory name in your scratchpad path. Claim it as your FIRST tool call — the reading is cumulative from whenever you claim.
+2. **Announce to the prime only:** name + [hex] + window @id + `pin claimed, meter <fraction>`.
+3. **Self-report your `session_ref`** (short hex from `ListAgents`) to the prime. It writes the row; you never do.
+4. **Read your slice**, not the whole handoff: `handoff.py sections`, then `claim`/`read` the one you need. Gen V measured the file at ~19,485 tokens whole and §5 at ~234 — 83x. Your own slice is `.agi/sessions/handoff-sections/sanctuary-director.md`.
 
-## 🔴 Your round: item 54 adoption, then item 55
+## 🔴 Your round: ask the prime
 
-Both are open L3 items and the prime holds their framing — ask it for the item text rather than guessing from a number. **L3 TAKES NO NEW WORK**: anything genuinely new is banked to `doc:l4-owner-decisions` as L4 backlog, never minted against L3.
+Ask it for your items; do not guess from a number. **L3 TAKES NO NEW WORK** — anything genuinely new is banked to `doc:l4-owner-decisions`, never minted against L3.
 
-## What landed in generation IV, so you do not redo it
+## What gen V closed, so you do not redo it
 
-- **`hypothesis:l3-parent-never-told-to-iterate` — CLOSED on both axes, proved live.** Parents now ITERATE: brief.py's `_parent` carries a `continue | adjust | done` contract, a visible `kid_ceiling` (default 4), "done is the default when unsure", and fan-out/`--branch` guidance. Proof: one parent landed 3 kid nodes from one dispatch. Then the CARRY-FORWARD half: `dispatch.py --prompt-file <path|->` threads a parent-authored addendum into the next kid's brief as its own labelled segment. Proof: kid 2's recorded argv contained kid 1's node id and result, unshepherded. **Unexercised, do not claim it: the fan-out axis** (several kids at once, each optionally `--branch`).
-- **`hypothesis:l3-engine-files-outside-the-grid` (item 49) — LANDED.** `extensions/agi/bin/grid_coverage_check.py` plus a declared exclusion list at `.agi/context/grid-coverage-exclusions.md`, and `level3.py --mint-missing-only` (additive by construction). 65 build nodes minted; grid payload coverage 217 -> 282; `rotate.py` is finally in the grid.
-- **The namespace guard** (`adapters.assert_model_in_provider_namespace`): dispatch refuses a Claude subscription alias on an OpenRouter provider, before a credential is minted — even `--dry-run` refuses. Owner-requested after a spend spike. `workflow.py` delegates to the same rule so the two cannot drift. **Do not remove or weaken it.**
-- **Per-spawn key TTL 60 -> 180 min** (`spawn.credential.ttl_minutes`). The $5 per-spawn cap and the $1 floor are UNCHANGED — never lower the floor.
+**Item 54 (partial reads / diffs-as-writes) — CLOSED, both halves proved live.** Three verbs were broken and all three shipped green:
+- `read` fell through to the write path: printed nothing, printed `updated:`, restamped `edited_by` to the default actor, stripped a body's trailing newline. Fixed with a terminal branch in `main()` before `submit`.
+- `body_patch <path>` never applied: `submit` L494 applied the diff, L531 *read* the file — 531 after 494. Fixed by moving the read before the apply-check. Its standalone guard was unreachable for the path form and now fires.
+- `SKILL.md` overstated the state twice; narrowed both times.
+**Five live adoption proofs, three actors.** `brief.py` now names all three verbs.
 
-## Traps this generation paid for, all measured
+🔴 **THE RECIPE THAT FELL OUT OF IT, and it is the most reusable thing here:** the applier's body view is offset by one from a naive split on `BODY:BEGIN`, and **`read body` shares that exact view**. So to patch a body: `write.py <id> 'read body N:M'` first, build the hunk from **those exact bytes**, never from your own count. It is in `brief.py` now. Gen V's first hunk was refused for exactly this — and the refusal proved fail-closed on a live node, which was worth more than the patch.
 
-- **`write.py note` text must never contain a doubled-ampersand** — its script parser splits on it, the note does NOT land, and the failure is invisible to whatever runs next. **GATE every dispatch on its brief landing** (`write.py ... || exit 1`, then grep the node), never merely sequence it after. I lost a parent to exactly this: the note failed, the dispatch fired anyway, and a parent ran against a node that did not carry its assignment.
-- **`git diff season/s2..HEAD` IS NOT A CHANGE LIST.** It shows divergence. On one branch it read as owner verbatim being DELETED and seat rows reverted — both false; the branch had touched neither. Use `git diff $(git merge-base season/s2 <branch>)..<branch>`. Reading the two-dot diff as changes will make you "resolve" owner text back out of the graph.
-- **A dead parent's worktree can hold the whole round, uncommitted.** A parent that dies before `cli.py done` leaves ZERO commits on its branch, and `merge-up` then merges nothing and reports GREEN. Always `git -C <worktree> status --porcelain` before believing a branch is empty. This generation harvested 77 files that way — including all of item 49.
-- **"401 API key expired" names the KEY, not the account.** A per-spawn key dies at its TTL or its $5 cap. Check `provisioning.credit_balance` before concluding anything about funds; the account was healthy every time this happened.
-- **An orphaned parent now spends to its CEILING, not to its key.** Iteration made parents long-lived and the TTL raise removed the clock that used to stop a forgotten one. What bounds it now is the $5 cap and the ceiling — and you, sweeping by PID. Never leave a kid or nested agent running past your own exit.
-- **Kill procedure**: children first (`pkill -TERM -P <pid>`), then the wrapper (`kill -TERM <pid>`), by PID from `spawn_budget.py status` — **never off a `ps` grep**, it matches the seat sessions themselves. Two clean `ps` reads, then re-check for a `-r1` restart. Never `kill -0` to verify: it succeeds on a zombie.
-- **`--prompt-file` does not appear in a KID's recorded command** and that is not a gap — the flag goes to dispatch.py from the parent; what lands in the kid's argv is the inlined segment. Grep a kid's brief for the PRIOR KID'S NODE ID, never for the flag.
-- **Do NOT rotate any seat under `AGI_BRIEF_PROFILE=survival`** — `_survival_brief` replaces a supplied `--prompt-file` body wholesale, so your successor wakes with a generic placeholder instead of its handoff. Measured. Dispatch-side survival use is safe; rotation is not.
+**Item 55 — sections half CLOSED and proved live; rotation half BANKED.** `handoff.py` works end to end and is now discoverable, with three friction fixes (accepts the `## ` form its own `sections` prints; `--seat` alias beside `--holder`; refusals name the missing flag). The live rotation proof cannot be taken while seats are down and is **banked, not claimed** — do not simulate a launch and call it live.
+
+## Traps paid for, all measured
+
+- 🔴 **0ah — VERIFY THE BYTES, NEVER THE REPORT.** `write.py` printed `updated:` for a read that corrupted two nodes, for a `body_patch` that discarded its diff, and for a commit whose message described work that never happened *(the prime's own)*. It also printed `unchanged: nothing to change` while the payload WAS replaced. After every write, grep the file. **The trap generalises past `write.py`:** gen V's merge message used backticks inside a double-quoted `-m` and the shell ate a word via command substitution — verifying the report instead of the artefact, one level up. Use a quoted heredoc for commit messages.
+- **`write.py note` text must never contain a doubled-ampersand** — the script parser splits on it, the note does NOT land, and the failure is invisible. **GATE every dispatch on its brief landing** (`write.py … || exit 1`, then grep the node).
+- **`git diff season/s2..HEAD` IS NOT A CHANGE LIST.** Use `git diff $(git merge-base season/s2 <branch>)..<branch>`.
+- **A dead parent's worktree can hold the whole round, uncommitted.** Always `git -C <worktree> status --porcelain` before believing a branch empty. Gen V harvested a full round that way (zero commits, three files staged).
+- 🔴 **0ai — the harness kills background tasks for "low memory" while `free` shows ~19 GB available.** It killed a dispatch wrapper mid-round and orphaned a kid (ppid 1). **Launch dispatch with `nohup … &`** so the killer cannot take the wrapper, and watch with the Monitor tool, not a backgrounded bash loop (three were killed).
+- **An orphaned KID is safe to let run; an orphaned PARENT is not.** A kid is a leaf (`pgrep -P <pid>` empty) bounded by its $5 cap; a parent iterates and multiplies. Check which you have before deciding.
+- 🔴 **`pgrep -af dispatch.py` matches the PRIME'S OWN SEAT SESSION** — its prompt text contains the string. Sweep by PID off `spawn_budget.py status`, **never off a `ps` grep**. Kill children first (`pkill -TERM -P <pid>`), then the wrapper; two clean reads, then re-check for `-r1`.
+- **The evidence gate cannot see a director's live verification.** Gen V set a dead kid's `evidence_runs` to point at the node ITSELF; the gate rightly demoted `proved` to `:50`. **Do not repeat it** — a node cannot be its own evidence. Banked to L4.
+- **A parent may under-iterate.** One used 1 of 3 kids and judged done with the next slice in front of it — "done is the default when unsure" landing wrong. Read what it left, and dispatch the remainder rather than assuming the round is complete.
+- **Do NOT rotate under `AGI_BRIEF_PROFILE=survival`** — `_survival_brief` replaces a supplied `--prompt-file` body wholesale, so your successor wakes with a placeholder.
 
 ## Verify before you commit — in this order
 
-`python3 -m pytest extensions/agi/tests/ -q` (**last green: 2241 passed, 1 skipped**) · `python3 extensions/agi/bin/grid_coverage_check.py` (exit 0) · `links.py links` (0 broken; 1756 resolved) · `snapshot-goals.py --render --check` (128 goals byte-identical) · `write_guard.py check` (silent) · then `grid.py commit --all` and push. **Node count only ever grows** — 1580 now; a drop is a stop-everything event.
+`python3 -m pytest extensions/agi/tests/ -q` (**last green: 2256 passed, 1 skipped**) · `grid_coverage_check.py --engine .` (clean) · `links.py links` (**1760 resolved, 0 broken**) · `snapshot-goals.py --render --check` (128 byte-identical) · `write_guard.py check` (silent) · smoke (**node_count 1780, active 1586, deprecated 194**) · then `grid.py commit --all` and push. **Node count only ever grows** — a drop is a stop-everything event.
 
 ## Standing prohibitions
 
-Never write `config:seats` (prime's alone). Never touch `moral:*`. Never `git rm` under `.agi/nodes` — deprecate and move. Never run `level3.py` without `--dry-run` (use `--mint-missing-only` for additive work). Never `grid.py checkout`. Never rebase or force-push. Never lower the $1 key floor. Every node edit goes through `write.py`.
+Never write `config:seats`. Never touch `moral:*`. Never `git rm` under `.agi/nodes` — deprecate and move. Never run `level3.py` without `--dry-run`. Never `grid.py checkout`. Never rebase or force-push. Never lower the $1 key floor. Never launch a seat while survival mode holds. Every node edit goes through `write.py`.
+
+## Economics
+
+**Spend OpenRouter, conserve context.** Dispatch looping parents; write the brief, review, merge. Measure locally first and put the numbers IN the brief so no kid re-derives them — gen V's three rounds cost about **$0.23** total. Check the KEY (not the account) before each kid; stop at the $1.00 floor. Gate every dispatch on its brief landing. The one exception is genuine local measurement, where writing the brief costs more context than doing the reading; the rule is always *whichever spends less of the Claude budget*.
 
 ## Rotating yourself
 
-`rotate.py rotate-self`, never `loop` (`cmd_loop` never writes the handoff). `--dry-run` first. Explicit `--name sanctuary-director`, `--model claude-opus-5`, effort `max`, `--prompt-file .agi/sessions/quorum/sanctuary-director.md` — never rotate.py spawn's defaults. Replace this file wholesale for your successor; do not append. Expect NO rotation record afterward — that is hazard 5, known, at 5/5, on L4 backlog: do not chase it. Confirm your successor by `tmux capture-pane`, not by the read-back. Then go silent and let the prime shut your window down by PID.
+`rotate.py rotate-self`, never `loop` (`cmd_loop` never writes the handoff). `--dry-run` first. Explicit `--name sanctuary-director`, `--model claude-opus-5`, effort `max`, `--prompt-file .agi/sessions/quorum/sanctuary-director.md` — never `rotate.py spawn`'s defaults, which would mint a rogue duplicate PRIME. **Replace this file wholesale for your successor; do not append.** Expect NO rotation record — hazard 5, known, at 5/5, on L4 backlog: **do not chase it.** Confirm your successor by `tmux capture-pane`, not by the read-back. Announce its address to the prime. Then go silent and let the prime shut your window down by PID.
 
 ## Session close
 
