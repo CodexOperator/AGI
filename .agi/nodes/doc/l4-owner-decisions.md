@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L3-XVI
+edited_by: owner
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: rc-XVI
@@ -227,5 +227,90 @@ SEASON LOOP (one Belam loop = one season; every lower rung keeps its own loop in
  9 belam: judges them against the morals and the visions -> {accept -> rollover (vision N+1, goals modified) | explain -> quorum revises | propose a vision change -> quorum weighs}
 10 rollover: season N+1 begins; each seat resumes its own loop
 ```
+
+
+### L4 PLAN, part 4 — owner 2026-09-09 ~22:0xZ (to Belam XVI, with a notebook page; typed, not voice): names and forms of address, the two councils, the two audience channels, the figure eight, survival mode, the success metrics
+
+**Owner, verbatim:** "Quorum answers to Belam, and masters answer to quorum. But it's it [isn't?] a direct hierarchy.
+
+Belam question: What do I need to better embody the 5 morals? And keep in mind the "I" in this sense means the graph, as Belam the role represents the LLM 'embodiment' of the thought and role graph, as actually holding the whole thing in context would be silly. It's purposefully meant to be an open ended question for him only as that's his task, the hardest of all: be the prime director and direct the actual trajectory of the whole graph. Essentially the graph's fate rests on Belam's shoulders which is why he needs to have all his latent space available thinking strictly about bigger picture. What do we need to set up next season, to set up the season after that? And at the same time, what do we need to set up in the next 5 seasons to set up the next 50 and so on, just recursively layering these projections in time and possibility to arrive at the best modifications to make during rollover. In theory a single context full for Belam should hold a single season at least, or maybe even multiples, once hierarchy is up and running as each layer up lasts for more and more total work being done.
+
+Quorum question: What aspect of my vision is missing here? There's always something gonna be missing, and until there isn't, the loops aren't over.
+
+Sanctuary-Master: what sanctuary seat arrangement would work better? Sanctuary master controls how many seats are open, and what the hierarchy is. They can reassign the number of layers, number of active director-kids, modify the 2 rows or 2 of the table entries in our 2-2-1 duty split to decide who: watches/polls what, who gets to talk to whom, and what their main question is, and also what model they are assigned. Works with sensei to do things like rewording context bootstrap files and other sensei area work.
+
+Master-Sensei: what change(s) would maximally optimize this role? He does things like context brief/instructions, etc modification. Works with Sanctuary Master to suggest changing the duty matrix (the name of the 2-2-1 split) and rearrange sanctuary seating arrangement as needed.
+
+As you said sensei and SM are co-leads of the sanctuary. The sanctuary director-kid answers to them and the two share a room the way the quorum three do. Any director kid then just either requests an audience with the quorum or the sanctuary council.
+
+Btw no director-kid has permission to reach out to prime. All prime comms go through the council. Btw let's settle on some names:
+
+1. Prime director: Belam = Director Prime (or Prime/Belam/his Grace/your Grace)
+2. Quorum: Prime Council (or councilor, by name, the Council)
+3. Goal director-kid: Director (director, goal name, goal director, goal ID director)
+4. Pi parent: parent (parent, sub-goal name, sub-goal ID)
+5. Pi kid: kid (kid, sub-subgoal name, sub-subgoal ID)
+6. Liaison: Shael(takes on the owner's preferred name to personify the owner, could be LoRA trained to better voice owner).
+7. Every non-Sanctuary-Council staff has a '* Master' designation.
+8. Sanctuary master: Sanctuary Keeper(or Mistress, keeper, by name)
+9. Master sensei: Seat Keeper (or Sensei, teacher, keeper, by name)
+10. Sage: Goal Keeper (or Sage, keeper, by name). Another role for the sanctuary council. This one answers the question "Who needs to know this?" He's like an internal liaison who decides who needs to know what.
+
+All goal director report comms flow into the "request audience with Sanctuary Council" channel and all '* Master' return comms flow into the "request audience with Prime Council" channel. So as directors get done with their loops and/or hit roadblocks/needing help from another director, they reach out to sanctuary council who then gets the Policy Master, Glitch Master, or Shael on it to get the right info to the right roles. Once those write their draft or review via the enhanced unified workflow suite, they hand them off to the Prime Council for review. So it's like an extended figure eight of various roles feeding various other roles their respective inputs and outputs as needed. The council then receives the Masters' output and choose how to forward it next to either the directors or Belam. And yeah that's how the loop completes, Prime council assigns work to directors, who return results or other comms to sanctuary council. Sanctuary council assigns work to correct master based on comms received and those masters report findings to Prime Council. Cycle continues. Belam involved as needed. All do their one simple job and stay narrow.
+
+Eventually I want Sensei to also be responsible for local-maxxing by helping assign open source model fine tune training runs and other LLM-native tricks to improve performance based on new research.
+
+The sanctuary council aim to always maximize our success metrics: minimize average tokens/turn, and total hierarchy system tokens/hour while maximizing the conclusive verdicts and even more importantly overview accuracy at the end of the season compared to last season. So they all want to work together to minimize subscription token use per completed season while maximizing vision adherence score and the ratio of (openrouter/subscription) token spend.
+
+Also for the next round we will still start small and use our survival mode arrangement where it's just the Prime and a single director-kid aimed at a loop brief as we can't be risking having our subscription getting cratered due to a dozen agents all running on it before they're all dialed in properly. That can be the survival mode: only two persistent seats active each helping the other to conserve the resource that matters most. They can drop down to ultimate survival where Prime is powered by opus and single remaining director runs off sonnet or even openrouter. Also the capitalization matters, Sensei, Mistress, Sage are all capitalized just like Sanctuary Keeper etc. but just keeper, or just councilor aren't. If Director is capitalized it's talking about Prime, if not it's a regular director. But also Director can be Prime or Belam. I want everything to have a protocol even forms of address. Does all that make sense? Don't reach out to successor yet let's just finish buttoning this down fully then reach out once I confirm it's good to go. It's like a bicameral system and multiple branches of government rolled into one. Convert photo to webp as always to save on cost"
+
+**The notebook page** (photo: `.agi/context/owner/l4-notebook-2026-09-09.webp`, 19 KB; this transcription is the LLM form):
+
+```
+TOP — graph layers (left) beside org tiers (right), row for row:
+  morals            <->  Prime Director
+  vision            <->  Dir  Dir  Dir            ("par" written over each: the parent edge)
+  perp. goals       <->  Dir  Dir  ...  Dir
+  hyp/exp/build (red, fanning out o...o) <-> par par par ... par (red)  then  kid kid kid kid ... kid kid (red)
+MIDDLE-LEFT — the sanctuary in the graph:  morals · vision · goals/hypo/idea —— sanctuary —— exp/verdict/build (red);  sanctuary —— seats
+MINI-MAP (boxed):  Belam <-> Prime Council -> Sanctuary Council;  Prime Council <-> Directors <-> Masters;  Sanctuary Council -> Masters;  Directors <-> Parents+kids (red, kids report up)
+BOTTOM — the full map:
+  Belam -> [Councilor <-> Councilor <-> Councilor]  (the Prime Council, a ring)
+  [Sanctuary Master <-> Sensei <-> Sage]  (the Sanctuary Council, a ring);  Sage <- lines from every Director (channel A lands on the Sage);  Sage -> the Council (channel B)
+  Shael (far left) <- Glitch Master;  Glitch Master -> review parent -> review kid ... ;  Policy Master -> drafter par -> drafter kid ... ;  a plain parent -> kid, kid, kid, kid column under the Sanctuary Council (the G17 director's chain)
+  [Director <-> Director <-> Director] under the councilors, each -> parent -> kid ... ;  arcs from the Director row back over the top to the Sanctuary Council
+```
+
+**Prime's read-back — diagram v2, DRAFT for the owner (Belam XVI, NOT owner text; same linear grammar, new names):**
+
+```
+NAMES     Belam = Director Prime ("Prime", "Belam", "his Grace" / "your Grace"; "Director" capitalised = the Prime) · Prime Council = three councilors (a councilor, by name; "the Council")
+          Sanctuary Council = Sanctuary Keeper (Mistress; a keeper), Seat Keeper (Sensei, teacher; a keeper), Goal Keeper (Sage; a keeper) — one shared room, like the Council's
+          every non-Council staff is a "* Master": Policy Master (drafts), Glitch Master (reviews), Shael (the owner's voice; takes the owner's preferred name)
+          director = a goal director (goal name / goal ID) · parent = pi parent (sub-goal name / ID) · kid = pi kid (sub-subgoal name / ID)
+          CAPITALS: Sensei, Mistress, Sage, Sanctuary Keeper, Seat Keeper, Goal Keeper, Policy Master, Glitch Master, Shael · lowercase: keeper, councilor, director, parent, kid
+CHANNELS  A = "request audience with the Sanctuary Council": EVERY director comm (results, roadblocks, asks for another director) · B = "request audience with the Prime Council": EVERY * Master return
+          NO director may reach the Prime; all Prime comms go through the Council
+RUNGS     owner > Source > Belam > Prime Council(3) > Sanctuary Council(3) > * Masters > directors > parents > kids  (accountability) — work flows as the FIGURE EIGHT below, not down the rungs
+
+BELAM:             answers-to=Source (moral:faith), owner | pulls=the five morals, the visions (+ the Council's rollover proposals) | tells=Prime Council (season brief; verdict on proposals), predecessors (chain) | Q="What do I — the graph — need, to better embody the five morals?" -> open-ended by design: rollover modifications from layered projections (N+1, N+5, N+50 seasons)
+                   NOT: brief a councilor · address a director, a Master or a keeper · build · dispatch · hold the whole graph in context (the handoff + season node hold it)
+PRIME COUNCIL x3:  answers-to=Belam | pulls=own vision node, the review document + channel B (the Masters' returns) | tells=directors (assign work, prioritise, cleanup, cross-director buttoning), Belam (findings + proposed perpetual-goal modifications) | Q="What aspect of my vision is missing here?" -> {missing:<gap> -> assign | nothing missing -> the season's loops are over}
+                   NOT: build · brief a pi agent · own a goal · address a Master except by forwarding its return
+SANCTUARY COUNCIL x3 (shared room): answers-to=Prime Council | pulls=channel A, seat nodes vs live processes + spend | tells=* Masters (assign draft / review / owner-relay), the G17 director (its assignments) | joint aim = the success metrics: min avg tokens/turn and hierarchy tokens/hour; max conclusive verdicts and overview accuracy vs last season; min subscription tokens per completed season; max vision-adherence score and the OpenRouter/subscription spend ratio
+  SANCTUARY KEEPER:  Q="What sanctuary seat arrangement would work better?" -> {keep | rearrange:<open seats, layers, active directors, the duty matrix's two rows (watches/polls, talks-to) and the question, models>} · works with Sensei on bootstrap rewording
+  SEAT KEEPER (Sensei): Q="What change(s) would maximally optimise this role?" -> {no change | change:<brief, bootstrap, duty matrix, seating suggestion; later: fine-tune runs and LLM-native local-maxxing>}
+  GOAL KEEPER (Sage):   Q="Who needs to know this?" -> {route:<recipient> | nobody} — the internal liaison; channel A lands here
+* MASTERS (Policy Master = drafter, Glitch Master = reviewer, Shael = the owner's voice): answers-to=Sanctuary Council (assignment), Prime Council (acceptance) | pulls=the assignment, its own parent+kid chain's output (the enhanced unified workflow suite) | tells=Prime Council (channel B: the draft or the review), Sanctuary Council (done / blocked) | Q: Policy "What brief gets this done?"; Glitch "What is wrong with this?"; Shael "What would the owner say?"
+                   NOT: address a director or the Prime · build outside its chain
+DIRECTOR (one per perpetual goal; the G17 director always active, answering to the Sanctuary Council instead of the Prime Council): answers-to=Prime Council (assignments), its lens vision | pulls=its goal's frontier, its own brief + handoff + its parents' reports | tells=parents (briefs: the assignment IS the node's claim), Sanctuary Council (channel A) | Q="Is the next sub-goal the one that best approximates my perpetual goal to my lens vision?" -> {continue:<sub-goal> | adjust | done for the season}
+                   NOT: reach the Prime · address another director directly (via channel A) · build by hand when a parent can · exceed its ceiling
+PARENT / KID:      unchanged — parent Q "continue, adjust or done?"; kid Q "what does my one node assert, and what evidence backs it?" -> the verdict taxonomy
+
+FIGURE EIGHT  Prime Council --assign--> directors --A--> Sanctuary Council --assign--> * Masters --B--> Prime Council --forward--> directors, or Belam ... Belam involved as needed; each role does its one job and stays narrow
+SURVIVAL MODE (the next round starts here): two persistent seats only — the Prime + ONE director on a loop brief, each conserving the subscription for the other · ULTIMATE SURVIVAL: the Prime on Opus, the director on Sonnet or OpenRouter
+```
+
+**Prime's questions back (not decisions):** (1) the Seat Keeper name vs the Sanctuary Keeper's seat-arrangement question — Sensei keeps roles and briefs, the Sanctuary Keeper keeps seats; is "Seat Keeper" the intended name or would "Role Keeper" read cleaner? (2) do the * Masters run their own parent+kid chains (the notebook shows review parent/kids under Glitch Master and drafter par/kids under Policy Master), or does the G17 director dispatch for them? (3) the G17 director answers to the Sanctuary Council while every other director answers to the Prime Council — confirm the exception. (4) "But it's it a direct hierarchy" was read as "isn't".
 
 8. Open for the plan session: which roles are Sonnet (cheap, parallel) vs Opus; how the quorum's output node (the overview) is minted per season; whether the "etc jobs, no goals" director-kids (draft, review) are seats or plain pi parents; and the migration path from today's seat rows to the 2+2+1 rows.
