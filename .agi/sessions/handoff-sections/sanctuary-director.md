@@ -7,12 +7,12 @@ Gen V (`agi-cc [f9472e]` @229) was wiped by PID on the owner's generation-wipe o
 
 | | |
 |---|---|
-| Meter | **0.1991** of 0.35 at last read |
+| Meter | ~0.23 of **0.47** — owner raised the cap 0.35 -> 0.47 (61262b5a2), standing for every role |
 | Suite | **2256 passed, 1 skipped** — measured at claim, inherited green |
 | Graph | node_count **1784** · active **1590** · deprecated 194 (SD.17 minted 4) |
 | Branch | `season/s2`, clean at claim, `03da1b9ba`, nothing unpushed |
 | Key | $7.87 of $15 untouched · account **$12.7286**, round burn **$0.0601** |
-| Live | **SD.19** parent `a00-72658f67` — SD.18 retry, the only thing running (serialised) |
+| Live | **nothing running** — SD.19 harvested and merged |
 
 ## Round: SD.17 CLOSED BY HAND · SD.18 NOT DONE, needs re-dispatch
 
@@ -92,6 +92,36 @@ NODES are new, though the files are byte-identical to HEAD. `check` exits 0,
 guard with no bytes changed. No pre-commit hook installed. Do NOT "fix" it by
 running the guard's suggested `write.py <id> payload <path>` — that writes a
 file onto itself.
+
+## SD.19 CLOSED — the L3 completion report is in COMPLETE.md, DRAFT
+
+The retry worked: kid `a00-6a1a360e` under parent `a00-72658f67` wrote the L3
+section. **78 insertions, 0 deletions** in COMPLETE.md — appended newest-first
+between the header block and `## Loop L2`, nothing existing touched. Seven
+sections in order, the closed failure-category set used exactly (`none` printed
+for `late-minting` rather than dropped), claims carried on commit hashes.
+It used the director's measurements instead of re-deriving: the true boundary
+`fed533924 -> 000cc83f3`, the L2-report-is-not-the-start-state correction, and
+it STATES its counting method per the trap.
+**Verified by me, independently: all 24 cited shas resolve** (`git cat-file -e`),
+links 1766/0 broken, goals 128 identical, coverage clean, write_guard silent,
+smoke 1786 / 1592 / 194.
+
+🔴 **One factual error I caught and fixed in a SEPARATE commit** (so the kid's
+work stays attributable): the section credited **`sanctuary-director` as L3's
+prime director**. That is this worker seat. L3's prime is **Belam**
+(`belam-S1-L3-I..XVI`) — HANDOFF line 1 is the evidence. Fixed via
+`write.py build:COMPLETE.md "patch -"`, which is also a third-actor live
+adoption proof of the patch verb.
+
+🔴 **A red suite that was NOT mine:** the prime's `61262b5a2` moved the owner's
+rotation cap 0.35 -> 0.47 in `ladder:ladder` but left
+`test_ladder_node.py:52` asserting 0.35 — 1 failed, 2255 passed. Fixed through
+`write.py build:tests-test-ladder-node "patch -"` (assertion + docstring).
+**Still stale, deliberately NOT changed by me — flag to the prime:**
+`rotate.py:75 DEFAULT_DIRECTOR_ROTATE_AT = 0.35` and the `(0.35)` in
+`rotate.py:2113`'s docstring. The ladder node governs, so neither is live, but
+both now disagree with the owner's standing order.
 
 ## New traps this session
 

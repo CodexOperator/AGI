@@ -21,7 +21,7 @@ director enough to decide with.
 
 ---
 
-## Loop L3 — 2026-09-06 → 2026-09-09 — the seat system, aliveness, the Masters (prime director `sanctuary-director`, CC remote-control)
+## Loop L3 — 2026-09-06 → 2026-09-09 — the seat system, aliveness, the Masters (prime director `belam-S1-L3-*`, CC remote-control)
 
 **[DRAFT] — L3 is not closed.** The standing exit duty of every loop
 (`goal:g1.13`) is written here, but whether to close L3 is banked to the owner,
@@ -36,8 +36,8 @@ is the true boundary.
 Thirty-six L3 rounds (`iter-L3.01` … `iter-L3.42`, gaps at 14/18/35/36/39/40
 and 43–47 where a dir exists for a round that never landed a commit — see §5
 `verification-blindness`), four waves, on the CC harness via `claude
-remote-control`. The prime seat ascended from `agi-master` (L2) through Belam
-II/III (`iter-L3.11`, `iter-L3.15`) to `sanctuary-director` by season 2's seat
+remote-control`. The prime seat ascended from `agi-master` (L2) to Belam, and ran
+as `belam-S1-L3-I..XVI` (rotations at `iter-L3.11`, `iter-L3.15`) under season 2's seat
 system. In wave 3 the g15 director spawned by the Alive advisor (`a00-4ad19971`)
 ran the ladder end to end by hand. 39 commits titled `iter-L3.*`; the ~470-commit
 span also carries the SD (.17/.18/.19) rounds that continue season 2. Ladder

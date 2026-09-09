@@ -2,7 +2,7 @@
 
 `hypothesis:l2w1-ladder-node`'s VERIFY section required one test that loads
 `.agi/nodes/.geometry/ladder.md` through the engine's node reader and asserts
-`current_season == 1` and `director_rotate_at == 0.35`. The kid
+`current_season == 1` and `director_rotate_at == 0.47`. The kid
 (experiment:a00-fc43bb62-4500f1) verified both inline but never added the
 test; parent a00-0338943a supplied it on review (L2.01, 2026-09-06).
 """
@@ -49,7 +49,7 @@ def test_ladder_node_current_season(engine_on_path):
 
 def test_ladder_node_director_rotate_at(engine_on_path):
     nf = _ladder_node_file()
-    assert nf.frontmatter["director_rotate_at"] == 0.35
+    assert nf.frontmatter["director_rotate_at"] == 0.47
 
 
 def test_ladder_node_has_four_tiers(engine_on_path):
