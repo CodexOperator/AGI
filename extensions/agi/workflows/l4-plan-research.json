@@ -1,0 +1,49 @@
+{
+  "name": "l4-plan-research",
+  "script": "agi-l4-plan-research.js",
+  "description": "Registered from inline script l4-plan-research-wf_6a92add5-be7.js (originally run from /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/6633fdec-7f65-48a2-b3c7-86e5db876c57/subagents/workflows/wf_6a92add5-be7) \u2014 stages derived from the script, prompts TODO",
+  "stages": [
+    {
+      "label": "map",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'map' from the script's agent brief>",
+      "repeat": {
+        "of": "<TODO: the --args list key, e.g. briefs or targets>",
+        "label_template": "map:{key}"
+      }
+    },
+    {
+      "label": "draft",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'draft' from the script's agent brief>",
+      "repeat": {
+        "of": "<TODO: the --args list key, e.g. briefs or targets>",
+        "label_template": "draft:{key}"
+      }
+    },
+    {
+      "label": "judge",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'judge' from the script's agent brief>",
+      "repeat": {
+        "of": "<TODO: the --args list key, e.g. briefs or targets>",
+        "label_template": "judge:{i}"
+      }
+    },
+    {
+      "label": "verify",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'verify' from the script's agent brief>",
+      "repeat": {
+        "of": "<TODO: the --args list key, e.g. briefs or targets>",
+        "label_template": "verify:{key}"
+      }
+    },
+    {
+      "label": "synthesize",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'synthesize' from the script's agent brief>"
+    }
+  ],
+  "_from_run": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/6633fdec-7f65-48a2-b3c7-86e5db876c57/subagents/workflows/wf_6a92add5-be7"
+}
