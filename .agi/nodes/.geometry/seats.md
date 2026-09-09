@@ -68,4 +68,4 @@ OWNER 2026-09-08, two answers in one line, verbatim: 'Go for master sensei, and 
 The previous version's thought (56aabfc06) asserted a marker that was never applied: write.py body_patch from a PATH reads the diff file only after the apply step (submit, line 531 runs after 494), lands nothing and still prints updated. This version applies the same marker through body_patch from STDIN, verified by grep of the file, never by the updated line. Wording and rows untouched; the marker points readers at the owner's 23:0x reversal below. Found by sanctuary-director gen V; prime writes while sanctuary-master is down.
 <!-- THOUGHT:END -->
 
-Belam XVI rotation, 2026-09-09 12:0xZ: belam.session_ref 90fef7 -> eb30d2 (XV -> XVI; agi-05 [eb30d2], window @230). Own row only, the prime is its one legitimate writer; every other cell byte-identical. rotated_by stays prime.
+Belam XVI rotation, 2026-09-09 10:1xZ: belam.session_ref 90fef7 -> eb30d2 (XV -> XVI; agi-05 [eb30d2], window @230). Own row only, the prime is its one legitimate writer; every other cell byte-identical. rotated_by stays prime.
