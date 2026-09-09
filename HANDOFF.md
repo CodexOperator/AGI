@@ -62,10 +62,10 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
+       XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
 NEXT   1 let SD work: read its DMs/messages before every action, review what it lands (verdicts + struggles), never aim it
        2 SD runs the RECALL TEST (l3w4-context-load-minimal): 4 miss shapes, item-by-item -> a PARTITION of §6, not a %
        3 item 75: STATE THE DENOMINATOR before any % — 21,586 counted SKILL.md, which pi never received
-       4 write belam.session_ref=90fef7 into config:seats (write.py, own row only) · archive item 71's owner quotes into doc:l3-command-ladder-brief
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
        git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once
        spend the Claude budget on prime chores (CC subagents/workflows) under survival mode — it is the empty one; pi/OpenRouter or the one worker
