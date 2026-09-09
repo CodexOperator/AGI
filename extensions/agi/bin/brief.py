@@ -1160,14 +1160,18 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
 
 def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             target: str | None, parallel: int, max_live: int = 1,
+            kid_ceiling: int | None = None,
             branch_name: str | None = None,
             branch_worktree: str | None = None,
             branch_base: str | None = None,
             source_root: str | None = None) -> list[str]:
-    """A loop, not a node. `goal:g4.8`.
+    """A loop, not a node. `goal:g4.8` + `hypothesis:l3-parent-never-told-to-iterate`.
 
-    Three things a parent needs that a kid does not, and each is here because
-    leaving it out has a named failure:
+    The docstring that once stopped at "A loop, not a node" and then listed a
+    straight line (spawn / review / serialise / signal) is WHY parents never
+    iterated: the name said loop and the instructions described one shot.
+    What a parent needs that a kid does not, and each is here because leaving
+    it out has a named failure:
 
     1. **How to spawn.** Shelling out to `dispatch.py --tier kid` rather than
        inventing a spawn path -- otherwise the parent grows a private copy of
@@ -1183,7 +1187,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        that ignores the rule gets **refused slots**, not extra processes. The
        sentence stays in the brief because a parent that knows the bound plans
        around it instead of discovering it as an unexplained failure.
-    4. **What its artefact is** (`goal:s27`). A parent authors no node. It is
+    4. **That it iterates -- the two-dimensional loop this brief finally tells
+       it about.** (`hypothesis:l3-parent-never-told-to-iterate`). Every parent
+       measured before this change spawned exactly one kid and exited -- 8/8
+       (L3.41/42), then 10/10 (SD.09/10) -- because nothing in the brief said
+       it could keep going. The brief now hands down the `continue | adjust |
+       done` judgement -- the SAME vocabulary the director block already uses --
+       a hard per-dispatch ceiling on kids (visible, so the parent plans
+       around it), "done" as the default when unsure, and the two axes that
+       compose: sequential iteration across kids AND fan-out to several at
+       once, each optionally in its own `--branch` worktree. The one thing
+       every next kid's brief must carry is what the previous kid actually
+       produced, so the second is never a blind rerun of the first.
+    5. **What its artefact is** (`goal:s27`). A parent authors no node. It is
        responsible for its kids' nodes, so it signals done with `--owns` and
        puts its review into those nodes' `THOUGHT` blocks -- which is honest
        rather than a workaround, because a parent's edit to a kid's node IS a
@@ -1196,7 +1212,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        node's high-LOD view and never needs compressing into prose. Telling
        the parent that now costs one sentence and stops the compression from
        being mistaken for the design.
-    5. **The done-time commit — defers to `cli.py done`, only under `--branch`.**
+    6. **The done-time commit — defers to `cli.py done`, only under `--branch`.**
        `hypothesis:l3-parent-brief-forbids-the-only-commit`. A parent in the
        main checkout commits nothing, exactly as before. A `--branch` parent
        runs in a git worktree on `loop/<slug>-<agent>@s<N>`, which is the only
@@ -1204,13 +1220,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        merges as nothing and still reports green (L3.39 lost a whole round
        that way). So when dispatch threads the branch context as
        `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_PARENT_BASE_BRANCH`,
-       item 5 names the branch, worktree and base and DEFERS the one commit
+       this item names the branch, worktree and base and DEFERS the one commit
        to `cli.py done`, which commits the dirty worktree automatically the
        moment the parent finishes — the parent runs no git itself. Push, sync,
        rebase and `grid.py commit --all` stay forbidden, and the model is no
        longer handed the commit commands to run at all.
     """
     aim = target or "(pick from the injected map)"
+    # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
+    # ceiling the ITERATION CONTRACT names. Dispatch threads it explicitly;
+    # a caller that did not gets the same small default the budget helper uses
+    # -- deliberately well under max_live, so an uninstrumented parent still
+    # plans against a bounded number rather than the tree's whole capacity.
+    ceiling = kid_ceiling if kid_ceiling is not None else 4
     if branch_name:
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch
         # parent's brief names its branch, worktree and base and DEFERS the one
@@ -1242,6 +1264,35 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
+        # hypothesis:l3-parent-never-told-to-iterate -- the ITERATION CONTRACT.
+        # This is the block that was missing: every parent measured before it
+        # spawned one kid and exited (8/8, then 10/10) because the brief named
+        # a loop but described a straight line. Now the parent is told, in the
+        # same words the director block already uses, that it may work the
+        # target across kids until it judges the work done.
+        f"YOU ITERATE. `hypothesis:l3-parent-never-told-to-iterate`. The loop "
+        f"is a loop: after you review each kid, JUDGE it and act on your own "
+        f"judgement -- you are not told by anyone else when to stop:\n"
+        f"  - **continue** -- the target still has work in it. Spawn the next "
+        f"    kid. Its brief MUST carry what the last kid actually produced, so "
+        f"    the second is never a blind rerun of the first. If it cannot "
+        f"    build on the last result, say how it differs and why you went "
+        f"    the other way.\n"
+        f"  - **adjust** -- the brief was wrong or the kid misread it. Re-brief "
+        f"    and spawn again against the correction.\n"
+        f"  - **done** -- signal and exit.\n"
+        f"HARD CEILING: AT MOST {ceiling} KIDS TOTAL per dispatch, never the "
+        f"whole tree's capacity. Plan around it -- it is a planned stop, not an "
+        f"unexplained refusal. **When you cannot tell whether there is more to "
+        f"do, the judgement is DONE, not continue** -- a certain stop beats a "
+        f"money leak with a review gate attached.\n"
+        f"FAN-OUT AND BRANCHES ARE YOURS TOO, WHEN THEY FIT. Sequential "
+        f"iteration (continue) and parallel fan-out compose: spawn several "
+        f"independent kids at once when the target genuinely splits into "
+        f"slices; give a kid its own `--branch` worktree when concurrent kids "
+        f"would touch the same files (a shared cwd is fine when they would "
+        f"not). One kid when the work is one thing. Do NOT fan three kids onto "
+        f"one file -- that is the measured collision hazard with extra steps.",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
         # parent edits kids' nodes and shells out to `write.py` and
         # `dispatch.py` by relative path, so it too is told which checkout it
@@ -1328,6 +1379,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              max_live: int = 1, goal: str | None = None,
              session_dir: Path | str | None = None,
              source_root: str | Path | None = None,
+             kid_ceiling: int | None = None,
              profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
@@ -1431,6 +1483,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         segs = _parent(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                        dispatch_py=str(dispatch_py), target=target,
                        parallel=parallel, max_live=max_live,
+                       kid_ceiling=kid_ceiling,
                        branch_name=os.environ.get("AGI_PARENT_BRANCH"),
                        branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),

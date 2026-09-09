@@ -640,6 +640,10 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         current_season = 1
     cap = spawn_budget.max_live(cfg)
     parallel = adapters.parallelism(cfg)
+    # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
+    # ceiling, named in the parent brief so an iterating parent plans around
+    # it instead of discovering an unexplained stop.
+    kid_ceiling = spawn_budget.parent_max_kids(cfg)
     # hypothesis:l3-branch-source-paths-never-rerooted -- mirror the live
     # loop's re-rooted engine paths in the dry report (which dry-prints the
     # same argv a real spawn would get).
@@ -675,6 +679,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 dispatch_py=engine_paths["dispatch_py"],
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
+                kid_ceiling=kid_ceiling,
                 role=args.role, ladder_tier=tier_eff,
             )
             # The env a child WOULD have been spawned with — same exports the
@@ -711,6 +716,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 dispatch_py=engine_paths["dispatch_py"], scaffold=None,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
+                kid_ceiling=kid_ceiling,
                 session_dir=sess_dir)
         brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
@@ -1319,6 +1325,9 @@ def main() -> int:
                 target=target,
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
+                # hypothesis:l3-parent-never-told-to-iterate -- the
+                # per-dispatch kid ceiling threaded to the parent brief.
+                kid_ceiling=spawn_budget.parent_max_kids(cfg),
                 # hypothesis:l3-cc-tools-by-tier -- who this agent is on the
                 # ladder selects its tool bundle (kids keep the closed list;
                 # advisors/directors add the ultracode/loop tools).
