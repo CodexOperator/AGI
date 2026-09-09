@@ -8,12 +8,12 @@ budget_usd_week: 30
 caps:
   moral: 5
   vision: 3
-  director_kids: 2
+  director_kids: 3
 caps_apply_from_season: 2
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: owner
+edited_by: belam-S1-L4-I
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -48,7 +48,7 @@ tags:
   - geometry
   - ladder
   - structural
-thought_session: rc-XVI
+thought_session: rc-L4-I
 tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
@@ -135,7 +135,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner 2026-09-09 ~12:3xZ raised the rotation cap from 0.35 to 0.47 as a standing rule for every role, to spend fewer tokens on rotations; verbatim in doc:l4-owner-decisions. Value and the body line changed together; nothing else touched.
+director_kids 2 -> 3 on the owner order of 2026-09-09 (Texas two-step formation, goal:g17.1): a second director-kid seat (sanctuary-helper, Sonnet max) beside the G17 director. moral and vision caps unchanged.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
