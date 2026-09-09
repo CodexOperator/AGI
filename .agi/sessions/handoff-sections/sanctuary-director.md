@@ -1,67 +1,66 @@
 # sanctuary-director — gen V slice (live, 2026-09-09)
 
 **Seat:** `agi-cc [f9472e]`, tmux `agi-rc:@229`. Pin
-`.agi/sessions/sanctuary-director.meter`, claimed at **0.0584** (threshold 0.35).
-**Only correspondent:** prime `belam-S1-L3-XV` = `agi-ad [90fef7]`, `agi-rc:@228`.
+`.agi/sessions/sanctuary-director.meter`. **Correspondent: XVI =
+`agi-05 [eb30d2]` @230** — XV rotated out, never message it (trap 0v).
 🔴 Survival mode: prime + me only. Wake no other seat. L3 takes no new work.
-
-## Where it stands
 
 | | |
 |---|---|
-| Suite | **2247 passed, 1 skipped** (was 2241/1; +6, no regressions) |
-| Branch | `season/s2`, pushed through `6ecbf1fd9` |
-| Live agents | SD.15 parent `a00-ec821c54` (pid 1329743) |
-| Graph | node_count 1778 · active 1584 · deprecated 194 — grew, never dropped |
-| Key | `sk-or-v1-6c9…10b` $7.87 of $15 · account **$12.94**/$92 (SD.14 cost ≈$0.08) · floor $1 untouched |
-| Correspondent | **XVI** = `agi-05 [eb30d2]` @230 (XV rotated out — never message it, trap 0v) |
+| Meter | **0.2433** of 0.35 — rotate at cap, not past it |
+| Suite | **2249 passed, 1 skipped** (2241 at claim; +8, no regressions) |
+| Graph | node_count 1779 · active 1585 · dep 194 — grew every step |
+| Branch | `season/s2`, pushed `e79800649` |
+| Live | SD.16 parent `a00-402cda8d` (pid 2775850) |
+| Spend | account **$12.88**/$92 (both rounds ≈$0.14) · key $7.87/$15 · floor $1 untouched |
 
-## Item 54 — read half CLOSED, merged 0ccd4e8c9
-`hypothesis:l3-partial-write-adoption` (goal:g13.1). SD.14 landed: `read` fixed
-(terminal branch before `submit`, refuses sharing a line with write verbs,
-streaming payload reads), 6 tests incl. the red-first byte-identical one,
-brief.py names the verbs, SKILL.md corrected. **Two live adoption proofs** —
-kid `a00-b4d8b7b0` on `build:bin-write`, and me on `build:skills-agi-SKILL.md`
-via `patch -`. Parent committed its own branch (`be985cf09`), worktree clean:
-first round in this loop that did. It used 1 of 3 kids — "done" bias.
+## Item 54 — CLOSED, both halves proved live
 
-**Verified by hand:** `write.py build:bin-write 'read payload 1:5'` now prints
-and leaves the tree clean — the same command that corrupted two nodes earlier.
+Three broken verbs found, all fixed, all shipped green before:
+- `read` fell through to the write path — restamped `edited_by`, stripped a
+  trailing newline. Fixed: terminal branch before `submit`. **Verified with the
+  exact command that corrupted two nodes.**
+- `body_patch <path>` never applied — submit L494 applies, L531 read the file.
+  Fixed by moving the read before the apply-check; the standalone guard now
+  fires for the path form too.
+- `SKILL.md` overstated the fix (said "path or `-`"); I narrowed it.
 
-🔴 **SD.15 running** for the one piece left: the `body_patch <path>` ordering
-fix (submit L494 applies, L531 reads — 531 after 494), both red-first tests,
-THOUGHT-boundary preserved, live path-form proof. seats.md off limits.
+**Three live adoption proofs, three actors:** kid `a00-b4d8b7b0` →
+`build:bin-write`; me → `build:skills-agi-SKILL.md` via `patch -`; me →
+the hypothesis node via `body_patch <PATH>`.
 
-Original measurements, kept because they are the round's evidence:
-- **Adoption is zero** — 48 engine files / 29 commits since `a52a08952`; the
-  only two recorded uses of `patch`/`body_patch` are the nodes that built them.
-- 🔴 **`write.py … 'read …'` WRITES** — prints no content, prints `updated:`,
-  restamps `edited_by` to `ubuntu`, strips the body's trailing newline.
-  Reverted. Cause: `verb_read` sets `read_target`/`read_range` (L311-312) but
-  `main()` has no terminal branch, so the read falls through to `submit()`.
-  The docstring (L302-305) promises code never written.
-- **No test covers the read verb at all** — suite green at 2241 with it live.
-- `brief.py` never names the verbs (grep count 0); `SKILL.md` L281-283 still
-  calls the gap open.
+🔴 **The recipe that fell out of it:** the applier's body view is offset by one
+from a naive BODY:BEGIN split, and **`read body` shares that view**. So:
+`read body N:M`, then build the hunk from those exact bytes. The two halves
+compose — that is the owner's ask literally.
 
-## Item 55 — proved live, no seat launched
-`handoff.py` claim→read→release works. **HANDOFF.md whole = 77,943 B /
-~19,485 tok; §5 served at 936 B / ~234 tok = 83x less**; §0 ≈ 969 tok = 20x.
-Blocker is discoverability, same as item 54 — nothing names `handoff.py` to a
-seat; I myself read §6 with `sed -n '300,371p'` an hour earlier.
-Friction: `sections` prints `## §N …` which `claim` refuses; `--holder` vs
-`--seat` elsewhere; missing `--holder` prints `None does not hold a claim`.
-Recorded on `hypothesis:l3w4-handoff-sections-claimable`, committed `a80b99992`.
+**Honest gaps, not to be dressed up:** SD.15's kid sits at
+`inconclusive_lean_proved:50` because I pointed `evidence_runs` at itself and
+the gate rightly refused it. Both live runs are invisible to the gate
+(evidence must be node-shaped; a director mints no experiment nodes) — banked
+by XVI to `doc:l4-owner-decisions`.
 
-## Banked for the prime (I must not write `config:seats`)
-The contradiction is narrower than "rows vs body": body L37-38 ("quorum is opus
-on max, director-kids are opus on high") is superseded by **L55/L57 of the same
-body** — the owner's 09-07 23:0x reversal, which sets dir-g1/dir-g15/dir-g16 to
-claude-code / claude-sonnet-5 / max / tty, matching the rows. Fix is to
-`body_patch` L37-38 as superseded, not to touch the rows.
+## Item 55 — sections half CLOSED, rotation half running
+
+`handoff.py` claim→read→release proved live on myself: **HANDOFF.md whole
+77,943 B / ~19,485 tok; §5 served at 936 B / ~234 tok = 83x**; §0 ≈ 20x.
+SD.16 now covers discoverability (`brief.py` names `handoff.py` 0 times), the
+read-then-hunk line, three friction fixes, and fixture-proof of the rotation
+clauses. **No seat may launch** — the node's live claim is banked, not faked.
+
+## Traps paid for this session
+- **0ah** — verify the BYTES, never the `updated:` line. It printed `updated:`
+  for a read that corrupted nodes, a patch that discarded its diff, and a
+  commit whose message described work that never happened.
+- **0ai** — the harness kills background tasks for "low memory" while `free`
+  shows 18.9 GB available. It killed a dispatch wrapper and orphaned a kid.
+  **Launch dispatch with `nohup … &`,** and watch via Monitor, not bash loops.
+- `pgrep -af dispatch.py` matches **the prime's own seat session** (its prompt
+  text contains the string). Sweep by PID off `spawn_budget.py status`, never
+  off a grep — item 71, reproduced.
 
 ## 🔴 Next action if I die here
-Harvest SD.15: `git -C .agi/worktrees/<id> status --porcelain` **before**
-believing the branch empty (a dead parent holds the round uncommitted), then
-merge-base diff only, full verify sequence, merge, `grid.py commit --all`, push.
-Sweep any survivor by PID off `spawn_budget.py status` — never off a `ps` grep.
+Harvest SD.16: `git -C .agi/worktrees/a00-402cda8d status --porcelain` **before**
+believing the branch empty — both harvests this session had staged work with
+zero commits. Then merge-base diff, full verify, merge, `grid.py commit --all`,
+push, report to XVI. Then rotate at cap.
