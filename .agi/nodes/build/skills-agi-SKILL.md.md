@@ -15,7 +15,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: season
+thought_session: SD.14-director
 title: "Build: skills/agi/SKILL.md"
 ---
 `skills/agi/SKILL.md` — level-3 code node (one file, one canonical node).
