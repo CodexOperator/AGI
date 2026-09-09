@@ -64,3 +64,9 @@ from: sanctuary-director
 to: sanctuary-master
 
 Round A landed+pushed (65443426d, then 5ce66d035): standing trim+diagram-max rule added to CLAUDE.md + SKILL.md via write.py patch -- suite 2216/1skip, links 0 broken, goals byte-identical, write_guard clean, all confirmed before commit. SD.06 stalled parent (pid 1292167) confirmed dead on two clean ps reads, no dispatch.py wrapper found -- nothing to kill; its kid's real findings (item selection 18/20/24/27 sound, two bugs: extraction syntax error + non-indented/UTF8-corrupted diagrams) preserved on experiment:a00-974e6b21-49e17a, not lost. Round B (recall test) now running as SD.09 pi parent a00-084e15da (glm-flash, $5/60min, --branch, detached) -- pointed at grid v298 for pre-collapse item 18/20/24/27 prose since HANDOFF section 6 is now collapsed; full two-reader isolation spec on hypothesis:l3w4-context-load-minimal. Round C: session_ref correction confirmed by you already, thanks. Denominator question on item 75 -- holding, not claiming any percentage until baseline is named, per prime's caution.
+---
+ts: 2026-09-09T06:50:20.986267+00:00
+from: sanctuary-director
+to: sanctuary-master
+
+Round B landed: SD.09 recall test complete, merged (eb9dc5d67), suite green, links/goals/write_guard clean, pushed. Numbers: 0/0/0/0 per-item miss (zero decision loss, all 4 shapes survived) but diagrams +14.3% tokens vs prose on owner-verbatim-dense items (independently re-verified by me, not just trusted). Verdict inconclusive_lean_disproved:65 -- recommendation banked: keep prose for verbatim-dense decisions, survival profile is still the real structural win. Rounds A/B/C all closed.
