@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: owner
+edited_by: belam-S1-L3-XVI
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: rc-XVI
@@ -44,3 +44,59 @@ L4 BACKLOG (banked by sanctuary-director gen VI at SD.17/SD.18, 2026-09-09). Two
 Related and already visible: `write.py create --payload` stamps `link_ref` (`links.LINK_FIELD`) while `grid.py` and `grid_coverage_check.py` read only `payload_ref`, so a node minted with `--payload` alone is outside the grid. Not banked as new — it is the known trap 2 — but it is the same failure shape as (2): two components disagreeing about which field or base names a payload, with no error on either side.
 
 OWNER 2026-09-09 ~12:3xZ (to Belam XVI in chat, verbatim, two messages): 'Let's push rotation meter to 0.47 before rotating from here on to save some tokens by not rotating as often.' then 'Leave it as new standing rule for rotation for everyone'. APPLIED the same turn: ladder:ladder director_rotate_at 0.35 -> 0.47 (rotate.py reads the ladder, so every meter, --check and loop for every role now trips at 0.47); the successor brief and SKILL.md wording updated; the 99%-of-Fable-limit trigger (owner 2026-09-07, item 29) is unchanged and still wins when it comes first.
+
+OWNER 2026-09-09 ~13:3xZ (to Belam XVI in chat, verbatim): 'Let's go push everything that still needs a decision just push into the L4 loop, and otherwise close this out. Any traps or hazards still being carried forward add to L4 as well. Once closed push all this to master.' APPLIED the same turn by Belam XVI: L3 CLOSED; COMPLETE.md's L3 section un-drafted; every open HANDOFF item (55 live half, 71 survival mode as the operating state, 96, 103, 104) and every carried trap (HANDOFF section 4) copied into this node as the L4 backlog; season/s2 merged into master (merge commit, never rebase).
+## L4 BACKLOG — carried from L3 at its close (owner 2026-09-09; written by Belam XVI)
+
+Open decisions and unfinished items, each with where it stands:
+
+- **55 (live half).** Perpetual seat rotation loops are proved by fixture only (SD.16, `inconclusive_lean_proved:70`); a live proof needs a seat launch, which survival mode forbids. Owner's call: launch one seat to prove it, or accept the fixture proof. Built half (handoff.py friction, brief.py discoverability) is done.
+- **71 SURVIVAL MODE — the operating state carried into L4.** One worker (`sanctuary-director`), every other seat idle, pi/OpenRouter for work, the Claude budget conserved, one round at a time, the `$1.00` key floor never lowered. Seat idle-cost economics were never priced against the seat design (item 73). Only the owner lifts it.
+- **96 hazard 5 (4/4).** `rotate-self` stamps a generation but writes no rotation record; `loop` writes a record but no stamp — one writer per fact, fix on both paths in `rotate.py`. Also `.agi/sessions/handoff-sections/` is still gitignored (needs `git add -f`): un-ignore it like `rotations/` and `quorum/`.
+- **103 diagram-max vs verbatim-dense prose.** Reading adopted: diagram structure, keep owner verbatim as prose (SD.09 measured +14.3% tokens on diagrammed verbatim). Owner veto open.
+- **104 close L3 — RESOLVED by this order.**
+- **Engine defects banked on L3's last day** (each recorded above in this node): the evidence gate is blind to live runs made outside the kid path; `dispatch.py --prompt-file` is dropped for `--tier parent`; `grid.py` ignores `locations.payload_base`; the survival profile is not wired for a rotating seat (`AGI_BRIEF_PROFILE` ignored on rotation); generation wipe + verify + pin + announce + skill load are still hand chores that the owner wants as harness code; the "[ask] how do I rotate?" spam (test_send.py fixture escaping into live panes); `write_guard --strict` warns on an adopted-unchanged payload.
+- **Still waiting on the owner from earlier items:** custom webhooks (item 42); the auto-alert side channel for DMs (item 62 — nothing alerts a prime to mail); per-kid branching (items 91/93 — the code deliberately does the opposite); seat ID migration (item 59, deferred as one atomic pass).
+- **The prime's successor brief** (`extensions/agi/briefs/prime-director-successor.md`) still describes the L3 round loop; it needs an L4 rewrite once the owner names L4's first round.
+
+## TRAPS CARRIED INTO L4 (headlines; full text = HANDOFF.md §4 at commit 91d33742d, the last L3 version)
+
+- 0al. A NODE THE SUITE PINS IS CODE — run the suite after any `.geometry` write.
+- 0ak. BYTES-IN-NODE IS NOT BRIEF-IN-EFFECT.
+- 0aj. `dispatch.py --dry-run` TRUNCATES the brief it prints (`...<N chars>`)
+- 0ai-b. The harness's low-memory reaper kills a backgrounded VERIFICATION too — `nohup` does not protect it.
+- 0ai. Host memory pressure kills the DISPATCH WRAPPER, which takes the PARENT with it while its KID survives as an orphan of init
+- 0ah. `write.py <id> "body_patch <path>"` NEVER APPLIED THE DIFF
+- 0ag. A dispatch must be GATED on its brief landing, never merely sequenced after it.
+- 0af. After the item-53 fix an orphaned parent is MORE expensive, and the ceiling is the only thing bounding it.
+- 0ae. `git diff season/s2..HEAD` on a branch is NOT a change list
+- 0ac. A number that answers the question you set out to ask is not the same as the number that matters.
+- 0ad. `ListAgents` display names collide LIVE, not just historically
+- 0ab. When a grep comes back clean, check the CALLEE before concluding the mechanism is absent.
+- 0z. `tiktoken` is NOT in the default `python3` (the hermes venv) — use `/usr/bin/python3.12` for any token measurement.
+- 0aa. `cli.py done` prints `ERR: worktree commit failed … tier kid may not commit` and that is the GUARD WORKING, not a failure
+- 0y. An exit code measured through a pipe is the LAST command's, not the one you care about.
+- 0x. "Erasing is safe, it's in the grid" names a command that assumes a PAYLOAD.
+- 0w. Check the validator BEFORE writing a value you reasoned your way to.
+- 0u. A §6 append must read the highest LIVE item number at write time, not the tail it last saw.
+- 0v. A `SendMessage` success is evidence the transport worked, never that the right seat read it.
+- 0t. Never key a wait-loop on a file you also write to.
+- 0q. `ps -p <pid>` BEFORE YOU HARVEST.
+- 0r. `write.py "note X && note Y"` silently keeps only the LAST note
+- 0s. The constitution head is NOT injected on the seat-launch path
+- 0p. Background wait-monitors do still get killed by memory pressure
+- 0o. The `.env` OpenRouter key is a provisioning SUB-KEY with its own dollar cap, and OpenRouter reports hitting it as `401 API key expired`
+- 0l. Belam VI was spawned into a Fable subscription at 92% (pane footer at 19:45 UTC: `You've used 92% of your Fable limit · resets Sep 9, 2am America/New_York`)
+- 0m. Belam V's prose UTC stamps run ~22 min ahead of the machine clock
+- 0n. `dispatch.py`'s reaper gives up at `agent_timeout_mins` (20) and exits with `reaper: finished` while its pi agents keep running
+- 0b. `write.py` options go AFTER the positional script arg
+- 0c. `rotate.py meter` reads the NEWEST `.jsonl` in the project transcript dir
+- 0f. The Claude subscription session limit kills a CC-harness agent mid-turn and the adapter cannot tell
+- 0i. Never run `level3.py` without `--dry-run`
+- 0h. Owner lost the remote-control GUI connection on desktop (~13:45 UTC) and feared it errored the prime
+- 0g. A brief whose claim states a defect gets "proved" by confirmation and fixed by nobody
+- 0e. Never run the engine suite twice at once
+- 1. Prose verbs cannot contain `&&`
+- 2. `write.py create --payload` stamps `link_ref`, not `payload_ref`
+- 3. Payload writes are whole-file.
+- 4. Attribution is load-bearing in the constitution.
