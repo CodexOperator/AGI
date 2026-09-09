@@ -1230,8 +1230,19 @@ def seed_required(root, node_type, fm, slug) -> list[str]:
 #: derive -- the kid holds that content and writes it into the body, which is
 #: exactly where a kid is supposed to write.
 _BODY_SECTIONS = {
-    "testable_claim": ("testable claim", "claim"),
+    "testable_claim": ("testable claim", "claim", "hypothesis", "the claim"),
     "title": ("title",),
+}
+
+
+#: The scaffold's own question prompts. A kid who answers replaces these with
+#: real prose; lifting an untouched prompt would INVENT a claim the kid never
+#: made -- exactly the failure `*_invents_nothing*` guards against. A section
+#: whose text is one of these is treated as absent.
+_PLACEHOLDER_PARAS = {
+    # the one our own scaffold ships to every hypothesis kid
+    "testable_claim": "What is the testable claim? What would prove it? "
+                      "What would disprove it?",
 }
 
 
@@ -1296,6 +1307,11 @@ def derive_required_from_body(root, node_id, announce=False) -> NodeWrite:
     set_fm = {}
     for name in missing_required(root, ntype, nf.frontmatter, node_id):
         text = _section_text(nf.body, _BODY_SECTIONS.get(name, ()))
+        if text:
+            # An untouched scaffold leaves its question prompt in place; that is
+            # a non-answer, not a claim. Skip it so the field stays reported.
+            if _PLACEHOLDER_PARAS.get(name) == text.strip():
+                text = None
         if text:
             set_fm[name] = text
         elif name == "title":

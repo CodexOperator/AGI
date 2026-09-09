@@ -508,7 +508,22 @@ def cmd_done(args: argparse.Namespace) -> int:
                 if filled.status == node_writer.UPDATED:
                     print(f"schema: filled required field(s) on {args.node_id} "
                           f"from its body (goal:s31)")
+                # goal:s31 -- loud-but-never-fatal: if the lift left any
+                # schema-required field still missing, say so on stderr. The
+                # kid's work is already on disk; rc is unchanged either way.
+                still_missing = _missing_after_lift(root, args.node_id)
+                if still_missing:
+                    print(
+                        f"SCHEMA-WARNING: {args.node_id} still missing required "
+                        f"field(s): {', '.join(still_missing)} (goal:s31). The "
+                        f"kid's work is saved; backfill these or have a parent "
+                        f"complete them.",
+                        file=sys.stderr,
+                    )
             except Exception as exc:
+                # The derive above already warned loudly on a live failure via
+                # its own except; this catch keeps `done` from ever dying on a
+                # lift misstep. The lift is never fatal by design.
                 print(f"warn: could not complete {args.node_id} from its body: "
                       f"{exc}", file=sys.stderr)
             print(f"updated verdict in: {node_file}")
@@ -640,6 +655,24 @@ def _find_node_file(root: Path, node_id: str) -> Path | None:
     here and the name is the more readable one at each of them.
     """
     return node_writer.find_node_file(root, node_id)
+
+
+def _missing_after_lift(root, node_id) -> list[str]:
+    """Which schema-required fields a node still lacks after the lift.
+
+    goal:s31 -- the loud, never-fatal tail of the completion half: `done` lifts
+    what the body advertises, then reports what common scaffolding still
+    leaves missing rather than silently finishing with an invalid node. A
+    parse failure returns [] -- the derive above already warned on stderr.
+    """
+    path = node_writer.find_node_file(root, node_id)
+    if path is None:
+        return []
+    ok, fm, _ = _load_frontmatter(path.read_text())
+    if not ok or not fm:
+        return []
+    ntype = node_writer.canonical_node_type(fm.get("type") or path.parent.name)
+    return node_writer.missing_required(root, ntype, fm, node_id)
 
 
 def _claim_node(root: Path, node_id: str, session_id: str, force: bool = False) -> tuple[bool, str]:
