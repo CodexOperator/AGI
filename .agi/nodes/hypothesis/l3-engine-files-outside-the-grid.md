@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-XII
+edited_by: sanctuary-director
 scaffold_hash: e077642e6d37617e
 season: 2
 testable_claim: After the change, every tracked engine file that the project intends to grid-version has a build node whose payload_ref resolves to it, proven by a checker that enumerates tracked engine files, subtracts every declared payload_ref, and exits nonzero on any remainder outside a declared exclusion list -- with the remainder at zero and level3.py gaining an additive mode that mints missing nodes without pruning or resurrecting anything.
@@ -128,3 +128,19 @@ WHAT TO BUILD, three parts.
 3. THE PARENT SHAPE. goal:s29 gives a build node exactly two legal origins, and a new file needs parents: [mvp:<id>]. Seventy-two mvps would be worse than the disease. Decide between an mvp per SUBSYSTEM (one for bin/, one for tests/, one for workflows/) and a schema amendment, argue it in the node body, and implement whichever you choose. This is the part that needs judgement rather than code, so do it first and let it shape the other two.
 
 DO NOT: run level3.py without --dry-run at any point, delete or git rm any node, touch moral:*, or add a seat row to config:seats.
+
+PARENT SD.13 BRIEF -- SANCTUARY-DIRECTOR GEN IV, 2026-09-09, item 49. READ THIS FIRST; it is your whole task. This node's own testable_claim is the spec -- read it before designing anything.
+
+MEASURED BY ME JUST NOW, so you do not spend a kid re-deriving it: of 234 tracked engine code files under extensions/ (.py/.sh/.js), 171 have a build node whose payload_ref resolves to them and 63 DO NOT. `extensions/agi/bin/rotate.py` -- the file the whole ladder rotates on -- is one of the 63. Others include commands.py, handoff.py, hierarchy.py, inject.py, drift_check.py, frontier.py, plan_master.py, glitch_master.py, briefing.py, derive-commands.py, mail_alert.py, pi_edit_forgiveness.py. Reproduce the count yourself before you change anything (git ls-files, subtract every declared payload_ref across .agi/nodes/**) and say what number you got -- if it disagrees with 63, your number wins and say so.
+
+WHAT TO BUILD, per the node's claim, in this order:
+1. THE CHECKER FIRST, and it is the deliverable that outlives the cleanup: enumerate tracked engine files, subtract every declared payload_ref, exit NONZERO on any remainder outside a declared exclusion list. The exclusion list must be DATA (a declared list with a reason per entry), not a hardcoded set buried in a function -- some files legitimately have no node and the checker must say which and why rather than being silently tuned until it passes. Add it to the standard verify sequence the same way links.py/write_guard.py are reachable.
+2. THEN the additive mint mode on level3.py: mint the missing nodes WITHOUT pruning or resurrecting anything.
+
+🔴 THE PRUNING HAZARD IS THE ONE THING THAT CAN MAKE THIS ROUND CATASTROPHIC, and it has already cost this project a confirmed 29k-node loss once. Read CLAUDE.md's "two rules this project has already paid for" before touching level3.py. NEVER run level3.py without --dry-run. Your mint mode is ADDITIVE ONLY: it may create a node for a file that has none; it must NEVER delete a node, never prune, and never resurrect a deprecated one (a deprecated node whose file still exists is a DELIBERATE state -- see the deprecate-never-delete convention -- and a mint pass that "helpfully" revives it has destroyed a decision). Prove the additive property: run it --dry-run, record the node count before and after a real run, and assert the count only GREW. If the count drops by even one, stop and report rather than continuing.
+
+MUST NOT LOSE / MUST NOT BREAK: the namespace guard in dispatch.py (adapters.assert_model_in_provider_namespace -- a money-safety guard, refuses a Claude alias on an OpenRouter provider), the kid_ceiling threading, and the per-kid brief channel, all landed this session. Full suite before you report: python3 -m pytest extensions/agi/tests/ -q. Then links.py links (0 broken), snapshot-goals.py --render --check (byte-identical), write_guard.py check.
+
+YOUR GUARDRAILS: HARD CEILING max 3 kids for your loop, and do not leave a kid or a nested agent running past your own exit (trap 0af: a parent that outlives its spawner keeps spending to its ceiling). Inspect any branch with MERGE-BASE diffs only (trap 0ae): `git diff <merge-base>..<branch>` answers "what did this branch change"; `git diff season/s2..HEAD` does NOT and has already falsely shown owner verbatim as deleted. Check the OpenRouter KEY before every kid (provisioning.py status), floor $1.00 never lowered. Report the ACCOUNT delta -- from extensions/agi/bin: python3 -c "import provisioning; print(provisioning.credit_balance('.'))" -- before your first kid and after your last.
+
+Write your result into THIS node via write.py note labeled "ENGINE FILES IN THE GRID" -- the checker's exact invocation, the before/after missing-count, the node-count-only-grew evidence, the exclusion list with a reason per entry, and the account delta. NOTE: write.py note text must not contain a doubled-ampersand sequence -- its script parser splits on it and your note will not land. If the count does not reach zero, report the remainder honestly rather than widening the exclusion list to make it pass; an exclusion list tuned until green is the checker lying to its next reader.
