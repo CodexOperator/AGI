@@ -51,8 +51,8 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
 
 ```
-BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 09:0xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.35/$92
-SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 on the ACCOUNT via per-spawn keys — the runtime key does not move; read /credits for the delta
+BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 09:4xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.27/$92
+SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 · SD.12 $0.08 on the ACCOUNT via per-spawn keys — the runtime key does not move; /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
        OWNER 08:2xZ: SWEPT 46/53 agi-rc windows by PID; KEPT Belam X-XIV (last 5 predecessors), XV, SD · L4: generation wipe + verify + pin + announce + skill load ALL become harness code
@@ -72,8 +72,11 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        SD.11 LANDED d7b3a3ba9 (review a617251e7, $0.29): ITEM 53 SPLIT — ITERATION PROVED (nested parent a00-3f745c2f: 3 kids from ONE dispatch,
          brief carried YOU ITERATE + HARD CEILING 4; vs 10/10 one-shot before) · CARRY-FORWARD NOT HAPPENING, mechanically: a kid's brief is built
          from --target only, dispatch.py has no per-kid brief channel (no --prompt-file) -> kids 2/3 never saw kid 1. Node stays pending, reason now specific.
-       SD.12 IN FLIGHT (a00-e2b96672, glm-flash, $5/60min, --branch): the PRIMITIVE — per-kid brief channel on dispatch.py threaded into brief.py like kid_ceiling,
-         PLUS the _parent iteration contract naming the flag; live gate = kid 2's recorded agent.json command literally contains kid 1's node id. acct before $13.35
+       SD.12 MERGED ($0.08): dispatch.py --prompt-file (path or '-', never inline) threaded into the kid brief as a labelled segment; None = byte-identical spawn;
+         _parent contract names the flag. lean_proved:70 — DRY-RUN proven only; the live carry-forward gate runs in SD.13.
+       SD.13 IN FLIGHT (a00-ccfa5c0b, item 49 node): 234 engine files, 171 with a build node, 63 WITHOUT (rotate.py, commands.py, handoff.py, hierarchy.py,
+         inject.py, drift_check.py, frontier.py, plan_master.py …) — checker first (exclusions as declared data), additive mint second, level3 --dry-run only, count must GROW.
+         LIVE GATE inside it: --prompt-file deliberately NOT in the brief — does the contract alone make a parent carry kid 1's node id into kid 2? Either answer is a finding.
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
@@ -182,7 +185,7 @@ git push origin season/s2
 STILL OPEN (prose kept below)      | pointer
 -----------------------------------+--------------------------------------------------
  49  engine files with no build node | briefs/, rotate.py … bytes outside the grid
- 53  parent super-loop               | ITERATION PROVED (SD.11, d7b3a3ba9); carry-forward needs a per-kid brief channel — SD.12
+ 53  parent super-loop               | iteration PROVED (SD.11); --prompt-file channel BUILT (SD.12, dry-run); live carry-forward gate = SD.13
  54  partial reads / diffs-as-writes | write.py patch / body_patch LANDED; adoption open
  55  perpetual quorum + handoff slices| l3w4-seat-rotation-loops · l3w4-handoff-sections
  71  SURVIVAL MODE — IN FORCE         | ONE worker: sanctuary-director; idle seats cost ~0
