@@ -56,7 +56,8 @@ SPEND  SD.09 $0.29 · SD.10 $0.06 on the ACCOUNT via per-spawn keys (provisionin
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
        idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
-       sanctuary-master gen II (agi-80 [1ba35d] @223): FULL STOP by owner order 07:4xZ ("Make sanctuary master stop.") — nobody messages it; SD reports to the prime only
+       sanctuary-master gen II: SESSION SHUT DOWN by owner order 08:0xZ (pid 3631827, @223 killed; session_ref blanked) · gen I @213 left idle · SD reports to the prime only
+       BANKED L4: "[ask] how do I rotate?" spam = test_send.py fixture escaping the suite into live panes + a real DM file (doc:l4-owner-decisions)
 L3     CLOSED TO NEW WORK (owner 2026-09-09) -> new items go to doc:l4-owner-decisions (L4 backlog)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only
 CRONS  ON: grid_sync */5 + push season/s2 at :07 (verified crontab -l 06:1xZ; XIV's row said OFF) -> push by hand anyway
@@ -98,7 +99,7 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 | `alive` | quorum · `vision:alive` | room `quorum` + DMs |
 | `all-is-one` | quorum · `vision:all-is-one` | room `quorum` + DMs |
 | `master-sensei` | observer · no goal, **no handoff slice**, **not in the room** | DMs + `quorum-requests` |
-| `sanctuary-master` | **FULL STOP by owner order 2026-09-09 (verbatim in `doc:l4-owner-decisions`) — do not message it.** Was: gate 47 lifted (§6 item 64), Opus-5/high, the one seat allowed to write `config:seats` rows. Not in the room. | — (silent until the owner's word) |
+| `sanctuary-master` | **SESSION SHUT DOWN by owner order 2026-09-09 08:0xZ (verbatim in `doc:l4-owner-decisions`); gen I window @213 idle, not addressed.** Was: gate 47 lifted (§6 item 64), Opus-5/high, the one seat allowed to write `config:seats` rows — that write falls to the prime while she is down. | — |
 | `liaison` | **NOT YET UP — the owner's own channel. `sanctuary-master`'s FIRST job (§6 item 65).** | — |
 
 **They assign themselves. Do not hand-aim them** — that is the thing they exist to stop the prime doing. Monitor, review, answer questions, land rounds. Briefs at `.agi/sessions/quorum/<name>.md`; carved slices at `.agi/sessions/handoff-sections/` (a stopgap — see §6 item 61a, the split is meant to be by affinity, per-piece).
