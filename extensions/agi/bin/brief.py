@@ -1139,6 +1139,16 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "  python3 extensions/agi/bin/write.py build:bin-x 'read payload 10:20'\n"
         "  python3 extensions/agi/bin/write.py build:bin-x 'patch -'   # unified diff on stdin (fail-closed)\n"
         "  python3 extensions/agi/bin/write.py hypothesis:x 'body_patch -'  # diff onto the node BODY",
+        # hypothesis:l3w4-handoff-sections-claimable -- name the section tool
+        # so a seat that reads a handoff knows it exists (SD.16). Keep SHORT.
+        "HANDOFF SECTIONS: `python3 extensions/agi/bin/handoff.py sections` "
+        "lists claimable sections; `... claim --seat <S> <sec>` claims one, "
+        "`... read <sec>` serves just that slice (83x cheaper than the file).",
+        # l3w4 read-then-hunk recipe; measured trap -- the applier's body view
+        # is offset one from a naive split on BODY:BEGIN, and `read body`
+        # shares that exact view, so number the hunk from those bytes.
+        "To patch a node body: `write.py <id> 'read body N:M'` first and build "
+        "the hunk from those exact bytes.",
         # L3.37/38: the edit tool rejected, across two independent kids in one
         # round, an `edits` argument passed as a single JSON string and one
         # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.

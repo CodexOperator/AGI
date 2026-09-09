@@ -134,6 +134,29 @@ def estimate_tokens(byte_count: int) -> int:
     return max(1, byte_count // _TOKENS_PER_BYTE)
 
 
+def norm_section(section: str) -> str:
+    """Accept a section name with or without its `## ` printed prefix.
+
+    `sections` prints `## <name>` and `claim`/`read`/`write` address a section
+    by its bare name; the tool's own output must be copy-pasteable back into
+    its own next command (SD.16 friction a). A bare name has no leading `## `
+    and is returned unchanged.
+    """
+    return re.sub(r"^##\s*", "", section).strip()
+
+
+def _holder_opts(subp, *, required=False):
+    """Add `--holder` (canonical) and `--seat` (alias) to a subcommand.
+
+    Every other seat-aware entry point spells it `--seat`; `handoff.py` alone
+    used `--holder`. Both write to the same dest so a seat may use either.
+    """
+    subp.add_argument("--holder", required=required,
+                      help="seat holding the claim")
+    subp.add_argument("--seat", dest="holder",
+                      help="alias for --holder")
+
+
 # ---------------------------------------------------------------------------
 # Claims (lease files + flock), following spawn_budget
 # ---------------------------------------------------------------------------
@@ -402,23 +425,23 @@ def main(argv: list[str] | None = None) -> int:
 
     p_c = sub.add_parser("claim", help="claim a section (read) or --write it")
     p_c.add_argument("section")
-    p_c.add_argument("--holder", required=True)
+    _holder_opts(p_c)
     p_c.add_argument("--write", action="store_true")
     p_c.add_argument("--force", action="store_true")
 
     p_r = sub.add_parser("release", help="release a claim")
     p_r.add_argument("section")
-    p_r.add_argument("--holder", required=True)
+    _holder_opts(p_r, required=True)
 
     p_rd = sub.add_parser("read", help="read one claimed section (or --whole)")
     p_rd.add_argument("section", nargs="?")
-    p_rd.add_argument("--holder")
+    _holder_opts(p_rd)
     p_rd.add_argument("--prime", action="store_true")
     p_rd.add_argument("--whole", action="store_true")
 
     p_w = sub.add_parser("write", help="replace one held section (see --help)")
     p_w.add_argument("section")
-    p_w.add_argument("--holder")
+    _holder_opts(p_w)
     p_w.add_argument("--prime", action="store_true")
     p_w.add_argument("--content", help="inline new section text")
     p_w.add_argument("--content-file", type=Path)
@@ -428,6 +451,11 @@ def main(argv: list[str] | None = None) -> int:
 
     args = ap.parse_args(argv)
     root = Path(args.root).resolve()
+
+    # `sections` prints `## <name>`; `claim`/`read`/`write` address a section
+    # by its bare name. Accept the tool's own printed form (SD.16 friction a).
+    if hasattr(args, "section") and args.section:
+        args.section = norm_section(args.section)
 
     try:
         if args.cmd == "sections":
@@ -442,6 +470,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.cmd == "claim":
+            if not args.holder:
+                print("REFUSED: claim needs --holder <seat> (or --seat)",
+                      file=sys.stderr)
+                return 1
             res = claim(root, args.section, args.holder, write=args.write,
                         force=args.force)
             if "error" in res:
@@ -465,6 +497,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if ok else 1
 
         if args.cmd == "read":
+            if not (args.holder or args.prime or args.whole):
+                print("REFUSED: read needs --holder <seat> (or --prime / --whole)",
+                      file=sys.stderr)
+                return 1
             res = read_section(root, args.section or "", args.holder,
                                prime=args.prime, whole=args.whole)
             if "error" in res:
@@ -477,6 +513,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.cmd == "write":
+            if not (args.holder or args.prime):
+                print("REFUSED: write needs --holder <seat> (or --prime)",
+                      file=sys.stderr)
+                return 1
             if not (args.content or args.content_file or args.stdin):
                 print("write needs --content, --content-file or --stdin",
                       file=sys.stderr)

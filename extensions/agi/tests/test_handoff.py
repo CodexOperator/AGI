@@ -158,3 +158,49 @@ def test_read_claim_released_frees_it(root: Path):
     handoff.claim(root, "§5 Verify", "seatA")
     assert handoff.release(root, "§5 Verify", "seatA")
     assert not handoff.show_claims(root)
+
+
+# ---------------------------------------------------------------------------
+# SD.16 friction fixes -- the tool's own output is copy-pasteable back in
+# ---------------------------------------------------------------------------
+
+def test_norm_section_strips_printed_prefix():
+    assert handoff.norm_section("## §5 Verify") == "§5 Verify"
+    assert handoff.norm_section("§5 Verify") == "§5 Verify"
+
+
+def test_cli_claim_accepts_printed_form_and_seat_alias(root: Path, capsys):
+    # `sections` prints `## <name>`; claim must accept that exact string (friction a)
+    # and `--seat` as the alias for `--holder` (friction b).
+    rc = handoff.main(["--root", str(root), "claim", "## §5 Verify", "--seat", "seatA"])
+    out, _ = capsys.readouterr()
+    assert rc == 0
+    assert "claimed" in out
+    assert handoff.show_claims(root)
+
+
+def test_cli_read_with_seat_alias_serves_section(root: Path, capsys):
+    handoff.claim(root, "§5 Verify", "seatA")
+    rc = handoff.main(["--root", str(root), "read", "## §5 Verify", "--seat", "seatA"])
+    out, _ = capsys.readouterr()
+    assert rc == 0
+    assert "gamma" in out
+
+
+def test_cli_read_missing_holder_names_the_flag(root: Path, capsys):
+    # friction c -- a bare `read` must say WHICH flag is missing,
+    # never print "None does not hold a claim".
+    rc = handoff.main(["--root", str(root), "read", "§5 Verify"])
+    _, err = capsys.readouterr()
+    assert rc == 1
+    assert "--holder" in err
+    assert "None" not in err
+
+
+def test_cli_write_missing_holder_names_the_flag(root: Path, capsys):
+    rc = handoff.main(["--root", str(root), "write", "§5 Verify",
+                      "--content", "## §5 Verify\nnew"])
+    _, err = capsys.readouterr()
+    assert rc == 1
+    assert "--holder" in err
+    assert "None" not in err
