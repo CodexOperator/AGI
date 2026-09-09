@@ -402,3 +402,94 @@ def test_done_does_not_commit_main_checkout(tmp_path, monkeypatch):
     assert _ggit(main, "status", "--porcelain").stdout.strip(), \
         "main's uncommitted work must survive done untouched"
     assert (main / "sibling.md").exists()
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l3-done-lifts-testable-claim -- the completion-half lift at done
+# --------------------------------------------------------------------------
+
+def _hypothesis_schema_project(tmp_path):
+    """graph root whose [hypothesis].md schema requires testable_claim, plus a
+    hypothesis node the kid wrote and a backer experiment for the gate."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    schemas = graph / "context" / "schemas"
+    schemas.mkdir(parents=True)
+    (schemas / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nvalidation:\n  required: ["
+        "id, type, mint_id, title, testable_claim]\nspawn:\n"
+        "  allowed_parents: [goal]\n  min_parents: 1\n---\n\nbody\n")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- goal:g1\n---\n\nbody\n")
+    (graph / "nodes" / "hypothesis" / "hy.md").write_text(
+        "--HYPOTHESIS_BODY--")
+    (graph / "sessions" / "iter-001" / "a00-x").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
+        '{"id": "a00-x", "node_id": "hypothesis:hy", '
+        '"parent": "goal:g1", "status": "running"}')
+    import argparse
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
+        node_id="hypothesis:hy", parent="goal:g1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    return graph, args, (graph / "nodes" / "hypothesis" / "hy.md")
+
+
+def test_done_lifts_a_kid_claim_written_under_hypothesis_heading(tmp_path,
+                                                                 monkeypatch,
+                                                                 capsys):
+    """A kid that replaced the scaffold prompt with real prose under
+    ## Hypothesis sees the field lifted into testable_claim by real `done`:
+    schema-valid at done, empty missing_required, no SCHEMA-WARNING."""
+    cli = _load_cli()
+    graph, args, hy_md = _hypothesis_schema_project(tmp_path)
+    hy_md.write_text(
+        "---\nid: hypothesis:hy\ntype: hypothesis\nmint_id: "
+        "9f38d062aa\nparents:\n- goal:g1\n---\n\n"
+        "# hypothesis:hy\n\n"
+        "## Hypothesis\n\n"
+        "The live population never exceeds the declared bound.\n")
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+
+    assert cli.cmd_done(args) == 0
+
+    text = hy_md.read_text()
+    assert "testable_claim: The live population never exceeds the declared bound." \
+        in text
+    import node_writer  # noqa: E402
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    nf = _fm.load_node_file(hy_md)
+    assert "testable_claim" not in node_writer.missing_required(
+        graph, "hypothesis", nf.frontmatter, "hypothesis:hy")
+    assert "SCHEMA-WARNING" not in capsys.readouterr().err
+
+
+def test_done_loudly_warns_but_never_invents_when_the_prompt_stays(tmp_path,
+                                                                  monkeypatch,
+                                                                  capsys):
+    """A scaffold left with its untouched placeholder prompt is NOT lifted (that
+    would invent a claim the kid never made); `done` prints a loud, never-fatal
+    SCHEMA-WARNING and still exits 0 with the work saved."""
+    cli = _load_cli()
+    graph, args, hy_md = _hypothesis_schema_project(tmp_path)
+    # the untouched scaffold: prompt still the default question text
+    hy_md.write_text(
+        "---\nid: hypothesis:hy\ntype: hypothesis\nmint_id: "
+        "9f38d062aa\nparents:\n- goal:g1\n---\n\n"
+        "# hypothesis:hy\n\n"
+        "## Hypothesis\n\n"
+        "What is the testable claim? What would prove it? What would "
+        "disprove it?\n")
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+
+    assert cli.cmd_done(args) == 0  # never-fatal
+
+    err = capsys.readouterr().err
+    assert "SCHEMA-WARNING" in err
+    assert "testable_claim" in err
+    assert "testable_claim:" not in hy_md.read_text()
