@@ -844,6 +844,128 @@ def find_parent(rel_path: str, units: list[dict]) -> str | None:
 # --- id / slug minting ---------------------------------------------------
 
 
+def read_mvp_map(path: Path | None) -> list[tuple[str, str]]:
+    """Goal:s29 parent map, as declared DATA: rel-path-prefix -> mvp:<id>.
+
+    A NEW build node needs `parents: [mvp:<id>]` (goal:s29) — an mvp states the
+    minimum a subsequent build must satisfy, so a file with one is argued for
+    rather than just written. `--mint-missing-only` attaches that parent by
+    subsystem (one mvp per subsystem — bin/, tests/, workflows/, ... — because
+    72 per-file mvps would be bookkeeping, not thought). The map lives in a
+    data file, never an if-statement, one `prefix | mvp:<id>` line per
+    subsystem. Longest-prefix wins so a specific subsystem overrides a general
+    one. A missing file is an empty map — the mint then falls back to the census
+    parent, then parentless; the parent is provenance, not a gate.
+    """
+    mapping: list[tuple[str, str]] = []
+    if path is None or not Path(path).is_file():
+        return mapping
+    for raw in Path(path).read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "|" not in line:
+            continue
+        prefix, mvp_id = (p.strip() for p in line.split("|", 1))
+        if prefix and mvp_id.startswith("mvp:"):
+            mapping.append((prefix, mvp_id))
+    return mapping
+
+
+def mvp_parent_for(rel_path: str, mapping: list[tuple[str, str]]) -> str | None:
+    """Longest-matching `prefix | mvp:<id>` for `rel_path`, or None (flag, don't
+    guess — same shape as find_parent)."""
+    best_id, best_len = None, -1
+    for prefix, mvp_id in mapping:
+        if rel_path.startswith(prefix) and len(prefix) > best_len:
+            best_id, best_len = mvp_id, len(prefix)
+    return best_id
+
+
+# --- mint-missing-only: the ADDITIVE pass (trap 0i) -------------------------
+
+
+def mint_missing(files, existing, units, project_root, engine_root,
+                 level3_dir, args, mvp_map) -> int:
+    """`--mint-missing-only`: mint a build node + payload_ref ONLY for a tracked
+    file that has none. This mode is the trap-0i escape: default level3.py is
+    destructive (it prunes stale build-scan nodes), so the fix is a mode that
+    CANNOT be destructive by construction rather than a promise to be careful.
+
+    Additivity is structural, not a promise:
+      - a file already declared by ANY payload_ref is skipped — that includes a
+        deprecated build node that still claims the file, because a deprecated
+        node whose file still exists is a DELIBERATE state and reviving it would
+        destroy a decision (deprecate-never-delete);
+      - a slug-id already owned by an existing node is skipped — a duplicate id
+        under two paths is the one shape every id-keyed reader disagrees on;
+      - minted nodes are written FRESH at the live build address only; a
+        deprecated node is never moved, re-stamped, or un-deprecated;
+      - there is no prune branch and no rewrite branch anywhere in this mode.
+    """
+    declared_refs: set[str] = set()
+    for node in existing.values():
+        ref = (node.get("fm") or {}).get("payload_ref")
+        if ref:
+            declared_refs.add(str(ref))
+
+    # Scope is the CHECKER's boundary (grid_coverage_check.py): tracked CODE
+    # files under extensions/skills/src/bin only — the universe the grid-cover
+    # invariant enumerates and the 65-file backlog was measured in. Prose
+    # (briefs, docs, manifests), the `.claude/workflows/*.js` SYMLINKS (trap
+    # 0i — the real file each points at already has its own node) and any
+    # stray extension-less file are deliberately OUT: none of them is a node
+    # the invariant demands, so minting them would over-reach the parent's one
+    # job. This guard keeps mint and checker agreeing by construction.
+    candidates = [
+        f for f in files
+        if f.startswith(("extensions/", "skills/", "src/", "bin/"))
+        and (f.endswith(".py") or f.endswith(".sh") or f.endswith(".js"))
+    ]
+    missing = sorted(f for f in candidates if f not in declared_refs)
+    print(f"--mint-missing-only: {len(missing)} un-noded code file(s) of "
+          f"{len(candidates)} tracked-code ({len(files)} boundary-admitted)")
+    if not missing:
+        print("nothing to mint — every tracked file already has a payload_ref")
+        return 0
+
+    minted: list[str] = []
+    skipped_collision: list[str] = []
+    for rel_path in missing:
+        node_id = f"build:{slug_for(rel_path)}"
+        if node_id in existing:
+            skipped_collision.append(rel_path)
+            print(f"SKIP (id collision — existing node owns {node_id}): {rel_path}",
+                  file=sys.stderr)
+            continue
+        abs_path = engine_root / rel_path
+        if not (abs_path.is_symlink() or abs_path.exists()):
+            # Tracked means present; a graph-authored pre-publish file lands in
+            # the payload checkout (goal:g6.1). Same fallback as the main pass.
+            abs_path = project_root / grid.PAYLOAD_DIR / rel_path
+        # goal:s29 — a NEW build node is parented by the mvp that specified its
+        # subsystem; fall back to the census parent, then parentless; never guessed.
+        parent_id = (mvp_parent_for(rel_path, mvp_map)
+                     or find_parent(rel_path, units))
+        _id, fm, body, analysis = build_node(rel_path, abs_path, parent_id,
+                                             prior_body=None)
+        slug_part = node_id.split(":", 1)[-1]
+        out_path = level3_dir / f"{slug_part}.md"
+        parent_note = f", parent {parent_id}" if parent_id else ", parentless"
+        if args.dry_run:
+            print(f"DRY-RUN: would mint {out_path} ({node_id}{parent_note})")
+            continue
+        write_frontmatter(out_path, fm, body, origin=ORIGIN,
+                          preserve=None, preserve_body=None)
+        print(f"MINTED: {node_id} ({rel_path}{parent_note})")
+        minted.append(rel_path)
+
+    verb = "would mint" if args.dry_run else "minted"
+    print(f"level-3 nodes {verb} (mint-missing-only): {len(minted)}")
+    print(f"  skipped (id collision): {len(skipped_collision)}")
+    print("stale pruned (mint-missing-only): 0 — this mode is ADDITIVE ONLY")
+    print(f"target dir: {level3_dir}")
+    return 0
+
+
 def slug_for(rel_path: str) -> str:
     trimmed = rel_path
     if trimmed.startswith("extensions/agi/"):
@@ -1013,6 +1135,19 @@ def main(argv: list[str] | None = None) -> int:
                          "engine tree. Discovery still reads the engine tree "
                          "(a file with no node yet can only be found there); "
                          "derivation stops depending on it.")
+    ap.add_argument("--mint-missing-only", action="store_true",
+                    help="ADDITIVE ONLY (trap 0i). Mint a build node + payload_ref "
+                         "ONLY for a tracked file that has none. By construction "
+                         "incapable of destruction: never prunes, never resurrects "
+                         "a deprecated node, never touches an existing node. The "
+                         "default mode stays forbidden without --dry-run.")
+    ap.add_argument("--mvp-map", default=None,
+                    help="goal:s29 parent data for --mint-missing-only: a file "
+                         "mapping a rel-path prefix to the mvp:<id> that specified "
+                         "its subsystem. One '%s' per line, longest-prefix wins; a "
+                         "minted node gets parents: [mvp:<id>] (else falls back to "
+                         "the census parent, then parentless). Never an in-code if."
+                         % 'prefix | mvp:<id>')
     args = ap.parse_args(argv)
 
     if args.project:
@@ -1048,6 +1183,16 @@ def main(argv: list[str] | None = None) -> int:
     units = load_census_units(existing)
 
     level3_dir = project_root / "nodes" / "build"
+
+    if args.mint_missing_only:
+        # trap 0i — the ADDITIVE mode, chosen deliberately; the destructive path
+        # below is never reached in this mode, so there is no primal branch to
+        # accidentally trip. `--from-grid` is ignored: a file with no node has no
+        # grid ref to derive from, so discovery is the only possible source.
+        mvp_map = read_mvp_map(
+            Path(args.mvp_map).resolve() if args.mvp_map else None)
+        return mint_missing(files, existing, units, project_root, engine_root,
+                            level3_dir, args, mvp_map)
 
     written_paths: set[Path] = set()
     used_ids: dict[str, str] = {}
