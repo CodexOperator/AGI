@@ -1400,3 +1400,48 @@ def test_scaffold_push_further_stamps_pushed_from(tmp_path):
     assert info, "push-further scaffold must write a node"
     fm = _yaml.safe_load(Path(info["path"]).read_text().split("---", 2)[1])
     assert fm["pushed_from"] == node_id
+
+
+# --------------------------- the model/provider guard on the SPAWN path ----
+
+def _guard_project(tmp_path: Path, model: str) -> Path:
+    """Minimal project whose pi harness resolves `model` for the kid tier."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text(
+        '{"metric_primary": "outcome_coverage",'
+        ' "spawn": {"harness": "pi", "parallel": 1},'
+        ' "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",'
+        '                      "models": {"kid": "' + model + '"}}}}')
+    return tmp_path
+
+
+def _run_dispatch(root: Path):
+    return subprocess.run(
+        [sys.executable, str(BIN / "dispatch.py"), str(root), "1",
+         "--tier", "kid", "--dry-run"],
+        capture_output=True, text=True)
+
+
+def test_dispatch_refuses_a_claude_alias_on_an_openrouter_harness(tmp_path):
+    """hypothesis:l3-workflow-model-crosses-harness-namespace, spawn-path half.
+
+    workflow.py has refused this since the incident; dispatch.py did not, and
+    was safe only because every seat row and every `harnesses.pi.models` entry
+    happened to hold a slug -- safe by data, not by rule. One cell edit
+    (`harness: pi` beside `model: claude-sonnet-5`) was all it took to bill
+    Anthropic against an OpenRouter key. It must refuse, before a credential
+    is minted or a process starts -- so even `--dry-run` refuses.
+    """
+    res = _run_dispatch(_guard_project(tmp_path, "claude-sonnet-5"))
+    combined = res.stdout + res.stderr
+    assert res.returncode != 0, combined
+    assert "claude-sonnet-5" in combined and "openrouter" in combined, combined
+
+
+def test_dispatch_allows_a_real_openrouter_slug(tmp_path):
+    """The control: the guard refuses a crossing, not every model. A real
+    slug must still resolve, or the guard has broken every live dispatch."""
+    res = _run_dispatch(_guard_project(tmp_path, "~z-ai/glm-flash-latest"))
+    combined = res.stdout + res.stderr
+    assert "not an OpenRouter slug" not in combined, combined

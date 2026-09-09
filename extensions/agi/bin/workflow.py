@@ -48,6 +48,7 @@ from pathlib import Path
 _THIS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_THIS))
 
+import adapters  # noqa: E402  -- owns the model/provider namespace guard
 import locations as _loc  # noqa: E402
 
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
@@ -370,25 +371,22 @@ def _resolve_knobs(stage: dict, cfg_row: dict, args: dict) -> dict:
     return {"model": model, "effort": effort}
 
 
-_OPENROUTER_ALIAS_ERR = (
-    "model {model!r} is not an OpenRouter slug (no 'provider/name') but the "
-    "target provider is {provider!r} — refusing to spend a Claude Code "
-    "subscription alias against an OpenRouter key "
-    "(hypothesis:l3-workflow-model-crosses-harness-namespace)"
-)
+_OPENROUTER_ALIAS_ERR = adapters.OPENROUTER_ALIAS_ERR
 
 
 def _assert_model_in_provider_namespace(model: str, provider: str) -> None:
-    """FAIL CLOSED before any network call. An OpenRouter slug always has the
-    shape `provider/name` (optionally `~`-prefixed); a Claude Code
-    subscription alias (`sonnet`, `opus`, `claude-sonnet-5`, ...) never
-    contains '/'. This is the guard the incident had none of: the wrong
-    model used to run and bill, now it refuses and names both names."""
-    if provider != "openrouter":
-        return
-    bare = model.lstrip("~")
-    if "/" not in bare:
-        raise ValueError(_OPENROUTER_ALIAS_ERR.format(model=model, provider=provider))
+    """FAIL CLOSED before any network call — `adapters` owns the rule.
+
+    The check moved to `adapters.assert_model_in_provider_namespace` when
+    `dispatch.py` needed the same answer on the spawn path: two copies of a
+    guard drift, and a guard that drifts is the incident again. This wrapper
+    survives only to keep this module's `ValueError` contract, which its
+    callers already handle.
+    """
+    try:
+        adapters.assert_model_in_provider_namespace(model, provider)
+    except adapters.AdapterError as exc:
+        raise ValueError(str(exc)) from exc
 
 
 def _resolve_pi_model(cfg: dict, stage: dict, args: dict) -> str:
