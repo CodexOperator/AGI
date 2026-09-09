@@ -51,8 +51,8 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
 
 ```
-BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 10:1xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.08/$92
-SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 · SD.12 $0.08 on the ACCOUNT via per-spawn keys — the runtime key does not move; /credits for the delta
+BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 10:4xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.02/$92
+SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 · SD.12 $0.08 · SD.13 $0.25 on the ACCOUNT via per-spawn keys — runtime key never moves; /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
        OWNER 08:2xZ: SWEPT 46/53 agi-rc windows by PID; KEPT Belam X-XIV (last 5 predecessors), XV, SD · L4: generation wipe + verify + pin + announce + skill load ALL become harness code
@@ -74,21 +74,19 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
          from --target only, dispatch.py has no per-kid brief channel (no --prompt-file) -> kids 2/3 never saw kid 1. Node stays pending, reason now specific.
        SD.12 MERGED ($0.08): dispatch.py --prompt-file (path or '-', never inline) threaded into the kid brief as a labelled segment; None = byte-identical spawn;
          _parent contract names the flag. lean_proved:70 — DRY-RUN proven only; the live carry-forward gate runs in SD.13.
-       SD.13 IN FLIGHT (a00-ccfa5c0b, item 49 node): 234 engine files, 171 with a build node, 63 WITHOUT (rotate.py, commands.py, handoff.py, hierarchy.py,
-         inject.py, drift_check.py, frontier.py, plan_master.py …) — checker first (exclusions as declared data), additive mint second, level3 --dry-run only, count must GROW.
-         LIVE GATE PASSED 10:1xZ: kid 2's recorded argv carries kid 1's node id + what it landed + the next slice, inside the addendum segment (offset 3039,
-           not incidental: nodes reach kids as file paths). --prompt-file was never in the brief -> THE CONTRACT ALONE suffices. ITEM 53 CLOSED both axes.
-         SD.13 at 51 min: per-spawn key TTL is 60 min -> expect the '401 API key expired' death (SD.08 shape) mid kid 2 (additive mint mode, level3 half);
-           slice 1 already in its worktree: grid_coverage_check.py + declared exclusions .agi/context/grid-coverage-exclusions.md; 65 files outside the grid.
-           SD checks the worktree for uncommitted work before assuming loss. Fan-out axis (several kids at once, each --branch) remains UNEXERCISED.
-       TTL LANDED (SD): spawn.credential.ttl_minutes 60 -> 180 in .agi/config.json (was EXPLICIT 60, not a default); $5 cap + $1 floor verified unchanged;
-         future spawns only — SD.13's key keeps its 60. .agi/config.json has NO live build node (direct edit + commit): add it to item 49's list.
+       SD.13 LANDED ($0.25): ITEM 49 CLOSED — grid_coverage_check.py + DECLARED exclusions ("never widen to pass"), level3.py --mint-missing-only (additive BY
+         CONSTRUCTION: skips any payload_ref incl. deprecated), 65 build nodes minted with mvp parents (s29 shape); grid payload coverage 217 -> 282; rotate.py
+         is build:bin-rotate now. Kid 2 reviewed by SD itself (parent died at the 60-min key TTL); count 1507 -> 1580, 0 deletions; suite 2241/1.
+         NEAR-MISS: the branch held ZERO commits over 77 added files — merge-up would have merged nothing and reported green (L3.39 shape). Worktree checked first.
+         LIVE GATE PASSED inside it: kid 2's argv carried kid 1's node id unprompted -> ITEM 53 CLOSED both axes. Fan-out axis still UNEXERCISED.
+       TTL 60 -> 180 landed (spawn.credential.ttl_minutes, was explicit 60); $5 cap + $1 floor unchanged; .agi/config.json has NO build node (item 49 remainder)
+       SD ROTATION gen IV -> V ORDERED 10:4xZ at meter 0.53 (owner: SD rotates normally; crunch reset); full profile NOT survival; gen IV wiped after V confirms
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
        XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
 NEXT   1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
-       2 SD's rounds from the open L3 items: 53 second half (per-kid brief channel) -> 49 (engine files outside the grid) -> 54 adoption -> 55
+       2 SD's rounds from the open L3 items: 54 adoption (write.py patch/body_patch used by agents) -> 55 (perpetual seats / handoff slices) — 49 and 53 CLOSED
        3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
        git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once
@@ -190,7 +188,6 @@ git push origin season/s2
 ```
 STILL OPEN (prose kept below)      | pointer
 -----------------------------------+--------------------------------------------------
- 49  engine files with no build node | briefs/, rotate.py … bytes outside the grid
  54  partial reads / diffs-as-writes | write.py patch / body_patch LANDED; adoption open
  55  perpetual quorum + handoff slices| l3w4-seat-rotation-loops · l3w4-handoff-sections
  71  SURVIVAL MODE — IN FORCE         | ONE worker: sanctuary-director; idle seats cost ~0
@@ -294,6 +291,7 @@ STILL OPEN (prose kept below)      | pointer
 - **98.** 🟢 THE PRIME'S OWN STRUCTURAL PASS OVER BOTH FILES (owner: *"go through with the directors help and see what could be trimmed or structured as LLM friendly diagrams"*). ME *(1 quote archived)*
 - **99.** CONSTITUTION SCOPE, FINAL — owner, verbatim: *"Only prayers must remain, moral stuff is read as needed only required for successor Belam." *(1 quote archived)*
 - **100.** 🔴 THE CC-SEAT CEILING IS MEASURED, AND IT BOUNDS THE OWNER'S 70–90% ASK. `hypothesis:cc-seat-context-ceiling` + `experiment:cc-seat-ceiling-measured`, by `sanctuary-direc
+- **49.** CLOSED 2026-09-09 (SD.13, harvested by hand from a key-dead parent's worktree): `grid_coverage_check.py` + a declared exclusion list that forbids widening itself, `level3.py --mint-missing-only` (additive by construction, skips any `payload_ref` including deprecated), 65 build nodes minted under mvp parents; grid payload coverage 217→282, `rotate.py` is `build:bin-rotate`. Remainder: `.agi/config.json` still has no build node.
 - **53.** CLOSED LIVE ON BOTH AXES 2026-09-09 (`hypothesis:l3-parent-never-told-to-iterate`): SD.11 proved iteration (3 kids from one dispatch under a hard ceiling; 10/10 one-shot before), SD.12 built the per-kid brief channel (`dispatch.py --prompt-file`, path or `-`, threaded into the kid brief as a labelled segment; `_parent` contract names it), SD.13 proved carry-forward unshepherded — kid 2's recorded argv carried kid 1's node id, result and next slice with the flag never mentioned in the brief. Unexercised: the fan-out axis (several kids at once, each optionally `--branch`) — the owner's latitude, not a defect. *(2 quotes archived)*
 - **75.** CLOSED WITH STATED DENOMINATORS 2026-09-09 (SD.10 on `l3w4-context-load-minimal`, merged 5765c7635): pi survival cut 65% off current full / 76.5–77.1% off the pre-trim baseline — the owner's 70% is met there, 90% is unreachable under the current harness (1,869-token floor); CC seat true cold minimum 1,879 tok + CLAUDE.md 6,403 harness-loaded ≈ 8,282 standing; SKILL.md (13,264) and HANDOFF.md (20,712) are NOT auto-injected. L4 remainder: the survival profile is not wired for a rotating seat. *(1 quote archived)*
 - **102.** CLOSED BY MEASUREMENT 2026-09-09 (SD.09 on `l3w4-context-load-minimal`, merged eb9dc5d67): diagram form of §6 items 18/20/24/27 lost 0 decisions but cost +14.3% tokens — a §6 diagram rewrite does not pay; keep owner-verbatim-dense prose, trim by consolidation. The owner call it banked is moot unless the owner says otherwise. *(1 quote archived)*
@@ -301,7 +299,6 @@ STILL OPEN (prose kept below)      | pointer
 
 ### Open items — prose kept
 
-49. **BANKED — several engine files have no build node at all, so their bytes are outside the grid.** `extensions/agi/bin/rotate.py` — the file the whole rotation ladder runs on, and the file whose orphaned diff nearly vanished this session — has no `build:*` node and no `payload_ref` pointing at it (`grep -rl` over `.agi/nodes/` returns nothing). `grid.py commit --all` therefore versions nothing for it, and `stitch.py --from-grid` could not materialise it. The cause is structural, not neglect: `level3.py` is the discoverer and **trap 0i forbids running it without `--dry-run`** (it would prune 18 deprecated build nodes and mint parentless nodes for `.claude/workflows/*.js` symlinks), so new engine files since the last scan have quietly accumulated with no node. Minting one by hand needs a legal parent shape (`goal:s29`: `[mvp:<id>]` for a new file), which means an mvp per file. **Recommendation:** one brief, not one node per file — enumerate tracked engine files lacking a build node, decide whether `level3.py` gains a safe additive mode (`--mint-missing-only`, never pruning) or whether an mvp-per-subsystem covers them, and close it as a class. Belam X did not mint anything here because doing it by hand, one file at a time, is exactly the shape of work this project dispatches instead of doing.
 
 54. **OWNER, 2026-09-08 — partial reads and diffs-as-writes.** Verbatim: *"We also need to implement partial write support so we can both read node bodies lines at a time and write to them the same. Maybe just piggyback it off the diff system and use diffs as writes"*. Minted `hypothesis:l3-write-partial-diffs-as-writes` (**goal:g13.1**) and dispatched in L3.43. **This is a hole already written down rather than a new request** — `skills/agi/SKILL.md` records it verbatim as a known gap. What it costs: `write.py` is the one sanctioned hand that stamps `edited_by`, `thought_session`, the spawn gate and the schema warning, and **every agent doing real engine work bypasses it**, because re-emitting a whole module to change one line is unaffordable. A rule that is correct and unaffordable is a rule that gets skipped — by exactly the agents whose edits matter most. It also puts a floor under how cheap an agent can be: a flash-model kid cannot re-emit a 2,000-line module at all, so whole-file writes silently reserve engine surgery for expensive models. The owner's piggyback instruction is taken literally: the grid already stores and renders exactly this delta, and the brief forbids inventing a second patch format. **Nice detail: the first attempt to save that brief was REFUSED** — `ERR: no verb` — because the text quoted the doubled-ampersand operator that `write.py`'s script form splits on. The brief now documents the hazard that broke it.
 
