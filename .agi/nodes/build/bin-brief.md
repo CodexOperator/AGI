@@ -4,7 +4,7 @@ mint_id: 45c0ff4a2fe34d2aaa496f339ef96b70
 type: build
 build_kind: code
 confidence: 1.0
-edited_by: season.py
+edited_by: sanctuary-director
 origin: build-scan
 payload_ref: extensions/agi/bin/brief.py
 season: 1
@@ -12,7 +12,7 @@ tags:
   - build
   - code
   - g2.1
-thought_session: season
+thought_session: sanctuary-director-genVI
 title: "Build: extensions/agi/bin/brief.py"
 ---
 `extensions/agi/bin/brief.py` — level-3 code node (one file, one canonical node).

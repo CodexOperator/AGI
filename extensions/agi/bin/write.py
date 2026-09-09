@@ -130,6 +130,18 @@ class Edit:
     # the 1-based inclusive `START:END` with either side optional.
     read_target: str = ""
     read_range: str = ""
+    # L4, owner 2026-09-09 — `replace` is the OFFSET-FREE partial write, and
+    # the reason it exists: `read <t> N:M` then `<t>_patch` forced the caller
+    # to hand-build a `@@` hunk in the applier's coordinates, and getting that
+    # arithmetic wrong is a silent corruption (trap 0ah). `replace` takes the
+    # SAME `N:M` the read just used, so the round trip needs no arithmetic at
+    # all. `replace_target` is `payload` or `body` and both go through ONE
+    # reader (`_target_text`) and ONE transform (`_splice_range`), so a
+    # payload file is editable by exactly the routine a node body is.
+    replace_target: str = ""
+    replace_range: str = ""
+    replace_from: str = ""
+    replace_text: str = ""
     # hypothesis:l3-node-without-mint-id -- `adopt` mints a first mint_id on
     # a node written outside node_writer. Deliberately NOT a `set_fm` entry:
     # `mint_id` is PROTECTED (goal:g2.5), and adopting is not setting it, it
@@ -145,7 +157,8 @@ class Edit:
                     or self.payload_bytes or self.adopt
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
-                    or self.read_target or self.read_range)
+                    or self.read_target or self.read_range
+                    or self.replace_target)
 
 
 # --------------------------------------------------------------------------
@@ -313,6 +326,35 @@ def verb_read(edit: Edit, target: str, rng: str) -> Edit:
     return edit
 
 
+def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
+    """`replace <payload|body> <START:END> <path|->` — overwrite a line range.
+
+    The write half of line addressing, and the verb that removes the manual
+    offset step. `read <target> N:M` then `replace <target> N:M` is the whole
+    round trip: the range vocabulary is identical and `_splice_range` is the
+    exact inverse of the `_slice_range` the read used, so nothing has to be
+    counted, converted, or expressed as a `@@` hunk.
+
+    `body` and `payload` are the same operation here, not two — one reader
+    (`_target_text`), one transform (`_splice_range`) — and they differ only
+    in where the result lands, which is forced: a body lands through
+    `update_node` (carrying the THOUGHT region and provenance), a payload
+    through `replace_payload`. Both are sanctioned writes the guard sees.
+
+    The replacement text rides a file or stdin (`-`) rather than the argv
+    chunk, for the reason `payload`/`patch` already do: arbitrary content can
+    contain the doubled ampersand the script parser splits on.
+    """
+    if target not in ("payload", "body"):
+        raise EditError(
+            f"replace target must be 'payload' or 'body', got {target!r}")
+    _parse_range(rng)   # validates and raises early, so a typo refuses here
+    edit.replace_target = target
+    edit.replace_range = rng
+    edit.replace_from = source
+    return edit
+
+
 def _parse_range(rng: str) -> tuple[int | None, int | None]:
     """`10:20` -> (10, 20); `10:` -> (10, None); `:20` -> (None, 20).
 
@@ -372,6 +414,7 @@ VERBS = {
     "patch": verb_patch,
     "body_patch": verb_body_patch,
     "read": verb_read,
+    "replace": verb_replace,
     "adopt": verb_adopt,
 }
 
@@ -386,7 +429,7 @@ VERBS = {
 #: verb has the same shape.
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
-         "read": 2, "adopt": 0}
+         "read": 2, "replace": 3, "adopt": 0}
 
 
 def _coerce(value: str):
@@ -518,7 +561,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     # reason never made it into the graph, which is the exact split this verb
     # exists to close.
     touches_payload = bool(edit.payload_from or edit.payload_bytes
-                           or edit.patch_from or edit.patch_diff)
+                           or edit.patch_from or edit.patch_diff
+                           or edit.replace_target == "payload")
     payload_ref, location = _payload_ref(root, edit) if touches_payload else ("", None)
 
     # hypothesis:l3-write-partial-diffs-as-writes -- a `patch` computes the
@@ -537,6 +581,25 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
         edit.payload_bytes = apply_unified_diff(
             _read_payload_bytes(root, payload_ref, location),
             edit.patch_diff)
+    # L4, owner 2026-09-09 — the offset-free partial write, for BOTH targets
+    # through one reader and one transform. Everything that can refuse has
+    # refused above; `_splice_range` refuses a range past EOF before anything
+    # is written, so a bad range leaves the node and the payload untouched.
+    if edit.replace_target:
+        if edit.replace_target == "body" and (edit.body_append or edit.thought
+                                              or edit.body_patch_diff):
+            raise EditError(
+                "replace body is standalone; it cannot share a line with "
+                "note, thought or body_patch (one body writer per submit)")
+        _spliced = _splice_range(
+            _target_text(root, edit, edit.replace_target,
+                         payload_ref, location),
+            edit.replace_range, edit.replace_text)
+        if edit.replace_target == "body":
+            body = _spliced
+        else:
+            edit.payload_bytes = _spliced
+
     # A `location` set in this same edit wins over the one on disk: naming the
     # new base and moving the bytes is one intention, not two.
     if "location" in set_fm:
@@ -606,6 +669,34 @@ def _slice_range(text: str, rng: str) -> str:
     return "\n".join(lines[start:end])
 
 
+def _splice_range(text: str, rng: str, new: str) -> str:
+    """Overwrite the 1-based inclusive line range of `text` with `new`.
+
+    **The exact inverse of `_slice_range`, in the same coordinates.** That is
+    the whole point: `read <target> N:M` shows you bytes, and
+    `replace <target> N:M` overwrites *those* bytes. No offset is computed by
+    the caller, so the class of error trap 0ah names — a hunk built from a
+    naive line count that does not match the applier's view — cannot occur.
+
+    `10:20` replaces lines 10..20, `10:` from 10 to the end, `:20` the start
+    to line 20. A single trailing newline on `new` is absorbed rather than
+    inserting a blank line, so replacing with the text a file/stdin naturally
+    carries does not grow the file by one line each time.
+    """
+    lo, hi = _parse_range(rng)
+    lines = text.split("\n")
+    start = 0 if lo is None else lo - 1
+    end = len(lines) if hi is None else hi
+    if start > len(lines):
+        raise EditError(
+            f"replace range {rng} starts past the end of the target "
+            f"({len(lines)} lines) — nothing written.")
+    new_lines = new.split("\n")
+    if new_lines and new_lines[-1] == "":
+        new_lines.pop()
+    return "\n".join(lines[:start] + new_lines + lines[end:])
+
+
 def _read_payload_text(root, ref: str, location: str | None, rng: str) -> str:
     """The requested line range of a build node's payload file, as text.
 
@@ -642,6 +733,19 @@ def _read_body_text(root, node_id: str) -> str:
     if path is None:
         raise EditError(f"no node file for {node_id}")
     return fm_reader.load_node_file(path).body
+
+
+def _target_text(root, edit: "Edit", target: str,
+                 payload_ref: str = "", location: str | None = None) -> str:
+    """The CURRENT full text of one edit target.
+
+    **The single reader `body` and `payload` both go through**, which is what
+    makes a payload file editable by the same routine as a node body rather
+    than by a parallel one. Read-only; this module performs no file write.
+    """
+    if target == "body":
+        return _read_body_text(root, edit.node_id)
+    return _read_payload_bytes(root, payload_ref, location)
 
 
 _HUNK_RE = re.compile(
@@ -1027,6 +1131,19 @@ def main(argv: list[str] | None = None) -> int:
         # cannot ride an `&&` script chunk (the doubled ampersand splits it).
         edit.patch_diff = sys.stdin.read()
 
+    if edit.replace_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: replacement text is
+        # arbitrary content and cannot ride an `&&` script chunk.
+        edit.replace_text = sys.stdin.read()
+    elif edit.replace_from:
+        from pathlib import Path as _P
+        try:
+            edit.replace_text = _P(edit.replace_from).read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERR: replace source {edit.replace_from}: {exc}",
+                  file=sys.stderr)
+            return 2
+
     # `patch <path>` reading happens in `submit` (fail-closed, after the
     # payload ref is resolved) rather than here, so a refused diff is still
     # refused before consuming it.
@@ -1055,6 +1172,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  body_patch ({len(edit.body_patch_diff)} bytes of diff, {_src2})")
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
+        if edit.replace_target:
+            _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
+            print(f"  replace {edit.replace_target} {edit.replace_range} "
+                  f"({len(edit.replace_text)} chars, {_src3})")
         return 0
 
     if edit.payload_from == "-":

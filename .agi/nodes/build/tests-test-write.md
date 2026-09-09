@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: season.py
+edited_by: sanctuary-director
 origin: build-scan
 payload_ref: extensions/agi/tests/test_write.py
 scaffold_hash: 55fb1454eaa9eb25
@@ -16,7 +16,7 @@ season: 1
 tags:
   - build
   - code
-thought_session: season
+thought_session: sanctuary-director-genVI
 title: "Build: extensions/agi/tests/test_write.py"
 ---
 # build:tests-test-write
