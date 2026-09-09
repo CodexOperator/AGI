@@ -68,6 +68,8 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
          B CC seat cold: head 611 + INJECTION slice 1,268 = 1,879 TRUE MINIMUM; + CLAUDE.md 6,403 (harness-loaded) = ~8,282 standing
            SKILL.md 13,264 and HANDOFF.md 20,712 are NOT auto-injected (zero refs in cc-session-start.sh, kid + SD independently)
          L4 remainder: rotate.py + SessionStart hook do not wire the survival profile for a rotating seat (AGI_BRIEF_PROFILE ignored)
+       SD.11 IN FLIGHT (a00-3afbadd9, glm-flash, $5/60min, --branch, cap 3 kids, full suite before done): §6 ITEM 53 — brief.py _parent() (~L1161)
+         still lists spawn/review/lease/artefact/commit and never ITERATE; 10/10 parents one-shot incl. SD.09/SD.10 -> hypothesis:l3-parent-never-told-to-iterate
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
