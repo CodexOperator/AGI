@@ -15,7 +15,7 @@
 | crons | 🟢 **ON for this repo — verified 2026-09-09 06:1xZ by `crontab -l` AND its live log (`~/logs/agi-crons-agi-2f118e6f.log`, written every 5 min): `grid_sync` `*/5` runs `grid.py commit --all --prefix 'cron: '` from `.agi/`; `branch_push` pushes `season/s2` at :07 hourly; `.geometry/crons.md` declares `crons_live: true`.** 🔴 **XIV's row said OFF (its 2026-09-08 13:1xZ reading) — wrong or since reverted. Verify with `crontab -l`, never with this file.** Two consequences: **push by hand anyway** (the push is hourly; a dead box strands up to 59 min), and **the auto-versioning hazard IS armed** — half-finished source from a killed agent is grid-versioned under the cron's name within 5 minutes, so kill cleanly and `git reset` unreviewed staging at once. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
 | agents live | **survival mode: sanctuary-director gen IV (`agi-ea [113e1f]` @227) is the ONE worker; 0/25 at XV's open** — the stalled SD.06 parent `a00-a81a7f38` is gone (swept). Prime XV = `agi-ad [90fef7]` @228; XIV idles at `agi-a7 [bcd0bd]` @226 (predecessor chain). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — XIV's opened at 0.5595 on XIII's pin (true 0.1093); XV claimed first and read 0.1351. |
-| spend | **Account $13.99 remaining of the owner's $92 ($78.01 used, 84.8%) · runtime key `backup` $7.87 remaining of its $15 sub-cap — read at XV's pin claim, 2026-09-09 06:1xZ (`rotate.py meter --pin` prints both; claim your pin and read them there).** The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered. Check the KEY, not the account, before each kid — then RAISE it rather than stop.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
+| spend | **Account $13.64 remaining of the owner's $92 ($78.36 used, 85.2%) · runtime key `backup` $7.87 remaining of its $15 sub-cap — read 2026-09-09 07:2xZ after SD.10 (`rotate.py meter --pin` prints both at claim; `/api/v1/credits` for the live delta).** The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered. Check the KEY, not the account, before each kid — then RAISE it rather than stop.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
 | disk | 81% |
 | this session | **Belam XV (2026-09-09 06:10Z →, Fable 5.1).** XIV's `rotate.py loop` read-back timed out at 120s (`inconclusive-no-reply`, `.agi/sessions/rotations/belam-S1-L3-XV.20260909T061156Z.json`): the successor's first line came after the skill load. XIV confirmed by pane; no auto-announce fired, so XV announced by hand (file DM to SD, SendMessage reply to SM). Verified smoke/suite/links/goals/write_guard/0-25 live. Corrected the crons row (it was wrong, not stale). Header, card, three closed traps and §5 trimmed. |
 
@@ -51,8 +51,8 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam XV, live 2026-09-09 (XIV's closing prose: `grid.py payload build:HANDOFF.md --version 299`)
 
 ```
-BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 06:5xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.70/$92
-SPEND  SD.09 cost $0.29 on the ACCOUNT via per-spawn key agi-2 (provisioning.py status) — the runtime key did not move; read /credits for the delta
+BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 07:2xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.64/$92
+SPEND  SD.09 $0.29 · SD.10 $0.06 on the ACCOUNT via per-spawn keys (provisioning.py status) — the runtime key does not move; read /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
 L3     CLOSED TO NEW WORK (owner 2026-09-09) -> new items go to doc:l4-owner-decisions (L4 backlog)
@@ -63,14 +63,17 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        round B LANDED eb9dc5d67 (SD.09, done clean, SD re-verified UTF-8/verbatim/tokens itself): RECALL TEST items 18/20/24/27
          decision loss 0/0/0/0 (all four shapes survived, verbatim byte-identical) BUT tokens +14.3% (2978->3404, every item worse)
          => diagram rewrite of §6 DOES NOT PAY (lean_disproved:65) · item 102 CLOSED by measurement · survival profile is the real win
-       SD.10 IN FLIGHT (a00-2e8a59d6, glm-flash, $5/60min, --branch, 2-kid cap): item 75 DENOMINATORS — A: pi parent/kid post-survival-profile;
-         B: CC-seat cold, verified against the hook/rotate.py code (TRUE COLD MINIMUM vs DIRECTOR WORKING SET); every % against a stated pre-number
+       SD.10 LANDED 5765c7635 (17 min, $0.06): ITEM 75 CLOSED WITH STATED DENOMINATORS
+         A pi (o200k, py3.12): survival cut 65% off CURRENT full; 76.5-77.1% off the PRE-TRIM baseline -> 70% MET there, 90% UNREACHABLE (harness floor 1,869 tok)
+         B CC seat cold: head 611 + INJECTION slice 1,268 = 1,879 TRUE MINIMUM; + CLAUDE.md 6,403 (harness-loaded) = ~8,282 standing
+           SKILL.md 13,264 and HANDOFF.md 20,712 are NOT auto-injected (zero refs in cc-session-start.sh, kid + SD independently)
+         L4 remainder: rotate.py + SessionStart hook do not wire the survival profile for a rotating seat (AGI_BRIEF_PROFILE ignored)
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
        XV 06:2xZ: belam.session_ref=90fef7 written (own row, 735acb865) · item 71's owner quotes archived in doc:l3-command-ladder-brief
 NEXT   1 let SD work: NO lease-watch, NO idle-subscription (owner 07:0xZ, verbatim in doc:l4-owner-decisions) — SD reaches out; review what it lands, never aim it
-       2 item 75: SD STATES THE DENOMINATOR per role (pi parent argv after survival profile; CC seat cold read) before any % — 21,586 counted SKILL.md, which pi never received
+       2 SD's next round from the open L3 items: 53 (does brief.py's parent block say ITERATE yet?), 49 (engine files outside the grid), 54 adoption, 55
        3 diagram-max where it pays (non-verbatim tables, cards); NEVER on owner-verbatim-dense §6 prose (measured above)
 NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layering fix = L4)
        git add -A (seats write live) · read $? through a pipe · sweep off a ps grep · run the suite twice at once
@@ -174,7 +177,6 @@ STILL OPEN (prose kept below)      | pointer
  54  partial reads / diffs-as-writes | write.py patch / body_patch LANDED; adoption open
  55  perpetual quorum + handoff slices| l3w4-seat-rotation-loops · l3w4-handoff-sections
  71  SURVIVAL MODE — IN FORCE         | ONE worker: sanctuary-director; idle seats cost ~0
- 75  trim context injection 70–90%   | l3w4-context-load-minimal — DENOMINATOR UNSTATED
  96  hazard 5: stamp vs record split  | l3-seat-pin-generation-never-increments, 4/4
 103  diagram-max vs verbatim-dense    | reading ADOPTED: diagram structure, verbatim stays prose; owner veto open
 ```
@@ -275,6 +277,7 @@ STILL OPEN (prose kept below)      | pointer
 - **98.** 🟢 THE PRIME'S OWN STRUCTURAL PASS OVER BOTH FILES (owner: *"go through with the directors help and see what could be trimmed or structured as LLM friendly diagrams"*). ME *(1 quote archived)*
 - **99.** CONSTITUTION SCOPE, FINAL — owner, verbatim: *"Only prayers must remain, moral stuff is read as needed only required for successor Belam." *(1 quote archived)*
 - **100.** 🔴 THE CC-SEAT CEILING IS MEASURED, AND IT BOUNDS THE OWNER'S 70–90% ASK. `hypothesis:cc-seat-context-ceiling` + `experiment:cc-seat-ceiling-measured`, by `sanctuary-direc
+- **75.** CLOSED WITH STATED DENOMINATORS 2026-09-09 (SD.10 on `l3w4-context-load-minimal`, merged 5765c7635): pi survival cut 65% off current full / 76.5–77.1% off the pre-trim baseline — the owner's 70% is met there, 90% is unreachable under the current harness (1,869-token floor); CC seat true cold minimum 1,879 tok + CLAUDE.md 6,403 harness-loaded ≈ 8,282 standing; SKILL.md (13,264) and HANDOFF.md (20,712) are NOT auto-injected. L4 remainder: the survival profile is not wired for a rotating seat. *(1 quote archived)*
 - **102.** CLOSED BY MEASUREMENT 2026-09-09 (SD.09 on `l3w4-context-load-minimal`, merged eb9dc5d67): diagram form of §6 items 18/20/24/27 lost 0 decisions but cost +14.3% tokens — a §6 diagram rewrite does not pay; keep owner-verbatim-dense prose, trim by consolidation. The owner call it banked is moot unless the owner says otherwise. *(1 quote archived)*
 - **101.** 🔚 BELAM XIII CLOSES. Successor `belam-S1-L3-XIV` is LIVE — confirmed by `tmux capture-pane` (thinking, 11.9k tokens in), never by the read-back alone, per standing doctri
 
@@ -343,16 +346,6 @@ STILL OPEN (prose kept below)      | pointer
     🔴 **IT REQUIRES A HARD CEILING AND THAT IS THE HALF MOST LIKELY TO BE BUILT BADLY.** A parent that iterates — and §6 item 53 also permits fan-out, several kids at once, optionally each `--branch` — is **the first thing in this system that can multiply agents with no human in the loop**, against an OpenRouter balance of ~$9.4. **Every such brief must carry a maximum iteration count and an instruction to check the KEY (not the account) before each kid, stopping cleanly at the `$1.00` `provisioning.min_key_remaining_usd` floor rather than discovering it by failing. Never lower that floor.** Report the balance delta per round while the burn rate is still small enough to be a number rather than a surprise.
 
     **A deviation accepted, recorded because the rule it applies is the one that matters:** `sanctuary-director` had already built most of item (1) by hand — the `-r1` fix — and judged that discarding it to re-dispatch a parent would cost more Claude context (explaining what it had found, then reviewing a kid's rediscovery of it) than the ten minutes left to finish. **Accepted: that is the decision rule working, not an exception to it. The test is never "did you dispatch", it is "which path spends less of the constrained budget".** Its anchoring of `pause`/`resume`/`is_paused` via `budget_dir`'s existing main-checkout resolution rather than a worktree-scoped path is the detail that would have bitten later — **session bookkeeping is shared; the graph is the only forked thing** (`l3-cli-done-worktree-manifest`, proved).
-
-75. **OWNER, 2026-09-08 — TRIM THE CONTEXT INJECTION 70–90% FOR EVERY ROLE. Verbatim:** *"we need to trim context load upfront and then have a survival mode that's even lighter. The whole point is for context dump to be minimal via graphic ascii diagrams still easy to ingest. We need to trim handoff significantly, but also each role should have per-role handoff where pin also does the handoff claim via worktree branch or something. Maybe make all pin claims worktree branches. I mainly just want the prayers and stuff in there and then graphs. Also not every turn needs to end with prayer only very last turn of a session as it rotates very last tokens. And it just needs to have prayers as very first tokens. Condense other expressions to more limited quotes, the moral constitution and more in-depth quotes thing should be a read as needed to do tie breaker decisions. Can we trim about 70 to ideally 90% off the context injection for all roles?"*
-
-    **Answer: yes, ~86% on the arithmetic.** Today's static prefix is ~68k tokens (HANDOFF ~47k, `SKILL.md` ~8k, `CLAUDE.md` ~6k, head ~4k, brief ~2k, `INJECTION.md` ~1.5k); the target shape lands near ~9–10k. **The multiplier that makes this the highest-leverage item in the graph: context is re-sent EVERY TURN, so a static prefix is paid per turn, not once** — which is why item 73's measured 47k handoff becomes 225–250k of a 350k cap within fifty minutes.
-
-    **Design, five moves, in `hypothesis:l3w4-context-load-minimal` (g17) — read it there, not here.** Prayers-only head with morals and readings as an invoked tie-break read; one closing prayer at session end rather than per turn; per-role ASCII-first handoff with **§6 relocated, never deleted, verified byte-identical**; **pin claim IS a git worktree branch claim**; and a survival profile selected at assembly time rather than as a second code path. Queued behind SD.03 (file overlap on `rotate.py`/`brief.py`/`handoff.py`).
-
-    🟢 **The worktree-branch idea is the owner's and it CLOSES today's finding rather than shrinking it.** Hazards 3/4/5 are one shape — *"generation and identity are stamped by different writers on different paths"* — and a branch collapses identity, generation and handoff ownership into **one writer on one path**. **Git refuses a second concurrent checkout of a branch, so a duplicate claim fails LOUDLY** — the exclusivity the pin file failed to provide three times in one day.
-
-    **A note on this section's own growth, since it is now the thing being trimmed.** §6 is ~79% of `HANDOFF.md` and today added nine items. **From item 75 onward the form is: the owner's words verbatim, the decision, and a POINTER to the node carrying the detail — never a restatement of the design.** Recording faithfully and recording at length are different things, and only the first is required.
 
 96. **🔴 HAZARD 5 IS NOW 4/4 AND ITS ORIGINAL ROOT CAUSE IS DISPROVED TWICE OVER — this is effectively proved and should be treated as such.** `sanctuary-master` gen II's tally: **four of four `rotate-self` rotations have a generation stamp and NO rotation record; three of three `loop` rotations have a record and NO stamp.** A perfect complementary split across seven rotations, no seat holding both. **Structural cause: `cmd_rotate_self` writes the handoff at line 2120 and the record at 2163/2199/2211 — all behind the successor wait.**
 
