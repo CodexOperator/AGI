@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: a00-6a1a360e
+edited_by: sanctuary-director
 origin: build-scan
 payload_ref: COMPLETE.md
 scaffold_hash: d8b43e6e0045d164
@@ -16,7 +16,7 @@ season: 1
 tags:
   - build
   - prose
-thought_session: season
+thought_session: sanctuary-director-genVI
 title: "Build: COMPLETE.md"
 ---
 # build:COMPLETE.md

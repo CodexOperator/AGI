@@ -1,20 +1,21 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-ladder-node"
+id: build:tests-test-ladder-node
 mint_id: 768d6d58cb0e4e5fb27ac488bf95ddb8
-origin: build-scan
+type: build
 parents:
   - mvp:tests
+build_kind: code
+confidence: 1.0
+edited_by: sanctuary-director
+origin: build-scan
 payload_ref: extensions/agi/tests/test_ladder_node.py
 tags:
   - build
   - code
   - g2.1
+thought_session: sanctuary-director-genVI
 title: "Build: extensions/agi/tests/test_ladder_node.py"
-type: build
 ---
-
 `extensions/agi/tests/test_ladder_node.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:tests`.
