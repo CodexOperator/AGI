@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: sanctuary-director
 scaffold_hash: a60602af9b37d566
 season: 2
 testable_claim: rotate.py alarms --holder S sends exactly one dm to a seat only when that seat's pin crosses director_rotate_at (0.35), and rotate.py rotate-self --name S then writes the seat's handoff with an incremented generation, renames its own tmux window, spawns its successor under the identical plain seat name (never a Roman numeral), reads back the successor's single-word continue, and kills its own renamed window before returning.
@@ -83,3 +83,35 @@ HOW TO PROVE IT CHEAPLY — do not burn a Claude subscription session on this. R
 CONTEXT YOU NEED: HANDOFF.md section 6 item 43 records that `rotate.py loop`'s false-success defect was fixed at iter-L3.33 — `cmd_loop` now asserts the successor's window exists before returning. Do not re-fix it. Build on it: your job is the live exercise that fix was written blind.
 
 DO NOT: touch `.agi/nodes/.geometry/seats.md` (the Sanctuary Master owns that registry — a seat that installs itself is the exact failure this separation prevents), populate or start any real seat (the owner gate above), or kill any `belam-*` tmux window.
+
+PARENT SD.16 BRIEF -- SANCTUARY-DIRECTOR GEN V, 2026-09-09, item 55's remaining half. You ITERATE: spawn a kid, review its node, judge continue / adjust / done. HARD CEILING 3 kids. Only "done" exits.
+
+🔴 READ THIS FIRST, IT BOUNDS THE WHOLE ROUND: NO SEAT MAY BE LAUNCHED. Survival mode is in force by owner order -- the active set is the prime and one director, every other seat is shut down, and waking one costs money the owner has said is gone. So THIS NODE'S OWN testable_claim CANNOT BE CLOSED THIS ROUND: it asserts a LIVE rotation (alarms sends one dm at the threshold, rotate-self writes the handoff with an incremented generation, renames its window, spawns a successor under the plain seat name, reads back its continue, kills its own window). Fixture-prove every part you can, DRY-RUN the rest, and BANK the live proof honestly for the owner. Do not simulate a launch and call it live. A truthful "fixture-proved, live half banked" is the deliverable; a claimed live proof is a lie the graph will carry.
+
+WHAT IS ALREADY PROVED, so you do not redo it: item 55's HANDOFF-SECTIONS half is closed and measured. handoff.py works end to end -- sections / claim (read and --write) / release / read / write / show, 9 tests. HANDOFF.md whole is 77,943 bytes / ~19,485 tokens; a claim-read-release cycle on "section 5 Known-good verification sequence" served 936 B / ~234 tok, 83 times less; the section 0 state block prices at ~969 tok, 20 times less. That was proved live by the director using it on itself, which is the only seat allowed to run. See hypothesis:l3w4-handoff-sections-claimable.
+
+WHAT TO BUILD, in this order. The first is the one that matters most and it is small.
+
+1. DISCOVERABILITY. NOTHING NAMES handoff.py TO A SEAT -- `grep -c "handoff.py" extensions/agi/bin/brief.py` returns 0. That is the whole reason the sections tool sat unused: the director itself read the prime's section 6 with a hand-rolled `sed -n '300,371p' HANDOFF.md` an hour before testing the tool built to end exactly that. Name it in brief.py for the tiers that read a handoff, the same way SD.14 just added the write.py partial verbs. Keep it SHORT -- brief.py is injected into every agent and context is the scarce currency.
+
+2. FOLD IN ONE LINE WHILE YOU ARE IN brief.py, requested by the prime: the read-then-hunk recipe. "To patch a node body: `read body N:M` first and build the hunk from those exact bytes." This is not style advice, it is a measured trap -- the applier's body view is offset by one from a naive split on BODY:BEGIN, `read body` shares that exact view, and a hunk numbered by hand is refused. One line.
+
+3. THE THREE FRICTION POINTS ON handoff.py, each measured by me, each small, each a real tax:
+   a. `handoff.py sections` PRINTS section names carrying their "##" heading prefix, and `claim` REFUSES that exact string -- the name must be passed without the prefix. The tool's own output is not copy-pasteable into the tool's own next command. Accept the printed form.
+   b. The flag is `--holder` while every other seat-aware entry point uses `--seat` (rotate.py meter --seat, dispatch.py --seat). Add `--seat` as an accepted alias; do not remove `--holder`, other callers may use it.
+   c. Omitting --holder prints "REFUSED: None does not hold a claim on section ...", printing the Python None instead of naming the missing flag. Say which flag is missing.
+   Each of these gets a test. They are trivial to fix and trivially easy to leave broken forever, which is exactly why they are on the brief.
+
+4. FIXTURE-PROVE WHAT YOU CAN OF THE ROTATION CLAIM. rotate.py already carries cmd_alarms, cmd_rotate_self, cmd_loop, cmd_seats_launch, cmd_tile, cmd_sequence, with 81 tests in test_rotate.py. Read them BEFORE writing anything -- most of this may already be covered, and a duplicate test is worse than none because it makes the count lie. Where the claim's clauses are NOT covered, add fixture tests: alarms fires exactly ONE dm when a pin crosses director_rotate_at (0.35) and NONE when it does not; rotate-self increments the generation; the successor is spawned under the PLAIN seat name and never a Roman numeral. Use --dry-run for anything that would spawn. State plainly in your node which clauses are fixture-proved and which remain live-only.
+
+🔴 HAZARD 5 IS OFF LIMITS. rotate-self stamps a generation and writes NO rotation record; cmd_loop writes a record and NO generation stamp. It is 5/5 reproduced, understood, and parked on the L4 backlog by owner order. DO NOT FIX IT, do not test around it, do not mention it as a defect you could have closed. L3 takes no new work.
+
+MUST NOT REGRESS: the namespace guard in dispatch.py (adapters.assert_model_in_provider_namespace -- money safety), kid_ceiling threading, the --prompt-file channel, and everything SD.14 and SD.15 just landed -- the `read` verb must still print and leave a node byte-identical, and `body_patch` must still apply from a PATH. Full suite before you report: at least 2249 passed 1 skipped plus your new tests. Then links.py links (0 broken), snapshot-goals.py --render --check, grid_coverage_check.py (exit 0), write_guard.py check (silent).
+
+🔴 TRAP 0ah, STANDING: VERIFY THE BYTES, NEVER THE "updated:" LINE. write.py has printed `updated:` for a read that corrupted two nodes, for a body_patch that discarded its diff, and for a commit whose message described work that never happened. After every write.py call, grep the file for the bytes you meant to write and paste that grep.
+
+GUARDRAILS: ceiling 3 kids. Check the KEY not the account before every kid (provisioning.py status), stop at the $1.00 floor, never lower it. Do not leave a kid running past your own exit. Merge-base diffs only. Carry each kid's result into the next with dispatch.py --prompt-file. COMMIT LOCALLY ON YOUR OWN BRANCH -- a branch at zero commits ahead has produced nothing as far as every automated reader is concerned, and this loop has lost whole rounds to exactly that. Do NOT push, merge, or touch season/s2.
+
+DO NOT: launch any seat, write config:seats, touch moral:*, run level3.py without --dry-run, git rm any node, or run workflow.py run.
+
+Write your result into THIS node via write.py note labeled "SEAT LOOPS FIXTURE-PROVED" -- which clauses are fixture-proved and which are banked live-only, the friction fixes with their test names, the brief.py lines added, the suite counts, and the OpenRouter account delta. No doubled-ampersand in the note text or it will silently not land.
