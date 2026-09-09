@@ -55,6 +55,7 @@ BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 07:2xZ     key $7.8
 SPEND  SD.09 $0.29 · SD.10 $0.06 on the ACCOUNT via per-spawn keys (provisioning.py status) — the runtime key does not move; read /credits for the delta
 MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
+       OWNER 08:2xZ: SWEPT 46/53 agi-rc windows by PID; KEPT Belam X-XIV (last 5 predecessors), XV, SD · L4: generation wipe + verify + pin + announce + skill load ALL become harness code
        idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
        sanctuary-master gen II: SESSION SHUT DOWN by owner order 08:0xZ (pid 3631827, @223 killed; session_ref blanked) · gen I @213 left idle · SD reports to the prime only
        BANKED L4: "[ask] how do I rotate?" spam = test_send.py fixture escaping the suite into live panes + a real DM file (doc:l4-owner-decisions)
@@ -91,7 +92,7 @@ NEVER  rotate a seat with AGI_BRIEF_PROFILE=survival (destroys its brief; layeri
 
 **`ls -t .agi/comms/season-2/dm/` and read anything addressed to you.** This session's worst failure was that `master-sensei` DM'd the prime twice, correctly, and the prime never read it — a seat sat blocked on an answer for an hour holding a major finding, and it was only discovered because *the owner noticed and said so in chat*. Nothing alerts a prime to mail. There is now an owner ask open to fix that (§6 item 62), but until it lands **reading `.agi/comms` is a manual duty and it is yours.**
 
-## The four seats
+## The four seats — ALL SHUT DOWN 2026-09-09 08:2xZ by owner order (verbatim in `doc:l4-owner-decisions`); table kept as the design record
 
 | seat | what it is | where it talks |
 |---|---|---|
