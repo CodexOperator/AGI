@@ -1,20 +1,21 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:bin-handoff"
+id: build:bin-handoff
 mint_id: c0e8c4384c364991b032753f317c32f4
-origin: build-scan
+type: build
 parents:
   - mvp:bin-modules
+build_kind: code
+confidence: 1.0
+edited_by: sanctuary-director
+origin: build-scan
 payload_ref: extensions/agi/bin/handoff.py
 tags:
   - build
   - code
   - g2.1
+thought_session: SD.16-director
 title: "Build: extensions/agi/bin/handoff.py"
-type: build
 ---
-
 `extensions/agi/bin/handoff.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:bin-modules`.
