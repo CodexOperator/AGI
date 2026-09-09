@@ -37,11 +37,14 @@ Thirty-six L3 rounds (`iter-L3.01` … `iter-L3.42`, gaps at 14/18/35/36/39/40
 and 43–47 where a dir exists for a round that never landed a commit — see §5
 `verification-blindness`), four waves, on the CC harness via `claude
 remote-control`. The prime seat ascended from `agi-master` (L2) to Belam, and ran
-as `belam-S1-L3-I..XVI` (rotations at `iter-L3.11`, `iter-L3.15`) under season 2's seat
-system. In wave 3 the g15 director spawned by the Alive advisor (`a00-4ad19971`)
+as `belam-S1-L3-I..XVI` — fifteen prime rotations, records under
+`.agi/sessions/rotations/` where `rotate.py loop` wrote one (hazard 5: `rotate-self`
+stamps a generation but writes no record) — under season 2's seat system. In wave 3 the g15 director spawned by the Alive advisor (`a00-4ad19971`)
 ran the ladder end to end by hand. 39 commits titled `iter-L3.*`; the ~470-commit
-span also carries the SD (.17/.18/.19) rounds that continue season 2. Ladder
-`current_season` 2, `director_rotate_at` 0.35.
+span also carries the `sanctuary-director` rounds SD.01–SD.19 (survival mode from
+2026-09-08, one worker seat under the prime). Ladder `current_season` 2,
+`director_rotate_at` 0.35 through L3's rounds, raised to 0.47 by the owner on
+2026-09-09 as a standing rule for every role (`doc:l4-owner-decisions`).
 
 ## 2. Scoreboard
 
@@ -93,7 +96,7 @@ banked (§5). No closure claim here needs a commit because there is none.
 - Live rotation works: two live rehearsals covered all five observations of `rotate-self` (L3.38, `ba037c126`).
 - The workflow model leak is sealed (`36aea6a26`): the leak and the lying seat pin were found and closed together.
 - The agent-id export defect was confirmed five separate times before it got a BUILD directive with a joined test (L3.19–20) — the repetition is itself evidence that proof-only rounds do not convert into fixes.
-- The economics repeat L2's: the whole seat system plus four parent-tiers ran inside the CC subscription with OpenRouter only at the ~$3 scale. Exact per-seat spend was not re-derived here — see `banked-to-owner`.
+- The economics did NOT repeat L2's: the seat system ran inside the CC subscription until six-to-twelve idle Sonnet seats drained it (survival mode, HANDOFF §6 item 71), and OpenRouter carried the pi rounds — at least ~$17 by the two runtime sub-keys' own counters (`agi` $9.72 of $10 at L3.29, trap 0o; `backup` $7.13 of $15 at close) plus ~$0.60 of per-spawn keys billed to the account for SD.09–SD.19; the account stands at $79.4 used of $92 credited across all loops. The exact L3 share was not isolated — see `banked-to-owner`.
 
 ## 7. Minted or changed in response
 
