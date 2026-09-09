@@ -23,9 +23,10 @@ director enough to decide with.
 
 ## Loop L3 — 2026-09-06 → 2026-09-09 — the seat system, aliveness, the Masters (prime director `belam-S1-L3-*`, CC remote-control)
 
-**[DRAFT] — L3 is not closed.** The standing exit duty of every loop
-(`goal:g1.13`) is written here, but whether to close L3 is banked to the owner,
-so this section lands marked DRAFT. The L3 span is `000cc83f3` (iter-L3.01) ..
+**CLOSED 2026-09-09 by the owner** (verbatim in `doc:l4-owner-decisions`): every
+remaining decision and every carried trap moved into the L4 backlog in that node,
+and `season/s2` was merged into `master` at the close. The standing exit duty of
+every loop (`goal:g1.13`) is written here. The L3 span is `000cc83f3` (iter-L3.01) ..
 HEAD; the start state is taken from the L2.13 commit `fed533924`, not from
 COMPLETE.md's own L2 section — that section reports "tests 1629" at L2.11, but
 L2 ran two more rounds (L2.12 → 1650, L2.13 → tests **1661**), so `fed533924`
@@ -81,7 +82,7 @@ banked (§5). No closure claim here needs a commit because there is none.
 
 ## 5. Completion-failure categories
 
-- `banked-to-owner`: whether L3 closes at all (this section is DRAFT because of it); the rotation gate — "PAUSED on the owner's word, rotation gated on the owner go" (`aa81dddc8`); the successor/mantle chain and mantles per vision (L3.12c, HANDOFF §6 item 16); the owner's model/comms table for the Masters recorded verbatim but the rollover design left to the owner.
+- `banked-to-owner`: whether L3 closes at all (resolved 2026-09-09: closed, the open decisions pushed into L4); the rotation gate — "PAUSED on the owner's word, rotation gated on the owner go" (`aa81dddc8`); the successor/mantle chain and mantles per vision (L3.12c, HANDOFF §6 item 16); the owner's model/comms table for the Masters recorded verbatim but the rollover design left to the owner.
 - `ceiling-found-by-dying`: the Claude **subscription session limit** killed the g15 director mid-judgment in L3.17+L3.18 — work finished, gate not met (`b96d6b3da`); a quorum kid **died at an OpenRouter sub-key cap with its work finished but unjudged** (L3.29, `6557b34bd`). This is the third spend-cap death after L1's two, and the loop's most expensive recurring failure: a spend wall no reader watches until work dies on it.
 - `verification-blindness`: L3.42 — "the second consecutive round where no parent committed" (`6b93f0c2e`), a fact a commit-ledger alone cannot show; L3.34 — four parents, four honest red-first baselines, **zero lines of code** (`4f61ae08b`), a brief-shape failure surfaced only by the parents' honesty; L3.10's advisor-brief kid built nothing and had to be re-briefed as a BUILD.
 - `hazard-carry-over`: `harness_for()` extraction (`74a65e1ae`); the parent-branch merge-up brief "failed to build four times" and split three ways (`2aca849f8`); the frontier census correction sat a round as proof-only before its re-brief (L3.21); the remote-control desktop disconnect (lean-disproved, fix folded into the successor chain, L3.27).
