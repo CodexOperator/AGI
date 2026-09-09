@@ -491,6 +491,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     body = None
     if edit.body_append or edit.thought:
         body = _compose_body(root, edit)
+    # hypothesis:l3-partial-write-adoption — the PATH form must read its diff
+    # BEFORE the apply-check below, or body_patch_diff is still empty at apply
+    # time and the diff is silently discarded (measured 2026-09-09: `body_patch
+    # <path>` printed updated: and landed nothing). `patch` does it this way
+    # (525-528); body_patch must not differ. The stdin form clears body_patch_from
+    # in main() and sets body_patch_diff directly, so this is a no-op there.
+    if edit.body_patch_from and not edit.body_patch_diff and edit.body_patch_from != "-":
+        from pathlib import Path as _P
+        edit.body_patch_diff = _P(edit.body_patch_from).read_text(encoding="utf-8")
     if edit.body_patch_diff:
         # hypothesis:l3w4-hierarchy-one-source — `body_patch` resolves against
         # the node's CURRENT body (not a build-node payload) and lands it
@@ -528,9 +537,6 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
         edit.payload_bytes = apply_unified_diff(
             _read_payload_bytes(root, payload_ref, location),
             edit.patch_diff)
-    if edit.body_patch_from and not edit.body_patch_diff and edit.body_patch_from != "-":
-        from pathlib import Path as _P
-        edit.body_patch_diff = _P(edit.body_patch_from).read_text(encoding="utf-8")
     # A `location` set in this same edit wins over the one on disk: naming the
     # new base and moving the bytes is one intention, not two.
     if "location" in set_fm:
