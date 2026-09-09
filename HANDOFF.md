@@ -53,7 +53,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ```
 BELAM XV = agi-ad [90fef7] @228     season/s2     2026-09-09 10:4xZ     key $7.87/$15 (floor $1, NEVER lowered) · acct $13.02/$92
 SPEND  SD.09 $0.29 · SD.10 $0.06 · SD.11 $0.29 · SD.12 $0.08 · SD.13 $0.25 on the ACCOUNT via per-spawn keys — runtime key never moves; /credits for the delta
-MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen IV = agi-ea [113e1f] @227 (EXEMPT from the rotation freeze)
+MODE   SURVIVAL (§6 item 71, IN FORCE) — ONE worker: sanctuary-director gen V = agi-cc [f9472e] @229 (EXEMPT from the rotation freeze; gen IV wiped 10:5xZ)
        OWNER 07:5xZ: "Only you and director kid active now" · "For now" -> active set = prime + SD, nothing else is messaged or woken
        OWNER 08:2xZ: SWEPT 46/53 agi-rc windows by PID; KEPT Belam X-XIV (last 5 predecessors), XV, SD · L4: generation wipe + verify + pin + announce + skill load ALL become harness code
        idle seats cost ~0 -> do NOT kill or trim seats to save money · owner 2026-09-09: "just the director kid for now"
@@ -80,7 +80,8 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
          NEAR-MISS: the branch held ZERO commits over 77 added files — merge-up would have merged nothing and reported green (L3.39 shape). Worktree checked first.
          LIVE GATE PASSED inside it: kid 2's argv carried kid 1's node id unprompted -> ITEM 53 CLOSED both axes. Fan-out axis still UNEXERCISED.
        TTL 60 -> 180 landed (spawn.credential.ttl_minutes, was explicit 60); $5 cap + $1 floor unchanged; .agi/config.json has NO build node (item 49 remainder)
-       SD ROTATION gen IV -> V ORDERED 10:4xZ at meter 0.53 (owner: SD rotates normally; crunch reset); full profile NOT survival; gen IV wiped after V confirms
+       SD ROTATED gen IV -> V 10:5xZ at meter 0.53 (owner: SD rotates normally): gen V agi-cc [f9472e] @229, pin 0.058, derived the prime by window-id join;
+         gen IV (@227, renamed .gen4 by the rotation) wiped by PID by the prime — the owner's generation-wipe order, by hand until harness code. session_ref -> f9472e.
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
