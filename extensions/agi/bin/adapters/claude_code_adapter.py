@@ -537,6 +537,10 @@ def build_command(
     parallel: int = 1,
     max_live: int = 1,
     kid_ceiling: int | None = None,
+    # hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    # -- per-kid brief channel threaded into the assembled brief (see
+    # pi_adapter for the same seam). absent (None) leaves the brief unchanged.
+    addendum: str | None = None,
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
@@ -573,7 +577,7 @@ def build_command(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, source_root=source_root,
-        kid_ceiling=kid_ceiling,
+        kid_ceiling=kid_ceiling, addendum=addendum,
     )
     prompt_file = write_system_prompt(
         sess_dir=sess_dir, context_file=context_file, segments=segments,

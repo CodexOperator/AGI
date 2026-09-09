@@ -109,6 +109,11 @@ def build_command(
     parallel: int = 1,
     max_live: int = 1,
     kid_ceiling: int | None = None,
+    # hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
+    # -- per-kid brief channel threaded into the assembled brief. dispatch.py
+    # reads --prompt-file <path|-> and passes the text here; absent (None)
+    # leaves the brief byte-identical to today.
+    addendum: str | None = None,
     brief_tier: str | None = None,
     session_dir: Path | None = None,
     # hypothesis:l3-pi-adapter-role-kwarg -- dispatch.py passes role= and
@@ -174,6 +179,7 @@ def build_command(
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, session_dir=_sess,
         source_root=source_root, kid_ceiling=kid_ceiling,
+        addendum=addendum,
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
