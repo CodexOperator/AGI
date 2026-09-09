@@ -82,6 +82,13 @@ LIVE   0/25 at open · SD.06 recall parent a00-a81a7f38 GONE (swept) · its deta
        TTL 60 -> 180 landed (spawn.credential.ttl_minutes, was explicit 60); $5 cap + $1 floor unchanged; .agi/config.json has NO build node (item 49 remainder)
        SD ROTATED gen IV -> V 10:5xZ at meter 0.53 (owner: SD rotates normally): gen V agi-cc [f9472e] @229, pin 0.058, derived the prime by window-id join;
          gen IV (@227, renamed .gen4 by the rotation) wiped by PID by the prime — the owner's generation-wipe order, by hand until harness code. session_ref -> f9472e.
+       SD.14 IN FLIGHT (a00-6c4ee18a, glm-flash, --branch, ceiling 3; hypothesis:l3-partial-write-adoption, g13.1): ADOPTION IS ZERO (48 engine files / 29 commits since
+         the patch verb merged, 0 uses outside the nodes that built it) · 🔴 `write.py … read` WRITES: falls through to submit(), overwrote edited_by, stripped a newline —
+         two nodes corrupted + reverted by SD; no test covers it · brief.py never names patch/body_patch · SKILL.md still says whole-file only. All in the brief.
+       ITEM 55 sections half PROVED LIVE by SD on itself (no seat launched): handoff.py claim+read of §5 = 936 B / ~234 tok vs 77,943 B / ~19,485 tok whole (83x);
+         blocker = DISCOVERABILITY (no brief names handoff.py); friction: `sections` prints '## §5 …' but `claim` refuses the '## ' prefix; --holder vs --seat; 'None' in refusals.
+       config:seats body: superseded owner-4 sentence MARKED in place by the prime via write.py body_patch (rows untouched; the 23:0x reversal below it is the rule).
+       successor brief: rotate.py loop --timeout 900 + answer the gate FIRST (no node yet; direct edit, item 49 remainder).
        SD.08 landed 8bac37b4c: survival profile wired (both adapters) · inject frames 200->90 (-46%)
        SKILL.md is NOT on the pi injection path -> every earlier baseline measured the wrong thing
 DONE   XV 06:1xZ: pin claimed 0.1351 · announced name+[hex]+@id (DM -> SD, reply -> SM) · verify green (§5) · crons row corrected
