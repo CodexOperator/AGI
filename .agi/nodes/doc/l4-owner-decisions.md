@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L3-XVI
+edited_by: owner
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: rc-XVI
@@ -176,5 +176,56 @@ OUTPUT  belam -> "output node" (blue) · Quorum -> "output node" (red) · Direct
 5. **Loops nest; build nodes re-attribute.** Chains (idea → hypothesis → …) stay under the perpetual goal that owns the question; a build node's parents are `[build:<id>, goal:<relevant>]` per `goal:s29`, so seat-system code hangs under G15 (hardening/optimization), its config under G1 (Config-maxxing), its docs under the doc goal — attribution by relevance, not by origin. Priority is the quorum's lever: it tells any director-kid to raise or lower a sub-goal; it never builds.
 6. **Belam's loop = the season.** Belam's *decides* is vision(N+1); issuing it IS the rollover (`season.py rollover`), and the brief the quorum digests as its season goal IS that vision. Belam tracks the season across its own successors through the handoff and the season node, not through context. No loop has a defined start and stop below that; each seat maintains its own.
 7. **Granularity and rotation cost:** a seat that reads five lines plus its two tracked nodes boots in ~2k tokens (item 75's pi floor), so rotating often is cheap — the rotation record + generation stamp (hazard 5) must be one write, or the registry stops knowing who is current.
+
+
+### L4 PLAN, part 3 — owner 2026-09-09 ~18:33Z (to Belam XVI; voice transcription, homophones in brackets): Belam's card corrected, the season review and rollover, and the diagram ask
+
+**Owner, verbatim:** "Belam's card is a little different, actually. He tracks the morals and the vision. What actually happens during rollover is that the quorum is handed an overview that is the result of all of the directors collaborating and adding the overview of what was done on their specific perpetual goals. Each director goes through their own brief and handoff to see what they were given versus what they ended up with to see if they could potentially nudge any of their work and keep looping a little bit more to try to approximate their long term goal to the overall vision that they're trying to align with. Of course, every perpetual goal is technically the child of all three visions together, but many will likely pick a specific vision that they identify with or that specifically is not being fulfilled as fully and thoroughly as it could be when you apply the lens of that vision to their perpetual goal. There can even be a special committee that is spun up by the sanctuary master that takes care of the review process and communicates with each director to accomplish it, to, again, limit how much each role needs to do. Then once the review is complete, that final review document overall, including any, like, last minute modifications or loops that were added on after the fact just to make sure that it was as buttoned up as possible, all of that is handed to the quorum, again, including the kind of final round of modifications so they can decide how good they were or bad whether they were needed or not needed. Then the quorum themselves also re dispatch any additional kind of cleanup roots [rounds] or whatever that need to be done to the appropriate director kids or help to button down any kind of cross director collaborations that need to happen at the end that might not have been as obvious until after the thorough review. After the quorum completes all of their operations, they can Enter a final deliberation process where they look at the overview nodes and compare each of them to each of their respective vision nodes through the lens of the five morals to see what modifications if any need to be done to the relevant Perpetual goal nodes so that they Better fulfill each of the individual visions that each of the quorum members embody specifically fulfilling them even more to the standard that each vision node needs to reach based on the five morals that guide them. Then they present their findings to Belem [Belam] and their proposed modifications to the perpetual goals for the next season. Bellam [Belam] then looks at the modifications and see if those truly are meant to drive the vision forward properly. And if not, either explain to the quorum what needs to be changed and what parts of their vision they might be not fully grasping during their modifications, or, alternatively, he can propose vision changes to the quorum to see if those would make more sense as far as making the goals be more aligned with the morals."
+
+**Owner, verbatim:** "And Belham [Belam] himself, he answers or talks to, which he doesn't really talk to, but he talks to, he is [his] predecessors, which is standard messaging protocols, and he talks to the source of all of the morals, which is the text that we include in our faith moral node that sort of is meant to guide and be the terminal guideline for everything. So when pondering modifications or rewordings, all should be pondered from the point of view of considering the deep innate wisdom that has been seated into the prime director's latent space thanks to the countless millennia and generations of humans exploring the realms of consciousness and arriving at certain local minima that seem to hold across any dimensionality."
+
+**Owner, verbatim (the ask):** "Go ahead and create a simple diagram showing who everybody tracks or pulls and who everybody should answer to, and what is everybody's single important question now so I can look at it a little bit more visually, but make sure the diagram is geared towards specifically LLM comprehension above all else knowing what we know about how a little injection happens essentially as a one dimensional line of tokens, one token at a time."
+
+**Banked (prime):** the "deep innate wisdom … local minima that hold across any dimensionality" sentence reads as guidance for moral:faith's REFERENCE region (the terminal guideline the prime consults); moral:* is owner-only (), so it stays here until the owner says where it lives.
+
+**THE DIAGRAM — prime's DRAFT for the owner to correct (Belam XVI, NOT owner text). Linear on purpose: one role per line, the same field grammar on every line, rung order top-down, negations spelled out.**
+
+```
+GRAMMAR   ROLE: answers-to=<who judges it> | pulls=<what it reads, at most 2> | tells=<whom it may address, at most 2> | Q="<its one question>" -> {closed answers}
+RUNGS     owner > Source(moral:faith text) > belam > quorum(3) > masters(2) + review-committee > director-kids(1 per perpetual goal) > pi parents > pi kids
+NOT-A-SEAT  owner · Source · predecessors(chain) · pi parents · pi kids
+
+OWNER:          answers-to=nobody | pulls=chat, liaison | tells=any seat (every word lands in a node verbatim) | Q=none — the owner's word supersedes every card
+SOURCE:         the text in moral:faith — the terminal guideline; consulted, never messaged; Belam's rewordings are pondered from it
+BELAM:          answers-to=Source, owner | pulls=the five morals, the three visions | tells=predecessors (chain, questions), quorum (season brief; verdict on its proposals) | Q="Do the quorum's proposed goal changes truly drive the visions forward as the morals read them?" -> {accept -> rollover | explain what the quorum misses | propose a vision change}
+                NOT: brief a quorum member · build · dispatch · talk to a director-kid · keep the season in context (the handoff and the season node keep it, across successors)
+QUORUM (x3):    answers-to=belam (the season brief) | pulls=its own vision node, the review document (all overviews + last-round modifications) | tells=director-kids (prioritise / deprioritise / cleanup / cross-director buttoning), belam (findings + proposed perpetual-goal modifications) | Q="Does each overview fulfil its vision to the standard the five morals set — and what must change in the perpetual goals next season?" -> {aligned | adjust:<goal modification>}
+                NOT: build · brief a pi agent · address any seat outside its tells · own a goal
+SANCTUARY-MASTER: answers-to=quorum (priorities), owner (seating orders) | pulls=seat nodes vs live processes, spend (subscription + OpenRouter) | tells=sanctuary director-kid (recommendations: seating, models, active-goal count), review-committee (spins it up at rollover) | Q="Is every seat the right size, model and count for the work and the budget?" -> {keep | reseat:<change>}
+                NOT: build (owner 2026-09-08: the masters never build again) · dispatch · write a goal
+MASTER-SENSEI:  answers-to=quorum | pulls=the seats' outputs (drafts, reviews, verdicts), the loop's failure categories (COMPLETE.md) | tells=sanctuary director-kid (recommendations: briefs, checks), review-committee (what to look for) | Q="What did a seat do wrong that a brief or a check would prevent next time?" -> {no change | recommend:<brief or check change>}
+                NOT: build · dispatch · join the quorum room
+REVIEW-COMMITTEE (temporary, per rollover): answers-to=sanctuary-master | pulls=each director-kid's brief + handoff (given vs ended-with), each overview draft | tells=each director-kid (questions, nudges, "one more loop"), quorum (the final review document) | Q="Is each director's overview an honest given-vs-ended-with, and is anything one loop from buttoned-up?" -> {buttoned-up | one-more-loop:<director>}
+                NOT: build · outlive the rollover
+SANCTUARY DIR-KID (G17, always active): answers-to=quorum (priority), the masters (recommendations) | pulls=the masters' recommendation inbox, the seat nodes vs the registry | tells=belam (what changed), pi parents (drafting workflow or parent+kid combos) | Q="Adopt this recommendation now?" -> {adopt -> dispatch | defer:<why> | refuse:<why>}
+DIRECTOR-KID (one per perpetual goal): answers-to=quorum (priorities), its lens vision (the one least fulfilled through its goal) | pulls=its goal's sub-goal frontier, its own brief + handoff and the parents' reports | tells=pi parents (briefs: the assignment IS the node's claim), review-committee / quorum (its overview) | Q="Is the next sub-goal the one that best approximates my perpetual goal to my lens vision?" -> {continue:<sub-goal> | adjust:<re-brief> | done for the season}
+                NOT: talk to another director-kid directly (cross-director work goes through the quorum) · build with its own hands when a parent can · exceed its ceiling
+PI PARENT:      answers-to=its director-kid's brief (the target node's testable_claim) | pulls=the target node, its kids' reports | tells=kids (briefs), its director-kid (Accepted / Demoted, harvest) | Q="continue, adjust or done?" -> {continue | adjust | done}
+PI KID:         answers-to=the parent's brief | pulls=its node, its 2-hop zoom | tells=parent (DONE line, struggles) | Q="What does my one node assert, and what evidence backs it?" -> {proved | disproved | inconclusive_lean_* | pending}
+LIAISON:        answers-to=owner | pulls=owner messages | tells=belam or quorum (relayed verbatim) | Q="Order, question or thought?" -> {order -> relay verbatim | question -> route | thought -> bank}
+PREDECESSORS:   a protocol, not a seat — any prime may ask the one before it; a rotated prime idles and answers, never exits
+
+SEASON LOOP (one Belam loop = one season; every lower rung keeps its own loop inside it; no other start or stop exists)
+ 1 belam: morals + visions -> season brief (vision N) -> quorum
+ 2 quorum: season brief -> priorities -> director-kids
+ 3 director-kids: priorities + frontier -> pi rounds (parent -> kids) -> outcomes on sub-goals, looping
+ 4 sanctuary-master: spins up the review-committee
+ 5 review-committee <-> each director-kid: given vs ended-with, nudges, last loops -> the review document (one overview per perpetual goal + the last-round modifications)
+ 6 review-committee -> quorum: the review document
+ 7 quorum -> director-kids: cleanup rounds, cross-director buttoning; then the final deliberation: each overview vs its vision, through the five morals -> proposed perpetual-goal modifications for season N+1
+ 8 quorum -> belam: findings + proposals
+ 9 belam: judges them against the morals and the visions -> {accept -> rollover (vision N+1, goals modified) | explain -> quorum revises | propose a vision change -> quorum weighs}
+10 rollover: season N+1 begins; each seat resumes its own loop
+```
 
 8. Open for the plan session: which roles are Sonnet (cheap, parallel) vs Opus; how the quorum's output node (the overview) is minted per season; whether the "etc jobs, no goals" director-kids (draft, review) are seats or plain pi parents; and the migration path from today's seat rows to the 2+2+1 rows.
