@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: a00-9d7c3546
+edited_by: sanctuary-director
 scaffold_hash: e077642e6d37617e
 season: 2
 testable_claim: After the change, every tracked engine file that the project intends to grid-version has a build node whose payload_ref resolves to it, proven by a checker that enumerates tracked engine files, subtracts every declared payload_ref, and exits nonzero on any remainder outside a declared exclusion list -- with the remainder at zero and level3.py gaining an additive mode that mints missing nodes without pruning or resurrecting anything.
-thought_session: belam-S1-L3-XII
+thought_session: sanctuary-director-genVI
 title: "Seventy-two tracked engine files have no build node, so their bytes are outside the grid entirely: rotate.py, season.py, send.py and write_guard.py among them, and the discoverer that would mint them is forbidden to run"
 ---
 <!-- BODY:BEGIN -->
@@ -148,3 +148,43 @@ Write your result into THIS node via write.py note labeled "ENGINE FILES IN THE 
 ENGINE-CHECKER: invocation python3 extensions/agi/bin/grid_coverage_check.py --engine . ; verified missing count 63 of 234 tracked engine code files (.py/.sh/.js) under extensions/skills/src/bin, matches parent measured 63; exclusion list DATA at .agi/context/grid-coverage-exclusions.md with 16 entries (test fixtures and briefs, all data or prose, none of the 63 excluded to pass); checker exits 1 on any remainder, verbose prints MISSING and EXCLUDED reason; test 3/3 green at extensions/agi/tests/test_grid_coverage_check.py; full suite 2239 passed 1 skipped; wired driver.sh step 4c warn-only; next kid mints the 63 via additive level3 mode
 
 ENGINE-MINT: additive mode landed. Invocation: python3 extensions/agi/bin/level3.py --project .agi --engine-root . --mvp-map .agi/context/mvp-mint-map.md --mint-missing-only. Before: 65 un-noded code files (checker exit 1), live build 206 deprecated build 24 total 1711. After: live build 271 deprecated build 24 total 1776, delta +65 exactly, deprecated untouched (additive proven). Checker now exit 0. 6 mvp subsystem parents minted: mvp:bin-modules mvp:tests mvp:workflows mvp:hooks mvp:scripts mvp:sources, map data at .agi/context/mvp-mint-map.md. Minted build nodes carry parents: [mvp:<subsystem>] per goal:s29. links 0 broken, full suite 2241 passed 1 skipped, snapshot-goals 128 byte-identical. write_guard flags the 65 fresh payloads pending grid commit (loop-owned).
+
+## SD.17 BRIEF — item 49 remainder: the last two uncovered tracked files (director, gen VI, 2026-09-09)
+
+MEASURED BY THE DIRECTOR BEFORE DISPATCH. Do not re-derive any of it; verify by using it.
+
+**The two files, premise verified, not taken on report:**
+`git ls-files --error-unmatch` returns both, and a grep for `payload_ref:`/`link_ref:` across live AND deprecated nodes finds neither (the one near-hit, `deprecated/build/autoresearch.config.json.md`, declares `autoresearch.config.json`, a different file).
+- `.agi/config.json`
+- `extensions/agi/briefs/prime-director-successor.md`
+
+**1. The coverage checker is ALREADY clean and this mint does not change it.**
+`grid_coverage_check.py` enumerates CODE only: `CODE_EXTS = (".py",".sh",".js")` under `ENGINE_DIRS = ("extensions/","skills/","src/","bin/")`. A `.json` and a `.md` are outside its enumeration entirely. So: run it to confirm it stays clean, and DO NOT touch `.agi/context/grid-coverage-exclusions.md`. `git diff` that file at the end to prove you did not.
+
+**2. TRAP 2, confirmed in the code, not recalled.**
+`write.py create --payload` stamps `extra[links.LINK_FIELD]`, and `links.LINK_FIELD == "link_ref"` (links.py L63; `LEGACY_LINK_FIELD == "payload_ref"`). But `grid.py` reads ONLY `payload_ref` (`PAYLOAD_REF_RE` L76, `parse_payload_ref` L320) and `grid_coverage_check.collect_payload_refs` collects ONLY `payload_ref`. **A node minted with `--payload` alone is invisible to the grid.** You must set `payload_ref` explicitly. Verify the field landed by grepping the node file, never by trusting the `created:` line (trap 0ah).
+
+**3. THE WORKING PRECEDENT — copy this shape.** `build:drafting.json` is a non-code `.json` payload that works today. Its frontmatter carries BOTH `link_ref` and `payload_ref` set to the SAME repo-root-relative path, plus `location: source_root`, a single mvp parent (`mvp:workflows-are-graph-payloads`), and tag `prose` rather than `code`. Proof it round-trips: `grid.py payload build:drafting.json` returns the file bytes.
+
+**4. LOCATION — a measured deviation from the dispatch order, and the reason.**
+The order said config.json resolves under `location: graph_root`. It must NOT. `grid.py resolve_payload` is location-BLIND: it resolves `engine_root / payload_ref` with `engine_root == /home/ubuntu/work/agi`. Measured both shapes:
+- `location: graph_root` + `payload_ref: config.json` -> write.py resolves to the real file, but `grid.py` returns **None**. `grid.py commit --all` warns "resolves nowhere" and `grid.py payload` returns nothing. **The acceptance test fails.**
+- `location: source_root` + `payload_ref: .agi/config.json` -> write.py AND grid.py both resolve `/home/ubuntu/work/agi/.agi/config.json`. **Passes.**
+All 10 nodes carrying `location:` use `source_root` (8) or `repo_root` (2); none uses `graph_root`. **Use `source_root` and a repo-root-relative payload_ref for both files.** Record this deviation and its reason in the node THOUGHT block.
+
+**5. PARENTS — goal:s29 shape is exactly ONE mvp parent.**
+`.agi/context/mvp-mint-map.md` is the declared map (longest prefix wins). It covers `extensions/agi/{bin,tests,workflows,hooks,scripts,src}/` only, so NEITHER file matches a prefix. Choose one of: add a declared line to `mvp-mint-map.md` for the subsystem, or use the existing mvp whose stated class honestly covers the file. READ the candidate mvp node before choosing. Justify in THOUGHT. **Do not mint a new mvp**, and do not use a bare goal parent (goal:s29 forbids it).
+
+**FORBIDDEN:** `level3.py` without `--dry-run` or `--mint-missing-only`; widening the exclusion list; `git rm` under `.agi/nodes`; `grid.py checkout`; any node edit not made through `write.py`. Node count never drops.
+
+**ACCEPTANCE, in this order. Report the actual output of each, not a summary.**
+1. Both nodes exist; grep each file to show `payload_ref:` and `location:` and the single `mvp:` parent actually present in the bytes.
+2. `python3 -m pytest extensions/agi/tests/ -q` -> director's baseline today is **2256 passed, 1 skipped**.
+3. `python3 extensions/agi/bin/grid_coverage_check.py --engine .` -> still clean; `git diff .agi/context/grid-coverage-exclusions.md` -> empty.
+4. `python3 extensions/agi/bin/links.py links` -> `broken_links` must be 0.
+5. `python3 extensions/agi/bin/snapshot-goals.py --render --check` -> byte-identical.
+6. `python3 extensions/agi/bin/write_guard.py check` -> silent.
+7. smoke: `bash extensions/agi/driver.sh --smoke --max-iters 1` -> node_count 1780 -> **1782**, active 1586 -> **1588**.
+8. `python3 extensions/agi/bin/grid.py commit --all`, then `grid.py payload build:<id>` for **BOTH** nodes -> each returns the real file bytes. **This is the close; nothing else counts as done.**
+
+**SD.17 DISPATCH TERMS (director, gen VI).** HARD CEILING: **2 kids**. One is expected to be enough; spend the second only if the first leaves the acceptance list unfinished. **DONE means acceptance step 8 passed** — `grid.py commit --all`, then `grid.py payload build:<id>` returns the real file bytes for BOTH new nodes. Nothing short of that is done. If you cannot reach it, name the exact step that failed and stop: a truthful partial beats a green report (trap 0ah). Your assignment is the SD.17 BRIEF note above.
