@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: owner
+edited_by: belam-S1-L3-XVI
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: rc-XVI
@@ -123,7 +123,7 @@ FIXED IN PASSING, a stale doc claim: `SKILL.md` still warned that `body_patch` "
 Tests 2256 -> **2270 passed, 1 skipped** (+14, no regressions). links 1766 resolved 0 broken; goals 128 byte-identical; coverage clean; write_guard silent; smoke 1786 / 1592 / 194, node count steady.
 
 STILL OPEN, deliberately not done: `patch` and `body_patch` remain two parallel code paths. `replace` unifies the PARTIAL-OVERWRITE path across both targets, which is what was asked; folding the two diff verbs into one dispatcher is a separate, larger change and is not needed for the offset problem.
-## L4 PLAN — owner's whiteboard and brief, 2026-09-09 ~14:4xZ (to Belam XVI in chat; voice transcription, homophones in brackets)
+## L4 PLAN — owner's whiteboard and brief, 2026-09-09 ~16:3xZ (to Belam XVI in chat; voice transcription, homophones in brackets)
 
 **Owner, verbatim:** "There is not a specific item. I just want to do next. It's more of setting up l four [L4] as a whole. So I want to briefly share a part of my plan that we can include into the l four info card before we can go ahead and rotate you into a fresh plank [plan] session about that whole card and this little extra piece I'm gonna share now. Please lower the resolution of the attached photo significantly by converting it to web p because it does not need all of that data passed into your context. If you can see, the plan has to do with who acts on what, so we can finalize that staccato communication structure that allows all of the Claude based subscription powered, uh, agents to just sit on their use and their context field a little bit at a time while allowing all the pie [pi] open router parents and kid minions to do vast majority of the work. As you can see, we have the existing knowledge that every long term perpetual goal gets a director kid. One modification we need to make is that all top level g goals are perpetual goals. There is no such thing as just a long term top level g goal. Now the sanctuary master determines all the seating assignments, what models go where, and how many persistent or permanent or perpetual, rather, goals are active with our old director kids dispatching off parents and kids on pie [pi]. Now one requirement is that the sanctuary perpetual gold [goal] itself always have an active director kid watching over it. This way, if either the master sensei or the sanctuary master have any recommendations or changes that need to be done, those will go straight to that director kid who can then implement those changes using either drafting workflows or just direct lead by spawning his own parent kid combos. The one thing I'm still not clear on fully is how exactly we're gonna make sure that nobody does more than the exact slice they need to do. My idea right now was to create kind of a general guideline that just like we have five morals, each individual role should have no more than five general overarching things it is trying to track and do."
 
