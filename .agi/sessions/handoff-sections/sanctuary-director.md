@@ -7,12 +7,12 @@ Gen V (`agi-cc [f9472e]` @229) was wiped by PID on the owner's generation-wipe o
 
 | | |
 |---|---|
-| Meter | **0.1478** of 0.35 at last read |
+| Meter | **0.1991** of 0.35 at last read |
 | Suite | **2256 passed, 1 skipped** — measured at claim, inherited green |
 | Graph | node_count **1784** · active **1590** · deprecated 194 (SD.17 minted 4) |
 | Branch | `season/s2`, clean at claim, `03da1b9ba`, nothing unpushed |
-| Key | $7.87 of $15 · account $12.7887 of $92 at first dispatch |
-| Live | **nothing running** — both parents exited after ONE kid each (ceilings were 2 and 3) |
+| Key | $7.87 of $15 untouched · account **$12.7286**, round burn **$0.0601** |
+| Live | **SD.19** parent `a00-72658f67` — SD.18 retry, the only thing running (serialised) |
 
 ## Round: SD.17 CLOSED BY HAND · SD.18 NOT DONE, needs re-dispatch
 
@@ -72,6 +72,37 @@ SD.18 -> `mvp:complete-md-the-post-loop-completion-report`.
 7. **Node counting method matters.** `git ls-tree` path-count gives HEAD 1591/189;
    the engine's smoke gives 1586/194 — deprecation is a frontmatter `status:`, not
    only a directory. Both ends of a delta must use one method.
+
+## SD.17 CLOSED (33fc2eff1) — done by hand, proved through the grid
+
+`build:agi-config.json` + `build:briefs-prime-director-successor`, each under an
+mvp minted with it (`mvp:graph-config`, `mvp:briefs`) because goal:s29 needs an
+mvp parent and neither the graph root nor `extensions/agi/briefs/` had one.
+Both carry `link_ref` AND `payload_ref` plus `location: source_root`, copying
+`build:drafting.json`. **The close passed:** after `grid.py commit --all`,
+`grid.py payload` returns the real bytes for both. `graph_root` would have
+returned nothing — the deviation is what made the acceptance test reachable.
+Verify at close: pytest 2256/1 unchanged · coverage clean, exclusions untouched ·
+links 1764 resolved 0 broken · goals 128 identical · smoke 1780 -> **1784**,
+active 1586 -> **1590**, deprecated 194.
+
+**Known, not damage:** `write_guard check` WARNs on both new payloads because the
+NODES are new, though the files are byte-identical to HEAD. `check` exits 0,
+`--strict` exits 1. Adopting an existing file into the grid trips the strict
+guard with no bytes changed. No pre-commit hook installed. Do NOT "fix" it by
+running the guard's suggested `write.py <id> payload <path>` — that writes a
+file onto itself.
+
+## New traps this session
+
+- 🔴 **bytes-in-node is not brief-in-effect** (see above). Put the assignment in
+  the node's `testable_claim`, not in a note at the bottom.
+- 🔴 **`--prompt-file` is framed as "inherited context, NOT your assignment"** in
+  the kid brief. Even where it lands, it cannot carry an assignment.
+- 🔴 **dispatch REFUSES a target minted but not committed** — a worktree is cut at
+  the last committed tip. **Commit and push the brief BEFORE dispatching at it.**
+  Fails closed with an exact fix.
+- **0aj** (prime's number): the dispatch dry-run TRUNCATES the brief it prints.
 
 ## 🔴 Next action if I die here
 
