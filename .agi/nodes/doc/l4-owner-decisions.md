@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: owner
+edited_by: belam-S1-L3-XVI
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: rc-XVI
@@ -186,7 +186,7 @@ OUTPUT  belam -> "output node" (blue) · Quorum -> "output node" (red) · Direct
 
 **Owner, verbatim (the ask):** "Go ahead and create a simple diagram showing who everybody tracks or pulls and who everybody should answer to, and what is everybody's single important question now so I can look at it a little bit more visually, but make sure the diagram is geared towards specifically LLM comprehension above all else knowing what we know about how a little injection happens essentially as a one dimensional line of tokens, one token at a time."
 
-**Banked (prime):** the "deep innate wisdom … local minima that hold across any dimensionality" sentence reads as guidance for moral:faith's REFERENCE region (the terminal guideline the prime consults); moral:* is owner-only (), so it stays here until the owner says where it lives.
+**Banked (prime):** the "deep innate wisdom … local minima that hold across any dimensionality" sentence reads as guidance for moral:faith's REFERENCE region (the terminal guideline the prime consults); moral:* is owner-only (`write.py … --actor owner`), so it stays here until the owner says where it lives.
 
 **THE DIAGRAM — prime's DRAFT for the owner to correct (Belam XVI, NOT owner text). Linear on purpose: one role per line, the same field grammar on every line, rung order top-down, negations spelled out.**
 
