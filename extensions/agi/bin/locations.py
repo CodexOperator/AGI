@@ -299,11 +299,24 @@ def project_root_from_env(start: Path | str | None = None) -> Path | None:
     Kept separate so that a caller which already has a root (a `--project`
     flag, say) is never silently overridden by an env var set for a different
     project in the same shell.
+
+    The override may DESCEND into `.agi/`, never ASCEND. Callers put two
+    different things in the variable: `driver.sh` and the session hook export
+    the GRAPH root (already `<repo>/.agi`), while `dispatch.py --branch`
+    exports the WORKTREE REPO root (`<repo>`). Applying phase 0's rule to the
+    env value makes both senses resolve: a directory holding `.agi/` with a
+    config descends to `<val>/.agi`; anything else — already a graph root, a
+    legacy root, or a directory whose ancestor hosts a config — is returned
+    unchanged. It must not call `find_project_root(Path(val))`, because that
+    walks UP, and an override that ascends out of the directory it was handed
+    silently defeats this function's whole stated purpose: a caller with a
+    root is never overridden by an env var set for a different project.
     """
     for var in PROJECT_ROOT_ENV_VARS:
         val = os.environ.get(var)
         if val:
-            return Path(val).resolve()
+            root = Path(val).resolve()
+            return _graph_dir_in(root) or root
     return find_project_root(start)
 
 

@@ -440,6 +440,37 @@ class _FakeAdapter:
         return self.pid
 
 
+def test_reaper_leaves_an_unknown_status_untouched(tmp_path, monkeypatch):
+    """hyp:l4-one-definition-of-terminal, falsifier (c) -- the reaper's SECOND
+    guard, asserted directly.
+
+    `_reaper_phase` follows `if status in TERMINAL: continue` with
+    `if status != "running": continue`. A status nobody has thought of yet --
+    outside the terminal set AND outside "running" -- must therefore be
+    skipped: not restarted, not mangled, left exactly as written. This is the
+    tolerance that kept the reaper working while the set was wrong
+    (`done-unreported` was exactly such a forgotten status), and it is why the
+    second guard is KEPT even now that the set is right. A later
+    "simplification" that deletes the guard makes an unknown status fall
+    through to the restart path, so this test fails on it.
+    """
+    import json
+
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-unk"
+    (iter_dir / "a00-unk").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-unk", "status": "zombie"}]}))
+    (iter_dir / "a00-unk" / "agent.json").write_text(json.dumps(
+        {"id": "a00-unk", "status": "zombie", "pid": 999}))
+    adapter = _FakeAdapter(pid=123)
+    d._reaper_phase(graph, iter_dir, adapter, max_wait_s=1, cap=5, cfg={})
+    rec = json.loads((iter_dir / "a00-unk" / "agent.json").read_text())
+    assert rec["status"] == "zombie", "an unknown status must be left as-is"
+    assert adapter.calls == [], "an unknown status must never reach a restart"
+
+
 def _reap_project(tmp_path):
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
@@ -1324,6 +1355,49 @@ def test_child_working_root_unchanged_without_a_worktree_spawner(tmp_path):
                                         spawner_env_root=str(repo)) == main_graph
 
 
+def test_child_working_root_descends_deep_never_ascends(tmp_path):
+    """hypothesis:a00-32f358d3-4ee42d — the env-root override DESCENDS but
+    never ASCENDS. Red-first: cut a worktree W from main, then simulate a
+    deep spawn chain (parent `--branch` in W → kid → grandkid → …). Each
+    deeper level inherits AGI_TREE_PROJECT_ROOT=W and its passed root is the
+    previous level's result, so every level must resolve to W's graph — which
+    is shallower for levels ≥2 — and none may climb back to the main
+    checkout, even when a level's passed root would otherwise resolve main.
+
+    Existing tests cover the single hop (parent→kid). This pins the property
+    the rest of the chain relies on: the override carries the deepest
+    worktree down through any number of generations, and a descendant never
+    ascends out of it."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-32f358d3@s2", "a00-32f358d3", "init")
+    main_graph = dispatch.locations.find_project_root(repo)
+    wt_graph = dispatch.locations.find_project_root(wt)
+    assert main_graph != wt_graph, "sanity: the worktree has its own graph"
+
+    # Level 1 = the --branch parent itself working in WT.
+    root = wt_graph
+    # Descend the chain: each level's passed root is the *child's* root, and
+    # the inherited env still names the spawner's worktree WT. It must never
+    # drift back to main_graph, for however many generations follow.
+    for depth in range(2, 8):
+        root = dispatch.child_working_graph(
+            passed_root=root, spawner_env_root=str(wt.resolve()))
+        assert root == wt_graph, (
+            f"depth {depth}: env-root override must DESCEND to the deepest "
+            f"worktree, never ascend back to the main checkout")
+
+    # Never-ascends, adversarially: a deep child whose cwd/passed-root
+    # resolves the MAIN checkout must be re-rooted back DOWN to the deepest
+    # worktree by the inherited env — the child cannot climb out of WT merely
+    # because its passed root names main.
+    assert dispatch.child_working_graph(
+        passed_root=main_graph,
+        spawner_env_root=str(wt.resolve())) == wt_graph, (
+        "a descendant must not ascend: env-root override re-roots a passed "
+        "main path back down to the spawner's deepest worktree")
+
+
 # ---------------------------------------------------------------------------
 # hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum
 # ---------------------------------------------------------------------------
@@ -1600,3 +1674,115 @@ def test_a_parent_with_no_commit_on_its_branch_is_still_restarted(tmp_path):
                              "a00-abc123", 999, cap=10,
                              cfg={"reaper": {"max_restarts": 1}})
     assert out["record"]["status"] != "done-unreported", out
+
+
+def test_a_round_committed_under_the_kids_id_is_not_restarted(tmp_path):
+    """🔴 The commit is the signal; its SUBJECT never is.
+
+    Built from a real artefact, not from what the code hoped for. The two
+    subjects below are copied verbatim from `iter-L4.57` and `iter-L4.58` on
+    2026-09-10, where the reaper restarted both rounds:
+
+        a00-852433f1 done: doc:l4-five-unstaffed-seats verdict=inconclusive_lean_proved:85
+        a00-5b5defc6 done: experiment:a00-5b5defc6-7baa29 verdict=proved
+
+    Neither leads with its PARENT's id (`a00-41c4e898`, `a00-325a5d78`), so
+    the old `startswith(f"{agent_id} done:")` match returned False on a round
+    that was fully committed with a clean worktree, and both parents were
+    respawned onto finished work — roughly $0.9 of key. A third round the
+    same hour, from the same director, happened to type its own id and was
+    spared. Same code, same prompt, different string.
+
+    Writing the fixture the other way — a subject the production path never
+    produced — is exactly how a guard for this area was green while the bug
+    was live, so this one uses the string that actually burned the money.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "checkout", "-q", "-b", "loop/round-a00-41c4e898@s2")
+    (repo / "artefact.md").write_text("the round's work\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm",
+         "a00-852433f1 done: doc:l4-five-unstaffed-seats "
+         "verdict=inconclusive_lean_proved:85")
+    _git(repo, "checkout", "-q", "season/s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.57"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-41c4e898", "tier": "parent", "status": "running",
+        "pid": 999, "restart_count": 0,
+        "branch": "loop/round-a00-41c4e898@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-41c4e898", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "done-unreported", out
+    assert FakeAdapter.restarted is False, (
+        "the round was committed — the parent's id not appearing in the "
+        "subject is not evidence that it was not")
+    assert out["record"]["commits_ahead"] == 1
+
+
+def test_a_restart_names_itself_so_the_manifest_and_the_budget_agree(tmp_path):
+    """A restart that leaves no trace cannot be counted, budgeted or believed.
+
+    On iter-L4.57 and iter-L4.58 the manifest recorded a restarted parent as
+    `status: running` with a silently swapped pid and nothing else — while
+    `spawn_budget status` was listing the same process as `<id>-r1`. The only
+    way to know a restart had happened was that the two disagreed. The record
+    now carries `restart_of` under the lease's own name, so both readers name
+    the process the same way.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            return 12345
+
+    rec = {
+        "id": "a00-abc123", "tier": "parent", "status": "running", "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "running", out
+    assert out["record"]["restart_count"] == 1
+    assert out["record"]["restart_of"] == "a00-abc123-r1", (
+        "the record must name the process by the lease name "
+        "`spawn_budget status` shows, or the two readers disagree")

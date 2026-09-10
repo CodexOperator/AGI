@@ -48,6 +48,8 @@ import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it wit
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
+from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
 config_path = locations.config_path
@@ -749,6 +751,11 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             env = adapter.child_env(harness=dispatch_harness,
                                     base=scrubbed_env(), tier=args.tier)
             env["AGI_TIER"] = args.tier
+            # hypothesis:l4-spawn-paths-export-the-reaper-knob -- mirror of
+            # the live spawn_env export, so the dry report SHOWS the reaper
+            # knob without a spawn (a check that costs a spawn is a check that
+            # never runs).
+            env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"] = "1"
             env["AGI_ROLE"] = args.role
             env["AGI_LADDER_TIER"] = str(tier_eff)
             env["AGI_SEASON"] = str(current_season)
@@ -810,7 +817,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
                        "AGI_SEAT", "GIT_CONFIG_COUNT",
-                       "CLAUDE_CODE_WORKFLOWS"]
+                       "CLAUDE_CODE_WORKFLOWS",
+                       "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
@@ -1234,18 +1242,28 @@ def main() -> int:
     # race produced.
     unadmitted: list[dict] = []
 
-    # hypothesis:l3-openrouter-key-headroom-invisible — pre-flight BEFORE any
-    # slot takes a budget lease. The one number that can kill every pi agent
-    # (the runtime sub-key's remaining balance, which OpenRouter reports as
-    # "401 API key expired" when crossed) should surface as a named refusal
-    # rather than a silent round-destroying death 60 minutes in. The check is
-    # fail-open on absence or a network error — an unreachable API must never
-    # block a round — and applies only to an openrouter harness, whose runtime
-    # key carries its own dollar cap.
+    # hypothesis:l3-openrouter-key-headroom-invisible AND l4-the-floor-guards-
+    # the-key-that-drains — pre-flight BEFORE any slot takes a budget lease.
+    # l3: the runtime sub-key's remaining balance (which OpenRouter reports as
+    # "401 API key expired" when crossed) surfaces as a named refusal. l4:
+    # rounds bill to MINTED per-spawn keys, so the floor must ALSO consult the
+    # outstanding engine-minted keys, or it reads a number that cannot move.
+    # Both checks are fail-open on absence or a network error — an unreachable
+    # API must never block a round — and both apply only to an openrouter
+    # harness, whose keys carry their own dollar caps.
     if dispatch_harness.get("provider") == "openrouter":
-        _hkey_ok, _hkey_msg = provisioning.check_runtime_key_floor(cfg, root)
+        _hkey_ok, _hkey_msg = provisioning.check_key_floor(cfg, root)
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
+            return 1
+        # hypothesis:l4-the-floor-must-watch-the-account — ADDITIVE to the key
+        # floor, never replacing it. Rounds bill to the ACCOUNT, which the key
+        # floor cannot see, so a drained account must refuse a spawn the same
+        # way a drained key does. Fail-closed on a present reading below,
+        # fail-open on absence or a network error (see check_account_floor).
+        _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
+        if not _acc_ok:
+            print(f"ERR: {_acc_msg}", file=sys.stderr)
             return 1
 
     for slot, target_entry in enumerate(targets):
@@ -1463,6 +1481,15 @@ def main() -> int:
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)
+            # hypothesis:l4-spawn-paths-export-the-reaper-knob -- the harness
+            # reaps "background" shells on a Bun memoryPressure signal; the
+            # only gate is CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP (read
+            # verbatim from the installed claude-code bundle). Set it
+            # UNCONDITIONALLY to defeat it for every spawn: an inherited "0"
+            # would otherwise re-arm the reaper silently, and an inherited
+            # value is one tmux restart from gone. This is the spawn surface;
+            # it must not live in config, nodes, or a shell profile.
+            spawn_env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"] = "1"
             # goal:l2-agent-git-commit-guard -- belt: refuse git write for
             # automated agent tiers (kid, parent).  AGI_TIER distinguishes
             # machine from human; GIT_CONFIG tells git to use our hooks
@@ -1720,7 +1747,11 @@ def _reaper_phase(
     import json
     import time
 
-    TERMINAL = {"done", "pending", "hung-healed", "failed"}
+    # `TERMINAL` is imported from `spawn_budget` (the ONE definition). The
+    # second guard below (`if status != "running": continue`) is KEPT ON
+    # PURPOSE -- it catches any status nobody has thought of yet, which is
+    # exactly the tolerance that kept this reaper working while the set was
+    # wrong. Do not "simplify" it away.
     deadline = time.time() + max_wait_s
 
     while time.time() < deadline:
@@ -1732,6 +1763,17 @@ def _reaper_phase(
         except (json.JSONDecodeError, OSError):
             break
 
+        # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
+        # The reaper already reads every live `agent.json`; this is where a
+        # parent whose kids are all terminal but whose own record still reads
+        # `running` (mtime untouched, worktree dirty, past T) becomes a
+        # first-class RECORDED `stalled` state. `stall_detect` stamps that
+        # state and neither kills, restarts, nor commits — a stalled parent
+        # is still alive and still holds its lease, so it never joins
+        # `spawn_budget.TERMINAL`. The reap guard below (`if status != "running"`)
+        # then skips it on the next pass exactly as designed, so wiring this
+        # in changes none of the reaper's commit-based completion logic.
+        stall_detect.record_stalled_in_iteration(iter_dir)
         all_terminal = True
         updated = False
         for entry in manifest.get("agents", []):
@@ -1764,6 +1806,20 @@ def _reaper_phase(
                     entry["commits_ahead"] = rec["commits_ahead"]
                 if rec.get("pid"):
                     entry["pid"] = rec["pid"]
+                # A RESTART MUST BE VISIBLE WHERE THE ROUND IS READ (prime's
+                # ruling, 2026-09-10). This copy was a three-key whitelist —
+                # status, commits_ahead, pid — so a restart wrote its
+                # bookkeeping into the session `agent.json` and none of it
+                # reached the manifest: the manifest showed `status: running`
+                # with a silently swapped pid and no trace that anything had
+                # been restarted, while `spawn_budget` leased the same process
+                # as `<id>-r1`. Two identities for one process, and the only
+                # way to notice was that the two disagreed. Measured on
+                # iter-L4.57 and iter-L4.58 before this line existed.
+                for k in ("restart_count", "restart_of", "restarted_at",
+                          "fail_reason", "finished_at"):
+                    if k in rec:
+                        entry[k] = rec[k]
                 updated = True
                 print(f"reaper: {outcome['message']}")
 
@@ -1826,32 +1882,38 @@ def _restart_iter_id(iter_dir, rec):
 
 
 def _branch_has_done_commit(root, rec, agent_id) -> bool:
-    """True when `agent_id` has already committed on its own branch.
+    """True when the round's branch has advanced past its base.
 
     The completion signal for a PARENT, which authors no node of its own and
     whose manifest status the reaper cannot see (the parent updates its
-    worktree's copy; the reaper reads the main checkout's). A `--branch` agent
-    commits as `<agent_id> done: <node> verdict=<v>`, so one commit authored
-    under its id on its branch is proof the round landed. Never raises: an
-    unreadable branch is not evidence of completion, and returning False sends
-    the caller down the ordinary restart path.
+    worktree's copy; the reaper reads the main checkout's).
+
+    **The signal is the COMMIT, never the commit's subject** (prime's ruling,
+    2026-09-10). The previous version of this function matched
+    `line.startswith(f"{agent_id} done:")` — a string a language model types
+    by convention, and the convention is not fixed. Measured the day it was
+    replaced: three rounds dispatched by one director inside one hour, one
+    parent typed its own id and was correctly spared, two typed their KID's
+    id and were restarted onto rounds that were already committed with clean
+    worktrees. Roughly $0.9 of key burned re-doing finished work, and the
+    branch was carrying `commits_ahead: 1` in the same manifest the whole
+    time — the truth was already computed, one call too late to be consulted.
+
+    A `loop/…-<agent_id>@s2` branch is cut for exactly one round and nothing
+    else commits to it, so *any* commit after its base is that round's agent's
+    work landing. That is the ruling's "authored by the round's agent" made
+    checkable: git authorship itself cannot serve, because every agent commits
+    as the shared `agi <agi@local>` identity.
+
+    Never raises: an unreadable branch is not evidence of completion, and
+    returning False sends the caller down the ordinary restart path. A parent
+    killed mid-round has a branch level with its base, reads False here, and
+    still restarts — recovery is preserved and asserted directly by
+    `test_a_parent_with_no_commit_on_its_branch_is_still_restarted`.
     """
-    branch = rec.get("branch")
-    base = rec.get("base_branch")
-    if not (branch and base and agent_id):
+    if not agent_id:
         return False
-    main = locations.git_common_root(root)
-    try:
-        r = subprocess.run(
-            ["git", "-C", str(main), "log", "--format=%s",
-             f"{base}..{branch}"],
-            capture_output=True, text=True, timeout=30)
-    except (subprocess.TimeoutExpired, OSError):
-        return False
-    if r.returncode != 0:
-        return False
-    return any(line.startswith(f"{agent_id} done:")
-               for line in r.stdout.splitlines())
+    return (_commits_ahead(root, rec) or 0) > 0
 
 
 def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
@@ -2017,6 +2079,10 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
     return {
         "record": {"status": "running", "pid": new_pid,
                    "restart_count": restarts + 1,
+                   # The lease name spawn_budget actually shows, so a reader
+                   # of the manifest and a reader of `spawn_budget status`
+                   # are looking at the same process under the same name.
+                   "restart_of": f"{agent_id}-r{restarts + 1}",
                    "restarted_at": int(time.time()),
                    "fail_reason": f"pid {pid} disappeared; restarted"},
         "message": (f"agent {agent_id} restarted as pid {new_pid} "

@@ -33,8 +33,6 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 
-TERMINAL = {"done", "pending", "hung-healed", "failed"}
-
 # goal:g11.1 / goal:s8 — one definition of "which env is safe to hand pi" and
 # one of "which model does a pi child run", shared with the other spawner
 # rather than re-derived here. `bin/` is on sys.path when this runs as a
@@ -42,6 +40,7 @@ TERMINAL = {"done", "pending", "hung-healed", "failed"}
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 from dispatch import pi_model_args, scrubbed_env as _scrubbed_env  # noqa: E402
+from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 
 def _pi_model_args(root: Path) -> list[str]:

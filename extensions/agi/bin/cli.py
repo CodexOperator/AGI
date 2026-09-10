@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -27,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
+import spawn_budget  # noqa: E402
 from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
 # goal:s17 -- the type table and the scaffold routine both live in
@@ -114,6 +116,73 @@ def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
     # `iter_n` is a legacy int (`iter-007`) or a loop-scoped str (`iter-L1.08`);
     # `locations` is the one place either is spelled as a directory.
     return locations.iteration_dir(root, iter_n) / agent_id / "agent.json"
+
+
+def _sibling_session_lookup(local_root: Path, path: Path) -> Path | None:
+    """Union every linked git worktree's session dir, for one record.
+
+    hypothesis:l4-a-branch-parent-cannot-signal-done (the THREE-TREE case). A
+    `--branch` parent dispatched from a SEAT worktree has its `agent.json`
+    written by the DISPATCHER into the SEAT's own session dir — dispatch.py
+    resolves `sess_root = root` (the DISPATCHER's worktree), so the record is
+    in NEITHER the parent's own worktree NOR the main checkout. The
+    local->main `_legacy_fallback` therefore cannot reach it, and the parent's
+    `done` refuses ("no agent record"). This resolves the record across every
+    linked git worktree, exactly as `_evidence_corpus` unions every worktree's
+    NODE corpus so a worktree-resident experiment resolves for `score`.
+
+    Mirror of that deliberate tolerance: a half-created worktree (no `.agi`
+    graph yet) must not take the lookup down, and an unreadable tree
+    contributes nothing. Returns `None` when the record lives in none of
+    local/main/sibling worktree — the caller's own refusal stays the source
+    of truth for "absent", so absence stays distinguishable from a wrong
+    lookup.
+    """
+    if not path.name == "agent.json":
+        return None
+    # The main checkout's graph root — siblings hang off `.agi/worktrees/`
+    # (the harness places every linked worktree under the main graph tree,
+    # exactly as the real repo does; a legacy layout with no worktrees just
+    # has an absent `worktrees/` dir and this is a no-op).
+    main = locations.git_common_root(local_root)
+    main_graph = locations.find_project_root(main) if main else None
+    if not main_graph:
+        return None
+    wt_root = main_graph / "worktrees"
+    if not wt_root.is_dir():
+        return None
+    try:
+        rel = path.relative_to(local_root)
+    except ValueError:
+        return None
+    for tree in sorted(wt_root.glob("*")):
+        if not tree.is_dir():
+            continue
+        sg = tree / ".agi"
+        if not (sg / "config.json").is_file():
+            continue
+        cand = sg / rel
+        if cand.is_file():
+            return cand
+    return None
+
+
+def _resolve_session_record(sroot: Path, ap: Path) -> Path:
+    """local -> main (`_legacy_fallback`) -> sibling worktrees.
+
+    The one resolver `done`/`pending` use, so the SEAT-dispatched
+    three-tree case (hypothesis:l4-a-branch-parent-cannot-signal-done)
+    reaches the record wherever the dispatcher wrote it. Returns the FOUND
+    path, or the unchanged local `ap` when the record lives in none of the
+    three trees — the caller's `ap.exists()` refusal then still fires, so
+    absence stays distinguishable from a wrong lookup and `done` never
+    creates the record it then reads.
+    """
+    resolved = _legacy_fallback(sroot, ap)
+    if resolved.exists():
+        return resolved
+    sib = _sibling_session_lookup(sroot, ap)
+    return sib if sib is not None else resolved
 
 
 def _evidence_corpus(root: Path) -> frozenset:
@@ -415,7 +484,7 @@ def cmd_done(args: argparse.Namespace) -> int:
     # the MAIN checkout only when the local tree lacks the record, so an
     # in-flight round whose manifest predates the change keeps resolving.
     sroot = _session_root()
-    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
+    ap = _resolve_session_record(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -614,7 +683,7 @@ def cmd_done(args: argparse.Namespace) -> int:
 def cmd_pending(args: argparse.Namespace) -> int:
     root = _find_root()
     sroot = _session_root()
-    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
+    ap = _resolve_session_record(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -1024,6 +1093,583 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------
+# session-complete: bring a finished round's session dirs home
+# (hypothesis:l4-session-dirs-come-home-when-the-round-is-done)
+#
+# `sessions/` is gitignored so a merge-up carries none of it. The iter dir
+# that RAN a round lives in the WORKTREE that ran it, and nothing ever brings
+# it into the main checkout -- the one place a cold reader or an audit looks.
+# This command IS that step: a SESSION-COMPLETE migration, named and
+# explicitly invoked, never a side effect and never on a timer.
+#
+# The three prime constraints, stated by number, hold together here:
+#   (1) during a round the iter dir STAYS in the worktree that ran it -- this
+#       command runs only when the round is over, so resolution does not
+#       change mid-round;
+#   (2) shared state (spawn budget, comms root, meter pins) stays in MAIN and
+#       is untouched -- only `sessions/iter-<id>` dirs move, and the budget is
+#       consulted read-only as a liveness signal;
+#   (3) this migration step is the SESSION-COMPLETE move, COPY-THEN-VERIFY
+#       (never move): copy the tree, byte-compare it, and only then remove the
+#       source -- with `--dry-run` as the default testing posture.
+#
+# Central safety rule, duplicated nowhere else: this must NEVER be run against
+# a live tree. Other seats dispatch while a round runs, and a live round's
+# `manifest.json` is being written as a migration would read it. The guard is
+# two independent completeness checks, both of which must pass: (a) no live
+# spawn-budget lease names this iteration, and (b) every agent record in the
+# source iter dir's manifest is terminal. A round that is still running is
+# REFUSED, not partially moved.
+
+#: Terminal statuses a round's agent records may rest in -- the same set the
+#: reaper uses (dispatch.py TERMINAL). A record in any other state means the
+#: round is still live and must not be migrated.
+#: 🔴 `done-unreported` IS TERMINAL AND MUST BE IN THIS SET. It is what the
+#: reaper writes when a round landed and only the report was lost — the most
+#: common ending for a `--branch` parent, which authors no node and whose
+#: `done` reaches its own worktree rather than the dispatcher's. All three of
+#: this seat's rounds ended that way. Without it `session-complete` refused
+#: every seat-dispatched round with "not every agent record is terminal;
+#: round still running", measured live against `iter-L4.56` — a no-op wearing
+#: a safety message, and precisely the case the command exists for.
+#:
+#: `dispatch.py:1738` carries the same four-name set and gets away with it by
+#: accident: its reaper loop follows `if status in TERMINAL: continue` with
+#: `if status != "running": continue`, so `done-unreported` is skipped by the
+#: second guard and `all_terminal` is never cleared. Behaviourally terminal,
+#: nowhere declared so. A reader that copies the SET without the guard — this
+#: one did — inherits a refusal instead of a completion.
+#: Since hyp:l4-one-definition-of-terminal the DEFINITION lives only in
+#: `spawn_budget.TERMINAL`; this is an alias import so every reader shares it.
+from spawn_budget import TERMINAL as TERMINAL_STATUSES  # noqa: E402 -- the ONE set
+
+
+def _iteration_agents_complete(iter_dir: Path) -> bool:
+    """Every agent record in `iter_dir`'s manifest is terminal.
+
+    Reads the manifest's `agents` list, then re-reads each agent's own
+    `agent.json` when present (the reaper writes the authoritative terminal
+    status there first), so a record the manifest shows as `running` but whose
+    `agent.json` is already terminal still counts. A missing or unreadable
+    manifest, or an empty agents list, is NOT complete -- there is nothing to
+    judge, so nothing may move.
+    """
+    mpath = iter_dir / "manifest.json"
+    if not mpath.is_file():
+        return False
+    try:
+        manifest = json.loads(mpath.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+    agents = manifest.get("agents") or []
+    if not agents:
+        return False
+    for entry in agents:
+        status = entry.get("status", "running")
+        rec_path = iter_dir / str(entry.get("id", "")) / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text(encoding="utf-8"))
+            status = rec.get("status", status)
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass  # no agent.json: trust the manifest entry
+        if status not in TERMINAL_STATUSES:
+            return False
+    return True
+
+
+def _dir_snapshot(root: Path) -> dict:
+    """A filesystem snapshot: relative path -> bytes, for every file under
+    `root`. The symmetric ground truth for `_merge_verified`: a merged target
+    is correct iff its snapshot EQUALS the union of every source's expected
+    winner/loser locations."""
+    out = {}
+    if not root.exists():
+        return out
+    for p in root.rglob("*"):
+        if not p.is_file():
+            continue
+        out[str(p.relative_to(root))] = p.read_bytes()
+    return out
+
+
+def _trees_match(src: Path, dst: Path) -> bool:
+    """Byte-for-byte: every file under `src` exists under `dst` with equal
+    bytes. The copy's verification, not its success -- a `copytree` that
+    returns 0 can still have truncated a file, and the source may only be
+    removed once this says the two trees agree.
+    """
+    try:
+        src_files = [p for p in src.rglob("*")
+                     if p.is_file() and _migratable(p.relative_to(src))]
+        pending = set(src_files)
+        for sp in src_files:
+            rel = sp.relative_to(src)
+            dp = dst / rel
+            if not dp.is_file():
+                return False
+            if sp.read_bytes() != dp.read_bytes():
+                return False
+            pending.discard(sp)
+        # The destination must not silently hold extra accepted files
+        # (symlink targets, intermediates); require a symmetric file set.
+        dst_files = {p.relative_to(dst) for p in dst.rglob("*")
+                     if p.is_file() and _migratable(p.relative_to(dst))}
+        return set(p.relative_to(src) for p in src_files) == dst_files
+    except OSError:
+        return False
+
+
+# ---------------------------------------------------------------------------
+# The merge. A `--branch` round writes its session dir to TWO trees at once
+# (hypothesis:l4-a-round-lives-in-two-trees-so-coming-home-is-a-merge): the
+# DISPATCHER's tree carries `manifest.json`, `output.log` and a parent
+# `agent.json` whose record the reaper set to `done-unreported`; the CHILD's
+# worktree carries `context.md` and the parent's OWN `agent.json`, whose
+# record `cli.py done` wrote as `done`. Both are `sessions/iter-<id>/` and
+# both must come home to the SAME target. A copy that runs one first and
+# refuses on the non-empty target strands half the round in a worktree -- the
+# exact outcome this command exists to prevent. So bringing a round home is a
+# MERGE of complementary subtrees, not a copy of one,
+# COPY-THEN-VERIFY-THEN-REMOVE-EACH-SOURCE-BY-ITS-OWN-CONTRIBUTION.
+#
+# The hard part is the CONFLICTING PATH: both trees may hold the same relative
+# file (the parent `agent.json` for the same parent id) and they are two
+# genuinely different documents, neither a copy of the other. The rule below
+# resolves it by CONTENT SEMANTICS -- never by scan/iteration order -- and
+# always keeps the loser recoverable rather than deleted.
+
+#: `.manifest.lock` is NOT a document (hypothesis:l4-a-manifest-is-a-
+#: document-too, `.manifest.lock` clause): it is a lock file whose only
+#: statement is "some dispatch held a brief rename" (dispatch.py
+#: `_manifest_lock`). Ranking, merging, or carrying it into the landing spot
+#: is meaningless, so it is dropped from the migration entirely -- never
+#: copied, never verified, never a conflict. `.tmp`/`.lock` intermediates are
+#: transient by construction and cannot be the round's bookkeeping either.
+_MANIFEST_LOCK = ".manifest.lock"
+
+#: `win[rel]` sentinel for a path whose target bytes are SYNTHESIZED rather
+#: than copied from a single source (the `manifest.json` union, below).
+_SYNTHESIZE = "SYNTHESIZE-UNION"
+
+
+def _migratable(rel: Path) -> bool:
+    """Is `rel` a document this merge should carry? Everything except
+    `.manifest.lock` -- see the constant's comment: a lock file, not data."""
+    return rel.name != _MANIFEST_LOCK
+
+
+#: Precedence for a conflicting `agent.json` terminal record. Higher rank is
+#: the more authoritative statement of how the agent's round ended and wins
+#: the conflict. `done` -- the agent's own record written through `cli.py
+#: done` -- beats `done-unreported` -- the reaper's inference that the round
+#: landed but the report was lost -- because one is the actor speaking for
+#: itself and the other a caretaker guessing at the outcome. A path that is
+#: not a readable agent record ranks -1 and falls through to the deterministic
+#: slug tiebreak instead, so content semantics only ever decide agent endings.
+_AGENT_STATUS_RANK = {
+    "done": 5,
+    "done-unreported": 4,
+    "failed": 3,
+    "hung-healed": 2,
+    "pending": 1,
+    "running": 0,
+}
+
+
+def _agent_status_rank(rel: Path, src: Path) -> int:
+    """How authoritative is `src/rel` as an agent ending? Only `agent.json`
+    records have a status to read; anything else is -1 (never wins on
+    content, falls to the slug tiebreak). Unreadable JSON is -1 too, so a
+    corrupt record is never silently treated as `done`."""
+    if rel.name != "agent.json":
+        return -1
+    try:
+        rec = json.loads((src / rel).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return -1
+    return _AGENT_STATUS_RANK.get(rec.get("status", ""), -1)
+
+
+def _src_slug(src: Path) -> str:
+    """The worktree slug a source iter dir lives under: `.../<slug>/.agi/
+    sessions/iter-<id>` -> `<slug>`, the one stable name - not a filesystem
+    scan order - a tiebreak can lean on."""
+    return src.parent.parent.parent.name
+
+
+def _merge_status_rank(entry: dict) -> int:
+    """How authoritative is a `manifest.json` `agents` entry as how that
+    agent's round ended? The SAME ranking as `agent.json` --
+    `_AGENT_STATUS_RANK` (hypothesis:l4-a-manifest-is-a-document-too). A
+    manifest entry and an agent record answer the same question, and two
+    rankings for one question is the defect this chain has been removing all
+    day. An entry with no id/status ranks -1 and never wins a per-id
+    conflict, so junk is never silently treated as a terminal record."""
+    return _AGENT_STATUS_RANK.get(entry.get("status", ""), -1)
+
+
+def _merge_manifests(holders: list[Path]) -> dict:
+    """The UNION of several complementary `manifest.json` docs.
+
+    A `--branch` round's two trees each write the iteration `manifest.json`,
+    and they are NOT versions of one file but two complementary halves of the
+    round's bookkeeping (hypothesis:l4-a-manifest-is-a-document-too): the
+    DISPATCHER's manifest is the launch record -- `commits_ahead`, the
+    parent's restart bookkeeping, the agents it saw dispatch; the CHILD's
+    covers the same round from the contestant's side. Picking one file
+    wholesale by slug name (the alphabet) silently discards the other half
+    from the file a later reader opens first -- the exact defect, one level
+    up, that the `agent.json` content rule exists to fix. So: an agent id
+    held by only one source is kept; an id held by TWO sources resolves its
+    entry by `_merge_status_rank` -- the SAME ranking as `agent.json`, never
+    a second ranking invented for one file; other top-level keys are taken
+    from all sources in slug order, later wins. Order of the merged `agents`
+    list is deterministic (first-seen by slug source then list order). A
+    corrupt or unreadable source manifest contributes nothing and cannot
+    abort the union."""
+    holders = sorted(holders, key=_src_slug)
+    by_id: dict[str, dict] = {}
+    order: list[str] = []
+    top: dict = {}
+    for src in holders:
+        try:
+            m = json.loads((src / "manifest.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError):
+            m = {}
+        for k, v in m.items():
+            if k == "agents":
+                continue
+            top[k] = v
+        for entry in m.get("agents") or []:
+            aid = entry.get("id")
+            if not aid or not isinstance(aid, str):
+                continue
+            if aid in by_id:
+                if _merge_status_rank(entry) > _merge_status_rank(by_id[aid]):
+                    by_id[aid] = entry
+            else:
+                by_id[aid] = entry
+                order.append(aid)
+    merged = dict(top)
+    merged["agents"] = [by_id[aid] for aid in order]
+    return merged
+
+
+def _conflict_winner(rel: Path, holders: list[Path]) -> Path:
+    """Deterministic winner for a relative path held by two or more sources.
+    Decided by agent-terminal content semantics when the path is a readable
+    `agent.json`; otherwise by the lexicographically smallest worktree slug.
+    Never by scan order -- the whole point of the rule is that a merge must
+    not resolve a conflict by whichever source happened to be listed first.
+    """
+    cur = holders[0]
+    for nxt in holders[1:]:
+        hc = _agent_status_rank(rel, cur)
+        hn = _agent_status_rank(rel, nxt)
+        if hn > hc:
+            cur = nxt
+        elif hn == hc and _src_slug(nxt) < _src_slug(cur):
+            cur = nxt
+    return cur
+
+
+def _merge_plan(sources: list[Path]):
+    """Compute the merge plan for a set of source iter dirs.
+
+    Returns `(win, lose, conflicted)`:
+      win  -- dict rel_path -> the source whose bytes land at `target/rel`.
+      lose -- dict (src, rel) -> relative `.conflicts/...` path where that
+             source's LOSING copy is preserved (recoverable, never deleted).
+      conflicted -- dict rel_path -> (winner_slug, [loser_slug, ...]) for the
+             dry-run plan display, so a reader sees which source wins each
+             conflicting path before anything moves.
+    """
+    holders: dict[Path, list[Path]] = {}
+    for src in sources:
+        for p in src.rglob("*"):
+            rel = p.relative_to(src)
+            if p.is_file() and _migratable(rel):
+                holders.setdefault(rel, []).append(src)
+    win: dict[Path, Path | str] = {}
+    lose: dict[tuple, str] = {}
+    conflicted: dict[Path, tuple] = {}
+    synth: dict[Path, bytes] = {}
+    for rel, hs in holders.items():
+        if len(hs) == 1:
+            win[rel] = hs[0]
+            continue
+        if rel.name == "manifest.json":
+            # Complementary halves, not versions: synthesize the UNION instead
+            # of picking one file by slug. Every source's verbatim manifest is
+            # still kept recoverable under `.conflicts/`. No single slug wins,
+            # so the dry-run labels the winner `union`.
+            win[rel] = _SYNTHESIZE
+            synth[rel] = json.dumps(_merge_manifests(hs)).encode()
+            los_slugs = []
+            for loser in hs:
+                slug = _src_slug(loser)
+                los_slugs.append(slug)
+                lose[(loser, rel)] = f".conflicts/{rel}.from-{slug}"
+            conflicted[rel] = ("union", los_slugs)
+            continue
+        w = _conflict_winner(rel, hs)
+        win[rel] = w
+        los_slugs = []
+        for loser in hs:
+            if loser is w:
+                continue
+            slug = _src_slug(loser)
+            los_slugs.append(slug)
+            lose[(loser, rel)] = f".conflicts/{rel}.from-{slug}"
+        conflicted[rel] = (_src_slug(w), los_slugs)
+    return win, lose, conflicted, synth
+
+
+def _merge_verified(sources: list[Path], target: Path, win: dict, lose: dict,
+                    synth: dict) -> bool:
+    """After the merge, every byte from every source is present in the target
+    -- winner bytes at `target/rel`, synthesized union bytes at `target/rel`
+    for a `_SYNTHESIZE` winner, loser bytes at their `.conflicts` path -- and
+    nothing else. Symmetric: a copied target that is Missing or carries an
+    unexpected file fails. The single operation that is this command's whole
+    safety contract: never delete a source on the strength of "the target
+    merely exists"."""
+    expected: dict[str, bytes] = {}
+    for src in sources:
+        for p in src.rglob("*"):
+            if not p.is_file():
+                continue
+            rel = p.relative_to(src)
+            if not _migratable(rel):
+                continue
+            if win.get(rel) is src:
+                loc = target / rel
+            else:
+                loc = target / lose[(src, rel)]
+            expected[str(loc.relative_to(target))] = p.read_bytes()
+    for rel, data in synth.items():
+        expected[str((target / rel).relative_to(target))] = data
+    return expected == _dir_snapshot(target)
+
+
+def _source_landed(src: Path, target: Path, win: dict, lose: dict) -> bool:
+    """Did THIS source's own contribution land, byte-for-byte? The per-source
+    half of remove-only-what-verifies: a source is removed only when its own
+    winner bytes are at `target/rel` and its own losing bytes at its
+    `.conflicts` path -- never because the target happens to exist or because
+    a sibling verified."""
+    for p in src.rglob("*"):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(src)
+        if not _migratable(rel):
+            continue
+        if win.get(rel) is src:
+            loc = target / rel
+        else:
+            loc = target / lose[(src, rel)]
+        try:
+            if not loc.is_file() or loc.read_bytes() != p.read_bytes():
+                return False
+        except OSError:
+            return False
+    return True
+
+
+#: A source iter dir is a sentence, not three states. Tolerantly tagged.
+_MSG_DONE = "migrated"
+_MSG_REFUSE = "REFUSE"
+
+
+def _session_complete(
+    main_graph: Path,
+    iter_n,
+    *,
+    worktree: str | None = None,
+    dry_run: bool = False,
+    live_iters: set | None = None,
+) -> int:
+    """Merge every complete `iter_n` session dir under linked worktrees into
+    the main checkout and return them to the round's home. Returns 0 only
+    when at least one source migrated (a `--dry-run` returns 0 when it would).
+
+    `main_graph` is the MAIN checkout's graph root. `worktree`, when given,
+    restricts to one worktree slug. `live_iters`, when given as a set, is the
+    reader's own liveness signal (test injection); otherwise it is computed
+    read-only from the spawn budget. A `--branch` round may hold its session
+    dir in TWO trees at once, so the bring-home is a MERGE: both sources land
+    in the same target, a conflicting path is decided by content semantics
+    (never scan order) with the loser kept recoverable under `.conflicts/`, and
+    each source is removed only after ITS OWN contribution byte-verifies. A
+    failed migrate leaves every involved side intact -- the partial target is
+    removed, no source is touched until its own bytes agree.
+    """
+    dname = locations.iteration_dirname(iter_n)
+    wt_root = main_graph / "worktrees"
+    candidates: list[Path] = []
+    if wt_root.is_dir():
+        for tree in sorted(wt_root.glob("*")):
+            if not tree.is_dir():
+                continue
+            if worktree and tree.name != worktree:
+                continue
+            sg = tree / ".agi"
+            if not (sg / "config.json").is_file():
+                continue
+            it = sg / locations.SESSIONS_DIR_NAME / dname
+            if it.is_dir():
+                candidates.append(it)
+
+    if not candidates:
+        print(f"session-complete: no worktree holds an {dname} iter dir to "
+              f"migrate (scanned {wt_root})")
+        return 0 if dry_run else 1
+
+    if live_iters is None:
+        live_iters = spawn_budget.live_iteration_ids(main_graph)
+
+    target = main_graph / locations.SESSIONS_DIR_NAME / dname
+    # 🔴 THE TARGET-COLLISION GUARD. With two legal sources the natural merge
+    # is to "merge into whatever is there", and that is exactly the sentence
+    # a kid would write to loosen this. Do not. A pre-existing NON-EMPTY
+    # target is content NOT produced by this invocation's own sources -- by
+    # definition not one of this round's sources -- so it refuses, unchanged.
+    # An empty placeholder (dispatch pre-creates one) is not data and may be
+    # cleared, guarded by the `rmdir` that fails loudly on non-empty.
+    if target.exists() and any(target.iterdir()):
+        print(f"session-complete: {_MSG_REFUSE} {target} -- target already "
+              f"exists and is not empty; refusing to overwrite")
+        return 1
+
+    # A round is ONE logical unit spread across trees. If ANY of its sources
+    # is still live or incomplete, the whole round is still running and NONE
+    # of it may come home -- migrating only the finished half strands the
+    # other, precisely the half-a-round outcome this command exists to
+    # prevent. So the liveness/completeness checks run across every candidate
+    # and a single refusal holds the whole iteration.
+    ready: list[Path] = []
+    refused_any = False
+    for src in candidates:
+        if iter_n in live_iters:
+            print(f"session-complete: {_MSG_REFUSE} {src} -- a live lease is "
+                  f"active for iteration {iter_n}; round still running")
+            refused_any = True
+            continue
+        if not _iteration_agents_complete(src):
+            print(f"session-complete: {_MSG_REFUSE} {src} -- not every agent "
+                  f"record is terminal; round still running")
+            refused_any = True
+            continue
+        ready.append(src)
+    if refused_any:
+        return 0 if dry_run else 1
+    if not ready:
+        return 0 if dry_run else 1
+
+    win, lose, conflicted, synth = _merge_plan(ready)
+
+    if dry_run:
+        # 🔴 A dry run must show the MERGE PLAN, including which source wins
+        # each conflicting path -- and it writes NOTHING (asserted on a
+        # filesystem snapshot). At most it may print, never touch the tree.
+        for src in sorted(ready, key=_src_slug):
+            print(f"session-complete: WOULD migrate {src} -> {target}")
+        for rel in sorted(conflicted, key=str):
+            wslug, los = conflicted[rel]
+            if wslug == "union":
+                # a synthesized manifest union has no single slug winner
+                print(f"session-complete: CONFLICT {rel} : union of "
+                      f"{', '.join(los)}; original manifests kept at "
+                      f".conflicts/{rel}.from-<slug>")
+                continue
+            for loser in los:
+                print(f"session-complete: CONFLICT {rel} : {wslug} wins over "
+                      f"{loser} (loser kept at .conflicts/{rel}.from-{loser})")
+        return 0
+
+    # COPY-THEN-VERIFY-THEN-REMOVE-EACH-SOURCE-BY-ITS-OWN-CONTRIBUTION.
+    # Assemble the merged target from the plan first; only after the union
+    # verifies is any source removed, and only its own contribution's.
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_dir():
+            target.rmdir()  # clear a pre-created empty placeholder only
+        for rel, wsrc in win.items():
+            dp = target / rel
+            dp.parent.mkdir(parents=True, exist_ok=True)
+            if wsrc is _SYNTHESIZE:
+                dp.write_bytes(synth[rel])
+            else:
+                shutil.copy2(wsrc / rel, dp)
+        for (lsrc, rel), loc in lose.items():
+            dp = target / loc
+            dp.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(lsrc / rel, dp)
+    except (OSError, shutil.Error) as exc:
+        print(f"session-complete: copy failed -> {target}: {exc}; "
+              f"sources intact, no target left")
+        shutil.rmtree(target, ignore_errors=True)
+        return 1
+
+    # The whole-round verification (the multi-source take on `_trees_match`).
+    # A single conflict-free source still routes through `_trees_match` so the
+    # byte-compare contract is one function, not two. If it fails, NO source
+    # may be removed -- the target is discarded and every source left intact.
+    if len(ready) == 1 and not lose:
+        landed = _trees_match(ready[0], target)
+    else:
+        landed = _merge_verified(ready, target, win, lose, synth)
+    if not landed:
+        print(f"session-complete: VERIFY FAILED -> {target} -- source and "
+              f"target differ; removing target, all sources intact")
+        shutil.rmtree(target, ignore_errors=True)
+        return 1
+
+    # 🔴 PER-SOURCE removal. A source is removed only when ITS OWN
+    # contribution verifies against the merged target -- not when the target
+    # merely exists and not because a sibling verified. A source whose
+    # contribution did not land stays in its worktree, recoverable.
+    migrated = 0
+    for src in sorted(ready, key=_src_slug):
+        if _source_landed(src, target, win, lose):
+            shutil.rmtree(src, ignore_errors=True)
+            print(f"session-complete: {_MSG_DONE} {src} -> {target} "
+                  f"(bytes match)")
+            migrated += 1
+        else:
+            print(f"session-complete: {_MSG_REFUSE} {src} -- this source's own "
+                  f"contribution did not verify; left intact at its worktree")
+
+    return 0 if migrated else 1
+
+
+def _main_graph_root(root: Path) -> Path:
+    """The MAIN checkout's graph root, whether `root` is main or a worktree.
+
+    A worktree's own graph root sits under `.agi/worktrees/<slug>/.agi`, and
+    the linked worktrees hang off the MAIN graph tree -- so the migration
+    must resolve to main before it can enumerate its own siblings. Mirrors
+    `_sibling_session_lookup`: `git_common_root` finds the main checkout root,
+    then `find_project_root` re-derives the graph directory there.
+    """
+    main = locations.git_common_root(root)
+    if main is None or main == root:
+        return root
+    return locations.find_project_root(main) or root
+
+
+def cmd_session_complete(args: argparse.Namespace) -> int:
+    root = _find_root()
+    main_graph = _main_graph_root(root)
+    return _session_complete(
+        main_graph,
+        args.iter_n,
+        worktree=args.worktree,
+        dry_run=args.dry_run,
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1113,6 +1759,24 @@ def main() -> int:
     p_reclaim.add_argument("--node-id", required=True)
     p_reclaim.add_argument("--session", required=True)
     p_reclaim.set_defaults(func=cmd_reclaim)
+
+    p_sc = sub.add_parser(
+        "session-complete",
+        help="migrate a finished round's session dir from a worktree into "
+             "main -- copy-then-verify, never move",
+    )
+    p_sc.add_argument("iter_n", type=locations.iteration_id)
+    p_sc.add_argument(
+        "--worktree", default=None,
+        help="restrict migration to one worktree slug (default: all linked "
+             "worktrees holding this iter dir)",
+    )
+    p_sc.add_argument(
+        "--dry-run", action="store_true",
+        help="print what would move and touch nothing -- the default "
+             "testing posture",
+    )
+    p_sc.set_defaults(func=cmd_session_complete)
 
     args = ap.parse_args()
     return args.func(args)
