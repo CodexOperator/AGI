@@ -1232,53 +1232,89 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
 
 # --- loop subcommand ------------------------------------------------------
 
-
-def _is_log_noise(line: str) -> bool:
-    """True when `line` is a bracketed logger line, not a successor's answer.
-
-    The debug pane/joblog mixes claude's own lines `[DEBUG] MDM settings load
-    completed`, `<ts> [INFO] ...`, `<ts> [WARN] ...` with the successor's bare
-    reply. A bracketed line starts with `[` (bare) or is a timestamp followed
-    by a bracket (joblog `2026-09-07T..:..Z [DEBUG] ...`). The continuation
-    answer `continue` is neither, so it survives the filter
-    (hypothesis:l3-rotate-pin-path-readback)."""
-    s = line.strip()
-    if not s:
-        return True
-    if s.startswith("["):
-        return True
-    return re.match(r"^\S+\s+\[[^\]]+\]", s) is not None
+# NOTE: the legacy debug-log read-back (`_read_first_reply` / `_is_log_noise`)
+# is DELETED, not kept as a fallback (hypothesis:l4-rotate-readback-false-
+# negative-and-the-orphan-by-design): a DEBUG LOGGER cannot carry the
+# successor's prose (42 seat logs, ~295k lines, 0 non-noise line), so a
+# fallback that opens one is the defect wearing a safety label. The reply
+# channel is the explicit, identity-supplied ACK below.
 
 
-def _read_first_reply(path: str | Path, timeout: int = 120,
-                      start_offset: int = 0) -> str | None:
-    """Poll `path` until it carries an answer; return the first non-empty line
-    that is NOT a bracketed logger line (e.g. `[DEBUG] MDM settings load
-    completed`), or None if the timeout is hit first.
+def _ack_path(root: Path, seat: str) -> Path:
+    """`<graph>/sessions/seats/<seat>.ack.json` — the explicit reply channel.
 
-    `start_offset` is the read-before-write cursor
-    (hypothesis:l3w4-seat-rotation-loops): only bytes AFTER this offset count,
-    so a successor spawned under a REUSED plain seat name cannot be confirmed
-    by a predecessor's stale bare `continue` left in the same log. Default 0
-    preserves the historical whole-file behaviour for `cmd_loop`.
+    The replacement for the debug-log read-back (hypothesis:l4-rotate-
+    readback-false-negative-and-the-orphan-by-design): the successor writes
+    its ACK here with its OWN identity (`gen_after`, `session_ref`), instead
+    of the predecessor trying to read a reply out of a DEBUG LOGGER that can
+    never carry prose (42 seat logs, ~295k lines, 0 non-noise). Same seats
+    dir as the handoff, because that is the one place both sides already
+    address from any cwd.
     """
+    return _seat_hands(root) / f"{seat}.ack.json"
+
+
+def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
+        -> dict | None:
+    """Poll `<seat>.ack.json` until it carries an ACK for `gen_after`.
+
+    Returns the parsed ack dict when the file exists AND its `gen_after`
+    equals the generation the reader spawned (identity supplied, never
+    inferred — the L4.99 rule); None on timeout. An ACK with the WRONG
+    generation is REFUSED (treated as absent), so a stale or foreign ack left
+    in a reused seat name can never confirm a successor it was not written
+    for."""
     p = Path(path).expanduser()
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            if p.exists() and p.stat().st_size > start_offset:
-                with open(p, encoding="utf-8", errors="replace") as fh:
-                    if start_offset:
-                        fh.seek(start_offset)
-                    text = fh.read()
-                for line in text.splitlines():
-                    if _is_log_noise(line):
-                        continue
-                    return line.strip()
-        except OSError:
+            if p.exists():
+                ack = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+                if not isinstance(ack, dict):
+                    pass  # malformed shape — keep polling
+                elif gen_after is None or ack.get("gen_after") == gen_after:
+                    return ack
+        except (OSError, ValueError):
             pass
         time.sleep(2)
     return None
+
+
+def cmd_ack(args: argparse.Namespace, root: Path) -> int:
+    """The successor's explicit, identity-supplied reply to its rotation.
+
+    `rotate.py ack --seat S --gen N --ref <ref> continue|diff [--text -]`
+    writes `<sessions>/seats/<seat>.ack.json` carrying `seat`/`gen_after`/
+    `session_ref`/`answer`/`text`/`ts`. Both rotation readers (cmd_loop and
+    cmd_rotate_self) read THAT file after the spawn cursor and refuse an ack
+    whose gen_after is not the generation they spawned.
+    """
+    if root is None:
+        print("ERR: ack needs an agi project root.", file=sys.stderr)
+        return 1
+    seat = args.seat
+    if args.answer not in ("continue", "diff"):
+        print(f"ERR: answer must be `continue` or `diff`, got {args.answer!r}.",
+              file=sys.stderr)
+        return 1
+    text = args.text
+    if text == "-":
+        # `--text -` reads the diff body from stdin: a long diff can exceed
+        # one shell argument, so the successor streams it in.
+        text = sys.stdin.read()
+    ack = {
+        "seat": seat,
+        "gen_after": args.gen,
+        "session_ref": args.ref or "",
+        "answer": args.answer,
+        "text": text or "",
+        "ts": datetime.utcnow().isoformat() + "Z",
+    }
+    path = _ack_path(root, seat)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
+    print(f"ack written: {path}")
+    return 0
 
 
 def cmd_loop(args: argparse.Namespace, root: Path) -> int:
@@ -1314,9 +1350,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         existing, prefix=args.name_prefix or "belam")
 
     continuation = (
-        "ROTATION CONTINUATION: if the handoff needs no change, answer "
-        "exactly the single word `continue` and stop. Otherwise reply with "
-        "the exact diff you would make."
+        "ROTATION CONTINUATION: acknowledge your handoff with the explicit "
+        "ACK channel, not a bare word. First act after reading: run "
+        "`python3 extensions/agi/bin/rotate.py ack --seat <your seat name> "
+        "--gen <N> --ref <your own ListAgents ref> continue` if the handoff "
+        "needs no change, or `... diff --text '<the exact diff>'` if it does. "
+        "The predecessor's read-back reads THAT ack file and refuses an ack "
+        "whose gen_after is not your generation."
     )
     rc, _ = spawn_window(
         name=name, tier=role,
@@ -1363,43 +1403,59 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
               file=sys.stderr)
         return 1
 
-    # The successor's reply stream is ITS debug file (written by spawn_window),
-    # never the meter's `--session-log` -- pointing the read-back at the
-    # caller's own transcript let a prime confirm itself rotation that never
-    # happened (Belam VII 2026-09-07 21:56 UTC).
-    reply = _read_first_reply(debug_file, timeout=args.timeout)
-    rb = Path(debug_file).expanduser().resolve()
-    if reply is not None and reply.strip().lower() == "continue":
+    # The successor's reply is the EXPLICIT ACK channel
+    # (hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design),
+    # written by the successor with its OWN identity. The DEBUG LOGGER the old
+    # reader opened cannot carry prose (42 seat logs, ~295k lines, 0 non-
+    # noise), so it is DELETED, not kept as a fallback. `loop` manages no
+    # generation (it records and announces gen_before=None, gen_after=None), so
+    # there is no gen_after to check here; the ack's seat is bound by its
+    # per-seat file path, and generation-checking lives on the rotate-self path
+    # that owns the meter. A missing checksum here is a DOCUMENTED residue, not
+    # a silent gap (see the experiment under hypothesis:l4-rotate-readback-
+    # false-negative-and-the-orphan-by-design).
+    ack_path = _ack_path(root, name)
+    ack = _read_ack(ack_path, gen_after=None, timeout=args.timeout)
+    if ack is not None:
+        answer = ack.get("answer")
+        if answer == "diff":
+            _write_rotation_record(root, _loop_record(
+                name=name, result="diff", succ=succ,
+                readback_log=Path(ack_path).expanduser().resolve(),
+                reply_decision="diff"))
+            print("successor acked diff (handoff needs change):",
+                  file=sys.stderr)
+            txt = ack.get("text") or ""
+            if txt:
+                print("  " + txt.strip().replace("\n", "\n  "),
+                      file=sys.stderr)
+            return 0
+        # answer == continue
         _write_rotation_record(root, _loop_record(
-            name=name, result="success", succ=succ, readback_log=rb,
+            name=name, result="success", succ=succ,
+            readback_log=Path(ack_path).expanduser().resolve(),
             reply_decision="continue"))
-        print("handoff stood: successor answered the single word `continue`.",
-              file=sys.stderr)
-        # The rotation succeeded: announce it to every live seat NOW, at the
-        # same moment the record was written (L3.44). A refused or
-        # inconclusive rotation above already returned without announcing.
+        print("handoff stood: successor acked `continue`.", file=sys.stderr)
         import send  # local: same dir
         _announce_rotation(
             root=root,
             croot=send.comms_root(root, getattr(args, "comms_root", None)),
             seat=name, successor=name, gen_before=None, gen_after=None,
             trigger="--force" if getattr(args, "force", False) else "meter due",
-            handoff_path=str(rb),
-            in_flight="successor confirmed `continue`; handoff stood",
+            handoff_path=str(Path(ack_path).expanduser().resolve()),
+            in_flight="successor acked `continue`; handoff stood",
             live_names=succ.get("names", []))
         return 0
-    if reply is None:
-        _write_rotation_record(root, _loop_record(
-            name=name, result="inconclusive-no-reply", succ=succ,
-            readback_log=rb, reply_decision="no_reply"))
-        print("warn: could not read a reply from the successor log "
-              "(give it time, then re-run loop).", file=sys.stderr)
-        return 0
+
+    # Three realities, one record (ACKED / PRESENT-BUT-SILENT / ABSENT): the
+    # successor window was already confirmed present above, and no ack arrived
+    # -> PRESENT-BUT-SILENT, recorded inconclusive; never confirmed.
+    rb = Path(ack_path).expanduser().resolve()
     _write_rotation_record(root, _loop_record(
-        name=name, result="diff", succ=succ, readback_log=rb,
-        reply_decision="diff"))
-    print("successor replied (handoff needs change):", file=sys.stderr)
-    print("  " + reply.strip().replace("\n", "\n  "), file=sys.stderr)
+        name=name, result="inconclusive-no-reply", succ=succ,
+        readback_log=rb, reply_decision="no_reply"))
+    print("warn: successor window present but no ACK arrived (give it time, "
+          "then re-run loop).", file=sys.stderr)
     return 0
 
 
@@ -2525,6 +2581,15 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
     role = (row.get("role") if row else None) \
         or getattr(args, "role", None) or "parent"
+    ack_gate = (
+        "ROTATION CONTINUATION: acknowledge your handoff with the explicit "
+        "ACK channel, not a bare word. First act after reading your handoff: "
+        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+        f"--gen {gen} --ref <your own ListAgents ref> continue` if the handoff "
+        "needs no change, or `... diff --text '<the exact diff>'` if it does. "
+        "The predecessor's read-back reads THAT ack and refuses an ack whose "
+        "gen_after is not this generation."
+    )
     rc, _ = spawn_window(
         name=seat, tier=role,
         prompt_file=args.prompt_file,
@@ -2534,7 +2599,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                   else _normalize_settings(row.get("settings") if row
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=dbg,
+        dry_run=args.dry_run, debug_file=dbg, extra=ack_gate,
         successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
@@ -2583,25 +2648,39 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
-    reply = _read_first_reply(dbg, timeout=timeout, start_offset=offset)
-    if reply is None or reply.strip().lower() != "continue":
-        # (w3) record hygiene, not a decision change: this very branch used to
-        # `return 1` WITHOUT writing a record, so a rotation that actually
-        # succeeded (gen VI: successor window live, successor doing the work)
-        # stayed frozen at `started` -- indistinguishable from one still in
-        # flight, and `readback_log` absent exactly where a diagnostician
-        # needs it. Write the terminal record here, populating readback_log,
-        # WITHOUT touching the condition, the `return 1`, or the window
-        # survival below -- the DECISION belongs to the prime's held round
-        # (hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-
-        # design), which rebases onto this hygiene.
+    # The explicit ACK channel is the ONLY read-back
+    # (hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design):
+    # the successor writes its ack with its OWN gen_after, which we REFUSE if
+    # it is not the generation we spawned. An acked `continue` confirms the
+    # rotation; an acked `diff` means the handoff needs change and the own
+    # window lives for inspection. The legacy debug-log read is DELETED, not
+    # kept as a fallback (a debug logger cannot carry prose).
+    ack = _read_ack(_ack_path(root, seat), gen_after=gen, timeout=timeout)
+    acked_continue = False
+    if ack is not None and ack.get("answer") == "continue":
+        acked_continue = True
+    elif ack is not None and ack.get("answer") == "diff":
+        _write_rotation_record(root, _rotate_self_record(
+            seat=seat, result="diff", gen_before=gen_before, gen_after=gen,
+            succ=succ, readback_log=Path(_ack_path(root, seat)).expanduser(),
+            refusal="successor acked diff: handoff needs change"), path=rec_path)
+        print("successor acked diff (handoff needs change); leaving the "
+              "renamed window in place for inspection.", file=sys.stderr)
+        return 1
+
+    # Three realities (ACKED / PRESENT-BUT-SILENT / ABSENT): the window was
+    # confirmed present above and no ack arrived -> PRESENT-BUT-SILENT, the
+    # (w3) decision record: SUCCEEDED BUT UNWITNESSED, never confirmed. A
+    # rotation that actually succeeded (window live, successor working) must
+    # not freeze at `started` -- write the terminal record here.
+    if not acked_continue:
         if not args.dry_run:
             _write_rotation_record(root, _rotate_self_record(
                 seat=seat, result="unwitnessed", gen_before=gen_before, gen_after=gen,
                 succ=succ, readback_log=log, cursor_offset=offset,
-                refusal=("successor did not answer the single word `continue`; "
+                refusal=("successor did not ACK; window present but silent; "
                          "rotation SUCCEEDED BUT UNWITNESSED")), path=rec_path)
-        print("warn: successor did not answer the single word `continue`; "
+        print("warn: successor did not ACK (window present but silent); "
               "leaving the renamed window in place for inspection.",
               file=sys.stderr)
         return 1
@@ -2754,6 +2833,25 @@ def main(argv: list[str] | None = None) -> int:
                              "is delivered to (default: send.py's comms_root)")
     p_loop.set_defaults(func=cmd_loop)
 
+    # ack: the successor's explicit reply (hypothesis:l4-rotate-readback-
+    # false-negative-and-the-orphan-by-design). The replacement for the
+    # debug-log read-back.
+    p_ack = sub.add_parser(
+        "ack", help="write the successor's explicit rotation reply "
+                    "(<sessions>/seats/<seat>.ack.json)")
+    p_ack.add_argument("--seat", required=True,
+                       help="the successor's seat name", dest="seat")
+    p_ack.add_argument("--gen", type=int, required=True, dest="gen",
+                       help="the generation this ACK confirms (gen_after)")
+    p_ack.add_argument("--ref", default=None, dest="ref",
+                       help="the successor's own ListAgents session ref")
+    p_ack.add_argument("answer", choices=("continue", "diff"),
+                       help="continue | diff")
+    p_ack.add_argument("--text", default=None,
+                       help="the diff text, when answer is diff; `-` reads it "
+                            "from stdin")
+    p_ack.set_defaults(func=cmd_ack)
+
     # status
     p_status = sub.add_parser(
         "status", help="list agi-master and belam tmux sessions")
@@ -2899,8 +2997,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "complete":
         return args.func(args, None)
 
-    # meter, loop, alarms and rotate-self need the project root
-    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "seats-launch", "seq"):
+    # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
+    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
+                    "seats-launch", "seq"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
