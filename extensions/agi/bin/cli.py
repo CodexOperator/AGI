@@ -95,9 +95,19 @@ def _legacy_fallback(local_root: Path, path: Path) -> Path:
     if shared == local_root:
         return path
     try:
-        return shared / path.relative_to(local_root)
+        rel = path.relative_to(local_root)
     except ValueError:
         return path
+    shared_path = shared / rel
+    # Fall back to shared ONLY when the shared record actually exists.
+    # Returning the shared path unconditionally routed a brand-new record
+    # (present in NEITHER place) into main, reinstating the very routing
+    # L4.37 reverses. A record that exists nowhere belongs to the LOCAL tree
+    # that is creating it, not to main. (hypothesis:
+    # l4-complete-and-fallback-invariants)
+    if shared_path.exists():
+        return shared_path
+    return path
 
 
 def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
