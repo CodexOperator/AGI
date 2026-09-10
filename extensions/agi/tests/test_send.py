@@ -1085,3 +1085,204 @@ def test_comms_root_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
     assert wt_comms == main_comms, (
         "a worktree kid must comms to the MAIN checkout's season room, "
         "not a per-worktree one")
+
+
+# ── hypothesis:l4-authority-verified-against-the-graph-not-the-message ────
+# whois resolves a claimed session_ref against the PUSHED config:seats, never
+# the working tree; provenance (ref + commit sha) rides in every verified
+# answer; an unreachable pushed ref is UNVERIFIED and exits non-zero.
+# ---------------------------------------------------------------------------
+
+FAKE_SHA = "deadbeef0123456789"
+FAKE_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac"},
+    {"name": "sanctuary-director", "role": "director", "tier": 1,
+     "session_ref": "6f9bb5"},
+    {"name": "sanctuary-helper", "role": "director", "tier": 1,
+     "session_ref": "dc94bb"},
+]
+
+
+def _stub_pushed(monkeypatch, result):
+    """Point _pushed_seats at a canned (rows, sha) or None (unreachable), so
+    the whois path runs with no real git and no real tmux."""
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda root, ref, do_fetch: result)
+
+
+def test_whois_claim_yes_has_provenance(monkeypatch):
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="prime_director")
+    assert rc == 0
+    assert "IS-AUTHORIZED" in text
+    assert "prime_director" in text
+    # provenance in the answer: the ref it read and the commit sha it used
+    assert "origin/season/s2" in text
+    assert FAKE_SHA in text
+
+
+def test_whois_claim_yes_by_seat_name(monkeypatch):
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "dc94bb", claim="sanctuary-helper")
+    assert rc == 0
+    assert "IS-AUTHORIZED" in text
+    assert "sanctuary-helper" in text
+
+
+def test_whois_claim_different_row_is_no(monkeypatch):
+    """Impersonation: the ref is present in the table but under a DIFFERENT
+    seat/role than the claim. A presence-only check would pass this; whois must
+    answer NO."""
+    # EDITED by sanctuary-director gen V: this asserted `rc == 0` on a
+    # REFUSAL, which encoded the defect rather than a correct declaration --
+    # `whois <ref> --claim <role> && trust_them` would have proceeded on an
+    # impersonator. Every original text assertion is kept; the exit code the
+    # old version obscured is now asserted too.
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "dc94bb", claim="belam")
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED
+    assert "IS-NOT-AUTHORIZED" in text
+    assert "sanctuary-helper" in text
+    # belam is prime_director, not director — the claim mismatches the row role
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="director")
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED
+    assert "IS-NOT-AUTHORIZED" in text
+
+
+def test_whois_unknown_ref_is_no_not_error(monkeypatch):
+    # EDITED by sanctuary-director gen V, same reason as the test above: a
+    # NO-MATCH is a negative answer and must not exit 0. It also gets its OWN
+    # code, distinct from NOT-AUTHORIZED, so a caller can tell "not in the
+    # table at all" from "real, but not who they claim".
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "cafebabe", claim=None)
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert "cafebabe" in text
+    rc, text = send_mod.whois(Path("."), "cafebabe", claim="belam")
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert send_mod.WHOIS_NO_MATCH != send_mod.WHOIS_NOT_AUTHORIZED
+
+
+def test_whois_unreachable_is_unverified_nonzero(tmp_path, monkeypatch):
+    """Pushed ref unreachable → UNVERIFIED label AND a non-zero exit. Assert
+    on the exit code, not only on the text."""
+    _stub_pushed(monkeypatch, None)
+    seats_dir = tmp_path / "nodes" / ".geometry"
+    seats_dir.mkdir(parents=True)
+    (seats_dir / "seats.md").write_text(
+        "---\nseats:\n  - {\"name\": \"belam\", \"role\": \"prime_director\", "
+    "\"session_ref\": \"7902ac\"}\n---\n")
+    rc, text = send_mod.whois(tmp_path, "7902ac", claim="belam")
+    assert rc == 1
+    assert text.startswith("UNVERIFIED")
+    assert "reading working tree" in text
+    # the fallback still resolves the working-tree row, but it is labelled
+    # non-authoritative and exits non-zero — never a silent success
+    assert "belam" in text
+
+
+def test_whois_ignores_working_tree_edit(monkeypatch, tmp_path):
+    """The pushed ref is the authority: editing the working-tree file must not
+    change a verified answer — the whole point of reading the pushed ref."""
+    seats_dir = tmp_path / "nodes" / ".geometry"
+    seats_dir.mkdir(parents=True)
+    # working tree hands 7902ac to a DIFFERENT seat than the pushed ref does
+    (seats_dir / "seats.md").write_text(
+        "---\nseats:\n  - {\"name\": \"evil\", \"role\": \"hacker\", "
+    "\"session_ref\": \"7902ac\"}\n---\n")
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(tmp_path, "7902ac", claim="belam")
+    assert rc == 0
+    assert "IS-AUTHORIZED" in text
+    assert "belam" in text
+    assert "IS-NOT-AUTHORIZED" not in text
+
+
+def test_whois_reuses_shared_loader_not_new_parse():
+    """No sixth seats.md parser: seats are parsed ONLY through the engine's
+  shared node-loader (graph_core frontmatter, the path hierarchy.load_seats
+  takes), pointed at the pushed content — never a hand-rolled row regex."""
+    src = Path(send_mod.__file__).read_text()
+    assert "_fm.load_node_file" in src
+    assert "_load_seats_rows" in src
+    assert "re.split" not in src  # no regex row-parsing snuck in
+
+
+def test_whois_cli_wiring_and_exit_code(monkeypatch, capsys):
+    """`send.py whois <ref> --claim X` routes through main and returns the
+    verified exit code (0), and an unreachable pushed ref returns 1 via the
+    CLI, not only via the module function."""
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc = send_mod.main(["whois", "--no-fetch", "6f9bb5",
+                        "--claim", "sanctuary-director"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "IS-AUTHORIZED" in out
+    capsys.readouterr()
+    _stub_pushed(monkeypatch, None)
+    rc = send_mod.main(["whois", "--no-fetch", "6f9bb5", "--claim", "belam"])
+    assert rc == 1
+    assert "UNVERIFIED" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# whois exit codes — added by sanctuary-director gen V in review of L4.96.
+#
+# The round satisfied the falsifier I wrote, which specified a non-zero exit
+# for the UNVERIFIED path ONLY. That was a gap in MY spec: a NEGATIVE answer
+# still exited 0, so `send.py whois <ref> --claim <role> && trust_them` would
+# have proceeded on an impersonator. A refusal that returns success is the
+# failure this repo paid for three times in one day.
+# --------------------------------------------------------------------------
+
+
+def _seats_doc(rows):
+    import json as _j
+    body = "\n".join(f"  - {_j.dumps(r)}" for r in rows)
+    return f"---\nid: config:seats\ntype: config\nseats:\n{body}\n---\n\nbody\n"
+
+
+def _whois_rows():
+    return [{"name": "belam", "role": "prime_director", "session_ref": "7902ac"},
+            {"name": "sanctuary-helper", "role": "director",
+             "session_ref": "9d073a"}]
+
+
+def test_whois_exit_codes_distinguish_every_negative_answer(monkeypatch,
+                                                            tmp_path):
+    """0 only when authoritative AND affirmative; 2 not-authorized;
+    3 no-match; 1 unverified. Distinct so a caller can tell 'not who they
+    claim' from 'not in the table' from 'I could not reach the authority'."""
+    import send as _send
+    rows = _whois_rows()
+    monkeypatch.setattr(_send, "_pushed_seats",
+                        lambda root, ref, fetch: (rows, "cafe123"))
+
+    assert _send.whois(tmp_path, "7902ac", None)[0] == _send.WHOIS_OK
+    assert _send.whois(tmp_path, "9d073a", "sanctuary-helper")[0] == \
+        _send.WHOIS_OK
+    # the impersonation case: a REAL ref under the WRONG role
+    code, text = _send.whois(tmp_path, "9d073a", "belam")
+    assert code == _send.WHOIS_NOT_AUTHORIZED, text
+    assert "IS-NOT-AUTHORIZED" in text
+    # a ref in no row at all is a DIFFERENT answer from the above
+    assert _send.whois(tmp_path, "deadbe", None)[0] == _send.WHOIS_NO_MATCH
+    assert _send.WHOIS_NOT_AUTHORIZED != _send.WHOIS_NO_MATCH
+
+
+def test_whois_unverified_outranks_a_working_tree_answer(monkeypatch,
+                                                         tmp_path):
+    """When the pushed authority is unreachable the exit is UNVERIFIED even if
+    the working tree would have answered affirmatively. The caller must not
+    act on an answer we could not authenticate -- and a working-tree file is
+    exactly what an impersonator would edit."""
+    import send as _send
+    monkeypatch.setattr(_send, "_pushed_seats", lambda root, ref, fetch: None)
+    monkeypatch.setattr(_send, "_locally_loaded_rows",
+                        lambda root: _whois_rows())
+    code, text = _send.whois(tmp_path, "7902ac", "belam")
+    assert code == _send.WHOIS_UNVERIFIED, text
+    assert "NOT authoritative" in text
