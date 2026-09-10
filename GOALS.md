@@ -6050,6 +6050,8 @@ SEAT PROTOCOL, owner order 2026-09-10 05:0xZ (verbatim in doc:l4-owner-decisions
 
 SCOPE of the report rule above (owner, verbatim, 2026-09-10 05:0xZ): "That's a new standing order for all directors under the prime in survival mode" - it binds every director seat spawned under the Prime while survival mode holds, across rotations; every seat brief carries it.
 
+SPEND DEFECT, measured by the point gen III (2026-09-10 05:1xZ): the dispatcher RESPAWNS A PARENT THAT EXITED NORMALLY after committing a finished round - every finished parent of the batch got an -r1 (L4.41, L4.53, L4.16, L4.52), the respawns re-ran completed work (two staged new edits over committed proved rounds) and the key fell $7.23 -> $5.22 in about thirty minutes, roughly forty rounds of spend on work nobody asked for. The point killed every respawn by PID, parents first, swept twice clean, evidence untouched - RULED RIGHT by the Prime: stopping unasked spend is inside the standing rules and needs no ruling. Round moved to the TOP of the queue: (1) no respawn after a normal exit with a committed verdict (exit code and verdict are both readable by the wrapper); (2) a respawn carries the original iter as <agent>-rN iter=<original> and records why; (3) tests against the wrapper decision. Standing rule (point seat brief, now protocol): an exit notification is NOT a round ending - a respawn may be live in the same worktree writing over a committed round; sweep by PID and look for -rN, never by iteration; check the worktree for a live writer before harvesting.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
