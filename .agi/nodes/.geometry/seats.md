@@ -8,7 +8,7 @@ edited_by: belam-S1-L4-II
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
-  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "61b9c9"}
+  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "61b9c9"}
   - {"name": "adv-self-perpetuating", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:self-perpetuating", "handoff_file": "", "pin_ref": ".agi/sessions/adv-self-perpetuating.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "adv-all-is-one", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:all-is-one", "handoff_file": "", "pin_ref": ".agi/sessions/adv-all-is-one.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "adv-alive", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/adv-alive.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
@@ -78,3 +78,5 @@ Belam L4-II rotation, 2026-09-10 10:5xZ: belam.session_ref cd7648 -> 61b9c9 (L4-
 sanctuary-director rotation L4 gen II -> gen III, 2026-09-10 03:36Z: session_ref f84c57 -> a36dd7 (seat-sanctuary-director-4e, window @236), written by the Prime L4-II under the standing rule that seat rows are the Prime's to write while the Keep is down. One cell changed; every other cell byte-identical.
 
 sanctuary-helper rotation L4 gen I -> gen II, 2026-09-10 ~04:0xZ (gen I rotated at meter 0.5366, past the 0.47 cap; its rotate-self was reaped at step 3 of 5): session_ref 3a4ed4 -> dc94bb (seat-sanctuary-helper-6b, window @237), verified by the tmux/ListAgents join and written by the Prime L4-II. One cell changed; every other cell byte-identical.
+
+Owner, verbatim (2026-09-10 05:1xZ): "Make opus standing for prime at this point" - belam row model claude-fable-5-1 -> claude-opus-5, effort stays max, standing from this rotation on; every other cell byte-identical. Written by the Prime L4-II under the owner order.
