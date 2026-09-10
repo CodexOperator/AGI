@@ -43,9 +43,11 @@ New priority order: **0a → 0b → 1(workflow) → 2 → 3 → 4(ack) → 5.** 
 
 ## §3 🔴 WHERE I STOPPED / NEXT COMMAND
 
-- Two rounds LIVE (L4.105, L4.106). Waiting on both to finish; harvest is next.
-- Watch: `python3 extensions/agi/bin/spawn_budget.py status` (kill a `-r1` suffix — reaper restart; `max_restarts:0` is set so should not happen) and `provisioning.py status` (a still key + low CPU = stalled; low CPU alone is NORMAL, API-bound).
-- On finish of each: `git log --format=%s <base>..<its branch>` on the round's own branch; review bytes; merge branch into seat; `commands.py run verify`.
+- **CONCURRENCY (owner order ~21:3xZ: 6–8 pi parents, helper working).** LIVE mine: L4.105 (workflow), L4.106 (rotate-ack) — both survived their wrapper-timeout (reaper exits ≠ round done), healthy (keys moving, CPU low = API-bound normal). HELPER briefed with its own lane (3 banked mints, ids L4.120+, disjoint). L4.107 (round 3 suite lock) addendum WRITTEN + pushed (`c02efc8e3`) but **HELD — do NOT dispatch until the prime confirms it will hold other suite runs**; its kid proves the lock by running suites, and until it lands concurrent suites collide (the bug it fixes).
+- Watch: `spawn_budget.py status` (kill a `-r1` reaper restart; `max_restarts:0` set) + `provisioning.py status` (still key + low CPU = stalled; low CPU alone is NORMAL).
+- On each round finish: `git log --format=%s <base>..<its branch>`; review BYTES; merge branch into seat; `commands.py run verify`.
+- Queued serial: 0a (rotate.py, after L4.106 merges), round 2 (workflow.py, after L4.105 merges).
+- **Pending prime replies:** (1) suite window for L4.107; (2) — none else. Helper may ask questions.
 
 ## §4 TRAPS HIT THIS SESSION
 
