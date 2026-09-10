@@ -5893,6 +5893,8 @@ Done when: one round has been split, dispatched by both seats from their own wor
 ## Agent Notes
 Owner, verbatim (2026-09-09): "also old worktrees that've been exhausted and aren't used anymore should be cleared out once the work is verifiably merged into whatever parent worktree owns it. So we don't develop a giant list of worktrees over time" — applied the same hour: 23 merged+clean L3 loop worktrees removed with their branches (git worktree remove + git branch -d, which refuses an unmerged branch); 4 merged-but-dirty and 5 unmerged (ahead=1) trees kept for review. Standing rule for the point director: prune a worktree only after its branch is an ancestor of the parent branch.
 
+Owner, verbatim (2026-09-10 00:2xZ): "we should mint fresh worktrees per seat session and then merge them in and delete them as part of session complete after no actionable items left, not per rotation." — applied: .agi/worktrees/seat-sanctuary-director and seat-sanctuary-helper are the two seats' SESSION worktrees for this loop (branches seat/<name>@s2, minted 2026-09-09, fast-forwarded to 48575827f); a rotation (gen I -> II -> ...) continues in the SAME worktree; at session complete — no actionable items left — the point merges both into season/s2 (merge-base, never rebase) and deletes both worktrees and branches. Never per rotation.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
