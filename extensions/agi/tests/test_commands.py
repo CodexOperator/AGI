@@ -28,6 +28,7 @@ import importlib.machinery
 import importlib.util
 
 import commands  # noqa: E402
+import locations  # noqa: E402
 
 _loader = importlib.machinery.SourceFileLoader(
     "derive_commands", str(BIN / "derive-commands.py"))
@@ -204,10 +205,28 @@ def test_render_table_preserves_placeholders(project):
 # This project's own declaration — the table has to actually work
 # --------------------------------------------------------------------------
 
-REAL_ROOT = Path("/home/ubuntu/work/agi/.agi")
+# The graph this suite describes is the one it RUNS in, not the main checkout.
+# goal:g11's resolver answers "where is the graph?" from where we stand; a test
+# pinned to a literal path could only testify about one checkout. question 1 is
+# find_project_root (the graph), question 2 is source_root (what it describes).
+REAL_ROOT = locations.find_project_root(Path(__file__).resolve())
+SOURCE_ROOT = locations.source_root(REAL_ROOT)
 real_only = pytest.mark.skipif(
     not (REAL_ROOT / commands.COMMANDS_NODE_REL).is_file(),
     reason="this project's own commands node is not present")
+
+
+def test_resolved_root_follows_the_tree_under_test():
+    """The fixed REAL_ROOT must point into the SAME repo this test file lives
+    in — a test that resolved to the main checkout while running in a seat
+    worktree could not testify about the tree it ran in. Descendant check is
+    the property that encodes "follows the tree under test" and is checkable
+    without a second checkout."""
+    own_repo = Path(__file__).resolve()
+    assert REAL_ROOT is not None
+    assert own_repo.is_relative_to(SOURCE_ROOT)
+    assert REAL_ROOT.is_relative_to(SOURCE_ROOT)
+    assert REAL_ROOT.name == ".agi"
 
 
 @real_only
@@ -347,9 +366,11 @@ DRIVER = Path(__file__).resolve().parent.parent / "driver.sh"
 
 def _agi(*args, cwd=None):
     import subprocess
+    # cwd defaults to the SOURCE root of the tree under test, not the main
+    # checkout — driver.sh must route against the graph this worktree carries.
     return subprocess.run(["bash", str(DRIVER), *args], capture_output=True,
                           text=True, timeout=180,
-                          cwd=str(cwd or Path("/home/ubuntu/work/agi")))
+                          cwd=str(cwd or SOURCE_ROOT))
 
 
 @real_only
