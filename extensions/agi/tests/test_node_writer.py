@@ -133,7 +133,12 @@ def test_dispatch_no_longer_touches_the_node_tree_at_all():
     # holds precisely so this check can still see the target — an earlier bare
     # `tmp` hid it and failed here, which is the assertion working rather than
     # a false positive.
-    session_artefacts = ("agent.json", "manifest.json", "manifest_tmp")
+    # `spawn.json` is the LOW-DOX debug artefact L4.109 added
+    # (hypothesis:l4-dispatch-echoes-less-than-it-knows): the redacted env,
+    # argv and full brief, written into the SESSION dir beside agent.json --
+    # a session file, never a node.
+    session_artefacts = ("agent.json", "manifest.json", "manifest_tmp",
+                         "spawn.json")
     for ln in writes:
         assert any(a in ln for a in session_artefacts), ln
 
