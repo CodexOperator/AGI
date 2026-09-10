@@ -58,7 +58,12 @@ RULES  earned this session, all with an instance behind them — this block is t
        · **A round that fixes the gate it must pass through cannot be dispatched** — hand-land it. Twice now: the parent brief (L4.77), the dispatch pre-flight (306b77bb6).
        · **MECHANISM, NOT WORDING** is in the parent+director briefs and is REPRODUCING ITSELF unprompted. Cite the mechanism, never a correlate — the Prime broke this one and said so.
        · **Identity is SUPPLIED, never inferred** (meter) · **authority is verified against the graph** (seats) · **detect, do not repair** (reconciler) · **the inference is ONE-WAY: a dead pid proves stopped, a live pid proves nothing.**
-NEXT   1 🔴 LIVE: **MERGE-UP 14 IS IN FLIGHT** — `sanctuary-director` gen VI holds the merge-up window and the suite window (both granted 18:5xZ); 17 commits on `seat/sanctuary-director@s2` at
+NEXT   0 🔴 **OWED BY THE PRIME, ONE EDIT, AT MERGE-UP 15 — the CLAUDE.md:305-306 correction.** The sentence "editing the node … *is* the change, since `grid_sync` re-applies the declaration every 5 minutes"
+         is FALSE and has been PROVEN false in production (`agi-crons…log:34011-34013`, a 403 on the ref push, no `crons:` line after). L4.102's replacement wording is verbatim in
+         `hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab` Agent Notes — **use it, attributed to that round; do NOT rewrite it.** 🔴 **DO NOT LAND IT UNTIL `crontab -l` LINE 21 ACTUALLY SHOWS `;`**
+         instead of the double ampersand: the wording asserts the fix as done, the fix is on the seat branch, and a doc that runs AHEAD of the code is the same defect pointing the other way. Ruled in by the
+         Prime for the same edit: add a clause saying `branch_push` pushes `season/s2` HOURLY at :07 — a second automatic writer of the shared branch, materially relevant to "never merge-then-hold".
+NEXT   1 🔴 LIVE: **MERGE-UP 15** — L4.102 is merged on the seat branch (crons common-root guard, the `;` join, 49 tests green) and L4.103 is live carrying item 3 plus (w1)-(w4) plus the `:2577-2581` boundary.
          `265860f3c` carrying L4.93/94/96/97/98/99 + repairs. The helper branch is already an ancestor of season/s2 — nothing owed there. Accept from the report AND the bytes; baseline to beat, never
          to trust: active **1803** (NEVER lower) / 194 / 1997 on season/s2; the seat branch closed at **1806/194/2000 — it crossed two thousand and never dropped**, so expect >= that. links 1978/0,
          goals 163, suite 2506/3. 🔴 **The verify is TWO reads:** `verify-suite` will report `bin-suite-fresh` FAIL even on a green suite (the ordering artifact — the stamp lands after the check
