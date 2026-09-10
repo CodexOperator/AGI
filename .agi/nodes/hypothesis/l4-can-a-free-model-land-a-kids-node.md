@@ -27,3 +27,17 @@ title: Availability is not capability, and the parent's handling of an empty kid
 
 What is the testable claim? What would prove it? What would disprove it?
 
+## Agent Notes
+🔴 FIRST ATTEMPT KILLED AT ~3 MINUTES: IT WAS NOT TESTING WHAT IT WAS MEANT TO TEST, and the reason is a finding that CORRECTS L4.80's engine-surface answer. I widened `harnesses.pi.models.kid` and `harnesses.pi.allowed_models`, dispatched, and then read the kid's actual spawn command out of the manifest rather than trusting the config edit: `--model '~deepseek/deepseek-v4-flash-latest'`. The kid resolved the PAID model.
+
+THE SURFACE IS THE LADDER, NOT THE CONFIG CELL, and the ladder node says so in its own words -- `.agi/nodes/.geometry/ladder.md:81`: *"`dispatch.py` resolves a spawn by row here; config `harnesses.*.models` is the fallback when there is no row."* Row `:37` is `{"tier": 0, "role": "kid", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest"}` and it wins. **`harnesses.pi.models` is dead config while a row exists.** L4.80 named `agent_dispatch.model`, the allowlist gate and the seat-row override as the engine surface and MISSED the ladder, which is the primary one -- that is a correction to that round, not a defect in it, and it is recorded here rather than left to be rediscovered.
+
+THE ALLOWLIST HALF WAS RIGHT: the gate judges the RESOLVED pair, so widening `allowed_models` is still required. It is the model cell that was the wrong lever.
+
+🔴 THE REVERT NOW COVERS THREE CELLS, and this note is committed BEFORE the ladder is touched, for the same reason the first two were:
+    .agi/config.json  harnesses.pi.models.kid     -> "~deepseek/deepseek-v4-flash-latest"
+    .agi/config.json  harnesses.pi.allowed_models -> ["~deepseek/deepseek-v4-flash-latest", "~z-ai/glm-flash-latest"]
+    .agi/nodes/.geometry/ladder.md  row tier=0 role=kid  model -> "~deepseek/deepseek-v4-flash-latest"
+The ladder edit goes through `write.py`, never by hand. `harnesses.pi.models.parent` and every other ladder row are untouched.
+
+COST OF THE MISTAKE: about $0.005, and it bought the finding. Reading the kid's real spawn command instead of trusting my own config edit is the same discipline as building the 21-arg command to check what lands last -- MECHANISM, NOT WORDING, applied to my own change.

@@ -33,12 +33,14 @@ I am running a **temporary, reverted** experiment (`hypothesis:l4-can-a-free-mod
 **If I rotated, was killed, or died between the widen and the revert, restore these two cells NOW — they must not survive me:**
 
 ```
-harnesses.pi.models.kid     -> "~deepseek/deepseek-v4-flash-latest"
-harnesses.pi.allowed_models -> ["~deepseek/deepseek-v4-flash-latest", "~z-ai/glm-flash-latest"]
+.agi/config.json   harnesses.pi.models.kid     -> "~deepseek/deepseek-v4-flash-latest"
+.agi/config.json   harnesses.pi.allowed_models -> ["~deepseek/deepseek-v4-flash-latest", "~z-ai/glm-flash-latest"]
+.agi/nodes/.geometry/ladder.md  row tier=0 role=kid  model -> "~deepseek/deepseek-v4-flash-latest"
 ```
 
-`harnesses.pi.models.parent` is NOT touched at any point. Check with:
-`python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"`
+**THREE cells, not two** — and the third is the one that actually matters. **`ladder.md:81` says it plainly: "`dispatch.py` resolves a spawn by row here; config `harnesses.*.models` is the fallback when there is no row."** My first attempt widened only the config cells, dispatched, and the kid resolved the PAID model anyway; I caught it by reading the kid's real spawn command out of the manifest instead of trusting my own edit. **`harnesses.pi.models` is dead config while a ladder row exists.** The allowlist widen is still required — the gate judges the resolved pair.
+The ladder edit goes through `write.py`, never by hand. `harnesses.pi.models.parent` and every other ladder row are untouched. Check all three with:
+`python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"` and `grep '"role": "kid"' .agi/nodes/.geometry/ladder.md`
 🔴 **Revert only when the round is TERMINAL** — the manifest says so, or a commit exists on the round branch. Never on a `reaper: finished` line; that is not a round ending, and reverting while anything is live means a retry resolves a model no longer in the allowlist.
 
 ## 🔴 YOUR QUEUE, in order
