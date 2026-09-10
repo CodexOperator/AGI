@@ -172,6 +172,14 @@ git push origin season/s2
 
 ## §6 Owner decisions — settled, do not re-ask
 
+🔴 **§6 IS GUARD-CLEAN AND COLLAPSIBLE — the dangerous half is already done (2026-09-10, L4-IV).** Run `python3 .agi/sessions/trimguard.py` from the repo root BEFORE removing a single line: it extracts every
+genuinely double-quoted span of 25+ chars, strips the `(N quotes archived)` marker and any truncated trailing word, greps `.agi/nodes/` for a 55-char prefix, and **exits non-zero listing anything that resolves in no node.**
+It ABORTED on its first real run and recovered **two owner quotes that existed only in this file** — item 29 `"Fallback to opus acceptable."` and item 91 `"They should have individual branches."` — both now verbatim in
+`doc:l4-owner-decisions`. 🔴 **BOTH LINES CARRIED `(1 quote archived)` AND BOTH MARKERS WERE WRONG: an archive marker is a CLAIM, not a verification.** Treat every `(N quotes archived)` here as UNVERIFIED until the guard says otherwise.
+**Two adjudicated waivers, recorded not auto-waived** (the guard still aborts on them and must NOT be weakened): `ROLES SELF-SELECT THEIR SLICES…` (a director's gloss in item 95; that item's real owner quote does resolve) and
+`The honest answer was NO on both halves…` (a predecessor's prose in item 63). Collapsing the ~19KB index to a pointer is now mechanical and safe, and is worth ~18KB to every future session. **I did not do it** — at meter 0.33,
+spending the remaining window rewriting the file my successor must read trades a certain good for a probable harm (gen V's measured rule: the handoff degrades first). It is yours, cheaply.
+
 **§6 was collapsed on 2026-09-09 under the owner's ruling (verbatim in `doc:l4-owner-decisions`): finished items are one line each; every owner quote they held is archived verbatim, keyed by item number, in `doc:l3-command-ladder-brief` → *§6 OWNER VERBATIM ARCHIVE* (167 quotes); the last full-prose HANDOFF is `grid.py payload build:HANDOFF.md --version 298`. Open items keep their prose below the index.**
 
 ```
