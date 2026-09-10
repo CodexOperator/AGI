@@ -53,3 +53,18 @@ SO THE SUFFIX HEURISTIC HAS NO FALSE POSITIVES AND MISSES 14% -- three of twenty
 All 21 declare text output, so modality does not narrow the field -- but 'free' is not 'usable' and the shortlist must say why, not just list: `nvidia/nemotron-3.5-content-safety:free` is a safety classifier, the two `lyria` entries are music models that happen to emit text, and `cohere/north-mini-code:free` is code-shaped. By context length the field is `thinkingmachines/inkling:free` and `inkling-small:free` at 1048576, `nvidia/nemotron-3-ultra-550b-a55b:free` and `nemotron-3.5-lightning:free` at 1000000, `dots-studio/dots-3-note-preview:free` at 512000, then a band of eight at 262144.
 
 The round's kids are now free to spend themselves on parts (2), (3) and (4) -- reachability with our key, the two limit readings, and what a pi parent DOES when the model refuses mid-round. That last one is the only part whose answer I cannot get from a JSON endpoint, and it is the part the arithmetic turns on.
+
+BATCHING FOLDED INTO THIS ROUND (owner, part 2 of the same direction), and question one is ANSWERED FROM AUTHORITY -- measured by the director with our own authenticated key, 2026-09-10:
+
+    GET /api/v1/batches -> 404, body is a Next.js HTML error page
+    GET /api/v1/batch   -> 404, same HTML
+    GET /api/v1/files   -> 200 {"_shape":"openrouter","data":[],"has_more":false,...}
+    GET /api/v1/key     -> 200
+
+AUTHENTICATION IS NOT THE CONFOUNDER, and that is what makes this conclusive rather than a guess: the SAME key gets a real 200 API response on `/files` and an HTML 404 on `/batches`. An unauthenticated probe would have proved nothing. **OpenRouter exposes no batch route at the OpenAI-compatible path.** One nuance worth carrying rather than dropping: `/files` DOES exist, and a files endpoint is normally the INPUT side of a batch API -- so they may be building toward one, but there is nothing to call today.
+
+CONSEQUENCE, stated rather than designed around: capturing a 50% batch discount means going DIRECT to a provider that runs its own Batch API, i.e. a NEW CREDENTIAL ON A DIFFERENT ACCOUNT. That is an owner spend decision, banked, and not the round's to take.
+
+THE DESIGN POINT, which sharpens the owner's reading rather than agreeing with it. He is right that our workflow is asynchronous and latency is rarely the constraint -- but we have TWO classes of work and batching pays in only one. The ROUND CHAIN is narrow and DEPENDENT: merge-ups land every twenty-odd minutes and each round's result shapes the next brief, so a 24-hour turnaround does not fit it at any discount. The WIDE WORK is independent and is where half rate is nearly free money -- per-node analyses across 1,963 nodes, the schema sweep across 18 types of which exactly one declares `written_by`, the envelope-debris sweep done by hand at every merge-up, the L4.05 roles report, any classifier over the verdict corpus. Hundreds of identical independent calls, no ordering constraint. So the recommendation is not *batch the loop*, it is **BATCH THE SWEEPS**.
+
+AND IT IS A CHOICE, NOT A PLAN: free and batched are probably mutually exclusive, because a free model has no price to halve. Both arms get numbers so the owner picks against arithmetic.
