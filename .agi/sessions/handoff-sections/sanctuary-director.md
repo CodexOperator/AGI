@@ -27,8 +27,14 @@ carries the traps). This slice is the ledger and is written DURING the work.
    Merge BOTH seats into `season/s2` against their OWN bases (they differ), suite ONCE in a
    prime-cleared window (asked for), `grid.py commit --all` THERE, push. **Only L4.37
    blocks this.**
-6. ⏸ L4.23 (ONE message router) — HELD, see §4. L4.05 — now UNBLOCKED (L4.06 landed), take
-   it next. L4.40 (token counter) — queued behind L4.39, deliberately NOT bundled with it.
+6. ✅ **L4.05 CLOSED `proved`** — merged, pushed. The coverage census IS the finding.
+7. ✅ **Owner instruction landed** (prayer scope) — all three director briefs, see §2e.
+8. ⏳ **L4.42 DISPATCHED** — silent data loss in `write.py replace`, see §2f. Ahead of
+   L4.40/L4.41 because losing bytes outranks a wrong error string.
+9. ⏸ QUEUED, in this order, all owner-GO: **L4.40** (refusal message names the TYPE and the
+   admitted roles; list shape for `written_by`) → **L4.41** (role resolution per the Prime's
+   ruling) → the `[config]`/`[vision]` FLIP, only after L4.41's tests prove both branches.
+   L4.23 (message router) still held. Token counter still queued.
 
 ## §2 What landed
 
@@ -44,6 +50,43 @@ shape.
 
 **Helper's L4.34/L4.36 reviewed and its debris fix verified in the bytes** (`b8c75c60f`):
 0 occurrences of the pattern, paragraph intact, file still 58 lines, nothing truncated.
+
+## §2f 🔴🔴 `write.py replace` SILENTLY DELETES THE RANGE VIA THE PYTHON API
+
+**Measured on a real payload in this repo, not theorised.** `verb_replace(e, "payload",
+"26:26", <path>)` then `submit(...)` returned `status='updated' payload_changed=True` while
+`git diff --numstat` read **`0 1`** — zero insertions, one deletion. Caught ONLY by greping
+the bytes afterwards (trap 0ah). `git checkout --` restored it; the edit then landed through
+an explicit `e.replace_text`; nothing was lost.
+
+**Cause:** `verb_replace` (`write.py:329-355`) records `edit.replace_from` and nothing else.
+The ONLY code turning it into `edit.replace_text` is `main()` at **`:1184-1191`** — the CLI
+path. `submit` (`:616-625`) splices `edit.replace_text`, still `""` for an API caller, and
+`_splice_range` (`:700-727`) faithfully splices nothing.
+
+🔴 **IT IS A LOADED GUN IN THIS VERY BRIEF.** The brief says drive the Python API for long
+prose (the script form splits on the doubled ampersand) AND names `replace` as the
+partial-write verb. **Following both instructions destroys the range.**
+
+**UNTIL L4.42 LANDS:** use the CLI form, or set `e.replace_text` explicitly. **Grep the
+bytes after every replace regardless.** The helper's line-51 fix used the CLI form and is
+NOT affected — checked, and it was told so rather than left to wonder.
+
+## §2e Owner instruction, 2026-09-09 — the prayer closes a SESSION, not a turn
+
+Verbatim: *"You don't have to do a prayer at the end of each turn, only at the end of your
+session when you rotate or have no other actionable items left."*
+
+Landed in **all three** director briefs, because the default is the durable home but the
+quorum files are what the running seats actually read:
+`extensions/agi/briefs/prime-director-successor.md:26` (the overall default, edited as the
+payload of `build:briefs-prime-director-successor`) · `quorum/sanctuary-director.md` ·
+`quorum/sanctuary-helper.md`.
+
+The default brief and `skills/agi/SKILL.md:176` **already said "session"**; the two quorum
+briefs said *"the literal last tokens YOU EMIT"*, which reads as every turn — that
+ambiguity is why it was being done every turn. 🔴 **Carry this into any brief you write for
+a successor.**
 
 ## §2d 🔴 `--seat` IS NOT A FREE WAY TO POPULATE `AGI_SEAT` — it changes the MODEL
 
