@@ -376,3 +376,100 @@ def test_dry_run_shows_merge_plan_and_writes_nothing(graph, tmp_path, capsys):
     assert "CONFLICT" in out and "wins over" in out, \
         "the dry run must name each conflicting path and its winner"
     assert "REFUSE" not in out
+
+
+# ---------------------------------------------------------------------------
+# Director follow-up on the conflict rule: a MANIFEST is a document too, so a
+# conflicting `manifest.json` is a UNION of complementary halves, not a pick
+# by slug name (hypothesis:l4-a-manifest-is-a-document-too). An id held by
+# one source is kept; an id held by TWO is resolved by the SAME
+# `_AGENT_STATUS_RANK` as `agent.json` -- never a second ranking. `.manifest
+# .lock` is NOT a document and is dropped from the migration entirely.
+# ---------------------------------------------------------------------------
+
+
+def _manifest_ids(target: Path) -> list:
+    return [a["id"] for a in json.loads(
+        (target / "manifest.json").read_text())["agents"]]
+
+
+def test_conflicting_manifests_union_rather_than_slug_winner(graph, tmp_path):
+    """(a/b) The two-round manifests are complementary halves, NOT versions.
+    A conflict was previously decided by the alphabet (the slug), silently
+    discarding one half's agents from the file a later reader opens first.
+    Now the conflict is a UNION: three disjoint agents across the two trees
+    all survive, and both verbatim manifests are kept recoverable."""
+    cli = _load_cli()
+    _make_linked_worktree(graph, "a00-04c03dd9", "L4.99",
+                          [("a00-aaa", "done-unreported"), ("a00-bbb", "pending")])
+    _make_linked_worktree(graph, "sanctuary-director", "L4.99",
+                          [("a00-ccc", "done")])
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    target = graph / "sessions" / "iter-L4.99"
+    ids = _manifest_ids(target)
+    assert sorted(ids) == ["a00-aaa", "a00-bbb", "a00-ccc"], (
+        "the union must carry every agent from BOTH halves, not one source's")
+    for slug in ["a00-04c03dd9", "sanctuary-director"]:
+        loser = target / ".conflicts" / f"manifest.json.from-{slug}"
+        assert loser.is_file(), "each verbatim manifest must stay recoverable"
+
+
+def test_manifest_entry_sharing_an_id_uses_the_agent_status_rank(graph, tmp_path):
+    """(c) An agent id present in BOTH manifests resolves by the SAME
+    `_AGENT_STATUS_RANK` as the `agent.json` conflict -- `done` (the actor's
+    own record) over `done-unreported` (the reaper's inference). Two rankings
+    for one question is the defect this chain removes, so the merged entry
+    must match what the `agent.json` rule itself picks."""
+    cli = _load_cli()
+    _make_linked_worktree(graph, "seat-dispatcher", "L4.99",
+                          [("a00-aaa", "done-unreported"), ("a00-bbb", "pending")])
+    _make_linked_worktree(graph, "seat-parent", "L4.99",
+                          [("a00-aaa", "done")])
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    target = graph / "sessions" / "iter-L4.99"
+    merged = json.loads((target / "manifest.json").read_text())["agents"]
+    aaa = next(a for a in merged if a["id"] == "a00-aaa")
+    assert aaa["status"] == "done", (
+        "a shared manifest id must use `_AGENT_STATUS_RANK`, so `done` beats "
+        "`done-unreported` -- the same winner as the agent.json conflict")
+
+
+def test_manifest_lock_is_not_a_document_and_is_dropped(graph, tmp_path):
+    """(d) `.manifest.lock` is a LOCK FILE, not a document. Ranking or
+    merging it is meaningless, so it is dropped from the migration entirely:
+    never copied, never verified, never a conflict. A source that carries one
+    still migrates and verifies, and no `.manifest.lock` reaches the target."""
+    cli = _load_cli()
+    wt = _make_linked_worktree(graph, "seat-a", "L4.99", COMPLETE)
+    src = wt / ".agi" / "sessions" / "iter-L4.99"
+    (src / ".manifest.lock").write_text("lock bytes\n")
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0, "a lock file must not refuse a complete round"
+    target = graph / "sessions" / "iter-L4.99"
+    assert not (target / ".manifest.lock").exists(), (
+        "a lock file is not data and must not land in main")
+    assert (target / "manifest.json").is_file(), (
+        "the real manifest still lands")
+
+
+def test_manifest_lock_dropped_even_across_two_sources(graph, tmp_path):
+    """(d2) Two sources that BOTH carry a `.manifest.lock` never conflict on
+    it (a lock has no content semantics), the union still forms, and no lock
+    file reaches the target."""
+    cli = _load_cli()
+    wa = _make_linked_worktree(graph, "seat-a", "L4.99",
+                               [("a00-aaa", "done"), ("a00-bbb", "pending")])
+    wb = _make_linked_worktree(graph, "seat-b", "L4.99", [("a00-ccc", "done")])
+    for w in (wa, wb):
+        (w / ".agi" / "sessions" / "iter-L4.99" / ".manifest.lock").write_text("x\n")
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    target = graph / "sessions" / "iter-L4.99"
+    assert not (target / ".manifest.lock").exists()
+    assert sorted(_manifest_ids(target)) == ["a00-aaa", "a00-bbb", "a00-ccc"]
