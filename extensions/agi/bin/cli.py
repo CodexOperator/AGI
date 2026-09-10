@@ -116,6 +116,73 @@ def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
     return locations.iteration_dir(root, iter_n) / agent_id / "agent.json"
 
 
+def _sibling_session_lookup(local_root: Path, path: Path) -> Path | None:
+    """Union every linked git worktree's session dir, for one record.
+
+    hypothesis:l4-a-branch-parent-cannot-signal-done (the THREE-TREE case). A
+    `--branch` parent dispatched from a SEAT worktree has its `agent.json`
+    written by the DISPATCHER into the SEAT's own session dir — dispatch.py
+    resolves `sess_root = root` (the DISPATCHER's worktree), so the record is
+    in NEITHER the parent's own worktree NOR the main checkout. The
+    local->main `_legacy_fallback` therefore cannot reach it, and the parent's
+    `done` refuses ("no agent record"). This resolves the record across every
+    linked git worktree, exactly as `_evidence_corpus` unions every worktree's
+    NODE corpus so a worktree-resident experiment resolves for `score`.
+
+    Mirror of that deliberate tolerance: a half-created worktree (no `.agi`
+    graph yet) must not take the lookup down, and an unreadable tree
+    contributes nothing. Returns `None` when the record lives in none of
+    local/main/sibling worktree — the caller's own refusal stays the source
+    of truth for "absent", so absence stays distinguishable from a wrong
+    lookup.
+    """
+    if not path.name == "agent.json":
+        return None
+    # The main checkout's graph root — siblings hang off `.agi/worktrees/`
+    # (the harness places every linked worktree under the main graph tree,
+    # exactly as the real repo does; a legacy layout with no worktrees just
+    # has an absent `worktrees/` dir and this is a no-op).
+    main = locations.git_common_root(local_root)
+    main_graph = locations.find_project_root(main) if main else None
+    if not main_graph:
+        return None
+    wt_root = main_graph / "worktrees"
+    if not wt_root.is_dir():
+        return None
+    try:
+        rel = path.relative_to(local_root)
+    except ValueError:
+        return None
+    for tree in sorted(wt_root.glob("*")):
+        if not tree.is_dir():
+            continue
+        sg = tree / ".agi"
+        if not (sg / "config.json").is_file():
+            continue
+        cand = sg / rel
+        if cand.is_file():
+            return cand
+    return None
+
+
+def _resolve_session_record(sroot: Path, ap: Path) -> Path:
+    """local -> main (`_legacy_fallback`) -> sibling worktrees.
+
+    The one resolver `done`/`pending` use, so the SEAT-dispatched
+    three-tree case (hypothesis:l4-a-branch-parent-cannot-signal-done)
+    reaches the record wherever the dispatcher wrote it. Returns the FOUND
+    path, or the unchanged local `ap` when the record lives in none of the
+    three trees — the caller's `ap.exists()` refusal then still fires, so
+    absence stays distinguishable from a wrong lookup and `done` never
+    creates the record it then reads.
+    """
+    resolved = _legacy_fallback(sroot, ap)
+    if resolved.exists():
+        return resolved
+    sib = _sibling_session_lookup(sroot, ap)
+    return sib if sib is not None else resolved
+
+
 def _evidence_corpus(root: Path) -> frozenset:
     """The evidence gate's corpus: the trees the cite-able nodes live in.
 
@@ -415,7 +482,7 @@ def cmd_done(args: argparse.Namespace) -> int:
     # the MAIN checkout only when the local tree lacks the record, so an
     # in-flight round whose manifest predates the change keeps resolving.
     sroot = _session_root()
-    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
+    ap = _resolve_session_record(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -614,7 +681,7 @@ def cmd_done(args: argparse.Namespace) -> int:
 def cmd_pending(args: argparse.Namespace) -> int:
     root = _find_root()
     sroot = _session_root()
-    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
+    ap = _resolve_session_record(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
