@@ -5,14 +5,14 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-I
+edited_by: belam-S1-L4-V
 scaffold_hash: 2beaa914bb4ee32b
 season: 2
 tags:
   - doc
   - l4
   - plan
-thought_session: rc-L4-I
+thought_session: f3b92df1
 title: "L4 plan — who acts on what: the confirmed role diagram, 2+2+1 seat cards, perpetual goals, first rounds (owner parts 1-7, 2026-09-09)"
 ---
 <!-- BODY:BEGIN -->
@@ -1148,3 +1148,6 @@ Serialised, one at a time (A:54); pi/OpenRouter (B:236); one `hypothesis` per ro
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted 2026-09-10 00:4xZ by Belam L4-I after the owner confirmed the plan (doc:l4-owner-decisions, L4 PLAN parts 1-7, a2ca48c11). Body = the scratch plan drafted by three registered/inline workflows (l4-plan-research; fold parts 2, 3, 4-7), 188 owner quotes byte-verified against the node, final names applied, seven questions resolved by parts 4-7. Known stale facts flagged inside (config:seats has 13 rows, caps.director_kids is 3): reconciled by round 1, not by hand. 19.7k words — over the trim target; the Role Keeper's first duty is to shrink it without losing a quote, card, round or question.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+L4 CLOSING ROUND ADDED BY THE OWNER, 2026-09-10 (verbatim in doc:l4-owner-decisions): 'The streaming part needs to happen as the final thing for L4 if at all possible, needs to be verified working and if possible do all setup yourself like creating fresh accounts.' Section 5's round list now ends with hypothesis:l4-the-stream-goes-live under goal:g18.1 (goal:g18 = the product, the reason for the stream). It is dispatched LAST — after the rotate.py chain (ack, handover, startup, identity) and the workflow rounds have landed — because a stream of a system mid-refactor is not the hype the owner is after. The owner's one touchpoint is backup account info for the stream email when the round asks; everything else the round does itself, and anything a platform's verification blocks is banked at the exact step, never worked around.
