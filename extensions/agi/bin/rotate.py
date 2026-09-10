@@ -140,6 +140,12 @@ SETTINGS_ALIASES = {
 #: throwaway -- env + keyword, no settings -- is still open).
 ULTRACODE_KEYWORD = "ultracode"
 ULTRACODE_ENV_EXPORT = "export CLAUDE_CODE_WORKFLOWS=1"
+# hypothesis:l4-spawn-paths-export-the-reaper-knob — every launch must carry
+# the knob that disarms the background-shell reaper in its OWN environment,
+# not inherit it from the tmux session. An inherited value is one tmux
+# restart from gone (or a window created outside agi-rc), so the seat-launch
+# path prefixes it onto the launched shell line unconditionally.
+REAPER_ENV_EXPORT = "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1"
 
 
 def _normalize_settings(val):
@@ -968,9 +974,10 @@ def _shell_cmd(claude_cmd: list[str], settings) -> str:
     before the command (hypothesis:l3-rotate-ultracode-env).
     """
     joined = " ".join(shlex.quote(c) for c in claude_cmd)
+    reaper = REAPER_ENV_EXPORT + " && " + joined
     if _is_ultracode(settings):
-        return ULTRACODE_ENV_EXPORT + " && " + joined
-    return joined
+        return ULTRACODE_ENV_EXPORT + " && " + reaper
+    return reaper
 
 
 # tmux refuses a command longer than its own buffer with `command too long`.
