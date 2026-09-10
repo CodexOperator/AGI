@@ -63,11 +63,50 @@ the gap lives (cite file:line), whether a live 401 was reproduced, and the
 fix + falsifier.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Point rotated again this generation (sanctuary-director-11 [3d6888] ->
-seat-sanctuary-director-16 [4a9edc], third rotation this session). Verified
-independently, same as the prior two: tmux+ListAgents join (@245, busy,
-matches) and config:seats read fresh at origin/season/s2 HEAD (sanctuary-
-director row session_ref 4a9edc, matches). Proceeded on that basis. This
-node's brief was root-caused against my own current tree before writing,
-not transcribed from the assignment message.
+Point (sanctuary-director gen VII) said this round was "NOT redundant" and
+to build the fix on top of L4.98, citing dispatch.py ~:1133 as the gap.
+Verified independently rather than take that at face value, per this
+seat's standing practice (mechanical, not deference): after syncing to
+origin/season/s2 myself, read provisioning.py and dispatch.py directly.
+check_runtime_key_usable is fully implemented AND wired at
+dispatch.py:1260-1263 -- the exact fix this hypothesis wanted, already
+landed. Killed the round before any kid spent money on re-deriving it, and
+recorded the finding here rather than silently redispatching on the
+point's characterization. Reported the discrepancy back rather than
+sitting on it -- their read was very likely just stale (a message written
+before, or without checking, this exact wiring commit), not a bad-faith
+claim; the pattern of this whole exchange has been mutual, correctable
+staleness, not deception.
 <!-- THOUGHT:END -->
+
+## L4.122 CLOSED, no kid dispatched -- the gap is already fixed and wired
+
+Killed the L4.122 parent (a00-44670349, pid 1091342) before it dispatched
+any kid -- zero spend beyond the parent's own credential mint. Cause: after
+syncing this seat with origin/season/s2 (merge 632b5014f), I re-read
+extensions/agi/bin/provisioning.py and dispatch.py myself, as this brief's
+own "NOT YET CONFIRMED" section said to do before implementing anything.
+
+provisioning.check_runtime_key_usable(cfg, root) (provisioning.py:462-493)
+already exists and does exactly what this hypothesis asked for: when
+provisioning.available(root) is True it short-circuits (True, None) --
+runtime key irrelevant, spend goes through minted keys (L4.98's invariant).
+When provisioning is ABSENT, it reads the runtime key and makes ONE
+authenticated call (envfile._verify_provider_key) -- a genuinely dead key
+(401/403) REFUSES with a named message before any budget slot is taken; an
+absent key, network error, or unknown prefix all fail-open (matching
+check_key_floor's discipline). It is WIRED IN at dispatch.py:1260-1263,
+before check_key_floor and check_account_floor, before the target loop --
+confirmed by direct read, not inferred from a comment. The docstring calls
+it "this round's REQUIRED (d)/(e)", so this was authored as part of a
+larger round (hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-
+use, most likely) that this hypothesis's own testable_claim did not know
+had already landed on season/s2.
+
+This closes the testable_claim as DISPROVED ON CURRENT CODE, not proved --
+the gap this hypothesis described was real on my stale dispatch base (783
+642eab) but does not survive on origin/season/s2 as of merge 632b5014f.
+No further round needed here; re-dispatching would re-derive already-
+landed, already-wired work. If a future reader finds this gap again, check
+provisioning.check_runtime_key_usable's wiring is still live at the
+dispatch.py pre-flight before treating it as new.
