@@ -51,12 +51,13 @@
       "provider": "openrouter",
       "thinking": "medium",
       "models": {
-        "kid": "~deepseek/deepseek-v4-flash-latest",
+        "kid": "openrouter/free",
         "parent": "~z-ai/glm-flash-latest"
       },
       "allowed_models": [
         "~deepseek/deepseek-v4-flash-latest",
-        "~z-ai/glm-flash-latest"
+        "~z-ai/glm-flash-latest",
+        "openrouter/free"
       ]
     },
     "claude-code": {
