@@ -5890,6 +5890,9 @@ EXCEPTION   director-to-director talk is otherwise forbidden (channel A via the 
 
 Done when: one round has been split, dispatched by both seats from their own worktrees, merged by the point into season/s2, reviewed by the point and accepted by the Prime, with the helper's spend and node count recorded here.
 
+## Agent Notes
+Owner, verbatim (2026-09-09): "also old worktrees that've been exhausted and aren't used anymore should be cleared out once the work is verifiably merged into whatever parent worktree owns it. So we don't develop a giant list of worktrees over time" — applied the same hour: 23 merged+clean L3 loop worktrees removed with their branches (git worktree remove + git branch -d, which refuses an unmerged branch); 4 merged-but-dirty and 5 unmerged (ahead=1) trees kept for review. Standing rule for the point director: prune a worktree only after its branch is an ancestor of the parent branch.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
