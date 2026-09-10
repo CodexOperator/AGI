@@ -582,11 +582,61 @@ def iteration_dirname(iter_id: int | str) -> str:
 
 
 def sessions_dir(root: Path) -> Path:
+    """PER-WORKTREE sessions dir: `<root>/sessions`, a plain join.
+
+    Do not reach for this when the state must be SHARED across every git
+    worktree of a project — meter pins, the mail inbox, the budget, the suite
+    stamp, the rotation records. A caller inside a linked worktree gets THIS
+    worktree's `sessions`, which forks the room; use `shared_sessions_dir`
+    there (the helper that routes through `git_common_root`).
+
+    This plain join is legitimately what iteration OUTPUT wants: a seat's
+    `iter-*` dirs live in its own worktree during a run and are merged home
+    by `rotate complete` / `cli.py session-complete`. So both resolvers are
+    honest — the shared room (pins, mail, budget, stamp) and the per-worktree
+    fork (iteration output) — and a consumer must pick by which it means.
+    """
     return Path(root) / SESSIONS_DIR_NAME
 
 
+def shared_sessions_dir(root: Path) -> Path:
+    """The project's ONE shared sessions dir across every git worktree.
+
+    The meter pins, mail inbox, spawn budget, suite stamp and rotation
+    records must be a SINGLE directory on the main checkout so a seat in a
+    worktree reads the same room the parent wrote (hypothesis:l4-a-check-that-
+    answers-a-question-it-is-not-asking — the boundary's recurring face is
+    shared state resolved per-worktree instead of through `git_common_root`).
+
+    This is the hoisted form of `rotate._sessions_dir` (rotate.py), the ONE
+    resolver the pins already use; `rotate._sessions_dir` now delegates here.
+    Layout is unchanged: `find_project_root()` returns the GRAPH dir (the
+    `.agi/` itself), so the sessions dir usually sits directly under it;
+    routing through `git_common_root` re-resolves the graph from the main
+    checkout. A non-worktree or non-git root is the identity, so fixtures and
+    the main checkout behave byte-for-byte as before.
+    """
+    graph = find_project_root(root) or root
+    main = git_common_root(graph)
+    if main is not None:
+        mg = find_project_root(main) or graph
+        graph = mg
+    if (graph / "nodes").is_dir():
+        return graph / "sessions"
+    if (graph / ".agi" / "nodes").is_dir():
+        return graph / ".agi" / "sessions"
+    # Unknown shape: default to the graph-dir reading, the production path.
+    return graph / "sessions"
+
+
 def iteration_dir(root: Path, iter_id: int | str) -> Path:
-    """`<root>/sessions/<iteration_dirname>` — the one place this is spelled."""
+    """`<root>/sessions/<iteration_dirname>` — the one place this is spelled.
+
+    Iteration OUTPUT is per-worktree on purpose (a seat's `iter-*` dirs live
+    in its own worktree during a run and are merged home at retirement), so
+    this builds on `sessions_dir` — the per-worktree join — NOT on
+    `shared_sessions_dir`. `sessions_dir` returns whatever the caller means;
+    `iteration_dir` is always the worktree-local fork."""
     return sessions_dir(root) / iteration_dirname(iter_id)
 
 

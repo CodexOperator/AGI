@@ -1424,11 +1424,16 @@ def test_rotate_self_refuses_when_predecessor_window_gone(fake_ladder, tmp_path,
 
 def test_rotate_self_interrupted_after_spawn_leaves_started_record(
         fake_ladder, tmp_path, monkeypatch):
-    """A rotate-self interrupted MID-SEQUENCE — the successor spawned and
-    confirmed, then the read-back never settles (a non-`continue` reply, the
-    exact shape the harness reaper leaves behind) — must still leave a durable
-    record whose state says how far it got. RED against the old code, which
-    wrote nothing until the final step and left the rotations dir empty here
+    """A non-`continue` read-back reply must leave a durable TERMINAL record
+    (w3: SUCCEEDED BUT UNWITNESSED), not a frozen `started`.
+
+    This branch did not write the record until this round, so the record was
+    left at `started` -- indistinguishable from a rotation still in flight --
+    and `readback_log` absent exactly where a diagnostician needs it. A living
+    process that reaches the end of this branch now writes `unwitnessed`;
+    `started` is reserved for genuine process-death, where no code runs.
+    RED against the old code, which wrote nothing until the final step and
+    left the rotations dir empty here
     (hypothesis:l4-rotation-record-survives-interruption).
     """
     win = tmp_path / "windows.txt"
@@ -1449,15 +1454,24 @@ def test_rotate_self_interrupted_after_spawn_leaves_started_record(
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
-    assert rc != 0
+    assert rc != 0  # the DECISION is unchanged: `return 1` still fires
     records = sorted((tmp_path / "sessions" / "rotations")
                      .glob("adv-alive.*.json"))
-    assert records, "interrupted rotation left NO durable record"
+    assert records, "rotation left NO durable record"
     assert len(records) == 1, "started + outcome must stay in ONE record file"
     rec = json.loads(records[0].read_text(encoding="utf-8"))
-    assert rec["result"] == "started"
-    assert rec["steps_reached"] and rec["steps_reached"][-1] >= 3
-    assert "gen_before" in rec and "gen_after" in rec
+    # (w3) the record must be TERMINAL, not frozen at `started`
+    assert rec["result"] == "unwitnessed", (
+        f"record left {rec['result']!r}: a rotation that stopped looking "
+        "in-flight is the defect, not the outcome")
+    # generation is carried in the observation (the `started`-shape top-level
+    # keys are gone from the terminal shape, same as the success record's)
+    obs = rec.get("observations", {})
+    assert obs.get("b_generation", {}).get("before") >= 0
+    # (w3) readback_log is now POPULATED, not absent, exactly where a
+    # diagnostician needs it
+    assert "c_readback_log_path" in obs, "readback_log must be populated"
+    assert obs["c_readback_log_path"], "readback_log must name a real path"
 
 
 def test_rotate_self_success_leaves_exactly_one_record(fake_ladder, tmp_path,
@@ -2117,3 +2131,106 @@ def test_spawn_launch_carries_reaper_knob_for_plain_and_ultracode(monkeypatch, t
     # WORKFLOWS gate stays first; the reaper export still comes after &&:
     assert out.startswith("export CLAUDE_CODE_WORKFLOWS=1")
     assert "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 &&" in out
+
+
+# --- ITEM 3 (w2): rotation debug logs are SHARED-ROOM, not worktree-local ----
+# hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking, widening w2.
+# The four default debug-log paths used to be the RELATIVE STRING
+# `.agi/sessions/...`, which `Path(dbg).resolve()` resolved against CWD -- so a
+# seat running from its worktree read/wrote a DIFFERENT file from one in the
+# main checkout (proved on disk: same seat, one log a day stale). All four now
+# route through `_sessions_dir`, so the falsifier is a PATH-EQUALITY fact, not
+# a success fact: a rotation addressed from a worktree and one from the main
+# checkout must name the SAME file.
+
+
+def test_rotation_debug_log_resolves_same_file_from_worktree_and_main(monkeypatch, tmp_path):
+    main_root = tmp_path / "main"
+    seat_root = tmp_path / "seat"
+    for g in (main_root, seat_root):
+        (g / ".agi").mkdir(parents=True)
+        (g / ".agi" / "nodes").mkdir()
+        (g / ".agi" / "config.json").write_text("{}")
+
+    def _to_main(_root=None):
+        return main_root
+
+    monkeypatch.setattr(rotate.locations, "git_common_root", _to_main)
+
+    seat_log = rotate._sessions_dir(seat_root) / "sanctuary-director.log"
+    main_log = rotate._sessions_dir(main_root) / "sanctuary-director.log"
+    assert seat_log == main_log, (
+        "a worktree seat and the main checkout must address the SAME log file;\n"
+        f"  worktree: {seat_log}\n  main:     {main_log}\n"
+        "the four relative-string defaults routed through CWD and forked here")
+    assert str(seat_log).startswith(str(main_root)), (
+        "the shared log must resolve under the MAIN checkout, not the seat's")
+
+
+def test_rotate_self_default_debug_log_is_the_shared_path(monkeypatch, tmp_path):
+    """With no explicit --debug-file, cmd_rotate_self resolves its default log
+    through `_sessions_dir` (shared-room) rather than the relative CWD string."""
+    main_root = tmp_path / "main"
+    (main_root / ".agi" / "nodes").mkdir(parents=True)
+    (main_root / ".agi" / "config.json").write_text("{}")
+
+    def _to_main(_root=None):
+        return main_root
+
+    monkeypatch.setattr(rotate.locations, "git_common_root", _to_main)
+
+    expected = str(rotate._sessions_dir(main_root) / "sanctuary-director.log")
+    # the DEFAULT expression cmd_rotate_self uses when args.debug_file is falsy:
+    default_dbg = str(rotate._sessions_dir(main_root) / "sanctuary-director.log")
+    assert default_dbg == expected
+    assert ".agi/sessions" in default_dbg
+    assert not default_dbg.startswith("."), (
+        "a CWD-relative default is exactly the fork this round removes")
+
+
+def _make_main_and_worktree(tmp_path):
+    """A main checkout + one linked worktree, both with a real `.agi` graph."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x-a@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+    return repo, wt
+
+
+def test_successor_reply_lands_in_the_file_the_predecessor_reads(tmp_path):
+    """FALSIFIER (w4): settle whether the successor's first reply lands in the
+    file the PREDECESSOR reads.
+
+    The successor's `--debug-file` (`spawn_window` default) and the
+    predecessor's read-back log (`rotate_self` default) are the SAME path,
+    and it is the SHARED `_sessions_dir` path on the MAIN checkout — even
+    when the rotation is driven from a linked git worktree. So a successor
+    first reply is never stranded in a file the predecessor cannot see: both
+    sides of the rotation resolve to the one shared `<name>.log`.
+    """
+    repo, wt = _make_main_and_worktree(tmp_path)
+    name = "sanctuary-director"
+    # The file the successor writes its first reply into (spawn_window's
+    # default --debug-file debug path).
+    succ_file_worktree = rotate._sessions_dir(wt / ".agi") / f"{name}.log"
+    # The file the predecessor polls for that reply (rotate_self's read-back
+    # default).
+    pred_file_main = rotate._sessions_dir(repo / ".agi") / f"{name}.log"
+    assert succ_file_worktree == pred_file_main, (
+        "a successor's first reply must land in the SAME file the predecessor "
+        "reads, or a rotation driven from a worktree strands the reply")
+    assert str(pred_file_main) == str(repo / ".agi" / "sessions" / f"{name}.log"), (
+        "the shared log must resolve to the MAIN checkout, not the worktree")

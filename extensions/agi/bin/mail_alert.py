@@ -69,9 +69,12 @@ def _last_meta(croot: Path, kind: str, name: str) -> tuple[str, int | None]:
 
 
 def _inbox_unread(root: Path, me: str) -> int:
-    """Unread block count in the plain per-recipient inbox (sessions/inbox/)."""
-    inbox = root / "sessions" / "inbox" / f"{me}.md"
-    blocks, _ = send._scan_messages(inbox)
+    """Unread block count in the plain per-recipient inbox (sessions/inbox/).
+
+    Reuses `send._inbox_path`, which resolves to the SHARED sessions dir, so
+    mail a seat in a worktree sent is counted by the main checkout's alert
+    and vice versa (the inbox is ONE room across worktrees)."""
+    blocks, _ = send._scan_messages(send._inbox_path(root, me))
     return len(blocks)
 
 
