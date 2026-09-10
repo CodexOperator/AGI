@@ -75,16 +75,30 @@ def _fake_tmux(monkeypatch, window_names):
 
 
 class _SafeSubprocess:
-    """A subprocess stand-in installed for EVERY test (autouse below), so no
-    test can reach the real tmux session/pane. `_nudge_window` decides to
-    fire only after a successful `tmux list-windows`; this stub answers
-    returncode 1 ("no such session"), so the nudge short-circuits to False
-    for every test unless a test deliberately swaps in its own fake (the
-    three `_fake_tmux` tests above do, and their setattr wins because it runs
-    in the test body after this autouse fixture).
+    """A subprocess stand-in installed for EVERY test in this file (autouse
+    below), so send.py's own calls stay under a STRICT guard -- not just the
+    selective, project-wide one that conftest.py's `_no_real_tmux`
+    (hypothesis:l4-conftest-tmux-guard) now also provides for every module.
 
-    Guard: if send.py ever grows a real non-tmux subprocess call, this raises
-    instead of silently faking it.
+    Restored 2026-09-10 (review, sanctuary-helper): the conftest-wide guard
+    supersedes this one for coverage (it reaches rotate.py, season.py and
+    mail_alert.py's own separate `send_mod` too, which this one never did)
+    but NOT for drift protection. `_nudge_window` fires only after a
+    successful `tmux list-windows`; this stub answers returncode 1 ("no such
+    session"), so the nudge short-circuits to False for every test unless a
+    test deliberately swaps in its own fake (the three `_fake_tmux` tests
+    below do, and their setattr wins because it runs in the test body after
+    this autouse fixture). The two guards compose rather than duplicate:
+    this one replaces send_mod's OWN `subprocess` name with this instance,
+    which is a strictly narrower and later rebinding than conftest's patch
+    of the real `subprocess.run` -- so for calls that go through `send_mod`
+    specifically, THIS is what actually answers them.
+
+    Guard: if send.py ever grows a real non-tmux subprocess call, this
+    raises instead of silently faking it -- the one thing a pass-through
+    guard structurally cannot do, because passing non-tmux calls through is
+    its entire point. Losing this when the project-wide guard landed was a
+    named regression (hypothesis:l4-conftest-tmux-guard), not a rewrite.
     """
     TimeoutExpired = subprocess.TimeoutExpired
 
@@ -97,11 +111,8 @@ class _SafeSubprocess:
 
 @pytest.fixture(autouse=True)
 def _no_real_tmux(monkeypatch):
-    """hypothesis:l4b23-fixture-leak — the rotate-fixture (and every other
-    test that calls a send-family verb) must never reach the live tmux
-    session (`rotate.DEFAULT_TMUX_SESSION`, "agi-rc"), where a recipient
-    whose name matches a real window would have `[ask] how do I rotate?`
-    typed into a live agent's terminal.
+    """hypothesis:l4b23-fixture-leak — send.py's own calls stay under the
+    STRICT stand-in above, layered under conftest.py's project-wide one.
     """
     monkeypatch.setattr(send_mod, "subprocess", _SafeSubprocess())
 
