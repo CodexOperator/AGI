@@ -625,3 +625,105 @@ def test_floor_reads_from_config_with_default(monkeypatch):
         {"provisioning": {"min_key_remaining_usd": 2.5}}) == 2.5
     assert provisioning.min_key_remaining_floor(
         {}) == provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-floor-guards-the-key-that-drains — the floor must ALSO
+# consult the outstanding engine-minted keys, because rounds bill to minted
+# per-spawn keys and a floor that read only the runtime key could not move.
+# Each test asserts ONE of the hypothesis's falsifiers. New tests only: every
+# existing test is untouched, the `live` marker and ROOT are not repointed.
+# --------------------------------------------------------------------------
+
+
+def _fake_key_usage_healthy():
+    """The runtime key reads FULL in every l4 test — the case the old floor
+    thought was fine while a minted key was draining (falsifier a)."""
+    return _fake_key_usage(label="agg-live", limit=10.0, remaining=8.0)
+
+
+def test_l4_refuses_when_a_minted_key_reads_under_the_floor(monkeypatch):
+    """falsifier (a) — THE falsifier. A spawn is refused when an outstanding
+    engine-minted key reads below the floor while the runtime key reads full.
+    Today the old floor (runtime key only) returns ok=True here: the bug."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00",
+                            "limit": 5.0, "usage": 4.6}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "agi-iter1-kid-a00" in msg
+    assert "$0.40" in msg  # 5.0 - 4.6
+
+
+def test_l4_still_passes_when_a_minted_key_is_above_the_floor(monkeypatch):
+    """A healthy outstanding minted key (the normal live case, e.g. this
+    project's per-spawn $5.00 caps) must NOT refuse a spawn — the guard is
+    for a drained key, not for the mere existence of a live one."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00",
+                            "limit": 5.0, "usage": 0.5},
+                           {"name": "agi-iter2-kid-a01",
+                            "limit": 5.0, "usage": 1.0}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_l4_fails_open_when_the_key_listing_network_errors(monkeypatch):
+    """falsifier (b) — a network error reading ANY key (here the minted-key
+    listing) still returns (True, None). An unreachable API is not evidence
+    of exhaustion and must never block a round."""
+    def boom(root=None):
+        raise provisioning.ProvisioningError("network down: TimeoutError")
+
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(provisioning, "list_all_keys", boom)
+    ok, msg = provisioning.check_key_floor({})
+    assert ok is True and msg is None
+
+
+def test_l4_passes_when_uncapped_or_absent_keys_appear(monkeypatch):
+    """falsifier (c) — an uncapped key (limit=None: no headroom to guard) and
+    an absent/unreadable key (usage=None) both still pass, and neither is
+    mistaken for a refusal."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [
+            {"name": "agi-uncapped", "limit": None, "usage": 2.0},
+            {"name": "agi-nousage", "limit": 5.0, "usage": None}])
+    ok, msg = provisioning.check_key_floor({})
+    assert ok is True and msg is None
+
+
+def test_l4_never_refuses_on_a_key_the_engine_did_not_mint(monkeypatch):
+    """The owner's long-lived `agi` key and any hand-made key are out of
+    scope — only `agi-` engine-minted keys are read by the floor. This is the
+    second independent ground that keeps the reaper/floor from ever touching
+    the key the project runs on."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [
+            {"name": "agi", "limit": 5.0, "usage": 4.6},       # owner key
+            {"name": "backup", "limit": 5.0, "usage": 4.99}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_l4_passes_when_no_provisioning_key_is_configured(monkeypatch):
+    """With no provisioning key, `list_all_keys` returns [] and the minted-key
+    leg is a no-op: a shared-key project keeps exactly the behaviour it had,
+    and only the runtime-key floor applies. Absence is supported, not a
+    refusal."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
+    ok, msg = provisioning.check_key_floor({})
+    assert ok is True and msg is None
+

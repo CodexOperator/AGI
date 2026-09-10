@@ -41,6 +41,18 @@ from pathlib import Path
 
 import locations  # NOQA: E402
 
+#: THE ONE definition of a terminal agent status (hypothesis:l4-one-definition-
+#: of-terminal). `done-unreported` is what the reaper writes when a round
+#: landed and only the report was lost -- the most common ending for a
+#: `--branch` parent, and behaviourally terminal. It used to be omitted and
+#: `dispatch.py` and `heal.py` only survived the omission on a second guard
+#: (`if status != "running": continue`). This lives here because every reader
+#: already imports `spawn_budget` (`dispatch.py`, `cli.py`) or imports a module
+#: that does (`heal.py` -> dispatch), and `spawn_budget` imports only
+#: `locations`, so nothing can cycle. Every reader imports THIS set; none
+#: re-declares it.
+TERMINAL = {"done", "done-unreported", "pending", "hung-healed", "failed"}
+
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 

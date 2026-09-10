@@ -48,6 +48,7 @@ import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it wit
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
 config_path = locations.config_path
@@ -1240,16 +1241,17 @@ def main() -> int:
     # race produced.
     unadmitted: list[dict] = []
 
-    # hypothesis:l3-openrouter-key-headroom-invisible — pre-flight BEFORE any
-    # slot takes a budget lease. The one number that can kill every pi agent
-    # (the runtime sub-key's remaining balance, which OpenRouter reports as
-    # "401 API key expired" when crossed) should surface as a named refusal
-    # rather than a silent round-destroying death 60 minutes in. The check is
-    # fail-open on absence or a network error — an unreachable API must never
-    # block a round — and applies only to an openrouter harness, whose runtime
-    # key carries its own dollar cap.
+    # hypothesis:l3-openrouter-key-headroom-invisible AND l4-the-floor-guards-
+    # the-key-that-drains — pre-flight BEFORE any slot takes a budget lease.
+    # l3: the runtime sub-key's remaining balance (which OpenRouter reports as
+    # "401 API key expired" when crossed) surfaces as a named refusal. l4:
+    # rounds bill to MINTED per-spawn keys, so the floor must ALSO consult the
+    # outstanding engine-minted keys, or it reads a number that cannot move.
+    # Both checks are fail-open on absence or a network error — an unreachable
+    # API must never block a round — and both apply only to an openrouter
+    # harness, whose keys carry their own dollar caps.
     if dispatch_harness.get("provider") == "openrouter":
-        _hkey_ok, _hkey_msg = provisioning.check_runtime_key_floor(cfg, root)
+        _hkey_ok, _hkey_msg = provisioning.check_key_floor(cfg, root)
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
             return 1
@@ -1735,7 +1737,11 @@ def _reaper_phase(
     import json
     import time
 
-    TERMINAL = {"done", "pending", "hung-healed", "failed"}
+    # `TERMINAL` is imported from `spawn_budget` (the ONE definition). The
+    # second guard below (`if status != "running": continue`) is KEPT ON
+    # PURPOSE -- it catches any status nobody has thought of yet, which is
+    # exactly the tolerance that kept this reaper working while the set was
+    # wrong. Do not "simplify" it away.
     deadline = time.time() + max_wait_s
 
     while time.time() < deadline:
