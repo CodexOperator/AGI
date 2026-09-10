@@ -828,6 +828,41 @@ def _resolve_replace_text(edit: Edit) -> None:
     edit.replace_text = text
 
 
+def _resolve_api_root(root) -> Path:
+    """Resolve the graph root a caller handed the Python API — DESCEND-ONLY.
+
+    The CLI resolves `--root` through `locations.find_project_root` BEFORE
+    touching `create`/`submit` (write.py:1208, :1253), so CLI callers are
+    safe. The API takes `root` raw (hypothesis:l4-write-api-root-resolution),
+    and a raw `.` from the repo root used to mint into `<repo>/nodes/...`
+    instead of `<repo>/.agi/nodes/...`, silently. Worse, a caller inside a
+    bare dir with no project of its own would have had `find_project_root`
+    walk UP into a real ancestor graph and write a node into it — a
+    data-loss-shaped hazard for any test that passed a no-`.agi/` tmp dir.
+
+    Resolution here looks at ONLY `root` and the `.agi/` directly beneath it,
+    and NEVER walks up the filesystem: a project path resolves to its graph
+    root, and a bare dir REFUSES (raises) rather than resolving into a real
+    graph above it. The never-ascend property is asserted directly by
+    test_write.py, not inferred from the passing tests around it. Refusing
+    before any write is what closes the "wrong root looks like success"
+    symptom — the node is not minted and nothing is written anywhere.
+    """
+    d = Path(root).resolve()
+    # The root itself is a graph root (a `.agi/` dir, or a legacy config dir).
+    if locations.config_path(d) is not None:
+        return d
+    # `root/.agi` directly beneath it holds a config (the G11 layout).
+    child = d / locations.GRAPH_DIR_NAME
+    if locations.config_path(child) is not None:
+        return child
+    raise EditError(
+        f"not an agi project graph root: {root!r} — the Python API resolves "
+        f"root descend-only and refuses to walk UP the filesystem into a "
+        f"different project (hypothesis:l4-write-api-root-resolution). "
+        f"Nothing was written.")
+
+
 def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "") -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
 
@@ -837,6 +872,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     """
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
+
+    # hypothesis:l4-write-api-root-resolution — an API caller's `root` is
+    # resolved descend-only here, so a wrong root refuses before any write.
+    root = _resolve_api_root(root)
 
     # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
     # the replacement source. Without this, an API caller's `replace_from`
@@ -1271,6 +1310,12 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     `link_ref`, so "a new node and, if needed, the code file behind it" is one
     operation. An existing file is **never overwritten** — it is linked.
     """
+    # hypothesis:l4-write-api-root-resolution — same descend-only resolution
+    # as submit; a wrong root refuses before the node or its payload file is
+    # created, instead of minting into `<root>/nodes/...` with the spawn gate
+    # silently unverified.
+    root = _resolve_api_root(root)
+
     _enforce_written_by(root, node_type, actor, f"{node_type}:{slug}", role)
 
     extra = dict(set_fm or {})
