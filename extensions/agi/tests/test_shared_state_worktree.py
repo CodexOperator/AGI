@@ -348,3 +348,97 @@ def test_cli_done_from_a_worktree_resolves_the_main_session_record(tmp_path, mon
     assert rec["status"] == "done"
     assert rec["verdict"] == "proved"
     assert rec["node_id"] == "experiment:e1"
+
+# --- clause 5: the THREE-TREE case — a seat-dispatched parent's record lives
+# in a SIBLING worktree (hypothesis:l4-a-branch-parent-cannot-signal-done).
+# dispatch.py resolves sess_root = root (the DISPATCHER worktree), so a
+# --branch parent dispatched from a seat has its agent.json in the SEAT's
+# session dir — in NEITHER the parent's own worktree NOR the main checkout.
+# Real-artefact grounding (L4.65, on the box): the parent a00-400db3c3's
+# record is at
+#   .agi/worktrees/seat-sanctuary-director/.agi/sessions/iter-L4.65/a00-400db3c3/agent.json
+# while the parent's own worktree holds only context.md for it and the main
+# checkout has no iter-L4.65 at all. The L4.56 twins, also verbatim on the
+# box, show the same split at different shapes:
+#   .agi/worktrees/a00-04c03dd9/.agi/sessions/iter-L4.56/
+#     a00-df03d074/agent.json   (21 keys, WITH slot/strategy)
+#     a00-04c03dd9/agent.json   (18 keys, WITHOUT)
+
+
+def _make_worktree_under(repo: Path, tmp_path: Path, name: str) -> Path:
+    """A linked worktree physically placed under `repo/.agi/worktrees/<name>`,
+    exactly where the harness places every branch worktree, so
+    `_sibling_session_lookup`'s glob over the main graph's `worktrees/` dir
+    sees it the way it sees production."""
+    wt_root = repo / ".agi" / "worktrees"
+    wt_root.mkdir(parents=True, exist_ok=True)
+    wt = wt_root / name
+    _git(repo, "worktree", "add", "-b", f"loop/slug-{name}@s2", str(wt), "master")
+    return wt
+
+
+def test_cli_done_from_a_parent_reaches_the_seat_dispatched_sibling_record(
+        tmp_path, monkeypatch):
+    """Proof bar (a) — the THREE-TREE case. A `--branch` parent's record is
+    written by a SIBLING worktree's dispatcher (the seat), into the seat's own
+    session dir. `done` run from the parent's worktree must resolve THAT
+    record across every linked worktree and write the verdict into the file
+    the reaper reads."""
+    import argparse
+    import cli
+
+    repo = _make_project_repo(tmp_path)
+    _commit_graph(repo)
+
+    parent = _make_worktree_under(repo, tmp_path, "parent")
+    seat = _make_worktree_under(repo, tmp_path, "seat")
+    monkeypatch.chdir(parent)          # the parent's cwd is ITS OWN worktree
+
+    # The seat dispatcher writes the record into the SEAT worktree's sessions.
+    seat_sess = seat / ".agi" / "sessions" / "iter-001" / "a00-x"
+    seat_sess.mkdir(parents=True)
+    (seat_sess / "agent.json").write_text(_AGENT_JSON, encoding="utf-8")
+    # Deliberately NOT in the parent worktree NOR in main.
+    assert not (parent / ".agi" / "sessions" / "iter-001" / "a00-x").exists()
+    assert not (repo / ".agi" / "sessions" / "iter-001" / "a00-x").exists()
+
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+
+    rc = cli.cmd_done(args)
+    assert rc == 0
+
+    # The verdict landed in the SEAT's record — the file the reaper reads.
+    rec = __import__("json").loads((seat_sess / "agent.json").read_text())
+    assert rec["status"] == "done"
+    assert rec["verdict"] == "proved"
+    assert rec["node_id"] == "experiment:e1"
+
+
+def test_cli_done_still_refuses_when_no_tree_holds_the_record(
+        tmp_path, monkeypatch):
+    """Proof bar (b) — absence stays distinguishable. When the record exists
+    in NONE of local/main/sibling worktrees, `done` refuses with rc 1 and the
+    seat-dispatched lookup does not conjure a record it then reads."""
+    import argparse
+    import cli
+
+    repo = _make_project_repo(tmp_path)
+    _commit_graph(repo)
+    parent = _make_worktree_under(repo, tmp_path, "parent")
+    _make_worktree_under(repo, tmp_path, "seat")
+    monkeypatch.chdir(parent)
+
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-ghost", verdict="pending", confidence=0.0,
+        node_id=None, parent=None, notes="", next_edge=None,
+        evidence_runs=None, no_evidence_gate=False, owns=None,
+        no_spawn_gate=False,
+    )
+    rc = cli.cmd_done(args)
+    assert rc == 1
+    assert not (parent / ".agi" / "sessions" / "iter-001" / "a00-ghost").exists()
