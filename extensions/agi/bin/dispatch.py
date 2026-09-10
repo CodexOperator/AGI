@@ -749,6 +749,11 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             env = adapter.child_env(harness=dispatch_harness,
                                     base=scrubbed_env(), tier=args.tier)
             env["AGI_TIER"] = args.tier
+            # hypothesis:l4-spawn-paths-export-the-reaper-knob -- mirror of
+            # the live spawn_env export, so the dry report SHOWS the reaper
+            # knob without a spawn (a check that costs a spawn is a check that
+            # never runs).
+            env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"] = "1"
             env["AGI_ROLE"] = args.role
             env["AGI_LADDER_TIER"] = str(tier_eff)
             env["AGI_SEASON"] = str(current_season)
@@ -810,7 +815,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
                        "AGI_SEAT", "GIT_CONFIG_COUNT",
-                       "CLAUDE_CODE_WORKFLOWS"]
+                       "CLAUDE_CODE_WORKFLOWS",
+                       "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
@@ -1463,6 +1469,15 @@ def main() -> int:
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)
+            # hypothesis:l4-spawn-paths-export-the-reaper-knob -- the harness
+            # reaps "background" shells on a Bun memoryPressure signal; the
+            # only gate is CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP (read
+            # verbatim from the installed claude-code bundle). Set it
+            # UNCONDITIONALLY to defeat it for every spawn: an inherited "0"
+            # would otherwise re-arm the reaper silently, and an inherited
+            # value is one tmux restart from gone. This is the spawn surface;
+            # it must not live in config, nodes, or a shell profile.
+            spawn_env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"] = "1"
             # goal:l2-agent-git-commit-guard -- belt: refuse git write for
             # automated agent tiers (kid, parent).  AGI_TIER distinguishes
             # machine from human; GIT_CONFIG tells git to use our hooks
