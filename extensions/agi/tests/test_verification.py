@@ -430,3 +430,90 @@ def test_suite_completion_records_timestamp(tmp_path):
     assert "suite_ran_at" in doc
     import time as _t
     assert abs(doc["suite_ran_at"] - _t.time()) < 60
+
+
+# --- the L4.101 ordering fix (first --suite run self-FAILs) -----------------
+# ITEM 2 of hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking.
+# run_level used to append check_bin_freshness BEFORE main() recorded the
+# completing suite's stamp, so the FIRST-ever --suite run read a None prior
+# stamp and self-FAILed ("no suite has EVER run") even though that very run
+# just passed. The fix is ordering, never judgement: when --suite is on and
+# the suite PASSED within this call, freshness is judged against the run
+# completing NOW. The spy injects a tmp bin dir + tracked set so the real
+# guard runs deterministically (no git, no real tree) while letting the test
+# assert WHICH timestamp run_level handed it.
+
+
+def _suite_run_level(monkeypatch, groot, bdir, tracked, suite_status):
+    """One run_level call with real check_bin_freshness (injected bin dir)
+    and a stub run_check whose suite result is `suite_status`. Returns
+    (results, kws_seen) where kws_seen captures what run_level passed to the
+    guard."""
+    real = verification.check_bin_freshness
+    seen = {}
+
+    def fake_run(groot, name, verbose):
+        if name == verification.SUITE_CMD:
+            return verification.CheckResult(verification.SUITE_CMD, suite_status,
+                                            5.0, {"passed": 2340})
+        return verification.CheckResult(name, "PASS", 0.0, None)
+
+    def spy(groot, **kw):
+        seen.update(kw)
+        return real(groot, bin_dir=bdir, tracked_of=lambda d: set(tracked), **kw)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    monkeypatch.setattr(verification, "check_bin_freshness", spy)
+    return verification.run_level(groot, "rotation", suite=suite_status is not None,
+                                  verbose=False), seen
+
+
+def test_first_suite_run_passes_when_suite_passed(monkeypatch, tmp_path):
+    """(f) first arm: NO recorded stamp + --suite + suite PASSED -> freshness
+    PASS. The just-covered bin is covered; the guard must not return a
+    self-inflicted FAIL for a stamp main() has not written yet."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["newer.py"])
+    os.utime(bdir / "newer.py", (1_900_000, 1_900_000))  # before `now`; no prior stamp exists
+    results, seen = _suite_run_level(monkeypatch, groot, bdir, {"newer.py"}, "PASS")
+    fresh = next(r for r in results if r.name == "bin-suite-fresh")
+    assert fresh.status == "PASS", fresh.note
+    assert "covered by the suite run completing now" in fresh.note
+    assert seen.get("effective_ts") is not None, (
+        "suite-pass must judge against the completing run, not the prior stamp")
+
+
+def test_first_suite_run_fails_when_suite_failed(monkeypatch, tmp_path):
+    """(f) second arm: NO recorded stamp + --suite + suite FAILED -> freshness
+    FAIL unchanged. A failed suite covered nothing, so the guard is still the
+    conservative surface, not a rubber stamp."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["newer.py"])
+    os.utime(bdir / "newer.py", (1_900_000, 1_900_000))
+    results, seen = _suite_run_level(monkeypatch, groot, bdir, {"newer.py"}, "FAIL")
+    fresh = next(r for r in results if r.name == "bin-suite-fresh")
+    assert fresh.status == "FAIL", fresh.note
+    assert "SUITE REQUIRED" in fresh.note
+    assert seen.get("effective_ts") is None, (
+        "suite-fail must NOT fabricate a fresh stamp -- the recorded stamp rules")
+
+
+def test_no_suite_changes_nothing_stale_stamp_still_fails(monkeypatch, tmp_path):
+    """(g) With NO --suite, the guard is byte-for-byte the prior behaviour: a
+    stale stamp plus a newer/untracked bin/*.py still FAILs, unchanged. The
+    L4.101 fix is ordering only and must not weaken the no--suite gate."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["newer.py"])
+    _write_ts(groot, 1_000_000.0)                # stale stamp below the file's mtime
+    os.utime(bdir / "newer.py", (1_500_000, 1_500_000))
+    results, seen = _suite_run_level(monkeypatch, groot, bdir, [], None)  # None == no --suite
+    fresh = next(r for r in results if r.name == "bin-suite-fresh")
+    assert fresh.status == "FAIL", fresh.note
+    assert "SUITE REQUIRED" in fresh.note
+    assert "newer.py" in fresh.note
+    assert "(untracked; mtime newer than the last suite run)" in fresh.note
+    assert seen.get("effective_ts") is None, (
+        "no --suite must never fabricate a fresh stamp")
