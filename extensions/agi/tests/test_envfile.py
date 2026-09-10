@@ -294,6 +294,122 @@ def test_an_optional_key_that_is_set_is_reported_present_but_never_by_value(tmp_
     assert "sk-a-very-secret-value" not in blob, "the VALUE must never be printed"
 
 
+# --- credential validity (hypothesis:l4-a-check-that-answers-a-
+# question-it-is-not-asking, ITEM 1) --------------------------------------
+#
+# `--check` used to assert presence and print "ok" for a revoked key. These
+# tests assert the NEW half: a 401 makes the check FAIL and say the key is
+# present but NOT USABLE (both halves); a network error stays fail-open and is
+# reported as UNKNOWN, never dead; a live key still passes. The verifier is
+# stubbed at module level so no test touches the network; a real-tree probe is
+# run manually against the live box and recorded on the experiment node.
+
+
+def _stub_verify(status, detail):
+    import envfile as _e
+
+    def _fake(key):
+        return (status, detail)
+
+    return _fake
+
+
+def test_verify_401_makes_check_fail_and_names_present_but_not_usable(tmp_path, monkeypatch):
+    """Falsifier (a): a dead key must FAIL the validating check and say BOTH
+    that it is present AND that it is not usable — a message that only says
+    'failed' loses the distinction the round exists to create."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-revoked\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("dead", "provider rejected it (HTTP 401)"))
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=True)
+    assert any("present" in p and "NOT USABLE" in p for p in problems), problems
+    assert any("401" in p for p in problems), problems
+    assert not problems or "sk-or-v1-revoked" not in "\n".join(problems), "never a value"
+
+
+def test_verify_network_error_is_unknown_and_fail_open(tmp_path, monkeypatch):
+    """Falsifier (b)+(c) of ITEM 1: an unreachable API is evidence of nothing.
+    It must pass fail-open and be reported as UNKNOWN, never as dead — two
+    different facts, two different behaviours."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-liveish\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("unknown", "could not reach the provider (URLError)"))
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=True)
+    assert problems == [], "a network error must never be a dead-key problem"
+    assert any("OPENROUTER_API_KEY" in n and "unknown" in n.lower() or "not confirmed usable" in n for n in notes), notes
+    assert not any("dead" in n or "NOT USABLE" in n for n in notes), notes
+
+
+def test_verify_live_key_still_passes(tmp_path, monkeypatch):
+    """Falsifier (c): a healthy key must still pass exactly as today — no new
+    problem, only a confirming note."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-good\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("valid", "provider accepted it (HTTP 200)"))
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=True)
+    assert problems == []
+    assert any("OPENROUTER_API_KEY" in n and "validated" in n for n in notes), notes
+
+
+def test_verify_off_by_default_so_plain_check_stays_offline(tmp_path, monkeypatch):
+    """The plain `check(res)` / driver path must NOT fire the authenticated
+    call — `driver.sh` runs it every pass and stays offline."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-whatever\n")
+    called = {"n": 0}
+    def _boom(*a, **k):
+        called["n"] += 1
+        raise AssertionError("verify must not run with verify=False")
+    monkeypatch.setattr(_e, "_verify_provider_key", _boom)
+    res = _e.resolve(tmp_path)
+    problems, notes = _e.check(res, verify=False)
+    assert called["n"] == 0
+    assert problems == []
+
+
+def test_provider_for_unknown_prefix_is_unknown_not_valid(tmp_path, monkeypatch):
+    """A key whose shape we cannot recognize must be reported UNKNOWN, never
+    accepted as valid and never condemned as dead — we have no verdict for it."""
+    import envfile as _e
+    # No network: _provider_for is pure prefix logic; stub _verify_openrouter
+    # to fail loudly so this proves the prefix path short-circuits.
+    def _boom(key):
+        raise AssertionError("must not call a provider verifier for an unknown prefix")
+    original = _e._VERIFIERS["openrouter"]
+    _e._VERIFIERS["openrouter"] = _boom
+    try:
+        status, detail = _e._verify_provider_key("ghp_something")
+        assert status == "unknown", status
+        assert "no verifier" in detail
+    finally:
+        _e._VERIFIERS["openrouter"] = original
+
+
+def test_cli_check_with_a_dead_key_fails_and_never_prints_a_value(tmp_path, monkeypatch, capsys):
+    """The CLI `--check` path routes verify=True: a dead key fails the audit
+    AND the value never reaches the terminal."""
+    import envfile as _e
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-REVOKEDSECRET\n")
+    monkeypatch.setattr(_e, "_verify_provider_key", _stub_verify("dead", "provider rejected it (HTTP 401)"))
+    rc = _e.main([str(tmp_path), "--check"])
+    out, err = capsys.readouterr()
+    assert rc == 1, "a dead key must fail --check"
+    assert "REVOKEDSECRET" not in out + err, "never a value on the terminal"
+
+
 def test_an_optional_key_that_is_absent_says_so_and_is_not_a_failure(tmp_path):
     graph = make_project(tmp_path)
     write_node(graph, DEFAULT_NODE)
