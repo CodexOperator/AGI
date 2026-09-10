@@ -334,11 +334,22 @@ def test_registry_flag_script_without_sibling_manifest(tmp_path):
     assert "agi-ghost.js" in buf2.getvalue()
 
 
-def test_registry_flag_manifest_naming_unimplemented_stage(tmp_path):
+def test_registry_flag_manifest_naming_unimplemented_stage(tmp_path, monkeypatch):
     """RED direction 2: a manifest naming a stage the script does not
-    implement is an error — the script is the source of truth."""
+    implement is an error — the script is the source of truth.
+
+    Since hypothesis:l4-workflow-types-and-default-harness-are-a-geometry-node
+    validate also requires every manifest to name a type the geometry node
+    declares, so this test pins its OWN temp node (one type, `t`) and gives
+    the sound pair that type -- the live config:workflows must not decide
+    whether a registry-shape test is green (merge-up 20 went red on it)."""
+    import workflow
     from workflow import validate_registry
     wf = tmp_path
+    node = tmp_path / "workflows.md"
+    node.write_text(_geometry_node_text("pi", [{"name": "t"}], []),
+                    encoding="utf-8")
+    monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
     _write_registry_pair(wf, "good",
                          "phase('A')\nawait agent('x', {label: 'a'})\n",
                          [{"label": "a"}, {"label": "b"}])  # 'b' not implemented
@@ -349,9 +360,7 @@ def test_registry_flag_manifest_naming_unimplemented_stage(tmp_path):
     # sound pair -> green (separate dir so the broken pair above stays isolated)
     wf2 = tmp_path / "sound"
     wf2.mkdir()
-    _write_registry_pair(wf2, "sound",
-                         "phase('A')\nawait agent('x', {label: 'a'})\n",
-                         [{"label": "a"}])
+    _pair(wf2, "sound", "t", [{"label": "a"}])
     buf2 = io.StringIO()
     rc2 = validate_registry(REPO / ".agi", wf=wf2, out=buf2)
     assert rc2 == 0, buf2.getvalue()
