@@ -28,7 +28,7 @@ Detail: `git log --oneline iter-L3.01..iter-L3.44`, the experiment nodes, [COMPL
 ### 🔴 Where it stops — Belam L4-IV, live 2026-09-10 (L4-III's last card: `git show 39a3a3d4b:HANDOFF.md`)
 
 ```
-BELAM L4-IV LIVE (Opus 5 max, standing — owner)   agi-a5 [e7f117] @242 / agi-rc:8   season/s2   2026-09-10 17:2xZ   pin <unclaimed> / cap 0.47   ACCOUNT $107.00, used $89.02, ~$17.98 headroom (floor $1 NEVER lowered; the point stops at $2)
+BELAM L4-IV LIVE (Opus 5 max, standing — owner)   agi-a5 [e7f117] @242 / agi-rc:8   season/s2   2026-09-10 17:2xZ   pin 0.1305 claimed / cap 0.47   ACCOUNT $17.84 remaining of $107.00 (floor $1 NEVER lowered; the point stops at $2)
 L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + owner-confirmed role diagram in doc:l4-plan §0.9)
 PLAN   doc:l4-plan e7883b4e4 (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions; 188 owner quotes byte-verified) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
 SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; read it whole — the newest notes are the reaper, the respawn, the report rule and this rotation)
@@ -58,11 +58,13 @@ RULES  earned this session, all with an instance behind them — this block is t
        · **A round that fixes the gate it must pass through cannot be dispatched** — hand-land it. Twice now: the parent brief (L4.77), the dispatch pre-flight (306b77bb6).
        · **MECHANISM, NOT WORDING** is in the parent+director briefs and is REPRODUCING ITSELF unprompted. Cite the mechanism, never a correlate — the Prime broke this one and said so.
        · **Identity is SUPPLIED, never inferred** (meter) · **authority is verified against the graph** (seats) · **detect, do not repair** (reconciler) · **the inference is ONE-WAY: a dead pid proves stopped, a live pid proves nothing.**
-NEXT   1 Claim your pin FIRST, explicitly: `rotate.py meter --pin .agi/sessions/belam.meter --session-log <YOUR OWN .jsonl>`. NEVER a bare `--pin` (it takes the newest pin across ALL agents — that is how
-         the point captured the Prime's transcript and ran to 0.80 believing 0.32). `--seat NAME` is the narrow safe path; explicit `--session-log` is safest.
-       2 ListAgents → your own address by the @id join; write `config:seats` belam session_ref (whole list, STRUCTURAL assertion: 13 rows, each carrying name/role/session_ref); announce to the point.
-       3 Accept merge-up 13 when it comes. Then review what the point lands, one report at a time; it messages only when necessary — silence is the system working.
-       4 Rotate at 0.47: handoff FIRST, then `rotate.py loop --role prime_director --name belam-S1-L4-V --model claude-opus-5 --effort max --timeout 900 --force --session-log <own .jsonl>`; confirm by
+NEXT   1 🔴 LIVE: accept MERGE-UP 13 on `seat/sanctuary-director@s2` when the point reports it — the report AND the bytes, every claim read at a line number; then verify on season/s2
+         (`commands.py run verify`, active >= 1780 and NEVER lower), record the measured rules as one note in `goal:g17.1`, update §0, commit, push. The point messages only when necessary
+         (owner standing order) — silence is the system working, not a stall. Three rounds were live at L4-III's close: L4.93, L4.94, L4.96; L4.97 is minted and HELD off `provisioning.py`.
+       2 Watch the ACCOUNT, not the key: `curl -s -H "Authorization: Bearer $OPENROUTER_API_KEY" https://openrouter.ai/api/v1/credits`. $17.84 remaining at 17:2xZ. Under ~$1.50 account-wide,
+         tell the point to finish its open round and stop dispatching; the fallback is opus parents / sonnet kids via `--harness claude-code`. The `backup` key reading $0.00 of $1 is the owner's
+         containment, NOT a blocker — the pre-flight is conditional and gates on the ACCOUNT when provisioning is live.
+       3 Rotate at 0.47: handoff FIRST, then `rotate.py loop --role prime_director --name belam-S1-L4-V --model claude-opus-5 --effort max --timeout 900 --force --session-log <own .jsonl>`; confirm by
          capture-pane, NEVER by the read-back record (it records inconclusive by construction). Opus max is STANDING for the prime (owner).
 RULED  (verbatim in goal:g17.1 / doc:l4-owner-decisions) parallel rounds GO · always prefer dispatch (landed+verified work is not re-derived) · L4.09 GO (Prime may add waves / re-order without a fresh go)
        · enforce written_by on ROLE never actor · prayer per SESSION not per turn · gpt-5.1-codex OpenRouter spend is NOT the engine's (owner checks activity BY KEY — the one exception is the ACCOUNT row above)
@@ -78,7 +80,7 @@ CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with cr
 DONE   L4-I: gate `continue` · verify green · plan drafted (4 workflows) + MINTED · questions banked · goal:g17.1 · cap 3 · helper spawned · point briefed · hygiene · handoff live
        L4-II: verify green · seats rows for 3 seat rotations · handoff trimmed 49.9 -> 42 KB · verification.py + the reaper knob + the report order discharged · merge-ups 2, 3, 4 verified · respawn bleed fixed
        L4-III: gate `continue` · pin 0.1141 claimed · verify-suite 9/9 (1730/194/1924) · seats row 7902ac pushed · merge-up 5 GO'd + window granted · strays reported · ACCOUNT ceiling measured + banked
-       L4-IV: gate answered with a diff — line 1 was rewritten for me while §0 `agents live` and the card below still described L4-III
+       L4-IV: gate answered with a diff (line 1 was rewritten for me while §0 and the card still described L4-III) · pin 0.1305 claimed explicitly · verify-suite 9/9 · config:seats belam=e7f117 · point told the window is clear
 NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:507 nudge REAL panes; L4.10) · run the suite without telling the point · rotate a seat with AGI_BRIEF_PROFILE=survival
        · git add -A · read $? through a pipe · sweep off a ps grep · run the suite twice at once · background a long verification · trust an `updated:` line · adopt a seat's work instead of verifying it
        · spend the Claude budget on prime chores under survival mode
