@@ -123,6 +123,45 @@ def test_absent_node_is_a_supported_state(tmp_path):
     assert commands.render_for_injection(graph) == []
 
 
+def test_engine_for_resolves_the_engine_enclosing_the_graph(tmp_path):
+    """`<engine>` must come from the engine that OWNS the graph, not from
+    wherever the running script lives. In the unified single-repo layout the
+    repo holding `.agi` also carries `extensions/agi/bin/commands.py`, so
+    engine_for walks up from the graph root to find it — a worktree running
+    with `--root` at the main checkout must substitute the MAIN engine, not
+    the worktree's (hypothesis:l4-verification-counts-and-engine-root)."""
+    main = tmp_path / "main-checkout"
+    eng = main / "extensions" / "agi" / "bin"
+    eng.mkdir(parents=True)
+    (eng / "commands.py").write_text("# engine")
+    graph = main / ".agi"
+    graph.mkdir(parents=True)
+    # a graph at main/.agi is owned by the engine at main/
+    assert commands.engine_for(graph).resolve() == main.resolve()
+
+    # a DIFFERENT project with no engine of its own falls back to this
+    # script's engine rather than guess — and the caller names both roots.
+    foreign = tmp_path / "foreign" / ".agi"
+    foreign.mkdir(parents=True)
+    assert commands.engine_for(foreign) == commands.ENGINE_ROOT
+
+
+def test_load_substitutes_engine_from_the_root(tmp_path):
+    """The <engine> a declared argv fills in is the engine OWNING the --root
+    graph, so run_check against a foreign root never mixes engines. This is
+    the resolution half of PROVED-BY (d)."""
+    main = tmp_path / "main"
+    eng = main / "extensions" / "agi" / "bin"
+    eng.mkdir(parents=True)
+    (eng / "commands.py").write_text("# engine")
+    (main / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (main / ".agi" / "config.json").write_text("{}")
+    (main / ".agi" / "nodes" / ".geometry" / "commands.md").write_text(NODE)
+    table = commands.load(main / ".agi")
+    assert str(main.resolve()) in " ".join(table["smoke"].argv)
+    assert str(commands.ENGINE_ROOT) not in " ".join(table["smoke"].argv)
+
+
 def test_a_node_that_exists_but_cannot_be_read_says_so(project, capsys):
     """Absence is silent because it is normal; failing to read something
     present never is. The first version returned `{}` for both."""
