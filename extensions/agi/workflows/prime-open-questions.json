@@ -1,5 +1,6 @@
 {
   "name": "prime-open-questions",
+  "type": "investigate-refute",
   "script": "agi-prime-open-questions.js",
   "description": "Authored via workflow.py author (L4.105 rewrite: one repeated investigate + one repeated refute through the author verb (hypothesis:l4-workflow-authoring-is-a-harness-tool))",
   "stages": [
