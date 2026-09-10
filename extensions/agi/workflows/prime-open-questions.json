@@ -1,32 +1,79 @@
 {
   "name": "prime-open-questions",
   "script": "agi-prime-open-questions.js",
-  "description": "Registered from inline script prime-l4v-open-questions-wf_438cab15-b16.js (originally run from /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f3b92df1-2401-4a05-ae82-7265c6324cc9/subagents/workflows/wf_438cab15-b16) \u2014 stages derived from the script, prompts TODO",
+  "description": "Authored via workflow.py author (L4.105 rewrite: one repeated investigate + one repeated refute through the author verb (hypothesis:l4-workflow-authoring-is-a-harness-tool))",
   "stages": [
     {
-      "label": "refute",
+      "label": "investigate",
       "role": "kid",
-      "prompt": "<TODO: author the stage prompt for stage 'refute' from the script's agent brief>",
+      "model_hint": "sonnet",
+      "effort_hint": "medium",
+      "prompt": "You are a READ-ONLY investigator for the Prime director of the agi graph.\n\nHARD RULES: never write, edit or create any file. Never use write.py, Edit or Write. Never git commit/add/checkout/merge/push. Never run pytest or 'commands.py run verify' or 'driver.sh' (the suite window is held by the Prime). Never dispatch agents or spawn anything. Allowed: git log/show/diff/merge-base/rev-list, cat, sed -n, grep, find, ls, and python3 -c for PARSING only. Repo: /home/ubuntu/work/agi, branch season/s2. The graph is .agi/. The engine is extensions/agi/.\n\nGREP PROVES PRESENCE; ONLY A STRUCTURAL ASSERTION PROVES SHAPE. Quote the exact lines with file:line for every claim. If you cannot ground a claim in bytes you actually read, say so explicitly rather than inferring.\n\nTHE QUESTION YOU MUST INVESTIGATE (this is question key {key}):\n{question}\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"answer\":\"direct answer, 1-3 sentences\",\"evidence\":[\"each: file:line plus the exact quoted bytes that ground the claim\"],\"still_live\":true,\"recommendation\":\"the single smallest correct action, or 'none'\",\"ungrounded\":\"anything you could NOT verify, stated plainly, else 'none'\"}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "still_live": {
+            "type": "boolean"
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "ungrounded": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer",
+          "evidence",
+          "still_live",
+          "recommendation",
+          "ungrounded"
+        ]
+      },
       "repeat": {
-        "of": "<TODO: the --args list key, e.g. briefs or targets>",
-        "label_template": "refute:{key}"
+        "of": "questions",
+        "label_template": "investigate:{key}"
       }
     },
     {
-      "label": "commit-guard-inert",
+      "label": "refute",
+      "chained_from": "investigate",
       "role": "kid",
-      "prompt": "<TODO: author the stage prompt for stage 'commit-guard-inert' from the script's agent brief>"
-    },
-    {
-      "label": "seat-branch-ahead-4",
-      "role": "kid",
-      "prompt": "<TODO: author the stage prompt for stage 'seat-branch-ahead-4' from the script's agent brief>"
-    },
-    {
-      "label": "suite-lock-placement",
-      "role": "kid",
-      "prompt": "<TODO: author the stage prompt for stage 'suite-lock-placement' from the script's agent brief>"
+      "model_hint": "sonnet",
+      "effort_hint": "medium",
+      "prompt": "You run the ADVERSARIAL CHECK on an investigator's finding about the agi repo (question key {key}).\n\nThe ORIGINAL QUESTION:\n{question}\n\nThe FINDING BEING CHECKED:\nANSWER: {answer}\nstill_live: {still_live}\nEVIDENCE CITED:\n{evidence}\nRECOMMENDATION: {recommendation}\nTHEY COULD NOT VERIFY: {ungrounded}\n\nTry to REFUTE it. Go back to the actual bytes at every file:line they cited and check that the quoted text is really there and really says what they claim. Look specifically for: a claim that rests on a grep coming back clean without checking the callee (trap 0ab); a diff taken against a moved tip instead of the merge-base (trap 0ae); presence asserted where the real property is validity or shape; an inference run backwards (a dead pid proves stopped; a live pid proves nothing). Default to refuted=true if you are uncertain. If it holds up, say refuted=false and which single piece of evidence is load-bearing.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"refuted\":true,\"why\":\"...\",\"corrected\":\"the corrected claim if refuted, else 'n/a'\"}.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "refuted": {
+            "type": "boolean"
+          },
+          "why": {
+            "type": "string"
+          },
+          "corrected": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refuted",
+          "why",
+          "corrected"
+        ]
+      },
+      "repeat": {
+        "of": "questions",
+        "label_template": "refute:{key}"
+      }
     }
-  ],
-  "_from_run": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f3b92df1-2401-4a05-ae82-7265c6324cc9/subagents/workflows/wf_438cab15-b16"
+  ]
 }
