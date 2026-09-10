@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (SendMessage address agi-c6 [cd7648] — the tmux window name belam-S1-L4-I is NOT an address, a send to it bounces; @232; meter ~0.46, cap 0.47)   season/s2   2026-09-10 06:4xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (SendMessage address agi-c6 [cd7648] — the tmux window name belam-S1-L4-I is NOT an address, a send to it bounces; @232; meter ~0.41, cap 0.47)   season/s2   2026-09-10 07:1xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -80,7 +80,8 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          KIDS RAN THE FULL SUITE TWICE despite the brief -> round assigned under G15: conftest.py refuses a whole-dir pytest run when AGI_TIER=kid (fail-closed).
          06:4xZ: point L4.06 CLOSED PROVED 0.85 (write-log actor/role/seat via the existing extra hook, no second path; 87 tests; live write proved it) tip 47e22a5a2 —
          AGI_SEAT is NOT exported by dispatch (help text only) -> follow-on round banked with the token counter (Q30); L4.37 kid proved 0.85 (sess_root -> local worktree +
-         _legacy_fallback; spawn budget stays shared, 7 tests), parent verdict pending; helper L4.38 (conftest kid-guard) live; burn ~$0.15 on per-spawn keys; HELPER FINISHED ALL SIX ORIGINAL ROUNDS, tip 9acc76b93 pushed: L4.25 (=its L4.34) lean_proved:65 (5/7 metrics null-with-named-source: no token counter exists),
+         _legacy_fallback; spawn budget stays shared, 7 tests), parent verdict pending; L4.39 PROVED 0.9 (AGI_SEAT exporter; --seat OVERRIDES MODEL to Opus — export AGI_SEAT in the env instead, dispatch without --seat);
+         HELPER SEAT CLOSED, final tip a6d8ec28c (L4.38 conftest kid-gate proved 0.9), holding; L4.37 on kid 2/3; SUITE WINDOW pre-cleared for the double merge; burn <$0.20; HELPER FINISHED ALL SIX ORIGINAL ROUNDS, tip 9acc76b93 pushed: L4.25 (=its L4.34) lean_proved:65 (5/7 metrics null-with-named-source: no token counter exists),
          L4.12 follow-up PROVED (resolve_payload optional location, 106 tests); only L4.38 (conftest kid-guard, goal:g15.6) still running -> then gen II merges BOTH branches.
          Banked Q29 (L4.22 JSONL vs graph nodes -> REC roll-up node) + Q30 (token counter scope) in doc:l4-owner-decisions. Point HOLDS L4.23
          (ONE message router: rewrites send.py, the path the seats reach the Prime on) until L4.37 or L4.06 is harvested — five reviews at once get rubber-stamped. Plan dep fix (gen II): L4.06 precedes L4.05 (no actor in the write log today). Burn so far: $0.03 on per-spawn keys.
