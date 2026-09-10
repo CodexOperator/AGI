@@ -1582,11 +1582,17 @@ def cmd_complete(args: argparse.Namespace, root: Path | None) -> int:
             copied.append(name)
             print(f"copied {name} -> {dst_sess}")
 
-    # Completeness gate on every dir we just copied; abort before any teardown.
-    for name in copied:
+    # Completeness gate on every dir we copied AND every dir we skipped;
+    # abort before any teardown. A skipped dir must match main's copy: the
+    # coming `git worktree remove` deletes the worktree's copy, and when it
+    # DIFFERS from main's the "left byte-for-byte intact" claim is an
+    # equality nobody checked — the worktree copy is lost silently.
+    # (hypothesis:l4-complete-and-fallback-invariants)
+    for name in copied + skipped:
         if not _verify_tree_copy(src_sess / name, dst_sess / name):
-            print(f"ERR complete: copied {name} does not match source; "
-                  "refusing to remove the seat (main's copy is safe).",
+            kind = "copied" if name in copied else "skipped"
+            print(f"ERR complete: {kind} {name} does not match its copy in "
+                  "main; refusing to remove the seat (main's copy is safe).",
                   file=sys.stderr)
             return 1
 

@@ -162,34 +162,82 @@ def test_ancestor_branch_harvests_dirs_and_retires_seat(tmp_path):
     # The seat's node is preserved in main's history (see proof bar 4).
 
 
-# --- proof bar 3: an existing same-name dir in main is NEVER overwritten -----
+# --- proof bar 3: a same-name dir in main is NEVER overwritten, and a skip
+# that DIFFERS from main is refused (hypothesis: l4-complete-and-fallback-
+# invariants). The worktree's copy is deleted by `git worktree remove`; if it
+# differs from main's, the "left byte-for-byte intact" claim is an equality
+# nobody checked. So a differing skip REFUSES teardown and keeps both copies. ---
 
 
-def test_existing_same_name_dir_in_main_is_left_byte_for_byte(tmp_path):
+def test_existing_same_name_dir_that_differs_refuses_and_keeps_both(tmp_path):
+    """A skipped dir whose bytes DIFFER from main's must REFUSE the teardown:
+    `git worktree remove` would otherwise delete the worktree's differing copy
+    while claiming it was left "byte-for-byte intact". Requirement: refuse,
+    name the dir, remove NOTHING, leave main's copy untouched — so BOTH copies
+    are still present and unchanged afterwards."""
     repo = _make_project_repo(tmp_path)
     wt = _make_worktree(repo, tmp_path)
     _commit_node_on_seat_branch(wt)
-    # Main ALREADY owns iter-99 with distinct content; the seat also has one.
+    # Main ALREADY owns iter-99 with distinct content; the seat has a different one.
     pre = repo / ".agi" / "sessions" / "iter-99"
     pre.mkdir(parents=True)
     pre_file = pre / "agent.json"
-    pre_file.write_text('{"id": "main-owned", "round": "pre-existing"}')
     pre_marker = pre / "sentinel.bin"
+    pre_file.write_text('{"id": "main-owned", "round": "pre-existing"}')
     pre_marker.write_bytes(b"\x00\x01\x02main-owned-mark")
     incoming = _write_session_iter(wt, name="iter-99")
-    incoming_new = (incoming / "agent.json")
+    incoming_new = incoming / "agent.json"
     incoming_new.write_text('{"id": "a00-x", "round": "incoming"}')
+    incoming_log = (incoming / "output.log").read_text()
+    _merge_seat_into(repo, "loop/t-a00@1")
+
+    rc = rotate.main(["complete", "--worktree", str(wt), "--parent", "master"])
+    assert rc != 0, rotate_last_stderr()
+    assert "skip iter-99" in rotate_last_stdout()
+    # The refusal names the differing skipped dir and removes nothing.
+    assert "iter-99" in rotate_last_stderr() and "refus" in rotate_last_stderr()
+    # BOTH copies still present, byte-unchanged: main's is exact,
+    assert pre_file.read_text() == '{"id": "main-owned", "round": "pre-existing"}'
+    assert pre_marker.read_bytes() == b"\x00\x01\x02main-owned-mark"
+    assert not (pre / "copied-by-complete.exe").exists()
+    # and the worktree's copy is intact (no teardown ran).
+    assert (wt / ".agi" / "sessions" / "iter-99" / "agent.json").read_text() \
+        == '{"id": "a00-x", "round": "incoming"}'
+    assert (wt / ".agi" / "sessions" / "iter-99" / "output.log").read_text() \
+        == incoming_log
+    # No teardown: worktree and branch still exist.
+    assert wt.is_dir()
+    assert "loop/t-a00@1" in _git(repo, "branch").stdout
+
+
+def test_existing_same_name_dir_identical_content_skips_and_retires(tmp_path):
+    """A same-name dir in main whose content is byte-identical to the
+    worktree's may be skipped safely: main is not clobbered, the seat retires,
+    and nothing on either side is lost."""
+    repo = _make_project_repo(tmp_path)
+    wt = _make_worktree(repo, tmp_path)
+    _commit_node_on_seat_branch(wt)
+    # Main already owns iter-99 with content byte-identical to the seat's
+    # copy (same two files, same bytes — exactly what _write_session_iter
+    # puts in the worktree).
+    pre = repo / ".agi" / "sessions" / "iter-99"
+    pre.mkdir(parents=True)
+    (pre / "agent.json").write_text('{"id": "a00-x", "status": "running"}')
+    (pre / "output.log").write_text("round log\n")
+    _write_session_iter(wt, name="iter-99")
+    # Snapshot main's copy for the "untouched" assertion.
+    main_before = {p.name: p.read_bytes()
+                   for p in sorted(pre.rglob("*")) if p.is_file()}
     _merge_seat_into(repo, "loop/t-a00@1")
 
     rc = rotate.main(["complete", "--worktree", str(wt), "--parent", "master"])
     assert rc == 0, rotate_last_stderr()
     assert "skip iter-99" in rotate_last_stdout()
-    # Main's copy is byte-for-byte untouched.
-    assert pre_file.read_text() == '{"id": "main-owned", "round": "pre-existing"}'
-    assert pre_marker.read_bytes() == b"\x00\x01\x02main-owned-mark"
-    # And nothing ELSE was planted under iter-99 by us.
-    assert not (pre / "copied-by-complete.exe").exists()
-    # Seat still retired despite the skip.
+    # Main's copy is byte-for-byte unchanged (snapshot equality).
+    main_after = {p.name: p.read_bytes()
+                  for p in sorted(pre.rglob("*")) if p.is_file()}
+    assert main_after == main_before
+    # Seat retired (identical content ⇒ safe to tear down).
     assert not wt.exists()
     assert "loop/t-a00@1" not in _git(repo, "branch").stdout
 
