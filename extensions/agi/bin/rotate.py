@@ -362,6 +362,18 @@ def resolve_transcript(*, root: Path, session_log: str | None = None,
         lp = Path(target_s).expanduser().resolve()
         if not lp.exists():
             return None, "pin_file-missing"
+        # Identity is supplied, never inferred (hypothesis:l4-the-meter-
+        # adopts-a-pin-it-did-not-write). A generation-bearing pin is bound
+        # to the named agent that stamped it. A SEATLESS read (seat=None)
+        # falls into the newest-mtime search across every agent's pins, so a
+        # gen-bearing winner here is ANOTHER agent's pin: reporting a
+        # confident number for the transcript it names would attribute a
+        # session the caller never named to this caller. Refuse loudly, and
+        # let cmd_meter tell the operator what supplies an identity. A
+        # legacy pin with no generation field (written_gen is None) predates
+        # gen-stamping and keeps the room-level semantics below.
+        if seat is None and written_gen is not None:
+            return None, "pin_unattributed"
         # A seat pin that names a generation (hypothesis:l3-seat-pin-not-
         # repointed-on-rotation) must match the CURRENT occupant's own
         # generation, or this is a predecessor's stale pin read by a
@@ -852,6 +864,20 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
               f"before trusting --seat {seat}.", file=sys.stderr)
         return 1
 
+    if source == "pin_unattributed":
+        # A seatless read that falls to the newest-mtime pin search and the
+        # winner is another agent's generation-bearing pin cannot attribute
+        # that transcript to this caller (hypothesis:l4-the-meter-adopts-a-
+        # pin-it-did-not-write). Refuse and name what would supply identity
+        # -- never print a confident number for a session we did not name.
+        print("ERR: the newest pin a seatless read would consult belongs to "
+              "another agent (it carries an owner's generation) -- refusing "
+              "to report a number for a transcript the caller did not name. "
+              "Supply identity: run `rotate.py meter --seat <NAME>` to read "
+              "your own seat's pin, or `rotate.py meter --session-log <path>` "
+              "to name the transcript explicitly.", file=sys.stderr)
+        return 1
+
     if source in ("explicit-missing", "AGI_SESSION_LOG-missing",
                   "pin_file-missing"):
         # An explicit/environment pin was set but names a missing file: that is
@@ -896,6 +922,27 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
         # (rotation happened, the pin was never re-pointed) is detectable
         # (hypothesis:l3-seat-pin-not-repointed-on-rotation) instead of
         # silently handing over a predecessor's stale number.
+        #
+        # Identity is supplied, never inferred (hypothesis:l4-the-meter-
+        # adopts-a-pin-it-did-not-write). A pin records WHOM a transcript
+        # belongs to, so it may record only a transcript the caller explicitly
+        # named (rule 1 --session-log or rule 2 $AGI_SESSION_LOG), or one a
+        # NAMED seat attributes. A bare --pin (none of those) would adopt
+        # whichever foreign pin is newest in the shared sessions dir and then
+        # re-stamp it with THIS caller's own generation -- the re-stamp that
+        # silences seat_pin-stale, the very guard this repair exists to
+        # trigger. Refuse and name the exact command that supplies identity.
+        env_log = os.environ.get(AGI_SESSION_LOG_VAR)
+        identity_supplied = (args.session_log is not None or env_log
+                             or getattr(args, "seat", None) is not None)
+        if not identity_supplied:
+            print(
+                f"ERR: --pin needs an identity to record. A bare --pin could "
+                f"adopt another agent's pin and certify it with your own "
+                f"generation. Run: rotate.py meter --pin "
+                f"{Path(args.pin).resolve()} --session-log "
+                f"<path-to-the-transcript-you-own>", file=sys.stderr)
+            return 1
         pinp = Path(args.pin).expanduser().resolve()
         pinp.parent.mkdir(parents=True, exist_ok=True)
         seat_for_gen = getattr(args, "seat", None)
