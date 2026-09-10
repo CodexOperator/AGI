@@ -24,6 +24,7 @@ tell a bare directory run from a targeted one.
 from __future__ import annotations
 
 import os
+import subprocess
 
 import pytest
 
@@ -65,3 +66,46 @@ def pytest_cmdline_main(config):
         return
     if _is_bare_directory_run(config):
         raise pytest.UsageError(REFUSAL_REASON)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_tmux(monkeypatch):
+    """hypothesis:l4-conftest-tmux-guard — project-wide tmux guard, widened
+    from test_send.py's old file-local `_SafeSubprocess`/`_no_real_tmux`
+    (hypothesis:l4b23-fixture-leak, CLOSED proved but scoped to send.py only).
+
+    Every test must never reach the live tmux session
+    (`rotate.DEFAULT_TMUX_SESSION`, "agi-rc"), where a recipient whose name
+    matches a real window would have text typed into a live agent's terminal.
+    The guard answers any `tmux` subprocess call with a safe rc-1
+    CompletedProcess (so `_nudge_window`/`_existing_windows` short-circuit to
+    "no such session", exactly as the old `_SafeSubprocess` did for tmux).
+
+    **Selective, not blanket**: every NON-tmux call (in particular the real
+    `git` invocations test_season.py/test_rotate.py's own fixtures depend on)
+    is passed through untouched to the real `subprocess.run`. Requesting a
+    raise on any non-tmux call (the old `_SafeSubprocess` behaviour) would
+    break those tests — see the L4.5x brief.
+
+    Patch target: the real stdlib `subprocess.run`.
+    send.py/rotate.py/season.py `import subprocess`, and mail_alert.py
+    `import send` (whose module object `import subprocess` too), so every
+    module's tmux call ultimately resolves through this one attribute — one
+    fixture covers the whole suite. A per-module-alias patch would defeat
+    the "project-wide" point.
+
+    Override-precedence for the three `_fake_tmux` tests in test_send.py:
+    they monkeypatch `send_mod.subprocess.run` (= this same global
+    `subprocess.run`) in the TEST BODY, after this autouse fixture's setup, so
+    their fake wins for the duration of the test. (monkeypatch is
+    function-scoped, so the fixture's and the test's instances are the same;
+    both revert at teardown.)
+    """
+    real_run = subprocess.run
+
+    def _guarded_run(cmd, *a, **k):
+        if isinstance(cmd, list) and cmd[:1] == ["tmux"]:
+            return subprocess.CompletedProcess(cmd, 1)
+        return real_run(cmd, *a, **k)
+
+    monkeypatch.setattr(subprocess, "run", _guarded_run)
