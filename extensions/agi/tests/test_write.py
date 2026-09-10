@@ -549,7 +549,7 @@ def _moral_schema(project: Path):
     d = project / "context" / "schemas"
     d.mkdir(parents=True, exist_ok=True)
     (d / "[moral].md").write_text(
-        "---\nname: moral\nspawn:\n  allowed_parents: []\n"
+        "---\nname: moral\nwritten_by: owner\nspawn:\n  allowed_parents: []\n"
         "  min_parents: 0\n  max_parents: 0\n"
         "validation:\n  required: [id, type, mint_id, title]\n---\n\nbody\n")
 
@@ -583,7 +583,9 @@ def test_create_moral_with_owner_succeeds(project):
 
 
 def test_submit_moral_without_owner_is_refused(project):
-    """🔴 RED FIRST: editing a moral node without --actor owner must be refused."""
+    """RED FIRST: editing a moral node without --actor owner must be refused."""
+    _moral_schema(project)   # L4.32 — the gate is schema-driven; it needs
+                             # the [moral].md that declares written_by: owner
     _moral_node(project, "faith")
     e = write.Edit("moral:faith")
     write.verb_set(e, "title", "New Title")
