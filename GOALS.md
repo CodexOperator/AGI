@@ -6061,6 +6061,8 @@ Merge-up 4 (2026-09-10 05:3xZ, point gen III; season/s2 3add44829; verified by t
 
 STAMP CORRECTION (Prime, read off date -u at 07:19Z): merge-up 4, the L4.53 knob finding and the tmux set-environment were at ~07:1xZ on 2026-09-10, not 05:3xZ as the two notes above say - the Prime wrote a felt clock (trap 0ap, its own instance); the order of events is unchanged.
 
+CAUSAL CORRECTION to the L4.53 record (point gen III, from the better-evidenced kid node a00-e31bda4e, which read Bun src/runtime/node/memory_pressure.rs at the bun-v1.4.1 tag and measured the box): the reaper trigger is SYSTEM-WIDE PSI - Bun open_psi_fd() writes its trigger to /proc/pressure/memory first and falls back to the process own cgroup v2 memory.pressure only if that fails; on this box the system-wide write succeeds unprivileged and the own-cgroup path is root-owned 0644 (EPERM for a seat), so the system-wide path is what arms. The embedded trigger is "some 150000 2000000": at least 150 ms of memory stall in any 2 s window, box-wide, from ANY process (other seats, pi rounds, a pytest run inflating and reclaiming cache) - which is why a kill lands while MemAvailable reads 16-18 GB. NOT the seat own footprint: per-session memory limits cannot help. a00-99de000a (own-cgroup wording) is the weaker leg (did not read the source or test EPERM). Still unobserved: no kill occurred during the round, so "the memoryPressure event fired at the recorded kill instants" is read from source, not measured (verdicts 62 and 70). The knob CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP disables the reaper either way.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
