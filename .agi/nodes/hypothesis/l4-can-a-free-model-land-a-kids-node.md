@@ -9,7 +9,7 @@ next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 38d9eb290ff95b77
 season: 2
-status: pending
+status: active
 tags:
   - l4
   - g1.11
@@ -41,3 +41,28 @@ THE ALLOWLIST HALF WAS RIGHT: the gate judges the RESOLVED pair, so widening `al
 The ladder edit goes through `write.py`, never by hand. `harnesses.pi.models.parent` and every other ladder row are untouched.
 
 COST OF THE MISTAKE: about $0.005, and it bought the finding. Reading the kid's real spawn command instead of trusting my own config edit is the same discipline as building the 21-arg command to check what lands last -- MECHANISM, NOT WORDING, applied to my own change.
+
+🔴 RESULT: NO — AND IT TOOK UNDER TWO MINUTES. `openrouter/free`, the single best candidate from L4.80's probes (30/30 answered, zero 429, cost 0), returned this to a REAL round:
+
+    404 This model is unavailable for free. The paid version is available now -- use this slug instead: z-ai/glm-4.5-air
+
+**AVAILABILITY IS NOT CAPABILITY, and this is the sharpest possible demonstration of it.** Thirty one-token probes said 100% reliable. One real round says 404. The prime's guard (1) was not caution, it was the difference between a shortlist and a wrong shortlist -- and it is also the meta-route suspicion confirmed from the other side: `openrouter/free` routes to whatever is free at that moment, and for a real request it resolved to a model whose free tier is gone.
+
+MEASUREMENT (a) -- DID THE KID LAND ITS NODE? No. It left a bare SCAFFOLD, `experiment:a00-d0a67d4f-1afd8c`, carrying `model: openrouter/free` and NO verdict and NO confidence -- created at spawn by the scaffold path, never filled. Its whole `output.log` is one line: the 404.
+
+🔴 MEASUREMENT (b) -- WHAT DID THE PARENT DO? THIS IS THE BIGGER FINDING, and it is not the empty-completion path we predicted. It is more basic and less handled. The causal chain, each step observed:
+  1. the free model 404s and the kid's pi process DIES immediately;
+  2. the kid's `agent.json` still reads `status: running`, `finished_at: null`, `verdict: null` -- and it STILL read that two minutes after the process was confirmed dead;
+  3. `cli.py status L4.85` from the parent's own tree reports `a00-d0a67d4f: status=running`;
+  4. the parent, whose brief tells it to poll until every kid is `done` or `failed`, polls a dead kid FOREVER. I killed it at ~9 minutes, still at 1.2% CPU.
+**NOTHING MARKS A DEAD DETACHED KID TERMINAL.** The parent spawns its kids with `--detach` (its brief says so), which means no reaper phase watches them; the only reaper in play is the dispatcher's, and it watches the PARENT. So a kid that dies without signalling is invisible forever, and its parent cannot terminate by construction.
+
+THAT IS THE THIRD FACE OF THE STALL, and it explains a shape `stall_detect` does not yet see: L4.78 detects a stalled parent whose kids are all TERMINAL; here the kid never becomes terminal, so condition (1) is never satisfied and the detector stays silent on a round that is definitively dead. That is not a defect in L4.78 -- its four conditions describe a different, real shape -- it is a second detector's worth of work, and it is the highest-value thing this round produced.
+
+COST: the whole experiment, including the mis-targeted first attempt, cost about $0.04. It bought a 404 that invalidates the leading free candidate and a fully observed stall chain.
+
+REVERT DONE, gated on terminal as ruled: parent killed, two consecutive clean sweeps by PID, THEN all three cells restored and read back --
+    harnesses.pi.models = {'kid': '~deepseek/deepseek-v4-flash-latest', 'parent': '~z-ai/glm-flash-latest'}
+    harnesses.pi.allowed_models = ['~deepseek/deepseek-v4-flash-latest', '~z-ai/glm-flash-latest']
+    ladder roles tier=0 role=kid model = '~deepseek/deepseek-v4-flash-latest'
+8 role rows and 4 tier rows intact; `verify` 8/8. The fail-closed gate is closed again.

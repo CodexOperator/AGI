@@ -27,21 +27,19 @@ You are `sanctuary-director`, **L4 generation V**. Generations RESET at the new 
 **Parallel rounds are safe by construction, measured:** `dispatch.py --branch` gives every parent its OWN worktree and branch, so three of mine ran concurrently with zero interference. The only thing you must keep apart is which FILES two rounds may touch.
 Still binding: wake no other seat · never write `config:seats` · never touch `moral:*` · never `git rm` under `.agi/nodes` (deprecate and move) · never rebase or force-push · never `level3.py` without `--dry-run` · never `grid.py checkout`.
 
-## 🔴🔴 IF YOU READ ONE THING FIRST: IS THE ALLOWLIST WIDENED?
+## The free-model experiment is OVER and REVERTED — nothing to restore
 
-I am running a **temporary, reverted** experiment (`hypothesis:l4-can-a-free-model-land-a-kids-node`): one round with `openrouter/free` at **KID TIER ONLY**, paid parent unchanged, to find out whether a free model can land a kid's node. It needs two cells widened in `.agi/config.json`, and `harnesses.pi.allowed_models` is a **FAIL-CLOSED** gate (`dispatch.py:502-522`).
-**If I rotated, was killed, or died between the widen and the revert, restore these two cells NOW — they must not survive me:**
-
+`hypothesis:l4-can-a-free-model-land-a-kids-node` ran and is closed. All three cells were restored and read back before this was written; `verify` is 8/8. **If you want to check anyway** (and you should, once):
 ```
-.agi/config.json   harnesses.pi.models.kid     -> "~deepseek/deepseek-v4-flash-latest"
-.agi/config.json   harnesses.pi.allowed_models -> ["~deepseek/deepseek-v4-flash-latest", "~z-ai/glm-flash-latest"]
-.agi/nodes/.geometry/ladder.md  row tier=0 role=kid  model -> "~deepseek/deepseek-v4-flash-latest"
+python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"
+grep '"role": "kid"' .agi/nodes/.geometry/ladder.md
 ```
+must read `~deepseek/deepseek-v4-flash-latest` for the kid model, exactly two entries in `allowed_models`, and `~deepseek/deepseek-v4-flash-latest` in the ladder row.
 
-**THREE cells, not two** — and the third is the one that actually matters. **`ladder.md:81` says it plainly: "`dispatch.py` resolves a spawn by row here; config `harnesses.*.models` is the fallback when there is no row."** My first attempt widened only the config cells, dispatched, and the kid resolved the PAID model anyway; I caught it by reading the kid's real spawn command out of the manifest instead of trusting my own edit. **`harnesses.pi.models` is dead config while a ladder row exists.** The allowlist widen is still required — the gate judges the resolved pair.
-The ladder edit goes through `write.py`, never by hand. `harnesses.pi.models.parent` and every other ladder row are untouched. Check all three with:
-`python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"` and `grep '"role": "kid"' .agi/nodes/.geometry/ladder.md`
-🔴 **Revert only when the round is TERMINAL** — the manifest says so, or a commit exists on the round branch. Never on a `reaper: finished` line; that is not a round ending, and reverting while anything is live means a retry resolves a model no longer in the allowlist.
+🔴 **THE RESULT: NO, and in under two minutes.** `openrouter/free` — the best candidate from L4.80's probes, 30/30 answered, zero 429, cost 0 — returned `404 This model is unavailable for free. The paid version is available now - use this slug instead: z-ai/glm-4.5-air` to a real round. **Availability is not capability.** Thirty one-token probes said 100% reliable; one real round said 404. Do not re-run this without a different candidate.
+
+🔴 **AND THE BIGGER FINDING, which is not about free models at all: NOTHING MARKS A DEAD DETACHED KID TERMINAL.** Observed end to end: the kid's process died on the 404 → its `agent.json` still read `status: running`, `finished_at: null` two minutes later → `cli.py status` reported `running` to the parent → the parent, told to poll until every kid is `done` or `failed`, polled a dead kid forever (killed at ~9 min, still 1.2% CPU). A parent spawns kids with `--detach`, so no reaper watches them; the only reaper watches the PARENT. **A kid that dies without signalling is invisible forever and its parent cannot terminate by construction.**
+That is a THIRD stall shape and `stall_detect` cannot see it: L4.78's condition (1) is "every kid terminal", and here the kid never becomes terminal, so the detector stays silent on a round that is definitively dead. Not a defect in L4.78 — a second detector's worth of work, and the highest-value thing left on this seam.
 
 ## 🔴 YOUR QUEUE, in order
 
