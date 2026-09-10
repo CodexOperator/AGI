@@ -50,6 +50,12 @@ import commands  # noqa: E402
 #: successor must see, not a run that never returns.
 PER_CHECK_TIMEOUT = 600
 
+#: The SUITE's own ceiling. One number for every check made the one check that
+#: legitimately takes minutes the one check that false-FAILs: the engine suite
+#: is ~2300 tests, and reporting a green suite as "timed out after 600s" is a
+#: failure the tool invented. A hang is still caught, three times further out.
+SUITE_TIMEOUT = 1800
+
 #: How each level is composed. Names are COMMAND NAMES resolved through
 #: `commands.py` against the node — never argv written here.
 LEVELS: dict[str, list[str]] = {
@@ -181,10 +187,15 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
-def acquire_suite_lock(groot: Path) -> Path | None:
+def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     """A plain lock file holding the holder's pid, stale-broken by a dead pid.
 
-    Returns the lock path on success, or None if another live runner holds it.
+    Returns `(path, None)` on success and `(None, holder_pid)` when another
+    LIVE runner owns the window — the pid is returned rather than swallowed so
+    the refusal can name who to wait for; "refused" without a holder is a
+    message that tells a successor nothing it can act on. `(None, None)` means
+    the lock could not be written at all.
+
     Keeping `--suite` opt-in is what rules today; the lock is the mechanism
     that rules when L4.10 folds the suite into `full`.
     """
@@ -198,14 +209,14 @@ def acquire_suite_lock(groot: Path) -> Path | None:
                 path.unlink(missing_ok=True)
                 continue
             if _pid_alive(holder) and holder != os.getpid():
-                return None  # another live suite runner owns the window
+                return None, holder  # another live runner owns the window
             path.unlink(missing_ok=True)  # stale: dead pid
         try:
             path.write_text(str(os.getpid()), encoding="utf-8")
-            return path
+            return path, None
         except OSError:
-            return None
-    return None
+            return None, None
+    return None, None
 
 
 # --- the runner ------------------------------------------------------------
@@ -226,13 +237,14 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
                            note=f"check {name!r} is not a declared command in "
                                 ".geometry/commands.md — add it to the node")
     cmd = table[name]
+    ceiling = SUITE_TIMEOUT if name == SUITE_CMD else PER_CHECK_TIMEOUT
     try:
         proc = subprocess.run(
             cmd.argv, capture_output=True, text=True,
-            timeout=PER_CHECK_TIMEOUT, cwd=cmd.cwd or None)
+            timeout=ceiling, cwd=cmd.cwd or None)
     except subprocess.TimeoutExpired:
         return CheckResult(name, "FAIL", time.monotonic() - start,
-                           note=f"timed out after {PER_CHECK_TIMEOUT}s")
+                           note=f"timed out after {ceiling}s")
     except OSError as exc:
         return CheckResult(name, "FAIL", time.monotonic() - start,
                            note=f"could not execute: {exc}")
@@ -324,11 +336,21 @@ def main(argv: list[str] | None = None) -> int:
 
     lock = None
     if args.suite:
-        lock = acquire_suite_lock(groot)
+        lock, holder = acquire_suite_lock(groot)
         if lock is None:
-            print("ERR: --suite refused — another live runner holds the suite "
-                  "window (one suite at a time)", file=sys.stderr)
+            if holder is None:
+                print("ERR: --suite refused — the suite lock could not be "
+                      f"written under {groot / 'sessions'}", file=sys.stderr)
+            else:
+                print(f"ERR: --suite refused — pid {holder} is a LIVE runner "
+                      "holding the suite window (one suite at a time); wait "
+                      "for it or ask whoever owns it", file=sys.stderr)
             return 1
+        # Information, not a warning. The window rule is a fact the runner
+        # should see stated once; it is not a refusal and never blocks.
+        print(f"[suite] window acquired, lock {lock} (pid {os.getpid()}); "
+              "one suite runner at a time — the window is the Prime's to "
+              "grant, and --suite stays opt-in until L4.10 lands")
 
     try:
         results = run_level(groot, args.level, args.suite, args.verbose)

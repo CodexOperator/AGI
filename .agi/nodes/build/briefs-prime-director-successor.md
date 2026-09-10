@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: a00-94a89139
+edited_by: sanctuary-director
 link_ref: extensions/agi/briefs/prime-director-successor.md
 location: source_root
 origin: mvp-minted
@@ -18,7 +18,7 @@ tags:
   - build
   - prose
   - g15
-thought_session: sanctuary-director-genII-L4
+thought_session: sanctuary-director-genIII-L4
 title: Briefs prime director successor
 ---
 <!-- BODY:BEGIN -->
