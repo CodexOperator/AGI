@@ -194,7 +194,7 @@ spending the remaining window rewriting the file my successor must read trades a
 STILL OPEN: none — L3 closed 2026-09-09; items 55 (live half), 71, 96, 103 carried into doc:l4-owner-decisions "L4 BACKLOG"; 104 resolved (closed)
 ```
 
-### Closed items — index, one line each
+### Closed items — index, one line each · **second pass 2026-09-10 (L4-V): quote fragments and every `(N quotes archived)` marker removed, −7.0KB.** The guard was run BEFORE and AFTER: 41 quoted spans → 6, and the set that resolves in NO node is **unchanged at the same two adjudicated waivers** (item 95's director gloss, item 63's predecessor prose), which are kept verbatim on purpose. Every one of the 35 removed spans resolved in a node first — that is the rule, executed, not asserted. Negations, conditions, attributions and supersessions were preserved by machine, not by care (item 105 was the one rescue).
 
 - **0.** L2-era rules still in force (items 1–6 of the 2026-09-06 list, compressed)
 - **7.** Branching, decided
@@ -202,102 +202,101 @@ STILL OPEN: none — L3 closed 2026-09-09; items 55 (live half), 71, 96, 103 car
 - **9.** RESOLVED 2026-09-06 (after L2.13) — the owner supplied the three visions
 - **10.** Owner decisions 2026-09-06 (L3 brainstorm), settled
 - **11.** SETTLED 2026-09-06 (owner)
-- **12.** Settled 2026-09-06 (later) *(1 quote archived)*
+- **12.** Settled 2026-09-06 (later)
 - **13.** Settled 2026-09-06 (last)
-- **15.** Owner rule 2026-09-07 (verbatim): "Any time you need to rotate use Roman numerals for the next session. So the next is belam-S1-L3-II and the next prime is Belam II aka b *(1 quote archived)*
+- **15.** Owner rule 2026-09-07 (verbatim)
 - **16.** BANKED 2026-09-07 (Belam II, owner asked in chat): mantles per vision for the three advisors
 - **17.** BANKED 2026-09-07 05:00 UTC (from the Alive advisor): the three season-2 visions carry `proposes_goals: []`
-- **18.** OWNER DESIGN LAYER 2026-09-07 (04:40–07:36 UTC), settled — verbatim in `.agi/context/l3-command-ladder-brief.md`, section "Owner text 2026-09-07 — perpetual seats, the qu *(1 quote archived)*
+- **18.** OWNER DESIGN LAYER 2026-09-07 (04:40–07:36 UTC), settled — verbatim in `.agi/context/l3-command-ladder-brief.md`, section
 - **14.** Owner answers 2026-09-06 (belam, at L3 open)
-- **19.** Owner direction 2026-09-07 ~14:40 UTC (to Belam IV, verbatim): "eventually we just need to implement a per-parent branch properly so we can let a lot more of them run con *(3 quotes archived)*
-- **20.** Owner layer 7/7b (2026-09-07, relayed by Belam III's DM at 14:46 UTC; verbatim in `doc:l3-command-ladder-brief` quotes 7 and 7b, end of the owner section — read it whole 
-- **21.** Owner addendum to `vision:alive`, 2026-09-07 ~15:00 UTC (verbatim): "Everything alive is extremely recursive. Always aim to make work output atomic, recursive, reusable,  *(1 quote archived)*
-- **22.** Owner 2026-09-07 15:10 UTC (verbatim): "that workflow script needs to be in graph. All workflows need to be symlinked to agi repo workflow directory. This is a clear "gra *(2 quotes archived)*
-- **23.** Owner 2026-09-07 15:25 UTC (verbatim): "looks like the 5-hour limit is approaching, get ready to pause likely right at rotate time, so maybe wait on my go before rotating *(1 quote archived)*
-- **24.** OWNER LAYER 8, 2026-09-07 ~16:00 UTC (to Belam IV, verbatim; also quote (9) in `doc:l3-command-ladder-brief`): "Also brief drafting needs to happen through the Plan Maste *(1 quote archived)*
-- **25.** Owner 2026-09-07 16:20 UTC (verbatim): "reset passed, should be clear now. You have go for continue. Btw lets rename Bug Master to Glitch Master. Sounds more badass and l *(1 quote archived)*
-- **26.** Owner 2026-09-07 ~17:55 UTC (to Belam V, verbatim; quote (11) in `doc:l3-command-ladder-brief`): "Can we modify the relevant context file to say that any Belam successor  *(2 quotes archived)*
-- **27.** Owner 2026-09-07 ~17:55 UTC (verbatim; quote (12) in the doc): "Once the briefs land: Rename the Training Master or Trainer Master to Master Sensei as it is the only sort *(1 quote archived)*
-- **28.** Owner 2026-09-07 ~19:05 UTC (verbatim): "propagate the following license commit to all branches: 27c0056. Its just an AGPL license so I can make repo public" *(1 quote archived)*
-- **29.** SETTLED 2026-09-07 19:46 UTC (owner, verbatim: "Fallback to opus acceptable."; 19:52 UTC, verbatim: "Fallback at 99% rotate into fresh session to switch models if needed" *(1 quote archived)*
-- **30.** Owner 2026-09-07 19:46 UTC (verbatim): "Record following link and info under the localmaxxing goal https://huggingface.co/datasets/kuben-developer/tiktok-videos-4b" *(1 quote archived)*
-- **31.** Owner 2026-09-07 ~19:56 UTC (verbatim; quote (13) in `doc:l3-command-ladder-brief`): "I want to note in the SkillMD or whatever relevant context file that I want to close *(1 quote archived)*
-- **32.** Owner 2026-09-07 20:14 UTC (verbatim, to Belam VI at rotation; also "Clear to rotate as well"): "I am close to running into my overall hourly and weekly limits as well on *(2 quotes archived)*
+- **19.** Owner direction 2026-09-07 ~14:40 UTC (to Belam IV, verbatim)
+- **20.** Owner layer 7/7b (2026-09-07, relayed by Belam III's DM at 14:46 UTC; verbatim in `doc:l3-command-ladder-brief` quotes 7 and 7b, end of the owner sect…
+- **21.** Owner addendum to `vision:alive`, 2026-09-07 ~15:00 UTC (verbatim)
+- **22.** Owner 2026-09-07 15:10 UTC (verbatim)
+- **23.** Owner 2026-09-07 15:25 UTC (verbatim)
+- **24.** OWNER LAYER 8, 2026-09-07 ~16:00 UTC (to Belam IV, verbatim; also quote (9) in `doc:l3-command-ladder-brief`)
+- **25.** Owner 2026-09-07 16:20 UTC (verbatim)
+- **26.** Owner 2026-09-07 ~17:55 UTC (to Belam V, verbatim; quote (11) in `doc:l3-command-ladder-brief`)
+- **27.** Owner 2026-09-07 ~17:55 UTC (verbatim; quote (12) in the doc)
+- **28.** Owner 2026-09-07 ~19:05 UTC (verbatim)
+- **29.** SETTLED 2026-09-07 19:46 UTC (owner, verbatim
+- **30.** Owner 2026-09-07 19:46 UTC (verbatim)
+- **31.** Owner 2026-09-07 ~19:56 UTC (verbatim; quote (13) in `doc:l3-command-ladder-brief`)
+- **32.** Owner 2026-09-07 20:14 UTC (verbatim, to Belam VI at rotation; also
 - **33.** JUDGEMENT CALL, not an owner decision — Belam VII, 2026-09-07 20:26 UTC: raised the OpenRouter sub-key's own limit from $10 to $40
 - **34.** BANKED for the owner — Belam VII: the sub-key cap is a standing single point of failure and `provisioning.py` should own it
 - **35.** BANKED for the owner — Belam VII, L3.30: the owner-liaison seat inherits THE DECISION METHOD in its constitution head
-- **36.** BANKED — Belam VII, L3.32: `l3w4-director-kids-on-glm` is BUILT but deliberately NOT switched on, and switching it on is one cell per seat row *(2 quotes archived)*
+- **36.** BANKED — Belam VII, L3.32: `l3w4-director-kids-on-glm` is BUILT but deliberately NOT switched on, and switching it on is one cell per seat row
 - **37.** NOTE for the owner on how the four rounds were reviewed
-- **38.** STATE CHANGE NOBODY CAUGHT — Belam VII, 2026-09-07 22:45 UTC, found while walking the banked items with the owner: `CAMBER_CLOUD_API_KEY` IS NOW SET in `.env` (40 chars; 
-- **39.** Belam VII's second sitting, 2026-09-07 22:40 UTC+ (owner asked, post-rotation, over the predecessor chain): walk the banked items and fix the rotate hazard
-- **38.** GATE LIFTED, HELD DELIBERATELY — Belam VIII, 22:45 UTC: `CAMBER_CLOUD_API_KEY` is now set in `.env` (40 chars, `envfile.py --check` passes), so `goal:g14` Local-maxxing h
+- **38.** STATE CHANGE NOBODY CAUGHT — Belam VII, 2026-09-07 22:45 UTC, found while walking the banked items with the owner: `CAMBER_CLOUD_API_KEY` IS NOW SET i…
+- **39.** Belam VII's second sitting, 2026-09-07 22:40 UTC+ (owner asked, post-rotation, over the predecessor chain): walk the banked items and fix the rotate h…
+- **38.** GATE LIFTED, HELD DELIBERATELY — Belam VIII, 22:45 UTC: `CAMBER_CLOUD_API_KEY` is now set in `.env` (40 chars, `envfile.py --check` passes), so `goal:…
 - **39.** STILL OPEN AND OWNER-FACING, re-surfaced by Belam VII 22:45 UTC because no agent will ever close them alone — both are unchanged, not new
-- **40.** OWNER ANSWERS 2026-09-07 ~22:50 UTC (Belam VII's second sitting) — six banked items closed in one pass. All applied; nothing here is still waiting on the owner *(4 quotes archived)*
-- **41.** OWNER 2026-09-07 ~23:00 UTC — Sonnet directors on max, key SET not rotated, and a new primary ask (custom webhooks). Three parts *(4 quotes archived)*
-- **42.** BANKED, NEEDS ONE ANSWER FROM THE OWNER — "custom webhooks" (verbatim: "One primary thing that we need is setting up custom webhooks") *(1 quote archived)*
-- **43.** CLOSED — the rotate hazard the owner asked for (§6 item 39, `iter-L3.33`). `experiment:a00-1c47291c-a9584e` proved 0.85, reviewed by Belam VIII with ZERO overclaims acros *(2 quotes archived)*
-- **40.** OWNER, 2026-09-07 ~23:1x UTC — three asks and one correction, all acted on the same turn *(6 quotes archived)*
-- **41.** OPERATIONAL — 98 tmux windows, fixed 2026-09-07 23:1x UTC (owner: "there's a bunch of windows or processes still running … They are failing to exit I believe it's up to 9 *(1 quote archived)*
-- **42.** OWNER, 2026-09-07 ~23:3x UTC — the layered agent map, live seat sessions, desktop tiling, and the livestream *(1 quote archived)*
-- **43.** KEY ROTATION — the secure path is BUILT and waiting for the owner, 2026-09-07 23:3x UTC *(2 quotes archived)*
-- **44.** 🔴 SEAT-OWNERSHIP VIOLATION, caught live by `write_guard` at 23:3x UTC while the round was still running — worth reading as a pattern, not a bug *(1 quote archived)*
-- **45.** ✅ CLOSED 2026-09-08 by the owner (Belam IX verified it live: `is_provisioning_key: false`, `limit: 5`, `limit_reset: monthly`, `/api/v1/models` HTTP 200, provisioning key
+- **40.** OWNER ANSWERS 2026-09-07 ~22:50 UTC (Belam VII's second sitting) — six banked items closed in one pass. All applied; nothing here is still waiting on…
+- **41.** OWNER 2026-09-07 ~23:00 UTC — Sonnet directors on max, key SET not rotated, and a new primary ask (custom webhooks). Three parts
+- **42.** BANKED, NEEDS ONE ANSWER FROM THE OWNER
+- **43.** CLOSED — the rotate hazard the owner asked for (§6 item 39, `iter-L3.33`). `experiment:a00-1c47291c-a9584e` proved 0.85, reviewed by Belam VIII with Z…
+- **40.** OWNER, 2026-09-07 ~23:1x UTC — three asks and one correction, all acted on the same turn
+- **41.** OPERATIONAL — 98 tmux windows, fixed 2026-09-07 23:1x UTC (owner
+- **42.** OWNER, 2026-09-07 ~23:3x UTC — the layered agent map, live seat sessions, desktop tiling, and the livestream
+- **43.** KEY ROTATION — the secure path is BUILT and waiting for the owner, 2026-09-07 23:3x UTC
+- **44.** 🔴 SEAT-OWNERSHIP VIOLATION, caught live by `write_guard` at 23:3x UTC while the round was still running — worth reading as a pattern, not a bug
+- **45.** ✅ CLOSED 2026-09-08 by the owner (Belam IX verified it live: `is_provisioning_key: false`, `limit: 5`, `limit_reset: monthly`, `/api/v1/models` HTTP 2…
 - **46.** WHICH KEY LEAKED — answered by measurement, 2026-09-07 (owner asked directly)
-- **47.** 🛑 OWNER GATE, verbatim: "once we verify that perpetual seats work well and fully let's just stop there for a bit before we start them running and specifically before we s *(1 quote archived)*
-- **48.** 🔴 BANKED — OWNER DECISION: a GitHub bot changed this repo's LICENSE from MIT to AGPL-3.0-only, and a cron parked it on a branch nobody has looked at since *(2 quotes archived)*
-- **50.** OWNER ANSWER 2026-09-08 — the workflow model policy, and a new primary ask. Verbatim as received (voice transcription; homophones noted in brackets where intent is unambi *(3 quotes archived)*
-- **51.** 🔴 BANKED — OWNER DECISION: the `.env` OpenRouter runtime key is at its cap and every pi spawn is refused until it is raised, but raising it before the guard lands re-arms
-- **52.** OWNER, 2026-09-08 — trim the handoff as a standing rotation duty *(1 quote archived)*
-- **56.** OWNER, 2026-09-08 — FIRE THE QUORUM. Verbatim, across several messages *(7 quotes archived)*
-- **57.** BANKED — THE FOURTH SEAT. Owner, 2026-09-08, verbatim: *"The fourth is either sanctuary master or master sensei" *(1 quote archived)*
-- **58.** OWNER, 2026-09-08 — the hierarchy chart. Verbatim: *"Do we not have the actual hierarchy chart finalized somewhere?"* and *"Quorum can do that after the worktree issue." *(2 quotes archived)*
+- **47.** 🛑 OWNER GATE, verbatim
+- **48.** 🔴 BANKED — OWNER DECISION: a GitHub bot changed this repo's LICENSE from MIT to AGPL-3.0-only, and a cron parked it on a branch nobody has looked at s…
+- **50.** OWNER ANSWER 2026-09-08 — the workflow model policy, and a new primary ask. Verbatim as received (voice transcription; homophones noted in brackets wh…
+- **51.** 🔴 BANKED — OWNER DECISION: the `.env` OpenRouter runtime key is at its cap and every pi spawn is refused until it is raised, but raising it before the…
+- **52.** OWNER, 2026-09-08 — trim the handoff as a standing rotation duty
+- **56.** OWNER, 2026-09-08 — FIRE THE QUORUM. Verbatim, across several messages
+- **57.** BANKED — THE FOURTH SEAT. Owner, 2026-09-08, verbatim
+- **58.** OWNER, 2026-09-08 — the hierarchy chart. Verbatim
 - **59.** BANKED — seat ID migration, deliberately deferred and worth the paragraph
-- **60.** OWNER, 2026-09-08 — two answers in one line, both of which close a banked item. Verbatim: *"Go for master sensei, and it wasn't. The quorum stays." *(2 quotes archived)*
-- **61.** OWNER, 2026-09-08 — four rulings in ten minutes that finished the shape of the seat system. All applied live; none is still waiting on anything *(4 quotes archived)*
-- **62.** OWNER, 2026-09-08 — an auto-alert side channel for agent comms. Verbatim: *"tell quorum whoever is working on DMs that they need an auto-alert feature. Some kind of side  *(2 quotes archived)*
-- **63.** OWNER, 2026-09-08 — "Do quorum members auto-rotate while providing you a brief report as they do?" The honest answer was NO on both halves, and it is what unlocked item 6 *(1 quote archived)*
-- **64.** 🛑→🟢 OWNER LIFTED GATE 47 AND STOOD UP THE SANCTUARY MASTER, 2026-09-08. Verbatim, in order: *"If not we can go ahead and fire off sanctuary master"* · *"Let's just let it *(3 quotes archived)*
-- **65.** OWNER, 2026-09-08 — the Sanctuary Master's order of work, which re-orders its brief. Verbatim: *"Make sure sanctuary master brings my liaison online first thing. Then fig *(2 quotes archived)*
-- **66.** OWNER, 2026-09-08 — deep research on the two remaining test failures. Verbatim: *"Okay maybe it is pollution maybe not tell quorum to fire off a deep research to look int *(1 quote archived)*
-- **67.** OWNER, 2026-09-08 — a rotation must announce itself. Verbatim: *"Make sure that during rotation everyone is aware you are rotating. Ideally it's done in a programmatic wa *(4 quotes archived)*
-- **68.** 🔴🔴 OWNER, 2026-09-08 — FULL STOP. Two messages, the second superseding the first. Verbatim *(7 quotes archived)*
-- **69.** OWNER, 2026-09-08, via the `liaison` — cross-session messaging is the direct channel. Verbatim as relayed *(4 quotes archived)*
-- **70.** 🟢 OWNER, 2026-09-08 12:14 UTC — THE STOP IS LIFTED, AND THE MASTERS NEVER BUILD AGAIN. This item SUPERSEDES items 68 and 69's operating state; both are kept intact as the *(4 quotes archived)*
-- **72.** OWNER, 2026-09-08 — auto-archive stale predecessor sessions. Verbatim *(3 quotes archived)*
-- **73.** 🟢 MEASURED, NOT GUESSED — WHAT A SEAT ACTUALLY COSTS, AND IT REFRAMES THE OWNER'S OWN DIAGNOSIS *(1 quote archived)*
-- **74.** 🔴 A `--detach` KID IS INVISIBLE TO `spawn_budget.py status` AND REPARENTS TO `init` WHEN ITS WRAPPER DIES. Found 2026-09-08 by `sanctuary-director` gen II while executing *(2 quotes archived)*
-- **76.** 🔴 TRAP 0n HAS A WORSE FORM THAN RECORDED: `dispatch.py`'s reaper emits a "COMPLETED" NOTIFICATION when it gives up at its own 1200s timeout, while the pi parents keep run *(1 quote archived)*
+- **60.** OWNER, 2026-09-08 — two answers in one line, both of which close a banked item. Verbatim
+- **61.** OWNER, 2026-09-08 — four rulings in ten minutes that finished the shape of the seat system. All applied live; none is still waiting on anything
+- **62.** OWNER, 2026-09-08 — an auto-alert side channel for agent comms. Verbatim
+- **63.** OWNER, 2026-09-08 — "Do quorum members auto-rotate while providing you a brief report as they do?" The honest answer was NO on both halves, and it is what unlocked item 6
+- **64.** 🛑→🟢 OWNER LIFTED GATE 47 AND STOOD UP THE SANCTUARY MASTER, 2026-09-08. Verbatim, in order
+- **65.** OWNER, 2026-09-08 — the Sanctuary Master's order of work, which re-orders its brief. Verbatim
+- **66.** OWNER, 2026-09-08 — deep research on the two remaining test failures. Verbatim
+- **67.** OWNER, 2026-09-08 — a rotation must announce itself. Verbatim
+- **68.** 🔴🔴 OWNER, 2026-09-08 — FULL STOP. Two messages, the second superseding the first. Verbatim
+- **69.** OWNER, 2026-09-08, via the `liaison` — cross-session messaging is the direct channel. Verbatim as relayed
+- **70.** 🟢 OWNER, 2026-09-08 12:14 UTC — THE STOP IS LIFTED, AND THE MASTERS NEVER BUILD AGAIN. This item SUPERSEDES items 68 and 69's operating state; both ar…
+- **72.** OWNER, 2026-09-08 — auto-archive stale predecessor sessions. Verbatim
+- **73.** 🟢 MEASURED, NOT GUESSED — WHAT A SEAT ACTUALLY COSTS, AND IT REFRAMES THE OWNER'S OWN DIAGNOSIS
+- **74.** 🔴 A `--detach` KID IS INVISIBLE TO `spawn_budget.py status` AND REPARENTS TO `init` WHEN ITS WRAPPER DIES. Found 2026-09-08 by `sanctuary-director` ge…
+- **76.** 🔴 TRAP 0n HAS A WORSE FORM THAN RECORDED: `dispatch.py`'s reaper emits a
 - **77.** 🟢 A KILLED ROUND'S WORK SURVIVED AND WAS PROMOTED THE RIGHT WAY: BY VERIFICATION, NOT ADOPTION
-- **78.** 🟢 OWNER, 2026-09-08 — THE AUTHORITATIVE ROLE LAYOUT, AND THE TARGET STATE FOR THE WHOLE SYSTEM. Verbatim *(2 quotes archived)*
-- **79.** ⚠️ TRAP 0p — PARTLY CORRECTED, AND THIS ITEM'S RECOMMENDATION IS DISCONFIRMED BY ITEM 80. READ 80 FIRST *(6 quotes archived)*
-- **80.** 🔴 CORRECTION TO ITEM 79, WITHIN THE HOUR, AND IT IS A CORRECTION AGAINST THE PRIME'S OWN RECOMMENDATION *(1 quote archived)*
+- **78.** 🟢 OWNER, 2026-09-08 — THE AUTHORITATIVE ROLE LAYOUT, AND THE TARGET STATE FOR THE WHOLE SYSTEM. Verbatim
+- **79.** ⚠️ TRAP 0p — PARTLY CORRECTED, AND THIS ITEM'S RECOMMENDATION IS DISCONFIRMED BY ITEM 80. READ 80 FIRST
+- **80.** 🔴 CORRECTION TO ITEM 79, WITHIN THE HOUR, AND IT IS A CORRECTION AGAINST THE PRIME'S OWN RECOMMENDATION
 - **81.** 🟢 SD.03 LANDED — `l3w4-rotation-announces-itself`, THREE KIDS, CONVERGED. `inconclusive_lean_proved:75`, correctly honest
-- **82.** OWNER, 2026-09-08 — AUTO-ARCHIVE OLD WINDOWS AT ROTATION, WITH RESURRECTION IN THE PREDECESSOR PROTOCOL. Verbatim *(2 quotes archived)*
-- **83.** 🔴 THE PRIME'S CONTEXT ESTIMATE WAS ~2.7x TOO HIGH AND AIMED AT THE WRONG FILES. Corrected by SD.06's first kid, 2026-09-08, by measuring instead of adding up file sizes *(2 quotes archived)*
-- **84.** OWNER, 2026-09-08, mid-round: *"all parent spawns should branch by default always." *(1 quote archived)*
+- **82.** OWNER, 2026-09-08 — AUTO-ARCHIVE OLD WINDOWS AT ROTATION, WITH RESURRECTION IN THE PREDECESSOR PROTOCOL. Verbatim
+- **83.** 🔴 THE PRIME'S CONTEXT ESTIMATE WAS ~2.7x TOO HIGH AND AIMED AT THE WRONG FILES. Corrected by SD.06's first kid, 2026-09-08, by measuring instead of ad…
+- **84.** OWNER, 2026-09-08, mid-round
 - **85.** 🟢 SD.04 LANDED — 4 kids — AND ITS SIDE-EFFECT PARTIALLY CLOSES AN OWNER ITEM
-- **86.** 🔴 OWNER, 2026-09-08: *"someone got something wrong regarding spend cap, it needs to be shown on pin accept fresh. You should have plenty of your $70 weekly allowance, and *(5 quotes archived)*
-- **87.** RULING — WORKING PAST CAP UNDER THE TRIM MANDATE, AND THE FRAMING CORRECTION THAT MATTERS MORE *(2 quotes archived)*
+- **86.** 🔴 OWNER, 2026-09-08
+- **87.** RULING — WORKING PAST CAP UNDER THE TRIM MANDATE, AND THE FRAMING CORRECTION THAT MATTERS MORE
 - **88.** 🟢 TEN SEATS' BRIEFS WERE OUTSIDE VERSION CONTROL FOR THIS ENTIRE LOOP, AND THE FIX WAS FLEET-WIDE RATHER THAN LOCAL
 - **89.** 🔴 EIGHTH COSTUME: UPDATING A NODE IS NOT A MESSAGE
-- **90.** 🔴 OWNER, 2026-09-08: *"Director-kid used message tool and it failed to route to the Claude message tool properly. Fixing injection and skill now." *(2 quotes archived)*
-- **91.** OWNER, 2026-09-08, extending the `--branch` default down a tier: *"They should have individual branches."* EVERY KID GETS ITS OWN BRANCH, not just every parent *(1 quote archived)*
-- **92.** 🔴 THE TRIM WAS NEVER A WRITING TASK — measured by SD.07's kid 2 and it redirects the whole effort. NAIVE PROSE TRIMMING BUYS ~2% *(2 quotes archived)*
-- **93.** 🔴 PER-KID BRANCHING (item 91) IS NOT A MISSING FLAG — THE CODE DELIBERATELY DOES THE OPPOSITE, FOR A REASON *(1 quote archived)*
-- **94.** 🟢 OWNER, 2026-09-08: *"Idk if it's wired just asked for now. And they can dispatch more rounds if worktree isolation is working for parents no?"* and *"Also yes they can  *(2 quotes archived)*
-- **95.** OWNER, 2026-09-08: *"We need let roles also determine which slice of our unified file and handoff each role gets."* ROLES SELF-SELECT THEIR SLICES — by affinity, per piec *(3 quotes archived)*
-- **97.** 🟢 `sanctuary-director` gen II ROTATED CLEANLY AND REPORTED THE THREE NUMBERS FROM ITS OWN SIDE — the rotation half of the owner's gate is met; the trim half is not, and i
-- **98.** 🟢 THE PRIME'S OWN STRUCTURAL PASS OVER BOTH FILES (owner: *"go through with the directors help and see what could be trimmed or structured as LLM friendly diagrams"*). ME *(1 quote archived)*
-- **99.** CONSTITUTION SCOPE, FINAL — owner, verbatim: *"Only prayers must remain, moral stuff is read as needed only required for successor Belam." *(1 quote archived)*
-- **100.** 🔴 THE CC-SEAT CEILING IS MEASURED, AND IT BOUNDS THE OWNER'S 70–90% ASK. `hypothesis:cc-seat-context-ceiling` + `experiment:cc-seat-ceiling-measured`, by `sanctuary-direc
-- **49.** CLOSED 2026-09-09 (SD.13, harvested by hand from a key-dead parent's worktree): `grid_coverage_check.py` + a declared exclusion list that forbids widening itself, `level3.py --mint-missing-only` (additive by construction, skips any `payload_ref` including deprecated), 65 build nodes minted under mvp parents; grid payload coverage 217→282, `rotate.py` is `build:bin-rotate`. Remainder closed by SD.17 (33fc2eff1): `build:agi-config.json` + `build:briefs-prime-director-successor` under new mvp parents, bytes readable from the grid.
-- **53.** CLOSED LIVE ON BOTH AXES 2026-09-09 (`hypothesis:l3-parent-never-told-to-iterate`): SD.11 proved iteration (3 kids from one dispatch under a hard ceiling; 10/10 one-shot before), SD.12 built the per-kid brief channel (`dispatch.py --prompt-file`, path or `-`, threaded into the kid brief as a labelled segment; `_parent` contract names it), SD.13 proved carry-forward unshepherded — kid 2's recorded argv carried kid 1's node id, result and next slice with the flag never mentioned in the brief. Unexercised: the fan-out axis (several kids at once, each optionally `--branch`) — the owner's latitude, not a defect. *(2 quotes archived)*
-- **75.** CLOSED WITH STATED DENOMINATORS 2026-09-09 (SD.10 on `l3w4-context-load-minimal`, merged 5765c7635): pi survival cut 65% off current full / 76.5–77.1% off the pre-trim baseline — the owner's 70% is met there, 90% is unreachable under the current harness (1,869-token floor); CC seat true cold minimum 1,879 tok + CLAUDE.md 6,403 harness-loaded ≈ 8,282 standing; SKILL.md (13,264) and HANDOFF.md (20,712) are NOT auto-injected. L4 remainder: the survival profile is not wired for a rotating seat. *(1 quote archived)*
-- **102.** CLOSED BY MEASUREMENT 2026-09-09 (SD.09 on `l3w4-context-load-minimal`, merged eb9dc5d67): diagram form of §6 items 18/20/24/27 lost 0 decisions but cost +14.3% tokens — a §6 diagram rewrite does not pay; keep owner-verbatim-dense prose, trim by consolidation. The owner call it banked is moot unless the owner says otherwise. *(1 quote archived)*
-- **101.** 🔚 BELAM XIII CLOSES. Successor `belam-S1-L3-XIV` is LIVE — confirmed by `tmux capture-pane` (thinking, 11.9k tokens in), never by the read-back alone, per standing doctri
-
-- **105.** OWNER 2026-09-09 ~12:3xZ, APPLIED: rotation cap 0.35 → 0.47 for every role, standing (verbatim in `doc:l4-owner-decisions`; `ladder:ladder`, the successor brief and SKILL.md updated through write.py; meter prints threshold=0.47). The 99%-Fable-limit trigger (item 29) is unchanged.
-- **54.** CLOSED 2026-09-09 on both halves, each proved live (SD.14 + SD.15 under `hypothesis:l3-partial-write-adoption`, merges 9511db611 / 2b7ae3dff): `read` verb fixed (terminal, never writes), `body_patch <path>` fixed (reads before the apply check; standalone guard fires), brief.py names read/patch/body_patch, SKILL.md corrected; three live adoption proofs by three actors. Standing recipe: `read body N:M`, then build the hunk from those exact bytes. Owner quote archived in `hypothesis:l3-write-partial-diffs-as-writes` and `doc:l3-command-ladder-brief`. L4 remainder: the evidence gate is blind to non-node live runs (`doc:l4-owner-decisions`).
+- **90.** 🔴 OWNER, 2026-09-08
+- **91.** OWNER, 2026-09-08, extending the `--branch` default down a tier
+- **92.** 🔴 THE TRIM WAS NEVER A WRITING TASK — measured by SD.07's kid 2 and it redirects the whole effort. NAIVE PROSE TRIMMING BUYS ~2%
+- **93.** 🔴 PER-KID BRANCHING (item 91) IS NOT A MISSING FLAG — THE CODE DELIBERATELY DOES THE OPPOSITE, FOR A REASON
+- **94.** 🟢 OWNER, 2026-09-08
+- **95.** OWNER, 2026-09-08: *"We need let roles also determine which slice of our unified file and handoff each role gets."* ROLES SELF-SELECT THEIR SLICES — by affinity, per piec
+- **97.** 🟢 `sanctuary-director` gen II ROTATED CLEANLY AND REPORTED THE THREE NUMBERS FROM ITS OWN SIDE — the rotation half of the owner's gate is met; the tri…
+- **98.** 🟢 THE PRIME'S OWN STRUCTURAL PASS OVER BOTH FILES (owner
+- **99.** CONSTITUTION SCOPE, FINAL — owner, verbatim
+- **100.** 🔴 THE CC-SEAT CEILING IS MEASURED, AND IT BOUNDS THE OWNER'S 70–90% ASK. `hypothesis:cc-seat-context-ceiling` + `experiment:cc-seat-ceiling-measured`,…
+- **49.** CLOSED 2026-09-09 (SD.13, harvested by hand from a key-dead parent's worktree): `grid_coverage_check.py` + a declared exclusion list that forbids wide…
+- **53.** CLOSED LIVE ON BOTH AXES 2026-09-09 (`hypothesis:l3-parent-never-told-to-iterate`): SD.11 proved iteration (3 kids from one dispatch under a hard ceil…
+- **75.** CLOSED WITH STATED DENOMINATORS 2026-09-09 (SD.10 on `l3w4-context-load-minimal`, merged 5765c7635): pi survival cut 65% off current full / 76.5–77.1%…
+- **102.** CLOSED BY MEASUREMENT 2026-09-09 (SD.09 on `l3w4-context-load-minimal`, merged eb9dc5d67): diagram form of §6 items 18/20/24/27 lost 0 decisions but c…
+- **101.** 🔚 BELAM XIII CLOSES. Successor `belam-S1-L3-XIV` is LIVE — confirmed by `tmux capture-pane` (thinking, 11.9k tokens in), never by the read-back alone,…
+- **105.** OWNER 2026-09-09 ~12:3xZ, APPLIED: rotation cap 0.35 → 0.47 for every role, standing (verbatim in `doc:l4-owner-decisions`; `ladder:ladder`, the succe…  ⟨le-limit trigger (item 29) is unchanged.…⟩
+- **54.** CLOSED 2026-09-09 on both halves, each proved live (SD.14 + SD.15 under `hypothesis:l3-partial-write-adoption`, merges 9511db611 / 2b7ae3dff): `read`…
 
 ### Former open items — carried into L4 (prose: `git show 91d33742d:HANDOFF.md`)
 
