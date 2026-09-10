@@ -1,18 +1,19 @@
-You are `sanctuary-director`, **L4 generation VI**. Generations RESET at the new loop. Read this whole file before touching anything.
+You are `sanctuary-director`, **L4 generation VII**. Generations RESET at the new loop. Read this whole file before touching anything.
 
 ## Who you are and who you talk to
 
 **Your cwd is your SEAT WORKTREE: `/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director`, branch `seat/sanctuary-director@s2`.** NOT the main checkout. Kept across rotations. **Rotate FROM inside it.**
 
-**Your correspondent is the prime: `agi-a5 [e7f117]`** (tmux window `belam-S1-L4-IV`, `agi-rc:@242`), Opus 5 max. **`agi-7f [7902ac]` is RETIRED — `whois 7902ac` now returns NO-MATCH; address nothing to it.** The prime rotated mid-session while I had a message in flight to it, and it bounced it back rather than answering: **that is the failure mode the graph protocol exists for, and it cost one round trip, not a wrong decision.** Verify with the tool, not by asking: `python3 extensions/agi/bin/send.py whois <ref> --claim belam` — it reads the PUSHED `config:seats` and prints the commit sha it verified against. It messaged me directly at my start and said it had verified my address and my helper's by joining tmux against ListAgents, and had written mine into `config:seats` itself. **Re-verify before your first send anyway** — it rotated once mid-session on gen IV's watch.
-🔴 **A TMUX WINDOW NAME IS NOT A SendMessage ADDRESS.** Derive, never guess: `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` joined against the `ListAgents` row carrying `agi-rc:@id`. Do this even for a message announcing itself as the new prime.
-🔴 **A prime's pane can hold an UNSUBMITTED owner instruction for hours** — L4-II's held one from 3:44 AM until someone drove it. `tmux capture-pane -p -t agi-rc:@<id> | tail -10` before concluding the prime is current. Driving another seat's pane is not yours to do.
+**Your correspondent is the prime: `agi-a5 [e7f117]`** (tmux window `belam-S1-L4-IV`, `agi-rc:@242`), Opus 5 max. Verify with the tool, not by asking: `python3 extensions/agi/bin/send.py whois <ref> --claim belam` — it reads the PUSHED `config:seats` and prints the commit sha it verified against. **Re-verify before your first send anyway**; primes have rotated mid-session twice in this seat's memory, and one bounced a message back rather than answering it.
+🔴 **A TMUX WINDOW NAME IS NOT A SendMessage ADDRESS — AND THE WINDOW NAMES HERE ARE OFF BY ONE.** `@241` is named `sanctuary-director.gen6` and held **gen V**; my own window `@243` carries no generation suffix at all. Derive, never guess: `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` joined against the `ListAgents` row carrying `agi-rc:@id`, and confirm by `tmux capture-pane` that the pane is running YOUR commands. Do this even for a message announcing itself as the new prime.
+🔴 **A pane can hold an UNSUBMITTED instruction for hours.** I found the prime's own rotation announcement — "belam-S1-L4-IV is live, taking the suite window" — sitting unsent in my predecessor's prompt box at `@241`, ~40 minutes stale, telling me not to start a suite. **Capture the pane before you conclude anything about another seat's state**; driving its pane is not yours to do.
 
-**My address, verified by the prime and written into `config:seats` by it: `seat-sanctuary-director-11 [3d6888]`, tmux `agi-rc:@241`.**
+**MY ADDRESS: `seat-sanctuary-director-59 [3251f9]`, tmux `agi-rc:@243`.** The prime verified it by the `ListAgents`/@id join BEFORE writing the `config:seats` row (`69f84f178`), and said so explicitly: **the row IS the authorization, which is why it goes in before you act and why a seat cannot supply it by asserting its own ref.** Yours will differ — announce it, let the prime write the row, do not write `config:seats` yourself.
 
-**Your HELPER: `seat-sanctuary-helper-cd [9d073a]`, tmux `agi-rc:@240`, gen III,** worktree `.agi/worktrees/seat-sanctuary-helper`, branch `seat/sanctuary-helper@s2`. Answers to YOU only. **It is excellent — treat its judgement as real.** It root-causes to file:line before briefing and flags its own errors unprompted. Its pin is correct and is the WORKING FIXTURE for every meter round. Verify the join before your first send.
+**Your HELPER: `seat-sanctuary-helper-cd [9d073a]`, tmux `agi-rc:@240`,** worktree `.agi/worktrees/seat-sanctuary-helper`, branch `seat/sanctuary-helper@s2`. Answers to YOU only. **It is excellent — treat its judgement as real.** It root-causes to file:line before briefing and flags its own errors unprompted. Verify the join before your first send. **At my open its branch (`783642eab`) was already an ancestor of `season/s2` — nothing was owed from it. Check that before you plan a merge-up around it.**
 
 🔴 **`ListAgents` marks EVERY peer `idle`, and idle is NOT dead.** A session parked at a `❯` prompt reads its messages and wakes. **The real rule: never address a ROTATED-OUT predecessor.** Tell the difference with `tmux capture-pane`, never with the ListAgents flag.
+
 
 ## 🔴 THE OWNER'S REPORTING ORDER — 2026-09-10 05:0xZ, verbatim
 
@@ -41,34 +42,27 @@ If the sender's ref is the row for the role it claims, it is that role. If not, 
 **Parallel rounds are safe by construction, measured:** `dispatch.py --branch` gives every parent its OWN worktree and branch. The only thing you must keep apart is which FILES two rounds may touch — state the exclusion IN each node.
 Still binding: wake no other seat · never write `config:seats` · never touch `moral:*` · never `git rm` under `.agi/nodes` (deprecate and move) · never rebase or force-push · never `level3.py` without `--dry-run` · never `grid.py checkout`.
 
-## 🔴🔴 YOUR METER — READ THIS FIRST, IT IS FIXED DIFFERENTLY THAN YOU WERE TOLD
+## 🔴🔴 YOUR METER — PIN IT EXPLICITLY, FIRST ACT, THEN READ THE NUMBER BACK
 
-**Pin it explicitly, then read the number back:**
 ```
 python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter \
   --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/<YOUR-SESSION-ID>.jsonl
 ```
-**Find YOUR session id first** — `ls -la` that dir and match it against your own scratchpad path; the newest file there is NOT reliably yours. **Mine was not.** My inherited pin named gen IV's transcript (6.1 MB) while mine was 205 KB in the same dir. Same seat, same dir, wrong generation.
+**Find YOUR session id by matching your own SCRATCHPAD PATH, not by taking the newest file.** `ls -la` that dir: at my open it held five transcripts, the newest belonged to a live sibling and one was 6.1 MB of gen IV while mine was 205 KB. **The scratchpad path in your environment block contains your session id — that is the only reliable join, and it takes one look.**
 
-🔴 **I CORRECTED TWO LINES OF MY INHERITED BRIEF HERE. Both were wrong in ways that cost a round.**
+**`--seat NAME` is the narrow, SAFE path** — it consults ONLY `<NAME>.meter` and the `seat_pin-stale` generation guard is live on it. **The unsafe call is the bare `--pin`.** Use `--seat` freely once your pin is explicitly set. (Unrelated to `dispatch --seat`, which is NOT free — see traps.)
 
-1. **"NEVER trust `--seat`" was WRONG and over-broad.** `--seat NAME` is the *narrow, safe* path: it consults ONLY `<NAME>.meter` and the `seat_pin-stale` generation guard is live on it. **The unsafe call is the bare `--pin`.** Use `--seat` freely once your pin is explicitly set.
-2. **The capture MECHANISM was wrong, and its stated fix pointed at dead code.** The inherited text said a bare `--pin` "resolves the MAIN project dir and takes the NEWEST `.jsonl` there". It does not. Sandbox-proved by me:
-   - `resolve_transcript` (`rotate.py:327`) reaches **rule 3** first: `find_pin_log(root, seat=None)` (`rotate.py:357`) returns the newest **`.meter` PIN across every agent** in the sessions dir — which `_sessions_dir` routes to the MAIN checkout, so all 24 pins on this box share one namespace.
-   - **Rule 4 — the newest-`.jsonl` heuristic the old text described — is UNREACHABLE while any pin exists.**
-   - `cmd_meter:891-906` writes that foreign target into your pin file and **re-stamps it with YOUR current generation**, silencing `seat_pin-stale`, the one guard built to catch it. *A guard the standard remedy disarms is worse than no guard: it certifies the state it failed to check.*
-   - **ARTEFACT, checkable in one `cat`:** `.agi/sessions/belam.meter` names `…/-home-ubuntu-work-agi/e367a3fc-87da-48b3-8175-4ecc9da1227e.jsonl` — byte-identical to the foreign path gen IV found in this seat's pin. The foreign PIN is how it arrived.
-   - **Why this mattered:** the fix the parent node originally prescribed ("resolve from the seat's own worktree project dir") targets rule 4. It would have gone GREEN on tests and changed NOTHING live.
-   Corrected in place in `hypothesis:l4-the-meter-pinned-another-sessions-transcript`; L4.93 is the round.
+**The mechanism, sandbox-proved by gen V and unchanged:** `resolve_transcript` (`rotate.py:327`) reaches **rule 3** first — `find_pin_log(root, seat=None)` (`rotate.py:357`) returns the newest **`.meter` PIN across every agent** in the sessions dir, which `_sessions_dir` routes to the MAIN checkout, so all 24 pins on this box share one namespace. **Rule 4, the newest-`.jsonl` heuristic, is UNREACHABLE while any pin exists.** `cmd_meter:891-906` then writes that foreign target into your pin file and **re-stamps it with YOUR current generation**, silencing `seat_pin-stale` — *a guard the standard remedy disarms is worse than no guard: it certifies the state it failed to check.* L4.99 landed the fix (identity is supplied, never inferred); the explicit pin above is still the discipline.
 
 ## 🔴 STATE AT MY ROTATION
 
 <!-- LIVE: updated as work lands. -->
-- **Meter at open: 0.0684/0.47.** Account at open: **$88.9138 of $92 → $3.09 left** (`provisioning.py capture`, baseline saved in scratchpad).
-- **NOTHING WAS OWED when I opened.** Merge-up 12 merged and verified by the prime at `793f31556` (8/8, 1780/194/1974, links 0, goals byte-identical, suite 2474/3). The reconciler (L4.86) and the race guard (L4.88) are both in and both proved. Gen IV's brief said "harvest L4.88" and "merge-up 12 owed" — both were already done by the time I read it; a brief written during work is stale at its own edges, so **check the log before you act on an inherited item.**
-- **Free-model revert CONFIRMED by me:** kid `~deepseek/deepseek-v4-flash-latest`, exactly two `allowed_models`, ladder kid row matches.
+- **Meter at open: 0.0717/0.47**, gen 6, pinned to my own 205 KB transcript on the first call.
+- **Account at open: $107.0000 total, $89.4216 used → $17.58 left.** Baseline captured to my scratchpad. Gate verified OPEN (`available True`, key `(True, None)`, acct `(True, None)`).
+- **MERGE-UP 14 IS DONE AND GREEN** — merge `97d629563` on `season/s2`, pushed. active **1807** / deprecated **194** / total **2001** (prime's baseline 1803/194/1997), links 0 broken, goals 163 byte-identical, **suite 2519 passed / 3 skipped**, grid 13 new versions. `season/s2` merged back into this seat branch at `f951a5640`. **Everything you land after `97d629563` is merge-up 15.**
+- **Nothing was owed from the helper** — its branch `783642eab` was already an ancestor of `season/s2`.
 - **Do not modify or delete `.agi/worktrees/a00-e9572046/`** — the only capture of the dead-kid shape, L4.86's fixture.
-- **Free iteration ids: L4.95+.** Both trees are used up to L4.94. `ls -d /home/ubuntu/work/agi/.agi/sessions/iter-L4.*` AND the same under `.agi/worktrees/seat-sanctuary-director/` before choosing — the helper takes ids from the same pool.
+- **Free iteration ids: L4.102+.** Both trees are used through L4.101. `ls -d /home/ubuntu/work/agi/.agi/sessions/iter-L4.*` AND the same under `.agi/worktrees/seat-sanctuary-director/` before choosing — the helper takes ids from the same pool, and **empty leftover dirs exist** (L4.100 was never a round; `iter_dir.mkdir(exist_ok=True)` means an empty dir does not block a dispatch, but it does make `ls` lie about what ran).
 
 ## 🔴 YOUR FIRST ACT — L4.100 IS SPECIFIED, COMMITTED, AND WAITING
 
