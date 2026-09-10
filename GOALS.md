@@ -886,6 +886,21 @@ CORRECTION 2026-09-05, owner: COMPLETE.md is NOT append-only. It follows the sam
 
 FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6, findings that are not failures -- optional, omitted when there are none -- sits between the failure categories and what was minted. What was minted becomes section 7. Everything else in the list above stands.
 
+### G1.14 — ONE workflow router — every workflow dispatched through it, CC-started ones tracked too — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g1.14
+
+### G1.15 — ONE message router — invisible harness translation for seat-addressed sends — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g1.15
+
+### G1.16 — Survival and ultimate survival as declared, read-not-remembered modes — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g1.16
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -1740,6 +1755,11 @@ Then re-measure and record a corrected baseline on both live projects.
 **Until this lands, no `evidence_fraction` reading means anything** — including
 the post-offload 0.365, of which 33 of 121 surviving verdicts are still
 sentinel-backed. Owns TODO **H4c**.
+
+### G3.2 — Vision-adherence score — the success metric particular to evidence and verdict quality — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g3.2
 
 ## G4 — Right model at the right grain, several goals at once — status: horizon
 
@@ -5787,6 +5807,11 @@ landed 2026-09-02 and `write.py` did not. This goal is the first real consumer
 of it, so it is also the thing that will say whether that seam is right.
 **`goal:s31`** is the first defect it should be able to fix from the inside.
 
+### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g13.2
+
 ## G14 — Local-maxxing: the smallest model that can do the job, everywhere — status: horizon
 
 # goal:g14
@@ -5864,6 +5889,41 @@ OWNER SOURCE 2026-09-07 (verbatim in doc:l3-command-ladder-brief quote 7b): http
 OWNER SOURCE 2026-09-07 19:47 UTC (owner, verbatim: 'Record following link and info under the localmaxxing goal'): https://huggingface.co/datasets/kuben-developer/tiktok-videos-4b — TikTok Videos, 4.5 Billion (kuben-developer): 4.5B TikTok video records, one row per content_id, with caption (desc), create_time, duration, mentions, sound (music_id + music_title, a join key across videos), engagement counts at collection time (views, likes, comments, shares, saves), country, language, is_ad; collected from TikTok's mobile API over about three weeks; 27 zstd Parquet files, about 289 GB (size_categories n>1T); license 'other' = research-use, released as-is for research; languages en/es/pt/id/ar; task tags text-classification, text-generation, feature-extraction, recommender-systems; queryable in place with duckdb over 'videos-*.parquet' without a full download; HF page at fetch time: 6488 downloads, 204 likes, last modified 2026-09-02. Info fetched from the HF API and README by Belam VI.
 
 GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet — deliberately. HANDOFF section 6 item 20 clause (5) made this goal wait on one thing: the Camber Cloud token, which the owner would paste through the secure path and which we were never to ask for. It is there now — CAMBER_CLOUD_API_KEY is set in .env and envfile.py --check passes. Found by Belam VII while going over banked items, not by anyone working this goal, which is why it is written down here: a lifted gate that nobody notices is the same as a gate. The goal also already carries the owner's dataset source from item 30 (kuben-developer/tiktok-videos-4b, 4.5B TikTok rows with captions and engagement counts, 27 zstd parquet files at roughly 289 GB, research-use licence, duckdb-queryable in place). DECISION, recorded as a prime's judgement call under delegated authority: this goal STAYS status horizon until loop L3 closes. Nothing technical blocks it any more; what blocks it is that opening a new front mid-loop is the exact scope creep the delegated-authority terms name as the failure mode to watch, and the L3 queue — the worktree commit, the branch shared-state and tooling gaps, the Masters, one live rotation — is neither finished nor short. The gate being lifted is a fact worth having in the graph the moment it became true; spending the loop's remaining budget on it is a separate decision and it is the owner's. Banked in HANDOFF section 6 with a recommendation.
+
+### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.1
+
+### G15.1 — Build nodes re-attribute to the perpetual goal they actually belong under — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.1
+
+### G15.2 — Rotation record and generation stamp land in ONE write — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.2
+
+### G15.3 — test_send.py's rotate-fixture fires on a live target by accident — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.3
+
+### G15.4 — `--prompt-file` is silently dropped for `--tier parent` — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.4
+
+### G15.5 — `grid.py` is location-blind for a payload under a non-default `location:` — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.5
+
+### G16.1 — The seven success metrics, instrumented — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g16.1
 
 ### G17.1 — The Texas two-step formation — two director-kids on one goal: point + helper — status: active
 
