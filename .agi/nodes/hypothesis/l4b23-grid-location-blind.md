@@ -90,3 +90,90 @@ check above actually ran). `evidence_runs` must be a list of node ids that
 resolve in the corpus; your own experiment node counts once it exists.
 List every verify command and its actual output in the body, including
 the exact `locations:` key and path you tested against.
+
+## L4.12 FOLLOW-UP -- the RED leg is proven, now land the GREEN
+
+Previous round (experiment:a00-0696a133-f021c0, disproved -- correctly:
+it only ran the red leg and the brief requires red-then-green for
+proved) confirmed the defect with real output, in this exact repo'''s
+config shape:
+
+    location=None          grid.resolve_payload=False  locations-resolves=False  AGREES yes
+    location='''source_root'''  grid.resolve_payload=False  locations-resolves=False  AGREES yes
+    location='''graph_root'''   grid.resolve_payload=False  locations-resolves=False  AGREES yes
+    location='''docset'''       grid.resolve_payload=False  locations-resolves=True   AGREES NO <- bug
+
+REAL-WORLD RELEVANCE, not just synthetic: this repo'''s OWN
+`.agi/config.json` already declares a non-default location key --
+`locations: {comms_root: comms/season-2}`. Any existing or future
+build node with `location: comms_root` is ALREADY silently unresolvable
+through `grid.resolve_payload` today. Check whether any node in
+`.agi/nodes/build/` already carries `location: comms_root` (grep
+`payload_ref`+`location:` together) as part of your verify -- if one
+exists, that is a live, not hypothetical, breakage to confirm fixed.
+
+EXACT MECHANISM, already traced (previous kid, verified by reading the
+code): `node_writer.ensure_payload` (node_writer.py:425) and
+`replace_payload` (node_writer.py:454) already call
+`locations.resolve_payload_path(root, ref, location)` -- the correct,
+location-aware resolver, which already handles arbitrary
+`locations:`-declared keys (confirmed: it resolved the scratch
+`docset` key fine). `grid.resolve_payload` (grid.py:339-363) takes NO
+`location` parameter and only ever tries two hardcoded spots. Its
+callers are at grid.py:894 and grid.py:1178 -- both currently pass only
+`(root, payload_ref, engine_root)`; both need the node'''s `location:`
+field threaded through once the signature changes.
+
+FILE: extensions/agi/bin/grid.py (`resolve_payload` and its two callers
+at :894 and :1178). Read-only reference: extensions/agi/bin/locations.py
+(`resolve_payload_path`, already correct -- call into it, do not
+reimplement its logic).
+
+CHANGE: give `resolve_payload` a `location: str | None = None`
+parameter (or thread it from a node'''s frontmatter at each call site --
+your call on the cleanest shape). When a location is given, resolve
+through `locations.resolve_payload_path` the same way
+`node_writer.ensure_payload` does. PRESERVE the staged-checkout-wins-
+over-engine priority for the DEFAULT location (`source_root`) exactly as
+today -- do not let the new location-aware path change behavior for the
+common case, only add coverage for the non-default one.
+
+VERIFY, RED-THEN-GREEN, properly this time -- as a real pytest test in
+extensions/agi/tests/test_grid.py, not a /tmp scratch script (the
+previous round'''s scratch harness proved the point once; this round
+should leave a permanent regression test behind): write a test that
+declares a non-default location key (mirror this repo'''s own
+`comms_root`, or reuse the previous round'''s `docset` shape), writes a
+payload file there, and asserts `grid.resolve_payload` finds it BEFORE
+your fix (this assertion should currently FAIL -- confirm it fails
+first, then apply your fix, then confirm it passes) -- i.e. write the
+test red, watch it fail, then make it pass, do not write the fix first
+and the test after. Also re-run the DEFAULT-location case to confirm no
+regression. Run ONLY `extensions/agi/tests/test_grid.py` -- never the
+full suite (the prime is running it once, coordinated; do not add a
+second concurrent run).
+
+BUILD NODE: this DOES mint a build node for grid.py (parents:
+grid.py'''s existing build node if one exists -- check
+`.agi/nodes/build/` for its `payload_ref` -- plus `goal:g15`, per
+`goal:s29`'''s `[build:<id>, goal:<id>]` shape for a new version of an
+existing file). Never a bare `[goal:<id>]`.
+
+KID CEILING: 2 -- the mechanism and the fix are already fully traced;
+this is implement-the-fix-and-write-the-real-test work, not discovery.
+
+DO NOT: touch node_writer.py or locations.py (both already correct; if
+your investigation proves otherwise, say exactly why, do not silently
+edit them). Do not change staged-checkout priority for the default
+location. Do not `git add -A`. Do not run `grid.py commit --all` on
+this seat branch, and do not use `season.py merge-up` either -- end at
+`git commit` + `git push` on your own branch/worktree; the seat
+reviews and merges manually.
+
+REPORT: write one NEW `experiment` node whose `parents` is this
+hypothesis (do not edit the previous disproved one -- it stands as the
+red-leg record), with the red-then-green test output and a verdict.
+`evidence_runs` must resolve to real node ids -- cite BOTH your new
+experiment and the previous disproved one, since together they tell the
+whole red-then-green story. List every verify command and its actual
+output.
