@@ -1825,6 +1825,14 @@ def main() -> int:
             "harness": harness_name,
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
+            # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
+            # WHO must be alarmed when this round finishes, stamped at spawn
+            # with NO flag. The dispatcher is the resolved seat (-x-exported
+            # AGI_SEAT, else an inherited one); absent both, the key is
+            # present-but-null and the completion/dm path prints ONE stderr
+            # line naming the gap rather than guessing a pane identity. Never
+            # inferred from a tmux window name or $USER (identity supplied).
+            "dispatched_by": _resolved_seat(args.seat),
         }
         if branch_ref:
             # hypothesis:l3w4-parent-branch-merge-up — the recorded
@@ -2069,6 +2077,41 @@ def _reaper_phase(
         if all_terminal:
             break
         time.sleep(5)
+
+    # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — the reaper's
+    # GIVE-UP. `finished:` with agents still running is a terminal event for
+    # this round: every still-running agent's dispatcher gets exactly ONE dm
+    # naming which agents were still running. No flag; no crash if a dm is
+    # undeliverable or a stamp absent. Re-read from disk (the loop may have
+    # broken before `manifest` bound). A still-running agent is one the
+    # manifest does NOT list as terminal (the reaper's own guard: `if status
+    # not in TERMINAL`).
+    still: list[str] = []
+    try:
+        rows = json.loads(manifest_path.read_text()).get("agents", [])
+    except (json.JSONDecodeError, OSError):
+        rows = []
+    for a in rows:
+        if (a.get("status") or "running") not in TERMINAL and a.get("id"):
+            still.append(a.get("id"))
+    if still:
+        for a in rows:
+            if not a.get("id") or a.get("id") not in still:
+                continue
+            dispatcher = a.get("dispatched_by")
+            if not dispatcher:
+                print(f"warn: no dispatcher stamp for {a.get('id')}; no "
+                      "give-up dm (l4-a-round-alarms-its-dispatcher-)",
+                      file=sys.stderr)
+                continue
+            try:
+                import send as _send
+                _send.send(root, dispatcher,
+                           f"iter={iter_dir.name} still-running={','.join(still)}",
+                           a.get("id"))
+            except Exception as exc:
+                print(f"warn: give-up dm to {dispatcher} failed: {exc}",
+                      file=sys.stderr)
 
     print("reaper: finished")
 
