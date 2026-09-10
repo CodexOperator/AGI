@@ -900,6 +900,24 @@ def main() -> int:
     if args.role is None:
         args.role = _default_role_for_tier(args.tier)
 
+    # hypothesis:l4b23-promptfile-drop — `--prompt-file` is the per-KID
+    # carry-forward channel (see _read_prompt_file and the --prompt-file
+    # help: "threaded into the spawned kid's brief"). A PARENT's brief is
+    # built fresh from its target node every dispatch and consumes no
+    # carry-forward (brief.assemble() threads addendum into _kid but never
+    # into _parent), so `--tier parent --prompt-file X` read X's bytes and
+    # silently threw them away. Refuse loudly at argument-parsing time
+    # instead of accept-and-drop. The parent says --prompt-file on the KID
+    # spawns it cuts, not on its own dispatch.
+    if args.tier == "parent" and args.prompt_file is not None:
+        print("--prompt-file is a per-KID carry-forward channel and does not "
+              "reach a parent's brief (a parent's brief is built fresh from "
+              "its target node every dispatch). Pass it to the KID spawns "
+              "the parent cuts, not to the parent dispatch itself. Refusing "
+              "rather than silently discarding "
+              "(hypothesis:l4b23-promptfile-drop).", file=sys.stderr)
+        return 2
+
     # goal:g11.1 — resolve the given path the way every entry point resolves
     # cwd, rather than demanding it already BE the graph root. Identity on a
     # legacy root (phase 1), so no existing project resolves differently.
