@@ -26,3 +26,23 @@ title: Spend attribution must capture during a round; a post-hoc diff cannot see
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+FIRST REAL ANSWER, taken LIVE while another seat's round was running — which is the one condition a post-hoc read cannot satisfy, and the reason this round insisted on it. Workspace 72750376-2d45-452e-8273-197fdaabae95.
+
+    family                        usage   share  requests
+    qwen/qwen3.8-27b          $  39.20   49.4%     5257
+    LOOP: deepseek (kid)      $  18.96   23.9%    14065
+    codex/openai (azure)      $  12.38   15.6%     1214
+    anthropic/claude-sonnet   $   6.21    7.8%       75
+    LOOP: z-ai/glm (parent)   $   2.60    3.3%     2560
+    TOTAL                     $  79.35
+    THE LOOP  $21.56 = 27.2%      NOT THE LOOP  $57.79 = 72.8%
+
+🔴 THE CONTAINMENT CLOSED THE SECOND-LARGEST SPENDER. The owner found codex on the `backup` key and revoked it; $12.38 against that key's $11.4847 lifetime usage confirms he was right about a real thing. **`qwen/qwen3.8-27b` is three times larger and untouched.** I do not know what it is and I am not guessing: it is not a loop model (kids run deepseek-v4-flash, parents z-ai/glm-flash, both listed separately), and its 5257 requests span five providers. What it IS needs the owner, exactly as the codex question did. Reported, not acted on — keys are his.
+
+WHY THIS VINDICATES THE ROUND'S CENTRAL CONSTRAINT rather than merely using it: for a whole day the only spend instrument anyone had was `account.used`, a single scalar. Every question about it — is the loop expensive, did the reaper cost us, what should we cap — was answered by inference from that one number, and the two most confident inferences of the day (that rounds bill to no managed key; that the $15 cap move was headroom being shifted) were both WRONG. The scalar could not have settled either. Rows by model settle both in one call.
+
+AND THE LOOP'S OWN SHAPE IS WORTH RECORDING while it is measurable: 16,625 requests for $21.56. The ladder's premise — a cheap kid doing the volume under a slightly less cheap parent — is holding, at roughly a tenth of a cent per kid request.
+
+LAG BEHAVED AS SPECIFIED on its first real run: `⚠ LAG: newest row is 2026-09-09 (1d behind today) — activity lags; this is NOT zero spend`. That sentence is the round. Had it printed a total of zero for today, every reader would have drawn the opposite conclusion from the same data.

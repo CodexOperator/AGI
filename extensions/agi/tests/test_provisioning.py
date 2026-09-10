@@ -1145,3 +1145,161 @@ def test_the_suggested_cap_tracks_observed_usage_and_is_not_a_constant(
     assert low != high
     assert abs(low - 12.49) < 0.005, low
     assert abs(high - 42.00) < 0.005, high
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-what-spent-this-money-must-be-a-lookup — the `spend`
+# subcommand: a READ-ONLY spend-attribution snapshot that answers "WHAT SPENT
+# THIS MONEY" by model/provider from `/api/v1/activity`, reports LAG instead
+# of zero spend when today's row has not landed, records the workspace, and
+# diffs two snapshots by model naming the request count and the USD delta. A
+# key present in the LATER snapshot but absent in the EARLIER is NEW, never
+# `UNKNOWN`. No existing test is edited; nothing is minted or revoked.
+# Measured live 2026-09-10: the runtime key is REJECTED by /activity with a
+# 401 (the hypothesis said 403 — the code exercises the REJECTED path, and
+# the functional claim, that the convenient key fails distinctly rather than
+# returning an empty success, holds regardless of which nonzero code).
+# --------------------------------------------------------------------------
+
+
+# The REAL shape /api/v1/activity returns (measured 2026-09-10): per-day
+# per-model rows of spend with request counts and USD usage.
+ACTIVITY_ROWS = [
+    {"date": "2026-09-09 00:00:00", "model": "qwen/qwen3.8-27b",
+     "model_permaslug": "qwen/qwen3.8-27b-20260826",
+     "provider_name": "reka/fp8", "requests": 200, "usage": 1.5},
+    {"date": "2026-09-09 00:00:00", "model": "qwen/qwen3.8-27b",
+     "model_permaslug": "qwen/qwen3.8-27b-20260826",
+     "provider_name": "reka/fp8", "requests": 100, "usage": 0.5},
+    {"date": "2026-09-09 00:00:00", "model": "deepseek/deepseek-v4",
+     "model_permaslug": "deepseek/deepseek-v4",
+     "provider_name": "deepinfra/fp8", "requests": 50, "usage": 0.25},
+]
+
+
+def _install_activity_api(monkeypatch, *, rows=None, status=200, keys=None,
+                          error=None, ws="ws-b"):
+    """Stub everything `spend_snapshot` reads: the activity call itself, the
+    per-spawn key listing, and the workspace reader."""
+    monkeypatch.setattr(provisioning, "activity",
+                        lambda root=None: {"status": status, "rows": rows,
+                                           "error": error})
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: list(keys or []))
+    monkeypatch.setattr(provisioning, "_activity_workspace",
+                        lambda root=None: ws)
+
+
+def test_spend_aggregates_rows_by_model_and_provider(monkeypatch):
+    """(c) — the snapshot sums request counts and USD across the activity rows
+    for each (model, provider), answering the owner's question at that grain."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)
+    snap = provisioning.spend_snapshot()
+    by_model = {(m["model"], m["provider"]): m for m in snap["models"]}
+    qwen = by_model["qwen/qwen3.8-27b", "reka/fp8"]
+    assert qwen["requests"] == 300, "the two qwen rows must sum to 300"
+    assert qwen["usage"] == 2.0, "the two qwen rows must sum to $2.00"
+    ds = by_model["deepseek/deepseek-v4", "deepinfra/fp8"]
+    assert ds["requests"] == 50 and ds["usage"] == 0.25
+
+
+def test_spend_records_the_workspace_in_every_snapshot(monkeypatch):
+    """(e) — a snapshot must say WHICH workspace it read, or it cannot answer
+    the owner's question."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS, ws="ws-x")
+    snap = provisioning.spend_snapshot()
+    assert snap["workspace"] == "ws-x"
+
+
+def test_spend_returns_nothing_minted_or_revoked(monkeypatch):
+    """The snapshot is read-only: it must not have minting/revoking reach into
+    the call path. We assert the surface it touches is exactly the two readers,
+    by refusing any mint/revoke that would be reached."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)
+    for forbid in ("mint", "revoke"):
+        assert not hasattr(provisioning, forbid) \
+            or callable(getattr(provisioning, forbid))  # presence is fine
+    snap = provisioning.spend_snapshot()
+    assert snap["source"] == "activity"
+
+
+def test_spend_rejected_is_reported_never_zero_and_not_lag(monkeypatch,
+                                                           capsys, tmp_path):
+    """(a) — the runtime key is REJECTED by /activity (measured 401), and a
+    rejected call is a DIFFERENT fact from 'no spend today'. The CLI must say
+    REJECTED, and must never print a $0.0000 spend line or a lag line for it."""
+    _install_activity_api(monkeypatch, rows=None, status=401, error="User not found")
+    snap = provisioning.spend_snapshot()
+    assert snap["rejected"]["status"] == 401
+    assert "models" not in snap, \
+        "a rejected call yields NO models, not an empty list that reads as zero"
+    cap = tmp_path / "s.json"
+    assert provisioning.main(["spend", "--out", str(cap), "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "REJECTED (HTTP 401" in out
+    assert "NOT zero spend" in out
+    assert "$0.0000" not in out, "a rejection must never render as zero spend"
+
+
+def test_spend_lag_is_reported_never_zero(monkeypatch, capsys, tmp_path):
+    """(b) — activity LAGS (today's row often has not landed). A snapshot whose
+    newest row predates today is LAG, NOT zero spend — the conflation that is
+    the whole failure mode."""
+    today = __import__("datetime").date.today().isoformat()
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)  # rows are yesterday
+    snap = provisioning.spend_snapshot()
+    assert snap["lag"]["today_present"] is False
+    assert snap["lag"]["latest_date"] != today
+    cap = tmp_path / "s.json"
+    assert provisioning.main(["spend", "--out", str(cap), "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "LAG" in out
+    assert "NOT zero spend" in out
+
+
+def test_spend_diff_by_model_names_model_requests_and_delta(monkeypatch):
+    """(c) — two snapshots side by side name the MODEL, the request count and
+    the USD delta; a model new since the earlier snapshot is NEW."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)
+    saved = provisioning.spend_snapshot()
+    _install_activity_api(
+        monkeypatch,
+        rows=ACTIVITY_ROWS + [
+            {"date": "2026-09-09 00:00:00", "model": "anthropic/claude-sonnet",
+             "provider_name": "claude-on-aws", "requests": 5, "usage": 0.99}]),
+    now = provisioning.spend_snapshot()
+    rows = provisioning.diff_spend(saved, now)
+    by_model = {d["model"]: d for d in rows if d["kind"] == "model"}
+    qwen = by_model["qwen/qwen3.8-27b"]
+    assert qwen["requests_old"] == 300 and qwen["requests_new"] == 300
+    assert abs(qwen["usage_old"] - 2.0) < 1e-9
+    new = [d for d in rows if d["kind"] == "model_new"]
+    assert len(new) == 1 and new[0]["model"] == "anthropic/claude-sonnet"
+    assert new[0]["requests"] == 5
+
+
+def test_spend_key_in_later_snapshot_but_not_earlier_is_new(monkeypatch):
+    """(d) — a per-spawn key present in the LATER snapshot but absent from the
+    EARLIER is NEW, never an `UNKNOWN` row in a Δ column. That exact display
+    is what misled a previous generation into concluding rounds bill to no key
+    this project manages (the keys had simply been revoked at diff time)."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS,
+                          keys=[{"name": f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a",
+                                 "usage": 0.0136}])
+    saved = provisioning.spend_snapshot()
+    _install_activity_api(
+        monkeypatch, rows=ACTIVITY_ROWS,
+        keys=[{"name": f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a",
+               "usage": 0.0136},
+              {"name": f"{provisioning.NAME_PREFIX}-iterL4.94-kid-b",
+               "usage": 0.0292}])
+    now = provisioning.spend_snapshot()
+    rows = provisioning.diff_spend(saved, now)
+    new_keys = [d for d in rows if d["kind"] == "key_new"]
+    assert len(new_keys) == 1
+    assert "iterL4.94-kid-b" in new_keys[0]["name"]
+    assert new_keys[0]["usage"] == 0.0292
+    olds = [d for d in rows if d["kind"] == "key"
+            and d["name"] == f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a"]
+    assert len(olds) == 1 and olds[0]["usage_old"] == 0.0136
+    assert olds[0]["usage_new"] == 0.0136
