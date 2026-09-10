@@ -242,7 +242,10 @@ def test_reaper_give_up_alarms_each_still_running_dispatchers(tmp_path, monkeypa
 
     import time as _time
     monkeypatch.setattr(_time, "sleep", lambda *a, **k: None)
-    dispatch.stall_detect.record_stalled_in_iteration = lambda d: None
+    # monkeypatch, never a bare assignment: `stall_detect` is a shared module
+    # and a leaked stub broke test_stall_detect's hook tests at merge-up 21.
+    monkeypatch.setattr(dispatch.stall_detect, "record_stalled_in_iteration",
+                        lambda *a, **k: None)
     dispatch._reaper_phase(graph, it, FakeAdapter(), timeout_s=600,
                            max_wait_s=1, cap=1, cfg={})
 
