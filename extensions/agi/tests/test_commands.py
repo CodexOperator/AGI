@@ -209,10 +209,19 @@ def test_render_table_preserves_placeholders(project):
 # goal:g11's resolver answers "where is the graph?" from where we stand; a test
 # pinned to a literal path could only testify about one checkout. question 1 is
 # find_project_root (the graph), question 2 is source_root (what it describes).
+#
+# `find_project_root` returns `Optional[Path]`, and the None is handled HERE
+# rather than inside a test. The marker's whole promise is a SKIP when this
+# project's node is absent; a bare `REAL_ROOT / ...` would raise TypeError
+# while the module was still being imported, turning that promised skip into
+# a collection error — a louder failure than the literal it replaced, in the
+# one case the marker exists for. An assertion inside a test body cannot
+# cover this: import happens first.
 REAL_ROOT = locations.find_project_root(Path(__file__).resolve())
-SOURCE_ROOT = locations.source_root(REAL_ROOT)
+SOURCE_ROOT = locations.source_root(REAL_ROOT) if REAL_ROOT else None
 real_only = pytest.mark.skipif(
-    not (REAL_ROOT / commands.COMMANDS_NODE_REL).is_file(),
+    REAL_ROOT is None
+    or not (REAL_ROOT / commands.COMMANDS_NODE_REL).is_file(),
     reason="this project's own commands node is not present")
 
 
