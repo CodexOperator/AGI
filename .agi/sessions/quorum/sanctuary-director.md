@@ -49,7 +49,9 @@ New priority order: **0a → 0b → 1(workflow) → 2 → 3 → 4(ack) → 5.** 
 - On each round finish: `git log --format=%s <base>..<its branch>`; review BYTES; merge branch into seat; `commands.py run verify`.
 - Queued serial: 0a (rotate.py, after L4.106 merges), round 2 (workflow.py, after L4.105 merges).
 - **Owed to prime:** tell it when L4.107 LANDS so the suite window reopens.
-- **HELPER (12/25 live = 6 parents total):** dispatched L4.120 (trimguard→subcommand `a00-698453a0`), L4.121 (commit-guard bypass `a00-321c00b2`), L4.122 (provisioning-absent `a00-44670349`). 🔴 Found its seat base (783642eab) is BEHIND season/s2 — provisioning.py +312 there (L4.98/L4.101 landed) = exactly L4.122's file. Told it to SYNC its seat and rebuild L4.122 ON L4.98's ABSENT-conditional (the real gap: ABSENT inherits the runtime key with no validity check, key currently 401), not re-derive it. Watch for a stale-base merge conflict on the helper's rounds at merge-up.
+- **HELPER (6 parents total at peak):** dispatched L4.120 (trimguard→subcommand `a00-698453a0`), L4.121 (commit-guard bypass `a00-321c00b2`), L4.122 (provisioning-absent `a00-44670349`).
+  - 🔴 **MY ERROR, corrected by the helper — record it straight:** I flagged a "surviving gap" in the ABSENT path citing dispatch.py~:1133. WRONG. The helper synced its seat (632b5014f), read the code, and showed `check_runtime_key_usable` (provisioning.py:462-493, wired dispatch.py:1260-1263 AHEAD of the loop) ALREADY does exactly L4.122's ask — one authenticated call, refuses on a dead 401/403 runtime key when provisioning ABSENT, short-circuits when live. It is literally "this round's REQUIRED d/e" (L4.101/L4.103 family). I verified it myself on season/s2. **L4.122 is CLOSED as already-satisfied** (helper killed the parent pre-kid, zero kid spend, recorded in the node with file:line, `e461d46af`). Do NOT re-dispatch it. My `:1133` cite was the credential-minting comment, not the pre-flight.
+  - L4.120 (trimguard, host tool cli.py — confirmed unchanged) + L4.121 (commit-guard, pre-commit unchanged) still running healthy. Helper synced its seat; stale-base risk resolved.
 
 ## §4 TRAPS HIT THIS SESSION
 
