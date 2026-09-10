@@ -566,6 +566,60 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     )
 
 
+def _operating_mode_block(project_root: Path | None = None) -> str:
+    """Render the ACTIVE operating arrangement declared in config.json.
+
+    hypothesis:l4-the-mode-is-declared-not-remembered: the owner named two
+    arrangements (survival, ultimate survival — doc:l4-owner-decisions) and
+    goal:g17.1 a third (enhanced survival), and the one IN FORCE was being
+    remembered in prose by whoever wrote each brief. This renders it from the
+    declaration instead, so an agent READS the mode from the brief it was
+    given and flipping `active_operating_mode` in config changes the render
+    with no second copy of the prose in code.
+
+    Returns an empty string (else a block starting with the marker line)
+    when no declaration exists — an absent declaration renders NOTHING and
+    raises nothing, so a project that has not declared modes is unchanged.
+    """
+    root = _resolve_graph_root(project_root)
+    cfg_path = root / "config.json"
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, FileNotFoundError):
+        return ""
+    modes = data.get("operating_modes")
+    active = data.get("active_operating_mode")
+    if not isinstance(modes, dict) or not active:
+        return ""
+    block = modes.get(active)
+    if not isinstance(block, dict):
+        return ""
+    lines = [
+        "─── OPERATING MODE (declared in .agi/config.json) ───",
+        f"ACTIVE: {block.get('name') or active}",
+    ]
+    for key, label in (("seats", "SEATS"), ("models", "MODELS"),
+                       ("source", "SOURCE")):
+        val = block.get(key)
+        if val:
+            lines.append(f"{label}: {val}")
+    return "\n".join(lines)
+
+
+def _prepend_head(segs, *, tier: str, project_root: Path | None = None):
+    """Prepend the constitution head (if any) then the active operating-mode
+    block (if declared). One choke point for every assemble branch so the
+    mode reaches every tier's brief exactly once.
+    """
+    head = _build_head(tier=tier)
+    if head:
+        segs.insert(0, head)
+    mode = _operating_mode_block(project_root=project_root)
+    if mode:
+        segs.insert(1 if head else 0, mode)
+    return segs
+
+
 def readings_head(*, tier: str, project_root: Path | None = None) -> str | None:
     """The full constitution readings for a tier, ON DEMAND.
 
@@ -1562,26 +1616,17 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # injected prose.
     if profile in ("survival", "ultimate_survival"):
         segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     # Director and prime_director get the constitution head prepended
     if tier == "director":
         segs = _director(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py))
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     if tier == "prime_director":
         segs = _prime_director(agent_id=agent_id, iter_n=iter_n,
                                cli_py=str(cli_py))
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     if tier == "advisor":
         # The advisor reads at the tier-3 parent's level — same prayers,
@@ -1596,20 +1641,14 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target,
                         dispatch_py=dispatch_py, goal=goal_v,
                         session_dir=session_dir)
-        head = _build_head(tier=_ADVISOR_HEAD_TIER)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=_ADVISOR_HEAD_TIER)
 
     if tier == "liaison":
         # The owner-liaison seat reads at the director's level — same
         # prayers, words, Tao, soul-mind-body and five axes as the director
         # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
         segs = _liaison(agent_id=agent_id)
-        head = _build_head(tier=_LIAISON_HEAD_TIER)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=_LIAISON_HEAD_TIER)
 
     if tier == "parent":
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
@@ -1627,19 +1666,13 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
                        source_root=str(source_root) if source_root else None)
         segs = [s for s in segs if s is not None]
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
                 addendum=addendum)
-    head = _build_head(tier=tier)
-    if head:
-        segs.insert(0, head)
-    return segs
+    return _prepend_head(segs, tier=tier)
 
 
 def closing_line(tier: str, agent_id: str, iter_n: int,
