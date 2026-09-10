@@ -192,3 +192,78 @@ def test_json_carries_every_check_fact(tmp_path):
     # every check field is data, no prose-only key.
     assert set(doc["checks"][0].keys()) <= {"name", "status", "elapsed",
                                             "number", "note"}
+
+
+# --- the two Prime rulings at the L4.44 harvest ------------------------------
+# Both are defects I found in the bytes after the round's own review passed:
+# one ceiling for every check, and a lock that refused without saying by whom.
+
+
+def test_suite_has_its_own_ceiling_far_above_the_per_check_one():
+    """The engine suite is ~2300 tests. Under one shared 600s ceiling the check
+    that legitimately takes minutes is the one check that false-FAILs, and a
+    green suite gets reported as `timed out after 600s` — a failure the tool
+    invented. The suite gets its own, larger ceiling; a hang is still caught."""
+    assert verification.SUITE_TIMEOUT > verification.PER_CHECK_TIMEOUT
+    assert verification.SUITE_TIMEOUT == 1800
+    assert verification.PER_CHECK_TIMEOUT == 600
+
+
+def test_only_the_suite_check_gets_the_suite_ceiling(monkeypatch, tmp_path):
+    """The larger ceiling is scoped to the suite BY NAME. Widening it to every
+    check would turn a hung link check into a half-hour wait."""
+    class _Proc:
+        returncode = 0
+        stdout = "links: 1 resolved, 0 broken\n"
+        stderr = ""
+
+    table = {
+        verification.SUITE_CMD: type("C", (), {"argv": ["true"], "cwd": None})(),
+        "links": type("C", (), {"argv": ["true"], "cwd": None})(),
+    }
+    monkeypatch.setattr(verification.commands, "load", lambda groot: table)
+
+    calls: list[float] = []
+    monkeypatch.setattr(verification.subprocess, "run",
+                        lambda argv, **kw: (calls.append(kw["timeout"]), _Proc())[1])
+
+    verification.run_check(tmp_path, verification.SUITE_CMD, False)
+    verification.run_check(tmp_path, "links", False)
+    assert calls == [verification.SUITE_TIMEOUT, verification.PER_CHECK_TIMEOUT]
+
+
+def test_lock_acquire_returns_path_and_no_holder(tmp_path):
+    """Success is `(path, None)`: a path to release and nobody to wait for."""
+    path, holder = verification.acquire_suite_lock(tmp_path)
+    assert path is not None and path.exists()
+    assert holder is None
+    assert path.read_text().strip() == str(__import__("os").getpid())
+
+
+def test_lock_refusal_names_the_live_holder_pid(tmp_path, monkeypatch):
+    """A refusal that does not name the holder tells a successor nothing it can
+    act on. The live holder's pid comes back so the message can name it."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("424242")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+
+    path, holder = verification.acquire_suite_lock(tmp_path)
+    assert path is None
+    assert holder == 424242, "the refusal must be able to name who holds the window"
+    # and the live holder's lock is left exactly as it was
+    assert lock.read_text().strip() == "424242"
+
+
+def test_lock_stale_pid_is_broken_and_reacquired(tmp_path, monkeypatch):
+    """A dead holder is not a holder. The stale lock is broken, not obeyed —
+    otherwise one killed run closes the window until somebody deletes a file by
+    hand, and this loop has already had rounds killed mid-flight."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("999999")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: False)
+
+    path, holder = verification.acquire_suite_lock(tmp_path)
+    assert path is not None and holder is None
+    assert lock.read_text().strip() == str(__import__("os").getpid())
