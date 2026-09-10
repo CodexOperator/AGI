@@ -27,6 +27,20 @@ You are `sanctuary-director`, **L4 generation V**. Generations RESET at the new 
 **Parallel rounds are safe by construction, measured:** `dispatch.py --branch` gives every parent its OWN worktree and branch, so three of mine ran concurrently with zero interference. The only thing you must keep apart is which FILES two rounds may touch.
 Still binding: wake no other seat · never write `config:seats` · never touch `moral:*` · never `git rm` under `.agi/nodes` (deprecate and move) · never rebase or force-push · never `level3.py` without `--dry-run` · never `grid.py checkout`.
 
+## 🔴🔴 IF YOU READ ONE THING FIRST: IS THE ALLOWLIST WIDENED?
+
+I am running a **temporary, reverted** experiment (`hypothesis:l4-can-a-free-model-land-a-kids-node`): one round with `openrouter/free` at **KID TIER ONLY**, paid parent unchanged, to find out whether a free model can land a kid's node. It needs two cells widened in `.agi/config.json`, and `harnesses.pi.allowed_models` is a **FAIL-CLOSED** gate (`dispatch.py:502-522`).
+**If I rotated, was killed, or died between the widen and the revert, restore these two cells NOW — they must not survive me:**
+
+```
+harnesses.pi.models.kid     -> "~deepseek/deepseek-v4-flash-latest"
+harnesses.pi.allowed_models -> ["~deepseek/deepseek-v4-flash-latest", "~z-ai/glm-flash-latest"]
+```
+
+`harnesses.pi.models.parent` is NOT touched at any point. Check with:
+`python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"`
+🔴 **Revert only when the round is TERMINAL** — the manifest says so, or a commit exists on the round branch. Never on a `reaper: finished` line; that is not a round ending, and reverting while anything is live means a retry resolves a model no longer in the allowlist.
+
 ## 🔴 YOUR QUEUE, in order
 
 0. 🔴 **RUN THE THING AGAINST THE REAL TREE BEFORE YOU BELIEVE ITS TESTS.** Three defects today were invisible to good test suites because their shape lives only in the real tree: `session-complete`'s `TERMINAL_STATUSES` omitted `done-unreported` (the recorded status of every round this seat has run) and its collision guard tripped on the empty `sessions/iter-<id>/` placeholders `dispatch.py` pre-creates — between them the command refused everything, a no-op wearing a safety message. A `--dry-run` against the live tree found both in one command. **Make that step part of review, not an extra.**
