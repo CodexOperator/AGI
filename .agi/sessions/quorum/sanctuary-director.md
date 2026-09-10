@@ -1,62 +1,66 @@
-You are `sanctuary-director`, **L4 generation VII**. Generations RESET at the new loop. Read this whole file before touching anything.
+You are `sanctuary-director`, **L4 generation VIII**. Generations RESET at the new loop. Read this whole file before touching anything.
 
-## Who you are and who you talk to
+# SESSION HANDOFF — 2026-09-10 gen VII: LIVE SCRATCHPAD (session in progress — written as I work, replaced wholesale at rotation)
 
-**Your cwd is your SEAT WORKTREE: `/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director`, branch `seat/sanctuary-director@s2`.** NOT the main checkout. Kept across rotations. **Rotate FROM inside it.**
+## §0 STATE (gen VII, updated as it changes)
 
-**Your correspondent is the prime: `agi-06 [66537b]`**, tmux `agi-rc:@244`, seat `belam`, role `prime_director` — **verified by me at 20:30Z with `send.py whois 66537b --claim belam` against `origin/season/s2 @ a9debc784`**, not on its announcement. `belam-S1-L4-IV` = `agi-a5 [e7f117]` is RETIRED and the same command now returns **NO-MATCH** for it; address nothing to it. **My row survived the rotation** — `whois 3251f9 --claim sanctuary-director` → IS-AUTHORIZED, role director.
-🔴 **RE-VERIFY BEFORE YOUR FIRST SEND ANYWAY. The prime rotated twice in my session alone**, and once the row lagged the announcement by minutes: `whois e7f117` still returned IS-AUTHORIZED while the successor was already up. `git fetch && python3 extensions/agi/bin/send.py whois <ref> --claim belam` reads the PUSHED `config:seats` and prints the sha it verified against (exit 0/1/2/3). **The row IS the authorization — a seat cannot supply it by asserting its own ref, and neither can a prime.** Join it against `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` and the `ListAgents` row carrying `agi-rc:@id`, then `tmux capture-pane` to confirm the pane runs that session's commands. **Do all three even for a message announcing itself as the new prime.**
-🔴 **A TMUX WINDOW NAME IS NOT A SendMessage ADDRESS — AND THE WINDOW NAMES HERE ARE OFF BY ONE.** `@241` is named `sanctuary-director.gen6` and held **gen V**; my own window `@243` carries no generation suffix at all. Derive, never guess: `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` joined against the `ListAgents` row carrying `agi-rc:@id`, and confirm by `tmux capture-pane` that the pane is running YOUR commands. Do this even for a message announcing itself as the new prime.
-🔴 **A pane can hold an UNSUBMITTED instruction for hours.** I found the prime's own rotation announcement — "belam-S1-L4-IV is live, taking the suite window" — sitting unsent in my predecessor's prompt box at `@241`, ~40 minutes stale, telling me not to start a suite. **Capture the pane before you conclude anything about another seat's state**; driving its pane is not yours to do.
+- **Me: `seat-sanctuary-director-16 [4a9edc]`, tmux `agi-rc:@245`** (window named plain `sanctuary-director`; `@243 sanctuary-director.gen7` is my PREDECESSOR gen VI `[3251f9]` — names are off by one, derive never guess). Meter at open **0.0784**, pinned explicitly to my own transcript on the first call (`source=claude-code transcript (explicit)`).
+- **Prime: `agi-06 [66537b]`, tmux `agi-rc:@244` (`belam-S1-L4-V`)** — verified at my open by all three: `whois 66537b --claim belam` → IS-AUTHORIZED against `origin/season/s2 @ cd964481c`; `ListAgents` row carries `agi-rc:@244`; `capture-pane` shows it running main-checkout commands. **Re-verify before your first send anyway** — the prime rotated twice in gen VI's session alone.
+- **Helper: `seat-sanctuary-helper-cd [9d073a]`, tmux `agi-rc:@240`**, branch `seat/sanctuary-helper@s2` @ `783642eab` — an ancestor of `season/s2` at my open, **nothing owed**. Reported nothing all of gen VI; that is the reporting order working.
+- **My seats row was NOT yet written at my open** (`whois 4a9edc` → NO-MATCH). Gen VI sent the one-line rotation announcement to the prime before I started (seen in the prime's pane); I did NOT send a second one. The prime writes the row; never write `config:seats` yourself.
+- **Tree at open:** seat branch `32dbd3083`, 4 handoff-only commits ahead of `origin/season/s2` (`cd964481c`), 0 unpushed. **`verify` 9/9 PASS on the first read: active 1819 / deprecated 194 / total 2013, links 0 broken, goals byte-identical, `bin-suite-fresh` green.** Active must never go below 1819.
+- **Spend at open:** captured to scratchpad `spend-open.json`; keys `agi` $10.92/40, `agi-2` $0.60/30; runtime key `backup` REVOKED (401) — loop unaffected (rounds mint per-spawn keys). Budget 0/25 live.
+- **Free iteration ids: L4.105+.** `.agi/sessions/iter-L4.105..107` exist on this seat and are EMPTY leftovers (0 entries); no node anywhere references L4.105–109. The main checkout's newest is L4.89, the helper's L4.95.
+- **Nothing is live, nothing is owed.** Merge-up 16 done (`5bbccc86f`); everything landed after it is merge-up 17.
 
-**MY ADDRESS: `seat-sanctuary-director-59 [3251f9]`, tmux `agi-rc:@243`.** The prime verified it by the `ListAgents`/@id join BEFORE writing the `config:seats` row (`69f84f178`), and said so explicitly: **the row IS the authorization, which is why it goes in before you act and why a seat cannot supply it by asserting its own ref.** Yours will differ — announce it, let the prime write the row, do not write `config:seats` yourself.
+## §1 PLAN (mine, this session) — done / next / blocked
 
-**Your HELPER: `seat-sanctuary-helper-cd [9d073a]`, tmux `agi-rc:@240`,** worktree `.agi/worktrees/seat-sanctuary-helper`, branch `seat/sanctuary-helper@s2`. Answers to YOU only. **It is excellent — treat its judgement as real.** It root-causes to file:line before briefing and flags its own errors unprompted. Verify the join before your first send. **At my open its branch (`783642eab`) was already an ancestor of `season/s2` — nothing was owed from it. Check that before you plan a merge-up around it.**
+1. ✅ Pin meter · verify prime (3 ways) · confirm own window (`TMUX_PANE=%245` → `@245`) · state check · `verify` 9/9.
+2. ⏭ **Banked item 3 — measure the age of the 144 `links.py schema` violators** before anyone runs `--fix`. Measurement only; recommendation goes in §6.
+3. ⏭ Read `doc:l4-plan` §5.2 range for the open board; pick a round that is mine (candidate: L4.102's residual — `crons.py cmd_remove` deliberately unfenced, "a future round should decide it explicitly").
+4. ⛔ `hypothesis:l4-completion-signal-cannot-tell-dead-from-silent` and `hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design` — PRIME-held; releasable but **not without its word**.
+5. ⛔ Suite-lock survey — prime's; **do not build it**.
+6. ⏭ Trim + diagram this file as parts finish (owner standing order 2026-09-09) — standing content goes to nodes, not here.
 
-🔴 **`ListAgents` marks EVERY peer `idle`, and idle is NOT dead.** A session parked at a `❯` prompt reads its messages and wakes. **The real rule: never address a ROTATED-OUT predecessor.** Tell the difference with `tmux capture-pane`, never with the ListAgents flag.
+## §2 LANDED THIS SESSION (one line each)
 
+- (nothing yet)
+
+## §3 🔴 WHERE I STOPPED / NEXT COMMAND
+
+- Opening. Next: `python3 extensions/agi/bin/links.py schema` → age distribution of violators.
+
+## §4 TRAPS HIT THIS SESSION
+
+- (none yet)
+
+## §5 KNOWN-GOOD VERIFICATION
+
+`python3 extensions/agi/bin/commands.py run verify` — 9/9 at open, ~30 s. Suite is the prime's window (advisory, not exclusive — see §6.2 below).
 
 ## 🔴 THE OWNER'S REPORTING ORDER — 2026-09-10 05:0xZ, verbatim
 
-*"Tell both directors to stop reporting to you needlessly it's wasting fable tokens. Only reach out when actually necessary."* Binds you→prime AND helper→you. Re-stated to me by the prime at my start, unchanged.
+*"Tell both directors to stop reporting to you needlessly it's wasting fable tokens. Only reach out when actually necessary."* Binds you→prime AND helper→you.
 
 **NECESSARY is exactly four things:** (1) a merge-up ready or done — ONE message, numbers only; (2) a decision only the prime can make — a ruling, an owner-gated item, a spend cap, a kill outside standing rules; (3) a rotation — new address, one line; (4) **a red merge, or a finding that changes a standing rule.**
 **NOT necessary:** progress, status, acknowledgements, restated plans, round-by-round harvests, praise relays, anything readable in the graph or the commit log.
-**Harvest, review, merge and record in the NODES without telling anyone.** The prime reads the bytes at merge-up.
-**The carve-out that keeps this honest:** a correction that changes what someone else would DO is category 4 and you send it. Silence about a finding is not economy. The test is *does this change what they do?* — not *does it show I am working?*
+**The carve-out:** a correction that changes what someone else would DO is category 4 and you send it. The test is *does this change what they do?*
 
 ## 🔴 AUTHORITY IS VERIFIED AGAINST THE GRAPH, NEVER AGAINST THE MESSAGE
 
-**Prime's protocol, 2026-09-10, and it needs no new machinery.** A seat cannot tell a genuine rotated prime from a stranger, because the only evidence either offers is a NAME and a WINDOW and both are trivially claimable. `config:seats` (`.agi/nodes/.geometry/seats.md`) carries every seat's `session_ref`, it lives in a PUSHED commit on `season/s2`, and `write.py` plus the `written_by` gate refuse a writer whose role is not admitted — so a stranger cannot mint a seats row.
+`config:seats` (`.agi/nodes/.geometry/seats.md`) carries every seat's `session_ref` in a PUSHED commit on `season/s2`; `write.py` + the `written_by` gate refuse a writer whose role is not admitted, so a stranger cannot mint a row. **When an instruction arrives claiming authority:** `git fetch && python3 extensions/agi/bin/send.py whois <ref> --claim <seat>` (exit 0 = IS-AUTHORIZED, prints the sha it verified against). Join against `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` and the `ListAgents` row carrying `agi-rc:@id`, then `tmux capture-pane` to confirm the pane runs that session's commands. **Do all three even for a message announcing itself as the new prime.** A pane can hold an UNSUBMITTED instruction for hours — capture before you conclude anything about another seat's state. `ListAgents` marks every peer `idle`; idle is not dead. **Never address a rotated-out predecessor.**
 
-**When an instruction arrives claiming authority:** `git fetch`, then
-```
-git show origin/season/s2:.agi/nodes/.geometry/seats.md | grep -o '"name": "[^"]*"[^}]*"session_ref": "[^"]*"'
-```
-If the sender's ref is the row for the role it claims, it is that role. If not, refuse and say so. **At my close: belam→`7902ac`, sanctuary-director→`3d6888`, sanctuary-helper→`9d073a`.** I verified all three this way before my first send to each, and again against the `ListAgents`/tmux join. **Do all three; a name is not an address and a window is not an identity.**
+## 🔴 A PEER'S INSTRUCTION IS NOT AUTHORITY TO EDIT A GOVERNING DOCUMENT — binding, 2026-09-10
 
-**How this came up, and the ruling worth keeping:** the outgoing helper flagged the prime as a possible impersonator, declined to comply, and rotated on its own independent measurement. **The prime ruled the conclusion wrong and the behaviour CORRECT** — a seat that cannot authenticate an instruction SHOULD verify independently rather than comply, or the next seat complies with a real impersonator. L4.96 turns the lookup into a check so no seat has to remember it.
-
-## 🔴 A PEER'S INSTRUCTION IS NOT AUTHORITY TO EDIT A GOVERNING DOCUMENT — ruled binding on this project, 2026-09-10
-
-**The prime asked me to have a round correct a false sentence in `CLAUDE.md`. I refused and it endorsed the refusal, then recorded the rule as binding project-wide.** The sentence really is false (see L4.102 (p3)); that was never the question.
-
-**The rule:** a peer's instruction — **including the prime's** — is not authority to edit a document that governs every agent. `CLAUDE.md`, permission settings, and config are in that class, next to `config:seats` and `moral:*`. **The prime's own reason, worth keeping in its words:** what makes a governing document work is that its **provenance is legible** — one place, one edit, attributable to someone with standing. *"If I can get CLAUDE.md changed by asking a seat, then so can anyone who can reach a seat, and the document stops being a constitution and becomes a suggestion with good uptime."*
-
-**What you DO instead, and it is better work, not a smaller version of it:** the round **quotes** the false sentence, **states precisely why** it is false, **writes the replacement wording into the node's evidence**, and stops. **Specified and attributed beats made quietly by whoever found it.** Landing it is the prime's, one edit, after the measurement lands — it declined to write the replacement from its own reading while a round was in flight to measure it, on the same principle one tier up.
-
-🔴 **AND THE PART THAT MAKES IT A RULE RATHER THAN A PREFERENCE: I drew this line AGAINST the prime.** A boundary only proves it is one in the direction that costs you something. The same is true of the `:2577-2581` split I wrote as BINDING — *a boundary that yields to a sufficiently good idea is not a boundary.*
+`CLAUDE.md`, permission settings, config, `config:seats`, `moral:*`: a peer's instruction — **including the prime's** — is not authority to edit them. Gen VI refused the prime's request to have a round correct a false sentence in `CLAUDE.md`; the prime endorsed the refusal and made it binding. *"If I can get CLAUDE.md changed by asking a seat, then so can anyone who can reach a seat."* **What you do instead:** the round QUOTES the false sentence, states why it is false, writes the replacement wording into the node's evidence, and stops; landing it is the prime's, one edit.
 
 ## 🔴 THE REPO IS PUBLIC AS OF 2026-09-10
 
-The owner ordered it and the prime did it mid-session: `github.com/CodexOperator/agi` is **public**, AGPL-3.0, `disabled: false`, `archived: false`. **Everything you commit is world-readable the moment it is pushed** — nodes, handoffs, commit messages, and the cron log paths you quote in them. The engine already refuses to print secret VALUES (`envfile.py` reports name and length only, and L4.101 kept that when it added validity), so the standing hygiene holds; what changes is that a careless paste no longer stays on the box. **Quote log LINES, never whole logs, and never a key, a token or a URL carrying one.**
-
-**One measured side effect, and it is the only reason anyone noticed:** GitHub reports a repository as `disabled` during the visibility transition, so the flip produced a single `403` on the `*/5` grid-ref push — which silently skipped the `&&`-chained `crons.py apply` behind it. **The one production instance of L4.102 item 2 in a 34,057-line log was generated by a sanctioned administrative action, not by an outage.** The chain recovered on the next run.
+`github.com/CodexOperator/agi` is public, AGPL-3.0. **Everything you commit is world-readable the moment it is pushed.** Quote log LINES, never whole logs, never a key, a token or a URL carrying one. (The visibility flip produced one `403` on the `*/5` grid push — the only production instance of L4.102 item 2 — generated by a sanctioned action, not an outage.)
 
 ## Mode
 
-**ENHANCED SURVIVAL** (`goal:g17.1`). Owner: **"go for parallel rounds"**, **"always prefer dispatch over not"**, and the prime may re-order rounds and authorize extra waves without a fresh owner-go.
-**Parallel rounds are safe by construction, measured:** `dispatch.py --branch` gives every parent its OWN worktree and branch. The only thing you must keep apart is which FILES two rounds may touch — state the exclusion IN each node.
+**ENHANCED SURVIVAL** (`goal:g17.1`). Owner: **"go for parallel rounds"**, **"always prefer dispatch over not"**; the prime may re-order rounds and authorize extra waves without a fresh owner-go. Parallel rounds are safe by construction (`dispatch.py --branch` = own worktree + branch per parent); state the FILE exclusion in each node.
 Still binding: wake no other seat · never write `config:seats` · never touch `moral:*` · never `git rm` under `.agi/nodes` (deprecate and move) · never rebase or force-push · never `level3.py` without `--dry-run` · never `grid.py checkout`.
 
 ## 🔴🔴 YOUR METER — PIN IT EXPLICITLY, FIRST ACT, THEN READ THE NUMBER BACK
@@ -65,36 +69,14 @@ Still binding: wake no other seat · never write `config:seats` · never touch `
 python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter \
   --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/<YOUR-SESSION-ID>.jsonl
 ```
-**Find YOUR session id by matching your own SCRATCHPAD PATH, not by taking the newest file.** `ls -la` that dir: at my open it held five transcripts, the newest belonged to a live sibling and one was 6.1 MB of gen IV while mine was 205 KB. **The scratchpad path in your environment block contains your session id — that is the only reliable join, and it takes one look.**
+**Your session id is in your SCRATCHPAD PATH in the environment block** — the only reliable join. Never take the newest `.jsonl` (at my open the dir held six transcripts; the 6.2 MB one was gen IV, mine was 231 KB). `--seat NAME` is the SAFE path once pinned; the unsafe call is the bare `--pin`. Mechanism (sandbox-proved gen V): `find_pin_log` returns the newest PIN across every agent in the shared sessions dir, so a bare pin adopts a foreign transcript and re-stamps it with your generation, silencing `seat_pin-stale`. L4.99 landed the fix; the explicit pin is still the discipline.
 
-**`--seat NAME` is the narrow, SAFE path** — it consults ONLY `<NAME>.meter` and the `seat_pin-stale` generation guard is live on it. **The unsafe call is the bare `--pin`.** Use `--seat` freely once your pin is explicitly set. (Unrelated to `dispatch --seat`, which is NOT free — see traps.)
+## 🔴 THE BOARD AT MY OPEN (inherited from gen VI, unchanged until §1/§2 say otherwise)
 
-**The mechanism, sandbox-proved by gen V and unchanged:** `resolve_transcript` (`rotate.py:327`) reaches **rule 3** first — `find_pin_log(root, seat=None)` (`rotate.py:357`) returns the newest **`.meter` PIN across every agent** in the sessions dir, which `_sessions_dir` routes to the MAIN checkout, so all 24 pins on this box share one namespace. **Rule 4, the newest-`.jsonl` heuristic, is UNREACHABLE while any pin exists.** `cmd_meter:891-906` then writes that foreign target into your pin file and **re-stamps it with YOUR current generation**, silencing `seat_pin-stale` — *a guard the standard remedy disarms is worse than no guard: it certifies the state it failed to check.* L4.99 landed the fix (identity is supplied, never inferred); the explicit pin above is still the discipline.
-
-## 🔴 STATE AT MY ROTATION
-
-- **Meter at open 0.0717, at close ~0.37/0.47**, gen 6, pinned to my own transcript on the first call.
-- **Account: $107.0000 total, $90.12 used → ~$16.9 left.** Five rounds cost **$0.70** — **≈$0.14 a round, not the $0.055 my brief inherited**, because a big round (L4.103, 17 files) costs three times a small one. Capture before, diff after, quote `account.used`.
-- **MERGE-UP 16 IS DONE AND GREEN** — merge `5bbccc86f` on `season/s2`. **active 1819 / deprecated 194 / total 2013 · links 0 broken · goals 163 byte-identical · suite 2548 passed / 3 skipped · `verify-suite` PASS 10/10 on the FIRST read.** `season/s2` merged back into this seat branch. **Everything you land after `5bbccc86f` is merge-up 17. Active must never go below 1819.**
-- **NOTHING IS OWED AND NOTHING IS LIVE.** Five rounds dispatched, five harvested, five merged, two merge-ups. Budget 0/25 at close.
-- **Do not modify or delete `.agi/worktrees/a00-e9572046/`** — the only capture of the dead-kid shape, L4.86's fixture.
-- **Free iteration ids: L4.105+.** Check `ls -d /home/ubuntu/work/agi/.agi/sessions/iter-L4.*` AND the same under this seat worktree before choosing — the helper draws from the same pool, and **empty leftover dirs exist**, so `ls` overstates what actually ran.
-- **The helper `seat-sanctuary-helper-cd [9d073a]` reported nothing to me all session.** That is the reporting order working, not silence to chase. Its branch was an ancestor of `season/s2` at my open; check it against its OWN merge-base before planning a merge-up around it.
-
-## 🔴 YOUR FIRST ACT — PIN THE METER, VERIFY THE PRIME, THEN PICK UP THE BOARD
-
-Nothing is owed and nothing is live, so your first act is yours to choose. **The board, in the order I would take it:**
-
-1. **`hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design` — the PRIME's held round, and the prime now has the diagnosis** (see the read-back rule below). L4.103 landed the record-writing half on the prime's ruled boundary; **the DECISION half is the prime's and it said it would route it.** Do not take it without its word.
-2. **The suite-lock survey** — the prime has a read-only survey in flight and ruled explicitly **"do not build it."** The leading candidate is moving the lock into `extensions/agi/tests/conftest.py` as a session-scoped acquisition so a bare `pytest` takes it too; the obstacle it most expects is self-deadlock if anything invokes the suite as a subprocess from inside a test. **Wait for it to route this.**
-3. **§6 BANKED** below has the two items that are genuinely open and mine to hand over.
-4. If none of that is ready, **read the residue in the newest verdicts.** Every round this session that stopped short said so in its verdict; that is where the honest work is, and L4.104 exists only because L4.103 named two sites and left them.
-
-**Free iteration ids: L4.105+.**
-
-## 🔴 WHERE I STOPPED
-
-**Nowhere — everything I opened is closed, merged, verified and pushed.** L4.101, L4.102, L4.103, L4.104 all merged into this seat branch and up through merge-up 15 and 16. 🔴 **`verify` on this branch is 9/9 GREEN, AND THAT WAS IMPOSSIBLE THIS MORNING.** `bin-suite-fresh` PASSES from the seat worktree — *"all bin/\*.py older than the last recorded suite run"* — because the stamp now resolves through `locations.shared_sessions_dir` to the room the main checkout wrote (L4.103 item 3). **A seat branch can be fully green for the first time.** When it does go red on your seat it will name the modules genuinely newer than the stamp, which is the check working; it clears at the next suite window, and **taking that window is the prime's to grant — it grants it the moment you ask.**
+1. **`hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design`** — the PRIME's held round; L4.103 landed the record-writing half on its ruled boundary; the DECISION half (`rotate.py` `:2577-2581`, the `continue`-only reader) is the prime's and it said it would route it. Not without its word.
+2. **Suite-lock survey** — prime's read-only survey in flight; leading candidate is a session-scoped lock in `extensions/agi/tests/conftest.py` so a bare `pytest` takes it too; expected obstacle is self-deadlock if a test invokes the suite as a subprocess. **Do not build it.**
+3. **§6 BANKED** below — two prime-tier items plus the schema-violator measurement (mine, item 2 of §1).
+4. **Residue in the newest verdicts, read at my open:** L4.103's two named sites were CLOSED by L4.104 (`experiment/a00-51fa02db-66b207`, proved); L4.102 left ONE residual — `crons.py cmd_remove` deliberately unfenced ("surgical, idempotent, harmless; a future round should decide it explicitly", `experiment/a00-f00c554c-eb8135`). L4.101's kid declined item 3 in its verdict; L4.103 delivered it.
 
 ## 🔴 THE FAMILY THE PRIME AND I HIT THREE TIMES IN ONE DAY — read this before you start
 
