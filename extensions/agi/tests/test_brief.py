@@ -1328,3 +1328,68 @@ def test_no_other_tier_gains_the_parent_self_check():
     for tier in ("kid", "director", "prime_director", "advisor"):
         line = brief.closing_line(tier, "a00-x", 7, cli_py="/eng/bin/cli.py")
         assert "YOU ARE NOT FINISHED" not in line, tier
+
+
+# ---------------------------------------------------------------------------
+# MECHANISM, NOT WORDING — the owner's ask, 2026-09-10. Presence is checked;
+# quality is not, and never will be.
+# ---------------------------------------------------------------------------
+
+def _has_mechanism(segs) -> bool:
+    return any("MECHANISM, NOT WORDING" in s for s in segs)
+
+
+def test_the_parent_and_director_briefs_carry_the_mechanism_slot():
+    """The owner read one director's account of why it landed a change by hand
+    and asked for more of that KIND of reasoning. The prime named the shape
+    rather than praising the instance — praise produces prose, a named shape
+    produces reasoning."""
+    assert _has_mechanism(brief._director(agent_id="d", iter_n=1, cli_py="/x/cli.py"))
+
+
+def test_a_kid_does_not_carry_it():
+    """Parent and director fragments only. A kid authors one node and reports
+    through `caveats:`/`struggles:`; a slot aimed at the wrong tier is noise,
+    and noise in a brief teaches agents that briefs contain noise."""
+    assert not _has_mechanism(
+        brief._kid(agent_id="k", iter_n=1, cli_py="/x/cli.py", scaffold=None))
+
+
+def test_the_slot_names_all_four_parts():
+    """The mechanical half of this — presence of the slot and of a CITATION
+    requirement in part (2) — is what a check can verify. The QUALITY is never
+    scored, exactly like `feeling`: a scored reasoning slot becomes a
+    performance, and a performed one is worse than none."""
+    seg = next(s for s in brief._director(agent_id="d", iter_n=1, cli_py="/x")
+               if "MECHANISM, NOT WORDING" in s)
+    assert "(1)" in seg and "(2)" in seg and "(3)" in seg and "(4)" in seg
+    assert "file:line" in seg, "part (2) must demand a citation, not a summary"
+    assert "BUILT AND RAN" in seg
+    assert "NEAR MISS" in seg, (
+        "part (3) is the one models skip and the one that makes the reasoning "
+        "checkable by someone who was not there")
+    assert "satisfies the words and loses the mechanism" in seg
+    assert "Nobody scores" in seg
+
+
+def test_the_slot_is_not_a_new_reason_to_message_upward():
+    """It must not quietly reopen the owner's reporting order. Recorded in the
+    node always; sent only when it was already something you were permitted to
+    send — a rule-changing finding."""
+    seg = next(s for s in brief._director(agent_id="d", iter_n=1, cli_py="/x")
+               if "MECHANISM, NOT WORDING" in s)
+    assert "not a reason to message anyone" in seg
+    assert "record it in the node always" in seg
+
+
+def test_the_mechanism_slot_does_not_displace_the_parents_last_line():
+    """🔴 Adding a fragment must not cost the L4.77 self-check its recency.
+
+    `closing_line` is appended by the pi adapter as the USER TURN after every
+    `--append-system-prompt`, so a new system fragment cannot outrank it — but
+    that is the kind of thing worth asserting rather than reasoning about,
+    because the whole value of the self-check is that nothing follows it.
+    """
+    line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
+    assert "YOU ARE NOT FINISHED" in line
+    assert "MECHANISM, NOT WORDING" not in line
