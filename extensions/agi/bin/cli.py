@@ -1199,7 +1199,8 @@ def _trees_match(src: Path, dst: Path) -> bool:
     removed once this says the two trees agree.
     """
     try:
-        src_files = [p for p in src.rglob("*") if p.is_file()]
+        src_files = [p for p in src.rglob("*")
+                     if p.is_file() and _migratable(p.relative_to(src))]
         pending = set(src_files)
         for sp in src_files:
             rel = sp.relative_to(src)
@@ -1211,7 +1212,8 @@ def _trees_match(src: Path, dst: Path) -> bool:
             pending.discard(sp)
         # The destination must not silently hold extra accepted files
         # (symlink targets, intermediates); require a symmetric file set.
-        dst_files = {p.relative_to(dst) for p in dst.rglob("*") if p.is_file()}
+        dst_files = {p.relative_to(dst) for p in dst.rglob("*")
+                     if p.is_file() and _migratable(p.relative_to(dst))}
         return set(p.relative_to(src) for p in src_files) == dst_files
     except OSError:
         return False
@@ -1235,6 +1237,26 @@ def _trees_match(src: Path, dst: Path) -> bool:
 # genuinely different documents, neither a copy of the other. The rule below
 # resolves it by CONTENT SEMANTICS -- never by scan/iteration order -- and
 # always keeps the loser recoverable rather than deleted.
+
+#: `.manifest.lock` is NOT a document (hypothesis:l4-a-manifest-is-a-
+#: document-too, `.manifest.lock` clause): it is a lock file whose only
+#: statement is "some dispatch held a brief rename" (dispatch.py
+#: `_manifest_lock`). Ranking, merging, or carrying it into the landing spot
+#: is meaningless, so it is dropped from the migration entirely -- never
+#: copied, never verified, never a conflict. `.tmp`/`.lock` intermediates are
+#: transient by construction and cannot be the round's bookkeeping either.
+_MANIFEST_LOCK = ".manifest.lock"
+
+#: `win[rel]` sentinel for a path whose target bytes are SYNTHESIZED rather
+#: than copied from a single source (the `manifest.json` union, below).
+_SYNTHESIZE = "SYNTHESIZE-UNION"
+
+
+def _migratable(rel: Path) -> bool:
+    """Is `rel` a document this merge should carry? Everything except
+    `.manifest.lock` -- see the constant's comment: a lock file, not data."""
+    return rel.name != _MANIFEST_LOCK
+
 
 #: Precedence for a conflicting `agent.json` terminal record. Higher rank is
 #: the more authoritative statement of how the agent's round ended and wins
@@ -1275,6 +1297,64 @@ def _src_slug(src: Path) -> str:
     return src.parent.parent.parent.name
 
 
+def _merge_status_rank(entry: dict) -> int:
+    """How authoritative is a `manifest.json` `agents` entry as how that
+    agent's round ended? The SAME ranking as `agent.json` --
+    `_AGENT_STATUS_RANK` (hypothesis:l4-a-manifest-is-a-document-too). A
+    manifest entry and an agent record answer the same question, and two
+    rankings for one question is the defect this chain has been removing all
+    day. An entry with no id/status ranks -1 and never wins a per-id
+    conflict, so junk is never silently treated as a terminal record."""
+    return _AGENT_STATUS_RANK.get(entry.get("status", ""), -1)
+
+
+def _merge_manifests(holders: list[Path]) -> dict:
+    """The UNION of several complementary `manifest.json` docs.
+
+    A `--branch` round's two trees each write the iteration `manifest.json`,
+    and they are NOT versions of one file but two complementary halves of the
+    round's bookkeeping (hypothesis:l4-a-manifest-is-a-document-too): the
+    DISPATCHER's manifest is the launch record -- `commits_ahead`, the
+    parent's restart bookkeeping, the agents it saw dispatch; the CHILD's
+    covers the same round from the contestant's side. Picking one file
+    wholesale by slug name (the alphabet) silently discards the other half
+    from the file a later reader opens first -- the exact defect, one level
+    up, that the `agent.json` content rule exists to fix. So: an agent id
+    held by only one source is kept; an id held by TWO sources resolves its
+    entry by `_merge_status_rank` -- the SAME ranking as `agent.json`, never
+    a second ranking invented for one file; other top-level keys are taken
+    from all sources in slug order, later wins. Order of the merged `agents`
+    list is deterministic (first-seen by slug source then list order). A
+    corrupt or unreadable source manifest contributes nothing and cannot
+    abort the union."""
+    holders = sorted(holders, key=_src_slug)
+    by_id: dict[str, dict] = {}
+    order: list[str] = []
+    top: dict = {}
+    for src in holders:
+        try:
+            m = json.loads((src / "manifest.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError):
+            m = {}
+        for k, v in m.items():
+            if k == "agents":
+                continue
+            top[k] = v
+        for entry in m.get("agents") or []:
+            aid = entry.get("id")
+            if not aid or not isinstance(aid, str):
+                continue
+            if aid in by_id:
+                if _merge_status_rank(entry) > _merge_status_rank(by_id[aid]):
+                    by_id[aid] = entry
+            else:
+                by_id[aid] = entry
+                order.append(aid)
+    merged = dict(top)
+    merged["agents"] = [by_id[aid] for aid in order]
+    return merged
+
+
 def _conflict_winner(rel: Path, holders: list[Path]) -> Path:
     """Deterministic winner for a relative path held by two or more sources.
     Decided by agent-terminal content semantics when the path is a readable
@@ -1307,14 +1387,30 @@ def _merge_plan(sources: list[Path]):
     holders: dict[Path, list[Path]] = {}
     for src in sources:
         for p in src.rglob("*"):
-            if p.is_file():
-                holders.setdefault(p.relative_to(src), []).append(src)
-    win: dict[Path, Path] = {}
+            rel = p.relative_to(src)
+            if p.is_file() and _migratable(rel):
+                holders.setdefault(rel, []).append(src)
+    win: dict[Path, Path | str] = {}
     lose: dict[tuple, str] = {}
     conflicted: dict[Path, tuple] = {}
+    synth: dict[Path, bytes] = {}
     for rel, hs in holders.items():
         if len(hs) == 1:
             win[rel] = hs[0]
+            continue
+        if rel.name == "manifest.json":
+            # Complementary halves, not versions: synthesize the UNION instead
+            # of picking one file by slug. Every source's verbatim manifest is
+            # still kept recoverable under `.conflicts/`. No single slug wins,
+            # so the dry-run labels the winner `union`.
+            win[rel] = _SYNTHESIZE
+            synth[rel] = json.dumps(_merge_manifests(hs)).encode()
+            los_slugs = []
+            for loser in hs:
+                slug = _src_slug(loser)
+                los_slugs.append(slug)
+                lose[(loser, rel)] = f".conflicts/{rel}.from-{slug}"
+            conflicted[rel] = ("union", los_slugs)
             continue
         w = _conflict_winner(rel, hs)
         win[rel] = w
@@ -1326,13 +1422,15 @@ def _merge_plan(sources: list[Path]):
             los_slugs.append(slug)
             lose[(loser, rel)] = f".conflicts/{rel}.from-{slug}"
         conflicted[rel] = (_src_slug(w), los_slugs)
-    return win, lose, conflicted
+    return win, lose, conflicted, synth
 
 
-def _merge_verified(sources: list[Path], target: Path, win: dict, lose: dict) -> bool:
+def _merge_verified(sources: list[Path], target: Path, win: dict, lose: dict,
+                    synth: dict) -> bool:
     """After the merge, every byte from every source is present in the target
-    -- winner bytes at `target/rel`, loser bytes at their `.conflicts` path --
-    and nothing else. Symmetric: a copied target that is Missing or carries an
+    -- winner bytes at `target/rel`, synthesized union bytes at `target/rel`
+    for a `_SYNTHESIZE` winner, loser bytes at their `.conflicts` path -- and
+    nothing else. Symmetric: a copied target that is Missing or carries an
     unexpected file fails. The single operation that is this command's whole
     safety contract: never delete a source on the strength of "the target
     merely exists"."""
@@ -1342,11 +1440,15 @@ def _merge_verified(sources: list[Path], target: Path, win: dict, lose: dict) ->
             if not p.is_file():
                 continue
             rel = p.relative_to(src)
+            if not _migratable(rel):
+                continue
             if win.get(rel) is src:
                 loc = target / rel
             else:
                 loc = target / lose[(src, rel)]
             expected[str(loc.relative_to(target))] = p.read_bytes()
+    for rel, data in synth.items():
+        expected[str((target / rel).relative_to(target))] = data
     return expected == _dir_snapshot(target)
 
 
@@ -1360,6 +1462,8 @@ def _source_landed(src: Path, target: Path, win: dict, lose: dict) -> bool:
         if not p.is_file():
             continue
         rel = p.relative_to(src)
+        if not _migratable(rel):
+            continue
         if win.get(rel) is src:
             loc = target / rel
         else:
@@ -1462,7 +1566,7 @@ def _session_complete(
     if not ready:
         return 0 if dry_run else 1
 
-    win, lose, conflicted = _merge_plan(ready)
+    win, lose, conflicted, synth = _merge_plan(ready)
 
     if dry_run:
         # 🔴 A dry run must show the MERGE PLAN, including which source wins
@@ -1472,6 +1576,12 @@ def _session_complete(
             print(f"session-complete: WOULD migrate {src} -> {target}")
         for rel in sorted(conflicted, key=str):
             wslug, los = conflicted[rel]
+            if wslug == "union":
+                # a synthesized manifest union has no single slug winner
+                print(f"session-complete: CONFLICT {rel} : union of "
+                      f"{', '.join(los)}; original manifests kept at "
+                      f".conflicts/{rel}.from-<slug>")
+                continue
             for loser in los:
                 print(f"session-complete: CONFLICT {rel} : {wslug} wins over "
                       f"{loser} (loser kept at .conflicts/{rel}.from-{loser})")
@@ -1487,7 +1597,10 @@ def _session_complete(
         for rel, wsrc in win.items():
             dp = target / rel
             dp.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(wsrc / rel, dp)
+            if wsrc is _SYNTHESIZE:
+                dp.write_bytes(synth[rel])
+            else:
+                shutil.copy2(wsrc / rel, dp)
         for (lsrc, rel), loc in lose.items():
             dp = target / loc
             dp.parent.mkdir(parents=True, exist_ok=True)
@@ -1505,7 +1618,7 @@ def _session_complete(
     if len(ready) == 1 and not lose:
         landed = _trees_match(ready[0], target)
     else:
-        landed = _merge_verified(ready, target, win, lose)
+        landed = _merge_verified(ready, target, win, lose, synth)
     if not landed:
         print(f"session-complete: VERIFY FAILED -> {target} -- source and "
               f"target differ; removing target, all sources intact")
