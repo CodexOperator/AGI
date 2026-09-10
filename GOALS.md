@@ -5983,6 +5983,11 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.11
 
+### G15.12 — a dead detached kid is never marked terminal, so its parent polls it forever — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.12
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
