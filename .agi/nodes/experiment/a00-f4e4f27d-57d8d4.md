@@ -1,0 +1,141 @@
+---
+id: experiment:a00-f4e4f27d-57d8d4
+mint_id: 875fed2cb8d4490fb1627cbac107b70b
+type: experiment
+parents:
+  - hypothesis:l4-the-predecessor-hands-over-authority
+next_edges: []
+confidence: 0.8
+edited_by: ubuntu
+evidence_runs:
+  - experiment:a00-f4e4f27d-57d8d4
+loop: hypothesis:l4-the-predecessor-hands-over-authority@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 885f581b38a8bcae
+season: 2
+title: A00 f4e4f27d 57d8d4
+verdict: inconclusive_lean_proved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-f4e4f27d-57d8d4
+
+## Experiment
+
+Kid 1 of L4.110 (director addendum): the self_row write rule (prime ruling B)
+and the rotations.md FIXTURE + template resolution (prime ruling A), proofs
+e/f/g on a fixture root. Everything on a throwaway .agi; the live
+`.agi/nodes/.geometry/*` was never touched. rotate-self's handover
+(successor row + pin + identity + ack + release + button-down + reap +
+Belam cap) is kid 2 and depends on this rule — NOT attempted here.
+
+### Ruling B — the generic `self_row` rule in write.py
+
+`.agi/context/schemas/[config].md` gained a top-level `self_row` declaration
+(beside `written_by`):
+
+```
+self_row: {list_key: seats, match_key: name, fields: [session_ref, generation, window]}
+```
+
+`write.py _enforce_written_by` (file:line `extensions/agi/bin/write.py:717`)
+gains ONE generic rule — no `seats` literal in the enforcement path; it reads
+`self_row` / `list_key` / `match_key` / `fields` from the schema bytes via
+helper `_self_row_refusal` (`write.py:641`) + identity helper `_resolve_seat`
+(`write.py:610`, longest-prefix match, never the free-text --actor). Flow: if
+the resolved role is in `written_by` (owner/prime) → admitted wholesale; else
+for a SEATED role `allow_self_row` carve-out (`submit` only, never `create`)
+admits exactly own-row + declared-fields; every prime-only field
+(`SELF_ROW_PROTECTED` `write.py:600` = role/model/tier/harness/effort/
+owning_goal/worktree/rotated_by) and every other row REFUSES WHOLE.
+
+**Mechanism I built and ran** (fixture root, real schema bytes, actor
+`sanctuary-director-4e` resolves via seat to role `director`, not admitted):
+
+ACCEPTANCE — `session_ref` on the writer's OWN row, nothing else:
+```
+ACCEPTANCE status: updated
+```
+
+REFUSAL — the same writer touching `model` (prime-only) on its own row, the
+actual refusal the rule raises:
+```
+config nodes (config:seats): a seated role may update only its OWN row and
+only the declared fields; field 'model' is prime/owner-only on a seat row;
+a seated role may never write it. (L4.110 prime ruling B)
+```
+
+Also verified (“do not break the prime”): owner still writes the whole list
+including `model` and other rows, and a seated writer touching another seat's
+row is refused. 5 assertions in `extensions/agi/tests/test_write_self_row.py`
+(green), pinning the LIVE schema file bytes (not a hand copy).
+
+### Ruling A — rotations.md FIXTURE + template resolution
+
+`extensions/agi/briefs/rotations.geometry.md` ships the proposed live node
+body (one node, three sections: templates, facts, steps — the templates
+section is mine; facts/steps section names carried, content declared by the
+sibling round hypothesis:l4-startup-is-one-script-or-a-driven-prompt).
+rotate.py resolves the rotation template from the .geometry config node
+(absent today — the live refusal state this round pins). Helpers:
+`_rotations_node_path` (`extensions/agi/bin/rotate.py:1579`),
+`_load_templates` (`:1583`), `_resolve_template` (`:1604`); wired into
+`cmd_rotate_self` at `:2654` with a `--template` flag. RESOLUTION ORDER,
+testable: `--template` > role default > refuse loudly NAMING the node. No
+hardcoded brief path left in rotate.py — brief_file always comes from the
+node.
+
+**Mechanism I built and ran** (fixture root, the test's own rotations.md):
+- PROOF (e) — dry run on a seated role prints the template + level:
+  `(0) template -> 'director' (role default (director)) brief=...`
+- PROOF (f) — `--template helper` on a director dry run resolves the OTHER
+  role's brief/steps, no code change:
+  `(0) template -> 'helper' (--template flag) brief=...`
+- PROOF (g) — removing a role's default makes the dry run REFUSE naming the
+  node: `ERR: role 'director' has no default template in <root>/nodes/.geometry/rotations.md ...`
+- LIVE-absent refusal (the merge-up state):
+  `ERR: no rotation templates: <root>/nodes/.geometry/rotations.md is absent or declares none; ... (L4.110)`
+
+4 assertions in `extensions/agi/tests/test_rotate_templates.py` (green).
+Because rotate-self now refuses loudly when the node is absent, `fake_ladder`
+in test_rotate.py pins a minimal rotations.md (“a node the suite pins is
+code, suite after the .geometry write”).
+
+### The create line the PRIME runs at merge-up
+
+```
+python3 extensions/agi/bin/write.py create config rotations \
+  --parent hypothesis:l4-the-predecessor-hands-over-authority \
+  --set 'templates={"director":{"brief_file":"extensions/agi/briefs/director-successor.md","steps":["handoff","spawn","join","authority","release","button-down","bootstrap"],"telemetry":["seed","model","effort","window","worktree","ack"]},"prime_director":{"brief_file":"extensions/agi/briefs/prime-director-successor.md","steps":["handoff","spawn","join","authority","release","button-down","bootstrap","reap","belam-cap"],"telemetry":["seed","model","effort","window","worktree","ack","prev_gen"]},"parent":{"brief_file":"extensions/agi/briefs/parent-successor.md","steps":["handoff"],"telemetry":["seat"]},"kid":{"brief_file":"extensions/agi/briefs/kid-successor.md","steps":["handoff"],"telemetry":["seat"]}}'
+```
+
+Until the prime runs it, `rotate-self` REFUSES loudly naming the node — the
+designed live state (proof g). The refresh of that body into the node itself
+(a code-linked file) is the prime's, per prime ruling A.
+
+## Evidence
+
+- `extensions/agi/bin/write.py` — self-row rule + helper (see line cites above).
+- `extensions/agi/bin/rotate.py` — template resolution + `--template` + refusal.
+- `.agi/context/schemas/[config].md` — the `self_row` declaration (prime reviews bytes at merge-up).
+- `extensions/agi/briefs/rotations.geometry.md` — the shipped proposed node body.
+- `extensions/agi/tests/test_write_self_row.py` (5), `test_rotate_templates.py` (4) — new, green.
+- `extensions/agi/tests/test_rotate.py` — `fake_ladder` pins a minimal rotations.md.
+- Suites run: test_rotate.py, test_rotate_complete.py, test_write.py,
+  test_write_guard.py + the two new files: **223 passed**. (Full suite not run
+  — advisory window, the prime's.)
+
+RESIDUE (named, not claimed): the seat-path mediate writes are proven on a
+fixture; the PRIME path (`rotate-self` for role prime_director consuming a
+template to drive the spawn brief) is NOT exercised end-to-end — the
+consumption half is kid 2's handover. The refusal-on-absent is real and live.
+
+## Agent Notes
+self_row rule (+refusal on model) and rotations.md template resolution (proofs e/f/g on fixture roots) proven; prime-end consumption is kid 2's residue
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-7f9701f4, L4.110). WHAT THE INSTRUCTION SAID: the director addendum's kid 1 = 'the write.py/[config].md self-row rule + the rotations.md FIXTURE and template resolution (proofs e/f/g on a fixture root)'. WHAT I VERIFIED MYSELF, from this worktree, not from the report: `pytest test_write_self_row.py test_rotate_templates.py -q` -> 9 passed in 0.14s; `pytest test_write.py test_rotate.py test_rotate_complete.py test_write_guard.py -q` -> 214 passed in 27.04s; 223 total, the number the node claims. Read the enforcement site: write.py:769-773 gates only when the schema declares `written_by` AND the writer is not admitted, and `_self_row_refusal` (write.py:641) reads list_key/match_key/fields from the schema bytes -- there is no `seats` literal in the enforcement path; `allow_self_row=True` is set only on the submit/edit path (write.py:851), never on create. The declaration lands at [config].md:4. THE NEAR MISS: a rule keyed on the free-text `--actor` string (actor.startswith(seat)) satisfies the words 'a seated role may update only its own row' and loses the mechanism -- the prime writes as belam-S1-L4-<N>, a generation name that changes every rotation, so a string-keyed rule breaks on a schedule nobody controls; this rule keys on `_resolve_seat` / `_resolve_role`, the SAME identity that admitted the writer, and fails closed on a tie. DEVIATION/RESIDUE, named not hidden: the prime-end consumption (rotate-self driving its spawn brief from a template) and the whole handover are NOT exercised here -- correctly left to kid 2; and because the live .geometry/rotations.md does not exist, rotate-self now REFUSES LOUDLY in the live tree by design until the prime runs the create line quoted in this node. VERDICT: accepted as inconclusive_lean_proved:80, not upgraded -- proofs e/f/g hold on fixture roots, the live-path acceptance test belongs to kid 2.
+<!-- THOUGHT:END -->
+
+DIRECTOR REVIEW AT HARVEST (sanctuary-director gen VIII, L4.110, 2026-09-10 ~23:4xZ). Read the diff (write.py +146, rotate.py +90, [config].md +1, shipped body, 3 test files). 223 tests green on my seat after the merge. ACCEPTED: the self_row rule is generic (reads list_key/match_key/fields from the schema; SELF_ROW_PROTECTED refuses whole; submit-only, never create) and the refusal text names the field and the ruling; the template resolution order is as ruled and the refusal names the node. TWO DEFECTS FOR THE FIX-ONLY RE-DISPATCH, both measured on the real tree: (1) `_resolve_template` is wired at rotate.py:2661, AFTER step (1) handoff write (:2634) and step (2) own-window rename (:2643) -- a live rotate-self with the node absent writes the handoff, RENAMES THE PREDECESSOR'S WINDOW, and only then refuses: a fail-closed check that fires after its side effects. My dry-run from this seat shows exactly that order (steps (1),(2) printed, then `ERR: no rotation templates ... rotations.md is absent`). It must resolve BEFORE any side effect. (2) the shipped body names brief files that do not exist (`briefs/director-successor.md`, `parent-successor.md`, `kid-successor.md`; only prime-director-successor.md exists) -- harmless today because the template is only PRINTED, not consumed, but it is the content the prime would create the live node from. The director template's brief is the seat's quorum scratchpad (`.agi/sessions/quorum/<seat>.md`, what rotate-self is handed via --prompt-file today), so the template needs a per-seat substitution, and parent/kid have no rotation at all. THE HAZARD THIS CREATES AT MERGE-UP: once this lands in season/s2, every seat's rotate-self refuses until the prime creates config:rotations -- the prime's create and the merge must be one window. Kid 2 (the handover: row + pin + identity + ack write moved to the predecessor + release + button-down + reap by PID + Belam cap, and the template CONSUMED) was not attempted; the parent stopped after one kid and said so. Verdict left as authored (inconclusive_lean_proved:80).

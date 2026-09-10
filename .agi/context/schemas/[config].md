@@ -1,6 +1,7 @@
 ---
 name: config
 written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
+self_row: {list_key: seats, match_key: name, fields: [session_ref, generation, window]}  # L4.110 prime ruling B: a seated non-prime role may update ONLY its own seat row (the one whose `name` it resolved from) and ONLY these fields; role/model/tier/harness/effort/owning_goal/worktree/rotated_by stay prime/owner-only and a write touching any of them is refused whole. Driven generically by write.py `_enforce_written_by` from THIS declaration.
 structural: true
 derived_from: read-2026-08-25 from lib/find-root.sh, bin/level3.py, bin/grid.py
 fields:
