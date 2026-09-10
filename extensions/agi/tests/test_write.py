@@ -1319,3 +1319,92 @@ def test_replace_body_is_standalone_like_body_patch(project):
     write.verb_note(edit, "a note")
     with pytest.raises(write.EditError):
         write.submit(project, edit, actor="kid", session="s1")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-write-api-root-resolution — the API resolves root descend-only
+# --------------------------------------------------------------------------
+
+def test_create_resolves_root_descend_only_to_dot_agi(tmp_path):
+    """A caller passing the repo root (whose child is the real `.agi/` graph)
+    must mint INTO `.agi/nodes/...`, never a stray `<root>/nodes/...`."""
+    repo = tmp_path / "proj"
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    res, made = write.create(repo, "hypothesis", "new-one", ["goal:g1"],
+                             actor="t")
+    assert res.written
+    target = graph / "nodes" / "hypothesis" / "new-one.md"
+    assert target.exists(), "must land in .agi/nodes/, not <root>/nodes/"
+    assert not (repo / "nodes").exists(), "no stray <root>/nodes/ root"
+
+
+def test_create_wrong_root_refuses_and_writes_nothing(tmp_path):
+    """The falsifier: `write.create(<wrong root>, ...)` must exit non-zero (an
+    EditError) and write NOTHING — the old behaviour wrote the node, printed a
+    warning, and returned success (hypothesis:l4-write-api-root-resolution)."""
+    repo = tmp_path / "proj"
+    (repo / ".agi" / "nodes" / "hypothesis").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text("{}")
+    wrong = tmp_path / "not-a-project"          # no .agi/, not a graph root
+    wrong.mkdir()
+    with pytest.raises(write.EditError) as ei:
+        write.create(wrong, "hypothesis", "nope", ["goal:g1"])
+    assert "root" in str(ei.value)
+    assert not (wrong / "nodes").exists()
+    assert not (repo / ".agi" / "nodes" / "hypothesis" / "nope.md").exists()
+
+
+def test_api_root_never_ascends_into_an_ancestor_graph(tmp_path):
+    """A bare dir whose ANCESTOR is a real graph must REFUSE, not walk up and
+    write into the ancestor's `.agi/` (data-loss-shaped for any test that
+    passed a no-`.agi/` tmp dir). Asserted directly, not inferred."""
+    repo = tmp_path / "repo"
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    inside = repo / "deep" / "dir"              # no .agi of its own
+    inside.mkdir(parents=True)
+    with pytest.raises(write.EditError) as ei:
+        write.create(inside, "hypothesis", "nope", ["goal:g1"])
+    assert "root" in str(ei.value)
+    assert not (graph / "nodes" / "hypothesis" / "nope.md").exists(), \
+        "never ascend: nothing written into the ancestor graph"
+    assert not (inside / "nodes").exists()
+
+
+def test_submit_wrong_root_refuses_and_writes_nothing(tmp_path):
+    """`write.submit(<wrong root>, ...)` must refuse and write nothing, the
+    same descend-only resolution as create (hypothesis:
+    l4-write-api-root-resolution)."""
+    repo = tmp_path / "proj"
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    node = graph / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(
+        '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+        'status: pending\n---\n\nthe body\n')
+    wrong = tmp_path / "not-a-project"
+    wrong.mkdir()
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "status", "active")
+    before = node.read_text()
+    with pytest.raises(write.EditError):
+        write.submit(wrong, e, actor="liborum")
+    assert node.read_text() == before, \
+        "a wrong root must write NOTHING — file stays byte-identical"
+
+
+def test_submit_resolves_repo_root_descend_only(project):
+    """submit also descends a repo root (whose child is `.agi/`) the way the
+    CLI does — a caller passing `project.parent` edits the real graph."""
+    repo = project.parent
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "status", "active")
+    res = write.submit(repo, e, actor="liborum")
+    assert res.status == node_writer.UPDATED
+    text = (project / "nodes/hypothesis/h1.md").read_text()
+    assert "status: active" in text
