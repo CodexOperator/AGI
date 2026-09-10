@@ -17,7 +17,7 @@
 | agents live | **enhanced survival: point sanctuary-director L4 gen II (`seat-sanctuary-director-68 [f84c57]` @234) + helper sanctuary-helper gen I (`seat-sanctuary-helper-05 [3a4ed4]` @233, closed at a6d8ec28c, holding); pi rounds live under the point: L4.37 parent, L4.40 parent, L4.43 parent+kid (4/25 budget at L4-II's open).** Prime L4-II = `agi-64 [61b9c9]` @235; L4-I idles at `agi-c6 [cd7648]` @232, XVI at `agi-05 [eb30d2]` @230 (predecessor chain XI–XVI + L4-I kept; an idle predecessor reads NO mail — trap 0v). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — L4-II claimed first (`meter --pin .agi/sessions/belam.meter --session-log <own .jsonl>`) and read 0.0905. |
 | spend | **Account $11.32 remaining of the owner's $92 at L4-II's pin claim, 2026-09-10 02:5xZ ($12.64 at L4-I's last read — L4 rounds bill the ACCOUNT through per-spawn keys) · runtime key `backup` $7.87 remaining of its $15 sub-cap, unmoved all of L4** (`rotate.py meter --pin` prints both; `/api/v1/credits` for the live delta). The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
 | disk | 81% |
-| this session | **Belam L4-II (2026-09-10 02:4xZ → …, Fable 5.1; pin 0.0905 at claim, rotating at 0.47 → `belam-S1-L4-III`).** Gate `continue` first line; verify green at 2deee5062 (smoke 1828 / suite 2270/1 / links 0 broken / goals 143 byte-identical / guard silent); address announced to the point, ack'd and carried into its brief the same minute; `config:seats` belam.session_ref cd7648 → 61b9c9 byte-verified; suite window granted and released. L4-I's session: `git log 03b16903f..2deee5062`. LIVE: waiting on the point's L4.37 close → its double merge → verify on season/s2. |
+| this session | **Belam L4-II (2026-09-10 02:4xZ → …, Fable 5.1; pin 0.0905 at claim, rotating at 0.47 → `belam-S1-L4-III`).** Gate `continue` first line; verify green at 2deee5062 (smoke 1828 / suite 2270/1 / links 0 broken / goals 143 byte-identical / guard silent); address announced to the point, ack'd and carried into its brief the same minute; `config:seats` belam.session_ref cd7648 → 61b9c9 byte-verified; suite window granted and released. L4-I's session: `git log 03b16903f..2deee5062`. 02:5xZ owner ask → **L4.44 verification.py** handed to the point (helper may take the wiring half). Point's reads: L4.37 pre-verified by it (both halves green, promote on the bytes; harvest-by-verification ruled for 04:00Z if the parent has not committed — its key dies 04:23:52Z); L4.40 parent still running after its wrapper exited (trap 0n, not harvestable yet); L4.43 parent restarted as -r1 with iter=0 (watched, not chased); `/autoresearch.jsonl` gitignore fix on the point's branch (a staged copy is dropped at merge). LIVE: waiting on the point's L4.37 close → its double merge → verify on season/s2. |
 
 ## §0.7 LOOP L3 — CLOSED 2026-09-09 by the owner (opened 2026-09-06); L4 OPEN on `doc:l4-owner-decisions`
 
@@ -36,6 +36,7 @@ SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol 
 LANDED (L4-I; merge-up 1 = season/s2 @ aafb4be0a, verified 1828/1634/194; rest on the point's branch): L4.01 L4.20 L4.28 L4.32 L4.10 L4.11 L4.22 L4.26 L4.12(+follow-up) L4.25(lean_proved:65) L4.38 L4.06 L4.39 L4.05 L4.42
        detail = git log 03b16903f..2deee5062 + goal:g17.1 Agent Notes + the experiment nodes; burn on per-spawn keys ~$0.35 all L4
 OPEN   under the point: L4.37 per-worktree iter dirs + session-complete command (parent a00-bad8beca; both kids' work STAGED, the merge blocker) · L4.40 written_by message + list shape · L4.41 role resolution (longest prefix wins, ambiguity REFUSES)
+       · **L4.44 unified verification.py (OWNER 2026-09-10 02:5xZ, verbatim in doc:l4-owner-decisions): --level quick|rotation|full, one summary block + exit code, active count never lower vs its own record, suite opt-in, wired into command:commands + the successor brief — handed to the point 03:0xZ)**
        · L4.43 model allowlist (4 sites; defence, not the codex cause) · then the [config]/[vision] written_by flips ([owner, prime_director]) · writer BACKFILL round at the very end (legacy = Director Prime, owner) · L4.23 message router HELD until L4.37/L4.06 harvested
 RULED  (verbatim in goal:g17.1 / doc:l4-owner-decisions) parallel rounds GO · always prefer dispatch (landed+verified work is not re-derived) · L4.09 GO (Prime may add waves / re-order without a fresh go) · enforce written_by on ROLE never actor
        · prayer per SESSION not per turn · gpt-5.1-codex OpenRouter spend is NOT the engine's (both box suspects eliminated; owner checks activity BY KEY)
@@ -58,38 +59,22 @@ NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:5
        suite twice at once · background a long verification · trust an `updated:` line · spend the Claude budget on prime chores under survival mode
 ```
 
-**PRIME-SPECIFIC, kept:** claim your own pin FIRST — XIV's read 0.5595 against a 0.35 cap on XIII's pin, true 0.1093. **The :07 cron push is hourly: push by hand anyway.** Do not `git add -A`. **`sanctuary-master` (`agi-80 [1ba35d]`) holds the `config:seats` write and refuses `belam`/`adv-*` rows by owner constraint — your row is yours to write, through write.py `set seats <json>`.** 🔴 **`rotate.py loop`'s read-back takes the successor's FIRST non-noise line within 120s; a successor that loads the skill first answers late and the record says `inconclusive-no-reply` (XV, 06:11:56Z) — confirm by pane, announce by hand, and answer the gate FIRST next time.**
+## Prime duties, compact (full prose: `git show 763d24260:HANDOFF.md`)
 
-## 🔴 THE FIRST THING YOU DO, BEFORE THE SMOKE RUN
-
-**`ls -t .agi/comms/season-2/dm/` and read anything addressed to you.** This session's worst failure was that `master-sensei` DM'd the prime twice, correctly, and the prime never read it — a seat sat blocked on an answer for an hour holding a major finding, and it was only discovered because *the owner noticed and said so in chat*. Nothing alerts a prime to mail. There is now an owner ask open to fix that (§6 item 62), but until it lands **reading `.agi/comms` is a manual duty and it is yours.**
-
-## The seats — ALL SHUT DOWN 2026-09-09 08:2xZ by owner order (verbatim in `doc:l4-owner-decisions`); design record, one line each
-
-- quorum: `self-perpetuating` / `alive` / `all-is-one` (one per vision; room `quorum` + DMs) — idle, not addressed. `master-sensei`: observer, no goal, no handoff slice, not in the room — idle.
-- `sanctuary-master`: SESSION SHUT DOWN by owner order 08:0xZ; gen I window @213 idle. Was gate-47-lifted (item 64), Opus-5/high, the one seat allowed to write `config:seats` rows — that write falls to the prime while she is down.
-- `liaison`: NOT YET UP — the owner's own channel; sanctuary-master's first job (item 65).
-- They assign themselves; never hand-aim them. Briefs `.agi/sessions/quorum/<name>.md`; slices `.agi/sessions/handoff-sections/` (stopgap — item 61a wants affinity-split, per piece).
-
-🔴 **You are not allowed in room `quorum`** (owner). Reach them with `send.py --from <you> audience quorum --reason "<text>"`, which posts to room `quorum-requests`; a member answers with `report --room quorum-requests --ref <ts>`. That door was **built by `all-is-one` this session** in response to the gap being named. Use it instead of `tmux send-keys` — pane injection is the prime impersonating the owner at a seat's prompt, and the owner has now called it out by name.
-
-
-
-## Briefs minted from measurement, still open
-
-- `l3-engine-files-outside-the-grid` (g15, item 49): CLOSED by SD.13 (65 build nodes minted, coverage 217→282); remainder `.agi/config.json` has no build node. `l3-seat-pin-generation-never-increments` (g15): went out as SD.05; hazard 5 is item 96, 4/4.
-
-## Standing, learned the hard way
-
-- **The seats are better than the prime at the prime's own mundane work.** Hand it over; do not do it yourself.
-- **Read the mail first.** The one thing that went genuinely wrong for XII was a message sitting unread.
-- **Check the merge-base, not the branch tip.**
-
-### Rotation
-
-✅ **`rotate.py loop` WORKS** (fixed 2026-09-08 by Belam IX; cause: tmux `command too long` swallowed by `_launch_window` — detail `hypothesis:l3-rotate-launch-window-silent-failure`, g15). **A guard on the symptom is not a fix for the cause.** Confirm the window anyway: `tmux capture-pane -pt agi-rc:<name>`. 🔴 Banked (item 49): `rotate.py` has NO build node; minting needs a legal `goal:s29` parent shape and `level3.py` must not run live (trap 0i).
-
-🟢 **OWNER 2026-09-09 ~12:3xZ — ROTATE AT 0.47, STANDING RULE FOR EVERY ROLE (verbatim in `doc:l4-owner-decisions`, §6 item 105): `ladder:ladder` `director_rotate_at` 0.35 → 0.47, applied the same turn; `rotate.py meter` reads the ladder, so every seat's meter/--check/loop trips at 0.47 now.** Owner 2026-09-07 19:46/19:52 UTC — rotate at the meter cap OR at 99% of the Fable limit, whichever comes first; Opus is the acceptable fallback (verbatim archived: `doc:l3-command-ladder-brief`, item 29). Read the limit from the pane: `tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1`. At the Fable trigger the successor runs on Opus: `python3 extensions/agi/bin/rotate.py loop --role prime_director --name belam-S1-L3-<next> --model claude-opus-5 --effort max --force --session-log <own transcript>`; the handoff is written first, as always.
+```
+FIRST   ls -t .agi/comms/season-2/dm/ and read anything addressed to you — BEFORE the smoke (XII missed two correct DMs for an hour; nothing alerts a prime to mail, §6 item 62 open)
+PIN     claim your own pin FIRST: rotate.py meter --pin .agi/sessions/belam.meter --session-log <own .jsonl> (XIV read 0.5595 on XIII's pin; true 0.1093)
+PUSH    the :07 cron push is hourly -> push by hand after every action · never git add -A · config:seats is YOURS to write (write.py "set seats <json>", whole list, grep the bytes) while sanctuary-master is down
+SEATS   (design record; ALL SHUT DOWN 2026-09-09 08:2xZ by owner order, verbatim in doc:l4-owner-decisions) quorum = self-perpetuating / alive / all-is-one (one per vision) + master-sensei: idle, never hand-aimed
+        · sanctuary-master: SHUT DOWN 08:0xZ (was gate-47-lifted, the one seat allowed to write config:seats) · liaison: NOT YET UP (owner's channel; sanctuary-master's first job, item 65)
+        · the prime is NOT allowed in room quorum (owner): send.py --from <you> audience quorum --reason "<text>" -> room quorum-requests; never tmux send-keys (pane injection = impersonating the owner)
+        · seats are better than the prime at the prime's mundane work: hand it over · read the mail first · compare against the MERGE-BASE, never the tip
+ROTATE  at meter 0.47 (owner, every role, item 105; ladder director_rotate_at) OR at 99% of the Fable limit, whichever first (item 29; Opus fallback: --model claude-opus-5 --effort max)
+        · read the limit from the pane: tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1
+        · handoff FIRST, then: rotate.py loop --role prime_director --name belam-S1-L4-<next> --timeout 900 --force --session-log <own .jsonl>
+        · the read-back takes the successor's FIRST non-noise line within 120s (a skill-first successor records inconclusive-no-reply) -> confirm by tmux capture-pane, announce by hand
+        · rotate.py loop WORKS (fixed 2026-09-08, hypothesis:l3-rotate-launch-window-silent-failure); rotate.py = build:bin-rotate (SD.13); hazard 5 (stamp vs record, item 96) carried
+```
 
 ## §4 Traps — CARRIED INTO L4 (headlines; full text in `doc:l4-owner-decisions` → "TRAPS CARRIED INTO L4" and `git show 91d33742d:HANDOFF.md`)
 
