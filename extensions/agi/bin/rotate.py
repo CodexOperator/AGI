@@ -1955,20 +1955,64 @@ def _observed_windows(tmux_session: str, window_path: str | None = None) -> dict
     return {"names": names, "source": source}
 
 
-def _write_rotation_record(root: Path, record: dict) -> Path:
+def _write_rotation_record(root: Path, record: dict,
+                           path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
 
     One file per rotation, named `<seat>.<UTC timestamp>.json` so a reader can
-    glob `<seat>.*.json` and see that seat's whole rotation history. Returns
+    glob `<seat>.*.json` and see that seat's whole rotation history. When
+    `path` is given (a rotate-self STARTED record opened earlier), the final
+    outcome is written to THAT SAME file, updating it in place — so an
+    interrupted rotation and its completed outcome never split into two
+    records (hypothesis:l4-rotation-record-survives-interruption). Returns
     the written path.
     """
     rot = _rotations_dir(root)
     rot.mkdir(parents=True, exist_ok=True)
     seat = str(record.get("seat") or "anonymous")
-    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    path = rot / f"{seat}.{stamp}.json"
+    if path is None:
+        stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        path = rot / f"{seat}.{stamp}.json"
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def _rotate_self_started_path(root: Path, seat: str) -> Path:
+    """The ONE filename a rotate-self rotation records into for its lifetime.
+
+    Computed from the current UTC timestamp the same way
+    `_write_rotation_record` names a fresh file, but captured ONCE at the
+    start of a rotate-self call so every progress write and the final outcome
+    land on the same path. Without this a `started` file and a `success` file
+    would carry separate timestamps and a rotation would leave two records.
+    """
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    return _rotations_dir(root) / f"{seat}.{stamp}.json"
+
+
+def _write_rotate_self_started(path: Path, *, seat: str, steps: list[int],
+                               gen_before: int | None = None,
+                               gen_after: int | None = None) -> None:
+    """Write/refresh the IN-PROGRESS rotate-self record.
+
+    `result` stays `started` until the rotation reaches an outcome (success or
+    refused) and `steps_reached` records which steps have completed, so an
+    interrupted rotation leaves a record whose state says exactly where it
+    stopped (hypothesis:l4-rotation-record-survives-interruption). Overwrites
+    `path` in place; the process keeps writing to the SAME file.
+    """
+    rec: dict = {
+        "rotation": "rotate-self",
+        "seat": seat,
+        "recorded_at": datetime.utcnow().isoformat() + "Z",
+        "result": "started",
+        "steps_reached": sorted(steps),
+    }
+    if gen_before is not None:
+        rec["gen_before"] = gen_before
+        rec["gen_after"] = gen_after
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
 
 def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
@@ -2375,15 +2419,35 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     dbg = args.debug_file or f".agi/sessions/{seat}.log"
 
+    # A rotate-self rotation opens ONE record file up front (a `started`
+    # record) and updates it IN PLACE through every step, so an interruption
+    # at any point leaves a record whose `steps_reached` says where it died —
+    # instead of nothing at all (hypothesis:l4-rotation-record-survives-
+    # interruption). The final outcome rewrites the SAME path, so a completed
+    # rotation still leaves exactly one record in today's shape.
+    rec_path = None
+    steps_reached: list[int] = []
+    if not args.dry_run:
+        rec_path = _rotate_self_started_path(root, seat)
+        _write_rotate_self_started(
+            rec_path, seat=seat, steps=steps_reached,
+            gen_before=gen_before, gen_after=gen)
+
     # (1) handoff
     if not args.dry_run:
         _write_handoff(root, seat, gen, predecessor_session=seat)
+        steps_reached.append(1)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
     # (2) rename own window aside, freeing the plain seat name
     if not args.dry_run:
         _rename_own_window(seat, new_name, tmux_session, args.window_path)
+        steps_reached.append(2)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
@@ -2403,6 +2467,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     )
     if rc != 0:
         return rc
+    if not args.dry_run:
+        steps_reached.append(3)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     print(f"(3) spawn successor under the plain name {seat!r} (role {role!r})")
 
     if args.dry_run:
@@ -2427,7 +2495,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             readback_log=Path(dbg).expanduser().resolve(),
             cursor_offset=(Path(dbg).expanduser().resolve().stat().st_size
                            if Path(dbg).expanduser().resolve().exists() else 0),
-            refusal="successor window absent"))
+            refusal="successor window absent"), path=rec_path)
         print(f"ERR: successor window {seat!r} is NOT present in tmux session "
               f"{tmux_session!r}; refusing to report rotation success "
               f"(windows: {succ['names']!r}).", file=sys.stderr)
@@ -2436,6 +2504,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (5) read back. Record the successor log's size BEFORE the spawn
     #     completed so the read cursor ignores anything (a stale `continue`)
     #     written before the successor started (read-before-write cursor).
+    if not args.dry_run:
+        steps_reached.append(4)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
@@ -2459,7 +2531,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _write_rotation_record(root, _rotate_self_record(
             seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
             succ=succ, pred=pred, readback_log=log, cursor_offset=offset,
-            refusal=f"predecessor window {new_name!r} gone"))
+            refusal=f"predecessor window {new_name!r} gone"), path=rec_path)
         print(f"ERR: predecessor window {new_name!r} is NOT present in tmux "
               f"session {tmux_session!r}; refusing to report rotation "
               f"success (windows: {pred_raw['names']!r}).",
@@ -2471,7 +2543,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     record_path = _write_rotation_record(root, _rotate_self_record(
         seat=seat, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
-        pred=pred, readback_log=log, cursor_offset=offset))
+        pred=pred, readback_log=log, cursor_offset=offset), path=rec_path)
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
