@@ -472,12 +472,14 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    # hypothesis:l3-cli-done-worktree-manifest — session files are the LOOP'S
-    # bookkeeping and stay ONE body across worktrees (same rule as budget /
-    # comms / meter / .env): resolve the sess_dir to the MAIN checkout even
-    # when this zoom runs inside a --branch worktree, so context.md lands next
-    # to the agent.json dispatch writes. The graph read (`root`) stays forked.
-    sess_root = locations.shared_project_root(root) or root
+    # hypothesis:l4-seat-session-iter-dirs (half a) — session files (agent.json,
+    # context.md, output.log) belong to the WORKTREE that made them, so context.md
+    # lands next to the local agent.json dispatch writes: resolve the sess_dir to
+    # the LOCAL root even when this zoom runs inside a --branch worktree. Reverses
+    # the L3.38 l3-cli-done-worktree-manifest rule that routed sess_dir to the
+    # MAIN checkout. The graph read (`root`) stays forked; budget/comms/meter stay
+    # shared via `shared_project_root` elsewhere.
+    sess_root = root
     sess_dir = locations.iteration_dir(sess_root, args.iter_n) / args.agent_id
     sess_dir.mkdir(parents=True, exist_ok=True)
     out_path = sess_dir / "context.md"

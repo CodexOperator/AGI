@@ -521,6 +521,11 @@ def _enforce_written_by(root, node_type, actor, where):
     it, and a schema that declares no `written_by` (or whose schema is
     absent) gates nothing: the moral schema's `written_by: owner` is the one
     and only thing that makes moral nodes hand-edit-by-owner-only.
+
+    The compare is EXACTLY `actor not in admitted` — the actor name is what
+    is compared, never a role (that is L4.41), and `admitted` is one parse
+    shared with `links.py` (`parse_written_by`), so a list-valued or
+    comma-separated `written_by` refuses nothing it admits.
     """
     try:
         from schema_registry import load_schemas_from_dir
@@ -536,10 +541,55 @@ def _enforce_written_by(root, node_type, actor, where):
     if schema is None:
         return
     written_by = schema.frontmatter.get("written_by")
-    if written_by and written_by != actor:
+    admitted = links.parse_written_by(written_by) if written_by is not None else None
+    if admitted and actor not in admitted:
         raise EditError(
-            f"moral nodes ({where}) are hand-edited by the owner only. "
-            f"Pass --actor owner (goal:g12).")
+            f"{node_type} nodes ({where}) may be hand-edited only by "
+            f"{', '.join(sorted(admitted))}. Pass --actor "
+            f"{sorted(admitted)[0]} (goal:g12).")
+
+
+def _resolve_replace_text(edit: Edit) -> None:
+    """The ONE resolver that turns `replace_from` into `replace_text`.
+
+    Used by BOTH the CLI (`main`) and the library (`submit`), so an API
+    caller and a script form cannot disagree about what a `replace` means —
+    the divergence this module shipped
+    (hypothesis:l4-replace-api-drops-source). `main` calls it early for its
+    `--dry-run` preview; `submit` calls it too, idempotently, so a direct API
+    caller gets the same resolution and the same refusals without the read
+    being copied into a second place.
+
+    Fail-closed: an absent, unreadable or EMPTY source raises an EditError
+    naming the source, and nothing is written anywhere. `replace <t> N:M -`
+    keeps its stdin contract: arbitrary content cannot ride an `&&` chunk,
+    so it comes off stdin verbatim — exactly as it does today.
+    """
+    if not edit.replace_from:
+        return
+    if edit.replace_text:
+        # Already resolved — by main() for its --dry-run preview, or by an
+        # API caller that set the text directly. Never re-read: a second
+        # stdin read for `-` would consume nothing and hang the caller.
+        return
+    if edit.replace_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: replacement text is
+        # arbitrary content and cannot ride an `&&` script chunk.
+        edit.replace_text = sys.stdin.read()
+        return
+    try:
+        text = Path(edit.replace_from).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise EditError(
+            f"replace source {edit.replace_from!r} unreadable: {exc} — "
+            f"nothing written")
+    if text == "":
+        raise EditError(
+            f"replace source {edit.replace_from!r} is empty — refusing to "
+            f"replace a range with an empty source (it would delete the "
+            f"range). Nothing written. A deliberate deletion needs an "
+            f"explicit signal, not an empty file.")
+    edit.replace_text = text
 
 
 def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
@@ -551,6 +601,13 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     """
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
+
+    # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
+    # the replacement source. Without this, an API caller's `replace_from`
+    # never became `replace_text` and submit spliced `""`, silently deleting
+    # the range while reporting success. Idempotent: main has already resolved
+    # it for its --dry-run preview, and this must not read stdin a second time.
+    _resolve_replace_text(edit)
 
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor, edit.node_id)
 
@@ -634,7 +691,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
         location = set_fm["location"]
 
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
-                                  unset_fm=edit.unset_fm, body=body)
+                                  unset_fm=edit.unset_fm, body=body,
+                                  log_extra=_log_provenance(actor))
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
@@ -646,7 +704,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
             root, payload_ref, edit.payload_from or None,
             location=location,
             data=edit.payload_bytes.encode() if edit.payload_bytes else None,
-            mint_id=mint)
+            mint_id=mint,
+            log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
     return res
@@ -890,6 +949,27 @@ def _default_actor() -> str:
     return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
 
 
+def _log_provenance(actor: str = "") -> dict:
+    """The actor/role/seat for a write-log entry, via the `extra` hook.
+
+    hypothesis:l4-write-log-role-capture — every write-log entry should record
+    WHO wrote it. `actor` is the resolved caller identity (`actor` param or
+    `_default_actor`). `role` and `seat` are READ from what the environment
+    already sets (AGI_ROLE / AGI_SEAT, exported by dispatch); when a source is
+    absent the key is ABSENT, never a placeholder. Only present keys land in
+    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
+    records `actor`, and a non-write.py writer records none of these at all.
+    """
+    prov: dict = {"actor": actor or _default_actor()}
+    role = os.environ.get("AGI_ROLE")
+    if role:
+        prov["role"] = role.strip()
+    seat = os.environ.get("AGI_SEAT")
+    if seat:
+        prov["seat"] = seat.strip()
+    return prov
+
+
 def _compose_body(root, edit: Edit) -> str:
     """The node's body with the note appended and the thought replaced.
 
@@ -965,7 +1045,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         extra[links.LINK_FIELD] = str(payload)
 
     res = node_writer.write_node(root, node_type, slug, parents,
-                                 extra_fm=extra or None, bypass=bypass)
+                                 extra_fm=extra or None, bypass=bypass,
+                                 log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
             # A rejected spawn must leave nothing behind, on either side.
@@ -984,7 +1065,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
             stamp.set_fm[PROVENANCE_ACTOR] = actor
         if session:
             stamp.set_fm[PROVENANCE_SESSION] = session
-        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm)
+        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
+                                log_extra=_log_provenance(actor))
     return res, created_file
 
 
@@ -1156,18 +1238,15 @@ def main(argv: list[str] | None = None) -> int:
         # cannot ride an `&&` script chunk (the doubled ampersand splits it).
         edit.patch_diff = sys.stdin.read()
 
-    if edit.replace_from == "-":
-        # Same stdin contract as `payload -` / `patch -`: replacement text is
-        # arbitrary content and cannot ride an `&&` script chunk.
-        edit.replace_text = sys.stdin.read()
-    elif edit.replace_from:
-        from pathlib import Path as _P
-        try:
-            edit.replace_text = _P(edit.replace_from).read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERR: replace source {edit.replace_from}: {exc}",
-                  file=sys.stderr)
-            return 2
+    # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
+    # read. Delegate to the same function `submit` uses, so dry-run shows the
+    # bytes and a missing/empty source refuses here exactly as it refuses in
+    # the library. Refusals print ERR and write nothing.
+    try:
+        _resolve_replace_text(edit)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
 
     # `patch <path>` reading happens in `submit` (fail-closed, after the
     # payload ref is resolved) rather than here, so a refused diff is still

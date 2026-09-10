@@ -94,6 +94,19 @@ def scrubbed_env() -> dict[str, str]:
 _scrubbed_env = scrubbed_env
 
 
+def _resolved_seat(args_seat: str | None) -> str | None:
+    """The AGI_SEAT value to export, or None to leave the key absent.
+
+    Precedence (hypothesis:l4-dispatch-exports-seat): `--seat` WINS when
+    given; an AGI_SEAT already in the inherited env SURVIVES when `--seat`
+    is absent; neither present means the key is absent -- never a
+    placeholder, never a fallback to the ladder name.
+    """
+    if args_seat:
+        return args_seat
+    return os.environ.get("AGI_SEAT")
+
+
 def zoom_command(root: Path, iter_n: int, agent_id: str,
                  level: str, target: str | None, push_further: bool = False) -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
@@ -482,6 +495,38 @@ def _brief_tier_for(tier: str, ladder_tier: int, target: str | None) -> str:
     return tier
 
 
+def _assert_allowed_model(harness_name: str, harness: dict,
+                        model: str | None) -> None:
+    """FAIL CLOSED on `allowed_models` (hypothesis:l4-dispatch-model-allowlist).
+
+    The harness's `allowed_models` list is the ONLY census a harness may spawn
+    from. An ABSENT or EMPTY list refuses EVERY model -- it never means 'allow
+    everything', because a default that opens on absence is a gate that
+    disappears exactly when someone deletes it. A model that is not in the list
+    is refused by name (model, harness, list). A tier with no resolved model
+    exports no AGI_MODEL at all, so there is nothing to allow or refuse.
+
+    Placed at the one value every consumer reads -- the effective model is
+    fixed before this call and the live env, the dry-run env mirror and the
+    agent record all read that same value -- so one refusal here is a refusal
+    at all four check sites without four copies of the rule.
+    """
+    if not model:
+        return
+    allowed = harness.get("allowed_models")
+    if not allowed:
+        raise adapters.AdapterError(
+            f"model {model!r} refused for harness {harness_name!r}: "
+            f"`allowed_models` is absent or empty, and the allowlist gate "
+            f"fails closed -- every model is refused when the list is missing "
+            f"or cleared (hypothesis:l4-dispatch-model-allowlist)")
+    if str(model) not in {str(m) for m in allowed}:
+        raise adapters.AdapterError(
+            f"model {model!r} is not in harness {harness_name!r} "
+            f"allowed_models {list(allowed)} -- refusing to spawn "
+            f"(hypothesis:l4-dispatch-model-allowlist)")
+
+
 def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
                       role: str) -> dict:
     """Resolve (tier, role) to {harness, model, effort, settings, from_ladder}.
@@ -720,6 +765,14 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # child WOULD receive its own id and actor.
             env["AGI_AGENT_ID"] = agent_id
             env["AGI_ACTOR"] = agent_id
+            # hypothesis:l4-dispatch-exports-seat — mirror of the live
+            # spawn_env seat export, so the dry report shows the REAL value
+            # (--seat wins, else an inherited AGI_SEAT survives, else absent).
+            # base=scrubbed_env() already carries an inherited AGI_SEAT, so
+            # only the --seat override must be written here.
+            seat_val = _resolved_seat(args.seat)
+            if seat_val:
+                env["AGI_SEAT"] = seat_val
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
 
@@ -756,7 +809,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
-                       "GIT_CONFIG_COUNT", "CLAUDE_CODE_WORKFLOWS"]
+                       "AGI_SEAT", "GIT_CONFIG_COUNT",
+                       "CLAUDE_CODE_WORKFLOWS"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
@@ -1049,6 +1103,15 @@ def main() -> int:
         if _eff_model:
             adapters.assert_model_in_provider_namespace(
                 str(_eff_model), str(dispatch_harness.get("provider") or ""))
+        # hypothesis:l4-dispatch-model-allowlist -- the fail-closed allowlist
+        # gate, same position and same reason as the namespace guard above:
+        # this is the one line every model source (ladder row, seat row,
+        # config fallback) has landed in `dispatch_harness["models"]`, so it
+        # is the single place a refusal is a refusal everywhere. A `--seat`
+        # override is not an exemption: its model is in this same dict by
+        # this line and gets the same check. No AGI_MODEL resolves for a tier
+        # with no model, so there is nothing to refuse there.
+        _assert_allowed_model(harness_name, dispatch_harness, _eff_model)
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
@@ -1082,15 +1145,15 @@ def main() -> int:
     else:
         print(f"season: ladder current_season={current_season}")
 
-    # hypothesis:l3-cli-done-worktree-manifest — the session dir (per-agent
-    # `agent.json`, the iteration `manifest.json`, `output.log`) is the LOOP'S
-    # bookkeeping and stays ONE body across worktrees, resolved to the MAIN
-    # checkout through `shared_project_root` — the same rule as the spawn
-    # budget, comms root and meter pins. A `--branch` spawner (cwd = worktree)
-    # still writes every agent's record where the director (main) and a later
-    # `cli.py done` from any worktree expect it. The graph a kid edits stays
-    # `root`/`child_graph` (forked).
-    sess_root = locations.shared_project_root(root) or root
+    # hypothesis:l4-seat-session-iter-dirs (half a) — iter-<id>/ session dirs
+    # (per-agent `agent.json`, the iteration `manifest.json`, `output.log`)
+    # resolve to the WORKTREE that made them, so a seat harvests its own
+    # round from its own tree. This REVERSES the L3.38 `l3-cli-done-worktree-
+    # manifest` rule that routed every agent's record into the MAIN checkout
+    # through `shared_project_root`. Only the spawn budget, comms root and
+    # meter pins stay on `shared_project_root` (they are a tree-wide bound and
+    # must not fork); the graph a kid edits stays `root`/`child_graph` (forked).
+    sess_root = root
     iter_dir = locations.iteration_dir(sess_root, args.iter_n)
     # Deferred `.mkdir()` until AFTER the dry-run return: a dry-run must not
     # create a session dir (hypothesis:l3-dispatch-dry-run).
@@ -1429,6 +1492,16 @@ def main() -> int:
             # inventing a per-tool fallback (tmux window name / $USER).
             spawn_env["AGI_AGENT_ID"] = agent_id
             spawn_env["AGI_ACTOR"] = agent_id
+            # hypothesis:l4-dispatch-exports-seat — the seat under which this
+            # agent records provenance must exist in the env, or the write-log
+            # `seat` key L4.06 added is empty for every dispatched agent.
+            # Precedence: --seat wins; an inherited AGI_SEAT (from the manual
+            # export the help text documents) survives when --seat is absent.
+            # base=scrubbed_env() already carries an inherited AGI_SEAT, so
+            # only the --seat override must be written here.
+            seat_val = _resolved_seat(args.seat)
+            if seat_val:
+                spawn_env["AGI_SEAT"] = seat_val
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"

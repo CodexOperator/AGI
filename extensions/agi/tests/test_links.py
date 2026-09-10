@@ -397,3 +397,69 @@ def test_a_refused_gated_write_still_records_the_wire(project, capsys, monkeypat
                           original, mutated, "body\n", "body\n")
     assert "verdict: pending" in path.read_text(), "the wire was lost"
     assert "writing directly so the wire is not lost" in capsys.readouterr().err
+
+
+# --------------------------------------------------------------------------
+# `links.py roles` — the third, dry role/coverage report (goal:g13, L4.05)
+# --------------------------------------------------------------------------
+
+def _schema(project: Path, ntype: str, written_by: str) -> Path:
+    """A schema in the fixture corpus declaring who may write `ntype`."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"[{ntype}].md"
+    p.write_text("---\nname: " + ntype + "\nwritten_by: " + written_by
+                 + "\n---\n")
+    return p
+
+
+def test_roles_report_names_a_violation_and_writes_nothing(project, capsys):
+    """Hypothesis:l4-links-roles-report, proof (3).
+
+    A schema declares `written_by: owner` for one type; the corpus holds a
+    node recorded against a DIFFERENT writer. `links.py roles` must NAME that
+    node with the writer found, show the coverage census for every type, and
+    still write nothing (no node, no schema).
+    """
+    _schema(project, "hypothesis", "owner")
+    (project / "nodes" / "mvp").mkdir(parents=True, exist_ok=True)
+    _node(project, "hypothesis:h-owner",
+          ['id: "hypothesis:h-owner"', "type: hypothesis", "mint_id: aa",
+           "role: owner", 'title: "t"', 'testable_claim: "c"'], "b\n")
+    _node(project, "hypothesis:h-kid",
+          ['id: "hypothesis:h-kid"', "type: hypothesis", "mint_id: bb",
+           "role: kid", 'title: "t"', 'testable_claim: "c"'], "b\n")
+    # A second type with NO schema at all -> part of the coverage gap, and a
+    # node file we can prove is untouched by the report.
+    mvp = _node(project, "mvp:m1",
+                ['id: "mvp:m1"', "type: mvp", "mint_id: cc", 'title: "t"'],
+                "b\n")
+    mvp_before = mvp.read_text()
+
+    assert links.main(["roles", "--root", str(project)]) == 0
+    out = capsys.readouterr().out
+
+    # Half (a): the census, named per type, gap visible and counted.
+    assert "coverage census" in out
+    # Half (b): the violation is NAMED with the writer found.
+    assert "hypothesis:h-kid" in out
+    assert "'kid'" in out
+    assert "admitted: owner" in out
+    # The admitted node is not a violation; the unchecked type stays a gap.
+    assert "hypothesis:h-owner" not in out.split("violation")[1]
+
+    # And nothing was written: the node file is byte-identical.
+    assert mvp.read_text() == mvp_before, "roles wrote to a node file"
+
+
+def test_roles_report_marks_unrecorded_without_guessing(project, capsys):
+    """A node in a declared type with no writer is UNRECORDED, not skipped."""
+    _schema(project, "hypothesis", "owner")
+    _node(project, "hypothesis:h-unnamed",
+          ['id: "hypothesis:h-unnamed"', "type: hypothesis", "mint_id: dd",
+           'title: "t"', 'testable_claim: "c"'], "b\n")
+
+    links.main(["roles", "--root", str(project)])
+    out = capsys.readouterr().out
+    assert "UNRECORDED" in out
+    assert "hypothesis:h-unnamed" in out

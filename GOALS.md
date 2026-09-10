@@ -6146,6 +6146,17 @@ Rotation read-back trap, measured at L4-I -> L4-II (2026-09-10): the successor e
 
 **Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
 
+### G17.13 — A seat session owns its own iteration dirs, and session-complete migrates them before the worktree is deleted — status: active
+
+<!-- BODY:BEGIN -->
+**A seat session's `iter-<id>/` dirs belong to that seat's worktree, and are migrated into the main checkout only when the worktree is deleted at session complete.** Owner rule, recorded verbatim in `goal:g17.1`; this sub-goal carries the engine half.
+
+**Measured today, which is what makes it real rather than tidy:** dispatching from the seat worktree put every agent dir in the MAIN checkout's `.agi/sessions/`, while the seat's own `.agi/sessions/iter-L4.02/` held nothing but the wrapper log. The dispatched PARENT hit the same thing — its `struggles:` line reads that the manifest path in the spawn output "did not exist from my checkout", so it had to read the kid's node directly to review it. A seat cannot harvest its own round from its own tree.
+
+**The line:** `dispatch.py:1075` resolves `sess_root = locations.shared_project_root(root) or root`, and `shared_project_root` routes to the main checkout by design.
+
+🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
