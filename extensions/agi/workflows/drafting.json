@@ -1,7 +1,8 @@
 {
   "name": "drafting",
+  "type": "drafting",
   "script": "agi-brief-drafting.js",
-  "description": "Draft hypothesis briefs from owner text — one drafter per brief, then a critic pass",
+  "description": "Draft hypothesis briefs from owner text \u2014 one drafter per brief, then a critic pass",
   "stages": [
     {
       "label": "draft",

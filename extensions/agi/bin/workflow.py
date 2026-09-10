@@ -46,6 +46,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import yaml
+
+
 _THIS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_THIS))
 
@@ -53,6 +56,14 @@ import adapters  # noqa: E402  -- owns the model/provider namespace guard
 import locations as _loc  # noqa: E402
 
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
+
+# The geometry node that OWNS workflow-harness resolution (hypothesis:
+# l4-workflow-types-and-default-harness-are-a-geometry-node). Like crons.md /
+# seats.md / ladder.md, it is a `config` node in `.geometry/` whose
+# edit-and-commit IS the change — the prime owns `default_harness`, and an
+# override is a commit, never a code edit. Relative to the project root
+# `find_project_root` resolves (the `.agi` dir).
+GEO_WORKFLOWS_REL = ("nodes", ".geometry", "workflows.md")
 
 # Builtin defaults last in precedence: args > config row > stage JSON hint.
 # NO _DEFAULT_MODEL. hypothesis:l3-workflow-model-crosses-harness-namespace —
@@ -80,6 +91,137 @@ def _config_key_for(name: str) -> str:
     if base.startswith("agi-"):
         base = base[len("agi-"):]
     return base
+
+
+class WorkflowsNodeError(Exception):
+    """The geometry node that owns workflow-harness resolution is absent or
+    malformed. workflow.py REFUSES loudly, naming the node, rather than
+    falling back to a code literal — a hardcoded default harness is exactly
+    the fallback hypothesis:l4-workflow-types-and-default-harness-are-a-
+    geometry-node orders gone."""
+
+
+def _geometry_node_path(project_root: Path) -> Path:
+    """The `.geometry/workflows.md` path under the graph root. `project_root`
+    here is what `find_project_root` returns (the `.agi` dir), so the node
+    lives at `<.agi>/nodes/.geometry/workflows.md`, the same layout crons.md
+    (goal:g10.2) and seats.md already use."""
+    return Path(project_root).joinpath(*GEO_WORKFLOWS_REL)
+
+
+def _load_geometry_node(project_root: Path) -> dict:
+    """Parse and validate `nodes/.geometry/workflows.md` — the shape crons.py
+    already reads `nodes/.geometry/crons.md` with (yaml.safe_load over the
+    frontmatter between the leading `---` markers). Every failure raises
+    `WorkflowsNodeError` naming the file.
+
+    Returns `{"default_harness": str, "types": {name: row},
+    "workflows": {name: row}}`. A `types` row `{name, harness, stage_shapes}`
+    declares a workflow TYPE and the harness that type overrides to.
+    `workflows.<name>` maps a registered workflow to its `type` and may carry
+    its own `harness` override."""
+    path = _geometry_node_path(project_root)
+    if not path.is_file():
+        raise WorkflowsNodeError(
+            f"missing node file {path} — the workflow-harness resolution node. "
+            "It is a `config` node a kid cannot `write.py create`; the prime "
+            "owns it. Until it lands, workflow.py refuses to guess a harness "
+            "(no hardcoded default)")
+    text = path.read_text(encoding="utf-8")
+    if not text.strip().startswith("---"):
+        raise WorkflowsNodeError(
+            f"{path}: no YAML frontmatter (expected a leading `---`)")
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        raise WorkflowsNodeError(
+            f"{path}: unterminated frontmatter block (only one `---`)")
+    try:
+        fm = yaml.safe_load(parts[1])
+    except yaml.YAMLError as exc:
+        raise WorkflowsNodeError(
+            f"{path}: malformed YAML frontmatter — {exc}") from exc
+    if not isinstance(fm, dict):
+        raise WorkflowsNodeError(
+            f"{path}: frontmatter must be a YAML mapping")
+    default_harness = fm.get("default_harness")
+    if not default_harness or not isinstance(default_harness, str):
+        raise WorkflowsNodeError(
+            f"{path}: missing/empty `default_harness` (str) — the prime-owned "
+            "default harness")
+    types: dict = {}
+    for row in fm.get("types") or []:
+        if not isinstance(row, dict) or not row.get("name"):
+            raise WorkflowsNodeError(
+                f"{path}: every `types` row needs a `name`")
+        h = row.get("harness")
+        if h and not isinstance(h, str):
+            raise WorkflowsNodeError(
+                f"{path}: types.{row['name']}.harness must be a str")
+        types[row["name"]] = row
+    workflows: dict = {}
+    for row in fm.get("workflows") or []:
+        if not isinstance(row, dict) or not row.get("name"):
+            raise WorkflowsNodeError(
+                f"{path}: every `workflows` row needs a `name`")
+        typ = row.get("type")
+        if typ and typ not in types:
+            raise WorkflowsNodeError(
+                f"{path}: workflows.{row['name']}.type '{typ}' names an "
+                f"undeclared type (declared: {sorted(types)})")
+        workflows[row["name"]] = row
+    return {"default_harness": default_harness, "types": types,
+            "workflows": workflows}
+
+
+def _maybe_geometry_node(project_root: Path) -> dict | None:
+    """The geometry node, or None when it is absent (pre-prime). A MALFORMED
+    node still raises — absent is a state, malformed is a bug."""
+    if not _geometry_node_path(project_root).is_file():
+        return None
+    return _load_geometry_node(project_root)
+
+
+def _resolve_default_harness(project_root: Path, key: str, manifest: dict,
+                             cfg_row: dict) -> tuple[str, str]:
+    """Resolve a workflow's harness when no explicit `--harness` was passed.
+
+    Resolution order (hypothesis:l4-workflow-types-and-default-harness-are-a-
+    geometry-node): per-workflow override > per-type override > prime default >
+    refuse loudly naming the node. The old code stopped after ONE override
+    level (cfg row provider, else manifest provider) and then fell back to the
+    literal `'pi'` — this replaces that literal with the geometry node, so the
+    prime's `default_harness` and the per-type/per-workflow overrides are
+    commits, not code. Returns `(harness, level)`."""
+    # LEVEL 1 — the workflow's own override (still per-workflow facts, kept
+    # here so config rows and manifest providers keep working unchanged).
+    cfg_prov = (cfg_row or {}).get("provider")
+    if cfg_prov:
+        return cfg_prov, "config row"
+    man_prov = (manifest or {}).get("provider")
+    if man_prov:
+        return man_prov, "manifest"
+    node = _load_geometry_node(project_root)
+    wov = (node.get("workflows") or {}).get(key)
+    if isinstance(wov, dict) and wov.get("harness"):
+        return wov["harness"], "per-workflow"
+    # LEVEL 2 — the workflow's TYPE override.
+    typ = (manifest or {}).get("type")
+    if typ:
+        if typ not in (node.get("types") or {}):
+            raise WorkflowsNodeError(
+                f"{_geometry_node_path(project_root)}: workflow '{key}' "
+                f"declares type '{typ}' which is not in the node's `types` "
+                f"(declared: {sorted(node.get('types') or {})})")
+        th = (node["types"][typ].get("harness")) or None
+        if th:
+            return th, f"type:{typ}"
+    # LEVEL 3 — the prime default. NO hardcoded fallback after this.
+    if node.get("default_harness"):
+        return node["default_harness"], "prime default"
+    raise WorkflowsNodeError(
+        f"{_geometry_node_path(project_root)}: no per-workflow override, no "
+        f"per-type harness and no default_harness — cannot resolve a harness "
+        f"for '{key}' and workflow.py never invents one")
 
 
 def _repo_root(project_root: Path) -> Path:
@@ -199,9 +341,13 @@ def register_workflow(root: Path, name: str, script: Path,
 
 def list_workflows(root: Path, out=sys.stdout) -> int:
     """Enumerate the registry: every agi-*.js with its manifest name (the
-    config row key), stage count, and the harness the config row defaults to.
-    The script<->manifest link resolves through the manifest's `script` field
-    (review.json -> agi-round-review.js), never a filename heuristic."""
+    config row key), stage count, and the RESOLVED harness each workflow
+    defaults to WITH the resolution LEVEL it came from (hypothesis:
+    l4-workflow-types-and-default-harness-are-a-geometry-node). The script
+    <->manifest link resolves through the manifest's `script` field
+    (review.json -> agi-round-review.js), never a filename heuristic. The
+    harness is never a code literal — a workflow with nothing declaring its
+    harness makes list refuse, naming the node."""
     repo = _repo_root(root)
     wf = repo.joinpath(*WORKFLOWS_DIR_REL)
     cfg = _load_config(root)
@@ -223,14 +369,16 @@ def list_workflows(root: Path, out=sys.stdout) -> int:
         key = (manifest or {}).get("name")
         stage_count = len((manifest or {}).get("stages", []))
         row_cfg = (cfg.get("workflows") or {}).get(key) or {}
-        harness = row_cfg.get("provider") or (manifest or {}).get("provider") \
-            or "pi"
-        rows.append((key or js.name, js.name, stage_count, harness, manifest))
+        # resolver, never a literal: per-workflow > per-type > prime default >
+        # refuse naming the node (WorkflowsNodeError propagates: list exits 2).
+        harness, level = _resolve_default_harness(root, key, manifest, row_cfg)
+        rows.append((key or js.name, js.name, stage_count, harness, level,
+                     manifest))
     width = max(len(r[0]) for r in rows)
-    out.write(f"{'NAME':<{width}} SCRIPT                 STAGES  HARNESS\n")
-    for key, script, n, h, manifest in rows:
+    out.write(f"{'NAME':<{width}} SCRIPT                 STAGES  HARNESS       LEVEL\n")
+    for key, script, n, h, level, manifest in rows:
         flag = "" if manifest else "  <-- NO MANIFEST!"
-        out.write(f"{key:<{width}} {script:<20} {n:<6} {h}{flag}\n")
+        out.write(f"{key:<{width}} {script:<20} {n:<6} {h:<13}{level}{flag}\n")
     return 0
 
 
@@ -272,6 +420,29 @@ def validate_registry(root: Path, wf: Path | None = None,
                               f"{script_name or '(none)'} which does not exist")
             continue
         script_labels = _script_stage_labels(js.read_text(encoding="utf-8"))
+        # type must name a DECLARED type in the geometry node (hypothesis:
+        # l4-workflow-types-and-default-harness-are-a-geometry-node). Enforced
+        # only when the node exists — pre-prime (absent node) is a state, and
+        # the base invariant still stands alone for isolated workflows dirs.
+        gee = _maybe_geometry_node(root)
+        if gee is None:
+            if manifest.get("type"):
+                violations.append(
+                    f"{mf.name} declares type {manifest['type']!r} but the "
+                    f"geometry node {_geometry_node_path(root)} is absent — "
+                    f"cannot verify it resolves (a kid cannot write it; the "
+                    f"prime owns it)")
+        else:
+            declared = set(gee.get("types") or {})
+            typ = manifest.get("type")
+            if not typ:
+                violations.append(
+                    f"{mf.name} declares no `type` — every registered manifest "
+                    f"must name a declared type ({sorted(declared)})")
+            elif typ not in declared:
+                violations.append(
+                    f"{mf.name} type {typ!r} is not a declared type in "
+                    f"{_geometry_node_path(root)} ({sorted(declared)})")
         for st in manifest.get("stages", []):
             base = (st.get("label") or "").split(":")[0].strip()
             if base and base not in script_labels:
@@ -732,7 +903,13 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     manifest = _load_manifest(repo, key)
     stages = _expand_stages(manifest, args)
 
-    harness = harness or cfg_row.get("provider") or "pi"
+    # No literal `'pi'` default (hypothesis:l4-workflow-types-and-default-
+    # harness-are-a-geometry-node): with no explicit --harness the harness
+    # resolves through the geometry node (per-workflow > per-type > prime
+    # default), or refuses naming the node. An explicit --harness flag still
+    # wins, envelope — it is the per-run override the CLI exposes.
+    if not harness:
+        harness, _level = _resolve_default_harness(root, key, manifest, cfg_row)
     knobs = {st["label"]: _resolve_knobs(st, cfg_row, args) for st in stages}
     if harness == "pi":
         # The pi model is resolved and namespace-checked here, BEFORE any
@@ -1107,21 +1284,26 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         return author_workflow(root, args.name, stages_text,
                                source_note=args.note)
-    if args.cmd == "list":
-        return list_workflows(root)
-    if args.cmd == "validate":
-        return validate_registry(root)
-
+    # the harness-resolution node may be absent (pre-prime) or a workflow may
+    # declare an undeclared type: refuse LOUDLY naming the node, exit 2 — never
+    # a traceback, never a silent literal fallback (hypothesis:
+    # l4-workflow-types-and-default-harness-are-a-geometry-node).
     try:
-        run_args = json.loads(args.args)
-        if not isinstance(run_args, dict):
-            raise ValueError("--args must be a JSON object")
-    except json.JSONDecodeError as exc:
-        print(f"workflow.py: --args not valid JSON: {exc}", file=sys.stderr)
+        if args.cmd == "list":
+            return list_workflows(root)
+        if args.cmd == "validate":
+            return validate_registry(root)
+        try:
+            run_args = json.loads(args.args)
+            if not isinstance(run_args, dict):
+                raise ValueError("--args must be a JSON object")
+        except json.JSONDecodeError as exc:
+            print(f"workflow.py: --args not valid JSON: {exc}", file=sys.stderr)
+            return 2
+        return run_workflow(root, args.name, args.harness, run_args, args.dry_run)
+    except WorkflowsNodeError as exc:
+        print(f"workflow.py: {exc}", file=sys.stderr)
         return 2
-
-    code = run_workflow(root, args.name, args.harness, run_args, args.dry_run)
-    return code
 
 
 if __name__ == "__main__":
