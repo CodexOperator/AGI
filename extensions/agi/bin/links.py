@@ -291,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="links",
-                    choices=["links", "schema"])
+                    choices=["links", "schema", "roles"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--broken", action="store_true", help="list broken links only")
     ap.add_argument("--fix", action="store_true",
@@ -306,6 +306,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.action == "schema":
         return _schema_report(root, fix=args.fix)
+
+    if args.action == "roles":
+        return _roles_report(root)
 
     resolved, broken = resolve_many(root, _iter_corpus(root))
     by_source: dict[str, int] = {}
@@ -394,6 +397,106 @@ def _schema_report(root, fix: bool = False) -> int:
             else:
                 still += 1
     print(f"schema: backfilled {fixed}, {still} still incomplete")
+    return 0
+
+
+def _roles_report(root) -> int:
+    """Report the writer-coverage GAP and the violations, dry by default.
+
+    A role report compares a node's recorded writer against what its TYPE
+    admits, and today almost no type admits anything: only `[moral].md`
+    declares `written_by:` at all. So a violations-only report would print a
+    near-empty list and read as a clean bill of health when the truth is that
+    almost nothing is CHECKABLE yet. This prints BOTH halves:
+
+      (a) the coverage census — for every node type present in the corpus,
+          whether its schema declares `written_by:` and how many nodes it
+          holds, so the unchecked types are VISIBLE and counted;
+      (b) for the types that DO declare one, every node whose recorded
+          writer is not admitted, named with its node id and the writer
+          found, and every node that records no writer, said as UNRECORDED
+          rather than guessed or skipped silently.
+
+    The recorded writer is read from what already exists — frontmatter
+    `role:`, then `edited_by:`. This changes nothing: no node written, no
+    schema edited, no `--fix`. Dry by default and loudly so.
+    """
+    from schema_registry import load_schemas_from_dir
+
+    schemas_dir = Path(root) / "context" / "schemas"
+    reg = load_schemas_from_dir(schemas_dir) if schemas_dir.is_dir() else None
+
+    def _admitted(ntype):
+        """The set of writers a type's schema admits, or None if undeclared."""
+        if reg is None:
+            return None
+        s = reg.get(node_writer.canonical_node_type(ntype))
+        if s is None:
+            return None
+        wb = (s.frontmatter or {}).get("written_by")
+        if wb is None:
+            return None
+        if isinstance(wb, str):
+            return {v for v in wb.replace(",", " ").split() if v}
+        return set(wb)
+
+    # type -> {admitted, count, nodes:[(node_id, writer or None)]}
+    census: dict[str, dict] = {}
+    for node_id, fm, _body in _iter_corpus(root):
+        ntype = str(fm.get("type") or "unknown")
+        e = census.setdefault(ntype, {"admitted": None, "count": 0, "nodes": []})
+        if e["admitted"] is None:
+            e["admitted"] = _admitted(ntype)
+        e["count"] += 1
+        role = fm.get("role")
+        edited_by = fm.get("edited_by")
+        writer = None
+        if role not in (None, ""):
+            writer = str(role)
+        elif edited_by not in (None, ""):
+            writer = str(edited_by)
+        e["nodes"].append((node_id, writer))
+
+    declared = {t: e for t, e in census.items() if e["admitted"] is not None}
+    gap = {t: e for t, e in census.items() if e["admitted"] is None}
+
+    # Half (a): the coverage census — the gap IS the finding today.
+    print(f"roles: {len(census)} node type(s) in the corpus; "
+          f"{len(declared)} declare(s) written_by, "
+          f"{len(gap)} do not (the coverage gap)")
+    print(f"  coverage census ({len(census)} type(s)):")
+    print(f"    {'type':16} {'nodes':>6}  written_by")
+    for ntype in sorted(census):
+        e = census[ntype]
+        wb = e["admitted"]
+        shown = ",".join(sorted(wb)) if wb else "(none)"
+        print(f"    {ntype:16} {e['count']:6}  {shown}")
+
+    # Half (b): violations + unrecorded, only for types that declare a writer.
+    violations: list[tuple[str, str, str]] = []   # (ntype, node_id, writer)
+    unrecorded: list[tuple[str, str]] = []        # (ntype, node_id)
+    for ntype, e in sorted(declared.items()):
+        for node_id, writer in e["nodes"]:
+            if writer is None:
+                unrecorded.append((ntype, node_id))
+            elif writer not in e["admitted"]:
+                violations.append(
+                    (ntype, node_id, writer))
+
+    if violations:
+        print(f"roles: {len(violations)} writer violation(s) "
+              f"(recorded writer not admitted by the type's schema):")
+        for ntype, node_id, writer in violations:
+            admitted = ",".join(sorted(census[ntype]["admitted"]))
+            print(f"  {node_id} -> wrote as {writer!r} (admitted: {admitted})")
+    if unrecorded:
+        print(f"roles: {len(unrecorded)} UNRECORDED node(s) in declared types "
+              f"(no `role:` or `edited_by:` to check):")
+        for ntype, node_id in unrecorded:
+            print(f"  {node_id} -> UNRECORDED")
+    if not violations and not unrecorded:
+        print(f"roles: {len(declared)} declared type(s) — every recorded writer "
+              f"is admitted, none unrecorded")
     return 0
 
 
