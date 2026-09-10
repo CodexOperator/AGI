@@ -74,3 +74,13 @@ AND IT IS A CHOICE, NOT A PLAN: free and batched are probably mutually exclusive
 🔴 AND THE ROUND MEASURED AVAILABILITY, NOT CAPABILITY. Thirty rapid one-shot calls with `max_tokens: 1` are not a round: no long context, no tool use, no multi-turn state, no node to write. The shortlist stays UNAPPLIED until one real round runs `openrouter/free` at KID TIER ONLY with the paid parent unchanged, and reports whether the kid LANDED ITS NODE or emptied out. That is the cheapest possible test of the only thing still unknown, and it costs one kid slot.
 
 THE `/files` NUANCE IS A RE-PROBE, NOT A CONCLUSION. `/api/v1/files` returning 200 while `/api/v1/batches` returns an HTML 404 says OpenRouter has the input half of a batch API and not the batch half. That is a snapshot of one afternoon. Re-probe it at each season rollover rather than treating 'no batch route' as permanent.
+
+🔴 CORRECTION TO PART (5), THE ENGINE SURFACE — written here in place, where the next reader will look, on the prime's ruling that an answer wrong about the PRIMARY surface is worse than an incomplete one. This round named `agent_dispatch.model`, the allowlist gate at `dispatch.py:1096`, and the seat-row override. **IT MISSED THE LADDER, WHICH IS THE PRIMARY SURFACE.**
+
+`.agi/nodes/.geometry/ladder.md:81` says it in the node's own words: *"`dispatch.py` resolves a spawn by row here; config `harnesses.*.models` is the fallback when there is no row."* Row `:37` is `{"tier": 0, "role": "kid", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest"}` and it wins. **`harnesses.pi.models` is dead config while a ladder row exists.**
+
+HOW IT WAS CAUGHT, because the method matters more than the fact: I widened the two config cells this round named, dispatched L4.84, and then read the kid's REAL spawn command out of the manifest rather than trusting my own edit. It said `--model '~deepseek/deepseek-v4-flash-latest'`. The kid resolved the PAID model and the round would have measured nothing. Killed at ~3 minutes, ~$0.005.
+
+THE ALLOWLIST HALF OF (5) WAS RIGHT: the gate judges the RESOLVED pair, so widening `allowed_models` is genuinely required — it is the model CELL that was the wrong lever. A correct config diff for adopting any model therefore touches THREE cells, not two, and the ladder row is the one that decides.
+
+This is a correction to the round, not a defect in it: the surfaces it named are real and it answered from the code it read. The lesson is the one the whole seam keeps teaching — the authority is the thing the machine actually resolves, and the only way to know it is to make the machine resolve it and read the result.

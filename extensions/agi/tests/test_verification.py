@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,7 @@ SRC = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
+import locations  # noqa: E402
 import verification  # noqa: E402
 
 VERIFY_SOURCE = (BIN / "verification.py").read_text(encoding="utf-8")
@@ -430,3 +432,163 @@ def test_suite_completion_records_timestamp(tmp_path):
     assert "suite_ran_at" in doc
     import time as _t
     assert abs(doc["suite_ran_at"] - _t.time()) < 60
+
+
+# --- the L4.101 ordering fix (first --suite run self-FAILs) -----------------
+# ITEM 2 of hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking.
+# run_level used to append check_bin_freshness BEFORE main() recorded the
+# completing suite's stamp, so the FIRST-ever --suite run read a None prior
+# stamp and self-FAILed ("no suite has EVER run") even though that very run
+# just passed. The fix is ordering, never judgement: when --suite is on and
+# the suite PASSED within this call, freshness is judged against the run
+# completing NOW. The spy injects a tmp bin dir + tracked set so the real
+# guard runs deterministically (no git, no real tree) while letting the test
+# assert WHICH timestamp run_level handed it.
+
+
+def _suite_run_level(monkeypatch, groot, bdir, tracked, suite_status):
+    """One run_level call with real check_bin_freshness (injected bin dir)
+    and a stub run_check whose suite result is `suite_status`. Returns
+    (results, kws_seen) where kws_seen captures what run_level passed to the
+    guard."""
+    real = verification.check_bin_freshness
+    seen = {}
+
+    def fake_run(groot, name, verbose):
+        if name == verification.SUITE_CMD:
+            return verification.CheckResult(verification.SUITE_CMD, suite_status,
+                                            5.0, {"passed": 2340})
+        return verification.CheckResult(name, "PASS", 0.0, None)
+
+    def spy(groot, **kw):
+        seen.update(kw)
+        return real(groot, bin_dir=bdir, tracked_of=lambda d: set(tracked), **kw)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    monkeypatch.setattr(verification, "check_bin_freshness", spy)
+    return verification.run_level(groot, "rotation", suite=suite_status is not None,
+                                  verbose=False), seen
+
+
+def test_first_suite_run_passes_when_suite_passed(monkeypatch, tmp_path):
+    """(f) first arm: NO recorded stamp + --suite + suite PASSED -> freshness
+    PASS. The just-covered bin is covered; the guard must not return a
+    self-inflicted FAIL for a stamp main() has not written yet."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["newer.py"])
+    os.utime(bdir / "newer.py", (1_900_000, 1_900_000))  # before `now`; no prior stamp exists
+    results, seen = _suite_run_level(monkeypatch, groot, bdir, {"newer.py"}, "PASS")
+    fresh = next(r for r in results if r.name == "bin-suite-fresh")
+    assert fresh.status == "PASS", fresh.note
+    assert "covered by the suite run completing now" in fresh.note
+    assert seen.get("effective_ts") is not None, (
+        "suite-pass must judge against the completing run, not the prior stamp")
+
+
+def test_first_suite_run_fails_when_suite_failed(monkeypatch, tmp_path):
+    """(f) second arm: NO recorded stamp + --suite + suite FAILED -> freshness
+    FAIL unchanged. A failed suite covered nothing, so the guard is still the
+    conservative surface, not a rubber stamp."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["newer.py"])
+    os.utime(bdir / "newer.py", (1_900_000, 1_900_000))
+    results, seen = _suite_run_level(monkeypatch, groot, bdir, {"newer.py"}, "FAIL")
+    fresh = next(r for r in results if r.name == "bin-suite-fresh")
+    assert fresh.status == "FAIL", fresh.note
+    assert "SUITE REQUIRED" in fresh.note
+    assert seen.get("effective_ts") is None, (
+        "suite-fail must NOT fabricate a fresh stamp -- the recorded stamp rules")
+
+
+def test_no_suite_changes_nothing_stale_stamp_still_fails(monkeypatch, tmp_path):
+    """(g) With NO --suite, the guard is byte-for-byte the prior behaviour: a
+    stale stamp plus a newer/untracked bin/*.py still FAILs, unchanged. The
+    L4.101 fix is ordering only and must not weaken the no--suite gate."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["newer.py"])
+    _write_ts(groot, 1_000_000.0)                # stale stamp below the file's mtime
+    os.utime(bdir / "newer.py", (1_500_000, 1_500_000))
+    results, seen = _suite_run_level(monkeypatch, groot, bdir, [], None)  # None == no --suite
+    fresh = next(r for r in results if r.name == "bin-suite-fresh")
+    assert fresh.status == "FAIL", fresh.note
+    assert "SUITE REQUIRED" in fresh.note
+    assert "newer.py" in fresh.note
+    assert "(untracked; mtime newer than the last suite run)" in fresh.note
+    assert seen.get("effective_ts") is None, (
+        "no --suite must never fabricate a fresh stamp")
+
+
+# --- ITEM 3 of the round: the suite stamp is SHARED-ROOM, not worktree-local ---
+# hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking, item 3. The
+# stamp that `bin-suite-fresh` guards must live where the shared engine tree
+# lives, or a seat branch can never see the prime's suite run. `_sessions_dir`
+# (the resolver the meter pins already share) routes a worktree groot through
+# `git_common_root` to the main checkout. These two tests simulate that with a
+# monkeypatched `git_common_root` (real git would need an on-disk worktree):
+#   (g2) PATH EQUALITY -- a seat worktree groot and the main groot must resolve
+#        the SAME stamp file, not merely both succeed at reading.
+#   (g3) ROUND-TRIP -- a stamp written from EITHER groot is read from the OTHER.
+
+
+def _worktree_pair(tmp_path):
+    """A (seat, main) graph-root pair plus a git_common_root stand-in.
+
+    Returns (main_groot, seat_groot, patch_cgr) where patch_cgr(monkeypatch)
+    wires `locations.git_common_root` to bounce ANY path onto the main root --
+    the worktree->main mapping the real helper performs via `git worktree`.
+    Each `.agi` dir carries a config.json + nodes/ so `find_project_root`
+    resolves it as a real graph, exactly as `rotate._sessions_dir` expects."""
+    main_root = tmp_path / "main"
+    seat_root = tmp_path / "seat"
+    main_groot = main_root / ".agi"
+    seat_groot = seat_root / ".agi"
+    for g in (main_groot, seat_groot):
+        g.mkdir(parents=True)
+        (g / "nodes").mkdir()
+        (g / "config.json").write_text("{}")
+
+    def patch_cgr(monkeypatch):
+        def _to_main(_root):
+            return None if _root is None else main_root
+        monkeypatch.setattr(locations, "git_common_root", _to_main)
+        return _to_main
+
+    return main_groot, seat_groot, patch_cgr
+
+
+def test_seat_and_main_resolve_the_SAME_suite_stamp_path(monkeypatch, tmp_path):
+    """(g2) The stamp path is a PATH-EQUALITY fact, not a success fact. A test
+    that only asserts 'read succeeds' would pass on a machine where both
+    groots happen to hold a stamp -- the exact divergence this fixes is that
+    the seat's file does NOT exist. Assert the two resolve to ONE file."""
+    main_groot, seat_groot, patch_cgr = _worktree_pair(tmp_path)
+    patch_cgr(monkeypatch)
+
+    seat_path = verification._suite_ts_path(seat_groot)
+    main_path = verification._suite_ts_path(main_groot)
+    assert seat_path == main_path, (
+        f"stamp paths fork: seat={seat_path} main={main_path}")
+    assert str(seat_path).startswith(str(main_groot.parent)), (
+        "the shared stamp must resolve under the MAIN checkout, not the seat's")
+
+
+def test_suite_stamp_round_trips_across_groots(monkeypatch, tmp_path):
+    """(g3) A stamp written from one groot is READ by the other. Write from the
+    seat worktree, read from the main groot (and back), assert the epoch is
+    the ROUND-TRIP value -- the whole point of sharing the file."""
+    main_groot, seat_groot, patch_cgr = _worktree_pair(tmp_path)
+    patch_cgr(monkeypatch)
+
+    verification._record_suite_ts(seat_groot)
+    ts = verification._read_suite_ts(main_groot)
+    assert ts is not None, "main must read the stamp a seat worktree wrote"
+    assert abs(ts - time.time()) < 60
+
+    # and in the other direction: the prime's suite, written in the main
+    # checkout, must be what a seat-branch `bin-suite-fresh` compares against.
+    verification._record_suite_ts(main_groot)
+    ts_seat_read = verification._read_suite_ts(seat_groot)
+    assert ts_seat_read is not None and abs(ts_seat_read - time.time()) < 60

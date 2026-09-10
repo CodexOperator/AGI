@@ -303,7 +303,17 @@ Inspect with `grid.py log|diff|status`. Cadence and enablement are graph
 content, not memory: `.agi/nodes/.geometry/crons.md` declares `crons_live`
 plus per-job schedules, and `bin/crons.py apply` is the one command that makes
 the real crontab agree with it — editing the node and letting it get committed
-*is* the change, since `grid_sync` re-applies the declaration every 5 minutes.
+*is* the change, since `grid_sync` re-runs `crons.py apply` every 5 minutes.
+That reapply is deliberately **not** chained to the grid commit or the ref push
+ahead of it in the same cron line (`;`, not `&&`): both can fail — the push is a
+network call and has returned 403 in production when the repository was
+disabled — and a healing step that only runs when the network is up is not a
+healing step. All three still redirect to the same log, so a failure stays
+visible rather than swallowed. (Wording produced by `L4.102`, measured against
+`agi-crons-agi-2f118e6f.log:34011-34013`; true on this tree from `59727274f`.)
+**`branch_push` pushes the checked-out branch hourly at :07** — a second
+automatic writer of the shared branch, and the reason "never merge-then-hold"
+is a rule: a merge held in a shared tree gets published by whoever pushes next.
 `crons_live: false` is a one-edit kill switch for all managed lines at once
 (used to freeze the four crons during the `goal:g11` migration itself); turning
 it back on takes one manual `crons.py apply`, since the job that would have

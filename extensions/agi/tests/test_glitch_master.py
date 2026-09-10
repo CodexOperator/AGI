@@ -142,6 +142,30 @@ def test_format_record_reads_stdin_and_cli_writes_file(tmp_path):
     assert json.loads(results.read_text()) == data
 
 
+def test_format_record_root_is_repo_root_not_doubled(tmp_path):
+    """hypothesis:l4-residue-that-is-recorded-is-still-residue SITE B — the
+    RESOLVED path is `<repo>/.agi/sessions/iter-<id>/review/results.json`,
+    never `<repo>/.agi/.agi/sessions/...`. `find_project_root` (and the
+    `--root GRAPH_ROOT` docstring) yield the GRAPH root `<repo>/.agi`; the
+    repo-root normalization must strip it before `_out_dir` appends `/.agi/`.
+    Assert the resolved path, not that the call merely succeeded."""
+    data = _fixture(iter_id="L3.99")
+    # A graph-root-shaped input: `<tmp>/repo/.agi` — exactly what the default
+    # resolver and the docstring'd `--root GRAPH_ROOT` hand in.
+    graph = tmp_path / "repo" / ".agi"
+    graph.mkdir(parents=True)
+    proc = subprocess.run(
+        [sys.executable, str(BIN_DIR / "glitch_master.py"),
+         "format-record", "--iter", "L3.99", "--root", str(graph)],
+        input=json.dumps(data), text=True, capture_output=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    resolved = tmp_path / "repo" / ".agi" / "sessions" / "iter-L3.99" / "review" / "results.json"
+    double = tmp_path / "repo" / ".agi" / ".agi" / "sessions" / "iter-L3.99" / "review" / "results.json"
+    assert not double.exists(), f".agi doubled: {double}"
+    assert json.loads(resolved.read_text()) == data
+
+
 def _ns(**kw):
     import argparse
 

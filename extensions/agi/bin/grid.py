@@ -755,7 +755,11 @@ class GridLock:
     def __init__(self, root: Path, wait_seconds: int) -> None:
         # G11 graph root => the `.agi` dir itself: sessions sit directly under
         # it. Legacy bare root => `.agi/sessions`, as the contract documents.
-        self._lock_dir = locations.sessions_dir(root) \
+        # G11 graph root: sessions sit directly under it. Route through
+        # `shared_sessions_dir` (not the plain per-worktree join) because the
+        # grid `--all` lock must be ONE flock across every git worktree -- the
+        # refs it serializes are shared, so a per-worktree lock forks the guard.
+        self._lock_dir = locations.shared_sessions_dir(root) \
             if locations.is_graph_dir(root) else root / ".agi" / "sessions"
         self._path = self._lock_dir / ".grid.lock"
         self._wait_seconds = wait_seconds

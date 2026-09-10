@@ -45,6 +45,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import commands  # noqa: E402
+import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
 
 #: Per-check wall-clock ceiling. A check that hangs past this is a failure the
 #: successor must see, not a run that never returns.
@@ -278,25 +279,44 @@ def _git_tracked(bin_dir: Path) -> set[str]:
         return set()
 
 
+def _suite_ts_path(groot: Path) -> Path:
+    """The suite stamp's path, resolved to the SHARED sessions dir.
+
+    ITEM 3 of hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking:
+    the stamp that `bin-suite-fresh` guards must live where the thing it guards
+    lives -- the shared engine tree -- not in whichever per-worktree sessions
+    dir happened to run `--suite`. `rotate._sessions_dir` is the ONE resolver
+    the meter pins already share (routes through `git_common_root` to the
+    main checkout), so a seat branch reads the same stamp the prime's suite
+    wrote instead of a freshly-missing one. A plain non-git root returns the
+    identity, so fixtures and the main checkout are byte-for-byte unchanged.
+    """
+    return rotate._sessions_dir(groot) / SUITE_TS_FILE
+
+
 def _read_suite_ts(groot: Path) -> float | None:
     """Epoch of the last recorded --suite completion, or None if never."""
     try:
-        doc = json.loads((Path(groot) / "sessions" / SUITE_TS_FILE)
-                         .read_text(encoding="utf-8"))
+        doc = json.loads(_suite_ts_path(groot).read_text(encoding="utf-8"))
         return float(doc["suite_ran_at"])
     except (OSError, ValueError, TypeError, KeyError):
         return None
 
 
 def _record_suite_ts(groot: Path) -> None:
-    """Persist the suite-completed timestamp (same idiom as _write_state)."""
-    path = Path(groot) / "sessions" / SUITE_TS_FILE
+    """Persist the suite-completed timestamp (same idiom as _write_state).
+
+    Written to the SHARED sessions dir (see `_suite_ts_path`), so a first
+    `--suite` run on the main checkout is immediately visible to every seat
+    branch -- the round-trip falsifier (g3) of this round's item 3."""
+    path = _suite_ts_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"suite_ran_at": time.time()}), encoding="utf-8")
 
 
 def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
-                        tracked_of=None) -> CheckResult:
+                        tracked_of=None,
+                        effective_ts: float | None = None) -> CheckResult:
     """FAIL ("SUITE REQUIRED") when a bin/*.py is untracked by git or newer
     than the last recorded --suite run.
 
@@ -309,11 +329,19 @@ def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
          untracked (the "/ or newer" half is bidirectional)
     No recorded timestamp ever -> conservative FAIL: a suite that has never
     run is exactly the state we must surface, so the default is "required".
+
+    `effective_ts`, when given, replaces the recorded stamp as the reference
+    for the mtime arm: it is how a --suite call that JUsT passed within the
+    same invocation teaches the guard to judge against the run completing now
+    rather than the run before it (L4.101 item 2) -- a first-ever suite run
+    must not self-FAIL because no PRIOR stamp exists. The no-recorded-stamp
+    FAIL arm is untouched: `effective_ts` is only ever supplied by a --suite
+    run that is itself passing, never to silence a never-run tree.
     """
     start = time.monotonic()
     bdir = bin_dir or Path(__file__).resolve().parent
     tracked = tracked_of(bdir) if tracked_of else _git_tracked(bdir)
-    suite_ts = _read_suite_ts(groot)
+    suite_ts = effective_ts if effective_ts is not None else _read_suite_ts(groot)
     stale: list[str] = []
     for f in _bin_scripts(bdir):
         if suite_ts is not None and f.stat().st_mtime > suite_ts:
@@ -324,10 +352,11 @@ def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
     if suite_ts is None:
         stale.append("no suite has EVER run (no recorded timestamp)")
     elif not stale:
+        note = ("all bin/*.py covered by the suite run completing now"
+                if effective_ts is not None
+                else "all bin/*.py older than the last recorded suite run")
         return CheckResult("bin-suite-fresh", "PASS",
-                           time.monotonic() - start,
-                           note="all bin/*.py older than the last recorded"
-                                " suite run")
+                           time.monotonic() - start, note=note)
     return CheckResult("bin-suite-fresh", "FAIL", time.monotonic() - start,
                        note="SUITE REQUIRED: " + "; ".join(stale))
 
@@ -390,7 +419,19 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool) -> list[Check
         # only under --suite. Before the count compare so node-count stays the
         # closing check. (quick is the pre-commit set; the suite gate there
         # would cost the commit a check it has not earned.)
-        results.append(check_bin_freshness(groot))
+        #
+        # The freshness guard must judge against the run that is COMPLETING,
+        # not the run before it. When --suite is on and the suite PASSED within
+        # this very call, every bin/*.py was just covered; passing the guard
+        # its own timestamp means the FIRST-ever suite run passes instead of
+        # reading a None prior stamp and self-FAILing before main() records
+        # one. When the suite failed (or --suite is off) `effective_ts` stays
+        # None and the guard reads the recorded stamp, untouched (L4.101
+        # item 2 -- the ordering, never the judgement).
+        suite_res = next((r for r in results if r.name == SUITE_CMD), None)
+        eff_ts = time.time() if (suite and suite_res is not None
+                                 and suite_res.status == "PASS") else None
+        results.append(check_bin_freshness(groot, effective_ts=eff_ts))
     smoke = next((r for r in results if r.name == "smoke"), None)
     if smoke is not None:
         results.append(compare_count(groot, smoke.number))

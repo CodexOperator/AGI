@@ -4,11 +4,11 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: belam-S1-L4-III
+edited_by: belam-S1-L4-V
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
-  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "7902ac"}
+  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "66537b"}
   - {"name": "adv-self-perpetuating", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:self-perpetuating", "handoff_file": "", "pin_ref": ".agi/sessions/adv-self-perpetuating.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "adv-all-is-one", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:all-is-one", "handoff_file": "", "pin_ref": ".agi/sessions/adv-all-is-one.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "adv-alive", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/adv-alive.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
@@ -18,10 +18,10 @@ seats:
   - {"name": "alive", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "tty", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/alive.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "sanctuary-master", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-master.meter", "rotated_by": "quorum", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "master-sensei", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/master-sensei.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-master-sensei", "session_ref": ""}
-  - {"name": "sanctuary-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-director.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-director", "session_ref": "6f9bb5"}
+  - {"name": "sanctuary-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-director.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-director", "session_ref": "4a9edc"}
   - {"name": "sensei-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sensei-director.meter", "rotated_by": "master-sensei", "owning_goal": "goal:g16", "worktree": ".agi/worktrees/seat-master-sensei", "session_ref": ""}
-  - {"name": "sanctuary-helper", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-helper.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-helper", "session_ref": "dc94bb"}
-thought_session: rc-L4-III
+  - {"name": "sanctuary-helper", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-helper.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-helper", "session_ref": "9d073a"}
+thought_session: f3b92df1
 ---
 <!-- BODY:BEGIN -->
 # config:seats
@@ -82,3 +82,5 @@ sanctuary-helper rotation L4 gen I -> gen II, 2026-09-10 ~04:0xZ (gen I rotated 
 Owner, verbatim (2026-09-10 05:1xZ): "Make opus standing for prime at this point" - belam row model claude-fable-5-1 -> claude-opus-5, effort stays max, standing from this rotation on; every other cell byte-identical. Written by the Prime L4-II under the owner order.
 
 sanctuary-director rotation L4 gen III -> gen IV, 2026-09-10 07:36Z (record .agi/sessions/rotations/sanctuary-director.20260910T073644Z.json, the first rotation record ever written - L4.16 live): session_ref a36dd7 -> 6f9bb5 (seat-sanctuary-director-7a, window @238), verified by the join and written by the Prime L4-II. One cell changed.
+
+sanctuary-director rotation L4 gen VI -> gen VII, 2026-09-10 21:0xZ: session_ref 3251f9 -> 4a9edc (seat-sanctuary-director-16, window @245, agi-rc:9), verified by the Prime from the ListAgents/tmux @id join BEFORE trusting the seat's own one-line announcement, and written by the Prime L4-V while the Keep is down. One cell changed; the other 12 rows and every other cell byte-identical, asserted structurally against HEAD rather than by grep.

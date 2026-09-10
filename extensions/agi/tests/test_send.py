@@ -39,7 +39,9 @@ def project(tmp_path: Path) -> Path:
 def test_send_creates_inbox_file(project: Path):
     """First message to a recipient creates the inbox file."""
     send_mod.send(project, "director", "hello world", "a00-xxxx")
-    inbox = project / "sessions" / "inbox" / "director.md"
+    # The inbox is the SHARED room under the graph root: `project` is a G11
+    # project (its markers live at `.agi/`), so sessions live at `.agi/sessions`.
+    inbox = project / ".agi" / "sessions" / "inbox" / "director.md"
     assert inbox.is_file()
     content = inbox.read_text()
     assert "hello world" in content
@@ -50,7 +52,7 @@ def test_send_creates_inbox_file(project: Path):
 def test_send_prints_inbox_path(project: Path, capsys):
     send_mod.send(project, "test-agent", "message one", "parent")
     captured = capsys.readouterr()
-    expected = str((project / "sessions" / "inbox" / "test-agent.md").resolve())
+    expected = str((project / ".agi" / "sessions" / "inbox" / "test-agent.md").resolve())
     assert captured.out.strip() == expected
 
 
@@ -126,7 +128,7 @@ def test_send_nudges_existing_window(project: Path, monkeypatch):
     assert nudges[0][4] == "hello world"
     assert nudges[0][5] == "Enter"
     # the inbox contract is unchanged
-    assert (project / "sessions" / "inbox" / "director.md").is_file()
+    assert (project / ".agi" / "sessions" / "inbox" / "director.md").is_file()
 
 
 def test_send_dm_nudges_other_party(project: Path, monkeypatch):
@@ -141,7 +143,7 @@ def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, [])  # an empty/absent window listing
     send_mod.send(project, "ephemeral-kid", "fire and forget", "parent")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
-    inbox = project / "sessions" / "inbox" / "ephemeral-kid.md"
+    inbox = project / ".agi" / "sessions" / "inbox" / "ephemeral-kid.md"
     assert inbox.is_file()
     assert "fire and forget" in inbox.read_text()
 
@@ -228,13 +230,13 @@ def test_two_recipients_independent(project: Path, capsys):
 
 def test_message_has_timestamp(project: Path):
     send_mod.send(project, "agent-x", "content", "sender-y")
-    content = (project / "sessions" / "inbox" / "agent-x.md").read_text()
+    content = (project / ".agi" / "sessions" / "inbox" / "agent-x.md").read_text()
     assert "ts: " in content
 
 
 def test_message_has_from_to_and_text(project: Path):
     send_mod.send(project, "recip", "the message body", "sender-id")
-    content = (project / "sessions" / "inbox" / "recip.md").read_text()
+    content = (project / ".agi" / "sessions" / "inbox" / "recip.md").read_text()
     assert "from: sender-id" in content
     assert "to: recip" in content
     assert "the message body" in content
@@ -507,7 +509,7 @@ def test_audience_writes_to_prime_inbox(project: Path, monkeypatch):
     monkeypatch.setenv("AGI_LADDER_TIER", "3")
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "need a ruling on g7", None, False)
-    inbox = project / "sessions" / "inbox" / "prime.md"
+    inbox = project / ".agi" / "sessions" / "inbox" / "prime.md"
     assert inbox.is_file()
     content = inbox.read_text()
     assert "to: prime" in content
@@ -526,7 +528,7 @@ def test_audience_prime_refuses_non_quorum_caller(project: Path, monkeypatch,
     croot = project / "comms"
     with pytest.raises(SystemExit):
         send_mod.audience_prime(croot, project, "let me in", None, False)
-    assert not (project / "sessions" / "inbox" / "prime.md").exists()
+    assert not (project / ".agi" / "sessions" / "inbox" / "prime.md").exists()
 
 
 def test_audience_prime_morals_bypasses_quorum_gate(project: Path, monkeypatch):
@@ -539,7 +541,7 @@ def test_audience_prime_morals_bypasses_quorum_gate(project: Path, monkeypatch):
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "morals: life is at stake",
                             None, True)
-    assert (project / "sessions" / "inbox" / "prime.md").is_file()
+    assert (project / ".agi" / "sessions" / "inbox" / "prime.md").is_file()
 
 
 def test_audience_one_per_rotation(project: Path, monkeypatch, capsys):
@@ -695,7 +697,9 @@ def test_send_inbox_target_and_text_both_still_split_correctly(tmp_path,
     rc = send_mod.main(["--from", "alive", "send", "prime", "multi", "word",
                         "message"])
     assert rc == 0
-    inbox = root / "sessions" / "inbox" / "prime.md"
+    # `root` is a G11 project (markers at `.agi/`), so the shared inbox lives
+    # under `.agi/sessions/`, not the legacy `root/sessions`.
+    inbox = root / ".agi" / "sessions" / "inbox" / "prime.md"
     assert inbox.is_file()
     content = inbox.read_text()
     assert "to: prime" in content
@@ -1096,3 +1100,235 @@ def test_comms_root_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
     assert wt_comms == main_comms, (
         "a worktree kid must comms to the MAIN checkout's season room, "
         "not a per-worktree one")
+
+
+def test_inbox_dir_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
+    """The MAIL inbox is ONE room across every git worktree, exactly like the
+    comms root: a recipient who reads from the main checkout must see the mail
+    a seat in a worktree sent, or the writer's message lands in a file the
+    recipient never reads (falsifier g4's inbox face)."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x-abc@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+    main_inbox = send_mod._inbox_dir(repo / ".agi")
+    wt_inbox = send_mod._inbox_dir(wt / ".agi")
+    assert str(main_inbox) == str(repo / ".agi" / "sessions" / "inbox")
+    assert wt_inbox == main_inbox, (
+        "a worktree kid's mail must land in the MAIN checkout's inbox, "
+        "not a per-worktree one the recipient never reads")
+
+
+# ── hypothesis:l4-authority-verified-against-the-graph-not-the-message ────
+# whois resolves a claimed session_ref against the PUSHED config:seats, never
+# the working tree; provenance (ref + commit sha) rides in every verified
+# answer; an unreachable pushed ref is UNVERIFIED and exits non-zero.
+# ---------------------------------------------------------------------------
+
+FAKE_SHA = "deadbeef0123456789"
+FAKE_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac"},
+    {"name": "sanctuary-director", "role": "director", "tier": 1,
+     "session_ref": "6f9bb5"},
+    {"name": "sanctuary-helper", "role": "director", "tier": 1,
+     "session_ref": "dc94bb"},
+]
+
+
+def _stub_pushed(monkeypatch, result):
+    """Point _pushed_seats at a canned (rows, sha) or None (unreachable), so
+    the whois path runs with no real git and no real tmux."""
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda root, ref, do_fetch: result)
+
+
+def test_whois_claim_yes_has_provenance(monkeypatch):
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="prime_director")
+    assert rc == 0
+    assert "IS-AUTHORIZED" in text
+    assert "prime_director" in text
+    # provenance in the answer: the ref it read and the commit sha it used
+    assert "origin/season/s2" in text
+    assert FAKE_SHA in text
+
+
+def test_whois_claim_yes_by_seat_name(monkeypatch):
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "dc94bb", claim="sanctuary-helper")
+    assert rc == 0
+    assert "IS-AUTHORIZED" in text
+    assert "sanctuary-helper" in text
+
+
+def test_whois_claim_different_row_is_no(monkeypatch):
+    """Impersonation: the ref is present in the table but under a DIFFERENT
+    seat/role than the claim. A presence-only check would pass this; whois must
+    answer NO."""
+    # EDITED by sanctuary-director gen V: this asserted `rc == 0` on a
+    # REFUSAL, which encoded the defect rather than a correct declaration --
+    # `whois <ref> --claim <role> && trust_them` would have proceeded on an
+    # impersonator. Every original text assertion is kept; the exit code the
+    # old version obscured is now asserted too.
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "dc94bb", claim="belam")
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED
+    assert "IS-NOT-AUTHORIZED" in text
+    assert "sanctuary-helper" in text
+    # belam is prime_director, not director — the claim mismatches the row role
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="director")
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED
+    assert "IS-NOT-AUTHORIZED" in text
+
+
+def test_whois_unknown_ref_is_no_not_error(monkeypatch):
+    # EDITED by sanctuary-director gen V, same reason as the test above: a
+    # NO-MATCH is a negative answer and must not exit 0. It also gets its OWN
+    # code, distinct from NOT-AUTHORIZED, so a caller can tell "not in the
+    # table at all" from "real, but not who they claim".
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "cafebabe", claim=None)
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert "cafebabe" in text
+    rc, text = send_mod.whois(Path("."), "cafebabe", claim="belam")
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert send_mod.WHOIS_NO_MATCH != send_mod.WHOIS_NOT_AUTHORIZED
+
+
+def test_whois_unreachable_is_unverified_nonzero(tmp_path, monkeypatch):
+    """Pushed ref unreachable → UNVERIFIED label AND a non-zero exit. Assert
+    on the exit code, not only on the text."""
+    _stub_pushed(monkeypatch, None)
+    seats_dir = tmp_path / "nodes" / ".geometry"
+    seats_dir.mkdir(parents=True)
+    (seats_dir / "seats.md").write_text(
+        "---\nseats:\n  - {\"name\": \"belam\", \"role\": \"prime_director\", "
+    "\"session_ref\": \"7902ac\"}\n---\n")
+    rc, text = send_mod.whois(tmp_path, "7902ac", claim="belam")
+    assert rc == 1
+    assert text.startswith("UNVERIFIED")
+    assert "reading working tree" in text
+    # the fallback still resolves the working-tree row, but it is labelled
+    # non-authoritative and exits non-zero — never a silent success
+    assert "belam" in text
+
+
+def test_whois_ignores_working_tree_edit(monkeypatch, tmp_path):
+    """The pushed ref is the authority: editing the working-tree file must not
+    change a verified answer — the whole point of reading the pushed ref."""
+    seats_dir = tmp_path / "nodes" / ".geometry"
+    seats_dir.mkdir(parents=True)
+    # working tree hands 7902ac to a DIFFERENT seat than the pushed ref does
+    (seats_dir / "seats.md").write_text(
+        "---\nseats:\n  - {\"name\": \"evil\", \"role\": \"hacker\", "
+    "\"session_ref\": \"7902ac\"}\n---\n")
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(tmp_path, "7902ac", claim="belam")
+    assert rc == 0
+    assert "IS-AUTHORIZED" in text
+    assert "belam" in text
+    assert "IS-NOT-AUTHORIZED" not in text
+
+
+def test_whois_reuses_shared_loader_not_new_parse():
+    """No sixth seats.md parser: seats are parsed ONLY through the engine's
+  shared node-loader (graph_core frontmatter, the path hierarchy.load_seats
+  takes), pointed at the pushed content — never a hand-rolled row regex."""
+    src = Path(send_mod.__file__).read_text()
+    assert "_fm.load_node_file" in src
+    assert "_load_seats_rows" in src
+    assert "re.split" not in src  # no regex row-parsing snuck in
+
+
+def test_whois_cli_wiring_and_exit_code(monkeypatch, capsys):
+    """`send.py whois <ref> --claim X` routes through main and returns the
+    verified exit code (0), and an unreachable pushed ref returns 1 via the
+    CLI, not only via the module function."""
+    _stub_pushed(monkeypatch, (FAKE_ROWS, FAKE_SHA))
+    rc = send_mod.main(["whois", "--no-fetch", "6f9bb5",
+                        "--claim", "sanctuary-director"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "IS-AUTHORIZED" in out
+    capsys.readouterr()
+    _stub_pushed(monkeypatch, None)
+    rc = send_mod.main(["whois", "--no-fetch", "6f9bb5", "--claim", "belam"])
+    assert rc == 1
+    assert "UNVERIFIED" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# whois exit codes — added by sanctuary-director gen V in review of L4.96.
+#
+# The round satisfied the falsifier I wrote, which specified a non-zero exit
+# for the UNVERIFIED path ONLY. That was a gap in MY spec: a NEGATIVE answer
+# still exited 0, so `send.py whois <ref> --claim <role> && trust_them` would
+# have proceeded on an impersonator. A refusal that returns success is the
+# failure this repo paid for three times in one day.
+# --------------------------------------------------------------------------
+
+
+def _seats_doc(rows):
+    import json as _j
+    body = "\n".join(f"  - {_j.dumps(r)}" for r in rows)
+    return f"---\nid: config:seats\ntype: config\nseats:\n{body}\n---\n\nbody\n"
+
+
+def _whois_rows():
+    return [{"name": "belam", "role": "prime_director", "session_ref": "7902ac"},
+            {"name": "sanctuary-helper", "role": "director",
+             "session_ref": "9d073a"}]
+
+
+def test_whois_exit_codes_distinguish_every_negative_answer(monkeypatch,
+                                                            tmp_path):
+    """0 only when authoritative AND affirmative; 2 not-authorized;
+    3 no-match; 1 unverified. Distinct so a caller can tell 'not who they
+    claim' from 'not in the table' from 'I could not reach the authority'."""
+    import send as _send
+    rows = _whois_rows()
+    monkeypatch.setattr(_send, "_pushed_seats",
+                        lambda root, ref, fetch: (rows, "cafe123"))
+
+    assert _send.whois(tmp_path, "7902ac", None)[0] == _send.WHOIS_OK
+    assert _send.whois(tmp_path, "9d073a", "sanctuary-helper")[0] == \
+        _send.WHOIS_OK
+    # the impersonation case: a REAL ref under the WRONG role
+    code, text = _send.whois(tmp_path, "9d073a", "belam")
+    assert code == _send.WHOIS_NOT_AUTHORIZED, text
+    assert "IS-NOT-AUTHORIZED" in text
+    # a ref in no row at all is a DIFFERENT answer from the above
+    assert _send.whois(tmp_path, "deadbe", None)[0] == _send.WHOIS_NO_MATCH
+    assert _send.WHOIS_NOT_AUTHORIZED != _send.WHOIS_NO_MATCH
+
+
+def test_whois_unverified_outranks_a_working_tree_answer(monkeypatch,
+                                                         tmp_path):
+    """When the pushed authority is unreachable the exit is UNVERIFIED even if
+    the working tree would have answered affirmatively. The caller must not
+    act on an answer we could not authenticate -- and a working-tree file is
+    exactly what an impersonator would edit."""
+    import send as _send
+    monkeypatch.setattr(_send, "_pushed_seats", lambda root, ref, fetch: None)
+    monkeypatch.setattr(_send, "_locally_loaded_rows",
+                        lambda root: _whois_rows())
+    code, text = _send.whois(tmp_path, "7902ac", "belam")
+    assert code == _send.WHOIS_UNVERIFIED, text
+    assert "NOT authoritative" in text
