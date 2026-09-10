@@ -590,17 +590,191 @@ def reap_orphans(root: Path | str | None = None,
     return reaped
 
 
+def _num(v) -> float | None:
+    """Float, or None when absent — never 0.0 for a missing reading."""
+    return None if v is None else float(v)
+
+
+def capture(root: Path | str | None = None) -> dict:
+    """One snapshot of every spend-visible number. READ-ONLY — never mints,
+    revokes or modifies.
+
+    Returns a dict with three sub-structures, each `None` exactly when its
+    source could not be read or has nothing to read, never `0`:
+
+      account  {total, used, remaining}  from `credit_balance` (the whole
+               account balance). None on a failed API call, and when no
+               provisioning key is set.
+      keys     [ {name, limit, usage}, ... ] from `list_all_keys`. None when
+               the listing fails (unreadable), [] when there is no
+               provisioning key.
+      runtime  {label, limit, usage, remaining} from `key_usage`. None when
+               the runtime key is unset OR its read fails.
+
+    The whole point (`hypothesis:l4-an-estimate-wearing-a-measurements-
+    clothes`) is that a missing reading is UNKNOWN and must never be rendered
+    as "nothing changed" — which is the exact reading that produced the
+    hypothesis, and why an unreadable API yields None here, not 0.
+    """
+    account = None
+    try:
+        bal = credit_balance(root)
+        if bal is not None:
+            total, used, remaining = bal
+            account = {"total": total, "used": used, "remaining": remaining}
+    except ProvisioningError:
+        account = None  # unreadable stays unreadable, never 0
+
+    keys = None
+    try:
+        keys = []
+        for rec in list_all_keys(root) or []:
+            keys.append({"name": str(rec.get("name") or "(unnamed)"),
+                         "limit": _num(rec.get("limit")),
+                         "usage": _num(rec.get("usage"))})
+    except ProvisioningError:
+        keys = None  # unreadable listing, never []
+
+    runtime = None
+    try:
+        ku = key_usage(root)
+        if ku is not None:
+            label, limit, remaining = ku
+            used = None if remaining is None else (limit - remaining)
+            runtime = {"label": label, "limit": limit,
+                       "usage": used, "remaining": remaining}
+    except ProvisioningError:
+        runtime = None  # unreadable, never 0
+
+    return {"captured_at":
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "account": account, "keys": keys, "runtime": runtime}
+
+
+def _readings(cap: dict) -> dict[str, float | None]:
+    """Flatten a capture into `{label: value}` readings, with labels shared
+    across captures so a diff can align them. Keys are indexed by NAME so a
+    key that appears or disappears between two captures is still a bump the
+    diff can see, not a silent re-alignment."""
+    out: dict[str, float | None] = {}
+    acc = cap.get("account")
+    out["account.total"] = None if acc is None else acc.get("total")
+    out["account.used"] = None if acc is None else acc.get("used")
+    for k in cap.get("keys") or []:
+        out[f"key:{k['name']}.usage"] = k.get("usage")
+    key_names = {k.get("name") for k in cap.get("keys") or []}
+    rt = cap.get("runtime")
+    if rt is not None and rt.get("label") not in key_names:
+        # The runtime key is almost always the `agi` key already listed, so a
+        # separate `runtime.usage` row would double-count one reading and turn
+        # the four-delta control (account + 3 keys) into five. Emit it only
+        # when it is a distinct credential the listing cannot see.
+        out["runtime.usage"] = rt.get("usage")
+    return out
+
+
+def diff_capture(saved: dict, now: dict) -> list[tuple[str, float | None, float | None]]:
+    """`[(label, old, new), ...]` for every reading in either capture.
+
+    A reading missing on EITHER side is `None` on that side and renders
+    UNKNOWN — the diff must never turn an unreadable into a zero, because a
+    zero reads as "nothing was spent" and that is the exact fabricator this
+    instrument exists to remove.
+    """
+    old = _readings(saved)
+    new = _readings(now)
+    labels = list(dict.fromkeys([*old.keys(), *new.keys()]))
+    rows = []
+    for label in labels:
+        if not label.startswith("account.total") and not label.endswith(".usage"):
+            continue  # only the account total and per-key/runtime usage deltas
+        rows.append((label, old.get(label), new.get(label)))
+    return rows
+
+
+def _fmt(v: float | None) -> str:
+    """USD with four decimals, or UNKNOWN for a missing reading — never 0."""
+    return "UNKNOWN" if v is None else f"${v:,.4f}"
+
+
+def _fmt_delta(old: float | None, new: float | None) -> str:
+    if old is None or new is None:
+        return "UNKNOWN"  # a missing side must never read as no change
+    d = new - old
+    return f"${d:+,.4f}"
+
+
+def _captures_dir(root: Path | str) -> Path:
+    """Where capture JSON files live: the MAIN checkout's `sessions/` dir, so
+    a diff in any worktree reads the same file (the same anchor `spawn_budget`
+    uses for leases — captures are spend state, shared across worktrees)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import locations  # noqa: E402
+    graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+    return graph / locations.SESSIONS_DIR_NAME / ".spend-captures"
+
+
 def main(argv: list[str] | None = None) -> int:
-    """`provisioning.py status|list|reap [--yes]` — inspect and clean up."""
+    """`provisioning.py status|list|reap [--yes] | capture [--out FILE] | diff [--prev FILE]`
+
+    `capture` writes one snapshot of every spend-visible number to a file;
+    `diff` re-reads now and prints the deltas against a saved capture.
+    Both are READ-ONLY (hypothesis:l4-an-estimate-wearing-a-measurements-
+    clothes): the capture is the instrument, and an unreadable reading is
+    UNKNOWN, never zero.
+    """
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="status",
-                    choices=["status", "list", "reap"])
+                    choices=["status", "list", "reap", "capture", "diff"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--yes", action="store_true",
                     help="reap for real; without it, reap only reports")
+    ap.add_argument("--out", default=None, help="capture: where to write the snapshot")
+    ap.add_argument("--prev", default=None, help="diff: which saved capture to diff against")
     args = ap.parse_args(argv)
+
+    if args.action in ("capture", "diff"):
+        cap_file = Path(args.out if args.action == "capture" else args.prev
+                        or _captures_dir(args.root) / "capture.json")
+        if args.action == "capture":
+            data = capture(args.root)
+            cap_file.parent.mkdir(parents=True, exist_ok=True)
+            cap_file.write_text(json.dumps(data, indent=2))
+            print(f"capture: wrote {cap_file}  @ {data['captured_at']}")
+            acc = data.get("account")
+            if acc is None:
+                print(f"  account: UNKNOWN (unreadable or no provisioning key)")
+            else:
+                print(f"  account: total={_fmt(acc['total'])} used={_fmt(acc['used'])}")
+            if data.get("keys") is None:
+                print(f"  keys: UNKNOWN (listing unreadable)")
+            else:
+                for k in data["keys"]:
+                    print(f"  key {k['name']!r}: limit={_fmt(k['limit'])} "
+                          f"usage={_fmt(k['usage'])}")
+            rt = data.get("runtime")
+            if rt is None:
+                print(f"  runtime: UNKNOWN (unset or unreadable)")
+            else:
+                print(f"  runtime {rt['label']!r}: limit={_fmt(rt['limit'])} "
+                      f"usage={_fmt(rt['usage'])}")
+            return 0
+
+        # diff
+        if not cap_file.is_file():
+            print(f"capture diff: no saved capture at {cap_file} — "
+                  f"run 'provisioning.py capture' first")
+            return 2
+        saved = json.loads(cap_file.read_text())
+        now = capture(args.root)
+        rows = diff_capture(saved, now)
+        print(f"capture diff: {cap_file}  vs  now")
+        for label, old, new in rows:
+            print(f"  {label:32} {_fmt(old):>10} -> {_fmt(new):>10}  "
+                  f"\u0394 {_fmt_delta(old, new)}")
+        return 0
 
     if not available(args.root):
         print(f"provisioning: unavailable ({PROVISIONING_KEY_VAR} not set) — "
