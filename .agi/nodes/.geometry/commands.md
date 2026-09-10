@@ -88,6 +88,33 @@ commands:
       - show
     about: the crontab the graph declares
     workflow: read
+  write-guard:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write_guard.py
+      - check
+    about: goal:g13.1 — unsanctioned node writes; silent is healthy
+    workflow: verify
+  dispatch-help:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/dispatch.py
+      - --help
+    about: dispatch --help exits 0 — agents can be spawned
+    workflow: verify
+  verify:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+    about: the ONE rotation check — levels quick|rotation|full, --suite opt-in (hypothesis:l4-unified-verification)
+    workflow: verify
+  verify-suite:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+      - --suite
+    about: the PRIME's rotation check — the rotation level plus the engine suite; the suite window is granted, one runner at a time
+    workflow: verify
   view:
     argv:
       - python3
@@ -117,7 +144,7 @@ commands:
       - <engine>/extensions/agi/bin/write.py
     about: goal:g13.1 — named node operations; a hand edit becomes an engine action
     workflow: see
-edited_by: season.py
+edited_by: sanctuary-director
 ordered:
   - verify
 season: 1
@@ -126,7 +153,7 @@ tags:
   - geometry
   - command
   - structural
-thought_session: season
+thought_session: sanctuary-director-genIII-L4
 title: Standard command declaration
 workflows:
   verify:

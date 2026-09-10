@@ -18,7 +18,7 @@ tags:
   - build
   - prose
   - g15
-thought_session: sanctuary-director-genII-L4
+thought_session: sanctuary-director-genIII-L4
 title: Briefs prime director successor
 ---
 <!-- BODY:BEGIN -->
