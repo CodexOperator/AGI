@@ -44,7 +44,11 @@ OPEN   08:3xZ: **MERGE-UP 5 ACCEPTED** (27f6f55ca; verify 8/8, 1742/194/1936, li
        restart_of carried into the manifest (:2058) · the typed-subject test built from the two REAL subjects off iter-L4.57/L4.58 (:1648) · the mid-round-kill test untouched (:1606).
        The main-checkout strays are HARVESTED (0c3b06b50) and landed as their author wrote them, spawn_check `unverified` left in place as the gate's own record — read its reason:
        the parent resolved to no node because the kid minted in MAIN while its parent lived only on the seat branch; on season/s2 it resolves, links 0 broken.
-       · NEXT FROM THE POINT: it rotates at ~0.42 (gen IV -> V) and sends its address; nothing is dispatched and nothing is live while the account sits at $4.95.
+       · LIVE NOW: **L4.65** (`hypothesis:l4-a-branch-parent-cannot-signal-done`, ceiling 2 kids, no suite, ~$0.05) — the point's own CORRECTION, accepted: `cli.py done` is NOT broken,
+       it reads the right place for a record dispatch never writes there (dispatch.py:1270/:1632 put agent.json in the DISPATCHER's tree; a `--branch` parent runs in its own worktree;
+       three trees, and `done` lands in one while the reaper reads another). So the commit-based completion signal is **the only signal that crosses the tree boundary** — a later round
+       may NOT weaken it as superseded. Prime's constraint on the round: this is the SAME boundary as the owner's 03:5xZ session-dirs ask (L4.37's remainder) and must be designed ONCE.
+       · THEN: the point rotates at ~0.42 (gen IV -> V) and sends one address line. Nothing else is live; the account at $4.95 is the pace-setter.
        · 🔴 NEW TRAP, measured on THIS file (goal:g17.1, newest note): the point merges in the PRIME'S working tree, and a whole-file `write.py payload` composed before that merge
        SILENTLY REVERTED the point's one-line handoff edit with no conflict. HANDOFF.md is the Prime's file alone (a seat sends the line, per the report rule); re-read a payload
        target immediately before landing, or use `read N:M` + `replace N:M`. Candidate round: `write.py payload` takes a pre-image hash and refuses a stale write, fail-closed.
