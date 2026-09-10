@@ -542,6 +542,49 @@ def _enforce_written_by(root, node_type, actor, where):
             f"Pass --actor owner (goal:g12).")
 
 
+def _resolve_replace_text(edit: Edit) -> None:
+    """The ONE resolver that turns `replace_from` into `replace_text`.
+
+    Used by BOTH the CLI (`main`) and the library (`submit`), so an API
+    caller and a script form cannot disagree about what a `replace` means —
+    the divergence this module shipped
+    (hypothesis:l4-replace-api-drops-source). `main` calls it early for its
+    `--dry-run` preview; `submit` calls it too, idempotently, so a direct API
+    caller gets the same resolution and the same refusals without the read
+    being copied into a second place.
+
+    Fail-closed: an absent, unreadable or EMPTY source raises an EditError
+    naming the source, and nothing is written anywhere. `replace <t> N:M -`
+    keeps its stdin contract: arbitrary content cannot ride an `&&` chunk,
+    so it comes off stdin verbatim — exactly as it does today.
+    """
+    if not edit.replace_from:
+        return
+    if edit.replace_text:
+        # Already resolved — by main() for its --dry-run preview, or by an
+        # API caller that set the text directly. Never re-read: a second
+        # stdin read for `-` would consume nothing and hang the caller.
+        return
+    if edit.replace_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: replacement text is
+        # arbitrary content and cannot ride an `&&` script chunk.
+        edit.replace_text = sys.stdin.read()
+        return
+    try:
+        text = Path(edit.replace_from).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise EditError(
+            f"replace source {edit.replace_from!r} unreadable: {exc} — "
+            f"nothing written")
+    if text == "":
+        raise EditError(
+            f"replace source {edit.replace_from!r} is empty — refusing to "
+            f"replace a range with an empty source (it would delete the "
+            f"range). Nothing written. A deliberate deletion needs an "
+            f"explicit signal, not an empty file.")
+    edit.replace_text = text
+
+
 def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
 
@@ -551,6 +594,13 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     """
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
+
+    # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
+    # the replacement source. Without this, an API caller's `replace_from`
+    # never became `replace_text` and submit spliced `""`, silently deleting
+    # the range while reporting success. Idempotent: main has already resolved
+    # it for its --dry-run preview, and this must not read stdin a second time.
+    _resolve_replace_text(edit)
 
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor, edit.node_id)
 
@@ -1181,18 +1231,15 @@ def main(argv: list[str] | None = None) -> int:
         # cannot ride an `&&` script chunk (the doubled ampersand splits it).
         edit.patch_diff = sys.stdin.read()
 
-    if edit.replace_from == "-":
-        # Same stdin contract as `payload -` / `patch -`: replacement text is
-        # arbitrary content and cannot ride an `&&` script chunk.
-        edit.replace_text = sys.stdin.read()
-    elif edit.replace_from:
-        from pathlib import Path as _P
-        try:
-            edit.replace_text = _P(edit.replace_from).read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERR: replace source {edit.replace_from}: {exc}",
-                  file=sys.stderr)
-            return 2
+    # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
+    # read. Delegate to the same function `submit` uses, so dry-run shows the
+    # bytes and a missing/empty source refuses here exactly as it refuses in
+    # the library. Refusals print ERR and write nothing.
+    try:
+        _resolve_replace_text(edit)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
 
     # `patch <path>` reading happens in `submit` (fail-closed, after the
     # payload ref is resolved) rather than here, so a refused diff is still
