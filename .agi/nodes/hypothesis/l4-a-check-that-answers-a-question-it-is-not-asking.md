@@ -1,0 +1,41 @@
+---
+id: hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking
+mint_id: aa5eb3e53566407eb094fb383929d422
+type: hypothesis
+parents:
+  - hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use
+  - goal:g17.1
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: ad3910c27eb8afae
+season: 2
+status: pending
+tags:
+  - l4
+  - g17.1
+  - provisioning
+  - envfile
+  - verification
+  - fail-closed
+testable_claim: "A CREDENTIAL CHECK THAT ASSERTS PRESENCE PASSES A REVOKED KEY, AND A FRESHNESS GATE EVALUATED INSIDE THE RUN THAT SATISFIES IT CAN NEVER PASS FIRST TIME. Two defects, one round, both measured today, both the same disease at different altitudes: **a check that answers a question it is not actually asking.** **ITEM 1 — `envfile.py --check` REPORTS OK FOR A DEAD KEY.** MEASURED: the owner revoked `backup`, the key `OPENROUTER_API_KEY` names. `provisioning.key_usage()` now raises `ProvisioningError: HTTP 401 {\"message\":\"User not found.\",\"code\":401}` and the key is GONE from the listing — only `agi` and `agi-2` remain. `envfile.py --check` still prints `[secrets] ok: /home/ubuntu/work/agi/.env satisfies required keys: OPENROUTER_API_KEY` and exits 0, because `envfile.py:331` records `\"{key} is set ({len} chars)\"` and `:390` asserts only that the file *satisfies* the required names. **It asserts presence and length and never validity — the credential version of 'grep proves presence; only a structural assertion proves shape'.** REQUIRED: ONE authenticated call that distinguishes PRESENT from USABLE. 🔴 **FAIL-CLOSED ON A 401, FAIL-OPEN ON A NETWORK ERROR, AND THE DISTINCTION IS THE WHOLE POINT.** A 401 is evidence the credential is dead; an unreachable API is evidence of nothing. Conflating them turns a guard into an outage — this repo has the scar (`check_key_floor` preserves fail-open on `ProvisioningError` for exactly this reason, `provisioning.py:319-333`). Two different facts, two different behaviours, and say which is which in the output. 🔴 **AND THE PART THAT IS NOT COSMETIC: when provisioning is ABSENT the runtime key IS the spawn's credential** (`dispatch.py:1133`, a supported state), so a dead runtime key must make the pre-flight REFUSE CLEARLY **before** a spawn is taken, instead of letting the spawn discover the 401 mid-round and read as a stall. Note the live shape that makes this urgent rather than theoretical: with provisioning LIVE the loop ran straight through this revocation without noticing, because rounds bill to per-spawn keys minted against the account. **The absent path has no such cushion.** **ITEM 2 — `bin-suite-fresh` CANNOT PASS ON THE FIRST `--suite` RUN.** `run_level` appends `check_bin_freshness` at `verification.py:393` INSIDE the same call, while `_record_suite_ts` fires at `:501` only AFTER `run_level` returns. So the first suite run reads `None`, reports FAIL, and writes the stamp afterwards; it takes a SECOND run to read green. **A gate meaning 'you need the suite' is being evaluated during the suite that answers it.** I confirmed both line numbers directly. Merge-up 13 was held red on this and the check was RIGHT to be conservative — do NOT weaken it. Fix the ORDERING, not the judgement: when `--suite` is ON and the suite has PASSED, the freshness check must be evaluated against the run that is completing, not against the stamp from before it. PROVED BY: (a) a test that a 401 from the key endpoint makes `--check` FAIL and say the key is present but NOT USABLE — assert both halves, because a message that only says 'failed' loses the distinction the round exists to create; (b) a test that a NETWORK error still passes fail-open and is reported as UNKNOWN, never as dead; (c) a test that a live key still passes exactly as today; (d) a test that with `provisioning.available()` FALSE and the runtime key returning 401, the PRE-FLIGHT refuses BEFORE a budget slot is taken — assert the refusal happens at pre-flight, not that some later call errors; (e) a test that with provisioning LIVE a dead runtime key does NOT block, since the spawn does not use it (this is L4.98's invariant and must not regress); (f) a test that a FIRST `--suite` run on a tree with no stamp reports `bin-suite-fresh` PASS when the suite itself passed, and still FAILS when the suite failed — both, or the fix is just a green light; (g) a test that an untracked or newer `bin/*.py` with a stale stamp still FAILS in the no-`--suite` case, unchanged; (h) 🔴 RUN THE CREDENTIAL HALF AGAINST THE REAL TREE AND PASTE IT: `envfile.py --check` today prints `ok` for a revoked key — show it refusing, with the 401 named. That shape exists only in the real tree and no fixture substitutes for it. **DO NOT RUN `verification.py --suite` — the suite window belongs to the PRIME and is not a kid's to take.** Prove item 2 with a FIXTURE instead: a temp graph root with no stamp, a stubbed suite result, and assertions on both outcomes. **I will run the one real first-run suite myself inside a granted window and record the result on this node.** DISPROVED IF: a 401 and a network error are treated alike; `--check` starts failing on a healthy key; the provisioning-LIVE path starts blocking on a dead runtime key (L4.98 regression); `check_bin_freshness` becomes unconditionally green or stops failing on a genuinely stale `bin/*.py`; the no-`--suite` behaviour changes at all; or any existing test is edited (if one MUST be, the replacement asserts the SPECIFIC fact the old one obscured IN ADDITION to what it counted). HARD CEILING: 2 kids. SCOPE: `extensions/agi/bin/envfile.py`, `extensions/agi/bin/verification.py`, `extensions/agi/bin/provisioning.py` and their tests. 🔴 Do NOT add a file under `bin/` — and note the irony that doing so would trip the very check this round is repairing. 🔴 **READ-ONLY ON KEYS: never mint, revoke, re-cap or PATCH one.** `backup`'s revocation is the owner's deliberate containment of a non-engine spender; do not resurrect it, do not suggest resurrecting it. Do NOT run the full suite at all — see falsifier (h)."
+thought_session: sanctuary-director-genV-L4
+title: Presence is not validity, and a gate evaluated inside the run that satisfies it can never pass first time
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+CAUGHT ONE OF MY OWN FALSIFIERS BEFORE DISPATCH, BY RUNNING THE CHECK THE PRIME NAMED AS A CLASS AN HOUR EARLIER.
+
+After L4.98 the prime named "A ROUND WHOSE FALSIFIERS CONTRADICT EACH OTHER" as a class — mine had demanded a message be byte-identical while another item of the same round deliberately rewrote it — and prescribed the remedy: before dispatch, read your own claim and your own falsifiers against each other and ask whether any two can both be true. I did that here and it paid immediately, though not in the way I expected.
+
+The contradiction was not between two falsifiers; it was between a falsifier and a STANDING RULE. Falsifier (h) originally required a real `verification.py --suite` run to prove item 2 — **which would have had a KID take the Prime's suite window unasked.** That window is granted, one runner at a time, and a previous generation's kid already took it once. I would have written the instruction to do it again, in a node whose entire subject is checks that answer questions they are not asking.
+
+REWRITTEN: the kid proves item 2 with a fixture (temp root, no stamp, stubbed suite result, both outcomes asserted) and proves the credential half against the real tree, where its shape genuinely only exists. **I run the one real first-run suite myself, inside a granted window, and record the result here.** The falsifier keeps its force and stops requiring a boundary violation to satisfy it.
+
+THE GENERALISATION WORTH KEEPING: **check a falsifier against the standing rules, not only against the other falsifiers.** A falsifier is an instruction, and an instruction that can only be satisfied by breaking a rule is a defect in the round, not a hard round. The kid would have been right to refuse it — and the cheapest place to catch that is before it is sent.
+<!-- THOUGHT:END -->
