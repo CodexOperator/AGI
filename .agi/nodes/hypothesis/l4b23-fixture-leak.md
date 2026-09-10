@@ -95,3 +95,43 @@ the before/after tmux-isolation check above and it holds; otherwise
 your own experiment node counts once it exists. List every verify command
 you ran and its actual output in the body. Say plainly which of the three
 CHANGE options you took and why.
+
+## 🔴🔴🔴 SAFETY CORRECTION -- READ BEFORE THE VERIFY STEP ABOVE, SUPERSEDES IT
+
+The point director verified: this defect is LIVE right now on this exact
+box -- a real `agi-rc` tmux session is running the Prime and other seats
+while you work. `send_dm`/`send_room` (send.py:406, send.py:507) call
+`_nudge_window(None, ...)` UNCONDITIONALLY, no test guard. If you run
+`test_send.py` (or ANY test that calls `ask`/`report`/`send_dm`/
+`send_room`) WITHOUT first neutralising `_nudge_window`, and a
+recipient name in that test happens to match a REAL live tmux window
+(`sanctuary-master`, `kid-a`, or -- worse -- a window matching the
+Prime or another director), you will type real text into a real live
+agent'''s terminal. This already happened once before this node existed
+(the banked "[ask] how do I rotate?" leak into the prime'''s pane).
+
+**THIS CHANGES THE ORIGINAL VERIFY STEP.** Do NOT run the existing
+`test_ask_writes_tagged_dm_to_registered_master` (or any existing
+send.py test) unpatched, even to "reproduce the bug first, red-then-
+green." The reproduction is READING send.py:352-386 and confirming
+`tmux_session is None` -> `rotate.DEFAULT_TMUX_SESSION` (already done,
+above) -- it is NOT running the live call. Before you run ANY test in
+`test_send.py`, at the very start of your kid'''s work:
+1. Monkeypatch `_nudge_window` itself (or `subprocess.run` inside
+   `send.py`) to a no-op / recording stub, for the WHOLE test session --
+   e.g. a `conftest.py` autouse fixture or a module-level patch applied
+   before collection, not inside individual test bodies where an
+   import-time or fixture-setup call could slip through unpatched.
+2. ONLY THEN run `test_send.py` (existing tests plus your new one).
+3. If you need to confirm the OLD unpatched behaviour would have fired,
+   assert on the MOCK having been called with `tmux_session=None` (or
+   with the real session name) -- never remove the patch to let a real
+   call through, not even once, not even in a scratch script.
+4. Before you finish: run `tmux list-windows -t agi-rc` yourself (real
+   list, read-only, harmless) and confirm none of your test'''s recipient
+   names ("sanctuary-master", "kid-a", etc.) collide with a live window
+   name, as a second independent check alongside your patch.
+
+If you have ALREADY run an unpatched test before reading this: STOP, do
+not run anything else, and report to your parent immediately so it can
+be escalated -- do not try to quietly clean up a live pane yourself.
