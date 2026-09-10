@@ -27,6 +27,11 @@ def _fix(tmp_path, monkeypatch):
     """Fixture root for rotate-self mechanics: templates node + the
     find_project_root/ladder seams (mirrors test_rotate.py's fake_ladder)."""
     root = tmp_path
+    # hypothesis:l4-write-api-root-resolution (L4.95, landed after this round
+    # was cut): write.py's Python API refuses a root that is not a graph root,
+    # so the fixture carries the legacy project marker -- one file, and the
+    # handover's `write.py submit` resolves the fixture as a project.
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
 
     def fake_root():
         return root
