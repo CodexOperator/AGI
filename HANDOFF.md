@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.35, cap 0.47)   season/s2   2026-09-10 01:0xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.34, cap 0.47)   season/s2   2026-09-10 01:4xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -65,15 +65,18 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          the point merges both into season/s2 at the end (merge-base, never rebase). ladder caps.director_kids 2 -> 3 (suite 2270/1 after). Prune a worktree ONLY after its
          branch is an ancestor of the parent (owner): 23 merged+clean L3 trees removed; KEPT 4 merged+dirty (seat-sanctuary-master, a00-de936ecd, a00-09f6ac54, a00-85beb9ba)
          + 5 unmerged ahead=1 (a00-a8416695, a00-be033567, a00-814a8dd9, claude/magical-napier, claude/amazing-lalande) -> the point harvests or drops them in round 1
-       ROUND 1 RUNNING (briefed to the point 01:0xZ by SendMessage, msg 0fe142a2): owner part 7 verbatim "make sure all brief points get their corresponding goal/subgoal/
-         subsubgoal and/or idea/hypothesis chains as needed based on existing rules" = doc:l4-plan §5 mapping table (25 rows) split point/helper; side items = 4 dirty + 5
-         unmerged old trees (harvest or drop); ceiling $3.00 key across both seats, stop under $2.00; the point reports to the Prime when the round closes or blocks
+       ROUND 1 (L4.20, owner part 7 verbatim in doc:l4-plan §5.0): POINT SLICE LANDED 01:3xZ on seat/sanctuary-director@s2 @ dc1974a59 — 14 sub-goals under EXISTING goals
+         (g5.3, g5.4, g9.11, g17.2-g17.12; nesting to heading level 5 probed + round-tripped), owner verbatim by POINTER, ZERO dispatches (judgement: exact structure, wrong
+         parent = deprecate-only), key $7.87 untouched; B24 = the replace verb (landed L4.01); B25 = moral:* owner-only, no node. Helper slice (B13-B20, B23) in flight on
+         seat/sanctuary-helper@s2. ACCEPTED by the Prime 01:4xZ; CHAIN ROUND ordered (idea -> hypothesis per sub-goal a §5 row acts on; pi kids; $3.00 ceiling both seats).
+         GRID IS BRANCH-BLIND: grid.py commit --all refuses on a seat branch (never --allow-branch) -> runs on season/s2 after the point's merge only (goal:g17.1 note).
+         GATES untouched, correctly: perpetual flip of 12 gN (L4.07) needs owner GO and MOVES them into GOALS.md "## Perpetual"; seat nodes (L4.13) = owner's surface.
 MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work · predecessors kept XI–XVI (XVI relays owner text)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 · partial edits: write.py read N:M then replace N:M
 CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with crontab -l, never this file) -> push by hand anyway
 DONE   L4-I: gate `continue` · verify green · plan drafted (4 workflows) + MINTED · questions banked · goal:g17.1 · cap 3 · helper spawned · point briefed · hygiene · handoff live
-NEXT   1 WAIT for the point's round-1 report (cross-session message from agi-fa [c6e62f]); read struggles/caveats first; verify on season/s2 after ITS merge: smoke (active
-         must not drop below 1594), suite alone, links 0, goals round-trip, guard silent; then the handoff card + push. Do not pull work back to the Prime (SKILL: dispatch, don't do)
+NEXT   1 WAIT for the point's MERGE report (helper slice + chain round -> season/s2); verify on season/s2 after ITS merge: smoke (active must not drop below 1609 = the
+         point's own smoke on its branch), suite alone, links 0, goals round-trip, guard silent; then the handoff card + push. Do not pull work back to the Prime (SKILL: dispatch, don't do)
        2 owner rulings on the 28 banked questions land beside each item in doc:l4-owner-decisions "L4 BANKED QUESTIONS" (verbatim), never here
        3 rotate at 0.47: handoff first, then rotate.py loop --role prime_director --name belam-S1-L4-II --timeout 900; confirm by capture-pane; announce the new address to the point
 NEVER  dispatch or launch a seat in plan mode · rotate a seat with AGI_BRIEF_PROFILE=survival · git add -A · read $? through a pipe · sweep off a ps grep · run the
