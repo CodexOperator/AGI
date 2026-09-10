@@ -312,7 +312,33 @@ def main(argv: list[str] | None = None) -> int:
                     help="run a declared workflow instead of a single command")
     ap.add_argument("--from", dest="start_from", default=None,
                     help="resume workflow from this step (skip prior steps)")
-    args = ap.parse_args(argv)
+    # 🔴 `parse_known_args`, NOT `parse_args`, and the choice is decided by a
+    # measurement rather than by taste (hypothesis:
+    # l4-the-command-runner-eats-its-passengers-flag, experiment
+    # a00-914a9ae6-ee1f1e). `extra` is `nargs="*"`, so argparse claimed any
+    # leading `-`-prefixed token for the WRAPPER: `commands.py run links
+    # --dry-run` printed `commands.py: error: unrecognized arguments` and
+    # `commands.py`'s own usage block, handing a reader debugging a flag they
+    # typed for `links.py` the wrong program's manual. The error lied about
+    # whose problem it was. Any leading dash did it, not only `--long`.
+    #
+    # The trade-off the fix had to settle was what happens to the WRAPPER's
+    # own flags after the name, and the round measured it instead of guessing:
+    # `commands.py run links --root /tmp` already printed `ERR: not an agi
+    # project: /tmp` — after-name wrapper binding was the status quo, and an
+    # accidental one. `parse_known_args` PRESERVES it (known wrapper flags
+    # still bind to the wrapper wherever they appear, unknown ones forward)
+    # and removes only the error; `argparse.REMAINDER` would have forwarded
+    # `--root /x` to the target and changed behaviour nobody asked to change.
+    #
+    # `--` keeps working exactly as before: argparse strips it and everything
+    # after lands in `extra`, which is what `main`'s docstring promises and
+    # what callers may already rely on. This is the same defect
+    # `test_pass_through_flags_reach_the_command_not_the_router` guards for
+    # the `agi` verb router — "the router eating its passenger's mail".
+    args, forwarded = ap.parse_known_args(argv)
+    if forwarded:
+        args.extra = list(args.extra) + forwarded
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
