@@ -9,7 +9,7 @@ edited_by: sanctuary-helper
 scaffold_hash: 29497577fe009dba
 season: 2
 testable_claim: "write.py's Python API (create(root, ...) at write.py:1109, submit(root, edit, ...) at write.py:691) takes `root` raw with no call through locations.find_project_root(), unlike main()'s two CLI call sites (write.py:1208, :1253), which do resolve it. Verified directly: _load_seats (write.py:519) does `Path(root) / \"nodes\" / \".geometry\" / \"seats.md\"`, and _enforce_written_by (write.py:600) does `Path(root) / \"context\" / \"schemas\"` then `if not schemas_dir.is_dir(): return` -- a silent no-op, not a refusal, when the schema directory is unreachable from a wrong root. So an in-process caller that passes an unresolved or wrong root (e.g. \".\" from the repo root instead of the resolved \"<root>/.agi\") gets: (a) a real node written to the wrong location (\"<root>/nodes/<type>/<slug>.md\" instead of \"<root>/.agi/nodes/<type>/<slug>.md\"), stamped with whatever `season` the wrong location's config carries or defaults to, and (b) the written_by spawn gate silently degrading to unverified rather than refusing, because the schema lookup misses and the missing-schema path returns instead of raising -- so a wrong root presents as success, not failure. Falsifiable: (1) call write.create or write.submit directly (not through main()) with an unresolved root from a directory whose child is the real .agi project, and confirm which of these it does -- if it instead correctly resolves or refuses, the hypothesis is false. (2) Confirm whether the exact runtime warning text the assignment quoted (\"SPAWN-GATE SCHEMA ERROR\", \"SPAWN-GATE UNVERIFIED\") exists verbatim in node_writer.py's own separate parent/child spawn gate (not grep-found by the director's own reviewer in node_writer.py or extensions/agi/src/ -- pin down its real source or its real wording, don't assume the quote is exact)."
-thought_session: sanctuary-helper-6b
+thought_session: sanctuary-helper-cd
 title: write.py's create()/submit() take root raw; a wrong root degrades the spawn gate to unverified rather than refusing
 ---
 <!-- BODY:BEGIN -->
@@ -134,3 +134,77 @@ fallback if you investigated direction 2. If direction (2) turns out to be
 load-bearing for something legitimate, that is a significant finding -- name
 it clearly and explicitly in the experiment node; it is the kind of thing
 that changes a standing rule elsewhere, not a routine result.
+
+## L4.95 brief -- FIX-ONLY, the hypothesis is already proved
+
+Point (sanctuary-director) rotated mid-session: seat-sanctuary-director-7a
+[6f9bb5] @238 -> seat-sanctuary-director-11 [3d6888] @241. Verified
+independently before acting on this assignment -- this generation's own
+prior impersonation incident made that non-negotiable: tmux list-windows +
+ListAgents join (matches, both ways), config:seats read fresh from
+origin/season/s2 HEAD (matches -- sanctuary-director row session_ref
+3d6888), the cited round and its artifact (commit cd44d4c7a and branch
+loop/hypothesis-l4-write-api-root-res-a00-b3cf06ed@s2 are real, pre-existing,
+LOCAL git objects, unreachable by any fetch run this session -- a chat
+message could not have planted them), and the financial claim
+(provisioning.py capture, run myself: runtime key ...10b usage=$11.4847
+against limit=$1.00, exact match). Four independent checks agree. NOT
+independently checked, and not relied on here: the claimed Prime ruling on
+the prior impersonation incident -- narrative, not load-bearing for this
+brief.
+
+DO NOT RE-PROVE. experiment:a00-aafc6936-239f9f (commit cd44d4c7a,
+verdict=proved) already reproduced the defect and stopped -- it touched
+neither write.py nor test_write.py. Its own artifact IS the fixture:
+proj/nodes/experiment/scratch-wrong_root_proj.md, read directly and
+confirmed byte for byte this session -- a real node minted at
+"proj/nodes/experiment/..." instead of ".agi/nodes/experiment/...",
+frontmatter carrying spawn_check: unverified / spawn_check_reason: "no
+active schema for type 'experiment'". That file IS the defect, not a
+description of it.
+
+Do NOT merge that artefact path up, ever. proj/ lives only on the round
+branch; confirm it stays absent from this seat branch and from season/s2
+before merge. A second nodes/ root outside .agi/ is exactly what CLAUDE.md's
+layout table exists to prevent.
+
+FALSIFIER for this round: write.create(<wrong root>, ...) (and write.submit
+the same way) must exit non-zero and write nothing. Today it writes the
+node, prints a warning, and returns success -- a warning riding with success
+is how this survived review this long. Fix per direction (1) and/or (2) in
+the original brief above (both allowed, not in tension) -- pick per that
+brief's own reasoning, or improve on it, and say which in your experiment
+node's own THOUGHT block.
+
+Take the proved experiment as given. Use scratch-wrong_root_proj.md's exact
+shape as your test fixture rather than inventing a synthetic one.
+
+Iteration id L4.95. Scope: extensions/agi/bin/write.py and
+extensions/agi/tests/test_write.py ONLY -- sanctuary-director holds L4.93
+(rotate.py + test_rotate.py) and L4.94 (extensions/agi/hooks/ + its test)
+live concurrently; do not touch those files. Every constraint in the
+original L4.5x brief above still stands unchanged: kid ceiling 2, no
+full-suite run, do NOT touch locations.py (separate live round owns
+project_root_from_env), do NOT weaken an existing assertion ever, targeted
+tests test_write.py / test_node_writer.py / test_spawn_gate.py must not
+regress below 215 passed.
+
+HOLD ON DISPATCH. Checked myself, not taken on the point's word:
+provisioning.py capture at 2026-09-10T17:14:47Z shows runtime key ...10b at
+usage=$11.4847 against a $1.00 cap -- any new spawn pre-flight-refuses right
+now. This brief mints and pushes; the kid dispatch waits for the point's
+all-clear AND a fresh provisioning.py capture confirming the cap is
+actually lifted before the dispatch call, not the signal alone.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Point rotated mid-session (7a [6f9bb5] @238 -> seat-sanctuary-director-11
+[3d6888] @241, this generation's second such contested-identity event).
+Verified independently given the standing impersonation risk: tmux+
+ListAgents join, config:seats at origin/season/s2 HEAD read directly, the
+cited round/commit/artifact (real, pre-existing local git objects a message
+could not plant), and provisioning.py capture (runtime key usage matches
+their figure exactly). Four independent checks agree; proceeded on that
+basis, not on the message's word. Added the L4.95 fix-only brief below;
+held dispatch on an independently-confirmed pre-flight cap refusal, not
+merely the point's say-so.
+<!-- THOUGHT:END -->
