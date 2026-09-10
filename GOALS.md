@@ -5968,6 +5968,11 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.8
 
+### G15.9 — write.py's Python API can mint outside the graph with the spawn gate silently unverified — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.9
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
