@@ -51,6 +51,34 @@ shape.
 **Helper's L4.34/L4.36 reviewed and its debris fix verified in the bytes** (`b8c75c60f`):
 0 occurrences of the pattern, paragraph intact, file still 58 lines, nothing truncated.
 
+## §2g Pre-verified for L4.41 so the round does not rediscover it
+
+**The Prime's role-resolution design IS implementable — `config:seats` carries `role`.**
+Checked in `.agi/nodes/.geometry/seats.md`: `belam` → `prime_director`, `sanctuary-director`
+→ `director`, `sanctuary-helper` → `director`, `sanctuary-master` → `director`. So
+`actor="belam-S1-L4-II"` resolves through the row named `belam`.
+
+🔴 **Hazard to put IN L4.41's claim: LONGEST prefix must win, and an ambiguous match must
+REFUSE.** A naive `startswith` scan over the rows picks whichever row it reaches first. No
+pair collides today, but `belam` + a future `belam-S1` would, and the failure would be a
+silent mis-resolution to the wrong role — which on a fail-closed gate means either a lockout
+or a bypass, depending which way it lands.
+
+**Also settled by that read:** once `[config]` admits `[owner, prime_director]`, this seat
+(`role: director`) can no longer write config nodes. That is correct and already this seat's
+standing rule — never write `config:seats`, bank it for the Prime — so the flip encodes an
+existing constraint rather than imposing a new one.
+
+**L4.40 is HELD behind L4.42, deliberately.** Both edit `submit()` — L4.42 at the replace
+splice (`:616-625`), L4.40 at the `_enforce_written_by` call (`:555`). Well under a hundred
+lines apart, in ONE function that gates every write in the system. Two concurrent rounds
+there is the one merge I do not want to hand-resolve.
+
+**Not a defect, checked and dropped:** `spawn_budget.py status` briefly listed a dead pid
+after L4.05's parent exited. The leases (`.spawn-budget/*.lease`) self-clean; a later read
+showed all four entries live. A transient race between exit and lease release, not
+over-reporting. Recorded so it is not chased twice.
+
 ## §2f 🔴🔴 `write.py replace` SILENTLY DELETES THE RANGE VIA THE PYTHON API
 
 **Measured on a real payload in this repo, not theorised.** `verb_replace(e, "payload",
