@@ -1140,8 +1140,9 @@ def cmd_status(args: argparse.Namespace) -> int:
 #: second guard and `all_terminal` is never cleared. Behaviourally terminal,
 #: nowhere declared so. A reader that copies the SET without the guard — this
 #: one did — inherits a refusal instead of a completion.
-TERMINAL_STATUSES = {"done", "done-unreported", "pending", "hung-healed",
-                     "failed"}
+#: Since hyp:l4-one-definition-of-terminal the DEFINITION lives only in
+#: `spawn_budget.TERMINAL`; this is an alias import so every reader shares it.
+from spawn_budget import TERMINAL as TERMINAL_STATUSES  # noqa: E402 -- the ONE set
 
 
 def _iteration_agents_complete(iter_dir: Path) -> bool:
