@@ -126,6 +126,27 @@ def test_prompt_file_absent_adds_no_addendum_and_does_not_name_the_segment(proje
     assert "WHAT THE LAST KID PRODUCED" not in r.stdout
 
 
+def test_parent_prompt_file_is_refused_and_never_silently_dropped(project, tmp_path):
+    """hypothesis:l4b23-promptfile-drop -- `--prompt-file` is the per-KID
+    carry-forward channel (brief.assemble threads addendum into _kid but
+    never into _parent), so `--tier parent --prompt-file X` used to read X's
+    bytes and silently discard them inside assemble(). It is now REFUSED
+    loudly (exit 2, a clear stderr message) at argument-parsing time rather
+    than accepted-then-dropped. The next_edges-compatible resolution is
+    refusal, not threading, because a parent's brief is built fresh from its
+    target node every dispatch and consumes no carry-forward.
+    """
+    add = tmp_path / "parent-misuse.txt"
+    add.write_text("parent-distinctive-marker")
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--prompt-file", str(add))
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "per-KID carry-forward" in r.stderr
+    assert "Refusing rather than silently discarding" in r.stderr
+    # the marker must NOT leak into any brief that still assembled
+    assert "parent-distinctive-marker" not in r.stdout
+
+
 def test_claude_advisor_dry_run_resolves_model_effort_and_env(project):
     """The verify's advisor case: a tier-3 parent aimed at a vision node gets
     the advisor brief and the full ultracode spawn, resolved without
