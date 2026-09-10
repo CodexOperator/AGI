@@ -1670,6 +1670,54 @@ def cmd_session_complete(args: argparse.Namespace) -> int:
     )
 
 
+def cmd_trimguard(args: argparse.Namespace) -> int:
+    """hypothesis:l4-trimguard-subcommand — the HANDOFF.md §6 owner-quote-loss
+    guard, folded in from .agi/sessions/trimguard.py (untracked) so a tracked
+    tool owns the safety check the CLAUDE.md replacement policy depends on.
+
+    Parse HANDOFF.md's '## §6 Owner decisions' section, extract every
+    double-quoted span >= 25 chars (plus open-ended truncated quotes), grep
+    .agi/nodes/ for each, and ABORT (exit 1) if any owner quote would be lost
+    on a trim — else OK. Output and verdicts byte-identical to the original
+    untracked script against the same HANDOFF.md fixture.
+    """
+    root = _find_root()          # the `.agi/` graph dir (locations convention)
+    repo = root.parent           # checkout root — HANDOFF.md lives beside `.agi/`
+    HAND = (repo / "HANDOFF.md").read_text().splitlines(True)
+    start = next(i for i, l in enumerate(HAND) if l.startswith("## §6 Owner decisions"))
+    sec = "".join(HAND[start:])
+    MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
+    # only spans inside a REAL double-quote pair (open + close), straight or curly
+    spans = set()
+    for m in re.finditer(r'["“]([^"“”\n]{25,})["”]', sec):
+        s = MARK.sub("", m.group(1)).strip().strip("*").strip()
+        if len(s) >= 25:
+            spans.add(s)
+    # plus OPEN-ENDED quotes (line truncated by the earlier collapse): take the clean prefix
+    for m in re.finditer(r'["“]([^"“”\n]{25,})$', sec, re.M):
+        s = MARK.sub("", m.group(1)).strip().strip("*").strip()
+        s = " ".join(s.split(" ")[:-1])  # drop the truncated last word
+        if len(s) >= 25:
+            spans.add(s)
+    print(
+        f"§6 lines {start + 1}-{len(HAND)}  bytes={len(sec)}  real quoted spans: {len(spans)}"
+    )
+    missing = []
+    for s in sorted(spans):
+        probe = s[:55]
+        r = subprocess.run(
+            ["grep", "-rlF", probe, ".agi/nodes/"], cwd=repo, capture_output=True, text=True
+        )
+        if not r.stdout.split():
+            missing.append(s)
+            print(f"  MISSING  {probe!r}")
+    if missing:
+        print(f"\nABORT: {len(missing)} owner quote(s) resolve in NO node.")
+        return 1
+    print(f"\nOK: all {len(spans)} owner quotes resolve in .agi/nodes/ — safe to collapse.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1777,6 +1825,14 @@ def main() -> int:
              "testing posture",
     )
     p_sc.set_defaults(func=cmd_session_complete)
+
+    p_tg = sub.add_parser(
+        "trimguard",
+        help="hypothesis:l4-trimguard-subcommand — §6 owner-quote-loss guard: "
+             "ABORT if any double-quoted owner span in HANDOFF.md §6 resolves in "
+             "no .agi/nodes/ file, else OK. Fold of the untracked trimguard.py.",
+    )
+    p_tg.set_defaults(func=cmd_trimguard)
 
     args = ap.parse_args()
     return args.func(args)

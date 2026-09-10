@@ -504,6 +504,74 @@ def test_git_config_hooks_path_allows_commit_outside_project(temp_repo: Path):
 
 
 # ---------------------------------------------------------------------------
+# Two-checkout same-repo tests (hypothesis:l4-commit-guard-worktree-toplevel-bypass)
+# ---------------------------------------------------------------------------
+
+def test_pre_commit_rejects_kid_from_main_into_same_repo_other_checkout(tmp_path: Path):
+    """hypothesis:l4-commit-guard-worktree-toplevel-bypass — under --branch
+    dispatch AGI_PROJECT_ROOT is the kid's OWN WORKTREE. A process whose CWD
+    is the MAIN checkout of the SAME repo (two checkouts share one git common
+    dir) must be REFUSED, not slipped through by the `different toplevel`
+    allow rule. Red on the pre-fix hook: REAL_TOPLEVEL (main) != REAL_PROJECT
+    (worktree), so it exited 0 and let a kid commit into the shared main
+    checkout — the sweep-up hazard the guard exists to stop."""
+    main = tmp_path / "main"
+    main.mkdir()
+    subprocess.run(["git", "init"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=main, capture_output=True, check=True)
+    (main / "readme.md").write_text("# main")
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=main, capture_output=True, check=True)
+    # second checkout of the SAME repo, exactly what dispatch.py --branch authors
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "worktree", "add", "-b", "loop/slug-a00-x@s2", str(wt)],
+                   cwd=main, capture_output=True, check=True)
+    with_hook(main)
+    (main / "file_wt.md").write_text("change in main checkout")
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "kid commit from main checkout"],
+        cwd=main, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(wt)},
+    )
+    assert result.returncode == 1, (
+        f"kid commit into same-repo other checkout allowed: {result.stdout} / {result.stderr}"
+    )
+    assert "kid may not commit" in result.stderr
+    subprocess.run(["git", "worktree", "remove", "--force", str(wt)],
+                   cwd=main, capture_output=True)
+
+
+def test_pre_push_rejects_kid_from_main_into_same_repo_other_checkout(tmp_path: Path):
+    """pre-push mirrors pre-commit: refusing a push whose CWD is a DIFFERENT
+    checkout of the same project (shared git-common-dir) even when
+    AGI_PROJECT_ROOT points at the dispatched worktree."""
+    main = tmp_path / "main"
+    main.mkdir()
+    subprocess.run(["git", "init"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=main, capture_output=True, check=True)
+    (main / "readme.md").write_text("# main")
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=main, capture_output=True, check=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "worktree", "add", "-b", "loop/slug-a00-x@s2", str(wt)],
+                   cwd=main, capture_output=True, check=True)
+    result = subprocess.run(
+        ["bash", str(HOOKS / "pre-push")],
+        cwd=main, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "kid", "AGI_PROJECT_ROOT": str(wt)},
+    )
+    assert result.returncode == 1, (
+        f"kid push from same-repo other checkout allowed: {result.stderr}"
+    )
+    assert "kid may not push" in result.stderr
+    subprocess.run(["git", "worktree", "remove", "--force", str(wt)],
+                   cwd=main, capture_output=True)
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
