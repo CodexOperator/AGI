@@ -1177,6 +1177,21 @@ def _iteration_agents_complete(iter_dir: Path) -> bool:
     return True
 
 
+def _dir_snapshot(root: Path) -> dict:
+    """A filesystem snapshot: relative path -> bytes, for every file under
+    `root`. The symmetric ground truth for `_merge_verified`: a merged target
+    is correct iff its snapshot EQUALS the union of every source's expected
+    winner/loser locations."""
+    out = {}
+    if not root.exists():
+        return out
+    for p in root.rglob("*"):
+        if not p.is_file():
+            continue
+        out[str(p.relative_to(root))] = p.read_bytes()
+    return out
+
+
 def _trees_match(src: Path, dst: Path) -> bool:
     """Byte-for-byte: every file under `src` exists under `dst` with equal
     bytes. The copy's verification, not its success -- a `copytree` that
@@ -1202,6 +1217,161 @@ def _trees_match(src: Path, dst: Path) -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------
+# The merge. A `--branch` round writes its session dir to TWO trees at once
+# (hypothesis:l4-a-round-lives-in-two-trees-so-coming-home-is-a-merge): the
+# DISPATCHER's tree carries `manifest.json`, `output.log` and a parent
+# `agent.json` whose record the reaper set to `done-unreported`; the CHILD's
+# worktree carries `context.md` and the parent's OWN `agent.json`, whose
+# record `cli.py done` wrote as `done`. Both are `sessions/iter-<id>/` and
+# both must come home to the SAME target. A copy that runs one first and
+# refuses on the non-empty target strands half the round in a worktree -- the
+# exact outcome this command exists to prevent. So bringing a round home is a
+# MERGE of complementary subtrees, not a copy of one,
+# COPY-THEN-VERIFY-THEN-REMOVE-EACH-SOURCE-BY-ITS-OWN-CONTRIBUTION.
+#
+# The hard part is the CONFLICTING PATH: both trees may hold the same relative
+# file (the parent `agent.json` for the same parent id) and they are two
+# genuinely different documents, neither a copy of the other. The rule below
+# resolves it by CONTENT SEMANTICS -- never by scan/iteration order -- and
+# always keeps the loser recoverable rather than deleted.
+
+#: Precedence for a conflicting `agent.json` terminal record. Higher rank is
+#: the more authoritative statement of how the agent's round ended and wins
+#: the conflict. `done` -- the agent's own record written through `cli.py
+#: done` -- beats `done-unreported` -- the reaper's inference that the round
+#: landed but the report was lost -- because one is the actor speaking for
+#: itself and the other a caretaker guessing at the outcome. A path that is
+#: not a readable agent record ranks -1 and falls through to the deterministic
+#: slug tiebreak instead, so content semantics only ever decide agent endings.
+_AGENT_STATUS_RANK = {
+    "done": 5,
+    "done-unreported": 4,
+    "failed": 3,
+    "hung-healed": 2,
+    "pending": 1,
+    "running": 0,
+}
+
+
+def _agent_status_rank(rel: Path, src: Path) -> int:
+    """How authoritative is `src/rel` as an agent ending? Only `agent.json`
+    records have a status to read; anything else is -1 (never wins on
+    content, falls to the slug tiebreak). Unreadable JSON is -1 too, so a
+    corrupt record is never silently treated as `done`."""
+    if rel.name != "agent.json":
+        return -1
+    try:
+        rec = json.loads((src / rel).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return -1
+    return _AGENT_STATUS_RANK.get(rec.get("status", ""), -1)
+
+
+def _src_slug(src: Path) -> str:
+    """The worktree slug a source iter dir lives under: `.../<slug>/.agi/
+    sessions/iter-<id>` -> `<slug>`, the one stable name - not a filesystem
+    scan order - a tiebreak can lean on."""
+    return src.parent.parent.parent.name
+
+
+def _conflict_winner(rel: Path, holders: list[Path]) -> Path:
+    """Deterministic winner for a relative path held by two or more sources.
+    Decided by agent-terminal content semantics when the path is a readable
+    `agent.json`; otherwise by the lexicographically smallest worktree slug.
+    Never by scan order -- the whole point of the rule is that a merge must
+    not resolve a conflict by whichever source happened to be listed first.
+    """
+    cur = holders[0]
+    for nxt in holders[1:]:
+        hc = _agent_status_rank(rel, cur)
+        hn = _agent_status_rank(rel, nxt)
+        if hn > hc:
+            cur = nxt
+        elif hn == hc and _src_slug(nxt) < _src_slug(cur):
+            cur = nxt
+    return cur
+
+
+def _merge_plan(sources: list[Path]):
+    """Compute the merge plan for a set of source iter dirs.
+
+    Returns `(win, lose, conflicted)`:
+      win  -- dict rel_path -> the source whose bytes land at `target/rel`.
+      lose -- dict (src, rel) -> relative `.conflicts/...` path where that
+             source's LOSING copy is preserved (recoverable, never deleted).
+      conflicted -- dict rel_path -> (winner_slug, [loser_slug, ...]) for the
+             dry-run plan display, so a reader sees which source wins each
+             conflicting path before anything moves.
+    """
+    holders: dict[Path, list[Path]] = {}
+    for src in sources:
+        for p in src.rglob("*"):
+            if p.is_file():
+                holders.setdefault(p.relative_to(src), []).append(src)
+    win: dict[Path, Path] = {}
+    lose: dict[tuple, str] = {}
+    conflicted: dict[Path, tuple] = {}
+    for rel, hs in holders.items():
+        if len(hs) == 1:
+            win[rel] = hs[0]
+            continue
+        w = _conflict_winner(rel, hs)
+        win[rel] = w
+        los_slugs = []
+        for loser in hs:
+            if loser is w:
+                continue
+            slug = _src_slug(loser)
+            los_slugs.append(slug)
+            lose[(loser, rel)] = f".conflicts/{rel}.from-{slug}"
+        conflicted[rel] = (_src_slug(w), los_slugs)
+    return win, lose, conflicted
+
+
+def _merge_verified(sources: list[Path], target: Path, win: dict, lose: dict) -> bool:
+    """After the merge, every byte from every source is present in the target
+    -- winner bytes at `target/rel`, loser bytes at their `.conflicts` path --
+    and nothing else. Symmetric: a copied target that is Missing or carries an
+    unexpected file fails. The single operation that is this command's whole
+    safety contract: never delete a source on the strength of "the target
+    merely exists"."""
+    expected: dict[str, bytes] = {}
+    for src in sources:
+        for p in src.rglob("*"):
+            if not p.is_file():
+                continue
+            rel = p.relative_to(src)
+            if win.get(rel) is src:
+                loc = target / rel
+            else:
+                loc = target / lose[(src, rel)]
+            expected[str(loc.relative_to(target))] = p.read_bytes()
+    return expected == _dir_snapshot(target)
+
+
+def _source_landed(src: Path, target: Path, win: dict, lose: dict) -> bool:
+    """Did THIS source's own contribution land, byte-for-byte? The per-source
+    half of remove-only-what-verifies: a source is removed only when its own
+    winner bytes are at `target/rel` and its own losing bytes at its
+    `.conflicts` path -- never because the target happens to exist or because
+    a sibling verified."""
+    for p in src.rglob("*"):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(src)
+        if win.get(rel) is src:
+            loc = target / rel
+        else:
+            loc = target / lose[(src, rel)]
+        try:
+            if not loc.is_file() or loc.read_bytes() != p.read_bytes():
+                return False
+        except OSError:
+            return False
+    return True
+
+
 #: A source iter dir is a sentence, not three states. Tolerantly tagged.
 _MSG_DONE = "migrated"
 _MSG_REFUSE = "REFUSE"
@@ -1215,16 +1385,20 @@ def _session_complete(
     dry_run: bool = False,
     live_iters: set | None = None,
 ) -> int:
-    """Migrate every complete `iter_n` session dir under linked worktrees
-    into the main checkout. Returns 0 only when at least one dir migrated
-    (a `--dry-run` returns 0 when it would).
+    """Merge every complete `iter_n` session dir under linked worktrees into
+    the main checkout and return them to the round's home. Returns 0 only
+    when at least one source migrated (a `--dry-run` returns 0 when it would).
 
     `main_graph` is the MAIN checkout's graph root. `worktree`, when given,
     restricts to one worktree slug. `live_iters`, when given as a set, is the
     reader's own liveness signal (test injection); otherwise it is computed
-    read-only from the spawn budget. Copy-then-verify rules a failed migrate
-    leaves BOTH sides intact: the partial destination is removed, the source
-    is never touched until the byte-compare agrees.
+    read-only from the spawn budget. A `--branch` round may hold its session
+    dir in TWO trees at once, so the bring-home is a MERGE: both sources land
+    in the same target, a conflicting path is decided by content semantics
+    (never scan order) with the loser kept recoverable under `.conflicts/`, and
+    each source is removed only after ITS OWN contribution byte-verifies. A
+    failed migrate leaves every involved side intact -- the partial target is
+    removed, no source is touched until its own bytes agree.
     """
     dname = locations.iteration_dirname(iter_n)
     wt_root = main_graph / "worktrees"
@@ -1251,61 +1425,109 @@ def _session_complete(
         live_iters = spawn_budget.live_iteration_ids(main_graph)
 
     target = main_graph / locations.SESSIONS_DIR_NAME / dname
-    migrated = 0
+    # 🔴 THE TARGET-COLLISION GUARD. With two legal sources the natural merge
+    # is to "merge into whatever is there", and that is exactly the sentence
+    # a kid would write to loosen this. Do not. A pre-existing NON-EMPTY
+    # target is content NOT produced by this invocation's own sources -- by
+    # definition not one of this round's sources -- so it refuses, unchanged.
+    # An empty placeholder (dispatch pre-creates one) is not data and may be
+    # cleared, guarded by the `rmdir` that fails loudly on non-empty.
+    if target.exists() and any(target.iterdir()):
+        print(f"session-complete: {_MSG_REFUSE} {target} -- target already "
+              f"exists and is not empty; refusing to overwrite")
+        return 1
+
+    # A round is ONE logical unit spread across trees. If ANY of its sources
+    # is still live or incomplete, the whole round is still running and NONE
+    # of it may come home -- migrating only the finished half strands the
+    # other, precisely the half-a-round outcome this command exists to
+    # prevent. So the liveness/completeness checks run across every candidate
+    # and a single refusal holds the whole iteration.
+    ready: list[Path] = []
+    refused_any = False
     for src in candidates:
         if iter_n in live_iters:
             print(f"session-complete: {_MSG_REFUSE} {src} -- a live lease is "
                   f"active for iteration {iter_n}; round still running")
+            refused_any = True
             continue
         if not _iteration_agents_complete(src):
             print(f"session-complete: {_MSG_REFUSE} {src} -- not every agent "
                   f"record is terminal; round still running")
+            refused_any = True
             continue
-        # 🔴 AN EMPTY TARGET IS NOT A COLLISION, and the distinction is what
-        # makes this command run at all. `dispatch.py` PRE-CREATES
-        # `sessions/iter-<id>/` in the main checkout for every round; measured
-        # on the live tree the moment this merged, iter-L4.56, .57, .58, .65
-        # and .66 all existed there with ZERO entries. Guarding on
-        # `target.exists()` therefore refused every round ever dispatched —
-        # the command was a complete no-op wearing a safety message. The
-        # property worth keeping is "never overwrite real data", and an empty
-        # placeholder is not data. Anything with content still refuses.
-        if target.exists() and any(target.iterdir()):
-            print(f"session-complete: {_MSG_REFUSE} {src} -- target {target} "
-                  f"already exists and is not empty; refusing to overwrite")
-            continue
-        if dry_run:
-            print(f"session-complete: WOULD migrate {src} -> {target}")
-            migrated += 1
-            continue
-        # COPY-THEN-VERIFY -- never move. Copy, compare, and only then remove.
-        try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            # An empty placeholder got past the guard above; clear it with
-            # `rmdir`, which REFUSES a non-empty directory, rather than
-            # `copytree(dirs_exist_ok=True)`. Both would work today. Only this
-            # one still fails loudly if the guard above is ever loosened —
-            # `dirs_exist_ok` would quietly merge a round into whatever was
-            # already sitting there.
-            if target.is_dir():
-                target.rmdir()
-            shutil.copytree(src, target, symlinks=False)
-        except (OSError, shutil.Error) as exc:
-            print(f"session-complete: copy failed {src} -> {target}: {exc}; "
-                  f"source intact, no target left")
-            shutil.rmtree(target, ignore_errors=True)
-            continue
-        if not _trees_match(src, target):
-            print(f"session-complete: VERIFY FAILED {src} -- source and "
-                  f"target differ; removing target, source intact")
-            shutil.rmtree(target, ignore_errors=True)
-            continue
-        # The byte-compare passed; now (and only now) the source goes.
-        shutil.rmtree(src, ignore_errors=True)
-        print(f"session-complete: {_MSG_DONE} {src} -> {target} (bytes match)")
-        migrated += 1
+        ready.append(src)
+    if refused_any:
+        return 0 if dry_run else 1
+    if not ready:
+        return 0 if dry_run else 1
 
-    return 0 if (dry_run or migrated) else 1
+    win, lose, conflicted = _merge_plan(ready)
+
+    if dry_run:
+        # 🔴 A dry run must show the MERGE PLAN, including which source wins
+        # each conflicting path -- and it writes NOTHING (asserted on a
+        # filesystem snapshot). At most it may print, never touch the tree.
+        for src in sorted(ready, key=_src_slug):
+            print(f"session-complete: WOULD migrate {src} -> {target}")
+        for rel in sorted(conflicted, key=str):
+            wslug, los = conflicted[rel]
+            for loser in los:
+                print(f"session-complete: CONFLICT {rel} : {wslug} wins over "
+                      f"{loser} (loser kept at .conflicts/{rel}.from-{loser})")
+        return 0
+
+    # COPY-THEN-VERIFY-THEN-REMOVE-EACH-SOURCE-BY-ITS-OWN-CONTRIBUTION.
+    # Assemble the merged target from the plan first; only after the union
+    # verifies is any source removed, and only its own contribution's.
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_dir():
+            target.rmdir()  # clear a pre-created empty placeholder only
+        for rel, wsrc in win.items():
+            dp = target / rel
+            dp.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(wsrc / rel, dp)
+        for (lsrc, rel), loc in lose.items():
+            dp = target / loc
+            dp.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(lsrc / rel, dp)
+    except (OSError, shutil.Error) as exc:
+        print(f"session-complete: copy failed -> {target}: {exc}; "
+              f"sources intact, no target left")
+        shutil.rmtree(target, ignore_errors=True)
+        return 1
+
+    # The whole-round verification (the multi-source take on `_trees_match`).
+    # A single conflict-free source still routes through `_trees_match` so the
+    # byte-compare contract is one function, not two. If it fails, NO source
+    # may be removed -- the target is discarded and every source left intact.
+    if len(ready) == 1 and not lose:
+        landed = _trees_match(ready[0], target)
+    else:
+        landed = _merge_verified(ready, target, win, lose)
+    if not landed:
+        print(f"session-complete: VERIFY FAILED -> {target} -- source and "
+              f"target differ; removing target, all sources intact")
+        shutil.rmtree(target, ignore_errors=True)
+        return 1
+
+    # 🔴 PER-SOURCE removal. A source is removed only when ITS OWN
+    # contribution verifies against the merged target -- not when the target
+    # merely exists and not because a sibling verified. A source whose
+    # contribution did not land stays in its worktree, recoverable.
+    migrated = 0
+    for src in sorted(ready, key=_src_slug):
+        if _source_landed(src, target, win, lose):
+            shutil.rmtree(src, ignore_errors=True)
+            print(f"session-complete: {_MSG_DONE} {src} -> {target} "
+                  f"(bytes match)")
+            migrated += 1
+        else:
+            print(f"session-complete: {_MSG_REFUSE} {src} -- this source's own "
+                  f"contribution did not verify; left intact at its worktree")
+
+    return 0 if migrated else 1
 
 
 def _main_graph_root(root: Path) -> Path:
