@@ -306,6 +306,27 @@ def _revoke_all(root: Path, hashes: list[str]) -> None:
             pass
 
 
+def live_iteration_ids(root: Path) -> set:
+    """Iteration ids with at least one live lease, READ-ONLY -- no sweep, no
+    revoke, no lock file.
+
+    `live_agents` reclaims dead leases (an unlink under the lock), which is
+    the right behaviour for a spawner but the wrong one for a reader that must
+    itself touch nothing -- the session-complete migration's `--dry-run`
+    proves it writes nothing, so its liveness signal has to be a read. A lease
+    is live while the process it names is (per `_lease_is_live`); a lease that
+    is mid-write here is, at worst, momentarily stale, which a migration gate
+    tolerates (the iteration's agent records must be terminal too).
+    """
+    live: set = set()
+    for _path, rec in _read_leases(root):
+        if _lease_is_live(rec):
+            it = rec.get("iter")
+            if it is not None:
+                live.add(it)
+    return live
+
+
 def live_agents(root: Path) -> list[dict]:
     """Live leases, after reclaiming dead ones. Takes the lock itself."""
     with _budget_lock(root):
