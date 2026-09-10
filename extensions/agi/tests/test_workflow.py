@@ -250,10 +250,10 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
     cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter",
                                 "thinking": "medium"}}}
     with mock.patch("subprocess.run", side_effect=fake_run):
-        rc = _run_stage_pi(cfg, st, {"draft:a": {"model": "glm",
-                                                   "effort": "max"}},
-                           {"scratch": "/tmp/S"})
-    assert rc == 0
+        rc, value = _run_stage_pi(cfg, st, {"draft:a": {"model": "glm",
+                                                          "effort": "max"}},
+                                  {"scratch": "/tmp/S"})
+    assert rc == 0 and value == {"slug": "a", "v": 1}
     cmd = captured["cmd"]
     assert "/bin/fakepi" in cmd, cmd
     assert "--provider" in cmd and "openrouter" in cmd, cmd
@@ -278,8 +278,8 @@ def test_run_stage_pi_rejects_schema_violating_return():
                       "required": ["slug"]}}
     cfg = {"harnesses": {"pi": {}}}
     with mock.patch("subprocess.run", side_effect=fake_run):
-        rc = _run_stage_pi(cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {})
-    assert rc == 5, rc  # schema-violating JSON -> non-zero, stage fails
+        rc, value = _run_stage_pi(cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {})
+    assert rc == 5 and value is None, rc  # schema-violating JSON -> non-zero, no prior value
 
 # ---------- stage manifests match the .js Claude Code scripts ---------------
 
@@ -358,48 +358,173 @@ def test_registry_flag_manifest_naming_unimplemented_stage(tmp_path):
     assert "sound" in buf2.getvalue()
 
 
-def test_register_derives_stages_and_refuses_overwrite(tmp_path, monkeypatch):
-    """A real register round trip in an isolated workflows dir: derives the
-    stage manifest from the inline script, then refuses a silent overwrite."""
+def test_register_refuses_naming_author_verb(tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-workflow-authoring-is-a-harness-tool — register can only
+    derive `<TODO>` prompt skeletons from an inline script's labels, which
+    validate now rejects as non-runnable. So register refuses, naming the
+    replacement verb (`workflow.py author`), and lands NOTHING."""
     from workflow import register_workflow
     script = tmp_path / "inline-script.js"
     script.write_text(
         "phase('Draft')\n"
         "const drafts = await parallel(briefs.map(b => agent(`write {b.slug}`, "
         "{label: `draft:${b.slug}`, schema: DRAFT_SCHEMA})))\n"
-        "phase('Critic')\n"
         "const critic = await agent(prompt, {label: 'critic', schema: "
-        "CRITIC_SCHEMA})\n"
-        "return {drafts, critic}\n", encoding="utf-8")
+        "CRITIC_SCHEMA})\n", encoding="utf-8")
     reg_dir = tmp_path / "wf"
     reg_dir.mkdir()
     monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
     monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
-    buf = io.StringIO()
     rc = register_workflow(tmp_path, "draft-briefs", script,
-                           from_dir=tmp_path / "some-run", out=buf)
+                           from_dir=tmp_path / "some-run", out=io.StringIO())
+    err = capsys.readouterr().err
+    assert rc == 2, err
+    assert "workflow.py author" in err
+    # it must NOT leave a half-written, non-runnable pair behind
+    assert not (reg_dir / "agi-draft-briefs.js").exists()
+    assert not (reg_dir / "draft-briefs.json").exists()
+
+
+def _AUTHOR_STAGES():
+    return [
+        {"label": "investigate", "role": "kid",
+         "prompt": "Investigate {question} under {scratch}. "
+                   'Return {"answer":"..."} key={key}',
+         "schema": {"type": "object", "properties": {"answer": {"type": "string"},
+                      "evidence": {"type": "array"}, "still_live": {"type": "boolean"}},
+                      "required": ["answer", "evidence", "still_live"]},
+         "repeat": {"of": "questions", "label_template": "investigate:{key}"}},
+        {"label": "refute", "chained_from": "investigate",
+         "prompt": "Refute answer={answer} live={still_live} for {key}.",
+         "schema": {"type": "object", "properties": {"refuted": {"type": "boolean"},
+                      "why": {"type": "string"}},
+                      "required": ["refuted", "why"]},
+         "repeat": {"of": "questions", "label_template": "refute:{key}"}},
+    ]
+
+
+def test_author_lands_runnable_pair_dictated_by_manifest(tmp_path, monkeypatch):
+    """author writes BOTH halves in one action — <name>.json with real prompts
+    AND agi-<name>.js GENERATED FROM the manifest. The derived script must be a
+    genuine Workflow script (meta/phases/pipeline/labels) whose stage base
+    labels match the manifest, so validate_registry is sound on it, and it must
+    refuse to land a <TODO> prompt."""
+    from workflow import author_workflow, validate_registry
+    wf = tmp_path / "wf"
+    wf.mkdir()
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    buf = io.StringIO()
+    rc = author_workflow(tmp_path, "prime-open-questions",
+                         json.dumps(_AUTHOR_STAGES()), out=buf, source_note="t")
     assert rc == 0, buf.getvalue()
-    assert "[registered] draft-briefs" in buf.getvalue()
-    js = reg_dir / "agi-draft-briefs.js"
-    mf = reg_dir / "draft-briefs.json"
-    assert js.is_file() and mf.is_file()
+    assert "[authored]" in buf.getvalue()
+    mf = wf / "prime-open-questions.json"
+    js = wf / "agi-prime-open-questions.js"
+    assert mf.is_file() and js.is_file()
     manifest = json.loads(mf.read_text(encoding="utf-8"))
-    labels = {st["label"] for st in manifest["stages"]}
-    assert labels == {"draft", "critic"}, labels
-    assert manifest["script"] == "agi-draft-briefs.js"
-    assert manifest["_from_run"] == str(tmp_path / "some-run")
-    # the derived repeat stage carries an honest label_template
-    repeat = [s for s in manifest["stages"] if s["label"] == "draft"][0]
-    assert repeat["repeat"]["label_template"] == "draft:{slug}", repeat
-    # and the derived pair is a SOUND registry (the invariant is green on it)
+    assert manifest["script"] == "agi-prime-open-questions.js"
+    assert {s["label"] for s in manifest["stages"]} == {"investigate", "refute"}
+    js_text = js.read_text(encoding="utf-8")
+    # the script is DERIVED from the manifest: meta block, pipeline form,
+    # agent() labels whose bases match the manifest stages (the invariant).
+    assert "export const meta" in js_text and "await pipeline(" in js_text
+    labels = workflow._script_stage_labels(js_text)
+    for st in manifest["stages"]:
+        assert st["label"] in labels, (st["label"], labels)
+    # sound, and authoring writes on top of an existing pair (explicit tool)
+    bufv = io.StringIO()
+    assert validate_registry(tmp_path, wf=wf, out=bufv) == 0, bufv.getvalue()
+    rc2 = author_workflow(tmp_path, "prime-open-questions",
+                          json.dumps(_AUTHOR_STAGES()), out=io.StringIO())
+    assert rc2 == 0  # author overwrites by design
+
+
+def test_author_refuses_todo_prompt(tmp_path, monkeypatch, capsys):
+    from workflow import author_workflow
+    wf = tmp_path / "wf"
+    wf.mkdir()
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    stages = [{"label": "x",
+               "prompt": "<TODO: author the stage prompt for stage 'x'>"}]
+    rc = author_workflow(tmp_path, "bad", json.dumps(stages), out=io.StringIO())
+    err = capsys.readouterr().err
+    assert rc == 2, err
+    assert "<TODO>" in err
+    assert not (wf / "bad.json").exists()
+
+
+def test_validate_flags_todo_skeleton(tmp_path):
+    """Strictly stronger than the base invariant: a manifest carrying a <TODO>
+    prompt is a non-runnable skeleton and validate must flag it (this is what
+    makes disproved-by checkable by the registry itself)."""
     from workflow import validate_registry
-    buf_v = io.StringIO()
-    assert validate_registry(tmp_path, wf=reg_dir, out=buf_v) == 0, buf_v.getvalue()
-    # refuses to overwrite an existing registration (exit code 2, files intact)
-    buf2 = io.StringIO()
-    rc2 = register_workflow(tmp_path, "draft-briefs", script, out=buf2)
-    assert rc2 == 2, buf2.getvalue()
-    assert js.read_text(encoding="utf-8") == script.read_text(encoding="utf-8")
+    wf = tmp_path
+    (wf / "agi-skel.js").write_text(
+        "phase('A')\nawait agent('x', {label: 'a'})\n", encoding="utf-8")
+    (wf / "skel.json").write_text(json.dumps({
+        "name": "skel", "script": "agi-skel.js",
+        "stages": [{"label": "a",
+                     "prompt": "<TODO: author the stage prompt for stage 'a'>"}]}),
+        encoding="utf-8")
+    buf = io.StringIO()
+    rc = validate_registry(__import__("pathlib").Path("."), wf=wf, out=buf)
+    assert rc == 1, buf.getvalue()
+    assert "<TODO>" in buf.getvalue()
+
+
+def test_render_stage_prompt_chains_prior_finding(tmp_path):
+    """The pi chain mechanism: a repeated stage whose manifest carries
+    `chained_from` renders with the prior stage's return for the same repeat
+    key merged into its context, so it can name the finding's schema fields."""
+    from workflow import render_stage_prompt
+    st = {"label": "refute:c", "chained_from": "investigate",
+          "prompt": "answer={answer} still_live={still_live} for {key}",
+          "_repeat_item": {"key": "c"}}
+    prior = {"answer": "it is inert", "still_live": True,
+             "evidence": ["dispatch.py:755"]}
+    out = render_stage_prompt(st, {"scratch": "/tmp"}, prior=prior)
+    assert out == "answer=it is inert still_live=True for c", out
+
+
+def test_pi_run_chains_investigate_to_refute(tmp_path_factory):
+    """The whole point of the rewrite: an investigate->refute pair actually
+    CHAINS on pi — the refute stage prompt is rendered with the investigate
+    stage's validated return for the same repeat key (mock subprocess)."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    finding = {"answer": "the guard is inert", "evidence": ["dispatch.py:755"],
+               "still_live": True, "recommendation": "none", "ungrounded": "none"}
+    verdict = {"refuted": False, "why": "holds", "corrected": "n/a"}
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(" ".join(cmd))
+        prompt = " ".join(cmd[6:])  # prompt text follows provider/model/thinking
+        body = verdict if "ANSWER:" in prompt else finding
+        return _sp.CompletedProcess(cmd, 0, stdout=json.dumps(body), stderr="")
+
+    tmp = tmp_path_factory.mktemp("chain-wf")
+    saved = _wf._loc.shared_project_root
+    _wf._loc.shared_project_root = lambda root: tmp
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "prime-open-questions", "pi",
+                              {"questions": [{"key": "c", "question": "Q?"}]},
+                              False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert len(calls) == 2, calls
+        # the investigate finding reached the refute stage's rendered prompt
+        assert any("the guard is inert" in c for c in calls), \
+            "refute prompt never carried the investigate finding"
+        assert "[summary] workflow=prime-open-questions stages=2 ok=2 failed=0" \
+            in buf.getvalue()
+    finally:
+        _wf._loc.shared_project_root = saved
 
 
 def test_list_workflows_enumerates_registry(tmp_path, monkeypatch):
