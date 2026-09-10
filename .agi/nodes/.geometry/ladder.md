@@ -34,7 +34,7 @@ roles:
   - {"tier": 1, "role": "parent", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
   - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
   - {"tier": 0, "role": "parent", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "kid", "harness": "pi", "model": "openrouter/free", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "kid", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""}
 season: 1
 season_names:
   1: genesis
