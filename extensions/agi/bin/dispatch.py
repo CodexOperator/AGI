@@ -1805,6 +1805,55 @@ def _commits_ahead(root, rec):
     return commits
 
 
+def _restart_iter_id(iter_dir, rec):
+    """The iteration a restart belongs to.
+
+    A manifest record carries no `iter` key, so reading one yields 0 and the
+    restart registers as `iter=0` — invisible to any sweep filtered by the
+    round. The round's own directory is named `iter-<id>`, which is the
+    authoritative source; the record is only a fallback.
+    """
+    name = getattr(iter_dir, "name", "") or ""
+    if name:
+        try:
+            # iteration_id strips the `iter-` prefix itself and normalises the
+            # type — int for the numeric scheme, str for a loop-scoped id — so
+            # the lease carries exactly the shape every other caller writes.
+            return locations.iteration_id(name)
+        except ValueError:
+            pass
+    return locations.iteration_id(rec.get("iter", 0) or 0)
+
+
+def _branch_has_done_commit(root, rec, agent_id) -> bool:
+    """True when `agent_id` has already committed on its own branch.
+
+    The completion signal for a PARENT, which authors no node of its own and
+    whose manifest status the reaper cannot see (the parent updates its
+    worktree's copy; the reaper reads the main checkout's). A `--branch` agent
+    commits as `<agent_id> done: <node> verdict=<v>`, so one commit authored
+    under its id on its branch is proof the round landed. Never raises: an
+    unreadable branch is not evidence of completion, and returning False sends
+    the caller down the ordinary restart path.
+    """
+    branch = rec.get("branch")
+    base = rec.get("base_branch")
+    if not (branch and base and agent_id):
+        return False
+    main = locations.git_common_root(root)
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(main), "log", "--format=%s",
+             f"{base}..{branch}"],
+            capture_output=True, text=True, timeout=30)
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    if r.returncode != 0:
+        return False
+    return any(line.startswith(f"{agent_id} done:")
+               for line in r.stdout.splitlines())
+
+
 def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
@@ -1849,6 +1898,30 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
             # the restart path and say why, rather than guessing either way.
             print(f"reaper: could not check {node_id}: {exc}", file=sys.stderr)
 
+    # A PARENT AUTHORS NO NODE, so the check above never fires for one: its
+    # manifest record carries `node_id: None` because it signals with
+    # `cli.py done --owns <kid-node-id>`. Its completion signal is the COMMIT
+    # it makes on its own branch, and the reaper reads the MAIN checkout's
+    # manifest while the parent updated the one in its worktree — so status
+    # stays "running" here however cleanly it finished. The result was that
+    # every parent which committed a finished round and exited got respawned
+    # to redo it: measured 2026-09-10, $2.01 of key burned in ~30 minutes
+    # across four rounds, plus fresh kids writing over committed work.
+    # A commit on the agent's branch is proof the work landed.
+    if _branch_has_done_commit(root, rec, agent_id):
+        return {
+            "record": {
+                "status": "done-unreported",
+                "finished_at": int(time.time()),
+                "fail_reason": (
+                    f"pid {pid} disappeared, but {agent_id} had already "
+                    f"committed on its branch — the work landed and only the "
+                    f"report was lost"),
+            },
+            "message": (f"agent {agent_id} died with its round already "
+                        f"committed — NOT restarted"),
+        }
+
     # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
     # evidence the reaper should restart it; a pid killed as part of an
     # owner stop order looks identical to a crash from here; checked BEFORE
@@ -1888,9 +1961,15 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
     # and the round's stop-condition (a loop on the live count, filtered by
     # iter) never sees it. A deliberate kill is distinguishable from a crash
     # elsewhere; when a restart IS legitimate it must be attributable.
+    # The record has NO `iter` key — measured against a real manifest — so
+    # `rec.get("iter", 0)` silently yielded 0 and every restart registered as
+    # `iter=0`. A sweep filtered by the round's iteration then reported the
+    # round CLEAR while a restart was live in its worktree. `iter_dir` is the
+    # round's own directory (`iter-L4.41`), so its name is the iteration id
+    # this restart belongs to; fall back to the record only if that fails.
     lease = spawn_budget.acquire(root, cap, f"{agent_id}-r{restarts + 1}",
                                  tier=rec.get("tier", "kid"),
-                                 iter_n=locations.iteration_id(rec.get("iter", 0) or 0))
+                                 iter_n=_restart_iter_id(iter_dir, rec))
     if lease is None:
         return {"record": failed,
                 "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "

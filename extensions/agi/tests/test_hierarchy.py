@@ -209,3 +209,236 @@ def test_clean_seed_zero(tmp_path):
     _maybe_mkdir_config(tmp_path)
     rc, out = _check(tmp_path)
     assert rc == 0, out
+
+
+# --------------------------------------------------------------------------- #
+# Class 7 — the role card grammar (hypothesis:l4-card-grammar-and-the-
+# written-by-join). Cards are `seat` nodes under nodes/seat/; the ladder is the
+# declared matrix (at most 2 tracks, at most 2 tells, exactly 1 decides). A card
+# that declares MORE than the matrix REFUSES (exit nonzero); FEWER WARNS and
+# exits 0. Every violation NAMES the field and the row.
+# --------------------------------------------------------------------------- #
+def _card(root, name, **fm):
+    fm.setdefault("type", "seat")
+    fm.setdefault("role", "keeper")
+    fm.setdefault("what", "watch that the system does not drift")
+    rows = "".join(
+        f'{k}: {v!r}\n' if not isinstance(v, (list, tuple, dict))
+        else f'{k}: ' + json.dumps(v) + "\n"
+        for k, v in fm.items())
+    _write(root, f"nodes/seat/{name}.md", f"---\nid: 'seat:{name}'\n{rows}---\n")
+    return name
+
+
+def _schema(root, ntype, **fm):
+    rows = "".join(
+        f'{k}: {v!r}\n' if not isinstance(v, list)
+        else f'{k}: ' + json.dumps(v) + "\n"
+        for k, v in fm.items())
+    _write(root, f"context/schemas/[{ntype}].md", f"---\n{rows}---\n")
+
+
+def _clean_full(root):
+    """clean seed + a good card + a resolvable .where target."""
+    _clean_seed(root)
+    _maybe_mkdir_config(root)
+    (root / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (root / "nodes" / "goal" / "g17.md").write_text("# goal:g17\n", encoding="utf-8")
+
+
+def test_card_what_too_long_refuses(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "where": "nodes/goal/g17.md",
+                            "cost": "read", "to": "sanctuary-master",
+                            "trigger": "on an event", "channel": "dm"},
+                             "what": "x" * 81})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "what" in out and "c1" in out
+
+
+def test_card_where_unresolved_refuses(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "what": "ok", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm"},
+                             "where": "nodes/goal/does-not-exist.md"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "where" in out and "c1" in out
+
+
+# (b) wake in .cost and brief in .channel each refuse, reason stated
+
+def test_card_wake_cost_refuses(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "to": "sanctuary-master",
+                            "trigger": "on an event", "channel": "dm"},
+                             "cost": "wake"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "cost" in out and "wake" in out and "c1" in out
+
+
+def test_card_brief_channel_refuses(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event"},
+                             "channel": "brief"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "channel" in out and "brief" in out and "c1" in out
+
+
+def test_card_to_unknown_target_fail_closed(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "trigger": "on an event", "channel": "dm"},
+                             "to": "no-such-role"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "to" in out and "no-such-role" in out and "c1" in out
+
+
+# (c) cadence lint
+
+def test_card_trigger_cadence_refuses_event_passes(tmp_path):
+    _clean_full(tmp_path)
+    # an event-shaped trigger passes (no bad card in the tree yet)
+    _card(tmp_path, "c2", **{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "channel": "dm",
+                            "trigger": "on a season's brief"})
+    rc2, _ = _check(tmp_path)
+    assert rc2 == 0
+    # a cadence-looking trigger refuses on the lint
+    _card(tmp_path, "c1", **{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "channel": "dm",
+                            "trigger": "every hour"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "trigger" in out and "c1" in out
+
+
+def test_card_options_lowercase_and_count(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm"},
+                             "options": ["Accept", "propose"]})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "options" in out and "c1" in out
+
+
+def test_card_decides_must_be_exactly_one(tmp_path):
+    _clean_full(tmp_path)
+    # MORE than one decision (a list) refuses — decides is EXACTLY ONE
+    _card(tmp_path, "c1", **{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "decides": ["keep", "rearrange"]})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "decides" in out and "c1" in out
+
+
+# (d) the ASYMMETRY — MORE refuses, FEWER warns and exits 0
+
+def test_card_more_than_matrix_refuses(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{**{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "tells": ["a", "b", "c"]},
+                             "tracks": ["1", "2", "3"]})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "tracks" in out and "tells" in out and "c1" in out
+
+
+def test_card_fewer_than_matrix_warns_exits_zero(tmp_path):
+    _clean_full(tmp_path)
+    _card(tmp_path, "c1", **{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "tracks": ["only one"],
+                            "tells": ["one"]})
+    rc, out = _check(tmp_path)
+    assert rc == 0, out
+    assert "warning" in out and "c1" in out
+
+
+# --------------------------------------------------------------------------- #
+# Class 8 — the decides.writes join (written_by via the shared parser)
+# --------------------------------------------------------------------------- #
+def test_written_by_join_role_not_admitted_refuses(tmp_path):
+    _clean_full(tmp_path)
+    _schema(tmp_path, "doc", written_by="prime_director")  # admits only prime
+    _card(tmp_path, "c1", **{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "writes": "doc"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "written_by_join" in out and "c1" in out and "doc" in out
+
+
+def test_written_by_join_role_admitted_passes(tmp_path):
+    _clean_full(tmp_path)
+    _schema(tmp_path, "doc", written_by="director")
+    _card(tmp_path, "c1", **{"role": "director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "writes": "doc"})
+    rc, out = _check(tmp_path)
+    assert rc == 0, out
+
+
+def test_written_by_join_list_valued_read_correctly(tmp_path):
+    _clean_full(tmp_path)
+    # a LIST-valued written_by — [owner, prime_director] — the shared parser
+    # must admit both members, not read it as one token.
+    _schema(tmp_path, "config", written_by=["owner", "prime_director"])
+    _card(tmp_path, "c2", **{"role": "prime_director", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "writes": "config"})
+    rc0, _ = _check(tmp_path)
+    assert rc0 == 0  # prime_director is admitted, so the join passes
+    _card(tmp_path, "c1", **{"role": "keeper", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "writes": "config"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "written_by_join" in out and "keeper" in out
+
+
+def test_written_by_join_seat_predicate_fails(tmp_path):
+    _clean_full(tmp_path)
+    _schema(tmp_path, "vision", written_by="director",
+            seat_predicate="role == 'director' and tier == 2")
+    _card(tmp_path, "c1", **{"role": "director", "tier": 1, "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "writes": "vision"})
+    rc, out = _check(tmp_path)
+    assert rc != 0
+    assert "written_by_join" in out and "seat_predicate" in out and "c1" in out
+
+
+def test_writes_none_gates_nothing(tmp_path):
+    _clean_full(tmp_path)
+    _schema(tmp_path, "config", written_by="owner")
+    _card(tmp_path, "c1", **{"role": "keeper", "what": "ok",
+                            "where": "nodes/goal/g17.md", "cost": "read",
+                            "to": "sanctuary-master", "trigger": "on an event",
+                            "channel": "dm", "writes": "none"})
+    rc, out = _check(tmp_path)
+    assert rc == 0, out
