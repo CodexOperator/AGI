@@ -316,9 +316,19 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         # Same `engine_root` arithmetic as every other command here.
         crons_py = Path(engine_root) / "extensions" / "agi" / "bin" / "crons.py"
         sched = _schedule_expr(jobs["grid_sync"])
+        # `;` between the three steps, deliberately NOT `&&`: the last step is
+        # the self-reapply, and it must run whether or not the grid commit
+        # succeeded (`hypothesis:l4-a-worktree-looks-like-a-project-to-the-
+        # crontab` ITEM 2). A `&&`-chain made the declaration's own healing
+        # step a victim of an unrelated step's exit code — a grid refusal
+        # silently stopped the crontab from tracking the node. With `;`, each
+        # step runs on its own, and because each still redirects `>> {log}
+        # 2>&1`, a grid failure is still written to the log — visible, not
+        # swallowed. The leading `cd {root} &&` is kept: cd is a premise,
+        # not a failure domain.
         cmd = (
-            f"python3 {grid_py} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
-            f"git -C {repo_root} push -q origin 'refs/grid/*:refs/grid/*' >> {log} 2>&1 && "
+            f"python3 {grid_py} commit --all --prefix 'cron: ' >> {log} 2>&1; "
+            f"git -C {repo_root} push -q origin 'refs/grid/*:refs/grid/*' >> {log} 2>&1; "
             f"python3 {crons_py} apply >> {log} 2>&1"
         )
         lines.append(f"{sched} cd {root} && {cmd}")
@@ -418,6 +428,35 @@ def _resolve(root: Path) -> tuple[Path, dict, Path, Path, dict]:
     return root, cfg, repo_root, engine_root, node
 
 
+def require_common_root(root: Path, repo_root: Path) -> None:
+    """Refuse, loudly, when `repo_root` is a LINKED git worktree rather than
+    the main checkout — the sixth face of the shared-state boundary
+    (`hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab` ITEM 1).
+
+    `locations.repo_root` resolves a linked worktree to the worktree itself
+    (``.../.agi/worktrees/<name>``), which is correct for the graph a kid
+    edits but wrong for a machine-global resource like the user's crontab:
+    the block marker hashes that path, so an `apply` from a seat would APPEND
+    A SECOND managed block beside the main checkout's — and because a seat
+    branch is refused by `grid.py` (`master` or `season/*` only), that second
+    block could never run, forever, while looking installed. The crontab is
+    ONE PER USER, and the managed block must key on the one directory every
+    worktree shares — `locations.git_common_root`. When the two disagree this
+    raises `CronsError`; a caller must not guess. An ordinary non-worktree
+    clone resolves both to the same root and is untouched.
+    """
+    common = locations.git_common_root(root)
+    if Path(common).resolve() != Path(repo_root).resolve():
+        raise CronsError(
+            f"resolved repo_root {repo_root} is a LINKED GIT WORKTREE, not the "
+            f"common root {common}. The user's crontab is ONE PER USER; an "
+            f"apply/show from a worktree would key the managed block on a "
+            f"hash no other checkout uses and append a second block that "
+            f"could never run. Run from the main checkout instead: "
+            f"cd {common} && extensions/agi/bin/crons.py apply"
+        )
+
+
 def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool = False) -> dict:
     """Render the node and reconcile the crontab. Idempotent by construction:
     the managed block replaces itself in place (or is appended once, on first
@@ -425,6 +464,7 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
     output — proven in `test_crons.py::test_apply_twice_is_byte_identical`.
     """
     root, cfg, repo_root, engine_root, node = _resolve(root)
+    require_common_root(root, repo_root)
     managed = render_managed_lines(root, repo_root, engine_root, node)
     begin, end = block_markers(repo_root)
 
@@ -452,6 +492,7 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
 
 def cmd_show(root: Path, crontab_file: Path | str | None = None) -> str:
     root, cfg, repo_root, engine_root, node = _resolve(root)
+    require_common_root(root, repo_root)
     desired = render_managed_lines(root, repo_root, engine_root, node)
     begin, end = block_markers(repo_root)
     current = read_crontab(crontab_file)
