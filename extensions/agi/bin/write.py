@@ -511,7 +511,184 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     return out
 
 
-def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
+def _load_seats(root) -> list[dict]:
+    """The `seats:` rows of `.agi/nodes/.geometry/seats.md` (config:seats),
+    or [] when absent/unparseable. Mirror of rotate.py's loader — each row
+    carries `name` and `role`, which is what role resolution keys on.
+    """
+    path = Path(root) / "nodes" / ".geometry" / "seats.md"
+    if not path.exists():
+        return []
+    try:
+        from graph_core.persistence import frontmatter
+        nf = frontmatter.load_node_file(path)
+        seats = nf.frontmatter.get("seats") or []
+        if isinstance(seats, list):
+            return [r for r in seats if isinstance(r, dict)]
+    except Exception:  # noqa: BLE001
+        pass
+    return []
+
+
+def _pick_longest_role(candidates: list[tuple[int, str, str]]):
+    """From `(name_len, name, role)` candidates pick the longest match's role,
+    fail-closed. A tie at the same longest length REFUSES — it never picks one
+    arbitrarily (hypothesis:l4-role-resolution-longest-prefix). Under the
+    strict `==`/`startswith(name+'-')` boundary rule a real-input tie is
+    structurally impossible, so this guard is defensive by design: if the
+    seat table ever grows a case that produces one, we refuse rather than
+    silently grant a role.
+    """
+    if not candidates:
+        return None
+    longest = max(c[0] for c in candidates)
+    at_longest = [c for c in candidates if c[0] == longest]
+    if len(at_longest) > 1:
+        names = ", ".join(sorted(c[1] for c in at_longest))
+        raise EditError(
+            f"ambiguous seat prefix: seats {names} tie at the longest match; "
+            f"refusing to pick one (fail-closed, "
+            f"hypothesis:l4-role-resolution-longest-prefix)")
+    return at_longest[0][2]
+
+
+def _resolve_seats_role(root, actor: str):
+    """Resolve the actor's role from the config:seats rows, longest-prefix-wins.
+
+    A row matches only when the actor EQUALS the row name or begins with the
+    row name FOLLOWED BY `-` — a bare `startswith` would let the row `alive`
+    claim `aliveness-bot`, and matching the other way round would let the
+    actor `sanctuary` claim several rows at once. Returns the role string, or
+    None when no row matches (caller falls through to the `owner` literal), or
+    raises EditError when two distinct rows tie at the longest length.
+    """
+    if not actor:
+        return None
+    candidates: list[tuple[int, str, str]] = []
+    for row in _load_seats(root):
+        name = row.get("name")
+        role = row.get("role")
+        if not name or not role:
+            continue
+        if actor == name or actor.startswith(name + "-"):
+            candidates.append((len(name), str(name), str(role)))
+    return _pick_longest_role(candidates)
+
+
+def _resolve_role(root, actor: str, role_param: str = "") -> str:
+    """The effective role for a write, resolved fail-closed in order.
+
+    (1) an explicit `--role` if passed; (2) else the `AGI_ROLE` env var;
+    (3) else the config:seats row whose name is a prefix of the actor (longest
+    wins, boundary required, tie refuses); (4) else the literal actor `owner`
+    -> role `owner`; (5) else UNRESOLVED (`""`), which the caller refuses
+    ONLY when the type declares `written_by`.
+    """
+    if role_param:
+        return role_param
+    env = (os.environ.get("AGI_ROLE") or "").strip()
+    if env:
+        return env
+    seat_role = _resolve_seats_role(root, actor)
+    if seat_role is not None:
+        return seat_role
+    if actor == "owner":
+        return "owner"
+    return ""
+
+
+def _enforce_written_by(root, node_type, actor, where, role: str = ""):
+    """Refuse a write when the node type's OWN schema declares a restricted
+    writer (hypothesis:l4-moral-written-by-carrier).
+
+    The owner-only rule lives as DATA — `written_by:` in the frontmatter of
+    `context/schemas/[<type>].md` — read through `schema_registry`, not as a
+    hardcoded type literal here. So the rule is carried by the type that owns
+    it, and a schema that declares no `written_by` (or whose schema is
+    absent) gates nothing: the moral schema's `written_by: owner` is the one
+    and only thing that makes moral nodes hand-edit-by-owner-only.
+
+    L4.41: the compare is a RESOLVED ROLE, never the actor string. The Prime
+    writes as `belam-S1-L4-<N>`, a generation name that changes every
+    rotation, so keying on the actor would break on a schedule nobody
+    controls; `written_by` admits ROLES. `admitted` is one parse shared with
+    `links.py` (`parse_written_by`), so a list-valued or comma-separated
+    `written_by` refuses nothing it admits. An UNRESOLVED identity refuses
+    only because the type declares `written_by`; a schema declaring nothing
+    still gates nothing. The refusal names the node TYPE and its admitted
+    roles — never a hardcoded type literal (L4.40).
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return
+    if schema is None:
+        return
+    written_by = schema.frontmatter.get("written_by")
+    admitted = links.parse_written_by(written_by) if written_by is not None else None
+    if not admitted:
+        return
+    resolved = _resolve_role(root, actor, role)
+    if resolved in admitted:
+        return
+    raise EditError(
+        f"{node_type} nodes ({where}) may be hand-edited only by "
+        f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
+        f"{actor!r} gave {resolved or 'UNRESOLVED'}, which is not admitted. "
+        f"(goal:g12)")
+
+
+def _resolve_replace_text(edit: Edit) -> None:
+    """The ONE resolver that turns `replace_from` into `replace_text`.
+
+    Used by BOTH the CLI (`main`) and the library (`submit`), so an API
+    caller and a script form cannot disagree about what a `replace` means —
+    the divergence this module shipped
+    (hypothesis:l4-replace-api-drops-source). `main` calls it early for its
+    `--dry-run` preview; `submit` calls it too, idempotently, so a direct API
+    caller gets the same resolution and the same refusals without the read
+    being copied into a second place.
+
+    Fail-closed: an absent, unreadable or EMPTY source raises an EditError
+    naming the source, and nothing is written anywhere. `replace <t> N:M -`
+    keeps its stdin contract: arbitrary content cannot ride an `&&` chunk,
+    so it comes off stdin verbatim — exactly as it does today.
+    """
+    if not edit.replace_from:
+        return
+    if edit.replace_text:
+        # Already resolved — by main() for its --dry-run preview, or by an
+        # API caller that set the text directly. Never re-read: a second
+        # stdin read for `-` would consume nothing and hang the caller.
+        return
+    if edit.replace_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: replacement text is
+        # arbitrary content and cannot ride an `&&` script chunk.
+        edit.replace_text = sys.stdin.read()
+        return
+    try:
+        text = Path(edit.replace_from).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise EditError(
+            f"replace source {edit.replace_from!r} unreadable: {exc} — "
+            f"nothing written")
+    if text == "":
+        raise EditError(
+            f"replace source {edit.replace_from!r} is empty — refusing to "
+            f"replace a range with an empty source (it would delete the "
+            f"range). Nothing written. A deliberate deletion needs an "
+            f"explicit signal, not an empty file.")
+    edit.replace_text = text
+
+
+def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "") -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
 
     Returns `node_writer`'s own result object, so a caller sees `UPDATED`,
@@ -521,10 +698,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
 
-    if edit.node_id.startswith("moral:") and actor != "owner":
-        raise EditError(
-            f"moral nodes ({edit.node_id}) are hand-edited by the owner "
-            f"only. Pass --actor owner (goal:g12).")
+    # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
+    # the replacement source. Without this, an API caller's `replace_from`
+    # never became `replace_text` and submit spliced `""`, silently deleting
+    # the range while reporting success. Idempotent: main has already resolved
+    # it for its --dry-run preview, and this must not read stdin a second time.
+    _resolve_replace_text(edit)
+
+    _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
+                        edit.node_id, role)
 
     set_fm = dict(edit.set_fm)
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
@@ -606,7 +788,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
         location = set_fm["location"]
 
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
-                                  unset_fm=edit.unset_fm, body=body)
+                                  unset_fm=edit.unset_fm, body=body,
+                                  log_extra=_log_provenance(actor))
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
@@ -618,7 +801,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
             root, payload_ref, edit.payload_from or None,
             location=location,
             data=edit.payload_bytes.encode() if edit.payload_bytes else None,
-            mint_id=mint)
+            mint_id=mint,
+            log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
     return res
@@ -862,6 +1046,27 @@ def _default_actor() -> str:
     return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
 
 
+def _log_provenance(actor: str = "") -> dict:
+    """The actor/role/seat for a write-log entry, via the `extra` hook.
+
+    hypothesis:l4-write-log-role-capture — every write-log entry should record
+    WHO wrote it. `actor` is the resolved caller identity (`actor` param or
+    `_default_actor`). `role` and `seat` are READ from what the environment
+    already sets (AGI_ROLE / AGI_SEAT, exported by dispatch); when a source is
+    absent the key is ABSENT, never a placeholder. Only present keys land in
+    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
+    records `actor`, and a non-write.py writer records none of these at all.
+    """
+    prov: dict = {"actor": actor or _default_actor()}
+    role = os.environ.get("AGI_ROLE")
+    if role:
+        prov["role"] = role.strip()
+    seat = os.environ.get("AGI_SEAT")
+    if seat:
+        prov["seat"] = seat.strip()
+    return prov
+
+
 def _compose_body(root, edit: Edit) -> str:
     """The node's body with the note appended and the thought replaced.
 
@@ -903,7 +1108,8 @@ def _compose_body(root, edit: Edit) -> str:
 
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
-           actor: str = "", session: str = "", bypass: bool = False):
+           actor: str = "", session: str = "", role: str = "",
+           bypass: bool = False):
     """Mint a node — and, for a build node, the file it points at.
 
     **This is `write.py`'s other half, and its absence was the hole that made
@@ -923,10 +1129,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     `link_ref`, so "a new node and, if needed, the code file behind it" is one
     operation. An existing file is **never overwritten** — it is linked.
     """
-    if node_type == "moral" and actor != "owner":
-        raise EditError(
-            f"moral nodes ({node_type}:{slug}) are hand-edited by the owner "
-            f"only. Pass --actor owner (goal:g12).")
+    _enforce_written_by(root, node_type, actor, f"{node_type}:{slug}", role)
 
     extra = dict(set_fm or {})
     created_file = None
@@ -940,7 +1143,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         extra[links.LINK_FIELD] = str(payload)
 
     res = node_writer.write_node(root, node_type, slug, parents,
-                                 extra_fm=extra or None, bypass=bypass)
+                                 extra_fm=extra or None, bypass=bypass,
+                                 log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
             # A rejected spawn must leave nothing behind, on either side.
@@ -959,7 +1163,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
             stamp.set_fm[PROVENANCE_ACTOR] = actor
         if session:
             stamp.set_fm[PROVENANCE_SESSION] = session
-        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm)
+        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
+                                log_extra=_log_provenance(actor))
     return res, created_file
 
 
@@ -990,6 +1195,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="bypass the spawn gate, loudly")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--actor", default="", help="who is making this edit")
+    ap.add_argument("--role", default="",
+                    help="explicit role, resolved ahead of AGI_ROLE and the "
+                         "seat prefix (hypothesis:l4-role-resolution-longest-prefix)")
     ap.add_argument("--session", default="",
                     help="the session that produced it (thought_session)")
     ap.add_argument("--dry-run", action="store_true",
@@ -1022,7 +1230,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         res, made = create(root, args.script, args.slug, args.parents,
                            set_fm=set_fm, payload=args.payload,
-                           actor=args.actor, session=args.session,
+                           actor=args.actor, session=args.session, role=args.role,
                            bypass=args.no_spawn_gate)
         if res.rejected:
             print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
@@ -1131,18 +1339,15 @@ def main(argv: list[str] | None = None) -> int:
         # cannot ride an `&&` script chunk (the doubled ampersand splits it).
         edit.patch_diff = sys.stdin.read()
 
-    if edit.replace_from == "-":
-        # Same stdin contract as `payload -` / `patch -`: replacement text is
-        # arbitrary content and cannot ride an `&&` script chunk.
-        edit.replace_text = sys.stdin.read()
-    elif edit.replace_from:
-        from pathlib import Path as _P
-        try:
-            edit.replace_text = _P(edit.replace_from).read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERR: replace source {edit.replace_from}: {exc}",
-                  file=sys.stderr)
-            return 2
+    # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
+    # read. Delegate to the same function `submit` uses, so dry-run shows the
+    # bytes and a missing/empty source refuses here exactly as it refuses in
+    # the library. Refusals print ERR and write nothing.
+    try:
+        _resolve_replace_text(edit)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
 
     # `patch <path>` reading happens in `submit` (fail-closed, after the
     # payload ref is resolved) rather than here, so a refused diff is still
@@ -1193,7 +1398,8 @@ def main(argv: list[str] | None = None) -> int:
         edit.body_patch_diff = sys.stdin.read()
 
     try:
-        res = submit(root, edit, actor=args.actor, session=args.session)
+        res = submit(root, edit, actor=args.actor, session=args.session,
+                     role=args.role)
     except (EditError, FileNotFoundError) as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2

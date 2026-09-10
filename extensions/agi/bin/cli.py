@@ -62,19 +62,52 @@ def _find_root() -> Path:
 
 
 def _session_root() -> Path:
-    """The project's ONE session-dir root across every git worktree.
+    """The LOCAL session-dir root; iteration dirs resolve to the worktree.
 
-    hypothesis:l3-cli-done-worktree-manifest — a `--branch` agent's session
-    state lives in the MAIN checkout, and `cli.py done` must find it from the
-    agent's own cwd. Agent session state (the per-agent `agent.json` and the
-    iteration `manifest.json`) is the LOOP'S bookkeeping, and bookkeeping is
-    one body across worktrees — the same rule as the spawn budget, the comms
-    root, the meter pins and `.env`, which all resolve through
-    `locations.shared_project_root`. The graph a kid edits is FORKED (that is
-    the worktree); the record `done`/`scaffold` read and write is SHARED.
+    hypothesis:l4-seat-session-iter-dirs (half a) — iter-<id>/ and everything
+    under them (the per-agent `agent.json`, the iteration `manifest.json`,
+    `output.log`, `context.md`) belong to the WORKTREE that made them, so a
+    seat harvests its own round from its own tree. This REVERSES the L3.38
+    `l3-cli-done-worktree-manifest` rule that routed the record through
+    `locations.shared_project_root` into the MAIN checkout (bookkeeping was
+    "one body across worktrees", like the budget / comms / meter pins — but
+    iteration dirs are not a tree-wide bound, so only the budget / comms /
+    meter pins still resolve shared). Callers that READ fall back to the main
+    checkout (via `_legacy_fallback`) when the local tree lacks the specific
+    record, so an in-flight round whose manifest predates this change keeps
+    resolving; the graph a kid edits is still the worktree's fork.
     """
-    local = _find_root()
-    return locations.shared_project_root(local) or local
+    return _find_root()
+
+
+def _legacy_fallback(local_root: Path, path: Path) -> Path:
+    """Local-first, shared-fallback for one session file (hypothesis:
+    l4-seat-session-iter-dirs, half a). Returns `path` unchanged when it
+    exists under the local root; otherwise re-resolves it under the MAIN
+    checkout, so records that predate the resolution change (or belong to a
+    seat whose dirs live in main) still resolve. `done`/`pending`/`scaffold`
+    write to whichever path this returns, keeping the record in the tree that
+    already owns it.
+    """
+    if path.exists():
+        return path
+    shared = locations.shared_project_root(local_root) or local_root
+    if shared == local_root:
+        return path
+    try:
+        rel = path.relative_to(local_root)
+    except ValueError:
+        return path
+    shared_path = shared / rel
+    # Fall back to shared ONLY when the shared record actually exists.
+    # Returning the shared path unconditionally routed a brand-new record
+    # (present in NEITHER place) into main, reinstating the very routing
+    # L4.37 reverses. A record that exists nowhere belongs to the LOCAL tree
+    # that is creating it, not to main. (hypothesis:
+    # l4-complete-and-fallback-invariants)
+    if shared_path.exists():
+        return shared_path
+    return path
 
 
 def _agent_path(root: Path, iter_n: int | str, agent_id: str) -> Path:
@@ -377,11 +410,12 @@ def cmd_done(args: argparse.Namespace) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
     root = _find_root()
-    # Session record is SHARED (main checkout) so a `--branch` parent running
-    # in its worktree resolves the same agent.json its dispatch (from main)
-    # wrote — not an empty worktree copy (hypothesis:l3-cli-done-worktree-manifest).
+    # Session dirs are LOCAL-first (hypothesis:l4-seat-session-iter-dirs,
+    # half a): a seat resolves the record its own worktree made. Fall back to
+    # the MAIN checkout only when the local tree lacks the record, so an
+    # in-flight round whose manifest predates the change keeps resolving.
     sroot = _session_root()
-    ap = _agent_path(sroot, args.iter_n, args.agent_id)
+    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -579,7 +613,8 @@ def cmd_done(args: argparse.Namespace) -> int:
 
 def cmd_pending(args: argparse.Namespace) -> int:
     root = _find_root()
-    ap = _agent_path(_session_root(), args.iter_n, args.agent_id)
+    sroot = _session_root()
+    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if not ap.exists():
         print(f"ERR: no agent record at {ap}", file=sys.stderr)
         return 1
@@ -628,8 +663,9 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
     print(f"scaffolded: {res.path}")
 
     # Record scaffold in agent.json so cli.py done knows what to update.
-    # The record is SHARED (main checkout), same as `done` reads it.
-    ap = _agent_path(sroot, args.iter_n, args.agent_id)
+    # Local-first, shared fallback (hypothesis:l4-seat-session-iter-dirs,
+    # half a) — same as `done` resolves it.
+    ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, args.agent_id))
     if ap.exists():
         rec = json.loads(ap.read_text())
         rec["scaffolded_node"] = res.node_id
@@ -968,20 +1004,21 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
 
 
 def cmd_status(args: argparse.Namespace) -> int:
-    # Manifest + agent records are SHARED across worktrees
-    # (hypothesis:l3-cli-done-worktree-manifest); resolve the session-side
-    # root to the main checkout, never the worktree a caller stands in.
+    # Manifest + agent records resolve LOCAL-first, shared fallback
+    # (hypothesis:l4-seat-session-iter-dirs, half a): a seat reads its own
+    # round; it still sees a manifest/record that predates the change (or
+    # belongs to a seat whose dirs live in main) via the main checkout.
     root = _find_root()
     sroot = _session_root()
     iter_dir = locations.iteration_dir(sroot, args.iter_n)
-    manifest = iter_dir / "manifest.json"
+    manifest = _legacy_fallback(sroot, iter_dir / "manifest.json")
     if not manifest.exists():
         print(f"ERR: no manifest at {manifest}", file=sys.stderr)
         return 1
     m = json.loads(manifest.read_text())
     print(f"iter {args.iter_n}: {len(m['agents'])} agents")
     for a in m["agents"]:
-        ap = _agent_path(sroot, args.iter_n, a["id"])
+        ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, a["id"]))
         rec = json.loads(ap.read_text()) if ap.exists() else a
         print(f"  {rec['id']}: status={rec.get('status')} verdict={rec.get('verdict', '-')} pid={rec.get('pid')}")
     return 0

@@ -11,13 +11,24 @@ These tests exercise BOTH branches directly:
     / parent (bare dir passed unchanged).
 """
 import copy
+import importlib.util
 import os
 import subprocess
 import sys
 
-from extensions.agi.tests import conftest as gate
-
 CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
+
+# Load the gate BY PATH, not as `extensions.agi.tests.conftest`.
+# The package-path import only resolves when the repo root happens to be on
+# sys.path -- i.e. when pytest is invoked with a cwd inside it. `commands.py
+# run tests` and `verification.py --suite` run the declared argv with cwd set
+# to the GRAPH root (`.agi/`), where it is not, and the ImportError there is a
+# COLLECTION error: it aborts the whole run, so the entire suite reports as
+# failed with zero tests executed. A test module must not depend on the cwd it
+# was launched from. (Found at merge-up 3; hypothesis:l4-full-suite-tier-gate.)
+_spec = importlib.util.spec_from_file_location("_agi_tier_gate_conftest", CONFTEST)
+gate = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(gate)
 
 TEST_SRC = 'def test_ok():\n    assert True\n'
 
@@ -96,3 +107,30 @@ def test_hook_unset_bare_dir_invisible():
 def test_hook_parent_bare_dir_invisible():
     code, _ = _run_pytest([], "parent")
     assert code == 0
+
+
+def test_module_collects_with_cwd_outside_the_repo_root(tmp_path):
+    """This module must import no matter where pytest was launched from.
+
+    It previously did `from extensions.agi.tests import conftest`, which only
+    resolves when the repo root happens to be on sys.path — true when pytest is
+    invoked with a cwd inside the repo, false when `commands.py run tests` and
+    `verification.py --suite` run the declared argv with cwd set to the GRAPH
+    root (`.agi/`). An ImportError at module scope is a COLLECTION error, so it
+    does not fail one test: it aborts the run and reports the WHOLE suite as
+    failed with zero tests executed. Found at merge-up 3 by running the suite
+    through the tool rather than by hand.
+
+    The guard is a real collection from a cwd that cannot possibly have the
+    repo root on sys.path.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", os.path.abspath(__file__),
+         "-q", "--collect-only"],
+        cwd=str(tmp_path), capture_output=True, text=True, timeout=300)
+    assert proc.returncode == 0, (
+        "collection failed from a foreign cwd — the module has a cwd-dependent "
+        f"import again:\n{proc.stdout[-2000:]}\n{proc.stderr[-2000:]}")
+    assert "ModuleNotFoundError" not in (proc.stdout + proc.stderr)
+    assert os.path.isfile(os.path.join(here, "conftest.py"))

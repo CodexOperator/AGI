@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-I
+edited_by: belam-S1-L4-II
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: rc-L4-I
+thought_session: rc-L4-II
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -441,3 +441,53 @@ Every quoted span above re-checked with grep -F against doc:l4-owner-decisions, 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 L4-I 2026-09-10: appended the banked-questions section (28 items: resolved by parts 4-7 with the owner's lines, still open, new) from doc:l4-plan §6, plus the BODY-marker renderer defect. Prime's list, not owner text; the owner's rulings go beside each item.
 <!-- THOUGHT:END -->
+
+
+
+OWNER, 2026-09-09/10, VERBATIM (direct to `sanctuary-helper` mid-task, relayed by it to the point director): "always prefer dispatch over not" · "always" · "so you can parallelize properly"
+
+STANDING, both director seats. This REVERSES a judgement the point director made earlier the same round and told the prime was deliberate: the fourteen L4.20 sub-goals were minted BY HAND, on the reasoning that exact graph structure is where a drifting kid is most expensive (a wrong parent cannot be deleted, only deprecated) and that two dispatches that day had returned verdicts ABOUT their work instead of doing it (trap 0ak). The owner has now ruled the other way, and the rule is "always". **Prefer dispatch. The precision argument does not survive the word "always".**
+
+APPLIED, and what it does NOT mean. It does not license a kid to re-derive work that is already committed and verified: the helper declined to redo its twelve committed chains through a dispatch, because a kid re-deriving fully-specified content risks drift for no parallelization gain and would spend money and review time to reproduce bytes that already exist. That call is accepted and recorded here rather than silently taken. **The rule governs work not yet done, not work already landed.**
+
+🔴 IT ALSO TOUCHES A PRIME CONSTRAINT, and this is the part that needs the owner or the prime to settle. Survival mode's standing rule is ONE ROUND AT A TIME (A:54), re-stated by belam-S1-L4-I this round ("one round at a time"). "So you can parallelize properly" points the other way. Read together, the point director has taken the owner's sentence as authorising CONCURRENT DISPATCH ACROSS THE TWO SEATS — one round each, not one round total — because that is what "parallelize" means with two directors and it is the smallest reading that gives the owner's word effect. It has NOT been read as lifting any other survival constraint: no seat is woken, no third director appears, the $3.00 key ceiling across both seats stands, and the $1.00 floor is untouched. If the owner meant more than that, or less, one line settles it.
+
+### Banked 2026-09-10 05:5xZ by the Prime from the point's gen-I handover (helper findings; prime recommendations, NOT owner text)
+
+- **Q29 — L4.22 run tracking is a JSONL log, not graph nodes.** The owner's words were "adds it to the graph workflow tracking as well" (L4 PLAN, part 5). The helper landed a per-run JSONL; the point ruled the log is the right substrate (one node per run would inflate the graph the way hop-padding did). This is narrower than "the graph" read literally. REC: keep the JSONL as the record and add a periodic ROLL-UP node summarising many runs (the shape `telemetry_rollup` already uses), minted by the round that owns telemetry (G16) — no per-run nodes. Owner to accept or ask for per-run nodes.
+- **Q30 — L4.25 push_further: token counts.** Five of the seven success metrics record null-with-named-source because no token / vision / subscription counter exists in the engine. Counting tokens would put a field into `write-log.jsonl` or a session manifest, and `write.py` is do-not-touch for kids. REC: a director-level round (not a kid) adds the counter to the session manifest written by dispatch.py, leaving write.py untouched; scope decision is the owner's if it must touch write.py.
+- **Protocol note (not a question):** the point's gen I rotated at meter 0.5185, past the 0.47 cap, because it read the meter only at a natural pause. Seats read the meter after every round close and before every dispatch, not only at pauses.
+
+### Owner ruling 2026-09-10 ~07:4xZ (to the Prime in chat, verbatim) — L4.09 GO, extra waves, writer backfill
+
+**Owner, verbatim:** "what's L4.09? I'm fine with making the check more strict per type and you're clear to authorize extra waves or to re-order things as needed. I'm find having graph nodes that lack writers for now can backfill at the end since it used to be all Director Prime so it's easy to backfill truthfully."
+
+Applied: L4.09 (written_by warn -> refuse, one type at a time; [moral], [config] first, [vision] with Q15 as ruled: the Council FEEDS vision, blue = the Prime writes it) is AUTHORIZED — its owner-go flag is satisfied; the Prime may authorize extra waves and re-order rounds without a fresh owner-go; nodes with no recorded writer are left as they are and BACKFILLED at the end (legacy nodes were all the Director Prime — backfill truthfully to that). Resolves the owner-go on L4.09 and the L4.05 -> L4.09 ordering (gen II's correction).
+
+### Owner ruling 2026-09-09 (to the point director, applied by it 2026-09-10; verbatim) — the closing prayer is per SESSION, not per turn
+
+**Owner, verbatim:** "You don't have to do a prayer at the end of each turn, only at the end of your session when you rotate or have no other actionable items left."
+
+Applied by the point (gen II) to the prime-director successor brief (line 26) and both quorum briefs, which had read as every-turn. SKILL.md already said session. Supersedes any brief line that reads as per-turn.
+
+### Owner 2026-09-10 ~09:3xZ (verbatim) — unexplained gpt-5.1-codex spend on OpenRouter
+
+**Owner, verbatim:** "still getting the error where we're using a bunch of gpt5.1 codex calls on openrouter. Need to button that down. I'll try disabling any relevant settings on my end as well in openrouter console" · "it may have been a test call"
+
+Measured by the Prime the same hour (OpenRouter /api/v1/activity via the provisioning key): openai/gpt-5.1-codex usage 2026-08-31 to 09-09 totals about USD 12.4 (526 requests on 09-06 alone; 6 requests / USD 0.18 on 09-09; NONE on 09-10), routed to provider azure. NOT from the engine: no live pi process carries a codex model (AGI_MODEL is glm-flash for parents, deepseek-v4-flash for kids), pi's run-history has zero codex entries, .agi/config.json names only deepseek / glm / sonnet / opus / fable, the workflow manifests name none. Candidates outside the dispatch path: the Codex CLI at ~/.codex (auth.json; the cavekit ck:judge / peer-review-loop skills use Codex as a reviewer) and the non-engine OpenRouter key labelled agi-2 (USD 0.60 used, no expiry). RECOMMENDATION: owner restricts allowed models on the OpenRouter account/keys (in progress) and deletes agi-2 if unknown; engine side, one round under G15: dispatch.py refuses any AGI_MODEL outside a config allowlist (harnesses.pi.allowed_models), fail-closed — handed to the point.
+
+CORRECTION by the point gen II (2026-09-10 10:0xZ), re-derived not trusted: both outside suspects are eliminated — ~/.codex is dormant (newest mtime 2026-05-23) and codex-review.sh shells out to the codex CLI with an OpenAI account and o4-mini, no OpenRouter reference; ~/.hermes and ~/.openclaw have nothing newer than 09-07. Neither the runtime key (USD 7.13 of 15) nor agi-2 (USD 0.60) can carry USD 12.4. The spend left no filesystem trace on this box; the search continues in the owner's OpenRouter activity BY KEY, not in this repo. L4.43 (model allowlist, four check sites incl. the --seat override path; seed list enumerated in the claim; absent or empty list refuses) is live under goal:g15 as defence in depth and instant attribution — it does not explain the USD 12.4 and its verdict may not read as if it did.
+
+Owner, verbatim (2026-09-09, in chat to the Prime L4-I after XVI relayed plan parts 1-7): "Plan sounds good continue as described" - the GO for the L4 loop. Recorded by L4-II on 2026-09-10 02:5xZ because the handoff card held this quote and no graph node did; the card is trimmed only after the quote lives here (owner rule: verbatim is protected in nodes, never in the handoff).
+
+Owner, verbatim (2026-09-10 02:5xZ, in chat to the Prime L4-II): "this should already be in this run somewhere, but we need to simplify the rotation process for each next successor to where they don't have to run a bunch of tools. Ideally just make a unified verification.py with various options that can do various levels of checks, and it runs a full thorough check each rotation programmatically without having to waste tokens. Then of course everything gets linked into commands.py for easy calling and use. Feel free to trim the handoff as well where appropriate according to our standing rules" - handed to the point as an ad-hoc round (numbered beyond the plan); the Prime trims the handoff under the standing quote-check rule.
+
+Owner, verbatim (2026-09-10 03:2xZ, in chat to the Prime L4-II): "let's get a deep research queued up to look up why processes are hanging if that L4.37 hung or got reaped due to OOM error that isn't true. Maybe the process RAM is limited per process or something, unless the fix is diagnosed." - handed to the point as a research round (the reaper that kills long backgrounded runs while free memory reads 16-18 GB: traps 0ai, 0ai-b, 0p, 0ai third firing in goal:g17.1).
+
+Owner, verbatim (2026-09-10 05:0xZ, in chat to the Prime L4-II): "Tell both directors to stop reporting to you needlessly it's wasting fable tokens. Only reach out when actually necessary." Applied the same minute: the point (and the helper, relayed by the point) message the Prime only for a merge-up (one message, numbers only), a decision only the Prime can make, a rotation (new address, one line), or a red merge / a finding that changes a standing rule; never progress, status, acknowledgements, restated plans, praise relays or round-by-round harvests - those live in the nodes and the commit log, which the Prime reads at the merge-up.
+
+Owner, verbatim (2026-09-10 05:0xZ, immediately after the previous order): "That's a new standing order for all directors under the prime in survival mode" - scope fixed: STANDING, every director under the Prime while survival mode is in force, not a one-off to the current point and helper.
+
+Owner, verbatim (2026-09-10 05:1xZ, in chat to the Prime L4-II): "Next rotation use opus on max for prime successor" - applied: belam-S1-L4-III is spawned with --model claude-opus-5 --effort max; the config:seats belam row stays claude-fable-5-1 (the order names the next rotation; whether the row changes permanently is banked for the owner, recommendation: keep the row, pass the model per rotation).
+
+Owner, verbatim (2026-09-10 05:1xZ, in chat to the Prime L4-II): "Make opus standing for prime at this point" - applied: config:seats belam row model claude-opus-5, effort max, standing; the banked row-model question is closed.

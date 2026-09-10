@@ -1,5 +1,6 @@
 ---
 name: config
+written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
 structural: true
 derived_from: read-2026-08-25 from lib/find-root.sh, bin/level3.py, bin/grid.py
 fields:

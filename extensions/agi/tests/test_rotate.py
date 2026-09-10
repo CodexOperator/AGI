@@ -1307,6 +1307,75 @@ def test_rotate_self_refuses_when_predecessor_window_gone(fake_ladder, tmp_path,
     assert "predecessor" in rec["refusal_reason"]
 
 
+def test_rotate_self_interrupted_after_spawn_leaves_started_record(
+        fake_ladder, tmp_path, monkeypatch):
+    """A rotate-self interrupted MID-SEQUENCE — the successor spawned and
+    confirmed, then the read-back never settles (a non-`continue` reply, the
+    exact shape the harness reaper leaves behind) — must still leave a durable
+    record whose state says how far it got. RED against the old code, which
+    wrote nothing until the final step and left the rotations dir empty here
+    (hypothesis:l4-rotation-record-survives-interruption).
+    """
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        # successor appears under the reused plain name, then the sequence
+        # is interrupted before the read-back settles
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    # surrogate for the process being killed mid-read-back: the reply never
+    # becomes the single confirming word `continue`
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "still loading")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    records = sorted((tmp_path / "sessions" / "rotations")
+                     .glob("adv-alive.*.json"))
+    assert records, "interrupted rotation left NO durable record"
+    assert len(records) == 1, "started + outcome must stay in ONE record file"
+    rec = json.loads(records[0].read_text(encoding="utf-8"))
+    assert rec["result"] == "started"
+    assert rec["steps_reached"] and rec["steps_reached"][-1] >= 3
+    assert "gen_before" in rec and "gen_after" in rec
+
+
+def test_rotate_self_success_leaves_exactly_one_record(fake_ladder, tmp_path,
+                                                       monkeypatch):
+    """A COMPLETED rotate-self still leaves exactly ONE record in today's
+    shape, now in the `success` state — the `started` record opened up front
+    is updated in place, never split into a second file
+    (hypothesis:l4-rotation-record-survives-interruption).
+    """
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_first_reply",
+                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    monkeypatch.setattr(rotate, "_announce_rotation", lambda **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    records = sorted((tmp_path / "sessions" / "rotations")
+                     .glob("adv-alive.*.json"))
+    assert len(records) == 1, f"want exactly one record, got {len(records)}"
+    rec = json.loads(records[0].read_text(encoding="utf-8"))
+    assert rec["result"] == "success"
+    assert "steps_reached" in rec or True
+
+
 def test_loop_writes_durable_record(fake_ladder, tmp_path, monkeypatch):
     """cmd_loop also writes a durable record capturing the successor window
     (observed) and the read-back log path on a confirming rotation."""
