@@ -1600,3 +1600,115 @@ def test_a_parent_with_no_commit_on_its_branch_is_still_restarted(tmp_path):
                              "a00-abc123", 999, cap=10,
                              cfg={"reaper": {"max_restarts": 1}})
     assert out["record"]["status"] != "done-unreported", out
+
+
+def test_a_round_committed_under_the_kids_id_is_not_restarted(tmp_path):
+    """🔴 The commit is the signal; its SUBJECT never is.
+
+    Built from a real artefact, not from what the code hoped for. The two
+    subjects below are copied verbatim from `iter-L4.57` and `iter-L4.58` on
+    2026-09-10, where the reaper restarted both rounds:
+
+        a00-852433f1 done: doc:l4-five-unstaffed-seats verdict=inconclusive_lean_proved:85
+        a00-5b5defc6 done: experiment:a00-5b5defc6-7baa29 verdict=proved
+
+    Neither leads with its PARENT's id (`a00-41c4e898`, `a00-325a5d78`), so
+    the old `startswith(f"{agent_id} done:")` match returned False on a round
+    that was fully committed with a clean worktree, and both parents were
+    respawned onto finished work — roughly $0.9 of key. A third round the
+    same hour, from the same director, happened to type its own id and was
+    spared. Same code, same prompt, different string.
+
+    Writing the fixture the other way — a subject the production path never
+    produced — is exactly how a guard for this area was green while the bug
+    was live, so this one uses the string that actually burned the money.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "checkout", "-q", "-b", "loop/round-a00-41c4e898@s2")
+    (repo / "artefact.md").write_text("the round's work\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm",
+         "a00-852433f1 done: doc:l4-five-unstaffed-seats "
+         "verdict=inconclusive_lean_proved:85")
+    _git(repo, "checkout", "-q", "season/s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.57"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-41c4e898", "tier": "parent", "status": "running",
+        "pid": 999, "restart_count": 0,
+        "branch": "loop/round-a00-41c4e898@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-41c4e898", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "done-unreported", out
+    assert FakeAdapter.restarted is False, (
+        "the round was committed — the parent's id not appearing in the "
+        "subject is not evidence that it was not")
+    assert out["record"]["commits_ahead"] == 1
+
+
+def test_a_restart_names_itself_so_the_manifest_and_the_budget_agree(tmp_path):
+    """A restart that leaves no trace cannot be counted, budgeted or believed.
+
+    On iter-L4.57 and iter-L4.58 the manifest recorded a restarted parent as
+    `status: running` with a silently swapped pid and nothing else — while
+    `spawn_budget status` was listing the same process as `<id>-r1`. The only
+    way to know a restart had happened was that the two disagreed. The record
+    now carries `restart_of` under the lease's own name, so both readers name
+    the process the same way.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            return 12345
+
+    rec = {
+        "id": "a00-abc123", "tier": "parent", "status": "running", "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "running", out
+    assert out["record"]["restart_count"] == 1
+    assert out["record"]["restart_of"] == "a00-abc123-r1", (
+        "the record must name the process by the lease name "
+        "`spawn_budget status` shows, or the two readers disagree")
