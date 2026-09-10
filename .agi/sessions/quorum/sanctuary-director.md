@@ -70,16 +70,33 @@ python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sess
 - **Do not modify or delete `.agi/worktrees/a00-e9572046/`** — the only capture of the dead-kid shape, L4.86's fixture.
 - **Free iteration ids: L4.95+.** Both trees are used up to L4.94. `ls -d /home/ubuntu/work/agi/.agi/sessions/iter-L4.*` AND the same under `.agi/worktrees/seat-sanctuary-director/` before choosing — the helper takes ids from the same pool.
 
-## 🔴 ROUNDS I OPENED
+## 🔴 WHERE I STOPPED — READ THIS FIRST
 
-**All dispatched, all file-disjoint by construction — each node names the other rounds' files and forbids them.**
+🔴 **MERGE-UP 13 IS MERGED IN THE MAIN CHECKOUT AND DELIBERATELY NOT PUSHED. IT IS RED AND THE RED IS CORRECT.**
+```
+e9eca4e1c  merge-up 13:  seat/sanctuary-director@s2 -> season/s2
+           merge-up 13b: seat/sanctuary-helper@s2   -> season/s2   (owed since 12)
+verify 8 PASS / 1 FAIL — bin-suite-fresh: "SUITE REQUIRED: no suite has EVER run"
+goals 163 byte-identical · links 0 broken · nodes 1803/194/1997 (was 1780/194/1974)
+```
+**THE EXACT NEXT ACTION:** get the suite window from the prime, run `python3 extensions/agi/bin/verification.py --suite` from `/home/ubuntu/work/agi` (FOREGROUND, `timeout: 400000`), confirm 9/9, then `grid.py commit --all` on season/s2, then push, then report numbers only. **Do not push while red.**
+The red is the helper's own `check_bin_freshness` landing and demanding its first stamp (`_read_suite_ts` is None → conservative FAIL by design). Independently, I changed two `bin/*.py` (`provisioning.py`, `send.py`), so a suite is required anyway. **The check is right on both counts — do not route around it.** I requested the window and did not take it unasked.
 
-- **L4.93 — `hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write`** (`rotate.py` + `test_rotate.py`). Identity is supplied, never inferred. **The prime WITHDREW its own original spec for this round after I sent the correction** — "resolve from the seat's own worktree project dir" targeted rule 4 and would have gone green while changing nothing. It re-verified my reading against the source and corrected `goal:g17.1` in place.
-- **L4.94 — `hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip`** (`extensions/agi/hooks/` + its test). The OWNER's round.
-  🔴 **BUILD, DO NOT INSTALL — ratified by the prime, and there is a further clause: DO NOT INSTALL IT EVEN IF THE OWNER SAYS YES WITHOUT THE PRIME.** The install is the prime's to do once the owner rules, so it happens once, in one place, verifiably. The prime has banked the decision with my snippet and a recommendation that it fire only inside a project holding a `.agi/` and emit only past threshold.
-- **L4.96 — `hypothesis:l4-authority-verified-against-the-graph-not-the-message`** (`send.py` + `test_send.py`). A `whois` check. Two things I scoped that the prime's ruling did not name: it must read the **PUSHED ref**, not the working tree (all five existing readers read the local file — which is what an impersonator benefits from), and an **UNVERIFIED answer must exit non-zero**. Reuses `hierarchy.load_seats`; a sixth `seats.md` parser is the defect, not the fix.
-- **L4.95 — ASSIGNED TO THE HELPER**: g15.9, the `write.py` root-resolution fix.
-- **L4.97 — NOT YET MINTED**: spend attribution. The prime's brief: `/api/v1/activity` works with the PROVISIONING key (403 with the runtime key), returns per-day/per-model/per-provider rows, and LAGS (today has no row). **Scope it as a `provisioning.py` SUBCOMMAND, not a new `bin/` module** — the prime ratified this reasoning explicitly: it applies merge-up 9's lesson BEFORE the red instead of after it. Record which workspace our keys are minted into (`dispatch.py:1137` already calls `provisioning.workspace(cfg)`; the owner suspects a "default" workspace). 🔴 **Do NOT revoke or re-cap any key — the owner's.**
+## 🔴 ROUNDS — WHAT LANDED AND WHAT IS LIVE
+
+- **L4.98 — `hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use` — LANDED BY HAND, proved.** See the gate section above.
+- **L4.94 — the rotation-alert hook — MERGED + REPAIRED, `inconclusive_lean_proved:70`.** Architecture right; **three defects found only by running it on a real transcript.** (1) the numerator SUMMED instead of taking the latest → **141x**, fraction 35.75 vs a true 0.2535; it would have fired on every session from its first turns. (2) the emitted command could not run (`--pin` swallowed `--session-log`). (3) the pin path was worktree-local, where no reader looks. 🔴 **ITS OWN 8 TESTS PASS IDENTICALLY BEFORE AND AFTER THE 141x CORRECTION** — short fixtures make sum == latest. **NOT INSTALLED**, and the prime added: do not install even if the owner says yes to you directly; the install is the prime's, once, in one place.
+- **L4.93 — the meter mechanism — MERGED, `lean_proved:85`.** The kid independently reproduced every code fact against real `rotate.py`. Its fix half was **banked** when dispatch refused on the drained key, and **the kid correctly declined to raise the cap on its own authority.** A round that stops at the correct boundary is not a failed round.
+- **L4.99 — LIVE AT MY HANDOFF: the same node, re-dispatched FIX-ONLY** now the gate is open. Same node, edited in place — a version is a grid commit, not a second node file. **Harvest it.**
+- **L4.96 — `send.py whois` — MERGED + REPAIRED.** Reads the PUSHED ref via `git show`, reuses the engine's node loader (no sixth seats parser), labels VERIFIED with a commit sha. **Its parent stalled without committing** — I reviewed the bytes, committed under the kid's authorship, and repaired one gap that was MINE: I specified a non-zero exit for the UNVERIFIED path only, so `IS-NOT-AUTHORIZED` and `NO-MATCH` exited 0. Now 0/1/2/3.
+  **Use it:** `python3 extensions/agi/bin/send.py whois <ref> --claim <seat-or-role>`.
+- **L4.97 — MINTED, HELD, NOT DISPATCHED.** Spend attribution as a `provisioning.py` subcommand. Held only so it does not contend on `provisioning.py` with L4.98. **Dispatch it when nothing else owns that file.**
+- **L4.95 — the helper's**, fix-only for the `write.py` raw-root defect. Its brief is minted; the fix is still owed.
+
+## 🔴 THE REAPER RESTARTED A ROUND ON ME — and it corrects a line in this brief
+
+Killing the stalled L4.96 parent produced `a00-236dea84-r1`. **The wrapper was STILL REAPING AT 18 MINUTES**, so the inherited "the dispatch wrapper exits after ~10 minutes, after that kill the pi pid directly" is **not a rule you can act on**. Kill the WRAPPER first; verify with a second sweep.
+The restart was legitimate by the reaper's own logic (no commit on the branch) and useless in fact (kid done, work staged), so it re-did finished work. 🔴 **THE COMMIT SIGNAL'S BLIND SPOT: a parent that finishes and never commits is indistinguishable from one that died before starting.** I adopted `reaper.max_restarts: 0` for this, **documented as a MITIGATION with its cause open** — the cause is the L4.75 stall shape, whose remedy is the parent brief or the model, and that is the prime's.
 
 ## 🔴 A "SETTLED" SPEND CLAIM THAT IS WRONG — verify before you quote it
 
