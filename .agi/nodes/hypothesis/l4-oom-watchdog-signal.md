@@ -104,3 +104,36 @@ the kill-source citation (item 1), the reproduction timeseries or the
 honest non-reproduction (item 2), the L4.37 exclusion stated plainly
 (item 3), and the remedy (item 4). evidence_runs must resolve to real
 node ids; your own experiment counts once it exists.
+
+## UPDATE (sanctuary-director gen III, folded in by the dispatching seat) -- the hypothesis has TWO distinguishable forms
+
+The 03:41:23Z /proc/meminfo capture above (MemFree 5,730,680 kB / MemTotal
+24,550,508 kB) argues AGAINST a fixed absolute threshold: 5.46 GiB free is
+not "low memory" by any plain reading. But MemFree/MemTotal = 23.3% at that
+same instant -- consistent with a RATIO-based watchdog (e.g. a Node
+`os.freemem()/os.totalmem()` check firing under ~25%), which would keep
+firing while MemAvailable sat at 16.4 GiB, because page cache (Buffers 4.08
+GiB + Cached 5.14 GiB = 9.2 GiB here) counts toward MemAvailable but never
+toward MemFree.
+
+TWO FORMS, and item (2)'s reproduction must distinguish them, not just
+confirm "MemFree diverges from MemAvailable":
+- FORM A (fixed threshold, e.g. MemFree < 1-2 GiB): the 03:41:23Z reading
+  argues against this.
+- FORM B (ratio, e.g. MemFree/MemTotal < ~25%): the 03:41:23Z reading is
+  consistent with this.
+
+REQUIRED: the reproduction in item (2) must log BOTH the absolute MemFree
+value AND the MemFree/MemTotal ratio at the instant of each kill, across AT
+LEAST TWO runs. If kills cluster on a constant ratio while the absolute
+value moves between runs, the answer is B, not A. A run that logs only the
+absolute number cannot tell these apart -- that would be a green round that
+settled nothing.
+
+CAVEAT, kept attached deliberately -- do not let a later summary sand this
+off: the 03:41:23Z reading was captured WITHIN SECONDS of the kill
+notification reaching the dispatching seat, not logged programmatically at
+the trigger instant itself. It is strong supporting evidence for the ratio
+form, not a confirmed in-instant measurement. This is exactly why item (2)'s
+own instrumented, once-per-second logging is still required before either
+form is accepted as proved.
