@@ -56,7 +56,7 @@ NULL_NOTE = (
 
 def src_avg_tokens_per_turn(root: Path) -> dict:
     """Metric 1 — average tokens/turn. Named source: the per-write token field."""
-    wl = Path(root) / "sessions" / "write-log.jsonl"
+    wl = locations.shared_sessions_dir(root) / "write-log.jsonl"
     present = False
     note = NULL_NOTE
     if wl.is_file():
@@ -72,7 +72,7 @@ def src_avg_tokens_per_turn(root: Path) -> dict:
 
 def src_hierarchy_tokens_per_hour(root: Path) -> dict:
     """Metric 2 — total hierarchy tokens/hour. Same per-write token infra."""
-    wl = Path(root) / "sessions" / "write-log.jsonl"
+    wl = locations.shared_sessions_dir(root) / "write-log.jsonl"
     present = bool(wl.is_file() and "tokens" in wl.read_text())
     note = NULL_NOTE if not present else "tokens field present on write-log"
     return {"value": None, "present": present, "source": "write-log.jsonl tokens field", "note": note}
@@ -159,8 +159,15 @@ SEVEN_METRICS = [name for name, _ in SOURCE_FUNCS]
 
 
 def record_path(root: Path, season: int) -> Path:
-    """The ONE recorded place for a season's success metrics."""
-    return Path(root) / "sessions" / RECORD_PATTERN.format(season=season)
+    """The ONE recorded place for a season's success metrics.
+
+    Resolution route: `locations.shared_sessions_dir` at graph root, so the
+    season's single durable record lives on the MAIN checkout and does not
+    fork per git worktree (hypothesis:l4-residue-that-is-recorded-is-still-
+    residue). Identity outside a worktree, so behaviour in the main checkout
+    is unchanged.
+    """
+    return locations.shared_sessions_dir(root) / RECORD_PATTERN.format(season=season)
 
 
 def compute(root: Path) -> dict:
@@ -195,7 +202,7 @@ def diff(root: Path, payload: dict) -> dict:
     """
     cur = payload["season"]
     prior_records = sorted(
-        Path(root).glob("sessions/" + RECORD_PATTERN.format(season="*")),
+        locations.shared_sessions_dir(root).glob(RECORD_PATTERN.format(season="*")),
         key=lambda p: p.name)
     prior = [p for p in prior_records
              if re.search(r"success-metrics-(\d+)\.json$", p.name).group(1) != str(cur)]
