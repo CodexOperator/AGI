@@ -88,6 +88,26 @@ commands:
       - show
     about: the crontab the graph declares
     workflow: read
+  write-guard:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write_guard.py
+      - check
+    about: goal:g13.1 — unsanctioned node writes; silent is healthy
+    workflow: verify
+  dispatch-help:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/dispatch.py
+      - --help
+    about: dispatch --help exits 0 — agents can be spawned
+    workflow: verify
+  verify:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+    about: the ONE rotation check — levels quick|rotation|full, --suite opt-in (hypothesis:l4-unified-verification)
+    workflow: verify
   view:
     argv:
       - python3
