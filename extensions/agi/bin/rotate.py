@@ -1288,6 +1288,10 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     `session_ref`/`answer`/`text`/`ts`. Both rotation readers (cmd_loop and
     cmd_rotate_self) read THAT file after the spawn cursor and refuse an ack
     whose gen_after is not the generation they spawned.
+
+    DEPRECATED since L4.112 (E): the WRITE of the ack moves to the predecessor
+    inside rotate-self (kid 2), so the successor makes ZERO tool calls on wake.
+    Kept CALLABLE for one generation as a fallback; the help text marks it.
     """
     if root is None:
         print("ERR: ack needs an agi project root.", file=sys.stderr)
@@ -2102,9 +2106,14 @@ def _read_generation(root: Path, name: str) -> int:
 
 
 def _write_handoff(root: Path, name: str, generation: int,
-                   predecessor_session: str = "") -> Path:
+                   predecessor_session: str = "",
+                   session_ref: str = "") -> Path:
     """Write `<S>.handoff.md` with seat/generation/rotated_at/predecessor.
-    Returns the written path."""
+
+    `session_ref` (the successor's ListAgents `@id` from the JOIN) is carried
+    into the handoff HEADER so the successor wakes already knowing its own
+    identity, and a reader can see which live session owns this generation
+    (L4.112 (D) kid-2 step 5). Returns the written path."""
     hand = _seat_hands(root)
     hand.mkdir(parents=True, exist_ok=True)
     hp = hand / f"{name}.handoff.md"
@@ -2112,7 +2121,9 @@ def _write_handoff(root: Path, name: str, generation: int,
         f"seat: {name}\n"
         f"generation: {generation}\n"
         f"rotated_at: {datetime.utcnow().isoformat()}Z\n"
-        f"predecessor_session: {predecessor_session}\n",
+        f"predecessor_session: {predecessor_session}\n"
+        + (f"session_ref: {session_ref}\n" if session_ref else "")
+        ,
         encoding="utf-8",
     )
     return hp
@@ -2188,7 +2199,20 @@ def _rotate_self_started_path(root: Path, seat: str) -> Path:
     return _rotations_dir(root) / f"{seat}.{stamp}.json"
 
 
-def _write_rotate_self_started(path: Path, *, seat: str, steps: list[int],
+def _rs_mark(steps: list[str], tmpl_steps: list[str], name: str,
+             fallback: str) -> None:
+    """Record one completed rotate-self step into the progress list.
+
+    L4.112 (C): the step list is driven by `tmpl_steps` from the rotation
+    template, not by a hardcoded list. When `name` is one of the template's
+    steps it is recorded verbatim; a housekeeping step the template does not
+    name keeps its own `fallback` marker so the record still shows progress
+    (kid 2 adds the handover steps to the template, not here).
+    """
+    steps.append(name if name in tmpl_steps else fallback)
+
+
+def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
                                gen_after: int | None = None) -> None:
     """Write/refresh the IN-PROGRESS rotate-self record.
@@ -2216,7 +2240,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[int],
 def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
                         gen_before: int | None = None, gen_after: int | None = None,
                         succ=None, pred=None, readback_log=None,
-                        cursor_offset: int | None = None) -> dict:
+                        cursor_offset: int | None = None,
+                        handover: dict | None = None,
+                        steps_reached: list[str] | None = None) -> dict:
     """One durable JSON record for a rotate-self rotation: observations (a)-(e)
     of hypothesis:l3-rotation-record-and-predecessor-guarantee, each an
     observed fact with the command output that established it.
@@ -2257,6 +2283,10 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
     }
     if refusal:
         rec["refusal_reason"] = refusal
+    if steps_reached is not None:
+        rec["steps_reached"] = steps_reached
+    if handover is not None:
+        rec["handover"] = handover
     return rec
 
 
@@ -2575,6 +2605,176 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
 # --- rotate-self subcommand -----------------------------------------------
 
 
+# ── L4.112 (D) THE HANDOVER — kid 2 of the round ---------------------------
+# The successor lifecycle assembled into ONE rotate-self call, every step
+# recorded. Identity is SUPPLIED, never inferred: none of the identity-bearing
+# writes happens without the successor's `session_ref` (ListAgents `@id` from
+# the JOIN). The seats-row write is admitted by write.py's self_row DATA
+# declaration (L4.110), never by a code branch naming `seats`.
+
+
+def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
+               answer: str = "continue", text: str = "") -> Path:
+    """Write the successor's ACK file on ITS behalf (kid-2 step 6).
+
+    The successor makes ZERO tool calls on wake: the predecessor writes
+    `continue` into the same ack channel `cmd_ack` used, so the read-back
+    confirms the rotation the moment it polls. cmd_ack stays CALLABLE as a
+    one-generation fallback (hypothesis:l4-rotate-readback-
+    false-negative-and-the-orphan-by-design) but is no longer the successor's
+    first act."""
+    ack = {
+        "seat": seat,
+        "gen_after": gen_after,
+        "session_ref": session_ref,
+        "answer": answer,
+        "text": text,
+        "ts": datetime.utcnow().isoformat() + "Z",
+    }
+    path = _ack_path(root, seat)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
+                         session_ref: str, generation: int,
+                         window: str) -> str:
+    """Write the successor's config:seats ROW via `write.py submit` (kid-2
+    step 3): set the seat's own row's `session_ref`/`generation`/`window`.
+
+    The successor reuses the PLAIN seat name, so its row IS the seat's own
+    row — the exact write the L4.110 self_row declaration admits for a seated
+    actor (only its own row, only the declared fields; every other row and
+    every prime-only field byte-identical). Admission lives in write.py's
+    `_enforce_written_by` reading the schema's `self_row` data; nothing here
+    names `seats` in a branch. Returns a one-line outcome string."""
+    import write  # local: same dir (send.py pattern, no import cycle)
+    rows = write._load_seats(root)
+    new_rows: list[dict] = []
+    found = False
+    for r in rows:
+        if r.get("name") == seat:
+            nr = dict(r)
+            nr["session_ref"] = session_ref
+            nr["generation"] = generation
+            nr["window"] = window
+            new_rows.append(nr)
+            found = True
+        else:
+            new_rows.append(r)
+    if not found:
+        return (f"skipped: no seat-registry row with name {seat!r} "
+                "(a THROWAWAY seat never writes seats.md)")
+    edit = write.Edit(node_id="config:seats")
+    edit.set_fm["seats"] = new_rows
+    write.submit(root, edit, actor=actor, role=role)
+    return (f"config:seats row {seat!r}: session_ref={session_ref} "
+            f"generation={generation} window={window!r}")
+
+
+def _pin_successor_meter(root: Path, *, seat: str, generation: int,
+                         transcript: str) -> str:
+    """Pin the successor's meter at ITS transcript (kid-2 step 4).
+
+    Writes `<graph>/sessions/<seat>.meter` = `<gen>\t<transcript>` — the same
+    seat-stable pin `rotate.py meter --seat` reads. `transcript` is the
+    successor's OWN transcript from the JOIN, NEVER the newest `.jsonl` in the
+    sessions dir. Returns the written pin path."""
+    sessions = _sessions_dir(root)
+    sessions.mkdir(parents=True, exist_ok=True)
+    pinp = sessions / f"{seat}{METER_PIN_EXT}"
+    pinp.write_text(f"{generation}\t{transcript}\n", encoding="utf-8")
+    return str(pinp)
+
+
+def _pid_alive(pid: int) -> bool:
+    """True when a live process owns `pid` (os.kill probe, no signal sent)."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except (PermissionError, OSError):
+        return True
+    return True
+
+
+def _short_ps(pid: int) -> str:
+    """`ps -o pid=,cmd= -p <pid>` output, or '' when absent/failed."""
+    try:
+        out = subprocess.run(
+            ["ps", "-o", "pid=,cmd=", "-p", str(pid)],
+            capture_output=True, text=True, timeout=10).stdout.strip()
+    except Exception:  # noqa: BLE001
+        return ""
+    return out
+
+
+def _reap_pid(pid: int) -> dict:
+    """Reap the predecessor's own process by PID, verified gone with ps.
+
+    NEVER a mere tmux window kill (killing a window does not kill the agent,
+    measured L3.42) and NEVER the caller's real process without an explicit
+    stand-in: a pid <= 0, or == os.getpid(), is refused with `reaped: False`.
+    Against a real stand-in (a test's own spawned `sleep`), TERM the pid and
+    verify with `ps` that it is gone. Returns the observation dict."""
+    pid = int(pid)
+    if pid <= 0 or pid == os.getpid():
+        return {"pid": pid, "existed_before": None, "reaped": False,
+                "gone_after": None,
+                "note": "refused: not a pid this caller may reap (never the "
+                         "real own pid without an explicit --own-pid stand-in)"}
+    was = _pid_alive(pid)
+    ps_before = _short_ps(pid)
+    reaped = False
+    if was:
+        try:
+            os.kill(pid, 15)  # SIGTERM
+        except OSError:
+            pass
+        # A TERM'd process lingers as a zombie (`[sleep] <defunct>`) that an
+        # `os.kill(pid, 0)` probe still sees until its parent reaps it. When
+        # the pid IS our child, WAITPID it away; a non-child TERM falls back
+        # to the direct table probe below.
+        try:
+            for _ in range(100):
+                try:
+                    wpid, _ = os.waitpid(pid, os.WNOHANG)
+                except ChildProcessError:
+                    break  # not our child to reap
+                if wpid == pid:
+                    reaped = True
+                    break
+                time.sleep(0.02)
+        except Exception:  # noqa: BLE001
+            reaped = False
+        if not reaped:
+            reaped = not _pid_alive(pid)
+    gone = reaped or not _pid_alive(pid)
+    ps_after = _short_ps(pid)
+    return {"pid": pid, "existed_before": was, "reaped": reaped,
+            "gone_after": gone, "ps_before": ps_before, "ps_after": ps_after}
+
+
+def _belam_oldest(live: list[str], successor: str, prefix: str) -> str | None:
+    """The OLDEST live Belam window to reap under the five-deep cap.
+
+    On a prime_director rotation the predecessor chain stays exactly five
+    deep: when the live Belam windows PLUS the just-joined `successor` would
+    make a SIXTH, the cap names the OLDEST (lowest Roman line value) to reap.
+    Returns that window name, or None when the chain stays at/below five."""
+    live_belam = [w for w in live if w == prefix or w.startswith(prefix + "-")]
+    candidate = set(live_belam) | {successor}
+    if len(candidate) <= 5:
+        return None
+    if not live_belam:
+        return None
+    # oldest = lowest line value; a bare base (no Roman) is line 1
+    by_line = sorted(live_belam,
+                     key=lambda w: _split_roman_suffix(w)[1])
+    return by_line[0]
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -2611,53 +2811,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     else:
         row = {}  # default row; never consulted against seats.md
 
-    gen_before = _read_generation(root, seat)
-    gen = gen_before + 1
-    new_name = f"{seat}.gen{gen}"
-    tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
-    dbg = args.debug_file or str(_sessions_dir(root) / f"{seat}.log")
-
-    # A rotate-self rotation opens ONE record file up front (a `started`
-    # record) and updates it IN PLACE through every step, so an interruption
-    # at any point leaves a record whose `steps_reached` says where it died —
-    # instead of nothing at all (hypothesis:l4-rotation-record-survives-
-    # interruption). The final outcome rewrites the SAME path, so a completed
-    # rotation still leaves exactly one record in today's shape.
-    rec_path = None
-    steps_reached: list[int] = []
-    if not args.dry_run:
-        rec_path = _rotate_self_started_path(root, seat)
-        _write_rotate_self_started(
-            rec_path, seat=seat, steps=steps_reached,
-            gen_before=gen_before, gen_after=gen)
-
-    # (1) handoff
-    if not args.dry_run:
-        _write_handoff(root, seat, gen, predecessor_session=seat)
-        steps_reached.append(1)
-        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
-    print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
-          f"generation {gen}")
-
-    # (2) rename own window aside, freeing the plain seat name
-    if not args.dry_run:
-        _rename_own_window(seat, new_name, tmux_session, args.window_path)
-        steps_reached.append(2)
-        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
-    print(f"(2) rename own window {seat!r} -> {new_name!r}")
-
-    # (3) spawn the successor under the SAME plain name - never a Roman numeral
+    # L4.112 (A): resolve the rotation template at the TOP of rotate-self,
+    # BEFORE any side effect (the started record, the handoff, the own-window
+    # rename). A missing / unhelpful rotations.md must refuse HERE, leaving the
+    # window name and the handoff file untouched. The role is derived from the
+    # seat row (identity SUPPLIED from the registry, never inferred), with
+    # --role as its escape hatch for a throwaway seat.
     role = (row.get("role") if row else None) \
         or getattr(args, "role", None) or "parent"
-    # L4.110: resolve the rotation template from .geometry/rotations.md.
-    # A template carries {brief_file, steps, telemetry}; each role names a
-    # default and --template overrides for this one rotation (which may name
-    # another role's template). Refusal NAMES the node -- this is the live
-    # refusal until the prime creates rotations.md at merge-up. `tmpl` is
-    # currently surfaced to the operator (dry-run print + a live skip note);
-    # the successor brief/step/telemetry consumption is kid 2's handover.
     tmpl, tmpl_name, tmpl_src = _resolve_template(
         root, role, getattr(args, "template", None))
     if tmpl is None:
@@ -2666,6 +2827,68 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     print(f"(0) template -> {tmpl_name!r} ({tmpl_src}) "
           f"brief={tmpl.get('brief_file')!r} "
           f"steps={tmpl.get('steps')} telemetry={tmpl.get('telemetry')}")
+    # L4.112 (C): the ordered step list rotate-self runs comes from the
+    # template, not from a hardcoded list. The progress markers in
+    # `steps_reached` are spelled from these names where the step exists.
+    tmpl_steps: list[str] = [str(s) for s in (tmpl.get("steps") or [])]
+
+    gen_before = _read_generation(root, seat)
+    gen = gen_before + 1
+    new_name = f"{seat}.gen{gen}"
+    tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
+    dbg = args.debug_file or str(_sessions_dir(root) / f"{seat}.log")
+    # L4.112 (D): the successor's identity from the JOIN (ListAgents `@id`),
+    # SUPPLIED, never inferred. None of the identity-bearing handover writes
+    # happens without it — the newest `.jsonl` in the sessions dir never
+    # supplies identity.
+    session_ref = (getattr(args, "session_ref", None) or "").strip()
+
+    # A rotate-self rotation opens ONE record file up front (a `started`
+    # record) and updates it IN PLACE through every step, so an interruption
+    # at any point leaves a record whose `steps_reached` says where it died —
+    # instead of nothing at all (hypothesis:l4-rotation-record-survives-
+    # interruption). The final outcome rewrites the SAME path, so a completed
+    # rotation still leaves exactly one record in today's shape.
+    rec_path = None
+    steps_reached: list[str] = []
+    if not args.dry_run:
+        rec_path = _rotate_self_started_path(root, seat)
+        _write_rotate_self_started(
+            rec_path, seat=seat, steps=steps_reached,
+            gen_before=gen_before, gen_after=gen)
+
+    # (1) handoff — the successor's identity travels in the handoff HEADER so
+    # it wakes already knowing its own session_ref (kid-2 step 5).
+    if not args.dry_run:
+        _write_handoff(root, seat, gen, predecessor_session=seat,
+                       session_ref=session_ref)
+        _rs_mark(steps_reached, tmpl_steps, "handoff", "1")
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
+    print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
+          f"generation {gen}")
+
+    # (2) rename own window aside, freeing the plain seat name
+    if not args.dry_run:
+        _rename_own_window(seat, new_name, tmux_session, args.window_path)
+        _rs_mark(steps_reached, tmpl_steps, "rename", "2")
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
+    print(f"(2) rename own window {seat!r} -> {new_name!r}")
+
+    # (3) spawn the successor under the SAME plain name - never a Roman numeral
+    # L4.112 (C): the template is consumed on the existing call path -- when
+    # --prompt-file is NOT given, the successor prompt is the template's
+    # brief_file with `{seat}` substituted (the director's brief is the seat's
+    # QUORUM scratchpad, .agi/sessions/quorum/{seat}.md); --prompt-file still
+    # overrides. The consume-path applies on a REAL spawn: a dry-run is a
+    # refusal/planning check (the top print already shows brief=), and the
+    # template tests are hermetic -- their brief paths are not materialised.
+    # The real spawn is where the file-existence gate in spawn_window lives.
+    prompt_file = args.prompt_file
+    if (not args.dry_run and prompt_file is None
+            and tmpl is not None and tmpl.get("brief_file")):
+        prompt_file = str(tmpl["brief_file"]).replace("{seat}", seat)
     ack_gate = (
         "ROTATION CONTINUATION: acknowledge your handoff with the explicit "
         "ACK channel, not a bare word. First act after reading your handoff: "
@@ -2677,7 +2900,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     )
     rc, _ = spawn_window(
         name=seat, tier=role,
-        prompt_file=args.prompt_file,
+        prompt_file=prompt_file,
         model=args.model or ((row.get("model") if row else None) or None),
         effort=args.effort or ((row.get("effort") if row else None) or None),
         settings=(json.loads(args.settings) if args.settings
@@ -2690,7 +2913,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if rc != 0:
         return rc
     if not args.dry_run:
-        steps_reached.append(3)
+        _rs_mark(steps_reached, tmpl_steps, "spawn", "3")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen)
     print(f"(3) spawn successor under the plain name {seat!r} (role {role!r})")
@@ -2723,11 +2946,80 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"(windows: {succ['names']!r}).", file=sys.stderr)
         return 1
 
+    # L4.112 (D) THE HANDOVER (kid 2). Identity-bearing successor-lifecycle
+    # writes, every one recorded. Gate: the predecessor SUPPLIES the
+    # successor's session_ref (from the JOIN) — absent, these steps are
+    # recorded as skipped and the rotation proceeds; identity is never
+    # inferred from the newest `.jsonl` in the sessions dir.
+    handover: dict = {}
+    if session_ref:
+        # (3) write the successor's config:seats ROW via `write.py submit`.
+        #     Admitted by the self_row DATA declaration (L4.110); a THROWAWAY
+        #     seat has no registry row, so this records 'skipped', never
+        #     writes seats.md.
+        try:
+            handover["successor_row"] = _successor_row_write(
+                root, actor=seat, seat=seat, role=role,
+                session_ref=session_ref, generation=gen, window=seat)
+        except Exception as exc:  # noqa: BLE001
+            handover["successor_row"] = f"FAILED: {exc}"
+        # (4) pin the successor's meter at ITS OWN transcript — never the
+        #     newest .jsonl. The transcript comes from the JOIN.
+        succ_transcript = getattr(args, "successor_transcript", None)
+        if succ_transcript:
+            handover["meter_pin"] = _pin_successor_meter(
+                root, seat=seat, generation=gen, transcript=str(succ_transcript))
+        else:
+            handover["meter_pin"] = ("skipped: no --successor-transcript "
+                                      "supplied (the JOIN's transcript)")
+        # (6) write the ACK on the successor's behalf — it makes ZERO tool
+        #     calls on wake. cmd_ack stays callable (E) but is no longer the
+        #     successor's first act; the read-back below confirms at once.
+        try:
+            handover["ack_written"] = str(_write_ack(
+                root=root, seat=seat, gen_after=gen,
+                session_ref=session_ref, answer="continue"))
+        except Exception as exc:  # noqa: BLE001
+            handover["ack_written"] = f"FAILED: {exc}"
+        # (7) release own authority. config:seats self_row fields are exactly
+        #     [session_ref, generation, window] — there IS no `retired` field,
+        #     so the predecessor generation is retired by RECORD here.
+        handover["own_authority_released"] = (
+            f"generation {gen_before} of seat {seat!r} retired; successor "
+            f"generation {gen} owns it (release by RECORD: the config:seats "
+            "self_row schema has no retired field)")
+        # (9) reap our own process by PID — never a mere tmux window kill
+        #     (L3.42). THE PID IS AN EXPLICIT STAND-IN handed in by the
+        #     operator; a test reaps only the sleep process it spawned.
+        #     Real own pids are never touched here.
+        own_pid = getattr(args, "own_pid", None)
+        if own_pid:
+            handover["reap_own_pid"] = _reap_pid(int(own_pid))
+        else:
+            handover["reap_own_pid"] = {
+                "pid": None, "reaped": False,
+                "note": "no --own-pid stand-in supplied; the predecessor's "
+                        "process is NOT reaped by this run"}
+        # (10) Belam cap: a prime_director keeps the predecessor chain exactly
+        #      five deep — reap the OLDEST when a sixth would exist.
+        if role == "prime_director" or getattr(args, "belam_prefix", None):
+            pfx = getattr(args, "belam_prefix", None) or "belam"
+            oldest = _belam_oldest(succ["names"], seat, pfx)
+            handover["belam_cap"] = {
+                "prefix": pfx, "would_exceed_five": oldest is not None,
+                "oldest_to_reap": oldest,
+                "live_belam": sorted(
+                    w for w in succ["names"]
+                    if w == pfx or w.startswith(pfx + "-"))}
+        _rs_mark(steps_reached, tmpl_steps, "handover", "4.5")
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
+
     # (5) read back. Record the successor log's size BEFORE the spawn
     #     completed so the read cursor ignores anything (a stale `continue`)
     #     written before the successor started (read-before-write cursor).
     if not args.dry_run:
-        steps_reached.append(4)
+        _rs_mark(steps_reached, tmpl_steps, "readback", "4")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen)
     log = Path(dbg).expanduser().resolve()
@@ -2795,7 +3087,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     record_path = _write_rotation_record(root, _rotate_self_record(
         seat=seat, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
-        pred=pred, readback_log=log, cursor_offset=offset), path=rec_path)
+        pred=pred, readback_log=log, cursor_offset=offset,
+        handover=handover, steps_reached=steps_reached), path=rec_path)
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
@@ -2922,8 +3215,10 @@ def main(argv: list[str] | None = None) -> int:
     # false-negative-and-the-orphan-by-design). The replacement for the
     # debug-log read-back.
     p_ack = sub.add_parser(
-        "ack", help="write the successor's explicit rotation reply "
-                    "(<sessions>/seats/<seat>.ack.json)")
+        "ack", help="[DEPRECATED] write the successor's explicit rotation reply "
+                    "(<sessions>/seats/<seat>.ack.json); the predecessor writes "
+                    "the ack in kid 2 (rotate self) -- kept callable for one "
+                    "generation as a fallback only")
     p_ack.add_argument("--seat", required=True,
                        help="the successor's seat name", dest="seat")
     p_ack.add_argument("--gen", type=int, required=True, dest="gen",
@@ -3005,6 +3300,26 @@ def main(argv: list[str] | None = None) -> int:
                       help="explicit stand-in successor command run verbatim "
                            "instead of the real claude --remote-control "
                            "(hypothesis:l3-rotate-self-successor-override)")
+    # L4.112 (D) handover inputs (kid 2): identity is SUPPLIED, never
+    # inferred; nothing here is a live-spawn side effect in a test.
+    p_rs.add_argument("--session-ref", default=None,
+                      help="the successor's ListAgents @id from the JOIN — "
+                           "identity SUPPLIED, never the newest .jsonl. "
+                           "WITHOUT it the identity-bearing handover writes "
+                           "(row/pin/ack) are recorded skipped and the "
+                           "rotation proceeds.")
+    p_rs.add_argument("--successor-transcript", default=None,
+                      help="the successor's OWN transcript path from the JOIN; "
+                           "the meter pin is written AT this, never the newest "
+                           "sessions-dir .jsonl.")
+    p_rs.add_argument("--own-pid", default=None,
+                      help="EXPLICIT STAND-IN for the predecessor's own process "
+                           "pid to reap on handover (a test passes the sleep it "
+                           "spawned). NEVER pass the real own pid.")
+    p_rs.add_argument("--belam-prefix", default=None,
+                      help="force the Belam-cap check (count windows under this "
+                           "prefix, reap the OLDEST when a sixth would exist). "
+                           "Default: only for role prime_director, prefix belam.")
     p_rs.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                       help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
     p_rs.add_argument("--window-path", default=None,
