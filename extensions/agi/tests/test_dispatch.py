@@ -1445,3 +1445,158 @@ def test_dispatch_allows_a_real_openrouter_slug(tmp_path):
     res = _run_dispatch(_guard_project(tmp_path, "~z-ai/glm-flash-latest"))
     combined = res.stdout + res.stderr
     assert "not an OpenRouter slug" not in combined, combined
+
+
+# --- the respawn defect that cost money, 2026-09-10 -------------------------
+# Two bugs in `_reap_one_impl`, both measured in production while the guards
+# above were green. $2.01 of key burned in ~30 minutes across four rounds.
+
+
+def test_restart_inherits_the_iteration_from_a_record_with_no_iter_key(tmp_path):
+    """The REAL manifest shape: a record carries NO `iter` key.
+
+    `test_reaper_restart_inherits_the_iteration_id` builds a record with
+    `"iter": 342` and passes — but a real manifest record has no such key, so
+    production took `rec.get("iter", 0)` -> 0 and every restart registered as
+    `iter=0`. A sweep filtered by the round then reported it CLEAR while a
+    restart was live in its worktree. The fixture was more generous than
+    reality, so the guard could not see the bug it was written for.
+
+    The round's own directory name is the authoritative source.
+    """
+    import json as _json
+    root = tmp_path
+    (root / "sessions").mkdir()
+    iter_dir = root / "sessions" / "iter-L4.41"
+    (iter_dir / "a00-abc123-r1").mkdir(parents=True)
+
+    class FakeAdapter:
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            return 12345
+
+    rec = {                      # exactly the keys a real manifest carries
+        "id": "a00-abc123",
+        "tier": "parent",
+        "status": "running",
+        "pid": 999,
+        "restart_count": 0,
+    }                            # <- no "iter", and no "node_id"
+    dispatch._reap_one(root, iter_dir, FakeAdapter(), rec, "a00-abc123", 999,
+                       cap=10, cfg={"reaper": {"max_restarts": 1}})
+
+    import spawn_budget as _sb
+    leases = [_json.loads(p.read_text())
+              for p in _sb.budget_dir(root).glob("*.lease")]
+    assert leases, "a restart should have left a lease"
+    assert any(r.get("agent_id", "").endswith("-r1")
+               and str(r.get("iter")) == "L4.41" for r in leases), (
+        f"restart lease must carry the round's iteration, got {leases}")
+
+
+def _git(repo, *args):
+    return subprocess.run(["git", "-C", str(repo), *args],
+                          capture_output=True, text=True, check=True)
+
+
+def test_a_parent_that_committed_its_round_is_not_restarted(tmp_path):
+    """A PARENT authors no node, so the node_id completion check never fires.
+
+    Its manifest record carries `node_id: None` because it signals with
+    `cli.py done --owns <kid-node-id>`, and the reaper reads the MAIN
+    checkout's manifest while the parent updated its worktree's — so status
+    stays "running" however cleanly it finished. Every parent that committed a
+    finished round and exited was therefore respawned to redo it, and the
+    respawn spawned fresh kids that wrote over committed work.
+
+    A commit authored under the agent's id on its own branch is proof the work
+    landed. This is the shape production actually produces.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+    _git(repo, "checkout", "-q", "loop/round-a00-abc123@s2")
+    (repo / "work.txt").write_text("the round's work\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "a00-abc123 done: experiment:x verdict=proved")
+    _git(repo, "checkout", "-q", "season/s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-abc123",
+        "tier": "parent",
+        "status": "running",
+        "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2",
+        "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] == "done-unreported", out
+    assert "committed" in out["record"]["fail_reason"]
+    assert FakeAdapter.restarted is False, "a committed round must not be respawned"
+
+
+def test_a_parent_with_no_commit_on_its_branch_is_still_restarted(tmp_path):
+    """The fix must not become a blanket no-restart.
+
+    A parent killed mid-round leaves NO commit under its id, and that case
+    must still restart exactly as before — otherwise stopping the money leak
+    would have disabled recovery, which is the opposite failure.
+    """
+    repo = tmp_path / "main"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text('{"metric_primary": "x"}')
+    _git(repo.parent, "init", "-q", "-b", "season/s2", str(repo))
+    for cfg in (("user.email", "t@t"), ("user.name", "t")):
+        _git(repo, "config", *cfg)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "loop/round-a00-abc123@s2")
+
+    graph = repo / ".agi"
+    iter_dir = graph / "sessions" / "iter-L4.41"
+    iter_dir.mkdir(parents=True)
+
+    class FakeAdapter:
+        restarted = False
+
+        def is_alive(self, pid):
+            return False
+
+        def restart(self, **kw):
+            FakeAdapter.restarted = True
+            return 12345
+
+    rec = {
+        "id": "a00-abc123", "tier": "parent", "status": "running", "pid": 999,
+        "restart_count": 0,
+        "branch": "loop/round-a00-abc123@s2", "base_branch": "season/s2",
+    }
+    out = dispatch._reap_one(graph, iter_dir, FakeAdapter(), rec,
+                             "a00-abc123", 999, cap=10,
+                             cfg={"reaper": {"max_restarts": 1}})
+    assert out["record"]["status"] != "done-unreported", out
