@@ -52,11 +52,12 @@
       "thinking": "medium",
       "models": {
         "kid": "~deepseek/deepseek-v4-flash-latest",
-        "parent": "~z-ai/glm-flash-latest"
+        "parent": "deepseek/deepseek-v4.1-flash"
       },
       "allowed_models": [
         "~deepseek/deepseek-v4-flash-latest",
-        "~z-ai/glm-flash-latest"
+        "~z-ai/glm-flash-latest",
+        "deepseek/deepseek-v4.1-flash"
       ]
     },
     "claude-code": {
