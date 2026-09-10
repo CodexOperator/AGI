@@ -440,6 +440,37 @@ class _FakeAdapter:
         return self.pid
 
 
+def test_reaper_leaves_an_unknown_status_untouched(tmp_path, monkeypatch):
+    """hyp:l4-one-definition-of-terminal, falsifier (c) -- the reaper's SECOND
+    guard, asserted directly.
+
+    `_reaper_phase` follows `if status in TERMINAL: continue` with
+    `if status != "running": continue`. A status nobody has thought of yet --
+    outside the terminal set AND outside "running" -- must therefore be
+    skipped: not restarted, not mangled, left exactly as written. This is the
+    tolerance that kept the reaper working while the set was wrong
+    (`done-unreported` was exactly such a forgotten status), and it is why the
+    second guard is KEPT even now that the set is right. A later
+    "simplification" that deletes the guard makes an unknown status fall
+    through to the restart path, so this test fails on it.
+    """
+    import json
+
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-unk"
+    (iter_dir / "a00-unk").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-unk", "status": "zombie"}]}))
+    (iter_dir / "a00-unk" / "agent.json").write_text(json.dumps(
+        {"id": "a00-unk", "status": "zombie", "pid": 999}))
+    adapter = _FakeAdapter(pid=123)
+    d._reaper_phase(graph, iter_dir, adapter, max_wait_s=1, cap=5, cfg={})
+    rec = json.loads((iter_dir / "a00-unk" / "agent.json").read_text())
+    assert rec["status"] == "zombie", "an unknown status must be left as-is"
+    assert adapter.calls == [], "an unknown status must never reach a restart"
+
+
 def _reap_project(tmp_path):
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
