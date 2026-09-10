@@ -1567,6 +1567,76 @@ def _find_seat(root: Path | None, name: str) -> dict | None:
     return None
 
 
+# --- rotation templates (.geometry/rotations.md) ---------------------------
+# L4.110 owner amendment: rotations are config-maxxed — a .geometry config
+# node (rotations.md, type config, written_by owner/prime_director) carries
+# named templates; each role names a default; rotate-self resolves
+# --template > role default > refuse loudly naming the node. A TEMPLATE is a
+# named {brief_file, steps[], telemetry[]}. No brief path is hardcoded in
+# rotate.py — the brief file travels in the template.
+
+
+def _rotations_node_path(root: Path) -> Path:
+    return Path(root) / "nodes" / ".geometry" / "rotations.md"
+
+
+def _load_templates(root: Path) -> dict:
+    """The `templates:` rows of `.geometry/rotations.md`, or {} when absent /
+    unparseable. Each entry: role-name -> {brief_file, steps, telemetry}.
+    """
+    path = _rotations_node_path(root)
+    if not path.exists():
+        return {}
+    try:
+        nf = frontmatter.load_node_file(path)
+        tmpl = nf.frontmatter.get("templates") or {}
+    except Exception:  # noqa: BLE001
+        return {}
+    if not isinstance(tmpl, dict):
+        return {}
+    out = {}
+    for name, ent in tmpl.items():
+        if isinstance(ent, dict):
+            out[str(name)] = ent
+    return out
+
+
+def _resolve_template(root: Path, role: str, explicit: str | None,
+                      where: str = "rotate-self"):
+    """Resolve a rotation template, fail-closed, naming the config node when
+    it cannot. Resolution order is testable (L4.110 proof e/f/g):
+        --template <name> > role default > refuse loudly naming the node.
+
+    `explicit` is the literal `--template` value; when given it may name ANY
+    role's template (a helper rotated on the director's template is legal).
+    With no flag, the seat's own role must have a default. A missing node, an
+    unknown explicit name, or a role without a default all refuse with a
+    message that NAMES the node (the live state until the prime creates it).
+    Returns (template_dict, resolved_name, source) or raises SystemExit-like
+    refusal via a returned error string — the caller decides how to surface it.
+    """
+    templates = _load_templates(root)
+    node = _rotations_node_path(root)
+    if not templates:
+        return None, None, \
+            (f"no rotation templates: {node} is absent or declares none; "
+             "rotate-self cannot resolve a brief/step list. "
+             "(L4.110)")
+    if explicit:
+        t = templates.get(explicit)
+        if t is None:
+            return None, None, \
+                (f"no template named {explicit!r} in {node} "
+                 f"(have: {', '.join(sorted(templates))})")
+        return t, explicit, "--template flag"
+    t = templates.get(role)
+    if t is None:
+        return None, None, \
+            (f"role {role!r} has no default template in {node} "
+             f"(have: {', '.join(sorted(templates))})")
+    return t, role, f"role default ({role})"
+
+
 # --- complete (hypothesis:l4-seat-session-iter-dirs, half b) --------------
 
 
@@ -2581,6 +2651,21 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
     role = (row.get("role") if row else None) \
         or getattr(args, "role", None) or "parent"
+    # L4.110: resolve the rotation template from .geometry/rotations.md.
+    # A template carries {brief_file, steps, telemetry}; each role names a
+    # default and --template overrides for this one rotation (which may name
+    # another role's template). Refusal NAMES the node -- this is the live
+    # refusal until the prime creates rotations.md at merge-up. `tmpl` is
+    # currently surfaced to the operator (dry-run print + a live skip note);
+    # the successor brief/step/telemetry consumption is kid 2's handover.
+    tmpl, tmpl_name, tmpl_src = _resolve_template(
+        root, role, getattr(args, "template", None))
+    if tmpl is None:
+        print(f"ERR: {tmpl_src}", file=sys.stderr)
+        return 1
+    print(f"(0) template -> {tmpl_name!r} ({tmpl_src}) "
+          f"brief={tmpl.get('brief_file')!r} "
+          f"steps={tmpl.get('steps')} telemetry={tmpl.get('telemetry')}")
     ack_gate = (
         "ROTATION CONTINUATION: acknowledge your handoff with the explicit "
         "ACK channel, not a bare word. First act after reading your handoff: "
@@ -2911,6 +2996,11 @@ def main(argv: list[str] | None = None) -> int:
                            "(hypothesis:l3-rotate-self-successor-override)")
     p_rs.add_argument("--role", default=None,
                       help="role tier for a --throwaway seat (default: parent)")
+    p_rs.add_argument("--template", default=None,
+                      help="rotation template name (L4.110): resolve THIS "
+                           "template for this one rotation -- may name another "
+                           "role's template. Default: the seat role's own "
+                           "default. Source: .geometry/rotations.md.")
     p_rs.add_argument("--successor-argv", default=None,
                       help="explicit stand-in successor command run verbatim "
                            "instead of the real claude --remote-control "
