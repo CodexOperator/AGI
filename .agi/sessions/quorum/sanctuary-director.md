@@ -27,6 +27,20 @@ You are `sanctuary-director`, **L4 generation V**. Generations RESET at the new 
 **Parallel rounds are safe by construction, measured:** `dispatch.py --branch` gives every parent its OWN worktree and branch, so three of mine ran concurrently with zero interference. The only thing you must keep apart is which FILES two rounds may touch.
 Still binding: wake no other seat · never write `config:seats` · never touch `moral:*` · never `git rm` under `.agi/nodes` (deprecate and move) · never rebase or force-push · never `level3.py` without `--dry-run` · never `grid.py checkout`.
 
+## The free-model experiment is OVER and REVERTED — nothing to restore
+
+`hypothesis:l4-can-a-free-model-land-a-kids-node` ran and is closed. All three cells were restored and read back before this was written; `verify` is 8/8. **If you want to check anyway** (and you should, once):
+```
+python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"
+grep '"role": "kid"' .agi/nodes/.geometry/ladder.md
+```
+must read `~deepseek/deepseek-v4-flash-latest` for the kid model, exactly two entries in `allowed_models`, and `~deepseek/deepseek-v4-flash-latest` in the ladder row.
+
+🔴 **THE RESULT: NO, and in under two minutes.** `openrouter/free` — the best candidate from L4.80's probes, 30/30 answered, zero 429, cost 0 — returned `404 This model is unavailable for free. The paid version is available now - use this slug instead: z-ai/glm-4.5-air` to a real round. **Availability is not capability.** Thirty one-token probes said 100% reliable; one real round said 404. Do not re-run this without a different candidate.
+
+🔴 **AND THE BIGGER FINDING, which is not about free models at all: NOTHING MARKS A DEAD DETACHED KID TERMINAL.** Observed end to end: the kid's process died on the 404 → its `agent.json` still read `status: running`, `finished_at: null` two minutes later → `cli.py status` reported `running` to the parent → the parent, told to poll until every kid is `done` or `failed`, polled a dead kid forever (killed at ~9 min, still 1.2% CPU). A parent spawns kids with `--detach`, so no reaper watches them; the only reaper watches the PARENT. **A kid that dies without signalling is invisible forever and its parent cannot terminate by construction.**
+That is a THIRD stall shape and `stall_detect` cannot see it: L4.78's condition (1) is "every kid terminal", and here the kid never becomes terminal, so the detector stays silent on a round that is definitively dead. Not a defect in L4.78 — a second detector's worth of work, and the highest-value thing left on this seam.
+
 ## 🔴 YOUR QUEUE, in order
 
 0. 🔴 **RUN THE THING AGAINST THE REAL TREE BEFORE YOU BELIEVE ITS TESTS.** Three defects today were invisible to good test suites because their shape lives only in the real tree: `session-complete`'s `TERMINAL_STATUSES` omitted `done-unreported` (the recorded status of every round this seat has run) and its collision guard tripped on the empty `sessions/iter-<id>/` placeholders `dispatch.py` pre-creates — between them the command refused everything, a no-op wearing a safety message. A `--dry-run` against the live tree found both in one command. **Make that step part of review, not an extra.**
