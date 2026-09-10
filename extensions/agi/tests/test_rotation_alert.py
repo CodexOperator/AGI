@@ -194,3 +194,108 @@ def test_e_no_stdin_is_silent(run_hook, tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(sys, "stdin", io.StringIO(""))   # empty stdin
     assert hook.main([]) == 0
     assert capsys.readouterr().out == ""
+
+# --------------------------------------------------------------------------
+# Repair tests — added by sanctuary-director gen V in review of L4.94.
+#
+# 🔴 THE ROUND'S OWN 8 TESTS PASS IDENTICALLY BEFORE AND AFTER A 141x
+# CORRECTION TO THE NUMERATOR. That is the finding, not a footnote: a suite
+# that cannot distinguish the defect from the fix is not testing the claim.
+# Both fixtures below are built so that the wrong implementation FAILS them.
+# --------------------------------------------------------------------------
+
+import json as _json
+import subprocess as _subprocess
+import sys as _sys
+from pathlib import Path as _Path
+
+_HOOK = _Path(__file__).resolve().parents[1] / "hooks" / "rotation_alert.py"
+
+
+def _many_message_transcript(path, turns, per_turn):
+    """A transcript whose SUM and whose LATEST differ by construction.
+
+    Every assistant turn carries the same `usage`, so latest == per_turn while
+    the sum == turns * per_turn. With one or two turns these coincide — which
+    is exactly why the round's fixtures could not see the defect.
+    """
+    with open(path, "w", encoding="utf-8") as fh:
+        for _ in range(turns):
+            fh.write(_json.dumps({"message": {
+                "role": "assistant",
+                "usage": {"input_tokens": per_turn,
+                          "cache_read_input_tokens": 0,
+                          "cache_creation_input_tokens": 0}}}) + "\n")
+
+
+def test_the_numerator_is_the_latest_message_not_a_running_sum(tmp_path):
+    """A level, not a total. 200 turns of 1,000 tokens is a 1,000-token
+    context, not a 200,000-token one. The summing implementation reports 200x
+    this number and would fire on every session from its first few turns."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ra_repair", _HOOK)
+    ra = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ra)
+
+    tp = tmp_path / "t.jsonl"
+    _many_message_transcript(tp, turns=200, per_turn=1000)
+    used, seen = ra._latest_usage(tp)
+    assert seen == 200, seen           # it really did read every message
+    assert used == 1000, used          # ...and reports the LEVEL, not 200_000
+
+
+def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch):
+    """P5 is the hook's whole reason for existing, so an unrunnable command is
+    the deliverable failing, not a typo.
+
+    The original emitted `--seat <s> --pin --session-log <path>`, in which
+    `--pin` (which TAKES A PATH) swallowed the `--session-log` flag as its
+    value. This asserts the emitted argv PARSES against rotate.py's own
+    parser — the arithmetic-not-the-string standard.
+    """
+    import shlex
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ra_repair2", _HOOK)
+    ra = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ra)
+
+    # A seat worktree shape, so the seat is derivable and --pin is emitted.
+    root = tmp_path / "repo" / ".agi" / "worktrees" / "seat-demo" / ".agi"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "config.json").write_text("{}", encoding="utf-8")
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 1000\ndirector_rotate_at: 0.47\n---\n",
+        encoding="utf-8")
+    tp = tmp_path / "own.jsonl"
+    _many_message_transcript(tp, turns=3, per_turn=900)   # 0.90 -> over the line
+
+    payload = {"transcript_path": str(tp), "session_id": "sess-1",
+               "cwd": str(root.parent)}
+    proc = _subprocess.run(
+        [_sys.executable, str(_HOOK)], input=_json.dumps(payload),
+        capture_output=True, text=True,
+        env={**dict(**{k: v for k, v in __import__("os").environ.items()}),
+             "AGI_ROTATION_STATE_DIR": str(tmp_path / "state")})
+    assert proc.returncode == 0, proc.stderr
+    out = proc.stdout
+    assert "ROTATION OWED NOW" in out, out
+
+    cmd = [ln for ln in out.splitlines() if "rotate.py meter" in ln]
+    assert cmd, out
+    argv = shlex.split(cmd[0])
+    # The defect, stated directly: no flag may be another flag's value.
+    for i, tok in enumerate(argv):
+        if tok == "--pin":
+            assert not argv[i + 1].startswith("--"), \
+                f"--pin swallowed a flag: {argv[i:i + 2]}"
+    assert "--session-log" in argv, argv
+    assert str(tp) in argv, argv          # it names the HANDED transcript
+
+    # And it must parse against rotate.py's real parser, not merely look right.
+    _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "bin"))
+    import rotate
+    parser = rotate.build_parser() if hasattr(rotate, "build_parser") else None
+    if parser is not None:
+        ns = parser.parse_args(argv[2:])      # drop "python3 <path>"
+        assert ns.session_log == str(tp)
+        assert ns.pin and not str(ns.pin).startswith("--")

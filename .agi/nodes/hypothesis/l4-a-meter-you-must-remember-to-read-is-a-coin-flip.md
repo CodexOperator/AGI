@@ -9,7 +9,7 @@ next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: cfc753c4e0356011
 season: 2
-status: pending
+status: inconclusive_lean_proved:70
 tags:
   - l4
   - g17.1
@@ -27,3 +27,21 @@ title: A rotation warning must arrive unprompted, escalate, and carry its own ne
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+REVIEWED IN THE BYTES AND REPAIRED BY HAND. THE ARCHITECTURE IS RIGHT AND THREE DEFECTS WERE NOT, AND ALL THREE WERE INVISIBLE TO THE ROUND'S OWN GREEN SUITE.
+
+WHAT THE ROUND GOT RIGHT, and it is the load-bearing half: the handed transcript path and nothing else — no resolver, no pin read, no glob, no newest-anything; a NAMED fail-closed error when `transcript_path` is absent; escalation by band with state keyed by SESSION ID under a per-uid tmp dir rather than the shared sessions dir; provenance printed beside the fraction; silent and exit 0 outside a project. Every architectural point survived review.
+
+**DEFECT 1 — THE NUMERATOR SUMMED WHEN IT SHOULD HAVE TAKEN THE LATEST. 141x.** Context usage is a LEVEL, not a running total: every assistant turn's `usage` already contains the whole prior context, so adding turns together is roughly quadratic. Measured on my own real transcript, 211 assistant messages: **35,751,051 tokens, fraction 35.75**, against a true 253,460 and a true 0.2535. It would have printed "ROTATION OWED NOW" on essentially every session from its first few turns — **worse than no hook at all**, because a warning that always fires is a warning that gets waved through, which is the exact failure `hypothesis:l4-a-check-that-cries-wolf-gets-waved-through` names and which this hook exists to prevent.
+
+**DEFECT 2 — THE EMITTED COMMAND COULD NOT RUN.** It printed `--seat <s> --pin --session-log <path>`, and `--pin` TAKES A PATH, so it swallowed the `--session-log` flag as its own value. P5 — hand over a copy-pasteable next command — is the hook's whole reason to exist, so an unrunnable command is not a typo, it is the deliverable failing. Identical in shape to the guard whose printed remedy did not clear the guard, repaired in L4.98 item 2 four hours earlier: the reader does exactly what the tool said and it does not work, and concludes the tool is broken.
+
+**DEFECT 3 — THE PIN PATH WAS WORKTREE-LOCAL, and I only found it because I ran the repaired hook and read the path it printed.** It computed `root / "sessions"`, but pins are SHARED state and `rotate._sessions_dir` routes them to the MAIN checkout via `locations.git_common_root`. The emitted command would have written a pin to `…/worktrees/seat-<name>/.agi/sessions/` — where nothing looks — instead of `/home/ubuntu/work/agi/.agi/sessions/`. **A round about the meter capturing the wrong transcript nearly shipped a command that pins to a path no reader consults.** The repair ASKS `rotate._sessions_dir` rather than reimplementing it (a sixth private copy of a path rule is how this project keeps paying for the same defect) and returns None rather than guessing when it cannot, falling back to the seat-less form. **Never guess a pin path** is the whole chain's lesson.
+
+🔴 THE FINDING THAT OUTLIVES THIS ROUND: **THE ROUND'S EIGHT TESTS PASS IDENTICALLY BEFORE AND AFTER A 141x CORRECTION.** They are not bad tests; they are tests whose fixtures carry one or two assistant messages, where the sum and the latest are the same number. A suite that cannot distinguish the defect from the fix is not testing the claim — and it is green either way, which is the dangerous part. This is the sharpest instance yet of "run the thing against the real tree before you believe its tests", and the two repair tests I added are built so the WRONG implementation fails them: a 200-turn fixture where sum and latest differ by construction, and a check that the emitted argv PARSES against rotate.py's own parser rather than merely looking right.
+
+CROSS-CHECKED AFTER REPAIR, which is the evidence I would want if I were reading this cold: the hook and `rotate.py meter --seat sanctuary-director` now report the SAME number from the same transcript — 0.2671, 267,121 tokens — by two independent code paths. And the pin path it prints is byte-identical to the one every reader resolves.
+
+NOT INSTALLED, and that stands: registering a SessionStart hook changes every Claude session on this box. The prime ratified build-and-do-not-install and added that the install is ITS to perform once the owner rules, so it happens once, in one place, verifiably — do not install it even if the owner says yes to you directly.
+<!-- THOUGHT:END -->

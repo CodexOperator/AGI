@@ -60,10 +60,35 @@ from pathlib import Path
 
 # The sash the hook is told to hand back when it fires. This is the ONE
 # high-signal quantity: the operator copies it and the next command is whole.
+# 🔴 `--pin` TAKES A PATH. This read `--seat {seat} --pin --session-log ...`,
+# so `--pin` swallowed the `--session-log` FLAG as its own value and the
+# command could not run. The hook's whole reason for existing is P5 — hand
+# over a copy-pasteable next command — so an unrunnable one is not a typo,
+# it is the deliverable failing. Same shape as a guard whose printed remedy
+# does not clear the guard (hypothesis:l4-the-gate-is-on-a-credential-the-
+# spawn-will-not-use, item 2): the reader does exactly what they were told
+# and it does not work, so they conclude the tool is broken.
 ROTATE_CMD = (
-    "python3 {bin}/rotate.py meter --seat {seat} --pin "
-    "--session-log {transcript}"
+    "python3 {bin}/rotate.py meter --pin {pin} --session-log {transcript}"
 )
+#: Used when the seat cannot be derived: still correct, still runnable, and
+#: it reads the caller's OWN handed transcript, which is the load-bearing half.
+ROTATE_CMD_NO_SEAT = "python3 {bin}/rotate.py meter --session-log {transcript}"
+
+
+def _seat_from_cwd(cwd: str) -> str | None:
+    """The seat name for a seat worktree, or None.
+
+    A seat runs in `<repo>/.agi/worktrees/seat-<name>`, so the name is
+    derivable without reading any registry. None when the caller is not in a
+    seat worktree — in which case we print the command WITHOUT `--pin`
+    rather than guess a pin path, because guessing which pin belongs to you
+    is the original defect this whole chain is about.
+    """
+    for part in Path(cwd).resolve().parts:
+        if part.startswith("seat-"):
+            return part[len("seat-"):] or None
+    return None
 
 #: Headline used at and above the rotation line (fires every call).
 AT_OR_OVER_TITLE = "## ⚠️  ROTATION OWED NOW — at or over the line"
@@ -98,6 +123,34 @@ def _project_root(cwd: str) -> Path | None:
     return None
 
 
+def _canonical_pin(root: Path, seat: str) -> Path | None:
+    """`<canonical sessions dir>/<seat>.meter`, or None if it cannot be known.
+
+    🔴 DO NOT COMPUTE THIS AS `root / "sessions"`. Pins are SHARED state and
+    `rotate._sessions_dir` routes them to the MAIN checkout via
+    `locations.git_common_root`, while a seat's root is its own worktree. On
+    this box that is the difference between
+    `/home/ubuntu/work/agi/.agi/sessions/` (where every reader looks) and
+    `…/.agi/worktrees/seat-<name>/.agi/sessions/` (where nothing does), so a
+    naive join emits a command that writes a pin no later `--seat` read will
+    ever find.
+
+    We ASK `rotate` rather than reimplement it — a sixth private copy of a
+    path rule is how this project keeps paying for the same defect — and if
+    rotate cannot be imported we return None so the caller emits the
+    seat-less command instead. **Never guess a pin path**: guessing which pin
+    is yours is the original defect of this entire chain
+    (hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write).
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415 — deliberately lazy; the hook must not
+        #                  hard-depend on the engine being importable (P7).
+        return Path(rotate._sessions_dir(root)) / f"{seat}.meter"
+    except Exception:
+        return None
+
+
 def _load_ladder(root: Path) -> dict:
     """Read the ladder node's config fields; return {} if unreadable.
 
@@ -127,12 +180,32 @@ def _load_ladder(root: Path) -> dict:
     return fm
 
 
-def _sum_usage(transcript_path: Path):
-    """Sum the tokens across assistant messages — the numerator.
+def _latest_usage(transcript_path: Path):
+    """The LATEST assistant message's context size — the numerator.
 
-    Counts input_tokens + cache_read_input_tokens + cache_creation_input_tokens,
-    the quantity `rotate.py meter` reports. The choice of what the numerator
-    sums changes the fraction; we SAY what we sum rather than hide it (P6).
+    🔴 CONTEXT USAGE IS A LEVEL, NOT A RUNNING TOTAL, and this function
+    originally summed. Every assistant turn's `usage` already includes the
+    whole prior context, so adding the turns together is roughly quadratic.
+    MEASURED on a real transcript (211 assistant messages, gen V's own
+    session): summing gave 35,751,051 tokens — a fraction of **35.75** —
+    against a true 253,460 tokens and a true fraction of 0.2535. **A 141x
+    overcount**, which would have fired "ROTATION OWED NOW" on essentially
+    every session from its first few turns.
+
+    The round's own fixtures could not see it: with one or two assistant
+    messages the sum and the latest are the same number. That is exactly why
+    a thing gets run against the real tree before its tests are believed.
+
+    And the consequence is not merely a wrong number — a warning that always
+    fires is a warning that gets waved through, which is the failure this
+    hook exists to prevent (hypothesis:l4-a-check-that-cries-wolf-gets-waved-
+    through). It would have been worse than no hook at all.
+
+    Counts input_tokens + cache_read_input_tokens + cache_creation_input_tokens
+    on the newest assistant message, matching what `rotate.py meter` reports
+    (`parse_usage_from_cc_transcript` — "Returns the latest one"). The choice
+    of what the numerator counts changes the fraction, so it is stated in the
+    emitted text rather than hidden (P6).
     """
     total = 0
     seen = 0
@@ -159,15 +232,9 @@ def _sum_usage(transcript_path: Path):
                 n = int(i) + int(cr) + int(cc)
             except (TypeError, ValueError):
                 continue
-            total += n
+            total = n          # LEVEL, not a running sum — see the docstring.
             seen += 1
     return total, seen
-
-
-def _is_asic_path(payload: dict) -> bool:
-    """A payload with an `additionalContext` override is the hook-runner's own
-    sample; treat it as in-band but recognisable (unused, kept for clarity)."""
-    return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -227,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
         return 4
 
     try:
-        used, seen = _sum_usage(tp)
+        used, seen = _latest_usage(tp)
     except OSError as exc:
         print(f"rotation-alert: fail-closed: cannot read transcript: {exc}", file=sys.stderr)
         return 0
@@ -269,14 +336,19 @@ def main(argv: list[str] | None = None) -> int:
         print()
         print("```bash")
         bin_dir = (Path(__file__).resolve().parents[1] / "bin")
-        seat = ladder.get("seat") or "director"
-        print(ROTATE_CMD.format(bin=bin_dir, seat=seat, transcript=transcript))
+        seat = _seat_from_cwd(cwd)
+        pin = _canonical_pin(root, seat) if seat else None
+        if pin is not None:
+            print(ROTATE_CMD.format(bin=bin_dir, pin=pin, transcript=transcript))
+        else:
+            print(ROTATE_CMD_NO_SEAT.format(bin=bin_dir, transcript=transcript))
         print("```")
         print()
         print("(Fraction computed from `input_tokens + cache_read_input_tokens + "
-              "cache_creation_input_tokens`, summed over assistant messages in the "
-              f"handed transcript: {used} tokens of a {window}-token window = "
-              f"{fraction:.4f}, threshold {threshold:.4f}.)")
+              "cache_creation_input_tokens` on the NEWEST assistant message of the "
+              f"handed transcript — a level, not a running total: {used} tokens of "
+              f"a {window}-token window = {fraction:.4f}, threshold "
+              f"{threshold:.4f}.)")
         print("---")
         return 0
 
