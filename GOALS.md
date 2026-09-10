@@ -5930,6 +5930,11 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.7
 
+### G15.8 — the L4.10 live-tmux-nudge leak is reachable from every test file but test_send.py — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.8
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
