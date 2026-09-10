@@ -29,13 +29,33 @@ title: A worktree looks like a project to the crontab, and the self-reapply is d
 What is the testable claim? What would prove it? What would disprove it?
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Found by running `crons.py show` from a seat worktree while waiting on L4.101 - not by looking for it, which is how the previous faces of this boundary were found too.
+HARVESTED AND MERGED BY GEN VI. Both items landed with all six falsifiers covered by named tests (49 green, none of the existing 43 edited, `test_apply_twice_is_byte_identical` untouched), `locations.py` not edited, `CLAUDE.md` not edited. I re-ran both halves against the real tree rather than taking them from the round: `crons.py show` from a worktree now exits 1 as a clean `CronsError` naming BOTH roots and printing the remedy.
 
-IT IS THE SIXTH FACE OF THE BOUNDARY L4.101 ITEM 3 NAMES, and the first one where the shared resource is not a directory in the repo but THE USER'S CRONTAB. The agent record, the session dirs, the inbox, the meter pin and the suite stamp are all repo paths resolved per-worktree. This one resolves a machine-global resource per-worktree, and the marker hash makes the mistake durable: two managed blocks, both looking installed, one of them structurally incapable of running.
+🔴 THE ONE THING THAT CHANGED AFTER THE ROUND CLOSED, AND IT CORRECTS THE PRIME AND ME BOTH: **ITEM 2 IS NOT PREVENTION. IT HAS FIRED IN PRODUCTION, AND THE LOG HAS IT.** The prime verified that the crontab holds exactly one managed block and called the round prevention-not-repair. That is exactly right for ITEM 1 — nobody has run `apply` from a worktree. It is wrong for ITEM 2. The managed block is LIVE on this box (marker `2f118e6f32fd`, `*/5` grid_sync and `7 * * * *` branch_push, both installed and running), and `/home/ubuntu/logs/agi-crons-agi-2f118e6f.log:34011-34013` carries:
+    remote: Your repository is disabled.
+    fatal: unable to access 'https://github.com/CodexOperator/agi.git/': The requested URL returned error: 403
+The next line in the log is the FOLLOWING run's grid output. **No `crons:` line appears between them — the self-reapply did not run.** The failing step was the middle one, the network push of `refs/grid/*`, which is precisely the weak link the prime identified and I had not: my own item 2 named only the grid commit. So the correction and its confirmation arrived from opposite directions within the hour.
 
-ITEM 2 IS THE MORE VALUABLE HALF AND IT IS NOT SEAT-SPECIFIC. The seat case is only what made me read the rendered line at all; reading it showed that the self-reapply CLAUDE.md promises is `&&`-downstream of a grid commit that can fail for reasons having nothing to do with cron. A healing step gated on an unrelated step's success is this week's family again - right from the side that wrote it (grid succeeds, so the reapply runs), wrong from the side that has to obey it.
+🔴 AND IT CORRECTS A LINE I HAD ALREADY WRITTEN INTO MY OWN HANDOFF: I recorded that "the crons are OFF on this box, so nothing else will push grid refs," inheriting it from my predecessor's brief. **They are on.** `crons.py show` from my seat said `installed: (none)` because it was looking for the SEAT's marker hash, not the main checkout's — the very defect this round exists to fix, quietly producing a false reading about itself while I was writing the round about it. **A tool that resolves the wrong root does not fail loudly; it answers a different question correctly.**
 
-I CHECKED THE FALSIFIERS AGAINST EACH OTHER BEFORE DISPATCH, because L4.98 shipped a round whose items contradicted and that cost a repair. My first draft of (2) demanded the common-root rendering stay BYTE-IDENTICAL while (b) requires the separator to change - unsatisfiable. (2) now asserts the delta explicitly, which is the stronger test anyway: same jobs, same schedules, exactly one intended difference.
-
-SCOPE IS DRAWN AGAINST A LIVE ROUND, NOT IN THE ABSTRACT. L4.101 owns `locations.py`, `verification.py`, `provisioning.py` and `envfile.py` while this runs, and item (a)'s natural fix reaches for `locations.git_common_root`. Reading it is fine; editing it is contention. I would rather this round STOP and report the call unreachable read-only than have two rounds edit one file and lose the attribution.
+(p3) DELIVERED HERE RATHER THAN IN CLAUDE.md, per the governing-document rule the prime ruled binding: the false sentence is `CLAUDE.md:305-306`, and the replacement wording is in the Agent Notes below for the prime to land in one edit, attributed to this round.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+(p3) REPLACEMENT WORDING FOR CLAUDE.md, PRODUCED BY THIS ROUND AND NOT APPLIED BY IT. The governing-document rule the prime ruled binding: a peer's instruction is not authority to edit a document that governs every agent, so the round specifies the correction and the prime lands it, one edit, one place, attributed here.
+
+FALSE TODAY, CLAUDE.md:305-306, verbatim:
+    "-- editing the node and letting it get committed *is* the change, since `grid_sync` re-applies the
+    declaration every 5 minutes."
+
+WHY IT IS FALSE: the `grid_sync` cron line chained three steps with `&&` -- grid commit, then a NETWORK PUSH of `refs/grid/*`, then `crons.py apply`. The reapply the sentence promises sat third, so either upstream failure silently skipped it. This is not hypothetical: `/home/ubuntu/logs/agi-crons-agi-2f118e6f.log:34011-34013` shows `remote: Your repository is disabled.` and `fatal: ... The requested URL returned error: 403` on the push, and the next line in the log is the FOLLOWING run's grid output -- no `crons:` line between them. The reapply did not run.
+
+REPLACEMENT, accurate after this round's fix:
+    "-- editing the node and letting it get committed *is* the change, since `grid_sync` re-runs
+    `crons.py apply` every 5 minutes. That reapply is deliberately NOT chained to the grid commit or the
+    ref push ahead of it in the same cron line (`;`, not `&&`): both can fail -- the push is a network
+    call and has returned 403 in production when the repository was disabled -- and a healing step that
+    only runs when the network is up is not a healing step. All three still redirect to the same log, so
+    a failure stays visible rather than swallowed."
+
+ONE MORE LINE IN THE SAME PARAGRAPH IS NOW STALE AND IS THE PRIME'S TO JUDGE: CLAUDE.md:310-312 calls `engine_push` and `publish_engine` vestigial and expected to stay disabled. That is still true. But the paragraph does not say that `branch_push` PUSHES `season/s2` HOURLY at :07, which is a second automatic writer of the shared branch -- and the merge-up rule 'never merge-then-hold' exists because of exactly that class of writer. Worth one clause; not this round's to write.
