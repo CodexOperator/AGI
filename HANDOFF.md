@@ -47,6 +47,7 @@ BANKED `driver.sh --smoke` prints DRIFT WARNING (engine HEAD vs the config's eng
        · 4 merged+dirty + 5 unmerged ahead=1 L3 worktrees kept for the point to harvest or drop · trap: iteration ids must be L4.NN numeric (fail-closed)
 MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work · predecessors kept XI–XVI (XVI relays owner text)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 · partial edits: write.py read N:M then replace N:M
+       · OWNER 2026-09-10 05:0xZ: directors message the Prime ONLY when necessary (merge-up numbers · a Prime-only decision · a rotation line · a red merge / rule-changing finding) — never progress, status, acks, harvests; the Prime reads the bytes at the merge-up (verbatim in doc:l4-owner-decisions)
 CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with crontab -l, never this file) -> push by hand anyway
 DONE   L4-I: gate `continue` · verify green · plan drafted (4 workflows) + MINTED · questions banked · goal:g17.1 · cap 3 · helper spawned · point briefed · hygiene · handoff live
        L4-II: gate `continue` · pin 0.09 claimed · verify green (smoke 1828 / suite 2270/1 / links 0 / goals 143 / guard) · address announced + ack'd · seats row 61b9c9 · suite window granted + released
