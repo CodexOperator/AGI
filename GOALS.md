@@ -5968,6 +5968,26 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.8
 
+### G15.9 — write.py's Python API can mint outside the graph with the spawn gate silently unverified — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.9
+
+### G15.10 — a new bin/*.py needing the suite is a CHECK, not a memo — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.10
+
+### G15.11 — stall-before-work is its own detected state, not a widening of L4.78 — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.11
+
+### G15.12 — a dead detached kid is never marked terminal, so its parent polls it forever — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.12
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
