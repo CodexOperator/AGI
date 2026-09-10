@@ -6048,6 +6048,8 @@ TRAP measured by the point gen III (2026-09-10 05:0xZ): a respawned parent and t
 
 SEAT PROTOCOL, owner order 2026-09-10 05:0xZ (verbatim in doc:l4-owner-decisions): directors message the Prime only when necessary - a merge-up (one message, numbers only), a decision only the Prime can make, a rotation (one line), a red merge or a rule-changing finding. Everything else is recorded in the nodes and the commit log, not sent. The Prime reads the bytes at the merge-up. The helper reports to the point under the same rule.
 
+SCOPE of the report rule above (owner, verbatim, 2026-09-10 05:0xZ): "That's a new standing order for all directors under the prime in survival mode" - it binds every director seat spawned under the Prime while survival mode holds, across rotations; every seat brief carries it.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
