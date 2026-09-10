@@ -16,27 +16,33 @@ You are `sanctuary-director`, **L4 generation VIII**. Generations RESET at the n
 ## §1 PLAN (mine, this session) — done / next / blocked
 
 1. ✅ Pin meter · verify prime (3 ways) · confirm own window (`TMUX_PANE=%245` → `@245`) · state check · `verify` 9/9.
-2. ⏭ **Banked item 3 — measure the age of the 144 `links.py schema` violators** before anyone runs `--fix`. Measurement only; recommendation goes in §6.
-3. ⏭ Read `doc:l4-plan` §5.2 range for the open board; pick a round that is mine (candidate: L4.102's residual — `crons.py cmd_remove` deliberately unfenced, "a future round should decide it explicitly").
-4. ⛔ `hypothesis:l4-completion-signal-cannot-tell-dead-from-silent` and `hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design` — PRIME-held; releasable but **not without its word**.
-5. ⛔ Suite-lock survey — prime's; **do not build it**.
-6. ⏭ Trim + diagram this file as parts finish (owner standing order 2026-09-09) — standing content goes to nodes, not here.
+2. ✅ Merged the prime's batch onto the seat (rounds 1/2/3 nodes + owner asks + round-4 reversal `88c3d9ca8`).
+3. ✅ **Round 4 disprover run BEFORE dispatch** — measured that the read-back reads a debug log carrying no reply (42 logs/294,616 lines/0 non-noise); prime REVERSED its own claim to the ack channel. Category-4 message sent, ruling received.
+4. 🔵 **LIVE: L4.105** (`hypothesis:l4-workflow-authoring-is-a-harness-tool`, parent `a00-1385aad0`) and **L4.106** (`hypothesis:l4-rotate-readback…`, parent `a00-31c47cdd`) — parallel, disjoint files (workflow.py vs rotate.py/briefs), own `--branch` worktrees. Ceiling 2 kids each.
+5. ✅ **Banked item 3 resolved** — 124 `testable_claim` violators are all pre-L4 (116 season-1 `season.py`, 8 L3-era); recorded on `goal:s31`, do NOT run `--fix` blind.
+6. ⏭ **NEXT: harvest L4.105/L4.106 → review in the bytes → merge → merge-up 17.** Then round 2 (geometry, serial-after-L4.105 on workflow.py) and round 3 (suite lock, needs prime suite-window coordination).
+7. ⛔ Suite-lock survey build — prime's; **do not build it** until it routes round 3.
 
 ## §2 LANDED THIS SESSION (one line each)
 
-- (nothing yet)
+- `95c380334` round-4 disprover measurement + gen VII handoff head.
+- `77291c693` merged prime's ruling batch (`9f30451d4`); round-4 claim reversed to the ack channel, conflict resolved keeping both notes.
+- `b61a8171c` L4.106 dispatch addendum: the `cmd_rotate_self`-has-no-gate mechanism.
+- `9677ba337` banked item 3 on `goal:s31`.
 
 ## §3 🔴 WHERE I STOPPED / NEXT COMMAND
 
-- Opening. Next: `python3 extensions/agi/bin/links.py schema` → age distribution of violators.
+- Two rounds LIVE (L4.105, L4.106). Waiting on both to finish; harvest is next.
+- Watch: `python3 extensions/agi/bin/spawn_budget.py status` (kill a `-r1` suffix — reaper restart; `max_restarts:0` is set so should not happen) and `provisioning.py status` (a still key + low CPU = stalled; low CPU alone is NORMAL, API-bound).
+- On finish of each: `git log --format=%s <base>..<its branch>` on the round's own branch; review bytes; merge branch into seat; `commands.py run verify`.
 
 ## §4 TRAPS HIT THIS SESSION
 
-- (none yet)
+- **A GOALS.md/node conflict on merge** (round-4 node had two `testable_claim` versions): resolved with `git checkout --theirs` on the node then re-applied my own `note` via `write.py` so both notes survive; re-rendered GOALS.md and `--render --check` (163 byte-identical). Never hand-edit GOALS.md.
 
 ## §5 KNOWN-GOOD VERIFICATION
 
-`python3 extensions/agi/bin/commands.py run verify` — 9/9 at open, ~30 s. Suite is the prime's window (advisory, not exclusive — see §6.2 below).
+`python3 extensions/agi/bin/commands.py run verify` — 9/9 at open, ~30 s. Suite is the prime's window (advisory, not exclusive — see §6.2 below). Baseline to hold: active ≥ 1819 / deprecated 194 / total 2013, links 0 broken, goals byte-identical.
 
 ## 🔴 THE OWNER'S REPORTING ORDER — 2026-09-10 05:0xZ, verbatim
 
