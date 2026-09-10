@@ -1,5 +1,6 @@
 ---
 name: moral
+written_by: owner          # the owner-only write rule, carried as DATA (L4.32)
 derived_from: season-ladder-and-morals-brief.md (2026-09-05)
 fields:
   title: {type: str}
