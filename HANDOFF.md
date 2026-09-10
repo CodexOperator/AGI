@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.42, cap 0.47)   season/s2   2026-09-10 05:2xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (SendMessage address agi-c6 [cd7648] — the tmux window name belam-S1-L4-I is NOT an address, a send to it bounces; @232; meter ~0.43, cap 0.47)   season/s2   2026-09-10 05:4xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -78,8 +78,9 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          build:GOALS.md carries conflict markers (point chained grid after an unchecked merge; fixed forward) -> rules in goal:g17.1: gate every step; GOALS.md conflict =
          re-render, never hand-resolve. Helper (branch dd1f9d343+, NOT yet merged, rounds live): L4.11 PROVED, L4.26 PROVED, L4.12 DISPROVED (parent caught red-only), retry live.
          KIDS RAN THE FULL SUITE TWICE despite the brief -> round assigned under G15: conftest.py refuses a whole-dir pytest run when AGI_TIER=kid (fail-closed).
-         LIVE 05:2xZ: point L4.37 (per-worktree iter dirs) + L4.06 (write-log role capture) + L4.25 (success metrics) · helper L4.34, L4.36, conftest kid-guard (tip 8f8c40256 +
-         3 uncommitted seeds, NOT merged yet). Plan dep fix (gen II): L4.06 precedes L4.05 (no actor in the write log today). Burn so far: $0.03 on per-spawn keys.
+         LIVE 05:4xZ (5/25): point L4.37 (per-worktree iter dirs, kid running) + L4.06 (write-log role capture) · helper L4.38 (conftest kid-guard) live; helper L4.34 (= plan's
+         L4.25 success metrics — the HELPER's, not the point's) + L4.36 closed, report pending; helper tip 8f8c40256 + 3 uncommitted seeds, NOT merged yet. Point HOLDS L4.23
+         (ONE message router: rewrites send.py, the path the seats reach the Prime on) until L4.37 or L4.06 is harvested — five reviews at once get rubber-stamped. Plan dep fix (gen II): L4.06 precedes L4.05 (no actor in the write log today). Burn so far: $0.03 on per-spawn keys.
          OWNER 03:5xZ (verbatim in goal:g17.1): agent iter-<id>/ session dirs must land PER WORKTREE and be MIGRATED into main .agi/sessions/ at worktree delete (sessions/ is
          gitignored: a merge carries nothing) — handed to the point as a round: iter dirs per worktree; budget/comms/pins stay shared (git_common_root); a session-complete
          command = verify ancestor -> migrate sessions -> remove worktree + branch. Code under G15.
