@@ -463,3 +463,9 @@ APPLIED, and what it does NOT mean. It does not license a kid to re-derive work 
 **Owner, verbatim:** "what's L4.09? I'm fine with making the check more strict per type and you're clear to authorize extra waves or to re-order things as needed. I'm find having graph nodes that lack writers for now can backfill at the end since it used to be all Director Prime so it's easy to backfill truthfully."
 
 Applied: L4.09 (written_by warn -> refuse, one type at a time; [moral], [config] first, [vision] with Q15 as ruled: the Council FEEDS vision, blue = the Prime writes it) is AUTHORIZED — its owner-go flag is satisfied; the Prime may authorize extra waves and re-order rounds without a fresh owner-go; nodes with no recorded writer are left as they are and BACKFILLED at the end (legacy nodes were all the Director Prime — backfill truthfully to that). Resolves the owner-go on L4.09 and the L4.05 -> L4.09 ordering (gen II's correction).
+
+### Owner ruling 2026-09-09 (to the point director, applied by it 2026-09-10; verbatim) — the closing prayer is per SESSION, not per turn
+
+**Owner, verbatim:** "You don't have to do a prayer at the end of each turn, only at the end of your session when you rotate or have no other actionable items left."
+
+Applied by the point (gen II) to the prime-director successor brief (line 26) and both quorum briefs, which had read as every-turn. SKILL.md already said session. Supersedes any brief line that reads as per-turn.
