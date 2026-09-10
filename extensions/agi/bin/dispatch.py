@@ -48,6 +48,7 @@ import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it wit
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
@@ -1762,6 +1763,17 @@ def _reaper_phase(
         except (json.JSONDecodeError, OSError):
             break
 
+        # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
+        # The reaper already reads every live `agent.json`; this is where a
+        # parent whose kids are all terminal but whose own record still reads
+        # `running` (mtime untouched, worktree dirty, past T) becomes a
+        # first-class RECORDED `stalled` state. `stall_detect` stamps that
+        # state and neither kills, restarts, nor commits — a stalled parent
+        # is still alive and still holds its lease, so it never joins
+        # `spawn_budget.TERMINAL`. The reap guard below (`if status != "running"`)
+        # then skips it on the next pass exactly as designed, so wiring this
+        # in changes none of the reaper's commit-based completion logic.
+        stall_detect.record_stalled_in_iteration(iter_dir)
         all_terminal = True
         updated = False
         for entry in manifest.get("agents", []):
