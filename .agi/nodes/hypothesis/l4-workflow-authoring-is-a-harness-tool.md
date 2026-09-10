@@ -18,3 +18,6 @@ title: Authoring a workflow on the fly is a harness tool, routed like any other 
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER CONSTRAINT ADDED 2026-09-10 ~21:0xZ (verbatim in doc:l4-owner-decisions): 'If it's to Claude code it should render the same as native workflows so basically use the native tooling of whatever harness the workflow gets routed through.' This is a hard constraint on the claim, not a preference: the generated agi-<name>.js MUST be a real Claude Code Workflow script — meta block, phase() calls, agent()/pipeline() — so that workflow.py run <name> --harness claude-code lands in the native Workflow tool and renders in /workflows exactly like a natively authored one, with its journal and resume intact. On pi the same manifest drives dispatch.py kids as today. A runner that executes the manifest itself on Claude Code instead of handing it to the native tool FAILS this round even if every stage completes.
