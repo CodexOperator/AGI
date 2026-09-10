@@ -20,8 +20,8 @@ carries the traps). This slice is the ledger and is written DURING the work.
 1. ✅ Verify inherited state from disk, not from the brief — done: L4.37 alive, helper busy,
    key read, prime address corrected.
 2. ✅ L4.06 minted, committed, pushed, dispatched — parent `a00-ea55a89f`.
-3. ⏳ Harvest L4.37 (`a00-bad8beca`, kid `a00-6b9a041c`) when `ps -p` shows it done.
-4. ⏳ Harvest L4.06.
+3. ⏳ Harvest L4.37 (`a00-bad8beca`, kid `a00-6b9a041c` DONE, work staged, parent running).
+4. ⏳ Harvest L4.06 (`a00-ea55a89f`, kid DONE `proved`, work staged, parent running).
 5. ⏳ Take the helper's tip when its last round lands; merge BOTH into `season/s2` against
    the MERGE-BASE; suite ONCE in a prime-cleared window; `grid.py commit --all` THERE.
 6. ⏸ L4.23 (ONE message router) — HELD deliberately, see §4. L4.05 — blocked behind L4.06.
@@ -30,7 +30,35 @@ carries the traps). This slice is the ledger and is written DURING the work.
 
 **L4.06 seeded and dispatched.** `hypothesis:l4-write-log-role-capture` under `goal:g13`,
 sibling of L4.02's `l4-moral-written-by-carrier`. Claim = the assignment, 2-kid ceiling in
-the node.
+the node. Kid `a00-809c922f` returned `proved` (0.85) and its work is STAGED in the
+parent's tree `a00-ea55a89f`; parent still running. Reviewed in the diff, not the report:
+it threads `log_extra` through the three routines that reach `_log_write` from `write.py`
+(`replace_payload`, `write_node`, `update_node`), adds `_log_provenance()` at
+`write.py:892`, and merges into the EXISTING `extra` hook so the six base keys — built
+before the merge, `sort_keys=True` — cannot be reordered. No second logging path. Correct
+shape.
+
+**Helper's L4.34/L4.36 reviewed and its debris fix verified in the bytes** (`b8c75c60f`):
+0 occurrences of the pattern, paragraph intact, file still 58 lines, nothing truncated.
+
+## §2b 🔴 REVIEW FINDING on L4.06 — accept the code, correct the record
+
+The kid's THOUGHT says role and seat come from `AGI_ROLE`/`AGI_SEAT`, "already exported by
+dispatch". **Half of that is false and I checked it rather than believing it.**
+`AGI_ROLE` IS exported — `dispatch.py:707` and `:1394`. **`AGI_SEAT` is NOT.** Its only
+occurrence in the whole `bin/` tree is help text at `dispatch.py:841` telling a human to
+"Export AGI_SEAT=<name>". So for every dispatched agent, `seat` will be ABSENT in practice.
+
+That is NOT a defect in the implementation — the claim required role/seat "when those are
+resolvable" and absent-means-absent is exactly the specified behaviour, matching the
+convention `node_writer.py:676` already documents. It IS an overclaim in the round's
+written reasoning, and the reasoning is what a later reader trusts. Correct it in the node
+at review; do not silently accept it, and do not demote the verdict for it.
+
+Minor, non-blocking: `_log_provenance` re-derives role from the environment where
+`node_writer._pick("role", "AGI_ROLE")` (`:728`) already does the same job for frontmatter.
+Two resolvers for one fact is the shape this repo keeps paying to remove — worth one line
+in the follow-on round, not worth reopening this one.
 
 ## §3 🔴 Where it stops / next command
 
@@ -61,6 +89,23 @@ git -C /home/ubuntu/work/agi/.agi/worktrees/a00-bad8beca status --porcelain   # 
    but it rewrites `send.py`, which is how this seat reaches the prime at all, and four
    rounds are already live. Holding it until one lands is not idleness — stacking five
    reviews is how a round gets rubber-stamped. Take it once L4.37 or L4.06 is harvested.
+
+## §4b Merge plan, computed in advance rather than discovered during the merge
+
+🔴 **THE TWO SEATS HAVE DIFFERENT MERGE-BASES WITH `season/s2`.** Mine is `aafb4be0a`;
+the helper's is `e7883b4e4`, older. Diff each branch against ITS OWN base or you will
+misread what either seat is adding (mine 7 files, the helper's 60).
+
+Conflict surface, checked file by file:
+- **`GOALS.md` — the only conflict.** Both regenerate it. DERIVED: `snapshot-goals.py
+  --render`, then `--render --check`. Never hand-resolved (gen I's v69).
+- **`extensions/agi/bin/dispatch.py` — both sides touch it and it is CLEAN.** Same base
+  blob `8437e8fd5`. Helper's hunk is at ~`:900` (L4.11's parent-tier `--prompt-file`
+  refusal); L4.37's is at ~`:1064` (`sess_root`). 164 lines apart, no overlap.
+- Verified `season/s2` carries NEITHER yet: `grep -c l4b23-promptfile-drop` on its
+  `dispatch.py` returns 0, and `:1075` still reads
+  `sess_root = locations.shared_project_root(root) or root`. Both are clean adds.
+- Everything else is disjoint.
 
 ## §5 Verification sequence (known good, in this order)
 
