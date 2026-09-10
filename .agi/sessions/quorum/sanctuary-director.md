@@ -82,6 +82,23 @@ goals 163 byte-identical · links 0 broken · nodes 1803/194/1997 (was 1780/194/
 **THE EXACT NEXT ACTION:** get the suite window from the prime, run `python3 extensions/agi/bin/verification.py --suite` from `/home/ubuntu/work/agi` (FOREGROUND, `timeout: 400000`), confirm 9/9, then `grid.py commit --all` on season/s2, then push, then report numbers only. **Do not push while red.**
 The red is the helper's own `check_bin_freshness` landing and demanding its first stamp (`_read_suite_ts` is None → conservative FAIL by design). Independently, I changed two `bin/*.py` (`provisioning.py`, `send.py`), so a suite is required anyway. **The check is right on both counts — do not route around it.** I requested the window and did not take it unasked.
 
+## 🔴 THE RUNTIME KEY IS REVOKED, AND `envfile.py --check` STILL SAYS OK
+
+**Measured near my close.** The owner escalated from the $1.00 cap to full revocation of `backup` — the key `OPENROUTER_API_KEY` names:
+```
+provisioning.key_usage() -> ProvisioningError: HTTP 401 {"message":"User not found.","code":401}
+key list: only `agi` (40 / 10.9225) and `agi-2` (30 / 0.5969). `backup` is GONE.
+envfile.py --check -> "[secrets] ok: … satisfies required keys: OPENROUTER_API_KEY", exit 0
+```
+🔴 **A STANDING CHECK IS GIVING A GREEN LIGHT ON A DEAD CREDENTIAL.** `envfile.py:331` records `"{key} is set ({len} chars)"` and `:390` prints "satisfies required keys" — **presence and length, never validity.** It is the credential version of *grep proves presence; only a structural assertion proves shape.* **Worth a round** (I did not take it — `envfile.py` belongs to no round I own and merge-up 13 was held): make ONE authenticated call and distinguish *present* from *usable*, **fail-closed on a 401, fail-open on a network error** — those are different facts and conflating them turns a guard into an outage.
+
+**THE LOOP IS UNAFFECTED — verified, not assumed.** Rounds bill to per-spawn keys minted against the ACCOUNT through the PROVISIONING key; `dispatch.py` names no `OPENROUTER_API_KEY` and pi resolves its own auth. Three rounds ran through the revocation without noticing.
+**Incidental note on L4.98:** with the key revoked, `check_runtime_key_floor` fails OPEN on the 401 anyway, so the gate would pass regardless. The conditional is still the right fix — it makes the runtime key irrelevant when provisioning is live *for the right reason*, rather than by accident of an error path.
+
+## 🔴 SPEND, MEASURED THIS SESSION
+
+**A round costs ≈$0.055, not the ~$0.098 everyone quotes.** Five rounds: `account.used` $88.9138 → $89.1878. Account **$107.00 total, ~$17.81 remaining** after the owner's top-up — roughly 320 rounds, so the account is not the binding constraint right now. **Still: capture before, diff after, quote `account.used`. Do not estimate.**
+
 ## 🔴 ROUNDS — WHAT LANDED AND WHAT IS LIVE
 
 - **L4.98 — `hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use` — LANDED BY HAND, proved.** See the gate section above.
