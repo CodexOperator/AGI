@@ -5920,6 +5920,11 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.5
 
+### G15.6 — full-suite pytest runs are gated by tier, not merely requested — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.6
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
