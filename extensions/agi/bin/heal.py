@@ -107,6 +107,10 @@ def main() -> int:
             if elapsed > timeout_s and agent_id not in healed_already:
                 _heal(root, args.iter_n, agent_id, rec)
                 healed_already.add(agent_id)
+                # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — the
+                # TIMEOUT event: exactly ONE dm to the seat that dispatched it,
+                # naming the reason. No flag; the stamp came from dispatch.
+                _alarm_dispatcher(rec, args.iter_n, "timeout", root)
             else:
                 # Also detect if pid is dead w/o status update → mark failed.
                 pid = int(rec.get("pid", 0))
@@ -118,6 +122,9 @@ def main() -> int:
                     # Sync to manifest too
                     entry["status"] = "failed"
                     print(f"agent {agent_id} marked failed (pid {pid} gone)")
+                    # hypothesis:l4-a-round-alarms-its-dispatcher-by-default —
+                    # the DEATH event: exactly ONE dm naming the reason.
+                    _alarm_dispatcher(rec, args.iter_n, "death", root)
         # Persist manifest so post_wire sees current status
         manifest_path.write_text(json.dumps(manifest, indent=2))
         if all_terminal:
@@ -127,6 +134,32 @@ def main() -> int:
 
     print("ERR: max-wait exceeded; some agents still non-terminal", file=sys.stderr)
     return 2
+
+
+def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:
+    """hypothesis:l4-a-round-alarms-its-dispatcher-by-default — a round that
+    DIES or TIMES OUT sends the seat that dispatched it exactly ONE dm naming
+    the reason. ids/numbers plus a short reason token only. Absent stamp -> one
+    stderr line, no crash; an undeliverable dm is logged, never fatal to a heal
+    that is already handling a bad day. The dm must go to the ONE shared inbox
+    (send.py resolves it through `locations.shared_sessions_dir`), never a
+    CWD-local sessions dir that looks delivered to the recipient but is not
+    the file they read.
+    """
+    dispatcher = rec.get("dispatched_by")
+    agent_id = rec.get("id", "?")
+    if not dispatcher:
+        print(f"warn: no dispatcher stamp for {agent_id}; no {reason} dm "
+              "(l4-a-round-alarms-its-dispatcher-)", file=sys.stderr)
+        return
+    try:
+        import send as _send
+        _send.send(root, dispatcher,
+                   f"iter={iter_n} agent={agent_id} reason={reason}",
+                   agent_id)
+    except Exception as exc:
+        print(f"warn: {reason} dm to {dispatcher} failed: {exc}",
+              file=sys.stderr)
 
 
 def _pid_alive(pid: int) -> bool:
