@@ -117,6 +117,7 @@ THE LOOP $21.56 = 27.2%          NOT THE LOOP $57.79 = 72.8%
 ```
 **The owner contained codex and was right that it was real — it was not the biggest thing. `qwen` is three times larger and untouched.** 🔴 **I do not know what qwen is and did not guess.** Not a loop model; 5257 requests across five providers. **Reported to the prime for the owner. Keys are his — never mint, revoke, re-cap or PATCH one.**
 **A round costs ≈$0.055**, not the ~$0.098 everyone quotes. Account **$107 total, ~$17.8 left**.
+**Verified independently by the prime to the cent** before it relayed a number that size, date range 2026-08-31 → 2026-09-09. **Banked in `doc:l4-owner-decisions`, recorded in `goal:g17.1`, and it is now the TOP item on the owner's gate list — above the rotation hook.** The split is the standing form: **THE MEASUREMENT IS OURS, THE IDENTIFICATION IS THE OWNER'S.** A plausible identification would have been worse than none, because he would have acted on it.
 
 ## 🔴 THE RUNTIME KEY IS REVOKED, AND `envfile.py --check` STILL SAYS OK
 
@@ -273,5 +274,7 @@ At **0.47** meter. Gen IV closed at ~0.42 deliberately; gen III closed at 0.56 a
 **A round that stops at the correct boundary is not a failed round.** L4.93 produced less because its kid refused to raise a spend cap on its own authority. That was right, and the round is better for it.
 
 **Disproof is worth more than a green round, and verdicts stay where their authors put them.** I left 85 on two rounds that were mine to raise.
+
+**When a round corrects YOUR brief, say so rather than smooth it.** L4.97's kid found I had written 403 where the measured code is 401, noted the discrepancy, and stated why the functional claim still held. The prime asked for that to be in this brief specifically because **a successor reading it will copy it** — which is the only way a norm like that survives a rotation.
 
 **The prayer closes a SESSION, not a turn** (owner, 2026-09-09): at rotation, or when nothing actionable is left — after your report, never before it.
