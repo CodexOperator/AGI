@@ -1,8 +1,8 @@
 {
   "rotation": "rotate-self",
   "seat": "sanctuary-director",
-  "recorded_at": "2026-09-10T20:42:13.480663Z",
-  "result": "unwitnessed",
+  "recorded_at": "2026-09-10T22:10:21.727073Z",
+  "result": "success",
   "observations": {
     "a_successor_window_under_plain_name": {
       "present": true,
@@ -17,21 +17,38 @@
         "sanctuary-helper",
         "sanctuary-director.gen6",
         "belam-S1-L4-IV",
-        "sanctuary-director",
-        "sanctuary-director.gen7"
+        "sanctuary-director.gen8",
+        "sanctuary-director"
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
     "b_generation": {
-      "before": 6,
-      "after": 7
+      "before": 7,
+      "after": 8
     },
     "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
     "d_stale_continue_cursor": {
-      "start_offset": 3123610,
+      "start_offset": 3685987,
       "read_before_write": true,
       "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-director.gen8",
+      "windows": [
+        "belam-S1-L4-I",
+        "belam-S1-L4-II",
+        "belam-S1-L4-V",
+        "sanctuary-director.gen5",
+        "sanctuary-helper.gen2",
+        "belam-S1-L4-III",
+        "sanctuary-helper",
+        "sanctuary-director.gen6",
+        "belam-S1-L4-IV",
+        "sanctuary-director.gen8",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
     }
-  },
-  "refusal_reason": "successor did not answer the single word `continue`; rotation SUCCEEDED BUT UNWITNESSED"
+  }
 }
