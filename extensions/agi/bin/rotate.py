@@ -970,8 +970,16 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
 def _shell_cmd(claude_cmd: list[str], settings) -> str:
     """The quoted shell line that launches `claude_cmd`.
 
-    An ultracode role's launch is gated by exporting CLAUDE_CODE_WORKFLOWS=1
-    before the command (hypothesis:l3-rotate-ultracode-env).
+    TWO exports may ride in front of the command, and both compose:
+    every launch carries CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 so the
+    background-shell reaper is disarmed in the launched shell's OWN
+    environment rather than inherited from the tmux session, which is one
+    server restart from gone (hypothesis:l4-spawn-paths-export-the-reaper-knob);
+    an ultracode role's launch additionally exports CLAUDE_CODE_WORKFLOWS=1
+    (hypothesis:l3-rotate-ultracode-env).
+
+    `claude_cmd` is quoted element by element, so the constitution head riding
+    in argv survives whatever is prepended.
     """
     joined = " ".join(shlex.quote(c) for c in claude_cmd)
     reaper = REAPER_ENV_EXPORT + " && " + joined
