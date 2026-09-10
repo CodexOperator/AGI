@@ -86,14 +86,45 @@ class CheckResult:
     message: str = ""
 
 
+_PYTEST_COUNT_PATTERNS = (
+    ("passed", r"(\d+)\s+passed"),
+    ("skipped", r"(\d+)\s+skipped"),
+    ("failed", r"(\d+)\s+failed"),
+    ("errors", r"(\d+)\s+errors?"),
+)
+
+
+def _parse_pytest_counts(output: str) -> dict:
+    """Counts from pytest's own summary line, in whatever order pytest emits.
+
+    pytest writes `N passed, M skipped, K failed, E errors` with only the
+    nonzero categories present, in a stable order of its own. We read each
+    category independently so order never matters, and we return only the
+    keys that actually appear. An empty dict means the output carried no
+    countable line at all — a PASS that still must say so rather than print
+    an empty bracket (hypothesis:l4-verification-counts-and-engine-root).
+    """
+    counts: dict = {}
+    for key, pat in _PYTEST_COUNT_PATTERNS:
+        m = re.search(pat, output)
+        if m:
+            counts[key] = int(m.group(1))
+    return counts
+
+
 def _parse_number(name: str, exitcode: int, output: str) -> dict | None:
     """The one number each check exists to produce.
 
-    Only the three checks with a real number extract one (goal:g1.10 prose
-    names them): smoke's active/deprecated/total triple, links' broken count,
-    goals-check's byte-identity yes/no. Everywhere else the exit code is the
-    fact and the number column is empty.
+    Four checks carry a real number: smoke's active/deprecated/total triple,
+    links' broken count, goals-check's byte-identity yes/no, and the suite's
+    pytest counts (passed/skipped/failed/errors). Everywhere else the exit
+    code is the fact and the number column is empty. A `tests` count is a
+    number for the reader, never a verdict — pass/fail still comes from the
+    exit code, and a run whose output yields no count is still judged on the
+    exit code, with the missing count stated in the note.
     """
+    if name == "tests":
+        return _parse_pytest_counts(output)
     if name == "smoke":
         vals = dict(re.findall(r"METRIC\s+(\w+)=(-?\d+)", output))
         return {
@@ -252,11 +283,16 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     number = _parse_number(name, proc.returncode, output)
     ok = _passed(name, proc.returncode, number)
     note = ""
+    # A passing suite whose output yielded NO countable line must say so
+    # rather than print an empty bracket — otherwise `PASS tests` reads the
+    # same for 2340 tests as for 3, or for none (hypothesis:l4-...and-root).
+    if name == SUITE_CMD and ok and number is not None and not number:
+        note = "tests ran but NO count parsed from pytest output (exit 0)"
     # stdout is suppressed unless the check fails or --verbose is passed; the
     # failure's tail is the evidence the successor needs.
     if not ok or verbose:
         tail = "\n".join(output.splitlines()[-12:])
-        note = tail
+        note = (note + "\n" + tail) if note else tail
     return CheckResult(name, "PASS" if ok else "FAIL",
                        time.monotonic() - start, number, note=note)
 
@@ -284,8 +320,14 @@ def _one_line(r: CheckResult) -> str:
     return (f"{r.status:4}  {r.name:16} {r.elapsed:6.1f}s{num}{note}").rstrip()
 
 
-def render_summary(level: str, suite: bool, results: list[CheckResult]) -> str:
+def render_summary(level: str, suite: bool, results: list[CheckResult],
+                   graph_root: str = "", engine_root: str = "") -> str:
     lines = [f"== verification summary (level={level}, suite={'on' if suite else 'off'}) =="]
+    # The tool must say WHAT it measured. A number without provenance is the
+    # thing this project keeps paying for — a mixed tree slips through silent
+    # (hypothesis:l4-verification-counts-and-engine-root).
+    if graph_root or engine_root:
+        lines.append(f"roots: engine={engine_root or '?'}, graph={graph_root or '?'}")
     for r in results:
         lines.append(_one_line(r))
     failed = [r for r in results if r.status == "FAIL"]
@@ -297,10 +339,13 @@ def render_summary(level: str, suite: bool, results: list[CheckResult]) -> str:
     return "\n".join(lines)
 
 
-def render_json(level: str, suite: bool, results: list[CheckResult]) -> dict:
+def render_json(level: str, suite: bool, results: list[CheckResult],
+                graph_root: str = "", engine_root: str = "") -> dict:
     return {
         "level": level,
         "suite": suite,
+        "graph_root": graph_root,
+        "engine_root": engine_root,
         "result": "FAIL" if any(r.status == "FAIL" for r in results) else "PASS",
         "checks": [{
             "name": r.name,
@@ -333,6 +378,12 @@ def main(argv: list[str] | None = None) -> int:
     if groot is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+    # Which engine OWNED the graph we are measuring? <engine> resolves from the
+    # engine enclosing the --root graph, not from wherever this script lives —
+    # and the report names BOTH so a mixed tree is never silent. The engine
+    # and graph line must appear even when they agree (it is provenance, not
+    # a diff).
+    engine_root = commands.engine_for(groot)
 
     lock = None
     if args.suite:
@@ -362,10 +413,14 @@ def main(argv: list[str] | None = None) -> int:
                 pass
 
     if args.json:
-        print(json.dumps(render_json(args.level, args.suite, results),
+        print(json.dumps(render_json(args.level, args.suite, results,
+                                     graph_root=str(groot),
+                                     engine_root=str(engine_root)),
                          indent=2))
     else:
-        print(render_summary(args.level, args.suite, results))
+        print(render_summary(args.level, args.suite, results,
+                             graph_root=str(groot),
+                             engine_root=str(engine_root)))
 
     return 1 if any(r.status == "FAIL" for r in results) else 0
 

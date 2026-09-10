@@ -56,6 +56,30 @@ COMMANDS_NODE_REL = Path("nodes") / ".geometry" / "commands.md"
 ENGINE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
+def engine_for(graph_root: Path) -> Path:
+    """The engine checkout that OWNS `graph_root` — not the running script's.
+
+    `<engine>` must be substituted from the engine enclosing the GRAPH that
+    declared the command, never from wherever the runner happens to live. A
+    `verification.py` run from a worktree with `--root` at the main checkout
+    used to substitute `<engine>` from the worktree while reading the main
+    checkout's graph — TWO trees in one report, silent
+    (hypothesis:l4-verification-counts-and-engine-root).
+
+    In the unified single-repo layout the repo holding `.agi` also carries
+    `extensions/agi/bin/commands.py`, so the engine is the nearest ancestor
+    of the graph root that has that file. When no such ancestor exists (a
+    project that cloned the engine in under a layout we cannot walk), we fall
+    back to THIS script's engine and let the caller NAME both roots so the
+    fallback is visible — resolution when we can, honesty when we cannot.
+    """
+    root = Path(graph_root).resolve()
+    for cand in (root, *root.parents):
+        if (cand / "extensions" / "agi" / "bin" / "commands.py").is_file():
+            return cand
+    return ENGINE_ROOT
+
+
 class CommandError(RuntimeError):
     """A command was asked for that the graph does not declare."""
 
@@ -110,16 +134,18 @@ def _load_node(root: Path) -> dict:
         return {}
 
 
-def _substitute(value: str, root: Path) -> str:
+def _substitute(value: str, root: Path, engine: Path | None = None) -> str:
     return (str(value)
             .replace("<root>", str(Path(root).resolve()))
-            .replace("<engine>", str(ENGINE_ROOT)))
+            .replace("<engine>", str(engine if engine is not None
+                                else engine_for(root))))
 
 
 def load(root) -> dict[str, Command]:
     """Every declared command, keyed by name. Never raises."""
     root = Path(root)
     fm = _load_node(root)
+    engine = engine_for(root)
     out: dict[str, Command] = {}
     for name, spec in (fm.get("commands") or {}).items():
         if not isinstance(spec, dict):
@@ -130,14 +156,14 @@ def load(root) -> dict[str, Command]:
             # than half-resolved, because a Command that cannot run is worse
             # than an absent one -- it looks available.
             continue
-        substituted = [_substitute(a, root) for a in argv]
+        substituted = [_substitute(a, root, engine) for a in argv]
         raw_cwd = str(spec.get("cwd") or str(root))
         out[str(name)] = Command(
             name=str(name),
             argv=substituted,
             raw_argv=[str(a) for a in argv],
             about=str(spec.get("about") or ""),
-            cwd=_substitute(raw_cwd, root),
+            cwd=_substitute(raw_cwd, root, engine),
             raw_cwd=raw_cwd,
             workflow=str(spec.get("workflow") or ""),
         )
