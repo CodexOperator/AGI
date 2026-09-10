@@ -28,6 +28,7 @@ import importlib.machinery
 import importlib.util
 
 import commands  # noqa: E402
+import locations  # noqa: E402
 
 _loader = importlib.machinery.SourceFileLoader(
     "derive_commands", str(BIN / "derive-commands.py"))
@@ -123,6 +124,45 @@ def test_absent_node_is_a_supported_state(tmp_path):
     assert commands.render_for_injection(graph) == []
 
 
+def test_engine_for_resolves_the_engine_enclosing_the_graph(tmp_path):
+    """`<engine>` must come from the engine that OWNS the graph, not from
+    wherever the running script lives. In the unified single-repo layout the
+    repo holding `.agi` also carries `extensions/agi/bin/commands.py`, so
+    engine_for walks up from the graph root to find it — a worktree running
+    with `--root` at the main checkout must substitute the MAIN engine, not
+    the worktree's (hypothesis:l4-verification-counts-and-engine-root)."""
+    main = tmp_path / "main-checkout"
+    eng = main / "extensions" / "agi" / "bin"
+    eng.mkdir(parents=True)
+    (eng / "commands.py").write_text("# engine")
+    graph = main / ".agi"
+    graph.mkdir(parents=True)
+    # a graph at main/.agi is owned by the engine at main/
+    assert commands.engine_for(graph).resolve() == main.resolve()
+
+    # a DIFFERENT project with no engine of its own falls back to this
+    # script's engine rather than guess — and the caller names both roots.
+    foreign = tmp_path / "foreign" / ".agi"
+    foreign.mkdir(parents=True)
+    assert commands.engine_for(foreign) == commands.ENGINE_ROOT
+
+
+def test_load_substitutes_engine_from_the_root(tmp_path):
+    """The <engine> a declared argv fills in is the engine OWNING the --root
+    graph, so run_check against a foreign root never mixes engines. This is
+    the resolution half of PROVED-BY (d)."""
+    main = tmp_path / "main"
+    eng = main / "extensions" / "agi" / "bin"
+    eng.mkdir(parents=True)
+    (eng / "commands.py").write_text("# engine")
+    (main / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (main / ".agi" / "config.json").write_text("{}")
+    (main / ".agi" / "nodes" / ".geometry" / "commands.md").write_text(NODE)
+    table = commands.load(main / ".agi")
+    assert str(main.resolve()) in " ".join(table["smoke"].argv)
+    assert str(commands.ENGINE_ROOT) not in " ".join(table["smoke"].argv)
+
+
 def test_a_node_that_exists_but_cannot_be_read_says_so(project, capsys):
     """Absence is silent because it is normal; failing to read something
     present never is. The first version returned `{}` for both."""
@@ -165,10 +205,37 @@ def test_render_table_preserves_placeholders(project):
 # This project's own declaration — the table has to actually work
 # --------------------------------------------------------------------------
 
-REAL_ROOT = Path("/home/ubuntu/work/agi/.agi")
+# The graph this suite describes is the one it RUNS in, not the main checkout.
+# goal:g11's resolver answers "where is the graph?" from where we stand; a test
+# pinned to a literal path could only testify about one checkout. question 1 is
+# find_project_root (the graph), question 2 is source_root (what it describes).
+#
+# `find_project_root` returns `Optional[Path]`, and the None is handled HERE
+# rather than inside a test. The marker's whole promise is a SKIP when this
+# project's node is absent; a bare `REAL_ROOT / ...` would raise TypeError
+# while the module was still being imported, turning that promised skip into
+# a collection error — a louder failure than the literal it replaced, in the
+# one case the marker exists for. An assertion inside a test body cannot
+# cover this: import happens first.
+REAL_ROOT = locations.find_project_root(Path(__file__).resolve())
+SOURCE_ROOT = locations.source_root(REAL_ROOT) if REAL_ROOT else None
 real_only = pytest.mark.skipif(
-    not (REAL_ROOT / commands.COMMANDS_NODE_REL).is_file(),
+    REAL_ROOT is None
+    or not (REAL_ROOT / commands.COMMANDS_NODE_REL).is_file(),
     reason="this project's own commands node is not present")
+
+
+def test_resolved_root_follows_the_tree_under_test():
+    """The fixed REAL_ROOT must point into the SAME repo this test file lives
+    in — a test that resolved to the main checkout while running in a seat
+    worktree could not testify about the tree it ran in. Descendant check is
+    the property that encodes "follows the tree under test" and is checkable
+    without a second checkout."""
+    own_repo = Path(__file__).resolve()
+    assert REAL_ROOT is not None
+    assert own_repo.is_relative_to(SOURCE_ROOT)
+    assert REAL_ROOT.is_relative_to(SOURCE_ROOT)
+    assert REAL_ROOT.name == ".agi"
 
 
 @real_only
@@ -308,9 +375,11 @@ DRIVER = Path(__file__).resolve().parent.parent / "driver.sh"
 
 def _agi(*args, cwd=None):
     import subprocess
+    # cwd defaults to the SOURCE root of the tree under test, not the main
+    # checkout — driver.sh must route against the graph this worktree carries.
     return subprocess.run(["bash", str(DRIVER), *args], capture_output=True,
                           text=True, timeout=180,
-                          cwd=str(cwd or Path("/home/ubuntu/work/agi")))
+                          cwd=str(cwd or SOURCE_ROOT))
 
 
 @real_only

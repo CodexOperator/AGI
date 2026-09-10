@@ -95,6 +95,69 @@ def test_parse_number_links_and_goals(tmp_path):
     assert verification._parse_number("goals-check", 1, "MISMATCH") == {"byte-identical": 0}
 
 
+def test_parse_number_tests_reads_pytest_summary_in_any_order():
+    """The `tests` check must carry the number it exists to produce: pytest's
+    own counts, in whatever order pytest emits them. A suite that silently
+    collected 3 tests must not print the same line as 2340."""
+    assert verification._parse_number("tests", 0, "2340 passed in 132.6s") == {"passed": 2340}
+    assert verification._parse_number("tests", 0, "1 skipped, 2340 passed in 133.1s") == {
+        "passed": 2340, "skipped": 1}
+    assert verification._parse_number("tests", 0, "2300 passed, 40 failed in 120.5s") == {
+        "passed": 2300, "failed": 40}
+    assert verification._parse_number("tests", 0, "3 errors in 1.2s") == {"errors": 3}
+    assert verification._parse_number("tests", 0, "1 error in 0.5s") == {"errors": 1}
+
+
+def test_parse_number_tests_unparseable_is_empty_not_failure():
+    """A PASS with no parsed count must not fail the check — pass/fail comes
+    from the exit code — but it must be EMPTY so the summary says so rather
+    than printing an empty bracket."""
+    num = verification._parse_number("tests", 0, "Ran 2340 tests, all OK")
+    assert num == {}
+    # and _passed still judges tests purely on the exit code, count or no count
+    assert verification._passed("tests", 0, {"passed": 2340}) is True
+    assert verification._passed("tests", 0, {}) is True
+    assert verification._passed("tests", 1, {"passed": 2340}) is False
+
+
+def test_suite_pass_with_no_parsed_count_names_the_gap(monkeypatch, tmp_path):
+    """A green-but-unparseable suite must SAY the count was not parsed, not
+    print the same PASS line as a 2340-test run."""
+    class _Proc:
+        returncode = 0
+        stdout = "Ran everything, did not use pytest summary wording\n"
+        stderr = ""
+    table = {verification.SUITE_CMD: type("C", (), {"argv": ["true"], "cwd": None})()}
+    monkeypatch.setattr(verification.commands, "load", lambda groot: table)
+    monkeypatch.setattr(verification.subprocess, "run", lambda argv, **kw: _Proc())
+    r = verification.run_check(tmp_path, verification.SUITE_CMD, False)
+    assert r.status == "PASS"
+    assert r.number == {}
+    assert "NO count parsed" in r.note
+
+
+def test_json_carries_pytest_counts_and_roots(tmp_path):
+    results = [verification.CheckResult(
+        "tests", "PASS", 132.6, {"passed": 2340, "skipped": 1})]
+    doc = verification.render_json("rotation", True, results,
+                                   graph_root="/g/.agi", engine_root="/e")
+    assert doc["checks"][0]["number"] == {"passed": 2340, "skipped": 1}
+    assert doc["graph_root"] == "/g/.agi"
+    assert doc["engine_root"] == "/e"
+
+
+def test_summary_states_which_engine_and_graph_root(tmp_path):
+    """A report that does not say what it measured is a report you cannot
+    cite. The roots line must appear, always, not only when they differ."""
+    text = verification.render_summary("rotation", False,
+                                       [verification.CheckResult("links", "PASS", 1.0)],
+                                       graph_root="/g/.agi", engine_root="/e")
+    assert "roots: engine=/e, graph=/g/.agi" in text
+    # and absent roots (a bare unit call) do not crash
+    verification.render_summary("rotation", False, [])
+
+
+
 def test_links_pass_uses_the_count_not_the_exit_code():
     """links exits 0 even with broken links; the broken count is the fact."""
     assert verification._passed("links", 0, {"broken": 0}) is True

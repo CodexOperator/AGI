@@ -1954,3 +1954,51 @@ def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_pat
     assert code == 0
     assert called == [], "a plain read (no --pin) must not check spend at all"
     assert "should not appear" not in out
+
+
+def test_spawn_launch_carries_reaper_knob_for_plain_and_ultracode(monkeypatch, tmp_path, capsys):
+    """hypothesis:l4-spawn-paths-export-the-reaper-knob — the seat-launch
+    path must export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 in the
+    launched command's OWN environment (not inherited from the tmux session,
+    which is one restart from gone). Cover a plain kid AND an ultracode role;
+    ultracode keeps its existing CLAUDE_CODE_WORKFLOWS=1 gate FIRST."""
+    plain = _proj(tmp_path / "plain", ladder_roles=(
+        "  - role: kid\n"
+        "    harness: claude-code\n"
+        "    model: claude-sonnet-5\n"
+        "    effort: high\n"
+        "    tier: 1\n"
+    ))
+    prompt = plain / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: plain)
+    monkeypatch.chdir(plain)
+    exit_code = rotate.main([
+        "spawn", "--name", "plain-reaper", "--tier", "kid",
+        "--prompt-file", str(prompt), "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert out.startswith("export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1")
+
+    ultra = _proj(tmp_path / "ultra", ladder_roles=(
+        "  - role: prime_director\n"
+        "    harness: claude-code\n"
+        "    model: claude-fable-5-1\n"
+        "    effort: max\n"
+        "    settings: {ultracode: true}\n"
+        "    tier: 3\n"
+    ))
+    prompt2 = ultra / "prompt.md"
+    prompt2.write_text("You are {name}\n")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: ultra)
+    monkeypatch.chdir(ultra)
+    exit_code = rotate.main([
+        "spawn", "--name", "ultra-reaper", "--prompt-file", str(prompt2),
+        "--dry-run",
+    ])
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    # WORKFLOWS gate stays first; the reaper export still comes after &&:
+    assert out.startswith("export CLAUDE_CODE_WORKFLOWS=1")
+    assert "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 &&" in out

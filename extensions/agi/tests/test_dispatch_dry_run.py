@@ -347,3 +347,33 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
         loaded[name] = mod
     assert loaded["send"]._detect_sender(None) == aid
     assert loaded["write"]._default_actor() == aid
+
+
+def test_dry_run_exports_reaper_knob_for_kid_and_parent(project):
+    """hypothesis:l4-spawn-paths-export-the-reaper-knob — every spawn path
+    must export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 explicitly, and
+    the dry run must SHOW it (a check that costs a spawn is a check nobody
+    runs). Cover the pi harness (kid + parent) and the claude-code harness."""
+    for harness, tier in (("pi", "kid"), ("pi", "parent"),
+                          ("claude-code", "parent")):
+        r = _run(project, "--harness", harness, "--tier", tier,
+                 "--target", "hypothesis:x", "--dry-run")
+        assert r.returncode == 0, r.stderr
+        assert ("CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1" in r.stdout), (
+            f"{harness}/{tier} dry-run must export the reaper knob:\n{r.stdout}")
+        # the plain integer "1", never an inherited "0"
+        assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=0" not in r.stdout
+
+
+def test_dry_run_reaper_knob_overrides_an_inherited_zero(project):
+    """hypothesis:l4-spawn-paths-export-the-reaper-knob — the knob must be
+    set UNCONDITIONALLY, so an inherited "0" from the parent environment (a
+    stale pause, a manual export) is overridden to "1", never preserved —
+    a preserved "0" would silently re-arm the reaper."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run",
+             env={"CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "0"})
+    assert r.returncode == 0, r.stderr
+    assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1" in r.stdout, (
+        f"inherited 0 must be overridden to 1:\n{r.stdout}")
+    assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=0" not in r.stdout
