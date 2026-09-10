@@ -311,6 +311,50 @@ def test_legacy_env_spelling_still_read(tmp_path, monkeypatch):
     assert locations.project_root_from_env(tmp_path) == other
 
 
+def test_env_override_naming_repo_root_descends_into_dot_agi(tmp_path, monkeypatch):
+    """hypothesis:l4-env-root-override-descends-never-ascends — case (b).
+
+    `dispatch.py --branch` exports the WORKTREE REPO root into the variable.
+    That value names a directory holding `.agi/` with a config, so phase 0's
+    rule applies and it must resolve to `<val>/.agi` — this is the dispatched-
+    child sense that was previously unreadable.
+    """
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(repo))
+    assert locations.project_root_from_env(repo) == graph
+
+
+def test_env_override_naming_graph_root_is_unchanged(tmp_path, monkeypatch):
+    """hypothesis:l4-env-root-override-descends-never-ascends — case (c).
+
+    `driver.sh` and the session hook export the GRAPH root, already
+    `<repo>/.agi`. Naming a graph root must resolve to ITSELF — unchanged —
+    or the two working producers regress.
+    """
+    repo = tmp_path / "repo"
+    graph = make_graph_dir(repo)
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(graph))
+    assert locations.project_root_from_env(repo) == graph
+
+
+def test_env_override_never_ascends_to_an_ancestor(tmp_path, monkeypatch):
+    """hypothesis:l4-env-root-override-descends-never-ascends — case (d),
+    the never-ascend property asserted directly.
+
+    The override must not walk up. A directory that is neither a graph root
+    nor a repo root holding `.agi/`, but whose ANCESTOR holds a config, is
+    returned UNCHANGED — it must NOT resolve to that ancestor. An override
+    that could ascend would silently defeat the purpose of the env var (a
+    caller's explicit root is never overridden for a different project).
+    """
+    repo = tmp_path / "repo"
+    make_legacy(repo)  # the ancestor holds a config (legacy marker)
+    deep = repo / "src" / "deep" ; deep.mkdir(parents=True)
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(deep))
+    assert locations.project_root_from_env(repo) == deep
+
+
 # --- the two halves agree --------------------------------------------------
 
 
