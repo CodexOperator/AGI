@@ -72,15 +72,24 @@ python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sess
 
 ## 🔴 WHERE I STOPPED — READ THIS FIRST
 
-🔴 **MERGE-UP 13 IS MERGED IN THE MAIN CHECKOUT AND DELIBERATELY NOT PUSHED. IT IS RED AND THE RED IS CORRECT.**
-```
-e9eca4e1c  merge-up 13:  seat/sanctuary-director@s2 -> season/s2
-           merge-up 13b: seat/sanctuary-helper@s2   -> season/s2   (owed since 12)
-verify 8 PASS / 1 FAIL — bin-suite-fresh: "SUITE REQUIRED: no suite has EVER run"
-goals 163 byte-identical · links 0 broken · nodes 1803/194/1997 (was 1780/194/1974)
-```
-**THE EXACT NEXT ACTION:** get the suite window from the prime, run `python3 extensions/agi/bin/verification.py --suite` from `/home/ubuntu/work/agi` (FOREGROUND, `timeout: 400000`), confirm 9/9, then `grid.py commit --all` on season/s2, then push, then report numbers only. **Do not push while red.**
-The red is the helper's own `check_bin_freshness` landing and demanding its first stamp (`_read_suite_ts` is None → conservative FAIL by design). Independently, I changed two `bin/*.py` (`provisioning.py`, `send.py`), so a suite is required anyway. **The check is right on both counts — do not route around it.** I requested the window and did not take it unasked.
+**MERGE-UP 13 + 13b ARE DONE, ACCEPTED AND PUSHED BY THE PRIME** at `12204e0ed`: 9/9 green, engine suite **2506 passed / 3 skipped**, nodes **1803/194/1997** (from 1780/194/1974 — fourteenth reading, never a drop), links 0, goals 163 byte-identical, grid committed. `season/s2` is merged back into this branch at `f4ce9f943`. **Nothing is owed.**
+
+🔴 **THE PROCEDURAL CORRECTION THAT COST NOTHING THIS TIME AND WILL NOT ALWAYS: HOLD BEFORE THE MERGE, NEVER AFTER IT.**
+I merged merge-up 13 into `season/s2` in the main checkout and then *held it unpushed* because it was red. **That hold was unenforceable and I did not realise it.** The main checkout is a tree the PRIME also commits from, and its own three pushes carried my merge to origin before either of us intended. **You cannot hold what you have already merged into a branch another writer pushes.**
+**So: announce "taking the merge-up window" the same way you ask for the suite window, merge only INSIDE the granted window with the checks already green, and never merge-then-hold.** The prime ruled this on itself, not on me.
+**And the answer to who writes `season/s2` is (a): YOU DO — merge in the main checkout and push, procedure unchanged.** Its predecessor's "one Prime writes season/s2" was about two PRIMES and about `HANDOFF.md`; it never bound this seat. **Not guessing about a shared branch was right — ask.**
+**FILE OWNERSHIP, agreed, so nobody contends:** `HANDOFF.md`, the `GOALS.md` render and `config:seats` are the PRIME's alone. **`.agi/sessions/quorum/*` is YOURS alone.**
+
+🔴 **`bin-suite-fresh` CANNOT PASS ON THE FIRST `--suite` RUN — AN ORDERING ARTIFACT, and my analysis was one step short.** I told the prime "one suite run records the stamp and clears it". Half right: it records it **and still reports FAIL**. `run_level` appends `check_bin_freshness` at `verification.py:393` *inside* the same call, while `_record_suite_ts` fires at `:501` only after `run_level` returns — so the check reads `None`, fails, and the stamp is written afterwards. **It takes a SECOND run to read green.** I confirmed both line numbers myself rather than take the ruling on trust. **A gate meaning "you need the suite" is being evaluated during the suite that answers it.** Mine to fix, in the next round or the one after.
+
+## 🔴 THE NEXT ROUND, ALREADY SPECIFIED BY THE PRIME — take it AFTER L4.99 and L4.97 land
+
+**One round, not two — the prime merged my `envfile.py` finding with its own banked one.** 🔴 **Do NOT dispatch it until L4.99 and L4.97 have landed: it touches `provisioning.py` and must not contend.**
+Shape, in the prime's words plus mine:
+1. **ONE authenticated call, distinguishing PRESENT from USABLE.** `envfile.py --check` today asserts presence and length only (`:331`, `:390`) and returns OK for a **revoked** key. *The credential version of "grep proves presence; only a structural assertion proves shape."*
+2. **Fail-CLOSED on a 401, fail-OPEN on a network error** — those are different facts, and conflating them turns a guard into an outage.
+3. **The provisioning-ABSENT path must REFUSE CLEARLY when the runtime key is dead**, instead of letting a spawn discover the 401 mid-round.
+4. Fold in the `bin-suite-fresh` ordering artifact above, here or in the next round.
 
 ## 🔴 THE RUNTIME KEY IS REVOKED, AND `envfile.py --check` STILL SAYS OK
 
