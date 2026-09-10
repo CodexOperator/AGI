@@ -468,6 +468,43 @@ def _normalize_confidence(value: float) -> float:
         "not a percent either)")
 
 
+def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
+    """hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- the round's
+    ONE completion dm, sent with NO flag: the dispatcher was stamped into the
+    manifest at spawn (`dispatched_by`), and a round that finishes alarms
+    that seat exactly once. ids and numbers only -- iteration, agent, node id,
+    verdict. Absent dispatcher -> one stderr line, no crash. An undeliverable
+    dm is logged, never fatal to the round (this is called on the done: path,
+    whose job is to record the verdict)."""
+    dispatcher = None
+    try:
+        sroot = _session_root()
+        iter_dir = locations.iteration_dir(sroot, iter_n)
+        mpath = iter_dir / "manifest.json"
+        if not mpath.is_file():
+            return
+        manifest = json.loads(mpath.read_text())
+        row = next((a for a in manifest.get("agents", [])
+                    if a.get("id") == agent_id), None)
+        if row is None:
+            return
+        dispatcher = row.get("dispatched_by")
+        if not dispatcher:
+            print(f"warn: no dispatcher stamp for {agent_id}@{iter_n}; "
+                  "no completion dm (l4-a-round-alarms-its-dispatcher-)",
+                  file=sys.stderr)
+            return
+        import send as _send
+        _send.send(
+            root, dispatcher,
+            f"iter={iter_n} agent={agent_id} node={node_id or '-'} "
+            f"verdict={verdict}",
+            agent_id)
+    except Exception as exc:
+        print(f"warn: completion dm to {dispatcher or 'dispatcher'} failed: "
+              f"{exc}", file=sys.stderr)
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
@@ -675,6 +712,12 @@ def cmd_done(args: argparse.Namespace) -> int:
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
     _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict)
+
+    # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
+    # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
+    # no flag, right after the done: commit. Never fatal to the done path.
+    _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
+                              args.node_id, verdict)
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     return 0
