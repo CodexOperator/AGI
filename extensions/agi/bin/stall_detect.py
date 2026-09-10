@@ -35,6 +35,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -226,3 +227,55 @@ def note_stalled(rec_path, *, burst: bool = True) -> None:
     rec["status"] = "stalled"
     rec["stalled_at"] = int(time.time())
     rec_path.write_text(json.dumps(rec, indent=2), encoding="utf-8")
+
+def main(argv: list[str] | None = None) -> int:
+    """`stall_detect.py <iter-dir> [--record] [--threshold-min N]`
+
+    An operator surface for the state `dispatch.py`'s reaper already records.
+    It exists because the detection was done BY HAND twice in one loop before
+    this module was written, and a check nobody can run is a check nobody
+    runs.
+
+    READ-ONLY BY DEFAULT, which is the whole posture of this module. Without
+    `--record` it lists the agents that WOULD be stamped and writes nothing;
+    with `--record` it performs the same single stamp the reaper performs.
+    Either way nothing is killed, restarted or committed -- RECORD, DO NOT
+    REPAIR (the prime's ruling, hypothesis:l4-stalled-is-a-state-the-harness-
+    can-see).
+    """
+    import argparse
+
+    ap = argparse.ArgumentParser(description=(
+        "Detect parents stalled with their round finished: every kid "
+        "terminal, the dispatcher-side record still `running` with its mtime "
+        "unchanged since spawn, uncommitted work in the worktree, and older "
+        "than the threshold. Reports; does not repair."))
+    ap.add_argument("iter_dir", help="an iteration dir, e.g. .agi/sessions/iter-L4.78")
+    ap.add_argument("--record", action="store_true",
+                    help="stamp `status: stalled` on the records (default: report only)")
+    ap.add_argument("--threshold-min", type=int, default=STALL_THRESHOLD_S // 60,
+                    help="minutes before a merely slow parent counts as stalled")
+    args = ap.parse_args(argv)
+
+    itdir = Path(args.iter_dir)
+    if not itdir.is_dir():
+        print(f"ERR: no such iteration dir: {itdir}", file=sys.stderr)
+        return 1
+    threshold_s = max(0, args.threshold_min) * 60
+    if args.record:
+        stamped = record_stalled_in_iteration(itdir, threshold_s=threshold_s)
+        for aid in stamped:
+            print(f"stalled (recorded): {aid}")
+        if not stamped:
+            print("no stalled agents")
+        return 0
+    found = list(scan_iteration(itdir, threshold_s=threshold_s))
+    for aid in found:
+        print(f"stalled (would record): {aid}")
+    if not found:
+        print("no stalled agents")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
