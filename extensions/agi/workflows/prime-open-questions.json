@@ -1,0 +1,32 @@
+{
+  "name": "prime-open-questions",
+  "script": "agi-prime-open-questions.js",
+  "description": "Registered from inline script prime-l4v-open-questions-wf_438cab15-b16.js (originally run from /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f3b92df1-2401-4a05-ae82-7265c6324cc9/subagents/workflows/wf_438cab15-b16) \u2014 stages derived from the script, prompts TODO",
+  "stages": [
+    {
+      "label": "refute",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'refute' from the script's agent brief>",
+      "repeat": {
+        "of": "<TODO: the --args list key, e.g. briefs or targets>",
+        "label_template": "refute:{key}"
+      }
+    },
+    {
+      "label": "commit-guard-inert",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'commit-guard-inert' from the script's agent brief>"
+    },
+    {
+      "label": "seat-branch-ahead-4",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'seat-branch-ahead-4' from the script's agent brief>"
+    },
+    {
+      "label": "suite-lock-placement",
+      "role": "kid",
+      "prompt": "<TODO: author the stage prompt for stage 'suite-lock-placement' from the script's agent brief>"
+    }
+  ],
+  "_from_run": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f3b92df1-2401-4a05-ae82-7265c6324cc9/subagents/workflows/wf_438cab15-b16"
+}
