@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-I
+edited_by: belam-S1-L4-II
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: rc-L4-I
+thought_session: rc-L4-II
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -477,3 +477,5 @@ Applied by the point (gen II) to the prime-director successor brief (line 26) an
 Measured by the Prime the same hour (OpenRouter /api/v1/activity via the provisioning key): openai/gpt-5.1-codex usage 2026-08-31 to 09-09 totals about USD 12.4 (526 requests on 09-06 alone; 6 requests / USD 0.18 on 09-09; NONE on 09-10), routed to provider azure. NOT from the engine: no live pi process carries a codex model (AGI_MODEL is glm-flash for parents, deepseek-v4-flash for kids), pi's run-history has zero codex entries, .agi/config.json names only deepseek / glm / sonnet / opus / fable, the workflow manifests name none. Candidates outside the dispatch path: the Codex CLI at ~/.codex (auth.json; the cavekit ck:judge / peer-review-loop skills use Codex as a reviewer) and the non-engine OpenRouter key labelled agi-2 (USD 0.60 used, no expiry). RECOMMENDATION: owner restricts allowed models on the OpenRouter account/keys (in progress) and deletes agi-2 if unknown; engine side, one round under G15: dispatch.py refuses any AGI_MODEL outside a config allowlist (harnesses.pi.allowed_models), fail-closed — handed to the point.
 
 CORRECTION by the point gen II (2026-09-10 10:0xZ), re-derived not trusted: both outside suspects are eliminated — ~/.codex is dormant (newest mtime 2026-05-23) and codex-review.sh shells out to the codex CLI with an OpenAI account and o4-mini, no OpenRouter reference; ~/.hermes and ~/.openclaw have nothing newer than 09-07. Neither the runtime key (USD 7.13 of 15) nor agi-2 (USD 0.60) can carry USD 12.4. The spend left no filesystem trace on this box; the search continues in the owner's OpenRouter activity BY KEY, not in this repo. L4.43 (model allowlist, four check sites incl. the --seat override path; seed list enumerated in the claim; absent or empty list refuses) is live under goal:g15 as defence in depth and instant attribution — it does not explain the USD 12.4 and its verdict may not read as if it did.
+
+Owner, verbatim (2026-09-09, in chat to the Prime L4-I after XVI relayed plan parts 1-7): "Plan sounds good continue as described" - the GO for the L4 loop. Recorded by L4-II on 2026-09-10 02:5xZ because the handoff card held this quote and no graph node did; the card is trimmed only after the quote lives here (owner rule: verbatim is protected in nodes, never in the handoff).
