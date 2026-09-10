@@ -727,3 +727,173 @@ def test_l4_passes_when_no_provisioning_key_is_configured(monkeypatch):
     ok, msg = provisioning.check_key_floor({})
     assert ok is True and msg is None
 
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-an-estimate-wearing-a-measurements-clothes — the capture/diff
+# instrument. The whole falsifier is about the TOOL: a capture must record the
+# account AND every key, a diff must show a non-zero change, and an unreadable
+# reading must render UNKNOWN, never zero. READ-ONLY — the capture path never
+# mints, revokes or modifies; the floor functions and the `live` marker/ROOT
+# are untouched here.
+# --------------------------------------------------------------------------
+
+
+# The REAL shape `provisioning.py status` reads: account credits + every key's
+# limit/usage from the listing + the runtime key's own limit/usage.
+CAP_KEYS = [
+    {"name": "backup", "hash": "h-backup", "limit": 15.0, "usage": 11.4236},
+    {"name": "agi-2", "hash": "h-agi2", "limit": 30.0, "usage": 0.5969},
+    {"name": "agi", "hash": "h-agi", "limit": 40.0, "usage": 10.9225},
+]
+
+
+def _install_capture_api(monkeypatch, *, account=(87.0, 5.0), keys=CAP_KEYS,
+                         runtime=(40.0, 10.9225),
+                         fail_credits=False, fail_listing=False):
+    """Stub the live API behind `capture` the way `status` sees it: the
+    /credits endpoint, the workspace+keys listing, and the /key endpoint."""
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_read_runtime_key",
+                        lambda root=None: "sk-runtime")
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        if provisioning.CREDITS_BASE in url:
+            if fail_credits:
+                raise provisioning.ProvisioningError("network down: TimeoutError")
+            total, used = account
+            return 200, {"data": {"total_credits": total, "total_usage": used}}
+        if url.startswith(provisioning.WORKSPACES_BASE):
+            return 200, {"data": [{"id": "ws-d"}]}
+        if "workspace_id" in url:
+            if fail_listing:
+                raise provisioning.ProvisioningError("network down: TimeoutError")
+            return 200, {"data": list(keys)}
+        if url == provisioning.RUNTIME_KEY_BASE:
+            if runtime is None:
+                return 200, {"data": {"label": "none", "limit": None, "usage": None}}
+            limit, used = runtime
+            return 200, {"data": {"label": "agi", "limit": limit, "usage": used}}
+        return 200, {"data": []}
+
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+
+
+def test_capture_records_the_account_and_every_key(monkeypatch):
+    """(b) — a capture built from the REAL `status` shape records all three
+    keys' limit/usage AND the account total. The names are the live ones the
+    prime measured: backup, agi-2, agi."""
+    _install_capture_api(monkeypatch)
+    cap = provisioning.capture()
+    assert cap["account"]["total"] == 87.0
+    assert cap["account"]["used"] == 5.0
+    by_name = {k["name"]: k for k in cap["keys"]}
+    assert set(by_name) == {"backup", "agi-2", "agi"}, \
+        "capture must record every visible key, not just engine-minted ones"
+    assert by_name["backup"]["usage"] == 11.4236
+    assert by_name["backup"]["limit"] == 15.0
+    assert by_name["agi-2"]["usage"] == 0.5969
+    assert by_name["agi"]["usage"] == 10.9225
+    assert cap["runtime"]["usage"] == 10.9225
+
+
+def test_control_two_identical_captures_report_four_zero_deltas(monkeypatch):
+    """(a) — the CONTROL. Two captures with nothing in between must report
+    zero deltas for every reading. A tool that cannot report zero cannot be
+    trusted to report a number.
+
+    🔴 `account.used` IS ASSERTED BY NAME, and the count is five rather than
+    four, because the first version of this test asserted the defect. It
+    demanded exactly `account.total` + three keys, and `diff_capture`'s filter
+    obligingly dropped `account.used` — the ONLY number on this account ever
+    observed to move (the prime watched it go 87.048 -> 87.466 -> 87.798
+    across nine dispatched rounds while all three key usages stayed
+    byte-identical; `account.total` is the $92 LIMIT and is constant). So the
+    instrument built to end an argument about spend was blind to the one
+    reading in the argument, and a green test said so. Found by running the
+    tool against the live account, not by the suite.
+
+    The count is kept as an assertion rather than relaxed, because "every
+    reading is present" is the property; naming `account.used` explicitly is
+    what stops the count being satisfied by the wrong five.
+    """
+    _install_capture_api(monkeypatch)
+    c1 = provisioning.capture()
+    c2 = provisioning.capture()  # same stable API → nothing changed
+    rows = dict((l, (o, n)) for l, o, n in provisioning.diff_capture(c1, c2))
+    assert "account.used" in rows, (
+        "the account's USED figure is the only number ever seen to move; a "
+        "diff without it cannot answer the question this tool exists for")
+    assert len(rows) == 5, (
+        f"expected account.total + account.used + 3 keys = 5 rows, "
+        f"got {sorted(rows)}")
+    for label, (old, new) in rows.items():
+        assert old == new, f"{label} moved despite nothing happening: {old} -> {new}"
+
+
+def test_diff_reports_a_non_zero_change_against_a_synthetic_capture(monkeypatch):
+    """(c) — the delta mode is not a frozen portrait: a change between two
+    captures surfaces as a non-zero delta on the exact reading that moved."""
+    _install_capture_api(monkeypatch)
+    saved = provisioning.capture()
+    # bill a little spend: account down, backup and agi use more; agi-2 still
+    _install_capture_api(monkeypatch, account=(86.5, 5.5),
+                         keys=[
+                             {"name": "backup", "hash": "h-backup",
+                              "limit": 15.0, "usage": 11.8236},
+                             {"name": "agi-2", "hash": "h-agi2",
+                              "limit": 30.0, "usage": 0.5969},
+                             {"name": "agi", "hash": "h-agi",
+                              "limit": 40.0, "usage": 10.9225}])
+    now = provisioning.capture()
+    rows = dict((l, (o, n)) for l, o, n in provisioning.diff_capture(saved, now))
+    assert rows["account.total"] == (87.0, 86.5), "account total must move by -0.5"
+    assert rows["key:backup.usage"] == (11.4236, 11.8236)
+    assert rows["key:agi-2.usage"] == (0.5969, 0.5969), "unchanged key stays 0"
+    assert rows["key:agi.usage"] == (10.9225, 10.9225)
+
+
+def test_diff_renders_an_unreadable_reading_as_unknown_never_zero(tmp_path, capsys, monkeypatch):
+    """(d) — a missing reading must NEVER render as zero, because "nothing was
+    spent" is the exact fabricator that produced this hypothesis. Here the
+    /credits read fails; the diff must say UNKNOWN for the account line, not
+    $0.0000."""
+    saved = {"captured_at": "2026-09-10T00:00:00+00:00",
+             "account": {"total": 87.0, "used": 5.0},
+             "keys": list(CAP_KEYS), "runtime": None}
+    cap_file = tmp_path / "cap.json"
+    cap_file.write_text(json.dumps(saved))
+
+    def boom(root=None):
+        raise provisioning.ProvisioningError("network down: TimeoutError")
+
+    _install_capture_api(monkeypatch, fail_credits=True)
+    monkeypatch.setattr(provisioning, "credit_balance", boom)
+    code = provisioning.main(["diff", "--prev", str(cap_file),
+                              "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "UNKNOWN" in out, "an unreadable reading must be named UNKNOWN"
+    assert "Δ $0.0000" not in out, \
+        "a missing reading must never render as a zero delta"
+    assert "account.total" in out
+
+
+def test_capture_writes_a_file_and_diff_reads_it_back(tmp_path, monkeypatch, capsys):
+    """The CLI round-trip: capture writes one file, diff reads it and returns
+    zero deltas when nothing moved. Read-only — nothing minted or revoked."""
+    _install_capture_api(monkeypatch)
+    cap_file = tmp_path / "spend" / "c.json"
+    # two captures with nothing between → control holds at the CLI level too
+    assert provisioning.main(["capture", "--out", str(cap_file),
+                              "--root", str(tmp_path)]) == 0
+    provisioning.main(["capture", "--out", str(cap_file),
+                       "--root", str(tmp_path)])
+    assert cap_file.is_file()
+    assert provisioning.main(["diff", "--prev", str(cap_file),
+                              "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "Δ $+0.0000" in out or "Δ $-0.0000" in out or "Δ $0.0000" in out, \
+        "control: a stable shape must print zero deltas"
+
+
