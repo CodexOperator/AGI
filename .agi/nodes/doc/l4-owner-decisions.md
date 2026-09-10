@@ -489,3 +489,5 @@ Owner, verbatim (2026-09-10 05:0xZ, in chat to the Prime L4-II): "Tell both dire
 Owner, verbatim (2026-09-10 05:0xZ, immediately after the previous order): "That's a new standing order for all directors under the prime in survival mode" - scope fixed: STANDING, every director under the Prime while survival mode is in force, not a one-off to the current point and helper.
 
 Owner, verbatim (2026-09-10 05:1xZ, in chat to the Prime L4-II): "Next rotation use opus on max for prime successor" - applied: belam-S1-L4-III is spawned with --model claude-opus-5 --effort max; the config:seats belam row stays claude-fable-5-1 (the order names the next rotation; whether the row changes permanently is banked for the owner, recommendation: keep the row, pass the model per rotation).
+
+Owner, verbatim (2026-09-10 05:1xZ, in chat to the Prime L4-II): "Make opus standing for prime at this point" - applied: config:seats belam row model claude-opus-5, effort max, standing; the banked row-model question is closed.
