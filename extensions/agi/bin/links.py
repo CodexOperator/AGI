@@ -400,6 +400,24 @@ def _schema_report(root, fix: bool = False) -> int:
     return 0
 
 
+def parse_written_by(wb):
+    """The admitted-writers set a `written_by` schema value denotes.
+
+    The ONE parse for the field, shared by the report (`_roles_report`'s
+    `_admitted`) and the write enforcer (`write.py._enforce_written_by`), so
+    the two can never disagree about what the field may hold
+    (hypothesis:l4-written-by-message-and-shape). Accepts a comma/space
+    separated str, a list, or None. Returns None when the field is absent
+    (undeclared) so a caller can tell "gates nothing" from "has writers".
+    Passes through to `links.py roles` semantics unchanged.
+    """
+    if wb is None:
+        return None
+    if isinstance(wb, str):
+        return {v for v in wb.replace(",", " ").split() if v}
+    return set(wb)
+
+
 def _roles_report(root) -> int:
     """Report the writer-coverage GAP and the violations, dry by default.
 
@@ -433,12 +451,7 @@ def _roles_report(root) -> int:
         s = reg.get(node_writer.canonical_node_type(ntype))
         if s is None:
             return None
-        wb = (s.frontmatter or {}).get("written_by")
-        if wb is None:
-            return None
-        if isinstance(wb, str):
-            return {v for v in wb.replace(",", " ").split() if v}
-        return set(wb)
+        return parse_written_by((s.frontmatter or {}).get("written_by"))
 
     # type -> {admitted, count, nodes:[(node_id, writer or None)]}
     census: dict[str, dict] = {}

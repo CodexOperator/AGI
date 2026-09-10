@@ -565,11 +565,20 @@ def test_create_moral_without_owner_is_refused(project):
     """🔴 RED FIRST: moral node creation without --actor owner must raise EditError.
 
     goal:g12 — the five moral nodes are hand-edited only by the owner.
+    THE ONE assertion this round is allowed to retarget (L4.40): the refusal
+    message no longer contains the phrase `owner only`, so this now asserts
+    the NEW message and it asserts MORE — that it names the node TYPE
+    (`moral`) and the admitted writer (`owner`), and that the old catch-all
+    phrase is gone rather than loosened to `match=""`.
     """
     _moral_schema(project)
-    with pytest.raises(write.EditError, match="owner only"):
+    with pytest.raises(write.EditError, match="moral") as ei:
         write.create(project, "moral", "faith", [],
                      actor="director", bypass=True)
+    msg = str(ei.value)
+    assert "moral" in msg        # the refusal names the node TYPE
+    assert "owner" in msg        # and the admitted writer
+    assert "owner only" not in msg
     assert not (project / "nodes" / "moral" / "faith.md").exists()
 
 
@@ -613,6 +622,86 @@ def test_submit_non_moral_without_owner_still_works(project):
     # This should work even with a non-owner actor
     res = write.submit(project, e, actor="director")
     assert res.status == node_writer.UPDATED
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-written-by-message-and-shape — the refusal message must name
+# the node TYPE and its admitted writers, and `written_by` admits a LIST and
+# a comma-separated string, matching links.py's report parse.
+# --------------------------------------------------------------------------
+
+def _written_by_schema(project, ntype, written_by):
+    """Fixture schema for an arbitrary type declaring `written_by`."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"[{ntype}].md").write_text(
+        "---\nname: %s\nwritten_by: %s\n"
+        "spawn:\n  allowed_parents: []\n  min_parents: 0\n  max_parents: 0\n"
+        "validation:\n  required: [id, type, title]\n---\n\nbody\n"
+        % (ntype, written_by))
+
+
+def _typed_node(project, ntype, slug, node_id):
+    (project / "nodes" / ntype).mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / ntype / f"{slug}.md").write_text(
+        '---\nid: "%s"\ntype: %s\nmint_id: tst001\ntitle: "T"\n---\n\nbody\n'
+        % (node_id, ntype))
+
+
+def test_refusal_message_names_the_types_own_schema_and_its_writers(project):
+    """(1) A non-moral type's schema `written_by` refuses with a message that
+    names THAT type (not `moral`) and the writers it admits."""
+    _written_by_schema(project, "variorum", "scribe")
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "variorum", "v1", [],
+                     actor="director", bypass=True)
+    msg = str(ei.value)
+    assert "variorum" in msg      # names the node type being refused
+    assert "scribe" in msg        # names the admitted writer
+    assert "moral" not in msg     # not the moral catch-all
+    assert not (project / "nodes" / "variorum" / "foobar.md").exists()
+
+
+def test_list_written_by_admits_every_listed_writer(project):
+    """(2) A list-valued `written_by` admits EVERY listed writer."""
+    _written_by_schema(project, "variorum", "[scribe, corrector]")
+    # both listed writers admitted
+    write.create(project, "variorum", "foobar", [],
+                 actor="scribe", bypass=True)
+    write.create(project, "variorum", "baz", [],
+                 actor="corrector", bypass=True)
+    # an unlisted writer refused
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "variorum", "hawk", [],
+                     actor="hawk", bypass=True)
+    msg = str(ei.value)
+    assert "variorum" in msg
+    assert "scrib" in msg and "corrector" in msg
+    assert not (project / "nodes" / "variorum" / "hawk.md").exists()
+
+
+def test_comma_string_parses_same_as_list(project):
+    """(3) A comma-separated string admits the same writers as the list form.
+
+    The enforcer parses both identically (shared helper with `links.py`), so
+    a scalar string and a list never disagree about membership.
+    """
+    from links import parse_written_by
+    assert parse_written_by("scribe, corrector") == \
+        parse_written_by(["scribe", "corrector"])
+    assert parse_written_by("scribe,  corrector") == {"scribe", "corrector"}
+    assert parse_written_by("scribe,corrector") == {"scribe", "corrector"}
+    assert parse_written_by(None) is None
+    assert parse_written_by("") == set()
+
+    # and through the gate: a comma-string schema admits its writers
+    _written_by_schema(project, "variorum", "scribe, corrector")
+    write.create(project, "variorum", "foobar", [],
+                 actor="scribe", bypass=True)
+    with pytest.raises(write.EditError):
+        write.create(project, "variorum", "hawk", [],
+                     actor="henry", bypass=True)
+
 
 
 # --------------------------------------------------------------------------
