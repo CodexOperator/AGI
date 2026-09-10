@@ -41,6 +41,18 @@ from pathlib import Path
 
 import locations  # NOQA: E402
 
+#: THE ONE definition of a terminal agent status (hypothesis:l4-one-definition-
+#: of-terminal). `done-unreported` is what the reaper writes when a round
+#: landed and only the report was lost -- the most common ending for a
+#: `--branch` parent, and behaviourally terminal. It used to be omitted and
+#: `dispatch.py` and `heal.py` only survived the omission on a second guard
+#: (`if status != "running": continue`). This lives here because every reader
+#: already imports `spawn_budget` (`dispatch.py`, `cli.py`) or imports a module
+#: that does (`heal.py` -> dispatch), and `spawn_budget` imports only
+#: `locations`, so nothing can cycle. Every reader imports THIS set; none
+#: re-declares it.
+TERMINAL = {"done", "done-unreported", "pending", "hung-healed", "failed"}
+
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 
@@ -304,6 +316,27 @@ def _revoke_all(root: Path, hashes: list[str]) -> None:
             provisioning.revoke(key_hash, root)
         except Exception:
             pass
+
+
+def live_iteration_ids(root: Path) -> set:
+    """Iteration ids with at least one live lease, READ-ONLY -- no sweep, no
+    revoke, no lock file.
+
+    `live_agents` reclaims dead leases (an unlink under the lock), which is
+    the right behaviour for a spawner but the wrong one for a reader that must
+    itself touch nothing -- the session-complete migration's `--dry-run`
+    proves it writes nothing, so its liveness signal has to be a read. A lease
+    is live while the process it names is (per `_lease_is_live`); a lease that
+    is mid-write here is, at worst, momentarily stale, which a migration gate
+    tolerates (the iteration's agent records must be terminal too).
+    """
+    live: set = set()
+    for _path, rec in _read_leases(root):
+        if _lease_is_live(rec):
+            it = rec.get("iter")
+            if it is not None:
+                live.add(it)
+    return live
 
 
 def live_agents(root: Path) -> list[dict]:

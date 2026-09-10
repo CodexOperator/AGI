@@ -1,0 +1,173 @@
+---
+id: experiment:a00-495f2b7d-0d1529
+mint_id: 25e31f9e269643fca9b2eb6beacc0e05
+type: experiment
+parents:
+  - hypothesis:l4-session-dirs-come-home-when-the-round-is-done
+next_edges: []
+confidence: 0.85
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-495f2b7d-0d1529
+loop: hypothesis:l4-session-dirs-come-home-when-the-round-is-done@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 1d2b30ea32297f34
+season: 2
+thought_session: sanctuary-director-genIV-L4
+title: cli session-complete brings stranded session dirs home
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-495f2b7d-0d1529
+
+## Experiment
+
+Closed the OTHER-HALF case of `hypothesis:l4-session-dirs-come-home-when-the-
+round-is-done`: built and proved the SESSION-COMPLETE migration that brings a
+finished round's session dir home from its worktree into the main checkout.
+
+**(a) The gap is real, verified first in one command** (required before any
+build — the brief's stop-condition):
+
+```
+$ ls /home/ubuntu/work/agi/.agi/sessions/ | grep iter-L4.6
+   (empty — main checkout has NONE)
+$ ls /home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director/.agi/sessions/ | grep iter-L4.6
+iter-L4.60 iter-L4.61 iter-L4.62 iter-L4.63 iter-L4.64 iter-L4.65 iter-L4.66
+```
+
+`sessions/` is gitignored, so a merge-up carries none of it; every round's
+`manifest.json` / `agent.json` / `output.log` / `context.md` sat stranded in
+the per-agent worktree while the main checkout had no `iter-L4.6x` dir at
+all. The migration problem is real, not invented. (The main checkout's session
+dir holds only `L1-*`/`L2-*`/`L3-*` legacy rounds — nothing L4.)
+
+**The command: `cli.py session-complete <iter_n> [--worktree <slug>] [--dry-run]`**
+
+A named, explicitly-invoked subcommand added to the existing `cli.py` entry
+point (never a side effect, never on a timer), and declared in
+`command:commands` (`.geometry/commands.md`, workflow `read`) so a cold session
+is handed it. The three prime constraints hold together in ONE design, by
+number:
+
+1. **The iter dir belongs to the worktree that RAN the round.** `session-complete`
+   only ever RUNS on a round that is already finished; during the round it is
+   refused, so resolution never changes mid-round. It scans
+   `<main-graph>/worktrees/*/.agi/sessions/<iter-dir>` for candidate sources.
+2. **Shared state stays in MAIN and is untouched.** Only `sessions/iter-<id>`
+   dirs move. The spawn budget is consulted READ-ONLY (new `spawn_budget.
+   live_iteration_ids` — no sweep, no revoke, no lock file) purely as a
+   liveness signal; budget/comms/meter-pin dirs are not part of what moves.
+3. **A SESSION-COMPLETE step migrates the worktree's dirs into main**, and it is
+   THIS command, built COPY-THEN-VERIFY (never move): copy, byte-compare, and
+   only then remove the source — with `--dry-run` as the default testing
+   posture.
+
+**Completeness is defined and enforced by TWO independent refusals**, both of
+which must pass before anything moves:
+
+- **(i) no live lease** — `spawn_budget.live_iteration_ids(main)` names this
+  iteration (a lease is live while the process it names is); and
+- **(ii) every agent record terminal** — `_iteration_agents_complete` reads the
+  source manifest's `agents`, then each `agent.json` where present, and refuses
+  unless every status is in `{done, pending, hung-healed, failed}` (the same
+  `TERMINAL` set the reaper uses). A missing/empty manifest is NOT complete.
+
+**Copy-then-verify, never move:** `shutil.copytree` into `main/sessions/
+<iter-dir>`, then `_trees_match` asserts a symmetric byte-for-byte file set
+(both directions — no truncated file, no extra accepted intermediate), and
+only a passing compare is followed by `rmtree` of the source. A failed copy or
+failed verify removes the partial destination and leaves the SOURCE intact.
+
+**Never runs against the live tree:** built and proven on fixtures; the real
+tree is touched only by `--dry-run`. A target that already exists in main is
+REFUSED (never clobbers newer state).
+
+## Evidence
+
+**(a)** Pasted above; the gap is real.
+
+**(b) `--dry-run` writes nothing — asserted on a filesystem snapshot, not the
+absence of an error.** Fixture `test_dry_run_writes_nothing` snapshots every
+file under the synthetic main graph, runs dry-run, re-snapshots, and asserts
+the two are byte-identical; it also asserts the output says `WOULD migrate` and
+no `REFUSE`. On the REAL tree, three dry-runs (L4.60, L4.66, L9.99) left the
+`.spawn-budget` listing and every lease-file mtime byte-identical before/
+after, and materialized no `iter-L4.6x` dir in main.
+
+**(c) A COMPLETE iteration migrates and its bytes match after** —
+`test_complete_iteration_migrates_and_bytes_match`: full fixture round
+migrates rc 0, main holds the iter dir, source worktree dir is gone, and
+`_snapshot(target) == _snapshot(source-before)`.
+
+**(d) An INCOMPLETE iteration is REFUSED, not partially moved** —
+`test_incomplete_iteration_agent_records_are_refused` (one `running` record
+→ rc != 0, source intact, no target) and `test_live_lease_iteration_is_refused`
+(a live lease names the iteration even though records look terminal → refused).
+
+**(e) Source removed only after the copy verifies; a failed verify leaves BOTH
+sides intact** — `test_failed_verify_leaves_both_sides_intact`: monkeypatches
+`_trees_match` to False, asserts rc != 0, source still present and
+byte-identical, partial destination absent.
+
+**(f) Mandated files GREEN, count pasted:**
+
+```
+$ python3 -m pytest extensions/agi/tests/test_cli.py \
+    extensions/agi/tests/test_dispatch.py \
+    extensions/agi/tests/test_locations.py \
+    extensions/agi/tests/test_shared_state_worktree.py -q
+189 passed in 9.28s      (189 pre-change + 0 regressions)
+
++ extensions/agi/tests/test_session_complete.py  (7 new)
+196 passed total
+```
+
+**(g)** `commands.py` resolves the new command (`show session-complete` prints
+the argv) and `links.py` reports 0 broken links after the `command:commands`
+edit. The full `verify` workflow (smoke + whole suite + grid-commit) was
+NOT run: the brief's hard ceiling says "DO NOT run the full suite," and
+running it end-to-end would both run everything and fire a grid-commit.
+
+**Live-tree dry-run output (permits nothing to move, proves the refusals):**
+
+```
+$ cli.py session-complete L4.60 --dry-run
+session-complete: REFUSE .../worktrees/seat-sanctuary-director/.agi/sessions/iter-L4.60 -- not every agent record is terminal; round still running
+$ cli.py session-complete L4.66 --dry-run
+session-complete: REFUSE .../worktrees/a00-f292481d/.agi/sessions/iter-L4.66 -- a live lease is active for iteration L4.66; round still running
+session-complete: REFUSE .../worktrees/seat-sanctuary-director/.agi/sessions/iter-L4.66 -- a live lease is active for iteration L4.66; round still running
+$ cli.py session-complete L9.99 --dry-run
+session-complete: no worktree holds an iter-L9.99 iter dir to migrate (scanned .../worktrees)
+```
+
+Every L4.6x round on the box right now is either still live (L4.66), an
+aborted parent round left non-terminal (L4.65 `running`), or an empty dir
+(L4.60-64, no manifest) — so the guard correctly refuses all of them and the
+real-tree proof is exactly that the refusals fire and nothing moves. The
+"complete migrates home" path is carried by the fixtures.
+
+**Not superseded (both stay, per the brief):** `_sibling_session_lookup` and
+the reaper's commit-based completion check are untouched — dirs stay stranded
+through the whole window between a round finishing and `session-complete`
+running, and during that window those two are what make the system work.
+
+## Agent Notes
+Built and fixture-proved cli.py session-complete: COPY-THEN-VERIFY migration of a finished round sessions/iter-id from a linked worktree into main. Gap proven real (main has no iter-L4.6x; seat has 60-66). Two independent refusals gate the move (no live budget lease AND every agent record terminal); --dry-run writes nothing (filesystem-snapshot proven); source removed only after byte-match, failed verify leaves both sides. 7 new fixture tests; 4 mandated files 189 passed, 196 total; command declared in command:commands. Real-tree dry-run refuses all L4.6x (live/aborted/empty) and touches nothing.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review L4.66: verified the artifact directly, not the report. (a) re-ran the gap check myself: main/.agi/sessions has iter-L4.02..L4.59 but NO iter-L4.6x, seat tree has 60-66 — gap real, stop-condition correctly not triggered. (b) ran the live-tree dry-run myself: both L4.66 sources REFUSED on live lease, rc 0, nothing materialized. (c-e) ran test_session_complete.py: 7 passed. (f) re-ran the four mandated files plus the new file: 196 passed in 9.05s. links.py: 0 broken. All three prime constraints hold in the design as claimed; _sibling_session_lookup and the reaper completion check untouched. Kept the kid's inconclusive_lean_proved:85 rather than promoting: the complete-migration path is proven on fixtures only (correctly, per the no-live-tree rule), and (g) full verify was skipped per the brief ceiling — so the claim is well-evidenced but the end-to-end live proof awaits the first real invocation on a finished round.
+<!-- THOUGHT:END -->
+
+Parent review: independently reproduced (a), (b), (f) — gap real, dry-run safe, 196 tests green, 0 broken links. Verdict inconclusive_lean_proved:85 accepted; fixtures-only live proof is the reason it is not proved.
+
+DIRECTOR REVIEW, sanctuary-director, on merge. VERDICT `inconclusive_lean_proved:85` STANDS -- the design is right, the seven refusals are the round rather than the feature, and copy-then-verify is correctly ordered in the bytes (copy; on copy failure remove the target; on verify failure remove the target; remove the source ONLY after `_trees_match`). Declaring `--dry-run` inside the `command:commands` argv so the declared command is the safe one is a good instinct nobody asked for.
+
+TWO DEFECTS FOUND BY RUNNING IT AGAINST THE LIVE TREE IN DRY-RUN -- the one live check its own brief allowed -- and fixed by me on merge rather than filed. Both made the command a NO-OP, which is the one outcome its tests could not catch, because both depend on what the real tree looks like:
+  (1) `TERMINAL_STATUSES` omitted `done-unreported`. That is what the reaper writes when a round landed and only the report was lost -- the most common ending for a `--branch` parent, and the recorded status of ALL THREE of this seat's earlier rounds. `session-complete L4.56 --dry-run` answered "not every agent record is terminal; round still running" about a round finished hours before. `dispatch.py:1738` carries the same four-name set and survives it only by accident: its reaper loop's second guard (`if status != "running": continue`) skips the status the set forgot. Copying the set without the guard inherited a refusal.
+  (2) The collision guard was `target.exists()`, and `dispatch.py` PRE-CREATES `sessions/iter-<id>/` in the main checkout for every round. Measured: iter-L4.56, .57, .58, .65 and .66 all present in main with ZERO entries. So the guard refused every round ever dispatched. Now an EMPTY placeholder is not a collision and anything with content still refuses; the placeholder is cleared with `rmdir`, which refuses a non-empty directory, rather than `copytree(dirs_exist_ok=True)` -- so loosening the guard later cannot silently become a merge.
+Two tests added, both built from the real artefacts named above.
+
+ONE GAP LEFT OPEN DELIBERATELY, because fixing it blind would be worse than naming it: a round's session data is SPLIT across two trees -- the dispatcher's (manifest, the parent's agent.json, output.log) and the child's (context.md, the parent's own hand-written record) -- and both migrate to the SAME target. Live dry-run for L4.56 shows both as `WOULD migrate`. Whichever runs first lands; the second then meets a non-empty target and refuses. Nothing is lost and nothing is overwritten, so the safety property holds, but the result is half a round in main and half left in a worktree. The honest fix is a MERGE of complementary subtrees under the same copy-then-verify discipline, not a whole-directory copy, and that is a design change rather than a follow-up. NEXT ROUND, not this one.
