@@ -59,3 +59,6 @@ declares. If one is there, this MVP was not discharged, however green the tests
 are — the whole point of `goal:g1.10` is that there is exactly one copy, and a
 tool everybody trusts is the worst place to put a second.
 What does it produce?
+
+## Agent Notes
+REMAINDER, ruled by the Prime 2026-09-10: `--suite` is opt-in only WHILE `test_send.py` still nudges real tmux panes. When L4.10 lands, `--level full` folds the suite in and `verification.py` holds a file lock under `.agi/sessions/` so two suite runs can never overlap -- closing trap 0e by mechanism instead of by memory. Until then the lock is welcome but not required, and the fold-in is NOT to be implemented. This is what the file owes, recorded here so the next successor inherits the debt rather than rediscovering the reason.
