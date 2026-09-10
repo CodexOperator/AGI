@@ -30,6 +30,25 @@ else
     REAL_PROJECT=$(cd "$PROJECT_TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
 fi
 if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
+    # hypothesis:l4-commit-guard-worktree-toplevel-bypass -- under --branch
+    # dispatch AGI_PROJECT_ROOT is the kid's OWN WORKTREE, so a process whose
+    # CWD sits in the MAIN checkout would get REAL_TOPLEVEL (main) !=
+    # REAL_PROJECT (worktree) and the old `different => allow` rule let it
+    # commit into the SHARED main checkout -- the exact sweep-up hazard the
+    # guard exists to stop (goal:g4.1). Distinguish a FOREIGN repo (a test or
+    # scratch repo: own git-common-dir, allow) from a DIFFERENT CHECKOUT of
+    # the SAME project (share one git-common-dir, refuse).
+    CWD_COMMON=$(cd "$REAL_TOPLEVEL" && git rev-parse --git-common-dir 2>/dev/null)
+    PROJ_COMMON=$(cd "$REAL_PROJECT" && git rev-parse --git-common-dir 2>/dev/null)
+    if [ -n "${CWD_COMMON:-}" ] && [ -n "${PROJ_COMMON:-}" ]; then
+        CWD_COMMON=$(cd "$REAL_TOPLEVEL" && cd "$CWD_COMMON" 2>/dev/null && pwd -P 2>/dev/null)
+        PROJ_COMMON=$(cd "$REAL_PROJECT" && cd "$PROJ_COMMON" 2>/dev/null && pwd -P 2>/dev/null)
+        if [ -n "${CWD_COMMON:-}" ] && [ "$CWD_COMMON" = "$PROJ_COMMON" ]; then
+            # same underlying project, different checkout -- a shared checkout
+            echo "agi: tier ${AGI_TIER} may not commit -- automation owns git (goal:s27)" >&2
+            exit 1
+        fi
+    fi
     exit 0
 fi
 # The ONE authorised commit: a --branch PARENT committing onto its own
