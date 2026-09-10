@@ -43,6 +43,7 @@ import json
 import os
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 _THIS = Path(__file__).resolve().parent
@@ -449,6 +450,38 @@ _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
           "failed": "[✗]", "resolved": "[·]"}
 
 
+def _track_run(root: Path, key: str, harness: str, view) -> None:
+    """Append one row per real workflow run to `.agi/sessions/workflows/<key>.jsonl`.
+
+    Reuses the `<project>/sessions/` layout dispatch.py writes, resolved to the
+    shared project root so the tracking body stays ONE across worktrees
+    (the same rule as iter-NNN). `--dry-run` never reaches here. Tracking is a
+    side-effect, never a gate: any failure logs a warning and returns, so a
+    real run's exit code is untouched.
+    """
+    try:
+        sess = _loc.shared_project_root(root) or root
+        wf_dir = Path(sess) / "sessions" / "workflows"
+        wf_dir.mkdir(parents=True, exist_ok=True)
+        counts: dict[str, int] = {}
+        for s in view.state.values():
+            counts[s["status"]] = counts.get(s["status"], 0) + 1
+        row = {
+            "workflow": key,
+            "harness": harness,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "stages": {lb: st["status"] for lb, st in view.state.items()},
+            "ok": counts.get("ok", 0),
+            "failed": counts.get("failed", 0),
+        }
+        path = wf_dir / f"{key}.jsonl"
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+    except Exception as exc:  # tracking must NEVER fail a real run
+        print(f"workflow.py: warn: run tracking failed ({exc})",
+              file=sys.stderr)
+
+
 class RunView:
     """The single run-event stream both harness paths render through.
 
@@ -727,6 +760,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                                 f"model={knobs[st['label']].get('model')} "
                                 f"script={manifest.get('script')}")
         view.summary()
+        _track_run(root, key, harness, view)
         return 0
 
     # pi harness: execute each stage for real — one headless pi process per
@@ -743,8 +777,10 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             print(f"workflow.py: workflow={key} failed at stage "
                   f"{st['label']} (rc={rc})", file=sys.stderr)
             view.summary()
+            _track_run(root, key, harness, view)
             return rc
     view.summary()
+    _track_run(root, key, harness, view)
     return 0
 
 
