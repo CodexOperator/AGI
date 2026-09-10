@@ -1010,3 +1010,138 @@ def test_l4a_the_key_floor_still_refuses_exactly_what_it_refuses(monkeypatch):
     a_ok, a_msg = provisioning.check_account_floor(
         {"provisioning": {"min_account_remaining_usd": 1.0}})
     assert a_ok is False and "account" in a_msg
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use
+#
+# Landed BY HAND, and the reason is the round's own subject: a round that
+# fixes the dispatcher's gate cannot be dispatched through the gate it fixes.
+# That is the second instance of the self-reference exception (the first was
+# L4.77's parent-brief round), so it is a class, not a one-off.
+# --------------------------------------------------------------------------
+
+
+def _drained_runtime_key():
+    """The live shape measured on 2026-09-10: the owner capped the runtime key
+    `backup` at $1.00 to contain a NON-ENGINE spender, against $11.4847 of
+    lifetime usage. remaining = 1.00 - 11.4847 = -10.4847."""
+    return _fake_key_usage(label="backup", limit=1.0, remaining=-10.4847)
+
+
+def test_gate_allows_a_spawn_when_provisioning_is_live_and_only_the_runtime_key_is_over_cap(
+        monkeypatch):
+    """falsifier (a) — THE falsifier, and it is the exact state the loop was
+    stopped in. Provisioning LIVE, runtime key far over its cap, healthy
+    minted keys: the spawn mints its own credential against the account, so
+    the runtime key gates nothing it pays for and the spawn is ALLOWED."""
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterL4.94-kid-a00", "limit": 5.0,
+                            "usage": 0.0292}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_gate_still_refuses_when_provisioning_is_live_and_a_minted_key_is_drained(
+        monkeypatch):
+    """The other half of (a): making the runtime leg conditional must not
+    disarm the minted-key leg. A drained per-spawn key still refuses even
+    though the runtime key is now out of scope."""
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00", "limit": 5.0,
+                            "usage": 4.6}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "agi-iter1-kid-a00" in msg
+
+
+def test_account_leg_refuses_when_the_account_is_dry_and_the_runtime_key_is_full(
+        monkeypatch):
+    """falsifier (b) — the inverse of (a), and it is why (a) alone would pass
+    a wrong implementation. With the ACCOUNT dry the pre-flight must refuse
+    even though the runtime key reads full: the account is what a minted key
+    draws against."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (107.0, 106.5, 0.5))
+    ok, msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert ok is False
+    assert "0.50" in msg
+
+
+def test_runtime_leg_is_unchanged_when_provisioning_is_absent(monkeypatch):
+    """falsifier (c) — the SUPPORTED shared-key path. With no provisioning
+    key the runtime key IS the spawn's credential, so a drained one still
+    refuses exactly as before.
+
+    NOTE, recorded rather than smoothed over: the node's falsifier (c) asked
+    for the message to be unchanged BYTE FOR BYTE. That was written before
+    item 2 of the same round, which deliberately rewrites this very message
+    so its printed remedy clears its own guard. The two cannot both hold. The
+    load-bearing half is the BEHAVIOUR -- this path still refuses, and refuses
+    for the same reason -- so that is what is asserted here, plus the fact
+    that the supported path gets item 2's improvement too rather than being
+    left with the broken suggestion."""
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "backup" in msg
+    assert "below the configured floor" in msg
+
+
+def test_the_suggested_cap_actually_clears_the_floor(monkeypatch):
+    """falsifier (d) — assert the ARITHMETIC, not that the string contains a
+    number. Parse the cap out of the refusal, apply it as the key's new
+    limit, and the guard must then PASS. The old hardcoded `10.00` fails this
+    against $11.4847 of usage: it leaves the key at -$1.48, still refusing."""
+    import re
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    cfg = {"provisioning": {"min_key_remaining_usd": 1.0}}
+    ok, msg = provisioning.check_runtime_key_floor(cfg)
+    assert ok is False
+    m = re.search(r'"limit":\s*([0-9]+\.[0-9]{2})', msg)
+    assert m, f"no applicable limit in refusal: {msg}"
+    suggested = float(m.group(1))
+    assert suggested >= 12.49, suggested          # 11.4847 used + 1.00 floor
+    # Apply exactly what the tool told the operator to apply.
+    used = 11.4847
+    monkeypatch.setattr(
+        provisioning, "key_usage",
+        _fake_key_usage(label="backup", limit=suggested,
+                        remaining=suggested - used))
+    ok2, msg2 = provisioning.check_runtime_key_floor(cfg)
+    assert ok2 is True and msg2 is None, f"suggested cap did not clear: {msg2}"
+
+
+def test_the_suggested_cap_tracks_observed_usage_and_is_not_a_constant(
+        monkeypatch):
+    """falsifier (e) — two different observed usages must produce two
+    different suggestions. A constant passes (d) by luck on one fixture."""
+    import re
+
+    def cap_for(limit, remaining):
+        monkeypatch.setattr(provisioning, "key_usage",
+                            _fake_key_usage(label="k", limit=limit,
+                                            remaining=remaining))
+        _ok, m = provisioning.check_runtime_key_floor(
+            {"provisioning": {"min_key_remaining_usd": 1.0}})
+        return float(re.search(r'"limit":\s*([0-9]+\.[0-9]{2})', m).group(1))
+
+    low = cap_for(1.0, -10.4847)     # used 11.4847 -> 12.49
+    high = cap_for(1.0, -40.0)       # used 41.00    -> 42.00
+    assert low != high
+    assert abs(low - 12.49) < 0.005, low
+    assert abs(high - 42.00) < 0.005, high

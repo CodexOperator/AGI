@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import math
 import os
 import sys
 import urllib.error
@@ -284,15 +285,28 @@ def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[
     floor = min_key_remaining_floor(cfg)
     if remaining >= floor:
         return True, None
+    # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 2.
+    # The printed remedy must CLEAR the guard that printed it. The old text
+    # hardcoded `{"limit": 10.00}`, and on the live tree that was measured
+    # against $11.4847 of usage: applying it exactly leaves the key at -$1.48
+    # and STILL refusing. A guard whose own fix does not clear it sends its
+    # reader round a loop and teaches them the tool is broken -- which is how
+    # a correct guard gets routed around by hand next time. Compute the
+    # minimum viable cap from OBSERVED usage plus the CONFIGURED floor, and
+    # round UP so the printed number is never a cent short of clearing.
+    used = limit - remaining
+    suggested = math.ceil((used + floor) * 100) / 100
     patch = (f"curl -X PATCH {RUNTIME_KEY_BASE}"
              f" -H 'Authorization: Bearer ${RUNTIME_KEY_VAR}'"
              f" -H 'Content-Type: application/json'"
-             f" -d '{{\"limit\": 10.00}}'")
+             f" -d '{{\"limit\": {suggested:.2f}}}'")
     return False, (
         f"runtime key {label!r} remaining ${remaining:.2f} is below the configured "
         f"floor ${floor:.2f} (provisioning.min_key_remaining_usd); spending a "
-        f"budget slot risks the key crossing its cap mid-round. Raise it on "
-        f"OpenRouter, then PATCH: {patch}")
+        f"budget slot risks the key crossing its cap mid-round. The MINIMUM cap "
+        f"that clears this floor is ${suggested:.2f} (observed usage ${used:.2f} "
+        f"+ floor ${floor:.2f}) -- raise it on OpenRouter to that or above, "
+        f"then PATCH: {patch}")
 
 
 def _below_floor_message(which: str, label: str, remaining: float,
@@ -312,9 +326,15 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     refuses when ANY readable one is below the configured floor. This is the
     fix for hypothesis:l4-the-floor-guards-the-key-that-drains: rounds bill to
     minted per-spawn keys, so a floor that read only the runtime key could not
-    move however much the loop spent. Now a drained outstanding minted key
-    refuses a spawn the same way a drained runtime key does, and the runtime
-    check (`check_runtime_key_floor`) still runs FIRST, unchanged.
+    move however much the loop spent. A drained outstanding minted key refuses
+    a spawn the same way a drained runtime key does.
+
+    🔴 The runtime leg runs first but is **CONDITIONAL on provisioning being
+    ABSENT** (hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-
+    use). A pre-flight must gate on the credential the spawn will ACTUALLY
+    use: with provisioning live the spawn mints its own key against the
+    account, so the runtime key gates nothing it pays for; with provisioning
+    absent the runtime key IS the credential and the leg is unchanged.
 
     Fail-open is preserved for EVERY key consulted: a network error reading
     the runtime key, or the key listing, returns (True, None) — an unreachable
@@ -324,9 +344,30 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     THIS engine minted (`agi-` prefix) are in scope — the owner's long-lived
     key, named `agi`, and any hand-made key are never refused here.
     """
-    ok, msg = check_runtime_key_floor(cfg, root)
-    if not ok:
-        return False, msg
+    # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 1.
+    # THE RUNTIME LEG IS CONDITIONAL, and the condition is the one thing that
+    # decides which credential a spawn actually spends through. When
+    # provisioning is LIVE, `dispatch.py` mints the spawn its OWN key drawn
+    # against the ACCOUNT (dispatch.py:1138, `issuing = available(root)`), so
+    # the runtime key is not the spawn's credential and must not gate it --
+    # the account leg (`check_account_floor`, wired at dispatch.py:1264) and
+    # the minted key's own cap are the real guards. When provisioning is
+    # ABSENT -- a SUPPORTED state, see the comment at dispatch.py:1133, where
+    # every agent inherits the shared runtime key -- the runtime key IS the
+    # credential and this check is exactly right and stays UNCHANGED.
+    #
+    # MEASURED, on the live tree, 2026-09-10: the owner capped the runtime
+    # key `backup` at $1.00 to contain a NON-ENGINE spender, against $11.4847
+    # of lifetime usage. Both pre-flights refused every new spawn while
+    # $17.98 of account headroom sat behind the per-spawn keys that actually
+    # carry round spend. The loop was stopped by a key it does not spend from.
+    # This is the inverse of hypothesis:l4-the-floor-guards-the-key-that-
+    # drains: that round widened the floor to include the keys that DO drain
+    # and left this leg running first and unconditionally in front of it.
+    if not available(root):
+        ok, msg = check_runtime_key_floor(cfg, root)
+        if not ok:
+            return False, msg
     try:
         listing = list_all_keys(root)
     except ProvisioningError:
