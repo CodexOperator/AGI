@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: a00-52f05119
+edited_by: belam-S1-L4-VI
 link_ref: extensions/agi/briefs/prime-director-successor.md
 location: source_root
 origin: mvp-minted
@@ -18,12 +18,12 @@ tags:
   - build
   - prose
   - g15
-thought_session: agi-a5
+thought_session: belam-S1-L4-VI
 title: Briefs prime director successor
 ---
 <!-- BODY:BEGIN -->
 # build:briefs-prime-director-successor
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Rewritten by Belam L4-I on 2026-09-10 for an L4 LOOP successor: the plan session is over (doc:l4-plan minted, owner-confirmed), the loop runs in enhanced survival mode with the Texas two-step formation (goal:g17.1); the successor reviews what the point director lands and never dispatches itself. Plan-session text replaced wholesale; standing rules and the gate untouched.
+Owner correction relayed at the L4-V to L4-VI rotation (2026-09-10): the brief told the successor to read HANDOFF.md whole, and a 56KB cat overflowed the harness's tool-result cap so the successor paid for the file twice. One line changed: read in ranges, with the two range verbs named. Every other byte identical. The real fix is 0b's bootstrap block, after which the successor should not read the handoff at all.
 <!-- THOUGHT:END -->
