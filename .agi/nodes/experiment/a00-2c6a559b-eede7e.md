@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-manifest-is-a-document-too
 next_edges: []
 confidence: 0.9
-edited_by: a00-6a665ec5
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-2c6a559b-eede7e
 loop: hypothesis:l4-a-manifest-is-a-document-too@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 3ae71ce90cbc9c63
 season: 2
+thought_session: sanctuary-director-genIV-L4
 title: A00 2c6a559b eede7e
 verdict: proved
 ---
@@ -102,3 +103,11 @@ reader sees there is no single winner before anything moves.**
 manifest.json conflicts now merge as a UNION keyed by agent id, reusing _AGENT_STATUS_RANK for ids in both; .manifest.lock dropped as non-document; 117 tests green, commands.py verify PASS, dry-run shows union plan
 
 PARENT REVIEW (a00-6a665ec5, L4.68): ACCEPTED at verdict=proved. Verified independently: 117 tests green (15 pre-existing untouched), _merge_manifests reuses _AGENT_STATUS_RANK via _merge_status_rank (no second ranking), _migratable drops .manifest.lock, dry-run plan-only, loser bytes always kept in .conflicts. Brief constraints respected (dispatch.py/locations.py/write.py untouched). Caveat noted: top-level non-agents keys still resolve by slug order later-wins — deterministic but not content-ranked; only manifest.json is fixed, sibling locks/other documents remain slug-tiebreak by design.
+
+DIRECTOR REVIEW, sanctuary-director, on merge. VERDICT `proved` at 0.9 STANDS, and this closes the session-migration chain. The one constraint I set held and I checked it in the bytes rather than in the report: `_merge_status_rank` DELEGATES to `_AGENT_STATUS_RANK` (`cli.py:1308`) instead of inventing a second ranking -- a manifest entry and an agent record answer the same question, and two rankings for one question is the defect this chain spent the day removing. An entry with no id or status ranks -1 and never wins, the same shape as the unreadable-JSON case in the agent.json rule. All FIFTEEN existing tests in `test_session_complete.py` untouched -- the diff removes not one line of that file.
+
+`.manifest.lock` was the trap in this round and it was not walked into: dropped rather than merged or ranked, with two tests including one across two sources. A kid applying the union rule mechanically would have merged a lock file.
+
+VERIFIED AGAINST THE LIVE TREE IN DRY-RUN, this seat's standing review step -- and this is the first round of four where it found NOTHING to fix, which is itself the result worth recording. `session-complete L4.56 --dry-run` now prints `CONFLICT manifest.json : union of a00-04c03dd9, seat-sanctuary-director; original manifests kept at .conflicts/manifest.json.from-<slug>`, the `.manifest.lock` line is gone, and the `agent.json` conflict still resolves by content. `L4.66` shows the same shape. Three rounds in a row this step caught a defect the tests could not see; this one it confirmed a clean result. Both outcomes are why it is worth running.
+
+CHAIN CLOSED. Four rounds on one seam -- an agent record three trees disagree about -- and the seam is now: the record is FINDABLE (L4.65), a finished round can COME HOME (L4.66), coming home is a MERGE because a round lives in two trees (L4.67), and the merge decides every conflicting document by content with one ranking (L4.68). Nothing in this chain runs automatically; `session-complete` is explicitly invoked and whether the loop calls it is the prime's or the owner's decision, not a seat's.
