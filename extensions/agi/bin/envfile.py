@@ -218,6 +218,82 @@ def read_env(path: Path) -> dict[str, str]:
     return out
 
 
+# --- credential validity (hypothesis:l4-a-check-that-answers-a-
+# question-it-is-not-asking, ITEM 1): presence is not usability ------------
+#
+# `--check` used to assert only that a required key NAME is present (non-empty)
+# and then print "ok". That answers "did the key land?" and never "is this key
+# usable?". The owner revoked a key that `--check` still called ok. This adds
+# ONE authenticated call that distinguishes PRESENT from USABLE:
+#   - provider returns HTTP 401/403  -> the key is DEAD (fail-closed, a problem)
+#   - provider returns HTTP 200      -> the key is VALID (a note)
+#   - network error / timeout / 5xx  -> UNKNOWN (fail-open, a note, never dead)
+# A 401 is evidence the credential is dead; an unreachable API is evidence of
+# nothing. Conflating them turns a guard into an outage, so they are reported
+# differently. The verifier is a module-level function so tests can stub it
+# without touching the network; `--check` is the only caller that asks for
+# verification, so the plain form `driver.sh` calls every pass stays offline.
+
+
+def _provider_for(key: str) -> tuple[str | None, str]:
+    """Map a key VALUE to (provider, provider_key_name).
+
+    Never prints or returns the value itself. Returns `(None, reason)` when
+    the value does not name a provider we can validate, so an unknown key
+    shape is reported as UNKNOWN, never as valid and never as dead.
+    """
+    if key.startswith("sk-or-"):
+        return ("openrouter", "OPENROUTER_API_KEY")
+    return (None, "no verifier for this key's prefix")
+
+
+def _verify_openrouter(key: str, timeout: float = 5.0) -> tuple[str, str]:
+    """One authenticated call to OpenRouter's key endpoint.
+
+    Returns `(status, detail)` with status one of `"valid"`, `"dead"`, or
+    `"unknown"`. Fail-closed on an explicit 401/403; fail-open on anything
+    that is not a credential verdict (timeout, URLError, 5xx).
+    """
+    import urllib.error
+    import urllib.request
+
+    def _req(url: str) -> tuple[int, str]:
+        r = urllib.request.Request(
+            url, headers={"Authorization": f"Bearer {key}"}
+        )
+        with urllib.request.urlopen(r, timeout=timeout) as resp:
+            return resp.status, resp.read(512).decode("utf-8", "replace")
+
+    try:
+        code, _body = _req("https://openrouter.ai/api/v1/key")
+        if code == 200:
+            return ("valid", f"provider accepted it (HTTP {code})")
+        if code in (401, 403):
+            return ("dead", f"provider rejected it (HTTP {code})")
+        return ("unknown", f"provider returned HTTP {code}")
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403):
+            return ("dead", f"provider rejected it (HTTP {exc.code})")
+        return ("unknown", f"provider returned HTTP {exc.code}")
+    except Exception as exc:  # URLError, TimeoutError, socket errors -- no verdict
+        return ("unknown", f"could not reach the provider ({type(exc).__name__})")
+
+
+_VERIFIERS = {"openrouter": _verify_openrouter}
+
+
+def _verify_provider_key(key: str) -> tuple[str, str]:
+    """Validate one key value. `(status, detail)`, status in
+    `valid | dead | unknown`. Module-level so tests can substitute it."""
+    provider, reason = _provider_for(key)
+    if provider is None:
+        return ("unknown", reason)
+    fn = _VERIFIERS.get(provider)
+    if fn is None:
+        return ("unknown", f"no verifier registered for {provider}")
+    return fn(key)
+
+
 def set_key(res: "Resolution", name: str) -> int:
     """Read one secret from the terminal and write it into the env file.
 
@@ -286,10 +362,16 @@ def set_key(res: "Resolution", name: str) -> int:
     return 0
 
 
-def check(res: Resolution) -> tuple[list[str], list[str]]:
+def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
     """`(problems, notes)` — neither ever contains a secret value.
 
     Problems fail `--check`; notes are worth saying but are not failures.
+
+    When `verify` is true, each present required key is subjected to ONE
+    authenticated call (see the validity section above): a dead key becomes a
+    PROBLEM, a network failure becomes an UNKNOWN note, and a live key a note.
+    Kept off by default so the plain form `driver.sh` calls every pass stays
+    offline; only `--check` asks for validation.
     """
     problems: list[str] = []
     notes: list[str] = []
@@ -318,6 +400,24 @@ def check(res: Resolution) -> tuple[list[str], list[str]]:
         value = env.get(key, "")
         if not value:
             problems.append(f"{key} is missing or empty in {res.env_file}")
+    if verify:
+        for key in res.required_keys:
+            value = env.get(key, "")
+            if not value or not value.strip():
+                continue  # already reported missing/empty above
+            status, detail = _verify_provider_key(value)
+            if status == "dead":
+                problems.append(
+                    f"{key} is present but NOT USABLE — {detail}. Presence is not "
+                    f"validity: the file says it is there, the provider refuses it."
+                )
+            elif status == "unknown":
+                notes.append(
+                    f"{key}: could not be verified ({detail}) — treated as present, "
+                    f"not confirmed usable"
+                )
+            else:
+                notes.append(f"{key}: validated against the provider ({detail})")
     # Optional keys are reported as PRESENT/absent, never as problems, and
     # never by value -- the name and the length are enough to answer "did the
     # key I just wrote land?" without putting a secret on a terminal that is
@@ -380,7 +480,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(res.as_dict(), indent=2))
         return 0
 
-    problems, notes = check(res)
+    problems, notes = check(res, verify=args.check)
     for note in notes:
         print(f"[secrets] note: {note}")
     for problem in problems:

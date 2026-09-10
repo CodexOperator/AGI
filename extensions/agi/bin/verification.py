@@ -296,7 +296,8 @@ def _record_suite_ts(groot: Path) -> None:
 
 
 def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
-                        tracked_of=None) -> CheckResult:
+                        tracked_of=None,
+                        effective_ts: float | None = None) -> CheckResult:
     """FAIL ("SUITE REQUIRED") when a bin/*.py is untracked by git or newer
     than the last recorded --suite run.
 
@@ -309,11 +310,19 @@ def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
          untracked (the "/ or newer" half is bidirectional)
     No recorded timestamp ever -> conservative FAIL: a suite that has never
     run is exactly the state we must surface, so the default is "required".
+
+    `effective_ts`, when given, replaces the recorded stamp as the reference
+    for the mtime arm: it is how a --suite call that JUsT passed within the
+    same invocation teaches the guard to judge against the run completing now
+    rather than the run before it (L4.101 item 2) -- a first-ever suite run
+    must not self-FAIL because no PRIOR stamp exists. The no-recorded-stamp
+    FAIL arm is untouched: `effective_ts` is only ever supplied by a --suite
+    run that is itself passing, never to silence a never-run tree.
     """
     start = time.monotonic()
     bdir = bin_dir or Path(__file__).resolve().parent
     tracked = tracked_of(bdir) if tracked_of else _git_tracked(bdir)
-    suite_ts = _read_suite_ts(groot)
+    suite_ts = effective_ts if effective_ts is not None else _read_suite_ts(groot)
     stale: list[str] = []
     for f in _bin_scripts(bdir):
         if suite_ts is not None and f.stat().st_mtime > suite_ts:
@@ -324,10 +333,11 @@ def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
     if suite_ts is None:
         stale.append("no suite has EVER run (no recorded timestamp)")
     elif not stale:
+        note = ("all bin/*.py covered by the suite run completing now"
+                if effective_ts is not None
+                else "all bin/*.py older than the last recorded suite run")
         return CheckResult("bin-suite-fresh", "PASS",
-                           time.monotonic() - start,
-                           note="all bin/*.py older than the last recorded"
-                                " suite run")
+                           time.monotonic() - start, note=note)
     return CheckResult("bin-suite-fresh", "FAIL", time.monotonic() - start,
                        note="SUITE REQUIRED: " + "; ".join(stale))
 
@@ -390,7 +400,19 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool) -> list[Check
         # only under --suite. Before the count compare so node-count stays the
         # closing check. (quick is the pre-commit set; the suite gate there
         # would cost the commit a check it has not earned.)
-        results.append(check_bin_freshness(groot))
+        #
+        # The freshness guard must judge against the run that is COMPLETING,
+        # not the run before it. When --suite is on and the suite PASSED within
+        # this very call, every bin/*.py was just covered; passing the guard
+        # its own timestamp means the FIRST-ever suite run passes instead of
+        # reading a None prior stamp and self-FAILing before main() records
+        # one. When the suite failed (or --suite is off) `effective_ts` stays
+        # None and the guard reads the recorded stamp, untouched (L4.101
+        # item 2 -- the ordering, never the judgement).
+        suite_res = next((r for r in results if r.name == SUITE_CMD), None)
+        eff_ts = time.time() if (suite and suite_res is not None
+                                 and suite_res.status == "PASS") else None
+        results.append(check_bin_freshness(groot, effective_ts=eff_ts))
     smoke = next((r for r in results if r.name == "smoke"), None)
     if smoke is not None:
         results.append(compare_count(groot, smoke.number))
