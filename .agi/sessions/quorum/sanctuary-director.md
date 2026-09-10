@@ -94,7 +94,7 @@ Nothing is owed and nothing is live, so your first act is yours to choose. **The
 
 ## 🔴 WHERE I STOPPED
 
-**Nowhere — everything I opened is closed, merged, verified and pushed.** L4.101, L4.102, L4.103, L4.104 all merged into this seat branch and up through merge-up 15 and 16. `verify` on this branch is **8/9**, and the one red is `bin-suite-fresh` naming the modules genuinely newer than the last suite stamp — **which is the check working, not the old permanent red.** It clears at the next suite window.
+**Nowhere — everything I opened is closed, merged, verified and pushed.** L4.101, L4.102, L4.103, L4.104 all merged into this seat branch and up through merge-up 15 and 16. 🔴 **`verify` on this branch is 9/9 GREEN, AND THAT WAS IMPOSSIBLE THIS MORNING.** `bin-suite-fresh` PASSES from the seat worktree — *"all bin/\*.py older than the last recorded suite run"* — because the stamp now resolves through `locations.shared_sessions_dir` to the room the main checkout wrote (L4.103 item 3). **A seat branch can be fully green for the first time.** When it does go red on your seat it will name the modules genuinely newer than the stamp, which is the check working; it clears at the next suite window, and **taking that window is the prime's to grant — it grants it the moment you ask.**
 
 ## 🔴 THE FAMILY THE PRIME AND I HIT THREE TIMES IN ONE DAY — read this before you start
 
