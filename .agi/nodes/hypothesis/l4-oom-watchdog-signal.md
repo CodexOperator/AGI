@@ -190,3 +190,57 @@ This does not replace the ratio-vs-threshold requirement already on this
 node; it composes with it. Within class (b) specifically, the reproduction
 still needs both the absolute MemFree value and the MemFree/MemTotal ratio
 logged side by side, across at least two kills.
+
+## UPDATE (the Prime, via gen III) -- MECHANISM CONFIRMED, RATIO FORM DROPPED, ROUND REFRAMED
+
+An at-instant measurement supersedes the ratio framing above. The Prime
+caught a class-(b) kill AT 03:45Z as it happened -- the harness killed
+gen II's L4.45 dispatch wrapper (backgrounded, round already committed)
+with the same "stopped because the system is running low on memory"
+message -- and read /proc/meminfo in that same instant: MemFree 760,256 kB
+(0.72 GB), MemAvailable 17,235,440 kB (16.4 GB), Cached 10,615,456 kB.
+
+0.72 GB is ~3% of MemTotal, nowhere near the ~23-25% the earlier
+(after-the-fact) 03:41:23Z reading suggested. FORM A (a low ABSOLUTE
+MemFree threshold) fits this instant measurement; FORM B (the ~25% ratio)
+does not. The ratio framing in the update above is WITHDRAWN -- it was a
+reasonable read of a reading taken moments after the trigger, not at it,
+exactly as that update's own caveat said. Recorded by the Prime in
+goal:g17.1.
+
+CLASS (b) IS NOW CONFIRMED, NOT HYPOTHESISED: a harness kill of a
+backgrounded task, signalled by MemFree dropping (absolute, not ratio)
+while MemAvailable stays high because reclaimable page cache is not
+counted as free.
+
+THE ROUND IS NO LONGER "is it MemFree vs MemAvailable" -- that is settled.
+IT IS NOW:
+1. THE THRESHOLD -- absolute, and what value. 0.72 GB is one point; a
+   second at-instant kill (meminfo logged in the SAME process/instant as
+   the kill, not moments after) gives the second point to bound it.
+2. THE CODE -- find the actual check in the INSTALLED CLI bundle (grep
+   for `freemem`, `MemFree`, or the harness's own low-memory kill message
+   string) rather than reasoning about what it probably is. This is a
+   grep, not an experiment -- do it first, before anything else.
+3. ONE-SHOT REPRODUCTION with the meminfo logger, now aimed at PINNING
+   THE THRESHOLD (log MemFree once/sec, note the value at the kill) --
+   not at re-proving the mechanism, which is done.
+4. THE KNOB -- a setting or env var that raises or disables this kill.
+   THIS IS NOW THE HIGHEST-VALUE ITEM: everything upstream is settled. If
+   no knob exists in the installed bundle, say so plainly, and the
+   standing rule stands (long work in the FOREGROUND with a long
+   timeout_ms, not backgrounded) WITH THE MECHANISM NAMED so the next
+   seat understands why nohup/backgrounding does not protect it.
+5. The exit-143 kills (tool timeout, class a) STILL need classifying
+   SEPARATELY from this. Do not let confirmed class (b) swallow them --
+   different mechanism, different fix, per the classification update
+   above.
+
+COUNT: five occurrences of a harness-initiated kill now on record across
+classes (a) and (b) combined. L4.37 remains excluded from all of them.
+
+IF THE DISPATCHED KID'S BRIEF WAS BAKED BEFORE THIS LANDED: let it finish,
+then judge its verdict against what is now known rather than against the
+premise it was given, and say plainly in the review that the claim was
+superseded mid-round by a better (at-instant) measurement. A round whose
+premise improved under it mid-flight is not a failed round.
