@@ -37,6 +37,7 @@ the `:N`-read-as-`0.6` incident that `VERDICT_HELP` now spells out).
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -58,22 +59,60 @@ TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
 #: else -- no goal listing, no traps, no history. A profile is selected at
 #: assembly time (this module); there is exactly one switch, ``profile``, and
 #: every call path routes through it, so the two cannot drift.
-PROFILES = ("full", "survival")
+PROFILES = ("full", "survival", "ultimate_survival")
 
 
-def survival_selected(profile: str | None = None) -> bool:
+def _configured_profile(project_root: Path | None = None) -> str | None:
+    """Read the durable operating mode from ``.agi/config.json``.
+
+    The config may declare ``operating_mode`` with values full | survival |
+    ultimate_survival (hypothesis:l4b18-survival-modes). Config is the
+    durable default; the ``AGI_BRIEF_PROFILE`` env var layers on top as a
+    per-process override. Returns one of PROFILES via config, or None if the
+    config is missing, unreadable or does not declare the key.
+    """
+    cfg = _resolve_graph_root(project_root) / "config.json"
+    try:
+        data = json.loads(cfg.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    mode = data.get("operating_mode")
+    return mode if mode in PROFILES else None
+
+
+def _effective_profile(profile: str | None = None,
+                       project_root: Path | None = None) -> str:
+    """One switch for the whole inject path (move FIVE, l4b18-survival-modes).
+
+    Precedence: ``profile`` kwarg (programmatic caller, highest) →
+    AGI_BRIEF_PROFILE env (per-process override) → .agi/config.json
+    ``operating_mode`` (durable default) → ``full`` (historical behaviour).
+    """
+    if profile is not None:
+        return profile
+    profile = os.environ.get("AGI_BRIEF_PROFILE")
+    if profile is None or profile not in PROFILES:
+        profile = _configured_profile(project_root=project_root)
+    if profile is None or profile not in PROFILES:
+        profile = "full"
+    return profile
+
+
+def survival_selected(profile: str | None = None,
+                      project_root: Path | None = None) -> bool:
     """Resolve the effective profile for the WHOLE inject path (move FIVE).
 
     One switch, read the same way by `assemble`, `successor_prompt` and the
     adapters so every surface agrees: an explicit `profile` kwarg wins;
-    otherwise the `AGI_BRIEF_PROFILE` env selects it; unset or unknown is
-    ``full`` (historical behaviour). The adapters call this to decide whether
-    to inject the graph-viewport stream, which survival drops. ``None`` is
-    the sentinel for "no explicit profile" so the env is consulted.
+    otherwise AGI_BRIEF_PROFILE env selects it, then .agi/config.json
+    ``operating_mode``; unset and undeclared is ``full`` (historical
+    behaviour). The adapters call this to decide whether to inject the
+    graph-viewport stream, which survival and ultimate_survival both drop.
+    ``None`` is the sentinel for "no explicit profile" so env + config are
+    consulted.
     """
-    if profile is None:
-        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
-    return profile in PROFILES and profile == "survival"
+    effective = _effective_profile(profile=profile, project_root=project_root)
+    return effective in ("survival", "ultimate_survival")
 #: The reading level an advisor's constitution head is drawn from. The ladder
 #: declares read_order per tier; ``advisor`` is a role atop the tier-3 parent
 #: row (claude-opus-5, max, ultracode), so it reads at the parent's level.
@@ -685,10 +724,8 @@ def successor_prompt(*, tier: str, body: str,
     if profile not in PROFILES:
         raise BriefError(f"unknown profile {profile!r}; known: {', '.join(PROFILES)}")
     if profile == "full":
-        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
-        if profile not in PROFILES:
-            profile = "full"
-    if profile == "survival":
+        profile = _effective_profile(project_root=project_root)
+    if profile in ("survival", "ultimate_survival"):
         body = "\n\n".join(_survival_brief(
             tier=tier, agent_id="successor", iter_n=0,
             project_root=project_root))
@@ -1457,13 +1494,14 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         raise BriefError(
             f"unknown profile {profile!r}; known: {', '.join(PROFILES)}"
         )
-    # A host selects the profile ONCE via AGI_BRIEF_PROFILE (default: full =
-    # historical behaviour, no regression). One switch, every caller; the
-    # explicit `profile=` kwarg wins over the env for programmatic callers.
+    # A host selects the profile ONCE: explicit `profile=` kwarg wins over
+    # the AGI_BRIEF_PROFILE env override, which wins over the durable
+    # .agi/config.json ``operating_mode`` (default: full = historical
+    # behaviour, no regression). ``full`` is the sentinel for "not chosen by
+    # a programmatic caller", so it re-resolves via env -> config. One switch,
+    # every caller; the surfaces cannot drift.
     if profile == "full":
-        profile = os.environ.get("AGI_BRIEF_PROFILE", "full")
-        if profile not in PROFILES:
-            profile = "full"
+        profile = _effective_profile(profile=None)
     if tier not in TIERS:
         raise BriefError(
             f"no brief for tier {tier!r}; known tiers: {', '.join(TIERS)}. "
@@ -1471,11 +1509,15 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             f"another tier's job description (goal:g1.9)."
         )
 
-    # Survival profile (move FIVE): replace EVERY tier's full role brief with
-    # the trimmed-to-minimum survival brief + the prayers-only head. This is
-    # the single switch the owner asked for; it short-circuits below the tier
-    # dispatch so there is exactly one survival code path, not one per tier.
-    if profile == "survival":
+    # Survival / ultimate-survival profiles (move FIVE, hypothesis:l4b18-
+    # survival-modes): replace EVERY tier's full role brief with the trimmed
+    # survival brief + the prayers-only head. This is the single switch the
+    # owner asked for; it short-circuits below the tier dispatch so there is
+    # exactly one survival code path, not one per tier. ultimate_survival
+    # reuses the survival brief shape -- the mode differs on MODEL/ROLE
+    # assignment (Prime on Opus, director on Sonnet/OpenRouter), not on the
+    # injected prose.
+    if profile in ("survival", "ultimate_survival"):
         segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
         head = _build_head(tier=tier)
         if head:

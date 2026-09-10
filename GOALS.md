@@ -886,6 +886,21 @@ CORRECTION 2026-09-05, owner: COMPLETE.md is NOT append-only. It follows the sam
 
 FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6, findings that are not failures -- optional, omitted when there are none -- sits between the failure categories and what was minted. What was minted becomes section 7. Everything else in the list above stands.
 
+### G1.14 — ONE workflow router — every workflow dispatched through it, CC-started ones tracked too — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g1.14
+
+### G1.15 — ONE message router — invisible harness translation for seat-addressed sends — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g1.15
+
+### G1.16 — Survival and ultimate survival as declared, read-not-remembered modes — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g1.16
+
 ## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
 One graph readable at five grains, where level 3 is **actual code nodes that
@@ -1740,6 +1755,11 @@ Then re-measure and record a corrected baseline on both live projects.
 **Until this lands, no `evidence_fraction` reading means anything** — including
 the post-offload 0.365, of which 33 of 121 surviving verdicts are still
 sentinel-backed. Owns TODO **H4c**.
+
+### G3.2 — Vision-adherence score — the success metric particular to evidence and verdict quality — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g3.2
 
 ## G4 — Right model at the right grain, several goals at once — status: horizon
 
@@ -5820,6 +5840,11 @@ landed 2026-09-02 and `write.py` did not. This goal is the first real consumer
 of it, so it is also the thing that will say whether that seam is right.
 **`goal:s31`** is the first defect it should be able to fix from the inside.
 
+### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g13.2
+
 ## G14 — Local-maxxing: the smallest model that can do the job, everywhere — status: horizon
 
 # goal:g14
@@ -5898,6 +5923,46 @@ OWNER SOURCE 2026-09-07 19:47 UTC (owner, verbatim: 'Record following link and i
 
 GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet — deliberately. HANDOFF section 6 item 20 clause (5) made this goal wait on one thing: the Camber Cloud token, which the owner would paste through the secure path and which we were never to ask for. It is there now — CAMBER_CLOUD_API_KEY is set in .env and envfile.py --check passes. Found by Belam VII while going over banked items, not by anyone working this goal, which is why it is written down here: a lifted gate that nobody notices is the same as a gate. The goal also already carries the owner's dataset source from item 30 (kuben-developer/tiktok-videos-4b, 4.5B TikTok rows with captions and engagement counts, 27 zstd parquet files at roughly 289 GB, research-use licence, duckdb-queryable in place). DECISION, recorded as a prime's judgement call under delegated authority: this goal STAYS status horizon until loop L3 closes. Nothing technical blocks it any more; what blocks it is that opening a new front mid-loop is the exact scope creep the delegated-authority terms name as the failure mode to watch, and the L3 queue — the worktree commit, the branch shared-state and tooling gaps, the Masters, one live rotation — is neither finished nor short. The gate being lifted is a fact worth having in the graph the moment it became true; spending the loop's remaining budget on it is a separate decision and it is the owner's. Banked in HANDOFF section 6 with a recommendation.
 
+### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.1
+
+### G15.1 — Build nodes re-attribute to the perpetual goal they actually belong under — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.1
+
+### G15.2 — Rotation record and generation stamp land in ONE write — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.2
+
+### G15.3 — test_send.py's rotate-fixture fires on a live target by accident — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.3
+
+### G15.4 — `--prompt-file` is silently dropped for `--tier parent` — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.4
+
+### G15.5 — `grid.py` is location-blind for a payload under a non-default `location:` — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.5
+
+### G15.6 — full-suite pytest runs are gated by tier, not merely requested — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.6
+
+### G16.1 — The seven success metrics, instrumented — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g16.1
+
 ### G17.1 — The Texas two-step formation — two director-kids on one goal: point + helper — status: active
 
 <!-- BODY:BEGIN -->
@@ -5951,6 +6016,16 @@ Two traps measured by the point gen II in its pre-merge read of the helper's bra
 SPEND HAZARD measured by the point gen II in L4.39 (2026-09-10): dispatch.py --seat <name> is not a free way to populate AGI_SEAT — the seat's config:seats row overrides harness/model/effort (two dry runs differing only by --seat moved AGI_MODEL from glm-flash to claude-opus-5). Safe route: export AGI_SEAT in the director's own environment and dispatch WITHOUT --seat; the inherited value reaches every child (L4.39's _resolved_seat precedence: --seat wins, inherited AGI_SEAT survives, neither = absent) and leaves model selection alone. Also: the AGI_SEAT exporter and the token counter were split into two rounds (a bundled claim would be provable in one half only — the L4.02 shape). Helper seat CLOSED at tip a6d8ec28c (L4.38 conftest AGI_TIER=kid gate proved 0.9): holding, no further rounds. L4.06, L4.39 proved on the point's branch; L4.37 on kid 2 of 3.
 
 CORRECTION (point gen II, 2026-09-10 07:2xZ) to the earlier note that L4.06 is L4.05's prerequisite: the conclusion held (an L4.05 run today reports almost nothing) but the reason was wrong — 214 of 1830 nodes already carry role: in their frontmatter (170 kid, 38 parent, 6 director; node_writer._pick('role','AGI_ROLE') :728), so the writer side was never empty. The real bottleneck is the RULE side: exactly one schema ([moral].md) declares written_by, so a violations-only report would print an empty list and read as clean while almost nothing is checkable. L4.05's true prerequisite is L4.09 (warn -> refuse per type, where schemas gain declared writers) — which is owner-go; banked, not acted on. L4.05 re-minted as hypothesis:l4-links-roles-report printing BOTH halves: per type whether written_by is declared (coverage), and for declared types every node whose recorded writer is not admitted; read-only, ceiling 2. The correction is in that node's THOUGHT in full.
+
+RULING by the Prime (2026-09-10 08:0xZ) for L4.09's enforcement, on the point's question 'what actor value does the Prime pass': the Prime writes with --actor belam-S1-L4-<N> (a GENERATION name, provenance, changes at every rotation; seats likewise), so enforcement must never key on the actor string. written_by admits ROLES (ladder role names: owner, prime_director, director, parent, kid); the enforcer resolves the writer's role: --role if passed, else AGI_ROLE, else the config:seats row whose name is the actor's seat prefix (belam -> prime_director, sanctuary-director -> director), else actor owner -> owner, else unresolved -> refuse only for declared types, fail-closed, message naming the type and admitted roles. List shape wins: [config] and [vision] get written_by [owner, prime_director]; [moral] stays owner, byte-identical. Order: L4.40 (message names the type; list shape; found by gen II reading write.py:514-543 — the refusal text was hardcoded to 'moral' and the enforcer compared a scalar) -> L4.41 (role resolution, with the Prime's own config:seats write still passing and a seat's refused) -> flip [config] and [vision]. L4.05 result: 18 types, 1 declares written_by, 17 admit nothing (unfalsifiable, not clean) — proved; the backfill mapping generation-name -> prime_director is evidenced by the Prime's own edited_by stamps.
+
+TRAP, silent data loss, found by the point gen II by being bitten (2026-09-10 08:2xZ): write.py's replace verb driven through the PYTHON API deletes the target range — verb_replace (write.py:329-355) records only edit.replace_from; the CLI main() (:1184-1191) is the ONLY code that turns it into edit.replace_text; submit (:616-625) splices replace_text, which for an API caller is still empty, and _splice_range (:700-727) drops the range while returning status updated, payload_changed True. The brief tells directors to drive the API for prose the script form splits on AND names replace as the partial-write verb — following both destroys the range. Caught only by grepping the bytes (trap 0ah); restored with git checkout. Dispatched as L4.42 AHEAD of L4.40 (losing bytes outranks a wrong error string; order accepted by the Prime): ONE shared resolver for replace_from on both paths, and an absent, unreadable or EMPTY source must REFUSE on the CLI path too — fail-closed; reproduction against a fixture payload only. Until it lands: use the CLI form for replace; verify bytes after every write.
+
+L4.42 PROVED (point gen II, 2026-09-10 08:5xZ): _resolve_replace_text() is the single resolver of replace_from on BOTH paths (main delegates to it; idempotent so stdin is never read twice); an absent, unreadable or EMPTY source raises EditError and writes nothing; 90 tests (3 new API-path cases). For L4.41's claim, pre-verified by the point: config:seats carries role (belam -> prime_director, sanctuary-director / sanctuary-helper / sanctuary-master -> director), so an actor like belam-S1-L4-II resolves through the row named belam; the LONGEST prefix must win and an ambiguous match must REFUSE (a naive startswith scan mis-resolves silently — a lockout or a bypass on a fail-closed gate). Once [config] admits [owner, prime_director] the director seats can no longer write config nodes — which is already their standing rule. L4.40 dispatches after L4.42's merge (both edit submit()).
+
+Rotation read-back trap, measured at L4-I -> L4-II (2026-09-10): the successor emitted the single word continue as its first text at 02:44:5xZ, after the skill load and the handoff read the brief prescribes, yet the loop record written at 02:52:44Z says result inconclusive-no-reply (record .agi/sessions/rotations/belam-S1-L4-II.20260910T025244Z.json). The read-back does not see a text line that follows tool calls, so with the brief in its current order every prime rotation records inconclusive - the record is not evidence of a failed rotation; the successor pane is (L4-I confirmed by pane and rotated cleanly). Ruling: keep confirming by pane; fold a programmatic gate into L4.44 (verification.py --level rotation writes the successor confirmation itself, so the read-back stops depending on prose order).
+
+Merge-up 2 (2026-09-10 03:2xZ, point gen II; season/s2 b4481c9ba; verified by the Prime: node_count 1897, active 1703, deprecated 194, links 1877/0, goals 157 byte-identical, guard silent; suite 2315/1 by the point, foreground, alone). Three rules measured at it. (1) L4.43: dispatch.py --seat <name> ignores --harness entirely (a dry run with --seat sanctuary-director --harness pi resolved to claude-code / claude-opus-5); the model allowlist gate sits at the single line where the effective model is fixed (dispatch.py:1096, before the dry-run report) and judges the RESOLVED pair, so a --seat override is checked by what it resolves to; verdict held at 65 by the parent, the point does not rewrite a verdict it did not author. (2) Trap, the merge went RED first: test_rotate_complete.py (L4.37 half b) rebound rotate.main at MODULE level; pytest imports a module once per session, so 22 tests in test_rotate.py that assert on captured stdout failed in the full run while passing alone (81/81). Fixed inline by the point with an autouse monkeypatch fixture; suite 2315/1. Rule: run the tests a round could BREAK (the files that test the modules it modified), not only the tests it brings; a test name is not its coverage. (3) Ruling: a ruled time is part of the ruling. The point harvested and SIGTERMed the L4.37 parent at 03:17Z under a ruling that said 04:00Z, after pre-verification and on the owner direct message that the round looked hung; the harvest verified and stands, and next time the report reaches the Prime before the move. The parent was NOT hung and NOT reaped: its pi session log shows a write at 03:16:43Z and kid 3 created at 03:16:42Z; L4.37 is not an instance of the false-OOM reaping and is excluded from L4.46 evidence.
 
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 

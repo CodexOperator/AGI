@@ -926,6 +926,41 @@ def test_checkout_materializes_payloads_for_editing(project, engine):
     assert grid.git_mode(staged) == grid.GIT_MODE_EXEC
 
 
+def test_non_default_location_payload_resolves_through_locations(project, engine):
+    """goal:g6.1 arrow stays for the default tree; a payload recorded under a
+    non-default `location:` key must resolve where `write.py create --payload`
+    put it — the location-aware path — not silently fail because the grid only
+    beheld staged/engine. Blinded before the fix (both return None for this
+    key); this locks the green leg in as a permanent regression test."""
+    import json
+    cfg = project / "agi-tree.config.json"
+    cfg.write_text(json.dumps({"locations": {"docset": "docsets"}}))
+    payload = project / "docsets" / "bin" / "plain.py"
+    payload.parent.mkdir(parents=True)
+    payload.write_text("print('located in docsets')\n")
+
+    found = grid.resolve_payload(project, "bin/plain.py", engine, "docset")
+    assert found == (payload, "docset")
+    # absent at the declared base -> None, never a silent fallback to staged/engine.
+    assert grid.resolve_payload(project, "nope.py", engine, "docset") is None
+
+
+def test_non_default_location_does_not_resolve_to_staged_or_engine(project, engine):
+    """A non-default location is authoritative: a payload present in the
+    staged checkout but absent at the declared base must NOT resolve — the
+    base the author recorded dominates, so grid and write.py agree."""
+    import json
+    cfg = project / "agi-tree.config.json"
+    cfg.write_text(json.dumps({"locations": {"docset": "docsets"}}))
+    staged = project / grid.PAYLOAD_DIR / "bin" / "plain.py"
+    staged.parent.mkdir(parents=True)
+    staged.write_text("print('staged only')\n")
+    (engine / "bin" / "plain.py").write_text("print('engine')\n")
+
+    assert grid.resolve_payload(project, "bin/plain.py", engine) == (staged, "staged")
+    assert grid.resolve_payload(project, "bin/plain.py", engine, "docset") is None
+
+
 def test_unresolvable_payload_ref_warns_and_still_commits_the_node(
         project, engine, capsys):
     """G7's first invariant is that node count never drops. A payload problem

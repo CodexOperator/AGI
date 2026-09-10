@@ -1,4 +1,5 @@
 {
+  "operating_mode": "full",
   "engine_commit": "179f9560283936fae421e08002ef9db38d7f1e25",
   "metric_primary": "outcome_coverage",
   "metric_unit": "fraction",

@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-I
+edited_by: belam-S1-L4-II
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: rc-L4-I
+thought_session: rc-L4-II
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -463,3 +463,23 @@ APPLIED, and what it does NOT mean. It does not license a kid to re-derive work 
 **Owner, verbatim:** "what's L4.09? I'm fine with making the check more strict per type and you're clear to authorize extra waves or to re-order things as needed. I'm find having graph nodes that lack writers for now can backfill at the end since it used to be all Director Prime so it's easy to backfill truthfully."
 
 Applied: L4.09 (written_by warn -> refuse, one type at a time; [moral], [config] first, [vision] with Q15 as ruled: the Council FEEDS vision, blue = the Prime writes it) is AUTHORIZED — its owner-go flag is satisfied; the Prime may authorize extra waves and re-order rounds without a fresh owner-go; nodes with no recorded writer are left as they are and BACKFILLED at the end (legacy nodes were all the Director Prime — backfill truthfully to that). Resolves the owner-go on L4.09 and the L4.05 -> L4.09 ordering (gen II's correction).
+
+### Owner ruling 2026-09-09 (to the point director, applied by it 2026-09-10; verbatim) — the closing prayer is per SESSION, not per turn
+
+**Owner, verbatim:** "You don't have to do a prayer at the end of each turn, only at the end of your session when you rotate or have no other actionable items left."
+
+Applied by the point (gen II) to the prime-director successor brief (line 26) and both quorum briefs, which had read as every-turn. SKILL.md already said session. Supersedes any brief line that reads as per-turn.
+
+### Owner 2026-09-10 ~09:3xZ (verbatim) — unexplained gpt-5.1-codex spend on OpenRouter
+
+**Owner, verbatim:** "still getting the error where we're using a bunch of gpt5.1 codex calls on openrouter. Need to button that down. I'll try disabling any relevant settings on my end as well in openrouter console" · "it may have been a test call"
+
+Measured by the Prime the same hour (OpenRouter /api/v1/activity via the provisioning key): openai/gpt-5.1-codex usage 2026-08-31 to 09-09 totals about USD 12.4 (526 requests on 09-06 alone; 6 requests / USD 0.18 on 09-09; NONE on 09-10), routed to provider azure. NOT from the engine: no live pi process carries a codex model (AGI_MODEL is glm-flash for parents, deepseek-v4-flash for kids), pi's run-history has zero codex entries, .agi/config.json names only deepseek / glm / sonnet / opus / fable, the workflow manifests name none. Candidates outside the dispatch path: the Codex CLI at ~/.codex (auth.json; the cavekit ck:judge / peer-review-loop skills use Codex as a reviewer) and the non-engine OpenRouter key labelled agi-2 (USD 0.60 used, no expiry). RECOMMENDATION: owner restricts allowed models on the OpenRouter account/keys (in progress) and deletes agi-2 if unknown; engine side, one round under G15: dispatch.py refuses any AGI_MODEL outside a config allowlist (harnesses.pi.allowed_models), fail-closed — handed to the point.
+
+CORRECTION by the point gen II (2026-09-10 10:0xZ), re-derived not trusted: both outside suspects are eliminated — ~/.codex is dormant (newest mtime 2026-05-23) and codex-review.sh shells out to the codex CLI with an OpenAI account and o4-mini, no OpenRouter reference; ~/.hermes and ~/.openclaw have nothing newer than 09-07. Neither the runtime key (USD 7.13 of 15) nor agi-2 (USD 0.60) can carry USD 12.4. The spend left no filesystem trace on this box; the search continues in the owner's OpenRouter activity BY KEY, not in this repo. L4.43 (model allowlist, four check sites incl. the --seat override path; seed list enumerated in the claim; absent or empty list refuses) is live under goal:g15 as defence in depth and instant attribution — it does not explain the USD 12.4 and its verdict may not read as if it did.
+
+Owner, verbatim (2026-09-09, in chat to the Prime L4-I after XVI relayed plan parts 1-7): "Plan sounds good continue as described" - the GO for the L4 loop. Recorded by L4-II on 2026-09-10 02:5xZ because the handoff card held this quote and no graph node did; the card is trimmed only after the quote lives here (owner rule: verbatim is protected in nodes, never in the handoff).
+
+Owner, verbatim (2026-09-10 02:5xZ, in chat to the Prime L4-II): "this should already be in this run somewhere, but we need to simplify the rotation process for each next successor to where they don't have to run a bunch of tools. Ideally just make a unified verification.py with various options that can do various levels of checks, and it runs a full thorough check each rotation programmatically without having to waste tokens. Then of course everything gets linked into commands.py for easy calling and use. Feel free to trim the handoff as well where appropriate according to our standing rules" - handed to the point as an ad-hoc round (numbered beyond the plan); the Prime trims the handoff under the standing quote-check rule.
+
+Owner, verbatim (2026-09-10 03:2xZ, in chat to the Prime L4-II): "let's get a deep research queued up to look up why processes are hanging if that L4.37 hung or got reaped due to OOM error that isn't true. Maybe the process RAM is limited per process or something, unless the fix is diagnosed." - handed to the point as a research round (the reaper that kills long backgrounded runs while free memory reads 16-18 GB: traps 0ai, 0ai-b, 0p, 0ai third firing in goal:g17.1).

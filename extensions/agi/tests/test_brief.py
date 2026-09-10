@@ -1203,3 +1203,75 @@ def test_successor_prompt_honors_survival_profile():
     assert "SUCCESSOR FILE BODY" not in surv
     assert "SURVIVAL PROFILE" in surv
     assert surv.startswith("CONSTITUTION HEAD") or "CONSTITUTION HEAD" in surv
+
+
+# --- hypothesis:l4b18-survival-modes: config-declared operating modes -------
+
+def test_config_operating_mode_survival_no_env(monkeypatch):
+    """l4b18 — with AGI_BRIEF_PROFILE unset and config declaring
+    operating_mode=survival, assemble() produces the survival brief. The mode
+    is READ from config, not remembered via env (the exact gap the hypothesis
+    closes)."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "survival")
+    s = _text("kid")
+    assert "SURVIVAL PROFILE" in s
+    assert "scaffolded node file below" not in s.lower()
+
+
+def test_config_operating_mode_ultimate_survival_no_env(monkeypatch):
+    """l4b18 — ultimate_survival declared in config, env unset, assemble
+    produces the survival-shaped brief: the mode is about MODEL/ROLE
+    assignment (Prime on Opus, director on Sonnet/OpenRouter), not new prose,
+    so it reuses _survival_brief's shape."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "ultimate_survival")
+    s = _text("kid")
+    assert "SURVIVAL PROFILE" in s
+    assert "scaffolded node file below" not in s.lower()
+
+
+def test_env_override_wins_over_config(monkeypatch):
+    """l4b18 — AGI_BRIEF_PROFILE stays the per-process override even when
+    config declares a lighter operating_mode. The env path is not removed."""
+    monkeypatch.setenv("AGI_BRIEF_PROFILE", "full")
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "survival")
+    s = _text("kid")
+    assert "scaffolded node file below" in s.lower()   # full brief, not survival
+    assert "SURVIVAL PROFILE" not in s
+
+
+def test_env_override_to_ultimate_survival_wins_over_config(monkeypatch):
+    """l4b18 — env override can also PICK ultimate_survival over a full config."""
+    monkeypatch.setenv("AGI_BRIEF_PROFILE", "ultimate_survival")
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "full")
+    s = _text("kid")
+    assert "SURVIVAL PROFILE" in s
+
+
+def test_survival_selected_true_for_both_survival_modes(monkeypatch):
+    """l4b18 — both survival and ultimate_survival make survival_selected()
+    True so the adapters drop the graph-viewport stream for either mode."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "ultimate_survival")
+    assert brief.survival_selected() is True
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "survival")
+    assert brief.survival_selected() is True
+
+
+def test_successor_prompt_honors_ultimate_survival(monkeypatch):
+    """l4b18 — successor_prompt reads the same config-backed switch, so a
+    rotated seat comes up as light under ultimate_survival too."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    monkeypatch.setattr(brief, "_configured_profile",
+                        lambda *a, **k: "ultimate_survival")
+    body = "SUCCESSOR FILE BODY\n"
+    surv = brief.successor_prompt(tier="kid", body=body)
+    assert "SUCCESSOR FILE BODY" not in surv
+    assert "SURVIVAL PROFILE" in surv

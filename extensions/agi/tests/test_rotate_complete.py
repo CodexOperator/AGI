@@ -21,6 +21,8 @@ from __future__ import annotations
 
 import subprocess
 import sys
+
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -250,4 +252,15 @@ def _capture(argv: list[str]) -> int:
 
 # Patch rotate.main's return path: tests call `rotate.main(...)` directly and
 # also need the captured stdout/stderr for the refusal/skip assertions.
-rotate.main = _capture  # type: ignore[assignment]
+#
+# 🔴 SCOPED TO THIS MODULE, via an autouse fixture, and NOT a module-level
+# rebind. It was `rotate.main = _capture` at import time, which is never
+# restored: pytest imports every test module once per session, so from that
+# import onward EVERY test in the run that calls `rotate.main(...)` got
+# `_capture` instead of the real function and saw empty stdout. That broke 22
+# tests in test_rotate.py -- all of them green when that file runs alone, all
+# of them red in a full-suite run. A test module may not rebind a production
+# function for the rest of the session.
+@pytest.fixture(autouse=True)
+def _capture_rotate_main(monkeypatch):
+    monkeypatch.setattr(rotate, "main", _capture)

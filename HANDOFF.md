@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-09: `belam-S1-L4-I` (Belam L4-I, L4 prime, **Fable 5.1**) = **`agi-c6 [cd7648] · agi-rc:@232`** — resolve any seat the same way: join `tmux list-windows` @id against `ListAgents` `agi-rc:@id`; display names collide, **a name is not an address**. 🔴 **L3 IS CLOSED (owner 2026-09-09 ~13:3xZ, verbatim in `doc:l4-owner-decisions`) — L4 IS OPEN: this is the PLAN SESSION with the owner (plan mode: no dispatch, no seat launch, no engine edit beyond `doc:l4-plan` + this file); `season/s2` merged into `master` at L3's close; work continues on `season/s2`.** 🔴 **SURVIVAL MODE (item 71) STILL IN FORCE — ONE worker, `sanctuary-director` gen VI `agi-fa [c6e62f]` @231, IDLE; every other seat idles (idle costs ~0, woken spends).** 🔴 **Commit and push after every action.** 🔴 **One kill is never a stop — sweep by PID off `spawn_budget.py status` until two consecutive reads are empty; kill the `dispatch.py` wrapper, never sweep off a `ps` grep.** 🔴 **Never trust a write.py `updated:` line — grep the bytes (trap 0ah).** The state card in §0.7 is the map.
+# SESSION HANDOFF — 2026-09-10: `belam-S1-L4-II` (Belam L4-II, L4 prime, **Fable 5.1**) = **`agi-64 [61b9c9] · agi-rc:@235`** — resolve any seat the same way: join `tmux list-windows` @id against `ListAgents` `agi-rc:@id`; display names collide, **a name is not an address**. 🔴 **L3 IS CLOSED (owner 2026-09-09, verbatim in `doc:l4-owner-decisions`) — L4 IS RUNNING (owner GO 2026-09-09) on `doc:l4-plan` in ENHANCED SURVIVAL (`goal:g17.1` = the seat protocol, read it whole): Prime + point `sanctuary-director` L4 gen II (`seat-sanctuary-director-68 [f84c57]` @234) + helper `sanctuary-helper` gen I (`seat-sanctuary-helper-05 [3a4ed4]` @233, reports to the point only); every other seat idles (idle costs ~0, woken spends); `master` = the last closed season, merges only; work on `season/s2`.** 🔴 **Commit and push after every action.** 🔴 **One kill is never a stop — sweep by PID off `spawn_budget.py status` until two consecutive reads are empty; kill the `dispatch.py` wrapper, never sweep off a `ps` grep.** 🔴 **Never trust a write.py `updated:` line — grep the bytes (trap 0ah).** The state card in §0.7 is the map.
 
 **Owner's instructions:** carried forward in place by successors (2026-09-06); trimmed to L3 on 2026-09-07 at the owner's ask — the L1/L2 sessions, the L2 plan and the L2-era proposals live in the grid (`grid.py payload build:HANDOFF.md --version N`) and in [COMPLETE.md](COMPLETE.md). Bootstrap lives in [QUICKSTART.md](QUICKSTART.md). The design is in [`.agi/context/season-ladder-and-morals-brief.md`](.agi/context/season-ladder-and-morals-brief.md) and [`.agi/context/l3-command-ladder-brief.md`](.agi/context/l3-command-ladder-brief.md) (owner text verbatim, incl. the 2026-09-07 perpetual-seats layer). Do not re-derive either.
 
@@ -6,139 +6,78 @@
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1634 active / 194 deprecated (node_count 1828)** at L4-I's smoke on season/s2 @ aafb4be0a, 2026-09-10 04:5xZ (1592/194/1786 at L4-I's open) — **+42 active in L4 round 1 (14 sub-goals, 10 idea→hypothesis chains + 2 experiments, doc:l4-plan, goal:g17.1, L4.32's nodes), no drop at any point.** The next smoke is the authoritative count; a naive `find` over `.agi/nodes` is wrong (deprecated split, `.geometry`). |
-| goals | 128 (`snapshot-goals.py --render --check` byte-identical). No `METRIC-WARNING` at XVI's smoke: the `max_goals_active` config key was deleted at L3.04 (`6e2946151`); `hypothesis:l2-goals-active-exempt` is moot unless the key returns. |
-| `outcome_coverage` (primary) | **0.147** at XVI's open (0.132 at XV's — SD.13's 65 build nodes under mvp parents lifted it). Drifts DOWN between such events as hypothesis/experiment nodes enter the denominator faster than mvps close — dilution, not regression. |
+| active nodes / deprecated | **1703 active / 194 deprecated (node_count 1897)** at L4-II's verify on season/s2 @ b4481c9ba (merge-up 2), 2026-09-10 03:30Z (1634/194/1828 at L4-II's open; 1592/194/1786 at L4-I's) — grew, never dropped. The next smoke is the authoritative count; a naive `find` over `.agi/nodes` is wrong (deprecated split, `.geometry`). |
+| goals | **157** (`snapshot-goals.py --render --check` byte-identical at b4481c9ba; 143 at L4-II's open, 128 before L4). No `METRIC-WARNING`: the `max_goals_active` config key was deleted at L3.04 (`6e2946151`). |
+| `outcome_coverage` (primary) | **0.14** at b4481c9ba (0.147 at L4-II's open, 0.132 at XV's). Drifts DOWN as hypothesis/experiment nodes enter the denominator faster than mvps close — dilution, not regression. |
 | `evidence_fraction` | **0.561** at XVI's open (0.552 at XV's, 0.385 at L2.13) — rising every session this loop. `unevidenced_decisive_verdicts` 0. |
-| tests | 🟢 **2270 passed / 1 skipped / 0 failed** — the point's foreground run at aafb4be0a before its merge-up (2270/1 at L4-I's open, run alone). Never run it twice at once (trap 0e); the suite's `test_send.py` nudges REAL panes until L4.10 lands — tell the point before running, capture your pane after. |
-| broken links | 0 (**1808 resolved** at aafb4be0a; 18 retired payloads, not damage) |
+| tests | 🟢 **2315 passed / 1 skipped / 0 failed** — the point's foreground run at b4481c9ba (merge-up 2), alone; the FIRST run on the merged tree was RED (22 failed in test_rotate.py: a module-level rebind of rotate.main in the new test_rotate_complete.py — fixed inline, rule in goal:g17.1: run the tests a round could BREAK). L4-II's own run: 2270/1 at 2deee5062. Never run it twice at once (trap 0e); test_send.py nudges REAL panes until L4.10 lands — tell the point before running, capture your pane after. |
+| broken links | 0 (**1877 resolved** at b4481c9ba; 18 retired payloads, not damage) |
 | crons | 🟢 **ON for this repo — verified 2026-09-09 06:1xZ by `crontab -l` AND its live log (`~/logs/agi-crons-agi-2f118e6f.log`, written every 5 min): `grid_sync` `*/5` runs `grid.py commit --all --prefix 'cron: '` from `.agi/`; `branch_push` pushes `season/s2` at :07 hourly; `.geometry/crons.md` declares `crons_live: true`.** 🔴 **XIV's row said OFF (its 2026-09-08 13:1xZ reading) — wrong or since reverted. Verify with `crontab -l`, never with this file.** Two consequences: **push by hand anyway** (the push is hourly; a dead box strands up to 59 min), and **the auto-versioning hazard IS armed** — half-finished source from a killed agent is grid-versioned under the cron's name within 5 minutes, so kill cleanly and `git reset` unreviewed staging at once. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
-| agents live | **survival mode: enhanced survival: point sanctuary-director L4 gen II (`seat-sanctuary-director-68 [f84c57]` @234) + helper sanctuary-helper gen I (`seat-sanctuary-helper-05 [3a4ed4]` @233), parallel pi rounds live.** Prime L4-I = `agi-c6 [cd7648]` @232; XVI idles at `agi-05 [eb30d2]` @230 (predecessor chain XI–XVI kept). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — L4-I claimed first (`meter --pin .agi/sessions/belam.meter --session-log <own .jsonl>`) and read 0.1132. |
-| spend | **Account $12.64 remaining of the owner's $92 after SD.19 ($12.97 at XVI's pin claim; SD.14–19 ~$0.44) · runtime key `backup` $7.87 remaining of its $15 sub-cap — read 2026-09-09 10:1xZ at XVI's pin claim (`rotate.py meter --pin` prints both; `/api/v1/credits` for the live delta).** SD's per-spawn keys bill the ACCOUNT; the runtime key never moves. The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
+| agents live | **enhanced survival: point sanctuary-director L4 gen II (`seat-sanctuary-director-68 [f84c57]` @234) + helper sanctuary-helper gen I (`seat-sanctuary-helper-05 [3a4ed4]` @233, closed at a6d8ec28c, holding); pi rounds live under the point: L4.37 parent, L4.40 parent, L4.43 parent+kid (4/25 budget at L4-II's open).** Prime L4-II = `agi-64 [61b9c9]` @235; L4-I idles at `agi-c6 [cd7648]` @232, XVI at `agi-05 [eb30d2]` @230 (predecessor chain XI–XVI + L4-I kept; an idle predecessor reads NO mail — trap 0v). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — L4-II claimed first (`meter --pin .agi/sessions/belam.meter --session-log <own .jsonl>`) and read 0.0905. |
+| spend | **Account $11.32 remaining of the owner's $92 at L4-II's pin claim, 2026-09-10 02:5xZ ($12.64 at L4-I's last read — L4 rounds bill the ACCOUNT through per-spawn keys) · runtime key `backup` $7.87 remaining of its $15 sub-cap, unmoved all of L4** (`rotate.py meter --pin` prints both; `/api/v1/credits` for the live delta). The key cap is **self-imposed and raisable** (`PATCH /api/v1/keys/<hash>` under `OPENROUTER_PROVISIONING_KEY`, §6 items 33/51); **quote both numbers or neither** (§6 item 86). 🔴 **The `provisioning.min_key_remaining_usd` $1.00 floor is fail-closed, has saved money twice, and is NEVER lowered.** Claude-side: owner reports a **$70 weekly allowance** (item 73); owner 2026-09-09: limits have reset (`doc:l4-owner-decisions`). |
 | disk | 81% |
-| this session | **Belam L4-I (2026-09-09 16:5xZ →, Fable 5.1; pin 0.1132 at claim). L4 PLAN SESSION with the owner — plan mode, nothing dispatched.** Gate answered `continue` as the first line; verify green (§5: smoke 1592/194/1786, suite 2270/1 run alone, `dispatch.py --help` exit 0, budget 0/25); no DM addressed to the prime unread; `l4-plan-research` workflow (14 read-only opus/high agents, scratch only) maps seats/schemas/goals/dispatch/owner text → 3 drafts → 2 judges → synthesis → 3 verifiers; registered via `workflow.py register` when it lands (item 22). XVI's session (10:1xZ → 16:5xZ: L4.01 reviewed, L3 closed, master merged 9a7b280f2, L4 plan recorded): `git log 9c7f9448c..03b16903f` and `grid.py payload build:HANDOFF.md --version N`. |
+| this session | **Belam L4-II (2026-09-10 02:4xZ → …, Fable 5.1; pin 0.0905 at claim, rotating at 0.47 → `belam-S1-L4-III`).** Gate `continue`; verify green at 2deee5062; address announced and carried; seats row 61b9c9; handoff trimmed 49.9→39.8 KB by quote-checked script; owner asks (verification.py, false-OOM research) verbatim in doc:l4-owner-decisions and handed as L4.44 / L4.46; L4.37 reviewed on the bytes → L4.45; **03:30Z MERGE-UP 2 verified on season/s2 @ b4481c9ba** (L4.37 both halves, L4.40 proved, L4.43 at 65, helper's tip; 1897/1703/194, links 1877/0, goals 157, guard silent, suite 2315/1 by the point, pane clean) — both seat branches fully merged; helper holding. L4-I's session: `git log 03b16903f..2deee5062`. LIVE: the point runs L4.45 → L4.44 → L4.46; the Prime reviews each on the bytes. |
 
 ## §0.7 LOOP L3 — CLOSED 2026-09-09 by the owner (opened 2026-09-06); L4 OPEN on `doc:l4-owner-decisions`
 
-### Round plan — two pi parents per round (GLM parents / DeepSeek kids), tmux windows in `agi-rc`
+### L3 (CLOSED) — rounds L3.01–L3.44 all LANDED or closed; trimmed 2026-09-08/10
 
-| round | targets | status |
-|---|---|---|
-| L3.01–L3.35 | waves 0–2, the rollover, the seat/branch/quorum build-out — **all LANDED and trimmed 2026-09-08.** Detail: `git log --oneline iter-L3.01..iter-L3.35`, the experiment nodes, and `grid.py payload build:HANDOFF.md --version N`. | **LANDED** |
-| L3.36–L3.43 | the `--branch`/merge-up cycle, the restart-cwd cause, the rotation record, the workflow unified route, the wide 6- and 7-parent rounds, and the seat system going live — **all LANDED and trimmed 2026-09-08.** Detail: `git log --oneline iter-L3.36..iter-L3.43`, the experiment nodes each row named, and `grid.py payload build:HANDOFF.md --version N`. **The two lessons worth carrying out of them are already restated below and in §4:** check `git rev-list --count season/s2..<branch>` before believing a `--branch` parent landed anything, and compare a branch against its **MERGE-BASE**, never against a moved `season/s2`. | **LANDED** |
-| L3.44 (Belam XIII, 1 pi parent, MAIN tree) | `p-rotann` → `hypothesis:l3w4-rotation-announces-itself` (g17, item 67). Dispatched on the MAIN tree after three `--branch` rounds landed zero commits. | 🔴 **KILLED by the owner's stop order minutes in; the kid AUTO-RESTARTED as `-r1` with `iter=0` (wrapper respawn, see item 71) and was killed too. Node minted and pushed; later covered by SD.03 (item 81, lean_proved:75).** |
+Detail: `git log --oneline iter-L3.01..iter-L3.44`, the experiment nodes, [COMPLETE.md](COMPLETE.md), `grid.py payload build:HANDOFF.md --version N`. Two lessons kept: check `git rev-list --count season/s2..<branch>` before believing a `--branch` parent landed anything, and diff a branch against its **MERGE-BASE**, never against a moved `season/s2`. Under L4 the POINT dispatches (`dispatch.py . L4.NN --target <node> --level small --tier parent --harness pi --branch`, from its own worktree); the Prime never dispatches. Wait-loop gotcha kept: `$(pgrep -fc PAT || echo 0)` captures "0\n0" when nothing matches — use `|| true` or compare with -le 0.
 
-Grouping rule: `brief.py` is touched by rotate-roles, brief-head-michael and
-test-skips — never two of those in one round; grid-flock and test-skips both
-touch `test_grid.py`. Kids edit the live tree; one commit per round.
-
-### Round loop (exact)
-
-```bash
-mkdir -p .agi/sessions/iter-L3.NN
-tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/agi/bin/dispatch.py . L3.NN --target hypothesis:<id> --level small --tier parent --harness pi |& tee .agi/sessions/iter-L3.NN/p-<x>.log; exec bash"
-# wait: background `until` loop on spawn_budget.py status → 0 live, then read its output file (Belam VII ran one fine; the memory-pressure deaths were last session's)
-#   GOTCHA (Belam VII): `$(pgrep -fc PAT || echo 0)` is NOT "0" when nothing matches — pgrep -fc PRINTS "0" and exits 1, so the || fires too and you capture "0\n0". The loop then never exits. Use `$(pgrep -fc PAT || true)` or compare with -le 0.
-# review: kid struggles:/caveats: → parent Accepted/Demoted in .agi/sessions/iter-L3.NN/<parent>/output.log → links.py links (0 broken) → snapshot-goals.py --render --check → write_guard.py check → commands.py run tests
-# commit "iter-L3.NN: …" → grid.py commit --all → git push → record the OpenRouter balance delta below
-```
-
-### Landed
-
-- **L3.01–L3.42 detail lives in git and the graph, not here** (trimmed 2026-09-08). Per-round narrative: `git log --oneline iter-L3.01..` plus the experiment nodes named in each round row. Closed-loop reports: [COMPLETE.md](COMPLETE.md). Prior handoff versions: `grid.py payload build:HANDOFF.md --version N`.
-
-### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
+### 🔴 Where it stops — Belam L4-II, live 2026-09-10 (L4-I's last card: `git show 2deee5062:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (SendMessage address agi-c6 [cd7648] — the tmux window name belam-S1-L4-I is NOT an address, a send to it bounces; @232; meter ~0.43, cap 0.47)   season/s2   2026-09-10 07:5xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
-L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
-         FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
-         Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
-       PLAN NODE doc:l4-plan MINTED e7883b4e4 (parent goal:g13.1; 19.7k words / 129 KB body; §0.9 = owner-confirmed diagram v3+v4+Draft Master; 188 owner quotes byte-verified;
-         stale-by-design facts flagged inside: 13 seat rows not 12, cap 3 not 2 -> round 1 reconciles). doc:l4-owner-decisions gained "L4 BANKED QUESTIONS" (28 items: 7 resolved
-         by parts 4-7 with the owner's lines, the rest open/new with recommendations) + the BODY:BEGIN-marker renderer defect. Drafting workflows: l4-plan-research REGISTERED;
-         the three fold scripts (parts 2 / 3 / 4-7) ran inline UNREGISTERED (single-use, session-specific) — banked: workflow.py needs a --scratch/one-shot class (item 22 tension)
-       CONCURRENCY (owner, verbatim in goal:g17.1 = "Texas two-step formation", 3bd6e7db5/9f1233730): point = sanctuary-director L4 gen II = seat-sanctuary-director-68 [f84c57] @234 (gen I agi-fa [c6e62f] rotated 05:1xZ at meter 0.5185 — PAST the cap: seats must meter after every round close; its window @231 SHUT by the Prime 06:1xZ after the reaper killed its rotation wrapper post-spawn — a killed rotation wrapper is NOT a failed rotation, verify the successor's pane, never re-run)
-         + helper = sanctuary-helper (L4 gen I, claude-sonnet-5 MAX; row 13, brief .agi/sessions/quorum/sanctuary-helper.md, = seat-sanctuary-helper-05 [3a4ed4] @233, reports to the POINT only). Both FREE-FLOATING:
-         the point gets the brief and splits the work; each in its OWN worktree .agi/worktrees/seat-<name> (branch seat/<name>@s2, both ff'd to e7883b4e4; SESSION worktrees: kept across rotations, merged + deleted at session complete — owner);
-         the point merges both into season/s2 at the end (merge-base, never rebase). ladder caps.director_kids 2 -> 3 (suite 2270/1 after). Prune a worktree ONLY after its
-         branch is an ancestor of the parent (owner): 23 merged+clean L3 trees removed; KEPT 4 merged+dirty (seat-sanctuary-master, a00-de936ecd, a00-09f6ac54, a00-85beb9ba)
-         + 5 unmerged ahead=1 (a00-a8416695, a00-be033567, a00-814a8dd9, claude/magical-napier, claude/amazing-lalande) -> the point harvests or drops them in round 1
-       ROUND 1 (L4.20, owner part 7 verbatim in doc:l4-plan §5.0): POINT SLICE LANDED 01:3xZ on seat/sanctuary-director@s2 @ dc1974a59 — 14 sub-goals under EXISTING goals
-         (g5.3, g5.4, g9.11, g17.2-g17.12; nesting to heading level 5 probed + round-tripped), owner verbatim by POINTER, ZERO dispatches (judgement: exact structure, wrong
-         parent = deprecate-only), key $7.87 untouched; B24 = the replace verb (landed L4.01); B25 = moral:* owner-only, no node. Helper slice (B13-B20, B23) in flight on
-         seat/sanctuary-helper@s2. ACCEPTED by the Prime 01:4xZ; CHAIN ROUND ordered (idea -> hypothesis per sub-goal a §5 row acts on; pi kids; $3.00 ceiling both seats).
-         GRID IS BRANCH-BLIND: grid.py commit --all refuses on a seat branch (never --allow-branch) -> runs on season/s2 after the point's merge only (goal:g17.1 note).
-         HELPER SLICE LANDED a8816ecfb (12 goals + 12 ideas + 12 hypotheses, 0 build nodes; g3.2 dual-parented, legal). Point's L4.28 chain round running (parent a00-83409bc4).
-         OWNER 02:0xZ: "go for parallel rounds" (to the Prime) + "always prefer dispatch over not" / "so you can parallelize properly" (to the helper) -> one-round-at-a-time LIFTED,
-         dispatch is the default for work not yet done; landed work is not re-derived. Trap: dispatch.py iteration id must be L4.NN (numeric suffix), fail-closed otherwise.
-         MERGE-UP 1 DONE 04:4xZ: seat/sanctuary-director@s2 -> season/s2 @ aafb4be0a (L4.20 point slice, L4.28 PROVED 10 chains, L4.32 lean_proved:85 moral gate as data);
-         suite 2270/1 by the point; PRIME VERIFIED on season/s2: smoke 1828/1634/194 (grew), goals round-trip OK, links 1808/0, guard silent, pane clean. Grid v69 of
-         build:GOALS.md carries conflict markers (point chained grid after an unchecked merge; fixed forward) -> rules in goal:g17.1: gate every step; GOALS.md conflict =
-         re-render, never hand-resolve. Helper (branch dd1f9d343+, NOT yet merged, rounds live): L4.11 PROVED, L4.26 PROVED, L4.12 DISPROVED (parent caught red-only), retry live.
-         KIDS RAN THE FULL SUITE TWICE despite the brief -> round assigned under G15: conftest.py refuses a whole-dir pytest run when AGI_TIER=kid (fail-closed).
-         06:4xZ: point L4.06 CLOSED PROVED 0.85 (write-log actor/role/seat via the existing extra hook, no second path; 87 tests; live write proved it) tip 47e22a5a2 —
-         AGI_SEAT is NOT exported by dispatch (help text only) -> follow-on round banked with the token counter (Q30); L4.37 kid proved 0.85 (sess_root -> local worktree +
-         _legacy_fallback; spawn budget stays shared, 7 tests), parent verdict pending; L4.39 PROVED 0.9 (AGI_SEAT exporter; --seat OVERRIDES MODEL to Opus — export AGI_SEAT in the env instead, dispatch without --seat);
-         HELPER SEAT CLOSED, final tip a6d8ec28c (L4.38 conftest kid-gate proved 0.9), holding; L4.37 on kid 2/3; SUITE WINDOW pre-cleared for the double merge; burn <$0.20; HELPER FINISHED ALL SIX ORIGINAL ROUNDS, tip 9acc76b93 pushed: L4.25 (=its L4.34) lean_proved:65 (5/7 metrics null-with-named-source: no token counter exists),
-         L4.12 follow-up PROVED (resolve_payload optional location, 106 tests); only L4.38 (conftest kid-guard, goal:g15.6) still running -> then gen II merges BOTH branches.
-         Banked Q29 (L4.22 JSONL vs graph nodes -> REC roll-up node) + Q30 (token counter scope) in doc:l4-owner-decisions. Point HOLDS L4.23
-         (ONE message router: rewrites send.py, the path the seats reach the Prime on) until L4.37 or L4.06 is harvested — five reviews at once get rubber-stamped. Plan dep fix (gen II, CORRECTED 07:2xZ): L4.05's real prerequisite is L4.09 (owner-go: schemas gain declared writers) — 214 nodes already carry role:, only [moral].md declares written_by; L4.05 re-minted as a two-half coverage+violations report. Burn so far: $0.03 on per-spawn keys.
-         OWNER 03:5xZ (verbatim in goal:g17.1): agent iter-<id>/ session dirs must land PER WORKTREE and be MIGRATED into main .agi/sessions/ at worktree delete (sessions/ is
-         gitignored: a merge carries nothing) — handed to the point as a round: iter dirs per worktree; budget/comms/pins stay shared (git_common_root); a session-complete
-         command = verify ancestor -> migrate sessions -> remove worktree + branch. Code under G15.
-         OWNER 07:4xZ (verbatim in doc:l4-owner-decisions): L4.09 (written_by warn -> refuse per type) is GO; the Prime may authorize extra waves and re-order rounds without
-         a fresh owner-go; writer-less nodes stay and are BACKFILLED at the end (legacy = Director Prime, truthful). Relayed to gen II.
-         GATES untouched, correctly: perpetual flip of 12 gN (L4.07) needs owner GO and MOVES them into GOALS.md "## Perpetual"; seat nodes (L4.13) = owner's surface.
+BELAM L4-II LIVE  (agi-64 [61b9c9] · agi-rc:@235 — the window name belam-S1-L4-II is NOT an address; pin 0.09 at claim, cap 0.47)   season/s2 @ 2deee5062   2026-09-10 02:5xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $11.32/$92
+L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + owner-confirmed role diagram in doc:l4-plan §0.9)
+PLAN   doc:l4-plan e7883b4e4 (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions; 188 owner quotes byte-verified) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
+SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; read it whole) · point gen II @234 (gen I rotated PAST the cap at 0.5185 -> seats meter after every round close) · helper @233 CLOSED at a6d8ec28c, holding
+       session worktrees .agi/worktrees/seat-<name> (seat/<name>@s2; kept across rotations; merged + deleted at session complete; grid runs ONLY on season/s2 after the merge) · ladder caps.director_kids 3
+LANDED merge-up 1 = season/s2 @ aafb4be0a (L4-I, 1828/1634/194): L4.01 L4.20 L4.28 L4.32 L4.10 L4.11 L4.22 L4.26 L4.12(+follow-up) L4.25(lean_proved:65) L4.38
+       merge-up 2 = season/s2 @ b4481c9ba (L4-II 03:30Z, 1897/1703/194, suite 2315/1): L4.06 L4.39 L4.05 L4.42 L4.37(both halves; 3 findings against half b: 2 -> L4.45, 1 fixed at the merge) L4.40 L4.43(@65, single choke point dispatch.py:1096)
+       detail = git log 03b16903f..2deee5062 + goal:g17.1 Agent Notes + the experiment nodes; burn on per-spawn keys ~$0.35 all L4
+OPEN   under the point, in order: **L4.45** (L4.37-b invariants: `_legacy_fallback` -> local when neither copy exists; `complete` REFUSES teardown on a differing skipped dir; fixture trees only) -> **L4.44** -> **L4.46** · L4.41 role resolution (longest prefix wins, ambiguity REFUSES) · then the [config]/[vision] written_by flips ([owner, prime_director]) · writer BACKFILL at the very end (legacy = Director Prime, owner) · L4.23 message router HELD (release = the point's call now that L4.06/L4.37 are merged)
+       · **L4.46 deep research: false-OOM reaping of backgrounded runs (OWNER 03:2xZ, verbatim in doc:l4-owner-decisions). Prime measured first: no per-process/cgroup cap (ulimit unlimited, memory.max=max at scope + user slice), no kernel OOM in 2 days, 17 GB available — the kills are the CC harness's background-task watchdog; claim to test: it keys on MemFree not MemAvailable (page cache 10 GB). Handed to the point 03:2xZ; web half = deep-search workflow, reproduction = CC-harness kid; also read how L4.37's parent ended.**
+       · **L4.44 unified verification.py (OWNER 2026-09-10 02:5xZ, verbatim in doc:l4-owner-decisions): --level quick|rotation|full, one summary block + exit code, active count never lower vs its own record, suite opt-in, wired into command:commands + the successor brief — handed to the point 03:0xZ)**
+RULED  (verbatim in goal:g17.1 / doc:l4-owner-decisions) parallel rounds GO · always prefer dispatch (landed+verified work is not re-derived) · L4.09 GO (Prime may add waves / re-order without a fresh go) · enforce written_by on ROLE never actor
+       · prayer per SESSION not per turn · gpt-5.1-codex OpenRouter spend is NOT the engine's (both box suspects eliminated; owner checks activity BY KEY)
+GATES  owner GO only: L4.07 perpetual flip of 12 gN (moves them into GOALS.md "## Perpetual") · L4.13 seat nodes (the owner's surface)
+BANKED Q29 (L4.22 JSONL vs graph nodes -> roll-up node) · Q30 (token counter scope; L4.25 found no counter exists) · workflow.py needs a --scratch one-shot class (3 fold scripts ran inline unregistered, item 22 tension)
+       · 4 merged+dirty + 5 unmerged ahead=1 L3 worktrees kept for the point to harvest or drop · trap: iteration ids must be L4.NN numeric (fail-closed)
 MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work · predecessors kept XI–XVI (XVI relays owner text)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 · partial edits: write.py read N:M then replace N:M
 CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with crontab -l, never this file) -> push by hand anyway
 DONE   L4-I: gate `continue` · verify green · plan drafted (4 workflows) + MINTED · questions banked · goal:g17.1 · cap 3 · helper spawned · point briefed · hygiene · handoff live
-NEXT   1 WAIT for the point's MERGE report (helper slice + chain round -> season/s2); verify on season/s2 after ITS merge: smoke (active must not drop below 1609 = the
-         point's own smoke on its branch), suite alone, links 0, goals round-trip, guard silent; then the handoff card + push. Do not pull work back to the Prime (SKILL: dispatch, don't do)
-       2 owner rulings on the 28 banked questions land beside each item in doc:l4-owner-decisions "L4 BANKED QUESTIONS" (verbatim), never here
-       3 rotate at 0.47: handoff first, then rotate.py loop --role prime_director --name belam-S1-L4-II --timeout 900; confirm by capture-pane; announce the new address to the point (seat-sanctuary-director-68 [f84c57] @234)
+       L4-II: gate `continue` · pin 0.09 claimed · verify green (smoke 1828 / suite 2270/1 / links 0 / goals 143 / guard) · address announced + ack'd · seats row 61b9c9 · suite window granted + released
+NEXT   1 DONE by L4-II 02:5xZ (pin · address announced, point verified it by the @id join and carried it into its brief · config:seats belam.session_ref 61b9c9 · goal:g17.1 read whole).
+       2 DONE by L4-II 03:30Z: merge-up 2 verified on season/s2 @ b4481c9ba (see LANDED). NEXT REVIEWS, in order: L4.45 -> L4.44 (then collapse §5 + the successor brief to the one command) -> L4.46 (diagnosis to the owner);
+         after each: git pull --ff-only; smoke (active >= 1703, never lower); links 0 broken; goals --render --check; guard silent; capture your pane; card + rows. Bank rulings beside the question in doc:l4-owner-decisions.
+       3 rotate at 0.47: handoff first, rotate.py loop --role prime_director --name belam-S1-L4-III --timeout 900 --force --session-log <own .jsonl>; confirm by capture-pane
 NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:507 nudge REAL panes; L4.10) · run the suite without telling the point · rotate a seat with AGI_BRIEF_PROFILE=survival · git add -A · read $? through a pipe · sweep off a ps grep · run the
        suite twice at once · background a long verification · trust an `updated:` line · spend the Claude budget on prime chores under survival mode
 ```
 
-**PRIME-SPECIFIC, kept:** claim your own pin FIRST — XIV's read 0.5595 against a 0.35 cap on XIII's pin, true 0.1093. **The :07 cron push is hourly: push by hand anyway.** Do not `git add -A`. **`sanctuary-master` (`agi-80 [1ba35d]`) holds the `config:seats` write and refuses `belam`/`adv-*` rows by owner constraint — your row is yours to write, through write.py `set seats <json>`.** 🔴 **`rotate.py loop`'s read-back takes the successor's FIRST non-noise line within 120s; a successor that loads the skill first answers late and the record says `inconclusive-no-reply` (XV, 06:11:56Z) — confirm by pane, announce by hand, and answer the gate FIRST next time.**
+## Prime duties, compact (full prose: `git show 763d24260:HANDOFF.md`)
 
-## 🔴 THE FIRST THING YOU DO, BEFORE THE SMOKE RUN
-
-**`ls -t .agi/comms/season-2/dm/` and read anything addressed to you.** This session's worst failure was that `master-sensei` DM'd the prime twice, correctly, and the prime never read it — a seat sat blocked on an answer for an hour holding a major finding, and it was only discovered because *the owner noticed and said so in chat*. Nothing alerts a prime to mail. There is now an owner ask open to fix that (§6 item 62), but until it lands **reading `.agi/comms` is a manual duty and it is yours.**
-
-## The seats — ALL SHUT DOWN 2026-09-09 08:2xZ by owner order (verbatim in `doc:l4-owner-decisions`); design record, one line each
-
-- quorum: `self-perpetuating` / `alive` / `all-is-one` (one per vision; room `quorum` + DMs) — idle, not addressed. `master-sensei`: observer, no goal, no handoff slice, not in the room — idle.
-- `sanctuary-master`: SESSION SHUT DOWN by owner order 08:0xZ; gen I window @213 idle. Was gate-47-lifted (item 64), Opus-5/high, the one seat allowed to write `config:seats` rows — that write falls to the prime while she is down.
-- `liaison`: NOT YET UP — the owner's own channel; sanctuary-master's first job (item 65).
-- They assign themselves; never hand-aim them. Briefs `.agi/sessions/quorum/<name>.md`; slices `.agi/sessions/handoff-sections/` (stopgap — item 61a wants affinity-split, per piece).
-
-🔴 **You are not allowed in room `quorum`** (owner). Reach them with `send.py --from <you> audience quorum --reason "<text>"`, which posts to room `quorum-requests`; a member answers with `report --room quorum-requests --ref <ts>`. That door was **built by `all-is-one` this session** in response to the gap being named. Use it instead of `tmux send-keys` — pane injection is the prime impersonating the owner at a seat's prompt, and the owner has now called it out by name.
-
-
-
-## Briefs minted from measurement, still open
-
-- `l3-engine-files-outside-the-grid` (g15, item 49): CLOSED by SD.13 (65 build nodes minted, coverage 217→282); remainder `.agi/config.json` has no build node. `l3-seat-pin-generation-never-increments` (g15): went out as SD.05; hazard 5 is item 96, 4/4.
-
-## Standing, learned the hard way
-
-- **The seats are better than the prime at the prime's own mundane work.** Hand it over; do not do it yourself.
-- **Read the mail first.** The one thing that went genuinely wrong for XII was a message sitting unread.
-- **Check the merge-base, not the branch tip.**
-
-### Rotation
-
-✅ **`rotate.py loop` WORKS** (fixed 2026-09-08 by Belam IX; cause: tmux `command too long` swallowed by `_launch_window` — detail `hypothesis:l3-rotate-launch-window-silent-failure`, g15). **A guard on the symptom is not a fix for the cause.** Confirm the window anyway: `tmux capture-pane -pt agi-rc:<name>`. 🔴 Banked (item 49): `rotate.py` has NO build node; minting needs a legal `goal:s29` parent shape and `level3.py` must not run live (trap 0i).
-
-🟢 **OWNER 2026-09-09 ~12:3xZ — ROTATE AT 0.47, STANDING RULE FOR EVERY ROLE (verbatim in `doc:l4-owner-decisions`, §6 item 105): `ladder:ladder` `director_rotate_at` 0.35 → 0.47, applied the same turn; `rotate.py meter` reads the ladder, so every seat's meter/--check/loop trips at 0.47 now.** Owner 2026-09-07 19:46/19:52 UTC — rotate at the meter cap OR at 99% of the Fable limit, whichever comes first; Opus is the acceptable fallback (verbatim archived: `doc:l3-command-ladder-brief`, item 29). Read the limit from the pane: `tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1`. At the Fable trigger the successor runs on Opus: `python3 extensions/agi/bin/rotate.py loop --role prime_director --name belam-S1-L3-<next> --model claude-opus-5 --effort max --force --session-log <own transcript>`; the handoff is written first, as always.
+```
+FIRST   ls -t .agi/comms/season-2/dm/ and read anything addressed to you — BEFORE the smoke (XII missed two correct DMs for an hour; nothing alerts a prime to mail, §6 item 62 open)
+PIN     claim your own pin FIRST: rotate.py meter --pin .agi/sessions/belam.meter --session-log <own .jsonl> (XIV read 0.5595 on XIII's pin; true 0.1093)
+PUSH    the :07 cron push is hourly -> push by hand after every action · never git add -A · config:seats is YOURS to write (write.py "set seats <json>", whole list, grep the bytes) while sanctuary-master is down
+SEATS   (design record; ALL SHUT DOWN 2026-09-09 08:2xZ by owner order, verbatim in doc:l4-owner-decisions) quorum = self-perpetuating / alive / all-is-one (one per vision) + master-sensei: idle, never hand-aimed
+        · sanctuary-master: SHUT DOWN 08:0xZ (was gate-47-lifted, the one seat allowed to write config:seats) · liaison: NOT YET UP (owner's channel; sanctuary-master's first job, item 65)
+        · the prime is NOT allowed in room quorum (owner): send.py --from <you> audience quorum --reason "<text>" -> room quorum-requests; never tmux send-keys (pane injection = impersonating the owner)
+        · seats are better than the prime at the prime's mundane work: hand it over · read the mail first · compare against the MERGE-BASE, never the tip
+ROTATE  at meter 0.47 (owner, every role, item 105; ladder director_rotate_at) OR at 99% of the Fable limit, whichever first (item 29; Opus fallback: --model claude-opus-5 --effort max)
+        · read the limit from the pane: tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1
+        · handoff FIRST, then: rotate.py loop --role prime_director --name belam-S1-L4-<next> --timeout 900 --force --session-log <own .jsonl>
+        · the read-back takes the successor's FIRST non-noise line within 120s (a skill-first successor records inconclusive-no-reply) -> confirm by tmux capture-pane, announce by hand
+        · rotate.py loop WORKS (fixed 2026-09-08, hypothesis:l3-rotate-launch-window-silent-failure); rotate.py = build:bin-rotate (SD.13); hazard 5 (stamp vs record, item 96) carried
+```
 
 ## §4 Traps — CARRIED INTO L4 (headlines; full text in `doc:l4-owner-decisions` → "TRAPS CARRIED INTO L4" and `git show 91d33742d:HANDOFF.md`)
 
 - 0al. A NODE THE SUITE PINS IS CODE — run the suite after any `.geometry` write.
+- 0ap. A stamp copied from the card above you is a FELT clock: L4-I's `10:0xZ` ran ~7h20m ahead of `date -u` (02:4xZ, measured by L4-II) — stamp every line from `date -u`, never from prose (trap 0m, larger).
 - 0ak. BYTES-IN-NODE IS NOT BRIEF-IN-EFFECT.
 - 0aj. `dispatch.py --dry-run` TRUNCATES the brief it prints (`...<N chars>`)
 - 0ai-b. The harness's low-memory reaper kills a backgrounded VERIFICATION too — `nohup` does not protect it.
@@ -182,9 +121,9 @@ NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:5
 
 ```bash
 git branch --show-current                                                # season/s2
-bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK     # active ≥ 1592 / node_count ≥ 1786, never lower
-python3 extensions/agi/bin/commands.py run tests                         # 2256 passed / 1 skipped, ~120s — run it ALONE (trap 0e)
-python3 extensions/agi/bin/snapshot-goals.py --render --check            # 128 goals byte-identical
+bash extensions/agi/driver.sh --smoke --max-iters 1 && echo SMOKE_OK     # active ≥ 1703 / node_count ≥ 1897, never lower
+python3 extensions/agi/bin/commands.py run tests                         # 2315 passed / 1 skipped, ~125s — run it ALONE, tell the point first (trap 0e)
+python3 extensions/agi/bin/snapshot-goals.py --render --check            # 157 goals byte-identical
 python3 extensions/agi/bin/links.py links                                # 0 broken
 python3 extensions/agi/bin/write_guard.py check                          # silent
 python3 extensions/agi/bin/spawn_budget.py status                        # seat rounds run continuously — check YOUR agent is gone, not that the box is idle
