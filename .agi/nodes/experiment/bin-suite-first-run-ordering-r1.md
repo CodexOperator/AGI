@@ -13,7 +13,7 @@ model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
 role: kid
 season: 2
-title: A00 68ff74cf bb0177 -- item 2: first --suite run self-FAILs, fixed
+title: 'A00 68ff74cf bb0177 -- item 2: first --suite run self-FAILs, fixed'
 verdict: proved
 ---
 # experiment:bin-suite-first-run-ordering-r1
