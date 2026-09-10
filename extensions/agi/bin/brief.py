@@ -566,6 +566,60 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     )
 
 
+def _operating_mode_block(project_root: Path | None = None) -> str:
+    """Render the ACTIVE operating arrangement declared in config.json.
+
+    hypothesis:l4-the-mode-is-declared-not-remembered: the owner named two
+    arrangements (survival, ultimate survival — doc:l4-owner-decisions) and
+    goal:g17.1 a third (enhanced survival), and the one IN FORCE was being
+    remembered in prose by whoever wrote each brief. This renders it from the
+    declaration instead, so an agent READS the mode from the brief it was
+    given and flipping `active_operating_mode` in config changes the render
+    with no second copy of the prose in code.
+
+    Returns an empty string (else a block starting with the marker line)
+    when no declaration exists — an absent declaration renders NOTHING and
+    raises nothing, so a project that has not declared modes is unchanged.
+    """
+    root = _resolve_graph_root(project_root)
+    cfg_path = root / "config.json"
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, FileNotFoundError):
+        return ""
+    modes = data.get("operating_modes")
+    active = data.get("active_operating_mode")
+    if not isinstance(modes, dict) or not active:
+        return ""
+    block = modes.get(active)
+    if not isinstance(block, dict):
+        return ""
+    lines = [
+        "─── OPERATING MODE (declared in .agi/config.json) ───",
+        f"ACTIVE: {block.get('name') or active}",
+    ]
+    for key, label in (("seats", "SEATS"), ("models", "MODELS"),
+                       ("source", "SOURCE")):
+        val = block.get(key)
+        if val:
+            lines.append(f"{label}: {val}")
+    return "\n".join(lines)
+
+
+def _prepend_head(segs, *, tier: str, project_root: Path | None = None):
+    """Prepend the constitution head (if any) then the active operating-mode
+    block (if declared). One choke point for every assemble branch so the
+    mode reaches every tier's brief exactly once.
+    """
+    head = _build_head(tier=tier)
+    if head:
+        segs.insert(0, head)
+    mode = _operating_mode_block(project_root=project_root)
+    if mode:
+        segs.insert(1 if head else 0, mode)
+    return segs
+
+
 def readings_head(*, tier: str, project_root: Path | None = None) -> str | None:
     """The full constitution readings for a tier, ON DEMAND.
 
@@ -738,6 +792,47 @@ def successor_prompt(*, tier: str, body: str,
 # ---- director and prime_director tiers --------------------------------------
 
 
+# ---- MECHANISM, NOT WORDING (owner ask, 2026-09-10) --------------------
+# The owner read a director's account of why it landed a brief change by
+# hand and asked for more of that KIND of reasoning, not more prose. The
+# prime named the shape rather than praising the instance, because praise
+# produces prose and a named shape produces reasoning. Placed beside
+# `struggles:`/`caveats:` deliberately: those are already the cheapest
+# signal in this project and this is the same family, not a parallel
+# system.
+#
+# 🔴 QUALITY IS NEVER SCORED, exactly like `feeling`. A scored reasoning
+# slot becomes a performance, and a performed one is worse than none. What
+# is checkable is the PRESENCE of the slot and the presence of a CITATION
+# in part (2) — both mechanical, neither a judgement.
+#
+# 🔴 AND IT IS NOT A NEW REASON TO MESSAGE UPWARD. Recorded in the NODE
+# always; it travels in a report only when it was already permitted — a
+# rule-changing finding. Record always, send only when it changes a rule.
+_MECHANISM = (
+    "MECHANISM, NOT WORDING. When you explain a decision — in a node's "
+    "THOUGHT, in a review, in a commit — give these four, in this order:\n"
+    "  (1) WHAT THE INSTRUCTION SAID, quoted.\n"
+    "  (2) WHAT THE MACHINE ACTUALLY DOES, cited to file:line, or to an "
+    "artifact you BUILT AND RAN. Never to how the code appears. The "
+    "standard set on 2026-09-10: asked to make a line LAST in a brief, the "
+    "director built the real 21-argument spawn command and read argument "
+    "21, rather than reading the order of the source.\n"
+    "  (3) THE NEAR MISS — the plausible implementation that satisfies (1) "
+    "and loses (2), stated as a counterfactual. The canonical example: "
+    "*\"a fragment at the end of the list satisfies the words and loses "
+    "the mechanism\"*. THIS IS THE PART MODELS SKIP, and it is the part "
+    "that makes your reasoning checkable by someone who was not there.\n"
+    "  (4) IF YOU DEVIATED FROM A STANDING RULE, the property of THIS case "
+    "that makes the rule not apply — not that it was inconvenient. The "
+    "model instance: *\"a parent dispatched to fix the parent brief reads, "
+    "as its own instructions, the text it was sent to change\"*.\n"
+    "Nobody scores how well you write this and nobody will. It is not a "
+    "reason to message anyone: record it in the node always, and send it "
+    "upward only when it is already something you were permitted to send."
+)
+
+
 def _director(*, agent_id: str, iter_n: int, cli_py: str,
               project_root: Path | None = None) -> list[str]:
     """A director holds the lens for the goals it owns, dispatches parents
@@ -803,6 +898,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "Automation owns all remote traffic.",
         "DO NOT bypass the evidence gate. `--no-evidence-gate` stamps the "
         "node and marks it unreviewed.",
+        _MECHANISM,
     ]
     return segs
 
@@ -1456,6 +1552,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "parent's own review had missed.",
         # l2w3-send: one-line inbox check for parents at each seam.
         "Read your inbox with send.py read <your-id> before each kid review.",
+        _MECHANISM,
     ]
 
 
@@ -1519,26 +1616,17 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # injected prose.
     if profile in ("survival", "ultimate_survival"):
         segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     # Director and prime_director get the constitution head prepended
     if tier == "director":
         segs = _director(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py))
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     if tier == "prime_director":
         segs = _prime_director(agent_id=agent_id, iter_n=iter_n,
                                cli_py=str(cli_py))
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     if tier == "advisor":
         # The advisor reads at the tier-3 parent's level — same prayers,
@@ -1553,20 +1641,14 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target,
                         dispatch_py=dispatch_py, goal=goal_v,
                         session_dir=session_dir)
-        head = _build_head(tier=_ADVISOR_HEAD_TIER)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=_ADVISOR_HEAD_TIER)
 
     if tier == "liaison":
         # The owner-liaison seat reads at the director's level — same
         # prayers, words, Tao, soul-mind-body and five axes as the director
         # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
         segs = _liaison(agent_id=agent_id)
-        head = _build_head(tier=_LIAISON_HEAD_TIER)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=_LIAISON_HEAD_TIER)
 
     if tier == "parent":
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
@@ -1584,19 +1666,13 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
                        source_root=str(source_root) if source_root else None)
         segs = [s for s in segs if s is not None]
-        head = _build_head(tier=tier)
-        if head:
-            segs.insert(0, head)
-        return segs
+        return _prepend_head(segs, tier=tier)
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
                 addendum=addendum)
-    head = _build_head(tier=tier)
-    if head:
-        segs.insert(0, head)
-    return segs
+    return _prepend_head(segs, tier=tier)
 
 
 def closing_line(tier: str, agent_id: str, iter_n: int,

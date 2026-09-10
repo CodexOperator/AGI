@@ -1,5 +1,29 @@
 {
   "operating_mode": "full",
+  "operating_modes": {
+    "survival": {
+      "name": "survival",
+      "seats": "Prime + ONE director-kid aimed at a loop brief (two persistent seats, each helping the other to conserve the resource that matters most)",
+      "models": "Prime claude-opus-5; director claude-sonnet-5 (subscription seat defaults; the owner named both models directly for survival)",
+      "source": "doc:l4-owner-decisions:265 ('only two persistent seats active each helping the other to conserve the resource that matters most') and :311 ('the Prime + ONE director on a loop brief')",
+      "in_force": false
+    },
+    "ultimate_survival": {
+      "name": "ultimate survival",
+      "seats": "Prime + single remaining director (the survival pair dropped to the leanest models)",
+      "models": "Prime powered by opus; single remaining director runs off sonnet or even openrouter (owner verbatim)",
+      "source": "doc:l4-owner-decisions:265 ('They can drop down to ultimate survival where Prime is powered by opus and single remaining director runs off sonnet or even openrouter')",
+      "in_force": false
+    },
+    "enhanced_survival": {
+      "name": "enhanced survival",
+      "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) — the Texas two-step formation, three seats, helper answers to the point",
+      "models": "Prime claude-opus-5; point director claude-opus-5 max; helper director claude-sonnet-5 max (owner verbatim: 'Helper director kid runs sonnet btw.' 'Sonnet max effort')",
+      "source": "goal:g17.1:26 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
+      "in_force": true
+    }
+  },
+  "active_operating_mode": "enhanced_survival",
   "engine_commit": "179f9560283936fae421e08002ef9db38d7f1e25",
   "metric_primary": "outcome_coverage",
   "metric_unit": "fraction",
