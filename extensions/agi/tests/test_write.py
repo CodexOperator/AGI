@@ -665,15 +665,16 @@ def test_refusal_message_names_the_types_own_schema_and_its_writers(project):
 def test_list_written_by_admits_every_listed_writer(project):
     """(2) A list-valued `written_by` admits EVERY listed writer."""
     _written_by_schema(project, "variorum", "[scribe, corrector]")
-    # both listed writers admitted
+    # both listed writers admitted — via an explicit ROLE, since L4.41 the
+    # gate compares a resolved role, never a raw actor string
     write.create(project, "variorum", "foobar", [],
-                 actor="scribe", bypass=True)
+                 actor="whoever", role="scribe", bypass=True)
     write.create(project, "variorum", "baz", [],
-                 actor="corrector", bypass=True)
+                 actor="whoever", role="corrector", bypass=True)
     # an unlisted writer refused
     with pytest.raises(write.EditError) as ei:
         write.create(project, "variorum", "hawk", [],
-                     actor="hawk", bypass=True)
+                     actor="whoever", role="hawk", bypass=True)
     msg = str(ei.value)
     assert "variorum" in msg
     assert "scrib" in msg and "corrector" in msg
@@ -697,10 +698,146 @@ def test_comma_string_parses_same_as_list(project):
     # and through the gate: a comma-string schema admits its writers
     _written_by_schema(project, "variorum", "scribe, corrector")
     write.create(project, "variorum", "foobar", [],
-                 actor="scribe", bypass=True)
+                 actor="whoever", role="scribe", bypass=True)
     with pytest.raises(write.EditError):
         write.create(project, "variorum", "hawk", [],
-                     actor="henry", bypass=True)
+                     actor="whoever", role="hawk", bypass=True)
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-role-resolution-longest-prefix — the enforcer compares a
+# RESOLVED ROLE, not a generation-name actor string; the one extra source is
+# config:seats, longest-prefix-with-boundary wins, a tie refuses, and
+# `owner` (only) falls through to role `owner`.
+# --------------------------------------------------------------------------
+
+def _seats_fixture(project, rows):
+    """A throwaway config:seats node so role resolution has rows to read.
+    Each tuple is (name, role)."""
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(
+        f'  - {{"name": "{n}", "role": "{r}"}}' for n, r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n" + body +
+        "\n---\n\nbody\n")
+
+
+def test_seats_resolve_prime_and_refuse_director(project):
+    """(a) The Prime-ruling pair: `belam-S1-L4-II` resolves via the `belam`
+    seat to `prime_director` (admitted); `sanctuary-director-4e` resolves to
+    `director` (refused) for a type admitting only [owner, prime_director]."""
+    _written_by_schema(project, "mystery", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"),
+                             ("sanctuary-director", "director")])
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="belam-S1-L4-II", bypass=True)
+    assert res.written and not res.rejected
+    with pytest.raises(write.EditError, match="mystery") as ei:
+        write.create(project, "mystery", "m2", [],
+                     actor="sanctuary-director-4e", bypass=True)
+    msg = str(ei.value)
+    assert "prime_director" in msg  # names the admitted roles
+    assert "owner" in msg
+
+
+def test_role_flag_beats_agi_role(project, monkeypatch):
+    """(b1) precedence: an explicit --role wins over AGI_ROLE."""
+    _written_by_schema(project, "mystery", "prime_director")
+    monkeypatch.setenv("AGI_ROLE", "director")  # would be refused
+    res, _ = write.create(project, "mystery", "m1", [], actor="x",
+                          role="prime_director", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_agi_role_beats_seats(project, monkeypatch):
+    """(b2) precedence: AGI_ROLE wins over the seats row."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("belam", "prime_director")])
+    monkeypatch.setenv("AGI_ROLE", "director")
+    # belam's seat says prime_director; AGI_ROLE director must win
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="belam-S1-L4-II", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_seats_beats_owner_literal(project):
+    """(b3) precedence: the seats row resolves before the `owner` literal.
+    If the seats table were skipped, actor `alive-x-1` (≠ owner) would stay
+    UNRESOLVED and be refused; succeeding proves the seat resolved first."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("alive-x", "director")])
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="alive-x-1", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_owner_literal_resolves_to_owner(project):
+    """(b4) with no seats and no env, the literal actor `owner` -> role `owner`."""
+    _written_by_schema(project, "mystery", "owner")
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="owner", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_longest_prefix_wins(project):
+    """(c) rows `alive` and `alive-x` both match `alive-x-1`, but the LONGEST
+    (`alive-x`) resolves, to `director`; if the shorter `alive` won it would
+    resolve to prime_director and be refused."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("alive", "prime_director"),
+                             ("alive-x", "director")])
+    res, _ = write.create(project, "mystery", "m1", [],
+                          actor="alive-x-1", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_boundary_aliveness_bot_not_alive(project):
+    """(d) actor `aliveness-bot` must NOT resolve through row `alive` — a bare
+    startswith would grant a role nobody assigned. It stays UNRESOLVED and,
+    the type declaring written_by, is refused."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("alive", "director")])
+    with pytest.raises(write.EditError, match="mystery"):
+        write.create(project, "mystery", "m1", [],
+                     actor="aliveness-bot", bypass=True)
+
+
+def test_tie_at_longest_length_refuses(project):
+    """(e) two fixture rows that tie at the longest match REFUSE rather than
+    pick, and the message says why. Under the strict `==`/`name+'-'` boundary
+    rule a real INPUT tie is structurally impossible, so the guard is tested
+    directly on `_pick_longest_role`, which is where the fail-closed lives."""
+    with pytest.raises(write.EditError, match="ambiguous") as ei:
+        write._pick_longest_role([(5, "ab-cd", "director"),
+                                  (5, "ab-xy", "prime_director")])
+    msg = str(ei.value)
+    assert "ab-cd" in msg and "ab-xy" in msg
+
+
+def test_undeclared_schema_gates_nothing_even_unresolved(project):
+    """(f) a type declaring NO written_by admits an unresolved actor exactly
+    as today — resolution never starts when there is nothing to admit."""
+    _seats_fixture(project, [("belam", "prime_director")])
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[plaintype].md").write_text(
+        "---\nname: plaintype\n"
+        "spawn:\n  allowed_parents: []\n  min_parents: 0\n  max_parents: 0\n"
+        "validation:\n  required: [id, type, title]\n---\n\nbody\n")
+    res, _ = write.create(project, "plaintype", "p1", [],
+                          actor="anything", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_moral_still_refuses_non_owner_end_to_end(project):
+    """(g) `[moral]` still refuses a non-owner actor end to end, and still
+    reveals no seat bypass: actor that maps to `director` yet is not admitted."""
+    _moral_schema(project)
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    with pytest.raises(write.EditError, match="moral"):
+        write.create(project, "moral", "faith", [],
+                     actor="sanctuary-director-4e", bypass=True)
 
 
 
