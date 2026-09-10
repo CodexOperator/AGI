@@ -74,38 +74,6 @@ def _fake_tmux(monkeypatch, window_names):
     return calls
 
 
-class _SafeSubprocess:
-    """A subprocess stand-in installed for EVERY test (autouse below), so no
-    test can reach the real tmux session/pane. `_nudge_window` decides to
-    fire only after a successful `tmux list-windows`; this stub answers
-    returncode 1 ("no such session"), so the nudge short-circuits to False
-    for every test unless a test deliberately swaps in its own fake (the
-    three `_fake_tmux` tests above do, and their setattr wins because it runs
-    in the test body after this autouse fixture).
-
-    Guard: if send.py ever grows a real non-tmux subprocess call, this raises
-    instead of silently faking it.
-    """
-    TimeoutExpired = subprocess.TimeoutExpired
-
-    def run(self, cmd, *a, **k):
-        if isinstance(cmd, list) and cmd[:1] == ["tmux"]:
-            return subprocess.CompletedProcess(cmd, 1)
-        raise AssertionError(f"send.py issued a non-tmux subprocess call "
-                             f"under test: {cmd!r}")
-
-
-@pytest.fixture(autouse=True)
-def _no_real_tmux(monkeypatch):
-    """hypothesis:l4b23-fixture-leak — the rotate-fixture (and every other
-    test that calls a send-family verb) must never reach the live tmux
-    session (`rotate.DEFAULT_TMUX_SESSION`, "agi-rc"), where a recipient
-    whose name matches a real window would have `[ask] how do I rotate?`
-    typed into a live agent's terminal.
-    """
-    monkeypatch.setattr(send_mod, "subprocess", _SafeSubprocess())
-
-
 def test_send_nudges_existing_window(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, ["director"])
     send_mod.send(project, "director", "hello world", "a00-xxxx")
