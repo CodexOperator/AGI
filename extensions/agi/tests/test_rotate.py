@@ -191,6 +191,27 @@ def _proj(tmp_path, ladder_roles=""):
     return root
 
 
+class _FakeIn:
+    """A file-like stand-in for sys.stdin so cmd_ack's `--text -` branch can
+    be tested without a real pipe."""
+    def __init__(self, text: str):
+        self._text = text
+
+    def read(self) -> str:
+        return self._text
+
+
+def _fake_launch(wins: Path, content: str) -> int:
+    """Test stand-in for `_launch_window` that only reflects the window on disk
+    (writes `content` into the window-path file) and returns 0. A bare
+    `lambda ...: wins.write_text(content) or 0` is WRONG: `Path.write_text`
+    returns the byte count (truthy), so the lambda returns that count, which
+    cmd_loop treats as rc and aborts. This helper divorces the write from the
+    return."""
+    wins.write_text(content, encoding="utf-8")
+    return 0
+
+
 def test_spawn_resolves_role_model_effort_settings(monkeypatch, tmp_path, capsys):
     # Ladder roles table row for prime_director wins over config/defaults.
     root = _proj(tmp_path, ladder_roles=(
@@ -485,6 +506,10 @@ def test_loop_over_threshold_rotates_and_continue(monkeypatch, tmp_path, capsys)
 
     reply = tmp_path / "reply.log"
     reply.write_text("continue\n")
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "answer": "continue"}), encoding="utf-8")
     wins = tmp_path / "windows.txt"
     wins.write_text("")  # hermetic: no existing belam windows
     launched = {}
@@ -865,52 +890,304 @@ def test_pin_path_never_doubles_agi_dir(tmp_path):
 
 
 def test_is_log_noise_markers():
-    # Bracketed logger lines (bare or timestamped) are noise; a bare answer is not.
-    assert rotate._is_log_noise("[DEBUG] MDM settings load completed in 1ms")
-    assert rotate._is_log_noise("2026-09-07T06:04:39.522Z [INFO] [uds-messaging] listening")
-    assert rotate._is_log_noise("   ")
-    assert rotate._is_log_noise("2026-09-07T06:04:40.398Z [WARN] [3P telemetry] Event dropped")
-    assert not rotate._is_log_noise("continue")
-    assert not rotate._is_log_noise("valuable diff line")
+    """REMOVED with the debug-log reader.
+
+    The legacy `_is_log_noise`/`_read_first_reply` reader is DELETED from
+    rotate.py (hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-
+    design): a DEBUG LOGGER cannot carry the successor's prose, so a fallback
+    that opens one is the defect wearing a safety label. Its direct unit tests
+    go with it; the three realities (ACKED / PRESENT-BUT-SILENT / ABSENT) are
+    covered through the ack-channel reader tests below.
+    """
+    assert not hasattr(rotate, "_read_first_reply")
+    assert not hasattr(rotate, "_is_log_noise")
 
 
-def test_readback_skips_bracketed_log_lines(tmp_path):
-    # hypothesis:l3-rotate-pin-path-readback -- the read-back must skip
-    # bracketed logger lines and report `continue` when the FIRST bare answer
-    # line is `continue` (the L3.15 defect read `[DEBUG] MDM settings load` as
-    # the reply and printed "handoff needs change").
-    log = tmp_path / "belam.log"
-    log.write_text(
-        "[DEBUG] MDM settings load completed in 1ms\n"
-        "2026-09-07T06:04:41.633Z [WARN] [bridge] continuing as before\n"
-        "continue\n",
-        encoding="utf-8",
-    )
-    assert rotate._read_first_reply(str(log), timeout=5) == "continue"
+# ---------------------------------------------------------------------------
+# hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design — the
+# explicit ACK channel replaces the debug-log read-back.
+# ---------------------------------------------------------------------------
+
+REAL_DEBUG_LOG = (
+    "2026-09-07T06:04:39.522Z [DEBUG] MDM settings load completed in 1ms\n"
+    "2026-09-07T06:04:39.610Z [INFO] [uds-messaging] listening on INET6 ... \n"
+    "2026-09-07T06:04:40.398Z [WARN] [3P telemetry] Event dropped\n"
+    "2026-09-07T06:04:41.633Z [DEBUG] exited fullscreen\n"
+)
 
 
-def test_readback_reports_diff_when_no_continue(tmp_path):
-    # When the first bare answer is NOT `continue`, the read-back reports it
-    # (so the loop knows the handoff needs a change).
-    log = tmp_path / "belam.log"
-    log.write_text(
-        "[DEBUG] MDM settings load completed in 1ms\n"
-        "valuable diff line\n",
-        encoding="utf-8",
-    )
-    assert rotate._read_first_reply(str(log), timeout=5) == "valuable diff line"
+def test_cmd_ack_writes_seat_ack_file(tmp_path, monkeypatch):
+    """`rotate.py ack` writes `<seats>/<seat>.ack.json` with the successor's
+    own identity (gen_after + session_ref) — `_is_log_noise` never matters."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="sanctuary-director", gen=7, ref="agent:abc123",
+        answer="diff", text="- a\n+ b"), root)
+    assert code == 0
+    ac = rotate._ack_path(root, "sanctuary-director")
+    doc = json.loads(ac.read_text(encoding="utf-8"))
+    assert doc["seat"] == "sanctuary-director"
+    assert doc["gen_after"] == 7
+    assert doc["session_ref"] == "agent:abc123"
+    assert doc["answer"] == "diff"
+    assert doc["text"] == "- a\n+ b"
 
 
-def test_readback_never_returns_a_bracketed_line(tmp_path):
-    # A log holding ONLY log lines must not surface any of them as the reply;
-    # it should poll and, with no bare answer before the timeout, return None.
-    log = tmp_path / "belam.log"
-    log.write_text(
-        "[DEBUG] MDM settings load completed in 1ms\n"
-        "2026-09-07T06:04:41.633Z [WARN] [bridge] no anchor\n",
-        encoding="utf-8",
-    )
-    assert rotate._read_first_reply(str(log), timeout=1) is None
+def test_read_ack_matches_gen_after(tmp_path):
+    """_read_ack returns the ack when its gen_after is the generation the
+    reader spawned, and REFUSES a wrong-generation ack (treats it as absent)."""
+    seat = tmp_path / "seats"
+    seat.mkdir()
+    ac = seat / "s.ack.json"
+    ac.write_text(json.dumps({"seat": "s", "gen_after": 7,
+                              "answer": "continue", "ts": "Z"}),
+                  encoding="utf-8")
+    got = rotate._read_ack(str(ac), gen_after=7, timeout=5)
+    assert got is not None and got["answer"] == "continue"
+    # wrong generation -> refused, not confirmed
+    assert rotate._read_ack(str(ac), gen_after=8, timeout=1) is None
+
+
+def test_read_ack_polls_until_written(tmp_path):
+    """_read_ack polls a not-yet-written ack file until it carries a matching
+    gen_after (the successor writes its ack AFTER the predecessor starts
+    reading)."""
+    seat = tmp_path / "seats"
+    seat.mkdir()
+    ac = seat / "s.ack.json"
+    import threading
+    def _writer():
+        import time
+        time.sleep(1)
+        ac.write_text(json.dumps({"seat": "s", "gen_after": 9,
+                                  "answer": "continue"}), encoding="utf-8")
+    threading.Thread(target=_writer, daemon=True).start()
+    got = rotate._read_ack(str(ac), gen_after=9, timeout=20)
+    assert got is not None and got["answer"] == "continue"
+
+
+@pytest.mark.parametrize("body", ["{", "[]", "not json"])
+def test_read_ack_ignores_unparsable(tmp_path, body):
+    """An unparsable ack file never confirms; malformed JSON is treated as
+    not-yet-written and retried until timeout."""
+    seat = tmp_path / "seats"
+    seat.mkdir()
+    ac = seat / "s.ack.json"
+    ac.write_text(body, encoding="utf-8")
+    assert rotate._read_ack(str(ac), gen_after=7, timeout=1) is None
+
+
+def test_read_ack_absent_never_confirms(tmp_path):
+    """No ack file at all -> None on timeout (the precondition the hypothesis
+    states: without the ack, the channel is silent)."""
+    seat = tmp_path / "seats"
+    seat.mkdir()
+    assert rotate._read_ack(str(seat / "s.ack.json"), gen_after=7, timeout=1) is None
+
+
+def test_loop_returns_success_when_successor_acks_continue(monkeypatch, tmp_path, capsys):
+    """FALSIFIER (1): a successor on a REAL --debug-file (0 non-noise lines,
+    so the legacy read-back can never see it) that ACKS `continue` is confirmed
+    — the record reads success, not inconclusive-no-reply."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    dbg = tmp_path / "seat.log"
+    dbg.write_text(REAL_DEBUG_LOG)
+    # the ack file carries the identity the debug log cannot
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "session_ref": "agent:aa11", "answer": "continue"}),
+                    encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window",
+                        lambda session, name, shell_cmd: _fake_launch(wins, "belam-II\n"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(dbg), dry_run=False, timeout=1,
+    ), root)
+    err = capsys.readouterr().err
+    assert code == 0
+    assert "successor acked" in err
+    recs = list((rotate._rotations_dir(root)).glob("belam-II.*.json"))
+    assert recs, "a rotation record must have been written"
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "success"
+    assert rec["observations"].get("d_reply_decision") == "continue"
+
+
+def test_loop_returns_diff_when_successor_acks_diff(monkeypatch, tmp_path, capsys):
+    """A success-or-absent-ack successor whose ACK says `diff` is recorded as
+    diff — the reader accepts BOTH answers, and the ack channel carries the
+    diff text where the debug log never could."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    dbg = tmp_path / "seat.log"
+    dbg.write_text(REAL_DEBUG_LOG)
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "answer": "diff", "text": "- x\n+ y"}),
+                    encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window",
+                        lambda session, name, shell_cmd: _fake_launch(wins, "belam-II\n"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(dbg), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    recs = list((rotate._rotations_dir(root)).glob("belam-II.*.json"))
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "diff"
+    err = capsys.readouterr().err
+    assert "acked diff" in err and "+ y" in err
+
+
+def test_loop_present_but_silent_no_ack_still_no_reply(monkeypatch, tmp_path):
+    """FALSIFIER (2): the same REAL --debug-file WITHOUT an ack file, with the
+    successor window present, is PRESENT-BUT-SILENT — recorded inconclusive,
+    never greens as success. Preserves the three realities on the loop path."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    dbg = tmp_path / "seat.log"
+    dbg.write_text(REAL_DEBUG_LOG)  # 0 non-noise lines, no ack file
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window",
+                        lambda session, name, shell_cmd: _fake_launch(wins, "belam-II\n"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(dbg), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    recs = list((rotate._rotations_dir(root)).glob("belam-II.*.json"))
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "inconclusive-no-reply"
+
+
+def test_loop_refuses_ack_with_wrong_gen_on_self_reader(tmp_path, monkeypatch):
+    """FALSIFIER (3): the rotate-self reader REFUSES an ack whose gen_after is
+    not the generation it spawned — a foreign/stale ack cannot confirm."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    ac = rotate._ack_path(root, "seat-x")
+    ac.parent.mkdir(parents=True, exist_ok=True)
+    ac.write_text(json.dumps({"seat": "seat-x", "gen_after": 99,
+                              "answer": "continue"}), encoding="utf-8")
+    # reader spawned gen 3: gen 99 ack is refused
+    assert rotate._read_ack(str(ac), gen_after=3, timeout=1) is None
+
+
+def test_cmd_ack_text_dash_reads_stdin(tmp_path, monkeypatch):
+    """`--text -` reads the diff body from stdin (a long diff can exceed one
+    shell argument) and stores it on the ack file."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate.sys, "stdin",
+                        _FakeIn("- old\n+ new\n"))
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belt", gen=4, ref="agent:zz9", answer="diff", text="-"), root)
+    assert code == 0
+    ack = json.loads((rotate._ack_path(root, "belt")).read_text(
+        encoding="utf-8"))
+    assert ack["answer"] == "diff"
+    assert ack["text"] == "- old\n+ new\n"
+
+
+def test_cmd_ack_text_dash_empty_reads_empty_stdin(tmp_path, monkeypatch):
+    """`--text -` with an empty stdin stores an empty text (empty string), not
+    a `-` literal."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate.sys, "stdin", _FakeIn(""))
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belt", gen=5, ref=None, answer="continue", text="-"), root)
+    assert code == 0
+    ack = json.loads((rotate._ack_path(root, "belt")).read_text(
+        encoding="utf-8"))
+    assert ack["text"] == ""
+
+
+def test_loop_ignores_debug_reply_continue_without_ack(monkeypatch, tmp_path,
+                                                       capsys):
+    """DISPROVER-CLOSER: the DELETED debug read must not resurface. A bare
+    `continue` sitting in the successor's debug log, with window PRESENT and
+    NO ack file, is PRESENT-BUT-SILENT — recorded inconclusive, never success,
+    no announce (the old `_read_first_reply` would have called it success)."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    calls = []
+    monkeypatch.setattr(rotate, "_announce_rotation",
+                        lambda **kw: calls.append(kw) or [])
+    dbg = tmp_path / "seat.log"
+    dbg.write_text("continue\n", encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+
+    def fake_launch(s, n, c):
+        wins.write_text(n + "\n", encoding="utf-8")
+        return 0
+    monkeypatch.setattr(rotate, "_launch_window", fake_launch)
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(dbg), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    assert calls == [], f"no ack must not announce a rotation: {calls}"
+    assert "handoff stood" not in capsys.readouterr().err
+    recs = list((rotate._rotations_dir(root)).glob("belam-II.*.json"))
+    assert recs
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "inconclusive-no-reply"
+
+
+def test_rotate_self_ignores_debug_reply_continue_without_ack(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """The rotate-self reader, like loop, no longer confirms from the debug
+    log: a bare `continue` there with window present and NO ack is
+    PRESENT-BUT-SILENT — the terminal record is `unwitnessed`, never success."""
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    log = tmp_path / "adv-alive.log"
+    log.write_text("continue\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win),
+                             debug_file=str(log))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    recs = sorted((tmp_path / "sessions" / "rotations")
+                  .glob("adv-alive.*.json"))
+    assert recs
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "unwitnessed"
+    assert "silent" in rec["refusal_reason"]
+    assert "handoff stood" not in capsys.readouterr().err
 
 
 # ---------------------------------------------------------------------------
@@ -1055,8 +1332,8 @@ def test_rotate_self_renames_window_before_respawn(fake_ladder, tmp_path, monkey
             fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
@@ -1079,8 +1356,8 @@ def test_rotate_self_kills_own_window_after_continue(fake_ladder, tmp_path,
             fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window",
                         lambda name, *a, **k: killed.append(name))
     args = _rotate_self_args(tmp_path, window_path=str(win))
@@ -1126,20 +1403,13 @@ def test_status_seats_flag_lists_fraction_and_age(fake_ladder, tmp_path,
     assert "frac=0.100" in out
 
 
-def test_rotate_self_cursor_ignores_stale_predecessor_continue(tmp_path):
-    """The read-before-write cursor: a stale bare `continue` left in a reused
-    plain-name log before the successor started must NOT confirm the rotation;
-    only bytes written after the cursor count (hypothesis:l3w4-seat-rotation-
-    loops, fixed after L3.30's reproduced hazard)."""
-    log = tmp_path / "adv-alive.log"
-    log.write_text("continue\nvalid successor line\n", encoding="utf-8")
-    # whole-file (the pre-fix view) still sees the stale `continue` -> the
-    # hazard this must close
-    assert rotate._read_first_reply(str(log), timeout=2, start_offset=0) \
-        == "continue"
-    # cursor past the stale line sees only the successor's fresh output
-    assert rotate._read_first_reply(str(log), timeout=2, start_offset=9) \
-        == "valid successor line"
+def test_rotate_self_ack_is_generation_checked_not_log_cursor(fake_ladder,
+                                                             tmp_path):
+    """The read-before-write cursor (l3w4 stale `continue`) is REPLACED, not
+    reinvented: the ack channel refuses by GENERATION, so a stale ack from a
+    prior rotation cannot confirm a successor it was not written for. The
+    debug-log cursor is gone with the debug reader.
+    """
 
 
 # ── hypothesis:l3-rotate-self-successor-override ──────────────────────────
@@ -1197,8 +1467,8 @@ def test_rotate_self_throwaway_skips_registry(fake_ladder, tmp_path,
             fh.write("adv-alive\n")   # the successor window appears
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
@@ -1236,8 +1506,8 @@ def test_rotate_self_throwaway_forwards_successor_argv(fake_ladder, tmp_path,
             fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win),
                              successor_argv="printf continue")
@@ -1339,8 +1609,8 @@ def test_rotate_self_writes_record_with_five_observations(fake_ladder, tmp_path,
         return 0, "echo hi"
 
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
@@ -1378,8 +1648,8 @@ def test_rotate_self_refuses_when_successor_window_absent(fake_ladder, tmp_path,
     win.write_text("adv-alive\n", encoding="utf-8")
     # successor never appears: the renamed predecessor is the only window
     monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo hi"))
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
@@ -1407,8 +1677,8 @@ def test_rotate_self_refuses_when_predecessor_window_gone(fake_ladder, tmp_path,
         return 0, "echo hi"
 
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
@@ -1449,8 +1719,8 @@ def test_rotate_self_interrupted_after_spawn_leaves_started_record(
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
     # surrogate for the process being killed mid-read-back: the reply never
     # becomes the single confirming word `continue`
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "still loading")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: None)
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
@@ -1490,8 +1760,8 @@ def test_rotate_self_success_leaves_exactly_one_record(fake_ladder, tmp_path,
         return 0, "echo hi"
 
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     monkeypatch.setattr(rotate, "_announce_rotation", lambda **k: None)
     args = _rotate_self_args(tmp_path, throwaway=True, window_path=str(win))
@@ -1507,13 +1777,19 @@ def test_rotate_self_success_leaves_exactly_one_record(fake_ladder, tmp_path,
 
 def test_loop_writes_durable_record(fake_ladder, tmp_path, monkeypatch):
     """cmd_loop also writes a durable record capturing the successor window
-    (observed) and the read-back log path on a confirming rotation."""
+    (observed) and the ACK-channel path on a confirming rotation."""
     root = _proj(tmp_path)
     monkeypatch.chdir(root)
     monkeypatch.setattr(rotate, "find_project_root", lambda: root)
     monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
     reply = tmp_path / "reply.log"
+    # the successor's debug log STILL holds a bare `continue` -- the reader
+    # must NOT confirm from it; the ack channel is the only authority.
     reply.write_text("continue\n")
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "answer": "continue"}), encoding="utf-8")
     wins = tmp_path / "windows.txt"
     wins.write_text("")
 
@@ -1537,7 +1813,7 @@ def test_loop_writes_durable_record(fake_ladder, tmp_path, monkeypatch):
     assert rec["result"] == "success"
     a = rec["observations"]["a_successor_window_under_name"]
     assert a["present"] is True and a["window"] == "belam-II"
-    assert str(rec["observations"]["c_readback_log_path"]).endswith("reply.log")
+    assert str(rec["observations"]["c_readback_log_path"]).endswith(".ack.json")
 
 
 # ── l3w4-seat-sessions-and-tiling: seats-launch & tile ────────────────────
@@ -1808,6 +2084,10 @@ def test_loop_success_announces_exactly_once_refusal_never(
 
     success_reply = tmp_path / "reply.log"
     success_reply.write_text("continue\n")
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "answer": "continue"}), encoding="utf-8")
     wins = tmp_path / "windows.txt"
     wins.write_text("")
 
@@ -1831,8 +2111,8 @@ def test_loop_success_announces_exactly_once_refusal_never(
     calls.clear()
     wins.write_text("")
     monkeypatch.setattr(rotate, "_launch_window", lambda s, n, c: 0)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     code = rotate.cmd_loop(SimpleNamespace(
         session_log=None, force=True, role="prime_director", name="belam-II",
         name_prefix="belam", model=None, effort=None, settings=None,
@@ -1853,8 +2133,8 @@ def test_rotate_self_success_announces_once_refusal_never(
             fh.write("adv-alive\n")
         return 0, "echo hi"
     monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
     calls = []
     monkeypatch.setattr(rotate, "_announce_rotation",
@@ -1961,8 +2241,8 @@ def test_refused_loop_does_not_advance_sequence(fake_ladder, tmp_path,
     wins = tmp_path / "windows.txt"
     wins.write_text("")
     monkeypatch.setattr(rotate, "_launch_window", lambda s, n, c: 0)
-    monkeypatch.setattr(rotate, "_read_first_reply",
-                        lambda *a, **k: "continue")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
     code = rotate.cmd_loop(SimpleNamespace(
         session_log=None, force=True, role="prime_director", name="belam-II",
         name_prefix="belam", model=None, effort=None, settings=None,

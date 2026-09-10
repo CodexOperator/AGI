@@ -25,6 +25,8 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -109,3 +111,68 @@ def _no_real_tmux(monkeypatch):
         return real_run(cmd, *a, **k)
 
     monkeypatch.setattr(subprocess, "run", _guarded_run)
+
+
+# --- the suite lock belongs to the resource, not a caller -------------------
+# `hypothesis:l4-the-suite-lock-belongs-to-pytest-not-its-caller`. Every path
+# that starts the pytest suite goes THROUGH this conftest (commands.py run
+# tests, verification.py --suite, season.py merge-up, a bare shell), so the
+# lock lives here, resolved from Path(__file__) — never cwd — and every caller
+# contends for the one file.
+_BIN = Path(__file__).resolve().parent.parent / "bin"
+if str(_BIN) not in sys.path:
+    sys.path.insert(0, str(_BIN))
+import locations  # noqa: E402
+import verification  # noqa: E402
+
+#: Reentrancy marker. The suite runs pytest INSIDE pytest (test_tier_gate.py's
+#: nested runs) and verification.py --suite spawns pytest as a child with no
+#: env=, so children inherit os.environ. A nested pytest must NO-OP here, or it
+#: refuses itself against its own parent's live lock and deadlocks the round.
+#: The name must NOT begin AGI_ or AUTORESEARCH_ (extensions/agi/conftest.py
+#: strips those prefixes) — that is why it is VERIFY_*.
+SUITE_LOCK_MARKER = "VERIFY_SUITE_LOCK_PID"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _suite_lock_guard():
+    """Acquire the suite lock for the whole pytest session, once.
+
+    A bare `python3 -m pytest extensions/agi/tests/` creates
+    `<graph>/sessions/verify-suite.lock` with its own pid and removes it on
+    exit. A second independent pytest started while the first runs finds the
+    lock held by a LIVE pid and REFUSES, naming that holder. A nested pytest
+    (pytest inside pytest) inherits SUITE_LOCK_MARKER from its acquiring
+    parent and NO-OPS — the parent still holds the window, so the child must
+    not re-acquire.
+    """
+    if os.environ.get(SUITE_LOCK_MARKER):
+        # Inherited: our parent process holds the suite window for this run.
+        yield
+        return
+
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:
+        # Not inside an agi project — no graph sessions dir to guard. No-op.
+        yield
+        return
+    lock_path, holder = verification.acquire_suite_lock(root)
+    if lock_path is None:
+        if holder is None:
+            raise RuntimeError(
+                "suite window refused — the suite lock could not be written "
+                f"under {root / 'sessions'}")
+        raise RuntimeError(
+            f"suite window refused — pid {holder} is a LIVE runner holding "
+            f"{root / 'sessions' / verification.SUITE_LOCK}; one suite at a "
+            "time — wait for it or ask whoever owns it")
+    os.environ[SUITE_LOCK_MARKER] = str(os.getpid())
+    try:
+        yield
+    finally:
+        os.environ.pop(SUITE_LOCK_MARKER, None)
+        if lock_path.exists():
+            try:
+                lock_path.unlink()
+            except OSError:
+                pass

@@ -1786,3 +1786,113 @@ def test_a_restart_names_itself_so_the_manifest_and_the_budget_agree(tmp_path):
     assert out["record"]["restart_of"] == "a00-abc123-r1", (
         "the record must name the process by the lease name "
         "`spawn_budget status` shows, or the two readers disagree")
+
+
+# hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on — HALF A. The
+# freshness guard that decides whether a `--branch` spawn is cut from a stale
+# base. These tests pin the helper's fail-open and engine-path-filter behavior
+# with a fake git, so no real network or repo is touched.
+
+
+class _FakeGit:
+    """A subprocess.run stand-in keyed on the git verb in argv."""
+
+    def __init__(self, fetch_rc=0, revparse_rc=0, revparse_out="abc1234\n",
+                 count_out="3\n", diff_out=""):
+        self.fetch_rc = fetch_rc
+        self.revparse_rc = revparse_rc
+        self.revparse_out = revparse_out
+        self.count_out = count_out
+        self.diff_out = diff_out
+        self.calls = []
+
+    def __call__(self, cmd, **kwargs):
+        self.calls.append(list(cmd))
+        if "fetch" in cmd:
+            return _FakeRes(self.fetch_rc)
+        if "rev-parse" in cmd:
+            return _FakeRes(self.revparse_rc, self.revparse_out)
+        if "rev-list" in cmd:
+            return _FakeRes(0, self.count_out)
+        if "diff" in cmd:
+            return _FakeRes(0, self.diff_out)
+        return _FakeRes(0)
+
+
+class _FakeRes:
+    def __init__(self, returncode, stdout="", stderr=""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def test_is_engine_path_filters_graph_bytes():
+    assert dispatch._is_engine_path("extensions/agi/bin/dispatch.py")
+    assert dispatch._is_engine_path("bin/rotate.py")
+    assert dispatch._is_engine_path("hooks/cc-session-start.sh")
+    assert dispatch._is_engine_path("skills/agi/SKILL.md")
+    assert not dispatch._is_engine_path(".agi/nodes/hypothesis/x.md")
+    assert not dispatch._is_engine_path("GOALS.md")
+    assert not dispatch._is_engine_path("payloads/foo.py")
+
+
+def test_stale_base_spawn_current_when_even(tmp_path, monkeypatch):
+    fake = _FakeGit(count_out="0\n")
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "current", out
+    assert out["behind"] == 0
+    assert out["files"] == []
+
+
+def test_stale_base_spawn_behind_names_engine_files(tmp_path, monkeypatch):
+    fake = _FakeGit(count_out="7\n", diff_out=(
+        "extensions/agi/bin/dispatch.py\n"
+        ".agi/nodes/goal/g17.md\n"
+        "hooks/cc-session-start.sh\n"
+        "GOALS.md\n"
+        "bin/rotate.py\n"))
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "behind", out
+    assert out["behind"] == 7
+    # engine paths only — graph bytes and derived docs must not be named
+    assert out["files"] == [
+        "bin/rotate.py",
+        "extensions/agi/bin/dispatch.py",
+        "hooks/cc-session-start.sh",
+    ], out
+
+
+def test_stale_base_spawn_fails_open_on_fetch_failure(tmp_path, monkeypatch):
+    fake = _FakeGit(fetch_rc=128)  # e.g. remote unreachable
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "unchecked", out
+    assert out["behind"] == 0
+    assert "stale" not in out["status"], "an unreachable remote must not "
+    "'read stale' — that would be a false signal to block on"
+
+
+def test_stale_base_spawn_fails_open_when_remote_ref_unresolvable(
+        tmp_path, monkeypatch):
+    fake = _FakeGit(revparse_rc=1, revparse_out="")
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    out = dispatch._stale_base_spawn(tmp_path, season=2)
+    assert out["status"] == "unchecked", out
+
+
+def test_stale_base_record_is_structured_with_actions(tmp_path, monkeypatch):
+    fake = _FakeGit(count_out="3\n", diff_out="extensions/agi/bin/dispatch.py\n")
+    monkeypatch.setattr(dispatch.subprocess, "run", fake)
+    stale = dispatch._stale_base_spawn(tmp_path, season=2)
+    rec = dispatch._stale_base_record(stale, season=2)
+    assert rec["issue"] == "stale-base"
+    assert rec["behind"] == 3
+    assert rec["integration"] == "season/s2"
+    ids = [a["id"] for a in rec["actions"]]
+    assert "sync" in ids and "override" in ids and "abort" in ids, (
+        "the must-pick floor: a re-invocation carries one of these — a "
+        "synced base, --allow-stale-base <reason>, or an abort")
+    assert any("--allow-stale-base" in a.get("cmd", "")
+               for a in rec["actions"]), rec

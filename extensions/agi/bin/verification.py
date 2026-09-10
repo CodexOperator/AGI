@@ -514,38 +514,20 @@ def main(argv: list[str] | None = None) -> int:
     # a diff).
     engine_root = commands.engine_for(groot)
 
-    lock = None
+    # The suite lock no longer lives here — it moved to the RESOURCE.
+    # `extensions/agi/tests/conftest.py` acquires it (`hypothesis:l4-the-suite-
+    # lock-belongs-to-pytest-not-its-caller`), so every path that starts the
+    # pytest suite — verification.py --suite, commands.py run tests, season.py
+    # merge-up, a bare shell — contends for the SAME lock. This runner spawns
+    # pytest as a child with no env= (so it inherits os.environ), and that
+    # child acquires. Exactly one acquirer exists now.
+    results = run_level(groot, args.level, args.suite, args.verbose)
     if args.suite:
-        lock, holder = acquire_suite_lock(groot)
-        if lock is None:
-            if holder is None:
-                print("ERR: --suite refused — the suite lock could not be "
-                      f"written under {groot / 'sessions'}", file=sys.stderr)
-            else:
-                print(f"ERR: --suite refused — pid {holder} is a LIVE runner "
-                      "holding the suite window (one suite at a time); wait "
-                      "for it or ask whoever owns it", file=sys.stderr)
-            return 1
-        # Information, not a warning. The window rule is a fact the runner
-        # should see stated once; it is not a refusal and never blocks.
-        print(f"[suite] window acquired, lock {lock} (pid {os.getpid()}); "
-              "one suite runner at a time — the window is the Prime's to "
-              "grant, and --suite stays opt-in until L4.10 lands")
-
-    try:
-        results = run_level(groot, args.level, args.suite, args.verbose)
-        if args.suite and lock is not None:
-            # A COMPLETED suite run records its timestamp, pass or fail. The
-            # freshness check answers "has the suite run since this file
-            # changed", not "did it pass" -- pass/fail is the suite's own
-            # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
-            _record_suite_ts(groot)
-    finally:
-        if lock is not None and lock.exists():
-            try:
-                lock.unlink()
-            except OSError:
-                pass
+        # A COMPLETED suite run records its timestamp, pass or fail. The
+        # freshness check answers "has the suite run since this file
+        # changed", not "did it pass" -- pass/fail is the suite's own
+        # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
+        _record_suite_ts(groot)
 
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,

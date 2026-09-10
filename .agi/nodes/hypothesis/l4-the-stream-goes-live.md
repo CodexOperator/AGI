@@ -1,0 +1,20 @@
+---
+id: hypothesis:l4-the-stream-goes-live
+mint_id: 496d4648bc8640c3a3d1424c49624ca3
+type: hypothesis
+parents:
+  - goal:g18.1
+next_edges: []
+edited_by: belam-S1-L4-V
+scaffold_hash: 38a4b67ea9aef837
+season: 2
+testable_claim: "OWNER 2026-09-10 (verbatim in doc:l4-owner-decisions): 'The streaming part needs to happen as the final thing for L4 if at all possible, needs to be verified working and if possible do all setup yourself like creating fresh accounts, I can provide backup account info when needed to setup the email.' THIS IS L4'S CLOSING ROUND — dispatched only after the rotate.py chain and the workflow rounds have landed (the owner said final; a stream of a system mid-refactor is not the hype the owner wants). STATE: /home/ubuntu/work/streamer-stub exists (private repo CodexOperator/streamer-stub, started 2026-09-07): ffmpeg x11grab of the TigerVNC display :1 (1920x1200, localhost-only), one libx264 encode (no GPU), fanned out with -f tee and onfail=ignore per branch to Twitch + YouTube + X; owner ruled out third-party restreamers; bandwidth is not a concern. KNOWN GAPS the stub left deliberately and this round must close before going live: stream keys visible in ps; no broadcast delay so bin/panic.sh cuts but cannot retract; the dox surface is WHAT IS ON THE SCREEN (prompts, absolute paths, env dumps, git remotes, the .env), not the network path. CLAIM: (1) ACCOUNTS — the round creates fresh platform accounts itself (Twitch first, then YouTube, then X, in that order of friction), using an email the round sets up; the owner's ONE touchpoint is backup account info for the email when the round asks — bank the ask in HANDOFF section 6 and continue on everything else; a platform whose signup demands phone or identity verification the agents cannot satisfy is BANKED with the exact step it stopped at, never worked around by impersonation or by anything against that platform's terms; (2) KEYS — stream keys move out of the command line into a 0600 file or an env the process reads, so ps and the pane never show them, and envfile.py forbids a key on the CLI; (3) DOX SURFACE — CAPTURE_* crops to the terminal region, a pre-flight greps the visible panes for .env contents, absolute home paths and remote URLs and refuses to start the stream on a hit, and the reaper-safe panic path is tested; (4) DELAY — a broadcast delay of at least 30 s in the ffmpeg pipeline or the platform's own delay setting, so panic can retract; (5) VERIFIED WORKING means a viewer on a second network sees the desktop live on at least one platform for a continuous 60 minutes with a screenshot and the platform's own live-status API or page as the record, not the encoder's exit code. PROVED BY: (a) a fresh account's channel page showing LIVE, recorded with a timestamp and the platform's stream-status endpoint; (b) ps -ef during the stream showing no key material; (c) the pre-flight refusing on a planted .env line in a visible pane and passing after it is cleared; (d) panic.sh retracting a planted test frame within the delay window; (e) 60 continuous minutes on one platform, three platforms if their signups allow it. DISPROVED BY: any key in ps or a pane; any account created by pretending to be a human where the platform forbids automation; a stream declared working from the encoder's exit code. HARD RULES: /home/ubuntu/work/agi is READ-ONLY from streamer-stub (its own rule) — the round works in the streamer-stub repo; never commit a key or an account credential anywhere; the owner's backup info is used for the EMAIL only and is never written to a node, a brief, or a commit; the stream is stopped before any rotation of the prime until the delay and the pre-flight are proven."
+thought_session: f3b92df1
+title: streamer-stub streams the working desktop to fresh accounts the round created, verified end to end, keys off the process list
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-the-stream-goes-live
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?

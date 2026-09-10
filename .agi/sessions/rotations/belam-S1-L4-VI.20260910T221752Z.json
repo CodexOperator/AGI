@@ -1,0 +1,28 @@
+{
+  "rotation": "loop",
+  "seat": "belam-S1-L4-VI",
+  "recorded_at": "2026-09-10T22:17:52.187892Z",
+  "result": "diff",
+  "observations": {
+    "a_successor_window_under_name": {
+      "present": true,
+      "window": "belam-S1-L4-VI",
+      "windows": [
+        "belam-S1-L4-I",
+        "belam-S1-L4-II",
+        "belam-S1-L4-V",
+        "sanctuary-director.gen5",
+        "sanctuary-helper.gen2",
+        "belam-S1-L4-III",
+        "sanctuary-helper",
+        "sanctuary-director.gen6",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/seats/belam-S1-L4-VI.ack.json",
+    "d_reply_decision": "diff"
+  }
+}
