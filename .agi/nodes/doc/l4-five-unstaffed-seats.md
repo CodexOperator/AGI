@@ -6,7 +6,7 @@ parents:
   - goal:g17.1
 next_edges: []
 confidence: 0.5
-edited_by: a00-41c4e898
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-852433f1-2975a8
 loop: hypothesis:l4-five-unstaffed-seats-specified-none-created@s2
@@ -20,7 +20,7 @@ tags:
   - seats
   - spec
   - g17.1
-thought_session: L4.57
+thought_session: sanctuary-director-genIV-L4
 title: The five unstaffed seats get cards and no chairs; the owner's holes stay holes
 verdict: inconclusive_lean_proved:85
 ---
@@ -41,7 +41,7 @@ round.
 
 ## The five cards
 
-**GOAL KEEPER (Sage)** — a keeper, IN the Keep (`.agi/nodes/.geometry/seats.md:2`, the Keep is the sanctuary's three keepers).
+**GOAL KEEPER (Sage)** — a keeper, IN the Keep (`l4-owner-decisions.md:340`, "Sanctuary Keep ('the Keep') = Sanctuary Keeper (Mistress), Role Keeper (Sensei, teacher), Goal Keeper (Sage)"; the Keep's shared card is `:352`). *[Citation corrected by sanctuary-director on merge: this line cited `.agi/nodes/.geometry/seats.md:2`, which is the line `id: config:seats` and supports nothing about the Keep. The other fifteen refs in this document were sampled and all land on the text they claim.]*
 
 `GOAL KEEPER (Sage): answers-to=the Council (a keeper does not answer to the Keep it sits on; the Keep answers to the Council) [l4-owner-decisions.md:352] | pulls=channel A — every director comm lands on the Sage as the internal liaison — seat nodes vs live processes + spend [l4-owner-decisions.md:352,:355,:257] | tells=the routed recipient — the master or director who needs to know (the Keep tells "* Masters (assign a workflow), directors (routed answers)") [l4-owner-decisions.md:352,:355] | Q="Who needs to know this?" -> {route:<recipient> | nobody} [l4-owner-decisions.md:355,:257]`
 
