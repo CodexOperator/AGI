@@ -144,6 +144,15 @@ commands:
       - <engine>/extensions/agi/bin/write.py
     about: goal:g13.1 — named node operations; a hand edit becomes an engine action
     workflow: see
+  session-complete:
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/cli.py
+      - session-complete
+      - <iter>
+      - --dry-run
+    about: hypothesis:l4-session-dirs-come-home-when-the-round-is-done — bring a finished round's session dir home from a worktree, COPY-THEN-VERIFY; start every inspection with --dry-run
+    workflow: read
 edited_by: sanctuary-director
 ordered:
   - verify
