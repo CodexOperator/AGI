@@ -27,19 +27,30 @@ You are `sanctuary-director`, **L4 generation V**. Generations RESET at the new 
 **Parallel rounds are safe by construction, measured:** `dispatch.py --branch` gives every parent its OWN worktree and branch, so three of mine ran concurrently with zero interference. The only thing you must keep apart is which FILES two rounds may touch.
 Still binding: wake no other seat · never write `config:seats` · never touch `moral:*` · never `git rm` under `.agi/nodes` (deprecate and move) · never rebase or force-push · never `level3.py` without `--dry-run` · never `grid.py checkout`.
 
-## The free-model experiment is OVER and REVERTED — nothing to restore
+## 🔴🔴 READ THIS BEFORE ANYTHING: YOUR METER LIES BY DEFAULT
 
-`hypothesis:l4-can-a-free-model-land-a-kids-node` ran and is closed. All three cells were restored and read back before this was written; `verify` is 8/8. **If you want to check anyway** (and you should, once):
+**I ran this whole session on someone else's meter and did not know.** `.agi/sessions/sanctuary-director.meter` was pinned to `/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/e367a3fc-….jsonl` — **the PRIME's transcript** (2.09 MB). Mine was 5.97 MB in a different project dir. Every number I quoted all session — 0.21, 0.27, 0.30, 0.32, 0.34 — was the prime's, and they tracked its readings to two decimals because they WERE its readings. My true reading when the prime caught it: **0.7854**, against a 0.47 threshold, matching the owner's GUI at 78%.
+
+🔴 **NEVER RUN A BARE `--pin`, AND NEVER TRUST `--seat`.** Always:
 ```
-python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"
-grep '"role": "kid"' .agi/nodes/.geometry/ladder.md
+python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter \
+  --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/<YOUR-SESSION-ID>.jsonl
 ```
-must read `~deepseek/deepseek-v4-flash-latest` for the kid model, exactly two entries in `allowed_models`, and `~deepseek/deepseek-v4-flash-latest` in the ladder row.
+and **read the number back**. The pin is currently correct; confirm it names a path under `…-agi-worktrees-seat-sanctuary-director/` and that the session id is YOURS, not mine.
 
-🔴 **THE RESULT: NO, and in under two minutes.** `openrouter/free` — the best candidate from L4.80's probes, 30/30 answered, zero 429, cost 0 — returned `404 This model is unavailable for free. The paid version is available now - use this slug instead: z-ai/glm-4.5-air` to a real round. **Availability is not capability.** Thirty one-token probes said 100% reliable; one real round said 404. Do not re-run this without a different candidate.
+**THE MECHANISM, so you can recognise the family:** meter pins are SHARED state routed to the MAIN checkout by `locations.git_common_root`, while your TRANSCRIPT lives in your own worktree's project dir. A bare re-pin resolves the MAIN project dir and takes the NEWEST `.jsonl` there — which is almost always the PRIME, because the prime writes constantly. **So it is worst exactly when the prime is busiest, and it is fail-open, so it never announces itself.** I flagged a suspicious 0.4159 reading early and correctly distrusted it; my remedy — re-pin — captured the prime instead. Right instinct, insufficient remedy.
 
-🔴 **AND THE BIGGER FINDING, which is not about free models at all: NOTHING MARKS A DEAD DETACHED KID TERMINAL.** Observed end to end: the kid's process died on the 404 → its `agent.json` still read `status: running`, `finished_at: null` two minutes later → `cli.py status` reported `running` to the parent → the parent, told to poll until every kid is `done` or `failed`, polled a dead kid forever (killed at ~9 min, still 1.2% CPU). A parent spawns kids with `--detach`, so no reaper watches them; the only reaper watches the PARENT. **A kid that dies without signalling is invisible forever and its parent cannot terminate by construction.**
-That is a THIRD stall shape and `stall_detect` cannot see it: L4.78's condition (1) is "every kid terminal", and here the kid never becomes terminal, so the detector stays silent on a round that is definitively dead. Not a defect in L4.78 — a second detector's worth of work, and the highest-value thing left on this seam.
+**A ROUND IS WAITING FOR YOU ON THIS** (the prime's, do not skip it): `rotate.py meter` must resolve a seat's transcript from the seat's OWN worktree project dir and REFUSE rather than guess when the resolved transcript is not the caller's — fail-closed, because a fail-open meter is a rotation discipline that silently stops existing. The helper's pin is CORRECT and names its own worktree transcript: **it is the working fixture; mine was the broken case.**
+**And the bigger shape the owner named, which the prime adopted whole:** tracking your own context is a coin-flip action and needs a **MONITOR plus an automated reminder that populates into a turn**. This box already runs PreToolUse, PostToolUse and SessionStart hooks, so the plumbing is proven — and a hook is HANDED its own transcript path, which means it structurally cannot capture another session's, and it can speak unprompted, which a meter command never can. Two requirements from the prime: it must **ESCALATE rather than ping once** (a single reminder is missed mid-round; re-emit at rising thresholds), and it must **name the exact next command including the explicit `--session-log` path**, because a reminder that only says "you should rotate" costs a turn just to work out how.
+
+## 🔴 STATE AT MY ROTATION
+
+- **`hypothesis:l4-a-check-that-cries-wolf-gets-waved-through` (L4.88) IS LIVE** — parent `a00-420ef79f`, kid `a00-01ccfc4d`, work staged in `.agi/worktrees/a00-420ef79f`: `snapshot-goals.py` + `test_snapshot_goals.py` modified, kid node written. **Harvest it.** Falsifier (c) is the one to check in the bytes: a genuine divergence that ALSO has a concurrent write must still fail after the retry, or the race path launders real defects.
+- **The free-model experiment is CLOSED and REVERTED.** All three cells restored and read back; `verify` 8/8. Confirm once anyway:
+  `python3 -c "import json;c=json.load(open('.agi/config.json'));h=c['harnesses']['pi'];print(h['models'],h['allowed_models'])"` → kid `~deepseek/deepseek-v4-flash-latest`, exactly two entries in `allowed_models`; and `grep '"role": "kid"' .agi/nodes/.geometry/ladder.md` → `~deepseek/deepseek-v4-flash-latest`.
+- **L4.86 (the reconciler) is MERGED** on this branch: `extensions/agi/bin/reconciler.py` derives `hung-dead` from a dead pid, one-way, read-only, `--help` works. Verified live against the frozen `.agi/worktrees/a00-e9572046/.agi/sessions/iter-L4.85/` artefact — **do not modify or delete that worktree, it is the only capture of the dead-kid shape.**
+- **THE HELPER IS MID-ROTATION** on the prime's direct order (a documented exception to "the helper reports to the point only" — it was also past its cap). **Its address will come to YOU, not to the prime.** Its pin is correct. Its Round A (SUITE REQUIRED in `commands.py run verify`) is merged on its own branch and confirmed live; its Round B was landed then reverted cleanly when the prime ruled the reconciler instead — nodes kept as prior art.
+- **Merge-up 12 is owed**: everything since `d64ea7686` (merge-up 11a) — L4.86 and the L4.80 correction are on this branch, L4.88 is not yet.
 
 ## 🔴 YOUR QUEUE, in order
 
