@@ -1002,6 +1002,90 @@ def test_replace_payload_refusal_leaves_the_file_untouched(tmp_path):
         "a refused range must change nothing on disk"
 
 
+# hypothesis:l4-replace-api-drops-source — the PYTHON API path has no
+# coverage, which is exactly why the bug shipped. These tests drive
+# write.Edit + write.verb_replace + write.submit with NO argv and NO manual
+# replace_text: the replacement source is resolved by the shared resolver,
+# exactly as a library caller would.
+# --------------------------------------------------------------------------
+
+
+def _api_replace_payload(tmp_path, src_text):
+    """Set up a build node with a payload fixture and a source file, and
+    return (graph, payload, payload_node_md, edit) ready for submit."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    src = tmp_path / "src.txt"
+    src.write_text(src_text)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", str(src))
+    return graph, payload, edit
+
+
+def test_api_replace_replaces_the_line_not_deletes_it(tmp_path):
+    """The exact bug: an API-driven replace returned `status='updated'` while
+    git numstat read `0 1` — the target line was DELETED, nothing inserted.
+    Now the same path must produce an insertion+deletion (content equality,
+    one line swapped, line count unchanged)."""
+    graph, payload, edit = _api_replace_payload(tmp_path, "# REPLACED HEADER")
+    before = payload.read_text()
+    n_before = len(before.split("\n"))
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = payload.read_text()
+    assert after.split("\n")[0] == "# REPLACED HEADER", \
+        "the API path must REPLACE the line, not delete it"
+    assert after.split("\n")[1:] == before.split("\n")[1:], \
+        "only the named line may change"
+    assert len(after.split("\n")) == n_before, \
+        "a one-line replace must not change the line count (numstat 1 1)"
+
+
+def test_api_replace_refuses_an_empty_source_and_writes_nothing(tmp_path):
+    """An EMPTY source must REFUSE with an EditError naming the source, and
+    leave the file byte-identical. Replacing a range with nothing = deleting
+    it, and that must never be the silent consequence of an empty file."""
+    graph, payload, edit = _api_replace_payload(tmp_path, "")
+    before = payload.read_text()
+    with pytest.raises(write.EditError) as ei:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "empty" in str(ei.value)
+    assert payload.read_text() == before, \
+        "an empty source must write NOTHING — file stays byte-identical"
+
+
+def test_api_replace_refuses_a_missing_source_and_writes_nothing(tmp_path):
+    """An ABSENT source must REFUSE naming the source, and write nothing."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    missing = tmp_path / "does-not-exist.txt"
+    before = payload.read_text()
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", str(missing))
+    with pytest.raises(write.EditError) as ei:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert str(missing) in str(ei.value), \
+        "the refusal must NAME the unreadable source"
+    assert payload.read_text() == before, \
+        "a missing source must write NOTHING — file stays byte-identical"
+
+
 def test_replace_body_is_standalone_like_body_patch(project):
     edit = write.Edit(node_id="hypothesis:h1")
     write.verb_replace(edit, "body", "1:1", "-")
