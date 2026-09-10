@@ -176,6 +176,115 @@ def spawner_base_branch(workdir: Path) -> str | None:
     return name
 
 
+# hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on — HALF A: the
+# freshness guard. A round cut with `--branch` is only as fresh as the branch
+# it is cut FROM, and dispatch never said when that base is stale: a seat that
+# has not synced to the integration branch (`season/sN`) since other seats
+# landed work spawns a round against stale code, and nothing told the
+# dispatcher (measured: the L4.122 helper dispatched 312 lines behind on
+# provisioning.py). This guard MEASURES how far the spawner's HEAD is behind
+# `origin/season/sN` and returns a structured record the caller emits and acts
+# on. fail-OPEN on the network: an unreachable origin yields status
+# "unchecked", never a false stale claim, so a spawn is never blocked on a
+# remote being down.
+_ENGINE_PATH_LEADS = ("extensions/", "skills/", "src/", "bin/", "hooks/")
+
+
+def _is_engine_path(p: str) -> bool:
+    """True when a changed path is engine source (not graph data)."""
+    return p.startswith(_ENGINE_PATH_LEADS)
+
+
+def _stale_base_spawn(root: Path, season: int) -> dict:
+    """How far the spawner's HEAD is behind the integration branch.
+
+    Returns one of:
+      {"status": "current", "behind": 0, "files": []}
+      {"status": "behind", "behind": N, "files": [engine files differing]}
+      {"status": "unchecked", "behind": 0, "files": []}  (origin unreachable)
+
+    Every git command is run captured and fail-open — the guard is a
+    witness, not an authority — so a flaky tool or an unreachable remote
+    degrades to current/unchecked rather than fabricating a stale read.
+    The fetch is run first so `behind` is measured against what is actually
+    on origin, not whatever the local ref last happened to see.
+    """
+    integration = f"origin/season/s{season}"
+    try:
+        fr = subprocess.run(
+            ["git", "-C", str(root), "fetch", "origin",
+             f"season/s{season}"],
+            capture_output=True, text=True, timeout=60)
+        if fr.returncode != 0:
+            # A failed fetch means the remote tip is unknowable -> we cannot
+            # call anyone stale on evidence. fail-open, per the claim.
+            return {"status": "unchecked", "behind": 0, "files": []}
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        return {"status": "unchecked", "behind": 0, "files": []}
+    # Belt-and-suspenders: the stale claim must rest on a resolvable remote
+    # ref, not on a fetch that printed success through a warning. If the
+    # remote tip does not resolve, the gap is unknowable -> unchecked.
+    try:
+        rr = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "--quiet",
+             f"{integration}^{{commit}}"],
+            capture_output=True, text=True, timeout=30)
+        if rr.returncode != 0 or not rr.stdout.strip():
+            return {"status": "unchecked", "behind": 0, "files": []}
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        return {"status": "unchecked", "behind": 0, "files": []}
+    behind = 0
+    try:
+        cr = subprocess.run(
+            ["git", "-C", str(root), "rev-list", "--count",
+             f"HEAD..{integration}"],
+            capture_output=True, text=True, timeout=30)
+        if cr.returncode == 0 and cr.stdout.strip():
+            behind = int(cr.stdout.strip())
+    except (subprocess.TimeoutExpired, ValueError, OSError,
+            subprocess.SubprocessError):
+        behind = 0
+    if behind <= 0:
+        return {"status": "current", "behind": 0, "files": []}
+    # Behind: name the engine files that differ so the message says WHAT is
+    # stale, not just that *something* is. Three dots = merge base..remote tip
+    # = exactly the work the spawner does not have.
+    files: list[str] = []
+    try:
+        dr = subprocess.run(
+            ["git", "-C", str(root), "diff", "--name-only",
+             f"HEAD...{integration}"],
+            capture_output=True, text=True, timeout=30)
+        if dr.returncode == 0:
+            files = sorted(f for f in dr.stdout.splitlines()
+                           if _is_engine_path(f))
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        files = []
+    return {"status": "behind", "behind": behind, "files": files}
+
+
+def _stale_base_record(stale: dict, season: int) -> dict:
+    """The structured next-actions record emitted on a stale base (HALF A).
+
+    Machine-readable so HALF B (hypothesis:l4-startup-is-one-script-or-a-
+    driven-prompt) can DRIVE the pick without parsing prose: the issue, the
+    gap, the differing engine files, and the enumerated resolving actions. A
+    re-invocation carrying a resolution (a synced base, or
+    `--allow-stale-base <reason>`) proceeds; the speaker here only EMITS.
+    """
+    return {
+        "issue": "stale-base",
+        "behind": stale.get("behind", 0),
+        "files": stale.get("files", []),
+        "integration": f"season/s{season}",
+        "actions": [
+            {"id": "sync", "cmd": f"git merge origin/season/s{season}"},
+            {"id": "override", "cmd": "dispatch ... --allow-stale-base <reason>"},
+            {"id": "abort"},
+        ],
+    }
+
+
 def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
     """`loop/<slug>-<agent8>@s<N>` — the per-agent branch name.
 
@@ -928,6 +1037,20 @@ def main() -> int:
              "(hypothesis:l3w4-parent-branch-merge-up)",
     )
     ap.add_argument(
+        "--allow-stale-base",
+        default=None,
+        metavar="REASON",
+        help="hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on HALF A "
+             "-- skip the stale-base refusal: record this REASON on the "
+             "agent's branch_ref and cut the round anyway. Being behind the "
+             "integration branch is legitimate for a nested layer (a "
+             "director cutting from tier1/<name>), but it must be a CONSCIOUS "
+             "override, never a default. Without it, a --branch spawn whose "
+             "base is behind origin/season/sN is refused (exit 3) with a "
+             "structured stale-base record, so the issue cannot be silently "
+             "ignored. fail-open: an unreachable origin is never refused.",
+    )
+    ap.add_argument(
         "--detach",
         action="store_true",
         help="Skip the reaper phase and return immediately after spawn. "
@@ -1361,6 +1484,23 @@ def main() -> int:
                       f"from", file=sys.stderr)
                 spawn_budget.release(lease)
                 return 1
+            # hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on
+            # HALF A — freshness guard: a round is only as fresh as this base.
+            # Refuse to cut the worktree when the base is behind the
+            # integration branch, unless an explicit --allow-stale-base reason
+            # makes it a conscious override. fail-open: an unreachable origin
+            # is a note, never a block (an unreachable remote is not a
+            # workflow issue).
+            stale = _stale_base_spawn(Path.cwd(), current_season)
+            if stale["status"] == "behind" and not args.allow_stale_base:
+                print(json.dumps(_stale_base_record(stale, current_season)),
+                      file=sys.stderr)
+                spawn_budget.release(lease)
+                return 3  # must-pick: no resolving choice, no spawn
+            elif stale["status"] == "unchecked":
+                print(f"note {agent_id} slot={slot}: freshness of base "
+                      f"unchecked (origin season/s{current_season} "
+                      f"unreachable); spawn proceeds", file=sys.stderr)
             branch = loop_branch_name(target, agent_id, current_season)
             try:
                 wt = branch_worktree_for_spawn(root, branch, agent_id, base)
@@ -1375,6 +1515,12 @@ def main() -> int:
                 "base_branch": base,
                 "worktree": str(wt),
             }
+            if stale["status"] == "behind":
+                # An allowed stale base is a conscious override: record the
+                # user-supplied reason and the measured gap on the branch_ref
+                # so merge-up and the round record show WHY it was cut stale.
+                branch_ref["stale_base_reason"] = args.allow_stale_base
+                branch_ref["behind_base"] = stale["behind"]
             spawn_budget.attach_branch(lease, branch_ref)
 
         # hypothesis:l3-branch-source-paths-never-rerooted parts 1-2 -- the
