@@ -634,7 +634,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
         location = set_fm["location"]
 
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
-                                  unset_fm=edit.unset_fm, body=body)
+                                  unset_fm=edit.unset_fm, body=body,
+                                  log_extra=_log_provenance(actor))
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
@@ -646,7 +647,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
             root, payload_ref, edit.payload_from or None,
             location=location,
             data=edit.payload_bytes.encode() if edit.payload_bytes else None,
-            mint_id=mint)
+            mint_id=mint,
+            log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
     return res
@@ -890,6 +892,27 @@ def _default_actor() -> str:
     return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
 
 
+def _log_provenance(actor: str = "") -> dict:
+    """The actor/role/seat for a write-log entry, via the `extra` hook.
+
+    hypothesis:l4-write-log-role-capture — every write-log entry should record
+    WHO wrote it. `actor` is the resolved caller identity (`actor` param or
+    `_default_actor`). `role` and `seat` are READ from what the environment
+    already sets (AGI_ROLE / AGI_SEAT, exported by dispatch); when a source is
+    absent the key is ABSENT, never a placeholder. Only present keys land in
+    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
+    records `actor`, and a non-write.py writer records none of these at all.
+    """
+    prov: dict = {"actor": actor or _default_actor()}
+    role = os.environ.get("AGI_ROLE")
+    if role:
+        prov["role"] = role.strip()
+    seat = os.environ.get("AGI_SEAT")
+    if seat:
+        prov["seat"] = seat.strip()
+    return prov
+
+
 def _compose_body(root, edit: Edit) -> str:
     """The node's body with the note appended and the thought replaced.
 
@@ -965,7 +988,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
         extra[links.LINK_FIELD] = str(payload)
 
     res = node_writer.write_node(root, node_type, slug, parents,
-                                 extra_fm=extra or None, bypass=bypass)
+                                 extra_fm=extra or None, bypass=bypass,
+                                 log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
             # A rejected spawn must leave nothing behind, on either side.
@@ -984,7 +1008,8 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
             stamp.set_fm[PROVENANCE_ACTOR] = actor
         if session:
             stamp.set_fm[PROVENANCE_SESSION] = session
-        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm)
+        node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
+                                log_extra=_log_provenance(actor))
     return res, created_file
 
 
