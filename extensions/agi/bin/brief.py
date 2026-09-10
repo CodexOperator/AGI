@@ -1599,13 +1599,48 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     return segs
 
 
-def closing_line(tier: str, agent_id: str, iter_n: int) -> str:
+def closing_line(tier: str, agent_id: str, iter_n: int,
+                 cli_py: str | Path = "") -> str:
     """The final positional prompt. Separate because pi appends it as the
-    user turn rather than as a system prompt, and tiers end differently."""
+    user turn rather than as a system prompt, and tiers end differently.
+
+    🔴 A PARENT'S LINE ENDS WITH A SELF-CHECK, AND THIS IS WHY IT LIVES HERE
+    rather than in the parent's system fragments. Two parents in one loop sat
+    ~45 minutes at ~0.4% CPU with every kid terminal and the work staged, and
+    never ran `cli.py done` at all — proven, not guessed: `cmd_done` writes
+    `status`/`finished_at` into the record BEFORE `_auto_commit_worktree`, and
+    both dispatcher-side records still read `status: running` with an mtime
+    equal to spawn (experiment:a00-f2f8465a-b4eb8e). `done` would not have
+    refused, and `cli.py status` showed every kid done from the parent's own
+    tree. The poll loop had everything it needed to terminate and did not.
+
+    The prime's ruling: an instruction that could be a check and is instead
+    handed to a model is an invariant turned into a coin flip, so the terminal
+    step becomes explicit, self-checking, and LAST — "recency is the only
+    lever a weak model reliably answers to". `closing_line` IS last: the pi
+    adapter appends it as the user turn AFTER every `--append-system-prompt`
+    (`adapters/pi_adapter.py`), so nothing the parent reads comes after this.
+    Putting it in the system fragments would satisfy the words and lose the
+    mechanism.
+
+    `cli_py` is optional so every existing caller keeps working; when it is
+    absent the self-check still states the invariant and names the command
+    without an absolute path.
+    """
     if tier == "parent":
+        cmd = (f"python3 {cli_py} done {iter_n} {agent_id} --verdict pending "
+               f"--owns <kid-node-id>" if cli_py else
+               f"cli.py done {iter_n} {agent_id} --verdict pending "
+               f"--owns <kid-node-id>")
         return (f"Begin iteration {iter_n} as parent agent {agent_id}. "
                 f"Read your zoom context, spawn and review kids, report what "
-                f"you accepted and what you demoted.")
+                f"you accepted and what you demoted.\n\n"
+                f"BEFORE YOU STOP, CHECK YOURSELF: if every kid is terminal "
+                f"and you have not run `cli.py done`, YOU ARE NOT FINISHED. "
+                f"Run it now:\n  {cmd}\n"
+                f"`--owns`, NOT `--node-id` — you author no node of your own. "
+                f"That command is what commits your round; nothing else does, "
+                f"and a round that never commits is a round nobody can see.")
     if tier == "advisor":
         return (f"Begin iteration {iter_n} as ADVISOR agent {agent_id}. "
                 f"Embody your vision, sit the tier3-quorum, and run your "
