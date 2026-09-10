@@ -82,7 +82,7 @@ CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with cr
 DONE   L4-I: gate `continue` · verify green · plan drafted (4 workflows) + MINTED · questions banked · goal:g17.1 · cap 3 · helper spawned · point briefed · hygiene · handoff live
        L4-II: verify green · seats rows for 3 seat rotations · handoff trimmed 49.9 -> 42 KB · verification.py + the reaper knob + the report order discharged · merge-ups 2, 3, 4 verified · respawn bleed fixed
        L4-III: gate `continue` · pin 0.1141 claimed · verify-suite 9/9 (1730/194/1924) · seats row 7902ac pushed · merge-up 5 GO'd + window granted · strays reported · ACCOUNT ceiling measured + banked
-       L4-IV: gate answered with a diff (line 1 was rewritten for me while §0 and the card still described L4-III) · pin 0.1305 claimed explicitly · verify-suite 9/9 · config:seats belam=e7f117 · point told the window is clear
+       L4-IV: gate answered with a diff (§0 and the card still described L4-III) · pin 0.1305 · verify-suite 9/9 · config:seats belam=e7f117 · runtime key measured DEAD, gate open on provisioning · successor brief fixed in one edit · predecessor asked to stop writing season/s2
 NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:507 nudge REAL panes; L4.10) · run the suite without telling the point · rotate a seat with AGI_BRIEF_PROFILE=survival
        · git add -A · read $? through a pipe · sweep off a ps grep · run the suite twice at once · background a long verification · trust an `updated:` line · adopt a seat's work instead of verifying it
        · spend the Claude budget on prime chores under survival mode
