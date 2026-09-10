@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import math
 import os
 import sys
 import urllib.error
@@ -68,6 +69,12 @@ import envfile  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
+#: Per-day per-model spend rows the PROVISIONING key can read (`hypothesis:
+#: l4-what-spent-this-money-must-be-a-lookup`). The RUNTIME key is rejected
+#: here (measured 401, 2026-09-10 — the hypothesis said 403; the code is 401
+#: but the functional claim holds: the runtime key is REJECTED, and the
+#: rejected path is distinct from an empty 200, which is the whole point).
+ACTIVITY_BASE = "https://openrouter.ai/api/v1/activity"
 #: Workspace listing. `GET /keys` is scoped to ONE workspace (the default
 #: unless asked otherwise), so enumerating everything means enumerating
 #: workspaces first -- see `list_all_keys`.
@@ -284,15 +291,28 @@ def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[
     floor = min_key_remaining_floor(cfg)
     if remaining >= floor:
         return True, None
+    # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 2.
+    # The printed remedy must CLEAR the guard that printed it. The old text
+    # hardcoded `{"limit": 10.00}`, and on the live tree that was measured
+    # against $11.4847 of usage: applying it exactly leaves the key at -$1.48
+    # and STILL refusing. A guard whose own fix does not clear it sends its
+    # reader round a loop and teaches them the tool is broken -- which is how
+    # a correct guard gets routed around by hand next time. Compute the
+    # minimum viable cap from OBSERVED usage plus the CONFIGURED floor, and
+    # round UP so the printed number is never a cent short of clearing.
+    used = limit - remaining
+    suggested = math.ceil((used + floor) * 100) / 100
     patch = (f"curl -X PATCH {RUNTIME_KEY_BASE}"
              f" -H 'Authorization: Bearer ${RUNTIME_KEY_VAR}'"
              f" -H 'Content-Type: application/json'"
-             f" -d '{{\"limit\": 10.00}}'")
+             f" -d '{{\"limit\": {suggested:.2f}}}'")
     return False, (
         f"runtime key {label!r} remaining ${remaining:.2f} is below the configured "
         f"floor ${floor:.2f} (provisioning.min_key_remaining_usd); spending a "
-        f"budget slot risks the key crossing its cap mid-round. Raise it on "
-        f"OpenRouter, then PATCH: {patch}")
+        f"budget slot risks the key crossing its cap mid-round. The MINIMUM cap "
+        f"that clears this floor is ${suggested:.2f} (observed usage ${used:.2f} "
+        f"+ floor ${floor:.2f}) -- raise it on OpenRouter to that or above, "
+        f"then PATCH: {patch}")
 
 
 def _below_floor_message(which: str, label: str, remaining: float,
@@ -312,9 +332,15 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     refuses when ANY readable one is below the configured floor. This is the
     fix for hypothesis:l4-the-floor-guards-the-key-that-drains: rounds bill to
     minted per-spawn keys, so a floor that read only the runtime key could not
-    move however much the loop spent. Now a drained outstanding minted key
-    refuses a spawn the same way a drained runtime key does, and the runtime
-    check (`check_runtime_key_floor`) still runs FIRST, unchanged.
+    move however much the loop spent. A drained outstanding minted key refuses
+    a spawn the same way a drained runtime key does.
+
+    🔴 The runtime leg runs first but is **CONDITIONAL on provisioning being
+    ABSENT** (hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-
+    use). A pre-flight must gate on the credential the spawn will ACTUALLY
+    use: with provisioning live the spawn mints its own key against the
+    account, so the runtime key gates nothing it pays for; with provisioning
+    absent the runtime key IS the credential and the leg is unchanged.
 
     Fail-open is preserved for EVERY key consulted: a network error reading
     the runtime key, or the key listing, returns (True, None) — an unreachable
@@ -324,9 +350,30 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     THIS engine minted (`agi-` prefix) are in scope — the owner's long-lived
     key, named `agi`, and any hand-made key are never refused here.
     """
-    ok, msg = check_runtime_key_floor(cfg, root)
-    if not ok:
-        return False, msg
+    # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 1.
+    # THE RUNTIME LEG IS CONDITIONAL, and the condition is the one thing that
+    # decides which credential a spawn actually spends through. When
+    # provisioning is LIVE, `dispatch.py` mints the spawn its OWN key drawn
+    # against the ACCOUNT (dispatch.py:1138, `issuing = available(root)`), so
+    # the runtime key is not the spawn's credential and must not gate it --
+    # the account leg (`check_account_floor`, wired at dispatch.py:1264) and
+    # the minted key's own cap are the real guards. When provisioning is
+    # ABSENT -- a SUPPORTED state, see the comment at dispatch.py:1133, where
+    # every agent inherits the shared runtime key -- the runtime key IS the
+    # credential and this check is exactly right and stays UNCHANGED.
+    #
+    # MEASURED, on the live tree, 2026-09-10: the owner capped the runtime
+    # key `backup` at $1.00 to contain a NON-ENGINE spender, against $11.4847
+    # of lifetime usage. Both pre-flights refused every new spawn while
+    # $17.98 of account headroom sat behind the per-spawn keys that actually
+    # carry round spend. The loop was stopped by a key it does not spend from.
+    # This is the inverse of hypothesis:l4-the-floor-guards-the-key-that-
+    # drains: that round widened the floor to include the keys that DO drain
+    # and left this leg running first and unconditionally in front of it.
+    if not available(root):
+        ok, msg = check_runtime_key_floor(cfg, root)
+        if not ok:
+            return False, msg
     try:
         listing = list_all_keys(root)
     except ProvisioningError:
@@ -410,6 +457,41 @@ def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool
         f"${floor:.2f} (provisioning.min_account_remaining_usd); a dispatched "
         f"round bills the ACCOUNT, not any key this engine manages, and only "
         f"{remaining:.2f} remains. Top up the account before the next spawn")
+
+
+def check_runtime_key_usable(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the provisioning-ABSENT pre-flight (this round's REQUIRED d/e).
+
+    Whether the runtime key (`OPENROUTER_API_KEY`) is a credential the next
+    spawn will actually use, judged by ONE authenticated call.
+
+    🔴 When provisioning is LIVE the spawn does NOT use the runtime key:
+    rounds bill to MINTED per-spawn keys, so a dead runtime key is irrelevant
+    and must NOT block the round (L4.98's invariant, this round's falsifier e).
+    The function short-circuits (True, None) the moment `available()` is true.
+
+    🔴 When provisioning is ABSENT the runtime key IS the spawn's credential
+    (`dispatch.py`, a supported state), so a DEAD one (HTTP 401/403) must make
+    the PRE-FLIGHT refuse BEFORE a budget slot is taken -- not let the spawn
+    discover the 401 mid-round and read as a stall (this round's falsifier d).
+    An absent key, a network error, a 5xx and an unknown key prefix all return
+    (True, None): those are evidence of nothing, and an unreachable API must
+    never block a round (same fail-open discipline as `check_key_floor`).
+    """
+    if available(root):
+        return True, None  # spawn uses minted keys, not the runtime key (L4.98)
+    runtime = _read_runtime_key(root)
+    if not runtime:
+        return True, None  # nothing to guard
+    status, detail = envfile._verify_provider_key(runtime)
+    if status == "dead":
+        return False, (
+            f"{RUNTIME_KEY_VAR} is present but NOT USABLE — provider rejected "
+            f"it ({detail}). Provisioning is ABSENT, so this key IS the next "
+            "spawn's credential; refusing the pre-flight before a budget slot "
+            "is taken. Revoke/replace it or restore provisioning first.")
+    return True, None  # valid, unknown-prefix, or network error — nothing blocks
+
 
 
 def settings(cfg: dict) -> tuple[float, int]:
@@ -798,6 +880,162 @@ def _captures_dir(root: Path | str) -> Path:
     return graph / locations.SESSIONS_DIR_NAME / ".spend-captures"
 
 
+def activity(root: Path | str | None = None) -> dict:
+    """Read `/api/v1/activity` with the PROVISIONING key. READ-ONLY.
+
+    Returns `{"status", "rows", "error"}`:
+      status 200  -> rows is the activity list (possibly []) — a genuine empty
+                     list means NO activity, which is a different fact from
+                     a rejected call and must never be conflated.
+      status !=200-> rows is None and error names why (the runtime key is
+                     rejected here — measured 401 — and a network fault is 0).
+
+    The rejected path is deliberate: wiring the convenient runtime key here
+    would return NOT 200, and rendering that as "no spend" would be the
+    fail-open empty result the hypothesis is built to stop. The caller must
+    see the rejection and say so.
+    """
+    prov = _read_provisioning_key(root)
+    if prov is None:
+        return {"status": 0, "rows": None,
+                "error": "no provisioning key configured"}
+    status, body = _call("GET", ACTIVITY_BASE, prov)
+    if status != 200:
+        err = (body.get("error") if isinstance(body, dict) else str(body))
+        return {"status": status, "rows": None, "error": err}
+    rows = body.get("data") or [] if isinstance(body, dict) else []
+    return {"status": 200, "rows": rows, "error": None}
+
+
+def _lag(rows: list[dict]) -> dict:
+    """Whether the newest activity row is today. OpenRouter's activity LAGS
+    (measured 2026-09-10: today had no row at all, newest was yesterday), so
+    a snapshot with no row for today is LAG, never ZERO SPEND — the conflation
+    that is the whole failure mode."""
+    today = datetime.date.today().isoformat()
+    latest = None
+    for r in rows:
+        d = str(r.get("date") or "").split(" ")[0]
+        if d and (latest is None or d > latest):
+            latest = d
+    if latest is None:
+        return {"latest_date": None, "days_behind": None,
+                "today_present": False}
+    try:
+        behind = (datetime.date.today()
+                  - datetime.date.fromisoformat(latest)).days
+    except ValueError:
+        behind = None
+    return {"latest_date": latest, "days_behind": behind,
+            "today_present": latest == today}
+
+
+def _activity_workspace(root: Path | str | None = None) -> str | None:
+    """The workspace this snapshot claims to be about, so a snapshot can say
+    WHICH workspace it read — the owner's question cannot be answered without
+    it. Absent means absent; it is recorded as null, never guessed."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import locations  # noqa: E402
+        graph = (locations.find_project_root(Path(root).resolve())
+                 if root else None)
+        cfg = locations.load_config(graph) if graph else {}
+        return workspace(cfg)
+    except Exception:
+        return None
+
+
+def spend_snapshot(root: Path | str | None = None) -> dict:
+    """One read-only spend-attribution snapshot — the answer to "WHAT SPENT
+    THIS MONEY". Aggregates activity rows by (model, provider) with request
+    counts and USD usage, records the workspace and the lag, and lists the
+    outstanding per-spawn keys. Never mints, revokes or patches anything.
+
+    `rejected` is non-null exactly when the activity call was NOT 200, so a
+    reader can tell "the call was refused / no key" from "there was no spend".
+    """
+    act = activity(root)
+    snap = {
+        "captured_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "source": "activity",
+        "workspace": _activity_workspace(root),
+        "rejected": None if act["status"] == 200 else {
+            "status": act["status"], "error": act["error"]},
+    }
+    if act["status"] == 200:
+        rows = act["rows"] or []
+        snap["lag"] = _lag(rows)
+        snap["dates"] = sorted(
+            {str(r.get("date") or "").split(" ")[0] for r in rows
+             if r.get("date")})
+        models: dict = {}
+        for r in rows:
+            m = r.get("model") or r.get("model_permaslug") or "(unknown)"
+            p = r.get("provider_name") or "(unknown)"
+            a = models.setdefault(
+                (m, p),
+                {"model": m, "provider": p, "requests": 0, "usage": 0.0})
+            a["requests"] += int(r.get("requests") or 0)
+            a["usage"] += float(r.get("usage") or 0.0)
+        snap["models"] = sorted(models.values(), key=lambda x: -x["usage"])
+    try:
+        keys = [{"name": rec.get("name"), "usage": _num(rec.get("usage"))}
+                for rec in (list_all_keys(root) or [])
+                if str(rec.get("name") or "").startswith(f"{NAME_PREFIX}-")]
+        snap["per_spawn_keys"] = keys
+    except ProvisioningError:
+        snap["per_spawn_keys"] = None
+    return snap
+
+
+def diff_spend(saved: dict, now: dict) -> list[dict]:
+    """`[ {kind, ...}, ... ]` comparing a spend snapshot to a later one, so a
+    diff names the MODEL, the request count and the USD delta — and reports a
+    per-spawn key present in the LATER snapshot but absent in the EARLIER as
+    NEW rather than as an `UNKNOWN` row in a string of deltas (that exact
+    display is what misled a previous generation into believing rounds bill
+    to no key this project manages; the keys had simply been revoked by the
+    time the after-diff ran)."""
+    out: list[dict] = []
+    s_models = {(m["model"], m["provider"]): m
+                for m in saved.get("models") or []}
+    n_models = {(m["model"], m["provider"]): m
+                for m in now.get("models") or []}
+    for key in n_models:
+        nm = n_models[key]
+        sm = s_models.get(key)
+        if sm is None:
+            out.append({"kind": "model_new", "model": nm["model"],
+                        "provider": nm["provider"], "requests": nm["requests"],
+                        "usage": nm["usage"]})
+        else:
+            out.append({"kind": "model", "model": nm["model"],
+                        "provider": nm["provider"],
+                        "requests_old": sm["requests"], "requests_new": nm["requests"],
+                        "usage_old": sm["usage"], "usage_new": nm["usage"]})
+    for key in s_models:
+        if key not in n_models:
+            sm = s_models[key]
+            out.append({"kind": "model_gone", "model": sm["model"],
+                        "provider": sm["provider"], "requests": sm["requests"],
+                        "usage": sm["usage"]})
+    s_keys = {k["name"]: k for k in saved.get("per_spawn_keys") or []}
+    n_keys = {k["name"]: k for k in now.get("per_spawn_keys") or []}
+    for name in n_keys:
+        nk = n_keys[name]
+        sk = s_keys.get(name)
+        if sk is None:
+            out.append({"kind": "key_new", "name": name, "usage": nk.get("usage")})
+        else:
+            out.append({"kind": "key", "name": name,
+                        "usage_old": sk.get("usage"), "usage_new": nk.get("usage")})
+    for name in s_keys:
+        if name not in n_keys:
+            sk = s_keys[name]
+            out.append({"kind": "key_gone", "name": name, "usage": sk.get("usage")})
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     """`provisioning.py status|list|reap [--yes] | capture [--out FILE] | diff [--prev FILE]`
 
@@ -811,7 +1049,8 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="status",
-                    choices=["status", "list", "reap", "capture", "diff"])
+                    choices=["status", "list", "reap", "capture", "diff",
+                             "spend"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--yes", action="store_true",
                     help="reap for real; without it, reap only reports")
@@ -858,6 +1097,69 @@ def main(argv: list[str] | None = None) -> int:
         for label, old, new in rows:
             print(f"  {label:32} {_fmt(old):>10} -> {_fmt(new):>10}  "
                   f"\u0394 {_fmt_delta(old, new)}")
+        return 0
+
+    if args.action == "spend":
+        cap_file = Path(args.out or args.prev
+                        or _captures_dir(args.root) / "spend.json")
+        if args.prev:  # diff two snapshots by model
+            if not cap_file.is_file():
+                print(f"spend diff: no saved spend snapshot at {cap_file} — "
+                      f"run 'provisioning.py spend' first")
+                return 2
+            saved = json.loads(cap_file.read_text())
+            now = spend_snapshot(args.root)
+            print(f"spend diff: {cap_file}  vs  now")
+            if now.get("rejected"):
+                print(f"  ⚠ REJECTED now (HTTP {now['rejected']['status']}: "
+                      f"{now['rejected']['error']}) — the earlier snapshot told "
+                      f"you the past, it cannot tell you the delta")
+            for d in diff_spend(saved, now):
+                if d["kind"] == "model":
+                    print(f"  model {d['model']} ({d['provider']})")
+                    print(f"      requests {d['requests_old']} -> "
+                          f"{d['requests_new']}  Δ {_fmt_delta(d['usage_old'], d['usage_new'])}")
+                elif d["kind"] == "model_new":
+                    print(f"  model {d['model']} ({d['provider']}): NEW "
+                          f"(requests={d['requests']} usage={_fmt(d['usage'])})")
+                elif d["kind"] == "model_gone":
+                    print(f"  model {d['model']} ({d['provider']}): GONE "
+                          f"(was requests={d['requests']} usage={_fmt(d['usage'])})")
+                elif d["kind"] == "key_new":
+                    print(f"  key {d['name']!r}: NEW usage={_fmt(d['usage'])}")
+                elif d["kind"] == "key_gone":
+                    print(f"  key {d['name']!r}: GONE (was usage={_fmt(d['usage'])})")
+                else:  # key
+                    print(f"  key {d['name']!r}: usage {_fmt(d['usage_old'])} "
+                          f"-> {_fmt(d['usage_new'])}  Δ {_fmt_delta(d['usage_old'], d['usage_new'])}")
+            return 0
+        # capture a spend snapshot
+        data = spend_snapshot(args.root)
+        cap_file.parent.mkdir(parents=True, exist_ok=True)
+        cap_file.write_text(json.dumps(data, indent=2))
+        print(f"spend: wrote {cap_file}  @ {data['captured_at']}")
+        print(f"  workspace: {data.get('workspace') or 'default'}")
+        if data.get("rejected"):
+            print(f"  ⚠ REJECTED (HTTP {data['rejected']['status']}: "
+                  f"{data['rejected']['error']}) — the runtime key is REJECTED "
+                  f"here; this is NOT zero spend and it is NOT lag")
+        elif data.get("lag", {}).get("today_present") is False:
+            lag = data["lag"]
+            print(f"  ⚠ LAG: newest row is {lag.get('latest_date')} "
+                  f"({lag.get('days_behind')}d behind today) — activity lags; "
+                  f"this is NOT zero spend")
+        else:
+            print(f"  lag: today_present={data.get('lag', {}).get('today_present')} "
+                  f"latest={data.get('lag', {}).get('latest_date')}")
+        for m in data.get("models") or []:
+            print(f"  {m['model']:36} ({m['provider']:12}) "
+                  f"requests={m['requests']:>5}  {_fmt(m['usage'])}")
+        keys = data.get("per_spawn_keys")
+        if keys is None:
+            print("  per-spawn keys: UNKNOWN (listing unreadable)")
+        else:
+            for k in keys:
+                print(f"  per-spawn key {k['name']!r}: usage={_fmt(k['usage'])}")
         return 0
 
     if not available(args.root):

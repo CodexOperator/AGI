@@ -1112,3 +1112,107 @@ def test_goal_schema_accepts_perpetual_and_legacy_long_term():
     assert not rx.match("bogus")
     # spawn: block declares a perpetual variant
     assert "perpetual:" in text and "long-term:" in text
+
+
+# --- hypothesis l4-a-check-that-cries-wolf-gets-waved-through -----------------
+# The `--check` false alarm: GOALS.md (a derived artefact) compared against
+# goal nodes (its sources) that a concurrent writer can move under the
+# comparison. The guard must retry exactly ONCE, report the retry visibly,
+# and preserve fail-closed. These tests are NEW — no existing test is edited.
+
+def test_concurrent_source_write_triggers_a_reported_retry(project, monkeypatch, capsys):
+    """(a) A source that changes DURING the comparison produces exactly one
+    retry, and the retry is REPORTED — asserted on the retry text, not merely
+    on the exit code (which is 0 here: the transient race resolves)."""
+    run(project)                                   # clean import: doc -> nodes
+    assert run(project, "--render").returncode == 0
+    path = next((project / "nodes" / "goal").glob("g1-*.md"))
+    fm = fm_of(path)
+    orig_body = path.read_text(encoding="utf-8").split("---", 2)[2].strip()
+    first = {"ran": False}
+
+    def patched(rendered, n_goals):
+        if not first["ran"]:
+            first["ran"] = True
+            # the concurrent write, landed right at the comparison: the node
+            # moves AND GOALS.md follows it, so the retry's fresh pass is green
+            sg.write_frontmatter(path, fm, orig_body + "\n\n(mutated mid-check)",
+                                 preserve_body=orig_body)
+            new_doc = sg.render_goals(
+                *sg.load_goal_nodes(sg.load_existing_nodes()))
+            (project / "GOALS.md").write_text(new_doc, encoding="utf-8")
+        return real(rendered, n_goals)
+
+    real = sg._compare_rendered
+    monkeypatch.setattr(sg, "_compare_rendered", patched)
+    rc = sg.main(["--project", str(project), "--render", "--check"])
+    err = capsys.readouterr().err
+    assert rc == 0                                  # race resolved cleanly
+    assert "changed during comparison" in err, err  # the retry is VISIBLE
+    assert "retrying ONCE" in err, err
+
+
+def test_genuine_divergence_still_fails_on_the_first_comparison(project):
+    """(b) Sources stable, artefact wrong: the check FAILS on the FIRST
+    comparison and never touches the retry path — a real defect is not masked."""
+    run(project)
+    assert run(project, "--render").returncode == 0
+    doc = project / "GOALS.md"
+    doc.write_text(doc.read_text(encoding="utf-8") + "\nSTRAY DEFECT\n",
+                   encoding="utf-8")
+    r = run(project, "--render", "--check")
+    assert r.returncode == 1
+    assert "MISMATCH" in r.stderr
+    assert "retrying" not in r.stderr, "a no-race divergence must not retry"
+
+
+def test_race_cannot_launder_a_real_defect(project, monkeypatch, capsys):
+    """(c) A genuine divergence that ALSO races still fails AFTER the retry,
+    so the race path cannot hide a definite, hand-broken artefact."""
+    run(project)
+    assert run(project, "--render").returncode == 0
+    doc = project / "GOALS.md"
+    doc.write_text(doc.read_text(encoding="utf-8") + "\nHAND-BROKEN DEFECT\n",
+                   encoding="utf-8")
+    path = next((project / "nodes" / "goal").glob("g1-*.md"))
+    fm = fm_of(path)
+    orig_body = path.read_text(encoding="utf-8").split("---", 2)[2].strip()
+    first = {"n": 0}
+
+    def patched(rendered, n_goals):
+        if first["n"] == 0:
+            first["n"] = 1
+            # racing source move, but GOALS.md is NOT made consistent -> the
+            # defect must survive the retry
+            sg.write_frontmatter(path, fm, orig_body + "\n\n(racing node)",
+                                 preserve_body=orig_body)
+        return real(rendered, n_goals)
+
+    real = sg._compare_rendered
+    monkeypatch.setattr(sg, "_compare_rendered", patched)
+    rc = sg.main(["--project", str(project), "--render", "--check"])
+    err = capsys.readouterr().err
+    assert rc == 1                                  # defect NOT laundered
+    assert "retrying ONCE" in err, err              # the race was seen+retried
+    assert "MISMATCH" in err, err                   # and it still failed
+
+
+def test_no_change_case_is_unaffected_and_costs_one_comparison(project, monkeypatch, capsys):
+    """(d) The no-change case is unaffected and costs no extra render: exit 0,
+    no retry message, and exactly ONE comparison (a retry would re-render and
+    call _compare_rendered a second time)."""
+    run(project)
+    assert run(project, "--render").returncode == 0
+    calls = {"n": 0}
+
+    def patched(rendered, n_goals):
+        calls["n"] += 1
+        return real(rendered, n_goals)
+
+    real = sg._compare_rendered
+    monkeypatch.setattr(sg, "_compare_rendered", patched)
+    rc = sg.main(["--project", str(project), "--render", "--check"])
+    err = capsys.readouterr().err
+    assert rc == 0
+    assert "retrying" not in err
+    assert calls["n"] == 1, calls["n"]   # no second comparison, no extra render

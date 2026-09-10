@@ -25,6 +25,7 @@ import pytest
 BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
+import envfile  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 
@@ -1010,3 +1011,372 @@ def test_l4a_the_key_floor_still_refuses_exactly_what_it_refuses(monkeypatch):
     a_ok, a_msg = provisioning.check_account_floor(
         {"provisioning": {"min_account_remaining_usd": 1.0}})
     assert a_ok is False and "account" in a_msg
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use
+#
+# Landed BY HAND, and the reason is the round's own subject: a round that
+# fixes the dispatcher's gate cannot be dispatched through the gate it fixes.
+# That is the second instance of the self-reference exception (the first was
+# L4.77's parent-brief round), so it is a class, not a one-off.
+# --------------------------------------------------------------------------
+
+
+def _drained_runtime_key():
+    """The live shape measured on 2026-09-10: the owner capped the runtime key
+    `backup` at $1.00 to contain a NON-ENGINE spender, against $11.4847 of
+    lifetime usage. remaining = 1.00 - 11.4847 = -10.4847."""
+    return _fake_key_usage(label="backup", limit=1.0, remaining=-10.4847)
+
+
+def test_gate_allows_a_spawn_when_provisioning_is_live_and_only_the_runtime_key_is_over_cap(
+        monkeypatch):
+    """falsifier (a) — THE falsifier, and it is the exact state the loop was
+    stopped in. Provisioning LIVE, runtime key far over its cap, healthy
+    minted keys: the spawn mints its own credential against the account, so
+    the runtime key gates nothing it pays for and the spawn is ALLOWED."""
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterL4.94-kid-a00", "limit": 5.0,
+                            "usage": 0.0292}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_gate_still_refuses_when_provisioning_is_live_and_a_minted_key_is_drained(
+        monkeypatch):
+    """The other half of (a): making the runtime leg conditional must not
+    disarm the minted-key leg. A drained per-spawn key still refuses even
+    though the runtime key is now out of scope."""
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00", "limit": 5.0,
+                            "usage": 4.6}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "agi-iter1-kid-a00" in msg
+
+
+def test_account_leg_refuses_when_the_account_is_dry_and_the_runtime_key_is_full(
+        monkeypatch):
+    """falsifier (b) — the inverse of (a), and it is why (a) alone would pass
+    a wrong implementation. With the ACCOUNT dry the pre-flight must refuse
+    even though the runtime key reads full: the account is what a minted key
+    draws against."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (107.0, 106.5, 0.5))
+    ok, msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert ok is False
+    assert "0.50" in msg
+
+
+def test_runtime_leg_is_unchanged_when_provisioning_is_absent(monkeypatch):
+    """falsifier (c) — the SUPPORTED shared-key path. With no provisioning
+    key the runtime key IS the spawn's credential, so a drained one still
+    refuses exactly as before.
+
+    NOTE, recorded rather than smoothed over: the node's falsifier (c) asked
+    for the message to be unchanged BYTE FOR BYTE. That was written before
+    item 2 of the same round, which deliberately rewrites this very message
+    so its printed remedy clears its own guard. The two cannot both hold. The
+    load-bearing half is the BEHAVIOUR -- this path still refuses, and refuses
+    for the same reason -- so that is what is asserted here, plus the fact
+    that the supported path gets item 2's improvement too rather than being
+    left with the broken suggestion."""
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "backup" in msg
+    assert "below the configured floor" in msg
+
+
+def test_the_suggested_cap_actually_clears_the_floor(monkeypatch):
+    """falsifier (d) — assert the ARITHMETIC, not that the string contains a
+    number. Parse the cap out of the refusal, apply it as the key's new
+    limit, and the guard must then PASS. The old hardcoded `10.00` fails this
+    against $11.4847 of usage: it leaves the key at -$1.48, still refusing."""
+    import re
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    cfg = {"provisioning": {"min_key_remaining_usd": 1.0}}
+    ok, msg = provisioning.check_runtime_key_floor(cfg)
+    assert ok is False
+    m = re.search(r'"limit":\s*([0-9]+\.[0-9]{2})', msg)
+    assert m, f"no applicable limit in refusal: {msg}"
+    suggested = float(m.group(1))
+    assert suggested >= 12.49, suggested          # 11.4847 used + 1.00 floor
+    # Apply exactly what the tool told the operator to apply.
+    used = 11.4847
+    monkeypatch.setattr(
+        provisioning, "key_usage",
+        _fake_key_usage(label="backup", limit=suggested,
+                        remaining=suggested - used))
+    ok2, msg2 = provisioning.check_runtime_key_floor(cfg)
+    assert ok2 is True and msg2 is None, f"suggested cap did not clear: {msg2}"
+
+
+def test_the_suggested_cap_tracks_observed_usage_and_is_not_a_constant(
+        monkeypatch):
+    """falsifier (e) — two different observed usages must produce two
+    different suggestions. A constant passes (d) by luck on one fixture."""
+    import re
+
+    def cap_for(limit, remaining):
+        monkeypatch.setattr(provisioning, "key_usage",
+                            _fake_key_usage(label="k", limit=limit,
+                                            remaining=remaining))
+        _ok, m = provisioning.check_runtime_key_floor(
+            {"provisioning": {"min_key_remaining_usd": 1.0}})
+        return float(re.search(r'"limit":\s*([0-9]+\.[0-9]{2})', m).group(1))
+
+    low = cap_for(1.0, -10.4847)     # used 11.4847 -> 12.49
+    high = cap_for(1.0, -40.0)       # used 41.00    -> 42.00
+    assert low != high
+    assert abs(low - 12.49) < 0.005, low
+    assert abs(high - 42.00) < 0.005, high
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-what-spent-this-money-must-be-a-lookup — the `spend`
+# subcommand: a READ-ONLY spend-attribution snapshot that answers "WHAT SPENT
+# THIS MONEY" by model/provider from `/api/v1/activity`, reports LAG instead
+# of zero spend when today's row has not landed, records the workspace, and
+# diffs two snapshots by model naming the request count and the USD delta. A
+# key present in the LATER snapshot but absent in the EARLIER is NEW, never
+# `UNKNOWN`. No existing test is edited; nothing is minted or revoked.
+# Measured live 2026-09-10: the runtime key is REJECTED by /activity with a
+# 401 (the hypothesis said 403 — the code exercises the REJECTED path, and
+# the functional claim, that the convenient key fails distinctly rather than
+# returning an empty success, holds regardless of which nonzero code).
+# --------------------------------------------------------------------------
+
+
+# The REAL shape /api/v1/activity returns (measured 2026-09-10): per-day
+# per-model rows of spend with request counts and USD usage.
+ACTIVITY_ROWS = [
+    {"date": "2026-09-09 00:00:00", "model": "qwen/qwen3.8-27b",
+     "model_permaslug": "qwen/qwen3.8-27b-20260826",
+     "provider_name": "reka/fp8", "requests": 200, "usage": 1.5},
+    {"date": "2026-09-09 00:00:00", "model": "qwen/qwen3.8-27b",
+     "model_permaslug": "qwen/qwen3.8-27b-20260826",
+     "provider_name": "reka/fp8", "requests": 100, "usage": 0.5},
+    {"date": "2026-09-09 00:00:00", "model": "deepseek/deepseek-v4",
+     "model_permaslug": "deepseek/deepseek-v4",
+     "provider_name": "deepinfra/fp8", "requests": 50, "usage": 0.25},
+]
+
+
+def _install_activity_api(monkeypatch, *, rows=None, status=200, keys=None,
+                          error=None, ws="ws-b"):
+    """Stub everything `spend_snapshot` reads: the activity call itself, the
+    per-spawn key listing, and the workspace reader."""
+    monkeypatch.setattr(provisioning, "activity",
+                        lambda root=None: {"status": status, "rows": rows,
+                                           "error": error})
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: list(keys or []))
+    monkeypatch.setattr(provisioning, "_activity_workspace",
+                        lambda root=None: ws)
+
+
+def test_spend_aggregates_rows_by_model_and_provider(monkeypatch):
+    """(c) — the snapshot sums request counts and USD across the activity rows
+    for each (model, provider), answering the owner's question at that grain."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)
+    snap = provisioning.spend_snapshot()
+    by_model = {(m["model"], m["provider"]): m for m in snap["models"]}
+    qwen = by_model["qwen/qwen3.8-27b", "reka/fp8"]
+    assert qwen["requests"] == 300, "the two qwen rows must sum to 300"
+    assert qwen["usage"] == 2.0, "the two qwen rows must sum to $2.00"
+    ds = by_model["deepseek/deepseek-v4", "deepinfra/fp8"]
+    assert ds["requests"] == 50 and ds["usage"] == 0.25
+
+
+def test_spend_records_the_workspace_in_every_snapshot(monkeypatch):
+    """(e) — a snapshot must say WHICH workspace it read, or it cannot answer
+    the owner's question."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS, ws="ws-x")
+    snap = provisioning.spend_snapshot()
+    assert snap["workspace"] == "ws-x"
+
+
+def test_spend_returns_nothing_minted_or_revoked(monkeypatch):
+    """The snapshot is read-only: it must not have minting/revoking reach into
+    the call path. We assert the surface it touches is exactly the two readers,
+    by refusing any mint/revoke that would be reached."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)
+    for forbid in ("mint", "revoke"):
+        assert not hasattr(provisioning, forbid) \
+            or callable(getattr(provisioning, forbid))  # presence is fine
+    snap = provisioning.spend_snapshot()
+    assert snap["source"] == "activity"
+
+
+def test_spend_rejected_is_reported_never_zero_and_not_lag(monkeypatch,
+                                                           capsys, tmp_path):
+    """(a) — the runtime key is REJECTED by /activity (measured 401), and a
+    rejected call is a DIFFERENT fact from 'no spend today'. The CLI must say
+    REJECTED, and must never print a $0.0000 spend line or a lag line for it."""
+    _install_activity_api(monkeypatch, rows=None, status=401, error="User not found")
+    snap = provisioning.spend_snapshot()
+    assert snap["rejected"]["status"] == 401
+    assert "models" not in snap, \
+        "a rejected call yields NO models, not an empty list that reads as zero"
+    cap = tmp_path / "s.json"
+    assert provisioning.main(["spend", "--out", str(cap), "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "REJECTED (HTTP 401" in out
+    assert "NOT zero spend" in out
+    assert "$0.0000" not in out, "a rejection must never render as zero spend"
+
+
+def test_spend_lag_is_reported_never_zero(monkeypatch, capsys, tmp_path):
+    """(b) — activity LAGS (today's row often has not landed). A snapshot whose
+    newest row predates today is LAG, NOT zero spend — the conflation that is
+    the whole failure mode."""
+    today = __import__("datetime").date.today().isoformat()
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)  # rows are yesterday
+    snap = provisioning.spend_snapshot()
+    assert snap["lag"]["today_present"] is False
+    assert snap["lag"]["latest_date"] != today
+    cap = tmp_path / "s.json"
+    assert provisioning.main(["spend", "--out", str(cap), "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "LAG" in out
+    assert "NOT zero spend" in out
+
+
+def test_spend_diff_by_model_names_model_requests_and_delta(monkeypatch):
+    """(c) — two snapshots side by side name the MODEL, the request count and
+    the USD delta; a model new since the earlier snapshot is NEW."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS)
+    saved = provisioning.spend_snapshot()
+    _install_activity_api(
+        monkeypatch,
+        rows=ACTIVITY_ROWS + [
+            {"date": "2026-09-09 00:00:00", "model": "anthropic/claude-sonnet",
+             "provider_name": "claude-on-aws", "requests": 5, "usage": 0.99}]),
+    now = provisioning.spend_snapshot()
+    rows = provisioning.diff_spend(saved, now)
+    by_model = {d["model"]: d for d in rows if d["kind"] == "model"}
+    qwen = by_model["qwen/qwen3.8-27b"]
+    assert qwen["requests_old"] == 300 and qwen["requests_new"] == 300
+    assert abs(qwen["usage_old"] - 2.0) < 1e-9
+    new = [d for d in rows if d["kind"] == "model_new"]
+    assert len(new) == 1 and new[0]["model"] == "anthropic/claude-sonnet"
+    assert new[0]["requests"] == 5
+
+
+def test_spend_key_in_later_snapshot_but_not_earlier_is_new(monkeypatch):
+    """(d) — a per-spawn key present in the LATER snapshot but absent from the
+    EARLIER is NEW, never an `UNKNOWN` row in a Δ column. That exact display
+    is what misled a previous generation into concluding rounds bill to no key
+    this project manages (the keys had simply been revoked at diff time)."""
+    _install_activity_api(monkeypatch, rows=ACTIVITY_ROWS,
+                          keys=[{"name": f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a",
+                                 "usage": 0.0136}])
+    saved = provisioning.spend_snapshot()
+    _install_activity_api(
+        monkeypatch, rows=ACTIVITY_ROWS,
+        keys=[{"name": f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a",
+               "usage": 0.0136},
+              {"name": f"{provisioning.NAME_PREFIX}-iterL4.94-kid-b",
+               "usage": 0.0292}])
+    now = provisioning.spend_snapshot()
+    rows = provisioning.diff_spend(saved, now)
+    new_keys = [d for d in rows if d["kind"] == "key_new"]
+    assert len(new_keys) == 1
+    assert "iterL4.94-kid-b" in new_keys[0]["name"]
+    assert new_keys[0]["usage"] == 0.0292
+    olds = [d for d in rows if d["kind"] == "key"
+            and d["name"] == f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a"]
+    assert len(olds) == 1 and olds[0]["usage_old"] == 0.0136
+    assert olds[0]["usage_new"] == 0.0136
+
+
+# --- this round's REQUIRED (d)/(e): the provisioning-ABSENT pre-flight ------
+# hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking, item 1's
+# UNDELIVERED half. With provisioning LIVE the runtime key is NOT the spawn's
+# credential -- rounds bill to minted per-spawn keys -- so a dead runtime key
+# must not block (e, L4.98 invariant). With provisioning ABSENT the runtime key
+# IS the spawn's credential, so a 401 must refuse the pre-flight BEFORE a
+# budget slot is taken (d).
+
+
+def test_absent_provisioning_dead_runtime_key_refuses_preflight(monkeypatch):
+    """(d) provisioning ABSENT + runtime key 401 -> the pre-flight refuses
+    (ok=False) and the message says the key is present but NOT USABLE. The
+    refusal lives in the pre-flight function dispatch calls BEFORE any budget
+    slot is acquired, not in some later call."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(
+        provisioning, "_read_runtime_key", lambda root=None: "sk-or-dead-key")
+    monkeypatch.setattr(
+        envfile, "_verify_provider_key",
+        lambda key: ("dead", "provider rejected it (HTTP 401)"))
+
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is False, "a dead runtime key must refuse when provisioning is ABSENT"
+    assert "NOT USABLE" in msg, msg
+    assert "HTTP 401" in msg, msg
+    assert "present but NOT USABLE" in msg, (
+        "the distinction the round exists to create: PRESENT is not USABLE")
+
+
+def test_live_provisioning_dead_runtime_key_does_not_block(monkeypatch):
+    """(e) provisioning LIVE + a runtime key that WOULD 401 -> does NOT block.
+    The spawn mints its own key, so the runtime key is irrelevant; short-
+    circuiting on `available()` before touching the verifier is what keeps
+    L4.98's invariant from regressing."""
+    calls = []
+
+    def _verify_provider_key(key):
+        calls.append(key)
+        return ("dead", "provider rejected it (HTTP 401)")
+
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "_read_runtime_key", lambda root=None: "sk-or-dead-key")
+    monkeypatch.setattr(envfile, "_verify_provider_key", _verify_provider_key)
+
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is True and msg is None, (
+        "provisioning LIVE must not block on a dead runtime key (L4.98)")
+    assert calls == [], (
+        "the verifier must not even be consulted when provisioning is LIVE")
+
+
+def test_absent_provisioning_no_runtime_key_does_not_block(monkeypatch):
+    """(d) the ABSENT branch is fail-open on ABSENCE of the key itself: no
+    runtime key -> nothing to guard -> (True, None)."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "_read_runtime_key", lambda root=None: None)
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is True and msg is None
+
+
+def test_absent_provisioning_network_error_stays_fail_open(monkeypatch):
+    """(d) the ABSENT branch is fail-open on a NETWORK error (no credential
+    verdict): unlike a 401 it must not refuse, exactly as check_key_floor
+    preserves fail-open on ProvisioningError."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(
+        provisioning, "_read_runtime_key", lambda root=None: "sk-or-key")
+    monkeypatch.setattr(
+        envfile, "_verify_provider_key",
+        lambda key: ("unknown", "could not reach the provider (TimeoutError)"))
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is True and msg is None, (
+        "an unreachable API is evidence of nothing; only a 401 verdict refuses")

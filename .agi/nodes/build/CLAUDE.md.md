@@ -4,7 +4,7 @@ mint_id: c7b854df037045dd90c30fca57b08e54
 type: build
 build_kind: prose
 confidence: 1.0
-edited_by: sanctuary-director
+edited_by: belam-S1-L4-IV
 origin: build-scan
 payload_ref: CLAUDE.md
 season: 1
@@ -12,7 +12,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: season
+thought_session: agi-a5
 title: "Build: CLAUDE.md"
 ---
 `CLAUDE.md` — level-3 code node (one file, one canonical node).

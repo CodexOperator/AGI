@@ -22,6 +22,7 @@ Run: `python3 bin/snapshot-goals.py [--strict] [--project PATH]`
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -929,6 +930,111 @@ def warn_premature_complete(existing: dict) -> list[tuple]:
 
 
 
+def _source_digest(existing: dict) -> dict:
+    """sha256 of every `origin=goals-doc` node file — the exact sources
+    `load_goal_nodes` reads to build a render (hypothesis
+    l4-a-check-that-cries-wolf-gets-waved-through).
+
+    A content digest rather than mtime deliberately: mtime is coarse on some
+    filesystems and two writes inside one block can land on the same mtime
+    (especially a copy-back-and-forth). A hash of the bytes the renderer would
+    actually read cannot miss a change that produces different output, and it
+    costs nothing extra because these are the same small files the render
+    already reads. An unreadable file digests to `""` so an IO error reads as
+    a difference rather than a silent pass.
+
+    The key is the resolved path so two loads of the same file cannot collide.
+    A source *added or removed* between the two snapshots shows up as a key
+    set difference, which is exactly a source moving under the check.
+    """
+    out: dict[str, str] = {}
+    for node_id, node in existing.items():
+        if node.get("origin") != ORIGIN:
+            continue
+        p = node["path"]
+        try:
+            out[str(p.resolve())] = hashlib.sha256(
+                p.read_bytes()).hexdigest()
+        except OSError:
+            out[str(p.resolve())] = ""
+    return out
+
+
+def _compare_rendered(rendered: str, n_goals: int) -> int:
+    """The one comparison in `--check`: rendered-from-nodes vs GOALS.md on disk.
+
+    Extracted from `cmd_render` so the retry seam in `_check_with_race_guard`
+    can re-run exactly this with fresh sources. The messages are byte-for-byte
+    what `--check` printed before the race guard existed, so a genuine
+    divergence reads exactly as it always has — the only observable change is
+    that a benign concurrent write stops looking like a defect.
+    """
+    current = GOALS_MD.read_text(encoding="utf-8") if GOALS_MD.exists() else ""
+    if rendered == current:
+        print(f"render --check: {n_goals} goal(s) round-trip byte-identical")
+        return 0
+    import difflib
+    diff = list(difflib.unified_diff(
+        current.splitlines(), rendered.splitlines(),
+        "GOALS.md (on disk)", "GOALS.md (rendered from nodes)", lineterm="", n=2))
+    print(f"render --check: MISMATCH, {len(diff)} diff line(s)", file=sys.stderr)
+    for line in diff[:60]:
+        print(line, file=sys.stderr)
+    if len(diff) > 60:
+        print(f"... {len(diff) - 60} more", file=sys.stderr)
+    return 1
+
+
+def _check_with_race_guard(existing: dict, rendered: str) -> int:
+    """The `--check` comparison, guarded against concurrent source writes.
+
+    hypothesis l4-a-check-that-cries-wolf-gets-waved-through: the prime writes
+    goal nodes and re-renders GOALS.md continuously, so a check that reads
+    sources, renders, and compares to a GOALS.md the same writer is recomputing
+    can report a *race* as a *defect*. The guard snapshots the sources just
+    before and just after the comparison; if any changed in the window it
+    RETRIES ONCE and says so. Fail-closed is preserved throughout:
+
+      * a no-change pass costs nothing extra — the caller's one render is used,
+        the after-digest is only taken when the comparison already failed, and
+        a re-render happens only on the retry itself;
+      * a genuine divergence with stable sources fails on the FIRST comparison
+        and is never masked by this path (the retry only fires on a detected
+        change);
+      * a divergence that IS racing still fails — the retry re-renders fresh
+        and its result is returned as-is, so a real defect cannot be laundered;
+      * exactly ONE retry, never a loop, and the retry is printed to stderr so
+        nobody reads a silent second attempt as a first success.
+    """
+    digest_before = _source_digest(existing)
+    code = _compare_rendered(rendered, len(_goal_count(existing)))
+    if code == 0:
+        return 0
+    digest_after = _source_digest(existing)
+    if digest_after == digest_before:
+        return code   # sources stable; a real divergence, fails as today
+    changed = sorted(
+        k for k in set(digest_before) | set(digest_after)
+        if digest_before.get(k) != digest_after.get(k))
+    print("render --check: source node(s) changed during comparison (%s) — "
+          "retrying ONCE (concurrent write; hypothesis "
+          "l4-a-check-that-cries-wolf-gets-waved-through)"
+          % (", ".join(changed) or "new/missing"), file=sys.stderr)
+    # exactly ONE retry: reload sources fresh and take whatever THIS attempt
+    # says. A persistent divergence fails here; a transient race resolves.
+    fresh = load_existing_nodes()
+    if not _goal_count(fresh):
+        return 1
+    rendered = render_goals(*load_goal_nodes(fresh))
+    return _compare_rendered(rendered, len(_goal_count(fresh)))
+
+
+def _goal_count(existing: dict) -> list:
+    """The goal nodes among `existing`, for the retry's "no goals" guard."""
+    return [nid for nid, n in existing.items()
+            if n.get("origin") == ORIGIN and n["fm"].get("type") == "goal"]
+
+
 def cmd_render(check: bool, strict: bool = False,
                strict_goals: bool = False) -> int:
     """Write `GOALS.md` from the nodes, or (with `check`) prove they agree.
@@ -947,20 +1053,7 @@ def cmd_render(check: bool, strict: bool = False,
         return 1
     rendered = render_goals(preamble, goals)
     if check:
-        current = GOALS_MD.read_text(encoding="utf-8") if GOALS_MD.exists() else ""
-        if rendered == current:
-            print(f"render --check: {len(goals)} goal(s) round-trip byte-identical")
-            return 0
-        import difflib
-        diff = list(difflib.unified_diff(
-            current.splitlines(), rendered.splitlines(),
-            "GOALS.md (on disk)", "GOALS.md (rendered from nodes)", lineterm="", n=2))
-        print(f"render --check: MISMATCH, {len(diff)} diff line(s)", file=sys.stderr)
-        for line in diff[:60]:
-            print(line, file=sys.stderr)
-        if len(diff) > 60:
-            print(f"... {len(diff) - 60} more", file=sys.stderr)
-        return 1
+        return _check_with_race_guard(existing, rendered)
     GOALS_MD.write_text(rendered, encoding="utf-8")
     print(f"rendered: {len(goals)} goal(s) + preamble -> {GOALS_MD}")
     warn_premature_complete(existing)   # goal:s26
