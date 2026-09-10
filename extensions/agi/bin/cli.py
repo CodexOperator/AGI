@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -27,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
+import spawn_budget  # noqa: E402
 from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
 # goal:s17 -- the type table and the scaffold routine both live in
@@ -1091,6 +1093,214 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------
+# session-complete: bring a finished round's session dirs home
+# (hypothesis:l4-session-dirs-come-home-when-the-round-is-done)
+#
+# `sessions/` is gitignored so a merge-up carries none of it. The iter dir
+# that RAN a round lives in the WORKTREE that ran it, and nothing ever brings
+# it into the main checkout -- the one place a cold reader or an audit looks.
+# This command IS that step: a SESSION-COMPLETE migration, named and
+# explicitly invoked, never a side effect and never on a timer.
+#
+# The three prime constraints, stated by number, hold together here:
+#   (1) during a round the iter dir STAYS in the worktree that ran it -- this
+#       command runs only when the round is over, so resolution does not
+#       change mid-round;
+#   (2) shared state (spawn budget, comms root, meter pins) stays in MAIN and
+#       is untouched -- only `sessions/iter-<id>` dirs move, and the budget is
+#       consulted read-only as a liveness signal;
+#   (3) this migration step is the SESSION-COMPLETE move, COPY-THEN-VERIFY
+#       (never move): copy the tree, byte-compare it, and only then remove the
+#       source -- with `--dry-run` as the default testing posture.
+#
+# Central safety rule, duplicated nowhere else: this must NEVER be run against
+# a live tree. Other seats dispatch while a round runs, and a live round's
+# `manifest.json` is being written as a migration would read it. The guard is
+# two independent completeness checks, both of which must pass: (a) no live
+# spawn-budget lease names this iteration, and (b) every agent record in the
+# source iter dir's manifest is terminal. A round that is still running is
+# REFUSED, not partially moved.
+
+#: Terminal statuses a round's agent records may rest in -- the same set the
+#: reaper uses (dispatch.py TERMINAL). A record in any other state means the
+#: round is still live and must not be migrated.
+TERMINAL_STATUSES = {"done", "pending", "hung-healed", "failed"}
+
+
+def _iteration_agents_complete(iter_dir: Path) -> bool:
+    """Every agent record in `iter_dir`'s manifest is terminal.
+
+    Reads the manifest's `agents` list, then re-reads each agent's own
+    `agent.json` when present (the reaper writes the authoritative terminal
+    status there first), so a record the manifest shows as `running` but whose
+    `agent.json` is already terminal still counts. A missing or unreadable
+    manifest, or an empty agents list, is NOT complete -- there is nothing to
+    judge, so nothing may move.
+    """
+    mpath = iter_dir / "manifest.json"
+    if not mpath.is_file():
+        return False
+    try:
+        manifest = json.loads(mpath.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+    agents = manifest.get("agents") or []
+    if not agents:
+        return False
+    for entry in agents:
+        status = entry.get("status", "running")
+        rec_path = iter_dir / str(entry.get("id", "")) / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text(encoding="utf-8"))
+            status = rec.get("status", status)
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass  # no agent.json: trust the manifest entry
+        if status not in TERMINAL_STATUSES:
+            return False
+    return True
+
+
+def _trees_match(src: Path, dst: Path) -> bool:
+    """Byte-for-byte: every file under `src` exists under `dst` with equal
+    bytes. The copy's verification, not its success -- a `copytree` that
+    returns 0 can still have truncated a file, and the source may only be
+    removed once this says the two trees agree.
+    """
+    try:
+        src_files = [p for p in src.rglob("*") if p.is_file()]
+        pending = set(src_files)
+        for sp in src_files:
+            rel = sp.relative_to(src)
+            dp = dst / rel
+            if not dp.is_file():
+                return False
+            if sp.read_bytes() != dp.read_bytes():
+                return False
+            pending.discard(sp)
+        # The destination must not silently hold extra accepted files
+        # (symlink targets, intermediates); require a symmetric file set.
+        dst_files = {p.relative_to(dst) for p in dst.rglob("*") if p.is_file()}
+        return set(p.relative_to(src) for p in src_files) == dst_files
+    except OSError:
+        return False
+
+
+#: A source iter dir is a sentence, not three states. Tolerantly tagged.
+_MSG_DONE = "migrated"
+_MSG_REFUSE = "REFUSE"
+
+
+def _session_complete(
+    main_graph: Path,
+    iter_n,
+    *,
+    worktree: str | None = None,
+    dry_run: bool = False,
+    live_iters: set | None = None,
+) -> int:
+    """Migrate every complete `iter_n` session dir under linked worktrees
+    into the main checkout. Returns 0 only when at least one dir migrated
+    (a `--dry-run` returns 0 when it would).
+
+    `main_graph` is the MAIN checkout's graph root. `worktree`, when given,
+    restricts to one worktree slug. `live_iters`, when given as a set, is the
+    reader's own liveness signal (test injection); otherwise it is computed
+    read-only from the spawn budget. Copy-then-verify rules a failed migrate
+    leaves BOTH sides intact: the partial destination is removed, the source
+    is never touched until the byte-compare agrees.
+    """
+    dname = locations.iteration_dirname(iter_n)
+    wt_root = main_graph / "worktrees"
+    candidates: list[Path] = []
+    if wt_root.is_dir():
+        for tree in sorted(wt_root.glob("*")):
+            if not tree.is_dir():
+                continue
+            if worktree and tree.name != worktree:
+                continue
+            sg = tree / ".agi"
+            if not (sg / "config.json").is_file():
+                continue
+            it = sg / locations.SESSIONS_DIR_NAME / dname
+            if it.is_dir():
+                candidates.append(it)
+
+    if not candidates:
+        print(f"session-complete: no worktree holds an {dname} iter dir to "
+              f"migrate (scanned {wt_root})")
+        return 0 if dry_run else 1
+
+    if live_iters is None:
+        live_iters = spawn_budget.live_iteration_ids(main_graph)
+
+    target = main_graph / locations.SESSIONS_DIR_NAME / dname
+    migrated = 0
+    for src in candidates:
+        if iter_n in live_iters:
+            print(f"session-complete: {_MSG_REFUSE} {src} -- a live lease is "
+                  f"active for iteration {iter_n}; round still running")
+            continue
+        if not _iteration_agents_complete(src):
+            print(f"session-complete: {_MSG_REFUSE} {src} -- not every agent "
+                  f"record is terminal; round still running")
+            continue
+        if target.exists():
+            print(f"session-complete: {_MSG_REFUSE} {src} -- target {target} "
+                  f"already exists; refusing to overwrite")
+            continue
+        if dry_run:
+            print(f"session-complete: WOULD migrate {src} -> {target}")
+            migrated += 1
+            continue
+        # COPY-THEN-VERIFY -- never move. Copy, compare, and only then remove.
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(src, target, symlinks=False)
+        except (OSError, shutil.Error) as exc:
+            print(f"session-complete: copy failed {src} -> {target}: {exc}; "
+                  f"source intact, no target left")
+            shutil.rmtree(target, ignore_errors=True)
+            continue
+        if not _trees_match(src, target):
+            print(f"session-complete: VERIFY FAILED {src} -- source and "
+                  f"target differ; removing target, source intact")
+            shutil.rmtree(target, ignore_errors=True)
+            continue
+        # The byte-compare passed; now (and only now) the source goes.
+        shutil.rmtree(src, ignore_errors=True)
+        print(f"session-complete: {_MSG_DONE} {src} -> {target} (bytes match)")
+        migrated += 1
+
+    return 0 if (dry_run or migrated) else 1
+
+
+def _main_graph_root(root: Path) -> Path:
+    """The MAIN checkout's graph root, whether `root` is main or a worktree.
+
+    A worktree's own graph root sits under `.agi/worktrees/<slug>/.agi`, and
+    the linked worktrees hang off the MAIN graph tree -- so the migration
+    must resolve to main before it can enumerate its own siblings. Mirrors
+    `_sibling_session_lookup`: `git_common_root` finds the main checkout root,
+    then `find_project_root` re-derives the graph directory there.
+    """
+    main = locations.git_common_root(root)
+    if main is None or main == root:
+        return root
+    return locations.find_project_root(main) or root
+
+
+def cmd_session_complete(args: argparse.Namespace) -> int:
+    root = _find_root()
+    main_graph = _main_graph_root(root)
+    return _session_complete(
+        main_graph,
+        args.iter_n,
+        worktree=args.worktree,
+        dry_run=args.dry_run,
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1180,6 +1390,24 @@ def main() -> int:
     p_reclaim.add_argument("--node-id", required=True)
     p_reclaim.add_argument("--session", required=True)
     p_reclaim.set_defaults(func=cmd_reclaim)
+
+    p_sc = sub.add_parser(
+        "session-complete",
+        help="migrate a finished round's session dir from a worktree into "
+             "main -- copy-then-verify, never move",
+    )
+    p_sc.add_argument("iter_n", type=locations.iteration_id)
+    p_sc.add_argument(
+        "--worktree", default=None,
+        help="restrict migration to one worktree slug (default: all linked "
+             "worktrees holding this iter dir)",
+    )
+    p_sc.add_argument(
+        "--dry-run", action="store_true",
+        help="print what would move and touch nothing -- the default "
+             "testing posture",
+    )
+    p_sc.set_defaults(func=cmd_session_complete)
 
     args = ap.parse_args()
     return args.func(args)
