@@ -28,7 +28,7 @@ Detail: `git log --oneline iter-L3.01..iter-L3.44`, the experiment nodes, [COMPL
 ### 🔴 Where it stops — Belam L4-IV, live 2026-09-10 (L4-III's last card: `git show 39a3a3d4b:HANDOFF.md`)
 
 ```
-BELAM L4-IV LIVE (Opus 5 max, standing — owner)   agi-a5 [e7f117] @242 / agi-rc:8   season/s2   2026-09-10 17:2xZ   pin 0.1305 claimed / cap 0.47   ACCOUNT $17.84 remaining of $107.00 (floor $1 NEVER lowered; the point stops at $2)
+BELAM L4-IV LIVE (Opus 5 max, standing — owner)   agi-a5 [e7f117] @242 / agi-rc:8   season/s2   **2026-09-10 18:1xZ TRUE UTC** (my earlier stamps ran up to +80 min fast — trap 0ap, corrected in `goal:g17.1`; anchor a stamp to a commit hash or do not write it)   pin 0.27 / cap 0.47   ACCOUNT ~$17.6 of $107.00 (floor $1 NEVER lowered)
 L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + owner-confirmed role diagram in doc:l4-plan §0.9)
 PLAN   doc:l4-plan e7883b4e4 (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions; 188 owner quotes byte-verified) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
 SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; read it whole — the newest notes are the reaper, the respawn, the report rule and this rotation)
@@ -58,7 +58,12 @@ RULES  earned this session, all with an instance behind them — this block is t
        · **A round that fixes the gate it must pass through cannot be dispatched** — hand-land it. Twice now: the parent brief (L4.77), the dispatch pre-flight (306b77bb6).
        · **MECHANISM, NOT WORDING** is in the parent+director briefs and is REPRODUCING ITSELF unprompted. Cite the mechanism, never a correlate — the Prime broke this one and said so.
        · **Identity is SUPPLIED, never inferred** (meter) · **authority is verified against the graph** (seats) · **detect, do not repair** (reconciler) · **the inference is ONE-WAY: a dead pid proves stopped, a live pid proves nothing.**
-NEXT   1 🔴 LIVE: **MERGE-UP 14 IS IN FLIGHT** — `sanctuary-director` gen VI holds the merge-up window and the suite window (both granted 18:5xZ); 17 commits on `seat/sanctuary-director@s2` at
+NEXT   0 🔴 **OWED BY THE PRIME, ONE EDIT, AT MERGE-UP 15 — the CLAUDE.md:305-306 correction.** The sentence "editing the node … *is* the change, since `grid_sync` re-applies the declaration every 5 minutes"
+         is FALSE and has been PROVEN false in production (`agi-crons…log:34011-34013`, a 403 on the ref push, no `crons:` line after). L4.102's replacement wording is verbatim in
+         `hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab` Agent Notes — **use it, attributed to that round; do NOT rewrite it.** 🔴 **DO NOT LAND IT UNTIL `crontab -l` LINE 21 ACTUALLY SHOWS `;`**
+         instead of the double ampersand: the wording asserts the fix as done, the fix is on the seat branch, and a doc that runs AHEAD of the code is the same defect pointing the other way. Ruled in by the
+         Prime for the same edit: add a clause saying `branch_push` pushes `season/s2` HOURLY at :07 — a second automatic writer of the shared branch, materially relevant to "never merge-then-hold".
+NEXT   1 🔴 LIVE: **MERGE-UP 15** — L4.102 is merged on the seat branch (crons common-root guard, the `;` join, 49 tests green) and L4.103 is live carrying item 3 plus (w1)-(w4) plus the `:2577-2581` boundary.
          `265860f3c` carrying L4.93/94/96/97/98/99 + repairs. The helper branch is already an ancestor of season/s2 — nothing owed there. Accept from the report AND the bytes; baseline to beat, never
          to trust: active **1803** (NEVER lower) / 194 / 1997 on season/s2; the seat branch closed at **1806/194/2000 — it crossed two thousand and never dropped**, so expect >= that. links 1978/0,
          goals 163, suite 2506/3. 🔴 **The verify is TWO reads:** `verify-suite` will report `bin-suite-fresh` FAIL even on a green suite (the ordering artifact — the stamp lands after the check
@@ -91,7 +96,7 @@ DONE   L4-I: gate `continue` · verify green · plan drafted (4 workflows) + MIN
        L4-II: verify green · seats rows for 3 seat rotations · handoff trimmed 49.9 -> 42 KB · verification.py + the reaper knob + the report order discharged · merge-ups 2, 3, 4 verified · respawn bleed fixed
        L4-III: gate `continue` · pin 0.1141 claimed · verify-suite 9/9 (1730/194/1924) · seats row 7902ac pushed · merge-up 5 GO'd + window granted · strays reported · ACCOUNT ceiling measured + banked
        L4-IV: gate answered with a diff · pin claimed · verify-suite 9/9 twice · seats belam=e7f117 · runtime key measured DEAD · brief fixed in ONE edit · predecessor stopped writing season/s2 · MERGE-UP 13+13b ACCEPTED GREEN (1803/194/1997, links 1978/0) · RULED: who-writes (window; **hold BEFORE the merge**), reaper.max_restarts kept as a labelled mitigation, commit-signal blind spot taken as Prime work + MINTED, **L4.100 HELD for the point's successor** (a round that would outlive its dispatcher is handed over as a NODE, not a process) · qwen spend re-measured + banked
-NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:507 nudge REAL panes; L4.10) · run the suite without telling the point · rotate a seat with AGI_BRIEF_PROFILE=survival · 🔴 **REAP `@238 sanctuary-director.gen5` OR `@237 sanctuary-helper.gen2`** — gen V left them alive DELIBERATELY as the only two live fixtures of the orphaned-rotation shape; tidying them loses the reproduction (`@241` may be a third)
+NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:507 nudge REAL panes; L4.10) · run the suite without telling the point · rotate a seat with AGI_BRIEF_PROFILE=survival · 🔴 **REAP `@238 sanctuary-director.gen5`, `@241 sanctuary-director.gen6` OR `@237 sanctuary-helper.gen2`** — gen V left them alive DELIBERATELY as the only two live fixtures of the orphaned-rotation shape; tidying them loses the reproduction (@238 + @241 are a MATCHED PAIR — same seat, consecutive generations, identical step-4 failure; @237 is a different cause with the same residue)
        · git add -A · read $? through a pipe · sweep off a ps grep · run the suite twice at once · background a long verification · trust an `updated:` line · adopt a seat's work instead of verifying it
        · spend the Claude budget on prime chores under survival mode
 ```
@@ -109,7 +114,11 @@ SEATS   (design record; ALL SHUT DOWN 2026-09-09 08:2xZ by owner order, verbatim
 ROTATE  at meter 0.47 (owner, every role, item 105; ladder director_rotate_at) OR at 99% of the Fable limit, whichever first (item 29; Opus fallback: --model claude-opus-5 --effort max)
         · read the limit from the pane: tmux capture-pane -pt agi-rc:<me> -S - | grep -oE "You.ve used [0-9]+% of your Fable limit" | tail -1
         · handoff FIRST, then: rotate.py loop --role prime_director --name belam-S1-L4-<next> --timeout 900 --force --session-log <own .jsonl>
-        · the read-back takes the successor's FIRST non-noise line within 120s (a skill-first successor records inconclusive-no-reply) -> confirm by tmux capture-pane, announce by hand
+        · 🔴 **DO NOT WAIT ON YOUR READ-BACK. Its false-negative rate is 2 of 2 on the one seat with two observations** (`sanctuary-director` gen IV and gen VI, one generation apart, warning verbatim identical,
+          successor ALIVE and working both times). `rotate.py loop` **exits 0** while step 4 warns and step 5 never runs — a silent failure wearing a success code — and because step 5 (reap own window) is GATED
+          behind the read-back, **a rotation can never reap its own window; the orphan is by design, not bad luck.** Root cause: TWO states for THREE realities (confirmed / alive-but-unconfirmed / absent), the
+          middle collapsed onto the third. **And the brief disagrees with the mechanism:** this gate permits `continue` OR a diff, the read-back accepts only `continue` — L4-IV answered with a diff, correctly,
+          and would have scored as a failure. Round: `hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design` (HELD). **Confirm by the `ListAgents`/@id join or `capture-pane`, then announce by hand.**
         · rotate.py loop WORKS (fixed 2026-09-08, hypothesis:l3-rotate-launch-window-silent-failure); rotate.py = build:bin-rotate (SD.13); hazard 5 (stamp vs record, item 96) carried
 ```
 
@@ -167,6 +176,14 @@ git push origin season/s2
 ```
 
 ## §6 Owner decisions — settled, do not re-ask
+
+🔴 **§6 IS GUARD-CLEAN AND COLLAPSIBLE — the dangerous half is already done (2026-09-10, L4-IV).** Run `python3 .agi/sessions/trimguard.py` from the repo root BEFORE removing a single line: it extracts every
+genuinely double-quoted span of 25+ chars, strips the `(N quotes archived)` marker and any truncated trailing word, greps `.agi/nodes/` for a 55-char prefix, and **exits non-zero listing anything that resolves in no node.**
+It ABORTED on its first real run and recovered **two owner quotes that existed only in this file** — item 29 `"Fallback to opus acceptable."` and item 91 `"They should have individual branches."` — both now verbatim in
+`doc:l4-owner-decisions`. 🔴 **BOTH LINES CARRIED `(1 quote archived)` AND BOTH MARKERS WERE WRONG: an archive marker is a CLAIM, not a verification.** Treat every `(N quotes archived)` here as UNVERIFIED until the guard says otherwise.
+**Two adjudicated waivers, recorded not auto-waived** (the guard still aborts on them and must NOT be weakened): `ROLES SELF-SELECT THEIR SLICES…` (a director's gloss in item 95; that item's real owner quote does resolve) and
+`The honest answer was NO on both halves…` (a predecessor's prose in item 63). Collapsing the ~19KB index to a pointer is now mechanical and safe, and is worth ~18KB to every future session. **I did not do it** — at meter 0.33,
+spending the remaining window rewriting the file my successor must read trades a certain good for a probable harm (gen V's measured rule: the handoff degrades first). It is yours, cheaply.
 
 **§6 was collapsed on 2026-09-09 under the owner's ruling (verbatim in `doc:l4-owner-decisions`): finished items are one line each; every owner quote they held is archived verbatim, keyed by item number, in `doc:l3-command-ladder-brief` → *§6 OWNER VERBATIM ARCHIVE* (167 quotes); the last full-prose HANDOFF is `grid.py payload build:HANDOFF.md --version 298`. Open items keep their prose below the index.**
 
