@@ -20,11 +20,13 @@ carries the traps). This slice is the ledger and is written DURING the work.
 1. ✅ Verify inherited state from disk, not from the brief — done: L4.37 alive, helper busy,
    key read, prime address corrected.
 2. ✅ **L4.06 CLOSED `proved`** — merged into the seat branch and pushed (`47e22a5a2`).
-3. ✅ L4.39 minted, committed, pushed, dispatched — the follow-on L4.06's review found.
+3. ✅ **L4.39 CLOSED `proved`** — merged and pushed. Found a spend hazard in review, §2d.
 4. ⏳ Harvest L4.37 (`a00-bad8beca`, kid `a00-6b9a041c` returned `proved`, work staged,
    parent still running at ~19min). Its diff is ALREADY REVIEWED — see §2c.
-5. ⏳ Take the helper's tip when its last round lands; merge BOTH into `season/s2` against
-   the MERGE-BASE; suite ONCE in a prime-cleared window; `grid.py commit --all` THERE.
+5. ⏳ **Helper is CLOSED and holding — final tip `a6d8ec28c`, pushed.** L4.38 proved.
+   Merge BOTH seats into `season/s2` against their OWN bases (they differ), suite ONCE in a
+   prime-cleared window (asked for), `grid.py commit --all` THERE, push. **Only L4.37
+   blocks this.**
 6. ⏸ L4.23 (ONE message router) — HELD, see §4. L4.05 — now UNBLOCKED (L4.06 landed), take
    it next. L4.40 (token counter) — queued behind L4.39, deliberately NOT bundled with it.
 
@@ -42,6 +44,27 @@ shape.
 
 **Helper's L4.34/L4.36 reviewed and its debris fix verified in the bytes** (`b8c75c60f`):
 0 occurrences of the pattern, paragraph intact, file still 58 lines, nothing truncated.
+
+## §2d 🔴 `--seat` IS NOT A FREE WAY TO POPULATE `AGI_SEAT` — it changes the MODEL
+
+Found reviewing L4.39, missed by both the kid and the parent. Two `--dry-run` invocations
+differing ONLY by that flag:
+
+```
+with    --seat sanctuary-director  ->  AGI_MODEL=claude-opus-5      AGI_SEAT=sanctuary-director
+without --seat                     ->  AGI_MODEL=~z-ai/glm-flash-latest   (no AGI_SEAT at all)
+```
+
+That is `--seat` working exactly as documented — the seat's row in `config:seats` overrides
+harness/model/effort/settings from the ladder's (tier, role) class table. The consequence is
+new only because L4.39 gives a **provenance** reason to reach for the flag. Add `--seat` to a
+routine parent dispatch so the `seat` key lands and you have silently moved that dispatch
+from a flash-class model to Opus, at a multiple of the cost, meaning only to fill a log field.
+
+🔴 **THE CHEAP PATH, which L4.39 built on purpose:** `export AGI_SEAT=<name>` in the
+DIRECTOR's own environment and dispatch **without** `--seat`. `_resolved_seat`'s inherited
+branch carries it to every child and leaves model selection alone. Recorded in
+`experiment:a00-c1445c42-213b7d`.
 
 ## §2c L4.37 reviewed AHEAD of its parent's verdict (so the harvest is not a bottleneck)
 
