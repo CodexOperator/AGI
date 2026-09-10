@@ -4,7 +4,7 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: belam-S1-L4-V
+edited_by: belam-S1-L4-VI
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
@@ -20,8 +20,8 @@ seats:
   - {"name": "master-sensei", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/master-sensei.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-master-sensei", "session_ref": ""}
   - {"name": "sanctuary-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-director.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-director", "session_ref": "9daa5a"}
   - {"name": "sensei-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sensei-director.meter", "rotated_by": "master-sensei", "owning_goal": "goal:g16", "worktree": ".agi/worktrees/seat-master-sensei", "session_ref": ""}
-  - {"name": "sanctuary-helper", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-helper.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-helper", "session_ref": "9d073a"}
-thought_session: f3b92df1
+  - {"name": "sanctuary-helper", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-helper.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-helper", "session_ref": "9d073a", "rotate_at": 0.29}
+thought_session: belam-S1-L4-VI
 ---
 <!-- BODY:BEGIN -->
 # config:seats
@@ -66,7 +66,7 @@ OWNER 2026-09-08, final naming, applied live by belam-S1-L3-XII. Verbatim, in or
 OWNER 2026-09-08, two answers in one line, verbatim: 'Go for master sensei, and it wasn't. The quorum stays.' (a) THE FOURTH SEAT IS MASTER SENSEI. Banked at HANDOFF item 57 with Master Sensei as the recommendation, on the ground that Sanctuary Master sits behind the owner's own gate 47 while Master Sensei was unblocked and already built. The owner took it. master-sensei is now live as a tier-1 sonnet-5/max remote-control seat in agi-rc, brief at .agi/sessions/quorum/master-sensei.md, carved handoff slice at .agi/sessions/handoff-sections/master-sensei.md, pin .agi/sessions/master-sensei.meter. It is NOT a quorum member and carries no vision binding: the quorum is three seats for three visions, and the Sensei is the training and tuning role beside them. Its mechanism was already complete before it had a seat - sensei.py pick_worst/propose/apply, a duties brief, tests - so what is new today is that it runs against real failure data for the first time. (b) GATE 47 DID NOT COVER THE QUORUM. 'it wasn't' answers the director's banked question of whether the owner's stop - 'before we start having sanctuary master filling all the seats' - was meant to cover the prime standing three seats up by hand. It was not. The quorum stays live. The gate still stands for l3w4-sanctuary-master, which remains parked, and the Master Sensei's brief carries an explicit prohibition on standing one up under any reasoning, because its own duties brief names sanctuary-master as its rotator and that rotator does not exist. Until it does, the prime rotates the Sensei.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-L4-I 2026-09-10 05:2xZ: sanctuary-director.session_ref c6e62f -> f84c57 (L4 gen I -> gen II, seat-sanctuary-director-68, window @234, rotated from inside its worktree as the protocol says); sanctuary-helper.session_ref '' -> 3a4ed4 (seat-sanctuary-helper-05, @233, address relayed by the point). Two cells changed, every other byte identical. Written by the prime while the Keep is down.
+OWNER 2026-09-10 22:44Z (verbatim in doc:l4-owner-decisions): the sonnet helper struggles past 0.3 context, set it to rotate at 0.29. One cell ADDED on the sanctuary-helper row, rotate_at 0.29; the other 12 rows and every other cell byte-identical. Data first: rotate.py reads seat rows with .get so the cell is inert until hypothesis:l4-a-seat-rotates-at-its-own-line makes meter --check, loop, rotate-self and alarms honor it over the ladder's director_rotate_at; until then the point briefs the helper to self-rotate at 0.29. Written by the Prime while the Keep is down.
 <!-- THOUGHT:END -->
 
 Belam XVI rotation, 2026-09-09 10:1xZ: belam.session_ref 90fef7 -> eb30d2 (XV -> XVI; agi-05 [eb30d2], window @230). Own row only, the prime is its one legitimate writer; every other cell byte-identical. rotated_by stays prime.
