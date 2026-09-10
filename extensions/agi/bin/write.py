@@ -521,6 +521,11 @@ def _enforce_written_by(root, node_type, actor, where):
     it, and a schema that declares no `written_by` (or whose schema is
     absent) gates nothing: the moral schema's `written_by: owner` is the one
     and only thing that makes moral nodes hand-edit-by-owner-only.
+
+    The compare is EXACTLY `actor not in admitted` — the actor name is what
+    is compared, never a role (that is L4.41), and `admitted` is one parse
+    shared with `links.py` (`parse_written_by`), so a list-valued or
+    comma-separated `written_by` refuses nothing it admits.
     """
     try:
         from schema_registry import load_schemas_from_dir
@@ -536,10 +541,12 @@ def _enforce_written_by(root, node_type, actor, where):
     if schema is None:
         return
     written_by = schema.frontmatter.get("written_by")
-    if written_by and written_by != actor:
+    admitted = links.parse_written_by(written_by) if written_by is not None else None
+    if admitted and actor not in admitted:
         raise EditError(
-            f"moral nodes ({where}) are hand-edited by the owner only. "
-            f"Pass --actor owner (goal:g12).")
+            f"{node_type} nodes ({where}) may be hand-edited only by "
+            f"{', '.join(sorted(admitted))}. Pass --actor "
+            f"{sorted(admitted)[0]} (goal:g12).")
 
 
 def _resolve_replace_text(edit: Edit) -> None:
