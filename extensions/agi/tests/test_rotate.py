@@ -2530,3 +2530,153 @@ def test_successor_reply_lands_in_the_file_the_predecessor_reads(tmp_path):
         "reads, or a rotation driven from a worktree strands the reply")
     assert str(pred_file_main) == str(repo / ".agi" / "sessions" / f"{name}.log"), (
         "the shared log must resolve to the MAIN checkout, not the worktree")
+
+
+# ── L4.112 (A) + (C): rotate-self template resolution at the TOP + template
+#    brief consumption. Fix-only re-dispatch, kid 1. ------------------------
+
+
+def _rs_tmpl_fixture(tmp_path, tmpls):
+    """A fixture root with a valid seat AND a rotations.md carrying `tmpls`.
+
+    `tmpls` is a dict of template-name -> {brief_file, steps, telemetry}, the
+    same shape the shipped body (briefs/rotations.geometry.md) declares. The
+    test writes both nodes itself; never touches the live .geometry dir."""
+    _write_seats_sheet(
+        tmp_path,
+        [{"name": "adv-alive", "role": "director",
+          "model": "x", "effort": "max", "settings": ""}])
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    lines = ["---", "id: config:rotations", "type: config", "templates:"]
+    for name, ent in tmpls.items():
+        lines.append(f"  {name}:")
+        lines.append(f"    brief_file: {ent['brief_file']}")
+        lines.append(f"    steps: {json.dumps(ent.get('steps'))}")
+        lines.append(f"    telemetry: {json.dumps(ent.get('telemetry'))}")
+    lines.append("---")
+    lines.append("body")
+    (g / "rotations.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def test_rotate_self_missing_rotations_node_refuses_before_side_effects(
+        tmp_path, monkeypatch, capsys):
+    """L4.112 (A): with rotations.md absent (the live state until the prime
+    lands it), rotate-self refuses at the TOP of the function -- BEFORE the
+    started record, the handoff write, and the own-window rename -- and names
+    the node. The window name and the handoff file are therefore untouched."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "director",
+                                   "model": "x", "effort": "max",
+                                   "settings": ""}])  # seats.md, NO rotations.md
+    renamed_win = []
+    handoff_written = []
+    def trap_rename(*a, **k):
+        renamed_win.append(a)
+    def trap_handoff(*a, **k):
+        handoff_written.append(a)
+    monkeypatch.setattr(rotate, "_rename_own_window", trap_rename)
+    monkeypatch.setattr(rotate, "_write_handoff", trap_handoff)
+    args = _rotate_self_args(tmp_path, window_path=str(tmp_path / "windows.txt"))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "rotations.md" in err
+    assert renamed_win == [], "rename must NOT run when rotations.md is absent"
+    assert handoff_written == [], "handoff must NOT be written when absent"
+    assert not (tmp_path / "sessions" / "seats" / "adv-alive.handoff.md").exists()
+    assert not (rotate._rotations_dir(tmp_path)).exists(), \
+        "no started rotation record when the node is absent"
+
+
+def test_rotate_self_consumes_template_brief_as_successor_prompt(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """L4.112 (C): when --prompt-file is NOT given, rotate-self hands the
+    template's brief_file (with `{seat}` substituted) to the successor as its
+    prompt. The director's brief is the seat's quorum scratchpad, so
+    `.agi/sessions/quorum/{seat}.md` becomes `.agi/sessions/quorum/adv-alive.md`."""
+    tmpls = {"director": {"brief_file": ".agi/sessions/quorum/{seat}.md",
+                          "steps": ["handoff", "spawn", "join"],
+                          "telemetry": ["seed", "model"]}}
+    _rs_tmpl_fixture(tmp_path, tmpls)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    seen = {}
+    def fake_spawn(**kw):
+        seen["prompt_file"] = kw.get("prompt_file")
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack", lambda *a, **k: {
+        "seat": "adv-alive", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert seen["prompt_file"] == ".agi/sessions/quorum/adv-alive.md"
+
+
+def test_rotate_self_prompt_file_flag_overrides_template_brief(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """L4.112 (C): --prompt-file STILL overrides the template's brief_file."""
+    tmpls = {"director": {"brief_file": ".agi/sessions/quorum/{seat}.md",
+                          "steps": ["handoff", "spawn"],
+                          "telemetry": ["seed", "model"]}}
+    _rs_tmpl_fixture(tmp_path, tmpls)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    seen = {}
+    def fake_spawn(**kw):
+        seen["prompt_file"] = kw.get("prompt_file")
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack", lambda *a, **k: {
+        "seat": "adv-alive", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    custom = tmp_path / "custom.md"
+    custom.write_text("custom", encoding="utf-8")
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             prompt_file=str(custom))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    assert seen["prompt_file"] == str(custom)
+
+
+def test_rotate_self_step_markers_come_from_template_steps(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """L4.112 (C): steps_reached records the template's OWN step spellings
+    where the completed step is named in tmpl.steps (not a hardcoded list)."""
+    tmpls = {"director": {"brief_file": "extensions/agi/briefs/x.md",
+                          "steps": ["handoff", "spawn", "join"],
+                          "telemetry": ["seed"]}}
+    _rs_tmpl_fixture(tmp_path, tmpls)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack", lambda *a, **k: {
+        "seat": "adv-alive", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    written = []
+    real_write = rotate._write_rotate_self_started
+    def capture(path, **kw):
+        written.append(list(kw.get("steps", [])))
+        return real_write(path, **kw)
+    monkeypatch.setattr(rotate, "_write_rotate_self_started", capture)
+    args = _rotate_self_args(tmp_path, window_path=str(win))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    recs = list(rotate._rotations_dir(tmp_path).glob("adv-alive.*.json"))
+    assert recs, "a rotation record must exist after a success"
+    final = json.loads(recs[0].read_text(encoding="utf-8"))
+    assert final["result"] == "success"
+    # the STARTED-progress markers use the template's spellings where the
+    # step is named in tmpl.steps (handoff/spawn are) -- not a hardcoded list.
+    done = [s for step in written for s in step]
+    assert "handoff" in done
+    assert "spawn" in done
