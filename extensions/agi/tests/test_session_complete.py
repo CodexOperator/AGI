@@ -255,3 +255,124 @@ def test_an_empty_placeholder_target_is_not_a_collision(graph, tmp_path):
     assert (graph / "sessions" / "iter-L4.99" / "manifest.json").is_file(), (
         "the round must land through an empty placeholder")
     assert not (wt / ".agi" / "sessions" / "iter-L4.99").exists()
+
+# ---------------------------------------------------------------------------
+# The merge. A --branch round lives in TWO trees at once, so bringing it home
+# is a merge of complementary subtrees, not a copy of one
+# (hypothesis:l4-a-round-lives-in-two-trees-so-coming-home-is-a-merge). The
+# fixed rules: (1) a file in one source is copied; (2) a path in BOTH sources
+# is the interesting case and is decided by content semantics -- never by scan
+# or iteration order -- with the LOSER kept recoverable, not deleted;
+# (3) verify every byte from every source before removing a source, and remove
+# each source only when ITS OWN contribution verifies.
+# ---------------------------------------------------------------------------
+
+
+def test_two_disjoint_sources_merge_into_union(graph, tmp_path):
+    """(b) Two source trees with DISJOINT files both land, and the target
+    holds the union. This is the whole reason the bring-home became a merge:
+    the dispatcher's tree and the child's worktree carry different halves of
+    one round, and both must arrive in the same target."""
+    cli = _load_cli()
+    wa = _make_linked_worktree(graph, "seat-a", "L4.99",
+                               [("a00-aaa", "done"), ("a00-bbb", "pending")])
+    wb = _make_linked_worktree(graph, "seat-b", "L4.99",
+                               [("a00-ccc", "done")])
+    (wa / ".agi" / "sessions" / "iter-L4.99" / "a-only.txt").write_text(
+        "only A\n")
+    (wb / ".agi" / "sessions" / "iter-L4.99" / "b-only.txt").write_text(
+        "only B\n")
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    target = graph / "sessions" / "iter-L4.99"
+    for f in ["a-only.txt", "b-only.txt", "manifest.json",
+              "output.log", "context.md",
+              "a00-aaa/agent.json", "a00-aaa/scratch.txt",
+              "a00-ccc/agent.json", "a00-ccc/scratch.txt"]:
+        assert (target / f).is_file(), f"{f} must be present in the union"
+    # both sources verified their own contribution and were removed
+    assert not (wa / ".agi" / "sessions" / "iter-L4.99").exists(), \
+        "the disjoint seat-a source verifies and is removed"
+    assert not (wb / ".agi" / "sessions" / "iter-L4.99").exists(), \
+        "the disjoint seat-b source verifies and is removed"
+
+
+def test_conflicting_agent_record_status_rule_and_loser_recoverable(graph, tmp_path):
+    """(c) The CONFLICTING PATH. A `--branch` round's two trees hold the SAME
+    parent `agent.json` and they are two genuinely different documents: the
+    dispatcher's reads `done-unreported` (the reaper's view) and the parent's
+    own reads `done` (its own, through `cli.py done`). The rule: the more
+    authoritative completion status wins -- `done` beats `done-unreported` --
+    and the LOSER is preserved recoverably, never deleted. Resolving by scan
+    or iteration order would disprove the hypothesis on construction."""
+    cli = _load_cli()
+    wa = _make_linked_worktree(graph, "seat-dispatcher", "L4.99",
+                               [("a00-aaa", "done-unreported")])
+    wb = _make_linked_worktree(graph, "seat-parent", "L4.99",
+                               [("a00-aaa", "done")])
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    target = graph / "sessions" / "iter-L4.99"
+    winner = json.loads((target / "a00-aaa" / "agent.json").read_text())
+    assert winner["status"] == "done", \
+        "the agent's own `done` must out-rank the reaper's `done-unreported`"
+    # the loser is not deleted -- it is recoverable under .conflicts
+    loser = target / ".conflicts" / "a00-aaa" / "agent.json.from-seat-dispatcher"
+    assert loser.is_file(), "the losing `done-unreported` record must survive"
+    assert json.loads(loser.read_text())["status"] == "done-unreported"
+    assert not (wa / ".agi" / "sessions" / "iter-L4.99").exists(), \
+        "a losing-but-verifying source still comes home"
+    assert not (wb / ".agi" / "sessions" / "iter-L4.99").exists()
+
+
+def test_source_whose_contribution_fails_verify_is_not_removed(graph, tmp_path,
+                                                               monkeypatch):
+    """(d) A source is removed only when ITS OWN contribution verifies -- not
+    because the target exists and not because a sibling verified. When one
+    source's own copy can't be confirmed it stays in its worktree, intact and
+    recoverable."""
+    cli = _load_cli()
+    wa = _make_linked_worktree(graph, "seat-a", "L4.99",
+                               [("a00-aaa", "done")])
+    wb = _make_linked_worktree(graph, "seat-b", "L4.99",
+                               [("a00-bbb", "done")])
+    real = cli._source_landed
+
+    def fake_landed(src, target, win, lose):
+        if "seat-b" in str(src):
+            return False
+        return real(src, target, win, lose)
+
+    monkeypatch.setattr(cli, "_source_landed", fake_landed)
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0, "the round still lands; only the unverified source stays"
+    assert not (wa / ".agi" / "sessions" / "iter-L4.99").exists(), \
+        "seat-a's own contribution verified, so it is removed"
+    assert (wb / ".agi" / "sessions" / "iter-L4.99").exists(), \
+        "a source whose own contribution did not verify must NOT be removed"
+    # and the merged target still holds seat-b's disjoint bytes
+    assert (graph / "sessions" / "iter-L4.99" / "a00-bbb" / "agent.json").is_file()
+
+
+def test_dry_run_shows_merge_plan_and_writes_nothing(graph, tmp_path, capsys):
+    """(e) `--dry-run` prints the merge plan -- including which source wins
+    each conflicting path -- and writes nothing, proven by a filesystem
+    snapshot before and after."""
+    cli = _load_cli()
+    _make_linked_worktree(graph, "seat-dispatcher", "L4.99",
+                          [("a00-aaa", "done-unreported")])
+    _make_linked_worktree(graph, "seat-parent", "L4.99",
+                          [("a00-aaa", "done")])
+
+    before = _snapshot(graph)
+    rc = cli._session_complete(graph, "L4.99", live_iters=set(), dry_run=True)
+    after = _snapshot(graph)
+    assert rc == 0
+    assert after == before, "a dry run must not write a single byte"
+    out = capsys.readouterr().out
+    assert "WOULD migrate" in out
+    assert "CONFLICT" in out and "wins over" in out, \
+        "the dry run must name each conflicting path and its winner"
+    assert "REFUSE" not in out
