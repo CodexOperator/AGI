@@ -109,6 +109,46 @@ def _resolved_seat(args_seat: str | None) -> str | None:
     return os.environ.get("AGI_SEAT")
 
 
+# --- secret redaction for the debugger's spawn.json (hypothesis:l4-dispatch-
+# echoes-less-than-it-knows) ---------------------------------------------
+# Redaction is by NAME pattern (KEY, TOKEN, SECRET, PASSWORD) AND by VALUE
+# shape (sk- and sk-or-v1- prefixes), both, so a value-shaped secret in an
+# unnamed var is caught by the shape half, not just the name half. A value
+# is never printed in full, in part, or as a prefix on dispatch's stdout or
+# in spawn.json -- only as "..." + its last 4 characters, enough to
+# recognize one's own key without carrying a doxable fragment.
+_SECRET_NAME_PATTERNS = ("KEY", "TOKEN", "SECRET", "PASSWORD")
+
+
+def _redact_secret_value(value: str) -> str:
+    """'...' + last 4 chars, or a fixed marker for a shorter value."""
+    if len(value) <= 4:
+        return "<redacted>"
+    return "..." + value[-4:]
+
+
+def _looks_like_secret(name: str, value: str) -> bool:
+    """Secret by name pattern (KEY/TOKEN/SECRET/PASSWORD) or value shape."""
+    upper = str(name).upper()
+    if any(p in upper for p in _SECRET_NAME_PATTERNS):
+        return True
+    v = str(value)
+    return v.startswith("sk-") or v.startswith("sk-or-v1-")
+
+
+def _redact_env_map(env: dict) -> dict:
+    """A copy of `env` with every secret's VALUE replaced by its tail-4 form.
+
+    Key names survive (a debugger must know which var WAS set); only values
+    are redacted. Used for spawn.json only -- the child's real env is
+    untouched.
+    """
+    out = {}
+    for k, v in env.items():
+        out[k] = _redact_secret_value(str(v)) if _looks_like_secret(k, v) else v
+    return out
+
+
 def zoom_command(root: Path, iter_n: int, agent_id: str,
                  level: str, target: str | None, push_further: bool = False) -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
@@ -1593,6 +1633,7 @@ def main() -> int:
                           f"{scaffold_info['node_id']}")
 
         # Spawn pi (detached). Output -> sess_dir/output.log
+        minted = None  # set iff a per-spawn credential was minted for THIS slot
         try:
             spawn_args = adapter.build_command(
                 harness=dispatch_harness,
@@ -1797,6 +1838,38 @@ def main() -> int:
             agent_record["node_id"] = scaffold_info.get("node_id", "")
             agent_record["parent"] = scaffold_info.get("parent", "")
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+        # hypothesis:l4-dispatch-echoes-less-than-it-knows -- LOW-DOX debug
+        # artifact, not a stdout dump. Everything a debugger needs (the full
+        # child env, the full brief, the argv) that the one-line spawn
+        # contract deliberately OMMITS from stdout is recorded here, in the
+        # session dir, where a reader opens it on purpose. Env values are
+        # REDACTED to their last 4 chars by name-pattern and value-shape; the
+        # child's real env is untouched. A failure here must never take the
+        # spawn down -- the spawn is the contract, this is a debugger's nicety.
+        try:
+            import brief as _brief_dbg
+            _segs = _brief_dbg.assemble(
+                tier=_brief_tier_for(args.tier, tier_eff, target),
+                agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"],
+                scaffold=scaffold_info,
+                source_root=engine_paths["source_root"],
+                target=target,
+                parallel=adapters.parallelism(cfg),
+                max_live=cap,
+                kid_ceiling=spawn_budget.parent_max_kids(cfg),
+                addendum=_read_prompt_file(args.prompt_file),
+                session_dir=sess_dir)
+            _brief_text = "\n\n".join(s.rstrip("\n") for s in _segs)
+        except BaseException as exc:  # never let the debug artifact break spawn
+            _brief_text = f"<spawn.json brief assemble failed: {exc}>"
+        (sess_dir / "spawn.json").write_text(json.dumps({
+            "agent_id": agent_id,
+            "argv": spawn_args,
+            "env": _redact_env_map(spawn_env),
+            "brief": _brief_text,
+        }, indent=2))
         # hypothesis:l3-meter-own-transcript -- once the child prints its
         # first stream-json event, capture its session_id into this agent's
         # `.meter` pin so its OWN rotate meter reads its OWN transcript and
@@ -1816,9 +1889,22 @@ def main() -> int:
         else:
             manifest["agents"].append(agent_record)
         new_records.append(agent_record)
-        print(f"spawned {agent_id} pid={proc.pid} harness={harness_name} "
-              f"tier={args.tier} level={level} target={target or '-'} "
-              f"strategy={strategy}")
+        # hypothesis:l4-dispatch-echoes-less-than-it-knows -- the ONE-LINE
+        # spawn contract: everything a pi PARENT (reading this as a tool
+        # result) or a Claude seat needs to poll one spawn, in one line,
+        # with the per-spawn credential named by NAME and CAP, never by value
+        # or prefix. The env, the brief and the argv are in spawn.json, not
+        # here. (pid/level/strategy kept: the reaper and the pane both read
+        # them, and removing them is a contract break for zero dox win.)
+        spawn_line = (f"spawned {agent_id} pid={proc.pid} tier={args.tier} "
+                      f"iter={args.iter_n} target={target or '-'} "
+                      f"harness={harness_name} model={model_val or '-'}")
+        if branch_ref:
+            spawn_line += f" branch={branch_ref['branch']}"
+        if minted is not None:
+            spawn_line += (f" key={minted.name} cap=${minted.limit_usd}")
+        spawn_line += f" level={level} strategy={strategy}"
+        print(spawn_line)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
