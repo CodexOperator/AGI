@@ -461,3 +461,68 @@ def test_subcommand_reader_still_fails_a_script_that_declares_nothing(tmp_path):
     indirect = tmp_path / "indirect.py"
     indirect.write_text("SUBCOMMANDS = _discover()\n")
     assert _declared_subcommands(indirect) is None
+
+
+# --------------------------------------------------------------------------
+# l4-the-command-runner-eats-its-passengers-flag — the wrapper must not
+# answer for a flag the caller typed for someone else
+# --------------------------------------------------------------------------
+
+@real_only
+def test_a_leading_flag_reaches_the_target_without_a_separator(monkeypatch):
+    """🔴 `commands.py run links --dry-run` used to print the WRAPPER's usage.
+
+    Measured before the fix (experiment:a00-914a9ae6-ee1f1e): argparse
+    claimed the `-`-prefixed token for `commands.py` itself, so the error
+    read `commands.py: error: unrecognized arguments: --dry-run` and printed
+    `commands.py`'s usage block — handing a reader debugging a flag they
+    typed for `links.py` the wrong program's manual. The error lied about
+    whose problem it was. Any leading dash did it, not only `--long`.
+    """
+    seen = {}
+
+    def fake_run(root, name, extra):
+        seen["name"] = name
+        seen["extra"] = list(extra)
+        return 0
+
+    monkeypatch.setattr(commands, "run", fake_run)
+    assert commands.main(["run", "links", "--dry-run"]) == 0
+    assert seen["name"] == "links"
+    assert seen["extra"] == ["--dry-run"], (
+        "the flag must reach the target, not be eaten by the wrapper")
+
+    seen.clear()
+    assert commands.main(["run", "links", "-x"]) == 0
+    assert seen["extra"] == ["-x"], "a single dash is claimed the same way"
+
+
+@real_only
+def test_the_separator_form_still_works_unchanged(monkeypatch):
+    """`--` is documented in `main`'s own docstring and callers may rely on
+    it. Whatever the wrapper does with a bare leading flag, the explicit form
+    must keep forwarding exactly what it forwarded before."""
+    seen = {}
+
+    def fake_run(root, name, extra):
+        seen["extra"] = list(extra)
+        return 0
+
+    monkeypatch.setattr(commands, "run", fake_run)
+    assert commands.main(["run", "links", "--", "--dry-run"]) == 0
+    assert seen["extra"] == ["--dry-run"]
+
+
+@real_only
+def test_a_wrapper_flag_after_the_name_still_binds_to_the_wrapper():
+    """The trade-off, pinned to what was DECIDED rather than what falls out.
+
+    `--root` after the name already bound to the wrapper before this fix —
+    `commands.py run links --root /tmp` printed `ERR: not an agi project:
+    /tmp`, never running the command. That was accidental status quo, and
+    the round measured it rather than guessing. `parse_known_args` preserves
+    it; `argparse.REMAINDER` would have forwarded `--root /x` to the target
+    and changed behaviour nobody asked to change. This test is why that
+    choice cannot be quietly reversed later.
+    """
+    assert commands.main(["run", "links", "--root", "/tmp"]) == 1
