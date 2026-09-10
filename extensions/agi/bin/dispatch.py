@@ -48,6 +48,7 @@ import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it wit
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
 config_path = locations.config_path
@@ -1736,7 +1737,11 @@ def _reaper_phase(
     import json
     import time
 
-    TERMINAL = {"done", "pending", "hung-healed", "failed"}
+    # `TERMINAL` is imported from `spawn_budget` (the ONE definition). The
+    # second guard below (`if status != "running": continue`) is KEPT ON
+    # PURPOSE -- it catches any status nobody has thought of yet, which is
+    # exactly the tolerance that kept this reaper working while the set was
+    # wrong. Do not "simplify" it away.
     deadline = time.time() + max_wait_s
 
     while time.time() < deadline:
