@@ -1,0 +1,128 @@
+---
+id: experiment:a00-2b046d3e-35273a
+mint_id: 5f4e05498f284ed1b876b63301d8ed4f
+type: experiment
+parents:
+  - hypothesis:l4-workflow-types-and-default-harness-are-a-geometry-node
+next_edges: []
+confidence: 0.85
+edited_by: ubuntu
+evidence_runs:
+  - experiment:a00-2b046d3e-35273a
+loop: hypothesis:l4-workflow-types-and-default-harness-are-a-geometry-node@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 0cd28eb19dc50801
+season: 2
+title: A00 2b046d3e 35273a
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-2b046d3e-35273a
+
+Experiment for hypothesis:l4-workflow-types-and-default-harness-are-a-geometry-node
+(parent goal:g1.14): the prime determines the default harness and its two
+override levels as ONE .geometry `config` node — no hardcoded literal.
+
+## What I did
+
+Edited engine file extensions/agi/bin/workflow.py (build:workflow.py) to
+replace the TWO hardcoded default-harness literals with a resolver over a new
+geometry node `nodes/.geometry/workflows.md`:
+
+- `_load_geometry_node` / `_maybe_geometry_node` parse the node frontmatter
+  via yaml.safe_load (the same shape crons.py already reads crons.md),
+  validating `default_harness`, `types`, and `workflows` rows.
+- `_resolve_default_harness(root, key, manifest, cfg_row)` resolves in the
+  claim's order: per-workflow override (config row provider, then manifest
+  provider, then the node's `workflows.<key>.harness`) > per-type override
+  (manifest `type` -> node `types[type].harness`) > prime default
+  (`default_harness`) > REFUSE loudly naming the node
+  (`WorkflowsNodeError`; `main` catches it and exits 2 with a clean line, no
+  traceback). There is no `'pi'` literal fallback on either the list or run
+  path.
+- `list_workflows` prints the RESOLVED harness AND the LEVEL it came from
+  (new `LEVEL` column).
+- `validate_registry` now enforces `type` when the node exists: a manifest
+  with no `type`, or a `type` not in the node's `types`, is refused; a
+  manifest declaring a type while the node is absent is flagged as
+  unverifiable.
+- An explicit `--harness` still wins (the CLI per-run override, line ~1233
+  keeps its choices).
+
+The SIX live manifests (engine files, in scope) each gained a `type` field:
+review->review, drafting->drafting, deep-search->research,
+l3w-route-probe->route-probe, l4-plan-research->plan-research,
+prime-open-questions->investigate-refute.
+
+Because `config` nodes are `written_by: [owner, prime_director]` ([config].md,
+enforced by write.py on create and edit), a KID cannot `write.py create`
+workflows.md. So: the round PROVES on a fixture root (a temp `.agi` whose
+workflows.md the test writes) and SHIPS the proposed node body as a file,
+landed by the prime at merge-up:
+
+    python3 extensions/agi/bin/write.py create config workflows \
+        --parent goal:g1.14 --actor prime \
+        # body: copy from extensions/agi/briefs/workflows.geometry.md
+
+## What happened (results)
+
+`python3 -m pytest extensions/agi/tests/test_workflow.py -q` -> 37 passed.
+New tests (all in extensions/agi/tests/test_workflow.py):
+- test_list_workflows_enumerates_registry updated to build the node fixture and
+  assert the LEVEL column.
+- test_geometry_node_resolves_all_six_live_workflows: `list` on the REAL six
+  registered workflows through a temp node shows every one resolving with the
+  level named (config row / per-workflow / type:X).
+- test_fixture_root_resolution_levels_and_default_flip: a temp `.agi` with its
+  own config.json + workflows.md resolves four workflows through all four
+  levels; flipping `default_harness` in the node (NO manifest/code change)
+  moves the override-less workflow.
+- test_missing_node_refuses_loudly_naming_it: with NO node (the live
+  pre-prime state), `list` and `run` REFUSE naming the node — the removed
+  literal does not come back.
+- test_validate_refuses_undeclared_and_missing_type: with the node present,
+  validate refuses an undeclared type and a missing type, and accepts a sound
+  declared pair.
+
+## Evidence
+
+`workflow.py list` on the live registry with a temp node (level column):
+
+    NAME                 SCRIPT                   STAGES  HARNESS       LEVEL
+    drafting             agi-brief-drafting.js    2       claude-code   config row
+    deep-search          agi-deep-search.js       3       pi            config row
+    l3w-route-probe      agi-l3w-route-probe.js   2       claude-code   per-workflow
+    l4-plan-research     agi-l4-plan-research.js  5       pi            type:plan-research
+    prime-open-questions agi-prime-open-questions.js 2   pi            type:investigate-refute
+    review               agi-round-review.js      2       pi            config row
+
+The two literals removed: old list path `or "pi"` (was workflow.py:227) and
+old run path `or cfg_row.get("provider") or "pi"` (was :735). Remaining `"pi"`
+strings are harnesses.pi config access and the `--harness` CLI choices, not
+defaults. On the live worktree (no node yet) `workflow.py list` exits 2:
+"missing node file .../nodes/.geometry/workflows.md — ... the prime owns it.
+Until it lands, workflow.py refuses to guess a harness (no hardcoded
+default)" — the refusal is by design and pre-prime.
+
+## Known residue (named, left)
+
+`validate` on the live registry flags the pre-existing L4.105-era <TODO>
+prompt skeletons in l3w-route-probe.json (emit, critic) and
+l4-plan-research.json (map, draft, judge, verify, synthesize). These are
+registered-from-inline-script remnants, prior art, not this round's change
+(flagged non-blocking at merge-up). Adding `type` to those files was
+mechanical; authoring real prompts is a separate `workflow.py author` round,
+out of this hypothesis's scope. Not silently fixed.
+
+## Agent Notes
+Replaced the two workflow.py default-harness literals (list:227, run:735) with _resolve_default_harness reading .geometry/workflows.md (per-workflow > per-type > prime default > refuse naming node); list shows LEVEL column; validate refuses undeclared/missing type; six live manifests gained type; node body shipped at extensions/agi/briefs/workflows.geometry.md; 37 tests pass on fixture roots and a temp node (kid cannot write the live config node — prime lands it).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW a00-778cb024 L4.111 — accepted at the kid's own lean, and one deviation named. VERIFIED BY READING THE ARTIFACT: the two literals are gone (workflow.py now has no default-harness literal; remaining "pi" strings are harnesses.pi config access and --harness CLI choices); _resolve_default_harness raises WorkflowsNodeError instead of falling back; main catches it and exits 2 cleanly; `workflow.py list` on this live tree exits 2 naming nodes/.geometry/workflows.md, and `workflow.py validate` is RED (13 violations: 6 "node absent" + 7 pre-existing <TODO> skeletons). tests: 37 passed in test_workflow.py. The node body ships at extensions/agi/briefs/workflows.geometry.md because config is written_by [owner, prime_director]. NOT PROVED, correctly: the claim's "the node exists and is committed" and "flipping default_harness changes --dry-run" can only hold on the fixture; the live node is the prime's write. THE DEVIATION I ACCEPT WITH A CAVEAT: the brief's order was per-workflow override > per-type > default; the code resolves cfg_row provider and manifest provider BEFORE the node's workflows.<key>.harness, so the node's per-workflow override is shadowed for the three live workflows that carry a config.json provider row. The kid documented that choice in the shipped body rather than hiding it, and the brief did not forbid config rows from counting as the per-workflow level -- so it stands, with the shadowing named here and tested by the next experiment (experiment:a00-74831cf6-8c9c96). MECHANISM NEAR MISS: a default kept as a code literal "for safety" would satisfy the words and keep the exact fallback the owner ordered gone; this artifact does not.
+<!-- THOUGHT:END -->
+
+PARENT REVIEW a00-778cb024 L4.111: ACCEPTED as inconclusive_lean_proved:85. Artifact verified (literals gone, refusal path exits 2, 37 tests pass); live node is the prime's write so the claim cannot be proved by a kid. Caveat: node per-workflow override is shadowed by config-row/manifest provider rows (named in the THOUGHT; tested by experiment:a00-74831cf6-8c9c96).
+
+DIRECTOR REVIEW AT HARVEST (sanctuary-director gen VIII, L4.111, 2026-09-10 ~23:2xZ). Read the diff (workflow.py +228/-26, 6 manifests gain `type`, shipped body, 2 kid nodes, +262 test lines); 38 workflow tests green on my seat after the merge; the six workflow-touching test files 309 green. REAL-TREE RUNS: `workflow.py list` with the node absent refuses naming .agi/nodes/.geometry/workflows.md and says who owns it (the prime); `validate` reports the six `type` rows as unverifiable until the node exists plus the pre-existing violations -- the live refusal state, as ruled (A). Both literal 'pi' fallbacks are gone (old :227 and :735); `_resolve_default_harness` returns (harness, level) and `list` prints the level. RESIDUE, measured by kid 2 and accepted with its reasoning: the config row `provider` and the manifest `provider` resolve BEFORE the node's per-workflow and per-type levels, so for review/drafting/deep-search (the three with config rows) a node override is a silent no-op; the shipped body documents this order. It is the config-maxxed contract (config.json is the live knob), but the MANIFEST `provider` is a stale duplicate of what the node now declares -- follow-up for a later round: drop `provider` from the six manifests so the node's per-workflow level is reachable for any workflow without a config row; keep the config-row precedence. Not done here (the round's claim promised only the prime-default flip for an un-overridden workflow, and it delivered that). MERGE-UP HAZARD, same shape as L4.110: once this lands in season/s2, `workflow.py run/list` refuse until the prime creates config:workflows from extensions/agi/briefs/workflows.geometry.md -- the create and the merge are one window. Verdicts left as authored (85 / 70).
