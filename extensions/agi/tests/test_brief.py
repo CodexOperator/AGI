@@ -7,6 +7,7 @@ spawn again — the brief must change with it, in the same commit, with nothing
 edited by hand."* Both halves are below; the second is the one that makes this
 more than a convenience.
 """
+import json
 import re
 import sys
 from pathlib import Path
@@ -1393,3 +1394,76 @@ def test_the_mechanism_slot_does_not_displace_the_parents_last_line():
     line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
     assert "YOU ARE NOT FINISHED" in line
     assert "MECHANISM, NOT WORDING" not in line
+
+
+# --------- l4-the-mode-is-declared-not-remembered: mode rendered, not
+# --------- remembered in prose. The rendering is driven by the declaration.
+
+MODES_FIXTURE = {
+    "operating_modes": {
+        "alpha": {"name": "alpha mode", "seats": "one seat",
+                  "models": "m", "source": "s1"},
+        "beta": {"name": "beta mode", "seats": "two seats",
+                 "models": "n", "source": "s2"},
+    },
+    "active_operating_mode": "alpha",
+}
+
+
+def _write_modes(root: Path, data: dict) -> Path:
+    cfg = root / "config.json"
+    cfg.write_text(json.dumps(data), encoding="utf-8")
+    return cfg
+
+
+def test_mode_renders_the_active_declaration_from_a_fixture(tmp_path):
+    """The rendered brief block carries the ACTIVE mode's text, taken from
+    the declaration, not from any string a caller passed in."""
+    _write_modes(tmp_path, MODES_FIXTURE)
+    block = brief._operating_mode_block(project_root=tmp_path)
+    assert "OPERATING MODE" in block
+    assert "alpha mode" in block
+    assert "one seat" in block
+    assert "beta mode" not in block
+
+
+def test_flipping_the_declared_active_mode_changes_the_render(tmp_path):
+    """hypothesis:l4-the-mode-is-declared-not-remembered (c) — THE ONE THAT
+    MATTERS. A test that only asserts today's string would pass a hardcoded
+    mode; flipping `active_operating_mode` in the SAME fixture config and
+    seeing the render change proves it is READ, not remembered."""
+    cfg = _write_modes(tmp_path, MODES_FIXTURE)
+    assert "alpha mode" in brief._operating_mode_block(project_root=tmp_path)
+    cfg.write_text(
+        json.dumps({**MODES_FIXTURE, "active_operating_mode": "beta"}),
+        encoding="utf-8")
+    block = brief._operating_mode_block(project_root=tmp_path)
+    assert "beta mode" in block
+    assert "two seats" in block
+    assert "alpha mode" not in block
+
+
+def test_absent_declaration_renders_nothing_and_raises_nothing(tmp_path):
+    """hypothesis:l4-the-mode-is-declared-not-remembered (d) — a project that
+    has not declared operating modes must be unchanged: empty block, no
+    error, whether the config file is missing or just lacks the keys."""
+    root = tmp_path / ".agi-not-used"  # no config.json at all
+    root.mkdir(parents=True)
+    # absent file
+    assert brief._operating_mode_block(project_root=root) == ""
+    # config present but no operating_modes / active key
+    (root / "config.json").write_text('{"operating_mode": "full"}',
+                                      encoding="utf-8")
+    assert brief._operating_mode_block(project_root=root) == ""
+    # config present but active names an undeclared mode
+    _write_modes(root, {**MODES_FIXTURE, "active_operating_mode": "nope"})
+    assert brief._operating_mode_block(project_root=root) == ""
+
+
+def test_assemble_carries_the_live_active_mode_into_the_brief():
+    """The rendered block reaches the assembled brief for every tier, driven
+    by the LIVE config declaration (enhanced survival is in force)."""
+    for tier in ("kid", "parent", "director", "prime_director"):
+        text = _text(tier, scaffold=SCAFFOLD)
+        assert "OPERATING MODE" in text, tier
+        assert "enhanced survival" in text, tier
