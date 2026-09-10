@@ -738,6 +738,47 @@ def successor_prompt(*, tier: str, body: str,
 # ---- director and prime_director tiers --------------------------------------
 
 
+# ---- MECHANISM, NOT WORDING (owner ask, 2026-09-10) --------------------
+# The owner read a director's account of why it landed a brief change by
+# hand and asked for more of that KIND of reasoning, not more prose. The
+# prime named the shape rather than praising the instance, because praise
+# produces prose and a named shape produces reasoning. Placed beside
+# `struggles:`/`caveats:` deliberately: those are already the cheapest
+# signal in this project and this is the same family, not a parallel
+# system.
+#
+# 🔴 QUALITY IS NEVER SCORED, exactly like `feeling`. A scored reasoning
+# slot becomes a performance, and a performed one is worse than none. What
+# is checkable is the PRESENCE of the slot and the presence of a CITATION
+# in part (2) — both mechanical, neither a judgement.
+#
+# 🔴 AND IT IS NOT A NEW REASON TO MESSAGE UPWARD. Recorded in the NODE
+# always; it travels in a report only when it was already permitted — a
+# rule-changing finding. Record always, send only when it changes a rule.
+_MECHANISM = (
+    "MECHANISM, NOT WORDING. When you explain a decision — in a node's "
+    "THOUGHT, in a review, in a commit — give these four, in this order:\n"
+    "  (1) WHAT THE INSTRUCTION SAID, quoted.\n"
+    "  (2) WHAT THE MACHINE ACTUALLY DOES, cited to file:line, or to an "
+    "artifact you BUILT AND RAN. Never to how the code appears. The "
+    "standard set on 2026-09-10: asked to make a line LAST in a brief, the "
+    "director built the real 21-argument spawn command and read argument "
+    "21, rather than reading the order of the source.\n"
+    "  (3) THE NEAR MISS — the plausible implementation that satisfies (1) "
+    "and loses (2), stated as a counterfactual. The canonical example: "
+    "*\"a fragment at the end of the list satisfies the words and loses "
+    "the mechanism\"*. THIS IS THE PART MODELS SKIP, and it is the part "
+    "that makes your reasoning checkable by someone who was not there.\n"
+    "  (4) IF YOU DEVIATED FROM A STANDING RULE, the property of THIS case "
+    "that makes the rule not apply — not that it was inconvenient. The "
+    "model instance: *\"a parent dispatched to fix the parent brief reads, "
+    "as its own instructions, the text it was sent to change\"*.\n"
+    "Nobody scores how well you write this and nobody will. It is not a "
+    "reason to message anyone: record it in the node always, and send it "
+    "upward only when it is already something you were permitted to send."
+)
+
+
 def _director(*, agent_id: str, iter_n: int, cli_py: str,
               project_root: Path | None = None) -> list[str]:
     """A director holds the lens for the goals it owns, dispatches parents
@@ -803,6 +844,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "Automation owns all remote traffic.",
         "DO NOT bypass the evidence gate. `--no-evidence-gate` stamps the "
         "node and marks it unreviewed.",
+        _MECHANISM,
     ]
     return segs
 
@@ -1456,6 +1498,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "parent's own review had missed.",
         # l2w3-send: one-line inbox check for parents at each seam.
         "Read your inbox with send.py read <your-id> before each kid review.",
+        _MECHANISM,
     ]
 
 
