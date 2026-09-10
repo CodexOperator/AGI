@@ -968,43 +968,67 @@ def _locally_loaded_rows(root: Path) -> list:
         return []
 
 
-def _resolve_rows(rows: list, session_ref: str, claim: str | None) -> str:
+#: whois exit codes. 🔴 A NEGATIVE ANSWER MUST NOT EXIT 0. This check exists
+#: to be USED -- `send.py whois <ref> --claim <role> && trust_them` is the
+#: whole point -- and a refusal that returns success is the failure this repo
+#: has now paid for three times in one day: a spawn gate printing UNVERIFIED
+#: and returning success while writing a real node, a meter printing a
+#: confident fraction for a transcript it could not attribute, and a floor
+#: whose printed remedy did not clear the floor. Distinct codes so a caller
+#: can tell "not who they claim" from "not in the table at all" from "I could
+#: not reach the authority".
+WHOIS_OK = 0                #: verified AND the answer is affirmative
+WHOIS_UNVERIFIED = 1        #: pushed authority unreachable -- unproven
+WHOIS_NOT_AUTHORIZED = 2    #: ref is real but is NOT the claimed seat/role
+WHOIS_NO_MATCH = 3          #: ref belongs to no seat row at all
+
+
+def _resolve_rows(rows: list, session_ref: str,
+                  claim: str | None) -> tuple[int, str]:
     """Answer the is-this-who-they-say question for one ref. Two directions:
     with no --claim, name the seat + role the ref belongs to; with
     --claim NAME, answer whether this ref IS that row (a ref present in the
     table but under a DIFFERENT name/role answers NO — the impersonation case)."""
     hits = [r for r in rows if r.get("session_ref") == session_ref]
     if not hits:
-        return f"NO-MATCH: {session_ref} belongs to no seat row"
+        return WHOIS_NO_MATCH, f"NO-MATCH: {session_ref} belongs to no seat row"
     who = hits[0]
     name = who.get("name", "?")
     role = who.get("role", "?")
     if claim:
         ok = (claim == name) or (claim == role)
         verdict = "IS-AUTHORIZED" if ok else "IS-NOT-AUTHORIZED"
-        return (f"{verdict}: {session_ref} vs claim {claim!r} "
+        return ((WHOIS_OK if ok else WHOIS_NOT_AUTHORIZED),
+                f"{verdict}: {session_ref} vs claim {claim!r} "
                 f"-> actual seat {name}, role {role}")
-    return f"SEAT: {session_ref} -> seat {name}, role {role}"
+    return WHOIS_OK, f"SEAT: {session_ref} -> seat {name}, role {role}"
 
 
 def whois(root: Path, session_ref: str, claim: str | None,
           source: str = _PUSHED_SEATS, do_fetch: bool = True):
-    """Resolve session_ref against the PUSHED config:seats. Returns
-    (exit, text): exit 0 = authoritative, exit 1 = UNVERIFIED. Provenance
-    (source ref + commit sha) is present in every verified answer."""
+    """Resolve session_ref against the PUSHED config:seats.
+
+    Returns `(exit, text)` using the WHOIS_* codes: 0 only when the answer is
+    both authoritative AND affirmative, 1 UNVERIFIED, 2 NOT-AUTHORIZED,
+    3 NO-MATCH. Provenance (source ref + commit sha) is in every verified
+    answer."""
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
         # Pushed authority unreachable. Do NOT silently answer from the working
         # tree: answer, but label it UNVERIFIED and exit non-zero. An
         # unauthoritative answer must never exit 0.
-        answer = _resolve_rows(_locally_loaded_rows(root), session_ref, claim)
+        _code, answer = _resolve_rows(_locally_loaded_rows(root), session_ref,
+                                      claim)
         text = (f"UNVERIFIED {session_ref}: pushed ref {source!r} unreachable; "
                 f"reading working tree, NOT authoritative — treat as unproven\n"
                 + answer)
-        return 1, text
+        # UNVERIFIED outranks whatever the working tree happened to say: the
+        # caller must not act on an answer we could not authenticate, even a
+        # negative one.
+        return WHOIS_UNVERIFIED, text
     rows, sha = seeded
-    answer = _resolve_rows(rows, session_ref, claim)
-    return 0, f"{answer}  (verified against {source} @ {sha})"
+    code, answer = _resolve_rows(rows, session_ref, claim)
+    return code, f"{answer}  (verified against {source} @ {sha})"
 
 
 def main(argv: list[str] | None = None) -> int:
