@@ -495,6 +495,38 @@ def _brief_tier_for(tier: str, ladder_tier: int, target: str | None) -> str:
     return tier
 
 
+def _assert_allowed_model(harness_name: str, harness: dict,
+                        model: str | None) -> None:
+    """FAIL CLOSED on `allowed_models` (hypothesis:l4-dispatch-model-allowlist).
+
+    The harness's `allowed_models` list is the ONLY census a harness may spawn
+    from. An ABSENT or EMPTY list refuses EVERY model -- it never means 'allow
+    everything', because a default that opens on absence is a gate that
+    disappears exactly when someone deletes it. A model that is not in the list
+    is refused by name (model, harness, list). A tier with no resolved model
+    exports no AGI_MODEL at all, so there is nothing to allow or refuse.
+
+    Placed at the one value every consumer reads -- the effective model is
+    fixed before this call and the live env, the dry-run env mirror and the
+    agent record all read that same value -- so one refusal here is a refusal
+    at all four check sites without four copies of the rule.
+    """
+    if not model:
+        return
+    allowed = harness.get("allowed_models")
+    if not allowed:
+        raise adapters.AdapterError(
+            f"model {model!r} refused for harness {harness_name!r}: "
+            f"`allowed_models` is absent or empty, and the allowlist gate "
+            f"fails closed -- every model is refused when the list is missing "
+            f"or cleared (hypothesis:l4-dispatch-model-allowlist)")
+    if str(model) not in {str(m) for m in allowed}:
+        raise adapters.AdapterError(
+            f"model {model!r} is not in harness {harness_name!r} "
+            f"allowed_models {list(allowed)} -- refusing to spawn "
+            f"(hypothesis:l4-dispatch-model-allowlist)")
+
+
 def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
                       role: str) -> dict:
     """Resolve (tier, role) to {harness, model, effort, settings, from_ladder}.
@@ -1053,6 +1085,15 @@ def main() -> int:
         if _eff_model:
             adapters.assert_model_in_provider_namespace(
                 str(_eff_model), str(dispatch_harness.get("provider") or ""))
+        # hypothesis:l4-dispatch-model-allowlist -- the fail-closed allowlist
+        # gate, same position and same reason as the namespace guard above:
+        # this is the one line every model source (ladder row, seat row,
+        # config fallback) has landed in `dispatch_harness["models"]`, so it
+        # is the single place a refusal is a refusal everywhere. A `--seat`
+        # override is not an exemption: its model is in this same dict by
+        # this line and gets the same check. No AGI_MODEL resolves for a tier
+        # with no model, so there is nothing to refuse there.
+        _assert_allowed_model(harness_name, dispatch_harness, _eff_model)
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
