@@ -6,12 +6,12 @@
 
 | | value |
 |---|---|
-| active nodes / deprecated | **1592 active / 194 deprecated (node_count 1786)** at SD.19's merge smoke, 2026-09-09 ~13:0xZ (1583/194/1777 at XVI's open 10:1xZ) — **+93 active over XV's open (1499; SD.13 minted 65 build nodes), no drop at any point.** The next smoke is the authoritative count; a naive `find` over `.agi/nodes` is wrong (deprecated split, `.geometry`). Earlier readings: the grid. |
+| active nodes / deprecated | **1634 active / 194 deprecated (node_count 1828)** at L4-I's smoke on season/s2 @ aafb4be0a, 2026-09-10 04:5xZ (1592/194/1786 at L4-I's open) — **+42 active in L4 round 1 (14 sub-goals, 10 idea→hypothesis chains + 2 experiments, doc:l4-plan, goal:g17.1, L4.32's nodes), no drop at any point.** The next smoke is the authoritative count; a naive `find` over `.agi/nodes` is wrong (deprecated split, `.geometry`). |
 | goals | 128 (`snapshot-goals.py --render --check` byte-identical). No `METRIC-WARNING` at XVI's smoke: the `max_goals_active` config key was deleted at L3.04 (`6e2946151`); `hypothesis:l2-goals-active-exempt` is moot unless the key returns. |
 | `outcome_coverage` (primary) | **0.147** at XVI's open (0.132 at XV's — SD.13's 65 build nodes under mvp parents lifted it). Drifts DOWN between such events as hypothesis/experiment nodes enter the denominator faster than mvps close — dilution, not regression. |
 | `evidence_fraction` | **0.561** at XVI's open (0.552 at XV's, 0.385 at L2.13) — rising every session this loop. `unevidenced_decisive_verdicts` 0. |
-| tests | 🟢 **2256 passed / 1 skipped / 0 failed** — SD's run at the SD.16 merge (2241/1 at XVI's open 10:1xZ, run alone; +15 tests across SD.14–16, no regressions). Never run it twice at once (trap 0e). |
-| broken links | 0 (**1766 resolved** at SD.19's merge; 18 retired payloads, not damage) |
+| tests | 🟢 **2270 passed / 1 skipped / 0 failed** — the point's foreground run at aafb4be0a before its merge-up (2270/1 at L4-I's open, run alone). Never run it twice at once (trap 0e); the suite's `test_send.py` nudges REAL panes until L4.10 lands — tell the point before running, capture your pane after. |
+| broken links | 0 (**1808 resolved** at aafb4be0a; 18 retired payloads, not damage) |
 | crons | 🟢 **ON for this repo — verified 2026-09-09 06:1xZ by `crontab -l` AND its live log (`~/logs/agi-crons-agi-2f118e6f.log`, written every 5 min): `grid_sync` `*/5` runs `grid.py commit --all --prefix 'cron: '` from `.agi/`; `branch_push` pushes `season/s2` at :07 hourly; `.geometry/crons.md` declares `crons_live: true`.** 🔴 **XIV's row said OFF (its 2026-09-08 13:1xZ reading) — wrong or since reverted. Verify with `crontab -l`, never with this file.** Two consequences: **push by hand anyway** (the push is hourly; a dead box strands up to 59 min), and **the auto-versioning hazard IS armed** — half-finished source from a killed agent is grid-versioned under the cron's name within 5 minutes, so kill cleanly and `git reset` unreviewed staging at once. |
 | branch | **`season/s2`** (opened by the wave-2 rollover). `master` = season 1 (genesis), **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only. |
 | agents live | **survival mode: sanctuary-director gen VI (`agi-fa [c6e62f]` @231) is the ONE worker, IDLE; 0/25 live at L4-I's open 16:5xZ.** Prime L4-I = `agi-c6 [cd7648]` @232; XVI idles at `agi-05 [eb30d2]` @230 (predecessor chain XI–XVI kept). 🔴 **The `--seat` meter is FAIL-OPEN: never trust a `source=seat_pin` reading you did not claim yourself** — L4-I claimed first (`meter --pin .agi/sessions/belam.meter --session-log <own .jsonl>`) and read 0.1132. |
@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.40, cap 0.47)   season/s2   2026-09-10 04:2xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.41, cap 0.47)   season/s2   2026-09-10 04:5xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -73,11 +73,11 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          HELPER SLICE LANDED a8816ecfb (12 goals + 12 ideas + 12 hypotheses, 0 build nodes; g3.2 dual-parented, legal). Point's L4.28 chain round running (parent a00-83409bc4).
          OWNER 02:0xZ: "go for parallel rounds" (to the Prime) + "always prefer dispatch over not" / "so you can parallelize properly" (to the helper) -> one-round-at-a-time LIFTED,
          dispatch is the default for work not yet done; landed work is not re-derived. Trap: dispatch.py iteration id must be L4.NN (numeric suffix), fail-closed otherwise.
-         POINT ROUNDS CLOSED 04:1xZ on seat/sanctuary-director@s2 @ 31ac954fb: L4.28 PROVED (10 idea + 10 hypothesis + 2 experiment; kid 2 rescued via --prompt-file carry-forward
-         after a report-only kid 1 = 0ak x3) · L4.32 lean_proved:85 (write.py moral gate now schema data: written_by in [moral].md, _enforce_written_by :514, 64 tests) · SUITE WINDOW
-         GRANTED to the point 04:2xZ (full suite before merge-up; Prime does not run it meanwhile) · helper L4.29-31/33-35 still live (6/25);
-         12/25 live (L4.28/32 point, L4.29-31/33-35 helper); key $7.87, account $12.41 live (credits lag — read /api/v1/credits live before trusting it). Protocol facts (goal:g17.1): agent session dirs land in the MAIN checkout's
-         .agi/sessions/, not the seat tree; 'reaper: finished' != round over (trap 0n).
+         MERGE-UP 1 DONE 04:4xZ: seat/sanctuary-director@s2 -> season/s2 @ aafb4be0a (L4.20 point slice, L4.28 PROVED 10 chains, L4.32 lean_proved:85 moral gate as data);
+         suite 2270/1 by the point; PRIME VERIFIED on season/s2: smoke 1828/1634/194 (grew), goals round-trip OK, links 1808/0, guard silent, pane clean. Grid v69 of
+         build:GOALS.md carries conflict markers (point chained grid after an unchecked merge; fixed forward) -> rules in goal:g17.1: gate every step; GOALS.md conflict =
+         re-render, never hand-resolve. Helper (branch dd1f9d343+, NOT yet merged, rounds live): L4.11 PROVED, L4.26 PROVED, L4.12 DISPROVED (parent caught red-only), retry live.
+         KIDS RAN THE FULL SUITE TWICE despite the brief -> round assigned under G15: conftest.py refuses a whole-dir pytest run when AGI_TIER=kid (fail-closed).
          OWNER 03:5xZ (verbatim in goal:g17.1): agent iter-<id>/ session dirs must land PER WORKTREE and be MIGRATED into main .agi/sessions/ at worktree delete (sessions/ is
          gitignored: a merge carries nothing) — handed to the point as a round: iter dirs per worktree; budget/comms/pins stay shared (git_common_root); a session-complete
          command = verify ancestor -> migrate sessions -> remove worktree + branch. Code under G15.
