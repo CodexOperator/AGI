@@ -186,9 +186,18 @@ def test_every_declared_command_points_at_something_that_exists():
 def _declared_subcommands(script: Path) -> set[str] | None:
     """Every subcommand `script` accepts, or None if it declares none statically.
 
-    Two argparse styles are in use in `bin/` and both have to be read:
-    `sub.add_parser("commit")` (grid.py, crons.py) and
-    `add_argument("action", choices=[...])` (provisioning.py, links.py).
+    THREE styles are in use in `bin/` and all have to be read:
+    `sub.add_parser("commit")` (grid.py, crons.py),
+    `add_argument("action", choices=[...])` (provisioning.py, links.py), and a
+    module-level `SUBCOMMANDS = (...)` for a script that dispatches by hand
+    rather than through argparse (write_guard.py).
+
+    The third style was added at merge-up 3. It is a widening, NOT a
+    loosening: `None` -- the script declares nothing at all -- is still a
+    FAILURE, which is the property that makes this test a guard. What it fixes
+    is a script that DOES accept its subcommand and had no argparse-shaped
+    place to say so, which would otherwise have forced either a false failure
+    or an argparse rewrite of a working CLI to satisfy a reader.
     """
     import ast
 
@@ -199,6 +208,16 @@ def _declared_subcommands(script: Path) -> set[str] | None:
 
     found: set[str] = set()
     for node in ast.walk(tree):
+        # style 3: a module-level `SUBCOMMANDS = ("check", "hook")`. Only a
+        # literal sequence of string constants counts -- a name or a call
+        # would be a promise this reader cannot check.
+        if isinstance(node, ast.Assign):
+            for tgt in node.targets:
+                if isinstance(tgt, ast.Name) and tgt.id == "SUBCOMMANDS" \
+                        and isinstance(node.value, (ast.Tuple, ast.List, ast.Set)):
+                    found.update(e.value for e in node.value.elts
+                                 if isinstance(e, ast.Constant)
+                                 and isinstance(e.value, str))
         if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
             continue
         if node.func.attr == "add_parser":
@@ -347,3 +366,29 @@ def test_the_view_commands_are_declared_in_the_graph():
         assert name in table, f"`agi {name}` is not declared"
     assert "--live" in table["view"].argv, "the human view is the live one"
     assert "llm" in table["view-llm"].argv
+
+
+def test_subcommand_reader_still_fails_a_script_that_declares_nothing(tmp_path):
+    """The widening at merge-up 3 must not have turned the guard toothless.
+
+    `_declared_subcommands` gained a third style (a module-level SUBCOMMANDS
+    literal). The property that makes the guard work is unchanged: a script
+    that declares NO vocabulary returns None, and the caller treats None as a
+    failure rather than a skip. Twice before, "nothing to check against" was
+    indistinguishable from "accepts anything" and a real bug stayed green — so
+    this asserts the negative case directly rather than trusting the widening.
+    """
+    silent = tmp_path / "silent.py"
+    silent.write_text("import sys\n\n\ndef main():\n    return 0\n")
+    assert _declared_subcommands(silent) is None
+
+    declared = tmp_path / "declared.py"
+    declared.write_text('SUBCOMMANDS = ("check", "hook")\n')
+    assert _declared_subcommands(declared) == {"check", "hook"}
+
+    # A name or a call is a promise the reader cannot check, so it counts for
+    # nothing — otherwise `SUBCOMMANDS = _discover()` would pass while saying
+    # nothing a reader can verify.
+    indirect = tmp_path / "indirect.py"
+    indirect.write_text("SUBCOMMANDS = _discover()\n")
+    assert _declared_subcommands(indirect) is None
