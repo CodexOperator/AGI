@@ -72,6 +72,10 @@ SUITE_CMD = "tests"
 
 STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
+# One persisted "when did the suite last run" timestamp (L4.81), written on
+# --suite completion and read by the no-suite rotation check so "a new
+# bin/*.py needs the suite" is a CHECK, not a memo (goal:g15.10).
+SUITE_TS_FILE = "verify-suite-ts.json"  # under <groot>/sessions/
 
 
 @dataclass
@@ -250,6 +254,84 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     return None, None
 
 
+# --- the bin freshness guard (a new bin/*.py needs the suite) ---------------
+
+
+def _bin_scripts(bin_dir: Path) -> list[Path]:
+    """Every *.py directly under bin/, the SAME universe test_bin_help_smoke
+    auto-enrolls. Reusing its exclusions (no `_`-prefix, no `__init__.py`)
+    rather than re-deriving a possibly-divergent second list."""
+    return [f for f in sorted(bin_dir.iterdir())
+            if f.is_file() and f.name.endswith(".py")
+            and not f.name.startswith("_") and f.name != "__init__.py"]
+
+
+def _git_tracked(bin_dir: Path) -> set[str]:
+    """Names under bin/ the working tree considers tracked (`git ls-files`).
+    A bin/ outside any git tree returns empty (all-untracked is a false alarm
+    a non-git checkout must not raise), and the mtime arm still rules there."""
+    try:
+        r = subprocess.run(["git", "ls-files", str(bin_dir)], cwd=bin_dir,
+                           capture_output=True, text=True, timeout=30)
+        return {Path(x).name for x in r.stdout.splitlines()}
+    except (OSError, subprocess.SubprocessError):
+        return set()
+
+
+def _read_suite_ts(groot: Path) -> float | None:
+    """Epoch of the last recorded --suite completion, or None if never."""
+    try:
+        doc = json.loads((Path(groot) / "sessions" / SUITE_TS_FILE)
+                         .read_text(encoding="utf-8"))
+        return float(doc["suite_ran_at"])
+    except (OSError, ValueError, TypeError, KeyError):
+        return None
+
+
+def _record_suite_ts(groot: Path) -> None:
+    """Persist the suite-completed timestamp (same idiom as _write_state)."""
+    path = Path(groot) / "sessions" / SUITE_TS_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"suite_ran_at": time.time()}), encoding="utf-8")
+
+
+def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
+                        tracked_of=None) -> CheckResult:
+    """FAIL ("SUITE REQUIRED") when a bin/*.py is untracked by git or newer
+    than the last recorded --suite run.
+
+    test_bin_help_smoke auto-enrolls ANY new script under bin/, so a fresh
+    bin/*.py can break the Prime's suite unseen by the no--suite rotation
+    check (L4.78). Three-way gate so it is a check, not a tripwire:
+      1. nothing untracked and nothing newer than the last suite -> PASS
+      2. an untracked bin/*.py -> FAIL, SUITE REQUIRED
+      3. a bin/*.py OLDER than the last suite run -> PASS even if it is
+         untracked (the "/ or newer" half is bidirectional)
+    No recorded timestamp ever -> conservative FAIL: a suite that has never
+    run is exactly the state we must surface, so the default is "required".
+    """
+    start = time.monotonic()
+    bdir = bin_dir or Path(__file__).resolve().parent
+    tracked = tracked_of(bdir) if tracked_of else _git_tracked(bdir)
+    suite_ts = _read_suite_ts(groot)
+    stale: list[str] = []
+    for f in _bin_scripts(bdir):
+        if suite_ts is not None and f.stat().st_mtime > suite_ts:
+            why = "(untracked; mtime newer than the last suite run)" \
+                if f.name not in tracked \
+                else "(mtime newer than the last suite run)"
+            stale.append(f"{f.name} {why}")
+    if suite_ts is None:
+        stale.append("no suite has EVER run (no recorded timestamp)")
+    elif not stale:
+        return CheckResult("bin-suite-fresh", "PASS",
+                           time.monotonic() - start,
+                           note="all bin/*.py older than the last recorded"
+                                " suite run")
+    return CheckResult("bin-suite-fresh", "FAIL", time.monotonic() - start,
+                       note="SUITE REQUIRED: " + "; ".join(stale))
+
+
 # --- the runner ------------------------------------------------------------
 
 
@@ -303,6 +385,12 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool) -> list[Check
     if suite:
         names.append(SUITE_CMD)
     results = [run_check(groot, n, verbose) for n in names]
+    if level in ("rotation", "full"):
+        # A fresh bin/*.py needs the suite, and needs it seen at rotation, not
+        # only under --suite. Before the count compare so node-count stays the
+        # closing check. (quick is the pre-commit set; the suite gate there
+        # would cost the commit a check it has not earned.)
+        results.append(check_bin_freshness(groot))
     smoke = next((r for r in results if r.name == "smoke"), None)
     if smoke is not None:
         results.append(compare_count(groot, smoke.number))
@@ -405,6 +493,12 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         results = run_level(groot, args.level, args.suite, args.verbose)
+        if args.suite and lock is not None:
+            # A COMPLETED suite run records its timestamp, pass or fail. The
+            # freshness check answers "has the suite run since this file
+            # changed", not "did it pass" -- pass/fail is the suite's own
+            # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
+            _record_suite_ts(groot)
     finally:
         if lock is not None and lock.exists():
             try:
