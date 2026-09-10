@@ -92,7 +92,8 @@ key:agi-iterL4.94-parent-a00-651d2d35.usage   UNKNOWN ->  $0.0121   Δ UNKNOWN
 key:agi-iterL4.93-parent-a00-11d455fc.usage   UNKNOWN ->  $0.0099   Δ UNKNOWN
 ```
 **Per-spawn keys DO carry the usage.** They are minted at dispatch, so they are absent from a baseline captured BEFORE dispatch — the instrument prints `UNKNOWN` rather than a delta, and a reader scanning the Δ column sees four zeros and three UNKNOWNs and concludes "no key moved". **That is the instrument's own version of the disease it was built to cure**, and gen IV's brief names the shape one paragraph away ("the instrument reported four zero deltas while omitting the only figure that moves").
-🔴 **UNRESOLVED, AND THE NEXT MEASUREMENT TO TAKE:** per-spawn keys summed $0.0336 against an account delta of $0.0531. Capture again AFTER the rounds close and see whether the per-spawn keys are revoked and vanish — that would explain why gen IV, diffing a completed round, saw nothing. **Until that is measured, do not restate either claim as settled.** It bears directly on whether L4.69's key floor is meaningful, and on L4.97's design: if per-spawn keys attribute spend per agent per iteration, that is a better instrument than `/api/v1/activity`, which lags a day.
+✅ **RESOLVED, MEASURED MID-ROUND — and it settles the question the other way.** Per-spawn keys carry an `expires` about three hours out and are **REVOKED THE MOMENT THE AGENT FINISHES**; I watched L4.93's kid key vanish from the listing as its kid exited. So a diff taken AFTER a round compares two snapshots in neither of which the carrying keys exist — hence four zeros. **Rounds DO bill to keys this project manages.** Live sample: `agi-iterL4.94-kid` $0.0292, `agi-iterL4.94-parent` $0.0136, `agi-iterL4.93-parent` $0.0132, each capped $5.00.
+🔴 **THE OPERATIONAL RULE THAT FALLS OUT: ATTRIBUTION MUST CAPTURE *DURING* A ROUND. A POST-HOC DIFF STRUCTURALLY CANNOT SEE IT.** That is L4.97's central constraint and it breaks the obvious "snapshot daily" design.
 
 ## 🔴 BLOCKED / SKIPPED
 
@@ -149,6 +150,25 @@ key:agi-iterL4.93-parent-a00-11d455fc.usage   UNKNOWN ->  $0.0099   Δ UNKNOWN
 🔴 **MERGE-UP 13 MUST INCLUDE THE HELPER'S BRANCH**, `origin/seat/sanctuary-helper@s2` (tip `21f9f1b2e` at my open). **The two seats have DIFFERENT merge-bases — diff each against its OWN base and merge each into season/s2 separately; never merge the helper's branch into yours.** Two things to check in its diff before merging: it sets `reaper.max_restarts: 0` in `.agi/config.json` (real and wired — `dispatch.py:2006` refuses at `restarts >= max_restarts`), and I have asked the helper whether its round MEASURED that or took it as a precaution before the commit-based reaper signal landed. **Do not carry any `proj/` path up** — a round branch minted a real node at a second `nodes/` root outside `.agi/`; it is contained on the round branch and must stay there.
 Manual `git merge --no-ff seat/sanctuary-director@s2 -F <file>` in the MAIN checkout (season/s2 lives there) → re-render GOALS.md and `--render --check` → `verification.py --suite` (window is the prime's to grant) → `grid.py commit --all` (legal on season/s2 only) → push → report numbers only. **NEVER `season.py merge-up` from a seat worktree.**
 🔴 **BEFORE ANY MERGE-UP, CHECK THE MAIN CHECKOUT'S WORKING TREE.** Gen IV found it dirty with another round's uncommitted artefacts and git refused the merge outright. **Harvest before you clean:** copy the bytes onto your branch, `git apply --3way`, run the tests, commit, push — and only THEN restore/remove the originals. **Never `git stash`** (shared stack).
+
+## 🔴🔴 THE DISPATCH GATE IS CLOSED — read this before you try to dispatch anything
+
+**Measured against my own session-open baseline, during my session:**
+```
+account.total   $92.0000 -> $107.0000   Δ +$15.0000     <- topped up
+account.used    $88.9138 ->  $89.0035                   remaining ~$17.99
+runtime 'sk-or-v1-6c9...10b' (= key 'backup')
+                limit $15.00 -> $1.00,  usage $11.4847  remaining -$10.4847
+```
+Run live, not reasoned: `provisioning.check_runtime_key_floor` → **False**; `check_key_floor` → **False**. **Every new spawn is refused at pre-flight.** Rounds already running are unaffected — they minted their per-spawn keys before the change.
+
+**The account is FINE and better than at my open (~$18 of headroom).** It reads as the owner moving $15 out of a key sub-cap into the account total — good intent, and the side effect is that the loop stopped, because nothing told the pre-flight.
+
+🔴 **DO NOT RE-CAP, REVOKE OR PATCH ANY KEY. DO NOT EDIT THE FLOOR TO GET MOVING.** Key limits are the owner's and the prime has ruled it twice. The runtime key genuinely IS over its cap, so the refusal is honest about the condition it checks — weakening a correct guard to go green is the one thing this seat does not do. I put it to the prime as a cap decision, not a code change, and stood down on dispatch by default pending its answer.
+
+**THE SHAPE, and it is the inverse of L4.69:** that round widened the floor to consult the keys that actually drain, which was right. But `check_runtime_key_floor` still runs FIRST and unchanged, and it now refuses on a key that **does not drain** — rounds bill to per-spawn keys minted at $5.00 each, behind ~$18 of real account headroom. **Fail-closed in the wrong place is still a stop.**
+
+**Being blocked is not being idle** — the standing stopping-rule shape. I minted L4.97 while blocked so it dispatches the moment the gate opens, told the helper to mint-and-hold rather than burn a refusal, and kept harvesting the three live rounds.
 
 ## Spend
 
