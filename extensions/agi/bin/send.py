@@ -47,12 +47,16 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+_BIN = Path(__file__).resolve().parent
+sys.path.insert(0, str(_BIN))
+sys.path.insert(0, str(_BIN.parent / "src"))
 import locations  # noqa: E402
 import spawn_gate  # noqa: E402
+from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
 #: Subdirectory under sessions/ for per-recipient inbox files.
@@ -885,6 +889,124 @@ def prime_excluded(croot: Path, round_: str) -> int:
 # ── CLI ────────────────────────────────────────────────────────────────────
 
 
+# --------------------------------------------------------------------------- #
+# whois — authority verified against the graph, never against the message
+# (hypothesis:l4-authority-verified-against-the-graph-not-the-message)
+#
+# A named sender offers a session_ref as proof of identity. The only
+# authoritative registry is config:seats, and the only trustworthy copy of it
+# is the PUSHED ref, not the working tree — a working-tree file is exactly what
+# an impersonator benefits from and what a stale worktree gets wrong. Read it
+# with `git show <pushed-ref>:<path>`, parse it with the SAME node-loader the
+# engine already uses (graph_core frontmatter, the path hierarchy.load_seats
+# takes — never a new hand-rolled parser), and label every answer:
+#   * VERIFIED + the commit sha the answer came from, when the pushed ref is
+#     reachable (provenance IN the answer, always);
+#   * UNVERIFIED + non-zero exit, when it is not — never a silent success.
+# --------------------------------------------------------------------------- #
+
+#: The pushed branch that carries config:seats (`.agi/nodes/.geometry/seats.md`).
+#: The prime updates and pushes it at every rotation, so its HEAD is the
+#: authoritative answer after a fetch — never the local working tree.
+_PUSHED_SEATS = "origin/season/s2"
+_SEATS_REPO_PATH = ".agi/nodes/.geometry/seats.md"
+
+
+def _load_seats_rows(content: str) -> list:
+    """Parse a seats.md byte-string with the engine's node-loader (the same
+    path hierarchy.load_seats uses) — reusing the ONE parse, never adding a
+    sixth hand-rolled reader."""
+    with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as tf:
+        tf.write(content)
+        tmp = Path(tf.name)
+    try:
+        nf = _fm.load_node_file(tmp)
+        return [dict(r) for r in ((nf.frontmatter or {}).get("seats") or [])
+                if isinstance(r, dict)]
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+
+
+def _run_git(root: Path, args: list):
+    """Run a git READ from the project root; None on any failure."""
+    try:
+        return subprocess.run(["git", *args], cwd=str(root),
+                              capture_output=True, text=True, timeout=30)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+
+
+def _pushed_seats(root: Path, ref: str, do_fetch: bool):
+    """Return (rows, commit_sha) read from the PUSHED ref, or None if the
+    pushed authority cannot be reached. Fetches first (unless disabled), then
+    `git rev-parse` for the provenance sha and `git show` for the file."""
+    if do_fetch:
+        fetch = _run_git(root, ["fetch", "origin", "season/s2"])
+        if fetch is None or fetch.returncode != 0:
+            return None
+    sha = _run_git(root, ["rev-parse", ref])
+    if sha is None or sha.returncode != 0:
+        return None
+    shown = _run_git(root, ["show", f"{ref}:{_SEATS_REPO_PATH}"])
+    if shown is None or shown.returncode != 0:
+        return None
+    return _load_seats_rows(shown.stdout), sha.stdout.strip()
+
+
+def _locally_loaded_rows(root: Path) -> list:
+    """Fallback rows from the WORKING-TREE file, used only for the UNVERIFIED
+    fallback path — never the authority, always clearly labelled so."""
+    p = root / "nodes" / ".geometry" / "seats.md"
+    if not p.is_file():
+        return []
+    try:
+        return _load_seats_rows(p.read_text())
+    except Exception:                                            # noqa: BLE001
+        return []
+
+
+def _resolve_rows(rows: list, session_ref: str, claim: str | None) -> str:
+    """Answer the is-this-who-they-say question for one ref. Two directions:
+    with no --claim, name the seat + role the ref belongs to; with
+    --claim NAME, answer whether this ref IS that row (a ref present in the
+    table but under a DIFFERENT name/role answers NO — the impersonation case)."""
+    hits = [r for r in rows if r.get("session_ref") == session_ref]
+    if not hits:
+        return f"NO-MATCH: {session_ref} belongs to no seat row"
+    who = hits[0]
+    name = who.get("name", "?")
+    role = who.get("role", "?")
+    if claim:
+        ok = (claim == name) or (claim == role)
+        verdict = "IS-AUTHORIZED" if ok else "IS-NOT-AUTHORIZED"
+        return (f"{verdict}: {session_ref} vs claim {claim!r} "
+                f"-> actual seat {name}, role {role}")
+    return f"SEAT: {session_ref} -> seat {name}, role {role}"
+
+
+def whois(root: Path, session_ref: str, claim: str | None,
+          source: str = _PUSHED_SEATS, do_fetch: bool = True):
+    """Resolve session_ref against the PUSHED config:seats. Returns
+    (exit, text): exit 0 = authoritative, exit 1 = UNVERIFIED. Provenance
+    (source ref + commit sha) is present in every verified answer."""
+    seeded = _pushed_seats(root, source, do_fetch)
+    if seeded is None:
+        # Pushed authority unreachable. Do NOT silently answer from the working
+        # tree: answer, but label it UNVERIFIED and exit non-zero. An
+        # unauthoritative answer must never exit 0.
+        answer = _resolve_rows(_locally_loaded_rows(root), session_ref, claim)
+        text = (f"UNVERIFIED {session_ref}: pushed ref {source!r} unreachable; "
+                f"reading working tree, NOT authoritative — treat as unproven\n"
+                + answer)
+        return 1, text
+    rows, sha = seeded
+    answer = _resolve_rows(rows, session_ref, claim)
+    return 0, f"{answer}  (verified against {source} @ {sha})"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="one-verb agent comms")
     # shared options on every subparser (and on the main parser) so the flags
@@ -1005,6 +1127,22 @@ def main(argv: list[str] | None = None) -> int:
     p_report.add_argument("--ref", required=True,
                           help="ts of the [ask] block being answered")
     p_report.add_argument("text", nargs="*", help="message text")
+
+    p_whois = sub.add_parser(
+        "whois", parents=[common],
+        help="resolve a claimed session_ref against the PUSHED config:seats "
+             "(authority is the graph, never the message; hypothesis:l4-"
+             "authority-verified-against-the-graph-not-the-message)")
+    p_whois.add_argument("session_ref",
+                         help="the session_ref (e.g. 7902ac) to verify")
+    p_whois.add_argument("--claim", default=None,
+                         help="claimed seat name or role; answer whether this "
+                              "ref IS that row (impersonation check)")
+    p_whois.add_argument("--source", default=_PUSHED_SEATS,
+                         help="git ref to read seats from (default: pushed "
+                              "origin/season/s2)")
+    p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",
+                         help="skip the `git fetch` before reading")
 
     p_esc = sub.add_parser("escalate", parents=[common],
                   help="post a concern, or escalate to owner via liaison")
@@ -1147,6 +1285,12 @@ def main(argv: list[str] | None = None) -> int:
         print(report(croot, _detect_sender(sender), args.asker, args.ref,
                      text, sender, room=args.report_room).resolve())
         return 0
+
+    if args.verb == "whois":
+        rc, text = whois(root, args.session_ref, args.claim, args.source,
+                         not args.no_fetch)
+        print(text)
+        return rc
 
     if args.verb == "escalate":
         text = " ".join(args.text) if args.text else ""
