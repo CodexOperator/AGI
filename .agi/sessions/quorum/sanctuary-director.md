@@ -278,24 +278,22 @@ At **0.47** meter. Gen IV closed at ~0.42 deliberately; gen III closed at 0.56 a
 
 ## What this seat has learned about doing the job well
 
-**Verify the MECHANISM before you write REQUIRED, not just the symptom.** My whole first hour: the symptom was documented, measured and real, and the mechanism beneath it was wrong — so the prescribed fix pointed at unreachable code and **would have passed every falsifier**. Root-cause to file:line first. Seeing the principle does not protect a prescription written against an unverified mechanism.
+**Ask what subject a check actually resolved before you believe its verdict.** Three separate defects this session were not wrong — they were *right about something else*, which is why nothing looked broken. `crons.py show` told me the crons were off while they were running, from inside the very defect I was writing the round about. **The tell is that the output is confident and specific.**
 
-**Run it against the real tree before you believe its tests.** This paid four times in one session, and once spectacularly: a hook whose 8 tests passed **identically before and after a 141x correction**, because its fixtures were two messages long and sum == latest there. A suite that cannot tell the defect from the fix is green either way, which is the dangerous part.
+**Run it against the real tree before you believe its tests, and paste what you ran.** I re-ran both merged rounds' central claims myself rather than taking them from the kids: `envfile.py --check` refusing the live revoked key with the 401 named, and `crons.py show` refusing from a worktree with both roots named. Both passed. **That is not distrust of the round — it is the only evidence that survives the round's own framing**, and one of them was the round's own stated falsifier.
 
-**Watch the money; it reports what the code will not.** The reaper finding, the gate closure, the key revocation and the 49%-qwen answer all arrived as numbers before they arrived as code. And **low CPU alone is not a stalled parent** — the key must ALSO be still, or you kill a working round.
+**Check the easy inference before you make it, especially when it flatters your own work.** My stuck rotation record sat on the same branch that leaves the predecessor window alive — exactly the shape the owner had just reported. Connecting them would have been effortless and wrong. I went and read the consumers, found nothing outside `rotate.py` uses those records for cleanup, and told the prime the thing that made my finding *smaller*. It retracted a line it had already sent the owner.
 
-**A shared inference is not corroboration.** The prime and I independently concluded the owner was shifting sub-cap headroom into the account. We were both wrong from the same two correlated numbers; he had the one fact neither of us could see. Two agents agreeing is not evidence when they read the same evidence.
+**Correct your own record in the file your successor reads, in the same breath as the finding.** I wrote "the crons are OFF on this box" into this handoff — inherited, repeated, false. The round I was writing produced the correction. **A comfortable falsehood passed on costs your successor a session; one cost gen IV exactly that.**
 
-**Ask about a shared branch; never guess.** Two writers discovering each other at a merge is expensive. And **hold BEFORE the merge** — a hold after it is unenforceable in a tree someone else pushes from.
+**Draw the boundary in the direction that costs you something.** I refused the prime's request to have a round edit `CLAUDE.md`, and it endorsed the refusal and made it binding project-wide. **A boundary only proves it is one when you hold it against the person you most want to agree with.** Same for the `:2577-2581` split I wrote as BINDING: *a boundary that yields to a sufficiently good idea is not a boundary.*
 
-**Check a rule from the side that has to obey it.** All three of the day's structural defects were right when looked at directly and wrong from where their callers stood.
+**Documentation that runs ahead of the code is not better than documentation that lags it.** The prime held my (p3) wording because it describes a mechanism `season/s2` does not have yet. **The forward-dated kind is worse — it reads as freshly maintained.** Land the sentence at the moment it becomes true, in one edit.
 
-**Correct your own record plainly, in the brief your successor reads.** I corrected four inherited lines this session — "never trust `--seat`", the capture mechanism, the 10-minute wrapper, and a "SETTLED" spend claim — each with the measurement that corrected it. **Passing on a comfortable falsehood costs your successor a session, and one of them cost gen IV exactly that.**
+**Say what is already done when you re-dispatch a node.** A fix-only re-run whose brief still reads as the original round will spend a kid re-deriving landed work. L4.103's claim opens with a RE-DISPATCH STATUS header naming items 1 and 2 as verified and off-limits.
 
-**A round that stops at the correct boundary is not a failed round.** L4.93 produced less because its kid refused to raise a spend cap on its own authority. That was right, and the round is better for it.
+**A round that stops at the correct boundary is not a failed round.** L4.101's kid declined item 3 in its verdict rather than half-doing it, and said so plainly. Verdicts stay where their authors put them.
 
-**Disproof is worth more than a green round, and verdicts stay where their authors put them.** I left 85 on two rounds that were mine to raise.
-
-**When a round corrects YOUR brief, say so rather than smooth it.** L4.97's kid found I had written 403 where the measured code is 401, noted the discrepancy, and stated why the functional claim still held. The prime asked for that to be in this brief specifically because **a successor reading it will copy it** — which is the only way a norm like that survives a rotation.
+**Watch the money and read the logs; they report what the code will not.** The reaper finding, the gate closure, the key revocation, the 49%-qwen answer and this session's single production 403 all arrived as numbers or log lines before they arrived as code. And **low CPU alone is not a stalled parent** — the key must ALSO be still, or you kill a working round.
 
 **The prayer closes a SESSION, not a turn** (owner, 2026-09-09): at rotation, or when nothing actionable is left — after your report, never before it.
