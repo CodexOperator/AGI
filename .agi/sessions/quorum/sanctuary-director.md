@@ -151,19 +151,10 @@ envfile.py --check -> "[secrets] ok: … satisfies required keys: OPENROUTER_API
 Killing the stalled L4.96 parent produced `a00-236dea84-r1`. **The wrapper was STILL REAPING AT 18 MINUTES**, so the inherited "the dispatch wrapper exits after ~10 minutes, after that kill the pi pid directly" is **not a rule you can act on**. Kill the WRAPPER first; verify with a second sweep.
 The restart was legitimate by the reaper's own logic (no commit on the branch) and useless in fact (kid done, work staged), so it re-did finished work. 🔴 **THE COMMIT SIGNAL'S BLIND SPOT: a parent that finishes and never commits is indistinguishable from one that died before starting.** I adopted `reaper.max_restarts: 0` for this, **documented as a MITIGATION with its cause open** — the cause is the L4.75 stall shape, whose remedy is the parent brief or the model, and that is the prime's.
 
-## 🔴 A "SETTLED" SPEND CLAIM THAT IS WRONG — verify before you quote it
+## 🔴 PER-SPAWN KEYS — why a previous generation concluded the opposite
 
-My inherited brief says, in bold, that a round "bills to the ACCOUNT and to no key this project manages", on a measurement showing four zero key deltas. **I measured otherwise with three rounds live:**
-```
-account.used                                 $88.9138 -> $88.9669   Δ $+0.0531
-key:backup / key:agi-2 / key:agi / runtime                          Δ $0.0000 each
-key:agi-iterL4.94-kid-a00-fd8baa86.usage      UNKNOWN ->  $0.0116   Δ UNKNOWN
-key:agi-iterL4.94-parent-a00-651d2d35.usage   UNKNOWN ->  $0.0121   Δ UNKNOWN
-key:agi-iterL4.93-parent-a00-11d455fc.usage   UNKNOWN ->  $0.0099   Δ UNKNOWN
-```
-**Per-spawn keys DO carry the usage.** They are minted at dispatch, so they are absent from a baseline captured BEFORE dispatch — the instrument prints `UNKNOWN` rather than a delta, and a reader scanning the Δ column sees four zeros and three UNKNOWNs and concludes "no key moved". **That is the instrument's own version of the disease it was built to cure**, and gen IV's brief names the shape one paragraph away ("the instrument reported four zero deltas while omitting the only figure that moves").
-✅ **RESOLVED, MEASURED MID-ROUND — and it settles the question the other way.** Per-spawn keys carry an `expires` about three hours out and are **REVOKED THE MOMENT THE AGENT FINISHES**; I watched L4.93's kid key vanish from the listing as its kid exited. So a diff taken AFTER a round compares two snapshots in neither of which the carrying keys exist — hence four zeros. **Rounds DO bill to keys this project manages.** Live sample: `agi-iterL4.94-kid` $0.0292, `agi-iterL4.94-parent` $0.0136, `agi-iterL4.93-parent` $0.0132, each capped $5.00.
-🔴 **THE OPERATIONAL RULE THAT FALLS OUT: ATTRIBUTION MUST CAPTURE *DURING* A ROUND. A POST-HOC DIFF STRUCTURALLY CANNOT SEE IT.** That is L4.97's central constraint and it breaks the obvious "snapshot daily" design.
+**Rounds DO bill to keys this project manages.** Per-spawn keys are minted at dispatch with $5.00 caps and an `expires` ~3h out, and are **REVOKED THE MOMENT THE AGENT FINISHES** — I watched L4.93's kid key vanish as its kid exited. So a diff taken AFTER a round compares two snapshots in **neither of which the carrying keys exist**, and `capture`/`diff` prints `UNKNOWN` rather than a delta for a key absent from the baseline. Gen IV saw four zeros in the Δ column and recorded "rounds bill to the ACCOUNT and to no key this project manages" as SETTLED. It is not.
+🔴 **THE RULE THAT FALLS OUT, and it is why L4.97 insisted on it: A POST-HOC DIFF CANNOT SEE AN EPHEMERAL RESOURCE — YOU MUST OBSERVE DURING.** The prime accepted this as reversing itself twice: its first inference (spend leaves through minted per-spawn keys) was RIGHT, and its withdrawal of it was WRONG — it had tested `agi-2`, a LONG-LIVED minted key, and drawn a confident conclusion from the wrong one.
 
 ## 🔴 BLOCKED / SKIPPED
 
@@ -265,12 +256,22 @@ At **0.47** meter. Gen IV closed at ~0.42 deliberately; gen III closed at 0.56 a
 
 ## What this seat has learned about doing the job well
 
-**Watch the money; it reports defects the code will not.** The reaper finding came from checking the key between harvests, not from reading `dispatch.py`.
-**Root-cause before you brief, and put the measurement IN the claim.** A one-line suspicion handed to a kid becomes a tenth copy of the wrong abstraction.
-**The direction of a fix is sharper than the fix.** State rules as directions and give the dangerous half its own falsifier.
-**Verify the mechanism, not just the symptom, before you write REQUIRED.** My whole first hour was this: the symptom was documented, measured and real, and the mechanism beneath it was wrong — so the prescribed fix pointed at unreachable code. **The falsifiers would all have passed.**
-**Check citations in a document made of citations.** Sampling fifteen refs takes two minutes.
-**Correct your own record, plainly, in the brief your successor reads.** I corrected two inherited lines above with the measurement that corrected them. Passing on a comfortable falsehood costs your successor a session.
-**Disproof is worth more than a green round, and verdicts stay where their authors put them.**
+**Verify the MECHANISM before you write REQUIRED, not just the symptom.** My whole first hour: the symptom was documented, measured and real, and the mechanism beneath it was wrong — so the prescribed fix pointed at unreachable code and **would have passed every falsifier**. Root-cause to file:line first. Seeing the principle does not protect a prescription written against an unverified mechanism.
+
+**Run it against the real tree before you believe its tests.** This paid four times in one session, and once spectacularly: a hook whose 8 tests passed **identically before and after a 141x correction**, because its fixtures were two messages long and sum == latest there. A suite that cannot tell the defect from the fix is green either way, which is the dangerous part.
+
+**Watch the money; it reports what the code will not.** The reaper finding, the gate closure, the key revocation and the 49%-qwen answer all arrived as numbers before they arrived as code. And **low CPU alone is not a stalled parent** — the key must ALSO be still, or you kill a working round.
+
+**A shared inference is not corroboration.** The prime and I independently concluded the owner was shifting sub-cap headroom into the account. We were both wrong from the same two correlated numbers; he had the one fact neither of us could see. Two agents agreeing is not evidence when they read the same evidence.
+
+**Ask about a shared branch; never guess.** Two writers discovering each other at a merge is expensive. And **hold BEFORE the merge** — a hold after it is unenforceable in a tree someone else pushes from.
+
+**Check a rule from the side that has to obey it.** All three of the day's structural defects were right when looked at directly and wrong from where their callers stood.
+
+**Correct your own record plainly, in the brief your successor reads.** I corrected four inherited lines this session — "never trust `--seat`", the capture mechanism, the 10-minute wrapper, and a "SETTLED" spend claim — each with the measurement that corrected it. **Passing on a comfortable falsehood costs your successor a session, and one of them cost gen IV exactly that.**
+
+**A round that stops at the correct boundary is not a failed round.** L4.93 produced less because its kid refused to raise a spend cap on its own authority. That was right, and the round is better for it.
+
+**Disproof is worth more than a green round, and verdicts stay where their authors put them.** I left 85 on two rounds that were mine to raise.
 
 **The prayer closes a SESSION, not a turn** (owner, 2026-09-09): at rotation, or when nothing actionable is left — after your report, never before it.
