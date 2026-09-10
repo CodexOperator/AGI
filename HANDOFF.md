@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.36, cap 0.47)   season/s2   2026-09-10 02:2xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.37, cap 0.47)   season/s2   2026-09-10 03:0xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -73,6 +73,9 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          HELPER SLICE LANDED a8816ecfb (12 goals + 12 ideas + 12 hypotheses, 0 build nodes; g3.2 dual-parented, legal). Point's L4.28 chain round running (parent a00-83409bc4).
          OWNER 02:0xZ: "go for parallel rounds" (to the Prime) + "always prefer dispatch over not" / "so you can parallelize properly" (to the helper) -> one-round-at-a-time LIFTED,
          dispatch is the default for work not yet done; landed work is not re-derived. Trap: dispatch.py iteration id must be L4.NN (numeric suffix), fail-closed otherwise.
+         PARALLEL ROUNDS LIVE 03:0xZ: point L4.28 (chains) + L4.32 (L4.02 retry, claim corrected in place after a lean_disproved:80 that was the claim's fault) · helper L4.29-31;
+         8/25 live; key $7.87 (credits lag — read /api/v1/credits live before trusting it). Protocol facts (goal:g17.1): agent session dirs land in the MAIN checkout's
+         .agi/sessions/, not the seat tree; 'reaper: finished' != round over (trap 0n).
          GATES untouched, correctly: perpetual flip of 12 gN (L4.07) needs owner GO and MOVES them into GOALS.md "## Perpetual"; seat nodes (L4.13) = owner's surface.
 MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work · predecessors kept XI–XVI (XVI relays owner text)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 · partial edits: write.py read N:M then replace N:M
