@@ -336,6 +336,223 @@ def check_body_tables(root: Path) -> list:
 
 
 # --------------------------------------------------------------------------- #
+# Class 7 & 8 — the role card grammar and the decides.writes join
+# (hypothesis:l4-card-grammar-and-the-written-by-join)
+#
+# A CARD is a `seat` node under nodes/seat/ (the plan's migration target under
+# goal:g17) whose frontmatter carries the typed duty slice: what/where/cost/to/
+# trigger/channel/options/decides/writes. CLASS 7 is the per-field grammar;
+# CLASS 8 is the join from decides.writes back to the written-by type.
+#
+# WHERE THE MATRIX LIVES: the duty caps (at most 2 reads, at most 2 tells,
+# exactly 1 decides) are Belam XVI's input (plan §2 -> "at most 2 / at most 2 /
+# exactly 1"). A card may override them via `caps: {tracks, tells}` on the
+# ladder frontmatter, so "the matrix as declared" is the ladder's own numbers.
+# THE ASYMMETRY IS A REQUIREMENT: declaring MORE than the matrix allows REFUSES
+# (a violation, exit nonzero); declaring FEWER WARNS and exits ZERO.
+#
+# CARD VALIDATION LIVES HERE, IN hierarchy.py, DELIBERATELY NOT IN write_guard.py
+# -- whose whole decision is byte identity. This is a recorded deviation from
+# the prime's own earlier position (A:152). written_by is read through the
+# shared links.parse_written_by parser, never a second one (goal:s17); .where
+# resolves through links.link_path, never a second resolver.
+# --------------------------------------------------------------------------- #
+from dataclasses import dataclass, field
+
+# `wake` IS DELIBERATELY ABSENT from .cost: a track that needs another session
+# to answer is polling, and polling rebuilds the chatter the owner removed.
+_CLOSED_COST = {"read", "run"}
+# `brief` IS NOT IN THIS SET AND DOES NOT EXIST (A:162): a card naming it is a
+# violation, and the validator must not add it.
+_CLOSED_CHANNEL = {"dm", "room", "ask", "report", "escalate", "audience",
+                   "vote"}
+# staccato is trigger-bound: a cadence-looking trigger is a violation.
+_CADENCE_RE = re.compile(r"every|hourly|daily|periodic", re.I)
+_DEF_TRACKS = 2
+_DEF_TELLS = 2
+
+
+@dataclass
+class _CheckResult:
+    """Card checkers can both refuse (violations) and warn (fewer than the
+    matrix). Classes 1-6 return plain lists and stay untouched."""
+    violations: list = field(default_factory=list)
+    warnings: list = field(default_factory=list)
+
+
+def _matrix_caps(ladder: dict) -> tuple[int, int]:
+    caps = ladder.get("caps") if isinstance(ladder.get("caps"), dict) else {}
+    t = int(caps.get("tracks", _DEF_TRACKS))
+    tl = int(caps.get("tells", _DEF_TELLS))
+    return t, tl
+
+
+def load_cards(root: Path) -> list:
+    """The `seat` card nodes under nodes/seat/, each with its frontmatter."""
+    d = Path(root) / "nodes" / "seat"
+    if not d.is_dir():
+        return []
+    out = []
+    for p in sorted(d.glob("*.md")):
+        try:
+            nf = _fm.load_node_file(p)
+            fm = dict(nf.frontmatter or {})
+        except Exception:                                              # noqa: BLE001
+            continue
+        out.append((p.stem, fm))
+    return out
+
+
+def check_card_grammar(root: Path):
+    """Class 7 — per-field card grammar. MORE than the matrix refuses;
+    FEWER warns. wake/brief/cadence-lint each refuse by reason."""
+    res = _CheckResult()
+    cards = load_cards(root)
+    if not cards:
+        return res
+    ladder = load_ladder(root)
+    track_cap, tell_cap = _matrix_caps(ladder)
+    from links import link_path  # the EXISTING resolver, never a second one
+    roles = {str(r.get("role", "")) for r in ladder.get("roles") or []
+             if isinstance(r, dict)}
+    seats = {str(s.get("name", "")) for s in load_seats(root)}
+    known_targets = {x for x in (roles | seats) if x}
+
+    for cid, c in cards:
+        def row_v(field, msg):
+            return f"card_grammar[{field}]: {cid} {msg}"
+        # .what — at most 80 chars
+        what = str(c.get("what", "") or "")
+        if len(what) > 80:
+            res.violations.append(row_v("what", f"is {len(what)} chars, over 80"))
+        # .where — resolves through the EXISTING links.py resolver
+        where = str(c.get("where", "") or "").strip()
+        if where:
+            try:
+                p = link_path(root, where)
+            except Exception:                                          # noqa: BLE001
+                p = None
+            if p is None or not p.exists():
+                res.violations.append(row_v(
+                    "where", f"'{where}' does not resolve (broken_links must stay 0)"))
+        # .cost — CLOSED to {read, run}; wake deliberately absent
+        cost = str(c.get("cost", "") or "").strip().lower()
+        if cost and cost not in _CLOSED_COST:
+            res.violations.append(row_v(
+                "cost", f"'{cost}' not in {{read, run}}; `wake` is deliberately absent"))
+        # .to — a ladder role or a registered seat, FAIL-CLOSED
+        to = str(c.get("to", "") or "").strip()
+        if to and to not in known_targets:
+            res.violations.append(row_v(
+                "to", f"names '{to}', not a ladder role or registered seat (fail-closed)"))
+        # .trigger — an EVENT; cadence lint refuses /every|hourly|daily|periodic/i
+        trig = str(c.get("trigger", "") or "")
+        if trig and _CADENCE_RE.search(trig):
+            res.violations.append(row_v(
+                "trigger", f"'{trig}' looks like a cadence, not an event "
+                            f"(staccato is trigger-bound)"))
+        # .channel — CLOSED set; brief is NOT in it and does not exist
+        ch = str(c.get("channel", "") or "").strip().lower()
+        if ch and ch not in _CLOSED_CHANNEL:
+            res.violations.append(row_v(
+                "channel", f"'{ch}' not in {{dm,room,ask,report,escalate,"
+                            f"audience,vote}}; `brief` does not exist"))
+        # options 2-4 lowercase CLOSED tokens
+        opts = c.get("options")
+        if isinstance(opts, list) and opts:
+            if not (2 <= len(opts) <= 4):
+                res.violations.append(row_v(
+                    "options", f"has {len(opts)} options, must be 2-4"))
+            bad = [o for o in opts if str(o) != str(o).lower()]
+            if bad:
+                res.violations.append(row_v(
+                    "options", f"must be lowercase closed tokens, found {bad}"))
+        # decides — EXACTLY ONE (the owner's sentence is singular)
+        dec = c.get("decides")
+        if dec is None:
+            res.warnings.append(row_v("decides", "declares none (matrix wants exactly 1)"))
+        elif isinstance(dec, (list, tuple, set)) or "," in str(dec) or ";" in str(dec):
+            res.violations.append(row_v(
+                "decides", "must be EXACTLY ONE decision, got more than one"))
+        # THE ASYMMETRY (MORE refuses, FEWER warns)
+        tracks = c.get("tracks") or []
+        tells = c.get("tells") or []
+        if isinstance(tracks, list) and len(tracks) > track_cap:
+            res.violations.append(row_v(
+                "tracks", f"{len(tracks)} tracks > matrix cap {track_cap} (MORE refuses)"))
+        elif isinstance(tracks, list) and tracks and len(tracks) < track_cap:
+            res.warnings.append(row_v(
+                "tracks", f"{len(tracks)} tracks < matrix cap {track_cap} (fewer warns)"))
+        if isinstance(tells, list) and len(tells) > tell_cap:
+            res.violations.append(row_v(
+                "tells", f"{len(tells)} tells > matrix cap {tell_cap} (MORE refuses)"))
+        elif isinstance(tells, list) and tells and len(tells) < tell_cap:
+            res.warnings.append(row_v(
+                "tells", f"{len(tells)} tells < matrix cap {tell_cap} (fewer warns)"))
+    return res
+
+
+def _type_written_by(root: Path, ntype: str):
+    """(admitted, seat_predicate) for a node type's schema, read through the
+    SHARED links.parse_written_by — never a second parser."""
+    from links import parse_written_by
+    p = Path(root) / "context" / "schemas" / f"[{ntype}].md"
+    if not p.is_file():
+        return None, None
+    try:
+        nf = _fm.load_node_file(p)
+    except Exception:                                                  # noqa: BLE001
+        return None, None
+    fm = nf.frontmatter or {}
+    admitted = parse_written_by(fm.get("written_by"))
+    pred = fm.get("seat_predicate")
+    return admitted, (str(pred) if pred not in (None, "") else None)
+
+
+_PRED_NS = {"__builtins__": {"True": True, "False": False, "None": None}}
+
+
+def check_written_by_join(root: Path):
+    """Class 8 — the §1↔§2 join: a card whose decides.writes names a type must
+    have THAT type's written_by admit this row's role AND satisfy its
+    seat_predicate. The parse is links.parse_written_by, the one the write
+    enforcer already uses, so a list or comma value reads one way."""
+    res = _CheckResult()
+    for cid, c in load_cards(root):
+        writes = c.get("writes")
+        if writes in (None, "", "none"):
+            continue
+        ntype = writes if isinstance(writes, str) else ",".join(writes)
+        ntype = ntype.strip()
+        if not ntype or ntype == "none":
+            continue
+        if "," in ntype or " " in ntype:
+            res.violations.append(
+                f"written_by_join: {cid} decides.writes names more than one type "
+                f"('{ntype}') — must be one type, a chain, or none")
+            continue
+        admitted, pred = _type_written_by(root, ntype)
+        if admitted is None:
+            continue  # type declares no written_by -> gates nothing
+        role = str(c.get("role", "") or cid)
+        if role not in admitted:
+            res.violations.append(
+                f"written_by_join: {cid} role '{role}' writes {ntype}, but "
+                f"[{ntype}] written_by admits {{ {', '.join(sorted(admitted))} }}")
+            continue
+        if pred is not None:
+            try:
+                ok = bool(eval(pred, _PRED_NS, {"role": role, "card": c}))   # noqa: S307
+            except Exception:                                          # noqa: BLE001
+                ok = False
+            if not ok:
+                res.violations.append(
+                    f"written_by_join: {cid} fails [{ntype}] seat_predicate "
+                    f"'{pred}' for role '{role}'")
+    return res
+
+
+# --------------------------------------------------------------------------- #
 # Checker driver
 # --------------------------------------------------------------------------- #
 CHECKERS = [
@@ -345,15 +562,27 @@ CHECKERS = [
     ("director_kids", check_director_kids),
     ("unresolved", check_unresolved),
     ("body_table", check_body_tables),
+    ("card_grammar", check_card_grammar),
+    ("written_by_join", check_written_by_join),
 ]
 
 
-def run_check(root: Path) -> list:
-    """All violations on `root`, ordered by class then message."""
-    out = []
+def run_check(root: Path):
+    """(violations, warnings) on `root`, ordered by class then message.
+
+    Classes 1-6 return plain lists and are wired as before; classes 7-8 return
+    _CheckResult so a card can warn (fewer than the matrix) without flipping
+    the exit code while still refusing (more than the matrix)."""
+    v = []
+    w = []
     for _name, fn in CHECKERS:
-        out.extend(fn(root))
-    return out
+        r = fn(root)
+        if isinstance(r, _CheckResult):
+            v.extend(r.violations)
+            w.extend(r.warnings)
+        else:
+            v.extend(r)
+    return v, w
 
 
 # --------------------------------------------------------------------------- #
@@ -424,13 +653,18 @@ def main(argv: list[str] | None = None) -> int:
     do_check = args.check or args.mode != "render"
     if args.mode == "render":
         sys.stdout.write(render(root))
-        return 0 if not run_check(root) else 0  # render never fails the run
+        return 0  # render never fails the run
 
-    violations = run_check(root)
+    violations, warnings = run_check(root)
     if violations:
         print("\n".join(violations))
         print(f"\nhierarchy.py --check: {len(violations)} violation(s).")
         return 1
+    if warnings:
+        print("\n".join(warnings))
+        print(f"\nhierarchy.py --check: clean but {len(warnings)} warning(s) "
+              f"(fewer than the matrix declares).")
+        return 0
     print("hierarchy.py --check: clean — every seat accounted, no drift.")
     return 0
 
