@@ -897,3 +897,116 @@ def test_capture_writes_a_file_and_diff_reads_it_back(tmp_path, monkeypatch, cap
         "control: a stable shape must print zero deltas"
 
 
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-floor-must-watch-the-account — the pre-flight's account
+# leg. Rounds bill to the ACCOUNT (measured $+0.0977 against $0.0000 on every
+# key for one dispatched round), so a key floor that reads every key full can
+# still be blind to a draining account. A configured
+# `provisioning.min_account_remaining_usd` refuses a spawn when the account's
+# remaining credits sit at/below the floor — ADDITIVE to the key floor, never
+# replacing it, and OPT-IN (absent config = today's behaviour, untouched).
+# Each test asserts ONE of the hypothesis's falsifiers. New tests only: no
+# existing test is edited, the `live` marker and ROOT are not repointed.
+# --------------------------------------------------------------------------
+
+
+def _fake_balance(remaining=0.5, total=92.0, used=91.5):
+    """A readable account reading. The account floor's WHOLE case is a spare
+    account number, so the plumbing is a one-liner here."""
+    return (total, used, remaining)
+
+
+def test_l4a_below_floor_named_config_refuses_a_spawn(monkeypatch):
+    """falsifier (a) — THE falsifier. A spawn is refused when the ACCOUNT
+    reads at/below the floor while EVERY key reads full; this is the case the
+    key floor cannot see and the one unguarded today. (The dispatch pre-flight
+    returns 1 on any check returning ok=False, which is what the existing
+    key-floor tests already rely on.)"""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00",
+                            "limit": 5.0, "usage": 0.5}])
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: _fake_balance(remaining=0.50))
+    ok, msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert ok is False
+    assert "account" in msg
+    assert "$0.50" in msg
+
+
+def test_l4a_account_above_the_floor_passes(monkeypatch):
+    """The healthy live case — an account with headroom must NOT refuse."""
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: _fake_balance(remaining=3.98))
+    ok, msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_l4a_fails_open_on_a_network_error(monkeypatch):
+    """falsifier (b) — a network error reading the account returns (True, None):
+    an unreachable API is not evidence of exhaustion and must never block a
+    round. Fail-open is asserted directly, not assumed."""
+    def boom(root=None):
+        raise provisioning.ProvisioningError("network down: TimeoutError")
+
+    monkeypatch.setattr(provisioning, "credit_balance", boom)
+    ok, msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_l4a_fails_open_on_an_unreadable_account_reading(monkeypatch):
+    """falsifier (b) second half — an absent/unreadable reading (no
+    provisioning key → credit_balance returns None) must also fail OPEN, never
+    block a round. A missing reading is not a refusal."""
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: None)
+    ok, msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_l4a_absent_config_leaves_behaviour_identical_to_today(monkeypatch):
+    """falsifier (d) — with NO `min_account_remaining_usd` declared, the
+    account leg must be a no-op even when the account reads drained: a project
+    that has not opted in is not suddenly gated. The account is not even read
+    in this case, so this holds regardless of network state."""
+    called = []
+    monkeypatch.setattr(
+        provisioning, "credit_balance",
+        lambda root=None: called.append(1) or _fake_balance(remaining=0.01))
+    ok, msg = provisioning.check_account_floor({})
+    assert ok is True and msg is None
+    assert called == [], "absent config must not even read the account (a no-op)"
+
+
+def test_l4a_the_key_floor_still_refuses_exactly_what_it_refuses(monkeypatch):
+    """falsifier (c) — the account leg never weakens the key floor. With a
+    DRAINED minted key and a FULL account, check_key_floor (unchanged) still
+    refuses; with a FULL key and a DRAINED account it passes the KEY check and
+    only the account leg refuses. Both conditions summed = a refusal on either
+    ground, never a relaxation."""
+    monkeypatch.setattr(provisioning, "key_usage", _fake_key_usage_healthy())
+    # drained minted key + full account → the KEY floor still refuses
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00",
+                            "limit": 5.0, "usage": 4.6}])
+    k_ok, k_msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert k_ok is False and "agi-iter1-kid-a00" in k_msg
+    # full key + drained account → the account leg refuses (the new ground)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iter1-kid-a00",
+                            "limit": 5.0, "usage": 0.5}])
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: _fake_balance(remaining=0.50))
+    a_ok, a_msg = provisioning.check_account_floor(
+        {"provisioning": {"min_account_remaining_usd": 1.0}})
+    assert a_ok is False and "account" in a_msg
