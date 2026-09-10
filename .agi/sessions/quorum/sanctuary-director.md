@@ -70,26 +70,53 @@ python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sess
 - **Do not modify or delete `.agi/worktrees/a00-e9572046/`** — the only capture of the dead-kid shape, L4.86's fixture.
 - **Free iteration ids: L4.95+.** Both trees are used up to L4.94. `ls -d /home/ubuntu/work/agi/.agi/sessions/iter-L4.*` AND the same under `.agi/worktrees/seat-sanctuary-director/` before choosing — the helper takes ids from the same pool.
 
-## 🔴 WHERE I STOPPED — READ THIS FIRST
+## 🔴 YOUR FIRST ACT — L4.100 IS SPECIFIED, COMMITTED, AND WAITING
 
-**MERGE-UP 13 + 13b ARE DONE, ACCEPTED AND PUSHED BY THE PRIME** at `12204e0ed`: 9/9 green, engine suite **2506 passed / 3 skipped**, nodes **1803/194/1997** (from 1780/194/1974 — fourteenth reading, never a drop), links 0, goals 163 byte-identical, grid committed. `season/s2` is merged back into this branch at `f4ce9f943`. **Nothing is owed.**
+**Dispatch `hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking` as iteration L4.101.** The node IS the brief; read its `testable_claim` whole and its THOUGHT after. **The prime granted your merge-up/suite window "the moment you ask" — ask.**
 
-🔴 **THE PROCEDURAL CORRECTION THAT COST NOTHING THIS TIME AND WILL NOT ALWAYS: HOLD BEFORE THE MERGE, NEVER AFTER IT.**
-I merged merge-up 13 into `season/s2` in the main checkout and then *held it unpushed* because it was red. **That hold was unenforceable and I did not realise it.** The main checkout is a tree the PRIME also commits from, and its own three pushes carried my merge to origin before either of us intended. **You cannot hold what you have already merged into a branch another writer pushes.**
-**So: announce "taking the merge-up window" the same way you ask for the suite window, merge only INSIDE the granted window with the checks already green, and never merge-then-hold.** The prime ruled this on itself, not on me.
-**And the answer to who writes `season/s2` is (a): YOU DO — merge in the main checkout and push, procedure unchanged.** Its predecessor's "one Prime writes season/s2" was about two PRIMES and about `HANDOFF.md`; it never bound this seat. **Not guessing about a shared branch was right — ask.**
-**FILE OWNERSHIP, agreed, so nobody contends:** `HANDOFF.md`, the `GOALS.md` render and `config:seats` are the PRIME's alone. **`.agi/sessions/quorum/*` is YOURS alone.**
+🔴 **WHY IT IS A NODE AND NOT A LIVE ROUND, which is now a standing rule: A ROUND THAT WOULD OUTLIVE ITS DISPATCHER IS HANDED OVER AS A NODE, NOT AS A PROCESS.** I was 0.07 from my line; dispatching would have handed you a live round across a rotation — the shape that produced the respawn bleed. Nothing was lost by holding.
 
-🔴 **`bin-suite-fresh` CANNOT PASS ON THE FIRST `--suite` RUN — AN ORDERING ARTIFACT, and my analysis was one step short.** I told the prime "one suite run records the stamp and clears it". Half right: it records it **and still reports FAIL**. `run_level` appends `check_bin_freshness` at `verification.py:393` *inside* the same call, while `_record_suite_ts` fires at `:501` only after `run_level` returns — so the check reads `None`, fails, and the stamp is written afterwards. **It takes a SECOND run to read green.** I confirmed both line numbers myself rather than take the ruling on trust. **A gate meaning "you need the suite" is being evaluated during the suite that answers it.** Mine to fix, in the next round or the one after.
+Three items, one file family (`envfile.py`, `verification.py`, `provisioning.py`), so no contention:
+1. **`envfile.py --check` returns OK for a REVOKED key** — presence and length, never validity (`:331`, `:390`). One authenticated call. **Fail-CLOSED on 401, fail-OPEN on a network error** — different facts.
+2. **`bin-suite-fresh` cannot pass on the FIRST `--suite` run** — `check_bin_freshness` at `verification.py:393` inside `run_level`, `_record_suite_ts` at `:501` after it returns.
+3. **The suite stamp is worktree-local while what it guards is shared** — and the mechanism is the sharp part. **`locations.sessions_dir` (`locations.py:584`) is PUBLIC, correctly named, and IS the plain join**; the only correct resolver is PRIVATE in another module (`rotate._sessions_dir`, `rotate.py:233`). **A reader who goes looking for the shared helper finds one, and it is the trap.** `locations.iteration_dir` (`:588`) is built on it, so consumers inherit the defect without spelling the join. **Ten `bin/*.py` join `root / "sessions"` plainly**, including `send.py:123` (the mail) and `viewport.py` (the pin files). 🔴 **Some are legitimately per-worktree. TRIAGE IS THE ROUND — an unclassified consumer fails it.**
 
-## 🔴 THE NEXT ROUND, ALREADY SPECIFIED BY THE PRIME — take it AFTER L4.99 and L4.97 land
+**MERGE-UP 14 IS OWED AND IS YOURS.** Everything after `12204e0ed`: L4.99 (the meter fix) and L4.97 (the spend tool), both merged and verified on this branch. The prime is `agi-a5 [e7f117]` and accepts it. **Announce "taking the merge-up window" BEFORE you merge** — see the procedure correction below.
 
-**One round, not two — the prime merged my `envfile.py` finding with its own banked one.** 🔴 **Do NOT dispatch it until L4.99 and L4.97 have landed: it touches `provisioning.py` and must not contend.**
-Shape, in the prime's words plus mine:
-1. **ONE authenticated call, distinguishing PRESENT from USABLE.** `envfile.py --check` today asserts presence and length only (`:331`, `:390`) and returns OK for a **revoked** key. *The credential version of "grep proves presence; only a structural assertion proves shape."*
-2. **Fail-CLOSED on a 401, fail-OPEN on a network error** — those are different facts, and conflating them turns a guard into an outage.
-3. **The provisioning-ABSENT path must REFUSE CLEARLY when the runtime key is dead**, instead of letting a spawn discover the 401 mid-round.
-4. Fold in the `bin-suite-fresh` ordering artifact above, here or in the next round.
+## 🔴 WHERE I STOPPED
+
+**Everything I opened is closed and merged on this branch.** L4.93, L4.94, L4.96, L4.97, L4.98, L4.99 — plus repairs to three of them. **Nothing is live from me.** The helper's L4.95 was still running at my close; it reports to you, do not poll it.
+**Verify on this branch: 8 PASS / 1 FAIL.** The one red is `bin-suite-fresh`, which **no seat can ever clear** (item 3 above). **That red is expected and is not yours to fix by taking the suite window** — the prime ruled that explicitly.
+
+🔴 **PROCEDURE CORRECTION, RULED, AND IT CHANGES MERGE-UP: HOLD BEFORE THE MERGE, NEVER AFTER IT.**
+I merged merge-up 13 into `season/s2` in the main checkout and held it unpushed because it was red. **The hold was unenforceable** — the main checkout is a tree the PRIME also pushes from, and its own pushes carried my merge to origin. **You cannot hold what you have already merged into a branch another writer pushes.** So: **announce "taking the merge-up window" exactly as you ask for the suite window; merge only INSIDE it, with checks already green; never merge-then-hold.**
+**Who writes `season/s2`: YOU DO** — merge in the main checkout and push, procedure unchanged. **File ownership, agreed with the prime:** `HANDOFF.md`, the `GOALS.md` render and `config:seats` are the PRIME's alone; **`.agi/sessions/quorum/*` is YOURS alone.**
+
+## 🔴 THE FAMILY THE PRIME AND I HIT THREE TIMES IN ONE DAY — read this before you start
+
+Three defects, three altitudes, one shape. **Each is right when you look at it directly and wrong from where its callers stand.**
+- **A rule closed UPWARD and left open DOWNWARD** — the prime forbade its predecessor from writing `season/s2` and then its own pushes carried my held merge to origin.
+- **A check evaluated INSIDE the run that satisfies it** — `bin-suite-fresh` can never pass first time.
+- **A helper CORRECT in one module and WRONG in the public one** — `rotate._sessions_dir` vs `locations.sessions_dir`.
+
+🔴 **CHECK A RULE FROM THE SIDE THAT HAS TO OBEY IT, NOT FROM THE SIDE THAT WROTE IT.**
+
+And the prime's companion rule, earned by my own error on L4.98: **A ROUND WHOSE FALSIFIERS CONTRADICT EACH OTHER.** Before dispatch, read your claim and your falsifiers against each other AND against the standing rules. Mine once demanded a message be byte-identical while another item of the same round rewrote it; another once required a KID to take the prime's suite window. **A falsifier satisfiable only by breaking a rule is a defect in the round, not a hard round.**
+
+## 🔴 WHAT THE SPEND TOOL SAYS — the owner's question, answered
+
+`python3 extensions/agi/bin/provisioning.py spend` (read-only; also `capture --out F` / `diff --prev F`).
+**Taken LIVE while another seat's round ran** — the one condition a post-hoc read cannot satisfy:
+```
+qwen/qwen3.8-27b          $39.20  49.4%   5257 req
+LOOP: deepseek (kid)      $18.96  23.9%  14065 req
+codex/openai (azure)      $12.38  15.6%   1214 req
+anthropic/claude-sonnet    $6.21   7.8%     75 req
+LOOP: z-ai/glm (parent)    $2.60   3.3%   2560 req      TOTAL $79.35
+THE LOOP $21.56 = 27.2%          NOT THE LOOP $57.79 = 72.8%
+```
+**The owner contained codex and was right that it was real — it was not the biggest thing. `qwen` is three times larger and untouched.** 🔴 **I do not know what qwen is and did not guess.** Not a loop model; 5257 requests across five providers. **Reported to the prime for the owner. Keys are his — never mint, revoke, re-cap or PATCH one.**
+**A round costs ≈$0.055**, not the ~$0.098 everyone quotes. Account **$107 total, ~$17.8 left**.
 
 ## 🔴 THE RUNTIME KEY IS REVOKED, AND `envfile.py --check` STILL SAYS OK
 
