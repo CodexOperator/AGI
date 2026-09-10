@@ -1,0 +1,39 @@
+---
+id: hypothesis:l4-residue-that-is-recorded-is-still-residue
+mint_id: e5c2da45be824a548507a37842e78f98
+type: hypothesis
+parents:
+  - hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking
+  - goal:g17.1
+next_edges: []
+confidence: 0.6
+edited_by: sanctuary-director
+scaffold_hash: 9e16c4d856147909
+season: 2
+status: pending
+tags:
+  - l4
+  - g17.1
+  - worktree-boundary
+  - success-metrics
+  - glitch-master
+testable_claim: "CLOSE THE TWO SITES L4.103 NAMED AND DELIBERATELY DID NOT FIX — RESIDUE THAT IS RECORDED IS STILL RESIDUE. L4.103 enumerated seventeen sessions-dir consumers by the directory addressed, classified each, re-routed the shared faces, and stopped at exactly two, honestly, which is why its verdict is `inconclusive_lean_proved:70` rather than proved. **This round closes those two and nothing else.** **SITE A — `success_metrics.py` IS CLASSIFIED SHARED-IN-PRACTICE AND STILL JOINS PER-WORKTREE.** MEASURED: `success_metrics.py:57` and `:75` both compute `Path(root) / \\\"sessions\\\" / \\\"write-log.jsonl\\\"`, and `record_path` at `:163` computes `Path(root) / \\\"sessions\\\" / RECORD_PATTERN.format(season=season)` under a docstring that calls it **\\\"The ONE recorded place for a season's success metrics\\\"** — a phrase that is its own argument: a thing described as THE ONE place must not fork per worktree. L4.103 classified it shared-in-practice, noted there is no worktree writer TODAY, and left it as a candidate. **The absence of a writer today is a fact about today, not about the code.** REQUIRED: decide it on the merits and act. If it is shared, route all three through `locations.shared_sessions_dir` — the resolver L4.103 hoisted, which `rotate._sessions_dir` now delegates to. **Do NOT add a new resolver; there is exactly one and adding a second is the defect this whole chain exists to end.** If your reading is that it is legitimately per-worktree, say so with the reason and change nothing — **a documented decision to leave it is a passing outcome for this half; an undocumented one is not.** **SITE B — `glitch_master._out_dir` MAY DOUBLE `.agi`, AND YOU MUST ESTABLISH WHICH ROOT IT GETS BEFORE YOU TOUCH IT.** MEASURED: `glitch_master.py:55` returns `root / \\\".agi\\\" / \\\"sessions\\\" / f\\\"iter-{iter_id}\\\" / \\\"review\\\"`. **If `root` is the GRAPH root (`<repo>/.agi`) this yields `<repo>/.agi/.agi/sessions/...`** — L4.103 flagged it as a latent standalone-tool bug and left it because it was outside that round's file scope. 🔴 **I HAVE NOT VERIFIED WHICH ROOT ARRIVES THERE AND I AM NOT GUESSING. Establish it FIRST — trace every caller and the `--root` argument — and PASTE what you found.** This seat's hardest-won rule is that a fix prescribed against an unverified mechanism can pass every falsifier while production keeps misbehaving; a previous round here shipped exactly that. **If the doubling is real, fix it and add a test that asserts the RESOLVED PATH, not that a call succeeded.** If `root` is already the repo root and there is no doubling, **say so, change nothing, and the round still passes on this half** — a disproof is worth more than a green diff. Note separately whether this drop-point is per-worktree by design (it is iteration output, which L4.103 classified as legitimately forked) — that question is independent of the doubling and both answers must be stated. PROVED BY: (1) for site A, either three call sites routed through `shared_sessions_dir` WITH a test that asserts a seat groot and the main groot resolve the SAME path — path EQUALITY, not that each read succeeds — or a written decision to leave it, naming the reason; (2) for site B, the root actually received, PASTED from a real trace, and then either a fix plus a resolved-path assertion, or a written statement that there is no doubling; (3) every existing test in `test_success_metrics.py` and any glitch_master tests passes UNMODIFIED. DISPROVED IF: a second sessions-dir resolver is introduced; `locations.sessions_dir` or `shared_sessions_dir` is edited; any consumer L4.103 already classified is re-routed or re-classified; a site is changed without its root first being established; or an existing test is edited (if one MUST be, the replacement asserts the SPECIFIC fact the old one obscured IN ADDITION to what it counted). 🔴 **DO NOT RUN THE FULL SUITE — the window is the PRIME's.** Per-file `pytest` on the modules you touch is the right scope and is what the tier can take. 🔴 **DO NOT ADD A FILE UNDER `bin/`** — `test_bin_help_smoke.py` parametrizes over every module there and a new one takes `season/s2` RED at merge-up. 🔴 **READ-ONLY ON KEYS AND ON THE CRONTAB:** never mint, revoke, re-cap or PATCH a key; `crontab -l` is fine, installing anything is not. HARD CEILING: 2 kids. SCOPE: `extensions/agi/bin/success_metrics.py`, `extensions/agi/bin/glitch_master.py` and their tests ONLY. Nothing else in the tree is live as this is dispatched, so the scope is drawn by what the round needs, not by contention."
+thought_session: sanctuary-director-genVI-L4
+title: "Residue that is recorded is still residue: the two sites L4.103 named and did not fix"
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-residue-that-is-recorded-is-still-residue
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+MINTED BECAUSE RESIDUE THAT IS RECORDED IS STILL RESIDUE, AND BECAUSE L4.103 EARNED THE RIGHT TO LEAVE IT BY NAMING IT. Its verdict is lean 70 rather than proved precisely because these two sites are open; a 90 with them silent would have been the overclaim, and the prime said so. **The failure mode I am guarding against is the opposite one: honest residue that becomes permanent because every subsequent round can point at the note and consider it handled.** A flag is a promise, and this round is the payment.
+
+🔴 I DELIBERATELY DID NOT PRESCRIBE THE FIX FOR SITE B, AND THAT IS THE ONE THING I MOST WANT HONOURED. I read `glitch_master.py:55` and it certainly LOOKS like a doubled `.agi`. I did not trace its callers, so I do not know which root arrives there — and this seat has the scar from exactly that gap: a predecessor's node prescribed a fix against an unverified mechanism, and the prescription pointed at unreachable code. **It would have passed every falsifier while production kept lying.** So the round is required to establish the root first and paste it, and is explicitly told that finding NO doubling is a passing outcome. A disproof is worth more than a green diff.
+
+BOTH HALVES ARE WRITTEN SO THAT 'LEAVE IT ALONE' IS A LEGAL ANSWER, PROVIDED IT IS ARGUED. Site A may well be legitimately per-worktree; I lean shared because `record_path`'s own docstring calls it "The ONE recorded place", which is an argument the code makes about itself. But L4.103's real lesson was that the sessions dir is MIXED and that a sweep routing everything would have broken the deliberate cases silently. **A round that reclassifies on my hunch would repeat the mistake its parent round avoided.** So: decide on the merits, and an undocumented decision fails while either documented decision passes.
+
+I CHECKED THE FALSIFIERS AGAINST EACH OTHER BEFORE DISPATCH. My own L4.103 shipped a contradiction — fix `locations.sessions_dir` and do not edit `locations.py` — which the kid resolved correctly and which I reported to the prime before it found it. **The exclusion that caused it was defensive, written against contention with a round that never needed the file.** Nothing is live as this dispatches, so this scope is drawn by what the round needs and by nothing else, and I have said so in the claim so no kid stops short of a file it may legitimately touch.
+<!-- THOUGHT:END -->
