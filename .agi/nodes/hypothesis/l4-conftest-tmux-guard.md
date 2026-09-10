@@ -155,3 +155,9 @@ with your reasoning). `evidence_runs` must resolve to real node ids; your own
 experiment counts once it exists. List every verify command you ran and its
 actual output. Say plainly whether you kept the corrected (selective,
 pass-through) design from this brief or found a better one, and why.
+
+POST-DISPATCH REVIEW REQUIREMENT (director-confirmed correction; the kid brief above predates this and still says to REMOVE test_send.py's _SafeSubprocess/_no_real_tmux -- that instruction is now WRONG, not re-dispatching since the brief was already baked when this landed):
+
+The correct design is BOTH layers, composed, not one replacing the other. KEEP test_send.py's existing STRICT _SafeSubprocess (raise on any non-tmux subprocess call) exactly where it is, scoped to send_mod, as send.py's own drift protection -- a pass-through conftest guard cannot catch send.py growing a future non-tmux subprocess call unnoticed; only the strict per-module assertion can. ADD the project-wide selective (tmux-only, pass-through) guard in conftest.py underneath/alongside it -- they compose via ordinary fixture-override ordering, the same way the three _fake_tmux tests already override the autouse default today.
+
+AT REVIEW: if the landed round removed test_send.py's strict guard (as the brief literally instructed), name that as a regression explicitly, even if the falsifier goes fully green. Zero real tmux calls plus a passing full suite is still a WORSE tree than today if it also drops send.py's drift protection -- do not let a green run wave this through.
