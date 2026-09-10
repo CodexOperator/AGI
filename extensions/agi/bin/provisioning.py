@@ -285,6 +285,60 @@ def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[
         f"OpenRouter, then PATCH: {patch}")
 
 
+def _below_floor_message(which: str, label: str, remaining: float,
+                         floor: float) -> str:
+    """The shared refusal wording for a key reading below the floor."""
+    return (
+        f"{which} {label!r} remaining ${remaining:.2f} is below the configured "
+        f"floor ${floor:.2f} (provisioning.min_key_remaining_usd); spending a "
+        f"budget slot risks the key crossing its cap mid-round. Raise the key "
+        f"on OpenRouter or revoke the drained key before the next spawn")
+
+
+def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the pre-flight before a spawn takes a budget slot.
+
+    Consults BOTH the runtime key and every outstanding engine-minted key, and
+    refuses when ANY readable one is below the configured floor. This is the
+    fix for hypothesis:l4-the-floor-guards-the-key-that-drains: rounds bill to
+    minted per-spawn keys, so a floor that read only the runtime key could not
+    move however much the loop spent. Now a drained outstanding minted key
+    refuses a spawn the same way a drained runtime key does, and the runtime
+    check (`check_runtime_key_floor`) still runs FIRST, unchanged.
+
+    Fail-open is preserved for EVERY key consulted: a network error reading
+    the runtime key, or the key listing, returns (True, None) — an unreachable
+    API is not evidence of exhaustion and must never block a round. A minted
+    key with no `limit` (uncapped) or no `usage` (unreadable/absent) passes:
+    no headroom to guard, and an absent reading is not a refusal. Only keys
+    THIS engine minted (`agi-` prefix) are in scope — the owner's long-lived
+    key, named `agi`, and any hand-made key are never refused here.
+    """
+    ok, msg = check_runtime_key_floor(cfg, root)
+    if not ok:
+        return False, msg
+    try:
+        listing = list_all_keys(root)
+    except ProvisioningError:
+        return True, None  # fail-open: an unreachable API must never block a round
+    if not listing:
+        return True, None
+    floor = min_key_remaining_floor(cfg)
+    for rec in listing:
+        name = str(rec.get("name") or "")
+        if not name.startswith(f"{NAME_PREFIX}-"):
+            continue  # only keys THIS engine minted are in scope
+        limit = rec.get("limit")
+        used = rec.get("usage")
+        if limit is None or used is None:
+            continue  # uncapped or unreadable → fail-open, no headroom to guard
+        remaining = float(limit) - float(used)
+        if remaining < floor:
+            return False, _below_floor_message(
+                "outstanding minted key", name, remaining, floor)
+    return True, None
+
+
 def settings(cfg: dict) -> tuple[float, int]:
     """`(limit_usd, ttl_minutes)` from `spawn.credential`, with defaults.
 
