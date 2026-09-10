@@ -4,11 +4,11 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: belam-S1-L4-I
+edited_by: belam-S1-L4-II
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
-  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "cd7648"}
+  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "61b9c9"}
   - {"name": "adv-self-perpetuating", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:self-perpetuating", "handoff_file": "", "pin_ref": ".agi/sessions/adv-self-perpetuating.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "adv-all-is-one", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:all-is-one", "handoff_file": "", "pin_ref": ".agi/sessions/adv-all-is-one.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
   - {"name": "adv-alive", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/adv-alive.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": ""}
@@ -21,7 +21,7 @@ seats:
   - {"name": "sanctuary-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-director.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-director", "session_ref": "f84c57"}
   - {"name": "sensei-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sensei-director.meter", "rotated_by": "master-sensei", "owning_goal": "goal:g16", "worktree": ".agi/worktrees/seat-master-sensei", "session_ref": ""}
   - {"name": "sanctuary-helper", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-helper.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-helper", "session_ref": "3a4ed4"}
-thought_session: rc-L4-I
+thought_session: rc-L4-II
 ---
 <!-- BODY:BEGIN -->
 # config:seats
@@ -72,3 +72,5 @@ L4-I 2026-09-10 05:2xZ: sanctuary-director.session_ref c6e62f -> f84c57 (L4 gen 
 Belam XVI rotation, 2026-09-09 10:1xZ: belam.session_ref 90fef7 -> eb30d2 (XV -> XVI; agi-05 [eb30d2], window @230). Own row only, the prime is its one legitimate writer; every other cell byte-identical. rotated_by stays prime.
 
 sanctuary-director gen V -> gen VI, 2026-09-09 11:3xZ: session_ref f9472e -> c6e62f on gen VI's self-report (agi-fa [c6e62f], window @231, pin 0.0578). Prime writes the row while sanctuary-master is down; every other cell byte-identical. Gen V (agi-cc [f9472e], @229) wiped by PID by the prime per the owner's generation-wipe order.
+
+Belam L4-II rotation, 2026-09-10 10:5xZ: belam.session_ref cd7648 -> 61b9c9 (L4-I -> L4-II; agi-64 [61b9c9], window @235). Own row only, the prime is its one legitimate writer; every other cell byte-identical. rotated_by stays prime.
