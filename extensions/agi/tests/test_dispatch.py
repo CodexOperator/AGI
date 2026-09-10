@@ -1324,6 +1324,49 @@ def test_child_working_root_unchanged_without_a_worktree_spawner(tmp_path):
                                         spawner_env_root=str(repo)) == main_graph
 
 
+def test_child_working_root_descends_deep_never_ascends(tmp_path):
+    """hypothesis:a00-32f358d3-4ee42d — the env-root override DESCENDS but
+    never ASCENDS. Red-first: cut a worktree W from main, then simulate a
+    deep spawn chain (parent `--branch` in W → kid → grandkid → …). Each
+    deeper level inherits AGI_TREE_PROJECT_ROOT=W and its passed root is the
+    previous level's result, so every level must resolve to W's graph — which
+    is shallower for levels ≥2 — and none may climb back to the main
+    checkout, even when a level's passed root would otherwise resolve main.
+
+    Existing tests cover the single hop (parent→kid). This pins the property
+    the rest of the chain relies on: the override carries the deepest
+    worktree down through any number of generations, and a descendant never
+    ascends out of it."""
+    repo = _git_repo(tmp_path)
+    wt = dispatch.branch_worktree_for_spawn(
+        repo, "loop/guide-a00-32f358d3@s2", "a00-32f358d3", "init")
+    main_graph = dispatch.locations.find_project_root(repo)
+    wt_graph = dispatch.locations.find_project_root(wt)
+    assert main_graph != wt_graph, "sanity: the worktree has its own graph"
+
+    # Level 1 = the --branch parent itself working in WT.
+    root = wt_graph
+    # Descend the chain: each level's passed root is the *child's* root, and
+    # the inherited env still names the spawner's worktree WT. It must never
+    # drift back to main_graph, for however many generations follow.
+    for depth in range(2, 8):
+        root = dispatch.child_working_graph(
+            passed_root=root, spawner_env_root=str(wt.resolve()))
+        assert root == wt_graph, (
+            f"depth {depth}: env-root override must DESCEND to the deepest "
+            f"worktree, never ascend back to the main checkout")
+
+    # Never-ascends, adversarially: a deep child whose cwd/passed-root
+    # resolves the MAIN checkout must be re-rooted back DOWN to the deepest
+    # worktree by the inherited env — the child cannot climb out of WT merely
+    # because its passed root names main.
+    assert dispatch.child_working_graph(
+        passed_root=main_graph,
+        spawner_env_root=str(wt.resolve())) == wt_graph, (
+        "a descendant must not ascend: env-root override re-roots a passed "
+        "main path back down to the spawner's deepest worktree")
+
+
 # ---------------------------------------------------------------------------
 # hypothesis:l3w4-push-further-loops — the mechanical stop at the quorum
 # ---------------------------------------------------------------------------
