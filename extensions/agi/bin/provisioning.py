@@ -686,8 +686,19 @@ def diff_capture(saved: dict, now: dict) -> list[tuple[str, float | None, float 
     labels = list(dict.fromkeys([*old.keys(), *new.keys()]))
     rows = []
     for label in labels:
-        if not label.startswith("account.total") and not label.endswith(".usage"):
-            continue  # only the account total and per-key/runtime usage deltas
+        # 🔴 `account.used` MUST BE HERE. The first version of this filter read
+        # `startswith("account.total") or endswith(".usage")`, which dropped
+        # `account.used` — the ONLY number on this account that has ever been
+        # observed to move. `account.total` is the LIMIT ($92, constant); the
+        # prime watched `used` go 87.048 -> 87.466 -> 87.798 across nine
+        # dispatched rounds while all three key usages stayed byte-identical.
+        # So the instrument built to end an argument about spend was blind to
+        # the one reading in the argument. Caught by running it against the
+        # live account rather than by its tests, which is the fourth time this
+        # session that step found what a green suite could not.
+        if label not in ("account.total", "account.used") \
+                and not label.endswith(".usage"):
+            continue  # the account limit and used, plus per-key/runtime usage
         rows.append((label, old.get(label), new.get(label)))
     return rows
 

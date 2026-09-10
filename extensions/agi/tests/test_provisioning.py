@@ -799,14 +799,34 @@ def test_capture_records_the_account_and_every_key(monkeypatch):
 
 def test_control_two_identical_captures_report_four_zero_deltas(monkeypatch):
     """(a) — the CONTROL. Two captures with nothing in between must report
-    four zero deltas, from exactly the three-key + account shape the prime
-    measured. A tool that cannot report zero cannot be trusted to report a
-    number."""
+    zero deltas for every reading. A tool that cannot report zero cannot be
+    trusted to report a number.
+
+    🔴 `account.used` IS ASSERTED BY NAME, and the count is five rather than
+    four, because the first version of this test asserted the defect. It
+    demanded exactly `account.total` + three keys, and `diff_capture`'s filter
+    obligingly dropped `account.used` — the ONLY number on this account ever
+    observed to move (the prime watched it go 87.048 -> 87.466 -> 87.798
+    across nine dispatched rounds while all three key usages stayed
+    byte-identical; `account.total` is the $92 LIMIT and is constant). So the
+    instrument built to end an argument about spend was blind to the one
+    reading in the argument, and a green test said so. Found by running the
+    tool against the live account, not by the suite.
+
+    The count is kept as an assertion rather than relaxed, because "every
+    reading is present" is the property; naming `account.used` explicitly is
+    what stops the count being satisfied by the wrong five.
+    """
     _install_capture_api(monkeypatch)
     c1 = provisioning.capture()
     c2 = provisioning.capture()  # same stable API → nothing changed
     rows = dict((l, (o, n)) for l, o, n in provisioning.diff_capture(c1, c2))
-    assert len(rows) == 4, f"expected account + 3 keys = 4 rows, got {sorted(rows)}"
+    assert "account.used" in rows, (
+        "the account's USED figure is the only number ever seen to move; a "
+        "diff without it cannot answer the question this tool exists for")
+    assert len(rows) == 5, (
+        f"expected account.total + account.used + 3 keys = 5 rows, "
+        f"got {sorted(rows)}")
     for label, (old, new) in rows.items():
         assert old == new, f"{label} moved despite nothing happening: {old} -> {new}"
 
