@@ -5868,22 +5868,27 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 ### G17.1 — The Texas two-step formation — two director-kids on one goal: point + helper — status: active
 
 <!-- BODY:BEGIN -->
-**Two director-kids on one perpetual goal, in formation: one takes point, the other helps.** Ordered by the owner on 2026-09-09 as the first deliberate step up from survival mode's single director, and the shape every later concurrency increase copies.
+**Two director-kids in formation under enhanced survival mode: one takes point, the other helps; neither is pinned to a goal yet.** Ordered by the owner on 2026-09-09 as the first deliberate step up from survival mode's single director, and the shape every later concurrency increase copies.
 
 **Owner, verbatim (2026-09-09, in the L4-I plan session):** "Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work. Act after the workflow finishes. Let the current director take point though and the other one is like a helper to the first. Call it the Texas two step formation, goes under sanctuary goal as subgoal" · "And it's a new loop reset director kid generations" · "Helper director kid runs sonnet btw." · "Sonnet max effort just in case it wasn't clear"
 
+**Owner, verbatim (2026-09-09, later the same session):** "also since this is just enhanced survival mode the director-kids aren't assigned a specific goal just the lead director gets the brief and splits the workload between himself and the helper director as they each get their own worktree and can merge at the end when both done. It's not a specific goal as the briefs right now go over more or less full system refactors and expansions. Once the actual persistent director system is up then they'll get pinned to a goal, for now they're free floating the way masters and keepers will be kinda free-floating. They're like the Council, the Keep, and the Masters all rolled into one role since this is survival mode"
+
 ```
-FORMATION   point = sanctuary-director (owns goal:g17, the G17 director, always active)
-            helper = sanctuary-helper (owns THIS sub-goal; answers to the point, never to the Prime)
+FORMATION   point  = sanctuary-director (L4 gen I; the lead: receives the brief from the Prime, splits the workload between itself and the helper)
+            helper = sanctuary-helper (L4 gen I, claude-sonnet-5 at max effort — owner; answers to the point, never to the Prime)
+GOALS       NEITHER is pinned to a goal in enhanced survival mode (owner) — owning_goal is empty on both rows until the persistent director system is up;
+            this sub-goal RECORDS the formation, nobody owns it. In this mode a director is the Council, the Keep and the Masters rolled into one role (owner).
+WORKTREES   each director works in its own tree: .agi/worktrees/seat-sanctuary-director (branch seat/sanctuary-director@s2) · .agi/worktrees/seat-sanctuary-helper (seat/sanctuary-helper@s2)
+            both off season/s2; MERGE at the end when both are done (merge, never rebase; compare against the MERGE-BASE, never a moved season/s2); the point merges
 SPLIT       the point splits the round's work list, hands the helper its half, keeps its own; each dispatches its own pi parents (one round at a time, hard ceiling each)
 REPORT      helper -> point (done / blocked, per item) ; point -> Prime (the round's review) ; the Prime never hears the helper directly
 RULES       unchanged for both: assignment IS the node's testable_claim · commit + push the brief before dispatching at it · check the KEY not the account · $1.00 floor never lowered
             write.py for every node write · never wake another seat · never write config:seats (bank it for the Prime) · never delete a node
-EXCEPTION   director-to-director talk is otherwise forbidden (channel A via the Keep) — the owner's order makes the point the helper's Keep-substitute for this formation only
-COST        the helper runs Sonnet — owner, verbatim (2026-09-09): "Helper director kid runs sonnet btw." · "Sonnet max effort just in case it wasn't clear" -> model claude-sonnet-5, effort max
+EXCEPTION   director-to-director talk is otherwise forbidden (channel A via the Keep) — in this formation the point IS the helper's Keep, by the owner's order
 ```
 
-Done when: one round has been split, dispatched by both seats, reviewed by the point and accepted by the Prime, with the helper's spend and node count recorded here.
+Done when: one round has been split, dispatched by both seats from their own worktrees, merged by the point into season/s2, reviewed by the point and accepted by the Prime, with the helper's spend and node count recorded here.
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
