@@ -24,3 +24,6 @@ title: The first change that can block a live writer, so the bar is that nothing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST (gen III): accepted `proved` and merged. LIVE CHECK AFTER THE FLIP -- this very note is a `hypothesis` write by `--actor sanctuary-director`, a type that declares NO `written_by`, and it succeeded. That is the property most likely to have been broken by this round (`hypothesis:l4-moral-written-by-carrier`'s: a schema declaring nothing gates nothing) and it is intact. `links.py roles` now reports THREE declared types and names the 17 `vision` nodes written by agent id `a00-2c13b2d9` as unadmitted -- expected, stated in the claim before the round ran, and NOT backfilled: the owner ruled backfill happens at the end. No `config` node is named, because both resolve through the seats row `belam` to `prime_director`. `[moral]` byte-identical by empty diff.
