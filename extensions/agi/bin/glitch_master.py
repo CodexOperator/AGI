@@ -53,7 +53,13 @@ def _read_json() -> dict:
 
 
 def _out_dir(root: Path, iter_id: str) -> Path:
-    """`.agi/sessions/iter-<id>/review/` — the single result drop-point."""
+    """`.agi/sessions/iter-<id>/review/` — the single result drop-point.
+
+    `root` here is the REPO root, not the graph root: this function appends
+    `/.agi/sessions/...` itself, so handing it the graph root `<repo>/.agi`
+    would double the `.agi`. `format_record` normalizes with
+    `locations.repo_root` before calling here.
+    """
     return root / ".agi" / "sessions" / f"iter-{iter_id}" / "review"
 
 
@@ -61,8 +67,9 @@ def format_record(args: argparse.Namespace) -> int:
     """Write stdin JSON verbatim; print N REVIEW lines + one GLOBAL line.
 
     Exit code 0 on success. `--iter` names the round and the output
-    directory; `--root` is the graph root (defaults to nearest enclosing
-    `.agi/`). `--out` overrides the whole results path for tests.
+    directory; `--root` is the graph root or repo root (defaults to nearest
+    enclosing `.agi/`) and is normalized to the repo root so the `.agi/`
+    here is never doubled. `--out` overrides the whole results path for tests.
     """
     data = _read_json()
     iter_id = args.iter_data or data.get("iter") or "?"
@@ -71,6 +78,14 @@ def format_record(args: argparse.Namespace) -> int:
     if root is None:
         print(f"{MSG_PREFIX}could not resolve graph root", file=sys.stderr)
         return 1
+    # `_out_dir` appends `/.agi/sessions/...`, so it must be handed the REPO
+    # root. `find_project_root` yields the GRAPH root (`<repo>/.agi`), and a
+    # caller passing the graph root per the docstring does too; feeding that
+    # straight into `_out_dir` doubles the `.agi` into
+    # `<repo>/.agi/.agi/sessions/iter-<id>/review`. Normalize with
+    # `locations.repo_root` (identity for a repo-root input), keeping the
+    # resolved drop-point at `<repo>/.agi/sessions/iter-<id>/review`.
+    root = locations.repo_root(root)
 
     target = data.get("targets", []) or []
     global_rec = data.get("global") or {}
@@ -122,7 +137,8 @@ def main(argv: list[str] | None = None) -> int:
     fr.add_argument("--iter", dest="iter_data", type=str, default="",
                     help="round/iteration id; also names the output dir (defaults to payload iter)")
     fr.add_argument("--root", type=str, default=None,
-                    help="graph root (defaults to nearest enclosing .agi/)")
+                    help="graph root or repo root (defaults to nearest "
+                         "enclosing .agi/); normalized to the repo root")
     fr.add_argument("--out", type=str, default=None,
                     help="override the whole results path (tests)")
     fr.set_defaults(func=format_record)
