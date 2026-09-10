@@ -5973,6 +5973,16 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.9
 
+### G15.10 — a new bin/*.py needing the suite is a CHECK, not a memo — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.10
+
+### G15.11 — stall-before-work is its own detected state, not a widening of L4.78 — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.11
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
