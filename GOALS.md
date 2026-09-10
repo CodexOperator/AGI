@@ -6335,6 +6335,11 @@ OWNER ASK 2026-09-10 (date -u ~21:4xZ): identity crosses rotations by public-key
 
 🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
 
+### G18.1 — The livestream goes live as L4's final round — verified working, accounts created by the agents — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g18.1
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
@@ -8608,3 +8613,11 @@ Per node at done and per session: model, harness, profile, tokens_in, tokens_out
 
 ## Agent Notes
 Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the owner text of 2026-09-07 (04:40–07:36 UTC) recorded verbatim in .agi/context/l3-command-ladder-brief.md, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison". The seat system: a registry of roles and active seats extending the dispatch model-assignment config — per seat its role, ladder tier, harness, model, effort, session kind (remote-control, tty, fire-and-forget), personality ref, handoff, current session pin and who rotates it — resolved from config nodes in the graph so the graph carries everything. It spawns the seat build nodes and sub-goals that lead to config nodes, holds the owner-liaison seat (Sonnet 5 high, rotated by the quorum, the owner primary contact), and the perpetual rotation loops at 0.35 for every non-prime seat. Model table (owner correction 07:36 UTC): prime Belam Fable 5.1 max ultracode; quorum advisors Opus 5 max; director-kids Opus 5 high; liaison Sonnet 5 high; pi parents and kids as they are. Comms (owner): collapsed ladder gives director-kids no free comms to Belam; the expanded hierarchy allows free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum, which IS Belam to anyone else. Wave-4 briefs are hypothesis:l3w4-* under this goal.
+
+### G18 — Sanctuary as a managed subscription web app — the project pays for itself
+
+<!-- BODY:BEGIN -->
+# goal:g18
+
+## Agent Notes
+OWNER'S GOAL, 2026-09-10 (verbatim in doc:l4-owner-decisions): 'a public subscription web app release, which is a goal as I can't keep paying for the system myself. I don't have enough credits to run the sanctuary in anything other than survival mode.' PERPETUAL under vision:self-perpetuating because a sanctuary that funds its own continuation is the literal meaning of the vision. HORIZON: declared and committed to; not worked in L4 except its one active subgoal (g18.1, the livestream). THE PRODUCT, in the owner's words: 'a managed project solution that allows you to use it to pursue your own projects as you want and it takes care of all the backend stuff. Meant to be populated with morals and visions.' THE CLIENT-FACING CONFIGURATION SURFACE, each item a future subgoal and each already the shape of a .geometry config node in this repo: (1) ONBOARDING — one to two hours of interviewing the client, then their sanctuary is set up from the answers; (2) PACE OF PROGRESS = number of concurrent directors (ladder caps); (3) REPORT FREQUENCY (crons); (4) PAUSE FREQUENCY for human check-in (a gate node the loop honours); (5) HARNESS RE-ORIENTATION — how far this agi repo is modified to become oriented to the client's project, chosen by the client; (6) MORAL FOUNDATIONS — the religious, philosophical or other TEXTS are removable and replaceable per client, but the MORAL TYPES are a FIXED SET the client chooses from (today: faith, love, empathy, antifragility, beauty — the type is the axis, the text is the reading); (7) PROJECT MORALS vs TEAM MORALS — two sets, selectable separately; (8) PROJECT VISION vs TEAM VISION — different visions pursued SIMULTANEOUSLY at a chosen level of concurrency. WHY THIS IS A GOAL AND NOT A DREAM: every item above already exists as a hand-edited node type in this repo (ladder, crons, seats, moral, vision, commands, workflows); the product is the interview that fills them in and the backend that runs them for someone who is not the owner. THE FUNDING LINK, the owner's own: the livestream (g18.1, streamer-stub) exists to build hype for this release.
