@@ -1,95 +1,64 @@
-# sanctuary-director — gen VI slice (L4 OPEN, 2026-09-09; item 1 SHIPPED)
+# sanctuary-director — L4 gen I slice (LIVE, 2026-09-09) — POINT on L4 round 1
 
-**Seat:** `agi-fa [c6e62f]`, tmux `agi-rc:@231`. Pin `.agi/sessions/sanctuary-director.meter`.
-**Correspondent: `belam-S1-L4-I` = `agi-c6 [cd7648]`, tmux `agi-rc:@232`.**
-Verified by derivation 2026-09-09 (tmux @232 -> name; ListAgents -> agi-c6 at
-@232), not from the rotation notice alone. **Re-derive before YOUR first message
-anyway** — primes rotate and the address moves.
-🔴 **TRAP 0v IS LIVE RIGHT NOW: the previous prime `agi-05 [eb30d2]` @230
-(belam-S1-L3-XVI) is STILL ALIVE AND IDLE, not wiped.** A message to it returns
-SUCCESS and is never read. Do not address @230. L3 correspondence is closed.
-🔴 **Survival mode carried into L4: prime + this seat only.** Wake no seat. Never
-write `config:seats`. **Dispatch NOTHING until the prime sends L4's first round,
-which the owner names.**
+**Seat:** `agi-fa [c6e62f]`, tmux `agi-rc:@231`. Generations RESET at the new loop: this is **L4 gen I**.
+**Correspondent: `belam-S1-L4-I` = `agi-c6 [cd7648]`, tmux `agi-rc:@232`** — verified by
+derivation (tmux @232 -> name; ListAgents -> agi-c6 at @232), not from the notice alone.
+🔴 **The previous prime `agi-05 [eb30d2]` @230 is STILL ALIVE AND IDLE, not wiped** — trap 0v
+is live: a message to it returns SUCCESS and is never read. Do not address @230.
+
+**MODE: ENHANCED SURVIVAL** (owner, `goal:g17.1`). Two directors, free-floating, no owning
+goal. I take POINT; **`sanctuary-helper` answers to ME only and the prime never hears it.**
+Wake no other seat. Never write `config:seats`. Never touch `moral:*`.
+
+🔴 **WORK ONLY IN THIS WORKTREE:** `.agi/worktrees/seat-sanctuary-director`, branch
+`seat/sanctuary-director@s2`. It is the SEAT SESSION's tree — kept across rotations, merged
+and deleted only at session complete. **Rotate FROM inside it** so the successor inherits it.
 
 | | |
 |---|---|
-| Meter | ~0.24 of **0.47** (owner raised the cap from 0.35, `61262b5a2`) |
-| Suite | **2270 passed, 1 skipped** (+14, the `replace` tests) |
-| Graph | node_count 1786 · active 1592 · deprecated 194 |
-| Branch | `season/s2`, clean, in sync with origin |
-| Spend | round total **$0.1478** · key $7.87/$15 untouched · floor never approached |
-| Live | **nothing** — L4 item 1 done by hand, no dispatch |
+| Meter | ~0.33 of **0.47** |
+| Branch | `seat/sanctuary-director@s2` @ `dc1974a59`, pushed |
+| Key | **$7.87 of $15, untouched** — round ceiling $3.00 across both seats, unspent |
+| Graph | node_count 1803 · active 1609 · deprecated 194 · GOALS.md 143 goals byte-identical |
+| Live | nothing dispatched |
 
-## State: L3 is CLOSED (owner, 2026-09-09). L4 is open on `doc:l4-owner-decisions`.
+## L4.20 — my slice LANDED (`dc1974a59`); helper's slice still out
 
-That node now carries the L4 BACKLOG and all 39 TRAPS CARRIED INTO L4 — **read it
-there, not here.** COMPLETE.md's L3 section is un-drafted. `season/s2` merged to
-master at `9a7b280f2`. **Measured, minor correction to the close report:** the two
-trees are identical *except* `HANDOFF.md` (3+/2-), because the handoff kept being
-written after the merge. Nothing is stranded.
+**The round:** every brief point B1-B25 exists under an EXISTING perpetual goal.
+**Split:** me B1-B12, B21, B22 (14). Helper B13-B20, B23 (9). B24 landed already
+(`replace`, `044521555`). **B25 gets NO node** — moral:* is owner-only and its absence IS
+part of the claim.
 
-## 🔴 L4 ITEM 1, named by the OWNER directly to this seat — SHIPPED (`044521555`)
+Minted: `g5.3`(B1) `g5.4`(B21) `g9.11`(B22) `g17.2`(B2) `g17.3`(B3) `g17.5`(B5) `g17.7`(B7)
+`g17.8`(B8) `g17.11`(B11) `g17.12`(B12); nested `g17.4`(B4) `g17.6`(B6) `g17.9`(B9)
+`g17.10`(B10). Nesting via `parents`; `heading_level` mirrors depth.
 
-Owner verbatim in `doc:l4-owner-decisions`. **New verb:**
-`write.py <id> "replace <body|payload> <START:END> <path|->"`.
+## 🔴 Facts this slice paid for
 
-- **The offset step is gone.** Was: read a range, hand-build a `@@` hunk in the
-  applier's coordinates, `patch`/`body_patch` — and a wrong count corrupts
-  SILENTLY (the reason trap 0ah exists). Now: `read <t> N:M` then
-  `replace <t> N:M`. `_splice_range` is the exact inverse of `_slice_range`,
-  so the round trip is provably the identity — that is the first test.
-- **One routine for both targets** (the second half of the ask): `body` and
-  `payload` share one reader `_target_text`, one transform `_splice_range`, one
-  range vocabulary. They differ only in the landing, which is forced — a body
-  through `update_node` (carries THOUGHT + provenance), a payload through
-  `replace_payload`. Both sanctioned; the guard sees both.
-- **Fail-closed**: a range past EOF refuses before any write; payload
-  byte-identical after refusal. Text rides a path or stdin, never argv. One
-  trailing newline absorbed so a target does not grow a blank line per edit.
-- **Proved live, not only under pytest:** identity round trips on a real node
-  body AND a real payload, sha-identical, tool correctly said `unchanged`;
-  then three real changes landed through the verb (2x `brief.py`, 1x `SKILL.md`).
-- **Discoverable** — `brief.py` leads with it, diff verbs demoted to "only when
-  you already hold a diff"; `SKILL.md` documents it.
-- **Stale doc fixed in passing:** SKILL.md still warned `body_patch` is
-  "stdin-only"; gen V fixed the path form and this session used it. Warning gone.
-- **Left alone deliberately:** `patch`/`body_patch` are still two parallel
-  paths. Unifying the partial-overwrite path was the ask; folding the two diff
-  verbs is a separate, larger change.
+- **`grid.py commit --all` REFUSES on a seat branch** — "node refs are branch-blind; merge
+  to master first or pass `--allow-branch`". I did NOT force it. **Grid versioning happens
+  AFTER the merge into season/s2**, not on the seat branch — the per-item protocol ends with
+  a step that cannot run where the work is done. Reported to the prime.
+- **`heading_level` 4 and 5 had never been used here.** Probed level 4 on ONE node and
+  re-checked the round trip BEFORE minting twelve more. Renders as `####`, round-trips clean.
+- **Run `snapshot-goals.py --render` (writes) before `--render --check` (verifies).** A fresh
+  goal makes `--check` report MISMATCH until the render is written — that is not a defect.
+- **The BODY-marker renderer defect is pre-existing** (`<!-- BODY:BEGIN -->` lands in
+  GOALS.md, on `G17.1` too). Already banked by the prime. Matched the shape, did not widen it.
+- Goal ids resolve by `goal_id`, NOT by filename — `g1`/`g3`/`g5`/`g9`/`g13` live under
+  descriptive slugs. `grep -rl "^goal_id: G5$"`.
 
-## What this seat did in L3 (all merged and pushed)
+## Traps carried (full set in `doc:l4-owner-decisions` "TRAPS CARRIED INTO L4", 38 entries)
 
-- **SD.17** — `.agi/config.json` and `extensions/agi/briefs/prime-director-successor.md`
-  into the grid (`33fc2eff1`), each under an mvp minted with it. Closed by reading
-  the real bytes back with `grid.py payload`, not by a report.
-- **SD.19** — the L3 completion report in COMPLETE.md (`6d8b5ef55`), 78 insertions
-  0 deletions; I caught and fixed its claim that `sanctuary-director` was L3's
-  prime director (it is Belam) in a separate commit `06063cb19`.
-- **0.47 to the engine default** (`2d89b2af5`) — completing the owner's order.
-
-## 🔴 The four things that cost this seat real time — carry them
-
-1. **bytes-in-node is not brief-in-effect (0ak).** A brief appended as a `note` at
-   the BOTTOM of a node does NOT beat that node's own `testable_claim`. Two kids
-   read the stale claim and wrote verdicts *about* the work instead of doing it.
-   **Put the assignment in the node's `testable_claim`.** The retry through a
-   purpose-minted brief node worked first time.
-2. **`--prompt-file` is kid-only, and even there it is framed as "inherited
-   context, NOT your assignment".** It cannot carry an assignment, and for
-   `--tier parent` it is silently dropped entirely.
-3. **trap 0ai-b — `nohup` does NOT protect a long run.** The reaper killed a
-   nohup'd pytest at 63% twice while `free` showed 18 GB of 23 available.
-   **Run a long verification in the FOREGROUND** (Bash `timeout: 400000`).
-4. **Commit and push a brief BEFORE dispatching at it** — a worktree is cut at the
-   last committed tip and cannot see an uncommitted node. Fails closed, loudly.
-
-Plus the standing one: **verify the BYTES, never the report** (0ah) — and note the
-dispatch dry-run TRUNCATES what it prints (0aj), so it is a report too.
+0ak bytes-in-node is not brief-in-effect — **the assignment IS the node's `testable_claim`** ·
+0am `--prompt-file` cannot carry an assignment (silently dropped for `--tier parent`) ·
+0an commit AND PUSH a brief before dispatching at it · 0ao a parent may under-iterate ·
+0ah verify the BYTES, never the `updated:` line · 0ai-b **run a long suite in the FOREGROUND**,
+`nohup` does not protect it · 0al a node the suite pins is code.
 
 ## 🔴 Next action
 
-**None queued. Idle** — idle costs nothing, a rotation spends. Do not rotate
-before 0.47. L4 item 1 is shipped. L4 is now a PLAN SESSION between the new prime and the owner (plan mode: nothing dispatched, no seat launch). Wait for the owner or the prime to name item 2.
-Note the owner may name an item to this seat DIRECTLY, as with item 1 — the prime
-is told after, not asked first.
+Wait for `sanctuary-helper` to report its slice. Then: merge BOTH branches into `season/s2`
+**against the MERGE-BASE, never a moved season/s2**, merge never rebase, then
+`grid.py commit --all` there (it cannot run on the seat branches), then report to the prime.
+Prune no worktree until its branch is an ancestor of `season/s2`.

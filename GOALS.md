@@ -2438,6 +2438,28 @@ Falsifier shape: run the classifier over the goal corpus as it stood before
 2026-09-04 and check that `goal:g9.4` scores as over-saturated while goals that
 closed cleanly in one chain do not.
 
+### G5.3 — Every top-level gN goal is perpetual — there is no long-term top-level goal — status: active
+
+<!-- BODY:BEGIN -->
+**Every top-level `gN` goal is perpetual.** Brief point **B1** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain, and a DATA FLIP on twelve `gN` goals. 🔴 The flip is round **L4.07** and needs the owner's GO — it is deliberately NOT done here, because `perpetual` is carried structurally by GOALS.md's `## Perpetual` section, so flipping moves twelve goals in the rendered document.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G5.4 — The season review and rollover, end to end — status: active
+
+<!-- BODY:BEGIN -->
+**The season review and the rollover, end to end.** Brief point **B21** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:183 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → build in `season.py`, scattering to `goal:g15`. Rounds **L4.18** and **L4.19** carry it and both are `Owner go? YES`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
 ## G6 — The closed loop: engine work starts in the graph — status: horizon
 
 Run `agi` and `agi-tree` against each other and the pair is closed: a change to
@@ -4642,6 +4664,17 @@ different universe.
 If this skin and the spider skin ever need different frame data, the hook layer
 in `goal:g9.8` is under-specified — fix it there.
 
+### G9.11 — The role diagram, LLM-first — status: active
+
+<!-- BODY:BEGIN -->
+**The role diagram, rendered LLM-first.** Brief point **B22** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:187 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal carried as a `doc` — it is `doc:l4-plan` §0.9, already owner-confirmed. Written by the G17 director directly rather than by a dispatched parent.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
 ## G10 — The hypergraph: an environment, not a document — status: horizon
 
 **The end state this whole system is walking toward.** Not "a graph the agent can
@@ -5906,6 +5939,127 @@ STANDING RULE until L4.10 lands (point + helper, 2026-09-10, verified in the byt
 Owner, verbatim (2026-09-10 ~03:5xZ, to the Prime): "Agent session dirs land in the MAIN checkout's .agi/sessions/, NOT in the seat worktree can we rectify this? This seems important to keep per-worktree. After finishing everything and time for worktree delete, the sessions should be automatically migrated into the main checkout .agi/sessions. I think merging already does this but still this need to be fixed" — Prime's reading for the round: locations.git_common_root (locations.py:212-227) deliberately routes SHARED state (spawn budget, comms root, meter pins) to the main checkout so the tree-wide bound never splits; the agent iter-<id>/ session dirs ride along and must NOT — they belong to the worktree that ran them. Design: iter dirs resolve to the worktree's own .agi/sessions/; budget/comms/pins stay shared; a session-complete command verifies the branch is an ancestor of the parent, MIGRATES the worktree's iter dirs into main .agi/sessions/ (sessions/ is gitignored — a merge carries NOTHING, so the migration is an explicit copy), then removes the worktree and branch. Handed to the point as a dispatchable round (code under G15 per the owner's re-attribution rule).
 
 Trap measured in L4.28 (kid 1's struggles line, 2026-09-10): a whole-file write onto a graph node destroys it — the YAML frontmatter and BODY:BEGIN marker were overwritten, cli.py done refused with 'missing opening --- delimiter', the kid rebuilt the frontmatter by hand. Rule: a kid edits a node through write.py's verbs (set / note / thought / replace body), never by rewriting the file. Also measured: the --prompt-file carry-forward (kid 2 briefed with kid 1's result through the KID channel) rescued L4.28 after a report-only first kid (trap 0ak, third time in one day) — the same flag is silently dropped at --tier parent (0am).
+
+### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
+
+<!-- BODY:BEGIN -->
+**Every perpetual goal has a director.** Brief point **B2** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → idea/hypothesis chain → `mvp`. **The seats stay UNBUILT**: creating any seat is the owner's surface and survival mode forbids launching one, so this goal is satisfied by the *rule* being carried in the graph, not by staffing anyone.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added.
+
+### G17.3 — The sanctuary director owns seats, models, and how many are active — status: active
+
+<!-- BODY:BEGIN -->
+**She owns the seats, the models they run, and how many are active.** Brief point **B3** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal carrying a `seat` node and a `doc`; the config half scatters to `goal:g1` by relevance rule 3. 🔴 `config:seats` is never written by a director — it is banked for the prime.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+#### G17.4 — The sanctuary perpetual goal always has an active director — a check, not a seat — status: active
+
+<!-- BODY:BEGIN -->
+**The sanctuary perpetual goal always has an active director.** Brief point **B4** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-goal of B2, expressed as a hypothesis → verdict. 🔴 It is a **CHECK, not a seat** — nothing here launches a director, and under survival mode nothing may.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.5 — The duty matrix — its rows and entries are the sanctuary director's to reassign — status: active
+
+<!-- BODY:BEGIN -->
+**The duty matrix: its rows and entries are hers to reassign.** Brief point **B5** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:130, A:168, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → build; the schema half scatters to `goal:g1` and the `brief.py` half to `goal:g15`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+#### G17.6 — Each role carries exactly ONE question — status: active
+
+<!-- BODY:BEGIN -->
+**Each role has exactly one question it is responsible for asking.** Brief point **B6** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:236-242, A:257, A:372 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-goal of B5, expressed as `seat` node bodies plus a `doc`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.7 — The seat node type — the graph shows where everybody is assigned — status: active
+
+<!-- BODY:BEGIN -->
+**A `seat` node type, so the graph shows where everybody is assigned.** Brief point **B7** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → build; `[seat].md` scatters to `goal:g1`. 🔴 Minting the twelve existing rows as seat nodes is round **L4.13** and is the owner's surface; this goal carries the RULE, not a hiring.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.8 — Messaging restrictions — each role reaches only a defined subset of seats — status: active
+
+<!-- BODY:BEGIN -->
+**Each role can reach only a defined subset of the other role seats.** Brief point **B8** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → hypothesis → build in `send.py`, scattering to `goal:g15`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+#### G17.9 — Channels A and B, and no director-to-Prime edge — status: active
+
+<!-- BODY:BEGIN -->
+**Two audience channels, and NO director→Prime edge.** Brief point **B9** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:246, A:259, A:326 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-goal of B8 → build in `send.py` → `goal:g15`. 🔴 It can block a live sender, so the round that lands it (**L4.21**) is `Owner go? YES`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+##### G17.10 — One voice per chamber, the DM room, and Council-to-Keep propagation — status: active
+
+<!-- BODY:BEGIN -->
+**One voice per chamber; an inter-chamber DM room; Council→Keep propagation.** Brief point **B10** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-sub-goal of B9 → build → `goal:g15`, accepting exactly ONE response per chamber act.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.11 — Names and forms of address — everything has a protocol — status: active
+
+<!-- BODY:BEGIN -->
+**The names and the forms of address: everything has a protocol.** Brief point **B11** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:248-257, A:265, A:319, A:387 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal carried as a `doc` plus `seat` bodies; the bootstrap half scatters to `goal:g15`. Written by the G17 director directly rather than by a dispatched parent, because it is owner-verbatim-dense.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.12 — The Masters own and dispatch their own workflows — status: active
+
+<!-- BODY:BEGIN -->
+**Each `* Master` owns and dispatches its own workflows.** Brief point **B12** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:254, A:320, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → `seat` specs. 🔴 SPEC ONLY — no Master is created, launched or given a row; survival mode forbids it.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 

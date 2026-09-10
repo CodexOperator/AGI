@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-I
+edited_by: sanctuary-director
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: rc-L4-I
+thought_session: sanctuary-director-genVI-L4
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -441,3 +441,13 @@ Every quoted span above re-checked with grep -F against doc:l4-owner-decisions, 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 L4-I 2026-09-10: appended the banked-questions section (28 items: resolved by parts 4-7 with the owner's lines, still open, new) from doc:l4-plan §6, plus the BODY-marker renderer defect. Prime's list, not owner text; the owner's rulings go beside each item.
 <!-- THOUGHT:END -->
+
+
+
+OWNER, 2026-09-09/10, VERBATIM (direct to `sanctuary-helper` mid-task, relayed by it to the point director): "always prefer dispatch over not" · "always" · "so you can parallelize properly"
+
+STANDING, both director seats. This REVERSES a judgement the point director made earlier the same round and told the prime was deliberate: the fourteen L4.20 sub-goals were minted BY HAND, on the reasoning that exact graph structure is where a drifting kid is most expensive (a wrong parent cannot be deleted, only deprecated) and that two dispatches that day had returned verdicts ABOUT their work instead of doing it (trap 0ak). The owner has now ruled the other way, and the rule is "always". **Prefer dispatch. The precision argument does not survive the word "always".**
+
+APPLIED, and what it does NOT mean. It does not license a kid to re-derive work that is already committed and verified: the helper declined to redo its twelve committed chains through a dispatch, because a kid re-deriving fully-specified content risks drift for no parallelization gain and would spend money and review time to reproduce bytes that already exist. That call is accepted and recorded here rather than silently taken. **The rule governs work not yet done, not work already landed.**
+
+🔴 IT ALSO TOUCHES A PRIME CONSTRAINT, and this is the part that needs the owner or the prime to settle. Survival mode's standing rule is ONE ROUND AT A TIME (A:54), re-stated by belam-S1-L4-I this round ("one round at a time"). "So you can parallelize properly" points the other way. Read together, the point director has taken the owner's sentence as authorising CONCURRENT DISPATCH ACROSS THE TWO SEATS — one round each, not one round total — because that is what "parallelize" means with two directors and it is the smallest reading that gives the owner's word effect. It has NOT been read as lifting any other survival constraint: no seat is woken, no third director appears, the $3.00 key ceiling across both seats stands, and the $1.00 floor is untouched. If the owner meant more than that, or less, one line settles it.
