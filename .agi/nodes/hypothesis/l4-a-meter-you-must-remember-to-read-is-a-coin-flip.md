@@ -1,0 +1,29 @@
+---
+id: hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip
+mint_id: 5bf118a21b484586a89e824d41b858df
+type: hypothesis
+parents:
+  - hypothesis:l4-the-meter-pinned-another-sessions-transcript
+  - goal:g17.1
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: cfc753c4e0356011
+season: 2
+status: pending
+tags:
+  - l4
+  - g17.1
+  - rotate
+  - meter
+  - hook
+  - fail-closed
+testable_claim: "TRACKING YOUR OWN CONTEXT IS A COIN-FLIP ACTION AND MUST STOP BEING ONE. The owner's round, adopted whole by the prime: a meter you have to REMEMBER to read is a rotation discipline that depends on the one faculty a session loses as it fills up. Two seat generations in a row proved it -- gen IV ran 67% past its rotation line believing it was under it, and gen III closed at 0.56 and wrote a worse brief for it. REQUIRED: a HOOK that speaks UNPROMPTED, populating a rotation warning into the session's own turn. 🔴 A HOOK IS HANDED ITS OWN TRANSCRIPT PATH, AND THAT IS THE ENTIRE ARCHITECTURAL POINT -- it makes the capture bug STRUCTURALLY IMPOSSIBLE rather than guarded. Claude Code delivers a JSON payload on stdin carrying the session's own transcript path and session id. **USE THE HANDED PATH AND NOTHING ELSE.** The hook must NEVER call `resolve_transcript`, NEVER read a `.meter` pin, NEVER glob a project dir, and NEVER take the newest anything -- every one of those is the defect the parallel round (`hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write`) is closing, and re-importing it here would reintroduce it in a new file. 🔴 VERIFY THE PAYLOAD'S FIELD NAMES EMPIRICALLY, DO NOT ASSUME THEM: `extensions/agi/hooks/cc-session-start.sh` already consumes a real hook payload on this box -- read it, and capture an actual payload if you can. Assert the field you rely on EXISTS and FAIL CLOSED with a named error if it does not. 🔴 IT ESCALATES; IT DOES NOT PING ONCE. A single reminder is missed mid-round -- that is measured behaviour, not a worry. Emit on rising THRESHOLD BANDS, at most once per band while BELOW the rotation threshold (silence when nothing changed is the point), and on EVERY firing once AT OR ABOVE it, because past the line the emergency does not expire. Per-session state, keyed by the SESSION ID from the payload -- 🔴 NEVER keyed by seat name and NEVER in a dir shared across agents; shared state routed to the main checkout is the exact boundary that produced the bug this round exists to prevent. 🔴 IT NAMES THE EXACT NEXT COMMAND, INCLUDING THE EXPLICIT `--session-log` PATH, interpolated from the handed transcript path -- a copy-pasteable line. A reminder that only says 'you should rotate' costs a turn just to work out how, and that turn is spent at the exact moment context is scarcest. 🔴 THE DENOMINATOR IS AN OPEN QUESTION: MEASURE IT, DO NOT ASSUME IT. `rotate.py:72` falls back to `DEFAULT_DIRECTOR_CONTEXT_TOKENS = 1_000_000` and `.agi/nodes/.geometry/ladder.md:14` declares `director_context_tokens: 1000000`. THE EVIDENCE FOR 1M IS ONE CROSS-CHECK, NOT A PROOF: gen IV's explicit read of 0.7854 against a 1M denominator matched the owner's GUI at 78% for an Opus 5 session. One agreement, one model. Say in your node WHAT YOU MEASURED and what the numerator actually sums (input, cache-read and cache-creation tokens are not the same quantity and the choice changes the fraction). If the window cannot be established for the running model, FAIL CLOSED and say so -- do not quietly assume 1M, because a confident wrong fraction is the disease, not the cure. PROVED BY: (a) a test feeding a synthetic payload on stdin with a KNOWN transcript and asserting the emitted text names THAT path in a `--session-log` argument -- assert on the literal path, not on the warning existing; (b) a test that a payload MISSING the transcript field fails closed with a named error and emits no fraction; (c) an ESCALATION test: rising usage across several invocations of ONE session emits once per band below threshold and on EVERY invocation at or above it -- assert the COUNTS per band, since 'a warning appeared' is what a ping-once implementation also passes; (d) a test that two DIFFERENT session ids do not share escalation state; (e) a test that the hook is SILENT and exits 0 outside an agi project and on an unreadable transcript -- it runs on every session on this box and must never break one; (f) the hook run by hand against a REAL payload naming a REAL transcript, output pasted -- a suite cannot see the shape this lives in; (g) `python3 extensions/agi/bin/commands.py run verify` PASS. DISPROVED IF: it resolves a transcript by any route other than the handed payload; it pings once; it omits the `--session-log` path from the command it prints; escalation state is shared between sessions or keyed by seat; it assumes a denominator it did not measure; it can break or slow an unrelated session; or any existing test is edited. HARD CEILING: 2 kids. 🔴 SCOPE, HARD: create ONLY a new hook under `extensions/agi/hooks/` plus its test under `extensions/agi/tests/`. Do NOT edit `extensions/agi/bin/rotate.py` or `extensions/agi/tests/test_rotate.py` -- a parallel round owns both and a conflict costs more than the round. Do NOT add a file under `extensions/agi/bin/` (`test_bin_help_smoke.py` auto-enrols it). 🔴 DO NOT INSTALL IT: never write `~/.claude/settings.json` or any file outside this repo. Registering a hook globally changes every session on this box and is the OWNER's call, not a round's. Emit the exact registration snippet in your node and STOP. Do NOT run the full suite."
+thought_session: sanctuary-director-genV-L4
+title: A rotation warning must arrive unprompted, escalate, and carry its own next command
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
