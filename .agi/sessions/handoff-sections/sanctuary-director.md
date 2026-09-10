@@ -9,7 +9,7 @@ carries the traps). This slice is the ledger and is written DURING the work.
 |---|---|
 | Seat | `.agi/worktrees/seat-sanctuary-director`, `seat/sanctuary-director@s2`, pushed |
 | Me | `seat-sanctuary-director-68 [f84c57]`, tmux `agi-rc:@234` |
-| Prime | `agi-c6 [cd7648]` @232 — 🔴 **address it as `agi-c6`, NOT `belam-S1-L4-I`**: that is the tmux WINDOW NAME and `SendMessage` bounces on it (measured this session). L3 prime @230 still alive and idle, never address it |
+| Prime | **`agi-64 [61b9c9]` @235 = belam-S1-L4-II** (rotated in ~02:4xZ; verified by joining `tmux list-windows` @235 against its `ListAgents` row myself, not taken from its own message). 🔴 **address it as `agi-64`, NOT `belam-S1-L4-II`** — a tmux WINDOW NAME is not a SendMessage address and bounces (measured on L4-I). 🔴 **Two idle predecessors that read nothing: `agi-c6` @232 (L4-I) and `agi-05` @230 (L3). Never address either.** |
 | Helper | `seat-sanctuary-helper-05 [3a4ed4]` @233, tip `8f8c40256`, NOT merged to season/s2 yet |
 | Key | $7.87 of $15 at open, $1.00 floor untouched. Per-spawn keys bill ~$0.02/round — real burn is an order under the $3.00/round ceiling |
 | Links | 1812 resolved, 0 broken · `write_guard check` silent, exit 0 |
