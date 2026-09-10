@@ -19,12 +19,14 @@ carries the traps). This slice is the ledger and is written DURING the work.
 
 1. ✅ Verify inherited state from disk, not from the brief — done: L4.37 alive, helper busy,
    key read, prime address corrected.
-2. ✅ L4.06 minted, committed, pushed, dispatched — parent `a00-ea55a89f`.
-3. ⏳ Harvest L4.37 (`a00-bad8beca`, kid `a00-6b9a041c` DONE, work staged, parent running).
-4. ⏳ Harvest L4.06 (`a00-ea55a89f`, kid DONE `proved`, work staged, parent running).
+2. ✅ **L4.06 CLOSED `proved`** — merged into the seat branch and pushed (`47e22a5a2`).
+3. ✅ L4.39 minted, committed, pushed, dispatched — the follow-on L4.06's review found.
+4. ⏳ Harvest L4.37 (`a00-bad8beca`, kid `a00-6b9a041c` returned `proved`, work staged,
+   parent still running at ~19min). Its diff is ALREADY REVIEWED — see §2c.
 5. ⏳ Take the helper's tip when its last round lands; merge BOTH into `season/s2` against
    the MERGE-BASE; suite ONCE in a prime-cleared window; `grid.py commit --all` THERE.
-6. ⏸ L4.23 (ONE message router) — HELD deliberately, see §4. L4.05 — blocked behind L4.06.
+6. ⏸ L4.23 (ONE message router) — HELD, see §4. L4.05 — now UNBLOCKED (L4.06 landed), take
+   it next. L4.40 (token counter) — queued behind L4.39, deliberately NOT bundled with it.
 
 ## §2 What landed
 
@@ -40,6 +42,25 @@ shape.
 
 **Helper's L4.34/L4.36 reviewed and its debris fix verified in the bytes** (`b8c75c60f`):
 0 occurrences of the pattern, paragraph intact, file still 58 lines, nothing truncated.
+
+## §2c L4.37 reviewed AHEAD of its parent's verdict (so the harvest is not a bottleneck)
+
+Kid `a00-6b9a041c`, `proved` (0.85). It reverses `sess_root` to the LOCAL worktree in
+`dispatch.py` (~`:1064`), `cli.py` (`_session_root`) and `zoom.py` (~`:472`), and adds
+`cli._legacy_fallback()` so a record that only exists in the main checkout — an in-flight
+round, or a seat whose dirs predate the change — still resolves. Backward compatible by
+construction.
+
+**It honoured the one DO-NOT-MOVE constraint `goal:g17.13` named** and wrote a test
+asserting it: the spawn budget STAYS on `shared_project_root`, because a tree-wide
+concurrency bound that splits per worktree is not a bound.
+
+**I ran the test file myself: 7 passed.** Including
+`test_cli_done_from_a_worktree_resolves_the_main_session_record`, which asserts the OLD
+routing and is still green through `_legacy_fallback`. `--numstat` says **68 insertions,
+1 deletion, and the single deleted line is a comment header.** No assertion weakened,
+removed or retargeted — checked, not assumed, because a round that reverses a rule is
+exactly where a test gets quietly retargeted.
 
 ## §2b 🔴 REVIEW FINDING on L4.06 — accept the code, correct the record
 
