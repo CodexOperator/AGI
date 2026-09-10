@@ -453,7 +453,8 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
 
 def replace_payload(root, ref: str, source=None, *, location: str | None = None,
                     data: bytes | None = None,
-                    mint_id: str = "") -> tuple[Path, bool]:
+                    mint_id: str = "",
+                    log_extra: dict | None = None) -> tuple[Path, bool]:
     """Replace the bytes of an existing payload from `source`. Never creates.
 
     The other half of `ensure_payload`, and here for the same reason: a payload
@@ -500,19 +501,22 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
         # successful re-logs because this branch logged nothing. Keep
         # `changed=False` (the 'unchanged' message stays) but log the
         # attempted payload write all the same.
+        _log_extra = dict(log_extra) if log_extra else {}
         _log_write(root, "replace_payload", str(ref), dest,
                    mint_id=mint_id,
                    text=new.decode("utf-8", errors="replace"),
-                   extra={"payload_ref": str(ref), "location": str(location),
-                          "changed": False})
+                   extra={**{"payload_ref": str(ref), "location": str(location),
+                          "changed": False}, **_log_extra})
         return dest, False
     mode = dest.stat().st_mode
     dest.write_bytes(new)
     os.chmod(dest, mode)
+    _log_extra = dict(log_extra) if log_extra else {}
     _log_write(root, "replace_payload", str(ref), dest,
                mint_id=mint_id,
                text=new.decode("utf-8", errors="replace"),
-               extra={"payload_ref": str(ref), "location": str(location)})
+               extra={**{"payload_ref": str(ref), "location": str(location)},
+                      **_log_extra})
     return dest, True
 
 
@@ -532,6 +536,7 @@ def write_node(
     on_exists=SKIP,
     announce=True,
     stamp=None,
+    log_extra=None,
 ) -> NodeWrite:
     """Create one node file, gated. The only routine that does this.
 
@@ -646,11 +651,13 @@ def write_node(
 
     node_file.parent.mkdir(parents=True, exist_ok=True)
     node_file.write_text(text, encoding="utf-8")
+    _log_extra = dict(log_extra) if log_extra else {}
     _log_write(root, "write_node", node_id, node_file, text,
                mint_id=fm.get("mint_id", ""),
                extra={
                    "parents": list(plist),
                    "node_type": ntype,
+                   **_log_extra,
                })
     # A new file invalidates `find_node_file`'s whole-corpus index. Dropping it
     # here is what makes caching safe at all: the only routine that adds a node
@@ -834,6 +841,7 @@ def update_node(
     body=None,
     validate=True,
     announce=False,
+    log_extra=None,
 ) -> NodeWrite:
     """Edit one existing node in place, gated. The only routine that does this.
 
@@ -928,8 +936,10 @@ def update_node(
         tmp.unlink(missing_ok=True)
         raise
 
+    _log_extra = dict(log_extra) if log_extra else {}
     _log_write(root, "update_node", node_id, path, text,
-               mint_id=fm.get("mint_id", ""))
+               mint_id=fm.get("mint_id", ""),
+               extra=_log_extra or None)
     res.status = UPDATED
     return res
 
