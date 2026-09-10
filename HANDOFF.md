@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.37, cap 0.47)   season/s2   2026-09-10 03:0xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.38, cap 0.47)   season/s2   2026-09-10 03:3xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -74,7 +74,7 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          OWNER 02:0xZ: "go for parallel rounds" (to the Prime) + "always prefer dispatch over not" / "so you can parallelize properly" (to the helper) -> one-round-at-a-time LIFTED,
          dispatch is the default for work not yet done; landed work is not re-derived. Trap: dispatch.py iteration id must be L4.NN (numeric suffix), fail-closed otherwise.
          PARALLEL ROUNDS LIVE 03:0xZ: point L4.28 (chains) + L4.32 (L4.02 retry, claim corrected in place after a lean_disproved:80 that was the claim's fault) · helper L4.29-31;
-         8/25 live; key $7.87 (credits lag — read /api/v1/credits live before trusting it). Protocol facts (goal:g17.1): agent session dirs land in the MAIN checkout's
+         12/25 live (L4.28/32 point, L4.29-31/33-35 helper); key $7.87, account $12.41 live (credits lag — read /api/v1/credits live before trusting it). Protocol facts (goal:g17.1): agent session dirs land in the MAIN checkout's
          .agi/sessions/, not the seat tree; 'reaper: finished' != round over (trap 0n).
          GATES untouched, correctly: perpetual flip of 12 gN (L4.07) needs owner GO and MOVES them into GOALS.md "## Perpetual"; seat nodes (L4.13) = owner's surface.
 MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work · predecessors kept XI–XVI (XVI relays owner text)
@@ -85,7 +85,7 @@ NEXT   1 WAIT for the point's MERGE report (helper slice + chain round -> season
          point's own smoke on its branch), suite alone, links 0, goals round-trip, guard silent; then the handoff card + push. Do not pull work back to the Prime (SKILL: dispatch, don't do)
        2 owner rulings on the 28 banked questions land beside each item in doc:l4-owner-decisions "L4 BANKED QUESTIONS" (verbatim), never here
        3 rotate at 0.47: handoff first, then rotate.py loop --role prime_director --name belam-S1-L4-II --timeout 900; confirm by capture-pane; announce the new address to the point
-NEVER  dispatch or launch a seat in plan mode · rotate a seat with AGI_BRIEF_PROFILE=survival · git add -A · read $? through a pipe · sweep off a ps grep · run the
+NEVER  let a kid run test_send.py unguarded while seats are live (send.py:406/:507 nudge REAL panes; L4.10) · run the suite without telling the point · rotate a seat with AGI_BRIEF_PROFILE=survival · git add -A · read $? through a pipe · sweep off a ps grep · run the
        suite twice at once · background a long verification · trust an `updated:` line · spend the Claude budget on prime chores under survival mode
 ```
 
