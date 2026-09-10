@@ -74,6 +74,7 @@ ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 # way (this file stays yaml-free by design — see module docstring).
 MINT_ID_RE = re.compile(r'^mint_id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 PAYLOAD_REF_RE = re.compile(r'^payload_ref:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
+LOCATION_RE = re.compile(r'^location:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 PARENTS_RE = re.compile(r'^parents:[ \t]*$', re.MULTILINE)
 PARENTS_INLINE_RE = re.compile(r'^parents:\s*\[([^\]]*)\]\s*$', re.MULTILINE)
 PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
@@ -328,6 +329,22 @@ def parse_payload_ref(path: Path) -> str | None:
     return ref or None
 
 
+def parse_location(path: Path) -> str | None:
+    """The node's `location:` field — the payload base it was recorded under (
+    `locations.DEFAULT_PAYLOAD_LOCATION` by default, or a key the project
+    config declares under `locations:`), or None when absent.
+
+    Absent and an explicit `source_root` are the same for resolving purposes —
+    both mean the default base — so parse_location returns None for a node with
+    no `location:` line, and the caller falls back to the default path.
+    """
+    m = LOCATION_RE.search(path.read_text(encoding="utf-8"))
+    if not m:
+        return None
+    v = m.group(1).strip()
+    return v or None
+
+
 def default_engine_root() -> Path:
     """The engine tree a payload is read from when the graph repo has no
     staged copy: this script's own repo, `<engine>/extensions/agi/bin/grid.py`
@@ -337,10 +354,15 @@ def default_engine_root() -> Path:
 
 
 def resolve_payload(root: Path, payload_ref: str,
-                    engine_root: Path) -> tuple[Path, str] | None:
+                    engine_root: Path,
+                    location: str | None = None) -> tuple[Path, str] | None:
     """Where a node's payload bytes are read from, and which source won.
 
-    Priority, and the order *is* goal:g6.1's arrow:
+    Two regimes, split on the node's `location:` field:
+
+    **Default (`location` is None or `source_root`)** — this project's own
+    layout (graph root == engine tree), whichever else. Priority, and the
+    order *is* goal:g6.1's arrow:
 
       1. `<project>/payloads/<payload_ref>` — the graph repo's own staged
          checkout (`grid.py checkout`). This is the copy an author edits, and
@@ -351,9 +373,23 @@ def resolve_payload(root: Path, payload_ref: str,
          from here is how a node's payload history starts without anyone
          having to stage all 180 files first.
 
-    Returns `(path, "staged" | "engine")`, or None when neither exists — the
-    caller reports that rather than committing a node whose payload vanished.
+    **Non-default (`location` names a key declared under the project config's
+    `locations:` map)** — resolve through the SAME location-aware mechanism
+    `node_writer.ensure_payload`/`replace_payload` use, so the grid agrees
+    with `write.py create --payload`'s link_ref about where the payload
+    lives (`locations.resolve_payload_path`). The staged/engine pair does not
+    apply here: that pairing only ever described the default tree.
+
+    Returns `(path, "staged" | "engine" | <location>)`, or None when nothing
+    exists at the resolved location — the caller reports that rather than
+    committing a node whose payload vanished.
     """
+    loc = (location or "").strip()
+    if loc and loc != "source_root":
+        located = locations.resolve_payload_path(root, payload_ref, loc)
+        if located.is_symlink() or located.exists():
+            return located, loc
+        return None
     staged = root / PAYLOAD_DIR / payload_ref
     if staged.is_symlink() or staged.exists():
         return staged, "staged"
@@ -891,7 +927,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 trailer = build_parent_mint_trailer(p, id_index)
                 payload_ref = parse_payload_ref(p)
                 if payload_ref:
-                    found = resolve_payload(root, payload_ref, engine_root)
+                    found = resolve_payload(root, payload_ref, engine_root,
+                                            parse_location(p))
                     if found is None:
                         print(f"WARN: {node_id} payload_ref {payload_ref!r} resolves "
                               f"neither under {PAYLOAD_DIR}/ nor in {engine_root} — "
@@ -1175,7 +1212,8 @@ def cmd_status(root: Path, engine_root: Path | None = None) -> None:
             print(f"NEW      {node_id}")
             continue
         payload_ref = parse_payload_ref(p)
-        found = resolve_payload(root, payload_ref, engine_root) if payload_ref else None
+        found = resolve_payload(root, payload_ref, engine_root,
+                                parse_location(p)) if payload_ref else None
         fresh = tree_entries(root, p, found[0] if found else None, write=False)
         if fresh == read_tree(root, ref):
             clean += 1
