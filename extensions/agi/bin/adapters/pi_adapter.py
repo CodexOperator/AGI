@@ -184,7 +184,9 @@ def build_command(
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
         args.extend(["--append-system-prompt", str(skill_prompt)])
-    args.append(brief.closing_line(_btier, agent_id, iter_n))
+    # `cli_py` reaches the closing line so a parent's self-check carries the
+    # REAL command rather than a shape it has to reconstruct.
+    args.append(brief.closing_line(_btier, agent_id, iter_n, cli_py=cli_py))
     return args
 
 

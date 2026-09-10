@@ -1275,3 +1275,56 @@ def test_successor_prompt_honors_ultimate_survival(monkeypatch):
     surv = brief.successor_prompt(tier="kid", body=body)
     assert "SUCCESSOR FILE BODY" not in surv
     assert "SURVIVAL PROFILE" in surv
+
+
+# ---------------------------------------------------------------------------
+# l4-the-parents-last-line-is-a-self-check — the terminal step is a check,
+# and it is the last thing the parent reads
+# ---------------------------------------------------------------------------
+
+def test_a_parents_closing_line_ends_with_the_done_self_check():
+    """🔴 Two parents in one loop never ran `cli.py done` at all.
+
+    Proven rather than guessed (experiment:a00-f2f8465a-b4eb8e): `cmd_done`
+    writes `status`/`finished_at` into the record BEFORE
+    `_auto_commit_worktree`, and both dispatcher-side records still read
+    `status: running` with an mtime equal to spawn. `done` would not have
+    refused, and `cli.py status` showed every kid done from the parent's own
+    tree. The poll loop had everything it needed and did not terminate — an
+    invariant handed to a model instead of checked.
+
+    The prime's ruling made it explicit, self-checking and LAST. This asserts
+    the self-check is in the parent's closing line AND that it is the tail of
+    it, because a check in the middle is just more middle.
+    """
+    line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
+    assert "YOU ARE NOT FINISHED" in line
+    assert "every kid is terminal" in line
+    tail = line.split("BEFORE YOU STOP, CHECK YOURSELF")[-1]
+    assert tail.strip(), "the self-check must be the tail, not a middle clause"
+    assert "Read your zoom context" not in tail, (
+        "nothing from the original instruction may follow the self-check")
+
+
+def test_the_self_check_carries_the_real_command_with_owns():
+    """A parent told to run a command it must reconstruct is a parent given
+    another judgement call. `--owns`, never `--node-id`: a parent authors no
+    node of its own, and that distinction has its own line in the brief."""
+    line = brief.closing_line("parent", "a00-x", 7, cli_py="/eng/bin/cli.py")
+    assert "python3 /eng/bin/cli.py done 7 a00-x" in line
+    assert "--owns" in line
+    assert "--node-id" in line and "NOT `--node-id`" in line
+
+    # Without a path the invariant still stands; only the absolute path goes.
+    bare = brief.closing_line("parent", "a00-x", 7)
+    assert "YOU ARE NOT FINISHED" in bare
+    assert "cli.py done 7 a00-x" in bare
+
+
+def test_no_other_tier_gains_the_parent_self_check():
+    """A self-check aimed at the wrong tier is noise, and noise at the end of
+    a brief teaches agents that the end of the brief is skippable. A kid
+    authors a node and signals differently."""
+    for tier in ("kid", "director", "prime_director", "advisor"):
+        line = brief.closing_line(tier, "a00-x", 7, cli_py="/eng/bin/cli.py")
+        assert "YOU ARE NOT FINISHED" not in line, tier
