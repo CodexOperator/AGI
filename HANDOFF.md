@@ -51,7 +51,7 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.39, cap 0.47)   season/s2   2026-09-10 04:0xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.40, cap 0.47)   season/s2   2026-09-10 04:2xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
 L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
          FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
          Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
@@ -73,7 +73,9 @@ L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continu
          HELPER SLICE LANDED a8816ecfb (12 goals + 12 ideas + 12 hypotheses, 0 build nodes; g3.2 dual-parented, legal). Point's L4.28 chain round running (parent a00-83409bc4).
          OWNER 02:0xZ: "go for parallel rounds" (to the Prime) + "always prefer dispatch over not" / "so you can parallelize properly" (to the helper) -> one-round-at-a-time LIFTED,
          dispatch is the default for work not yet done; landed work is not re-derived. Trap: dispatch.py iteration id must be L4.NN (numeric suffix), fail-closed otherwise.
-         PARALLEL ROUNDS LIVE 03:0xZ: point L4.28 (chains) + L4.32 (L4.02 retry, claim corrected in place after a lean_disproved:80 that was the claim's fault) · helper L4.29-31;
+         POINT ROUNDS CLOSED 04:1xZ on seat/sanctuary-director@s2 @ 31ac954fb: L4.28 PROVED (10 idea + 10 hypothesis + 2 experiment; kid 2 rescued via --prompt-file carry-forward
+         after a report-only kid 1 = 0ak x3) · L4.32 lean_proved:85 (write.py moral gate now schema data: written_by in [moral].md, _enforce_written_by :514, 64 tests) · SUITE WINDOW
+         GRANTED to the point 04:2xZ (full suite before merge-up; Prime does not run it meanwhile) · helper L4.29-31/33-35 still live (6/25);
          12/25 live (L4.28/32 point, L4.29-31/33-35 helper); key $7.87, account $12.41 live (credits lag — read /api/v1/credits live before trusting it). Protocol facts (goal:g17.1): agent session dirs land in the MAIN checkout's
          .agi/sessions/, not the seat tree; 'reaper: finished' != round over (trap 0n).
          OWNER 03:5xZ (verbatim in goal:g17.1): agent iter-<id>/ session dirs must land PER WORKTREE and be MIGRATED into main .agi/sessions/ at worktree delete (sessions/ is
