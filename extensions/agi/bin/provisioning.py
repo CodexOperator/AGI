@@ -108,6 +108,16 @@ RUNTIME_KEY_BASE = "https://openrouter.ai/api/v1/key"
 #: box whose owner has not set it does not freeze a round on a minor tick, yet
 #: large enough to be noticed BEFORE the key crosses its cap mid-kid.
 DEFAULT_MIN_KEY_REMAINING_USD = 1.00
+#: Default floor on the ACCOUNT's remaining credits before dispatch refuses to
+#: spend a budget slot on a spawn (hypothesis:l4-the-floor-must-watch-the-
+#: account). Configured per project under `provisioning.min_account_remaining_usd`.
+#: This one is OPT-IN by construction: `min_account_remaining_floor` returns
+#: None (no-op) when the config key is absent, so a project that has not
+#: declared one keeps exactly today's behaviour. The default here is the value
+#: used when a project HAS declared the key with an empty/blank value, and is
+#: set equal to the key floor and to `MIN_REMAINING_CREDITS` so a refused
+#: account can still guarantee one more mint remains fundable.
+DEFAULT_MIN_ACCOUNT_REMAINING_USD = 1.00
 
 
 class ProvisioningError(RuntimeError):
@@ -337,6 +347,69 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
             return False, _below_floor_message(
                 "outstanding minted key", name, remaining, floor)
     return True, None
+
+
+def min_account_remaining_floor(cfg: dict) -> float | None:
+    """The ACCOUNT's remaining-credit floor from config, or None when the
+    project has not declared one (hypothesis:l4-the-floor-must-watch-the-
+    account).
+
+    Read from `provisioning.min_account_remaining_usd`. Absent means absent:
+    the account floor is OPT-IN precisely so a project that has not declared
+    one keeps today's behaviour exactly, and `check_account_floor` short-
+    circuits on None BEFORE it even reads the account. Returning None rather
+    than a bare default is the difference between "no floor declared" and "a
+    floor of a dollar" — only the former is a no-op.
+    """
+    prov = ((cfg.get("provisioning") or {}))
+    if "min_account_remaining_usd" not in prov:
+        return None
+    val = prov.get("min_account_remaining_usd")
+    if val is None:
+        val = DEFAULT_MIN_ACCOUNT_REMAINING_USD
+    return float(val)
+
+
+def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the pre-flight's account leg (hypothesis:l4-the-floor-
+    must-watch-the-account).
+
+    Rounds bill to the ACCOUNT, not to any key this engine manages, so a key
+    floor can read every key FULL while the account drains (the prime measured
+    $+0.0977 on `account.used` against $0.0000 on every key for one dispatched
+    round). This check refuses a spawn when the account's remaining credits
+    read at or below the configured floor — ADDITIVE to the key floor, never
+    replacing it, and checked after it in the same pre-flight.
+
+    🔴 Fail-closed and fail-open are TWO different things and conflating them
+    turns a guard into an outage. A PRESENT reading at or below the floor
+    REFUSES (fail-closed — the guard's whole point). An ABSENT reading (no
+    provisioning key: `credit_balance` returns None) or a network error
+    (`ProvisioningError`) is NOT evidence of exhaustion and returns
+    (True, None) — fail-open. This deliberately matches `check_key_floor`'s
+    idiom rather than inventing a second one.
+
+    Absent `min_account_remaining_usd` config returns (True, None) before
+    touching the network, so a project that has not declared a floor keeps
+    exactly today's behaviour.
+    """
+    floor = min_account_remaining_floor(cfg)
+    if floor is None:
+        return True, None  # no floor declared → no account leg at all
+    try:
+        bal = credit_balance(root)
+    except ProvisioningError:
+        return True, None  # fail-open: a network error must never block a round
+    if bal is None:
+        return True, None  # no provisioning key → shared-key fallback, key-only
+    _total, _used, remaining = bal
+    if remaining >= floor:
+        return True, None
+    return False, (
+        f"account remaining ${remaining:.2f} is at/below the configured floor "
+        f"${floor:.2f} (provisioning.min_account_remaining_usd); a dispatched "
+        f"round bills the ACCOUNT, not any key this engine manages, and only "
+        f"{remaining:.2f} remains. Top up the account before the next spawn")
 
 
 def settings(cfg: dict) -> tuple[float, int]:

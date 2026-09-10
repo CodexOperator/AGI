@@ -1255,6 +1255,15 @@ def main() -> int:
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
             return 1
+        # hypothesis:l4-the-floor-must-watch-the-account — ADDITIVE to the key
+        # floor, never replacing it. Rounds bill to the ACCOUNT, which the key
+        # floor cannot see, so a drained account must refuse a spawn the same
+        # way a drained key does. Fail-closed on a present reading below,
+        # fail-open on absence or a network error (see check_account_floor).
+        _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
+        if not _acc_ok:
+            print(f"ERR: {_acc_msg}", file=sys.stderr)
+            return 1
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
