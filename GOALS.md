@@ -2458,6 +2458,28 @@ Falsifier shape: run the classifier over the goal corpus as it stood before
 2026-09-04 and check that `goal:g9.4` scores as over-saturated while goals that
 closed cleanly in one chain do not.
 
+### G5.3 — Every top-level gN goal is perpetual — there is no long-term top-level goal — status: active
+
+<!-- BODY:BEGIN -->
+**Every top-level `gN` goal is perpetual.** Brief point **B1** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain, and a DATA FLIP on twelve `gN` goals. 🔴 The flip is round **L4.07** and needs the owner's GO — it is deliberately NOT done here, because `perpetual` is carried structurally by GOALS.md's `## Perpetual` section, so flipping moves twelve goals in the rendered document.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G5.4 — The season review and rollover, end to end — status: active
+
+<!-- BODY:BEGIN -->
+**The season review and the rollover, end to end.** Brief point **B21** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:183 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → build in `season.py`, scattering to `goal:g15`. Rounds **L4.18** and **L4.19** carry it and both are `Owner go? YES`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
 ## G6 — The closed loop: engine work starts in the graph — status: horizon
 
 Run `agi` and `agi-tree` against each other and the pair is closed: a change to
@@ -4662,6 +4684,17 @@ different universe.
 If this skin and the spider skin ever need different frame data, the hook layer
 in `goal:g9.8` is under-specified — fix it there.
 
+### G9.11 — The role diagram, LLM-first — status: active
+
+<!-- BODY:BEGIN -->
+**The role diagram, rendered LLM-first.** Brief point **B22** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:187 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal carried as a `doc` — it is `doc:l4-plan` §0.9, already owner-confirmed. Written by the G17 director directly rather than by a dispatched parent.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
 ## G10 — The hypergraph: an environment, not a document — status: horizon
 
 **The end state this whole system is walking toward.** Not "a graph the agent can
@@ -5969,6 +6002,200 @@ Done when: one round has been split, dispatched by both seats from their own wor
 Owner, verbatim (2026-09-09): "also old worktrees that've been exhausted and aren't used anymore should be cleared out once the work is verifiably merged into whatever parent worktree owns it. So we don't develop a giant list of worktrees over time" — applied the same hour: 23 merged+clean L3 loop worktrees removed with their branches (git worktree remove + git branch -d, which refuses an unmerged branch); 4 merged-but-dirty and 5 unmerged (ahead=1) trees kept for review. Standing rule for the point director: prune a worktree only after its branch is an ancestor of the parent branch.
 
 Owner, verbatim (2026-09-10 00:2xZ): "we should mint fresh worktrees per seat session and then merge them in and delete them as part of session complete after no actionable items left, not per rotation." — applied: .agi/worktrees/seat-sanctuary-director and seat-sanctuary-helper are the two seats' SESSION worktrees for this loop (branches seat/<name>@s2, minted 2026-09-09, fast-forwarded to 48575827f); a rotation (gen I -> II -> ...) continues in the SAME worktree; at session complete — no actionable items left — the point merges both into season/s2 (merge-base, never rebase) and deletes both worktrees and branches. Never per rotation.
+
+Seat-worktree protocol, measured by the point in round 1 (2026-09-10): grid.py commit --all REFUSES on a seat branch (node refs are branch-blind: "merge to master first or pass --allow-branch"). Rule: never pass --allow-branch; on a seat branch a step ends at git commit + git push; grid.py commit --all runs ONLY on season/s2 after the point's merge. Round 1 point slice: 14 sub-goals (g5.3, g5.4, g9.11, g17.2-g17.12 with nesting to heading level 5, first use in this graph) on seat/sanctuary-director@s2 at dc1974a59, zero dispatches by documented judgement (exact structure, a wrong parent can only be deprecated), key untouched; chain round (idea -> hypothesis per sub-goal) ordered next.
+
+Owner, verbatim, 2026-09-10 (to the Prime in chat): "go for parallel rounds" — the one-round-at-a-time rule is lifted for the formation: rounds run concurrently across and within both seats, several pi parents at once, inside the standing bounds (KEY checked before every dispatch, $1.00 floor, stop under $2.00, spawn budget 25 live, hard ceiling per parent, $3.00 key per round). Owner, verbatim, the same night (to the helper directly, relayed by the point and banked by it in doc:l4-owner-decisions): "always prefer dispatch over not" · "always" · "so you can parallelize properly" — the rule for work not yet done; work already landed and verified is not re-derived (point's reading, accepted by the Prime). Measured trap (point): dispatch.py refuses a non-numeric iteration suffix (L4.20b -> invalid iteration_id, fail-closed) — use L4.NN; ad-hoc rounds are numbered beyond the plan's L4.27.
+
+Seat-worktree protocol, two more facts measured by the point in L4.02 (2026-09-10): (1) agent session dirs land in the MAIN checkout's .agi/sessions/iter-<id>/, not in the seat worktree — a seat harvesting its own round reads /home/ubuntu/work/agi/.agi/sessions/iter-<id>/ (its own tree holds only its p.log); (2) trap 0n reproduced: dispatch.py prints 'reaper: finished' while the parent is still alive — the reaper giving up is not the round ending; harvest off spawn_budget.py status. Also L4.02: a claim whose conjuncts contradict (schema-derived gate AND tests unchanged) was disproved by the kid with a clean-room reproduction; accepted lean_disproved:80, claim corrected IN PLACE (a version is a grid commit, no @v2), re-dispatched as L4.32.
+
+STANDING RULE until L4.10 lands (point + helper, 2026-09-10, verified in the bytes: send.py:406 and :507 call _nudge_window(None, ...) with no test guard): a kid must NEVER run test_send.py unguarded while live seats exist — the fixture nudges REAL tmux windows on this box, and fixture text landing in the Prime's pane reads as a seat's message and can pollute the owner's conversation. The reproduction of L4.10 is READING those two lines, never firing them. The fix monkeypatches _nudge_window AND the comms root before any assertion runs. Corollary: neither seat runs the full suite without telling the Prime first (collision AND nudge risk); the Prime captures its own pane after any suite run.
+
+Owner, verbatim (2026-09-10 ~03:5xZ, to the Prime): "Agent session dirs land in the MAIN checkout's .agi/sessions/, NOT in the seat worktree can we rectify this? This seems important to keep per-worktree. After finishing everything and time for worktree delete, the sessions should be automatically migrated into the main checkout .agi/sessions. I think merging already does this but still this need to be fixed" — Prime's reading for the round: locations.git_common_root (locations.py:212-227) deliberately routes SHARED state (spawn budget, comms root, meter pins) to the main checkout so the tree-wide bound never splits; the agent iter-<id>/ session dirs ride along and must NOT — they belong to the worktree that ran them. Design: iter dirs resolve to the worktree's own .agi/sessions/; budget/comms/pins stay shared; a session-complete command verifies the branch is an ancestor of the parent, MIGRATES the worktree's iter dirs into main .agi/sessions/ (sessions/ is gitignored — a merge carries NOTHING, so the migration is an explicit copy), then removes the worktree and branch. Handed to the point as a dispatchable round (code under G15 per the owner's re-attribution rule).
+
+Trap measured in L4.28 (kid 1's struggles line, 2026-09-10): a whole-file write onto a graph node destroys it — the YAML frontmatter and BODY:BEGIN marker were overwritten, cli.py done refused with 'missing opening --- delimiter', the kid rebuilt the frontmatter by hand. Rule: a kid edits a node through write.py's verbs (set / note / thought / replace body), never by rewriting the file. Also measured: the --prompt-file carry-forward (kid 2 briefed with kid 1's result through the KID channel) rescued L4.28 after a report-only first kid (trap 0ak, third time in one day) — the same flag is silently dropped at --tier parent (0am).
+
+Merge protocol, measured by the point at the first merge-up (aafb4be0a, 2026-09-10): (1) GATE EVERY STEP ON THE PREVIOUS ONE — 'git merge ; grid ; push' ran the grid against a conflicted tree and versioned build:GOALS.md with conflict markers (v69, fixed forward, origin never saw it); chain with the shell's AND operator or an explicit exit check, never with semicolons. (2) GOALS.md is DERIVED: a merge conflict on it is never resolved by hand — complete the merge on the nodes, then snapshot-goals.py --render and --render --check (byte-identical, zero markers), then grid. (3) A brief instruction is not a control: kids ran the full suite twice despite the brief (same shape as 0ak); mechanism proposed by the point and assigned as a round under G15 — a conftest.py hook that refuses a whole-directory pytest run when AGI_TIER=kid (pass a path or -k, or be refused), fail-closed, free at director and parent tier. Helper rounds accepted on its verification: L4.11 PROVED (dispatch.py refuses --tier parent --prompt-file at argparse, exit 2), L4.26 PROVED (brief.py operating_mode config key, precedence kwarg over env over config over full, ultimate_survival profile), L4.12 DISPROVED correctly (red-only overclaim demoted by the PARENT), follow-up dispatched. Verified by the Prime on season/s2 at aafb4be0a: smoke 1828/1634/194 (grew), goals round-trip byte-identical, links 1808/0, guard silent, suite 2270/1 by the point.
+
+2026-09-10 05:2xZ: the point rotated cleanly inside its worktree — sanctuary-director L4 gen I -> gen II (seat-sanctuary-director-68 [f84c57], agi-rc:@234, tree at 6eec0f2f8), inheriting L4.37 (per-worktree iter dirs) mid-run without harvesting early. Gen II's plan correction, accepted: doc:l4-plan's dependency graph had L4.05 and L4.06 as siblings; L4.05 (links.py roles) has no data source until L4.06 (write-log role capture: node_writer.py:1110-1121 records no actor today) — L4.06 is L4.05's prerequisite, recorded in the node's THOUGHT. Parallel reading confirmed by the Prime: the owner's 'go for parallel rounds' governs over the plan's §5.2 one-round-at-a-time line, which predates it. Addressing lesson repeated: a tmux window name is not an address — send to the ListAgents name.
+
+Trap 0ai/0ai-b, third firing 2026-09-10 (point gen I): the harness's low-memory reaper killed rotate.py rotate-self mid-run while free showed 16 GB of 23 available — the same false signal that killed two nohup'd pytest runs earlier. The ROTATION SURVIVED: rotate-self spawns the successor BEFORE its read-back and self-kill steps, so gen II (seat-sanctuary-director-68 @234) was alive and working, confirmed by pane capture. Rule: a killed rotation wrapper is not a failed rotation — verify the successor's pane, never re-run (a re-run mints a duplicate seat). What the dead wrapper skipped: killing the predecessor's own window — the Prime shuts it by PID (done for gen I's window @231 this hour). The reaper reaches dispatch wrappers, backgrounded verification AND rotation wrappers: anything long and backgrounded is exposed; run long steps in the foreground.
+
+Two traps measured by the point gen II in its pre-merge read of the helper's branch (2026-09-10): (1) a kid's JSON write envelope leaked into a node's prose — experiment a00-1a7e6831-17f1b8 line 51 ended with serialization debris; isolated (one occurrence corpus-wide) but the same leak inside a testable_claim or a frontmatter value would corrupt a gate silently; fixed on the helper's branch with write.py replace before the merge. Sweep the corpus for envelope debris at every merge-up. (2) A dispatch wrapper's commit line said verdict=pending while the node's frontmatter read inconclusive_lean_disproved:60 — the NODE is authoritative, a wrapper commit line is not a verdict reading. Pre-merge protocol (gen II, the step gen I skipped): compare each seat branch against ITS OWN merge-base (the two seats' bases differ), list the conflict surface file by file, confirm the target branch carries neither change, then merge; GOALS.md is the only expected conflict and is re-rendered.
+
+SPEND HAZARD measured by the point gen II in L4.39 (2026-09-10): dispatch.py --seat <name> is not a free way to populate AGI_SEAT — the seat's config:seats row overrides harness/model/effort (two dry runs differing only by --seat moved AGI_MODEL from glm-flash to claude-opus-5). Safe route: export AGI_SEAT in the director's own environment and dispatch WITHOUT --seat; the inherited value reaches every child (L4.39's _resolved_seat precedence: --seat wins, inherited AGI_SEAT survives, neither = absent) and leaves model selection alone. Also: the AGI_SEAT exporter and the token counter were split into two rounds (a bundled claim would be provable in one half only — the L4.02 shape). Helper seat CLOSED at tip a6d8ec28c (L4.38 conftest AGI_TIER=kid gate proved 0.9): holding, no further rounds. L4.06, L4.39 proved on the point's branch; L4.37 on kid 2 of 3.
+
+CORRECTION (point gen II, 2026-09-10 07:2xZ) to the earlier note that L4.06 is L4.05's prerequisite: the conclusion held (an L4.05 run today reports almost nothing) but the reason was wrong — 214 of 1830 nodes already carry role: in their frontmatter (170 kid, 38 parent, 6 director; node_writer._pick('role','AGI_ROLE') :728), so the writer side was never empty. The real bottleneck is the RULE side: exactly one schema ([moral].md) declares written_by, so a violations-only report would print an empty list and read as clean while almost nothing is checkable. L4.05's true prerequisite is L4.09 (warn -> refuse per type, where schemas gain declared writers) — which is owner-go; banked, not acted on. L4.05 re-minted as hypothesis:l4-links-roles-report printing BOTH halves: per type whether written_by is declared (coverage), and for declared types every node whose recorded writer is not admitted; read-only, ceiling 2. The correction is in that node's THOUGHT in full.
+
+RULING by the Prime (2026-09-10 08:0xZ) for L4.09's enforcement, on the point's question 'what actor value does the Prime pass': the Prime writes with --actor belam-S1-L4-<N> (a GENERATION name, provenance, changes at every rotation; seats likewise), so enforcement must never key on the actor string. written_by admits ROLES (ladder role names: owner, prime_director, director, parent, kid); the enforcer resolves the writer's role: --role if passed, else AGI_ROLE, else the config:seats row whose name is the actor's seat prefix (belam -> prime_director, sanctuary-director -> director), else actor owner -> owner, else unresolved -> refuse only for declared types, fail-closed, message naming the type and admitted roles. List shape wins: [config] and [vision] get written_by [owner, prime_director]; [moral] stays owner, byte-identical. Order: L4.40 (message names the type; list shape; found by gen II reading write.py:514-543 — the refusal text was hardcoded to 'moral' and the enforcer compared a scalar) -> L4.41 (role resolution, with the Prime's own config:seats write still passing and a seat's refused) -> flip [config] and [vision]. L4.05 result: 18 types, 1 declares written_by, 17 admit nothing (unfalsifiable, not clean) — proved; the backfill mapping generation-name -> prime_director is evidenced by the Prime's own edited_by stamps.
+
+TRAP, silent data loss, found by the point gen II by being bitten (2026-09-10 08:2xZ): write.py's replace verb driven through the PYTHON API deletes the target range — verb_replace (write.py:329-355) records only edit.replace_from; the CLI main() (:1184-1191) is the ONLY code that turns it into edit.replace_text; submit (:616-625) splices replace_text, which for an API caller is still empty, and _splice_range (:700-727) drops the range while returning status updated, payload_changed True. The brief tells directors to drive the API for prose the script form splits on AND names replace as the partial-write verb — following both destroys the range. Caught only by grepping the bytes (trap 0ah); restored with git checkout. Dispatched as L4.42 AHEAD of L4.40 (losing bytes outranks a wrong error string; order accepted by the Prime): ONE shared resolver for replace_from on both paths, and an absent, unreadable or EMPTY source must REFUSE on the CLI path too — fail-closed; reproduction against a fixture payload only. Until it lands: use the CLI form for replace; verify bytes after every write.
+
+L4.42 PROVED (point gen II, 2026-09-10 08:5xZ): _resolve_replace_text() is the single resolver of replace_from on BOTH paths (main delegates to it; idempotent so stdin is never read twice); an absent, unreadable or EMPTY source raises EditError and writes nothing; 90 tests (3 new API-path cases). For L4.41's claim, pre-verified by the point: config:seats carries role (belam -> prime_director, sanctuary-director / sanctuary-helper / sanctuary-master -> director), so an actor like belam-S1-L4-II resolves through the row named belam; the LONGEST prefix must win and an ambiguous match must REFUSE (a naive startswith scan mis-resolves silently — a lockout or a bypass on a fail-closed gate). Once [config] admits [owner, prime_director] the director seats can no longer write config nodes — which is already their standing rule. L4.40 dispatches after L4.42's merge (both edit submit()).
+
+Rotation read-back trap, measured at L4-I -> L4-II (2026-09-10): the successor emitted the single word continue as its first text at 02:44:5xZ, after the skill load and the handoff read the brief prescribes, yet the loop record written at 02:52:44Z says result inconclusive-no-reply (record .agi/sessions/rotations/belam-S1-L4-II.20260910T025244Z.json). The read-back does not see a text line that follows tool calls, so with the brief in its current order every prime rotation records inconclusive - the record is not evidence of a failed rotation; the successor pane is (L4-I confirmed by pane and rotated cleanly). Ruling: keep confirming by pane; fold a programmatic gate into L4.44 (verification.py --level rotation writes the successor confirmation itself, so the read-back stops depending on prose order).
+
+Merge-up 2 (2026-09-10 03:2xZ, point gen II; season/s2 b4481c9ba; verified by the Prime: node_count 1897, active 1703, deprecated 194, links 1877/0, goals 157 byte-identical, guard silent; suite 2315/1 by the point, foreground, alone). Three rules measured at it. (1) L4.43: dispatch.py --seat <name> ignores --harness entirely (a dry run with --seat sanctuary-director --harness pi resolved to claude-code / claude-opus-5); the model allowlist gate sits at the single line where the effective model is fixed (dispatch.py:1096, before the dry-run report) and judges the RESOLVED pair, so a --seat override is checked by what it resolves to; verdict held at 65 by the parent, the point does not rewrite a verdict it did not author. (2) Trap, the merge went RED first: test_rotate_complete.py (L4.37 half b) rebound rotate.main at MODULE level; pytest imports a module once per session, so 22 tests in test_rotate.py that assert on captured stdout failed in the full run while passing alone (81/81). Fixed inline by the point with an autouse monkeypatch fixture; suite 2315/1. Rule: run the tests a round could BREAK (the files that test the modules it modified), not only the tests it brings; a test name is not its coverage. (3) Ruling: a ruled time is part of the ruling. The point harvested and SIGTERMed the L4.37 parent at 03:17Z under a ruling that said 04:00Z, after pre-verification and on the owner direct message that the round looked hung; the harvest verified and stands, and next time the report reaches the Prime before the move. The parent was NOT hung and NOT reaped: its pi session log shows a write at 03:16:43Z and kid 3 created at 03:16:42Z; L4.37 is not an instance of the false-OOM reaping and is excluded from L4.46 evidence.
+
+MEASURED 2026-09-10 03:45Z (point gen II, its own background task): the harness killed the task with the text "was stopped because the system is running low on memory" while /proc/meminfo read MemFree 760,256 kB (0.72 GB), MemAvailable 17,235,440 kB (16.4 GB), Cached 10,615,456 kB (10.1 GB); free -m: total 23975, used 7143, free 742, buff/cache 16645, available 16831. The Claude Code low-memory watchdog keys on MemFree (what Node os.freemem returns), not MemAvailable: page cache absorbed 10 GB and the harness read it as memory exhaustion. This is the mechanism behind traps 0ai, 0ai-b, 0p and the two post-spawn rotate-self kills (every one happened with 16-18 GB available); a pytest or pi run is exactly what inflates the cache. Killed here: the L4.45 dispatch wrapper, AFTER the round had committed (branch loop/hypothesis-l4-complete-and-fallback-a00-0b75cd81@s2 tip 482079397, proved) - the wrapper is not the round in either direction. L4.46 keeps: threshold and signal (still unknown), the reproduction (now a confirmation), and the knob (item 4: a harness setting to raise or disable it, else the foreground rule stays). Standing rule unchanged until the knob is found: long runs in the FOREGROUND with an explicit Bash timeout; a killed wrapper is never a failed round.
+
+SIXTH reaper instance, the first with operational cost (point gen III, capture 2026-09-10T04:03:41Z within seconds of the notification): MemFree 576,096 kB (0.55 GB), MemAvailable 17,744,832 kB (17.7 GB), Buffers 3.01 GB, Cached 12.46 GB. Killed: the helper gen I rotate-self at step 3 of 5 (handoff written, window renamed, successor spawned and confirmed) - steps 4-5 (read-back, kill own window) never ran, leaving window @233 orphaned with a dead-ended session; the successor seat-sanctuary-helper-6b [dc94bb] @237 is live. Two at-instant points now (0.72 GB and 0.55 GB MemFree, 16-18 GB available): the threshold is absolute, at or below ~0.72 GB MemFree; the ratio form is withdrawn. Consequence: a rotation is not safe from the reaper, so a rotation is verified by pane capture and never assumed complete (standing rule, now with a measured reason), and the knob (L4.46 item 4) is the fix that matters, not a nicety.
+
+Merge-up 3 (2026-09-10 04:2xZ, point gen III; season/s2 13d5bc2f7; verified by the Prime through commands.py run verify: 1905/1711/194, links 1882/0, goals 158 byte-identical, guard silent; suite 2339/1 by the point through commands.py run verify-suite - the owner one-command rotation check, L4.44, first used here). Measured at it: (1) the first real use of verification.py found a defect the hand-run suite never showed - test_tier_gate.py imported conftest by package path, which resolves only when the repo root is on sys.path; under commands.py the cwd is the GRAPH root, so collection aborted (2332 collected, 1 error, rc 2); fixed by a path import plus a regression test that collects from a tmp cwd. (2) test_commands.py pins REAL_ROOT to the MAIN checkout .agi, so a node change on a seat branch is invisible to that test until merged: run-the-tests-a-round-could-break cannot save a test that reads a different tree than the one changed - candidate round: REAL_ROOT follows the tree under test. (3) write_guard.py dispatched subcommands by hand and declared none; now SUBCOMMANDS = (check, hook) with dispatch through the table, and the declaration test keeps treating declares-nothing as FAIL by design. (4) <engine> in a declared argv resolves from the invoked script location, not from --root: a worktree verification.py with --root <main> checks the main graph against the worktree engine - run the main checkout bin for a main-on-main result. (5) the tests line of the summary prints elapsed only, no pass/skip counts - L4.44 follow-up, with folding the suite into --level full under the lock once L4.10 (the test_send nudge guard) is confirmed landed.
+
+MEASURED by the point gen III (2026-09-10 04:3xZ), L4.10 is INCOMPLETE: test_send.py carries a module-scoped autouse guard (_no_real_tmux with _SafeSubprocess, hypothesis:l4b23-fixture-leak) but conftest.py carries no tmux guard, and test_mail_alert.py (6), test_rotate.py (2) and test_season.py (2) reach the LIVE tmux session on every full run - 11 invocations of tmux list-windows -t agi-rc, measured with a logging fake tmux first on PATH (exit 1, non-destructive). Nothing is typed into a pane today only because the fixture names (seat-a, tier2-directors, sender) collide with no live window - luck, not a guard. Ruling: --suite stays opt-in and the suite is NOT folded into --level full; approved round next: the guard moves into conftest.py as a project-wide autouse fixture, falsifier = the same fake-tmux harness reporting ZERO invocations across the FULL suite. Suite of record at 13d5bc2f7 corrected to 2340 passed / 1 skipped (measured directly).
+
+AMENDMENT (Prime, 2026-09-10 04:4xZ) to the reaper mechanism notes above - L4.47 (helper gen I/II, verified independently by the point) DISPROVES the interpretation, not the measurements: the harness gate, read from the installed binary ~/.local/share/claude/versions/2.1.267, is freemem() < P("tengu_bg_low_mem_mb", 1024) MiB on non-macOS (macOS uses Bun memoryPressureLevel); and node v22.22.2 on this box returns os.freemem() = 17977 MiB = MemAvailable to the MiB, NOT MemFree (962 MiB at the same instant). Under those two facts the default gate could not have fired at any recorded kill (16-18 GB available). Every raw capture stays valid (kill text, MemFree 0.72 and 0.55 GB, MemAvailable 16.4 and 17.7 GB); the line "the watchdog keys on MemFree" is WITHDRAWN as unproven. Open, and the next round: (1) the harness is a Bun 1.4.1 binary and Bun implements node:os freemem itself - if it returns sysinfo freeram (= MemFree) the default gate fires exactly at both captures; measure freemem() inside Bun on this box (release tarball in scratch, no install) and read the 1.4.1 source; (2) the LIVE served value of tengu_bg_low_mem_mb (1024 is the default, not the value) and any override route - the knob. L4.47 verdict inconclusive_lean_disproved:75 stands as set. Operational rule unchanged: long work in the FOREGROUND; a killed wrapper is never a failed round. Lesson, both seats and the Prime: two points that fit a hypothesis are not a confirmed mechanism when the function between them was never read.
+
+AMENDMENT 2 (Prime, 2026-09-10 04:5xZ): the Bun hypothesis is FALSIFIED by the falsifier the Prime named - the point fetched Bun 1.4.1 (the version embedded in the harness 2.1.267) into scratch, no install, and measured at one instant: bun os.freemem() 17585 MiB = MemAvailable 17585 MiB to the MiB; MemFree 459 MiB; gate default 1024 MiB. MemFree is under the default right now with no background task dying, so MemFree cannot be the trigger in any form. What stands: the gate is freemem() < P("tengu_bg_low_mem_mb", 1024) MiB, freemem() IS MemAvailable in this runtime, and MemAvailable at every recorded kill was 16-18 GB - so the SERVED flag value (not the default) must exceed ~18000 MiB, OR another producer of the same kill text exists (e.g. a check on the harness process own memory: session scope memory.current read 8.25 GB, and every kill struck a long-running large-context seat). Lead, unverified: env CLAUDE_BG_MEMORY_TOGGLED_OFF is registered and propagated to background sessions; its consumer is unread. Dispatched by the point: served value + override routes; the env consumer at the line; every producer of the kill string and the lowMem consumer. Successors: the raw captures (MemFree 0.72 / 0.55 GB at the kills) still FIT the MemFree story and always will - it is dead by measurement, do not re-derive it.
+
+TRAP measured by the point gen III (2026-09-10 05:0xZ): a respawned parent and the kids it spawns LOSE THEIR ITERATION LABEL - L4.52 parent a00-99a5a43d went defunct mid-round, the dispatcher respawned it as a00-99a5a43d-r1 and both the respawn and its kid a00-2c56f894 register in spawn_budget as iter=0, so status cannot say which round they belong to and any sweep keyed on the iteration misses them (the exact hole behind one-kill-is-never-a-stop); two concurrent respawns would collide on iter=0; the defunct reason is unrecorded because the wrapper log is empty until exit. Approved candidate round: the respawn path carries the original iter (<agent>-rN iter=<original>) and records the reason. Also: the conftest guard brief was corrected by the helper before dispatch - a project-wide _SafeSubprocess that asserts on any non-tmux subprocess call would break test_season.py and test_rotate.py real git calls, and test_mail_alert.py builds its own send module via importlib so a per-module patch reaches one alias only; the guard patches the real subprocess.run, tmux-selective, with the git-based tests required to PASS individually, while test_send.py keeps its strict scoped _SafeSubprocess as drift protection.
+
+SEAT PROTOCOL, owner order 2026-09-10 05:0xZ (verbatim in doc:l4-owner-decisions): directors message the Prime only when necessary - a merge-up (one message, numbers only), a decision only the Prime can make, a rotation (one line), a red merge or a rule-changing finding. Everything else is recorded in the nodes and the commit log, not sent. The Prime reads the bytes at the merge-up. The helper reports to the point under the same rule.
+
+SCOPE of the report rule above (owner, verbatim, 2026-09-10 05:0xZ): "That's a new standing order for all directors under the prime in survival mode" - it binds every director seat spawned under the Prime while survival mode holds, across rotations; every seat brief carries it.
+
+SPEND DEFECT, measured by the point gen III (2026-09-10 05:1xZ): the dispatcher RESPAWNS A PARENT THAT EXITED NORMALLY after committing a finished round - every finished parent of the batch got an -r1 (L4.41, L4.53, L4.16, L4.52), the respawns re-ran completed work (two staged new edits over committed proved rounds) and the key fell $7.23 -> $5.22 in about thirty minutes, roughly forty rounds of spend on work nobody asked for. The point killed every respawn by PID, parents first, swept twice clean, evidence untouched - RULED RIGHT by the Prime: stopping unasked spend is inside the standing rules and needs no ruling. Round moved to the TOP of the queue: (1) no respawn after a normal exit with a committed verdict (exit code and verdict are both readable by the wrapper); (2) a respawn carries the original iter as <agent>-rN iter=<original> and records why; (3) tests against the wrapper decision. Standing rule (point seat brief, now protocol): an exit notification is NOT a round ending - a respawn may be live in the same worktree writing over a committed round; sweep by PID and look for -rN, never by iteration; check the worktree for a live writer before harvesting.
+
+Merge-up 4 (2026-09-10 05:3xZ, point gen III; season/s2 3add44829; verified by the Prime through commands.py run verify: 1922/1728/194, links 0 broken, goals 159 byte-identical, guard silent; suite green through verify-suite by the point). Carried: the reaper-respawn fix (dispatch.py _reap_one_impl: a commit authored <agent_id> done: on the agent branch is proof of completion and is checked before the restart path; the iteration derives from the round directory; a mid-round kill with no commit is still restarted once), L4.41, L4.09 (written_by flips, [moral] byte-identical), L4.53, L4.16, L4.04, L4.47, L4.54; the max_restarts: 0 belt removed from season/s2 and the point tree, still in the helper tree until it merges back. FIXTURE FINDING (point): the guard test for the respawn label was GREEN because its fixture carried an iter key production never sets - build a fixture from a REAL artefact, never from the signature. THE KILLER, found by L4.53 (experiment:a00-99de000a-700822, lean_proved:70, read at the offsets in the installed binary 2.1.267): the background-shell reaper Ngr is armed on the Bun native memoryPressure event, bound to the HARNESS OWN cgroup PSI (/sys/fs/cgroup memory.pressure and memory.events), and passes memory_pressure into the message "stopped because the system is running low on memory"; the legacy freemem() < tengu_bg_low_mem_mb gate exists unchanged and never fires at 16-18 GB. Self-memory explained: the killed seats ran in session cgroups reading 8-18 GB memory.current. THE KNOB: env CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP (any non-empty value skips arming the reaper: if(!Ae() and not env.CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP) process.on(memoryPressure ...)); CLAUDE_BG_MEMORY_TOGGLED_OFF is only a session-flag stamp, not the killer. APPLIED by the Prime 05:3xZ: tmux set-environment -t agi-rc CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP 1, so every window spawned from now inherits it (live sessions get it at their next rotation); engine half handed to the point: the seat and rotation spawn paths export it explicitly with a test, falsifier = zero memory_pressure kills across the next full suite and rotation under the var. Foreground rule stays until that lands.
+
+STAMP CORRECTION (Prime, read off date -u at 07:19Z): merge-up 4, the L4.53 knob finding and the tmux set-environment were at ~07:1xZ on 2026-09-10, not 05:3xZ as the two notes above say - the Prime wrote a felt clock (trap 0ap, its own instance); the order of events is unchanged.
+
+CAUSAL CORRECTION to the L4.53 record (point gen III, from the better-evidenced kid node a00-e31bda4e, which read Bun src/runtime/node/memory_pressure.rs at the bun-v1.4.1 tag and measured the box): the reaper trigger is SYSTEM-WIDE PSI - Bun open_psi_fd() writes its trigger to /proc/pressure/memory first and falls back to the process own cgroup v2 memory.pressure only if that fails; on this box the system-wide write succeeds unprivileged and the own-cgroup path is root-owned 0644 (EPERM for a seat), so the system-wide path is what arms. The embedded trigger is "some 150000 2000000": at least 150 ms of memory stall in any 2 s window, box-wide, from ANY process (other seats, pi rounds, a pytest run inflating and reclaiming cache) - which is why a kill lands while MemAvailable reads 16-18 GB. NOT the seat own footprint: per-session memory limits cannot help. a00-99de000a (own-cgroup wording) is the weaker leg (did not read the source or test EPERM). Still unobserved: no kill occurred during the round, so "the memoryPressure event fired at the recorded kill instants" is read from source, not measured (verdicts 62 and 70). The knob CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP disables the reaper either way.
+
+2026-09-10 07:36Z: the point rotated gen III -> gen IV (seat-sanctuary-director-7a, @238) and L4.16 PROVED ON ITS FIRST LIVE USE on the exact failure it was built for: rotate-self reached step 4, the read-back timed out, and a record was written anyway (.agi/sessions/rotations/sanctuary-director.20260910T073644Z.json: result started, steps_reached 1-4, gen 3 -> 4). Hazard 5 is RETIRED as a live hazard: a missing rotation record is now news, not the known quirk; strike "expect NO rotation record" from every brief. Also landed on the seat branch (ab6eb5b41): L4.55 - every spawn path exports CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1, checkable in the dry-run env line; L4.52 closed as authored (<engine> follows --root; the tests row carries pass/skip counts). The reaper-respawn fix is PROVEN end to end: L4.55 parent exited 07:32:10Z, budget 0/25 with no -r1 across two sweeps, key unmoved.
+
+### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
+
+<!-- BODY:BEGIN -->
+**Every perpetual goal has a director.** Brief point **B2** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → idea/hypothesis chain → `mvp`. **The seats stay UNBUILT**: creating any seat is the owner's surface and survival mode forbids launching one, so this goal is satisfied by the *rule* being carried in the graph, not by staffing anyone.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added.
+
+### G17.3 — The sanctuary director owns seats, models, and how many are active — status: active
+
+<!-- BODY:BEGIN -->
+**She owns the seats, the models they run, and how many are active.** Brief point **B3** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal carrying a `seat` node and a `doc`; the config half scatters to `goal:g1` by relevance rule 3. 🔴 `config:seats` is never written by a director — it is banked for the prime.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+#### G17.4 — The sanctuary perpetual goal always has an active director — a check, not a seat — status: active
+
+<!-- BODY:BEGIN -->
+**The sanctuary perpetual goal always has an active director.** Brief point **B4** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-goal of B2, expressed as a hypothesis → verdict. 🔴 It is a **CHECK, not a seat** — nothing here launches a director, and under survival mode nothing may.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.5 — The duty matrix — its rows and entries are the sanctuary director's to reassign — status: active
+
+<!-- BODY:BEGIN -->
+**The duty matrix: its rows and entries are hers to reassign.** Brief point **B5** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:130, A:168, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → build; the schema half scatters to `goal:g1` and the `brief.py` half to `goal:g15`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+#### G17.6 — Each role carries exactly ONE question — status: active
+
+<!-- BODY:BEGIN -->
+**Each role has exactly one question it is responsible for asking.** Brief point **B6** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:236-242, A:257, A:372 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-goal of B5, expressed as `seat` node bodies plus a `doc`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.7 — The seat node type — the graph shows where everybody is assigned — status: active
+
+<!-- BODY:BEGIN -->
+**A `seat` node type, so the graph shows where everybody is assigned.** Brief point **B7** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → build; `[seat].md` scatters to `goal:g1`. 🔴 Minting the twelve existing rows as seat nodes is round **L4.13** and is the owner's surface; this goal carries the RULE, not a hiring.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.8 — Messaging restrictions — each role reaches only a defined subset of seats — status: active
+
+<!-- BODY:BEGIN -->
+**Each role can reach only a defined subset of the other role seats.** Brief point **B8** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → hypothesis → build in `send.py`, scattering to `goal:g15`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+#### G17.9 — Channels A and B, and no director-to-Prime edge — status: active
+
+<!-- BODY:BEGIN -->
+**Two audience channels, and NO director→Prime edge.** Brief point **B9** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:246, A:259, A:326 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-goal of B8 → build in `send.py` → `goal:g15`. 🔴 It can block a live sender, so the round that lands it (**L4.21**) is `Owner go? YES`.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+##### G17.10 — One voice per chamber, the DM room, and Council-to-Keep propagation — status: active
+
+<!-- BODY:BEGIN -->
+**One voice per chamber; an inter-chamber DM room; Council→Keep propagation.** Brief point **B10** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-sub-sub-goal of B9 → build → `goal:g15`, accepting exactly ONE response per chamber act.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.11 — Names and forms of address — everything has a protocol — status: active
+
+<!-- BODY:BEGIN -->
+**The names and the forms of address: everything has a protocol.** Brief point **B11** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:248-257, A:265, A:319, A:387 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal carried as a `doc` plus `seat` bodies; the bootstrap half scatters to `goal:g15`. Written by the G17 director directly rather than by a dispatched parent, because it is owner-verbatim-dense.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.12 — The Masters own and dispatch their own workflows — status: active
+
+<!-- BODY:BEGIN -->
+**Each `* Master` owns and dispatches its own workflows.** Brief point **B12** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
+
+**Source:** owner, A:254, A:320, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
+
+**What this becomes, in later rounds:** sub-goal → chain → `seat` specs. 🔴 SPEC ONLY — no Master is created, launched or given a row; survival mode forbids it.
+
+**Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
+
+### G17.13 — A seat session owns its own iteration dirs, and session-complete migrates them before the worktree is deleted — status: active
+
+<!-- BODY:BEGIN -->
+**A seat session's `iter-<id>/` dirs belong to that seat's worktree, and are migrated into the main checkout only when the worktree is deleted at session complete.** Owner rule, recorded verbatim in `goal:g17.1`; this sub-goal carries the engine half.
+
+**Measured today, which is what makes it real rather than tidy:** dispatching from the seat worktree put every agent dir in the MAIN checkout's `.agi/sessions/`, while the seat's own `.agi/sessions/iter-L4.02/` held nothing but the wrapper log. The dispatched PARENT hit the same thing — its `struggles:` line reads that the manifest path in the spawn output "did not exist from my checkout", so it had to read the kid's node directly to review it. A seat cannot harvest its own round from its own tree.
+
+**The line:** `dispatch.py:1075` resolves `sess_root = locations.shared_project_root(root) or root`, and `shared_project_root` routes to the main checkout by design.
+
+🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 

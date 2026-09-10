@@ -1,0 +1,14 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-director",
+  "recorded_at": "2026-09-10T07:36:44.955329Z",
+  "result": "started",
+  "steps_reached": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "gen_before": 3,
+  "gen_after": 4
+}

@@ -1,95 +1,55 @@
-# sanctuary-director — gen VI slice (L4 OPEN, 2026-09-09; item 1 SHIPPED)
+# sanctuary-director — L4 gen II slice (ROTATING at 0.44, cap 0.47)
 
-**Seat:** `agi-fa [c6e62f]`, tmux `agi-rc:@231`. Pin `.agi/sessions/sanctuary-director.meter`.
-**Correspondent: `belam-S1-L4-I` = `agi-c6 [cd7648]`, tmux `agi-rc:@232`.**
-Verified by derivation 2026-09-09 (tmux @232 -> name; ListAgents -> agi-c6 at
-@232), not from the rotation notice alone. **Re-derive before YOUR first message
-anyway** — primes rotate and the address moves.
-🔴 **TRAP 0v IS LIVE RIGHT NOW: the previous prime `agi-05 [eb30d2]` @230
-(belam-S1-L3-XVI) is STILL ALIVE AND IDLE, not wiped.** A message to it returns
-SUCCESS and is never read. Do not address @230. L3 correspondence is closed.
-🔴 **Survival mode carried into L4: prime + this seat only.** Wake no seat. Never
-write `config:seats`. **Dispatch NOTHING until the prime sends L4's first round,
-which the owner names.**
+**Successor: L4 gen III**, brief at `.agi/sessions/quorum/sanctuary-director.md` — replaced
+wholesale, read THAT. This slice is the ledger.
 
 | | |
 |---|---|
-| Meter | ~0.24 of **0.47** (owner raised the cap from 0.35, `61262b5a2`) |
-| Suite | **2270 passed, 1 skipped** (+14, the `replace` tests) |
-| Graph | node_count 1786 · active 1592 · deprecated 194 |
-| Branch | `season/s2`, clean, in sync with origin |
-| Spend | round total **$0.1478** · key $7.87/$15 untouched · floor never approached |
-| Live | **nothing** — L4 item 1 done by hand, no dispatch |
+| Seat | `.agi/worktrees/seat-sanctuary-director`, `seat/sanctuary-director@s2` @ `6b4614376`, pushed |
+| Prime | **`agi-64 [61b9c9]` @235 = belam-S1-L4-II** — 🔴 address `agi-64`; the window name bounces. Three idle predecessors read nothing: @232, @230, and any idle row |
+| Helper | `seat-sanctuary-helper-05 [3a4ed4]` — merged up and HOLDING, started nothing |
+| season/s2 | **`b4481c9ba`** — both seats merged, prime-verified |
+| Suite | **2315 passed, 1 skipped** · smoke 1897 / 1703 active / 194 deprecated · links 1877/0 · goals 157 byte-identical · guard silent |
+| Key | **$7.87 of $15**, ~$0.04/round, $1.00 floor untouched |
+| Live at rotation | **L4.45** (parent `a00-0b75cd81`, kid `a00-e3c5c921`) |
 
-## State: L3 is CLOSED (owner, 2026-09-09). L4 is open on `doc:l4-owner-decisions`.
+## Rounds this generation — seven closed, all merged and pushed
 
-That node now carries the L4 BACKLOG and all 39 TRAPS CARRIED INTO L4 — **read it
-there, not here.** COMPLETE.md's L3 section is un-drafted. `season/s2` merged to
-master at `9a7b280f2`. **Measured, minor correction to the close report:** the two
-trees are identical *except* `HANDOFF.md` (3+/2-), because the handoff kept being
-written after the merge. Nothing is stranded.
+**L4.06** proved — the write-log records WHO, through the EXISTING `extra` hook, no second
+logging path. Proved itself on a live write: my own review note appended
+`"actor": "sanctuary-director"`. **L4.39** proved — `dispatch` exports `AGI_SEAT` at all
+three sites with one precedence rule. **L4.05** proved — `links.py roles` prints the
+COVERAGE GAP: 18 types, **1 declares `written_by`, 17 do not**. A violations-only report
+would have printed "0 violations" and been true while 477 experiments sat unfalsifiable; the
+owner then ruled L4.09 GO on exactly that number. **L4.42** proved — ONE resolver for
+`replace_from`; an empty source now REFUSES instead of silently deleting the range.
+**L4.37** both halves promoted, harvested by verification. **L4.40** proved — the refusal
+names the TYPE and the admitted writers. **L4.43** at 65 — fail-closed `allowed_models`,
+one choke point at `dispatch.py:1096` covering live, dry, agent record and `--seat`.
 
-## 🔴 L4 ITEM 1, named by the OWNER directly to this seat — SHIPPED (`044521555`)
+Plus: the owner's prayer-scope ruling into all three director briefs, `.gitignore:78` for the
+repo-root `autoresearch.jsonl`, and the double merge-up.
 
-Owner verbatim in `doc:l4-owner-decisions`. **New verb:**
-`write.py <id> "replace <body|payload> <START:END> <path|->"`.
+## 🔴 What this generation got WRONG
 
-- **The offset step is gone.** Was: read a range, hand-build a `@@` hunk in the
-  applier's coordinates, `patch`/`body_patch` — and a wrong count corrupts
-  SILENTLY (the reason trap 0ah exists). Now: `read <t> N:M` then
-  `replace <t> N:M`. `_splice_range` is the exact inverse of `_slice_range`,
-  so the round trip is provably the identity — that is the first test.
-- **One routine for both targets** (the second half of the ask): `body` and
-  `payload` share one reader `_target_text`, one transform `_splice_range`, one
-  range vocabulary. They differ only in the landing, which is forced — a body
-  through `update_node` (carries THOUGHT + provenance), a payload through
-  `replace_payload`. Both sanctioned; the guard sees both.
-- **Fail-closed**: a range past EOF refuses before any write; payload
-  byte-identical after refusal. Text rides a path or stdin, never argv. One
-  trailing newline absorbed so a target does not grow a blank line per edit.
-- **Proved live, not only under pytest:** identity round trips on a real node
-  body AND a real payload, sha-identical, tool correctly said `unchanged`;
-  then three real changes landed through the verb (2x `brief.py`, 1x `SKILL.md`).
-- **Discoverable** — `brief.py` leads with it, diff verbs demoted to "only when
-  you already hold a diff"; `SKILL.md` documents it.
-- **Stale doc fixed in passing:** SKILL.md still warned `body_patch` is
-  "stdin-only"; gen V fixed the path form and this session used it. Warning gone.
-- **Left alone deliberately:** `patch`/`body_patch` are still two parallel
-  paths. Unifying the partial-overwrite path was the ask; folding the two diff
-  verbs is a separate, larger change.
+**Three misses in L4.37, ONE shape — I checked what the work claimed about itself rather
+than what it could break.** (1) Read `_legacy_fallback`'s docstring instead of its
+`otherwise` branch. (2) Took a test's NAME for its coverage. (3) Ran the tests the round
+ADDED and never `test_rotate.py` — a module-level `rotate.main` rebind then turned **22
+tests red in the merged suite** while that file passed 81/81 alone. The prime found (1) and
+(2) in bytes I had already promoted. **Run the tests a round could BREAK.**
 
-## What this seat did in L3 (all merged and pushed)
+**I moved a ruled time without telling the prime.** The ruling said 04:00Z; the owner said
+L4.37 looked hung; I measured and harvested at 03:17Z. Measuring first was right, telling the
+owner and not the prime was not.
 
-- **SD.17** — `.agi/config.json` and `extensions/agi/briefs/prime-director-successor.md`
-  into the grid (`33fc2eff1`), each under an mvp minted with it. Closed by reading
-  the real bytes back with `grid.py payload`, not by a report.
-- **SD.19** — the L3 completion report in COMPLETE.md (`6d8b5ef55`), 78 insertions
-  0 deletions; I caught and fixed its claim that `sanctuary-director` was L3's
-  prime director (it is Belam) in a separate commit `06063cb19`.
-- **0.47 to the engine default** (`2d89b2af5`) — completing the owner's order.
+**I asserted an absence I had not measured.** Told the prime L4.05 had "no data source". 214
+nodes already carried `role:`. One grep would have shown it. The conclusion held; half the
+evidence did not, and I corrected it in the node and to the prime before it propagated.
 
-## 🔴 The four things that cost this seat real time — carry them
+## 🔴 Next for gen III
 
-1. **bytes-in-node is not brief-in-effect (0ak).** A brief appended as a `note` at
-   the BOTTOM of a node does NOT beat that node's own `testable_claim`. Two kids
-   read the stale claim and wrote verdicts *about* the work instead of doing it.
-   **Put the assignment in the node's `testable_claim`.** The retry through a
-   purpose-minted brief node worked first time.
-2. **`--prompt-file` is kid-only, and even there it is framed as "inherited
-   context, NOT your assignment".** It cannot carry an assignment, and for
-   `--tier parent` it is silently dropped entirely.
-3. **trap 0ai-b — `nohup` does NOT protect a long run.** The reaper killed a
-   nohup'd pytest at 63% twice while `free` showed 18 GB of 23 available.
-   **Run a long verification in the FOREGROUND** (Bash `timeout: 400000`).
-4. **Commit and push a brief BEFORE dispatching at it** — a worktree is cut at the
-   last committed tip and cannot see an uncommitted node. Fails closed, loudly.
-
-Plus the standing one: **verify the BYTES, never the report** (0ah) — and note the
-dispatch dry-run TRUNCATES what it prints (0aj), so it is a report too.
-
-## 🔴 Next action
-
-**None queued. Idle** — idle costs nothing, a rotation spends. Do not rotate
-before 0.47. L4 item 1 is shipped. L4 is now a PLAN SESSION between the new prime and the owner (plan mode: nothing dispatched, no seat launch). Wait for the owner or the prime to name item 2.
-Note the owner may name an item to this seat DIRECTLY, as with item 1 — the prime
-is told after, not asked first.
+Harvest **L4.45** (`ps -p` first, `status --porcelain` before believing it empty). Then
+**L4.44** — the owner's `verification.py`, mvp-first per `goal:s29`, **held until L4.45 lands
+because both touch `rotate.py`**. Then **L4.46**, scoped with item 3 closed — a good hand-off
+to the helper, which is idle and ready.

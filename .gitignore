@@ -68,6 +68,14 @@ venv/
 
 # pi harness run log, written into the graph dir by a kid (goal:s28 session)
 .agi/autoresearch.jsonl
+# ...and the SAME artifact at the repo root, which the pi runtime actually writes.
+# The rule above was one directory off: payload_boundary.py:97 already names this
+# exact gap ("autoresearch.jsonl at repo root does not [live under a gitignored
+# directory], despite being the same kind of artifact") and excludes it from being
+# minted as a payload -- but nothing stopped git from tracking it. It was retired
+# from this repo on 2026-09-06 (99082b2ab) and every pi round re-creates and stages
+# it; git history is the archive, not a to-do list to keep re-adding to.
+/autoresearch.jsonl
 # Read-cursor sidecars beside room/dm files are per-reader state, not the record.
 .agi/comms/**/*.state.json
 

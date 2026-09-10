@@ -1439,6 +1439,185 @@ def _find_seat(root: Path | None, name: str) -> dict | None:
     return None
 
 
+# --- complete (hypothesis:l4-seat-session-iter-dirs, half b) --------------
+
+
+def _git_lines(cwd: Path, *args: str) -> list[str]:
+    """Run a git command in `cwd`; return stdout split into lines."""
+    out = subprocess.run(["git", "-C", str(cwd), *args],
+                         capture_output=True, text=True)
+    if out.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)}: {out.stderr.strip()}")
+    return [ln for ln in out.stdout.splitlines() if ln]
+
+
+def _verify_tree_copy(src: Path, dst: Path) -> bool:
+    """True iff `dst` holds exactly `src`'s files with equal content.
+
+    The completeness gate for the session copy: we only tear down the seat
+    worktree once its iter dirs are provably resident in main. Neither
+    directory is touched by this check.
+    """
+    if not src.is_dir() or not dst.is_dir():
+        return False
+    src_files = {p for p in src.rglob("*") if p.is_file()}
+    dst_files = {p for p in dst.rglob("*") if p.is_file()}
+    if len(src_files) != len(dst_files):
+        return False
+    for sf in src_files:
+        rel = sf.relative_to(src)
+        df = dst / rel
+        if not df.is_file():
+            return False
+        try:
+            if sf.read_bytes() != df.read_bytes():
+                return False
+        except OSError:
+            return False
+    return True
+
+
+def cmd_complete(args: argparse.Namespace, root: Path | None) -> int:
+    """Retire a seat worktree after its round is merged up (hypothesis:
+    l4-seat-session-iter-dirs, half b SESSION-COMPLETE).
+
+    A seat runs in its own git worktree; its iteration session dirs
+    (`sessions/iter-*`) live in that worktree's `.agi` and are gitignored, so
+    a merge carries nothing. `complete` is the retirement step: it refuses
+    unless the seat branch is already an ancestor of its parent branch (the
+    merge-up prerequisite), copies the worktree's `iter-*` session dirs into
+    the MAIN checkout's `.agi/sessions/` (never overwriting anything that
+    already lives there), and only then removes the worktree and the branch.
+
+    Refusals (exit non-zero, NOTHING removed):
+      - the seat branch is not an ancestor of its parent branch (merge first);
+      - the worktree is dirty (uncommitted work => the session is not done).
+
+    `iter-*` dirs that already exist in main are left byte-for-byte intact and
+    reported as skipped. The worktree's tracked content is preserved by being
+    an ancestor of the parent branch, so removing the worktree and the branch
+    deletes no node: the graph the worktree held is already resident in main's
+    history.
+    """
+    wt = Path(args.worktree).resolve()
+    if not wt.is_dir():
+        print(f"ERR complete: worktree not found: {wt}", file=sys.stderr)
+        return 1
+
+    # Main checkout: explicit override or the common git dir's parent repo.
+    main = Path(args.main).resolve() if args.main else locations.git_common_root(wt)
+    if main is None or not main.is_dir():
+        print(f"ERR complete: cannot resolve main checkout from {wt}",
+              file=sys.stderr)
+        return 1
+
+    # The branch the seat worktree is sitting on.
+    try:
+        seat_branch = _git_lines(wt, "rev-parse", "--abbrev-ref", "HEAD")[0]
+    except (RuntimeError, OSError, subprocess.SubprocessError) as exc:
+        print(f"ERR complete: cannot read seat branch: {exc}", file=sys.stderr)
+        return 1
+    if seat_branch == "HEAD":
+        print(f"ERR complete: {wt} is on a detached HEAD; a seat branch is "
+              "required", file=sys.stderr)
+        return 1
+
+    # The merge-up target branch. Explicit, else the main checkout's own HEAD.
+    if args.parent:
+        parent_branch = args.parent
+    else:
+        try:
+            parent_branch = _git_lines(main, "branch", "--show-current")[0]
+        except (RuntimeError, OSError, subprocess.SubprocessError) as exc:
+            print(f"ERR complete: cannot resolve parent branch: {exc}",
+                  file=sys.stderr)
+            return 1
+    if not parent_branch:
+        print("ERR complete: no parent branch resolvable (detached HEAD in "
+              "main?); pass --parent", file=sys.stderr)
+        return 1
+
+    # --- refusal 1: merge-up prerequisite --------------------------------
+    anc = subprocess.run(
+        ["git", "-C", str(main), "merge-base", "--is-ancestor",
+         seat_branch, parent_branch],
+        capture_output=True, text=True)
+    if anc.returncode != 0:
+        print(f"REFUSE complete: branch {seat_branch} is not an ancestor of "
+              f"{parent_branch}; merge the seat's round up first. Nothing "
+              "was removed.", file=sys.stderr)
+        return 1
+
+    # --- refusal 2: dirty worktree (uncommitted work => not done) ---------
+    dirty = subprocess.run(["git", "-C", str(wt), "status", "--porcelain"],
+                           capture_output=True, text=True)
+    if dirty.stdout.strip():
+        print(f"REFUSE complete: worktree {wt} has uncommitted work "
+              f"({len(dirty.stdout.splitlines())} changed paths); a seat is "
+              "not complete until its round is committed and merged. Nothing "
+              "was removed.", file=sys.stderr)
+        return 1
+
+    # --- copy the iter session dirs into main -----------------------------
+    src_sess = wt / ".agi" / "sessions"
+    dst_sess = main / ".agi" / "sessions"
+    copied = []
+    skipped = []
+    if src_sess.is_dir():
+        for name in sorted(p.name for p in src_sess.iterdir()
+                           if p.is_dir() and p.name.startswith("iter-")):
+            src_dir = src_sess / name
+            dst_dir = dst_sess / name
+            if dst_dir.exists():
+                skipped.append(name)
+                print(f"skip {name}: already exists in main, left byte-for-byte "
+                      "intact")
+                continue
+            try:
+                shutil.copytree(src_dir, dst_dir)
+            except OSError as exc:
+                print(f"ERR complete: copying {name} failed: {exc}. Nothing "
+                      "removed.", file=sys.stderr)
+                return 1
+            copied.append(name)
+            print(f"copied {name} -> {dst_sess}")
+
+    # Completeness gate on every dir we copied AND every dir we skipped;
+    # abort before any teardown. A skipped dir must match main's copy: the
+    # coming `git worktree remove` deletes the worktree's copy, and when it
+    # DIFFERS from main's the "left byte-for-byte intact" claim is an
+    # equality nobody checked — the worktree copy is lost silently.
+    # (hypothesis:l4-complete-and-fallback-invariants)
+    for name in copied + skipped:
+        if not _verify_tree_copy(src_sess / name, dst_sess / name):
+            kind = "copied" if name in copied else "skipped"
+            print(f"ERR complete: {kind} {name} does not match its copy in "
+                  "main; refusing to remove the seat (main's copy is safe).",
+                  file=sys.stderr)
+            return 1
+
+    # --- tear down: worktree, then branch --------------------------------
+    rm = subprocess.run(["git", "-C", str(main), "worktree", "remove", str(wt)],
+                        capture_output=True, text=True)
+    if rm.returncode != 0:
+        print(f"ERR complete: git worktree remove failed (no branch removed): "
+              f"{rm.stderr.strip()}", file=sys.stderr)
+        return 1
+    bd = subprocess.run(["git", "-C", str(main), "branch", "-D", seat_branch],
+                        capture_output=True, text=True)
+    if bd.returncode != 0:
+        print(f"WARN complete: worktree removed but `git branch -D "
+              f"{seat_branch}` failed: {bd.stderr.strip()}", file=sys.stderr)
+        print(f"REMOVED worktree {wt} (branch {seat_branch} retained)")
+        return 0
+    if copied or skipped:
+        print(f"complete: session dirs harvested ({len(copied)} copied, "
+              f"{len(skipped)} skipped); seat retired")
+    else:
+        print("complete: no iter-* session dirs to harvest; seat retired")
+    return 0
+
+
 # --- seats-launch & tiling (hypothesis:l3w4-seat-sessions-and-tiling) -----
 
 
@@ -1776,20 +1955,64 @@ def _observed_windows(tmux_session: str, window_path: str | None = None) -> dict
     return {"names": names, "source": source}
 
 
-def _write_rotation_record(root: Path, record: dict) -> Path:
+def _write_rotation_record(root: Path, record: dict,
+                           path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
 
     One file per rotation, named `<seat>.<UTC timestamp>.json` so a reader can
-    glob `<seat>.*.json` and see that seat's whole rotation history. Returns
+    glob `<seat>.*.json` and see that seat's whole rotation history. When
+    `path` is given (a rotate-self STARTED record opened earlier), the final
+    outcome is written to THAT SAME file, updating it in place — so an
+    interrupted rotation and its completed outcome never split into two
+    records (hypothesis:l4-rotation-record-survives-interruption). Returns
     the written path.
     """
     rot = _rotations_dir(root)
     rot.mkdir(parents=True, exist_ok=True)
     seat = str(record.get("seat") or "anonymous")
-    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    path = rot / f"{seat}.{stamp}.json"
+    if path is None:
+        stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        path = rot / f"{seat}.{stamp}.json"
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def _rotate_self_started_path(root: Path, seat: str) -> Path:
+    """The ONE filename a rotate-self rotation records into for its lifetime.
+
+    Computed from the current UTC timestamp the same way
+    `_write_rotation_record` names a fresh file, but captured ONCE at the
+    start of a rotate-self call so every progress write and the final outcome
+    land on the same path. Without this a `started` file and a `success` file
+    would carry separate timestamps and a rotation would leave two records.
+    """
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    return _rotations_dir(root) / f"{seat}.{stamp}.json"
+
+
+def _write_rotate_self_started(path: Path, *, seat: str, steps: list[int],
+                               gen_before: int | None = None,
+                               gen_after: int | None = None) -> None:
+    """Write/refresh the IN-PROGRESS rotate-self record.
+
+    `result` stays `started` until the rotation reaches an outcome (success or
+    refused) and `steps_reached` records which steps have completed, so an
+    interrupted rotation leaves a record whose state says exactly where it
+    stopped (hypothesis:l4-rotation-record-survives-interruption). Overwrites
+    `path` in place; the process keeps writing to the SAME file.
+    """
+    rec: dict = {
+        "rotation": "rotate-self",
+        "seat": seat,
+        "recorded_at": datetime.utcnow().isoformat() + "Z",
+        "result": "started",
+        "steps_reached": sorted(steps),
+    }
+    if gen_before is not None:
+        rec["gen_before"] = gen_before
+        rec["gen_after"] = gen_after
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
 
 def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
@@ -2196,15 +2419,35 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     dbg = args.debug_file or f".agi/sessions/{seat}.log"
 
+    # A rotate-self rotation opens ONE record file up front (a `started`
+    # record) and updates it IN PLACE through every step, so an interruption
+    # at any point leaves a record whose `steps_reached` says where it died —
+    # instead of nothing at all (hypothesis:l4-rotation-record-survives-
+    # interruption). The final outcome rewrites the SAME path, so a completed
+    # rotation still leaves exactly one record in today's shape.
+    rec_path = None
+    steps_reached: list[int] = []
+    if not args.dry_run:
+        rec_path = _rotate_self_started_path(root, seat)
+        _write_rotate_self_started(
+            rec_path, seat=seat, steps=steps_reached,
+            gen_before=gen_before, gen_after=gen)
+
     # (1) handoff
     if not args.dry_run:
         _write_handoff(root, seat, gen, predecessor_session=seat)
+        steps_reached.append(1)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
     # (2) rename own window aside, freeing the plain seat name
     if not args.dry_run:
         _rename_own_window(seat, new_name, tmux_session, args.window_path)
+        steps_reached.append(2)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
@@ -2224,6 +2467,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     )
     if rc != 0:
         return rc
+    if not args.dry_run:
+        steps_reached.append(3)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     print(f"(3) spawn successor under the plain name {seat!r} (role {role!r})")
 
     if args.dry_run:
@@ -2248,7 +2495,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             readback_log=Path(dbg).expanduser().resolve(),
             cursor_offset=(Path(dbg).expanduser().resolve().stat().st_size
                            if Path(dbg).expanduser().resolve().exists() else 0),
-            refusal="successor window absent"))
+            refusal="successor window absent"), path=rec_path)
         print(f"ERR: successor window {seat!r} is NOT present in tmux session "
               f"{tmux_session!r}; refusing to report rotation success "
               f"(windows: {succ['names']!r}).", file=sys.stderr)
@@ -2257,6 +2504,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (5) read back. Record the successor log's size BEFORE the spawn
     #     completed so the read cursor ignores anything (a stale `continue`)
     #     written before the successor started (read-before-write cursor).
+    if not args.dry_run:
+        steps_reached.append(4)
+        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
+                                   gen_before=gen_before, gen_after=gen)
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
@@ -2280,7 +2531,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _write_rotation_record(root, _rotate_self_record(
             seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
             succ=succ, pred=pred, readback_log=log, cursor_offset=offset,
-            refusal=f"predecessor window {new_name!r} gone"))
+            refusal=f"predecessor window {new_name!r} gone"), path=rec_path)
         print(f"ERR: predecessor window {new_name!r} is NOT present in tmux "
               f"session {tmux_session!r}; refusing to report rotation "
               f"success (windows: {pred_raw['names']!r}).",
@@ -2292,7 +2543,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     record_path = _write_rotation_record(root, _rotate_self_record(
         seat=seat, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
-        pred=pred, readback_log=log, cursor_offset=offset))
+        pred=pred, readback_log=log, cursor_offset=offset), path=rec_path)
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
@@ -2538,7 +2789,27 @@ def main(argv: list[str] | None = None) -> int:
                         help="print rects as JSON instead of lines")
     p_tile.set_defaults(func=cmd_tile)
 
+    # complete: retire a seat worktree after merge-up (hypothesis
+    #            l4-seat-session-iter-dirs, half b)
+    p_c = sub.add_parser(
+        "complete", help="retire a seat worktree: refuse unless merged up, "
+                          "harvest its iter-* session dirs into main, then "
+                          "remove the worktree and branch")
+    p_c.add_argument("--worktree", required=True,
+                     help="path to the seat's git worktree to retire")
+    p_c.add_argument("--parent", default=None,
+                     help="merge-up target branch; defaults to the main "
+                          "checkout's checked-out branch")
+    p_c.add_argument("--main", default=None,
+                     help="main checkout root override (default: resolved "
+                          "via git_common_root)")
+    p_c.set_defaults(func=cmd_complete)
+
     args = ap.parse_args(argv)
+
+    # complete works purely from its explicit paths + git; no project root.
+    if args.cmd == "complete":
+        return args.func(args, None)
 
     # meter, loop, alarms and rotate-self need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "seats-launch", "seq"):
