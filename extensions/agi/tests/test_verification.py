@@ -18,6 +18,7 @@ the round:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -330,3 +331,102 @@ def test_lock_stale_pid_is_broken_and_reacquired(tmp_path, monkeypatch):
     path, holder = verification.acquire_suite_lock(tmp_path)
     assert path is not None and holder is None
     assert lock.read_text().strip() == str(__import__("os").getpid())
+
+
+# --- the bin freshness guard (goal:g15.10 / L4.81) -------------------------
+
+
+def _mk_bin(tmp_path, names: list[str]) -> Path:
+    bdir = tmp_path / "bin"
+    bdir.mkdir()
+    for n in names:
+        (bdir / n).write_text("")
+    return bdir
+
+
+def _write_ts(groot: Path, ts: float) -> None:
+    p = groot / "sessions" / verification.SUITE_TS_FILE
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"suite_ran_at": ts}))
+
+
+def test_fresh_clean_tree_passes_falsifier_1(tmp_path):
+    """Falsifier 1: nothing untracked and nothing newer than the last recorded
+    suite run -> PASS. A check that always fires is noise, not a check."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["old.py"])
+    _write_ts(groot, 1_000_000.0)
+    os.utime(bdir / "old.py", (500_000, 500_000))  # mtime before the suite ts
+    r = verification.check_bin_freshness(groot, bin_dir=bdir,
+                                         tracked_of=lambda d: {"old.py"})
+    assert r.status == "PASS", r.note
+
+
+def test_untracked_bin_py_trips_falsifier_2(tmp_path):
+    """Falsifier 2: an untracked bin/*.py fails with SUITE REQUIRED printed."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["new.py"])
+    _write_ts(groot, 1_000_000.0)
+    r = verification.check_bin_freshness(groot, bin_dir=bdir,
+                                         tracked_of=lambda d: set())
+    assert r.status == "FAIL"
+    assert "SUITE REQUIRED" in r.note
+    assert "new.py" in r.note
+
+
+def test_old_untracked_bin_py_does_not_trip_falsifier_3(tmp_path):
+    """Falsifier 3: a bin/*.py OLDER than the last suite run does NOT trip,
+    even while untracked — the "/ or newer" half is bidirectional and is the
+    case an untracked-only implementation gets wrong."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["settled.py"])
+    _write_ts(groot, 1_000_000.0)
+    os.utime(bdir / "settled.py", (500_000, 500_000))  # old AND untracked
+    r = verification.check_bin_freshness(groot, bin_dir=bdir,
+                                         tracked_of=lambda d: set())
+    assert r.status == "PASS", r.note
+
+
+def test_tracked_but_newer_than_suite_still_trips(tmp_path):
+    """A TRACKED file edited after the last suite run trips the mtime arm —
+    this is the L4.78 failure (a script landed without the suite, unseen by
+    the no--suite check)."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["touched.py"])
+    _write_ts(groot, 1_000_000.0)
+    os.utime(bdir / "touched.py", (1_500_000, 1_500_000))  # newer than suite
+    r = verification.check_bin_freshness(groot, bin_dir=bdir,
+                                         tracked_of=lambda d: {"touched.py"})
+    assert r.status == "FAIL"
+    assert "SUITE REQUIRED" in r.note
+
+
+def test_never_run_suite_is_conservatively_suite_required(tmp_path):
+    """No recorded timestamp ever -> FAIL: a suite that has never run is the
+    exact state to surface, not to pass over silently."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    bdir = _mk_bin(tmp_path, ["old.py"])
+    os.utime(bdir / "old.py", (500_000, 500_000))
+    r = verification.check_bin_freshness(groot, bin_dir=bdir,
+                                         tracked_of=lambda d: {"old.py"})
+    assert r.status == "FAIL"
+    assert "SUITE REQUIRED" in r.note
+    assert "no suite has EVER run" in r.note
+
+
+def test_suite_completion_records_timestamp(tmp_path):
+    """A completed --suite run persists its epoch, so the next no--suite
+    rotation check can compare bin mtimes against it."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    verification._record_suite_ts(groot)
+    doc = json.loads((groot / "sessions" / verification.SUITE_TS_FILE)
+                     .read_text())
+    assert "suite_ran_at" in doc
+    import time as _t
+    assert abs(doc["suite_ran_at"] - _t.time()) < 60
