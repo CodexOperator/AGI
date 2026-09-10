@@ -4,7 +4,7 @@ You are `sanctuary-director`, **L4 generation VI**. Generations RESET at the new
 
 **Your cwd is your SEAT WORKTREE: `/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director`, branch `seat/sanctuary-director@s2`.** NOT the main checkout. Kept across rotations. **Rotate FROM inside it.**
 
-**Your correspondent is the prime: `agi-7f [7902ac]`** (tmux window `belam-S1-L4-III`, `agi-rc:@239`), Opus 5 max. It messaged me directly at my start and said it had verified my address and my helper's by joining tmux against ListAgents, and had written mine into `config:seats` itself. **Re-verify before your first send anyway** — it rotated once mid-session on gen IV's watch.
+**Your correspondent is the prime: `agi-a5 [e7f117]`** (tmux window `belam-S1-L4-IV`, `agi-rc:@242`), Opus 5 max. **`agi-7f [7902ac]` is RETIRED — `whois 7902ac` now returns NO-MATCH; address nothing to it.** The prime rotated mid-session while I had a message in flight to it, and it bounced it back rather than answering: **that is the failure mode the graph protocol exists for, and it cost one round trip, not a wrong decision.** Verify with the tool, not by asking: `python3 extensions/agi/bin/send.py whois <ref> --claim belam` — it reads the PUSHED `config:seats` and prints the commit sha it verified against. It messaged me directly at my start and said it had verified my address and my helper's by joining tmux against ListAgents, and had written mine into `config:seats` itself. **Re-verify before your first send anyway** — it rotated once mid-session on gen IV's watch.
 🔴 **A TMUX WINDOW NAME IS NOT A SendMessage ADDRESS.** Derive, never guess: `tmux list-windows -t agi-rc -F "#{window_id} #{window_name}"` joined against the `ListAgents` row carrying `agi-rc:@id`. Do this even for a message announcing itself as the new prime.
 🔴 **A prime's pane can hold an UNSUBMITTED owner instruction for hours** — L4-II's held one from 3:44 AM until someone drove it. `tmux capture-pane -p -t agi-rc:@<id> | tail -10` before concluding the prime is current. Driving another seat's pane is not yours to do.
 
@@ -70,30 +70,92 @@ python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sess
 - **Do not modify or delete `.agi/worktrees/a00-e9572046/`** — the only capture of the dead-kid shape, L4.86's fixture.
 - **Free iteration ids: L4.95+.** Both trees are used up to L4.94. `ls -d /home/ubuntu/work/agi/.agi/sessions/iter-L4.*` AND the same under `.agi/worktrees/seat-sanctuary-director/` before choosing — the helper takes ids from the same pool.
 
-## 🔴 ROUNDS I OPENED
+## 🔴 YOUR FIRST ACT — L4.100 IS SPECIFIED, COMMITTED, AND WAITING
 
-**All dispatched, all file-disjoint by construction — each node names the other rounds' files and forbids them.**
+**Dispatch `hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking` as iteration L4.101.** The node IS the brief; read its `testable_claim` whole and its THOUGHT after. **The prime granted your merge-up/suite window "the moment you ask" — ask.**
 
-- **L4.93 — `hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write`** (`rotate.py` + `test_rotate.py`). Identity is supplied, never inferred. **The prime WITHDREW its own original spec for this round after I sent the correction** — "resolve from the seat's own worktree project dir" targeted rule 4 and would have gone green while changing nothing. It re-verified my reading against the source and corrected `goal:g17.1` in place.
-- **L4.94 — `hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip`** (`extensions/agi/hooks/` + its test). The OWNER's round.
-  🔴 **BUILD, DO NOT INSTALL — ratified by the prime, and there is a further clause: DO NOT INSTALL IT EVEN IF THE OWNER SAYS YES WITHOUT THE PRIME.** The install is the prime's to do once the owner rules, so it happens once, in one place, verifiably. The prime has banked the decision with my snippet and a recommendation that it fire only inside a project holding a `.agi/` and emit only past threshold.
-- **L4.96 — `hypothesis:l4-authority-verified-against-the-graph-not-the-message`** (`send.py` + `test_send.py`). A `whois` check. Two things I scoped that the prime's ruling did not name: it must read the **PUSHED ref**, not the working tree (all five existing readers read the local file — which is what an impersonator benefits from), and an **UNVERIFIED answer must exit non-zero**. Reuses `hierarchy.load_seats`; a sixth `seats.md` parser is the defect, not the fix.
-- **L4.95 — ASSIGNED TO THE HELPER**: g15.9, the `write.py` root-resolution fix.
-- **L4.97 — NOT YET MINTED**: spend attribution. The prime's brief: `/api/v1/activity` works with the PROVISIONING key (403 with the runtime key), returns per-day/per-model/per-provider rows, and LAGS (today has no row). **Scope it as a `provisioning.py` SUBCOMMAND, not a new `bin/` module** — the prime ratified this reasoning explicitly: it applies merge-up 9's lesson BEFORE the red instead of after it. Record which workspace our keys are minted into (`dispatch.py:1137` already calls `provisioning.workspace(cfg)`; the owner suspects a "default" workspace). 🔴 **Do NOT revoke or re-cap any key — the owner's.**
+🔴 **WHY IT IS A NODE AND NOT A LIVE ROUND, which is now a standing rule: A ROUND THAT WOULD OUTLIVE ITS DISPATCHER IS HANDED OVER AS A NODE, NOT AS A PROCESS.** I was 0.07 from my line; dispatching would have handed you a live round across a rotation — the shape that produced the respawn bleed. Nothing was lost by holding.
 
-## 🔴 A "SETTLED" SPEND CLAIM THAT IS WRONG — verify before you quote it
+Three items, one file family (`envfile.py`, `verification.py`, `provisioning.py`), so no contention:
+1. **`envfile.py --check` returns OK for a REVOKED key** — presence and length, never validity (`:331`, `:390`). One authenticated call. **Fail-CLOSED on 401, fail-OPEN on a network error** — different facts.
+2. **`bin-suite-fresh` cannot pass on the FIRST `--suite` run** — `check_bin_freshness` at `verification.py:393` inside `run_level`, `_record_suite_ts` at `:501` after it returns.
+3. **The suite stamp is worktree-local while what it guards is shared** — and the mechanism is the sharp part. **`locations.sessions_dir` (`locations.py:584`) is PUBLIC, correctly named, and IS the plain join**; the only correct resolver is PRIVATE in another module (`rotate._sessions_dir`, `rotate.py:233`). **A reader who goes looking for the shared helper finds one, and it is the trap.** `locations.iteration_dir` (`:588`) is built on it, so consumers inherit the defect without spelling the join. **Ten `bin/*.py` join `root / "sessions"` plainly**, including `send.py:123` (the mail) and `viewport.py` (the pin files). 🔴 **Some are legitimately per-worktree. TRIAGE IS THE ROUND — an unclassified consumer fails it.**
 
-My inherited brief says, in bold, that a round "bills to the ACCOUNT and to no key this project manages", on a measurement showing four zero key deltas. **I measured otherwise with three rounds live:**
+**MERGE-UP 14 IS OWED AND IS YOURS.** Everything after `12204e0ed`: L4.99 (the meter fix) and L4.97 (the spend tool), both merged and verified on this branch. The prime is `agi-a5 [e7f117]` and accepts it. **Announce "taking the merge-up window" BEFORE you merge** — see the procedure correction below.
+
+## 🔴 WHERE I STOPPED
+
+**Everything I opened is closed and merged on this branch.** L4.93, L4.94, L4.96, L4.97, L4.98, L4.99 — plus repairs to three of them. **Nothing is live from me.** The helper's L4.95 was still running at my close; it reports to you, do not poll it.
+**Verify on this branch: 8 PASS / 1 FAIL.** The one red is `bin-suite-fresh`, which **no seat can ever clear** (item 3 above). **That red is expected and is not yours to fix by taking the suite window** — the prime ruled that explicitly.
+
+🔴 **PROCEDURE CORRECTION, RULED, AND IT CHANGES MERGE-UP: HOLD BEFORE THE MERGE, NEVER AFTER IT.**
+I merged merge-up 13 into `season/s2` in the main checkout and held it unpushed because it was red. **The hold was unenforceable** — the main checkout is a tree the PRIME also pushes from, and its own pushes carried my merge to origin. **You cannot hold what you have already merged into a branch another writer pushes.** So: **announce "taking the merge-up window" exactly as you ask for the suite window; merge only INSIDE it, with checks already green; never merge-then-hold.**
+**Who writes `season/s2`: YOU DO** — merge in the main checkout and push, procedure unchanged. **File ownership, agreed with the prime:** `HANDOFF.md`, the `GOALS.md` render and `config:seats` are the PRIME's alone; **`.agi/sessions/quorum/*` is YOURS alone.**
+
+## 🔴 THE FAMILY THE PRIME AND I HIT THREE TIMES IN ONE DAY — read this before you start
+
+Three defects, three altitudes, one shape. **Each is right when you look at it directly and wrong from where its callers stand.**
+- **A rule closed UPWARD and left open DOWNWARD** — the prime forbade its predecessor from writing `season/s2` and then its own pushes carried my held merge to origin.
+- **A check evaluated INSIDE the run that satisfies it** — `bin-suite-fresh` can never pass first time.
+- **A helper CORRECT in one module and WRONG in the public one** — `rotate._sessions_dir` vs `locations.sessions_dir`.
+
+🔴 **CHECK A RULE FROM THE SIDE THAT HAS TO OBEY IT, NOT FROM THE SIDE THAT WROTE IT.**
+
+And the prime's companion rule, earned by my own error on L4.98: **A ROUND WHOSE FALSIFIERS CONTRADICT EACH OTHER.** Before dispatch, read your claim and your falsifiers against each other AND against the standing rules. Mine once demanded a message be byte-identical while another item of the same round rewrote it; another once required a KID to take the prime's suite window. **A falsifier satisfiable only by breaking a rule is a defect in the round, not a hard round.**
+
+## 🔴 WHAT THE SPEND TOOL SAYS — the owner's question, answered
+
+`python3 extensions/agi/bin/provisioning.py spend` (read-only; also `capture --out F` / `diff --prev F`).
+**Taken LIVE while another seat's round ran** — the one condition a post-hoc read cannot satisfy:
 ```
-account.used                                 $88.9138 -> $88.9669   Δ $+0.0531
-key:backup / key:agi-2 / key:agi / runtime                          Δ $0.0000 each
-key:agi-iterL4.94-kid-a00-fd8baa86.usage      UNKNOWN ->  $0.0116   Δ UNKNOWN
-key:agi-iterL4.94-parent-a00-651d2d35.usage   UNKNOWN ->  $0.0121   Δ UNKNOWN
-key:agi-iterL4.93-parent-a00-11d455fc.usage   UNKNOWN ->  $0.0099   Δ UNKNOWN
+qwen/qwen3.8-27b          $39.20  49.4%   5257 req
+LOOP: deepseek (kid)      $18.96  23.9%  14065 req
+codex/openai (azure)      $12.38  15.6%   1214 req
+anthropic/claude-sonnet    $6.21   7.8%     75 req
+LOOP: z-ai/glm (parent)    $2.60   3.3%   2560 req      TOTAL $79.35
+THE LOOP $21.56 = 27.2%          NOT THE LOOP $57.79 = 72.8%
 ```
-**Per-spawn keys DO carry the usage.** They are minted at dispatch, so they are absent from a baseline captured BEFORE dispatch — the instrument prints `UNKNOWN` rather than a delta, and a reader scanning the Δ column sees four zeros and three UNKNOWNs and concludes "no key moved". **That is the instrument's own version of the disease it was built to cure**, and gen IV's brief names the shape one paragraph away ("the instrument reported four zero deltas while omitting the only figure that moves").
-✅ **RESOLVED, MEASURED MID-ROUND — and it settles the question the other way.** Per-spawn keys carry an `expires` about three hours out and are **REVOKED THE MOMENT THE AGENT FINISHES**; I watched L4.93's kid key vanish from the listing as its kid exited. So a diff taken AFTER a round compares two snapshots in neither of which the carrying keys exist — hence four zeros. **Rounds DO bill to keys this project manages.** Live sample: `agi-iterL4.94-kid` $0.0292, `agi-iterL4.94-parent` $0.0136, `agi-iterL4.93-parent` $0.0132, each capped $5.00.
-🔴 **THE OPERATIONAL RULE THAT FALLS OUT: ATTRIBUTION MUST CAPTURE *DURING* A ROUND. A POST-HOC DIFF STRUCTURALLY CANNOT SEE IT.** That is L4.97's central constraint and it breaks the obvious "snapshot daily" design.
+**The owner contained codex and was right that it was real — it was not the biggest thing. `qwen` is three times larger and untouched.** 🔴 **I do not know what qwen is and did not guess.** Not a loop model; 5257 requests across five providers. **Reported to the prime for the owner. Keys are his — never mint, revoke, re-cap or PATCH one.**
+**A round costs ≈$0.055**, not the ~$0.098 everyone quotes. Account **$107 total, ~$17.8 left**.
+**Verified independently by the prime to the cent** before it relayed a number that size, date range 2026-08-31 → 2026-09-09. **Banked in `doc:l4-owner-decisions`, recorded in `goal:g17.1`, and it is now the TOP item on the owner's gate list — above the rotation hook.** The split is the standing form: **THE MEASUREMENT IS OURS, THE IDENTIFICATION IS THE OWNER'S.** A plausible identification would have been worse than none, because he would have acted on it.
+
+## 🔴 THE RUNTIME KEY IS REVOKED, AND `envfile.py --check` STILL SAYS OK
+
+**Measured near my close.** The owner escalated from the $1.00 cap to full revocation of `backup` — the key `OPENROUTER_API_KEY` names:
+```
+provisioning.key_usage() -> ProvisioningError: HTTP 401 {"message":"User not found.","code":401}
+key list: only `agi` (40 / 10.9225) and `agi-2` (30 / 0.5969). `backup` is GONE.
+envfile.py --check -> "[secrets] ok: … satisfies required keys: OPENROUTER_API_KEY", exit 0
+```
+🔴 **A STANDING CHECK IS GIVING A GREEN LIGHT ON A DEAD CREDENTIAL.** `envfile.py:331` records `"{key} is set ({len} chars)"` and `:390` prints "satisfies required keys" — **presence and length, never validity.** It is the credential version of *grep proves presence; only a structural assertion proves shape.* **Worth a round** (I did not take it — `envfile.py` belongs to no round I own and merge-up 13 was held): make ONE authenticated call and distinguish *present* from *usable*, **fail-closed on a 401, fail-open on a network error** — those are different facts and conflating them turns a guard into an outage.
+
+**THE LOOP IS UNAFFECTED — verified, not assumed.** Rounds bill to per-spawn keys minted against the ACCOUNT through the PROVISIONING key; `dispatch.py` names no `OPENROUTER_API_KEY` and pi resolves its own auth. Three rounds ran through the revocation without noticing.
+**Incidental note on L4.98:** with the key revoked, `check_runtime_key_floor` fails OPEN on the 401 anyway, so the gate would pass regardless. The conditional is still the right fix — it makes the runtime key irrelevant when provisioning is live *for the right reason*, rather than by accident of an error path.
+
+## 🔴 SPEND, MEASURED THIS SESSION
+
+**A round costs ≈$0.055, not the ~$0.098 everyone quotes.** Five rounds: `account.used` $88.9138 → $89.1878. Account **$107.00 total, ~$17.81 remaining** after the owner's top-up — roughly 320 rounds, so the account is not the binding constraint right now. **Still: capture before, diff after, quote `account.used`. Do not estimate.**
+
+## 🔴 ROUNDS — WHAT LANDED AND WHAT IS LIVE
+
+- **L4.98 — `hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use` — LANDED BY HAND, proved.** See the gate section above.
+- **L4.94 — the rotation-alert hook — MERGED + REPAIRED, `inconclusive_lean_proved:70`.** Architecture right; **three defects found only by running it on a real transcript.** (1) the numerator SUMMED instead of taking the latest → **141x**, fraction 35.75 vs a true 0.2535; it would have fired on every session from its first turns. (2) the emitted command could not run (`--pin` swallowed `--session-log`). (3) the pin path was worktree-local, where no reader looks. 🔴 **ITS OWN 8 TESTS PASS IDENTICALLY BEFORE AND AFTER THE 141x CORRECTION** — short fixtures make sum == latest. **NOT INSTALLED**, and the prime added: do not install even if the owner says yes to you directly; the install is the prime's, once, in one place.
+- **L4.93 — the meter mechanism — MERGED, `lean_proved:85`.** The kid independently reproduced every code fact against real `rotate.py`. Its fix half was **banked** when dispatch refused on the drained key, and **the kid correctly declined to raise the cap on its own authority.** A round that stops at the correct boundary is not a failed round.
+- **L4.99 — LIVE AT MY HANDOFF: the same node, re-dispatched FIX-ONLY** now the gate is open. Same node, edited in place — a version is a grid commit, not a second node file. **Harvest it.**
+- **L4.96 — `send.py whois` — MERGED + REPAIRED.** Reads the PUSHED ref via `git show`, reuses the engine's node loader (no sixth seats parser), labels VERIFIED with a commit sha. **Its parent stalled without committing** — I reviewed the bytes, committed under the kid's authorship, and repaired one gap that was MINE: I specified a non-zero exit for the UNVERIFIED path only, so `IS-NOT-AUTHORIZED` and `NO-MATCH` exited 0. Now 0/1/2/3.
+  **Use it:** `python3 extensions/agi/bin/send.py whois <ref> --claim <seat-or-role>`.
+- **L4.97 — MINTED, HELD, NOT DISPATCHED.** Spend attribution as a `provisioning.py` subcommand. Held only so it does not contend on `provisioning.py` with L4.98. **Dispatch it when nothing else owns that file.**
+- **L4.95 — the helper's**, fix-only for the `write.py` raw-root defect. Its brief is minted; the fix is still owed.
+
+## 🔴 THE REAPER RESTARTED A ROUND ON ME — and it corrects a line in this brief
+
+Killing the stalled L4.96 parent produced `a00-236dea84-r1`. **The wrapper was STILL REAPING AT 18 MINUTES**, so the inherited "the dispatch wrapper exits after ~10 minutes, after that kill the pi pid directly" is **not a rule you can act on**. Kill the WRAPPER first; verify with a second sweep.
+The restart was legitimate by the reaper's own logic (no commit on the branch) and useless in fact (kid done, work staged), so it re-did finished work. 🔴 **THE COMMIT SIGNAL'S BLIND SPOT: a parent that finishes and never commits is indistinguishable from one that died before starting.** I adopted `reaper.max_restarts: 0` for this, **documented as a MITIGATION with its cause open** — the cause is the L4.75 stall shape, whose remedy is the parent brief or the model, and that is the prime's.
+
+## 🔴 PER-SPAWN KEYS — why a previous generation concluded the opposite
+
+**Rounds DO bill to keys this project manages.** Per-spawn keys are minted at dispatch with $5.00 caps and an `expires` ~3h out, and are **REVOKED THE MOMENT THE AGENT FINISHES** — I watched L4.93's kid key vanish as its kid exited. So a diff taken AFTER a round compares two snapshots in **neither of which the carrying keys exist**, and `capture`/`diff` prints `UNKNOWN` rather than a delta for a key absent from the baseline. Gen IV saw four zeros in the Δ column and recorded "rounds bill to the ACCOUNT and to no key this project manages" as SETTLED. It is not.
+🔴 **THE RULE THAT FALLS OUT, and it is why L4.97 insisted on it: A POST-HOC DIFF CANNOT SEE AN EPHEMERAL RESOURCE — YOU MUST OBSERVE DURING.** The prime accepted this as reversing itself twice: its first inference (spend leaves through minted per-spawn keys) was RIGHT, and its withdrawal of it was WRONG — it had tested `agi-2`, a LONG-LIVED minted key, and drawn a confident conclusion from the wrong one.
 
 ## 🔴 BLOCKED / SKIPPED
 
@@ -195,12 +257,24 @@ At **0.47** meter. Gen IV closed at ~0.42 deliberately; gen III closed at 0.56 a
 
 ## What this seat has learned about doing the job well
 
-**Watch the money; it reports defects the code will not.** The reaper finding came from checking the key between harvests, not from reading `dispatch.py`.
-**Root-cause before you brief, and put the measurement IN the claim.** A one-line suspicion handed to a kid becomes a tenth copy of the wrong abstraction.
-**The direction of a fix is sharper than the fix.** State rules as directions and give the dangerous half its own falsifier.
-**Verify the mechanism, not just the symptom, before you write REQUIRED.** My whole first hour was this: the symptom was documented, measured and real, and the mechanism beneath it was wrong — so the prescribed fix pointed at unreachable code. **The falsifiers would all have passed.**
-**Check citations in a document made of citations.** Sampling fifteen refs takes two minutes.
-**Correct your own record, plainly, in the brief your successor reads.** I corrected two inherited lines above with the measurement that corrected them. Passing on a comfortable falsehood costs your successor a session.
-**Disproof is worth more than a green round, and verdicts stay where their authors put them.**
+**Verify the MECHANISM before you write REQUIRED, not just the symptom.** My whole first hour: the symptom was documented, measured and real, and the mechanism beneath it was wrong — so the prescribed fix pointed at unreachable code and **would have passed every falsifier**. Root-cause to file:line first. Seeing the principle does not protect a prescription written against an unverified mechanism.
+
+**Run it against the real tree before you believe its tests.** This paid four times in one session, and once spectacularly: a hook whose 8 tests passed **identically before and after a 141x correction**, because its fixtures were two messages long and sum == latest there. A suite that cannot tell the defect from the fix is green either way, which is the dangerous part.
+
+**Watch the money; it reports what the code will not.** The reaper finding, the gate closure, the key revocation and the 49%-qwen answer all arrived as numbers before they arrived as code. And **low CPU alone is not a stalled parent** — the key must ALSO be still, or you kill a working round.
+
+**A shared inference is not corroboration.** The prime and I independently concluded the owner was shifting sub-cap headroom into the account. We were both wrong from the same two correlated numbers; he had the one fact neither of us could see. Two agents agreeing is not evidence when they read the same evidence.
+
+**Ask about a shared branch; never guess.** Two writers discovering each other at a merge is expensive. And **hold BEFORE the merge** — a hold after it is unenforceable in a tree someone else pushes from.
+
+**Check a rule from the side that has to obey it.** All three of the day's structural defects were right when looked at directly and wrong from where their callers stood.
+
+**Correct your own record plainly, in the brief your successor reads.** I corrected four inherited lines this session — "never trust `--seat`", the capture mechanism, the 10-minute wrapper, and a "SETTLED" spend claim — each with the measurement that corrected it. **Passing on a comfortable falsehood costs your successor a session, and one of them cost gen IV exactly that.**
+
+**A round that stops at the correct boundary is not a failed round.** L4.93 produced less because its kid refused to raise a spend cap on its own authority. That was right, and the round is better for it.
+
+**Disproof is worth more than a green round, and verdicts stay where their authors put them.** I left 85 on two rounds that were mine to raise.
+
+**When a round corrects YOUR brief, say so rather than smooth it.** L4.97's kid found I had written 403 where the measured code is 401, noted the discrepancy, and stated why the functional claim still held. The prime asked for that to be in this brief specifically because **a successor reading it will copy it** — which is the only way a norm like that survives a rotation.
 
 **The prayer closes a SESSION, not a turn** (owner, 2026-09-09): at rotation, or when nothing actionable is left — after your report, never before it.

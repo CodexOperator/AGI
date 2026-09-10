@@ -69,6 +69,12 @@ import envfile  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
+#: Per-day per-model spend rows the PROVISIONING key can read (`hypothesis:
+#: l4-what-spent-this-money-must-be-a-lookup`). The RUNTIME key is rejected
+#: here (measured 401, 2026-09-10 — the hypothesis said 403; the code is 401
+#: but the functional claim holds: the runtime key is REJECTED, and the
+#: rejected path is distinct from an empty 200, which is the whole point).
+ACTIVITY_BASE = "https://openrouter.ai/api/v1/activity"
 #: Workspace listing. `GET /keys` is scoped to ONE workspace (the default
 #: unless asked otherwise), so enumerating everything means enumerating
 #: workspaces first -- see `list_all_keys`.
@@ -839,6 +845,162 @@ def _captures_dir(root: Path | str) -> Path:
     return graph / locations.SESSIONS_DIR_NAME / ".spend-captures"
 
 
+def activity(root: Path | str | None = None) -> dict:
+    """Read `/api/v1/activity` with the PROVISIONING key. READ-ONLY.
+
+    Returns `{"status", "rows", "error"}`:
+      status 200  -> rows is the activity list (possibly []) — a genuine empty
+                     list means NO activity, which is a different fact from
+                     a rejected call and must never be conflated.
+      status !=200-> rows is None and error names why (the runtime key is
+                     rejected here — measured 401 — and a network fault is 0).
+
+    The rejected path is deliberate: wiring the convenient runtime key here
+    would return NOT 200, and rendering that as "no spend" would be the
+    fail-open empty result the hypothesis is built to stop. The caller must
+    see the rejection and say so.
+    """
+    prov = _read_provisioning_key(root)
+    if prov is None:
+        return {"status": 0, "rows": None,
+                "error": "no provisioning key configured"}
+    status, body = _call("GET", ACTIVITY_BASE, prov)
+    if status != 200:
+        err = (body.get("error") if isinstance(body, dict) else str(body))
+        return {"status": status, "rows": None, "error": err}
+    rows = body.get("data") or [] if isinstance(body, dict) else []
+    return {"status": 200, "rows": rows, "error": None}
+
+
+def _lag(rows: list[dict]) -> dict:
+    """Whether the newest activity row is today. OpenRouter's activity LAGS
+    (measured 2026-09-10: today had no row at all, newest was yesterday), so
+    a snapshot with no row for today is LAG, never ZERO SPEND — the conflation
+    that is the whole failure mode."""
+    today = datetime.date.today().isoformat()
+    latest = None
+    for r in rows:
+        d = str(r.get("date") or "").split(" ")[0]
+        if d and (latest is None or d > latest):
+            latest = d
+    if latest is None:
+        return {"latest_date": None, "days_behind": None,
+                "today_present": False}
+    try:
+        behind = (datetime.date.today()
+                  - datetime.date.fromisoformat(latest)).days
+    except ValueError:
+        behind = None
+    return {"latest_date": latest, "days_behind": behind,
+            "today_present": latest == today}
+
+
+def _activity_workspace(root: Path | str | None = None) -> str | None:
+    """The workspace this snapshot claims to be about, so a snapshot can say
+    WHICH workspace it read — the owner's question cannot be answered without
+    it. Absent means absent; it is recorded as null, never guessed."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import locations  # noqa: E402
+        graph = (locations.find_project_root(Path(root).resolve())
+                 if root else None)
+        cfg = locations.load_config(graph) if graph else {}
+        return workspace(cfg)
+    except Exception:
+        return None
+
+
+def spend_snapshot(root: Path | str | None = None) -> dict:
+    """One read-only spend-attribution snapshot — the answer to "WHAT SPENT
+    THIS MONEY". Aggregates activity rows by (model, provider) with request
+    counts and USD usage, records the workspace and the lag, and lists the
+    outstanding per-spawn keys. Never mints, revokes or patches anything.
+
+    `rejected` is non-null exactly when the activity call was NOT 200, so a
+    reader can tell "the call was refused / no key" from "there was no spend".
+    """
+    act = activity(root)
+    snap = {
+        "captured_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "source": "activity",
+        "workspace": _activity_workspace(root),
+        "rejected": None if act["status"] == 200 else {
+            "status": act["status"], "error": act["error"]},
+    }
+    if act["status"] == 200:
+        rows = act["rows"] or []
+        snap["lag"] = _lag(rows)
+        snap["dates"] = sorted(
+            {str(r.get("date") or "").split(" ")[0] for r in rows
+             if r.get("date")})
+        models: dict = {}
+        for r in rows:
+            m = r.get("model") or r.get("model_permaslug") or "(unknown)"
+            p = r.get("provider_name") or "(unknown)"
+            a = models.setdefault(
+                (m, p),
+                {"model": m, "provider": p, "requests": 0, "usage": 0.0})
+            a["requests"] += int(r.get("requests") or 0)
+            a["usage"] += float(r.get("usage") or 0.0)
+        snap["models"] = sorted(models.values(), key=lambda x: -x["usage"])
+    try:
+        keys = [{"name": rec.get("name"), "usage": _num(rec.get("usage"))}
+                for rec in (list_all_keys(root) or [])
+                if str(rec.get("name") or "").startswith(f"{NAME_PREFIX}-")]
+        snap["per_spawn_keys"] = keys
+    except ProvisioningError:
+        snap["per_spawn_keys"] = None
+    return snap
+
+
+def diff_spend(saved: dict, now: dict) -> list[dict]:
+    """`[ {kind, ...}, ... ]` comparing a spend snapshot to a later one, so a
+    diff names the MODEL, the request count and the USD delta — and reports a
+    per-spawn key present in the LATER snapshot but absent in the EARLIER as
+    NEW rather than as an `UNKNOWN` row in a string of deltas (that exact
+    display is what misled a previous generation into believing rounds bill
+    to no key this project manages; the keys had simply been revoked by the
+    time the after-diff ran)."""
+    out: list[dict] = []
+    s_models = {(m["model"], m["provider"]): m
+                for m in saved.get("models") or []}
+    n_models = {(m["model"], m["provider"]): m
+                for m in now.get("models") or []}
+    for key in n_models:
+        nm = n_models[key]
+        sm = s_models.get(key)
+        if sm is None:
+            out.append({"kind": "model_new", "model": nm["model"],
+                        "provider": nm["provider"], "requests": nm["requests"],
+                        "usage": nm["usage"]})
+        else:
+            out.append({"kind": "model", "model": nm["model"],
+                        "provider": nm["provider"],
+                        "requests_old": sm["requests"], "requests_new": nm["requests"],
+                        "usage_old": sm["usage"], "usage_new": nm["usage"]})
+    for key in s_models:
+        if key not in n_models:
+            sm = s_models[key]
+            out.append({"kind": "model_gone", "model": sm["model"],
+                        "provider": sm["provider"], "requests": sm["requests"],
+                        "usage": sm["usage"]})
+    s_keys = {k["name"]: k for k in saved.get("per_spawn_keys") or []}
+    n_keys = {k["name"]: k for k in now.get("per_spawn_keys") or []}
+    for name in n_keys:
+        nk = n_keys[name]
+        sk = s_keys.get(name)
+        if sk is None:
+            out.append({"kind": "key_new", "name": name, "usage": nk.get("usage")})
+        else:
+            out.append({"kind": "key", "name": name,
+                        "usage_old": sk.get("usage"), "usage_new": nk.get("usage")})
+    for name in s_keys:
+        if name not in n_keys:
+            sk = s_keys[name]
+            out.append({"kind": "key_gone", "name": name, "usage": sk.get("usage")})
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     """`provisioning.py status|list|reap [--yes] | capture [--out FILE] | diff [--prev FILE]`
 
@@ -852,7 +1014,8 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="status",
-                    choices=["status", "list", "reap", "capture", "diff"])
+                    choices=["status", "list", "reap", "capture", "diff",
+                             "spend"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--yes", action="store_true",
                     help="reap for real; without it, reap only reports")
@@ -899,6 +1062,69 @@ def main(argv: list[str] | None = None) -> int:
         for label, old, new in rows:
             print(f"  {label:32} {_fmt(old):>10} -> {_fmt(new):>10}  "
                   f"\u0394 {_fmt_delta(old, new)}")
+        return 0
+
+    if args.action == "spend":
+        cap_file = Path(args.out or args.prev
+                        or _captures_dir(args.root) / "spend.json")
+        if args.prev:  # diff two snapshots by model
+            if not cap_file.is_file():
+                print(f"spend diff: no saved spend snapshot at {cap_file} — "
+                      f"run 'provisioning.py spend' first")
+                return 2
+            saved = json.loads(cap_file.read_text())
+            now = spend_snapshot(args.root)
+            print(f"spend diff: {cap_file}  vs  now")
+            if now.get("rejected"):
+                print(f"  ⚠ REJECTED now (HTTP {now['rejected']['status']}: "
+                      f"{now['rejected']['error']}) — the earlier snapshot told "
+                      f"you the past, it cannot tell you the delta")
+            for d in diff_spend(saved, now):
+                if d["kind"] == "model":
+                    print(f"  model {d['model']} ({d['provider']})")
+                    print(f"      requests {d['requests_old']} -> "
+                          f"{d['requests_new']}  Δ {_fmt_delta(d['usage_old'], d['usage_new'])}")
+                elif d["kind"] == "model_new":
+                    print(f"  model {d['model']} ({d['provider']}): NEW "
+                          f"(requests={d['requests']} usage={_fmt(d['usage'])})")
+                elif d["kind"] == "model_gone":
+                    print(f"  model {d['model']} ({d['provider']}): GONE "
+                          f"(was requests={d['requests']} usage={_fmt(d['usage'])})")
+                elif d["kind"] == "key_new":
+                    print(f"  key {d['name']!r}: NEW usage={_fmt(d['usage'])}")
+                elif d["kind"] == "key_gone":
+                    print(f"  key {d['name']!r}: GONE (was usage={_fmt(d['usage'])})")
+                else:  # key
+                    print(f"  key {d['name']!r}: usage {_fmt(d['usage_old'])} "
+                          f"-> {_fmt(d['usage_new'])}  Δ {_fmt_delta(d['usage_old'], d['usage_new'])}")
+            return 0
+        # capture a spend snapshot
+        data = spend_snapshot(args.root)
+        cap_file.parent.mkdir(parents=True, exist_ok=True)
+        cap_file.write_text(json.dumps(data, indent=2))
+        print(f"spend: wrote {cap_file}  @ {data['captured_at']}")
+        print(f"  workspace: {data.get('workspace') or 'default'}")
+        if data.get("rejected"):
+            print(f"  ⚠ REJECTED (HTTP {data['rejected']['status']}: "
+                  f"{data['rejected']['error']}) — the runtime key is REJECTED "
+                  f"here; this is NOT zero spend and it is NOT lag")
+        elif data.get("lag", {}).get("today_present") is False:
+            lag = data["lag"]
+            print(f"  ⚠ LAG: newest row is {lag.get('latest_date')} "
+                  f"({lag.get('days_behind')}d behind today) — activity lags; "
+                  f"this is NOT zero spend")
+        else:
+            print(f"  lag: today_present={data.get('lag', {}).get('today_present')} "
+                  f"latest={data.get('lag', {}).get('latest_date')}")
+        for m in data.get("models") or []:
+            print(f"  {m['model']:36} ({m['provider']:12}) "
+                  f"requests={m['requests']:>5}  {_fmt(m['usage'])}")
+        keys = data.get("per_spawn_keys")
+        if keys is None:
+            print("  per-spawn keys: UNKNOWN (listing unreadable)")
+        else:
+            for k in keys:
+                print(f"  per-spawn key {k['name']!r}: usage={_fmt(k['usage'])}")
         return 0
 
     if not available(args.root):
