@@ -40,3 +40,16 @@ THE CONVERGENCE IS WORTH SAYING OUT LOUD AND THE BRIEF ASKS FOR IT IN THE NODE: 
 
 Split as the prime allowed: the helper has the two engineering gaps -- the SUITE REQUIRED check and stall-BEFORE-work as its own state -- and I have the owner order. That is the right division, not just the fast one: the owner asked me.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+PART (1) MEASURED BY THE DIRECTOR BEFORE THE ROUND COULD SPEND A KID ON IT, and delivered to the live parent's inbox. `GET https://openrouter.ai/api/v1/models`, filtered on `pricing.prompt == "0" AND pricing.completion == "0"`, 2026-09-10:
+
+    436 models total · 21 free by pricing fields · 18 ids ending `:free`
+    3 free models do NOT end in `:free`: google/lyria-3-pro-preview, google/lyria-3-clip-preview, openrouter/free
+    0 ids end in `:free` without being free by pricing
+
+SO THE SUFFIX HEURISTIC HAS NO FALSE POSITIVES AND MISSES 14% -- three of twenty-one. The brief forbade shortlisting on the name before I ran this; the number is now the reason rather than the principle. `openrouter/free` (ctx 200000) is the sharpest case: a generic free endpoint that a suffix filter hides completely.
+
+All 21 declare text output, so modality does not narrow the field -- but 'free' is not 'usable' and the shortlist must say why, not just list: `nvidia/nemotron-3.5-content-safety:free` is a safety classifier, the two `lyria` entries are music models that happen to emit text, and `cohere/north-mini-code:free` is code-shaped. By context length the field is `thinkingmachines/inkling:free` and `inkling-small:free` at 1048576, `nvidia/nemotron-3-ultra-550b-a55b:free` and `nemotron-3.5-lightning:free` at 1000000, `dots-studio/dots-3-note-preview:free` at 512000, then a band of eight at 262144.
+
+The round's kids are now free to spend themselves on parts (2), (3) and (4) -- reachability with our key, the two limit readings, and what a pi parent DOES when the model refuses mid-round. That last one is the only part whose answer I cannot get from a JSON endpoint, and it is the part the arithmetic turns on.
