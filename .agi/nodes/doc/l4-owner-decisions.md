@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam-S1-L4-I
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: sanctuary-director-genVI-L4
+thought_session: rc-L4-I
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -451,3 +451,15 @@ STANDING, both director seats. This REVERSES a judgement the point director made
 APPLIED, and what it does NOT mean. It does not license a kid to re-derive work that is already committed and verified: the helper declined to redo its twelve committed chains through a dispatch, because a kid re-deriving fully-specified content risks drift for no parallelization gain and would spend money and review time to reproduce bytes that already exist. That call is accepted and recorded here rather than silently taken. **The rule governs work not yet done, not work already landed.**
 
 🔴 IT ALSO TOUCHES A PRIME CONSTRAINT, and this is the part that needs the owner or the prime to settle. Survival mode's standing rule is ONE ROUND AT A TIME (A:54), re-stated by belam-S1-L4-I this round ("one round at a time"). "So you can parallelize properly" points the other way. Read together, the point director has taken the owner's sentence as authorising CONCURRENT DISPATCH ACROSS THE TWO SEATS — one round each, not one round total — because that is what "parallelize" means with two directors and it is the smallest reading that gives the owner's word effect. It has NOT been read as lifting any other survival constraint: no seat is woken, no third director appears, the $3.00 key ceiling across both seats stands, and the $1.00 floor is untouched. If the owner meant more than that, or less, one line settles it.
+
+### Banked 2026-09-10 05:5xZ by the Prime from the point's gen-I handover (helper findings; prime recommendations, NOT owner text)
+
+- **Q29 — L4.22 run tracking is a JSONL log, not graph nodes.** The owner's words were "adds it to the graph workflow tracking as well" (L4 PLAN, part 5). The helper landed a per-run JSONL; the point ruled the log is the right substrate (one node per run would inflate the graph the way hop-padding did). This is narrower than "the graph" read literally. REC: keep the JSONL as the record and add a periodic ROLL-UP node summarising many runs (the shape `telemetry_rollup` already uses), minted by the round that owns telemetry (G16) — no per-run nodes. Owner to accept or ask for per-run nodes.
+- **Q30 — L4.25 push_further: token counts.** Five of the seven success metrics record null-with-named-source because no token / vision / subscription counter exists in the engine. Counting tokens would put a field into `write-log.jsonl` or a session manifest, and `write.py` is do-not-touch for kids. REC: a director-level round (not a kid) adds the counter to the session manifest written by dispatch.py, leaving write.py untouched; scope decision is the owner's if it must touch write.py.
+- **Protocol note (not a question):** the point's gen I rotated at meter 0.5185, past the 0.47 cap, because it read the meter only at a natural pause. Seats read the meter after every round close and before every dispatch, not only at pauses.
+
+### Owner ruling 2026-09-10 ~07:4xZ (to the Prime in chat, verbatim) — L4.09 GO, extra waves, writer backfill
+
+**Owner, verbatim:** "what's L4.09? I'm fine with making the check more strict per type and you're clear to authorize extra waves or to re-order things as needed. I'm find having graph nodes that lack writers for now can backfill at the end since it used to be all Director Prime so it's easy to backfill truthfully."
+
+Applied: L4.09 (written_by warn -> refuse, one type at a time; [moral], [config] first, [vision] with Q15 as ruled: the Council FEEDS vision, blue = the Prime writes it) is AUTHORIZED — its owner-go flag is satisfied; the Prime may authorize extra waves and re-order rounds without a fresh owner-go; nodes with no recorded writer are left as they are and BACKFILLED at the end (legacy nodes were all the Director Prime — backfill truthfully to that). Resolves the owner-go on L4.09 and the L4.05 -> L4.09 ordering (gen II's correction).
