@@ -511,6 +511,37 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     return out
 
 
+def _enforce_written_by(root, node_type, actor, where):
+    """Refuse a write when the node type's OWN schema declares a restricted
+    writer (hypothesis:l4-moral-written-by-carrier).
+
+    The owner-only rule lives as DATA — `written_by:` in the frontmatter of
+    `context/schemas/[<type>].md` — read through `schema_registry`, not as a
+    hardcoded type literal here. So the rule is carried by the type that owns
+    it, and a schema that declares no `written_by` (or whose schema is
+    absent) gates nothing: the moral schema's `written_by: owner` is the one
+    and only thing that makes moral nodes hand-edit-by-owner-only.
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return
+    if schema is None:
+        return
+    written_by = schema.frontmatter.get("written_by")
+    if written_by and written_by != actor:
+        raise EditError(
+            f"moral nodes ({where}) are hand-edited by the owner only. "
+            f"Pass --actor owner (goal:g12).")
+
+
 def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
 
@@ -521,10 +552,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "") -> object:
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
 
-    if edit.node_id.startswith("moral:") and actor != "owner":
-        raise EditError(
-            f"moral nodes ({edit.node_id}) are hand-edited by the owner "
-            f"only. Pass --actor owner (goal:g12).")
+    _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor, edit.node_id)
 
     set_fm = dict(edit.set_fm)
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
@@ -923,10 +951,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     `link_ref`, so "a new node and, if needed, the code file behind it" is one
     operation. An existing file is **never overwritten** — it is linked.
     """
-    if node_type == "moral" and actor != "owner":
-        raise EditError(
-            f"moral nodes ({node_type}:{slug}) are hand-edited by the owner "
-            f"only. Pass --actor owner (goal:g12).")
+    _enforce_written_by(root, node_type, actor, f"{node_type}:{slug}")
 
     extra = dict(set_fm or {})
     created_file = None
