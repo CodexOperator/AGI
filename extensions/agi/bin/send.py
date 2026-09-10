@@ -119,8 +119,14 @@ def _project_root() -> Path:
 
 
 def _inbox_dir(root: Path) -> Path:
-    """`<root>/sessions/inbox/` — where per-recipient inbox files live."""
-    return root / "sessions" / INBOX_DIR
+    """`<sessions>/inbox/` — where per-recipient inbox files live.
+
+    The mail must be ONE room across every git worktree, or a recipient who
+    wrote/reads from the main checkout never sees mail a seat in a worktree
+    sent (the boundary face: an inbox written to a root the recipient never
+    reads). So this routes through the shared-sessions resolver, not the
+    plain per-worktree join. A non-git root is the identity."""
+    return locations.shared_sessions_dir(root) / INBOX_DIR
 
 
 def _inbox_path(root: Path, recipient: str) -> Path:

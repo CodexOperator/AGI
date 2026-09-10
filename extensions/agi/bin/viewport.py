@@ -683,7 +683,7 @@ def _seat_sessions(root: Path, registry_rows) -> dict:
         name = str(r.get("name") or "")
         if not name:
             continue
-        pin = Path(root) / "sessions" / f"{name}.meter"
+        pin = locations.shared_sessions_dir(root) / f"{name}.meter"
         if pin.is_file():
             try:
                 out[name] = pin.read_text(encoding="utf-8").strip()

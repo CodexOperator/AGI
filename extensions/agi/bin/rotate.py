@@ -247,18 +247,13 @@ def _sessions_dir(root: Path) -> Path:
     ONE shared directory on the main checkout (same rule as the budget dir
     and comms), so a rotation seat in a worktree reads the same room the
     parent wrote. Route through the main checkout (`git_common_root`) and
-    re-resolve the graph from there; identity for a non-worktree caller."""
-    graph = locations.find_project_root(root) or root
-    main = locations.git_common_root(graph)
-    if main is not None:
-        mg = locations.find_project_root(main) or graph
-        graph = mg
-    if (graph / "nodes").is_dir():
-        return graph / "sessions"
-    if (graph / ".agi" / "nodes").is_dir():
-        return graph / ".agi" / "sessions"
-    # Unknown shape: default to the graph-dir reading, the production path.
-    return graph / "sessions"
+    re-resolve the graph from there; identity for a non-worktree caller.
+
+    This is the hoisted body of `locations.shared_sessions_dir` (the shared-    
+    room resolver); both are one implementation so the plain join and the
+    shared resolver can never disagree (falsifier g4 of hypothesis:l4-a-check-
+    that-answers-a-question-it-is-not-asking)."""
+    return locations.shared_sessions_dir(root)
 
 
 def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
@@ -1143,7 +1138,15 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         if settings is None:
             settings = load_role(root, tier, "settings")
 
-    dbg = debug_file or f".agi/sessions/{name}.log"
+    if root is not None and not debug_file:
+        # (w2) route the DEFAULT debug log through `_sessions_dir` (the ONE
+        # resolver the pins share), not the relative string `.agi/sessions/...`
+        # which `Path(dbg).resolve()` in the read-back resolves against CWD --
+        # a seat running from its worktree therefore reads+writes a DIFFERENT
+        # file from one in the main checkout. Explicit `--debug-file` still wins.
+        dbg = str(_sessions_dir(root) / f"{name}.log")
+    else:
+        dbg = debug_file or f".agi/sessions/{name}.log"
 
     # An explicit stand-in successor command (hypothesis:l3-rotate-self-
     # successor-override): the override REPLACES the claude argv entirely.
@@ -1327,7 +1330,14 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     if rc != 0:
         return rc
 
-    debug_file = args.debug_file or f".agi/sessions/{name}.log"
+    if args.debug_file:
+        debug_file = args.debug_file
+    else:
+        # (w2) the default successor debug log is shared-room (see the branch
+        # in spawn_window): route through `_sessions_dir` so the predecessor's
+        # read-back and the successor's writes address the SAME file from any
+        # cwd (worktree seat or main checkout).
+        debug_file = str(_sessions_dir(root) / f"{name}.log")
     print(f"rotate {role!r} --> successor {name!r}")
 
     if args.dry_run:
@@ -2479,7 +2489,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     gen = gen_before + 1
     new_name = f"{seat}.gen{gen}"
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
-    dbg = args.debug_file or f".agi/sessions/{seat}.log"
+    dbg = args.debug_file or str(_sessions_dir(root) / f"{seat}.log")
 
     # A rotate-self rotation opens ONE record file up front (a `started`
     # record) and updates it IN PLACE through every step, so an interruption
@@ -2575,6 +2585,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     timeout = getattr(args, "timeout", 600)
     reply = _read_first_reply(dbg, timeout=timeout, start_offset=offset)
     if reply is None or reply.strip().lower() != "continue":
+        # (w3) record hygiene, not a decision change: this very branch used to
+        # `return 1` WITHOUT writing a record, so a rotation that actually
+        # succeeded (gen VI: successor window live, successor doing the work)
+        # stayed frozen at `started` -- indistinguishable from one still in
+        # flight, and `readback_log` absent exactly where a diagnostician
+        # needs it. Write the terminal record here, populating readback_log,
+        # WITHOUT touching the condition, the `return 1`, or the window
+        # survival below -- the DECISION belongs to the prime's held round
+        # (hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-
+        # design), which rebases onto this hygiene.
+        if not args.dry_run:
+            _write_rotation_record(root, _rotate_self_record(
+                seat=seat, result="unwitnessed", gen_before=gen_before, gen_after=gen,
+                succ=succ, readback_log=log, cursor_offset=offset,
+                refusal=("successor did not answer the single word `continue`; "
+                         "rotation SUCCEEDED BUT UNWITNESSED")), path=rec_path)
         print("warn: successor did not answer the single word `continue`; "
               "leaving the renamed window in place for inspection.",
               file=sys.stderr)
@@ -2616,7 +2642,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         croot=send.comms_root(root, getattr(args, "comms_root", None)),
         seat=seat, successor=seat, gen_before=gen_before, gen_after=gen,
         trigger=getattr(args, "trigger", "rotate-self"),
-        handoff_path=f".agi/sessions/seats/{seat}.handoff.md",
+        handoff_path=str(_sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
         in_flight=getattr(args, "in_flight",
                           f"successor {seat} confirmed; gen {gen}"),
         live_names=succ.get("names", []))

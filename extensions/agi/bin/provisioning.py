@@ -459,6 +459,41 @@ def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool
         f"{remaining:.2f} remains. Top up the account before the next spawn")
 
 
+def check_runtime_key_usable(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+    """(ok, message) — the provisioning-ABSENT pre-flight (this round's REQUIRED d/e).
+
+    Whether the runtime key (`OPENROUTER_API_KEY`) is a credential the next
+    spawn will actually use, judged by ONE authenticated call.
+
+    🔴 When provisioning is LIVE the spawn does NOT use the runtime key:
+    rounds bill to MINTED per-spawn keys, so a dead runtime key is irrelevant
+    and must NOT block the round (L4.98's invariant, this round's falsifier e).
+    The function short-circuits (True, None) the moment `available()` is true.
+
+    🔴 When provisioning is ABSENT the runtime key IS the spawn's credential
+    (`dispatch.py`, a supported state), so a DEAD one (HTTP 401/403) must make
+    the PRE-FLIGHT refuse BEFORE a budget slot is taken -- not let the spawn
+    discover the 401 mid-round and read as a stall (this round's falsifier d).
+    An absent key, a network error, a 5xx and an unknown key prefix all return
+    (True, None): those are evidence of nothing, and an unreachable API must
+    never block a round (same fail-open discipline as `check_key_floor`).
+    """
+    if available(root):
+        return True, None  # spawn uses minted keys, not the runtime key (L4.98)
+    runtime = _read_runtime_key(root)
+    if not runtime:
+        return True, None  # nothing to guard
+    status, detail = envfile._verify_provider_key(runtime)
+    if status == "dead":
+        return False, (
+            f"{RUNTIME_KEY_VAR} is present but NOT USABLE — provider rejected "
+            f"it ({detail}). Provisioning is ABSENT, so this key IS the next "
+            "spawn's credential; refusing the pre-flight before a budget slot "
+            "is taken. Revoke/replace it or restore provisioning first.")
+    return True, None  # valid, unknown-prefix, or network error — nothing blocks
+
+
+
 def settings(cfg: dict) -> tuple[float, int]:
     """`(limit_usd, ttl_minutes)` from `spawn.credential`, with defaults.
 
