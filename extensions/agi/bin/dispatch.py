@@ -94,6 +94,19 @@ def scrubbed_env() -> dict[str, str]:
 _scrubbed_env = scrubbed_env
 
 
+def _resolved_seat(args_seat: str | None) -> str | None:
+    """The AGI_SEAT value to export, or None to leave the key absent.
+
+    Precedence (hypothesis:l4-dispatch-exports-seat): `--seat` WINS when
+    given; an AGI_SEAT already in the inherited env SURVIVES when `--seat`
+    is absent; neither present means the key is absent -- never a
+    placeholder, never a fallback to the ladder name.
+    """
+    if args_seat:
+        return args_seat
+    return os.environ.get("AGI_SEAT")
+
+
 def zoom_command(root: Path, iter_n: int, agent_id: str,
                  level: str, target: str | None, push_further: bool = False) -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
@@ -720,6 +733,14 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # child WOULD receive its own id and actor.
             env["AGI_AGENT_ID"] = agent_id
             env["AGI_ACTOR"] = agent_id
+            # hypothesis:l4-dispatch-exports-seat — mirror of the live
+            # spawn_env seat export, so the dry report shows the REAL value
+            # (--seat wins, else an inherited AGI_SEAT survives, else absent).
+            # base=scrubbed_env() already carries an inherited AGI_SEAT, so
+            # only the --seat override must be written here.
+            seat_val = _resolved_seat(args.seat)
+            if seat_val:
+                env["AGI_SEAT"] = seat_val
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
 
@@ -756,7 +777,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
-                       "GIT_CONFIG_COUNT", "CLAUDE_CODE_WORKFLOWS"]
+                       "AGI_SEAT", "GIT_CONFIG_COUNT",
+                       "CLAUDE_CODE_WORKFLOWS"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
@@ -1411,6 +1433,16 @@ def main() -> int:
             # inventing a per-tool fallback (tmux window name / $USER).
             spawn_env["AGI_AGENT_ID"] = agent_id
             spawn_env["AGI_ACTOR"] = agent_id
+            # hypothesis:l4-dispatch-exports-seat — the seat under which this
+            # agent records provenance must exist in the env, or the write-log
+            # `seat` key L4.06 added is empty for every dispatched agent.
+            # Precedence: --seat wins; an inherited AGI_SEAT (from the manual
+            # export the help text documents) survives when --seat is absent.
+            # base=scrubbed_env() already carries an inherited AGI_SEAT, so
+            # only the --seat override must be written here.
+            seat_val = _resolved_seat(args.seat)
+            if seat_val:
+                spawn_env["AGI_SEAT"] = seat_val
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"

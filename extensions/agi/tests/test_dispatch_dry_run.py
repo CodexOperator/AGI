@@ -19,6 +19,7 @@ routing, the advisor brief swap, the ultracode env gate) and `--harness pi`
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -65,10 +66,22 @@ def project(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _run(project: Path, *args) -> subprocess.CompletedProcess:
+def _run(project: Path, *args, env=None) -> subprocess.CompletedProcess:
+    """Run dispatch --dry-run, optionally overriding/removing child env keys.
+
+    env values of None are REMOVED from the child env (so the "neither
+    present" seat case is testable regardless of the runner's own env).
+    """
+    base = dict(os.environ)
+    if env:
+        for k, v in env.items():
+            if v is None:
+                base.pop(k, None)
+            else:
+                base[k] = v
     return subprocess.run(
         [sys.executable, str(BIN / "dispatch.py"), str(project), "1", *args],
-        capture_output=True, text=True,
+        capture_output=True, text=True, env=base,
     )
 
 
@@ -217,6 +230,46 @@ def test_seat_row_wins_over_both_harness_and_ladder(project):
     out = r.stdout
     assert "harness=pi" in out, out
     assert "glm-flash" in out, out
+
+
+def test_dry_run_exports_seat_from_flag(project):
+    """hypothesis:l4-dispatch-exports-seat — `--seat NAME` must export
+    AGI_SEAT=NAME in the dry-report env line."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--seat", "liaison", "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "AGI_SEAT=liaison" in r.stdout, r.stdout
+
+
+def test_dry_run_flag_wins_over_inherited_agi_seat(project):
+    """hypothesis:l4-dispatch-exports-seat — `--seat` WINS over an AGI_SEAT
+    already in the environment."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--seat", "liaison", "--target", "hypothesis:x", "--dry-run",
+             env={"AGI_SEAT": "inherited-seat"})
+    assert r.returncode == 0, r.stderr
+    assert "AGI_SEAT=liaison" in r.stdout, r.stdout
+    assert "AGI_SEAT=inherited-seat" not in r.stdout, r.stdout
+
+
+def test_dry_run_inherited_agi_seat_survives_without_flag(project):
+    """hypothesis:l4-dispatch-exports-seat — without `--seat`, an AGI_SEAT
+    already in the env (the manual export the help text documents) survives."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             env={"AGI_SEAT": "inherited-seat"})
+    assert r.returncode == 0, r.stderr
+    assert "AGI_SEAT=inherited-seat" in r.stdout, r.stdout
+
+
+def test_dry_run_no_seat_leaves_key_absent(project):
+    """hypothesis:l4-dispatch-exports-seat — neither `--seat` nor an
+    inherited AGI_SEAT means the key is ABSENT, never a placeholder."""
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             env={"AGI_SEAT": None})
+    assert r.returncode == 0, r.stderr
+    assert "AGI_SEAT=" not in r.stdout, r.stdout
 
 
 def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
