@@ -201,6 +201,55 @@ def test_iter_session_dirs_resolve_local_first_with_shared_fallback(tmp_path, mo
     assert budget_dir(wt_graph) == budget_dir(main_graph)
 
 
+def test_legacy_fallback_routes_neither_present_to_local(tmp_path, monkeypatch):
+    """hypothesis:l4-complete-and-fallback-invariants, (1) — case "neither
+    present". A brand-new record (present in NEITHER the local worktree nor
+    main) must resolve to the LOCAL path, not to main: `done`/`pending`/
+    `scaffold` write into whichever path `_legacy_fallback` returns, so
+    routing a brand-new record to main silently re-creates it in the main
+    checkout — exactly the routing L4.37 reverses. The fallback exists to
+    protect OLD records; a record that exists nowhere is NEW and belongs
+    local."""
+    import cli
+
+    repo = _make_project_repo(tmp_path)
+    wt = _make_worktree(repo, tmp_path)
+    monkeypatch.chdir(wt)
+
+    local_ap = cli._agent_path(cli._session_root(), 1, "a00-x")
+    # Brand new: exists in NEITHER the worktree nor main.
+    assert not local_ap.exists()
+    main_ap = locations.shared_project_root(cli._session_root()) / \
+        local_ap.relative_to(cli._session_root())
+
+    cwd = cli._legacy_fallback(cli._session_root(), local_ap)
+    assert cwd == local_ap, "neither-present record must stay local, not route to main"
+    assert not main_ap.exists()
+
+
+def test_legacy_fallback_present_locally_resolves_local(tmp_path, monkeypatch):
+    """hypothesis:l4-complete-and-fallback-invariants, (1), case "local present".
+    A record that exists in the LOCAL worktree resolves to the local path even
+    when the main checkout also holds one — the local tree owns its own round."""
+    import cli
+
+    repo = _make_project_repo(tmp_path)
+    wt = _make_worktree(repo, tmp_path)
+    monkeypatch.chdir(wt)
+    local_ap = cli._agent_path(cli._session_root(), 1, "a00-x")
+    local_ap.parent.mkdir(parents=True, exist_ok=True)
+    local_ap.write_text(_AGENT_JSON, encoding="utf-8")
+    # Plant a (different) copy in main too; local must win.
+    main_ap = locations.shared_project_root(cli._session_root()) / \
+        local_ap.relative_to(cli._session_root())
+    main_ap.parent.mkdir(parents=True, exist_ok=True)
+    main_ap.write_text('{"id": "main-owned", "round": "stale"}', encoding="utf-8")
+
+    assert cli._legacy_fallback(cli._session_root(), local_ap) == local_ap
+    assert cli._legacy_fallback(cli._session_root(), local_ap).read_text() == _AGENT_JSON
+
+
+
 def test_zoom_context_lands_in_the_worktrees_own_sessions(tmp_path):
     """hypothesis:l4-seat-session-iter-dirs (half a), proof bar 3 (zoom).
 
