@@ -493,3 +493,108 @@ def test_claude_code_path_feeds_the_same_view():
             if l.startswith(("[stage]", "[summary]"))]
     assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
     assert all("claude-code" not in l for l in tail), tail
+
+
+# ---------- run tracking: one row/real run, none on dry-run, never fatal ----
+# Extends hypothesis:l4b13-workflow-router — a workflow run started either
+# harness writes ONE jsonl row to `.agi/sessions/workflows/<key>.jsonl`,
+# reusing the `<project>/sessions/` pattern dispatch.py already writes.
+
+
+def _tmp_session_root(tmp_path_factory, wf_mod):
+    """Redirect workflow's `<project>/sessions/` resolution into a temp dir so
+    a test asserts exactly what tracking wrote, never the real `.agi/sessions/`.
+    Returns (tmp_root, restore)."""
+    tmp = tmp_path_factory.mktemp("wf-sessions")
+    saved = wf_mod._loc.shared_project_root
+    wf_mod._loc.shared_project_root = lambda root: tmp
+    return tmp, lambda: setattr(wf_mod._loc, "shared_project_root", saved)
+
+
+def test_real_cc_run_appends_exactly_one_row(tmp_path_factory):
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        path = tmp / "sessions" / "workflows" / "review.jsonl"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        assert len(lines) == 1, lines
+        row = json.loads(lines[0])
+        assert row["workflow"] == "review"
+        assert row["harness"] == "claude-code"
+        assert row["timestamp"]
+        review_lb = [k for k in row["stages"] if k.startswith("review")]
+        assert "global-checks" in row["stages"] and len(review_lb) == 1, row
+        assert row["stages"]["global-checks"] == "resolved"
+        assert row["ok"] == 0 and row["failed"] == 0
+    finally:
+        restore()
+
+
+def test_real_pi_run_appends_one_row_with_ok_counts(tmp_path_factory):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    # a JSON valid under BOTH review stages' schemas (extra keys allowed)
+    good = ('{"git_status": [], "links_broken": 0, "goals_check_ok": true, '
+            '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
+            '"verdict": "v", "overclaims": [], "open_gaps": []}')
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        lines = (tmp / "sessions" / "workflows" / "review.jsonl")\
+            .read_text(encoding="utf-8").splitlines()
+        assert len(lines) == 1, lines
+        row = json.loads(lines[0])
+        assert row["harness"] == "pi"
+        review_lb = [k for k in row["stages"] if k.startswith("review")]
+        assert row["stages"]["global-checks"] == "ok"
+        assert len(review_lb) == 1 and row["stages"][review_lb[0]] == "ok"
+        assert row["ok"] == 2 and row["failed"] == 0
+    finally:
+        restore()
+
+
+def test_dry_run_writes_no_row(tmp_path_factory):
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, True, out=buf)
+        assert rc == 0
+        assert not (tmp / "sessions").exists(), \
+            "dry-run must not create a sessions dir"
+    finally:
+        restore()
+
+
+def test_tracking_failure_does_not_fail_workflow(tmp_path_factory, capsys):
+    import workflow as _wf
+    from workflow import run_workflow
+    saved = _wf._loc.shared_project_root
+
+    def boom(root):
+        raise OSError("disk full (simulated)")
+    _wf._loc.shared_project_root = boom
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, "tracking failure must NOT fail the workflow run"
+        assert "warn: run tracking failed" in capsys.readouterr().err
+    finally:
+        _wf._loc.shared_project_root = saved
