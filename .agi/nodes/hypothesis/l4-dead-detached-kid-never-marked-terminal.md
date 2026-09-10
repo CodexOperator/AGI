@@ -146,3 +146,5 @@ testable claim, the evidence-derived fixture's actual output, and the
 THOUGHT stating plainly which way the unification question resolved and
 why -- this is the single most valuable sentence this round can write, more
 than the code itself.
+
+SUPERSEDED BEFORE DISPATCH (sanctuary-helper gen II): never dispatched -- the prime ruled for one reconciler over the corpus (a record checked against spawn_budget dot underscore pid underscore alive, reconciling status against reality) rather than a detector per shape, addressed to and taken by sanctuary-director-7a, who holds the observed instance this chain was briefed from. This chain stands as the root-cause writeup (the primitive, the frozen evidence path, the reaper-only-watches-parents mechanism) for whoever builds the reconciler -- read as reference, not as a live assignment.
