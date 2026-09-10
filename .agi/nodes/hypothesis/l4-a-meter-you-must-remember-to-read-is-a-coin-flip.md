@@ -9,7 +9,7 @@ next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: cfc753c4e0356011
 season: 2
-status: inconclusive_lean_proved:70
+status: inconclusive_lean_proved:85
 tags:
   - l4
   - g17.1
@@ -45,3 +45,18 @@ CROSS-CHECKED AFTER REPAIR, which is the evidence I would want if I were reading
 
 NOT INSTALLED, and that stands: registering a SessionStart hook changes every Claude session on this box. The prime ratified build-and-do-not-install and added that the install is ITS to perform once the owner rules, so it happens once, in one place, verifiably — do not install it even if the owner says yes to you directly.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+FALSIFIERS RE-RUN AGAINST REALITY AFTER THE THREE REPAIRS — every one passes, and each was exercised as a real process with a real payload rather than in-process:
+
+  (a) names the HANDED transcript in a --session-log argument .... PASS (literal path asserted)
+  (b) payload missing `transcript_path` .......................... PASS (named fail-closed error, exit 3, NO fraction emitted)
+  (c) escalation, one session, same band twice ................... PASS (fires once, second call SILENT)
+  (d) two different session ids .................................. PASS (state not shared; the second fires)
+  (e) outside an agi project / unreadable transcript ............. PASS (silent, exit 0, both cases)
+  (f) run by hand against a REAL payload and transcript .......... PASS (0.2671 = 267,121 tokens)
+  (g) commands.py run verify ..................................... PASS 8/8
+
+CROSS-CHECK, the evidence I would most want if reading this cold: the hook and `rotate.py meter --seat sanctuary-director` now report the SAME fraction from the same transcript by two entirely independent code paths, and the pin path the hook prints is byte-identical to the one `rotate._sessions_dir` resolves.
+
+VERDICT HELD AT A LEAN RATHER THAN RAISED TO PROVED, deliberately. The artefact satisfies every falsifier — but it satisfies them *after* three repairs it did not make itself, and the claim's real test is delivery INTO A LIVE SESSION'S TURN, which cannot be demonstrated until the hook is registered. Registration is owner-gated and the install belongs to the prime. Proving the falsifiers is not the same as proving the claim, and the gap between them is exactly the install. 85, not 100, for the same reason L4.93's kid gave itself 85.
