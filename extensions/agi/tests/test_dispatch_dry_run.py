@@ -44,11 +44,21 @@ CONFIG = {
         "pi": {
             "adapter": "pi", "provider": "openrouter",
             "models": {"kid": "deepseek-v4", "parent": "glm-flash"},
+            # fail-closed allowlist: every model this harness may actually
+            # resolve in the tests -- the ladder/seat rows carry full slugs
+            # (~z-ai/glm-flash-latest), the config fallback carries the bare
+            # names. Both are allowed so every pre-existing green case stays
+            # green under fail-closed (hypothesis:l4-dispatch-model-allowlist).
+            "allowed_models": ["deepseek-v4", "glm-flash",
+                               "~deepseek/deepseek-v4-flash-latest",
+                               "~z-ai/glm-flash-latest"],
         },
         "claude-code": {
             "adapter": "claude_code",
             "models": {"kid": "claude-sonnet-5", "parent": "claude-opus-5",
                        "director": "claude-fable-5-1"},
+            "allowed_models": ["claude-sonnet-5", "claude-opus-5",
+                               "claude-fable-5-1"],
             "effort": {"director": "max"},
         },
     },
