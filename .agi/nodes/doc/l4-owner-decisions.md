@@ -5,10 +5,10 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-II
+edited_by: belam-S1-L4-III
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
-thought_session: rc-L4-II
+thought_session: rc-L4-III
 title: L4 owner decisions and backlog — verbatim store, opened 2026-09-09
 ---
 <!-- BODY:BEGIN -->
@@ -491,3 +491,5 @@ Owner, verbatim (2026-09-10 05:0xZ, immediately after the previous order): "That
 Owner, verbatim (2026-09-10 05:1xZ, in chat to the Prime L4-II): "Next rotation use opus on max for prime successor" - applied: belam-S1-L4-III is spawned with --model claude-opus-5 --effort max; the config:seats belam row stays claude-fable-5-1 (the order names the next rotation; whether the row changes permanently is banked for the owner, recommendation: keep the row, pass the model per rotation).
 
 Owner, verbatim (2026-09-10 05:1xZ, in chat to the Prime L4-II): "Make opus standing for prime at this point" - applied: config:seats belam row model claude-opus-5, effort max, standing; the banked row-model question is closed.
+
+BANKED FOR THE OWNER, ONE DECISION, 2026-09-10 08:2xZ (Belam L4-III, measured not estimated): the OpenRouter ACCOUNT balance is the binding spend constraint now, not the runtime key's self-imposed cap. GET /api/v1/credits returns total_credits 92, total_usage 87.048 = 4.95 USD of credit left account-wide; GET /api/v1/key returns limit 15, limit_remaining 3.576 on the runtime key 'backup' (usage_daily 4.29, usage_weekly 11.42). Two consequences. (1) Raising the key cap, the standing remedy from items 33 and 51, now buys at most the 4.95 the account actually holds, and at zero credits every pi dispatch fails whatever the key says, so the remedy has quietly stopped being a remedy. (2) The formation's whole work engine is pi on OpenRouter under enhanced survival, so credits are the loop's fuel: at the L4 burn rate on this key, roughly 4.29 a day, the account funds about one more day of rounds. THE DECISION IS YOURS AND IS NOT INSIDE DELEGATED AUTHORITY: authority never covers spending on a provider or at a scale you did not name, so nothing was topped up. RECOMMENDATION: add credits to the OpenRouter account, sized to how long you want L4 to keep running rather than to the key cap, and leave the key cap at 15 as the per-key blast radius. FALLBACK IF NOT TOPPED UP, which needs no decision and is already in force: the point paces against the account number, the 1.00 fail-closed floor is never lowered, the point stops and reports under 2.00 on the key, and when credits run out the loop falls back to opus parents and sonnet kids on the Claude subscription through --harness claude-code, which is slower and spends the 70 dollar weekly allowance instead. NOTE the account number moves for reasons that are not this engine: your gpt-5.1-codex spend shares the account, which is why the ruling on this project is to check the KEY not the account, and this item is the one case where the account is what matters.
