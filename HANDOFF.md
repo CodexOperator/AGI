@@ -21,32 +21,9 @@
 
 ## §0.7 LOOP L3 — CLOSED 2026-09-09 by the owner (opened 2026-09-06); L4 OPEN on `doc:l4-owner-decisions`
 
-### Round plan — two pi parents per round (GLM parents / DeepSeek kids), tmux windows in `agi-rc`
+### L3 (CLOSED) — rounds L3.01–L3.44 all LANDED or closed; trimmed 2026-09-08/10
 
-| round | targets | status |
-|---|---|---|
-| L3.01–L3.35 | waves 0–2, the rollover, the seat/branch/quorum build-out — **all LANDED and trimmed 2026-09-08.** Detail: `git log --oneline iter-L3.01..iter-L3.35`, the experiment nodes, and `grid.py payload build:HANDOFF.md --version N`. | **LANDED** |
-| L3.36–L3.43 | the `--branch`/merge-up cycle, the restart-cwd cause, the rotation record, the workflow unified route, the wide 6- and 7-parent rounds, and the seat system going live — **all LANDED and trimmed 2026-09-08.** Detail: `git log --oneline iter-L3.36..iter-L3.43`, the experiment nodes each row named, and `grid.py payload build:HANDOFF.md --version N`. **The two lessons worth carrying out of them are already restated below and in §4:** check `git rev-list --count season/s2..<branch>` before believing a `--branch` parent landed anything, and compare a branch against its **MERGE-BASE**, never against a moved `season/s2`. | **LANDED** |
-| L3.44 (Belam XIII, 1 pi parent, MAIN tree) | `p-rotann` → `hypothesis:l3w4-rotation-announces-itself` (g17, item 67). Dispatched on the MAIN tree after three `--branch` rounds landed zero commits. | 🔴 **KILLED by the owner's stop order minutes in; the kid AUTO-RESTARTED as `-r1` with `iter=0` (wrapper respawn, see item 71) and was killed too. Node minted and pushed; later covered by SD.03 (item 81, lean_proved:75).** |
-
-Grouping rule: `brief.py` is touched by rotate-roles, brief-head-michael and
-test-skips — never two of those in one round; grid-flock and test-skips both
-touch `test_grid.py`. Kids edit the live tree; one commit per round.
-
-### Round loop (exact)
-
-```bash
-mkdir -p .agi/sessions/iter-L3.NN
-tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/agi/bin/dispatch.py . L3.NN --target hypothesis:<id> --level small --tier parent --harness pi |& tee .agi/sessions/iter-L3.NN/p-<x>.log; exec bash"
-# wait: background `until` loop on spawn_budget.py status → 0 live, then read its output file (Belam VII ran one fine; the memory-pressure deaths were last session's)
-#   GOTCHA (Belam VII): `$(pgrep -fc PAT || echo 0)` is NOT "0" when nothing matches — pgrep -fc PRINTS "0" and exits 1, so the || fires too and you capture "0\n0". The loop then never exits. Use `$(pgrep -fc PAT || true)` or compare with -le 0.
-# review: kid struggles:/caveats: → parent Accepted/Demoted in .agi/sessions/iter-L3.NN/<parent>/output.log → links.py links (0 broken) → snapshot-goals.py --render --check → write_guard.py check → commands.py run tests
-# commit "iter-L3.NN: …" → grid.py commit --all → git push → record the OpenRouter balance delta below
-```
-
-### Landed
-
-- **L3.01–L3.42 detail lives in git and the graph, not here** (trimmed 2026-09-08). Per-round narrative: `git log --oneline iter-L3.01..` plus the experiment nodes named in each round row. Closed-loop reports: [COMPLETE.md](COMPLETE.md). Prior handoff versions: `grid.py payload build:HANDOFF.md --version N`.
+Detail: `git log --oneline iter-L3.01..iter-L3.44`, the experiment nodes, [COMPLETE.md](COMPLETE.md), `grid.py payload build:HANDOFF.md --version N`. Two lessons kept: check `git rev-list --count season/s2..<branch>` before believing a `--branch` parent landed anything, and diff a branch against its **MERGE-BASE**, never against a moved `season/s2`. Under L4 the POINT dispatches (`dispatch.py . L4.NN --target <node> --level small --tier parent --harness pi --branch`, from its own worktree); the Prime never dispatches. Wait-loop gotcha kept: `$(pgrep -fc PAT || echo 0)` captures "0\n0" when nothing matches — use `|| true` or compare with -le 0.
 
 ### 🔴 Where it stops — Belam L4-II, live 2026-09-10 (L4-I's last card: `git show 2deee5062:HANDOFF.md`)
 
