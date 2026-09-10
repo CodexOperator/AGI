@@ -536,12 +536,22 @@ def test_list_workflows_enumerates_registry(tmp_path, monkeypatch):
                          [{"label": "a"}])
     monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
     monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    # the new contract (hypothesis:l4-workflow-types-and-default-harness-are-
+    # a-geometry-node): list resolves the harness through the geometry node,
+    # never a literal — so the fixture needs a workflows.md.
+    node = tmp_path / "nodes" / ".geometry" / "workflows.md"
+    node.parent.mkdir(parents=True)
+    node.write_text(_geometry_node_text("pi", [], []), encoding="utf-8")
     buf = io.StringIO()
     rc = list_workflows(tmp_path, out=buf)
     assert rc == 0, buf.getvalue()
     assert "alpha" in buf.getvalue()
     assert "agi-alpha.js" in buf.getvalue()
     assert "1" in buf.getvalue()  # one stage
+    # resolved harness AND the level it came from (alpha: nothing declares it,
+    # so it is the prime default)
+    assert "pi" in buf.getvalue()
+    assert "prime default" in buf.getvalue()
 
 # ---------- ONE run-event stream, TWO renderers (surface parity) -----------
 # hypothesis:l3-workflow-surface-identical-across-harnesses: both harness
@@ -723,3 +733,255 @@ def test_tracking_failure_does_not_fail_workflow(tmp_path_factory, capsys):
         assert "warn: run tracking failed" in capsys.readouterr().err
     finally:
         _wf._loc.shared_project_root = saved
+
+
+# ============================================================================
+# geometry-node harness resolution — hypothesis:l4-workflow-types-and-default-
+# harness-are-a-geometry-node. workflow.py run/list resolve the default harness
+# through .geometry/workflows.md (per-workflow > per-type > prime default),
+# with NO hardcoded 'pi' fallback: absent or exhausted, they refuse loudly
+# naming the node. An explicit --harness still wins (the CLI per-run override).
+# A kid cannot write a live `config` node, so these prove on fixture roots and
+# on a temp node redirected through `_geometry_node_path`.
+# ============================================================================
+
+
+def _geometry_node_text(default_harness, types, workflows):
+    """Render a `.geometry/workflows.md` frontmatter (the shape workflow.py
+    reads via yaml.safe_load, built from dicts so the reader and the writer
+    agree on structure). A `types` row is {name, harness?}; a `workflows`
+    row is {name, type?, harness?}."""
+    import yaml as _y
+    fm = {"id": "config:workflows", "type": "config",
+          "parents": ["goal:g1.14"],
+          "default_harness": default_harness,
+          "types": types, "workflows": workflows}
+    return ("---\n" + _y.safe_dump(fm, sort_keys=False)
+            + "---\n# config:workflows\n")
+
+
+def _pair(wf: Path, name: str, typ: "str | None", stages: list,
+          provider: "str | None" = None):
+    """Write a SOUND manifest+script pair (script implements its stages) with
+    an optional `type` and optional `provider`, so validate's base invariant
+    stays green and only the type under test moves."""
+    (wf / f"agi-{name}.js").write_text(
+        "phase('X')\n"
+        + "\n".join(f"await agent('proc', {{label: '{s['label']}'}})"
+                    for s in stages) + "\n", encoding="utf-8")
+    mf = {"name": name, "script": f"agi-{name}.js", "stages": stages}
+    if typ:
+        mf["type"] = typ
+    if provider:
+        mf["provider"] = provider
+    (wf / f"{name}.json").write_text(
+        json.dumps(mf, indent=2) + "\n", encoding="utf-8")
+
+
+def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
+    """PROVED-BY: with a workflows.md declaring the six types + per-workflow
+    rows, `workflow.py list` on the REAL registry shows all six registered
+    workflows resolving through the node, each with the LEVEL it came from
+    (config row / per-workflow override / per-type override) — no literal.
+    The node is a TEMP file the test writes; `_geometry_node_path` is
+    redirected to it (a kid cannot write the live config node)."""
+    from workflow import list_workflows
+    node = tmp_path / "workflows.md"
+    node.write_text(_geometry_node_text(
+        default_harness="pi",
+        types=[
+            {"name": "review", "harness": "pi"},
+            {"name": "drafting", "harness": "claude-code"},
+            {"name": "research", "harness": "pi"},
+            {"name": "route-probe", "harness": "pi"},
+            {"name": "plan-research", "harness": "pi"},
+            {"name": "investigate-refute", "harness": "pi"},
+        ],
+        workflows=[
+            {"name": "review", "type": "review"},
+            {"name": "drafting", "type": "drafting"},
+            {"name": "deep-search", "type": "research"},
+            {"name": "l3w-route-probe", "type": "route-probe",
+             "harness": "claude-code"},
+            {"name": "l4-plan-research", "type": "plan-research"},
+            {"name": "prime-open-questions", "type": "investigate-refute"},
+        ],
+    ), encoding="utf-8")
+    monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
+    buf = io.StringIO()
+    rc = list_workflows(REPO / ".agi", out=buf)
+    assert rc == 0, buf.getvalue()
+    txt = buf.getvalue()
+    for k in ("deep-search", "drafting", "l3w-route-probe",
+              "l4-plan-research", "prime-open-questions", "review"):
+        assert k in txt, (k, txt)
+    assert "config row" in txt, txt          # review/drafting/deep-search rows
+    assert "claude-code" in txt, txt         # drafting config row
+    assert "per-workflow" in txt, txt        # l3w-route-probe node override
+    assert "type:investigate-refute" in txt, txt
+    assert "type:plan-research" in txt, txt
+
+
+def test_fixture_root_resolution_levels_and_default_flip(tmp_path):
+    """PROVED-BY (fixture root): a temp `.agi` with its own config.json + a
+    workflows.md the test writes resolves four workflows through all four
+    sources — config row, per-type, per-workflow override, prime default —
+    and flipping default_harness in the node (no manifest or code edit) moves
+    what the override-less workflow resolves to."""
+    from workflow import list_workflows
+    agi = tmp_path / "_agi"
+    (agi / "nodes" / ".geometry").mkdir(parents=True)
+    (agi / "config.json").write_text(json.dumps(
+        {"workflows": {"A": {"provider": "claude-code"}}}), encoding="utf-8")
+    node = agi / "nodes" / ".geometry" / "workflows.md"
+    node.write_text(_geometry_node_text(
+        "pi",
+        [{"name": "tB", "harness": "claude-code"},
+         {"name": "tC", "harness": "pi"}],
+        [{"name": "B", "type": "tB"},
+         {"name": "C", "type": "tC", "harness": "claude-code"},
+         {"name": "D"}],
+    ), encoding="utf-8")
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    _pair(wf, "A", None, [{"label": "a"}])
+    _pair(wf, "B", "tB", [{"label": "b"}])
+    _pair(wf, "C", "tC", [{"label": "c"}])
+    _pair(wf, "D", None, [{"label": "d"}])
+
+    buf = io.StringIO()
+    assert list_workflows(agi, out=buf) == 0, buf.getvalue()
+    txt = buf.getvalue()
+    assert "A" in txt and "config row" in txt, txt
+    assert "B" in txt and "type:tB" in txt, txt
+    assert "C" in txt and "per-workflow" in txt, txt
+    assert "D" in txt and "pi" in txt and "prime default" in txt, txt
+    c_line = next(l for l in txt.splitlines()
+                  if l.startswith("C") and "agi-C" in l)
+    # C's per-workflow override (claude-code) beats its type's harness (pi)
+    assert "claude-code" in c_line and "per-workflow" in c_line, c_line
+    b_line = next(l for l in txt.splitlines()
+                  if l.startswith("B") and "agi-B" in l)
+    assert "claude-code" in b_line and "type:tB" in b_line, b_line
+
+    # FLIP the prime default (a node edit COMMIT): the override-less D moves.
+    node.write_text(_geometry_node_text(
+        "deep-seek",
+        [{"name": "tB", "harness": "claude-code"},
+         {"name": "tC", "harness": "pi"}],
+        [{"name": "B", "type": "tB"},
+         {"name": "C", "type": "tC", "harness": "claude-code"},
+         {"name": "D"}],
+    ), encoding="utf-8")
+    buf2 = io.StringIO()
+    assert list_workflows(agi, out=buf2) == 0, buf2.getvalue()
+    d_line2 = next(l for l in buf2.getvalue().splitlines()
+                   if l.startswith("D") and "agi-D" in l)
+    assert "deep-seek" in d_line2 and "prime default" in d_line2, d_line2
+    b_line2 = next(l for l in buf2.getvalue().splitlines()
+                   if l.startswith("B") and "agi-B" in l)
+    assert "claude-code" in b_line2, b_line2  # override untouched by the flip
+
+
+def test_missing_node_refuses_loudly_naming_it(tmp_path):
+    """DISPROVED-BY guard: with NO workflows.md (the live state until the
+    prime lands it), `list` and `run` must REFUSE loudly naming the node —
+    never fall back to a literal 'pi'."""
+    from workflow import list_workflows, run_workflow, WorkflowsNodeError
+    agi = tmp_path / "_agi"
+    (agi / "nodes" / ".geometry").mkdir(parents=True)
+    (agi / "config.json").write_text("{}", encoding="utf-8")
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    _pair(wf, "A", None, [{"label": "a"}])
+    try:
+        list_workflows(agi, out=io.StringIO())
+        raise AssertionError("expected WorkflowsNodeError on an absent node")
+    except WorkflowsNodeError as exc:
+        assert "workflows.md" in str(exc), exc
+    try:
+        run_workflow(agi, "A", None, {}, True, out=io.StringIO())
+        raise AssertionError("expected WorkflowsNodeError on an absent node")
+    except WorkflowsNodeError as exc:
+        assert "workflows.md" in str(exc), exc
+
+
+def test_validate_refuses_undeclared_and_missing_type(tmp_path):
+    """PROVED-BY: with the node present, validate refuses a manifest whose
+    `type` is undeclared, and one with no `type` at all — and accepts a sound
+    pair whose type is declared."""
+    from workflow import validate_registry
+    agi = tmp_path / "_agi"
+    (agi / "nodes" / ".geometry").mkdir(parents=True)
+    (agi / "config.json").write_text("{}", encoding="utf-8")
+    node = agi / "nodes" / ".geometry" / "workflows.md"
+    node.write_text(_geometry_node_text(
+        "pi", [{"name": "good", "harness": "pi"}],
+        [{"name": "ok", "type": "good"}]), encoding="utf-8")
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    _pair(wf, "ok", "good", [{"label": "ok"}])          # declared -> green
+    buf = io.StringIO()
+    assert validate_registry(agi, wf=wf, out=buf) == 0, buf.getvalue()
+    _pair(wf, "bogus", "ghost-type", [{"label": "bogus"}])  # undeclared
+    buf2 = io.StringIO()
+    assert validate_registry(agi, wf=wf, out=buf2) == 1, buf2.getvalue()
+    assert "not a declared type" in buf2.getvalue(), buf2.getvalue()
+    assert "ghost-type" in buf2.getvalue(), buf2.getvalue()
+    _pair(wf, "bare", None, [{"label": "bare"}])          # missing type
+    buf3 = io.StringIO()
+    assert validate_registry(agi, wf=wf, out=buf3) == 1, buf3.getvalue()
+    assert "declares no `type`" in buf3.getvalue(), buf3.getvalue()
+
+
+def test_config_row_shadows_node_perworkflow_and_type(tmp_path):
+    """THE SHADOWING GAP (experiment:a00-74831cf6-8c9c96). When a workflow
+    carries a config.json `workflows.<name>.provider` row, that row resolves
+    FIRST in _resolve_default_harness (level "config row") and the node's OWN
+    per-workflow `workflows.<name>.harness` AND its per-type `types[type]
+    .harness` are both UNREACHABLE. The node's two committed override levels
+    are dead weight for any workflow with a provider row — 3 of the 6 live
+    workflows (review, drafting, deep-search) have one, so for them the node
+    per-workflow and per-type overrides silently do nothing.
+
+    This uses a DELIBERATELY DISTINCTIVE node per-workflow harness
+    ('deep-seek') and type harness ('type-seek') that never appear in the
+    config row, so the assertion can only pass because the row shadows them —
+    not because the values happen to agree."""
+    from workflow import list_workflows
+    agi = tmp_path / "_agi"
+    (agi / "nodes" / ".geometry").mkdir(parents=True)
+    # X: config row provider = claude-code (level "config row", shadows all below)
+    (agi / "config.json").write_text(json.dumps(
+        {"workflows": {"X": {"provider": "claude-code"}}}), encoding="utf-8")
+    node = agi / "nodes" / ".geometry" / "workflows.md"
+    node.write_text(_geometry_node_text(
+        "pi",
+        [{"name": "tX", "harness": "type-seek"}],
+        [{"name": "X", "type": "tX", "harness": "deep-seek"}],
+    ), encoding="utf-8")
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    _pair(wf, "X", "tX", [{"label": "x"}])     # manifest also carries type tX
+
+    buf = io.StringIO()
+    assert list_workflows(agi, out=buf) == 0, buf.getvalue()
+    txt = buf.getvalue()
+    x_line = next(l for l in txt.splitlines() if "agi-X" in l)
+    assert "claude-code" in x_line, x_line            # the config row wins
+    assert "config row" in x_line, x_line
+    assert "deep-seek" not in txt, txt   # node per-workflow shadowed -> dead
+    assert "per-workflow" not in txt, txt
+    assert "type-seek" not in txt, txt    # node per-type shadowed -> dead
+    assert "type:tX" not in txt, txt
+
+    # Same workflow WITHOUT a config row but WITH a manifest provider: the
+    # manifest provider (level "manifest") shadows the node's two levels too.
+    (agi / "config.json").write_text("{}", encoding="utf-8")
+    _pair(wf, "Y", "tY", [{"label": "y"}], provider="claude-code-py")
+    buf2 = io.StringIO()
+    assert list_workflows(agi, out=buf2) == 0, buf2.getvalue()
+    txt2 = buf2.getvalue()
+    y_line = next(l for l in txt2.splitlines() if "agi-Y" in l)
+    assert "claude-code-py" in y_line, y_line
+    assert "manifest" in y_line, y_line

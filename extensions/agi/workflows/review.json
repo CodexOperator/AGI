@@ -1,5 +1,6 @@
 {
   "name": "review",
+  "type": "review",
   "script": "agi-round-review.js",
   "description": "Review one agi round: per-target parent/kid outputs with claim re-verification, plus one global-checks stage",
   "stages": [

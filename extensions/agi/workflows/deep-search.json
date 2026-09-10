@@ -1,5 +1,6 @@
 {
   "name": "deep-search",
+  "type": "research",
   "script": "agi-deep-search.js",
   "description": "Multi-lens deep investigation, harness-agnostic: fan out one reader per lens on the same ground truth, hand every finding that claims to explain the phenomenon to an adversarial refuter (default: refuted), then synthesize the survivors into a ranked mechanism list with a fix and a red-first test. All investigation-specific content arrives through --args; neither file carries any.",
   "stages": [
