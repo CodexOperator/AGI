@@ -565,11 +565,20 @@ def test_create_moral_without_owner_is_refused(project):
     """🔴 RED FIRST: moral node creation without --actor owner must raise EditError.
 
     goal:g12 — the five moral nodes are hand-edited only by the owner.
+    THE ONE assertion this round is allowed to retarget (L4.40): the refusal
+    message no longer contains the phrase `owner only`, so this now asserts
+    the NEW message and it asserts MORE — that it names the node TYPE
+    (`moral`) and the admitted writer (`owner`), and that the old catch-all
+    phrase is gone rather than loosened to `match=""`.
     """
     _moral_schema(project)
-    with pytest.raises(write.EditError, match="owner only"):
+    with pytest.raises(write.EditError, match="moral") as ei:
         write.create(project, "moral", "faith", [],
                      actor="director", bypass=True)
+    msg = str(ei.value)
+    assert "moral" in msg        # the refusal names the node TYPE
+    assert "owner" in msg        # and the admitted writer
+    assert "owner only" not in msg
     assert not (project / "nodes" / "moral" / "faith.md").exists()
 
 
@@ -613,6 +622,86 @@ def test_submit_non_moral_without_owner_still_works(project):
     # This should work even with a non-owner actor
     res = write.submit(project, e, actor="director")
     assert res.status == node_writer.UPDATED
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-written-by-message-and-shape — the refusal message must name
+# the node TYPE and its admitted writers, and `written_by` admits a LIST and
+# a comma-separated string, matching links.py's report parse.
+# --------------------------------------------------------------------------
+
+def _written_by_schema(project, ntype, written_by):
+    """Fixture schema for an arbitrary type declaring `written_by`."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"[{ntype}].md").write_text(
+        "---\nname: %s\nwritten_by: %s\n"
+        "spawn:\n  allowed_parents: []\n  min_parents: 0\n  max_parents: 0\n"
+        "validation:\n  required: [id, type, title]\n---\n\nbody\n"
+        % (ntype, written_by))
+
+
+def _typed_node(project, ntype, slug, node_id):
+    (project / "nodes" / ntype).mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / ntype / f"{slug}.md").write_text(
+        '---\nid: "%s"\ntype: %s\nmint_id: tst001\ntitle: "T"\n---\n\nbody\n'
+        % (node_id, ntype))
+
+
+def test_refusal_message_names_the_types_own_schema_and_its_writers(project):
+    """(1) A non-moral type's schema `written_by` refuses with a message that
+    names THAT type (not `moral`) and the writers it admits."""
+    _written_by_schema(project, "variorum", "scribe")
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "variorum", "v1", [],
+                     actor="director", bypass=True)
+    msg = str(ei.value)
+    assert "variorum" in msg      # names the node type being refused
+    assert "scribe" in msg        # names the admitted writer
+    assert "moral" not in msg     # not the moral catch-all
+    assert not (project / "nodes" / "variorum" / "foobar.md").exists()
+
+
+def test_list_written_by_admits_every_listed_writer(project):
+    """(2) A list-valued `written_by` admits EVERY listed writer."""
+    _written_by_schema(project, "variorum", "[scribe, corrector]")
+    # both listed writers admitted
+    write.create(project, "variorum", "foobar", [],
+                 actor="scribe", bypass=True)
+    write.create(project, "variorum", "baz", [],
+                 actor="corrector", bypass=True)
+    # an unlisted writer refused
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "variorum", "hawk", [],
+                     actor="hawk", bypass=True)
+    msg = str(ei.value)
+    assert "variorum" in msg
+    assert "scrib" in msg and "corrector" in msg
+    assert not (project / "nodes" / "variorum" / "hawk.md").exists()
+
+
+def test_comma_string_parses_same_as_list(project):
+    """(3) A comma-separated string admits the same writers as the list form.
+
+    The enforcer parses both identically (shared helper with `links.py`), so
+    a scalar string and a list never disagree about membership.
+    """
+    from links import parse_written_by
+    assert parse_written_by("scribe, corrector") == \
+        parse_written_by(["scribe", "corrector"])
+    assert parse_written_by("scribe,  corrector") == {"scribe", "corrector"}
+    assert parse_written_by("scribe,corrector") == {"scribe", "corrector"}
+    assert parse_written_by(None) is None
+    assert parse_written_by("") == set()
+
+    # and through the gate: a comma-string schema admits its writers
+    _written_by_schema(project, "variorum", "scribe, corrector")
+    write.create(project, "variorum", "foobar", [],
+                 actor="scribe", bypass=True)
+    with pytest.raises(write.EditError):
+        write.create(project, "variorum", "hawk", [],
+                     actor="henry", bypass=True)
+
 
 
 # --------------------------------------------------------------------------
@@ -1000,6 +1089,90 @@ def test_replace_payload_refusal_leaves_the_file_untouched(tmp_path):
         write.submit(graph, edit, actor="kid", session="s1")
     assert payload.read_text() == ORIG_MOD, \
         "a refused range must change nothing on disk"
+
+
+# hypothesis:l4-replace-api-drops-source — the PYTHON API path has no
+# coverage, which is exactly why the bug shipped. These tests drive
+# write.Edit + write.verb_replace + write.submit with NO argv and NO manual
+# replace_text: the replacement source is resolved by the shared resolver,
+# exactly as a library caller would.
+# --------------------------------------------------------------------------
+
+
+def _api_replace_payload(tmp_path, src_text):
+    """Set up a build node with a payload fixture and a source file, and
+    return (graph, payload, payload_node_md, edit) ready for submit."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    src = tmp_path / "src.txt"
+    src.write_text(src_text)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", str(src))
+    return graph, payload, edit
+
+
+def test_api_replace_replaces_the_line_not_deletes_it(tmp_path):
+    """The exact bug: an API-driven replace returned `status='updated'` while
+    git numstat read `0 1` — the target line was DELETED, nothing inserted.
+    Now the same path must produce an insertion+deletion (content equality,
+    one line swapped, line count unchanged)."""
+    graph, payload, edit = _api_replace_payload(tmp_path, "# REPLACED HEADER")
+    before = payload.read_text()
+    n_before = len(before.split("\n"))
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    after = payload.read_text()
+    assert after.split("\n")[0] == "# REPLACED HEADER", \
+        "the API path must REPLACE the line, not delete it"
+    assert after.split("\n")[1:] == before.split("\n")[1:], \
+        "only the named line may change"
+    assert len(after.split("\n")) == n_before, \
+        "a one-line replace must not change the line count (numstat 1 1)"
+
+
+def test_api_replace_refuses_an_empty_source_and_writes_nothing(tmp_path):
+    """An EMPTY source must REFUSE with an EditError naming the source, and
+    leave the file byte-identical. Replacing a range with nothing = deleting
+    it, and that must never be the silent consequence of an empty file."""
+    graph, payload, edit = _api_replace_payload(tmp_path, "")
+    before = payload.read_text()
+    with pytest.raises(write.EditError) as ei:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "empty" in str(ei.value)
+    assert payload.read_text() == before, \
+        "an empty source must write NOTHING — file stays byte-identical"
+
+
+def test_api_replace_refuses_a_missing_source_and_writes_nothing(tmp_path):
+    """An ABSENT source must REFUSE naming the source, and write nothing."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG_MOD)
+    (graph / "nodes" / "build" / "b1.md").write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    missing = tmp_path / "does-not-exist.txt"
+    before = payload.read_text()
+    edit = write.Edit(node_id="build:b1")
+    write.verb_replace(edit, "payload", "1:1", str(missing))
+    with pytest.raises(write.EditError) as ei:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert str(missing) in str(ei.value), \
+        "the refusal must NAME the unreadable source"
+    assert payload.read_text() == before, \
+        "a missing source must write NOTHING — file stays byte-identical"
 
 
 def test_replace_body_is_standalone_like_body_patch(project):

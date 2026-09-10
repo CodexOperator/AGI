@@ -29,7 +29,11 @@
       "models": {
         "kid": "~deepseek/deepseek-v4-flash-latest",
         "parent": "~z-ai/glm-flash-latest"
-      }
+      },
+      "allowed_models": [
+        "~deepseek/deepseek-v4-flash-latest",
+        "~z-ai/glm-flash-latest"
+      ]
     },
     "claude-code": {
       "adapter": "claude_code",
@@ -40,7 +44,12 @@
       },
       "effort": {
         "director": "max"
-      }
+      },
+      "allowed_models": [
+        "claude-sonnet-5",
+        "claude-opus-5",
+        "claude-fable-5-1"
+      ]
     }
   },
   "spawn": {
