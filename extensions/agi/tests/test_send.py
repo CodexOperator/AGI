@@ -39,7 +39,9 @@ def project(tmp_path: Path) -> Path:
 def test_send_creates_inbox_file(project: Path):
     """First message to a recipient creates the inbox file."""
     send_mod.send(project, "director", "hello world", "a00-xxxx")
-    inbox = project / "sessions" / "inbox" / "director.md"
+    # The inbox is the SHARED room under the graph root: `project` is a G11
+    # project (its markers live at `.agi/`), so sessions live at `.agi/sessions`.
+    inbox = project / ".agi" / "sessions" / "inbox" / "director.md"
     assert inbox.is_file()
     content = inbox.read_text()
     assert "hello world" in content
@@ -50,7 +52,7 @@ def test_send_creates_inbox_file(project: Path):
 def test_send_prints_inbox_path(project: Path, capsys):
     send_mod.send(project, "test-agent", "message one", "parent")
     captured = capsys.readouterr()
-    expected = str((project / "sessions" / "inbox" / "test-agent.md").resolve())
+    expected = str((project / ".agi" / "sessions" / "inbox" / "test-agent.md").resolve())
     assert captured.out.strip() == expected
 
 
@@ -126,7 +128,7 @@ def test_send_nudges_existing_window(project: Path, monkeypatch):
     assert nudges[0][4] == "hello world"
     assert nudges[0][5] == "Enter"
     # the inbox contract is unchanged
-    assert (project / "sessions" / "inbox" / "director.md").is_file()
+    assert (project / ".agi" / "sessions" / "inbox" / "director.md").is_file()
 
 
 def test_send_dm_nudges_other_party(project: Path, monkeypatch):
@@ -141,7 +143,7 @@ def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, [])  # an empty/absent window listing
     send_mod.send(project, "ephemeral-kid", "fire and forget", "parent")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
-    inbox = project / "sessions" / "inbox" / "ephemeral-kid.md"
+    inbox = project / ".agi" / "sessions" / "inbox" / "ephemeral-kid.md"
     assert inbox.is_file()
     assert "fire and forget" in inbox.read_text()
 
@@ -228,13 +230,13 @@ def test_two_recipients_independent(project: Path, capsys):
 
 def test_message_has_timestamp(project: Path):
     send_mod.send(project, "agent-x", "content", "sender-y")
-    content = (project / "sessions" / "inbox" / "agent-x.md").read_text()
+    content = (project / ".agi" / "sessions" / "inbox" / "agent-x.md").read_text()
     assert "ts: " in content
 
 
 def test_message_has_from_to_and_text(project: Path):
     send_mod.send(project, "recip", "the message body", "sender-id")
-    content = (project / "sessions" / "inbox" / "recip.md").read_text()
+    content = (project / ".agi" / "sessions" / "inbox" / "recip.md").read_text()
     assert "from: sender-id" in content
     assert "to: recip" in content
     assert "the message body" in content
@@ -507,7 +509,7 @@ def test_audience_writes_to_prime_inbox(project: Path, monkeypatch):
     monkeypatch.setenv("AGI_LADDER_TIER", "3")
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "need a ruling on g7", None, False)
-    inbox = project / "sessions" / "inbox" / "prime.md"
+    inbox = project / ".agi" / "sessions" / "inbox" / "prime.md"
     assert inbox.is_file()
     content = inbox.read_text()
     assert "to: prime" in content
@@ -526,7 +528,7 @@ def test_audience_prime_refuses_non_quorum_caller(project: Path, monkeypatch,
     croot = project / "comms"
     with pytest.raises(SystemExit):
         send_mod.audience_prime(croot, project, "let me in", None, False)
-    assert not (project / "sessions" / "inbox" / "prime.md").exists()
+    assert not (project / ".agi" / "sessions" / "inbox" / "prime.md").exists()
 
 
 def test_audience_prime_morals_bypasses_quorum_gate(project: Path, monkeypatch):
@@ -539,7 +541,7 @@ def test_audience_prime_morals_bypasses_quorum_gate(project: Path, monkeypatch):
     croot = project / "comms"
     send_mod.audience_prime(croot, project, "morals: life is at stake",
                             None, True)
-    assert (project / "sessions" / "inbox" / "prime.md").is_file()
+    assert (project / ".agi" / "sessions" / "inbox" / "prime.md").is_file()
 
 
 def test_audience_one_per_rotation(project: Path, monkeypatch, capsys):
@@ -695,7 +697,9 @@ def test_send_inbox_target_and_text_both_still_split_correctly(tmp_path,
     rc = send_mod.main(["--from", "alive", "send", "prime", "multi", "word",
                         "message"])
     assert rc == 0
-    inbox = root / "sessions" / "inbox" / "prime.md"
+    # `root` is a G11 project (markers at `.agi/`), so the shared inbox lives
+    # under `.agi/sessions/`, not the legacy `root/sessions`.
+    inbox = root / ".agi" / "sessions" / "inbox" / "prime.md"
     assert inbox.is_file()
     content = inbox.read_text()
     assert "to: prime" in content
@@ -1096,6 +1100,37 @@ def test_comms_root_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
     assert wt_comms == main_comms, (
         "a worktree kid must comms to the MAIN checkout's season room, "
         "not a per-worktree one")
+
+
+def test_inbox_dir_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
+    """The MAIL inbox is ONE room across every git worktree, exactly like the
+    comms root: a recipient who reads from the main checkout must see the mail
+    a seat in a worktree sent, or the writer's message lands in a file the
+    recipient never reads (falsifier g4's inbox face)."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add",
+                    "-b", "loop/x-abc@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+    main_inbox = send_mod._inbox_dir(repo / ".agi")
+    wt_inbox = send_mod._inbox_dir(wt / ".agi")
+    assert str(main_inbox) == str(repo / ".agi" / "sessions" / "inbox")
+    assert wt_inbox == main_inbox, (
+        "a worktree kid's mail must land in the MAIN checkout's inbox, "
+        "not a per-worktree one the recipient never reads")
 
 
 # ── hypothesis:l4-authority-verified-against-the-graph-not-the-message ────

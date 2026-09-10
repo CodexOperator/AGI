@@ -25,6 +25,7 @@ import pytest
 BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
+import envfile  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 
@@ -1303,3 +1304,79 @@ def test_spend_key_in_later_snapshot_but_not_earlier_is_new(monkeypatch):
             and d["name"] == f"{provisioning.NAME_PREFIX}-iterL4.93-kid-a"]
     assert len(olds) == 1 and olds[0]["usage_old"] == 0.0136
     assert olds[0]["usage_new"] == 0.0136
+
+
+# --- this round's REQUIRED (d)/(e): the provisioning-ABSENT pre-flight ------
+# hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking, item 1's
+# UNDELIVERED half. With provisioning LIVE the runtime key is NOT the spawn's
+# credential -- rounds bill to minted per-spawn keys -- so a dead runtime key
+# must not block (e, L4.98 invariant). With provisioning ABSENT the runtime key
+# IS the spawn's credential, so a 401 must refuse the pre-flight BEFORE a
+# budget slot is taken (d).
+
+
+def test_absent_provisioning_dead_runtime_key_refuses_preflight(monkeypatch):
+    """(d) provisioning ABSENT + runtime key 401 -> the pre-flight refuses
+    (ok=False) and the message says the key is present but NOT USABLE. The
+    refusal lives in the pre-flight function dispatch calls BEFORE any budget
+    slot is acquired, not in some later call."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(
+        provisioning, "_read_runtime_key", lambda root=None: "sk-or-dead-key")
+    monkeypatch.setattr(
+        envfile, "_verify_provider_key",
+        lambda key: ("dead", "provider rejected it (HTTP 401)"))
+
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is False, "a dead runtime key must refuse when provisioning is ABSENT"
+    assert "NOT USABLE" in msg, msg
+    assert "HTTP 401" in msg, msg
+    assert "present but NOT USABLE" in msg, (
+        "the distinction the round exists to create: PRESENT is not USABLE")
+
+
+def test_live_provisioning_dead_runtime_key_does_not_block(monkeypatch):
+    """(e) provisioning LIVE + a runtime key that WOULD 401 -> does NOT block.
+    The spawn mints its own key, so the runtime key is irrelevant; short-
+    circuiting on `available()` before touching the verifier is what keeps
+    L4.98's invariant from regressing."""
+    calls = []
+
+    def _verify_provider_key(key):
+        calls.append(key)
+        return ("dead", "provider rejected it (HTTP 401)")
+
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "_read_runtime_key", lambda root=None: "sk-or-dead-key")
+    monkeypatch.setattr(envfile, "_verify_provider_key", _verify_provider_key)
+
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is True and msg is None, (
+        "provisioning LIVE must not block on a dead runtime key (L4.98)")
+    assert calls == [], (
+        "the verifier must not even be consulted when provisioning is LIVE")
+
+
+def test_absent_provisioning_no_runtime_key_does_not_block(monkeypatch):
+    """(d) the ABSENT branch is fail-open on ABSENCE of the key itself: no
+    runtime key -> nothing to guard -> (True, None)."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "_read_runtime_key", lambda root=None: None)
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is True and msg is None
+
+
+def test_absent_provisioning_network_error_stays_fail_open(monkeypatch):
+    """(d) the ABSENT branch is fail-open on a NETWORK error (no credential
+    verdict): unlike a 401 it must not refuse, exactly as check_key_floor
+    preserves fail-open on ProvisioningError."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(
+        provisioning, "_read_runtime_key", lambda root=None: "sk-or-key")
+    monkeypatch.setattr(
+        envfile, "_verify_provider_key",
+        lambda key: ("unknown", "could not reach the provider (TimeoutError)"))
+    ok, msg = provisioning.check_runtime_key_usable({})
+    assert ok is True and msg is None, (
+        "an unreachable API is evidence of nothing; only a 401 verdict refuses")

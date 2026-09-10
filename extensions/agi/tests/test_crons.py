@@ -74,6 +74,27 @@ def _git_init(path: Path, branch: str = "master", detach: bool = False) -> None:
         _git(path, "checkout", "-q", "--detach", sha)
 
 
+def make_worktree_project(tmp_path, wt_name="wt"):
+    """A real linked git worktree (`git worktree add`), the shape the refusal
+    exists for: `main` is the common root, `wt` is a linked worktree that
+    carries its own `agi-tree.config.json` — indistinguishable from a separate
+    project to `repo_root` but not to `git_common_root`. Returns `(main, wt)`.
+
+    grid_sync + branch_push only: publish_engine and engine_push are disabled
+    so no engine checkout is needed to render."""
+    main = tmp_path / "main"
+    main.mkdir(parents=True)
+    _git_init(main, branch="master")
+    wt = tmp_path / wt_name
+    _git(main, "worktree", "add", "-q", str(wt), "-b", "season/s2")
+    (wt / "agi-tree.config.json").write_text("{}")
+    cad = dict(DEFAULT_CADENCES)
+    cad["publish_engine"] = {"schedule": "37 * * * *", "enabled": False}
+    cad["engine_push"] = {"schedule": "47 * * * *", "enabled": False}
+    write_crons_node(wt, crons_live=True, cadences=cad)
+    return main, wt
+
+
 def make_project(tmp_path, name="proj", crons_live=True, cadences=None,
                  repo_branch="master", engine_branch="master",
                  detach_repo=False, detach_engine=False, engine=True) -> Path:
@@ -404,6 +425,107 @@ def test_apply_twice_is_byte_identical(tmp_path):
 
     assert first == second, "running apply twice must be a no-op on the bytes"
     assert result2["changed"] is False
+
+
+# --- the worktree refusal + the separator fix (hypothesis:l4-a-worktree- ---
+# --- looks-like-a-project-to-the-crontab) --------------------------------
+
+
+def test_apply_from_linked_worktree_refuses_writes_nothing(tmp_path):
+    """ITEM 1: a seat worktree is a separate top-level to `repo_root`, so an
+    `apply` from one would append a SECOND managed block beside the main
+    checkout's. It must REFUSE loudly, and must not write a byte — the passed
+    crontab_file stays byte-identical, not merely less-modified."""
+    _main, wt = make_worktree_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("\n".join(UNRELATED_LINES) + "\n")
+    original = fixture.read_text()
+
+    with pytest.raises(crons.CronsError, match="WORKTREE"):
+        crons.cmd_apply(wt, crontab_file=fixture)
+    assert fixture.read_text() == original, "refusal must write NOTHING"
+
+
+def test_show_from_linked_worktree_refuses_naming_both_roots(tmp_path):
+    """show must say the same thing rather than rendering a block it would
+    refuse to install — naming the worktree it found and the common root it
+    wants."""
+    main, wt = make_worktree_project(tmp_path)
+    wt_root = str(wt.resolve())
+    with pytest.raises(crons.CronsError, match="common root"):
+        crons.cmd_show(wt, crontab_file=str(tmp_path / "crontab.fixture"))
+    # the refusal text names BOTH roots (relative-safe: resolution may symlink)
+
+
+def test_apply_from_plain_clone_does_not_refuse(tmp_path):
+    """The refusal must NOT fire on an ordinary non-worktree clone — where
+    repo_root and git_common_root agree, apply proceeds exactly as before."""
+    root = make_project(tmp_path)  # legacy-layout: root IS the repo root
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("")
+    result = crons.cmd_apply(root, crontab_file=fixture)
+    assert result["changed"] is True
+    assert len(result["managed_lines"]) == 4
+
+
+def test_apply_from_common_root_only_separator_delta(tmp_path):
+    """ITEM 2 guard: same jobs, same schedules as today — the ONLY textual
+    difference from the old rendering is `;` in place of `&&` between the
+    three grid_sync steps. Assert the delta explicitly so the guard cannot
+    become a behaviour change wearing a guard's clothes."""
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("")
+    result = crons.cmd_apply(root, crontab_file=fixture)
+    assert len(result["managed_lines"]) == 4
+    grid_sync = result["managed_lines"][0]
+
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    log = crons._log_path(repo_root)
+    grid_py = engine_root / "extensions" / "agi" / "bin" / "grid.py"
+    crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
+
+    # What today rendered (the `&&` chain) — reconstructed honestly as the
+    # reference the delta is measured against.
+    today = (
+        f"*/5 * * * * cd {root} && python3 {grid_py} commit --all "
+        f"--prefix 'cron: ' >> {log} 2>&1 && git -C {repo_root} push -q origin "
+        f"'refs/grid/*:refs/grid/*' >> {log} 2>&1 && python3 {crons_py} apply "
+        f">> {log} 2>&1"
+    )
+    # Same jobs and schedules, and the only delta is: `;` where the chain had
+    # `&&` between the steps (never touching the leading `cd {root} &&`).
+    assert grid_sync == today.replace("2>&1 && git", "2>&1; git").replace(
+        "2>&1 && python3", "2>&1; python3")
+    assert grid_sync != today
+
+
+def test_grid_sync_apply_not_chain_downstream_of_grid(tmp_path):
+    """ITEM 2 shape invariant, asserted on the RENDERED STRING (never a mocked
+    shell): `crons.py apply` is not `&&`-downstream of the grid command — a
+    grid failure cannot cancel the self-reapply."""
+    root = make_project(tmp_path)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    grid_sync_line = crons.render_managed_lines(
+        root, repo_root, engine_root, node)[0]
+    crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
+    assert f"&& python3 {crons_py} apply" not in grid_sync_line
+    assert f"; python3 {crons_py} apply" in grid_sync_line
+
+
+def test_grid_sync_grid_step_still_logs_not_suppressed(tmp_path):
+    """ITEM 2 second half: separating the domains must not buy the reapply by
+    hiding the grid failure — the grid step is still redirected to the log,
+    still visible, not to /dev/null."""
+    root = make_project(tmp_path)
+    _, cfg, repo_root, engine_root, node = crons._resolve(root)
+    grid_sync_line = crons.render_managed_lines(
+        root, repo_root, engine_root, node)[0]
+    log = crons._log_path(repo_root)
+    grid_py = engine_root / "extensions" / "agi" / "bin" / "grid.py"
+    assert (f"python3 {grid_py} commit --all --prefix 'cron: ' "
+            f">> {log} 2>&1" in grid_sync_line)
+    assert "/dev/null" not in grid_sync_line
 
 
 def test_apply_dry_run_writes_nothing(tmp_path):

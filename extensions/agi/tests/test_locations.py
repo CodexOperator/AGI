@@ -802,3 +802,35 @@ def test_shared_project_root_is_none_outside_a_project(tmp_path):
     d = tmp_path / "notgit"
     d.mkdir(parents=True)
     assert locations.shared_project_root(d) is None
+
+
+def test_shared_sessions_dir_is_identity_in_main_checkout(tmp_path):
+    """A non-worktree / non-git caller is unchanged (the usual case), and the
+    graph-dir form (`root/.agi`) resolves under the graph, not doubled."""
+    repo = _make_project_repo(tmp_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    graph = locations.find_project_root(repo)
+    # A REPO-root caller still lands on the graph's sessions (not doubled).
+    assert str(locations.shared_sessions_dir(repo)) == str(repo / ".agi" / "sessions")
+    assert locations.shared_sessions_dir(graph) == locations.sessions_dir(graph)
+
+
+def test_shared_sessions_dir_resolves_main_room_from_worktree(tmp_path):
+    """FALSIFIER (g4): a linked worktree's SHARED sessions dir is the MAIN
+    checkout's room, while the plain per-worktree `sessions_dir` keeps the
+    fork (iteration output). `rotate._sessions_dir` delegates here, so one
+    implementationare pins/mail/budget/stamp/rotation records all share."""
+    repo = _make_project_repo(tmp_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/slug@s2", str(wt), "master")
+    wt_graph = locations.find_project_root(wt)
+    main_graph = locations.find_project_root(repo)
+    assert wt_graph != main_graph                       # the fork is real
+    assert locations.shared_sessions_dir(wt_graph) == locations.shared_sessions_dir(main_graph)
+    assert str(locations.shared_sessions_dir(wt_graph)) == str(main_graph / "sessions")
+    # The per-worktree resolver honors the fork (iteration output stays local).
+    assert str(locations.sessions_dir(wt_graph)) == str(wt_graph / "sessions")
+    assert locations.sessions_dir(wt_graph) != locations.sessions_dir(main_graph)
