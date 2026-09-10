@@ -20,8 +20,17 @@ You are `sanctuary-director`, **L4 generation VIII**. Generations RESET at the n
 3. ✅ **Round 4 disprover run BEFORE dispatch** — measured that the read-back reads a debug log carrying no reply (42 logs/294,616 lines/0 non-noise); prime REVERSED its own claim to the ack channel. Category-4 message sent, ruling received.
 4. 🔵 **LIVE: L4.105** (`hypothesis:l4-workflow-authoring-is-a-harness-tool`, parent `a00-1385aad0`) and **L4.106** (`hypothesis:l4-rotate-readback…`, parent `a00-31c47cdd`) — parallel, disjoint files (workflow.py vs rotate.py/briefs), own `--branch` worktrees. Ceiling 2 kids each.
 5. ✅ **Banked item 3 resolved** — 124 `testable_claim` violators are all pre-L4 (116 season-1 `season.py`, 8 L3-era); recorded on `goal:s31`, do NOT run `--fix` blind.
-6. ⏭ **NEXT: harvest L4.105/L4.106 → review in the bytes → merge → merge-up 17.** Then round 2 (geometry, serial-after-L4.105 on workflow.py) and round 3 (suite lock, needs prime suite-window coordination).
+6. ⏭ **NEXT: harvest L4.105/L4.106 → review bytes → merge → merge-up 17.**
 7. ⛔ Suite-lock survey build — prime's; **do not build it** until it routes round 3.
+
+## 🔴 OWNER REORDER (prime relay 2026-09-10 "more loving towards agents", nodes minted 31f8ae345 under goal:g17) — ROTATION ROUNDS JUMP AHEAD
+
+New priority order: **0a → 0b → 1(workflow) → 2 → 3 → 4(ack) → 5.** Round 1 (L4.105) already in flight, not pulled. Baseline the owner wants moved: **26–97 tool calls before first real commit, median ~47; target on 0b: <10.**
+- **0a `hypothesis:l4-the-predecessor-hands-over-authority`** — a `rotate.py handover` verb the PREDECESSOR runs: spawn → join → write successor's seats row + pin + handoff identity (gate `continue` BY CONSTRUCTION) → release own authority → THEN button down while successor works. Touches rotate.py + config:seats(code) + handoff.
+- **0b `hypothesis:l4-startup-is-one-script-or-a-driven-prompt`** — bootstrap.json + SessionStart hook injection + `rotate.py next` driven prompt + a NEW `.geometry` config node (suite-pinned → prime's window) + edits `hooks/cc-session-start.sh` (live global hook). Touches rotate.py + hooks + geometry.
+- 🔴 **DEPENDENCY CHAIN ON rotate.py: round 4 ack (L4.106, LIVE) → 0a (assumes ack, "do not duplicate") → 0b (reads handover's bootstrap).** ALL THREE touch rotate.py → strictly serial. **Plan: merge L4.106 → dispatch 0a serial → merge → 0b serial.** L4.105 (workflow) is disjoint, stays parallel. Sent the prime the topology correction (it thought only round 1 was live); proceeding unless it says kill L4.106 and fold ack into 0a.
+- 🔴 **0a's code writes config:seats at ROTATION time — its TESTS must use temp fixtures, never the live seats row** (my standing "never write config:seats" is about ME, not the verb the round builds).
+- 🔴 **PRIME RULING for 0b's live-hook edit (2026-09-10, same rule as L4.94's rotation-reminder hook):** `hooks/cc-session-start.sh` is the LIVE GLOBAL hook — a defect there breaks every session on the box. The ROUND builds and PROVES against a COPY/FIXTURE; the **PRIME** lands the change into the live hook once and verifies with a fresh session (not a seat). 0b's proof (a) — the <10-tool-call successor — is measured on a session the PRIME starts after installing. 0b's merge-up carries the TESTED hook body + the bootstrap writer, **not** the installation. **Tell the prime before the .geometry suite run** (window advisory, it still wants to know).
 
 ## §2 LANDED THIS SESSION (one line each)
 
