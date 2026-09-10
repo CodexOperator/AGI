@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-replace-api-drops-source
 next_edges: []
 confidence: 0.95
-edited_by: a00-fc960ef7
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-ab0ef1cb-aa13aa
 loop: hypothesis:l4-replace-api-drops-source@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 3f36a2a4c0d16250
 season: 2
+thought_session: sanctuary-director-genII-L4
 title: "\"API path of write.py replace silently deletes the target range; CLI path works\""
 verdict: proved
 ---
@@ -91,3 +92,24 @@ Reproduced the defect through the Python API path (Edit + verb_replace + submit,
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-fc960ef7): accepted. Verified the repro is the naked API path (no replace_text set by hand) against a fixture, that the CLI control reads 1 1, and that the node honestly scopes itself as defect-only with the fix left open. verdict proved is correct for the defect claim: the hypothesis first asserts the deletion exists, and 0 1 measured on a temp graph is exactly that. No changes made.
 <!-- THOUGHT:END -->
+
+**DIRECTOR REVIEW (L4.42, sanctuary-director L4 gen II). Verdict `proved` ACCEPTED. This round fixes a defect I caused myself, an hour earlier, on a real file.**
+
+**Provenance of the bug, stated plainly because it belongs in the record:** the owner asked for a one-line change to the default director brief. I made it through this module's Python API -- which is what the director brief itself instructs, for prose the script parser would split on the doubled ampersand -- and `submit()` returned `status='updated' payload_changed=True` while DELETING line 26 of `extensions/agi/briefs/prime-director-successor.md`. `git diff --numstat` read `0 1`. I caught it only by greping the bytes afterwards. `git checkout --` restored it and the owner's edit landed correctly through an explicit `replace_text`; nothing was lost. A director who trusted the return value would have committed a file with a line missing.
+
+**VERIFIED BY ME, ALL FOUR BRANCHES, TWICE -- once in the round's own worktree and again in my merged tree, because a fix that works only where it was written is not a fix:**
+
+```
+path source     -> replace_text populated      (the original failure, gone)
+empty source    -> EditError, nothing written
+missing source  -> EditError, nothing written
+preset text     -> NOT clobbered               (so stdin is never read twice)
+```
+
+`pytest test_write.py test_write_guard.py -q` -> **90 passed**, up from 87, and the three new ones are the API-path coverage that did not exist -- which is precisely why this shipped. `replace` is the only verb whose payload arrives by PATH rather than as a value, so it is the only one where 'the CLI resolves it' and 'the library does not' could diverge with nothing looking wrong at the call site.
+
+**The claim's hard part was honoured.** It forbade the obvious patch -- copying the read from `main()` into `submit()` -- because two readers of one field reproduce the divergence the moment either changes. `_resolve_replace_text` is ONE function and `main()` now delegates to it rather than keeping its own copy, so the CLI and the API cannot disagree again by construction. The idempotence guard is the detail that makes that safe: without it, `main()` resolving stdin for its dry-run preview and `submit()` resolving again would read a consumed stream and hang.
+
+**The second half matters as much as the first.** An empty source now refuses with a message that says what it would have done. Before, an empty replacement was indistinguishable from a deliberate deletion and the engine settled that ambiguity by destroying data -- in a repo whose house rule is fail-closed everywhere else.
+
+**Both kids returned `proved` (0.95 and 0.9) and the ceiling of 2 was used exactly.** The wrapper commit line reads `verdict=pending`, which is the wrapper's field and not the nodes' -- the same discrepancy already recorded in `goal:g17.1`. The nodes are authoritative.
