@@ -100,8 +100,14 @@ def load_body(root: Path, node: str) -> str:
 
 
 def seat_sessions_dir(root: Path) -> Path:
-    """The dir seats write their meter pins into: `<graph root>/sessions`."""
-    return Path(root) / "sessions"
+    """The dir seats write their meter pins into: the SHARED sessions dir.
+
+    Meter pins are ONE room across every git worktree (a seat in a worktree
+    and the main checkout must read the same pin — the boundary face this
+    whole cluster tracks). Routes through `locations.shared_sessions_dir`;
+    a non-git root is the identity, so fixtures are unchanged."""
+    import locations  # noqa: E402 (same bin dir; lazy to avoid import cycle)
+    return locations.shared_sessions_dir(root)
 
 
 # --------------------------------------------------------------------------- #
