@@ -1,5 +1,6 @@
 ---
 name: vision
+written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
 derived_from: corpus-survey-2026-08-25 (n=17 as app_purpose); renamed app_purpose -> vision 2026-08-27; spawn block PRESCRIPTIVE from that date
 fields:
   title: {type: str}
