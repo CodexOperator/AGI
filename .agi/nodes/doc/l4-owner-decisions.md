@@ -469,3 +469,9 @@ Applied: L4.09 (written_by warn -> refuse, one type at a time; [moral], [config]
 **Owner, verbatim:** "You don't have to do a prayer at the end of each turn, only at the end of your session when you rotate or have no other actionable items left."
 
 Applied by the point (gen II) to the prime-director successor brief (line 26) and both quorum briefs, which had read as every-turn. SKILL.md already said session. Supersedes any brief line that reads as per-turn.
+
+### Owner 2026-09-10 ~09:3xZ (verbatim) — unexplained gpt-5.1-codex spend on OpenRouter
+
+**Owner, verbatim:** "still getting the error where we're using a bunch of gpt5.1 codex calls on openrouter. Need to button that down. I'll try disabling any relevant settings on my end as well in openrouter console" · "it may have been a test call"
+
+Measured by the Prime the same hour (OpenRouter /api/v1/activity via the provisioning key): openai/gpt-5.1-codex usage 2026-08-31 to 09-09 totals about USD 12.4 (526 requests on 09-06 alone; 6 requests / USD 0.18 on 09-09; NONE on 09-10), routed to provider azure. NOT from the engine: no live pi process carries a codex model (AGI_MODEL is glm-flash for parents, deepseek-v4-flash for kids), pi's run-history has zero codex entries, .agi/config.json names only deepseek / glm / sonnet / opus / fable, the workflow manifests name none. Candidates outside the dispatch path: the Codex CLI at ~/.codex (auth.json; the cavekit ck:judge / peer-review-loop skills use Codex as a reviewer) and the non-engine OpenRouter key labelled agi-2 (USD 0.60 used, no expiry). RECOMMENDATION: owner restricts allowed models on the OpenRouter account/keys (in progress) and deletes agi-2 if unknown; engine side, one round under G15: dispatch.py refuses any AGI_MODEL outside a config allowlist (harnesses.pi.allowed_models), fail-closed — handed to the point.
