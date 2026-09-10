@@ -51,24 +51,29 @@ tmux new-window -t agi-rc -c /home/ubuntu/work/agi -n p-<x> "python3 extensions/
 ### 🔴 Where it stops — Belam L4-I, live 2026-09-09 (XVI's last card: `git show 03b16903f:HANDOFF.md`)
 
 ```
-BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.19, cap 0.47)   season/s2   2026-09-09 19:3xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
-L4     PLAN SESSION (owner watches; plan mode: NO dispatch, NO seat launch, NO engine edit beyond doc:l4-plan + this file). Sources read: §0.7 card · doc:l4-owner-decisions
-       "L4 BACKLOG" / "TRAPS CARRIED INTO L4" / "L4 PLAN — owner's whiteboard and brief" (owner verbatim + whiteboard transcription + XVI's input)
-       DELIVERABLE doc:l4-plan (graph content; [doc] schema = exactly one goal parent): (1) actor legend as schema rules (node type -> writer role) · (2) 2+2+1 card per seat
-         (tracks 2 / tells 2 = target+trigger / decides 1 = closed set) as config:seats fields, write-guard validated, brief.py renders it as the WHOLE bootstrap
-         · (3) every top-level g goal PERPETUAL, one director-kid each, Sanctuary Master owns count + models · (4) sanctuary p-goal's ALWAYS-active director-kid =
-         the masters' implementation hand · (5) first L4 rounds, serialised, pi/OpenRouter · open questions -> doc:l4-owner-decisions, a recommendation each
-       PLAN DRAFTED, NOT MINTED (owner said STOP 17:0xZ while still feeding XVI parts 2+3; both recorded verbatim in doc:l4-owner-decisions "L4 PLAN, part 2/3" by XVI):
-         workflows l4-plan-research (14 agents, REGISTERED 19bc74b53) -> fold-part2 (3) -> fold-part3 + consolidate (4): final = 23.3k words, 136 owner quotes byte-verified,
-         13 seat cards, linear role diagram (§0.9, XVI's draft corrected x11), season loop 1-10, 22 banked questions. Files: .agi/sessions/l4plan/ (gitignored copy) and
-         /tmp/claude-1001/-home-ubuntu-work-agi/6633fdec-*/scratchpad/l4plan/final/ · sent to the owner 19:2xZ (diagram, plan body, questions)
-MODE   SURVIVAL (item 71, IN FORCE) — ONE worker: sanctuary-director gen VI = agi-fa [c6e62f] @231, IDLE · nothing dispatched · predecessors kept XI–XVI
+BELAM L4-I LIVE  (agi-c6 [cd7648] @232; meter ~0.31, cap 0.47)   season/s2   2026-09-10 00:1xZ   key $7.87/$15 (floor $1, NEVER lowered) · acct $12.64/$92
+L4     GO (owner via XVI 22:5xZ + owner in chat 23:xxZ "Plan sounds good continue as described"). Plan CONFIRMED in doc:l4-owner-decisions "L4 PLAN" parts 1-7 (a2ca48c11):
+         FINAL NAMES Director Prime (Belam) · the Council (3 councilors) · the Keep = Sanctuary Keeper / Role Keeper (Sensei) / Goal Keeper (Sage) · * Masters = Draft, Glitch,
+         Research, Shael (owner's voice) · directors / parents / kids · channels A (directors -> Keep) B (Masters -> Council) · no director reaches the Prime · figure eight
+       PLAN NODE doc:l4-plan NOT YET MINTED — scratch plan (parts 1-3 folded, 23k words, 136 quotes verified) is being re-folded with parts 4-7 by workflow wf_a0122228-07b
+         (integrate -> consolidate <=12k -> verify x2); files: .agi/sessions/l4plan/ (gitignored copy) + /tmp/claude-1001/-home-ubuntu-work-agi/6633fdec-*/scratchpad/l4plan/final/
+       CONCURRENCY (owner, verbatim in goal:g17.1 = "Texas two-step formation", 3bd6e7db5/9f1233730): point = sanctuary-director (L4 gen I, was L3 gen VI; agi-fa [c6e62f] @231)
+         + helper = sanctuary-helper (L4 gen I, claude-sonnet-5 MAX; row 13, brief .agi/sessions/quorum/sanctuary-helper.md, NOT YET SPAWNED). Both FREE-FLOATING (owning_goal ""):
+         the point gets the brief and splits the work; each in its OWN worktree .agi/worktrees/seat-<name> (branch seat/<name>@s2, both at 0e08f60ee -> ff before use);
+         the point merges both into season/s2 at the end (merge-base, never rebase). ladder caps.director_kids 2 -> 3 (suite 2270/1 after). Prune a worktree ONLY after its
+         branch is an ancestor of the parent (owner): 23 merged+clean L3 trees removed; KEPT 4 merged+dirty (seat-sanctuary-master, a00-de936ecd, a00-09f6ac54, a00-85beb9ba)
+         + 5 unmerged ahead=1 (a00-a8416695, a00-be033567, a00-814a8dd9, claude/magical-napier, claude/amazing-lalande) -> the point harvests or drops them in round 1
+       ROUND 1 (owner part 7): "make sure all brief points get their corresponding goal/subgoal/subsubgoal and/or idea/hypothesis chains as needed based on existing rules"
+MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work · predecessors kept XI–XVI (XVI relays owner text)
 RULES  standing, EVERY role: trim + diagram-max handoff/context files · owner verbatim lives in NODES only · ROTATE AT 0.47 · partial edits: write.py read N:M then replace N:M
 CRONS  ON: grid_sync */5 + push of the CHECKED-OUT branch at :07 (verify with crontab -l, never this file) -> push by hand anyway
-DONE   L4-I: gate `continue` first line · verify green (smoke 1592/194/1786, suite 2270/1) · pin 0.1132 · seats row -> cd7648 · plan drafted+folded+verified in scratch
-NEXT   1 OWNER GO needed (holding): write.py create doc l4-plan --parent goal:g13.1 (dry-run clean; tags list coerced) -> body = l4-plan.node.md via replace body (stdin)
-         -> bank the 22 questions into doc:l4-owner-decisions (replace body at its tail, stdin) -> commit + grid + push -> handoff
-       2 owner corrects the diagram / answers Q16 (2/2/1: rec = at most 2 / at most 2 / exactly 1) -> corrections land in the node verbatim -> approves -> L4 rounds run the L3 way
+DONE   L4-I: gate `continue` · verify green · pin claimed · seats row -> cd7648 · plan drafted (3 workflows) · goal:g17.1 + cap 3 + helper row/brief + worktrees + hygiene pushed
+NEXT   1 fold-4-7 lands -> strip scratch Changelog -> write.py create doc l4-plan --parent goal:g13.1 (dry-run clean) -> replace body 2:2 <file> (STANDALONE, thought in a
+         2nd submit) -> bank open questions + the BODY:BEGIN-marker defect into doc:l4-owner-decisions (replace body at the tail, stdin) -> commit + grid + push
+       2 git -C .agi/worktrees/seat-<x> merge --ff-only season/s2 (both) -> cd helper worktree; rotate.py spawn --tier director --name sanctuary-helper --model claude-sonnet-5
+         --effort max --prompt-file /home/ubuntu/work/agi/.agi/sessions/quorum/sanctuary-helper.md (window inherits cwd; confirm by capture-pane) -> SendMessage the point
+         (agi-fa [c6e62f]): round-1 brief = doc:l4-plan §5 round 1 + goal:g17.1 + the kept worktrees; the point splits with the helper; one round, ceilings, KEY not account
+       3 review what lands (struggles/caveats first) -> handoff card -> push · rotate at 0.47 (rotate.py loop --role prime_director --name belam-S1-L4-II)
 NEVER  dispatch or launch a seat in plan mode · rotate a seat with AGI_BRIEF_PROFILE=survival · git add -A · read $? through a pipe · sweep off a ps grep · run the
        suite twice at once · background a long verification · trust an `updated:` line · spend the Claude budget on prime chores under survival mode
 ```
