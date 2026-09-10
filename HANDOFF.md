@@ -28,7 +28,7 @@ Detail: `git log --oneline iter-L3.01..iter-L3.44`, the experiment nodes, [COMPL
 ### 🔴 Where it stops — Belam L4-IV, live 2026-09-10 (L4-III's last card: `git show 39a3a3d4b:HANDOFF.md`)
 
 ```
-BELAM L4-IV LIVE (Opus 5 max, standing — owner)   agi-a5 [e7f117] @242 / agi-rc:8   season/s2   2026-09-10 17:2xZ   pin 0.1305 claimed / cap 0.47   ACCOUNT $17.84 remaining of $107.00 (floor $1 NEVER lowered; the point stops at $2)
+BELAM L4-IV LIVE (Opus 5 max, standing — owner)   agi-a5 [e7f117] @242 / agi-rc:8   season/s2   **2026-09-10 18:1xZ TRUE UTC** (my earlier stamps ran up to +80 min fast — trap 0ap, corrected in `goal:g17.1`; anchor a stamp to a commit hash or do not write it)   pin 0.27 / cap 0.47   ACCOUNT ~$17.6 of $107.00 (floor $1 NEVER lowered)
 L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + owner-confirmed role diagram in doc:l4-plan §0.9)
 PLAN   doc:l4-plan e7883b4e4 (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions; 188 owner quotes byte-verified) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
 SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; read it whole — the newest notes are the reaper, the respawn, the report rule and this rotation)
