@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 import time
@@ -724,6 +725,120 @@ def test_loop_uses_same_resolver(monkeypatch, tmp_path, fake_ladder, capsys):
     args = SimpleNamespace(session_log=None, check=True)
     code = rotate.cmd_meter(args, tmp_path)
     assert code == 0  # pinned keeps us below; loop would hold
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write — identity is
+# supplied, never inferred. A bare --pin must REFUSE (write side) rather than
+# adopt a foreign pin; a seatless read must REFUSE (read side) when the pin it
+# would consult carries another agent's generation. The repair paths
+# (--session-log, $AGI_SESSION_LOG, --seat) must all still work.
+# ---------------------------------------------------------------------------
+
+
+def _sessions_dir_of(tmp_path):
+    seg = tmp_path / "sessions"
+    seg.mkdir(parents=True, exist_ok=True)
+    return seg
+
+
+def _with_foreign_distractor(tmp_path, foreign, own_name="sanctuary-director.meter"):
+    """Caller's own pin written FIRST (older mtime) and correct; a foreign
+    pin written LAST (strictly-newest mtime) in the shared sessions dir. The
+    caller's own pin is the one --pin would name; the foreign one is the one
+    a seatless newest-mtime search would adopt. Returns (own, foreign_pin)."""
+    seg = _sessions_dir_of(tmp_path)
+    own = seg / own_name
+    own.write_text(str(foreign) + "\n", encoding="utf-8")
+    fpin = seg / "belam.meter"
+    fpin.write_text(str(foreign) + "\n", encoding="utf-8")
+    now = time.time()
+    os.utime(own, (now - 10_000, now - 10_000))
+    os.utime(fpin, (now, now))
+    return own, fpin
+
+
+def test_a_bare_pin_refuses_and_leaves_own_pin_byte_unchanged(monkeypatch, tmp_path, fake_ladder, capsys):
+    # (a) The distractor is the bug, not an edge: caller's own pin present and
+    # correct, a foreign pin written LAST so newest-mtime adopts it. A bare
+    # --pin (no --session-log, no AGI_SESSION_LOG, no --seat) must REFUSE and
+    # leave the caller's own pin file BYTE-UNCHANGED -- nothing may be adopted
+    # or re-stamped with the caller's generation.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    own, fpin = _with_foreign_distractor(tmp_path, foreign)
+    before = own.read_bytes()
+    code = rotate.main(["meter", "--pin", str(own)])
+    err = capsys.readouterr().err
+    assert code != 0, err
+    assert own.read_bytes() == before, "the caller's own pin must stay byte-unchanged"
+
+
+def test_b_refusal_names_session_log(monkeypatch, tmp_path, fake_ladder, capsys):
+    # (b) The refusal must NAME the literal string `--session-log` so the
+    # operator knows what to run and does not spend a turn deriving it.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    own, fpin = _with_foreign_distractor(tmp_path, foreign)
+    code = rotate.main(["meter", "--pin", str(own)])
+    err = capsys.readouterr().err
+    assert code != 0
+    assert "--session-log" in err, err
+
+
+def test_c_pin_with_explicit_session_log_still_writes_stamps_and_prints(monkeypatch, tmp_path, fake_ladder, capsys):
+    # (c) The repair path stays usable: --pin WITH an explicit --session-log
+    # still writes, still stamps the caller's generation, and still prints the
+    # fraction.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    rotate._write_handoff(tmp_path, "belam", 7)
+    p = _sessions_dir_of(tmp_path) / "belam.meter"
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("7\t"), content      # stamped caller generation
+    assert str(pinned) in content, content          # names the named transcript
+    assert "0.020" in out, out                      # fraction still printed
+
+
+def test_d_agi_session_log_alone_still_permits_pin_write(monkeypatch, tmp_path, fake_ladder, capsys):
+    # (d) $AGI_SESSION_LOG alone is a supplied identity: --pin still records it.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    monkeypatch.setenv("AGI_SESSION_LOG", str(pinned))
+    p = _sessions_dir_of(tmp_path) / "env-claimed.meter"
+    code = rotate.main(["meter", "--pin", str(p)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert str(pinned) in p.read_text(encoding="utf-8")
+
+
+def test_e_bare_seatless_read_refuses_another_agents_pin(monkeypatch, tmp_path, fake_ladder, capsys):
+    # (e) A bare seatless READ (no --pin) refuses when the pin it would
+    # consult is another agent's generation-bearing pin: reporting a confident
+    # number for a transcript the caller never named attributes a foreign
+    # session to this caller.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    seg = _sessions_dir_of(tmp_path)
+    (seg / "belam.meter").write_text(f"3\t{foreign}\n", encoding="utf-8")
+    code = rotate.main(["meter"])
+    err = capsys.readouterr().err
+    assert code != 0, err
+    assert "refus" in err.lower(), err
+
+
+def test_f_seat_named_correct_gen_pin_still_reads(monkeypatch, tmp_path, fake_ladder, capsys):
+    # (f) The --seat path is not weakened: a named seat with a CORRECT own-
+    # generation pin still reads and returns the fraction, and never consults
+    # other agents' pins. (The helper's live pin is the working fixture.)
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    rotate._write_handoff(tmp_path, "belam", 4)
+    seg = _sessions_dir_of(tmp_path)
+    (seg / "belam.meter").write_text(f"4\t{pinned}\n", encoding="utf-8")
+    code = rotate.main(["meter", "--seat", "belam"])
+    out = capsys.readouterr().out.strip()
+    assert code == 0, out
+    assert "0.020" in out, out
+    assert "seat_pin" in out, out
 
 
 # --- hypothesis:l3-rotate-pin-path-readback (red-first) -------------------
