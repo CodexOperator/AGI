@@ -5895,6 +5895,8 @@ Owner, verbatim (2026-09-09): "also old worktrees that've been exhausted and are
 
 Owner, verbatim (2026-09-10 00:2xZ): "we should mint fresh worktrees per seat session and then merge them in and delete them as part of session complete after no actionable items left, not per rotation." — applied: .agi/worktrees/seat-sanctuary-director and seat-sanctuary-helper are the two seats' SESSION worktrees for this loop (branches seat/<name>@s2, minted 2026-09-09, fast-forwarded to 48575827f); a rotation (gen I -> II -> ...) continues in the SAME worktree; at session complete — no actionable items left — the point merges both into season/s2 (merge-base, never rebase) and deletes both worktrees and branches. Never per rotation.
 
+Seat-worktree protocol, measured by the point in round 1 (2026-09-10): grid.py commit --all REFUSES on a seat branch (node refs are branch-blind: "merge to master first or pass --allow-branch"). Rule: never pass --allow-branch; on a seat branch a step ends at git commit + git push; grid.py commit --all runs ONLY on season/s2 after the point's merge. Round 1 point slice: 14 sub-goals (g5.3, g5.4, g9.11, g17.2-g17.12 with nesting to heading level 5, first use in this graph) on seat/sanctuary-director@s2 at dc1974a59, zero dispatches by documented judgement (exact structure, a wrong parent can only be deprecated), key untouched; chain round (idea -> hypothesis per sub-goal) ordered next.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
