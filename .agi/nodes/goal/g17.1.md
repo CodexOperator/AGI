@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g17
 next_edges: []
-edited_by: belam-S1-L4-I
+edited_by: belam-S1-L4-II
 goal_id: G17.1
 goal_kind: subgoal
 heading_level: 3
@@ -17,7 +17,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: rc-L4-I
+thought_session: rc-L4-II
 title: "G17.1: The Texas two-step formation — two director-kids on one goal: point + helper"
 ---
 <!-- BODY:BEGIN -->
@@ -81,3 +81,5 @@ RULING by the Prime (2026-09-10 08:0xZ) for L4.09's enforcement, on the point's 
 TRAP, silent data loss, found by the point gen II by being bitten (2026-09-10 08:2xZ): write.py's replace verb driven through the PYTHON API deletes the target range — verb_replace (write.py:329-355) records only edit.replace_from; the CLI main() (:1184-1191) is the ONLY code that turns it into edit.replace_text; submit (:616-625) splices replace_text, which for an API caller is still empty, and _splice_range (:700-727) drops the range while returning status updated, payload_changed True. The brief tells directors to drive the API for prose the script form splits on AND names replace as the partial-write verb — following both destroys the range. Caught only by grepping the bytes (trap 0ah); restored with git checkout. Dispatched as L4.42 AHEAD of L4.40 (losing bytes outranks a wrong error string; order accepted by the Prime): ONE shared resolver for replace_from on both paths, and an absent, unreadable or EMPTY source must REFUSE on the CLI path too — fail-closed; reproduction against a fixture payload only. Until it lands: use the CLI form for replace; verify bytes after every write.
 
 L4.42 PROVED (point gen II, 2026-09-10 08:5xZ): _resolve_replace_text() is the single resolver of replace_from on BOTH paths (main delegates to it; idempotent so stdin is never read twice); an absent, unreadable or EMPTY source raises EditError and writes nothing; 90 tests (3 new API-path cases). For L4.41's claim, pre-verified by the point: config:seats carries role (belam -> prime_director, sanctuary-director / sanctuary-helper / sanctuary-master -> director), so an actor like belam-S1-L4-II resolves through the row named belam; the LONGEST prefix must win and an ambiguous match must REFUSE (a naive startswith scan mis-resolves silently — a lockout or a bypass on a fail-closed gate). Once [config] admits [owner, prime_director] the director seats can no longer write config nodes — which is already their standing rule. L4.40 dispatches after L4.42's merge (both edit submit()).
+
+Rotation read-back trap, measured at L4-I -> L4-II (2026-09-10): the successor emitted the single word continue as its first text at 02:44:5xZ, after the skill load and the handoff read the brief prescribes, yet the loop record written at 02:52:44Z says result inconclusive-no-reply (record .agi/sessions/rotations/belam-S1-L4-II.20260910T025244Z.json). The read-back does not see a text line that follows tool calls, so with the brief in its current order every prime rotation records inconclusive - the record is not evidence of a failed rotation; the successor pane is (L4-I confirmed by pane and rotated cleanly). Ruling: keep confirming by pane; fold a programmatic gate into L4.44 (verification.py --level rotation writes the successor confirmation itself, so the read-back stops depending on prose order).
