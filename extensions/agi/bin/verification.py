@@ -45,6 +45,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import commands  # noqa: E402
+import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
 
 #: Per-check wall-clock ceiling. A check that hangs past this is a failure the
 #: successor must see, not a run that never returns.
@@ -278,19 +279,37 @@ def _git_tracked(bin_dir: Path) -> set[str]:
         return set()
 
 
+def _suite_ts_path(groot: Path) -> Path:
+    """The suite stamp's path, resolved to the SHARED sessions dir.
+
+    ITEM 3 of hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking:
+    the stamp that `bin-suite-fresh` guards must live where the thing it guards
+    lives -- the shared engine tree -- not in whichever per-worktree sessions
+    dir happened to run `--suite`. `rotate._sessions_dir` is the ONE resolver
+    the meter pins already share (routes through `git_common_root` to the
+    main checkout), so a seat branch reads the same stamp the prime's suite
+    wrote instead of a freshly-missing one. A plain non-git root returns the
+    identity, so fixtures and the main checkout are byte-for-byte unchanged.
+    """
+    return rotate._sessions_dir(groot) / SUITE_TS_FILE
+
+
 def _read_suite_ts(groot: Path) -> float | None:
     """Epoch of the last recorded --suite completion, or None if never."""
     try:
-        doc = json.loads((Path(groot) / "sessions" / SUITE_TS_FILE)
-                         .read_text(encoding="utf-8"))
+        doc = json.loads(_suite_ts_path(groot).read_text(encoding="utf-8"))
         return float(doc["suite_ran_at"])
     except (OSError, ValueError, TypeError, KeyError):
         return None
 
 
 def _record_suite_ts(groot: Path) -> None:
-    """Persist the suite-completed timestamp (same idiom as _write_state)."""
-    path = Path(groot) / "sessions" / SUITE_TS_FILE
+    """Persist the suite-completed timestamp (same idiom as _write_state).
+
+    Written to the SHARED sessions dir (see `_suite_ts_path`), so a first
+    `--suite` run on the main checkout is immediately visible to every seat
+    branch -- the round-trip falsifier (g3) of this round's item 3."""
+    path = _suite_ts_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"suite_ran_at": time.time()}), encoding="utf-8")
 

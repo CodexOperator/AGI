@@ -1252,6 +1252,15 @@ def main() -> int:
     # API must never block a round — and both apply only to an openrouter
     # harness, whose keys carry their own dollar caps.
     if dispatch_harness.get("provider") == "openrouter":
+        # this round's REQUIRED (d)/(e): the provisioning-ABSENT gate. With
+        # provisioning LIVE this short-circuits True (the spawn mints its own
+        # key, so a dead runtime key must not block -- L4.98). With it ABSENT,
+        # the runtime key IS the spawn's credential, so a 401 makes the pre-
+        # flight refuse here, BEFORE any budget slot below is taken.
+        _rtk_ok, _rtk_msg = provisioning.check_runtime_key_usable(cfg, root)
+        if not _rtk_ok:
+            print(f"ERR: {_rtk_msg}", file=sys.stderr)
+            return 1
         _hkey_ok, _hkey_msg = provisioning.check_key_floor(cfg, root)
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
