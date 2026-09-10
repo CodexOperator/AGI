@@ -186,3 +186,72 @@ def test_worktree_filter_restricts_scope(graph, tmp_path):
     assert (graph / "sessions" / "iter-L4.99").is_dir()
     assert (other / ".agi" / "sessions" / "iter-L4.99").exists(), \
         "the filtered-out worktree must be left untouched"
+
+# ---------------------------------------------------------------------------
+# Director follow-up on the merge: `done-unreported` is terminal
+# ---------------------------------------------------------------------------
+
+REAPED = [("a00-aaa", "done-unreported")]
+
+
+def test_a_reaped_round_is_complete(graph, tmp_path):
+    """🔴 `done-unreported` is the MOST COMMON ending for a --branch parent.
+
+    Built from a real artefact, not from what the status set happened to
+    list: `.agi/sessions/iter-L4.56/manifest.json` on this seat records
+    exactly `['done-unreported']`, and so did L4.57's and L4.58's. It is what
+    the reaper writes when a round landed and only the report was lost — a
+    parent authors no node, and its `cli.py done` reaches its own worktree
+    rather than the dispatcher's, so the dispatcher's record never moves off
+    it.
+
+    Running `session-complete L4.56 --dry-run` against the live tree
+    immediately after this command merged returned "not every agent record is
+    terminal; round still running" for a round that had finished hours
+    earlier. A refusal wearing a safety message, on precisely the case the
+    command exists for.
+
+    `dispatch.py:1738` carries the same four-name set and survives it by
+    accident — its reaper loop's second guard (`if status != "running":
+    continue`) skips the status the set forgot. Copying the set without the
+    guard is what produced the refusal, so this asserts the property on the
+    set rather than on any caller's control flow.
+    """
+    cli = _load_cli()
+    wt = _make_linked_worktree(graph, "seat-reaped", "L4.99", REAPED)
+    assert "done-unreported" in cli.TERMINAL_STATUSES
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    assert (graph / "sessions" / "iter-L4.99").is_dir(), (
+        "a reaped round must migrate; refusing it makes the command a no-op "
+        "for every seat-dispatched parent")
+    assert not (wt / ".agi" / "sessions" / "iter-L4.99").exists(), (
+        "and the source is gone, because the copy verified")
+
+
+def test_an_empty_placeholder_target_is_not_a_collision(graph, tmp_path):
+    """🔴 dispatch PRE-CREATES `sessions/iter-<id>/` in the main checkout.
+
+    Measured on the live tree the moment this command merged: iter-L4.56,
+    .57, .58, .65 and .66 all existed in main with ZERO entries. A guard on
+    `target.exists()` therefore refused every round ever dispatched, and the
+    command was a complete no-op wearing a safety message.
+
+    The property worth keeping is "never overwrite real data". An empty
+    placeholder is not data, and the test below still holds the other half:
+    a target with content refuses. The clearing uses `rmdir`, which refuses a
+    non-empty directory, so loosening the guard above cannot silently turn
+    this into a merge.
+    """
+    cli = _load_cli()
+    wt = _make_linked_worktree(graph, "seat-placeholder", "L4.99", COMPLETE)
+    placeholder = graph / "sessions" / "iter-L4.99"
+    placeholder.mkdir(parents=True)
+    assert not any(placeholder.iterdir()), "sanity: the placeholder is empty"
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    assert (graph / "sessions" / "iter-L4.99" / "manifest.json").is_file(), (
+        "the round must land through an empty placeholder")
+    assert not (wt / ".agi" / "sessions" / "iter-L4.99").exists()

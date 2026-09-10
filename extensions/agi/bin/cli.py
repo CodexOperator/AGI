@@ -1125,7 +1125,23 @@ def cmd_status(args: argparse.Namespace) -> int:
 #: Terminal statuses a round's agent records may rest in -- the same set the
 #: reaper uses (dispatch.py TERMINAL). A record in any other state means the
 #: round is still live and must not be migrated.
-TERMINAL_STATUSES = {"done", "pending", "hung-healed", "failed"}
+#: 🔴 `done-unreported` IS TERMINAL AND MUST BE IN THIS SET. It is what the
+#: reaper writes when a round landed and only the report was lost — the most
+#: common ending for a `--branch` parent, which authors no node and whose
+#: `done` reaches its own worktree rather than the dispatcher's. All three of
+#: this seat's rounds ended that way. Without it `session-complete` refused
+#: every seat-dispatched round with "not every agent record is terminal;
+#: round still running", measured live against `iter-L4.56` — a no-op wearing
+#: a safety message, and precisely the case the command exists for.
+#:
+#: `dispatch.py:1738` carries the same four-name set and gets away with it by
+#: accident: its reaper loop follows `if status in TERMINAL: continue` with
+#: `if status != "running": continue`, so `done-unreported` is skipped by the
+#: second guard and `all_terminal` is never cleared. Behaviourally terminal,
+#: nowhere declared so. A reader that copies the SET without the guard — this
+#: one did — inherits a refusal instead of a completion.
+TERMINAL_STATUSES = {"done", "done-unreported", "pending", "hung-healed",
+                     "failed"}
 
 
 def _iteration_agents_complete(iter_dir: Path) -> bool:
@@ -1245,9 +1261,18 @@ def _session_complete(
             print(f"session-complete: {_MSG_REFUSE} {src} -- not every agent "
                   f"record is terminal; round still running")
             continue
-        if target.exists():
+        # 🔴 AN EMPTY TARGET IS NOT A COLLISION, and the distinction is what
+        # makes this command run at all. `dispatch.py` PRE-CREATES
+        # `sessions/iter-<id>/` in the main checkout for every round; measured
+        # on the live tree the moment this merged, iter-L4.56, .57, .58, .65
+        # and .66 all existed there with ZERO entries. Guarding on
+        # `target.exists()` therefore refused every round ever dispatched —
+        # the command was a complete no-op wearing a safety message. The
+        # property worth keeping is "never overwrite real data", and an empty
+        # placeholder is not data. Anything with content still refuses.
+        if target.exists() and any(target.iterdir()):
             print(f"session-complete: {_MSG_REFUSE} {src} -- target {target} "
-                  f"already exists; refusing to overwrite")
+                  f"already exists and is not empty; refusing to overwrite")
             continue
         if dry_run:
             print(f"session-complete: WOULD migrate {src} -> {target}")
@@ -1256,6 +1281,14 @@ def _session_complete(
         # COPY-THEN-VERIFY -- never move. Copy, compare, and only then remove.
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
+            # An empty placeholder got past the guard above; clear it with
+            # `rmdir`, which REFUSES a non-empty directory, rather than
+            # `copytree(dirs_exist_ok=True)`. Both would work today. Only this
+            # one still fails loudly if the guard above is ever loosened —
+            # `dirs_exist_ok` would quietly merge a round into whatever was
+            # already sitting there.
+            if target.is_dir():
+                target.rmdir()
             shutil.copytree(src, target, symlinks=False)
         except (OSError, shutil.Error) as exc:
             print(f"session-complete: copy failed {src} -> {target}: {exc}; "
