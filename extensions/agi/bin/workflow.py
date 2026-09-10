@@ -167,14 +167,14 @@ def _derive_stages(script_text: str) -> list[dict]:
 
 def register_workflow(root: Path, name: str, script: Path,
                       from_dir: Path | None = None, out=sys.stdout) -> int:
-    """Land an inline script as a proper manifest pair under workflows/.
-
-    Copies the script to `agi-<key>.js` and derives `<key>.json` from it. A
-    key is already registered when EITHER file exists — this verb refuses to
-    silently overwrite, because an overwritten manifest is a registered
-    workflow whose stage list no longer names what its script implements.
-    Returns 0 on a fresh registration; 2 on refusal or an underivable script.
-    """
+    """Retired as a landing path for runnable pairs (hypothesis:
+    l4-workflow-authoring-is-a-harness-tool): deriving a stage manifest from
+    an inline script's labels can only fabricate `prompts`, which validate
+    now rejects as `<TODO>` non-runnable skeletons — a pair that lists as
+    registered but CANNOT run is the dishonest-registry failure this closes.
+    The verb lives on, but as a REFUSAL that names the replacement
+    (`workflow.py author`), so no new prompt-less pair can be landed. Still
+    refuses to silently overwrite an existing pair. Returns 2 always."""
     repo = _repo_root(root)
     wf = repo.joinpath(*WORKFLOWS_DIR_REL)
     key = _config_key_for(name).strip()
@@ -189,34 +189,12 @@ def register_workflow(root: Path, name: str, script: Path,
               f"{existing.name} — refusing to silently overwrite. Inspect "
               f"with `workflow.py list` first.", file=sys.stderr)
         return 2
-    try:
-        script_text = Path(script).read_text(encoding="utf-8")
-    except OSError as exc:
-        print(f"workflow.py: register: cannot read --script {script}: "
-              f"{exc}", file=sys.stderr)
-        return 2
-    stages = _derive_stages(script_text)
-    if not stages:
-        print(f"workflow.py: register: no stage labels found in {script} — "
-              "cannot derive a manifest; refusing to land a prompt-less pair.",
-              file=sys.stderr)
-        return 2
-    manifest = {
-        "name": key,
-        "script": js_target.name,
-        "description": (f"Registered from inline script {Path(script).name}"
-                         + (f" (originally run from {from_dir})" if from_dir else "")
-                         + " — stages derived from the script, prompts TODO"),
-        "stages": stages,
-    }
-    if from_dir:
-        manifest["_from_run"] = str(from_dir)
-    js_target.write_text(script_text, encoding="utf-8")
-    manifest_target.write_text(json.dumps(manifest, indent=2) + chr(10),
-                               encoding="utf-8")
-    out.write(f"[registered] {key} -> {js_target.name} + {key}.json "
-              f"({len(stages)} stage(s) derived)\n")
-    return 0
+    print("workflow.py: register refused: deriving a stage manifest from an "
+          "inline script only fabricates `prompts`, which validate now rejects "
+          "as <TODO> non-runnable skeletons. Author a REAL runnable pair "
+          "instead: `workflow.py author <key> --stages <json-or-path>` ",
+          file=sys.stderr)
+    return 2
 
 
 def list_workflows(root: Path, out=sys.stdout) -> int:
@@ -300,6 +278,18 @@ def validate_registry(root: Path, wf: Path | None = None,
                 violations.append(
                     f"{mf.name} stage '{base}' is not implemented by {js.name} "
                     f"(script implements: {sorted(script_labels) or 'none'})")
+            prompt = st.get("prompt") or ""
+            if "<TODO" in prompt:
+                # Strictly stronger than the base invariant, per hypothesis:
+                # l4-workflow-authoring-is-a-harness-tool. A manifest carrying
+                # a <TODO> prompt is a NON-RUNNABLE SKELETON that lists as
+                # registered — the dishonest pair the hypothesis exists to
+                # close. validate is what makes the disproved-by checkable by
+                # the registry itself. The authoring fix: `workflow.py author`.
+                violations.append(
+                    f"{mf.name} stage '{base or '(unnamed)'}' carries a <TODO> "
+                    f"prompt placeholder — a non-runnable skeleton; author a "
+                    f"real prompt with `workflow.py author`")
     for v in violations:
         out.write(f"[registry] {v}\n")
     if violations:
@@ -344,6 +334,7 @@ def _expand_stages(manifest: dict, args: dict) -> list[dict]:
                 sub["label"] = tmpl.format(**item) if isinstance(item, dict) else tmpl
             except (KeyError, IndexError):
                 sub["label"] = tmpl
+            sub["_base_label"] = st["label"]
             sub["_repeat_key"] = key
             # The render context for this concrete stage: the repeat item's own
             # fields ({slug}, {scope}, {parent} for a brief) ride on the stage
@@ -577,16 +568,20 @@ class _SafeDict(dict):
 _PLACEHOLDER = __import__("re").compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
-def render_stage_prompt(stage: dict, run_args: dict) -> str:
+def render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) -> str:
     """Render a stage's `prompt` template against the run's args.
 
     The repeat item's own fields ({slug},{scope},{parent}) are the render
     context for a concrete expanded stage, overrideing the run args so each
-    brief gets its own prompt. A stage with no `prompt` raises ValueError
-    (naming the stage) — without a prompt text a pi runner physically cannot
-    execute the stage, which is the stub defect this fixes. Only `{word}`
-    placeholders are expanded; `{\"..\": ..}` JSON braces in the prompt pass
-    through untouched.
+    brief gets its own prompt. `prior` is the validated return of a PRIOR
+    stage over the same repeat key (the chain mechanism: a repeated stage
+    whose manifest carries `chained_from: <label>` renders with that prior
+    stage's finding merged into its context, so it can name the finding's
+    schema fields directly — {answer}, {still_live}, ...). A stage with no
+    `prompt` raises ValueError (naming the stage) — without a prompt text a
+    pi runner physically cannot execute the stage, which is the stub defect
+    this fixes. Only `{word}` placeholders are expanded; `{\"..\": ..}` JSON
+    braces in the prompt pass through untouched.
     """
     tmpl = stage.get("prompt")
     if not tmpl:
@@ -595,6 +590,9 @@ def render_stage_prompt(stage: dict, run_args: dict) -> str:
     ctx = _SafeDict(run_args)
     for k, v in (stage.get("_repeat_item") or {}).items():
         ctx[k] = v
+    if prior:
+        for k, v in prior.items():
+            ctx[k] = v
     return _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
 
 
@@ -652,18 +650,22 @@ def _parse_last_json(text: str):
 
 
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
-                  out=sys.stdout, view: "RunView | None" = None) -> int:
+                  out=sys.stdout, view: "RunView | None" = None,
+                  prior: dict | None = None) -> tuple[int, "dict | None"]:
     """Execute ONE stage on the pi harness: spin the pi binary headlessly with
     the resolved provider/model/thinking and the rendered prompt, capture its
     stdout, parse the last JSON object, and validate it against the stage's
-    schema.
+    schema. `prior` is the validated return of a prior stage over the same
+    repeat key, merged into the prompt's render context (the chain mechanism).
 
-    Returns 0 on success (schema-valid JSON produced). The kid writes any
+    Returns (0, value) on success (schema-valid JSON produced); (rc>0, None)
+    on failure. The value is the parsed return, so the caller can thread it
+    into a later stage's prompt for the same repeat key. The kid writes any
     artifact (a draft body) itself under the scratch dir the prompt names; the
     runner does not fabricate it."""
     import subprocess
     k = knobs[stage["label"]]
-    prompt = render_stage_prompt(stage, run_args)
+    prompt = render_stage_prompt(stage, run_args, prior=prior)
     hc = _pi_harness_cfg(cfg)
     thinking = run_args.get("thinking") or _effort_to_thinking(k.get("effort"))
     cmd = [hc["bin"], "-p",
@@ -689,7 +691,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             view.stage_failed(stage["label"], f"could not start pi: {exc}")
         print(f"workflow.py: stage {stage['label']} could not start pi: "
               f"{exc}", file=sys.stderr)
-        return 2
+        return 2, None
     output = proc.stdout or ""
     if proc.returncode != 0:
         if view is not None:
@@ -697,7 +699,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         print(f"workflow.py: stage {stage['label']} pi exited rc="
               f"{proc.returncode}\n{output[-2000:]} {proc.stderr or ''}",
               file=sys.stderr)
-        return 3
+        return 3, None
     try:
         value = _parse_last_json(output)
     except (ValueError, json.JSONDecodeError) as exc:
@@ -705,20 +707,20 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             view.stage_failed(stage["label"], f"did not return JSON: {exc}")
         print(f"workflow.py: stage {stage['label']} did not return JSON: "
               f"{exc}\n--- output tail ---\n{output[-2000:]}", file=sys.stderr)
-        return 4
+        return 4, None
     violations = validate_return(stage.get("schema"), value)
     if violations:
         if view is not None:
             view.stage_failed(stage["label"], "returned JSON fails its schema")
         print(f"workflow.py: stage {stage['label']} returned JSON that fails "
               f"its schema:\n  " + "\n  ".join(violations), file=sys.stderr)
-        return 5
+        return 5, None
     if view is not None:
         view.stage_finished(stage["label"], value)
     else:
         out.write(f"[ok] {stage['label']} -> "
                   f"{json.dumps(value, ensure_ascii=False, sort_keys=True)[:200]}\n")
-    return 0
+    return 0, value
 
 
 def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
@@ -771,16 +773,275 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # resolved knobs or the stage prompt, so a real run could not happen
     # (Belam VII, L3.28: three concrete defects).
     import subprocess
+    prior_by_key: dict[tuple, dict] = {}
     for st in stages:
-        rc = _run_stage_pi(cfg, st, knobs, args, out=out, view=view)
+        prior = None
+        if "_repeat_key" in st and st.get("chained_from"):
+            # The chain mechanism: a repeated stage whose manifest names a
+            # `chained_from` base label renders with the PRIOR stage's
+            # validated return for the SAME repeat key merged into its prompt
+            # context (so it can name the finding's schema fields —
+            # {answer}, {still_live}, ...). Nothing else on pi crosses stage
+            # boundaries; run_args only otherwise.
+            prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
+        rc, value = _run_stage_pi(cfg, st, knobs, args, out=out, view=view,
+                                  prior=prior)
         if rc != 0:
             print(f"workflow.py: workflow={key} failed at stage "
                   f"{st['label']} (rc={rc})", file=sys.stderr)
             view.summary()
             _track_run(root, key, harness, view)
             return rc
+        if "_repeat_key" in st and value is not None:
+            prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
     view.summary()
     _track_run(root, key, harness, view)
+    return 0
+
+
+_JS_IDENT = re.compile(r"\W")
+
+
+def _qs(obj) -> str:
+    """Render a value as a JS single-quoted/proper JSON literal for embedding
+    in the generated script (escapes quotes, backticks, `${`, newlines)."""
+    return json.dumps(obj)
+
+
+def _js_const(base: str, suffix: str) -> str:
+    """A JS-safe const name from a stage's base label + suffix."""
+    return _JS_IDENT.sub("_", base).upper() + "_" + suffix
+
+
+def _stage_phase(base: str) -> str:
+    """A display phase title (`investigate` -> `Investigate`) for a stage."""
+    return (base[:1].upper() + base[1:]) if base else "Run"
+
+
+def _repeat_field(label_template: str) -> str:
+    """The one `{field}` a repeat label_template names, e.g. `key` in
+    `investigate:{key}` — the item field the generated script reads for its
+    per-item label."""
+    m = re.search(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", label_template)
+    if not m:
+        raise ValueError(f"repeat.label_template {label_template!r} must name "
+                         "exactly one {field}")
+    return m.group(1)
+
+
+def _stage_schema_const(st) -> str | None:
+    return _js_const(st["label"], "SCHEMA") if st.get("schema") else None
+
+
+def _gen_script(manifest: dict) -> str:
+    """Generate a genuine Claude Code Workflow `.js` FROM the stage manifest —
+    the manifest is the source, the script is derived (hypothesis:
+    l4-workflow-authoring-is-a-harness-tool). The generated script reads its
+    items from `args` (`const ITEMS = (args && args['<of>']) || []`) exactly
+    like the reference templates, renders each stage's prompt through `fill`
+    (the manifest's `{word}` placeholders, with JSON braces untouched), and
+    passes the resolved model/effort to every agent call. Repeated stages
+    become a `parallel(...)` over ITEMS; a chained PAIR of repeated stages
+    (stage[1].chained_from == stage[0].label, same repeat.of) becomes the
+    `pipeline(ITEMS, project, accumulate)` form — the native Workflow shape a
+    Claude Code session runs unchanged and which renders in /workflows."""
+    name = manifest["name"]
+    script_name = f"agi-{name}"
+    description = manifest.get("description") or \
+        f"Workflow {name}, authored via workflow.py author"
+    stages = manifest["stages"]
+
+    repeats = [s for s in stages if (s.get("repeat") or {}).get("of")]
+    simples = [s for s in stages if not (s.get("repeat") or {}).get("of")]
+    if repeats and simples:
+        raise ValueError(
+            f"author cannot compose simple and repeated stages in one script "
+            f"({name}); split into two workflows or author the script by hand")
+
+    default_model = "sonnet"
+    default_effort = "medium"
+    for st in stages:
+        default_model = st.get("model_hint") or default_model
+        default_effort = st.get("effort_hint") or default_effort
+
+    L = ["export const meta = {",
+         f"  name: {_qs(script_name)},",
+         f"  description: {_qs(description)},",
+         "  phases: ["]
+    for st in stages:
+        L.append(f"    {{ title: {_qs(_stage_phase(st['label']))} }},")
+    L += ["  ],", "}", "",
+          f"const MODEL = (args && args.model) || {_qs(default_model)}",
+          f"const EFFORT = (args && args.effort) || {_qs(default_effort)}", "",
+          "const fill = (t, ctx) => String(t).replace(/\\{([A-Za-z_][A-Za-z0-9_]*)\\}\\/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))", ""]
+
+    # ---- simple stages: one sequential await per stage -----------------------
+    if not repeats:
+        result_names = []
+        for i, st in enumerate(simples):
+            base = st["label"]
+            phase = _stage_phase(base)
+            tmpl = _js_const(base, "TMPL")
+            L.append(f"const {tmpl} = {_qs(st.get('prompt') or '')}")
+            sch = _stage_schema_const(st)
+            if sch:
+                L.append(f"const {sch} = {_qs(st['schema'])}")
+            L.append(f"phase({_qs(phase)})")
+            call = (f"await agent(fill({tmpl}, args), "
+                    f"{{ label: {_qs(base)}, phase: {_qs(phase)}, ")
+            if sch:
+                call += f"schema: {sch}, "
+            call += "model: MODEL, effort: EFFORT })"
+            rname = f"r{i}"
+            L.append(f"const {rname} = {call}")
+            result_names.append((base, rname))
+            L.append("")
+        L.append("return { "
+                 + ", ".join(f"{b}: {r}" for b, r in result_names) + " }")
+        return "\n".join(L) + "\n"
+
+    # ---- repeated stages: one shared args list -------------------------------
+    ofs = {s["repeat"]["of"] for s in repeats}
+    if len(ofs) != 1:
+        raise ValueError("author: all repeated stages in one workflow must "
+                         "share the same repeat.of")
+    of = repeats[0]["repeat"]["of"]
+    L.append(f"const ITEMS = (args && args[{_qs(of)}]) || []")
+    L.append("")
+    for st in stages:
+        if (st.get("repeat") or {}).get("of"):
+            base = st["label"]
+            L.append(f"const {_js_const(base, 'TMPL')} = "
+                     f"{_qs(st.get('prompt') or '')}")
+            sch = _stage_schema_const(st)
+            if sch:
+                L.append(f"const {sch} = {_qs(st['schema'])}")
+    L.append("")
+
+    if len(repeats) == 1:
+        st = repeats[0]
+        base, phase = st["label"], _stage_phase(st["label"])
+        field = _repeat_field(st["repeat"]["label_template"])
+        tmpl = _js_const(base, "TMPL")
+        L.append(f"phase({_qs(phase)})")
+        opts = (f"{{ label: `{base}:${{it.{field}}}`, phase: {_qs(phase)}, ")
+        sch = _stage_schema_const(st)
+        if sch:
+            opts += f"schema: {sch}, "
+        opts += "model: MODEL, effort: EFFORT }"
+        L.append(f"const results = await parallel(ITEMS.map("
+                 f"it => agent(fill({tmpl}, it), {opts})))")
+        L.append("return results")
+        return "\n".join(L) + "\n"
+
+    if len(repeats) == 2:
+        r0, r1 = repeats
+        b0, b1 = r0["label"], r1["label"]
+        if r0["repeat"]["of"] != r1["repeat"]["of"]:
+            raise ValueError("author: chained repeated stages must share "
+                             "repeat.of")
+        if r1.get("chained_from") != b0:
+            raise ValueError("author: a two-stage repeated workflow needs "
+                             "stage[1].chained_from == stage[0].label to chain")
+        p0, p1 = _stage_phase(b0), _stage_phase(b1)
+        f1 = _repeat_field(r1["repeat"]["label_template"])
+        t0, t1 = _js_const(b0, "TMPL"), _js_const(b1, "TMPL")
+        s0, s1 = _stage_schema_const(r0), _stage_schema_const(r1)
+        proj = (f"it => agent(fill({t0}, it), "
+                f"{{ label: `{b0}:${{it.{_repeat_field(r0['repeat']['label_template'])}}}`, "
+                f"phase: {_qs(p0)}, "
+                + (f"schema: {s0}, " if s0 else "")
+                + "model: MODEL, effort: EFFORT })")
+        L.append(f"phase({_qs(p0)})")
+        L.append("const results = await pipeline(")
+        L.append("  ITEMS,")
+        L.append(f"  {proj},")
+        L.append(f"  (finding, it) => {{")
+        L.append("    if (!finding) return null")
+        acc = (f"    return agent(fill({t1}, {{ ...it, ...finding }}), "
+               f"{{ label: `{b1}:${{it.{f1}}}`, phase: {_qs(p1)}, ")
+        if s1:
+            acc += f"schema: {s1}, "
+        acc += "model: MODEL, effort: EFFORT })"
+        L.append(acc + ".then(v => ({ key: it." + f"{f1}" + ", finding, "
+                 + f"{b1}: v }}))")
+        L.append("  },")
+        L.append(")")
+        L.append("return results.filter(Boolean)")
+        return "\n".join(L) + "\n"
+
+    raise ValueError("author: more than two chained repeated stages is not "
+                     "yet supported; build multiple smaller workflows")
+
+
+def author_workflow(root: Path, name: str, stages_text: str, out=sys.stdout,
+                    source_note: str = "") -> int:
+    """The authoring verb (hypothesis:l4-workflow-authoring-is-a-harness-tool):
+    write BOTH halves of a runnable pair in one action — `<name>.json` (the
+    stage manifest with real prompts) AND `agi-<name>.js` GENERATED FROM it.
+    Unlike `register`, which could only derive `<TODO>` prompt skeletons,
+    author takes a stage list whose prompts are already authored and derives
+    the script, so the manifest is the source and the script is derived. It
+    deliberately OVERWRITES an existing pair (authoring is explicit, not a
+    silent collision). Returns 0 on success; 2 on a bad stage list."""
+    repo = _repo_root(root)
+    wf = repo.joinpath(*WORKFLOWS_DIR_REL)
+    key = _config_key_for(name).strip()
+    if not key:
+        print("workflow.py: author needs a non-empty name", file=sys.stderr)
+        return 2
+    try:
+        stages = json.loads(stages_text)
+        if not isinstance(stages, list):
+            raise ValueError("stages must be a JSON array")
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(f"workflow.py: author: stages not valid JSON array: {exc}",
+              file=sys.stderr)
+        return 2
+    for st in stages:
+        if not isinstance(st, dict) or not st.get("label"):
+            print(f"workflow.py: author: every stage needs a non-empty 'label'",
+                  file=sys.stderr)
+            return 2
+        prompt = st.get("prompt") or ""
+        if "<TODO" in prompt:
+            print(f"workflow.py: author: stage {st['label']!r} carries a "
+                  "<TODO> prompt — author a real prompt; validate rejects "
+                  "<TODO> as non-runnable", file=sys.stderr)
+            return 2
+        rep = st.get("repeat") or {}
+        if rep.get("of"):
+            if not rep.get("label_template"):
+                print(f"workflow.py: author: stage {st['label']!r} repeats "
+                      "but has no repeat.label_template", file=sys.stderr)
+                return 2
+            try:
+                base = rep["label_template"].split(":")[0].strip()
+            except IndexError:
+                base = st["label"]
+            if base != st["label"]:
+                print(f"workflow.py: author: stage {st['label']!r} repeat."
+                      "label_template base '{base}' must equal its label",
+                      file=sys.stderr)
+                return 2
+            _repeat_field(rep["label_template"])
+    manifest = {
+        "name": key,
+        "script": f"agi-{key}.js",
+        "description": (f"Authored via workflow.py author"
+                         + (f" ({source_note})" if source_note else "")),
+        "stages": stages,
+    }
+    try:
+        script_text = _gen_script(manifest)
+    except ValueError as exc:
+        print(f"workflow.py: author: {exc}", file=sys.stderr)
+        return 2
+    (wf / f"{key}.json").write_text(
+        json.dumps(manifest, indent=2) + chr(10), encoding="utf-8")
+    (wf / f"agi-{key}.js").write_text(script_text, encoding="utf-8")
+    out.write(f"[authored] {key} -> {key}.json + agi-{key}.js "
+              f"({len(stages)} stage(s), script derived FROM manifest)\n")
     return 0
 
 
@@ -804,6 +1065,17 @@ def main(argv: list[str] | None = None) -> int:
                      help="path to the inline Claude Code .js script")
     reg.add_argument("--from-run", default=None,
                      help="run dir the script originally lived in (provenance note)")
+    au = sub.add_parser("author",
+                        help="write BOTH halves of a runnable workflow pair: <name>.json + agi-<name>.js derived FROM it (hypothesis:l4-workflow-authoring-is-a-harness-tool)")
+    au.add_argument("name", help="workflow key to author (e.g. prime-open-questions)")
+    au.add_argument("--stages", default=None,
+                    help="path to a JSON stage-list file (else --json literal, else stdin)")
+    au.add_argument("--json", default=None,
+                    help="the stage list inline as a JSON literal")
+    au.add_argument("--stdin", action="store_true",
+                    help="read the stage list from stdin")
+    au.add_argument("--note", default="",
+                    help="provenance note to embed in the manifest description")
     lst = sub.add_parser("list", help="enumerate the registered workflows")
     val = sub.add_parser("validate",
                          help="check the registry invariant: agi-*.js <-> sibling <name>.json, and only implemented stages")
@@ -817,6 +1089,24 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "register":
         return register_workflow(root, args.name, Path(args.script),
                                  Path(args.from_run) if args.from_run else None)
+    if args.cmd == "author":
+        if args.stages:
+            try:
+                stages_text = Path(args.stages).read_text(encoding="utf-8")
+            except OSError as exc:
+                print(f"workflow.py: author: cannot read --stages {args.stages}: "
+                      f"{exc}", file=sys.stderr)
+                return 2
+        elif args.json:
+            stages_text = args.json
+        elif args.stdin or not sys.stdin.isatty():
+            stages_text = sys.stdin.read()
+        else:
+            print("workflow.py: author needs one of --stages PATH, --json, "
+                  "or the stage list on stdin", file=sys.stderr)
+            return 2
+        return author_workflow(root, args.name, stages_text,
+                               source_note=args.note)
     if args.cmd == "list":
         return list_workflows(root)
     if args.cmd == "validate":
