@@ -30,6 +30,22 @@ def fake_ladder(tmp_path, monkeypatch):
         return overrides.get(field, default)
 
     monkeypatch.setattr(rotate, "load_ladder_field", fake_load)
+    # L4.110: rotate-self refuses loudly when .geometry/rotations.md is absent
+    # (the live state until the prime lands it). Tests that drive rotation
+    # mechanics therefore pin a minimal template node — "a node the suite
+    # pins is code, suite after the .geometry write".
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "
+        "steps: [handoff, spawn], telemetry: [seat]}\n"
+        "  director: {brief_file: extensions/agi/briefs/director-successor.md, "
+        "steps: [handoff, spawn], telemetry: [seat]}\n"
+        "  prime_director: {brief_file: "
+        "extensions/agi/briefs/prime-director-successor.md, "
+        "steps: [handoff, spawn], telemetry: [seat]}\n---\n\nbody\n",
+        encoding="utf-8")
     return root
 
 

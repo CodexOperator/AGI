@@ -597,7 +597,127 @@ def _resolve_role(root, actor: str, role_param: str = "") -> str:
     return ""
 
 
-def _enforce_written_by(root, node_type, actor, where, role: str = ""):
+SELF_ROW_PROTECTED = frozenset({
+    # Prime/owner-only on a config node's seat rows; a seated self-row writer
+    # may never touch these, and the presence of ANY of them in a self-row
+    # write refuses the whole thing (L4.110 prime ruling B). The list is data
+    # here because the directive named it verbatim; enforcement stays generic.
+    "role", "model", "tier", "harness", "effort",
+    "owning_goal", "worktree", "rotated_by",
+})
+
+
+def _resolve_seat(root, actor: str):
+    """The NAME of the config:seats row the actor resolved from, or None.
+
+    The mirror of `_resolve_seats_role`, kept as the one place BOTH callers
+    key on, so the self-row rule matches the SAME identity `_resolve_role`
+    used to admit the writer — never the free-text `--actor` string (L4.110
+    prime ruling B). Longest-prefix-with-boundary wins; a tie at the longest
+    length refuses (fail-closed, same rule as `_pick_longest_role`).
+    """
+    if not actor:
+        return None
+    candidates: list[tuple[int, str]] = []
+    for row in _load_seats(root):
+        name = row.get("name")
+        role = row.get("role")
+        if not name or not role:
+            continue
+        if actor == name or actor.startswith(name + "-"):
+            candidates.append((len(name), str(name)))
+    if not candidates:
+        return None
+    longest = max(c[0] for c in candidates)
+    at_longest = [c for c in candidates if c[0] == longest]
+    if len(at_longest) > 1:
+        names = ", ".join(sorted(c[1] for c in at_longest))
+        raise EditError(
+            f"ambiguous seat prefix: seats {names} tie at the longest match; "
+            f"refusing to pick one (fail-closed, L4.110 self-row rule)")
+    return at_longest[0][1]
+
+
+def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
+    """Evaluate a config node's `self_row` declaration for a seated writer.
+
+    The directive (L4.110 prime ruling B): a writer whose RESOLVED role is a
+    seated role may update only the row whose `match_key` equals the seat it
+    resolved from, and only the declared `fields`; every prime-only field and
+    every other row is refused WHOLE. Returns None when the write is a valid
+    own-row, declared-fields-only write, else a human refusal message.
+    GENERIC by construction: everything here is read from the schema's
+    `self_row` mapping — there is no `seats` literal in this function.
+    """
+    sr = schema.frontmatter.get("self_row")
+    if not isinstance(sr, dict):
+        return None
+    seat = _resolve_seat(root, actor)
+    if seat is None:
+        return None  # not a seated writer; the caller's written_by gate decides
+    list_key = sr.get("list_key")
+    match_key = sr.get("match_key")
+    fields = [str(f) for f in (sr.get("fields") or [])]
+    if not list_key or not match_key:
+        return "self_row declaration is missing list_key/match_key"
+
+    # 1) No top-level field other than the list_key may be written by a
+    #    seated role — those are prime/owner-only declarations.
+    touched_top = set(set_fm or {}) | set(unset_fm or {})
+    bad_top = touched_top - {list_key}
+    if bad_top:
+        return ("a seated role may write ONLY the "
+                f"`{list_key}` row list (touched top-level field(s) "
+                f"{', '.join(sorted(bad_top))}); those declarations are "
+                "prime/owner-only")
+
+    # 2) The row list itself must be present and shaped.
+    if list_key not in set_fm:
+        return (f"a self-row write must supply the `{list_key}` list "
+                "(nothing set)")
+    new_rows = set_fm[list_key]
+    if not isinstance(new_rows, list):
+        return f"`{list_key}` must be a list of rows, got {type(new_rows).__name__}"
+    # The current rows, read from the pre-write node file in the same root — a
+    # seated writer's whole-list set must reproduce them with its own row's
+    # declared fields changed and NOTHING else.
+    old_rows = _load_seats(root)
+
+    old_own = next((r for r in old_rows if r.get(match_key) == seat), None)
+    new_own = next((r for r in new_rows if r.get(match_key) == seat), None)
+    if new_own is None:
+        return f"the row whose `{match_key}` is {seat!r} must survive the write"
+    if old_own is None:
+        return (f"no current row whose `{match_key}` is {seat!r}; a seated "
+                "writer may only update its OWN existing row")
+
+    # Every other row must be byte-identical (same rows, same order, same k/v).
+    old_others = [r for r in old_rows if r.get(match_key) != seat]
+    new_others = [r for r in new_rows if r.get(match_key) != seat]
+    if old_others != new_others:
+        return ("a seated role may update ONLY its own row; another row's "
+                "bytes changed or an unrelated row was added/removed")
+
+    # The own row may differ only in declared fields.
+    old_own = old_own or {}
+    keys = set(old_own.keys()) | set(new_own.keys())
+    for k in keys:
+        if k == match_key:
+            continue
+        if old_own.get(k) != new_own.get(k):
+            if k not in fields:
+                if k in SELF_ROW_PROTECTED:
+                    return (f"field {k!r} is prime/owner-only on a seat row; "
+                            "a seated role may never write it")
+                return (f"field {k!r} is not in the self-row fields "
+                        f"{fields} declared by the node's schema")
+    return None
+
+
+def _enforce_written_by(root, node_type, actor, where, role: str = "",
+                        set_fm: dict | None = None,
+                        unset_fm: list | None = None,
+                        allow_self_row: bool = False):
     """Refuse a write when the node type's OWN schema declares a restricted
     writer (hypothesis:l4-moral-written-by-carrier).
 
@@ -638,6 +758,26 @@ def _enforce_written_by(root, node_type, actor, where, role: str = ""):
     resolved = _resolve_role(root, actor, role)
     if resolved in admitted:
         return
+
+    # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
+    # say) is not in `written_by` and yet may update ONE thing — its own seat
+    # row, restricted to the fields the type's `self_row` declaration names.
+    # This is the only unadmitted-writer path; without the schema declaring
+    # `self_row`, or for a `create`, the refusal below holds exactly as
+    # before. `allow_self_row` is True only for `submit` (an edit); `create`
+    # never admits a seated writer to mint a config node.
+    if allow_self_row and (set_fm is not None or unset_fm is not None):
+        sr = schema.frontmatter.get("self_row")
+        if isinstance(sr, dict) and _resolve_seat(root, actor) is not None:
+            refusal = _self_row_refusal(root, schema, actor, set_fm,
+                                        unset_fm, where)
+            if refusal is None:
+                return
+            raise EditError(
+                f"{node_type} nodes ({where}): a seated role may update only "
+                f"its OWN row and only the declared fields; {refusal}. "
+                f"(L4.110 prime ruling B)")
+
     raise EditError(
         f"{node_type} nodes ({where}) may be hand-edited only by "
         f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
@@ -745,7 +885,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     _resolve_replace_text(edit)
 
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
-                        edit.node_id, role)
+                        edit.node_id, role,
+                        set_fm=edit.set_fm, unset_fm=edit.unset_fm,
+                        allow_self_row=True)
 
     set_fm = dict(edit.set_fm)
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
