@@ -46,3 +46,6 @@ Done when: one round has been split, dispatched by both seats from their own wor
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Version 2, 2026-09-09: the owner's clarification folded in verbatim — free-floating directors in enhanced survival mode (no owning goal until the persistent director system), one worktree each, merge at the end, the point is the helper's Keep. Seat rows and worktrees updated in the same commit.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+Owner, verbatim (2026-09-09): "also old worktrees that've been exhausted and aren't used anymore should be cleared out once the work is verifiably merged into whatever parent worktree owns it. So we don't develop a giant list of worktrees over time" — applied the same hour: 23 merged+clean L3 loop worktrees removed with their branches (git worktree remove + git branch -d, which refuses an unmerged branch); 4 merged-but-dirty and 5 unmerged (ahead=1) trees kept for review. Standing rule for the point director: prune a worktree only after its branch is an ancestor of the parent branch.
