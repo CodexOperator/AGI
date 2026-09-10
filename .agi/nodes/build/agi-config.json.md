@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: sanctuary-director
+edited_by: owner
 link_ref: .agi/config.json
 location: source_root
 origin: mvp-minted
@@ -18,7 +18,7 @@ tags:
   - build
   - prose
   - g15
-thought_session: sanctuary-director-genVI
+thought_session: f3b92df1
 title: Agi config.json
 ---
 <!-- BODY:BEGIN -->

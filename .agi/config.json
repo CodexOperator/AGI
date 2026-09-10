@@ -96,7 +96,7 @@
     "ollama_max_parallel": 0,
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
-    "model": "~z-ai/glm-flash-latest",
+    "model": "deepseek/deepseek-v4.1-flash",
     "thinking": "medium"
   },
   "agent_timeout_mins": 20,
