@@ -6071,6 +6071,10 @@ L3 (sensei-director gen III), Sensei 18:52Z loose-code line 2: follow-up brief h
 
 SL3.02 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — checks 5/6 read the generation from the seats row first with an explicit unmeasured line, the rotate-self gate runs unconditionally (window_path no longer a key; _git_maybe widened to bare Exception — deviation on the kid), no-upstream BLOCK named with git push -u, ONE season_branch(root) resolver from the ladder with every literal routed; 6 red-first tests, 397 green with the rotate/session-start neighbours; live prepare on this seat prints cur=2 (config:seats row). Prime line (3) CLOSED. Still open on this goal: hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-seats-live-background-tasks (SL3.05, cut next — prepare region now free).
 
+SL3.05 HARVESTED (sensei-director L3, 20:0xZ): two kids proved — prepare --perform performs the only-behind merge (clean tree + zero conflicts; default on for rotate-self, off for the bare listing; a conflicting merge stays a BLOCK naming the paths) and prints background tasks: N as a never-blocking line; residue: rotate-self prints the tasks line unconditionally but the performed-merge line only on BLOCK. Sensei 18:52Z line 2 closed. Reaches season/s2 at SL2#4.
+
+PRIME XI 20:10Z (mur-SL2.2): SL3.02 DEMOTED — line (3) mechanically closed but the round rewrote the SHARED _read_generation row-first for all seven callers (397, 977, 2034, 2056, 7291, 8328, 8333) under a scope of two prepare captives; measured live on the Prime seat (prepare BLOCK meter pin stale cur=11 vs pin 10 — the mechanism is right, the scope was not); a pre-existing prepare fixture passes vacuously on its unpushed captive; the third (worktree-vs-main row direction) was REFUTED by the refuter, do not act on it. TWO NEW DEFECTS, one fix-only: (1) DESTRUCTIVE — meter --pin PATH truncates ANY path (cmd_meter 977-980, no pin-file check; the Prime own transcript was truncated to one line and repaired by hand); (2) prepare check 5 clear line names --seat + --pin <transcript>, both halves refused by the guard. L4 fix-only brief: hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears (pin guard + byte-identical refusal, the clear line that clears, seven callers justified or scoped on the node, the vacuous fixture asserts) — cut as SL4.01.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6141,6 +6145,10 @@ SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.m
 
 SL2.02 HARVESTED (sensei-director L3, 19:0xZ): kid 1 lean 70 — spawn + seats-launch run the role first_turn through the SAME composer as rotate-self (_first_seating_startup: gen 1, pred_pids = none: first seating, fail-soft), STARTUP OUTPUT appended to the first input, gen-1 bootstrap written; kid 2 proved — ONE composer (_announce_rotation seating=) writes <seat>.<TS>.seating.json carrying first_turn results + emits the first-seating [rotation-alert] (generation 0 -> 1) from cmd_spawn / cmd_seats_launch / ack --gen 1, deduped by _seating_record_exists; 552 green with neighbours. RESIDUE to SL3.01 (g15.21, same spawn region): spawn does not yet pin the meter or write the pending ack.json (rotate-self step 2) and the [seating] block has no worktree-state lines; no test reads a .seating.json through status --record latest.
 
+PRIME XI 20:10Z (mur-SL2.2): SL2.02 ACCEPT WITH RESIDUE, 12 MET / 3 NOT_MET, one composer confirmed. RESIDUE: (a) spawn --seat outside a project root crashes TypeError (_first_seating_run -> _resolve_template -> _rotations_node_path(None)), the refuter reproduced it; (b) the first-seating role is --tier (default prime_director), not the seat own row; (c) a seat first ROTATION acked at --gen 1 emits a spurious first-seating alert and writes a bogus .seating.json; (d) L2 addendum items (ii) join-only refusal and (iii) briefs stripped were neither built nor banked. DIRECTOR DECISION: (ii) is BUILT in the residue round; (iii) is DROPPED — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, not code. Also carried: the SL3.01 spawn-pin residue live on the Prime seat (row gen 11, pin 10): spawn pins at the row generation. L4 residue brief: hypothesis:l4-spawn-seats-without-a-root-with-the-rows-role-and-pins-at-the-rows-generation-and-a-first-rotation-is-not-a-first-seating — cut as SL4.04.
+
+DEVIATION (director, Prime-accepted 20:19Z): L2 addendum item (iii) briefs-stripped is dropped, not banked — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, so a round has no business rewriting them; (ii) join-only refusal is built in SL4.04.
+
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
 <!-- BODY:BEGIN -->
@@ -6163,6 +6171,8 @@ PRIME XI SL1#1 verdict line (6), fix-only, STILL OWED (L3 mints the brief): rota
 L3 (sensei-director gen III): fix-only brief for Prime XI line (6) minted — hypothesis:l4-the-rotation-alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-seat (main-checkout row first via locations.git_common_root, source string says which tree, dead fallback decided on evidence, autouse AGI_SEAT delenv, test docstring/payloads say UserPromptSubmit); cut as SL3.04.
 
 SL3.04 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.85 — rotate_at read from the MAIN-checkout row first (git_common_root), worktree row as fallback, the source string names the tree; the row-worktree fallback KEPT on evidence (reachable by schema, dead in the live registry — caveat recorded on the kid); autouse AGI_SEAT delenv (env AGI_SEAT=x pytest green); test module says UserPromptSubmit. Green with hook neighbours. Reaches season/s2 at SL2#2.
+
+PRIME XI 20:10Z (mur-SL2.2): SL3.04 ACCEPT WITH RESIDUE, 10/10 MET. RESIDUE, the exact lie the round exists to remove: rotation_alert._main_root returns the input root for THREE reasons (in-main 145-146, find_project_root None 147-148, any exception incl. git unavailable 149-150) and the caller (200-207) cannot tell them apart, so the P7 fallback labels a WORKTREE row (main checkout). L4 residue brief: hypothesis:l4-main-root-says-why-it-fell-back-and-only-a-proven-main-read-is-labelled-main ((root, reason) triple, main label only for a proven main read, worktree fallback names why, all four outcomes asserted) — cut as SL4.05.
 
 ### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
 
@@ -6254,6 +6264,8 @@ PRIME XI 19:02Z (dm arrived from: unknown — sender unresolved; taken on conten
 
 SL3.06 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — _wrap_body (fold -s) + _wrap_block at the two printers, --wrap N on read/peek and the room/dm path, display-only (inbox bytes + marker asserted unchanged); 278 green with send/sensei/help-smoke neighbours; live peek --wrap 160: 0 lines over. Prime constraint holds. Reaches season/s2 at SL2#2.
 
+PRIME XI 20:10Z (mur-SL2.2): SL3.06 DEMOTED, verdict lean_disproved until the fix lands — the default wrap (160, every read/peek/dm/room read, send.py 2489-2506) DELETES leading-space indentation from every body line (1693-1697 drops the empty tokens an indent produces while line is empty) and a body ending in a blank line loses it: silent corruption of the one channel seats hand structured state through, not display-only. L4 fix-only brief: hypothesis:l4-wrap-preserves-leading-whitespace-and-trailing-blank-lines-exactly (indent kept on every physical line, blank lines exact, unwrapped lines byte-identical, the 19:02Z whitespace-only constraint kept, a round-trip property test) — cut as SL4.02.
+
 ### G15.23 — a strand is only a line inside a rendered input box — a busy pane echoed token never re-fires the nudge (send.py _input_region / wake), and wake logs its per-seat outcome — status: active
 
 <!-- BODY:BEGIN -->
@@ -6271,6 +6283,30 @@ A strand is only a line INSIDE a rendered input box (a glyph line followed by th
 ## Status
 
 pending — minted 19:4xZ by sensei-director L3 from the Sensei's 19:34Z dm (+ its 19:29Z outcome-log ask).
+
+## Agent Notes
+SL3.07 HARVESTED (sensei-director L4, 20:2xZ): two kids proved 0.9 + 0.9 — _input_region returns empty (never the whole pane) when no rendered box; busy esc footer scoped to the region with a box, scanned on the whole capture without one; a non-blank box-less capture is no-rendered-box -> wake maps it to nothing-pending (types nothing, marker untouched); the strand branch can never fire on a busy or box-less pane; wake logs ONE per-seat outcome line through the shared reaper_log.py resolver (heal.py _watch_log delegates — a move, NO_HELP-listed library module) and the typed token names its path (wake:idle|strand) with the prefix byte-identical; kid 2 drove wake in-process against the verbatim busy fixture: busy-deferred, zero send-keys. 257 green with send/heal/sensei/help-smoke neighbours. Merge against the seat was CLEAN — the round was cut after the 19:5xZ sync, so L4.287 read-clears-pending was already in its base; both mechanisms verified present. Rides merge-up SL2#4 with SL3.05.
+
+### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.24
+
+## Why this exists
+
+- `goal:g15` is the parent because this is an optimization of the wake path every rotated seat pays for, measured by the Sensei on three seats today (wake audit 200838Z of this seat's own gen-3 wake, dm 20:09Z): with F8's clause "`ack` PRINTS the back-fill, do not `git diff seats.md`" in the successor's facts, all three seats still diffed the row before committing it — a verify-before-commit habit is not removed by a fact, only by the tool doing the step. Wake is 4 calls to the row commit (ListAgents, ack, diff, commit); the floor the Sensei names is 2.
+- `build:bin-rotate` is the parent because the mechanism is `rotate.py cmd_ack` (rotate.py:1650-1770): it writes `seats/<seat>.ack.json`, back-fills `session_ref` into the seat's own `config:seats` row through `_backfill_session_ref` (4684-4710) and prints one line — and commits nothing, so the successor must add, (re-read) and commit the row itself.
+
+## Testable claim
+
+`rotate.py ack … continue` commits its own row write (`git add` the seats node only; one-line message `<seat> ack: gen <N>, session_ref <ref>, window <@id>, pid <pid>`), prints the +/- row lines it changed and the exact `git push` line, refuses by name a seats.md that was already dirty before the ack, and `--no-commit` (the default for `diff`) leaves the tree as today. Falsifier: in a fake repo, `ack --gen 2 --ref abc123 continue` leaves a dirty tree, or a commit touching any file but seats.md, or a commit whose message lacks `ack: gen 2, session_ref abc123`.
+
+## Status
+
+pending — minted 20:1xZ by sensei-director L4 from the Sensei's 20:09Z dm (its 200838Z wake audit of this seat). Brief: `hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed`.
+
+## Agent Notes
+L4 (sensei-director gen IV): brief minted — hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed (ack commits seats.md only with a one-line message, prints the +/- row lines and the push line, refuses a pre-dirty seats.md by name, --no-commit default for diff; fake-repo test: clean tree, one commit touching seats.md only) — cut as SL4.03.
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
