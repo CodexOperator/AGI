@@ -139,7 +139,13 @@ def _write_root(tmp_path: Path, tools_and_cmds):
         f"{ft_lines}\n  prime_director:\n    startup:\n      first_turn:\n"
         '        - {"label": "verify", "cmd": "python3 extensions/agi/bin/commands.py run verify"}\n'
         "edited_by: test\n---\n"
-        "<!-- BODY:BEGIN -->\n# config:rotations\n\n## facts\n- F1 (gen: by hand)\n",
+        "<!-- BODY:BEGIN -->\n# config:rotations\n\n"
+        "## facts\n"
+        "- F1 (by hand): a worktree seat's record; one call proves it -- "
+        "`python3 extensions/agi/bin/rotate.py status --seat <seat> --record latest`\n"
+        "- F2 (by hand): the seat registry; `whois` or "
+        "`grep \"name\": \"<seat>\" .agi/nodes/.geometry/seats.md`\n"
+        "- F3 (note verb): `write.py <node-id> \"note <text>\"`\n",
         encoding="utf-8")
     # people who pass --transcript explicitly skip the pin/slug resolution,
     # so the transcript can live anywhere; put it next to the graph.
@@ -153,6 +159,44 @@ def _write_root(tmp_path: Path, tools_and_cmds):
              "message": {"role": "assistant", "content": [block]}}))
     tr.write_text("\n".join(events) + "\n", encoding="utf-8")
     return graph, tr
+
+
+def _write_rotation_record(graph: Path, seed: str, *, session_log: Path | None = None,
+                           gen: int | None = None, ts: str = "20260911T120000Z",
+                           join_transcript: Path | None = None):
+    """A synthetic durable rotation record for a seat, matching the shape
+    `rotate.py` writes under `sessions/rotations/<seat>.<ts>.json`."""
+    sessions = graph / "sessions" / "rotations"
+    sessions.mkdir(parents=True, exist_ok=True)
+    rec = {
+        "rotation": "rotate-self",
+        "seat": SEAT,
+        "recorded_at": ts + "Z",
+        "result": "success",
+        "observations": {},
+    }
+    if gen is not None:
+        rec["observations"]["b_generation"] = {"before": gen - 1,
+                                                "after": gen}
+    if session_log is not None:
+        rec["session_log"] = str(session_log)
+    if join_transcript is not None:
+        # the name every LIVE rotation record carries (handover.join.transcript)
+        ho = rec.setdefault("handover", {})
+        ho["join"] = {"transcript": str(join_transcript)}
+    path = sessions / f"{SEAT}.{seed}.json"
+    path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _events(blocks):
+    """Serialize tool_use blocks into a CC JSONL transcript string."""
+    out = []
+    for block in blocks:
+        out.append(json.dumps(
+            {"type": "assistant",
+             "message": {"role": "assistant", "content": [block]}}))
+    return "\n".join(out) + "\n"
 
 
 def test_wake_audit_end_to_end_cuts_window_and_counts_on_synthetic(tmp_path):
@@ -206,3 +250,247 @@ def test_wake_audit_role_without_template_refuses_named(tmp_path):
     seats.write_text(text, encoding="utf-8")
     code, _, _ = sensei.wake_audit(graph, "policy-master", 3, tr)
     assert code == 2
+
+
+# ── g15 claim tests (hypothesis:l4-wake-audit-reads-facts-and-defaults-to-
+# ── the-latest-record): facts re-derive detection, non-Bash calls, sed -i,
+# ── and the optional --gen defaulting to the latest rotation record ─────────
+
+def _fixture_facts():
+    # mirror the fixture's `## facts` body (F1/F2/F3 with cited command shapes)
+    return sensei._parse_facts(
+        "- F1 (by hand): `python3 extensions/agi/bin/rotate.py status "
+        "--seat <seat> --record latest`\n"
+        "- F2 (by hand): `whois` or "
+        "`grep \"name\": \"<seat>\" .agi/nodes/.geometry/seats.md`\n"
+        "- F3 (note verb): `write.py <node-id> \"note <text>\"`\n")
+
+
+class TestFactRederive:
+    def test_f1_cited_shape_is_category_a_with_fact_label(self):
+        # facts-only (no first_turn entries) so the FACT wins, proving the
+        # category-(a) rule is no longer first_turn-only.
+        cmd = ("python3 extensions/agi/bin/rotate.py status --seat "
+               "sanctuary-director --record latest 2>&1 | tail -5")
+        cat, label = sensei.classify_call(cmd, "Bash", SEAT, [],
+                                          _fixture_facts())
+        assert cat == "a"
+        assert label == "F1"
+
+    def test_f2_whois_is_category_a_with_fact_label(self):
+        cat, label = sensei.classify_call(
+            "whois 8.8.8.8", "Bash", SEAT, [], _fixture_facts())
+        assert cat == "a"
+        assert label == "F2"
+
+    def test_f2_grep_of_seats_md_is_category_a_with_fact_label(self):
+        cat, label = sensei.classify_call(
+            'grep \"name\": \"sanctuary-director\" '
+            '.agi/nodes/.geometry/seats.md',
+            "Bash", SEAT, [], _fixture_facts())
+        assert cat == "a"
+        assert label == "F2"
+
+    def test_first_turn_label_beats_fact_label_when_both_match(self):
+        # rotate.py status is ALSO the rotation-record first_turn entry; the
+        # configured entry is the more specific label and must win.
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py status --seat "
+            "sanctuary-director --record latest", "Bash", SEAT, _ft_entries(),
+            _fixture_facts())
+        assert cat == "a"
+        assert label == "rotation-record"
+
+    def test_sed_inplace_edit_is_real_work_not_learning(self):
+        cat, _ = sensei.classify_call(
+            "sed -i 's/a/b/' extensions/agi/bin/sensei.py",
+            "Bash", SEAT, _ft_entries(), _fixture_facts())
+        assert cat == "d"
+
+    def test_sed_inplace_edit_with_eq_flag_is_work_not_learning(self):
+        cat, _ = sensei.classify_call(
+            "sed --in-place 's/x/y/' extensions/agi/bin/rotate.py",
+            "Bash", SEAT, _ft_entries(), _fixture_facts())
+        assert cat == "d"
+
+    def test_plain_source_sed_grep_still_protocol_learning(self):
+        # only the IN-PLACE edit is real work; a read-only grep stays (c)
+        cat, _ = sensei.classify_call(
+            "sed -n 1,40p extensions/agi/bin/write.py",
+            "Bash", SEAT, _ft_entries(), _fixture_facts())
+        assert cat == "c"
+
+
+class TestNonBashCalls:
+    def test_read_of_seats_md_is_category_b(self, tmp_path):
+        block = {"type": "tool_use", "name": "Read",
+                 "input": {"path": ".agi/nodes/.geometry/seats.md"}}
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        tr = graph / "nonbash.jsonl"
+        tr.write_text(_events([block]), encoding="utf-8")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+        assert code == 0
+        assert calls[0]["cat"] == "b"
+        assert counts == {"a": 0, "b": 1, "c": 0, "d": 0}
+
+    def test_read_of_uncovered_path_is_category_d(self, tmp_path):
+        block = {"type": "tool_use", "name": "Read",
+                 "input": {"path": "docs/architecture.md"}}
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        tr = graph / "nonbash.jsonl"
+        tr.write_text(_events([block]), encoding="utf-8")
+        code, calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+        assert code == 0
+        assert calls[0]["cat"] == "d"
+
+    def test_edit_tool_of_a_covered_path_is_still_real_work(self, tmp_path):
+        # Edit/Write are WRITES: even onto a first_turn-covered path they are
+        # real work (d), never a by-hand read (b).
+        block = {"type": "tool_use", "name": "Edit",
+                 "input": {"path": ".agi/nodes/.geometry/seats.md",
+                            "old_string": "x", "new_string": "y"}}
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        tr = graph / "edit.jsonl"
+        tr.write_text(_events([block]), encoding="utf-8")
+        code, calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+        assert code == 0
+        assert calls[0]["cat"] == "d"
+
+    def test_grep_nonbash_tool_by_path_is_category_b(self, tmp_path):
+        block = {"type": "tool_use", "name": "Grep",
+                 "input": {"pattern": "sanctuary-director",
+                            "path": [".agi/nodes/.geometry/seats.md"]}}
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        tr = graph / "grep.jsonl"
+        tr.write_text(_events([block]), encoding="utf-8")
+        code, calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+        assert code == 0
+        assert calls[0]["cat"] == "b"
+
+
+class TestOptionalGenDefaultsToLatestRecord:
+    def test_no_gen_audits_latest_record_and_its_transcript(self, tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        # an OLD transcript "123" / an OLD record ..., and the LATEST record
+        # naming the NEW transcript (a whois → F2 fact re-derive).
+        old = graph / "old.jsonl"
+        old.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                 "input": {"command": "true"}}]),
+                       encoding="utf-8")
+        new = graph / "new.jsonl"
+        new.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                 "input": {"command": "whois 8.8.8.8"}}]),
+                       encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", session_log=old,
+                               gen=13)
+        _write_rotation_record(graph, "20260911T110000Z", session_log=new,
+                               gen=14)
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        assert counts == {"a": 1, "b": 0, "c": 0, "d": 0}
+        assert calls[0]["cat"] == "a"
+        assert calls[0]["label"] == "F2"
+        # source pins WHICH record the transcript came from (never a slug)
+        assert calls[0]["source"].startswith("record:")
+        assert calls[0]["source"].endswith("20260911T110000Z.json")
+
+    def test_latest_record_wins_over_newest_transcript_monkeypatched_off(self,
+                                                                        tmp_path,
+                                                                        monkeypatch):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        rec_tr = graph / "rec_tr.jsonl"
+        rec_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                    "input": {"command": "whois 1.1.1.1"}}]),
+                          encoding="utf-8")
+        _write_rotation_record(graph, "20260911T090000Z", session_log=rec_tr,
+                               gen=12)
+        # rotate.resolve_transcript must NEVER be consulted (its env / pin /
+        # newest-.jsonl fallbacks are unreachable for the wake audit).
+        def boom(*a, **kw):
+            raise AssertionError("resolve_transcript must not be called")
+        monkeypatch.setattr(rotate, "resolve_transcript", boom)
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        assert counts == {"a": 1, "b": 0, "c": 0, "d": 0}
+        assert calls[0]["label"] == "F2"
+
+    def test_record_naming_no_transcript_refuses_naming_the_record(self,
+                                                                   tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        _write_rotation_record(graph, "20260911T120000Z", gen=14)  # no session_log
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 2
+        assert calls == [] and counts == {}
+
+    def test_gen_selects_that_generation_record(self, tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        old_tr = graph / "gen12.jsonl"
+        old_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                    "input": {"command": "true"}}]),
+                          encoding="utf-8")
+        new_tr = graph / "gen13.jsonl"
+        new_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                    "input": {"command": "whois 1.1.1.1"}}]),
+                          encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", session_log=old_tr,
+                               gen=12)
+        _write_rotation_record(graph, "20260911T110000Z", session_log=new_tr,
+                               gen=13)
+        # --gen 12 must audit GEN 12's transcript (old_tr: `true`, empty wake
+        # with no tool windows before the first d) — NOT the latest record.
+        code, calls, counts = sensei.wake_audit(graph, SEAT, 12, None)
+        assert code == 0
+        assert counts == {"a": 0, "b": 0, "c": 0, "d": 1}
+        assert calls[0]["cmd"] == "true"
+
+    def test_real_record_shape_names_transcript_only_at_handover_join(self,
+                                                                     tmp_path):
+        # a LIVE rotation record does NOT carry `session_log`; it names its
+        # transcript at `handover.join.transcript` (an absolute .jsonl path)
+        # together with `handover.join.session_id`. The audit must read THAT
+        # transcript, never refuse because `session_log` is absent.
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        join_tr = graph / "live.jsonl"
+        join_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                     "input": {"command": "whois 1.1.1.1"}}]),
+                          encoding="utf-8")
+        rec = _write_rotation_record(
+            graph, "20260911T135144Z", gen=15,
+            join_transcript=join_tr,
+            ts="20260911T135144Z")
+        # the record carries the join block but NO session_log at any level
+        doc = json.loads(rec.read_text(encoding="utf-8"))
+        assert "session_log" not in doc
+        assert doc["handover"]["join"]["transcript"] == str(join_tr)
+        # --gen-less wake-audit defaults to this latest record and audits it
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        assert counts == {"a": 1, "b": 0, "c": 0, "d": 0}
+        assert calls[0]["label"] == "F2"
+        assert calls[0]["source"].endswith("20260911T135144Z.json")
+
+    def test_real_record_shape_join_transcript_respects_gen_selection(self,
+                                                                     tmp_path):
+        # --gen N selects the N-generation record by observations.b_generation
+        # .after even when that record carries its transcript at
+        # handover.join.transcript (the live shape).
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        gen12_tr = graph / "g12.jsonl"
+        gen12_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                      "input": {"command": "true"}}]),
+                            encoding="utf-8")
+        gen13_tr = graph / "g13.jsonl"
+        gen13_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                      "input": {"command": "whois 8.8.8.8"}}]),
+                            encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", gen=12,
+                               join_transcript=gen12_tr,
+                               ts="20260911T100000Z")
+        _write_rotation_record(graph, "20260911T110000Z", gen=13,
+                               join_transcript=gen13_tr,
+                               ts="20260911T110000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, 12, None)
+        assert code == 0
+        assert counts == {"a": 0, "b": 0, "c": 0, "d": 1}
+        assert calls[0]["cmd"] == "true"
+        assert calls[0]["source"].endswith("20260911T100000Z.json")

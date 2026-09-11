@@ -401,6 +401,14 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         rounds = _discover_rounds(root)
         for iter_dir, _mp in rounds:
             _watch_round(root, iter_dir, adapter)
+        # hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
+        # the watch pass ALSO repairs stranded seat wakes (a rotation-alert
+        # that landed in a BUSY recipient's dm and never woke it). `wake` is
+        # read-only and silent when there is nothing to deliver, so polling
+        # every configured seat row every pass costs nothing when nothing is
+        # stranded and repairs a strand within ONE poll (30 s) with no
+        # operator. The reaper logic above is untouched.
+        _repair_stranded_wakes(root)
         if once:
             break
         _watch_log(f"watch: pass complete over {len(rounds)} round(s); "
@@ -421,6 +429,34 @@ def _main_watch() -> int:
     root = locations.find_project_root(given) or given
     _watch(root, once=args.once, poll_s=args.poll_s)
     return 0
+
+
+def _repair_stranded_wakes(root: Path) -> None:
+    """hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter --
+    the watch pass's seat-wake repair. For every configured live seat row this
+    calls `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line
+    in an IDLE pane (typed space + Enter, never Enter-only) or re-types the
+    wake token for a seat with unread, and silently no-ops on a pane with
+    nothing pending. Best-effort and read-only: missing seats / no tmux /
+    busy panes are silent no-ops; never touches the reaper logic, never
+    raises out of the watch loop."""
+    try:
+        import send as _send
+    except Exception:                                     # noqa: BLE001
+        return
+    try:
+        rows = _send._locally_loaded_rows(root) or []
+    except Exception:                                     # noqa: BLE001
+        return
+    for row in rows:
+        seat = row.get("name") or row.get("seat")
+        if not seat:
+            continue
+        try:
+            _send.wake(root, seat)
+        except Exception as exc:                          # noqa: BLE001
+            print(f"warn: wake repair for {seat!r} failed: {exc}",
+                  file=sys.stderr)
 
 
 def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:

@@ -1781,3 +1781,64 @@ def test_assemble_carries_the_live_active_mode_into_the_brief():
         text = _text(tier, scaffold=SCAFFOLD)
         assert "OPERATING MODE" in text, tier
         assert "enhanced survival" in text, tier
+
+
+_G15_RULE = "THIS KID MUST IMPLEMENT THE FIX"
+
+
+def _g15_probe_graph(root: Path, *, g15_lineage: bool) -> Path:
+    """A scratch graph root (the `.agi` dir) with a `hypothesis:x` target.
+
+    `g15_lineage=True` makes the target descend from `goal:g15`; False gives
+    it a non-g15 parent so the lineage walk cannot reach `goal:g15`.
+    hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi — hermetic:
+    two tmp graphs, never the live one.
+    """
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    if g15_lineage:
+        (root / "nodes" / "goal").mkdir()
+        (root / "nodes" / "goal" / "g15.md").write_text(
+            "---\nid: goal:g15\ntype: goal\n---\nbody\n", encoding="utf-8")
+        parent = "goal:g15"
+    else:
+        parent = "hypothesis:other"
+    (root / "nodes" / "hypothesis" / "x.md").write_text(
+        f"---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - {parent}\n"
+        f"---\nbody\n", encoding="utf-8")
+    return root
+
+
+def test_g15_build_order_rule_reads_project_root_not_briefs_own(tmp_path):
+    """The parent-brief g15 build-order rule is decided against the
+    `project_root` the caller passes, not against the `.agi` that encloses
+    brief.py. A target that is g15 lineage in the PROJECT graph but not in
+    an ENGINE-shaped graph gets the rule for exactly the project that owns
+    it — the cloned-engine boundary (CLAUDE.md layout) rather than this repo
+    where the two coincide."""
+    proj = _g15_probe_graph(tmp_path / "proj" / ".agi", g15_lineage=True)
+    eng = _g15_probe_graph(tmp_path / "eng" / ".agi", g15_lineage=False)
+    text_proj = _text("parent", target="hypothesis:x", project_root=proj)
+    text_eng = _text("parent", target="hypothesis:x", project_root=eng)
+    assert _G15_RULE in text_proj
+    assert _G15_RULE not in text_eng
+
+
+def test_g15_rule_with_no_project_root_keeps_the_current_fallback(tmp_path):
+    """`assemble(...)` with no `project_root` still resolves the walk-up
+    fallback exactly as before: a real g15-lineage node of this repo renders
+    the build-order rule with the default path — existing callers unchanged.
+    (The target walks `hypothesis:l4-a-g15-claim-is-a-build-order-not-a-
+    measurement` -> `goal:g15`, which is g15 lineage on disk.)"""
+    text = _text(
+        "parent",
+        target="hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement")
+    assert _G15_RULE in text
+
+
+def test_g15_rule_is_absent_for_a_non_g15_target_with_project_root(tmp_path):
+    """A target that is not g15 lineage in the given project graph must NOT
+    render the rule even when a `project_root` is supplied — the rule is
+    gated on the lineage walk, not on the presence of the kwarg."""
+    proj = _g15_probe_graph(tmp_path / "proj" / ".agi", g15_lineage=False)
+    text = _text("parent", target="hypothesis:x", project_root=proj)
+    assert _G15_RULE not in text
