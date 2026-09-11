@@ -1,6 +1,6 @@
 export const meta = {
   name: "agi-merge-up-review",
-  description: "Authored via workflow.py author (Prime L4-VII, owner 2026-09-11 01:5xZ: the merge-up review is a registered workflow run through the unified router, never an inline script)",
+  description: "Review one merge-up into the integration branch: per-round claim-vs-bytes review (conjuncts cited file:line, single test files, the Prime's own step extracted), chained to an adversarial refuter per round. Args: {rounds:[{key, hypothesis, experiments, files, focus, merge_up, old_tip, new_tip}]}. Authored via workflow.py author (Prime L4-VII, owner 2026-09-11 01:5xZ: the merge-up review is a registered workflow run through the unified router, never an inline script).",
   phases: [
     { title: "Review" },
     { title: "Verify" },
@@ -10,7 +10,7 @@ export const meta = {
 const MODEL = (args && args.model) || "opus"
 const EFFORT = (args && args.effort) || "high"
 
-const fill = (t, ctx) => String(t).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}\/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))
+const fill = (t, ctx) => String(t).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))
 
 const ITEMS = (args && args["rounds"]) || []
 
