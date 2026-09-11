@@ -1389,42 +1389,50 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # and-the-successor-one): the successor's identity is the reason the row
     # wants a session_ref at all. A GIVEN --ref must be the BARE ref (a
     # row-shaped ref — brackets, whitespace, or the seat name itself — is
-    # REFUSED BY NAME); and, when the seat's own row already carries a
-    # session_id, the ref must AGREE with it through the SAME resolution
-    # send.whois uses (imported, never re-implemented). With NO --ref the row's
-    # own session_id is back-filled instead, so identity is persisted even
-    # when the successor names no ref (the zero-call lean).
+    # REFUSED BY NAME); and it must not already be ANOTHER seat's identity
+    # through the SAME resolution send.whois uses (imported, never
+    # re-implemented). With NO --ref nothing is back-filled: the ListAgents
+    # ref is harness-only and is NOT derivable from the row's session_id
+    # (the zero-call lean SL1.06 kid 2 built on that derivation was measured
+    # false at the harvest — see the fix-up notes below).
     import send  # local: same dir, no import cycle (send.py pattern)
     ref = (args.ref or "").strip()
     issue = _ref_shape_issue(ref, seat)
     if issue:
         print(f"ERR: --ref {ref!r} refused: {issue}; pass the bare ListAgents "
-              "ref (e.g. its 6-hex session_id prefix).", file=sys.stderr)
+              "ref (the `[ref]` ListAgents prints beside your name).",
+              file=sys.stderr)
         return 2
-    self_rows = [r for r in send._locally_loaded_rows(root)
-                 if r.get("name") == seat]
-    self_sid = (self_rows[0].get("session_id") if self_rows else None) or ""
-    if ref and self_sid:
-        code, _text = send._resolve_rows(self_rows, ref, claim=seat)
-        if code != send.WHOIS_OK:
-            print(f"ERR: --ref {ref!r} refused: it does not agree with "
-                  f"{seat!r}'s session_id (send resolves it to no seat row, "
-                  f"code {code}); pass the bare ListAgents ref.",
-                  file=sys.stderr)
+    rows = send._locally_loaded_rows(root)
+    # Director fix-up at the SL1.06 harvest (sensei-director L2), measured on
+    # the live rotation 20260911T172702Z: the ListAgents ref (`caa927`) is
+    # NOT a prefix of the row's session_id (the Claude session uuid
+    # `27179681-…` the JOIN registers) — the two are different identities
+    # (F8: the ref is harness-only). So a bare ref that resolves to NO row is
+    # the NORMAL first ack, accepted and written verbatim (what whois needs).
+    # What the gate refuses is IMPERSONATION: a ref that already resolves,
+    # by session_ref or session_id prefix, to a DIFFERENT seat's row
+    # (send.whois's IS-NOT-AUTHORIZED, resolved against every row).
+    if ref and rows:
+        code, _text = send._resolve_rows(rows, ref, claim=seat)
+        if code == send.WHOIS_NOT_AUTHORIZED:
+            print(f"ERR: --ref {ref!r} refused: {_text} — that ref is "
+                  "another seat's identity; pass your OWN bare ListAgents "
+                  "ref.", file=sys.stderr)
             return 2
     ack = {
         "seat": seat,
         "gen_after": args.gen,
-        # Seam fix (SL1.06, kid 3): persist the EFFECTIVE identity in the ack
-        # too, not just the raw --ref. On the zero-call path (no --ref) the
-        # row is back-filled with the row's own session_id below, and
-        # cmd_loop (~1582) reads `ack.get("session_ref")` to compose the
-        # post-join announce address. Writing an EMPTY ref here made that
-        # announce fall back to the PRE-JOIN text "successor ref not yet
-        # resolved" even though the join HAD resolved it in the row — the
-        # hypothesis's falsifier #1 (an alert without the address after a
-        # successful join).
-        "session_ref": ref or self_sid,
+        # The ack carries the ListAgents ref the successor NAMED, or nothing.
+        # SL1.06 kid 3 wrote `ref or self_sid` here (and back-filled the row
+        # with the session uuid on the no-ref path) so the post-join announce
+        # could compose an address — but the uuid is not an address a peer
+        # can message (ListAgents shows `name [ref]`, never the uuid), so the
+        # alert would have printed `name [27179681-…]`. Director fix-up at
+        # the harvest: an ack without --ref leaves session_ref EMPTY and the
+        # alert says pre-join, which is the truth — the ListAgents ref only
+        # arrives when the successor names it (F8: ListAgents + ack).
+        "session_ref": ref,
         "answer": args.answer,
         "text": text or "",
         "ts": datetime.utcnow().isoformat() + "Z",
@@ -1434,15 +1442,15 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
     print(f"ack written: {path}")
     # r3: back-fill session_ref into the successor's OWN seats row through the
-    # self_row write (source: ack), so a later whois can authorize by it. The
-    # ref source is the validated --ref when given, else the row's own
-    # session_id. A THROWAWAY seat has no row; the back-fill is recorded
+    # self_row write (source: ack), so a later whois can authorize by it —
+    # only from a validated --ref; the row already carries its session_id
+    # (written by the JOIN at spawn), so there is nothing to back-fill on the
+    # no-ref path. A THROWAWAY seat has no row; the back-fill is recorded
     # skipped and the ack still lands.
-    backfill_ref = ref if ref else self_sid
-    if backfill_ref:
+    if ref:
         try:
             print(_backfill_session_ref(
-                root, seat=seat, role="parent", ref=backfill_ref))
+                root, seat=seat, role="parent", ref=ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -6909,12 +6917,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         in_flight=getattr(args, "in_flight",
                           f"successor {seat} confirmed; gen {gen}"),
         live_names=succ.get("names", []),
-        # mechanism 1: the JOIN (s4, above) has already resolved the
-        # successor's ListAgents ref (succ_session_id) and window @id, so the
-        # announce composes the FULL post-join address `name [ref] @window`.
-        # When the seam was absent and the JOIN found no registry file there
-        # is no ref, and the alert NAMES that it is pre-join.
-        successor_ref=succ_session_id or "",
+        # mechanism 1: the address a peer can message is `name [ref]` where
+        # ref is the successor's ListAgents ref — which arrives ONLY in its
+        # ack (`ack --ref`, F8). The JOIN's succ_session_id is the Claude
+        # session uuid from the registry file, a different identity (director
+        # fix-up at the SL1.06 harvest, measured on rotation 172702Z: join
+        # session_id 27179681-…, ListAgents ref caa927). So the announce
+        # carries the ACK's ref, and NAMES pre-join when the ack had none.
+        successor_ref=((ack or {}).get("session_ref") or ""),
         successor_window=succ_window_id or "")
 
     # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch

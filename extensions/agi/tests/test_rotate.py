@@ -2890,9 +2890,10 @@ def _ack_root_with_sid(tmp_path, seat="belam", sid="f52a4caabbccddee"):
 
 
 def test_ack_bare_agreeing_ref_backfills(tmp_path, monkeypatch, capsys):
-    """RED (mechanism 2): `ack --ref <bare 6-hex prefix of the row's
-    session_id>` back-fills session_ref into the own row (rc 0) — the bare
-    ref AGREES with the row's session_id through send's own resolution."""
+    """Mechanism 2: a bare ref that happens to prefix the OWN row's
+    session_id resolves to this seat (IS-AUTHORIZED) and is back-filled rc 0
+    — one of the two accepted shapes (the other, the live one, is a
+    ListAgents ref no row carries yet: see the live-shape test below)."""
     root = _ack_root_with_sid(tmp_path)
     monkeypatch.chdir(root)
     code = rotate.cmd_ack(SimpleNamespace(
@@ -2920,37 +2921,75 @@ def test_ack_row_shaped_ref_refused_by_name(tmp_path, monkeypatch, capsys):
     assert belam.get("session_ref") == ""
 
 
-def test_ack_ref_disagreeing_with_row_session_id_refused(tmp_path,
-                                                         monkeypatch, capsys):
-    """RED (mechanism 2): a bare --ref that does NOT agree with the row's
-    session_id (resolves to no seat through send) is refused rc 2, no ack,
-    no back-fill."""
-    root = _ack_root_with_sid(tmp_path, sid="999999000000aaaa")
+def test_ack_live_listagents_ref_is_not_a_session_id_prefix_and_is_accepted(
+        tmp_path, monkeypatch, capsys):
+    """RED (director fix-up at the SL1.06 harvest, measured on the live
+    rotation 20260911T172702Z): the row's session_id is the Claude session
+    uuid the JOIN registers (`27179681-4a0c-…`); the successor's ListAgents
+    ref (`caa927`) is a DIFFERENT identity and is NOT a prefix of it. SL1.06
+    kid 2 refused every ref that did not prefix-match the session_id — which
+    would have refused every live wake. A bare ref that resolves to NO row is
+    the normal first ack: rc 0, written verbatim into the row (what whois
+    needs), and the ack file carries it."""
+    root = _ack_root_with_sid(tmp_path,
+                              sid="27179681-4a0c-4651-8a04-50de141b2ce0")
     monkeypatch.chdir(root)
     code = rotate.cmd_ack(SimpleNamespace(
-        seat="belam", gen=3, ref="f52a4c", answer="continue", text=""), root)
-    assert code == 2
-    assert not rotate._ack_path(root, "belam").exists()
+        seat="belam", gen=3, ref="caa927", answer="continue", text=""), root)
+    assert code == 0, capsys.readouterr().err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "caa927"
+    assert belam.get("session_id") == "27179681-4a0c-4651-8a04-50de141b2ce0"
+    ack = json.loads(rotate._ack_path(root, "belam").read_text(encoding="utf-8"))
+    assert ack["session_ref"] == "caa927"
+
+
+def test_ack_ref_that_is_another_seats_identity_refused(tmp_path, monkeypatch,
+                                                         capsys):
+    """Mechanism 2, the impersonation half kept: a bare --ref that ALREADY
+    resolves (by session_ref, or by session_id prefix) to a DIFFERENT seat's
+    row is refused rc 2 — no ack file, no back-fill."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root, [
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": "", "session_ref": "",
+         "session_id": "27179681-4a0c-4651-8a04-50de141b2ce0"},
+        {"name": "master-sensei", "role": "director", "model": "x",
+         "effort": "max", "settings": "", "session_ref": "e96899",
+         "session_id": "f52a4caa-0000-4000-8000-000000000000"}])
+    monkeypatch.chdir(root)
+    for stolen in ("e96899", "f52a4c"):      # by session_ref / by sid prefix
+        code = rotate.cmd_ack(SimpleNamespace(
+            seat="belam", gen=3, ref=stolen, answer="continue", text=""),
+            root)
+        assert code == 2, stolen
+        assert not rotate._ack_path(root, "belam").exists(), stolen
+    err = capsys.readouterr().err
+    assert "refused" in err and "another seat" in err
     belam = next(r for r in rotate._load_seats(root)
                  if r.get("name") == "belam")
     assert belam.get("session_ref") == ""
 
 
-def test_ack_no_ref_backfills_session_id_from_row(tmp_path, monkeypatch,
-                                                  capsys):
-    """RED (mechanism 2, zero-call lean): `ack` with NO --ref back-fills
-    session_ref from the row's own session_id (rc 0) — identity is persisted
-    even when the successor names no ref. The ACK file must carry the SAME
-    effective identity the row got (the successor's own session_id), because
-    cmd_loop (~1582) reads `ack["session_ref"]` and composes the post-join
-    announce address from it — an empty ack ref would make the alert lie."""
-    root = _ack_root_with_sid(tmp_path, sid="f52a4caabbccddee")
+def test_ack_no_ref_leaves_session_ref_empty(tmp_path, monkeypatch, capsys):
+    """Director fix-up at the SL1.06 harvest: an ack with NO --ref is still
+    accepted (rc 0, the ack lands) but back-fills NOTHING — the row already
+    carries its session_id from the JOIN, and the ListAgents ref cannot be
+    derived from it (F8: harness-only). Writing the uuid into session_ref
+    (kid 2/3's zero-call lean) only made the rotation alert print
+    `name [27179681-…]`, an address no peer can message; the alert now says
+    pre-join, which is the truth until the successor names its ref."""
+    root = _ack_root_with_sid(tmp_path,
+                              sid="27179681-4a0c-4651-8a04-50de141b2ce0")
     monkeypatch.chdir(root)
     code = rotate.cmd_ack(SimpleNamespace(
         seat="belam", gen=3, ref=None, answer="continue", text=""), root)
     assert code == 0
     belam = next(r for r in rotate._load_seats(root)
                  if r.get("name") == "belam")
-    assert belam.get("session_ref") == "f52a4caabbccddee"
+    assert belam.get("session_ref") == ""
+    assert belam.get("session_id") == "27179681-4a0c-4651-8a04-50de141b2ce0"
     ack = json.loads(rotate._ack_path(root, "belam").read_text(encoding="utf-8"))
-    assert ack["session_ref"] == "f52a4caabbccddee"
+    assert ack["session_ref"] == ""
