@@ -6,10 +6,13 @@ owns. RESOLUTION ORDER, testable: `--template <name>` > role default > refuse
 loudly NAMING THE NODE. No hardcoded brief path lives in rotate.py; the brief
 file always comes from the node.
 
-The tests build a throwaway .agi with its OWN rotations.md (written by the
-test) and drive `rotate.main(['rotate-self', '--dry-run', ...])` against it.
-They never touch the live .agi/nodes/.geometry/rotations.md (absent today —
-that is the live refusal state this file pins) or seats.md.
+The resolution/refusal tests build a throwaway .agi with its OWN rotations.md
+(written by the test) and drive `rotate.main(['rotate-self', '--dry-run', ...])`
+against it — they never touch the live node or seats.md. The startup-parse tests
+(hypothesis:l4-rotations-startup-commands-must-parse) are the one exception:
+they READ templates.*.startup.first_turn from the checked-in live
+.agi/nodes/.geometry/rotations.md (both roles) so a dead command in the shipped
+node fails the suite; they never write it.
 """
 from __future__ import annotations
 
@@ -166,59 +169,37 @@ STARTUP_VALUES = {
     "pred_pids": "123 456",
 }
 
-# The FIXED director / prime_director first_turn lists, as the live
-# rotations.md must read after this hypothesis: rotation-record names a verb
-# that EXISTS (`rotate.py status ... --record latest`), and seat-row is gone
-# (it read {succ_ref}, empty by construction at spawn — the row is only
-# produced by the successor's own ack). Mirrors .agi/nodes/.geometry/rotations.md
-# under the OWNER/PRIME gate: the gate is why the fix is a template edit a kid
-# cannot land, not a code change.
-FIXED_FIRST_TURN = {
-    "director": [
-        {"label": "rotation-record",
-         "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} "
-                "--record latest"},
-        {"label": "prime-authority",
-         "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} "
-                "--claim belam"},
-        {"label": "git-state",
-         "cmd": "git -C {worktree} status -sb | head -5; "
-                "git -C {repo} status -sb | head -3"},
-        {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}"},
-        {"label": "live-spawns",
-         "cmd": "python3 extensions/agi/bin/spawn_budget.py status; "
-                "python3 extensions/agi/bin/provisioning.py status | head -4"},
-        {"label": "write-verbs",
-         "cmd": "python3 extensions/agi/bin/write.py -h | sed -n 1,40p"},
-    ],
-}
-
-_FIXED_TEMPLATES_BODY = """---
-id: config:rotations
-mint_id: deadbeef00000000000000000000000002
-type: config
-templates:
-  director:
-    brief_file: extensions/agi/briefs/director-successor.md
-    steps: [handoff, spawn, join]
-    telemetry: [seed]
-    startup:
-      first_turn:
-        - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "read-only record read"}
-        - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "authority against the graph"}
-        - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms"}
-  prime_director:
-    brief_file: extensions/agi/briefs/prime-director-successor.md
-    steps: [handoff, spawn, join, authority]
-    telemetry: [seed, ack]
-    startup:
-      first_turn:
-        - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "read-only record read"}
-        - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "authority against the graph"}
-        - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms"}
----
-# config:rotations fixture (fixed first_turn)
-"""
+# The startup-parse tests read templates.*.startup.first_turn straight from
+# the checked-in .agi/nodes/.geometry/rotations.md (BOTH roles: director and
+# prime_director), instead of a mirrored fixture that could mask a dead command
+# in the live node. Reading the live node is all the tests do — rotations.md is
+# never written here. The dead _FIXED_TEMPLATES_BODY / FIXED_FIRST_TURN fixture
+# this replaced only MIRRORED the node, so a live node that regressed to
+# `rotate.py whois` would keep them green; reading the bytes the suite ships is
+# the only claim that holds the templates to what rotates the seats.
+def _live_first_turn() -> dict:
+    """Templates.<role>.startup.first_turn for EVERY role, read from the
+    checked-in .agi/nodes/.geometry/rotations.md (not a fixture copy). The
+    rotations node is `type: config`, owned by the owner/prime — a kid reads it
+    (and the fixed templates it already carries under
+    hypothesis:l4-rotations-startup-commands-must-parse) and never writes it.
+    """
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    rot = (Path(__file__).resolve().parents[3]
+           / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert rot.exists(), f"live rotations.md missing: {rot}"
+    nf = _fm.load_node_file(rot)
+    templates = nf.frontmatter.get("templates") or {}
+    out = {}
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        ft = startup.get("first_turn") or []
+        entries = [e for e in ft if isinstance(e, dict)]
+        if entries:
+            out[str(name)] = entries
+    return out
 
 
 def _producing_python_verb(cmd: str) -> tuple[Path, str] | None:
@@ -246,23 +227,37 @@ def _producing_python_verb(cmd: str) -> tuple[Path, str] | None:
 
 
 def test_uniquely_director_first_turn_is_the_shipped_outer_shape():
-    # The test's FIXED_FIRST_TURN is the outer contract this file pins: the
-    # live rotations.md director list plus the fix. If it drifts from the live
-    # node, the parse-assertions below guard a template nobody ships.
-    cmds = [e["label"] for e in FIXED_FIRST_TURN["director"]]
+    # Outer-shape guard on the LIVE node, not a mirror: the checked-in
+    # rotations.md director first_turn must carry the shipped `rotation-record`
+    # fix and must NOT carry the dead `seat-row` (it read {succ_ref}, empty by
+    # construction at spawn — the row is only produced by the successor's own
+    # ack). If the live node drifts, the guard trips here AND the parse/
+    # empty-assertions below guard the templates that actually ship.
+    first_turn = _live_first_turn()
+    assert "director" in first_turn, "live rotations.md has no director template"
+    assert "prime_director" in first_turn, (
+        "live rotations.md has no prime_director template")
+    cmds = [e["label"] for e in first_turn["director"]]
     assert "rotation-record" in cmds
     assert "seat-row" not in cmds  # the fix: seat-row cannot succeed at spawn
 
 
 def test_every_first_turn_producing_verb_parses_and_no_placeholder_empty():
-    # hypothesis:l4-rotations-startup-commands-must-parse, fix-proof: render
-    # each first_turn cmd of every template with fixture values, assert each
-    # producing python verb parses (`<argv0> <verb> -h` exit 0) and that no
-    # placeholder was left EMPTY (`{p}` resolving to "") — the state that made
-    # `send.py whois {succ_ref}` dump usage (empty session_ref).
+    # hypothesis:l4-rotations-startup-commands-must-parse, fix-proof on the
+    # LIVE node: render every first_turn cmd of EVERY template read from the
+    # checked-in .agi/nodes/.geometry/rotations.md (director + prime_director),
+    # assert each producing python verb parses (`<argv0> <verb> -h` exit 0) and
+    # that no placeholder was left EMPTY (`{p}` resolving to "") — the state
+    # that made `send.py whois {succ_ref}` dump usage (empty session_ref).
+    # A live node that regresses to `rotate.py whois` fails here (whois is not
+    # a rotate.py verb — the falsifier below proves it), which is exactly the
+    # drift the FIXED_FIRST_TURN fixture used to mask.
     import re as _re
+    first_turn = _live_first_turn()
+    assert set(first_turn) >= {"director", "prime_director"}, (
+        "expected BOTH templates' first_turn in the live rotations.md")
     checked_verb = 0
-    for tmpl_name, entries in FIXED_FIRST_TURN.items():
+    for tmpl_name, entries in first_turn.items():
         for entry in entries:
             cmd = entry["cmd"]
             # every placeholder the cmd uses must have a NON-EMPTY value —
@@ -271,8 +266,8 @@ def test_every_first_turn_producing_verb_parses_and_no_placeholder_empty():
             used = _re.findall(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", cmd)
             for key in used:
                 assert STARTUP_VALUES.get(key), (
-                    f"{entry['label']} uses {{{key}}} which is EMPTY at spawn: "
-                    f"{cmd!r}")
+                    f"{tmpl_name}/{entry['label']} uses {{{key}}} which is "
+                    f"EMPTY at spawn: {cmd!r}")
             rendered = rotate._resolve_startup_placeholders(cmd, STARTUP_VALUES)
             assert "{" not in rendered, (tmpl_name, entry["label"], rendered)
             # check every stage of a `;` sequence and the FIRST stage of each
@@ -289,10 +284,10 @@ def test_every_first_turn_producing_verb_parses_and_no_placeholder_empty():
                     [sys.executable, str(script), verb, "-h"],
                     capture_output=True, text=True)
                 assert r.returncode == 0, (
-                    f"{entry['label']} verb {verb!r} does not parse: "
-                    f"{r.stderr.strip() or r.stdout.strip()}")
+                    f"{tmpl_name}/{entry['label']} verb {verb!r} does not "
+                    f"parse: {r.stderr.strip() or r.stdout.strip()}")
                 checked_verb += 1
-    assert checked_verb >= 1, "no producing python verb was checked"
+    assert checked_verb >= 2, "each of the two live templates must check a verb"
 
 
 def test_falsifier_old_rotate_whois_does_not_parse():
