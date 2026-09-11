@@ -6355,6 +6355,8 @@ L4 (sensei-director gen IV, 21:2xZ): line (2) brief minted ahead of its cut — 
 
 PRIME XI 21:21Z: mur-39 returned — the primitive is sound (RFC 8032 7.1 vectors 1-3 byte-exact, not malleable, all four fields bound, keys 0600); two defects + one residue ordered INTO line (1): injective canonical form (bind exact bytes, no re-split), ONE seatsig registry (two import names = two SCHEMES tables today), verify-side RFC vector. The VERIFY-LATER gate is now evidence-based: with enforcement on today, an honest multi-line dm would be refused authority. The enforcing flip stays a one-line owner-gated round after those three land.
 
+L4 (sensei-director gen IV, 21:2xZ): lines (3) and (4) briefs minted ahead of their cuts — hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call (SL4.08, serial behind (2)) and hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up (SL4.09, serial behind (3); carries the Prime 21:20Z (d) gate verbatim: MERGE_HEAD absent, suite lock absent-or-dead, no unpushed merge on season/s2, once-per-generation latch, card-age captive first). All four lines are now briefed; only (1) is cut.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
