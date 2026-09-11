@@ -2033,6 +2033,71 @@ def test_compose_announcement_carries_all_five_fields():
     assert "seq: 41" in body
 
 
+def test_compose_announcement_carries_successor_address_after_join():
+    """mechanism 1 (hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-
+    and-the-successor-one): once the JOIN has resolved the successor's ref and
+    window @id, the alert carries the FULL post-join address `name [ref]
+    @window` — the zero-call identity a peer needs (no whois round-trip)."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=7, successor_ref="f52a4c", successor_window="9")
+    assert "belam-II -> belam-III [f52a4c] @9 |" in body
+    assert "pre-join" not in body
+
+
+def test_compose_announcement_pre_join_names_identity_unresolved():
+    """mechanism 1 — a pre-join alert (no ref acked / JOIN found nothing)
+    NAMES that it is pre-join instead of silently dropping the identity a
+    peer would need to reach the successor."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=8)
+    # the successor NAME still names the seat; the ref is the absent join
+    # fact and is called out as pre-join, never faked.
+    assert "belam-III (pre-join" in body
+    assert "pre-join: successor ref not yet resolved" in body
+    assert "belam-III [" not in body
+
+
+@pytest.mark.parametrize("window", ["", "41"])
+def test_compose_announcement_pre_join_when_ref_absent_even_with_window(window):
+    """mechanism 1 — the ref (ListAgents @id from the JOIN) is THE join fact;
+    without it a window @id alone still means pre-join and must say so."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=9, successor_window=window)
+    assert "(pre-join: successor ref not yet resolved)" in body
+    if window:
+        assert f"belam-III @{window} (pre-join" in body
+
+
+def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
+    """mechanism 1 — the address flows THROUGH _announce_rotation into every
+    recipient dm, so the peers' messages carry `name [ref] @window` after a
+    fixture join (the dm IS the zero-call hop that carries it)."""
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "belam-II", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    import send as _send
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="belam-II",
+        successor="belam-III", gen_before=2, gen_after=3, trigger="rotate-self",
+        handoff_path=".agi/sessions/belam-III.handoff.md", in_flight="none",
+        live_names=["kid-a", "belam-II"], successor_ref="f52a4c",
+        successor_window="9")
+    assert delivered == ["kid-a"]
+    assert len(sent) == 1
+    _, text = sent[0]
+    assert "belam-II -> belam-III [f52a4c] @9 |" in text
+
+
 def test_derive_receivers_drops_gone_window_and_self(tmp_path):
     rows = [{"name": "kid-a", "role": "director"},
             {"name": "liason", "role": "parent"},
@@ -2809,3 +2874,83 @@ def test_ack_seat_writes_row_and_matches_numeral_reader(tmp_path, monkeypatch,
     rows = rotate._load_seats(root)
     belam = next(r for r in rows if r.get("name") == "belam")
     assert belam.get("session_ref") == "f52a4c"
+
+
+def _ack_root_with_sid(tmp_path, seat="belam", sid="f52a4caabbccddee"):
+    """A local graph root whose own seat row carries a session_id (the
+    successor's registry identity) but an empty session_ref — the state the
+    back-fill-from-row mechanism is meant to cure."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root,
+                       [{"name": seat, "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": "",
+                         "session_ref": "", "session_id": sid}])
+    return root
+
+
+def test_ack_bare_agreeing_ref_backfills(tmp_path, monkeypatch, capsys):
+    """RED (mechanism 2): `ack --ref <bare 6-hex prefix of the row's
+    session_id>` back-fills session_ref into the own row (rc 0) — the bare
+    ref AGREES with the row's session_id through send's own resolution."""
+    root = _ack_root_with_sid(tmp_path)
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="f52a4c", answer="continue", text=""), root)
+    assert code == 0
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+
+
+def test_ack_row_shaped_ref_refused_by_name(tmp_path, monkeypatch, capsys):
+    """RED (mechanism 2): a row-shaped --ref (brackets, or the seat name) is
+    REFUSED naming the shape — no ack file, no back-fill, rc 2."""
+    root = _ack_root_with_sid(tmp_path)
+    monkeypatch.chdir(root)
+    for bad in ("[f52a4c]", "belam"):
+        code = rotate.cmd_ack(SimpleNamespace(
+            seat="belam", gen=3, ref=bad, answer="continue", text=""), root)
+        assert code == 2, bad
+        assert not rotate._ack_path(root, "belam").exists(), bad
+    err = capsys.readouterr().err
+    assert "refused" in err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+
+
+def test_ack_ref_disagreeing_with_row_session_id_refused(tmp_path,
+                                                         monkeypatch, capsys):
+    """RED (mechanism 2): a bare --ref that does NOT agree with the row's
+    session_id (resolves to no seat through send) is refused rc 2, no ack,
+    no back-fill."""
+    root = _ack_root_with_sid(tmp_path, sid="999999000000aaaa")
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="f52a4c", answer="continue", text=""), root)
+    assert code == 2
+    assert not rotate._ack_path(root, "belam").exists()
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+
+
+def test_ack_no_ref_backfills_session_id_from_row(tmp_path, monkeypatch,
+                                                  capsys):
+    """RED (mechanism 2, zero-call lean): `ack` with NO --ref back-fills
+    session_ref from the row's own session_id (rc 0) — identity is persisted
+    even when the successor names no ref. The ACK file must carry the SAME
+    effective identity the row got (the successor's own session_id), because
+    cmd_loop (~1582) reads `ack["session_ref"]` and composes the post-join
+    announce address from it — an empty ack ref would make the alert lie."""
+    root = _ack_root_with_sid(tmp_path, sid="f52a4caabbccddee")
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref=None, answer="continue", text=""), root)
+    assert code == 0
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4caabbccddee"
+    ack = json.loads(rotate._ack_path(root, "belam").read_text(encoding="utf-8"))
+    assert ack["session_ref"] == "f52a4caabbccddee"
