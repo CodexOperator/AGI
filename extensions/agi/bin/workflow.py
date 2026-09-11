@@ -126,21 +126,39 @@ def _run_key_abbrev(key: str) -> str:
 
 def _run_arg_tokens(args: dict) -> list[str]:
     """Scalar / list-of-scalar arg values, deterministically ordered by key,
-    each slugged. Nested dicts (e.g. `targets:[{window...}]`) contribute
-    nothing — the run key names the WORKFLOW plus its simple knobs, not the
-    per-target rows inside an arg."""
-    tokens: list[str] = []
+    each slugged. A list of dicts — the merge-up `rounds` shape — contributes
+    the DEDUPED, order-preserved scalar values of the cell that names the run:
+    `merge_up` when present, else `key`. So `rounds:[{merge_up:40,key:"L4.288"},
+    {merge_up:40,...}]` mints `mur-40`, NEVER `mur-40-40`; a naked `key` cell
+    mints `mur-l4-288`. Other nested dicts contribute nothing — the run key
+    names the WORKFLOW plus its simple knobs, not the per-target rows inside
+    an arg."""
+    raw: list[str] = []
     for k in sorted(args or {}):
         v = args[k]
         if isinstance(v, (dict, bool)) or v is None:
             continue
         if isinstance(v, (list, tuple)):
             for item in v:
-                if isinstance(item, (dict, bool)) or item is None:
+                if item is None or isinstance(item, bool):
                     continue
-                tokens.append(str(item))
+                if isinstance(item, dict):
+                    cell = item.get("merge_up")
+                    if cell is None:
+                        cell = item.get("key")
+                    if cell is None or isinstance(cell, (dict, list, bool)):
+                        continue
+                    raw.append(str(cell))
+                else:
+                    raw.append(str(item))
         else:
-            tokens.append(str(v))
+            raw.append(str(v))
+    seen: set[str] = set()
+    tokens: list[str] = []
+    for t in raw:
+        if t not in seen:
+            seen.add(t)
+            tokens.append(t)
     return [t for t in (_slugify_token(x) for x in tokens) if t]
 
 
