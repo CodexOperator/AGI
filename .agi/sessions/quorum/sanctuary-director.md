@@ -7,7 +7,7 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 - **You (gen XIV)** were spawned by gen XIII's `rotate-self`. **Verify, then ONE ack call:** seats row (`grep -o '"name": "sanctuary-director"[^}]*' .agi/nodes/.geometry/seats.md` — session_id = the dir name in your SCRATCHPAD PATH, generation = 14, `session_ref` EMPTY until your ack), then `python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director --gen 14 --ref <your ListAgents ref> continue`; the record `ls -t /home/ubuntu/work/agi/.agi/sessions/rotations/sanctuary-director.*.json | head -1` flips `started` → `success` within ~5 s of the ack (`s12_self_reap.planned: true`, chain of 4 pids; the pane shell may linger as a `Zs` zombie — not a live process; the window must be gone from `tmux list-windows -a -F '#{window_id} #{window_name}'`). Meter is pinned by rotate-self (`rotate.py meter --seat sanctuary-director`). **The STARTUP block's `[rotation-record]`/`[seat-row]` commands fail by construction until (iv) lands — ignore those two, read the rest.**
 - **Prime: L4-IX `agi-41 [390152]`, window `@277`**, seat `belam` gen 9 (verified 09:42Z: whois IS-AUTHORIZED @ fe81cde49 + seats row + pane; address line sent 09:42Z). VIII `[7cff1a]` @272 is rotated OUT but kept alive by the FIFO cap; III @239 reaped. Never address VIII/IV/V/VI (@272/@242/@244/@247). If an X announces: whois + row + pane before the first send.
 - **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]` @248**, ids L4.200+; owns g15-20 (merge-kids HELD) and g15-26. p1 (`l4-the-manifest-mirrors-terminal-agent-status`) has experiments on `origin/seat/sanctuary-helper@s2` only — NOT on season yet; (vi) stays SERIAL behind it on heal.py.
-- **Tree:** season/s2 = MAIN = **`0cfa40571` (merge-up 33, mine, 10:54Z)**; seat synced to it. **Floor 2045 / 195 / 2240 (stamped 0cfa40571); last MAIN suite 2952 / 13 (11/11 first read).** Free ids: **L4.183+**.
+- **Tree:** season/s2 = MAIN = **`0cfa40571` (merge-up 33)** + prime commits through ae760d9ff; seat synced. **Floor 2045 / 195 / 2240 (stamped 0cfa40571); last MAIN suite 2952 / 13.** Seat smoke 2061/195/2256 at 0ad4a1a98. Free ids: **L4.198+** (helper L4.200+ — do not collide; take L4.198-199 then L4.220+).
 - **UNIT UP:** reaper service reaps; `inline_reaper=false`; **`dispatch.py` EXITS right after the spawn (exit 0, ~5 s)** — run it foreground, its own call. Dispatch OPEN; sync before every cut.
 - **OWNER g15 rule / auto-memory OFF / reporting order** — unchanged, see the standing sections below.
 - **Spend — READ THE ACCOUNT, not the lagging rows:** `python3 -c` → `provisioning.credit_balance(root)` = (total, used, remaining); **09:43Z: $107.00 / $104.84 / $2.16 remaining** (helper read ~$2.23 minutes earlier). Per-spawn cap is $5.0 > balance, so the cap no longer bounds a runaway. Stopping rule < $1.00. **NO new cut until the prime rules on the last dollars (asked in the merge-up 32 request); g15-32 is the one round worth them.** Helper is holding too.
@@ -27,29 +27,21 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 
 🔴 **OWNER 11:5xZ, verbatim, typed into this session: "Use pi parents again" · "Redispatch under pi" · "ONLY PI PARENTS FROM HERE ON" · "I am about to run out of usage on Claude".** → every parent is `--harness pi` (the ladder's `deepseek/deepseek-v4.1-flash`); the prime's sonnet/claude-code fallback is RETIRED as a parent option. **OWNER 11:5xZ via the prime (doc:l4-owner-decisions 6088716e3): "Added more credits to the openrouter account keep using pi rounds till done"** — $26.52 of $132 at 11:52Z; check the KEY not the account; $1.00 floor unchanged; parallel rounds GO; always prefer dispatch.
 
-HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32 (2793765c1); L4.176, 177, 180, 181 = MERGE-UP 33 (0cfa40571); **L4.182 (partial) + L4.183 (allowlist, lean_proved:85) in the seat for 34.**
+HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32 (2793765c1); L4.176, 177, 180, 181 = MERGE-UP 33 (0cfa40571); **L4.182, 183, 184, 185, 186 (partial), 187, 188 (partial), 189, 190, 191 in the seat = MERGE-UP 34 (requested 12:17Z at 0ad4a1a98).**
 
-LIVE (all `--harness pi`, cut 11:58-11:59Z, disjoint lanes):
-- **L4.184** g15-32 fix-only #3 `l4-a-filter-stage-is-argument-restricted` — a00-82e3c5bb — rotate.py `_filter_arg_refusal` ($ in every filter token) + test_rotate_startup.py. **Harvest judge = probe182.py (recreate from the L4.182 note) + `sed 's/x/$SECRET_PROBE/'`/`grep '$SECRET_PROBE'`/`tr abcdef "$SECRET_PROBE"` must be REFUSED.**
-- **L4.185** (vi) `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — a00-f24f1613 — heal.py + brief.py kid-status paragraph.
-- **L4.186** g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir` — a00-2cdaa573 — spawn_budget.py.
-- **L4.187** `l4-the-record-root-has-no-test-seam-either` — a00-2c03fbf8 — conftest.py + test_tier_gate.py.
-- **L4.188** `l4-rendered-line-ownership-tolerates-the-wrap` — a00-c97af56e — send.py + test_send.py.
-- **L4.189** `l4-find-root-sh-is-bounded-like-its-python-half` — a00-46d77ded — lib/find-root.sh + test_locations.py.
-- **L4.190** `l4-a-stamp-never-writes-on-a-drop-or-a-missing-count` — a00-3d640212 — test_verification_kept_merge.py (tests-only).
-- **L4.191** `l4-the-template-test-reads-the-live-rotations-node` — a00-876e8be8 — test_rotate_templates.py (tests-only).
+LIVE (all `--harness pi`):
+- **L4.192** `l4-rendered-line-ownership-tolerates-the-wrap` fix-only (capture-pane -J + cell-wrap fixture) — a00-2ff9f5de — send.py. Harvest probe: in-process `own_line in _region_join_wrap(line[:78]+"\n"+line[78:])` must be True AND the capture argv must carry `-J`.
+- **L4.193** g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach` — a00-06c44930 — conftest.py.
+- **L4.194** g15-36b fix-only `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir` — a00-09e1448d — spawn_budget.py. Harvest probe: `status --iter <a live round>` must print a status for a seat-dispatched PARENT (`@seat`) and a KID (`@wt:<parent>`) — records live at `<seat>/.agi/sessions/<iter>/<parent>/agent.json` and `<main>/.agi/worktrees/<parent>/.agi/sessions/<iter>/<kid>/agent.json`.
+- **L4.195** `l4-a-producing-git-stage-is-argument-restricted` — a00-b0b3b931 — rotate.py git branch. Harvest probe: `_producing_refusal("git log -p -- .env")`, `git -c core.pager=id log`, `git log --output=x` refused; every git line in the live rotations.md still passes.
+- **L4.196** `l4-the-merge-protocol-block-is-gated-on-the-held-state` — a00-13c8d0ae — brief.py (the config CELL is the prime's).
+- **L4.197** `l4-sb-status-reads-the-configured-stub` — a00-cdbed097 — stub repo install-cli.sh + test_commands.py.
 
-QUEUE (cut as lanes free; each is a minted node under goal:g15):
-- rotate.py: after L4.184 → `l4-a-producing-git-stage-is-argument-restricted` → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → g15-28 `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b → g15-8 → `l4-the-pin-is-the-lease`.
-- brief.py: after L4.185 → `l4-the-merge-protocol-block-is-gated-on-the-held-state` + `l4-the-must-implement-rule-is-g15-lineage-gated` (ONE round; the config CELL is the prime's).
-- conftest.py: after L4.187 → g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`.
-- send.py: after L4.188 → `l4-deferred-ownership-uses-the-rendered-count`.
-- free now: `l4-sb-status-reads-the-configured-stub` (stub repo + test_commands, @stub_only).
-- HELPER's lane (it resumes, reports to me): its two accepted candidates (`bare-kid-never-commits`, `self-staged-edit-lost-on-commit` amended) + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
+QUEUE (cut as lanes free): rotate.py after L4.195 → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` (a real run judges the SUBSTITUTED command, so a refusal like `filter sed s/x/<value>/` copies the value into the record) → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. brief.py after L4.196 → `l4-the-must-implement-rule-is-g15-lineage-gated`. send.py after L4.192 → `l4-deferred-ownership-uses-the-rendered-count`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 12:00Z)
+## §3 🔴 NEXT COMMAND (last stamped 12:18Z)
 
-Harvest each of L4.184-191 as its parent exits (`spawn_budget.py status`; branch = `git branch --list 'loop/*<agent-id>@s2'`): worktree status → kids' experiments + parent THOUGHT → tests with neighbours on the round bytes (from the round worktree) → real-tree probe in a director note (`write.Edit`/`verb_note`/`submit`, text from a `<<'EOF'` file) → `git merge --no-ff <branch> -F <file>` → push → cut the next in that lane's queue. **Merge-up 34** once 3-6 are in: request the window from prime IX `agi-41 [390152]` (one message, numbers + g15 lines), then the Merge-up procedure below in MAIN. If THIS session dies mid-run (owner's Claude usage): a successor acks per §0, reads this file, and continues the same table — nothing is stranded; every seat commit is pushed.
+**MERGE-UP 34 REQUESTED 12:17Z** (tip 0ad4a1a98). On the prime's reply: Merge-up procedure below in MAIN; after it lands ask the prime to restart the reaper UNIT (L4.185 changes the watcher). **Then ROTATE (meter 0.42 at 12:17Z; line 0.47)**: `rotate.py rotate-self --dry-run` first, then explicit `--name sanctuary-director --model claude-opus-5`, effort max, `--prompt-file .agi/sessions/quorum/sanctuary-director.md`. Successor: harvest L4.192-197 per the probes above, cut the queue on pi, merge-up 35.
 
 ## §4 TRAPS (gen XIII + carried)
 
