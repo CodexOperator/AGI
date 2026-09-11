@@ -1917,6 +1917,303 @@ def test_seats_launch_no_remote_seats_returns_1(tmp_path, capsys):
     assert rc == 1
 
 
+def _write_first_seating_rotations(tmp_path):
+    """A config:rotations node whose director template declares a
+    `startup.first_turn` probe (an allowlisted python3 script, referenced with
+    `{repo}`/`{seat}`/`{gen}` placeholders) — the seed a first-seating spawn
+    composes. The probe file is real so the command is a genuine first_turn."""
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin" / "probe_first_seating.py").write_text(
+        "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  director: {brief_file: x.md, steps: [spawn], telemetry: [seat],\n"
+        "    startup: {first_turn: [{label: probe, "
+        "cmd: \"python3 {repo}/bin/probe_first_seating.py {seat} gen={gen}\"}]}}\n"
+        "---\n\nbody\n", encoding="utf-8")
+
+
+def test_seats_launch_first_seating_appends_startup_output(tmp_path, capsys,
+                                                           monkeypatch):
+    """A first seating through seats-launch runs the seated role's
+    `startup.first_turn` — the SAME composer rotate-self uses, reused not
+    copied — and hands the successor a `## STARTUP OUTPUT` block on its first
+    input with `{gen}` resolved to 1 (hypothesis:l4-a-first-seating-is-a-
+    rotation-without-a-predecessor).
+    """
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    _write_first_seating_rotations(tmp_path)
+    calls = []
+    def fake_spawn(**kw):
+        calls.append(kw)
+        return 0, "echo ok"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
+                           window_path=None, dry_run=True, successor_argv=None)
+    rc = rotate.cmd_seats_launch(args, tmp_path)
+    assert rc == 0
+    assert calls, "no seat was spawned"
+    extra = calls[0].get("extra", "")
+    assert "## STARTUP OUTPUT" in extra, \
+        f"first-seated seat's first input carries no STARTUP OUTPUT:\n{extra}"
+    assert "[probe]" in extra
+    assert "probe_first_seating.py director-seat gen=1" in extra, \
+        f"{gen} not resolved to 1 for the first seating:\n{extra}"
+
+
+def test_spawn_first_seating_appends_startup_output_when_seat_owned(
+        tmp_path, capsys, monkeypatch):
+    """`spawn --seat S` (a caller that OWNS a concrete seat) composes the
+    role's first_turn and appends the STARTUP OUTPUT block to the first input;
+    a seat-less generic spawn stays byte-identical (no block) — the ONE launcher
+    stays the ONE launcher whether the seating is a rotation or a first seat.
+    """
+    _write_first_seating_rotations(tmp_path)
+    calls = []
+    def fake_spawn(**kw):
+        calls.append(kw)
+        return 0, "echo ok"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+
+    # seat-aware first seating -> STARTUP OUTPUT present
+    args = SimpleNamespace(name="dir-a", tier="director", prompt_file=None,
+                           model=None, effort=None, settings=None,
+                           tmux_session="agi-rc", window_path=None,
+                           dry_run=True, successor_argv=None, seat="dir-a")
+    rc = rotate.cmd_spawn(args, tmp_path)
+    assert rc == 0
+    assert "## STARTUP OUTPUT" in calls[-1].get("extra", "")
+    assert "probe_first_seating.py dir-a gen=1" in calls[-1]["extra"]
+
+    # generic seat-less spawn -> byte-identical (no block, no first_turn run)
+    args2 = SimpleNamespace(name="belam-X", tier="kid", prompt_file=None,
+                            model=None, effort=None, settings=None,
+                            tmux_session="agi-rc", window_path=None,
+                            dry_run=True, successor_argv=None, seat=None)
+    rc = rotate.cmd_spawn(args2, tmp_path)
+    assert rc == 0
+    assert calls[-1].get("extra", "") == "", \
+        "a seat-less generic spawn must stay byte-identical (no STARTUP OUTPUT)"
+
+
+# ── first-seating alert (hypothesis:l4-a-first-seating-sends-the-sensei-the-
+# same-alert-a-rotation-does, goal:g15.17): a first seating emits the SAME
+# [rotation-alert] dm a rotation does (trigger: first-seating, generation
+# 0 -> 1) and writes ONE gen-1 seating record carrying the first_turn results.
+
+def _seating_registry(tmp_path, raw="@42"):
+    """A fake `~/.claude/sessions` registry dir whose <pid>.json carries the
+    window @id the JOIN matches on, so the bounded join finds it instantly."""
+    reg = tmp_path / "registry"
+    reg.mkdir(parents=True, exist_ok=True)
+    (reg / "999.json").write_text(json.dumps({
+        "window_id": raw, "session_id": "2717-aaaa",
+        "transcript": "t.jsonl", "cwd": str(tmp_path)}), encoding="utf-8")
+    return reg
+
+
+def test_compose_seating_announcement_shape():
+    """The seating payload carries seat, window @id, ref (or the NAMED pending
+    wording), pid, session id, transcript, seq, in flight — the composer's
+    shape one test asserts (g15.17 item 3)."""
+    body = rotate._compose_seating_announcement(
+        seat="director-seat", window_id="42", ref="caa927", pid=999,
+        session_id="2717-aaaa", transcript_path="t.jsonl", seq=3,
+        in_flight="1 first_turn step(s) ran")
+    assert body.startswith("[rotation-alert] first seating director-seat @42 "
+                           "[caa927] | generation 0 -> 1 |")
+    assert "trigger: first-seating" in body
+    assert "pid: 999" in body and "session: 2717-aaaa" in body
+    assert "transcript: t.jsonl" in body and "seq: 3" in body
+    # window @id already carries its @; never double it.
+    assert "@@" not in body
+    # ref absent -> the NAMED pending-ack wording, never " [ ]"
+    pre = rotate._compose_seating_announcement(
+        seat="director-seat", window_id="42", seq=1)
+    assert "ref: (pending ack)" in pre and "[]" not in pre
+
+
+def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatch):
+    """A first seating through `spawn --seat S` (non-dry) emits the SAME
+    rotation-alert dm a rotation does — trigger: first-seating, generation
+    0 -> 1, carrying seat, window @id, pid, session id — and writes ONE
+    gen-1 seating record carrying the first_turn results. The falsifier: a
+    spawn after which the Sensei's dm has no seating line."""
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "sensei-peer", "role": "prime_director"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    _write_first_seating_rotations(tmp_path)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    args = SimpleNamespace(name="director-seat", tier="director",
+                           prompt_file=None, model=None, effort=None,
+                           settings=None, tmux_session="agi-rc",
+                           window_path=str(wins), dry_run=False,
+                           successor_argv=None, seat="director-seat",
+                           registry_dir=str(reg))
+    rc = rotate.cmd_spawn(args, tmp_path)
+    assert rc == 0
+    assert sent, f"a first seating must nudge the Sensei's peer: {sent}"
+    _to, text = sent[0]
+    assert _to == "sensei-peer"
+    assert "first seating director-seat @42" in text
+    assert "generation 0 -> 1" in text
+    assert "trigger: first-seating" in text
+    assert "ref: (pending ack)" in text
+    assert "pid: 999" in text and "session: 2717-aaaa" in text
+    assert "in flight" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("director-seat.*.seating.json"))
+    assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
+    rec = json.loads(recs[0].read_text(encoding="utf-8"))
+    assert rec["rotation"] == "seating" and rec["gen_after"] == 1
+    assert rec["trigger"] == "first-seating" and rec["source"] == "cmd_spawn"
+    assert rec["session_id"] == "2717-aaaa" and rec["window_id"] == "@42"
+    assert rec["first_turn"], "the seating record must carry the first_turn results"
+    assert rec["first_turn"][0]["label"] == "probe"
+
+
+def test_seats_launch_first_seating_emits_seating_alert(tmp_path, monkeypatch):
+    """seats-launch is a first seating PER SEAT: each newly-seated window emits
+    the trigger: first-seating alert (hypothesis:l4-a-first-seating-sends-the-
+    sensei-the-same-alert-a-rotation-does)."""
+    import send as _send
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "sensei-peer", "role": "prime_director",
+         "session_kind": "remote-control"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    _write_first_seating_rotations(tmp_path)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    args = SimpleNamespace(prompt_file=None, tmux_session="agi-rc",
+                           window_path=str(wins), dry_run=False,
+                           successor_argv=None, registry_dir=str(reg))
+    rc = rotate.cmd_seats_launch(args, tmp_path)
+    assert rc == 0
+    texts = [t for _o, t in sent]
+    assert any("first seating director-seat" in t for t in texts), \
+        f"seats-launch must alert on each first seating:\n{sent}"
+    # exactly one seating record per first-seated seat (director-seat)
+    recs = list(rotate._rotations_dir(tmp_path).glob("director-seat.*.seating.json"))
+    assert len(recs) == 1
+    rec = json.loads(recs[0].read_text(encoding="utf-8"))
+    assert rec["source"] == "cmd_seats_launch"
+
+
+def test_ack_gen1_first_seating_announces_once_dedup(tmp_path, monkeypatch):
+    """A HAND launch acked at --gen 1 emits the same alert when no seating
+    record exists, and does NOT double-send when one does (the falsifier: a
+    second dm for the same seat + gen)."""
+    import send as _send
+    rows = [
+        {"name": "hand-seat", "role": "director"},
+        {"name": "sensei-peer", "role": "prime_director"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["hand-seat", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    args = SimpleNamespace(seat="hand-seat", gen=1, ref="caa927",
+                           answer="continue", text=None)
+    # first ack --gen 1 (no record yet) -> record + announce
+    rc = rotate.cmd_ack(args, tmp_path)
+    assert rc == 0
+    assert len(sent) == 1, f"first hand-launch ack must announce once: {sent}"
+    _to, text = sent[0]
+    assert "first seating hand-seat" in text and "[caa927]" in text
+    assert "trigger: first-seating" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("hand-seat.*.seating.json"))
+    assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
+    rec = json.loads(recs[0].read_text(encoding="utf-8"))
+    assert rec["ref"] == "caa927" and rec["source"] == "cmd_ack"
+    ac = json.loads((rotate._ack_path(tmp_path, "hand-seat")).read_text(
+        encoding="utf-8"))
+    assert ac["session_ref"] == "caa927"
+    # second ack --gen 1 (record now exists) -> NO second dm
+    sent.clear()
+    monkeypatch.setattr(rotate.sys, "stdin", _FakeIn(""))
+    rc = rotate.cmd_ack(args, tmp_path)
+    assert rc == 0
+    assert sent == [], f"a second dm for the same seat + gen is the falsifier: {sent}"
+
+
+def test_ack_gen1_does_not_announce_for_non_first_generation(tmp_path, monkeypatch):
+    """Only --gen 1 (the no-predecessor first generation) is a hand-seating;
+    a rotation ack at a later generation never re-announces it."""
+    import send as _send
+    rows = [{"name": "seat-x", "role": "director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows", lambda s, wp: ["seat-x"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="seat-x", gen=4, ref="ff",
+                                        answer="continue", text=None), tmp_path)
+    assert rc == 0
+    assert sent == [], f"a gen-4 rotation ack must not announce a seating: {sent}"
+    assert not list(rotate._rotations_dir(tmp_path).glob("seat-x.*.seating.json"))
+
+
+def test_announce_rotation_same_composer_writes_seating_record(tmp_path, monkeypatch):
+    """The SAME composer (_announce_rotation) produces both shapes: with a
+    `seating` dict it writes the ONE seating record + the seating text; the
+    rotation callers pass no seating and get the rotation shape (g15.17 item
+    1 'one composer')."""
+    import send as _send
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "hand-seat", "role": "parent"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    seating = rotate._seating_record(
+        seat="hand-seat", role="parent", source="cmd_ack", window_id="@7",
+        ref="caa927", pid=11, session_id="s1", transcript_path="t.jsonl",
+        first_turn=[])
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="hand-seat",
+        successor="hand-seat", gen_before=0, gen_after=1,
+        trigger="first-seating", handoff_path="h", in_flight="boot",
+        live_names=["kid-a", "hand-seat"], successor_ref="caa927",
+        successor_window="7", seating=seating)
+    assert delivered == ["kid-a"]
+    (_, text), = sent
+    assert "trigger: first-seating" in text and "first seating hand-seat @7" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("hand-seat.*.seating.json"))
+    assert len(recs) == 1, "one seating record shared with the alert"
+
+
 def test_tiler_partitions_full_screen_no_overlap_no_gaps():
     """For N=1..12 the partition covers width*height exactly (no gaps) and no
     two rects overlap."""

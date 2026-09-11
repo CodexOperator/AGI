@@ -1254,6 +1254,20 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         name = _derive_successor_name(existing, prefix="belam")
 
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
+    seat = getattr(args, "seat", None)
+    # A first seating is a rotation without a predecessor
+    # (hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor).
+    # spawn RUNS the SAME role template `startup.first_turn` rotate-self runs
+    # and appends the composed `## STARTUP OUTPUT` block to the seat's first
+    # input — but ONLY when a caller that OWNS a concrete seat passes it (a
+    # generic spawn/seat-less launch stays byte-identical today). Fail-soft:
+    # no template / no first_turn yields empty.
+    startup_block = ""
+    first_turn = []
+    if seat is not None:
+        startup_block, first_turn = _first_seating_run(
+            root, seat=seat, role=args.tier, succ_name=name,
+            tmux_session=tmux_session, dry_run=args.dry_run)
     rc, _ = spawn_window(
         name=name, tier=args.tier,
         prompt_file=args.prompt_file,
@@ -1262,13 +1276,31 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
         successor_argv=getattr(args, "successor_argv", None),
-        seat=getattr(args, "seat", None),
+        seat=seat,
+        extra=startup_block,
     )
     if rc != 0:
         return rc
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         print(f"  watch at: https://claude.ai/chat (remote-control mode)")
+        # A first seating sends the Sensei the same alert a rotation does
+        # (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-
+        # rotation-does): after the window is up, emit the trigger: first-
+        # seating dm + write the gen-1 seating record. Non-fatal — a failure
+        # never fails the seating.
+        if seat is not None:
+            try:
+                _first_seating_announce(
+                    root, None,  # croot None -> resolved inside
+                    seat=seat, role=args.tier, source="cmd_spawn",
+                    tmux_session=tmux_session,
+                    window_path=getattr(args, "window_path", None),
+                    first_turn=first_turn,
+                    registry_dir=getattr(args, "registry_dir", None))
+            except Exception as exc:                        # noqa: BLE001
+                print(f"warn: first-seating announcement failed: {exc}",
+                      file=sys.stderr)
     return 0
 
 
@@ -1454,6 +1486,33 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 root, seat=seat, role="parent", ref=ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
+                  file=sys.stderr)
+    # A HAND launch (a seat the owner started directly, never through
+    # spawn/seats-launch) is a first seating acked at --gen 1 (no predecessor):
+    # record it and send the SAME rotation-alert dm a rotation emits — but
+    # ONLY when no seating record already exists for this seat + generation,
+    # so a spawn/seats-launch that already recorded + announced is never
+    # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
+    # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
+    if args.gen == FIRST_SEATING_GEN and args.answer == "continue" \
+            and not _seating_record_exists(root, seat, generation=args.gen):
+        role = "parent"
+        srow = _find_seat(root, seat)
+        if srow is not None:
+            role = srow.get("role") or "parent"
+        try:
+            _first_seating_announce(
+                root, None,  # croot None -> resolved inside
+                seat=seat, role=role, source="cmd_ack",
+                tmux_session=DEFAULT_TMUX_SESSION,
+                window_path=getattr(args, "window_path", None),
+                ref=ref,
+                session_id=(srow.get("session_id") or "") if srow else "",
+                transcript_path=((srow.get("transcript_path") or "")
+                                 if srow else ""),
+                registry_dir=getattr(args, "registry_dir", None))
+        except Exception as exc:                        # noqa: BLE001
+            print(f"warn: first-seating announcement failed: {exc}",
                   file=sys.stderr)
     return 0
 
@@ -2125,6 +2184,16 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             continue
         tier = row.get("role") or "parent"
         settings = _normalize_settings(row.get("settings"))
+        # A first seating is a rotation without a predecessor
+        # (hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor):
+        # seats-launch is a FIRST seating for each seat it brings up (gen 1,
+        # no predecessor), so it runs the SAME template `startup.first_turn`
+        # rotate-self runs and appends the composed `## STARTUP OUTPUT` block
+        # to the seat's first input. Fail-soft: a role with no template or no
+        # first_turn yields the empty string (byte-identical to before).
+        startup_block, first_turn = _first_seating_run(
+            root, seat=name, role=tier, succ_name=name,
+            tmux_session=tmux_session, dry_run=args.dry_run)
         rc, _ = spawn_window(
             name=name,
             tier=tier,
@@ -2136,7 +2205,7 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             window_path=args.window_path,
             root=root,
             dry_run=args.dry_run,
-            extra="",
+            extra=startup_block,
             seat=name,
             successor_argv=getattr(args, "successor_argv", None),
         )
@@ -2144,6 +2213,24 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             print(f"ERR: launch failed for seat {name!r} (rc={rc})",
                   file=sys.stderr)
             rc_all = 1
+            continue
+        # A first seating sends the Sensei the same alert a rotation does
+        # (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-
+        # rotation-does): each newly-seated seat emits trigger: first-seating
+        # + writes its gen-1 seating record. Non-fatal — never fails the
+        # seating.
+        if not args.dry_run:
+            try:
+                _first_seating_announce(
+                    root, None,  # croot None -> resolved inside
+                    seat=name, role=tier, source="cmd_seats_launch",
+                    tmux_session=tmux_session,
+                    window_path=getattr(args, "window_path", None),
+                    first_turn=first_turn,
+                    registry_dir=getattr(args, "registry_dir", None))
+            except Exception as exc:                        # noqa: BLE001
+                print(f"warn: first-seating announcement failed: {exc}",
+                      file=sys.stderr)
     if not args.dry_run and rc_all == 0:
         # READ-BACK: never trust the printed success — a rotation has reported
         # fine and spawned no window at all (trap-0c class, L3.32/33). Confirm
@@ -2722,7 +2809,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        gen_before, gen_after, trigger: str, handoff_path: str,
                        in_flight: str, live_names: list[str],
                        successor_ref: str = "",
-                       successor_window: str = "") -> list[str]:
+                       successor_window: str = "",
+                       seating: dict | None = None) -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -2734,21 +2822,36 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     """
     import send  # local: same dir
     seq = _next_sequence(root)
-    text = _compose_announcement(
-        seat=seat, successor=successor, gen_before=gen_before,
-        gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
-        in_flight=in_flight, seq=seq, successor_ref=successor_ref,
-        successor_window=successor_window)
+    if seating is not None:
+        # A FIRST SEATING: the ONE seating record is written here, at the same
+        # moment the alert is emitted, so the alert and the record provably
+        # share a single record (hypothesis:l4-a-first-seating-sends-the-
+        # sensei-the-same-alert-a-rotation-does, g15.17 item 3).
+        _write_seating_record(root, seating)
+        text = _compose_seating_announcement(
+            seat=seat, window_id=seating.get("window_id") or "",
+            ref=seating.get("ref") or "",
+            pid=seating.get("pid"),
+            session_id=seating.get("session_id") or "",
+            transcript_path=seating.get("transcript_path") or "",
+            seq=seq, in_flight=in_flight)
+    else:
+        text = _compose_announcement(
+            seat=seat, successor=successor, gen_before=gen_before,
+            gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
+            in_flight=in_flight, seq=seq, successor_ref=successor_ref,
+            successor_window=successor_window)
+    declared = "first seating" if seating is not None else "rotation"
     receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
         try:
             path = send.send_room(croot, ROTATION_ALERT_ROOM, text,
                                   sender=seat)
-            print(f"announced rotation -> {ROTATION_ALERT_ROOM} ({path})",
+            print(f"announced {declared} -> {ROTATION_ALERT_ROOM} ({path})",
                   file=sys.stderr)
             return [ROTATION_ALERT_ROOM]
         except SystemExit as exc:
-            print(f"warn: rotation announcement to {ROTATION_ALERT_ROOM!r} "
+            print(f"warn: {declared} announcement to {ROTATION_ALERT_ROOM!r} "
                   f"failed: {exc}", file=sys.stderr)
             return []
     delivered = []
@@ -2757,10 +2860,10 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             send.send_dm(croot, seat, recv, text, sender=seat)
             delivered.append(recv)
         except SystemExit as exc:
-            print(f"warn: could not dm {recv!r} the rotation: {exc}",
+            print(f"warn: could not dm {recv!r} the {declared}: {exc}",
                   file=sys.stderr)
             continue
-    print(f"announced rotation -> {len(delivered)} recipient(s) "
+    print(f"announced {declared} -> {len(delivered)} recipient(s) "
           f"{delivered!r}", file=sys.stderr)
     # hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
     # `send_dm` nudges each recipient on the seat-transport hop; a recipient
@@ -2780,6 +2883,186 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
                   file=sys.stderr)
     return delivered
+
+
+# ── first-seating announcement ────────────────────────────────────────────
+# (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-
+# does, goal:g15.17) A FIRST seating — a brand-new seat through `spawn` /
+# `seats-launch`, or a HAND launch acked at `--gen 1` (no predecessor) —
+# emits the SAME `[rotation-alert]` dm a rotation emits, with `trigger:
+# first-seating` and generation `0 -> 1`, so the Sensei's live-seat nudge
+# covers a new seat starting up exactly as it covers a rotation happening.
+# The seating is recorded as ONE durable `<sessions>/rotations/<seat>.<TS>`
+# `.seating.json` (same dir as rotation records), carrying the first_turn
+# results; `_announce_rotation` writes it at the same moment it emits the
+# alert, so the alert and the record provably share a single record.
+
+#: The generation every first seating enters at (no predecessor).
+FIRST_SEATING_GEN = 1
+
+#: Bounded join poll for a first-seating's live pid/session/transcript.
+#: Deliberately short — spawn is interactive and must not hang for a booting
+#: seat; fields the sealed seat has not yet reported stay absent/honest.
+FIRST_SEATING_JOIN_POLL_S = 3
+
+
+def _seating_record(*, seat: str, role: str, source: str,
+                    window_id: str | None, ref: str,
+                    pid, session_id: str, transcript_path,
+                    first_turn) -> dict:
+    """One durable JSON seating record (rotation: 'seating'), generation
+    `0 -> 1`, `trigger: first-seating`, carrying the nullable live fields a
+    peer needs and the first_turn results — the record the alert shares.
+    """
+    rec = {
+        "rotation": "seating",
+        "seat": seat,
+        "role": role,
+        "source": source,
+        "recorded_at": datetime.utcnow().isoformat() + "Z",
+        "gen_before": 0,
+        "gen_after": FIRST_SEATING_GEN,
+        "trigger": "first-seating",
+    }
+    if window_id:
+        rec["window_id"] = window_id
+    if ref:
+        rec["ref"] = ref
+    if pid is not None:
+        rec["pid"] = pid
+    if session_id:
+        rec["session_id"] = session_id
+    if transcript_path:
+        rec["transcript_path"] = str(transcript_path)
+    if first_turn:
+        rec["first_turn"] = first_turn
+    return rec
+
+
+def _write_seating_record(root: Path, record: dict) -> Path:
+    """Write one JSON seating record under `.agi/sessions/rotations/`,
+    named `<seat>.<UTC timestamp>.seating.json` — the SAME dir as rotation
+    records, so `status --record` globs a seat's whole seating+rotation
+    history. The `.seating.json` suffix (vs a rotation's plain `.json`)
+    distinguishes a seating from a rotation in the shared dir. Returns the
+    written path.
+    """
+    rot = _rotations_dir(root)
+    rot.mkdir(parents=True, exist_ok=True)
+    seat = str(record.get("seat") or "anonymous")
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    path = rot / f"{seat}.{stamp}.seating.json"
+    path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _seating_record_exists(root: Path, seat: str,
+                           generation: int = FIRST_SEATING_GEN) -> bool:
+    """True when a seating record for `seat` at `generation` already exists.
+
+    The ack --gen 1 dedup: a HAND-launch ack must NOT double-send a first-
+    seating alert when a `spawn`/`seats-launch` already recorded (and
+    announced) this seat's gen-1 seating — the falsifier "a second dm for the
+    same seat + gen".
+    """
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return False
+    for p in rot.glob(f"{seat}.*.seating.json"):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, ValueError):
+            continue
+        if rec.get("gen_after") == generation:
+            return True
+    return False
+
+
+def _seating_in_flight(first_turn) -> str:
+    """One line of what the first seating ran, for the alert's `in flight`."""
+    if not first_turn:
+        return "first seating booting; no first_turn ran"
+    done = sum(1 for r in first_turn if r.get("rc") is not None)
+    refused = sum(1 for r in first_turn if r.get("refused"))
+    if refused:
+        return f"{done} first_turn step(s) ran, {refused} refused"
+    return f"{done} first_turn step(s) ran"
+
+
+def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
+                                  pid=None, session_id: str = "",
+                                  transcript_path: str = "",
+                                  seq: int = 0,
+                                  in_flight: str = "") -> str:
+    """The first-seating `[rotation-alert]` payload — one message, never more.
+
+    Carries seat, window @id, ref (when the join has it, else the NAMED
+    `ref: (pending ack)` — never a silently-dropped address a peer could not
+    reach), the bounded pid, session id and transcript path (absent fields
+    render as `-`, honest pre-join), the durable sequence number, and what is
+    in flight. Pure formatting; runs nothing.
+    """
+    w = str(window_id or "").lstrip("@")
+    addr = seat
+    if w:
+        addr += f" @{w}"
+    if ref:
+        addr += f" [{ref}]"
+    else:
+        addr += " ref: (pending ack)"
+    pid_s = str(pid) if pid is not None else "-"
+    return (f"{ROTATION_ALERT_TAG} first seating {addr} | "
+            f"generation 0 -> {FIRST_SEATING_GEN} | "
+            f"trigger: first-seating | pid: {pid_s} | "
+            f"session: {session_id or '-'} | "
+            f"transcript: {transcript_path or '-'} | seq: {seq} | "
+            f"in flight: {in_flight}")
+
+
+def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
+                            source: str, tmux_session: str,
+                            window_path: str | None = None,
+                            ref: str = "", first_turn=None,
+                            live_names=None, registry_dir=None,
+                            pid=None, session_id: str = "",
+                            transcript_path: str = "") -> list[str]:
+    """Write the ONE seating record and emit the SAME rotation-alert dm a
+    rotation emits (trigger: first-seating) to the derived live recipients.
+
+    The window @id comes from `_successor_window_id` (the registry JOIN key,
+    reused never re-implemented); live pid/session/transcript are taken from a
+    BOUNDED join when not already supplied (a freshly-seated window usually
+    has its `<pid>.json` registry file within seconds); otherwise they stay
+    absent/honest. Delivery failure never fails the seating — the record is
+    the proof, not a gate. Returns the recipients reached.
+    """
+    import send  # local: same dir
+    if croot is None:
+        croot = send.comms_root(root)
+    live_list = (live_names if live_names is not None
+                 else _existing_windows(tmux_session, window_path))
+    window_id = _successor_window_id(seat, tmux_session, window_path)
+    if window_id and pid is None and not session_id:
+        join = _join_successor(root=root, seat=seat, window_id=window_id,
+                               registry_dir=registry_dir,
+                               poll_secs=FIRST_SEATING_JOIN_POLL_S)
+        if join.get("found"):
+            pid = join.get("pid")
+            session_id = join.get("session_id") or ""
+            transcript_path = join.get("transcript") or ""
+    seating = _seating_record(
+        seat=seat, role=role, source=source, window_id=window_id, ref=ref,
+        pid=pid, session_id=session_id, transcript_path=transcript_path,
+        first_turn=first_turn)
+    in_flight = _seating_in_flight(first_turn)
+    return _announce_rotation(
+        root=root, croot=croot, seat=seat, successor=seat,
+        gen_before=0, gen_after=FIRST_SEATING_GEN,
+        trigger="first-seating",
+        handoff_path="first seating: no predecessor handoff",
+        in_flight=in_flight, live_names=live_list,
+        successor_ref=ref, successor_window=window_id or "",
+        seating=seating)
 
 
 def cmd_sequence(args: argparse.Namespace, root: Path) -> int:
@@ -5789,6 +6072,64 @@ def _compose_startup_output(results: list) -> str:
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
     return "\n".join(lines)
+
+
+def _first_seating_run(root: Path, *, seat: str, role: str,
+                       succ_name: str,
+                       tmux_session: str = DEFAULT_TMUX_SESSION,
+                       dry_run: bool = False) -> tuple[str, list]:
+    """First-seating STARTUP composition (hypothesis:l4-a-first-seating-is-a-
+    rotation-without-a-predecessor).
+
+    A FIRST seating — a brand-new seat hand-spawned through `rotate.py spawn`\
+    or `seats-launch` — generation 1, no predecessor — runs the SAME role
+    template `startup.first_turn` a rotation runs, through the SAME composer
+    (rotate-self's `_run_first_turn_commands` / `_compose_startup_output`, one
+    code path, never a copy). Returns `(block, results)`; `block` is the
+    successor's `## STARTUP OUTPUT` text (empty when the role declares no
+    first_turn or no rotation template exists — a first seating fails soft,
+    it is an unseated convenience, not a rotation) and `results` is the per-
+    command first_turn result list a first-seating seating record carries
+    (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-
+    does, g15.17 item 3). `{gen}` resolves to 1 and `{pred_pids}` to the NAMED
+    first-seating value 'none: first seating' (a real rotation carries the
+    actual predecessor pids; an EMPTY pred_pids is the L4.179 named refusal —
+    a first seating never refuses on an empty predecessor slot, it names the
+    condition instead). `dry_run` composes without running commands or writing
+    the bootstrap record; a real composition writes the gen-1 first-seating
+    bootstrap record.
+    """
+    role_tmpl, _name, _src = _resolve_template(
+        root, role, None, where="first-seating")
+    if role_tmpl is None:
+        return "", []
+    startup = (role_tmpl or {}).get("startup") or {}
+    if not (startup.get("first_turn") or []):
+        return "", []
+    values = _first_turn_values(
+        root, seat=seat, gen=1, succ_name=succ_name,
+        pred_pids="none: first seating", tmux_session=tmux_session)
+    results = _run_first_turn_commands(startup, values, dry_run=dry_run)
+    block = _compose_startup_output(results)
+    if block and not dry_run:
+        _write_bootstrap(root, seat=seat, generation=1,
+                         telemetry=role_tmpl.get("telemetry"),
+                         verification=None,
+                         join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+    return block, results
+
+
+def _first_seating_startup(root: Path, *, seat: str, role: str,
+                           succ_name: str,
+                           tmux_session: str = DEFAULT_TMUX_SESSION,
+                           dry_run: bool = False) -> str:
+    """The block half of `_first_seating_run` — retained so a caller that
+    only needs the STARTUP OUTPUT text (no seating record) keeps one call.
+    """
+    block, _results = _first_seating_run(
+        root, seat=seat, role=role, succ_name=succ_name,
+        tmux_session=tmux_session, dry_run=dry_run)
+    return block
 
 
 def _first_turn_values(root: Path, *, seat: str, gen: int,
