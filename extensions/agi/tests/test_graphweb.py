@@ -216,6 +216,30 @@ def test_working_on_from_fake_worktree(graph, monkeypatch) -> None:
     assert graphweb._pid_alive("not-a-pid") is False
 
 
+def test_tmux_list_windows_is_scoped_to_agi_rc(monkeypatch) -> None:
+    """tmux list-windows runs scoped `-t agi-rc` (rotate.py
+    DEFAULT_TMUX_SESSION), NEVER bare — a bare call lists whatever session the
+    caller happens to share, and an absent session is where the round measured
+    seats silently inactive (Prime, merge-up 38).
+
+    The moniker `agi-rc` for rotate DEFAULT_TMUX_SESSION stays live-looking;
+    the point of the test is the `-t` flag is present and names it.
+    """
+    captured = []
+    def fake_run(cmd, *args, **kwargs):
+        captured.append(list(cmd))
+        raise FileNotFoundError("tmux not installed (fixture)")
+    monkeypatch.setattr(graphweb.subprocess, "run", fake_run)
+
+    assert graphweb._tmux_windows() == set()   # absent session -> empty
+    assert captured, "tmux was never invoked"
+    cmd = captured[0]
+    assert cmd[0] == "tmux"
+    assert "list-windows" in cmd
+    assert "-t" in cmd
+    assert cmd[cmd.index("-t") + 1] == "agi-rc", f"argv: {cmd}"
+
+
 def test_worktree_modified_ids_dead_worktree_no_git(graph, monkeypatch) -> None:
     """_worktree_modified_ids on a nonexistent/dead worktree returns [] and
     never fires git (unfired read completes empty)."""
