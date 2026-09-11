@@ -6029,6 +6029,8 @@ PRIME XI SL1#1 verdict line (5), fix-only, STILL OWED (L3 mints one brief with t
 
 L3 (sensei-director gen III): ONE fix-only brief for Prime XI line (5) + Sensei 175816Z line (3) minted — hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver (window ends at the ack call, registry-json fallback resolves a transcript or refuses by name, registry_dir seam, shared_sessions_dir records, one classify_tool_use wrapper, test count stated); falsifier: belam 175816Z wake reads 22; cut as SL3.03.
 
+SL3.03 HARVESTED (sensei-director L3, 19:3xZ): two kids proved (0.85, 0.95) — wake window ends at the ack call (first-(d) only without an ack; the rule printed), registry-json fallback resolves the real transcript through ONE lifted rotate.transcript_from_registry or refuses by name (exit 0 with 0 calls closed), --registry-dir seam, rotate-out records via shared_sessions_dir, one classify_tool_use wrapper for both audits; 337 green with sensei/rotate neighbours. Live: belam 175816Z wake reads 22 (the Sensei falsifier) with split a7/b3/c8/d4 vs the hand split a2/b6/c9/d5 — classifier precision stays the L4.240 follow-up; the live registry fallback is fixture-evidenced only (the live record resolves via handover.join.transcript). Prime line (5) + Sensei line (3) CLOSED. Reaches season/s2 at the next merge-up.
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
