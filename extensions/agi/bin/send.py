@@ -221,6 +221,72 @@ def _graph_root(root: Path) -> Path:
     return root
 
 
+# ── comms reserved config (hypothesis:l4-lockdown-is-a-reserved-boolean...) ──
+
+#: The `comms` config keys this build knows. Every key returns a default when
+#: absent -- an absent block is ALL defaults, never an error. `lockdown` is
+#: RESERVED this round: `true` warns and encrypts nothing; `verify` is read
+#: here but ACTED ON only by the goal:g15.26 flip round, never by this one.
+_COMMS_DEFAULTS = {
+    "lockdown": False,
+    "verify": "informational",
+}
+
+#: The one warning printed per send and per read/peek when `lockdown` is set.
+#: Words chosen so no cipher is ever named as a STATE -- the flag is reserved,
+#: not built (next season, rungs 5-8).
+#: Shown in `-h` / `keygen -h` (clause 4 of hypothesis:l4-lockdown-is-a-
+#: reserved-boolean) so the reserved flag is discoverable without reading
+#: source. Exact wording is load-bearing -- read it, don't paraphrase.
+_LOCKDOWN_RESERVED_HELP = (
+    "comms.lockdown is RESERVED: false by default; true warns and encrypts "
+    "nothing until lockdown is built (next season, rungs 5-8)."
+)
+
+_LOCKDOWN_WARNING = (
+    "WARNING: comms.lockdown is set but lockdown is NOT BUILT (next season, "
+    "rungs 5-8): messages stay plaintext-and-signed; no custodian signing "
+    "server is required yet"
+)
+
+
+def _comms_config(root: Path) -> dict:
+    """The `comms` config block from the nearest graph root's config.json,
+    with a default for EVERY key this build knows. Absent block = all
+    defaults; a malformed or unreadable config yields the defaults too --
+    never raises."""
+    graph = _main_graph_root(root)
+    try:
+        cfg = locations.load_config(graph)
+        comms = cfg.get("comms") or {}
+        if not isinstance(comms, dict):
+            comms = {}
+    except Exception:  # noqa: BLE001 -- a config problem never blocks comms
+        comms = {}
+    out = dict(_COMMS_DEFAULTS)
+    out.update({k: v for k, v in comms.items() if k in _COMMS_DEFAULTS})
+    return out
+
+
+def _lockdown_requirements(cfg: dict) -> list[str]:
+    """What a BUILT lockdown WILL require. A named seam, not a build: nothing
+    here runs a cipher, a key exchange, or an envelope change -- the list
+    feeds only the reserved-flag documentation and a test. First item is the
+    always-on requirement; the custodian signing server is optional."""
+    return ["encrypted-at-rest", "custodian-signing-server: optional"]
+
+
+def _lockdown_warn(root: Path, cfg: dict | None = None) -> None:
+    """Print the one reserved-flag warning to stderr when comms.lockdown is
+    set. Called once per send and once per read/peek, so the flag's whole
+    effect on the operator is exactly one line per seam -- never a block, and
+    never a change to the bytes on the wire."""
+    c = cfg if cfg is not None else _comms_config(root)
+    if not c.get("lockdown"):
+        return
+    print(_LOCKDOWN_WARNING, file=sys.stderr)
+
+
 def _live_row(row: dict) -> bool:
     """A LIVE seat row carries a live pid or a session_id (hypothesis
     l4-every-live-row-is-keyed...) -- exactly the rows a prime keys with
@@ -312,6 +378,31 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
     if all_live:
         graph = _graph_root(root)
         rows = _seats_rows(graph)
+        # PRIME GATE (mur-39 order (c)): --all-live is the registry-wide
+        # backstop, reserved for the prime director. Resolve the CALLER's own
+        # row (detect the sender, then find its seat row in the SAME registry
+        # this all_live pass is about) and refuse the whole keygen BY NAME
+        # before ANY key file is minted unless that row carries role
+        # ``prime_director`` -- today only the row write was refused and the
+        # .key files still landed. Rows come from ``_seats_rows`` (the node
+        # read, no git), never ``_load_rows`` (pushed-then-local, which issues
+        # a git fetch under tests). The explicit ``role`` argument stays
+        # honoured as the documented fallback for the actorless prime call.
+        caller = _detect_sender(actor)
+        own = _seat_row_in(rows, caller) if caller else None
+        if own is not None:
+            if own.get("role") != "prime_director":
+                print(
+                    f"REFUSED {caller}: --all-live is prime-only; own row "
+                    f"role is {own.get('role')!r}, not 'prime_director'",
+                    file=sys.stderr)
+                return None
+        elif role != "prime_director":
+            print(
+                f"REFUSED {caller or '<unknown>'}: --all-live is prime-only "
+                f"(own row '{caller}' not found and no prime_director role "
+                "passed)", file=sys.stderr)
+            return None
         results: list[Path] = []
         new_rows = [dict(r) for r in rows]
         wrote_any = False
@@ -1755,6 +1846,7 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
     test_send.py test stays green untouched). The signed bytes are exactly
     ``ts\nfrom\nto\n\ntext`` (:func:`_canonical_msg`).
     """
+    _lockdown_warn(root)
     inbox = _inbox_path(root, to)
     inbox.parent.mkdir(parents=True, exist_ok=True)
 
@@ -1792,7 +1884,11 @@ def _scan_messages(inbox: Path) -> tuple[list[str], int]:
     if not inbox.is_file():
         return [], 0
 
-    text = inbox.read_text()
+    # Read with newline="" so CR/CRLF survive: the sig covers the EXACT bytes
+    # the sender passed (mur-39 order (d)), and read_text()'s universal-newline
+    # translation would fold a lone CR (and CRLF) into LF before _parse_block
+    # could ever see it -- making every CR-carrying message read FORGED.
+    text = inbox.open("r", newline="").read()
     lines = text.splitlines(keepends=True)
     marker_index = -1
     for i, line in enumerate(lines):
@@ -1822,7 +1918,14 @@ def _parse_block(block: str) -> tuple[dict, str]:
     text) yields an empty text.
     """
     body = block[len(MSG_SEP):] if block.startswith(MSG_SEP) else block
-    lines = body.splitlines()
+    # Split on "\n" ALONE, never splitlines(): splitlines() treats CR, CRLF,
+    # VT, FF, FS, GS, RS and U+2028/U+2029 as line boundaries too, so a body
+    # carrying a CR is silently re-fragmented -- and the sig covers the EXACT
+    # bytes the sender passed, so a normalized body can never re-verify (the
+    # CR-body / FORGED defect, mur-39 order (d)). Header lines are pure LF, so
+    # the first-blank-line boundary is unchanged; but the body is reassembled
+    # line-for-line on "\n" so every "\r" survives byte-for-byte.
+    lines = body.split("\n")
     meta: dict = {}
     i = 0
     while i < len(lines) and lines[i] != "":
@@ -1834,7 +1937,11 @@ def _parse_block(block: str) -> tuple[dict, str]:
             k, _, v = line.partition(":")
             meta[k] = v.lstrip()
         i += 1
-    text = "\n".join(lines[i + 1:])
+    # Reassemble the body on "\n", then strip exactly the ONE separator the
+    # writer appends (`block = head + f"\n{text}\n"`). rstrip("\n") stops at a
+    # "\r", so a TRAILING CR in the body content survives. This is the exact
+    # inverse of the writer's store, and it reproduces the signed bytes.
+    text = "\n".join(lines[i + 1:]).rstrip("\n")
     return meta, text
 
 
@@ -2104,6 +2211,7 @@ def read(root: Path, me: str, sender: str | None,
          wrap: int = 160) -> None:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
     and mark them read."""
+    _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
     deferred = _read_deferred(root, me)
@@ -2128,7 +2236,9 @@ def read(root: Path, me: str, sender: str | None,
     # Mark read: find the current last line and add a marker after it.
     # If marker already existed, move it past the blocks we just printed.
     if inbox.is_file():
-        text = inbox.read_text()
+        # newline="" too: a rewrite here must not be the thing that strips the
+        # CR the writer preserved (mur-39 order (d)).
+        text = inbox.open("r", newline="").read()
         lines = text.splitlines(keepends=True)
         if marker_index >= 0:
             # Remove old marker; re-insert at end.
@@ -2153,6 +2263,7 @@ def read(root: Path, me: str, sender: str | None,
 def peek(root: Path, me: str, wrap: int = 160) -> None:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
     without marking them read."""
+    _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, _ = _scan_messages(inbox)
     deferred = _read_deferred(root, me)
@@ -2793,7 +2904,8 @@ def whois(root: Path, session_ref: str, claim: str | None,
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="one-verb agent comms")
+    ap = argparse.ArgumentParser(description="one-verb agent comms",
+        epilog=_LOCKDOWN_RESERVED_HELP)
     # shared options on every subparser (and on the main parser) so the flags
     # work whether they precede or follow the subcommand
     # The parent parser's flags use default=argparse.SUPPRESS so that a flag
@@ -2949,7 +3061,8 @@ def main(argv: list[str] | None = None) -> int:
              "0600); prints and writes the row cells (pubkey, sig_scheme, "
              "enc_scheme: none) into the seat's own config:seats row -- or "
              "with --all-live, the prime keys every LIVE row that has no "
-             "pubkey (hypothesis:l4-every-live-row-is-keyed...)")
+             "pubkey (hypothesis:l4-every-live-row-is-keyed...)",
+        epilog=_LOCKDOWN_RESERVED_HELP)
     p_keygen.add_argument("--seat", default=None, help="seat name")
     p_keygen.add_argument("--scheme", default=seatsig.DEFAULT_SCHEME,
                           help="swappable scheme name (default "
