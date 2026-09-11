@@ -1337,7 +1337,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "run, and it now derives the tier from the running agent record, so "
         "`env -u AGI_TIER` does not clear it. Your own scratch test passing is "
         "not the same claim. A failing assertion you did not expect is usually "
-        "the assertion working.",
+        "the assertion working. A test of live config reads the live node, "
+        "never a copied list.",
         # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
         # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
         # and `verdict` as the slug and the call dies on the extra positional
@@ -1726,9 +1727,11 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   until the kid's status is `done` or `failed`. Sleep 30 seconds\n"
         f"   between polls so each poll is a short tool call that never outlives\n"
         f"   the harness timeout.\n"
-        f"   A kid whose status reads `overdue` is STILL WORKING: it hit its\n"
-        f"   manifest deadline but its pid is alive, so `overdue` is not a\n"
-        f"   terminal state — never cut a replacement for it, just keep polling\n"
+        f"   A kid that missed its manifest deadline while its pid is STILL\n"
+        f"   alive is OVERDUE: its record keeps `status: running` and gains\n"
+        f"   `overdue_since` + `overdue_reason` (heal.py), plus ONE\n"
+        f"   `[agi-nudge] reason=overdue` dm. An overdue kid is STILL WORKING\n"
+        f"   — never cut a replacement for it, just keep polling\n"
         f"   (hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal).\n"
         f"   Never construct a spawn command yourself and never call the model\n"
         f"   API directly -- one spawn path, harness chosen by config.\n"

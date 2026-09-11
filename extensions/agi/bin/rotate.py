@@ -1544,6 +1544,36 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
+def _record_is_terminal(path) -> bool:
+    """True when the rotation record has a present s12_self_reap section —
+    the terminal sentinel `--wait` polls for (L4.233). Best-effort: a record
+    that does not parse is not terminal."""
+    try:
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return False
+    return isinstance(doc.get("s12_self_reap"), dict)
+
+
+def _poll_record_terminal(path, wait: int) -> tuple[bool, str]:
+    """Poll `path` at a <=2s interval until its s12_self_reap section is
+    present, or `wait` seconds elapse. Returns (terminal, last_seen_text).
+    When the record is already terminal on the first read it returns True
+    immediately — never sleeps past an already-terminal record."""
+    deadline = time.monotonic() + max(0, wait)
+    last = ""
+    while True:
+        try:
+            last = Path(path).read_text(encoding="utf-8")
+        except OSError:
+            last = ""
+        if _record_is_terminal(path):
+            return True, last
+        if time.monotonic() >= deadline:
+            return False, last
+        time.sleep(min(2.0, max(0.05, deadline - time.monotonic())))
+
+
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     """List tmux windows in sessions whose name starts with agi-master or
     belam; with `--seats`, list the registry seats instead — one line per
@@ -1571,8 +1601,21 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         if not files:
             print(f"(no rotation record for {seat})")
         else:
+            latest = files[-1]
+            # hypothesis:rotate-status-record-latest-gains-wait (L4.233) —
+            # `--wait N` re-reads the latest record until its s12_self_reap
+            # section is terminal, or N seconds elapse. A caller that needs
+            # the terminal result no longer hand-rolls a sleep+reinvoke loop.
+            wait = int(getattr(args, "wait", 0) or 0)
+            if wait > 0:
+                terminal, last_txt = _poll_record_terminal(latest, wait)
+                if not terminal:
+                    print(f"# latest rotation record: {latest.name}")
+                    print(last_txt, end="")
+                    print(f"ERR: still not terminal after {wait}s",
+                          file=sys.stderr)
+                    return 2
             try:
-                latest = files[-1]
                 print(f"# latest rotation record: {latest.name}")
                 print(latest.read_text(encoding="utf-8").rstrip())
             except OSError as exc:
@@ -3918,8 +3961,6 @@ DEFAULT_STARTUP_BYTE_CAP = 4000
 #: against _STARTUP_FILTERS below.
 DEFAULT_STARTUP_ALLOW = {"python", "python3", "git", "tmux", "ps", "curl"}
 
-_GIT_READONLY_SUBCMDS = {"status", "log", "rev-parse", "branch", "fetch", "diff"}
-
 #: Per-subcommand ALLOWLIST over the git producing judge's arguments
 #: (hypothesis:l4-a-producing-git-stage-is-argument-restricted). A git first
 #: stage used to be accepted on the READONLY SUBCMD name alone, so its
@@ -3937,13 +3978,22 @@ _GIT_READONLY_SUBCMDS = {"status", "log", "rev-parse", "branch", "fetch", "diff"
 #: program), `-- <pathspec>` (reads a named path), or any token containing
 #: `$`/backtick/`~` — is ever on a set, so each falls through to the NAMED
 #: refusal `producer git <token> not on the allowlist`.
+#:
+#: Each row is a 4-tuple (allowed short-FLAG letters, allowed `--long` forms,
+#: allow-bare-`-N`, REQUIRED `--long` forms). `fetch` is NOT on the allowlist
+#: at all (hypothesis:l4-the-git-allowlist-has-no-network-write): a bare `git
+#: fetch` is a NETWORK WRITE (it advances remote-tracking refs) and no
+#: rotation template uses it, so it falls through to `producer git fetch not
+#: on the allowlist`. `diff` REQUIRES `--stat`: a bare `git diff` would print
+#: the working-tree PATCH into the record and the successor's STARTUP OUTPUT,
+#: so a `diff` whose args never name `--stat` is refused even though the flag
+#: itself is allowed.
 _GIT_ALLOW = {
-    "status":    (frozenset("sb"), frozenset(), False),
-    "log":       (frozenset(), frozenset(("--oneline", "--stat")), True),
-    "diff":      (frozenset(), frozenset(("--stat",)), False),
-    "rev-parse": (frozenset(), frozenset(("--abbrev-ref",)), False),
-    "branch":    (frozenset(), frozenset(("--show-current",)), False),
-    "fetch":     (frozenset(), frozenset(), False),
+    "status":    (frozenset("sb"), frozenset(), False, frozenset()),
+    "log":       (frozenset(), frozenset(("--oneline", "--stat")), True, frozenset()),
+    "diff":      (frozenset(), frozenset(("--stat",)), False, frozenset(("--stat",))),
+    "rev-parse": (frozenset(), frozenset(("--abbrev-ref",)), False, frozenset()),
+    "branch":    (frozenset(), frozenset(("--show-current",)), False, frozenset()),
 }
 _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
                           "display-message"}
@@ -4386,9 +4436,10 @@ def _git_arg_refusal(args: list) -> str | None:
     allow = _GIT_ALLOW.get(sub)
     if allow is None:
         return ("producer git " + " ".join(args)).strip()
-    flags, longs, numeric = allow
+    flags, longs, numeric, requires = allow
     i += 1
     pos = 0
+    seen = set()
     while i < len(args):
         tok = args[i]
         for bad in ("$", "`", "~"):
@@ -4407,6 +4458,7 @@ def _git_arg_refusal(args: list) -> str | None:
             base = tok.split("=", 1)[0]
             if base not in longs:
                 return f"producer git {base} not on the allowlist"
+            seen.add(base)
             i += 1
             continue
         if numeric and _NUM_OPT_RE.match(tok):
@@ -4417,6 +4469,11 @@ def _git_arg_refusal(args: list) -> str | None:
             if ch not in flags:
                 return f"producer git {tok} not on the allowlist"
         i += 1
+    for req in requires:
+        if req not in seen:
+            # a REQUIRED --long form never appeared (diff without --stat would
+            # print the working-tree patch) — refuse the subcommand by name
+            return f"producer git {sub} {req} required"
     return None
 
 
@@ -5874,6 +5931,13 @@ def main(argv: list[str] | None = None) -> int:
                           help="print the LATEST durable rotation record for "
                                "--seat, plus the current sequence and the "
                                "seat's own row (read-only)")
+    p_status.add_argument("--wait", type=int, default=0,
+                          help="with --record latest: re-read the latest "
+                               "record at a <=2s interval until its "
+                               "s12_self_reap section is present (terminal) "
+                               "or N seconds elapse. On success print the "
+                               "normal output; on timeout print the last-seen "
+                               "record, ERR and exit 2.")
     p_status.set_defaults(func=cmd_status)
 
     # seq: print the current rotation-alert sequence number (one read)
