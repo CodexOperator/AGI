@@ -565,8 +565,9 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_val) -> str:
-    """The agent.json `status` for this agent, if a record exists.
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None]:
+    """The agent.json `status` for this agent, if a record exists, plus which
+    sessions root answered (`"worktree"`, `"main"`, or None for none).
 
     `iter_val` is the lease's own `iter` field, which is the round's genuine
     id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
@@ -574,19 +575,59 @@ def _agent_status(root: Path, agent_id: str, iter_val) -> str:
     live round. `locations.iteration_dirname` turns the lease value into the
     exact dir name for both schemes: `L4.167` -> `iter-L4.167`, `140` ->
     `iter-140`.
+
+    A `--branch` round writes its agent record into ITS OWN git worktree's
+    sessions dir (`.agi/worktrees/<agent>/.agi/sessions`); a main-tree round
+    writes into the MAIN checkout's sessions dir. `budget_dir` resolves to the
+    MAIN budget dir from any worktree, so `budget_dir(root).parent` is always
+    the MAIN sessions dir and is the right home for a main-tree round — but
+    for a worktree round it was a structural false negative: every worktree
+    row printed `(no agent.json)` even while the record was live on disk
+    (hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir). So
+    the lookup resolves, in order:
+      1. the round's OWN worktree sessions dir — from the lease's recorded
+         `worktree` path, else the conventional `<main>/.agi/worktrees/
+         <agent_id>` — and
+      2. the MAIN sessions dir.
+    `(no agent.json)` is returned only when neither holds a record.
     """
-    # budget_dir is <graph>/sessions/.spawn-budget, so its PARENT is the
-    # sessions dir that holds iter-L.NNN/<agent_id>/agent.json.
     try:
         dirname = locations.iteration_dirname(iter_val)
     except ValueError:
-        return "(no agent.json)"
+        return "(no agent.json)", None
+    # The round's own worktree roots, primary then conventional fallback.
+    worktrees: list[Path] = []
+    if worktree:
+        worktrees.append(Path(worktree))
+    else:
+        main = locations.git_common_root(locations.find_project_root(root) or root)
+        if main:
+            # `git_common_root` returns the repo root; the worktrees live under
+            # the graph dir (`<repo>/.agi/worktrees/<agent_id>`).
+            main_graph = locations.find_project_root(main) or main
+            worktrees.append(main_graph / "worktrees" / agent_id)
+    for wt in worktrees:
+        graph = locations.find_project_root(wt) or wt
+        # Never bleed upward: when this worktree root has no graph of its own,
+        # `find_project_root` resolves an ANCESTOR's graph (the MAIN one) and a
+        # main-tree record would get mislabeled `worktree`. Only accept a graph
+        # at or below the candidate worktree root.
+        if not (graph == wt or wt in graph.parents):
+            continue
+        p = graph / locations.SESSIONS_DIR_NAME / dirname / agent_id / "agent.json"
+        try:
+            rec = json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        return rec.get("status") or "(no status)", "worktree"
+    # budget_dir is <graph>/sessions/.spawn-budget, so its PARENT is the
+    # MAIN sessions dir that holds iter-L.NNN/<agent_id>/agent.json.
     p = (budget_dir(root).parent / dirname / agent_id / "agent.json")
     try:
         rec = json.loads(p.read_text())
     except (OSError, json.JSONDecodeError):
-        return "(no agent.json)"
-    return rec.get("status") or "(no status)"
+        return "(no agent.json)", None
+    return rec.get("status") or "(no status)", "main"
 
 
 def _round_status(root: Path, iter_str: str) -> int:
@@ -623,16 +664,21 @@ def _round_status(root: Path, iter_str: str) -> int:
         started = int(rec.get("spawned_at") or rec.get("reserved_at") or time.time())
         elapsed = max(0, int(time.time()) - started)
         socks = _pid_sockets(pid)
-        status = _agent_status(root, rec.get("agent_id", "?"), rec.get("iter"))
+        status, src = _agent_status(root, rec.get("agent_id", "?"),
+                                    rec.get("iter"), rec.get("worktree"))
         total_ticks += ticks
         total_socks += socks
         if tier == "kid":
             kids += 1
         if status in TERMINAL:
             done = True
+        # `@wt` names the root that answered — the round's OWN worktree
+        # sessions dir rather than MAIN's (hypothesis:l4-spawn-budget-iter-
+        # reads-the-rounds-own-sessions-dir).
+        suffix = "@wt" if src == "worktree" else ""
         print(f"  {rec.get('agent_id')} tier={tier} pid={pid} "
               f"elapsed={elapsed}s ticks={ticks} sockets={socks} "
-              f"agent={status}")
+              f"agent={status}{suffix}")
     if kids >= 1:
         print(f"round L{nnn}: parent alive, {kids} live kid(s)")
         return 0
