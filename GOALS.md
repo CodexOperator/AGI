@@ -6365,6 +6365,8 @@ SL4.06 harvested 21:58Z into the seat (merge 44711c219): line (1) landed — key
 
 OWNER 22:1xZ (verbatim in doc:l4-owner-decisions lines 657-658, relayed by Prime XII 22:14Z): comms stay plaintext-and-signed by default; a lockdown BOOLEAN config is reserved NOW (flag + seam, warnings printed, optional custodian signing server later; Vultisig is the reference) and built NEXT season (rungs 5-8; rungs 1-4 are this loop). Cut as SL5.03 under hypothesis:l4-lockdown-is-a-reserved-boolean-that-warns-and-encrypts-nothing-until-it-is-built (parallel with SL5.02, disjoint seams). The FLIP to enforcing is goal:g15.26, cut after SL5.02 + merge-up SL2#7.
 
+SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keygen --all-live refuses a non-prime_director by name before any key file mints; a CR/CRLF body signs and verifies byte-for-byte (the READER was stripping CR; fixed at the reader, not the test); the seatsig package binds to its sys.modules twin so seatsig.SCHEMES is src.seatsig.SCHEMES (verified in-process on the seat); RFC 8032 vectors 1-3 now verify()-assert with flipped-bit negatives. Kid a00-82e704e6 proved, 316 green send neighbourhood. The crypto gate FIX is complete; the FLIP is goal:g15.26 after merge-up SL2#7.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
