@@ -4067,13 +4067,25 @@ def _filter_arg_refusal(exe: str, args: list) -> str | None:
     i = 0
     while i < len(args):
         tok = args[i]
+        # EVERY token of EVERY filter stage — options, option values and
+        # positionals alike. A `$`, backtick or `~` anywhere is refused:
+        # `_resolve_shell_vars` expands `$VAR` from the whole environment at
+        # exec time even inside single quotes, so `sed 's/x/$SECRET/'`,
+        # `grep '$SECRET'` (a match oracle) and `tr abcdef "$SECRET"` (a
+        # mapping) would otherwise leak or map an env value into the record
+        # and the successor's STARTUP OUTPUT. A `~` is a path homing/
+        # tilde-expansion vector. Nothing legitimate is lost: a sed `$p`
+        # address or grep `x$` anchor already fails at exec time (`first
+        # turn env var $p is not set`).
+        for bad in _FILTER_FORBIDDEN:
+            if bad in tok:
+                return f"filter {exe} {tok} not on the allowlist"
         if not tok.startswith("-"):
-            # a POSITIONAL, governed by count and (echo) shape
+            # a POSITIONAL, governed by count and shape
             if exe == "echo":
-                for bad in _FILTER_FORBIDDEN:
-                    if bad in tok:
-                        return f"filter echo {tok} not on the allowlist"
-                i += 1              # echo: positionals are free
+                # echo positionals are FREE (forbidden chars already swept
+                # above) — the value prints back to the record verbatim.
+                i += 1
                 continue
             if exe in ("grep", "egrep") and pattern_supplied:
                 return f"filter {exe} {tok} not on the allowlist"
@@ -4105,6 +4117,15 @@ def _filter_arg_refusal(exe: str, args: list) -> str | None:
                 if body[j + 1:]:
                     j = len(body)  # attached value `-c1-80` / `-m3`
                 elif i + 1 < len(args):
+                    # a separate-token value `-n 5` consumed via skip; the
+                    # outer loop never re-visits it, so sweep it for
+                    # forbidden chars HERE, exactly like the option token, or
+                    # `-e $SECRET` would expand the env value at exec time.
+                    val_tok = args[i + 1]
+                    for bad in _FILTER_FORBIDDEN:
+                        if bad in val_tok:
+                            return (f"filter {exe} {val_tok} "
+                                    "not on the allowlist")
                     skip = 2        # separate value `-n 5` consumed
                     j = len(body)
                 else:
