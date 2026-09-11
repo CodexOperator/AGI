@@ -2598,3 +2598,196 @@ def test_whois_unverified_outranks_a_working_tree_answer(monkeypatch,
     code, text = _send.whois(tmp_path, "7902ac", "belam")
     assert code == _send.WHOIS_UNVERIFIED, text
     assert "NOT authoritative" in text
+
+
+# ── hypothesis:l4-a-truncated-deferred-body-delivers-once ──────────────────
+#   a truncated deferred body reaches the pane EXACTLY ONCE: the stranded-line
+#   ownership match tries the TAILED rendering of the deferred body at the
+#   recorded count too (the old undo matched only the untailed render, which
+#   for a truncated body is a DIFFERENT slice -- the tail is counted inside
+#   _NUDGE_LINE_MAX, so the tailed render is SHORTER), and a record without a
+#   recorded count is matched against every plausible render the strand could
+#   have carried (each count 0..pending, tailed and untailed).
+
+def test_truncated_tailed_deferred_strand_is_ours(project: Path, monkeypatch,
+                                                  capsys):
+    """(a) FALSIFIER: a deferred body long enough to truncate, stranded as the
+    TAILED render an earlier deferred DELIVERY retry typed (count tail + inbox
+    tail) before its Enter landed. Old bytes judged ownership against the
+    UNTAILED render at the recorded count; for a truncated body that slice is
+    LONGER than the tailed one (the tail is counted inside `_NUDGE_LINE_MAX`),
+    so `own_line in region` missed OUR OWN strand, judged it FOREIGN, and the
+    next retry typed the body AGAIN -- delivered twice. Fixed: the match also
+    tries the TAILED rendering of the deferred body, so the own strand is
+    recognised (Enter only) and the record cleared -- one delivery."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                          # flattened over the cap
+    assert send_mod._store_deferred(root, seat, sender, big)
+    send_mod._record_deferred_render(root, seat, 1)    # typed at more=1
+    strand = send_mod._nudge_line(seat, sender, big, 1,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    assert len(strand) <= send_mod._NUDGE_LINE_MAX
+    # the FALSIFIER: the untailed render is a DIFFERENT (longer) slice, so the
+    # old single untailed `own_line` is not a substring of the own tailed strand
+    assert send_mod._nudge_line(seat, sender, big, 1) not in strand, \
+        "the tailed strand must diverge from the untailed render (the tail is" \
+        " counted inside the cap)"
+    pane = _FixturePane(width=200)              # wide: no wrap distracts
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed(calls) == [], \
+        "the own TAILED truncated strand must not be typed again"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own strand is a real delivery -- the record is cleared, so the " \
+        "truncated body is never typed a second time"
+
+
+def test_truncated_untailed_deferred_strand_is_ours(project: Path,
+                                                    monkeypatch, capsys):
+    """(b) CLAIM control: the UNTAILED truncated rendering of the deferred body
+    (a strand left by the body's earlier deferred-under-busy attempt, before
+    any inbox retry attached the tail) is also recognised as ours. Guards the
+    tail fix from making the match TAIL-only -- the no-tail render at the
+    recorded count must keep matching its own strand."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80
+    assert send_mod._store_deferred(root, seat, sender, big)
+    send_mod._record_deferred_render(root, seat, 1)
+    strand = send_mod._nudge_line(seat, sender, big, 1)   # NO inbox tail
+    assert len(strand) <= send_mod._NUDGE_LINE_MAX
+    pane = _FixturePane(width=200)
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed(calls) == [], "the own UNTAILED truncated strand retyped"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the own strand is a real delivery -- cleared"
+
+
+def test_truncated_different_same_sender_deferred_strand_is_foreign(
+        project: Path, monkeypatch, capsys):
+    """(c) FALSIFIER control (hypothesis:l4-send-py-same-sender-stranded-line-
+    and-the-swallowed-wake, clause (a)): a stranded line holding a DIFFERENT
+    body of a DIFFERENT length from the SAME sender must read as FOREIGN even
+    when truncated -- the match is never widened to head-only. The foreign
+    strand alone is submitted and the deferred body SURVIVES for a later
+    retry (never typed twice, never dropped).
+    (a)."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                                  # the deferred body
+    other = "marker " * 80                              # different body, same sender
+    assert send_mod._store_deferred(root, seat, sender, big)
+    send_mod._record_deferred_render(root, seat, 1)
+    strand = send_mod._nudge_line(seat, sender, other, 1,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    pane = _FixturePane(width=200)
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed(calls) == [], \
+        "a FOREIGN truncated strand must not be typed after"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand], pane.submitted
+    assert (lambda d: d is not None and d.get("sender") == "mee"
+            and d.get("body") == big)(send_mod._read_deferred(root, seat)), \
+        "a different same-sender body is NOT ours -- the deferred body kept"
+
+
+def test_deferred_strand_without_recorded_count_matched_at_its_own_render(
+        project: Path, monkeypatch, capsys):
+    """(d) SECOND-HALF FALSIFIER: a deferred record with NO `more` key (stored
+    by `_store_deferred` and never rendered, or written before L4.222) whose
+    stranded line was typed at more=2 while pending is NOW 3. Old bytes
+    judged it against the CURRENT pending (the `.get("more", more)` default),
+    so the own strand -- truncated under the more=2 tail -- read as foreign
+    and the body was typed again. Fixed: a record without a count is matched
+    against every render the strand could have carried (each count 0..pending,
+    tailed and untailed), so the more=2 strand is recognised (Enter only) and
+    the record cleared -- one delivery."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80
+    # a LEGACY record with no `more` key (write the JSON directly: this is
+    # the state a pre-L4.222 record or a stored-but-never-rendered record has)
+    _nudge_deferred = send_mod._nudge_deferred_path(root, seat)
+    _nudge_deferred.parent.mkdir(parents=True, exist_ok=True)
+    _nudge_deferred.write_text(json.dumps({"sender": sender, "body": big}))
+    assert send_mod._read_deferred(root, seat).get("more") is None
+    # the strand the PRIOR delivery typed (more=2): the own body truncated
+    strand = send_mod._nudge_line(seat, sender, big, 2,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    # pending has since grown to 3 (one more dm coalesced)
+    send_mod._clear_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    assert send_mod._pending_more(root, seat) == 3
+    pane = _FixturePane(width=200)
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed(calls) == [], \
+        "the own more=2 stratum must not be typed again at pending=3"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the own strand is a real delivery -- cleared, never typed twice"
+
+
+def test_truncated_deferred_body_typed_once_across_busy_strand_retry(
+        project: Path, monkeypatch, capsys):
+    """(e) END-TO-END FALSIFIER: a 300-char deferred body across the full
+    saga -- busy (deferred, nothing typed) -> a delivery retry that strands
+    the TAILED truncated line -> a later inbox retry -- reaches the pane
+    EXACTLY ONCE. Old bytes judged the stranded TAILED line foreign and the
+    retry TYPED the body AGAIN (two `[nudge:` typed lines for one deferral).
+    Fixed: the own strand is recognised, Entered alone, and never re-typed
+    -- one body, one typed line, one delivery."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 60                              # 300 chars flattened
+    # (1) BUSY: the dm coalesces, the body is deferred, nothing typed
+    busy = _fixture_text("claude_pane_busy.txt")
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=busy)
+    send_mod.send_dm(project, sender, seat, big, sender)
+    assert _typed(calls) == [], "the busy send must type nothing"
+    assert send_mod._read_deferred(root, seat) is not None, "deferred"
+    # (2) STRANDED: a delivery retry typed the TAILED truncated line and its
+    # Enter never landed (the line sits unsubmitted in the box)
+    strand = send_mod._nudge_line(seat, sender, big, 0,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    pane = _FixturePane(width=200)                  # wide: strand untruncated
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    # (3) RETRY: body=None inbox send recognises the own strand (a record with
+    # no recorded count is matched across every plausible render count)
+    calls2 = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed(calls2) == [], \
+        "the retry must NOT type the already-delivered body a second time"
+    assert _enters(calls2) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls2
+    assert pane.submitted == [strand], pane.submitted
+    # ONE delivery total: the single `[nudge:`-shaped line ever put in the box
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the body was delivered -- the record is cleared, never typed twice"
