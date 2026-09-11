@@ -3816,17 +3816,175 @@ _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
 _STARTUP_FILTERS = {"head", "tail", "sed", "grep", "egrep", "cat", "echo",
                     "cut", "sort", "wc", "tr", "awk", "uniq"}
 
+#: Shell operators a first_turn command may NOT contain. `|` and `;` ARE
+#: modeled (the no-shell executor wires pipelines and sequential commands
+#: explicitly, approach A of hypothesis:l4-first-turn-allowlist-cannot-be-
+#: bypassed-by-the-shell); every OTHER shell metacharacter is refused with a
+#: named reason before anything runs, because we run WITHOUT a shell and do
+#: not model it. A refusal now is the explicit floor: if a future change
+#: reintroduces `shell=True`, this named gate still stops the bypass. A bare
+#: `$VAR`/`${VAR}` is NOT here — it is resolved safely from os.environ (see
+#: _resolve_shell_vars), never handed to a shell.
+_STARTUP_SHELL_OPS = ("&&", "||", "$(", "`", "<<", ">>", ">",
+                     "<", "&", "\n")
+
+
+def _operator_refusal(command: str) -> str | None:
+    """Return a one-line named refusal if `command` contains an unmodeled
+    shell operator (`&&` `||` `$(...`  backtick `<` `>` `<<` `>>` `&` newline),
+    else None. `|` and `;` are modeled separators (the no-shell executor wires
+    them explicitly) and `$VAR`/`${VAR}` expands from env, so none of those
+    trip this gate. Checked at allowlist time AND again on the resolved command
+    before it runs (belt over the no-shell executor)."""
+    for op in _STARTUP_SHELL_OPS:
+        if op in command:
+            name = "newline" if op == "\n" else op
+            return f"unmodeled shell operator {name!r} in first_turn command"
+    return None
+
+_SHELL_VAR_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def _resolve_shell_vars(command: str) -> str:
+    """Expand `$VAR` and `${VAR}` from os.environ WITHOUT a shell, substituting
+    the value as a literal token. REFUSE (raise ValueError, the var named) on a
+    referenced var that is not set in the environment, so an unexpanded `$VAR`
+    is never silently handed to a program as a literal string. Only this bare
+    env form is modeled; `$(` command substitution is refused by
+    _operator_refusal before this is reached."""
+    def _sub(m):
+        name = m.group(1) or m.group(2)
+        val = os.environ.get(name)
+        if val is None:
+            raise ValueError(f"first_turn env var ${name} is not set")
+        return val
+    return _SHELL_VAR_RE.sub(_sub, command)
+
+
+class _StartupParseError(ValueError):
+    """Raised when a first_turn command cannot be tokenized (unbalanced quote,
+    trailing backslash, etc.). The caller (the allowlist guard / runner) turns
+    this into a NAMED refusal, never a crash of rotate-self."""
+    pass
+
+
+def _tokenize_startup(command: str) -> list:
+    """Quote-aware shlex tokenization of a WHOLE first_turn command in one
+    pass. An UNQUOTED `|` or `;` (shlex punctuation chars) is emitted as its
+    own single-token separator; a `|`/`;` inside quotes stays inside its
+    argument token, so a quoted argument like `"a|b"` survives whole. This is
+    the ONE grammar both the allowlist judge (_segment_parts) and the no-shell
+    executor (_command_units) split on, so the two cannot diverge — the whole
+    point of hypothesis:l4-first-turn-allowlist-cannot-be-bypassed-by-the-shell.
+    Raises _StartupParseError (naming the shlex error) on an unparseable
+    command, e.g. an unbalanced quote or trailing backslash."""
+    try:
+        lex = shlex.shlex(command, posix=True, punctuation_chars=True)
+        lex.whitespace_split = True
+        return list(lex)
+    except ValueError as exc:
+        raise _StartupParseError(
+            "unparseable first_turn command: %s" % exc) from exc
+
+
+def _startup_units(command: str) -> list:
+    """Quote-aware split of a tokenized command into `;`-units of `|`-stages.
+    Returns a list of units, each a list of stages, each a list of tokens, with
+    the unquoted `|`/`;` separators removed (they became single tokens in
+    _tokenize_startup and are consumed here as boundaries). An unquoted `|`
+    closes the current stage; an unquoted `;` closes the current unit. Runs
+    NOTHING. Both the allowlist judge and the no-shell executor derive their
+    groups from this one function."""
+    toks = _tokenize_startup(command)
+    units, stages, cur = [], [], []
+    for t in toks:
+        if t == "|":
+            if cur:
+                stages.append(cur)
+                cur = []
+        elif t == ";":
+            if cur:
+                stages.append(cur)
+                cur = []
+            if stages:
+                units.append(stages)
+                stages = []
+        else:
+            cur.append(t)
+    if cur:
+        stages.append(cur)
+    if stages:
+        units.append(stages)
+    return units
+
+
+def _command_units(command: str) -> list:
+    """Parse a (fully resolved) first_turn command into sequential `;`-units,
+    each a list of `|`-stage (argv, env_prefix) pairs. A leading `VAR=value`
+    prefix token of a stage is retained and applied as THAT ONE stage's
+    environment (never the whole command); it is stripped from the argv. Runs
+    NOTHING. Same grammar as the allowlist judge (_segment_parts): both derive
+    from _tokenize_startup / _startup_units, so the separators are identical
+    (unquoted `|`/`;` only) and nothing outside these tokens can reach the box.
+    Raises _StartupParseError on an unparseable command."""
+    units = []
+    for stage_list in _startup_units(command):
+        parsed = []
+        for stage in stage_list:
+            toks = stage[:]
+            i = 0
+            prefix = {}
+            while i < len(toks) and "=" in toks[i] and not toks[i].startswith("-"):
+                var, _, val = toks[i].partition("=")
+                prefix[var] = val
+                i += 1
+            parsed.append((toks[i:], prefix))
+        if any(argv for argv, _ in parsed):
+            units.append(parsed)
+    return units
+
+
+def _run_units_no_shell(units: list, timeout_s: int):
+    """Run sequential `;` units, each a `|` pipeline, WITHOUT a shell (approach
+    A). Each stage is subprocess.run(stage_argv, shell=False), the prior stage's
+    stdout wired as the next stage's stdin; a stage's own `VAR=value` prefix is
+    passed as env. Returns (last_rc, merged_output). Nothing outside the parsed
+    argv can execute: no shell, no redirects, no `&&`/`||`/`$(...)`/backticks."""
+    last_rc, chunks = 0, []
+    for stages in units:
+        prev_in = None
+        for argv, prefix in stages:
+            if not argv:
+                continue
+            proc = subprocess.run(argv, shell=False, capture_output=True,
+                                  input=prev_in, text=True, timeout=timeout_s,
+                                  env={**os.environ, **prefix})
+            last_rc = proc.returncode
+            merged = proc.stdout or ""
+            if proc.stderr:
+                merged = (merged + "\n" + proc.stderr).strip()
+            prev_in = proc.stdout
+            chunks.append(merged)
+    return last_rc, "\n".join(c for c in chunks if c)
+
 
 def _segment_parts(command: str) -> list:
-    """Split a first_turn command into pipeline parts (one `|`-part per
-    list of shlex tokens), with a leading env assignment skipped per part."""
+    """Split a first_turn command into producing pipeline parts, quote-aware
+    (a `|`/`;` inside quotes stays inside its argument). Returns one token-
+    list per `|`-/`;`-part, a leading env assignment skipped per part. THE SAME
+    grammar as the no-shell executor (_command_units): both derive from
+    _tokenize_startup / _startup_units, so the judge and the executor split on
+    identical separators (unquoted `|`/`;` only) and cannot diverge. Raises
+    _StartupParseError on an unparseable command; the allowlist guard turns
+    that into a refusal, never a crash."""
     parts = []
-    for seg in re.split(r"\||;", command):
-        toks = shlex.split(seg) if seg.strip() else []
-        i = 0
-        while i < len(toks) and "=" in toks[i] and not toks[i].startswith("-"):
-            i += 1
-        parts.append(toks[i:])
+    for stage_list in _startup_units(command):
+        for stage in stage_list:
+            toks = stage[:]
+            i = 0
+            while i < len(toks) and "=" in toks[i] and not toks[i].startswith("-"):
+                i += 1
+            parts.append(toks[i:])
     return parts
 
 
@@ -3836,8 +3994,21 @@ def _producing_refusal(command: str) -> str | None:
 
     Pipeline filters (head/grep/sed/...) after a `|` are allowed; every
     PRODUCING segment (`;`- or `|`-first) must pass the strict allowlist.
+    An unmodeled shell operator (`&&` `||` `&` `$(...)` backtick `<` `>`
+    `>>` newline) is refused first with its name — the floor that keeps the
+    grammar closed even if a future executor reintroduces a shell.
     """
-    for idx, toks in enumerate(_segment_parts(command)):
+    op = _operator_refusal(command)
+    if op:
+        return op
+    try:
+        parts = _segment_parts(command)
+    except _StartupParseError as exc:
+        # Never raise out of the guard: an unparseable command (unbalanced
+        # quote, trailing backslash, ...) is a NAMED refusal, not a crash of
+        # rotate-self.
+        return "unparseable command: %s" % exc
+    for idx, toks in enumerate(parts):
         if not toks:
             continue
         exe = os.path.basename(toks[0])
@@ -3913,28 +4084,54 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "refused": f"not on startup.allow: {refusal}"})
             continue
         try:
-            resolved = _resolve_startup_placeholders(cmd, values)
+            record_cmd = _resolve_startup_placeholders(cmd, values)
         except ValueError as exc:
             results.append({"label": label, "cmd": cmd, "refused": str(exc)})
             continue
+        # Two forms (fix b): `record_cmd` keeps `$VAR` LITERAL — what the result
+        # dict's `cmd` and dry-run report, byte-identical to the pre-expansion
+        # text so a secret never lands in the record. `exec_cmd` env-expands it
+        # and is used ONLY to build the no-shell argv; execution needs the
+        # value, the record must not hold it.
+        try:
+            exec_cmd = _resolve_shell_vars(record_cmd)
+        except ValueError as exc:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": str(exc)})
+            continue
+        # Belt over the no-shell executor: re-check the EXEC command for an
+        # unmodeled operator (a placeholder or env value could have introduced
+        # one). `$OPENROUTER_PROVISIONING_KEY` etc. are expanded for execution
+        # only; the record keeps the literal `$VAR`.
+        op = _operator_refusal(exec_cmd)
+        if op:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": op})
+            continue
         if dry_run:
-            results.append({"label": label, "cmd": resolved, "dry": True})
+            results.append({"label": label, "cmd": record_cmd, "dry": True})
             continue
         try:
-            proc = subprocess.run(resolved, shell=True, capture_output=True,
-                                  text=True, timeout=timeout_s)
+            units = _command_units(exec_cmd)
+        except _StartupParseError as exc:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": "unparseable command: %s" % exc})
+            continue
+        if not units:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": "no executable in first_turn command"})
+            continue
+        try:
+            rc, out = _run_units_no_shell(units, timeout_s)
         except subprocess.TimeoutExpired:
-            results.append({"label": label, "cmd": resolved,
+            results.append({"label": label, "cmd": record_cmd,
                             "timed_out_after_s": timeout_s})
             continue
-        out = proc.stdout or ""
-        if proc.stderr:
-            out = (out + "\n" + proc.stderr).strip()
         truncated = False
         if len(out) > byte_cap:
             out = out[:byte_cap]
             truncated = True
-        results.append({"label": label, "cmd": resolved, "rc": proc.returncode,
+        results.append({"label": label, "cmd": record_cmd, "rc": rc,
                         "output": out, "truncated": truncated,
                         "byte_cap": byte_cap})
     return results
