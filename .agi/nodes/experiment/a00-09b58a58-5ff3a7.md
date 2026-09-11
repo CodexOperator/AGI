@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one
 next_edges: []
 confidence: 0.8
-edited_by: a00-ac50ece0
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-09b58a58-5ff3a7
 loop: hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one@s2
@@ -100,3 +100,5 @@ the parent reviewed kid 3. WHAT THE INSTRUCTION SAID (parent brief): fix the sea
 
 ## Agent Notes
 Seam fix (ack carries effective identity ref or self_sid; cmd_loop post-join announce no longer lies) + mechanism-3 geometry guard (rotate-self refuses by-name with behind-count+sync cmd on a stale .geometry/, or serves the integration tree via git_common_root; record names template_source). 337 rotate/startup/templates/send tests green; 3 new red-first m3 tests pass.
+
+DEVIATION (director sensei-director L2, 7cab79ca0 + 9460b63ea): the seam fix (ack carries ref or self_sid) was REVERTED — the session uuid is not an address; and GEOMETRY_SYNC_CMD says merge, never rebase; the m3 serve path is shadowed live by _prepare_checks (test rewritten to the live precedence). The body above describes the kid's bytes, not the landed ones.
