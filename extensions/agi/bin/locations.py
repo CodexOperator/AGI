@@ -202,6 +202,20 @@ def find_project_root(start: Path | str | None = None) -> Path | None:
             return found
         if config_path(cur) is not None:
             return cur
+        # Bound to `start`'s OWN repository (hypothesis:l4-the-management-key-
+        # lookup-is-bounded-to-the-given-root). A directory/file of `.git` is the
+        # boundary of the repository `start` is inside; an `.agi`/config found at
+        # that level (checked above) is start's own, so a linked worktree or main
+        # checkout that keeps its `.agi` beside its `.git` still resolves. But
+        # anything ABOVE that boundary lives in a DIFFERENT (ancestral)
+        # repository and must never be climbed into — a `tmp_path` under an
+        # unrelated nested fixture git repo must resolve None, not the outer
+        # project's key. (A tmp dir under the CALLER'S OWN worktree still
+        # resolves that repo's `.agi`, since it sits beside the same `.git`;
+        # test-minting from such a dir is the L4.155 guard's job, unchanged
+        # as the second line.)
+        if (cur / ".git").exists():
+            break
         if cur.parent == cur:
             break
         cur = cur.parent
