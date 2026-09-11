@@ -541,106 +541,107 @@ def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys
             p.kill(); p.wait()
 
 
-def test_agent_status_reads_the_rounds_own_worktree_sessions_dir(root: Path):
-    """hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir — a
-    record that lives ONLY under the round's own worktree sessions dir (the
-    lease's recorded `worktree`) is found and named `worktree`, even though
-    MAIN holds nothing."""
+def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
+    """hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir,
+    MEASURED layout: a PARENT agent.json is written by the DISPATCHER into
+    the DISPATCHING seat's worktree sessions dir
+    (`<main>/.agi/worktrees/seat-sanctuary-director/.agi/sessions`). The
+    lookup must find it there and name the root `seat:sanctuary-director`."""
     _mk_project(root)
-    wt = root / "wt"
-    # worktree graph root: <wt>/.agi, holding the record's sessions dir
-    (wt / ".agi" / "sessions" / "iter-L4.167" / "kid-0").mkdir(parents=True)
-    (wt / ".agi" / "config.json").write_text("{}")
-    ajson = wt / ".agi" / "sessions" / "iter-L4.167" / "kid-0" / "agent.json"
-    ajson.write_text('{"status": "running"}')
-    status, src = spawn_budget._agent_status(
-        root, "kid-0", "L4.167", worktree=str(wt))
-    assert status == "running", status
-    assert src == "worktree", src
-    assert not (root / ".agi" / "sessions").exists()
-
-
-def test_agent_status_worktree_fallback_is_the_conventional_path(root: Path):
-    """With no lease worktree, the lookup still tries the conventional
-    `<main>/.agi/worktrees/<agent_id>/.agi/sessions` before MAIN, so a worktree
-    round is found even when only the agent_id is known."""
-    _mk_project(root)
-    ajson = (root / ".agi" / "worktrees" / "parent-0" / ".agi"
-             / "sessions" / "iter-L4.167" / "parent-0" / "agent.json")
+    main_graph = root / ".agi"
+    wt_graph = main_graph / "worktrees" / "seat-sanctuary-director" / ".agi"
+    wt_graph.mkdir(parents=True, exist_ok=True)
+    (wt_graph / "config.json").write_text("{}")
+    ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-06c44930" / "agent.json"
     ajson.parent.mkdir(parents=True)
-    (root / ".agi" / "worktrees" / "parent-0" / ".agi" / "config.json").write_text("{}")
-    ajson.write_text('{"status": "done"}')
-    status, src = spawn_budget._agent_status(root, "parent-0", "L4.167")
-    assert status == "done", status
-    assert src == "worktree", src
-
-
-def test_agent_status_prefers_worktree_then_falls_back_to_main(root: Path):
-    """Precedence: the round's own worktree is consulted FIRST; MAIN is the
-    fallback. A record under both is reported from the worktree."""
-    _mk_project(root)
-    wt = root / "wt"
-    (wt / ".agi" / "sessions" / "iter-140" / "a0").mkdir(parents=True)
-    (wt / ".agi" / "config.json").write_text("{}")
-    (wt / ".agi" / "sessions" / "iter-140" / "a0" / "agent.json").write_text(
-        '{"status": "running"}')
-    main_rec = root / ".agi" / "sessions" / "iter-140" / "a0" / "agent.json"
-    main_rec.parent.mkdir(parents=True)
-    main_rec.write_text('{"status": "done"}')
-    status, src = spawn_budget._agent_status(root, "a0", "140", worktree=str(wt))
+    ajson.write_text('{"status": "running"}')
+    status, src = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
     assert status == "running", status
-    assert src == "worktree", src
-    # without the worktree hint, MAIN answers
-    status, src = spawn_budget._agent_status(root, "a0", "140")
+    assert src == "seat:sanctuary-director", src
+
+
+def test_agent_status_finds_kid_record_under_parents_worktree(root: Path):
+    """MEASURED layout: a KID agent.json is written by its PARENT into the
+    PARENT's worktree (`<main>/.agi/worktrees/<parent-id>/.agi/sessions`). The
+    lookup must find it there and name the root `wt:<parent-id>`."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    wt_graph = main_graph / "worktrees" / "a00-06c44930" / ".agi"
+    wt_graph.mkdir(parents=True, exist_ok=True)
+    (wt_graph / "config.json").write_text("{}")
+    ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-71de766d" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "running"}')
+    status, src = spawn_budget._agent_status(root, "a00-71de766d", "L4.193")
+    assert status == "running", status
+    assert src == "wt:a00-06c44930", src
+
+
+def test_agent_status_finds_main_tree_record(root: Path):
+    """A record under only MAIN's sessions dir is found and named `main`."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    ajson = main_graph / "sessions" / "iter-L4.193" / "a0" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "done"}')
+    status, src = spawn_budget._agent_status(root, "a0", "L4.193")
     assert status == "done", status
     assert src == "main", src
 
 
-def test_agent_status_neither_root_is_no_agent_json(root: Path):
-    """`(no agent.json)` is printed only when neither the worktree nor MAIN
-    holds a record — never just because MAIN came up empty."""
+def test_agent_status_no_record_anywhere_is_no_agent_json(root: Path):
+    """`(no agent.json)` is returned only when NOTHING holds the record —
+    MAIN empty, no worktree, no seat — and then src is None."""
     _mk_project(root)
-    wt = root / "wt"
-    (wt / ".agi").mkdir(parents=True)
-    (wt / ".agi" / "config.json").write_text("{}")
-    status, src = spawn_budget._agent_status(root, "kid-0", "L4.167",
-                                             worktree=str(wt))
+    # a seat and a parent worktree both exist but hold no record for `a0`
+    for wt_name in ("seat-sanctuary-director", "a00-06c44930"):
+        wt_graph = root / ".agi" / "worktrees" / wt_name / ".agi"
+        wt_graph.mkdir(parents=True, exist_ok=True)
+        (wt_graph / "config.json").write_text("{}")
+    status, src = spawn_budget._agent_status(root, "a0", "L4.193")
     assert status == "(no agent.json)", status
     assert src is None, src
 
 
 def test_status_iter_worktree_round_is_no_longer_a_false_negative(root, capsys, fast_tick_sample):
     """FALSIFIER of hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-
-    sessions-dir. A LIVE `--branch` round keeps its agent.json in the worktree
-    it runs in, not MAIN's sessions dir. Before the fix every such round
-    printed `(no agent.json)` for every row; now the worktree record is found
-    and the column names the worktree root with `@wt`."""
+    sessions-dir with the MEASURED layout. A parent dispatched from a seat
+    keeps its agent.json in the seat worktree; its kid keeps its own in the
+    parent's worktree. Before the fix both live rows printed `(no agent.json)`
+    while both records sat on disk; now each is found and the column names
+    the root as `@seat:<name>` / `@wt:<parent-id>`."""
     _mk_project(root)
-    wt = root / "wt"
-    (wt / ".agi").mkdir(parents=True)
-    (wt / ".agi" / "config.json").write_text("{}")
+    main_graph = root / ".agi"
+    # seat worktree holds the PARENT record
+    seat_graph = main_graph / "worktrees" / "seat-sanctuary-director" / ".agi"
+    seat_graph.mkdir(parents=True, exist_ok=True)
+    (seat_graph / "config.json").write_text("{}")
+    (seat_graph / "sessions" / "iter-L4.193" / "parent-0").mkdir(parents=True)
+    (seat_graph / "sessions" / "iter-L4.193" / "parent-0" / "agent.json").write_text(
+        '{"status": "running"}')
+    # parent's worktree holds the KID record
+    parent_graph = main_graph / "worktrees" / "parent-0" / ".agi"
+    parent_graph.mkdir(parents=True, exist_ok=True)
+    (parent_graph / "config.json").write_text("{}")
+    (parent_graph / "sessions" / "iter-L4.193" / "kid-0").mkdir(parents=True)
+    (parent_graph / "sessions" / "iter-L4.193" / "kid-0" / "agent.json").write_text(
+        '{"status": "running"}')
     parent = _sleeping()
     kid = _sleeping()
     try:
         p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
-                                       iter_n="L4.167")
+                                       iter_n="L4.193")
         spawn_budget.commit(p_lease, parent.pid)
         k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid",
-                                       iter_n="L4.167")
+                                       iter_n="L4.193")
         spawn_budget.commit(k_lease, kid.pid)
-        # a --branch round records its worktree on the lease (attach_branch)
-        spawn_budget.attach_branch(p_lease, {"worktree": str(wt)})
-        spawn_budget.attach_branch(k_lease, {"worktree": str(wt)})
-        for leaf in ("parent-0", "kid-0"):
-            ajson = wt / ".agi" / "sessions" / "iter-L4.167" / leaf / "agent.json"
-            ajson.parent.mkdir(parents=True)
-            ajson.write_text('{"status": "running"}')
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.167"])
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.193"])
         out = capsys.readouterr().out
         assert rc == 0, out
         assert "STALL-CANDIDATE" not in out, out
         assert "1 live kid(s)" in out, out
-        assert out.count("agent=running@wt") == 2, out
+        assert "agent=running@seat:sanctuary-director" in out, out
+        assert "agent=running@wt:parent-0" in out, out
         assert "(no agent.json)" not in out, out
     finally:
         for p in (parent, kid):
