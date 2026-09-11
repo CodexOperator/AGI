@@ -830,6 +830,70 @@ def test_same_sender_stranded_line_does_not_swallow_new_dm(
         "the new same-sender dm body must be deferred, not lost"
 
 
+def test_wrapped_own_stranded_line_is_recognised_as_ours(
+        project: Path, monkeypatch, capsys):
+    """FALSIFIER (hypothesis:l4-rendered-line-ownership-tolerates-the-wrap,
+    clause (d) continuation): the box WRAPS a line wider than the pane
+    across display rows (the fixture pane is 80 columns), inserting a `\n`
+    mid-line. OLD bytes tested `own_line in region` against that split
+    region, so OUR OWN 88-char stranded line (longer than the 80-col pane)
+    showed on two rows and never matched -- it read as foreign and was
+    re-deferred forever. Fixed: the ownership check collapses the wrap on
+    the region side (joins the rows, drops the wrap-inserted whitespace)
+    before the membership test, so a wrapped own line is recognised and
+    submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = ("ask the sanctuary director about the merged seat rotation "
+            "and home dir pad")
+    line = send_mod._nudge_line(seat, sender, body)   # the rendered line
+    assert len(line) > 80 \
+        and len(line) <= send_mod._NUDGE_LINE_MAX, f"line {len(line)}"
+    pane = _FixturePane(width=80)      # the panel wraps our >80-char line
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == []
+    assert len(pane.capture().splitlines()) > 1, "the pane wraps the line"
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    # recognised as ours: Enter only, no second line, nothing deferred
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_wrapped_own_line_recognised_at_measured_104(
+        project: Path, monkeypatch, capsys):
+    """FALSIFIER companion (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the same >80-char rendered line at the MEASURED pane width (104
+    columns -- the sanctuary-director pane) does NOT wrap, so ownership must
+    hold there too. Guards the regression where a collapse fix only handled
+    the fixture width and dropped the no-wrap case."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = ("ask the sanctuary director about the merged seat rotation "
+            "and home dir pad")
+    line = send_mod._nudge_line(seat, sender, body)
+    assert len(line) <= 104, f"line {len(line)}"
+    pane = _FixturePane(width=104)     # the measured width: no wrap
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == [] and pane.input == line
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
 def test_deferred_delivery_names_the_unread_inbox(project: Path,
                                                   monkeypatch, capsys):
     """CLAUSE (b) FALSIFIER (hypothesis:l4-send-py-same-sender-stranded-line-
