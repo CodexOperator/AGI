@@ -664,3 +664,32 @@ def test_the_map_toggle_is_bound_in_the_interactive_tui():
     src = (BIN / "viewport.py").read_text()
     assert "m swap layer" in src
     assert 'layer = "hierarchy" if layer == "graph" else "graph"' in src
+
+
+def test_town_is_derived_via_the_shared_helper_from_the_frame(tmp_path):
+    """hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — each
+    Frame carries the town of its nearest vision, derived through the SAME
+    helper node_writer/brief/zoom use (never a branch on a town NAME,
+    goal:g8.2), only when a nodes_dir is offered; without one it is ''.
+    A goal whose vision_ref lands in a non-core town renders town=<that>.
+    """
+    nodes = tmp_path / "nodes"
+    (nodes / "vision").mkdir(parents=True)
+    (nodes / "vision" / "va.md").write_text(
+        "---\nid: vision:va\ntype: vision\ntown: townA\n---\nbody\n",
+        encoding="utf-8")
+    (nodes / "goal").mkdir()
+    (nodes / "goal" / "g.md").write_text(
+        "---\nid: goal:g\ntype: goal\nparents:\n  - vision:va\n"
+        "title: G town\n---\nbody\n", encoding="utf-8")
+    g = _Graph([_Node("goal:g", "goal", ["vision:va"]),
+                _Node("vision:va", "vision")])
+    fm = {"goal:g": {"title": "G town"}, "vision:va": {"town": "townA"}}
+
+    frames = V.frame_stream(g, fm, "goal:g", 3,
+                            nodes_dir=str(nodes))
+    assert frames[0].node_id == "goal:g"
+    assert frames[0].town == "townA"
+    # Without a nodes_dir the annotation is absent, not guessed.
+    frames_no_src = V.frame_stream(g, fm, "goal:g", 3)
+    assert frames_no_src[0].town == ""
