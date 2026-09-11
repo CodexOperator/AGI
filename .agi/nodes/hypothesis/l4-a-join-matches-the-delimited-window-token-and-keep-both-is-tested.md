@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.295 (sanctuary-director 214458Z, 2026-09-11T22:43:15Z): merged a00-e7441bfe (1 kid a00-e1e56b9b, proved 0.92). Bytes: rotate.py gains `_json_scalars` + `_registry_matches_window_id(data, window_id)` — the @id must appear as `@<digits>` followed by a non-id character over the PARSED registry JSON; `_join_successor` calls it after `json.loads` in place of the raw `if token not in raw` substring test. Clause B: test_rotate_handover.py pins the KEEP-BOTH branch (same ref, stale pid -> pid rewritten, +/- lines print; a second identical ack prints `already`). test_rotate_handover.py 29 passed on the merged seat (kid's full set 205). REAL TREE probe on a real registry shape `{"tmux": "view-master-sensei:@302.%302"}`: `@30` -> False, `@302` -> True, `@308` -> False. Director fix-up: the kid left an empty file `4242` at the repo root — removed in the harvest commit (a stray redirect target; the kid's global edits were diffed: nothing else outside scope). mur-41 lines A + B CLOSED.
