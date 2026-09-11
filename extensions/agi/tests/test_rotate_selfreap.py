@@ -419,6 +419,19 @@ def test_rotate_self_s12_skip_names_missing_connection(_fix, tmp_path,
     # pane pid 42 exists, but rotate.py's own pid is NOT under it -> no chain.
     _ps_table(monkeypatch, [(42, 1), (55, 42)])
     monkeypatch.setattr(rotate, "_pane_pid", lambda tmux_pane: 42)
+    # after_join (hypothesis:l4-startup-first-turn-is-performed-by-the-
+    # service-and-the-hook-fires-at-turn-one, owed (i)) now fires send_dm on
+    # the rotate-self fallback, and send.py resolves the recipient by reading
+    # `tmux list-windows`. Hermetic: allow THAT read (nothing listed -> no
+    # recipient -> nudge no-ops) while every other subprocess stays refused.
+    _tmux = rotate.subprocess.run
+
+    def _run_with_tmux(argv, *a, **k):
+        if argv[:2] == ["tmux", "list-windows"]:
+            return SimpleNamespace(stdout="", returncode=0, stderr="")
+        return _tmux(argv, *a, **k)
+
+    monkeypatch.setattr(rotate.subprocess, "run", _run_with_tmux)
 
     def fake_spawn(**kw):            # successor under the plain name
         with open(win, "a", encoding="utf-8") as fh:
