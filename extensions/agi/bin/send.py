@@ -57,11 +57,22 @@ sys.path.insert(0, str(_BIN))
 sys.path.insert(0, str(_BIN.parent / "src"))
 import locations  # noqa: E402
 import spawn_gate  # noqa: E402
+import seatsig  # noqa: E402
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
 #: Subdirectory under sessions/ for per-recipient inbox files.
 INBOX_DIR = "inbox"
+
+#: Subdirectory under sessions/ for per-seat signing-key files. Each key lives
+#: under the SAME shared sessions dir as the inbox (a worktree kid shares the
+#: main checkout's keys, exactly like the mail). The private seed is written
+#: HERE and nowhere else: mode 0600, never printed, never logged, never under
+#: the graph tree or in a commit (.agi/sessions/ is gitignored).
+SEATS_DIR = "seats"
+#: Mode for a seat key file. A 0600 private seed is the point -- readable by
+#: the owning agent only.
+SEAT_KEY_MODE = 0o600
 
 #: Separator between messages in the inbox file.
 MSG_SEP = "---\n"
@@ -135,8 +146,98 @@ def _inbox_path(root: Path, recipient: str) -> Path:
     return _inbox_dir(root) / f"{recipient}.md"
 
 
+def _seats_dir(root: Path) -> Path:
+    """`<sessions>/seats/` -- the ONE shared seat-key dir, like the inbox."""
+    return locations.shared_sessions_dir(root) / SEATS_DIR
+
+
+def _seat_key_path(root: Path, seat: str) -> Path:
+    """The signing key file for one seat: `<sessions>/seats/<seat>.key`."""
+    return _seats_dir(root) / f"{seat}.key"
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _canonical_msg(ts: str, from_id: str, to: str, text: str) -> str:
+    """The EXACT bytes a signature covers: ``ts\nfrom\nto\n\ntext``.
+
+    Canonical form -- the values substituted for the placeholders, no `sig:`
+    line, no prefix labels, no trailing newline beyond what the caller passes
+    in ``text``. The signer and every verifier must reconstruct THIS string
+    and nothing else, or a message cannot verify. A test asserts these exact
+    bytes end-to-end.
+    """
+    return f"{ts}\n{from_id}\n{to}\n\n{text}"
+
+
+def _sign_line(root: Path, from_id: str, ts: str, to: str,
+               text: str) -> str | None:
+    """The ``sig:`` header for one message, or None when unsigned.
+
+    Signs only when ``<sessions>/seats/<from_id>.key`` exists (a seat that has
+    generated a key). The line is ``sig: <scheme>:<fingerprint>:<sig_hex>`` --
+    scheme name, the short fingerprint (first 16 hex of sha256 of the public
+    key) for a human-readable handle, then the signature hex. The private seed
+    is used only to sign, never printed or logged.
+    """
+    key_file = _seat_key_path(root, from_id)
+    if not key_file.is_file():
+        return None
+    try:
+        obj = json.loads(key_file.read_text())
+    except (ValueError, OSError):
+        return None
+    scheme_name = obj.get("scheme")
+    priv_hex = obj.get("priv_hex")
+    if not scheme_name or not priv_hex:
+        return None
+    try:
+        scheme = seatsig.get(scheme_name)
+        priv = bytes.fromhex(priv_hex)
+        pub = scheme.public_from_secret(priv)
+        sig = scheme.sign(priv, _canonical_msg(ts, from_id, to, text).encode())
+    except Exception:                                              # noqa: BLE001
+        # A broken/mismatched key never takes a message down: fall back to
+        # unsigned rather than crash a send (the reader then labels FORGED
+        # with no forged sig -- a detectable absence, never a fabricated one).
+        return None
+    return f"sig: {scheme_name}:{seatsig.fingerprint(pub)}:{sig.hex()}"
+
+
+def keygen(root: Path, seat: str, scheme_name: str = "ed25519") -> Path:
+    """Mint a seat signing key under ``<sessions>/seats/<seat>.key``.
+
+    Writes JSON {"scheme": ..., "priv_hex": ...} with mode 0600, creating the
+    directory if needed. PRINTS the two seat-row cells someone must put into
+    config:seats for this seat -- ``pubkey: <hex>`` and ``sig_scheme: <name>``
+    -- and writes NO graph node (a seated role writes only its own row and
+    only declared fields; the schema change adding pubkey + sig_scheme to the
+    seat row is the prime's edit, not this command's). The PRIVATE seed is
+    never printed, logged, or written outside sessions/.
+    """
+    scheme = seatsig.get(scheme_name)  # KeyError names the unknown scheme
+    _priv, pub = scheme.keygen()
+    d = _seats_dir(root)
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{seat}.key"
+    payload = json.dumps({"scheme": scheme_name, "priv_hex": _priv.hex()})
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, SEAT_KEY_MODE)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(payload)
+    except BaseException:                                        # noqa: BLE001
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+        raise
+    os.chmod(path, SEAT_KEY_MODE)
+    # The two cells the row needs -- NEVER the private seed.
+    print(f"pubkey: {pub.hex()}")
+    print(f"sig_scheme: {scheme_name}")
+    return path
 
 
 def _quorum_caller() -> bool:
@@ -1208,13 +1309,24 @@ def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
 
 
 def send(root: Path, to: str, text: str, sender: str | None) -> None:
-    """Append one message block to the recipient's inbox."""
+    """Append one message block to the recipient's inbox.
+
+    Signs the message -- one ``sig: <scheme>:<fingerprint>:<sig_hex>`` line
+    after ``to:`` -- IFF ``<sessions>/seats/<from_id>.key`` exists. Without a
+    key the block is byte-identical to the unsigned form (every existing
+    test_send.py test stays green untouched). The signed bytes are exactly
+    ``ts\nfrom\nto\n\ntext`` (:func:`_canonical_msg`).
+    """
     inbox = _inbox_path(root, to)
     inbox.parent.mkdir(parents=True, exist_ok=True)
 
     ts = _now()
     from_id = _detect_sender(sender)
-    block = f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n\n{text}\n"
+    sig_line = _sign_line(root, from_id, ts, to, text)
+    head = f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n"
+    if sig_line is not None:
+        head += sig_line + "\n"
+    block = head + f"\n{text}\n"
 
     with open(inbox, "a") as f:
         f.write(block)
@@ -1257,6 +1369,130 @@ def _scan_messages(inbox: Path) -> tuple[list[str], int]:
     return blocks, marker_index
 
 
+def _parse_block(block: str) -> tuple[dict, str]:
+    """Split one block into (header_meta, text).
+
+    The header is the ``key: value`` lines up to the first blank line
+    (``ts``/``from``/``to`` and, when signed, ``sig``); ``text`` is everything
+    after the blank line, reassembled line-for-line (the exact inverse of the
+    writer's ``\n
+{text}\n``). A block without the empty separator line (no
+    text) yields an empty text.
+    """
+    body = block[len(MSG_SEP):] if block.startswith(MSG_SEP) else block
+    lines = body.splitlines()
+    meta: dict = {}
+    i = 0
+    while i < len(lines) and lines[i] != "":
+        line = lines[i]
+        if ": " in line:
+            k, _, v = line.partition(": ")
+            meta[k] = v
+        elif ":" in line:
+            k, _, v = line.partition(":")
+            meta[k] = v.lstrip()
+        i += 1
+    text = "\n".join(lines[i + 1:])
+    return meta, text
+
+
+def _seat_row_in(rows: list, from_id: str) -> dict | None:
+    """The config:seats row whose identity is ``from_id``. Identity mirrors
+    whois's resolver: a row's ``name``, its ``session_ref``, or a
+    ``session_id`` uuid PREFIX of at least WHOIS_MIN_SESSION_ID_PREFIX chars.
+    Returns None when no row matches."""
+    for r in rows:
+        if r.get("name") == from_id or r.get("session_ref") == from_id:
+            return r
+        if (from_id and len(from_id) >= WHOIS_MIN_SESSION_ID_PREFIX
+                and (r.get("session_id") or "").startswith(from_id)):
+            return r
+    return None
+
+
+def _load_rows(root: Path) -> list | None:
+    """The seat rows, through the SAME resolver whois uses: the PUSHED ref
+    first, then the working-tree rows as the fallback. Returns None when
+    neither yields any rows -- a reader then labels any sig FORGED rather
+    than guessing."""
+    seeded = _pushed_seats(root, _PUSHED_SEATS, True)
+    if seeded is not None:
+        rows, _sha = seeded
+        return rows or None
+    rows = _locally_loaded_rows(root)
+    return rows or None
+
+
+def _verify_block(root: Path, rows: list | None,
+                  meta: dict, text: str) -> str:
+    """The ONE label line for a block: VERIFIED / UNSIGNED / FORGED.
+
+    ``VERIFIED <seat> (<scheme>)`` when a ``sig`` line is present and verifies
+    against the from-seat's row (pubkey + sig_scheme matched); ``UNSIGNED``
+    when there is no sig line; ``FORGED`` when a sig is present and fails any
+    check (bad shape, unknown scheme, unknown sender, a row with no
+    pubkey/sig_scheme, a scheme the row does not name, or a signature that
+    does not verify). The label is NEVER a drop -- the caller prints the block
+    in full under all three.
+    """
+    sig = meta.get("sig")
+    if not sig:
+        return "UNSIGNED"
+    try:
+        sig_scheme, fp, sig_hex = sig.split(":", 2)
+        sig_bytes = bytes.fromhex(sig_hex)
+    except (ValueError, TypeError):
+        return "FORGED"
+    if rows is None:
+        return "FORGED"
+    row = _seat_row_in(rows, meta.get("from", ""))
+    if row is None:
+        return "FORGED"
+    row_scheme = row.get("sig_scheme") or ""
+    row_pub = row.get("pubkey") or ""
+    if not row_scheme or not row_pub:
+        return "FORGED"
+    # a sig under a scheme the row does not name is a forgery, even if the
+    # bytes happen to be signed with something -- the row declares what it
+    # will accept.
+    if row_scheme != sig_scheme:
+        return "FORGED"
+    try:
+        scheme = seatsig.get(sig_scheme)
+        pub = bytes.fromhex(row_pub)
+    except Exception:                                              # noqa: BLE001
+        return "FORGED"
+    msg = _canonical_msg(meta.get("ts", ""), meta.get("from", ""),
+                         meta.get("to", ""), text).encode()
+    if not scheme.verify(pub, msg, sig_bytes):
+        return "FORGED"
+    return f"VERIFIED {row.get('name', meta.get('from', '?'))} ({sig_scheme})"
+
+
+def _labels_for_blocks(root: Path, blocks: list[str]) -> list[str]:
+    """The label lines for a batch of blocks, one per block.
+
+    Rows are resolved ONCE for the batch (pushed-then-local) and only when at
+    least one block carries a sig line -- an all-unsigned inbox never touches
+    git, so a batch read of ordinary mail stays network-free.
+    """
+    parsed = [_parse_block(b) for b in blocks]
+    rows = None
+    if any("sig" in m for m, _t in parsed):
+        rows = _load_rows(root)
+    return [_verify_block(root, rows, m, t) for m, t in parsed]
+
+
+def _print_blocks_with_labels(root: Path, blocks: list[str]) -> None:
+    """Print one label line before each block, then the block in FULL."""
+    labels = _labels_for_blocks(root, blocks)
+    for i, block in enumerate(blocks):
+        if i > 0:
+            print(MSG_SEP, end="")
+        print(labels[i])
+        print(block, end="")
+
+
 def read(root: Path, me: str, sender: str | None) -> None:
     """Print unread blocks and mark them read."""
     inbox = _inbox_path(root, me)
@@ -1266,11 +1502,8 @@ def read(root: Path, me: str, sender: str | None) -> None:
         print(f"inbox for {me}: empty")
         return
 
-    # Print blocks.
-    for i, block in enumerate(blocks):
-        if i > 0:
-            print(MSG_SEP, end="")
-        print(block, end="")
+    # Print blocks, each prefixed by its verification label.
+    _print_blocks_with_labels(root, blocks)
 
     # Mark read: find the current last line and add a marker after it.
     # If marker already existed, move it past the blocks we just printed.
@@ -1294,10 +1527,9 @@ def peek(root: Path, me: str) -> None:
         print(f"inbox for {me}: empty")
         return
 
-    for i, block in enumerate(blocks):
-        if i > 0:
-            print(MSG_SEP, end="")
-        print(block, end="")
+    # Print blocks, each prefixed by its verification label (peek never marks
+    # read).
+    _print_blocks_with_labels(root, blocks)
 
 
 # ── rooms (hypothesis:l3w0-send-rooms) ────────────────────────────────────
@@ -2012,6 +2244,16 @@ def main(argv: list[str] | None = None) -> int:
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",
                          help="skip the `git fetch` before reading")
 
+    p_keygen = sub.add_parser(
+        "keygen", parents=[common],
+        help="mint a seat signing key under <sessions>/seats/<seat>.key (mode "
+             "0600); prints the two seat-row cells (pubkey, sig_scheme) and "
+             "writes no graph node -- hypothesis:l4-a-seat-signs-with-a-"
+             "swappable-scheme")
+    p_keygen.add_argument("--seat", required=True, help="seat name")
+    p_keygen.add_argument("--scheme", default="ed25519",
+                          help="swappable scheme name (default ed25519)")
+
     p_wake = sub.add_parser(
         "wake", parents=[common],
         help="re-check one seat: resubmit a stranded nudge by typing + Enter"
@@ -2167,6 +2409,10 @@ def main(argv: list[str] | None = None) -> int:
                          not args.no_fetch)
         print(text)
         return rc
+
+    if args.verb == "keygen":
+        keygen(root, args.seat, args.scheme)
+        return 0
 
     if args.verb == "wake":
         wake(root, args.target)

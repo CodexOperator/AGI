@@ -155,6 +155,76 @@ def test_forbidden_key_present_is_a_problem(tmp_path):
     assert any("ANTHROPIC_API_KEY" in p for p in problems)
 
 
+# --- the private-key pattern floor (hypothesis:l4-a-seat-signs-with-a-
+# swappable-scheme, clause (2)) --------------------------------------------
+
+
+def test_priv_hex_key_name_is_refused(tmp_path):
+    """A line whose KEY ends in `_PRIV_HEX` is a private seed and must be
+    refused -- the exact cell the seat-key floor writes into sessions/seats,
+    never into .env."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, f"MY_SEAT_PRIV_HEX={'ab'*32}\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("PRIVATE KEY" in p and "MY_SEAT_PRIV_HEX" in p
+               for p in problems)
+    # the VALUE never appears in the problem line
+    assert all("ab" * 32 not in p for p in problems)
+
+
+def test_private_key_suffix_is_refused(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "SSH_PRIVATE_KEY=not-even-hex-but-a-name-error\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("SSH_PRIVATE_KEY" in p for p in problems)
+
+
+def test_hex64_value_under_a_key_named_key_is_refused(tmp_path):
+    """A 64-hex value (the shape of a hex-encoded 32-byte Ed25519 seed) on a
+    line whose key name contains KEY is a private key, even under a generic
+    name -- refused by value."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, f"OPENROUTER_API_KEY={'ab'*32}\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("PRIVATE KEY" in p for p in problems)
+
+
+def test_hex64_under_a_non_key_name_is_allowed(tmp_path):
+    """A 64-hex value under a key name that does NOT mention KEY (e.g.
+    CAMBER_CLOUD_API_KEY is still a KEY name -- this test uses a genuinely
+    non-KEY scalar) is not a private key by this rule and stays allowed."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    # CAMBER_CLOUD_API_KEY mentions KEY so it WOULD be refused -- prove the
+    # opposite with a name that has no KEY token at all.
+    write_env(tmp_path, f"MY_HEX_SCALAR_ACC={'ab'*32}\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert not any("PRIVATE KEY" in p for p in problems)
+
+
+def test_live_looking_env_with_ordinary_keys_passes_the_pattern(tmp_path):
+    """The floor must not false-positive a normal .env: a provider key with
+    its real non-hex shape, and an optional key, both pass the pattern (they
+    may still be aired as problems for an unrelated reason, never for this
+    one)."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, """
+        OPENROUTER_API_KEY=sk-or-v1-test
+        OPENROUTER_PROVISIONING_KEY=some-note
+        """)
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert not any("PRIVATE KEY" in p for p in problems)
+
+
 # --- checking --------------------------------------------------------------
 
 

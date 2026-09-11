@@ -2866,3 +2866,195 @@ def test_truncated_deferred_body_typed_once_across_busy_strand_retry(
     # ONE delivery total: the single `[nudge:`-shaped line ever put in the box
     assert send_mod._read_deferred(root, seat) is None, \
         "the body was delivered -- the record is cleared, never typed twice"
+
+
+# ── hypothesis:l4-a-seat-signs-with-a-swappable-scheme (clauses 2 & 3) ──
+# seat keys under sessions/seats + signed inbox messages. send.py exercises
+# ONLY seatsig.get() and the Scheme methods through the module IT imports
+# (send_mod.seatsig), never the concrete ed25519 module directly. Rows are
+# stubbed through _pushed_seats (the same resolver whois uses), so no test
+# hits git or tmux.
+
+import os as _os
+import hashlib as _hl
+import stat as _stat
+
+
+class _DummyScheme:
+    """A toy scheme in send.py's OWN seatsig table, to prove the only
+    coupling is the interface: anything with keygen/sign/verify/
+    public_from_secret plugs in with no change to send.py."""
+    name = "dummy"
+
+    def keygen(self):
+        priv = _os.urandom(16)
+        return priv, b"DUMMY" + priv
+
+    def public_from_secret(self, priv):
+        return b"DUMMY" + priv
+
+    def sign(self, priv, msg):
+        return _hl.sha256(bytes(priv) + msg).digest()
+
+    def verify(self, pub, msg, sig):
+        return sig == _hl.sha256(bytes(pub[5:]) + msg).digest()
+
+
+def _stub_seat_rows(monkeypatch, rows):
+    """Point _pushed_seats (whois's resolver) at canned rows, no git."""
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda root, ref, do_fetch: (rows, "deadbeef"))
+
+
+def _seat_key_file(project, seat):
+    return send_mod._seat_key_path(project, seat)
+
+
+# --- clause (2): seat keys -------------------------------------------------
+
+
+def test_keygen_writes_0600_seat_key_and_prints_cells(project, capsys):
+    path = send_mod.keygen(project, "probe-a")
+    assert path == _seat_key_file(project, "probe-a")
+    assert path.is_file()
+    mode = _stat.S_IMODE(path.stat().st_mode)
+    assert mode == 0o600, mode
+    obj = json.loads(path.read_text())
+    assert obj["scheme"] == "ed25519"
+    assert len(bytes.fromhex(obj["priv_hex"])) == 32
+    out = capsys.readouterr().out
+    assert "pubkey: " in out
+    assert "sig_scheme: ed25519" in out
+    # the PRIVATE seed is never printed
+    assert obj["priv_hex"] not in out
+
+
+def test_keygen_unknown_scheme_is_a_keyerror(project):
+    import pytest as _pt
+    with _pt.raises(KeyError):
+        send_mod.keygen(project, "probe-b", "not-a-scheme")
+
+
+# --- clause (3): signed inbox messages -------------------------------------
+
+
+def test_unsigned_send_is_byte_identical_to_today(project):
+    send_mod.send(project, "recv", "hello", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    content = inbox.read_text()
+    assert "sig:" not in content
+    assert content.endswith("hello\n")
+    # the plain header shape is exactly today's
+    assert "to: recv\n\nhello\n" in content
+
+
+def test_signed_send_and_read_prints_verified(project, capsys, monkeypatch):
+    send_mod.keygen(project, "seat-a")
+    pub = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = None
+    # recover the public key from the printed cells by re-reading via
+    # _sign_line's own public_from_secret path: derive from the stored seed
+    scheme = send_mod.seatsig.get("ed25519")
+    priv = bytes.fromhex(pub["priv_hex"])
+    pub_hex = scheme.public_from_secret(priv).hex()
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello world", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    content = inbox.read_text()
+    assert "sig: ed25519:" in content
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519)" in out
+    assert "hello world" in out, "the label is never a drop"
+
+
+def test_signed_bytes_are_exactly_ts_from_to_blank_text(project):
+    send_mod.keygen(project, "seat-a")
+    send_mod.send(project, "recv", "hello", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    block_text = inbox.read_text().split(send_mod.MSG_SEP)[1]
+    meta, text = send_mod._parse_block(block_text)
+    sig = meta["sig"].split(":", 2)[2]
+    canonical = send_mod._canonical_msg(
+        meta["ts"], meta["from"], meta["to"], text)
+    # the canonical bytes assert EXACTLY the shape ts\nfrom\nto\n\ntext
+    assert canonical == f"{meta['ts']}\n{meta['from']}\n{meta['to']}\n\nhello"
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub = scheme.public_from_secret(bytes.fromhex(obj["priv_hex"]))
+    assert scheme.verify(pub, canonical.encode(), bytes.fromhex(sig))
+
+
+def test_body_altered_on_disk_is_forged(project, capsys, monkeypatch):
+    send_mod.keygen(project, "seat-a")
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = scheme.public_from_secret(
+        bytes.fromhex(obj["priv_hex"])).hex()
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello world", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    # tamper with the BODY on disk; the header (ts/from/sig) is untouched
+    tampered = inbox.read_text().replace("hello world", "tampered!!")
+    inbox.write_text(tampered)
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out
+    assert "tampered!!" in out, "the block still prints in full under FORGED"
+
+
+def test_sig_under_scheme_row_does_not_name_is_forged(project, capsys,
+                                                      monkeypatch):
+    send_mod.keygen(project, "seat-a")          # signs with ed25519
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = scheme.public_from_secret(
+        bytes.fromhex(obj["priv_hex"])).hex()
+    # the row declares a DIFFERENT scheme: the sig is under one the row does
+    # not name -> FORGED even though the ed25519 signature is genuine
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "dummy", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello", "seat-a")
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out
+
+
+def test_no_key_file_is_unsigned_and_equals_todays_bytes(project):
+    send_mod.send(project, "recv", "hello", "seat-a")   # no .key file
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    content = inbox.read_text()
+    assert "sig:" not in content
+    # today's unchanged block shape: `---\nts: T\nfrom: seat-a\nto: recv\n\nhello\n`
+    ts = content.split("ts: ")[1].split("\n")[0]
+    expected = (f"{send_mod.MSG_SEP}ts: {ts}\nfrom: seat-a\nto: recv\n"
+                f"\nhello\n")
+    assert content == expected
+
+
+def test_dummy_scheme_plugs_in_without_changing_send(project, capsys,
+                                                     monkeypatch):
+    """The swappable-scheme claim, end to end: register a toy scheme in
+    send.py's own seatsig table; keygen + send + read VERIFIED need no change
+    to send.py beyond get()/Scheme calls."""
+    send_mod.seatsig.SCHEMES["dummy"] = _DummyScheme()
+    try:
+        send_mod.keygen(project, "seat-d", "dummy")
+        obj = json.loads(_seat_key_file(project, "seat-d").read_text())
+        d = _DummyScheme()
+        pub_hex = d.public_from_secret(bytes.fromhex(obj["priv_hex"])).hex()
+        _stub_seat_rows(monkeypatch, [
+            {"name": "seat-d", "sig_scheme": "dummy", "pubkey": pub_hex},
+        ])
+        send_mod.send(project, "recv", "hi", "seat-d")
+        send_mod.read(project, "recv", None)
+        out = capsys.readouterr().out
+        assert "VERIFIED seat-d (dummy)" in out
+        assert "hi" in out
+    finally:
+        send_mod.seatsig.SCHEMES.pop("dummy", None)
