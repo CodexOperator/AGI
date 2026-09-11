@@ -1737,8 +1737,65 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # skipped and the ack still lands.
     if ref:
         try:
-            print(_backfill_session_ref(
-                root, seat=seat, role="parent", ref=ref))
+            # L4.288 (the stale-pid hazard, FIX-ONLY): besides back-filling
+            # session_ref, an ack ALSO resolves the successor's OWN identity
+            # (pid + session_id) and pins its meter. Source is EXCLUSIVELY the
+            # EXISTING JOIN keyed on the row's own `window` @id (L4.114: the
+            # @id is the load-bearing key) — never ppid-walking, never the
+            # newest registry file, never re-implemented. A recovered row
+            # (`heal.py _recover_seat`) carries the DEAD pid and a blanked
+            # session_id; this is where the successor's real identity lands so
+            # a later pass that trusts the row's pid reads the LIVE seat.
+            row = _find_seat(root, seat)
+            window_id = (row.get("window") or "") if row else ""
+            join = _join_successor(
+                root=root, seat=seat, window_id=window_id or None,
+                registry_dir=getattr(args, "registry_dir", None),
+                poll_secs=ACK_JOIN_POLL_S)
+            got_session_id = str(join.get("session_id") or "") if join.get(
+                "found") else ""
+            got_pid = join.get("pid") if join.get("found") else None
+            # write pid/from the JOIN ONLY when it DIFFERS from the row's, and
+            # session_id only when it is non-empty and DIFFERS — so a
+            # rotate-self-shaped row (pid + session_id already seated) ends
+            # byte-identical except session_ref.
+            have_row = row is not None
+            back_pid = (got_pid if (have_row and got_pid is not None
+                                    and got_pid != row.get("pid")) else None)
+            back_sid = (got_session_id if (have_row and got_session_id
+                                           and got_session_id != (row.get(
+                                               "session_id") or ""))
+                        else None)
+            # ONE outcome line per cell group: the single `write.submit`
+            # carries whichever of session_ref/pid/session_id differs.
+            _backfill_session_ref(
+                root, seat=seat, role="parent", ref=ref, pid=back_pid,
+                session_id=back_sid)
+            if join.get("found"):
+                joined_cells = [f"session_ref={ref}"]
+                if back_pid is not None:
+                    joined_cells.append(f"pid={back_pid}")
+                if back_sid is not None:
+                    joined_cells.append(f"session_id={back_sid}")
+                print(f"back-filled {', '.join(joined_cells)} into own row "
+                      f"(source: ack, joined by @{window_id.lstrip('@')})")
+                # The meter pin is the lease (prime XI 19:38Z): pin the
+                # successor's OWN transcript from the JOIN, but ONLY when no
+                # pin exists — never overwrite an EXISTING pin.
+                trans = join.get("transcript") or ""
+                if trans:
+                    pinp = _sessions_dir(root) / f"{seat}{METER_PIN_EXT}"
+                    if pinp.exists():
+                        print(f"meter pin present (untouched): {pinp}")
+                    else:
+                        pin_path = _pin_successor_meter(
+                            root, seat=seat, generation=args.gen,
+                            transcript=trans)
+                        print(f"meter pinned: {pin_path}")
+            else:
+                # join miss: pid/session_id/pin left UNTOUCHED, the ref back-
+                # fill (if any) still lands, the ack still returns 0.
+                print(f"join: {join.get('note')}")
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -4682,13 +4739,20 @@ def _ref_shape_issue(ref: str, seat: str) -> str | None:
 
 
 def _backfill_session_ref(root: Path, *, seat: str, role: str,
-                          ref: str) -> str:
+                          ref: str, pid: int | None = None,
+                          session_id: str | None = None) -> str:
     """r3 — `rotate.py ack --ref <ref>` BACK-FILLS `session_ref` into the
     successor's OWN seats row through the self_row write (source: ack).
 
     The `session_ref` (the successor's session/uuid prefix, proven by whois)
-    travels in the row so a later whois can authorize by it. Returns a
-    one-line outcome; the write is admitted by the self_row declaration."""
+    travels in the row so a later whois can authorize by it. L4.288: the
+    optional `pid`/`session_id` kwargs carry the successor's OWN identity from
+    the JOIN by the row's own window @id, so ONE `write.submit` moves
+    session_ref + pid + session_id together — never a second submit, and
+    never a write from any source but the JOIN (pass only joined values that
+    DIFFER from the row's, so a rotate-self-seated successor's row ends
+    byte-identical to today's except session_ref). Returns a one-line
+    outcome; the write is admitted by the self_row declaration."""
     import write  # local: same dir
     rows = write._load_seats(root)
     new_rows = []
@@ -4697,6 +4761,10 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
         if r.get("name") == seat:
             nr = dict(r)
             nr["session_ref"] = ref
+            if session_id is not None:
+                nr["session_id"] = session_id
+            if pid is not None:
+                nr["pid"] = pid
             new_rows.append(nr)
             found = True
         else:
@@ -4707,7 +4775,12 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     edit = write.Edit(node_id="config:seats")
     edit.set_fm["seats"] = new_rows
     write.submit(root, edit, actor=seat, role=role)
-    return f"back-filled session_ref={ref} into own row (source: ack)"
+    parts = [f"session_ref={ref}"]
+    if session_id is not None:
+        parts.append(f"session_id={session_id}")
+    if pid is not None:
+        parts.append(f"pid={pid}")
+    return f"back-filled {', '.join(parts)} into own row (source: ack)"
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -5202,6 +5275,10 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
 REGISTRY_DEFAULT_DIR = "~/.claude/sessions"
 REGISTRY_JOIN_POLL_S = 2      #: poll interval, seconds
 REGISTRY_JOIN_TIMEOUT_S = 60  #: bounded join poll
+#: L4.288 — the ack-path identity join is a best-effort back-fill, never a
+#: gate: bounded SHORT (at most 5 s) so a join miss costs an ack at most a few
+#: seconds, never an error exit and never a >5 s wait.
+ACK_JOIN_POLL_S = 3
 
 
 def _successor_window_id(seat: str, tmux_session: str,
@@ -9515,6 +9592,13 @@ def main(argv: list[str] | None = None) -> int:
     p_ack.add_argument("--text", default=None,
                        help="the diff text, when answer is diff; `-` reads it "
                             "from stdin")
+    # L4.288 (the stale-pid hazard, FIX-ONLY): the test seam + the registry
+    # source for the ack-path identity JOIN. Same option spawn/loop take; the
+    # ack resolves the successor's OWN row by the JOIN keyed on the row's
+    # `window` @id, from HERE, never from ~/.claude/sessions under test.
+    p_ack.add_argument("--registry-dir", default=None,
+                       help="per-session registry dir for the own-row identity "
+                            "JOIN (default: ~/.claude/sessions)")
     p_ack.set_defaults(func=cmd_ack)
 
     # status
