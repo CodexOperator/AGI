@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST (sanctuary-director 163547Z session, 2026-09-11T16:41Z): L4.272 merged (branch loop/hypothesis-l4-status-wait-waits--a00-221d5b56@s2, 3 files, +210/-29; the deleted _record_is_terminal(path) has zero remaining callers, replaced by the text-based helper). test_rotate*.py: 257 passed in 71s. Real-tree probe on the merged bytes: `rotate.py status --seat no-such-seat --record latest --wait 2` -> rc 2 after 2.18s wall, stderr `ERR: no rotation record for no-such-seat after 2s`; `status --seat sanctuary-director --record latest --wait 30` on this session's real record (already terminal, result success) -> rc 0 in 0.26s, no sleep past a terminal record. The wake shape in the seat scratchpad now holds: ONE --wait call covers both the record appearing and its s12_self_reap landing.
