@@ -5699,27 +5699,53 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     return str(p)
 
 
-def _bootstrap_stale(doc: dict, current_commit: str | None,
-                     bounds: dict | None = None) -> bool:
-    """True when the bootstrap record carries a fact measured at a commit
-    older than HEAD — i.e. it must be REFUSED, never injected stale state.
+def _fact_bounds(root: Path) -> dict:
+    """The `fact_bounds:` staleness map of config:rotations (the frontmatter
+    of `.geometry/rotations.md`): fact -> 'head' | 'permanent'. Absent or
+    malformed -> {}. Read from graph content (written by write.py, never a
+    hand edit); `_bootstrap_block` falls back to it when no `bounds` kwarg is
+    passed."""
+    try:
+        nf = frontmatter.load_node_file(_rotations_node_path(root))
+        fb = nf.frontmatter.get("fact_bounds")
+    except Exception:  # noqa: BLE001
+        return {}
+    if not isinstance(fb, dict):
+        return {}
+    return {str(k): ("permanent" if v == "permanent" else "head")
+            for k, v in fb.items()}
+
+
+def _stale_facts(doc: dict, current_commit: str | None,
+                 bounds: dict | None = None) -> set:
+    """The head-bound facts in a bootstrap record whose measured commit
+    differs from HEAD — the facts the reader must mark `[stale: ...]`.
     `bounds` maps fact -> 'head' | 'permanent' (declared in config:rotations
-    `## facts`; default 'head' = must be the live commit) and is parsed by the
-    caller — the SessionStart hook (the sibling round) calls this before
-    injecting. A SKIPPED fact (absent from `measured_at`) asserted nothing and
-    is never stale; a fully-skipped doc (no `measured_at`) is never stale
-    (nothing to refuse) — the hook injects what is fresh and leaves the named
-    skip to the driven prompt. The function the hook can call."""
+    `fact_bounds`, default 'head'); a 'permanent' fact is never stale; an
+    unbounded fact is treated as 'head'. A fact absent from `measured_at`
+    asserted nothing and is never stale; a fully-skipped doc (no
+    `measured_at`) is never stale."""
     measured = (doc or {}).get("measured_at") or {}
-    if not measured:
-        return False
     bounds = bounds or {}
+    stale = set()
     for fact, commit in measured.items():
         if bounds.get(fact, "head") == "permanent":
             continue
         if commit != current_commit:
-            return True
-    return False
+            stale.add(fact)
+    return stale
+
+
+def _bootstrap_stale(doc: dict, current_commit: str | None,
+                     bounds: dict | None = None) -> bool:
+    """True when the bootstrap record carries a head-bound fact measured at a
+    commit other than HEAD (the whole-block refusal the hook used to enforce),
+    False otherwise. PRESERVED as the bool wrapper over `_stale_facts` so the
+    whole-block refusal vocabulary survives for callers that want it;
+    `_bootstrap_block` no longer refuses on it (staleness is now per-fact, a
+    `[stale: ...]` mark, never a refusal). `bounds` maps fact -> 'head' |
+    'permanent' (declared in config:rotations `fact_bounds`; default 'head')."""
+    return bool(_stale_facts(doc, current_commit, bounds))
 
 
 def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
@@ -5732,12 +5758,13 @@ def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
     tiny diagram-shaped block the SessionStart hook should inject for a seat
     successor that wakes KNOWING its state -- or REFUSES (returns [None,
     reason]) when the record is absent ('no_record'), not a JSON object
-    ('malformed'), or `_bootstrap_stale(.., HEAD, bounds)` says a measured
-    fact is not at HEAD ('stale'). NEVER raises into the hook. `commit` is
+    ('malformed') — it never refuses on staleness. `commit` is
     the test seam for HEAD (defaults to `_git_head`); `bounds` is the
-    fact->'head'|'permanent' staleness map of config:rotations `## facts`
-    (default {} = everything must be the live commit). Returns [block, None]
-    when fresh."""
+    fact->'head'|'permanent' staleness map of config:rotations `fact_bounds`
+    (when None read from the node; default for an unbounded fact = 'head').
+    Returns [block, None] — a head-bound fact measured at an older commit is
+    emitted with a `[stale: measured@<sha>, HEAD@<sha>]` mark, a permanent
+    fact is never marked."""
     if commit is None:
         commit = _git_head(root)
     p = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
@@ -5749,8 +5776,9 @@ def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
         return [None, "malformed"]
     if not isinstance(doc, dict):
         return [None, "malformed"]
-    if _bootstrap_stale(doc, commit, bounds):
-        return [None, "stale"]
+    if bounds is None:
+        bounds = _fact_bounds(root)
+    stale = _stale_facts(doc, commit, bounds)
     gen = doc.get("generation")
     gen_s = f"gen {gen}" if isinstance(gen, int) else "gen ?"
     head = f"HEAD@{commit}" if commit else "HEAD@?"
@@ -5759,12 +5787,17 @@ def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
         f"(shape {doc.get('shape', '?')} · {gen_s} · {head})",
         "",
     ]
+    measured = doc.get("measured_at") or {}
     tele = doc.get("telemetry")
     if isinstance(tele, dict) and tele:
         for key in sorted(tele):
             val = str(tele[key])
             if len(val) > 400:
                 val = val[:397] + "…"
+            if key in stale:
+                msha = measured.get(key)
+                m = msha if msha else "?"
+                val = f"{val}  [stale: measured@{m}, HEAD@{commit or '?'}]"
             lines.append(f"- {key}: {val}")
     else:
         lines.append("- (no telemetry recorded)")
