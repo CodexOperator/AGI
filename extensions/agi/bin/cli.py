@@ -505,6 +505,53 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
               f"{exc}", file=sys.stderr)
 
 
+def _mirror_terminal_into_manifest(ap: Path, rec: dict, agent_id: str) -> None:
+    """hypothesis:l4-the-manifest-mirrors-terminal-agent-status -- the
+    agent's OWN exit path (the source half; the reaper half lives in
+    heal.py). A clean `cli.py done` writes the agent record's terminal
+    status but leaves the iteration `manifest.json` beside it reading
+    `running` until a later reaper pass. Mirror the same terminal fields
+    ({status, finished_at, fail_reason}) onto the matching manifest entry, in
+    the same write, so the round's own exit leaves both files agreeing.
+
+    Best-effort and silent-on-failure: a missing, unreadable, or corrupt
+    manifest, or an entry with no matching id, must NOT raise and must NOT
+    change cmd_done's exit code -- this is how every agent ends; it cannot
+    become fail-closed on the manifest. One stderr line at most.
+
+    The manifest is a DOCUMENT with its own status ranking
+    (hypothesis:l4-a-manifest-is-a-document-too): see `_AGENT_STATUS_RANK`
+    and `_merge_manifests`. Mirror only when the record's status ranks AT
+    OR ABOVE the entry's -- never downgrade a manifest entry that already
+    carries a more authoritative terminal state.
+    """
+    try:
+        mpath = ap.parent.parent / "manifest.json"
+        if not mpath.is_file():
+            return
+        manifest = json.loads(mpath.read_text(encoding="utf-8"))
+        entries = manifest.get("agents")
+        if not isinstance(entries, list):
+            return
+        rec_rank = _AGENT_STATUS_RANK.get(rec.get("status", ""), -1)
+        target = None
+        for entry in entries:
+            if entry.get("id") != agent_id:
+                continue
+            if rec_rank >= _merge_status_rank(entry):
+                target = entry
+            break
+        if target is None:
+            return
+        for key in ("status", "finished_at", "fail_reason"):
+            if key in rec:
+                target[key] = rec[key]
+        mpath.write_text(json.dumps(manifest, indent=2))
+    except Exception:
+        print("warn: could not mirror terminal status into iteration "
+              "manifest (best-effort)", file=sys.stderr)
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
@@ -626,6 +673,11 @@ def cmd_done(args: argparse.Namespace) -> int:
     if gate.bypassed:
         rec["evidence_gate"] = "bypassed"
     ap.write_text(json.dumps(rec, indent=2))
+    # hypothesis:l4-the-manifest-mirrors-terminal-agent-status -- the round's
+    # own exit mirrors terminal status into the iteration manifest beside the
+    # record, so readers of the manifest see a clean `done` immediately
+    # instead of a stale `running` until a later reaper pass. Best-effort.
+    _mirror_terminal_into_manifest(ap, rec, args.agent_id)
 
     # Write or update the node file with verdict info
     if args.node_id:

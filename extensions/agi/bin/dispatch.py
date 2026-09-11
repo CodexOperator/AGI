@@ -2177,6 +2177,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
     marked: list[str] = []
     still: list[str] = []
     died: list[str] = []
+    mirrored: list[str] = []
     for entry in manifest.get("agents", []):
         agent_id = entry.get("id", "")
         agent_json_path = iter_dir / agent_id / "agent.json"
@@ -2187,9 +2188,36 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
         except (json.JSONDecodeError, OSError):
             continue
         status = rec.get("status", "running")
-        if status in TERMINAL:
-            continue
         if status != "running":
+            # hypothesis:l4-the-manifest-mirrors-terminal-agent-status — any
+            # NON-RUNNING agent.json (done, done-unreported, failed, timeout,
+            # pending, hung-healed, or an unknown status) whose manifest entry
+            # still disagrees is MIRRORED, not reaped: the record's terminal
+            # truth is copied onto the entry, `updated` flips so the manifest
+            # is rewritten, and the id surfaces under the NEW `mirrored` key.
+            # It is deliberately NOT added to marked/still/died.
+            #
+            # timeout is NOT in spawn_budget.TERMINAL but is a terminal state
+            # in practice (it appears in both files via heal.py's still-loop),
+            # so gating the mirror on the TERMINAL set would silently skip it;
+            # "non-running" is the honest predicate. The reap guards this
+            # replaces (`status in TERMINAL` / `status != running -> continue`)
+            # existed to ensure a non-running agent is NEVER reaped/restarted —
+            # that tolerance is unchanged: any non-running rec still `continue`s
+            # and never reaches the reap path below. This only heals the
+            # record/manifest divergence. A clean `done` is not an alarm.
+            entry_status = entry.get("status") or "running"
+            needs = (
+                entry_status != status
+                or (rec.get("finished_at") and not entry.get("finished_at"))
+                or (rec.get("fail_reason") and not entry.get("fail_reason"))
+            )
+            if needs:
+                for k in ("status", "finished_at", "fail_reason"):
+                    if k in rec:
+                        entry[k] = rec[k]
+                updated = True
+                mirrored.append(agent_id)
             continue
         all_terminal = False
         still.append(agent_id)
@@ -2238,7 +2266,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
         manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
 
     return {"marked": marked, "still": still, "died": died,
-            "terminal": all_terminal}
+            "mirrored": mirrored, "terminal": all_terminal}
 
 
 def _reaper_give_up(root, iter_dir):
