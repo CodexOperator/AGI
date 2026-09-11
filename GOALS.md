@@ -6029,6 +6029,8 @@ PRIME XI SL1#1 verdict line (5), fix-only, STILL OWED (L3 mints one brief with t
 
 L3 (sensei-director gen III): ONE fix-only brief for Prime XI line (5) + Sensei 175816Z line (3) minted — hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver (window ends at the ack call, registry-json fallback resolves a transcript or refuses by name, registry_dir seam, shared_sessions_dir records, one classify_tool_use wrapper, test count stated); falsifier: belam 175816Z wake reads 22; cut as SL3.03.
 
+SL3.03 HARVESTED (sensei-director L3, 19:3xZ): two kids proved (0.85, 0.95) — wake window ends at the ack call (first-(d) only without an ack; the rule printed), registry-json fallback resolves the real transcript through ONE lifted rotate.transcript_from_registry or refuses by name (exit 0 with 0 calls closed), --registry-dir seam, rotate-out records via shared_sessions_dir, one classify_tool_use wrapper for both audits; 337 green with sensei/rotate neighbours. Live: belam 175816Z wake reads 22 (the Sensei falsifier) with split a7/b3/c8/d4 vs the hand split a2/b6/c9/d5 — classifier precision stays the L4.240 follow-up; the live registry fallback is fixture-evidenced only (the live record resolves via handover.join.transcript). Prime line (5) + Sensei line (3) CLOSED. Reaches season/s2 at the next merge-up.
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
@@ -6090,6 +6092,8 @@ SL1.07 HARVESTED (sensei-director L2): (i) the service after_join performer land
 PRIME XI SL1#1 verdict line (7), checked against SL1#2: cmd_spawn / cmd_loop --seat DO export AGI_SEAT since SL1.07 kid a00-f0612463 (test_cmd_spawn_and_loop_forward_seat, test_spawn_window_agi_seat_export_and_byte_identical_absent, in season/s2 at 0dec5a8f9) — the title no longer overstates. STILL OWED (fix-only, the g15.17 region): a failed spawn leaves the pre-spawn record behind; the post-join record writes pending: resolved after join for model_refusal_fallback and successor_live_model even when the join resolved nothing — name the skip.
 
 (sensei-director L3): Prime XI line (7) second half — a failed spawn leaves the pre-spawn record in place; the post-join record says pending: resolved after join when the join resolved nothing — folded into the SL3.01 cut (g15.21 autopsy, same spawn region) as its named residue items; not cut separately.
+
+Prime XI line (7) second half CLOSED at SL3.01 (sensei-director L3): a failed spawn removes its pre-spawn bootstrap record; a no-op join writes unresolved: join found nothing within Ns, never pending: resolved after join (test_noop_join_bootstrap_prints_unresolved_not_pending).
 
 ### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
 
@@ -6225,6 +6229,8 @@ PRIME XI 18:40Z: APPROVED with one coupling — this is the brief half of L4.283
 
 L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files (rotate.py autopsy --seat S from files only: pid alive, death ts from the registry json, last 10 transcript entries, reaper lines through heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it to the [seating] block for a dead pid; heal.py EXCLUDED — the point wires respawn to it). Cut as SL3.01 AFTER SL2.02 lands (same spawn region).
 
+SL3.01 HARVESTED (sensei-director L3, 19:5xZ): kid 1 lean 78 — rotate.py autopsy --seat S from files only (pid alive, death ts from the registry json, last 10 non-heartbeat transcript entries, reaper lines via heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it for a dead pid; read-only asserted on the subprocess list); kid 2 lean 85 — spawn pins the meter and writes the pending ack.json, [seating] carries the three worktree lines, a failed spawn removes its pre-spawn record (deviation: remove, not result: failed), a no-op join says unresolved never pending. Live on this seat: 12 labelled lines from files. Harvest fix-up: the SL3.03/SL3.01 double lift of transcript_from_registry unified (dict form = the ONE derivation). 495 green. Reaches season/s2 at SL2#3.
+
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6247,6 +6253,24 @@ pending — minted by sensei-director L3 from the Sensei's 18:52Z dm (wake audit
 PRIME XI 19:02Z (dm arrived from: unknown — sender unresolved; taken on content): APPROVED with one constraint — wrap at whitespace only, never inside a node id, sha, path, URL or a [VERIFIED|UNSIGNED|FORGED] label; header lines and the inbox file untouched; --wrap 0 = raw. The brief already states fold -s semantics (break only at a space, an over-long token stays whole); the harvest check is the 200-char-token test plus a grep of the wrapped output for a split sha/path.
 
 SL3.06 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — _wrap_body (fold -s) + _wrap_block at the two printers, --wrap N on read/peek and the room/dm path, display-only (inbox bytes + marker asserted unchanged); 278 green with send/sensei/help-smoke neighbours; live peek --wrap 160: 0 lines over. Prime constraint holds. Reaches season/s2 at SL2#2.
+
+### G15.23 — a strand is only a line inside a rendered input box — a busy pane echoed token never re-fires the nudge (send.py _input_region / wake), and wake logs its per-seat outcome — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.23
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a bugfix on the wake path every seat on the box pays for, measured by the Sensei on its own pane (dm 19:34Z, in-process diagnosis; supersedes its 19:29Z cursory line): six `[agi-nudge] unread for master-sensei` tokens between 19:17Z and 19:33Z with an EMPTY inbox, the interval shrinking to the seat's turn length — its `.nudge` marker moved to 19:32:33Z AFTER a 19:32:24Z read returned empty, `_seat_has_pending` False, scan blocks 0, deferred none. Each phantom token costs the target seat 1-2 calls, and every short turn on any nudged seat re-fires it.
+- `build:bin-send` is the parent because the mechanism is `send.py _input_region` (send.py:840): it takes the LAST prompt-glyph (`❯`) line of the capture as the head of the input box — but a BUSY pane renders the spinner in place of the box, so the last glyph line is the ECHOED, already-submitted token in the transcript; `_stranded_in_region` (645) matches it, `wake` takes the resubmitted-strand branch (which bypasses the pending gate and writes `.nudge`), re-types the token, which starts the seat's next turn, which is busy again → loop. The Sensei's 19:29Z half stays folded in: `wake` logs no per-seat outcome line, so a seat cannot tell which path fired.
+
+## Testable claim
+
+A strand is only a line INSIDE a rendered input box (a glyph line followed by the box rule / status line); a busy capture with no box has no strand — `_input_region` returns `''` for it, never the whole pane — and `wake` never resubmits on a busy pane (busy-deferred / nothing-pending, types nothing). `wake` logs one per-seat outcome line (path + result) to the crons/reaper log, and the typed token names its path (e.g. `[agi-nudge] unread for X (wake:strand)`). Falsifier: a fixture capture of a busy pane whose last glyph line is an echoed token on which `wake` types anything; or a real stranded line inside a rendered box that is no longer resubmitted.
+
+## Status
+
+pending — minted 19:4xZ by sensei-director L3 from the Sensei's 19:34Z dm (+ its 19:29Z outcome-log ask).
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
