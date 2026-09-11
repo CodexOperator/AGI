@@ -499,6 +499,36 @@ def test_status_iter_parent_alone_idle_is_a_stall_candidate(root, capsys):
         parent.kill(); parent.wait()
 
 
+def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys):
+    """A REAL lease stores `iter` as the string 'L4.NNN' (locations.
+    iteration_id), never an int. The old int-only comparison (`rec.get("iter")
+    == nnn`) never matched a live round and `iter-L{int}` never found the
+    agent.json. The parent+kid round with a STRING iter must be FOUND."""
+    _mk_project(root)
+    parent = _sleeping()
+    kid = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.167")
+    spawn_budget.commit(p_lease, parent.pid)
+    k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid", iter_n="L4.167")
+    spawn_budget.commit(k_lease, kid.pid)
+    # real agent.json lives in the sessions dir named from the genuine id
+    for leaf in ("parent-0", "kid-0"):
+        ajson = root / ".agi" / "sessions" / "iter-L4.167" / leaf / "agent.json"
+        ajson.parent.mkdir(parents=True)
+        ajson.write_text('{"status": "running"}')
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.167"])
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "STALL-CANDIDATE" not in out, out
+        assert "1 live kid(s)" in out, out
+        assert out.count("agent=running") == 2, out
+        assert "(no agent.json)" not in out, out
+    finally:
+        for p in (parent, kid):
+            p.kill(); p.wait()
+
+
 def test_status_iter_unknown_iteration_names_it_and_exits_1(root, capsys):
     """An unknown iteration is a NAMED message, exit 1 — never a silent 0."""
     _mk_project(root)

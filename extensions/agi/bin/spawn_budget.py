@@ -542,11 +542,23 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_n: int) -> str:
-    """The agent.json `status` for this agent, if a record exists."""
+def _agent_status(root: Path, agent_id: str, iter_val) -> str:
+    """The agent.json `status` for this agent, if a record exists.
+
+    `iter_val` is the lease's own `iter` field, which is the round's genuine
+    id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
+    `iter-L4.167`, so building it from an int alone (`iter-L167`) misses every
+    live round. `locations.iteration_dirname` turns the lease value into the
+    exact dir name for both schemes: `L4.167` -> `iter-L4.167`, `140` ->
+    `iter-140`.
+    """
     # budget_dir is <graph>/sessions/.spawn-budget, so its PARENT is the
     # sessions dir that holds iter-L.NNN/<agent_id>/agent.json.
-    p = (budget_dir(root).parent / f"iter-L{iter_n}" / agent_id / "agent.json")
+    try:
+        dirname = locations.iteration_dirname(iter_val)
+    except ValueError:
+        return "(no agent.json)"
+    p = (budget_dir(root).parent / dirname / agent_id / "agent.json")
     try:
         rec = json.loads(p.read_text())
     except (OSError, json.JSONDecodeError):
@@ -562,7 +574,8 @@ def _round_status(root: Path, iter_str: str) -> int:
               f"(expected L4.NNN or NNN)", file=sys.stderr)
         return 1
     rows = [rec for _, rec in _read_leases(root)
-            if _lease_is_live(rec) and rec.get("iter") == nnn]
+            if _lease_is_live(rec)
+            and _iter_num(str(rec.get("iter"))) == nnn]
     if not rows:
         print(f"spawn_budget: no live agents in iteration L{nnn} "
               f"(dir={budget_dir(root)})", file=sys.stderr)
@@ -580,7 +593,7 @@ def _round_status(root: Path, iter_str: str) -> int:
         time.sleep(2)
         ticks = max(0, _pid_ticks(pid) - t0)
         socks = _pid_established_sockets(pid)
-        status = _agent_status(root, rec.get("agent_id", "?"), nnn)
+        status = _agent_status(root, rec.get("agent_id", "?"), rec.get("iter"))
         total_ticks += ticks
         total_socks += socks
         if tier == "kid":
