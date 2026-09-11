@@ -1,5 +1,7 @@
 #!/bin/bash
-# cc-session-start.sh — Claude Code SessionStart hook.
+# cc-session-start.sh — Claude Code SessionStart hook (carries the seat-successor
+# bootstrap injection since 2026-09-11, SL1.03 / hypothesis:l4-startup-is-one-script-or-a-driven-prompt;
+# the review + proof copy stays at cc-session-start.next.sh).
 #
 # When a new CC session begins, this hook auto-injects the thoughtgraph
 # ASCII map for the current project (if cwd is inside an agi-tree
@@ -214,6 +216,32 @@ fi
 # If still no INJECTION_FILE, exit silently — no map available.
 if [[ ! -f "$INJECTION_FILE" ]]; then
   exit 0
+fi
+
+# --- the seat-successor bootstrap block (hypothesis:l4-startup-is-one-
+#     script-or-a-driven-prompt, 0b kid 3) ------------------------------
+# When the session is a SEAT SUCCESSOR, rotate-self's button-down wrote
+# `<sessions>/seats/<seat>.bootstrap.json` at HEAD; the rotate.py
+# bootstrap-block reader emits it here as ONE small block, so a successor
+# wakes KNOWING its state and spends zero tool calls deriving it. Injected
+# when — and only when — the record exists for the seat AND is not stale
+# (`_bootstrap_stale`: a measured fact not at HEAD is refused, never
+# injected). A seat is named by AGI_SEAT (set by the spawner for a seat
+# session); with no AGI_SEAT this is a silent no-op, exactly like every
+# other optional section of this hook. rotate.py returns 0+block on emit,
+# 1+silence on refuse — SILENCE is the safe direction (no stale state, no
+# banner on a non-seat session).
+BOOTSTRAP_SEAT="${AGI_SEAT:-}"
+if [[ -n "$BOOTSTRAP_SEAT" ]]; then
+  BOOTSTRAP_BLOCK="$(AGI_PROJECT_ROOT="$PROJECT_ROOT" python3 \
+    "$PLUGIN_ROOT/bin/rotate.py" bootstrap-block --seat "$BOOTSTRAP_SEAT" \
+      --root "$PROJECT_ROOT" 2>/dev/null || true)"
+  if [[ -n "$BOOTSTRAP_BLOCK" ]]; then
+    echo "$BOOTSTRAP_BLOCK"
+    echo ""
+    echo "---"
+    echo ""
+  fi
 fi
 
 # --- the role's constitution head (hypothesis:l3w0-brief-head-michael) ------

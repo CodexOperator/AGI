@@ -98,6 +98,7 @@ sessions/
 # gen II's own force-add of this same file minutes earlier).
 !.agi/sessions/
 .agi/sessions/*
+!.agi/sessions/sensei/
 !.agi/sessions/rotations/
 !.agi/sessions/rotations/*
 !.agi/sessions/quorum/
