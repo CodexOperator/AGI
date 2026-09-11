@@ -1,0 +1,14 @@
+{
+  "_note": "hypothesis:l4-a-model-change-is-one-write — proposed config.json additions for the PRIME's ONE cut-over commit at merge-up. Do NOT apply on a fixture; apply on the live .agi/config.json only as ONE reviewed commit.",
+  "locations": {
+    "pi_home": "/home/ubuntu/.pi/agent",
+    "claude_home": "/home/ubuntu/.claude"
+  },
+  "harnesses": {
+    "pi": {
+      "allowed_extra": ["~deepseek/deepseek-v4-flash-latest",
+                        "~z-ai/glm-flash-latest",
+                        "deepseek/deepseek-v4.1-flash"]
+    }
+  }
+}
