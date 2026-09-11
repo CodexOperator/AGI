@@ -594,6 +594,9 @@ def test_ack_empty_registry_leaves_pid_sid_untouched_and_exits_0(
     assert not (rotate._sessions_dir(root) / "adv-s.meter").exists()
     out = capsys.readouterr().out
     assert "join:" in out
+    # director fix-up at the L4.288 harvest: F8 — the ack PRINTS the
+    # back-fill it wrote even when the identity join misses.
+    assert "back-filled session_ref=r1 into own row (source: ack)" in out
 
 
 def test_ack_row_without_window_leaves_pid_sid_untouched(_fix, tmp_path,
@@ -611,6 +614,9 @@ def test_ack_row_without_window_leaves_pid_sid_untouched(_fix, tmp_path,
     assert own["session_ref"] == "r1"
     out = capsys.readouterr().out
     assert "join:" in out
+    # director fix-up at the L4.288 harvest: F8 — the ack PRINTS the
+    # back-fill it wrote even when the identity join misses.
+    assert "back-filled session_ref=r1 into own row (source: ack)" in out
 
 
 # ── L4.114 (c) — ack --ref back-fill (r3) + whois by ref AND uuid prefix ───
