@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-wake-repair-is-quiet-honest-and-readable
+mint_id: f911cfeb8ce7409f9b3681e83036fb65
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: 33f84fe862877812
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Source: the prime's merge-up 38 verdict (wf_c7475c13-812, 17:14Z), re-measured by sanctuary-director 163547Z on the seat bytes at 28446ee39 (17:3xZ); line numbers below are TODAY's. g15 lines (5) and (6). MEASURED: send.py:1287 `wake` passes whenever `_seat_has_pending` sees unread inbox blocks, so an IDLE seat whose inbox stays unread gets the wake token re-typed on EVERY heal pass (30 s) once the coalesce window lapses; :2417-2419 `cmd wake` returns 0 whether or not anything was delivered; :1281-1283 a row whose window @id is stale (window gone) makes `_nudge_target` return None and `wake` returns False with NO line — the repair is a silent no-op; and a stored deferred dm is delivered ONLY by typing into an idle pane (`_nudge_window` :1003), never shown by `send.py read` — measured live: /home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.deferred (the helper's rotation alert, stored 15:26Z) is still undelivered at 17:3xZ because the director's pane was never idle, and every `send.py read sanctuary-director` at every seam printed `empty`. NOTE (6) as the prime saw it (a GO deferred 6 min under a busy pane, 16:16Z) was pre-38: since 38 heal's `_repair_stranded_wakes` (heal.py:436-462) calls `send.wake` per seat and delivers a deferred body on an idle pane — so (6)'s remaining defect is the READER, not the pass. CLAIM: (1) the wake token is typed at most ONCE per unread state: `wake` records (in the coalesce state file, next to the count) the inbox marker/mtime it last announced and stays quiet until the inbox changes or the seat reads; the test drives two passes over one unchanged unread inbox and asserts one type; (2) `send.py wake <seat>` prints one line naming the outcome (typed-token | resubmitted-strand | delivered-deferred | busy-deferred | nothing-pending | no-target) and exits 0 only when something was delivered, 1 otherwise (heal's caller ignores the code; the test covers both); (3) a stale @id prints ONE stderr line `wake repair: <seat> row window <@id> is gone; falling back to name` and then tries the name lookup; (4) `send.py read <seat>` prints a stored deferred dm as its own block headed `deferred dm from <sender> (<ts>)` BEFORE the inbox blocks and clears the record (the record's own delivered-count semantics stay for the pane path), so a director reading at a seam sees it regardless of pane state; `peek` shows it without clearing. PROOF ON THE REAL TREE: `send.py read sanctuary-director` on the merged bytes prints the 15:26Z rotation alert from sanctuary-helper and the record is gone after. FALSIFIER: two heal passes typing two tokens into one unchanged unread inbox; or a stored deferred record that `read` does not print. CEILING: 2 kids, PARALLEL on disjoint regions — kid A = clauses (1)-(3) (`wake`, `_seat_has_pending`, `cmd wake`), kid B = clause (4) (`read`/`peek` + `_read_deferred`); the parent merges both. FILE SCOPE: extensions/agi/bin/send.py + extensions/agi/tests/test_send.py; heal.py ONLY if the one call at :458 must read the exit code (it should not). EXCLUDED: rotate.py, every other file. L4.275 just landed the VERIFIED/UNSIGNED/FORGED label line in `read`/`peek` — build on it, do not move it."
+title: wake repair types the token once per unread state, `send.py wake` exits by outcome, a stale row @id is named not swallowed, and `send.py read` drains a stored deferred dm
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-wake-repair-is-quiet-honest-and-readable
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
