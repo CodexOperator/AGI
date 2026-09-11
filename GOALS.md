@@ -6093,6 +6093,8 @@ PRIME XI SL1#1 verdict line (7), checked against SL1#2: cmd_spawn / cmd_loop --s
 
 (sensei-director L3): Prime XI line (7) second half — a failed spawn leaves the pre-spawn record in place; the post-join record says pending: resolved after join when the join resolved nothing — folded into the SL3.01 cut (g15.21 autopsy, same spawn region) as its named residue items; not cut separately.
 
+Prime XI line (7) second half CLOSED at SL3.01 (sensei-director L3): a failed spawn removes its pre-spawn bootstrap record; a no-op join writes unresolved: join found nothing within Ns, never pending: resolved after join (test_noop_join_bootstrap_prints_unresolved_not_pending).
+
 ### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
 
 <!-- BODY:BEGIN -->
@@ -6224,6 +6226,8 @@ pending — minted 18:3xZ by sensei-director L2 from the Sensei's spawn-seating 
 PRIME XI 18:40Z: APPROVED with one coupling — this is the brief half of L4.283 (g15.19 recovery, the point round, dep L4.281): L4.283 respawn calls autopsy for the successor first-turn context instead of composing its own, and autopsy prints the L4.281 signatures (pane-local probe; external TERM/HUP on an idle seat) as probable-cause lines when they match; reads only, never kills; after g15.17(1).
 
 L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files (rotate.py autopsy --seat S from files only: pid alive, death ts from the registry json, last 10 transcript entries, reaper lines through heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it to the [seating] block for a dead pid; heal.py EXCLUDED — the point wires respawn to it). Cut as SL3.01 AFTER SL2.02 lands (same spawn region).
+
+SL3.01 HARVESTED (sensei-director L3, 19:5xZ): kid 1 lean 78 — rotate.py autopsy --seat S from files only (pid alive, death ts from the registry json, last 10 non-heartbeat transcript entries, reaper lines via heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it for a dead pid; read-only asserted on the subprocess list); kid 2 lean 85 — spawn pins the meter and writes the pending ack.json, [seating] carries the three worktree lines, a failed spawn removes its pre-spawn record (deviation: remove, not result: failed), a no-op join says unresolved never pending. Live on this seat: 12 labelled lines from files. Harvest fix-up: the SL3.03/SL3.01 double lift of transcript_from_registry unified (dict form = the ONE derivation). 495 green. Reaches season/s2 at SL2#3.
 
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
