@@ -932,6 +932,80 @@ def test_sb_status_wrapper_resolves_the_configured_stub(tmp_path, monkeypatch):
         f"walk crossed the .git boundary into the ancestor config: {out!r}"
 
 
+@stub_only
+def test_sb_status_wrapper_config_without_cell_falls_back_to_home(tmp_path, monkeypatch):
+    """hypothesis:l4-the-sb-status-wrapper-resolves-like-the-engine — the
+    INSTALL-TIME fallback must stay $HOME-relative under a project whose
+    .agi/config.json has NO streamer_stub cell. (Regression: the L4.229
+    round re-rooted the fallback under any configured project, so running
+    the deployed wrapper from the agi seat — a config present but empty of
+    the cell, the most common shape — broke with
+    `<repo>/work/streamer-stub/bin/hold.sh: No such file or directory`.
+    streamer-stub 8b50fe3 fixed the template: `_base` is the project root
+    only when a value was DECLARED, else $HOME.) Also assert in the same
+    run that a config which DOES declare a relative value still resolves
+    project-relative."""
+    import json
+    import subprocess
+
+    home = tmp_path / "home"
+    (home / "bin").mkdir(parents=True)
+
+    # install-time stub under home -> $HOME-relative fallback, as on the box
+    inst_stub = home / "work" / "streamer-stub"
+    (inst_stub / "bin").mkdir(parents=True)
+    fake = ("#!/usr/bin/env bash\n"
+            "printf 'STUB:%s\\n' \"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\n")
+    for name in ("hold.sh", "panic.sh"):
+        p = inst_stub / "bin" / name
+        p.write_text(fake)
+        p.chmod(0o755)
+
+    installer = locations.streamer_stub(REAL_ROOT) / "bin" / "install-cli.sh"
+    assert installer.is_file(), f"installer missing: {installer}"
+    env = dict(os.environ, HOME=str(home), SB_HOME=str(inst_stub))
+    r = subprocess.run(["bash", str(installer)], env=env, capture_output=True,
+                       text=True)
+    assert r.returncode == 0, f"install-cli.sh failed: {r.stderr}"
+    wrapper = home / "bin" / "sb-status"
+    assert wrapper.is_file(), f"wrapper not installed: {wrapper}"
+
+    def _run_from(cwd: Path) -> str:
+        o = subprocess.run(["bash", str(wrapper)], cwd=str(cwd), env=env,
+                           capture_output=True, text=True)
+        assert o.returncode == 0, f"wrapper failed: {o.stderr}"
+        return o.stdout
+
+    # (1) a project with a config but NO streamer_stub cell -> the install-time
+    #     fallback answers, and NOT under the project root.
+    noproj = tmp_path / "noproj"
+    (noproj / ".agi").mkdir(parents=True)
+    # NB no `locations.streamer_stub` key at all — config present, cell absent
+    (noproj / ".agi" / "config.json").write_text(json.dumps({"locations": {}}))
+    out = _run_from(noproj)
+    assert str(inst_stub) in out, \
+        f"config without a cell must fall back to install-time stub; got: {out!r}"
+    assert str(noproj / "work" / "streamer-stub") not in out, \
+        f"config-without-a-cell re-rooted the fallback under the project: {out!r}"
+
+    # (2) same run: a config that DOES declare a relative value still resolves
+    #     project-relative (the fix must not break the other half of the claim).
+    decl = tmp_path / "decl"
+    (decl / ".agi").mkdir(parents=True)
+    rel_stub = decl / "rel" / "stub"
+    (rel_stub / "bin").mkdir(parents=True)
+    for name in ("hold.sh", "panic.sh"):
+        p = rel_stub / "bin" / name
+        p.write_text(fake)
+        p.chmod(0o755)
+    (decl / ".agi" / "config.json").write_text(json.dumps(
+        {"locations": {"streamer_stub": "rel/stub"}}))
+    out = _run_from(decl)
+    assert str(rel_stub) in out, \
+        f"declared relative stub must still resolve project-relative; got: {out!r}"
+    assert str(inst_stub) not in out, \
+        f"declared relative stub resolved against install-time fallback: {out!r}"
+
 
 @stub_only
 def test_sb_status_guard_rejects_comment_only_mentions(tmp_path):
