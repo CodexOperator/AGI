@@ -51,10 +51,23 @@ def _make_seats_node(groot: Path, rows: list[str]) -> None:
     node.write_text("\n".join(body), encoding="utf-8")
 
 
-def _make_pin(groot: Path, seat: str, transcript: Path) -> None:
+def _make_pin(groot: Path, seat: str, transcript: Path,
+               generation: int = 4) -> None:
+    """Write `<seat>.meter` pin (gen N) plus a MATCHING seat handoff (gen N)
+    so the generation guard -- the stale-pin compare, mirroring
+    rotate.resolve_transcript step 3 -- sees the pin as the seat's OWN live,
+    not a predecessor's. `_read_generation` reads `generation:` from
+    `<graph>/sessions/seats/<seat>.handoff.md`, so a gen-bearing pin needs a
+    matching handoff or the guard reads 0 and calls it stale. Default gen 4
+    keeps the historical meter format these tests already used."""
     sess = groot / "sessions"
     sess.mkdir(parents=True, exist_ok=True)
-    (sess / f"{seat}.meter").write_text(f"4\t{transcript}\n", encoding="utf-8")
+    (sess / f"{seat}.meter").write_text(
+        f"{generation}\t{transcript}\n", encoding="utf-8")
+    hands = sess / "seats"
+    hands.mkdir(parents=True, exist_ok=True)
+    (hands / f"{seat}.handoff.md").write_text(
+        f"generation: {generation}\n", encoding="utf-8")
 
 
 def _no_drift_transcript(tmp_path: Path) -> Path:
@@ -120,7 +133,11 @@ def test_seat_model_restored_later_clears_drift(tmp_path):
     assert "model=claude-opus-5" in r.note
     assert "row=claude-opus-5" in r.note
     assert r.number["drifted"] == 0
-
+    # Fix (b): a seat clean NOW but with a fallback blip earlier in its own
+    # transcript still surfaces the last model_refusal_fallback event, even on
+    # a PASS -- the cause must not vanish because the drift cleared.
+    assert "model_refusal_fallback" in r.note, \
+        "a clean-now seat with a historical fallback blip still surfaces it"
 
 # --- proof (c): a no-drift transcript passes with model=row -----------------
 
@@ -165,6 +182,34 @@ def test_seat_with_pin_to_missing_transcript_is_skipped_not_failed(tmp_path):
     r = verification.check_seat_model(groot)
     assert r.status == "PASS", r.note
     assert r.number["skipped"] == 1
+
+
+def test_seat_stale_pin_is_skipped_not_read_as_live(tmp_path):
+    """Prime merge-up 24 residue (a): a gen-bearing pin whose generation does
+    not match the seat's CURRENT generation (from its handoff) is a
+    PREDECESSOR's pin the rotation never re-pointed -- treated as unresolvable
+    and skipped, never silently read as the live transcript, never a failure.
+    Without this guard, the drifted fixture below would be read as the seat's
+    live and the check would (wrongly) FAIL on a stale predecessor's session.
+    The guard must drop the generation compare ONLY when the pin carries no
+    generation field (written_gen is None), matching rotate.resolve_transcript
+    step 3."""
+    groot = tmp_path / ".agi"
+    _make_seats_node(groot, [DRIFT_SEAT_ROW])
+    # pin names generation 3, but the seat's CURRENT handoff says generation 4
+    sess = groot / "sessions"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / "sanctuary-director.meter").write_text(
+        f"3\t{FIXTURE}\n", encoding="utf-8")
+    hands = sess / "seats"
+    hands.mkdir(parents=True, exist_ok=True)
+    (hands / "sanctuary-director.handoff.md").write_text(
+        "generation: 4\n", encoding="utf-8")
+
+    r = verification.check_seat_model(groot)
+    assert r.status == "PASS", r.note  # a stale pin is a skip, not a failure
+    assert r.number["skipped"] == 1
+    assert "stale-pin" in r.note, "must name the stale-pin skip distinctly"
 
 
 def test_no_seated_rows_is_a_pass_that_says_so(tmp_path):
