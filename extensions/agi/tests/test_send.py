@@ -983,6 +983,113 @@ def test_capture_pane_uses_join_flag(project, monkeypatch):
         assert "-J" in c, f"capture-pane argv must carry -J: {c}"
 
 
+def test_deferred_strand_judged_with_the_rendered_more_count(
+        project: Path, monkeypatch, capsys):
+    """FALSIFIER (hypothesis:l4-deferred-ownership-uses-the-rendered-count):
+    a short deferred dm delivered by an inbox retry is stranded in the pane
+    with the `(+N more, read <seat>)` tail count AT ITS render time. A later
+    retry that renders its ownership line with the CURRENT pending count (a
+    drift, e.g. more coalesced since) reads that own strand as FOREIGN, keeps
+    the deferred record, and the NEXT retry types the body AGAIN -- delivered
+    twice for one deferral. Fixed: the deferred record stores the `more`
+    count each delivery rendered with, and ownership judges against THAT
+    render, so the own strand is recognised (Enter only) and the deferred
+    record cleared -- never typed twice."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    assert send_mod._store_deferred(root, seat, sender, "urgent")
+    # simulate a PRIOR delivery render that typed the strand with more=1
+    send_mod._record_deferred_render(root, seat, 1)
+    assert send_mod._read_deferred(root, seat).get("more") == 1
+    # the pending count has since grown to 3 (two more coalesced)
+    send_mod._clear_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    assert send_mod._pending_more(root, seat) == 3
+    # the pane holds the strand typed by that prior delivery (more=1 tail +
+    # inbox tail, no Enter yet)
+    strand = send_mod._nudge_line(seat, sender, "urgent", 1,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    pane = _FixturePane(width=200)               # wide: no wrap distracts
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")   # inbox retry, body=None
+    # OWN strand with the STORED more=1 render is recognised: Enter only, no
+    # second line typed, and -- the double-delivery falsifier -- the deferred
+    # record is CLEARED so the body can never be typed twice.
+    assert _typed(calls) == [], \
+        "the own stranded deferred line must not be typed again"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own deferred strand is a real delivery -- the record is cleared, " \
+        "so the body is never typed twice for one deferral"
+
+
+def test_render_that_never_types_does_not_move_the_stored_deferred_count(
+        project: Path, monkeypatch, capsys):
+    """RESIDUE FALSIFIER (hypothesis:l4-deferred-ownership-uses-the-rendered-
+    count): the first fix recorded the render count when the deferred line was
+    RENDERED, before it was TYPED. A deferred delivery that RENDERS but never
+    TYPES (the coalesce-window, a busy pane, a failed literal send) still
+    OVERWROTE the stored count, so after (Z) type-and-strands at more=1 and
+    (B) renders at a different count without typing, the retry (C) judges the
+    Z strand against B's count, reads it as FOREIGN, keeps the deferred
+    record, and the NEXT retry types the already-delivered body AGAIN.
+    Fixed: the count is recorded ONLY on the path where the line is actually
+    TYPED into the pane; a render that never reaches the pane stays a no-op.
+    A record with no `more` key still falls back to the current count."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    # (Z) a deferred delivery types its line (with the inbox tail) at more=1
+    # and strands it in the pane (Enter never lands)
+    assert send_mod._store_deferred(root, seat, sender, "urgent")
+    send_mod._record_deferred_render(root, seat, 1)      # Z typed at more=1
+    strand = send_mod._nudge_line(
+        seat, sender, "urgent", 1,
+        trailing=send_mod._NUDGE_INBOX_TAIL.format(seat=seat))
+    pane = _FixturePane(width=200)               # wide: a straight line
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    # the pending count has grown to 2 since Z's render
+    send_mod._clear_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    assert send_mod._pending_more(root, seat) == 2
+
+    # (B) an intervening call that RENDERS at more=2 but does NOT type: a
+    # fresh nudge marker forces the coalesce-window short-circuit (the window
+    # check precedes the capture/typing path). OLD bytes recorded `more=2`
+    # here; NEW bytes must leave the stored `more=1` untouched.
+    send_mod._record_nudge(root, seat)           # inside the window
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "more mail", "ki")    # body=None nudge
+    assert _typed(calls) == [], "B must not type (coalesce-window)"
+    still = send_mod._read_deferred(root, seat)
+    assert still is not None and still.get("more") == 1, \
+        f"a render that never types must not move the stored count: " \
+        f"{still!r}"
+
+    # (C) the retry once the window passes: the Z strand is judged against
+    # the STORED more=1 render -> OURS -> Enter only, record cleared.
+    send_mod._nudge_marker_path(root, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")         # long-stale marker
+    calls2 = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "more mail", "ki")
+    assert _typed(calls2) == [], \
+        "the own stranded deferred line must not be typed again"
+    assert _enters(calls2) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls2
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the own strand is a real delivery -- the record is cleared, so the " \
+        "body is never typed a second time for one deferral"
+
+
 def test_deferred_delivery_names_the_unread_inbox(project: Path,
                                                   monkeypatch, capsys):
     """CLAUSE (b) FALSIFIER (hypothesis:l4-send-py-same-sender-stranded-line-

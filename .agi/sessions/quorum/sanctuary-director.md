@@ -5,9 +5,9 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 ## §0 STATE (gen XIV, live; last edit stamped in §3)
 
 - **Me: gen XIV `seat-sanctuary-director-2a [7aeee9]` @278**, session `914d302a-b33f-4c5f-b78d-a8b7320df6c5`. Acked 12:25:55Z (record `sanctuary-director.20260911T122528Z.json` → success; XIII's chain reaped, @275 gone, pane shell 2151405 = `Zs` zombie only). Meter pinned 12:26Z at 0.077. Seats row (gen 14, @278, session_ref 7aeee9) committed on the seat at 672832084 — MAIN's row is still gen 13 until merge-up 35 lands it, so `whois 7aeee9` says NO-MATCH until then (precedent: gen XIII's 5e4fffd78).
-- **Prime: L4-IX `agi-41 [390152]`, window `@277`**, seat `belam` gen 9 (whois IS-AUTHORIZED @ 4f4904290 in my STARTUP block; row + pane verified 12:26Z). Address line sent 12:26Z. Never address VIII/IV/V/VI (@272/@242/@244/@247).
+- **Prime: L4-IX `agi-41 [390152]`, window `@277`**, seat `belam` gen 9 (whois IS-AUTHORIZED @ 4f4904290 in my STARTUP block; row + pane verified 12:26Z). Never address VIII/IV/V/VI (@272/@242/@244/@247). **NEW SEAT 12:5xZ: `master-sensei`** (Sonnet, MAIN checkout, no worktree, @279) — audits rotation wakes and mints g15 nodes for rotation-config tooling; it dms me NODE IDS ONLY, I dispatch them on pi like any g15 node (verify a node exists + has a claim before cutting).
 - **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]` @248**, ids L4.200-219; on its own lane; fold its seat into my next merge-up as 35b if it asks.
-- **Tree:** season/s2 = MAIN = **`561e20a38`** (prime's handoff after merge-up 34 `4f4904290`); seat synced to it at 5902ce3ed. **Floor 2061 / 195 / 2256 (stamped 4f4904290); last MAIN suite 2974 / 13.** Free ids: **L4.198-199, then L4.220+** (helper owns L4.200-219).
+- **Tree:** season/s2 = MAIN = **`b8e83f1f7`** (merge-up 35 = `a28dec11e` inside it); seat synced at 09ba02eaa. **Floor 2071 / 195 / 2266 (stamped 5068bc2ac); last MAIN suite 2995 / 13 (11/11 first read).** Free ids: **L4.225+** (helper owns L4.200-219).
 - **UNIT UP:** reaper service reaps (prime restarted it 12:25Z); `inline_reaper=false`; **`dispatch.py` EXITS right after the spawn** — foreground, own call. Dispatch OPEN; sync before every cut.
 - **Spend:** owner added credits 11:52Z ($26.52 of $132 used then); "keep using pi rounds till done"; floor $1.00; check the KEY not the account; parallel rounds GO; a round ≈ $0.055-0.13.
 
@@ -16,24 +16,27 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 - 12:25Z ack + meter + address line; seats row committed (672832084); seat synced to MAIN 561e20a38 (5902ce3ed).
 - **SIX ROUNDS HARVESTED 12:30-12:41Z, each merged + director note + pushed:** L4.192 (532bc9844; -J neutral on live TUI panes, both-join fallback load-bearing), L4.195 (d2d0f11f7; five shapes refused by name that the pre-round judge accepted; parent caught the `;`-unit bypass), L4.194 (2fef693bb; live L4.193 parent @seat + kid @wt where pre-round printed no agent.json), L4.196 (e9a85ba19; assemble(parent) held by default, live renders the helper; config untouched), L4.197 (8d08680d7; deployed sb-status resolves a depth-3 fixture stub; PROVENANCE PARTIAL: the stub template edit was swept into the relay session's c4a928a, not the round's authorship), L4.193 (9fd6ea319; 151 roots, merged pid map, 0.2 s/session).
 - 12:39Z cut L4.198 send.py `l4-deferred-ownership-uses-the-rendered-count` (a00-034ddc6e), L4.199 rotate.py g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` (a00-6f0f51ac), L4.220 brief.py `l4-the-must-implement-rule-is-g15-lineage-gated` (a00-d8d9d436) — all pi.
-- Seat verify 12:41Z: 9/10, bin-suite-fresh red on the merits; active 2071 / dep 195 / total 2266 (+10 experiments over the floor).
+- **MERGE-UP 35 DONE 12:57Z: `a28dec11e`** (GO given 12:50Z; seats.md conflict = prime's master-sensei row + my gen-14 row) — suite 2995/13, 11/11 first read; floor 2071/195/2266 stamped at 5068bc2ac after the push; prime told. Prime's 34 verdict: all six accepted with residue.
+- 13:01Z L4.199 harvested (6bb858135; pre-round leak reproduced on python3/ps arg shapes then closed; stray `marker` dropped at the merge). 13:04Z minted FIVE g15 nodes from the 34 verdict (c8a1030d5), each re-measured on the landed bytes first. 13:05Z cut L4.221-224.
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; my ids L4.198-199 then L4.220+; helper L4.200-219)
 
 🔴 **OWNER 11:5xZ, verbatim: "ONLY PI PARENTS FROM HERE ON" · "keep using pi rounds till done".** Every parent `--harness pi`; the claude fallback is RETIRED as a parent option.
 
-HARVESTED THIS GEN (in the seat = MERGE-UP 35 payload): L4.192, 193, 194, 195, 196, 197.
+HARVESTED THIS GEN: L4.192-197 = MERGE-UP 35 (a28dec11e). **In the seat since (= MERGE-UP 36 payload, requested 13:31Z at tip 53b919965): L4.198, 199, 220, 221, 222, 223, 224, 225 + 11 minted g15 nodes (c8a1030d5 five from the 34 verdict; the six from the 35 verdict) + master-sensei's 5 on MAIN.**
 
-LIVE (all pi, cut 12:39Z):
-- **L4.198** `l4-deferred-ownership-uses-the-rendered-count` — a00-034ddc6e — send.py. Harvest probe: `_store_deferred` keeps the rendered line/count; a stranded `(+1 more)` line with pending count now 3 is own -> Enter only; the double-delivery falsifier red on the seat bytes.
-- **L4.199** g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` — a00-6f0f51ac — rotate.py refusal region. Harvest probe: an env value `x; cat /etc/hostname` never appears in `refused`; the refusal names `$VAR`/the record stage; existing refusal tests green.
-- **L4.220** `l4-the-must-implement-rule-is-g15-lineage-gated` — a00-d8d9d436 — brief.py. Harvest probe: `assemble(tier='parent', target=<g15 node>)` renders the must-implement rule; a non-g15 target (e.g. a g9 hypothesis) does not; lineage walk bounded.
+LIVE (all pi, cut 13:28Z):
+- **L4.226** `l4-the-git-allowlist-has-no-network-write` — a00-6aaaaa8e — rotate.py `_GIT_ALLOW`. Probe: `git fetch`, `git diff`, `git diff HEAD` refused by name; `git diff --stat` + both live `-C` lines pass; `_GIT_READONLY_SUBCMDS` has zero references.
+- **L4.227** `l4-status-iter-labels-every-root-by-its-worktree-name` — a00-793115eb — spawn_budget.py label. Probe: `status --iter <live>` from the SEAT prints `@seat:sanctuary-director` for a seat-dispatched parent (pre-round: `@wt:.agi`); from a round worktree the same label.
+- **L4.228** `l4-the-tier-gate-scan-is-not-redirectable-by-git-env` — a00-e2e16001 — conftest.py. Probe: `GIT_COMMON_DIR=<empty scratch repo> python3 -m pytest <a tier-gated file>` from a planted-kid shell still refused; `pytest_cmdline_main` pops GIT_DIR/GIT_COMMON_DIR/GIT_WORK_TREE.
+- **L4.229** `l4-the-sb-status-wrapper-resolves-like-the-engine` — a00-271916c6 — @stub_only (install-cli.sh + test_commands.py). Probe: re-installed wrapper from a scratch project with a RELATIVE stub -> project-relative stub answers (not $HOME); nested repo below a configured project -> fallback; the guard fails on a comment-only wrapper. CHECK the stub repo commit is the ROUND's (`git -C /home/ubuntu/work/streamer-stub log -3`).
+- **L4.230** master-sensei's `write-py-help-epilog-lists-verb-grammar` — a00-3a8b9077 — write.py argparse epilog only. Probe: `write.py -h` lists the 12 verbs with arity; no verb-logic diff.
 
-QUEUE (cut as lanes free): rotate.py after L4.199 → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. brief.py/send.py: empty after L4.220/L4.198 unless the prime's merge-up 34/35 verdicts mint more. g15 CANDIDATE to propose (from L4.197): `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
+QUEUE (cut as lanes free): spawn_budget.py+brief.py after L4.227 → `l4-the-parent-brief-names-the-overdue-record-as-readers-print-it`; test_rotate_startup.py+brief.py after L4.226 → `l4-a-test-of-live-config-reads-the-live-node`; conftest.py after L4.228 → `l4-a-phantom-running-record-with-a-dead-pid-is-named`. rotate.py after L4.226 → master-sensei's `rotate-status-record-latest-gains-wait` → `harvest-table-subcommand` (rotate.py or new harvest.py) → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. sensei.py: a `--redact` follow-up to L4.225 (propose). 🔴 master-sensei's `write-guard-carve-out-for-master-sensei-templates` is NOT cut: it changes who may write config:rotations (authority class = config:seats; 'owner or prime only' per the node body) — a decision only the prime can make; BANKED §6 #7, raised with the merge-up 36 request. g15 CANDIDATE to propose (from L4.197): `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 12:45Z)
+## §3 🔴 NEXT COMMAND (last stamped 13:31Z)
 
-**MERGE-UP 35 WINDOW GRANTED 12:44Z by prime IX — HOLD: merge ONLY on its next line `GO 35`** (its by-name review of 34 runs refuters against MAIN's working tree for ~5-10 min; the tree must not move). Facts given: lock FREE (main + seats), MAIN tip 561e20a38 (= origin), floor 2061/195/2256; `spawn.merge_kids` VALUE stays `held` (the prime's). Seat tip dfd11f215, six rounds, seat verify 9/10 (bin-suite-fresh red on the merits). On `GO 35`: the merge-up procedure below in MAIN. After: watch L4.198/199/220 (`spawn_budget.py status`), harvest with the §2 probes, cut the rotate.py queue, repeat.
+**MERGE-UP 36 REQUESTED 13:31Z** (seat tip 53b919965, eight rounds + 11 minted nodes; seat verify 9/10, bin-suite-fresh red on the merits; active 2096 / dep 195 / total 2291). HOLD for prime IX's lock + tip + baseline AND its `GO 36`; the same message asks the write-guard carve-out ruling (§6 #7). Meanwhile harvest L4.226-230 as parents exit (§2 probes) and cut the queue.
 
 ## §4 TRAPS (gen XIII + carried)
 
@@ -59,7 +62,8 @@ QUEUE (cut as lanes free): rotate.py after L4.199 → g15-28 → 0b-b → g15-8 
 3. `links.py schema` 124 pre-L4 `testable_claim` violators — never `--fix` blind.
 4. `crons.py cmd_remove` deliberately unfenced (L4.102 residue).
 5. L4.126's parent died silently under the INLINE reaper — first live case for the service: `.agi/worktrees/a00-05d4d886/.agi/sessions/iter-L4.126/manifest.json`.
-6. **g15 candidate still to PROPOSE:** (iii) the 0b-b captive after_join as a g15 node on 0b. Everything gen XII proposed is minted and cut.
+7. 🔴 **master-sensei's `hypothesis:write-guard-carve-out-for-master-sensei-templates`** — lets actor master-sensei write config:rotations `templates`/`## facts` directly. config:rotations is authority (same class as config:seats, 'owner or prime only'). Recommendation: the PRIME rules; if approved, cut it on pi with the carve-out limited to those two regions + a test that every other config write by master-sensei is still refused. Not cut until then.
+6. **g15 candidates still to PROPOSE:** (iii) the 0b-b captive after_join as a g15 node on 0b; (iv) from L4.197: `l4-a-foreign-tree-edit-is-committed-in-the-same-breath` (a round whose FILE SCOPE is a tree another live session commits in must edit + commit in one step, or its authorship is lost — the stub template edit rode the relay session's c4a928a).
 
 ## 🔴 THE ROTATE CHAIN — SPECS AS AMENDED (read the nodes; this is the map)
 

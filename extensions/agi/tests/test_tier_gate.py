@@ -24,9 +24,11 @@ in `finally` -- the only seam a subprocess test has now that the option is
 gone. The in-process tests monkeypatch `_default_record_root` instead.
 """
 import copy
+import atexit
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import uuid
@@ -140,6 +142,15 @@ def _write_agent_record(sessions_root, agent_dir, pid, tier, status="running"):
     return d
 
 
+def _some_dead_pid():
+    """A pid guaranteed (with overwhelming probability) to have NO /proc entry
+    right now, for modelling a phantom left by a SIGKILLed run."""
+    pid = 1 << 29
+    while os.path.exists(f"/proc/{pid}"):
+        pid += 1
+    return pid
+
+
 def _plant_in_tree(tier, status="running"):
     """Plant a running (or stale, per `status`) agent.json whose pid is THIS
     process -- an ANCESTOR of the nested pytest -- under the REAL tree's
@@ -149,12 +160,21 @@ def _plant_in_tree(tier, status="running"):
     gone (hypothesis:l4-the-record-root-has-no-test-seam-either): the record
     has to live where the gate actually scans, and the caller removes it in
     `finally`. Returns the throwaway marker dir (its parent to clean up).
+
+    hypothesis:l4-a-running-record-with-a-dead-pid-is-not-a-running-agent:
+    the marker ALSO self-cleans via `atexit` (``shutil.rmtree(marker, True)``)
+    on top of the caller's `finally`. A normal interrupt (SIGINT/SIGTERM)
+    still runs Python's atexit stack even when a `finally` is abandoned, so a
+    killed run cannot leave a phantom under the REAL tree. A SIGKILL skips
+    both -- but the liveness gate in conftest._running_record_tiers then
+    ignores the leftover dead-pid record anyway.
     """
     tree_root = gate._default_record_root()
     assert tree_root, "tree-derived record root must resolve"
     marker = Path(tree_root) / f"iter-test-{uuid.uuid4().hex[:8]}"
     marker.mkdir(parents=True, exist_ok=True)
     _write_agent_record(marker, "rec", os.getpid(), tier, status=status)
+    atexit.register(shutil.rmtree, marker, True)
     return marker
 
 
@@ -342,13 +362,17 @@ def test_decide_only_running_records_count():
     live running record on the chain, which a real-tree subprocess cannot
     clear.
     """
-    import tempfile, shutil
+    import tempfile
     root = tempfile.mkdtemp()
     try:
         _write_agent_record(root, "stale", 999999, "kid", status="done")
-        _write_agent_record(root, "live", 111111, "director", status="running")
+        # a LIVE pid (this process, guaranteed present in /proc) counts...
+        _write_agent_record(root, "live", os.getpid(), "director", status="running")
+        # ...but a running record at a guone pid (hypothesis:l4-a-running-
+        # record-with-a-dead-pid-is-not-a-running-agent) is skipped.
+        _write_agent_record(root, "phantom", _some_dead_pid(), "kid", status="running")
         tiers = gate._running_record_tiers(root)
-        assert tiers == {111111: "director"}, f"got {tiers}"
+        assert tiers == {os.getpid(): "director"}, f"got {tiers}"
         # empty root -> no tiers -> the pure fallback decides (None)
         empty = tempfile.mkdtemp()
         try:
@@ -356,6 +380,38 @@ def test_decide_only_running_records_count():
             assert gate._resolve_tier_from_ancestors({}, lambda p: None, 1) is None
         finally:
             shutil.rmtree(empty)
+    finally:
+        shutil.rmtree(root)
+
+
+def test_decide_running_record_with_dead_pid_derives_no_tier():
+    """hypothesis:l4-a-running-record-with-a-dead-pid-is-not-a-running-agent.
+    The falsifier -- a running record with a dead pid deriving a tier -- is
+    refused: a `status: running` record whose pid has no /proc entry is a
+    phantom left by a SIGKILLed run and must not cradle the gate, even during
+    the pid-reuse window on a later run's ancestor chain. A running record at
+    a LIVE pid (os.getpid()) still derives its tier, and the pure fallback
+    (AGI_TIER) is what a chain rooted at the dead pid gets.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    try:
+        dead = _some_dead_pid()
+        _write_agent_record(root, "phantom", dead, "kid", status="running")
+        tiers = gate._running_record_tiers(root)
+        # dead-pid record is skipped entirely
+        assert tiers == {}, f"expected no tiers, got {tiers}"
+        # a chain rooted at the dead pid (a reused pid number) derives nothing
+        assert gate._resolve_tier_from_ancestors(tiers, lambda p: None, dead) is None
+        # control: the SAME record written at a live pid derives its tier
+        live_root = tempfile.mkdtemp()
+        try:
+            _write_agent_record(live_root, "rec", os.getpid(), "director", status="running")
+            live = gate._running_record_tiers(live_root)
+            assert live == {os.getpid(): "director"}, f"got {live}"
+            assert gate._resolve_tier_from_ancestors(live, lambda p: os.getpid(), os.getpid()) == "director"
+        finally:
+            shutil.rmtree(live_root)
     finally:
         shutil.rmtree(root)
 

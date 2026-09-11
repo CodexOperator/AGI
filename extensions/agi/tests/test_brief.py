@@ -855,19 +855,52 @@ def test_a_g15_claim_is_behaviour_to_build_in_both_tier_briefs():
     re-cut before it is recorded.
     """
     kid = _text("kid", scaffold=SCAFFOLD)
-    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     # kid brief: the claim is behaviour to build, not a hypothesis to measure
     assert "BEHAVIOUR TO BUILD" in kid
     assert "not a hypothesis to measure" in kid
-    # parent brief: review rule demands the fix be implemented
-    assert "THIS KID MUST IMPLEMENT THE FIX" in parent
-    # the parent brief must not measure-only-accept a kid as finished
-    assert "finished round" in parent
-    # the segment is terminated so the next rule starts on its own line:
-    # a missing trailing newline glues the g15 sentence onto "4. DO NOT
-    # bypass the gate" (the exact defect the parent re-cut this round for).
-    assert "measurement).\n4. DO NOT" in parent
-    assert ").4. DO NOT" not in parent
+
+
+def test_must_implement_rule_is_g15_lineage_gated(tmp_path, monkeypatch):
+    """hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
+    "THIS KID MUST IMPLEMENT THE FIX" review rule rendered for EVERY parent
+    target (L4.175), so a parent on a NON-g15 hypothesis was told a
+    measurement-only kid node is not a finished round -- forbidding a
+    legitimate `disproved` there (a non-g15 hypothesis may be DISPROVED by
+    measurement; forbidding that forbids the science). The rule must render
+    only when the target's `parents:` lineage reaches `goal:g15`; for any
+    other target the block is absent. The L4.175 newline assertion (the block
+    terminates cleanly onto "4. DO NOT") moves to the g15 case.
+    """
+    # A g15-descended target: hypothesis:gated -> goal:g15. The slug ends in
+    # 'd' on purpose -- a previous implementation stripped it with str.rstrip
+    # (".md"), a character-set strip that ate the trailing 'd' of "gated" and
+    # made the walk miss goal:g15 entirely; the fixture is the regression guard.
+    gfix = tmp_path / "nodes" / "hypothesis" / "gated.md"
+    gfix.parent.mkdir(parents=True)
+    gfix.write_text("---\nid: hypothesis:gated\nparents:\n  - goal:g15\n---\n\nbody")
+    # A non-g15 target with a parent that is NOT g15
+    other = tmp_path / "nodes" / "hypothesis" / "other.md"
+    other.parent.mkdir(parents=True, exist_ok=True)
+    other.write_text("---\nid: hypothesis:other\nparents:\n  - goal:g17\n---\n\nbody")
+    # Unresolvable target (not on disk) falls back to not-g15
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda pr=None: tmp_path)
+
+    g15_parent = _text("parent", dispatch_py="/x/d.py",
+                       target="hypothesis:gated")
+    non_g15_parent = _text("parent", dispatch_py="/x/d.py",
+                           target="hypothesis:other")
+    unknown_parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+
+    # g15-descended target renders the rule and it terminates cleanly onto the
+    # next rule (a missing trailing newline glues it onto "4. DO NOT").
+    assert "THIS KID MUST IMPLEMENT THE FIX" in g15_parent
+    assert "finished round" in g15_parent
+    assert "measurement).\n4. DO NOT" in g15_parent
+    assert ").4. DO NOT" not in g15_parent
+    # non-g15 and unresolvable targets do NOT render it -- a measurement-only
+    # `disproved` there is a legitimate scientific outcome.
+    assert "THIS KID MUST IMPLEMENT THE FIX" not in non_g15_parent
+    assert "THIS KID MUST IMPLEMENT THE FIX" not in unknown_parent
 
 
 # ---------------------------------- l2w3-brief-heads: kid + parent constitution heads
