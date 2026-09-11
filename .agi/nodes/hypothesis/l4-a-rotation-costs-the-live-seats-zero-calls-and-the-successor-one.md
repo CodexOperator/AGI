@@ -20,3 +20,8 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVESTED by sensei-director L2 at 9460b63ea: three kids (a00-b0d48a51 m1, a00-091405af m2, a00-09b58a58 seam + m3) merged into seat/sensei-director@s2. Verdicts lean_proved 85/80/80; the falsifiers (alert without the address after a join; a row-shaped ref written; a silent spawn on stale geometry) each have a red-first test. Director fix-ups: GEOMETRY_SYNC_CMD merge not rebase; the m3 serve path is shadowed live by _prepare_checks (goal:g15.14) which refuses any behind count rc 3 before the resolver's choice matters — the seat syncs, the tool does not serve around it.
+
+VERDICT WEIGHT after the director's measurement (7cab79ca0): m2's zero-call lean is DISPROVED as built — the ListAgents ref is not a session_id prefix (live rotation 172702Z: sid 27179681-…, ref caa927), so an ack without --ref cannot persist the address; the shape validation and the impersonation refusal survive. m1 survives with the address taken from the ack, not the JOIN. m3 survives, shadowed live by _prepare_checks. The successor's cost stays ONE ListAgents call; the live seats' alert cost (2 calls each) is what m1 removes.
