@@ -838,15 +838,45 @@ def test_git_off_allowlist_token_names_itself():
     assert "-c" in rotate._producing_refusal("git -c core.pager=less log")
 
 
+def _live_first_turn_cmds() -> list:
+    """Every startup.first_turn cmd from BOTH templates, read from the LIVE
+    checked-in .agi/nodes/.geometry/rotations.md -- never a hand-copied mirror
+    (hypothesis:l4-a-test-of-live-config-reads-the-live-node). The rotations
+    node is `type: config`, owned by the owner/prime; a test reads it and
+    never writes it."""
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    rot = (Path(__file__).resolve().parents[3]
+           / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert rot.exists(), f"live rotations.md missing: {rot}"
+    nf = _fm.load_node_file(rot)
+    templates = nf.frontmatter.get("templates") or {}
+    cmds = []
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        ft = startup.get("first_turn") or []
+        for e in ft:
+            if isinstance(e, dict) and e.get("cmd"):
+                cmds.append(e["cmd"])
+    return cmds
+
+
 def test_git_live_template_commands_still_pass():
-    # every git command in the live rotations template
-    # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist
-    shipped = [
-        "git -C {worktree} status -sb",
-        "git -C {repo} status -sb",
-    ]
-    for cmd in shipped:
-        assert rotate._producing_refusal(cmd) is None, cmd
+    # every git command in the LIVE rotations template
+    # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist -- read
+    # from the node, never a hand-copied list (hypothesis:l4-a-test-of-live-
+    # config-reads-the-live-node). A NEW off-allowlist git line added to the
+    # live node must turn this test red.
+    import tempfile
+    git_cmds = [c for c in _live_first_turn_cmds() if "git" in c]
+    assert git_cmds, "no git commands in the live rotations.md first_turn lists"
+    with tempfile.TemporaryDirectory() as d:
+        wt, ro = d + "/worktree", d + "/repo"
+        for cmd in git_cmds:
+            rendered = (cmd.replace("{worktree}", wt)
+                        .replace("{repo}", ro))
+            assert rotate._producing_refusal(rendered) is None, rendered
 
 
 def test_git_benign_set_still_passes():

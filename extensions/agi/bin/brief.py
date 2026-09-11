@@ -1337,7 +1337,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "run, and it now derives the tier from the running agent record, so "
         "`env -u AGI_TIER` does not clear it. Your own scratch test passing is "
         "not the same claim. A failing assertion you did not expect is usually "
-        "the assertion working.",
+        "the assertion working. A test of live config reads the live node, "
+        "never a copied list.",
         # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
         # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
         # and `verdict` as the slug and the call dies on the extra positional
