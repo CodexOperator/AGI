@@ -1364,7 +1364,44 @@ def main(argv: list[str] | None = None) -> int:
     """
     import argparse
 
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    #: One-line example per verb, for the help epilog. Chosen hand-in-sync by
+    #: intent but CHECKED against VERBS/ARITY below so a divergence fails at
+    #: help-build time instead of silently reaching a seat whose first_turn
+    #: `write-verbs` fact reads this epilog for the grammar (config:rotations
+    #: F4, hypothesis:write-py-help-epilog-lists-verb-grammar).
+    VERB_EXAMPLES = {
+        "set": "set k=v",
+        "unset": "unset frontmatter_key",
+        "link": "link self",
+        "thought": "thought why this version differs",
+        "note": "note a whole sentence, spaces absorbed",
+        "payload": "payload path/to/source.py",
+        "payload_text": "payload_text literal text body",
+        "patch": "patch -",
+        "body_patch": "body_patch -",
+        "read": "read body 4:9",
+        "replace": "replace body 4:9 path/to/file",
+        "adopt": "adopt",
+    }
+    missing_v = sorted(set(VERBS) - set(VERB_EXAMPLES))
+    missing_a = sorted(set(VERB_EXAMPLES) - set(ARITY))
+    if missing_v or missing_a:
+        raise SystemExit(
+            f"write.py help epilog drift: verbs without examples "
+            f"{missing_v}, examples without arity {missing_a} -- "
+            "add the example (and ARITY entry) or remove stale help "
+            "(hypothesis:write-py-help-epilog-lists-verb-grammar)")
+    epilog_lines = [
+        "verbs (each accepts a node_id first; join several with &&):",
+    ]
+    for name in VERBS:
+        epilog_lines.append(
+            f"  {name}\t{ARITY[name]} arg(s)\t{VERB_EXAMPLES[name]}")
+    epilog = "\n".join(epilog_lines)
+
+    ap = argparse.ArgumentParser(
+        description=__doc__.splitlines()[0], epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("node_id",
                     help='a node id, or "create" to mint one')
     ap.add_argument("script", nargs="?", default=None,
