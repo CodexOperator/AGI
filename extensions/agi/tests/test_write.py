@@ -902,6 +902,102 @@ def test_moral_still_refuses_non_owner_end_to_end(project):
                      actor="sanctuary-director-4e", bypass=True)
 
 
+# --------------------------------------------------------------------------
+# hypothesis:l4-a-role-is-resolved-never-typed — a role is RESOLVED, never
+# TYPED. An explicit --role (or AGI_ROLE) may name only the role the actor's
+# seat resolves to or a LOWER one on the ladder (owner > prime_director >
+# director > parent > kid); a higher one is refused by name, exit non-zero,
+# nothing written. An actor resolving to no seat keeps the fallbacks unchanged.
+# --------------------------------------------------------------------------
+
+def test_elevated_role_refused_by_name(project):
+    """(h1) a `director` seat actor passing `--role owner` is refused BY NAME
+    with the L4.290 ruling sentence, and nothing is written."""
+    _written_by_schema(project, "mystery", "owner")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "mystery", "m2", [],
+                     actor="sanctuary-director-4e",
+                     role="owner", bypass=True)
+    msg = str(ei.value)
+    assert "--role owner refused" in msg
+    assert "sanctuary-director-4e" in msg
+    assert "resolves to director" in msg
+    assert not (project / "nodes" / "mystery" / "m2.md").exists()
+
+
+def test_lower_role_from_director_accepted(project):
+    """(h2) a `director` seat actor passing `--role kid` (LOWER on the
+    ladder) is accepted — the schema admits kid for the lower write."""
+    _written_by_schema(project, "mystery", "kid")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    res, _ = write.create(project, "mystery", "m3", [],
+                          actor="sanctuary-director-4e",
+                          role="kid", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_owner_literal_with_role_owner_accepted(project):
+    """(h3) the bare `owner` actor resolves to NO seat, so `--role owner`
+    keeps today's fallback and is accepted (no ceiling to refuse against)."""
+    _written_by_schema(project, "mystery", "owner")
+    res, _ = write.create(project, "mystery", "m4", [],
+                          actor="owner", role="owner", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_same_role_as_seat_accepted(project):
+    """(h4) `--role` naming exactly the seat's own role is accepted."""
+    _written_by_schema(project, "mystery", "director")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    res, _ = write.create(project, "mystery", "m5", [],
+                          actor="sanctuary-director-4e",
+                          role="director", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_agi_role_subject_to_same_ceiling(project, monkeypatch):
+    """(h5) AGI_ROLE is subject to the same ceiling: a `director` seat actor
+    with AGI_ROLE=owner is refused; with AGI_ROLE=kid (lower) is accepted."""
+    _written_by_schema(project, "mystery", "owner")
+    _seats_fixture(project, [("sanctuary-director", "director")])
+    monkeypatch.setenv("AGI_ROLE", "owner")
+    with pytest.raises(write.EditError) as ei:
+        write.create(project, "mystery", "m6", [],
+                     actor="sanctuary-director-4e", bypass=True)
+    msg = str(ei.value)
+    assert "AGI_ROLE owner refused" in msg
+
+    _written_by_schema(project, "mystery", "kid")
+    monkeypatch.setenv("AGI_ROLE", "kid")
+    res, _ = write.create(project, "mystery", "m7", [],
+                          actor="sanctuary-director-4e", bypass=True)
+    assert res.written and not res.rejected
+
+
+def test_stale_fact_prose_has_no_refused_wording():
+    """(h6) the stale-fact prose in the two hooks and rotate.py no longer says
+    a stale fact is REFUSED — it is MARKED stale and still emitted. Any
+    `refused` adjacent to stale/bootstrap that the grep finds is a regression."""
+    import pathlib
+    tests = pathlib.Path(__file__).resolve().parents[0]
+    agi = tests.parent  # extensions/agi
+    targets = [
+        agi / "hooks" / "cc-session-start.sh",
+        agi / "hooks" / "cc-session-start.next.sh",
+        agi / "bin" / "rotate.py",
+    ]
+    for t in targets:
+        if not t.exists():
+            continue
+        text = t.read_text()
+        # the corrected contract: never assert that a measured fact not at
+        # HEAD is REFUSED
+        assert "not at HEAD is refused" not in text, t
+        assert "REFUSE when absent/stale" not in text, t
+
+
+
 
 # --------------------------------------------------------------------------
 # hypothesis:l3-node-without-mint-id — the `adopt` verb, the parent-facing

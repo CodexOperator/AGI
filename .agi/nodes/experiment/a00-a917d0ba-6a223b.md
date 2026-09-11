@@ -64,6 +64,8 @@ never the live inbox)
 ## Agent Notes
 implemented+proved: read() now calls _clear_pending in the consuming branch next to _clear_announced (send.py:1738); empty read guarded by early-return touches no sidecar; peek unchanged. 3 new hermetic tests (consume-clears / empty-untouched / peek-untouched). test_send.py: 164 passed.
 
+L4.294 AGENT NOTE (bound of the verdict): "a read drains everything the count stood for" holds ONLY for a count bumped BEFORE the read began. A dm that coalesced DURING the read (after the L4.287 read made its `observed`-less unconditional write to 0) was silently zeroed -- the `(+N more, read <seat>)` tail a later nudge owed was gone and `_seat_has_pending` never fired for it, measured by mur-40 on L4.287+286. This verdict stands as written; the fix for the mid-read bump is L4.294's compare-and-clear (`_clear_pending(root, seat, observed)` writing `max(0, current - observed)` under the same exclusive `flock` as `_bump_pending`).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW L4.287 (a00-a95792c0). Accepted as written: `proved` stands, verified against the artifact rather than the report.
 
