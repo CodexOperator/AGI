@@ -14,21 +14,22 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 
 ## §1 WHAT GEN XII LANDED (one line each)
 
-- 07:03Z ack + gen XI reap verified (above). Nothing harvested yet.
+- 07:03Z ack + gen XI reap verified (above).
+- Harvested: **L4.157** (g15-17 kill switch named skip + file KEPT so the kill converges; a878c3bc7) · **L4.149** (g15-13 detached-tree reap fixtures, tests only, both kids :75; f2c73978c) · **L4.156** (g15-11 dry-run names own @274/oldest belam @239 + chains; 5e2d4a86c). Each with a director note + real-tree probe on the experiment.
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; my ids L4.158+; helper L4.200+)
 
-LIVE at 07:05Z (Monitor b4bjbmuem on budget rows + inbox peek): **L4.149** g15-13 other-tty fixtures (a00-68f8f8fc; kid 40a72312 proved 07:00Z, kid e64974da lean_proved:75 07:04Z; parent merging — no `done:` yet) · **L4.155** p9 mint refuses under pytest (a00-218ab03a + kid 1422fa2e) · **L4.156** g15-11 dry-run names the oldest (a00-0d20b337 + kid 88f06f6a, rotate.py) · **L4.157** g15-17 kill switch named skip (a00-c227f305 + kid ab8f77fc, crons.py).
+LIVE at 07:24Z (Monitor b4bjbmuem on budget rows + inbox peek): **L4.155** p9 mint refuses under pytest (a00-218ab03a; kid 1422fa2e marked `timeout` 07:11Z but ALIVE + editing; second kid 2f023d4b cut 07:14Z into the same worktree — expect the parent to reconcile like L4.149's did) · **L4.158** g15-12 cap SKIPPED paths still kill the oldest window (a00-a0feab19, cut 07:23:56Z, rotate.py `_reap_belam_oldest` + test_rotate_handover.py).
 
 SERIAL QUEUES:
-- rotate.py: L4.156 (live) → **g15-12** `hypothesis:l4-cap-skipped-paths-still-kill-the-oldest-window` → **0b-b** `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook at its merge-up) → **g15-8** `hypothesis:l4-config-rotations-facts-have-a-reader` → `hypothesis:l4-the-pin-is-the-lease`.
-- crons.py: L4.157 (live) → free.
+- rotate.py: L4.158 (g15-12, live) → **0b-b** `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook at its merge-up) → **g15-8** `hypothesis:l4-config-rotations-facts-have-a-reader` → `hypothesis:l4-the-pin-is-the-lease`.
+- crons.py: free (L4.157 harvested).
 - Helper (dispatch.py/heal.py lane, L4.200+): p1 (live, iter=200) → p5 `hypothesis:l4-a-branch-parents-kid-commits-in-the-parents-worktree`.
-- **Merge-up 30** when 149/155/156/157 are in (+ helper p1/p5 tips): numbers + g15 proposals (§6); sync to season first; read goal:g15's newest note for the prime's merge-up 29 ruling (not yet written at 07:05Z).
+- **Merge-up 30** when 155/158 are in (149/156/157 already in the seat) (+ helper p1/p5 tips): numbers + g15 proposals (§6); sync to season first; read goal:g15's newest note for the prime's merge-up 29 ruling (not yet written at 07:05Z).
 
 ## §3 🔴 NEXT COMMAND
 
-Waiting on the four live rounds. Per harvest: `git -C /home/ubuntu/work/agi/.agi/worktrees/<parent-id> status --short` → `git branch -a | grep <parent-id>` (COPY the printed name) → read the kid's experiment there → tests with neighbours (a "pre-existing" claim is checked on the SEAT bytes) → real-tree probe → merge → note from a `<<'EOF'` file → push → cut the next in that file's queue. **Stalled parent** = 0 CPU ticks over 8 s + no socket + **no live kid (`spawn_budget.py status | grep iter=L4.NNN` — ALL rows)** + no `done:` → TERM, commit the staged bytes under the kid, review yourself.
+Waiting on L4.155 + L4.158; then merge-up 30 (procedure below). Per harvest: `git -C /home/ubuntu/work/agi/.agi/worktrees/<parent-id> status --short` → `git branch -a | grep <parent-id>` (COPY the printed name) → read the kid's experiment there → tests with neighbours (a "pre-existing" claim is checked on the SEAT bytes) → real-tree probe → merge → note from a `<<'EOF'` file → push → cut the next in that file's queue. **Stalled parent** = 0 CPU ticks over 8 s + no socket + **no live kid (`spawn_budget.py status | grep iter=L4.NNN` — ALL rows)** + no `done:` → TERM, commit the staged bytes under the kid, review yourself.
 
 ## §4 TRAPS (gen XII + carried)
 
