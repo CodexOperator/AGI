@@ -600,12 +600,24 @@ def test_summary_byte_identical_across_harnesses():
     assert summaries[0] == summaries[1]
 
 
-def test_pi_live_run_renders_tree_through_view():
+def test_pi_live_run_renders_tree_through_view(tmp_path_factory):
     """The pi path redraws the stage tree live per event and ends with the
-    same summary shape — no more flat log lines."""
+    same summary shape — no more flat log lines. Tracking is redirected to a
+    tmp root: this NON-dry pi run (stages mocked) tracked one real row per
+    suite run from MAIN (review-16/17, merge-up 40) — the same leak L4.286
+    closed for the claude-code sibling below."""
     import subprocess as _sp
     from unittest import mock
+    import workflow as _wf
     from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        _pi_live_run_body(_sp, mock, run_workflow)
+    finally:
+        restore()
+
+
+def _pi_live_run_body(_sp, mock, run_workflow):
     # one JSON valid under BOTH review stages' schemas (extra keys allowed)
     good = ('preamble glue {"git_status": [], "links_broken": 0, "goals_check_ok": true, '
             '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
@@ -764,11 +776,19 @@ def _real_workflow_jsonl_counts():
         sess = _wf._loc.shared_project_root(REPO) or REPO
     except Exception:  # resolver blown up mid-fix: fall back, stay strict
         sess = REPO
-    wf_dir = Path(sess) / "sessions" / "workflows"
-    if not wf_dir.is_dir():
-        return {}
-    return {str(p): len(p.read_text(encoding="utf-8").splitlines())
-            for p in sorted(wf_dir.glob("*.jsonl"))}
+    # BOTH the shared (MAIN) dir and this checkout's own: in a seat worktree
+    # `_track_run(REPO / ".agi")` lands in the worktree's gitignored
+    # `.agi/sessions/workflows/`, so a guard that reads only the shared dir
+    # is blind there (merge-up 40, sanctuary-director 182119Z: the guard was
+    # green from the seat and red from MAIN on the same bytes).
+    counts: dict = {}
+    for base in {Path(sess), Path(REPO) / ".agi"}:
+        wf_dir = base / "sessions" / "workflows"
+        if not wf_dir.is_dir():
+            continue
+        counts.update({str(p): len(p.read_text(encoding="utf-8").splitlines())
+                       for p in sorted(wf_dir.glob("*.jsonl"))})
+    return counts
 
 
 @pytest.fixture(scope="session", autouse=True)
