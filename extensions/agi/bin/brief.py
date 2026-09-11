@@ -1356,6 +1356,31 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
     return segs
 
 
+_MERGE_KIDS_VALUES = ("held", "live")
+
+
+def _merge_kids_cell(project_root: Path | None = None) -> str:
+    """Resolve the merge-protocol cell (hypothesis:l4-the-merge-protocol-
+    block-is-gated-on-the-held-state): ``spawn.merge_kids`` in
+    ``.agi/config.json`` is ``held`` | ``live``. ``held`` means the branch
+    parent brief must NOT tell the parent to run ``season.py merge-kids``
+    (the verb is HELD by the prime's ruling g15-20); ``live`` renders the
+    current merge-protocol block verbatim. The ``AGI_MERGE_KIDS`` env var is
+    the per-process override (same seam as ``AGI_BRIEF_PROFILE``); the
+    DEFAULT when the cell is absent is ``held``.
+    """
+    env = os.environ.get("AGI_MERGE_KIDS")
+    if env in _MERGE_KIDS_VALUES:
+        return env
+    cfg = _resolve_graph_root(project_root) / "config.json"
+    try:
+        data = json.loads(cfg.read_text(encoding="utf-8"))
+        value = (data.get("spawn") or {}).get("merge_kids")
+    except (OSError, ValueError, AttributeError):
+        value = None
+    return value if value in _MERGE_KIDS_VALUES else "held"
+
+
 def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             target: str | None, parallel: int, max_live: int = 1,
             kid_ceiling: int | None = None,
@@ -1438,60 +1463,118 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
     # plans against a bounded number rather than the tree's whole capacity.
     ceiling = kid_ceiling if kid_ceiling is not None else 4
     if branch_name:
-        # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the branch
-        # parent now OWNS the merge: `season.py merge-kids` of each kid branch
-        # onto its OWN round branch (item 5, the merge protocol) is the ONE
-        # git operation a parent runs; the raw `git merge --no-ff` lives only
-        # underneath that helper. The done-time commit `cli.py done` carries
-        # still happens automatically; everything else stays forbidden. The
-        # old blanket "you run NO git commands yourself" is GONE for the
-        # branch case because it directly forbade the merge the hypothesis
-        # requires.
+        # hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state
+        # — the merge-protocol block is gated on the held state. When the
+        # `spawn.merge_kids` cell resolves `held` (or is absent, the default)
+        # the brief says the `season.py merge-kids` verb is HELD and must NOT
+        # be run, and what to do instead; when `live` it renders the current
+        # block verbatim (item 5 + item 6 as they have been since
+        # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids, whose raw
+        # `git merge --no-ff` now lives only underneath the un-held helper).
+        # In both states the parent OWNS the merge onto its OWN round branch;
+        # the done-time commit `cli.py done` carries still happens
+        # automatically; everything else stays forbidden. Item numbering is
+        # coherent in both states (5/6/7), so no dangling gap glues the next
+        # rule onto the previous sentence.
         worktree = branch_worktree or "(worktree)"
         base = branch_base or "(base)"
         season_cmd = str(Path(dispatch_py).with_name("season.py"))
-        merge_protocol = (
-            f"5. MERGE PROTOCOL — you are on round branch `{branch_name}` in "
-            f"worktree `{worktree}`, cut from `{base}`, and you MERGE every "
-            f"kid's branch into it before you signal done, in dispatch order, "
-            f"with the supported helper:\n"
-            f"    python3 {season_cmd} merge-kids <kid-branch> [<kid-branch> ...]\n"
-            f"  `merge-kids` merges each named kid branch onto your round "
-            f"branch in the order given (`git merge --no-ff --no-commit` "
-            f"under the hood), union-resolves NODE conflicts, refuses a SOURCE "
-            f"conflict by printing the paths and leaving the merge in progress "
-            f"for you, and re-runs THIS round's suite — your test files WITH "
-            f"THEIR NEIGHBOURS in suite order — on the MERGED bytes, so a "
-            f"green kid branch is not a green union and you do NOT re-run the "
-            f"suite separately. That helper is the ONE git operation a parent "
-            f"runs (item 6); you run no raw git.\n"
-            f"  - A conflict in a NODE file is resolved by UNION of the "
-            f"`## Agent Notes` blocks plus the higher-confidence verdict line "
-            f"— never a blind `git apply --3way`, which can drop a note.\n"
-            f"  - A conflict in SOURCE is refused by the helper (paths "
-            f"printed, the merge left in progress) and is resolved by YOU as "
-            f"an edit you own, and named in your review note.\n"
-            f"  - Your review note lists EVERY kid branch merged, every "
-            f"conflict and how it was resolved, and every kid branch NOT "
-            f"merged and why."
-        )
-        ship = (
-            f"6. THE ONE GIT OPERATION A PARENT RUNS IS THE MERGE — via the "
-            f"`merge-kids` helper from item 5, never raw git. Your "
-            f"round branch `{branch_name}` is the only route your kids' work "
-            f"has to the season branch `{base}`, and its accepted work is "
-            f"committed AUTOMATICALLY the moment you call `cli.py done` below. "
-            f"The one git command YOU run is the helper from item 5: "
-            f"`python3 {season_cmd} merge-kids <kid-branch> ...` onto this "
-            f"branch, in dispatch order. A loop branch left at base merges as "
-            f"NOTHING and still reports green — that is measured waste, so "
-            f"item 5 is not optional. Everything else stays forbidden, on this "
-            f"branch or any other: no push, no sync, no rebase, no `grid.py`, "
-            f"no touching any branch other than this round branch, no staging "
-            f"by hand, no raw `git merge`. Automation still owns remote "
-            f"traffic; the done-time commit is automatic and is not yours to "
-            f"reach for."
-        )
+        if _merge_kids_cell() == "live":
+            # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the
+            # branch parent OWNS the merge: `season.py merge-kids` of each
+            # kid branch onto its OWN round branch (item 5, the merge
+            # protocol) is the ONE git operation a parent runs; the raw
+            # `git merge --no-ff` lives only underneath that helper. The
+            # old blanket "you run NO git commands yourself" is GONE for
+            # the branch case because it directly forbade the merge the
+            # hypothesis requires.
+            merge_protocol = (
+                f"5. MERGE PROTOCOL — you are on round branch `{branch_name}` "
+                f"in worktree `{worktree}`, cut from `{base}`, and you MERGE "
+                f"every kid's branch into it before you signal done, in "
+                f"dispatch order, with the supported helper:\n"
+                f"    python3 {season_cmd} merge-kids <kid-branch> [<kid-branch> ...]\n"
+                f"  `merge-kids` merges each named kid branch onto your round "
+                f"branch in the order given (`git merge --no-ff --no-commit` "
+                f"under the hood), union-resolves NODE conflicts, refuses a "
+                f"SOURCE conflict by printing the paths and leaving the merge "
+                f"in progress for you, and re-runs THIS round's suite — your "
+                f"test files WITH THEIR NEIGHBOURS in suite order — on the "
+                f"MERGED bytes, so a green kid branch is not a green union "
+                f"and you do NOT re-run the suite separately. That helper is "
+                f"the ONE git operation a parent runs (item 6); you run no "
+                f"raw git.\n"
+                f"  - A conflict in a NODE file is resolved by UNION of the "
+                f"`## Agent Notes` blocks plus the higher-confidence verdict "
+                f"line — never a blind `git apply --3way`, which can drop a "
+                f"note.\n"
+                f"  - A conflict in SOURCE is refused by the helper (paths "
+                f"printed, the merge left in progress) and is resolved by YOU "
+                f"as an edit you own, and named in your review note.\n"
+                f"  - Your review note lists EVERY kid branch merged, every "
+                f"conflict and how it was resolved, and every kid branch NOT "
+                f"merged and why."
+            )
+            ship = (
+                f"6. THE ONE GIT OPERATION A PARENT RUNS IS THE MERGE — via "
+                f"the `merge-kids` helper from item 5, never raw git. Your "
+                f"round branch `{branch_name}` is the only route your kids' "
+                f"work has to the season branch `{base}`, and its accepted "
+                f"work is committed AUTOMATICALLY the moment you call "
+                f"`cli.py done` below. The one git command YOU run is the "
+                f"helper from item 5: `python3 {season_cmd} merge-kids "
+                f"<kid-branch> ...` onto this branch, in dispatch order. A loop "
+                f"branch left at base merges as NOTHING and still reports "
+                f"green — that is measured waste, so item 5 is not optional. "
+                f"Everything else stays forbidden, on this branch or any "
+                f"other: no push, no sync, no rebase, no `grid.py`, no "
+                f"touching any branch other than this round branch, no "
+                f"staging by hand, no raw `git merge`. Automation still owns "
+                f"remote traffic; the done-time commit is automatic and is "
+                f"not yours to reach for."
+            )
+        else:
+            # ``spawn.merge_kids: held`` (or absent). The verb is HELD by the
+            # prime's ruling (g15-20); the held text names `merge-kids` ONLY
+            # to say it is held, never as a command to run.
+            merge_protocol = (
+                f"5. MERGE-KIDS IS HELD — the `season.py merge-kids` verb is "
+                f"HELD by the prime's ruling (goal:g15-20) and you MUST NOT "
+                f"run it. It is named here only to say it is held, not as a "
+                f"command for you. Instead, merge each kid's finished branch "
+                f"into your OWN round branch `{branch_name}` in this worktree "
+                f"`{worktree}` (cut from `{base}`) yourself, with "
+                f"`git merge --no-ff`:"
+                f"\n"
+                f"  - a conflict in a NODE file is resolved by UNION of the "
+                f"`## Agent Notes` blocks plus the higher-confidence verdict "
+                f"line — never a blind `git apply --3way`, which can drop a "
+                f"note.\n"
+                f"  - a conflict in SOURCE is resolved by YOU as an edit you "
+                f"own, and named in your review note.\n"
+                f"  - after each merge, re-run THIS round's suite — your test "
+                f"files WITH THEIR NEIGHBOURS in suite order — on the MERGED "
+                f"bytes, so a green kid branch is not a green union.\n"
+                f"  - your review note lists EVERY kid branch merged, every "
+                f"conflict and how it was resolved, and every kid branch NOT "
+                f"merged and why.\n"
+            )
+            ship = (
+                f"6. YOU DO THE MERGE YOURSELF, BEFORE DONE — `merge-kids` "
+                f"remains HELD, so your round branch `{branch_name}` is the "
+                f"only route your kids' work has to the season branch `{base}`, "
+                f"and its accepted work is committed AUTOMATICALLY the moment "
+                f"you call `cli.py done` below. You merge each kid's branch "
+                f"with `git merge --no-ff` in this worktree, in dispatch order, "
+                f"and never leave the round branch at base — a loop branch left "
+                f"at base merges as NOTHING and still reports green; that is "
+                f"measured waste. Everything else stays forbidden: no push, no "
+                f"sync, no rebase, no `grid.py`, no touching any branch other "
+                f"than this round branch, no staging by hand, no raw `git "
+                f"merge` beyond the one into this round branch. Automation "
+                f"still owns remote traffic; the done-time commit is "
+                f"automatic and is not yours to reach for."
+            )
     else:
         merge_protocol = ""
         ship = (
