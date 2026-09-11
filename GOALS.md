@@ -5996,6 +5996,117 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 <!-- BODY:BEGIN -->
 # goal:g15.12
 
+### G15.13 — sensei.py rotate-out-audit — the outgoing predecessor's rotate-out calls are classified by the tool that classifies the successor's wake — status: active
+
+<!-- BODY:BEGIN -->
+**`sensei.py rotate-out-audit --seat S [--gen N]`: the OUTGOING predecessor's rotate-out calls are classified by the same tool that classifies the successor's wake.** Owner, 2026-09-11 15:5xZ, verbatim in `doc:l4-owner-decisions`: "check the logs and calls of the outgoing predecessor for all roles, not just the successor … minimize number of tool calls needed to rotate out". The Sensei's §2 names the exact shape: "the mirror of wake-audit: the window is [last merge-up or last owner turn -> record success]".
+
+## Why this exists
+
+- `goal:g15` is the parent because this is an optimization of the seat protocol's rotate-out cost, done in-loop as the perpetual goal prescribes; the Sensei measured three rotate-outs BY HAND with no tool behind them (sanctuary-director 135144Z = gen XIV out, sanctuary-helper 152548Z = gen III out, belam 140328Z = gen IX out) — the hand measurement is the cost this goal removes.
+- `build:bin-sensei` is the parent because `sensei.py wake-audit` (LANDED merge-up 36, L4.225; `--gen` defaulting to the latest record + `## facts` labels in L4.240) is the mechanism this goal mirrors: `wake_audit()` classifies the successor's calls from the first tool_use to the first real act; the outgoing side is the same classifier run over the predecessor's transcript from its last real input to the record's `recorded_at`. A second tool with its own classifier would drift from the first; the goal is a SUBCOMMAND of the same file reusing `classify_call`'s helpers.
+
+## Testable claim (a build order — measure, implement, prove)
+
+1. `sensei.py rotate-out-audit --seat S [--gen N] [--transcript PATH]` exists as a subcommand (no new `bin/` file). `--gen N` names the generation that ROTATED OUT; default = the latest record's `b_generation.before`.
+2. The PREDECESSOR's transcript is resolved from the rotation records, never from the newest transcript in a slug dir (that one is the successor's): the previous record of the same seat (`b_generation.after == N`) carries `handover.join.transcript`; fallback `~/.claude/sessions/<pid>.json` for a pid in the outgoing record's `s12_self_reap.chain` / `handover.reap_own_pid`; neither resolving is a named refusal (exit 2), and `--transcript` is the explicit override.
+3. The window is [the last real input -> the record's `recorded_at`]: every assistant tool_use after the LAST user turn that is not a tool_result (the last merge-up reply or owner/Prime turn) to the end of the transcript; the window's start turn index, its timestamp and the call count are printed.
+4. Each call is classified: (a) a step rotate-self already performs or could pre-fill (re-measured §0 numbers `verify`/the record already holds; `git status`/`log` re-reads of what `rotate-self --dry-run` prints; the seats-row/meter/ack/bootstrap reads of fields the record carries) — the row names the record field or rotate-self step it duplicates; (b) a hand poll or read of a record or a pane (`ls`/`cat` under `sessions/rotations`, `tmux capture-pane`, `rotate.py status`, `ps`, read-backs of the handoff just written); (c) protocol learning (`-h`, source/log greps); (d) the genuine decision (the card edit — where-it-stops/banked —, the `rotate-self` invocation, the ack, the one-line rotation report).
+5. Output mirrors `wake-audit`: header, window bounds, `counts: a= b= c= d=`, one row per call with the duplicated field/step label; exit 2 with a named reason on no seat row / no record / no transcript / no template.
+6. Tests (`test_sensei_rotate_out_audit.py`, run WITH `test_sensei_wake_audit.py` + `test_sensei.py`): a fixture transcript + fixture records where a hand re-measured count -> (a) naming the record field; `tmux capture-pane` -> (b); `rotate.py -h` -> (c); the card edit and `rotate-self` -> (d); a transcript with no user turn after the first -> the whole transcript is the window; the predecessor transcript resolved through the previous record, refused when absent.
+7. LIVE PROBE in the parent's verdict: the subcommand run on the three held rotations, counts pasted, one hand-classified call per rotation checked against the tool's row.
+
+**Falsifiers:** a call the Sensei classified by hand that the tool classifies differently with no rule naming why; the predecessor transcript resolving to the successor's; a window that starts at the transcript head when a later user turn exists.
+
+**FILE SCOPE:** `extensions/agi/bin/sensei.py` (new subcommand; shared helpers refactored, not copied), `extensions/agi/tests/test_sensei_rotate_out_audit.py` (new). EXCLUDED: `rotate.py`, `config:rotations`, the hooks, any `bin/` file. **CEILING:** 1 parent, up to 2 kids.
+
+### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
+
+<!-- BODY:BEGIN -->
+**`rotate.py` PROMPTS the LLM through the parts that need its judgement and PERFORMS the rest: a driven handoff writer, a captive `rotate-self --prepare` checklist, a captive merge-up window reply, the point's captive harvest-or-cut.** Owner, 2026-09-11 15:5xZ, verbatim in `doc:l4-owner-decisions`: "propose any additional captive or driven steps the rotate.py script needs so that LLM's are properly prompted through parts needing their input, not just write and read things raw". Design rule (Sensei §2): wherever an LLM's judgement is genuinely needed, the script prints the exact bounded question with every measurable value pre-filled; wherever it is not, the script performs the step. Never remove a decision from the LLM — only the raw reads and writes around it. Today the only captive step is the ack (`continue|diff`).
+
+## Why this exists
+
+- `goal:g15` is the parent because every candidate is an optimization of the rotate-out / wake cost measured in tool calls, fixed in-loop under the perpetual goal; the Sensei's three held drafts (sanctuary-director 135144Z, sanctuary-helper 152548Z, belam 140328Z) are the pre-fix measurement each step is scored against.
+- `build:bin-rotate` is the parent because `rotate-self` is the mechanism that already performs the mechanical half — `_write_handoff` writes only a 5-line header to `<sessions>/seats/<S>.handoff.md` while the LLM's card lives in `<sessions>/quorum/<S>.md` and is written raw; `rotate-self` refuses a blocked spawn only after the LLM has spent the calls discovering each blocker; the ack is the one captive reply the file has. The four steps extend that file's own template machinery (`config:rotations` `templates.<role>`), not a new tool.
+
+## The four steps (each a hypothesis brief; parallel where file scopes are disjoint)
+
+1. **Driven handoff writer** — `rotate.py handoff --driven --seat S`: §0 pre-filled from `verification.py` (counts, last suite numbers), the latest rotation record (gen, window @id, pid, model_confirm), the account (`provisioning.py status`), branch + behind-count + unpushed; the LLM is asked ONLY for §3 where-it-stops and §6 banked as bounded fields (a printed prompt; the answer read from a file/argv); the trim guard runs inside; the target is the seat's quorum card, the header file stays.
+2. **`rotate-self --prepare`** — the captive rotate-out checklist printed BEFORE any spawn: unpushed commits, dirty tree, behind `season/s2`, card older than the last commit, missing/stale meter pin, stale `.ack.json` — each with the one command that clears it; exit 0 only when nothing blocks; `rotate-self` runs the same checks and refuses by name.
+3. **Captive merge-up window reply** — one command in the tool that owns the lock and the baseline (`verification.py` or `rotate.py`; no new `bin/` file) prints lock state + tip + baseline in the shape the Prime replies with, replacing the three by-hand reads.
+4. **The point's captive harvest-or-cut** — the successor's first decision beyond the ack: per open round the harvest table pre-filled (L4.236) and a bounded prompt `harvest <round> | cut <next>` per row.
+
+## Testable claim
+
+Each step names, BEFORE its code, the calls it removes in the three held rotations (the pre-fix count is the evidence line); lands as a subcommand or flag of an existing tool with a red-first test; leaves every decision named above with the LLM; `test_rotate_startup.py` + `test_rotate_templates.py` + `test_rotate.py` neighbours stay green. **Falsifier:** a step that decides for the LLM (writes §3/§6, chooses harvest-or-cut, acks) — that step is refused, not landed. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (handoff / prepare regions), `extensions/agi/bin/verification.py` (window reply only), `extensions/agi/bin/season.py` (harvest-or-cut only) + tests. EXCLUDED: `config:rotations`, `config:seats`, the hooks, `send.py`. **CEILING:** 2 parents (steps 1+2; steps 3+4), up to 2 kids each. Shares the `rotate.py` lane with the point's queue — parents cut from this seat's branch, conflicts resolved at merge-up.
+
+### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
+
+<!-- BODY:BEGIN -->
+**0b-b: every spawn path exports `AGI_SEAT` and writes the bootstrap record BEFORE the successor's `claude` starts, so the SessionStart hook copy fires at turn one on the live path.** The brief is the point's stub `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (taken over by this seat on the Prime's 16:1xZ order; the point had it queued behind g15-28 and had not cut it) — its claim, falsifiers, file scope and ceiling stand unchanged; this goal is where the round is tracked.
+
+## Why this exists
+
+- `goal:g15` is the parent because g15-7 (merge-up 27 review by name, wf_6699487e-b72) is a bugfix finding fixed in-loop: "the hook copy keys on AGI_SEAT, which NO spawn path exports, and the bootstrap record is written AFTER the spawn — the SessionStart injection cannot fire at turn one on the live path". Measured on today's bytes: `_shell_cmd` exports only the reaper knob (+ the ultracode knob), `_write_bootstrap` is called in `cmd_rotate_self` after `spawn_window` returns, and `cc-session-start.next.sh:236` reads `BOOTSTRAP_SEAT="${AGI_SEAT:-}"`.
+- `build:bin-rotate` is the parent because the spawn path (`_shell_cmd` -> `_launch_window`, `cmd_rotate_self`'s bootstrap step) is the mechanism that changes: the export rides in front of the launch line the way the reaper knob already does, and the bootstrap write moves ahead of the spawn.
+- `build:hooks-cc-session-start.sh` is the parent because the hook (its `.next.sh` COPY is the proof surface; the LIVE hook and `~/.claude/settings.json` are the Prime's install, deferred to this round's merge-up) is the consumer whose turn-one injection the export and the record order exist for.
+
+## Tracking
+
+Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127, g15-6) are both harvested (merge-ups 28, 31). The Prime installs into the live global hook and verifies with a fresh session at THIS round's merge-up (L4.94 rule); the round proves on the COPY only.
+
+### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
+
+<!-- BODY:BEGIN -->
+**A rotation costs every live seat zero calls and the successor one: the `[rotation-alert]` carries the successor's address, `ack` needs no `--ref` (and validates one when given), and `rotate-self` reads the geometry it spawns from at the integration tree or refuses when the rotating worktree is behind on it.** Sensei package `e8a7df41b` (16:15Z dm to this seat), lines 4, 5, (h), (i) — each measured on a live rotation; line 6 (the after_join executor the `delivery` prose promises) is OWED (i) of the 0b-b stub and is inside `goal:g15.15`'s round, not here.
+
+## Why this exists
+
+- `goal:g15` is the parent because all four are optimizations of the seat protocol's per-rotation call cost, fixed in-loop: the helper's rotation 152548Z cost every live seat 2 calls per alert (ListAgents + tmux, helper calls 529-532, 539-540) because the alert names no address; the successor's wake spends 1 call on ListAgents only to hand `ack` a ref the row's `session_id` already resolves (`whois` matches it); the helper's `ack --ref` took a whole ListAgents row string and its `session_ref` became `"seat-sanctuary-helper-a7 [fbb88c]"`; the helper's successor woke on a PRE-FACTS template because `rotate-self` read `config:rotations` + `config:seats` from the rotating seat's worktree, 218 commits behind (Sensei, rule-changing finding 152548Z).
+- `build:bin-rotate` is the parent because `ROTATION_ALERT_TAG` composition, `cmd_ack`'s `--ref` back-fill (r3) and `rotate-self`'s geometry read are the three mechanisms that change; nothing outside the file is touched.
+
+## Testable claim (a build order)
+
+(1) The `[rotation-alert]` dm carries `name [ref] @window` of the successor once the join has them (composed after the join; a pre-join alert says so by name) — a live seat that reads the alert needs 0 calls to address the successor. (2) `rotate.py ack --seat S --gen N continue|diff` with NO `--ref` back-fills `session_ref` from the row's `session_id` through the same resolution `whois` uses; a given `--ref` must be the bare ref form (refused by name when it carries brackets, spaces or the seat name — the helper's row shape) and must agree with the row's `session_id`. (3) `rotate-self` reads `config:rotations` and `config:seats` from `{repo}` (the integration tree, `git_common_root`) when the rotating worktree is behind `origin/season/s2` on `.agi/nodes/.geometry/`, or refuses BY NAME with the behind-count and the sync command — never spawns a successor on a stale template again; the record names which tree the template came from. Red-first tests on fixtures for each (alert text; ack without --ref; ack with a row-shaped --ref refused; rotate-self on a fixture worktree behind on `.geometry/` refuses / reads `{repo}`), `test_rotate.py` + `test_rotate_startup.py` + `test_rotate_templates.py` + `test_send.py` (fake tmux) neighbours green.
+
+**Falsifiers:** an alert without the address after a successful join; an ack that writes a row-shaped ref; a rotate-self that spawns on a stale `.geometry/` silently. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (alert composition, `cmd_ack`, the geometry read in `cmd_rotate_self`) + tests. EXCLUDED: `send.py`, `config:*`, hooks. **CEILING:** 1 parent, up to 3 kids PARALLEL (one per mechanism). **SERIAL** on `rotate.py` behind `goal:g15.15`'s round (SL1.03 owns the first_turn/bootstrap/spawn region the geometry read sits beside) — cut after it is harvested.
+
+### G15.17 — a first seating sends the Sensei the same alert a rotation does (spawn, seats-launch, hand launch via ack --gen 1) — status: active
+
+<!-- BODY:BEGIN -->
+**A FIRST SEATING sends the Sensei the same alert a rotation does.** Owner, 2026-09-11 16:2xZ, verbatim (relayed by the Prime's 16:22Z dm): "sensei should still get an auto-nudge for any new seat starting up same way he gets an alert for any rotation happening" — the dm carries seat, window @id, ref, pid, session id, transcript path. Today only `rotate-self` sends it.
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a gap in the seat protocol's mechanism fixed in-loop: this very seat was hand-launched by the Prime at 16:10Z and the Sensei learned of it from the Prime's prose, not from the engine — the same silence for every `spawn` / `seats-launch` / hand launch.
+- `build:bin-rotate` is the parent because `_announce_rotation` (rotate.py, called from `cmd_loop` :1522 and `cmd_rotate_self` :5669 only) is the mechanism: the composer and the derived-recipient set already exist; the first-seating paths (`cmd_spawn`, `cmd_seats_launch`, and `ack --gen 1` for a hand launch) never call it.
+
+## Testable claim (a build order)
+
+(1) One composer, one shape: a first seating emits the `[rotation-alert]` dm with `trigger: first-seating` (generation `0 -> 1`), carrying seat, window @id, ref (when the join has it — else named absent), pid, session id, transcript path, to the same derived recipients (`_derive_receivers`: live seats, the Sensei among them); delivery failure never fails the seating. (2) Senders: `rotate.py spawn` and `seats-launch` after the window is up and the registry join (`_successor_window_id` + the `~/.claude/sessions/<pid>.json` join rotate-self already performs); a HAND launch is covered by `rotate.py ack --seat S --gen 1` (no predecessor) sending the same dm when no seating record exists for that seat + generation — recorded as `<sessions>/rotations/<seat>.<TS>.seating.json` (one record per seating, the same dir as rotation records, so the Sensei's `status --record latest` sees it). (3) Red-first tests on fixtures (window_path seam): spawn emits the seating text with the fields; ack gen 1 emits when no seating record and does NOT double-send when one exists; the text is the composer's shape. Neighbours `test_rotate.py`, `test_rotate_startup.py`, `test_send.py` (fake tmux) green.
+
+**Falsifiers:** a spawn or seats-launch after which the Sensei's dm file has no seating line; a second dm for the same seat + gen. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (`cmd_spawn` / `cmd_seats_launch` tails, `cmd_ack`, the announcer) + tests. EXCLUDED: `send.py` (import only), `config:*`, hooks. **CEILING:** 1 parent, up to 2 kids. **SERIAL** behind `goal:g15.16`'s round — both edit the announcer; cut after it is harvested.
+
+## Agent Notes
+DIRECTOR sensei-director 16:4xZ: second brief added from the Sensei's 16:38Z measurement of THIS seat's first seating (hand-spawned 16:10Z: no STARTUP OUTPUT, no facts; 22 of the first 40 calls are what the director template gives a rotated seat free — 13 engine-source reads, three --help): rotate.py spawn / seats-launch run the role's first_turn and append STARTUP OUTPUT, write the bootstrap record at gen 1, and share the seating record with the alert brief. Both briefs are serial behind g15.15 (SL1.03) and g15.16; one parent may take both as two kids (same spawn tail).
+
+### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
+
+<!-- BODY:BEGIN -->
+**`rotation_alert.py` says what it measures: the registration block names the event the Prime installed (UserPromptSubmit), the band line prints the band as a fraction of the threshold, the fraction line says window where it means window, and the line a seat is measured against is the seat's own `rotate_at`.** Prime, 16:22Z dm (owner-ordered): L4.94's rotation-reminder hook was INSTALLED 16:21Z under UserPromptSubmit; residue to fix in `extensions/agi/hooks/rotation_alert.py`.
+
+## Why this exists
+
+- `goal:g15` is the parent because these are bugfixes on a hook now LIVE for every session on the box, fixed in-loop; measured on this seat's own firing at 16:3xZ: `Approaching rotation (0.2098 of the line). Crossed band 18% of threshold.` — 0.2098 is of the WINDOW (0.446 of the line), and 18 = `int(0.40 × 0.47 × 100)`: the band printed as a fraction of the window under a label that says threshold (the Prime's "band 25% at 0.63 of threshold" is the same formula at the 0.55 band).
+- `build:hooks-cc-session-start.sh` is the parent because the hook family under `extensions/agi/hooks/` is the mechanism; `rotation_alert.py` has no build node of its own yet (`level3.py` mints it at the next scan), and its registration block (`:11`, `:41-44`) prescribes `SessionStart` — the event that fires once at ~0 and can never escalate.
+
+## Testable claim (a build order)
+
+(1) The registration block prescribes `UserPromptSubmit` in the exact shape the Prime installed in `~/.claude/settings.json` (read the live file, copy the shape — never edit it). (2) `pct` (`:373`) prints `int(b_frac × 100)` — the band as a fraction of the threshold, as the text says; the fraction line prints both numbers by name: `X of the window = Y of the line`. (3) Verify the "first firing reports the LOWEST crossed band" report on the bytes: the loop (`:325-329`) picks the highest crossed band — if the report was the pct formula, say so in the verdict; if a path exists where a stale state file (`session_id` reuse) suppresses the higher band, fix it. (4) The line: read the seat's own `rotate_at` from its `config:seats` row when the seat is identifiable (AGI_SEAT once `goal:g15.15` lands; today the cwd = the row's `worktree`), fall back to `ladder.director_rotate_at`; this seat's row says 0.4 and the hook measured it against 0.47. (5) Tests in `test_rotation_alert.py`: registration text; pct at 0.63 × threshold prints 55; wording; seat-row threshold on a fixture worktree; the existing suite green.
+
+**Falsifiers:** a firing whose printed band is not `b_frac × 100`; a registration block naming SessionStart; a seat with `rotate_at` 0.4 measured against 0.47. **FILE SCOPE:** `extensions/agi/hooks/rotation_alert.py`, `extensions/agi/tests/test_rotation_alert.py`. EXCLUDED: `~/.claude/settings.json` (the Prime's live install), `rotate.py`, `config:*`. **CEILING:** 1 parent, up to 2 kids. Disjoint from every other L1 round — cut now.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
