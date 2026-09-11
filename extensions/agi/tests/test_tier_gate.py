@@ -29,6 +29,7 @@ import importlib.util
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import uuid
@@ -173,6 +174,7 @@ def _plant_in_tree(tier, status="running"):
     harmless -- the liveness gate in conftest._running_record_tiers ignores a
     dead-pid record -- and hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named
     (L4.238) is what names that phantom instead of this self-clean path.
+    The SIGTERM handler installed below closes that gap.
     """
     tree_root = gate._default_record_root()
     assert tree_root, "tree-derived record root must resolve"
@@ -180,6 +182,25 @@ def _plant_in_tree(tier, status="running"):
     marker.mkdir(parents=True, exist_ok=True)
     _write_agent_record(marker, "rec", os.getpid(), tier, status=status)
     atexit.register(shutil.rmtree, marker, True)
+
+    # SIGTERM half (L4.276 build order): default SIGTERM disposition terminates
+    # WITHOUT unwinding, so neither atexit nor a caller's `finally` runs and the
+    # marker can be stranded under the real tree. This handler rmtrees the marker
+    # (ignore-errors: it may already be gone), restores the default, and re-raises
+    # SIGTERM to itself. The re-raise is UNCONDITIONAL, so the process still dies
+    # by SIGTERM with no delay and nothing is masked; the only observable
+    # difference from default handling is that a throwaway `iter-test-*` dir is
+    # cleaned first. signal.signal is legal here (planting runs on the main
+    # thread). The mutation persists for the life of the process -- a deliberate,
+    # benign global: a later SIGTERM to THIS process merely rmtrees a stale path
+    # (a no-op) and still terminates, which is also the desired parent-process
+    # behavior when the whole suite is killed mid-run.
+    def _on_sigterm(signum, frame):
+        shutil.rmtree(marker, True)
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        os.kill(os.getpid(), signal.SIGTERM)
+    signal.signal(signal.SIGTERM, _on_sigterm)
+
     return marker
 
 
@@ -516,6 +537,59 @@ def test_planted_dir_is_removed_after_the_run():
     after = set(p.name for p in Path(tree_root).glob("iter-test-*")) \
         if os.path.isdir(tree_root) else set()
     assert after == before, f"tree sessions changed: {before} -> {after}"
+
+
+def test_sigterm_kill_leaves_no_stale_record_under_aborted_subprocess():
+    """THE SIGTERM half (L4.276 build order). A child that plants a marker and
+    is then SIGTERMed must leave NO `iter-test-*` dir under the record root.
+    Default SIGTERM disposition terminates without unwinding -- neither atexit
+    nor `finally` runs, so WITHOUT the handler `_plant_in_tree` installs the
+    marker survives (the phantom hypothesis:l4-a-phantom-running-record-with-a-
+    dead-pid-is-named names). This child installs that handler when it plants,
+    so the SIGTERM triggers the rmtree-then-re-raise and the marker is gone
+    while the child still dies by SIGTERM (returncode < 0)."""
+    import tempfile, time
+
+    tests_dir = os.path.dirname(__file__)
+    child_src = (
+        "import sys, time\n"
+        f"sys.path.insert(0, {tests_dir!r})\n"
+        "from test_tier_gate import _plant_in_tree\n"
+        "marker = _plant_in_tree(\"parent\")\n"
+        "print(marker)\n"
+        "sys.stdout.flush()\n"
+        "time.sleep(120)\n")
+    with tempfile.TemporaryDirectory() as d:
+        cfile = os.path.join(d, "plant_and_sleep.py")
+        with open(cfile, "w") as f:
+            f.write(child_src)
+        env = dict(os.environ)
+        env.pop("AGI_TIER", None)
+        proc = subprocess.Popen(
+            [sys.executable, cfile], stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True, env=env, cwd=os.getcwd())
+        marker = None
+        try:
+            marker_line = proc.stdout.readline().strip()
+            assert marker_line, "child never printed the marker path"
+            marker = Path(marker_line)
+            deadline = time.monotonic() + 5
+            while not marker.exists() and time.monotonic() < deadline:
+                time.sleep(0.05)
+            assert marker.exists(), "child did not plant the marker"
+            assert marker.name.startswith("iter-test-")
+            proc.send_signal(signal.SIGTERM)
+            proc.wait(timeout=10)
+            assert proc.returncode < 0, ("expected signal-terminated "
+                                         f"(rc<0), got {proc.returncode}")
+            assert not marker.exists(), \
+                "SIGTERM left a stale iter-test-* dir under the record root: " \
+                "the _plant_in_tree SIGTERM handler did not run"
+        finally:
+            if proc.poll() is None:
+                proc.kill(); proc.wait()
+            if marker is not None and marker.exists():
+                shutil.rmtree(marker, True)
 
 
 def test_module_collects_with_cwd_outside_the_repo_root(tmp_path):

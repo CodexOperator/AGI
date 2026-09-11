@@ -944,6 +944,13 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
     _real = pathlib.Path
     _flav = _real(str(fd))._flavour
 
+    # The bomb RECORDS that it fired at TEST scope (L4.276 build order): the
+    # counterfactual must be asserted, not just implied by a deleted dir.
+    # `fired` below stays PER-ITERDIR so each iterdir() fires exactly once; the
+    # recorded `bomb_fired` accumulates so the test can assert it and re-arm it
+    # across the two walks (the mutant check, then the real helper).
+    bomb_fired = False
+
     def _bomb_path():
         """A Path over the FIXTURE fd dir whose iterdir() yields one entry,
         deletes that fixture, then raises FileNotFoundError on the SECOND
@@ -965,11 +972,12 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
                 it = super().iterdir()
                 fired = False
                 def _gen():
-                    nonlocal fired
+                    nonlocal fired, bomb_fired
                     for ent in it:
                         yield ent
                         if not fired:
                             fired = True
+                            bomb_fired = True
                             shutil.rmtree(fd, ignore_errors=True)
                             raise FileNotFoundError(f"{fd}")
                 return _gen()
@@ -1006,18 +1014,36 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
 
     with pytest.raises(FileNotFoundError):
         _mutant_sockets_pre_fix(123)
+    # THE BOMB RECORDED IT FIRED (L4.276): the redirect raised after yielding
+    # the entry; a vacuous walk that never touched the fixture leaves this flag
+    # False and fires red here.
+    assert bomb_fired, \
+        "the bomb never raised in the mutant walk: it did not touch the fixture"
 
     # the mutant consumed the fixture; rebuild it for the real helper
     fd.mkdir(parents=True)
     (fd / "3").symlink_to("socket:[111]")
 
+    # THE EXISTS-BEFORE FALSIFIER (L4.276 build order): the fixture fd dir
+    # must EXIST immediately before the real helper call. With the two rebuild
+    # lines above commented out (the MUTATION), this assertion fires RED -- the
+    # mutant consumed the only copy and nothing rebuilt it, so a walk over the
+    # missing dir is the vacuous non-falsifier (missing dir -> trivially 0)
+    # the round demoted. Comment those two lines and this test goes red HERE.
+    bomb_fired = False   # re-arm: the REAL call must fire the bomb too, else
+                         # it walked the host /proc, not this fixture
+    assert fd.exists(), \
+        "fixture fd dir absent before the real helper call: walk would be vacuous"
+
     # the fixed helper survives the vanish: the guarded walk collapses to the
     # documented 0, and no OSError escapes.
     assert sb._pid_sockets(123) == 0
-    # COUNTERFACTUAL: the bomb FIRED -- the fixture fd dir is gone after the
-    # walk. Had the walk iterated the host's /proc instead of the fixture (the
-    # non-falsifier shape), this dir would still exist.
-    assert not fd.exists(), "the bomb never fired: the walk did not touch the fixture"
+    # the bomb fired (and was recorded) inside the real, guarded walk
+    assert bomb_fired, "the real helper did not walk the fixture"
+    # COUNTERFACTUAL: the fixture fd dir is gone after the walk. Had the walk
+    # iterated the host's /proc instead of the fixture (the non-falsifier
+    # shape), this dir would still exist.
+    assert not fd.exists(), "the fixture survived the real walk: it was not consumed"
 
 
 # --------------------------------------------------------------------------
