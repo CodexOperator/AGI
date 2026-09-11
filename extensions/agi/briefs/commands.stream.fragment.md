@@ -21,39 +21,45 @@ iteration L4.117); every entry here matches it cell for cell.
 ## The `stream` group to add under `commands:`
 
 Each command's argv resolves its stub path from a configurable
-`locations.streamer_stub` (default `~/work/streamer-stub`); the `<stub>`
-token is substituted at resolve time the way `<root>` and `<engine>` already
-are in `commands.py`. The four commands are the streamer-stub's own CLI
-subcommands, so each argv is `<stub>/<subcommand>` (the stub script plus its
-argument). None of them is ever executed by these fragments; they are
-declarations for the operator table and `commands.py run`.
+`locations.streamer_stub` (default `~/work/streamer-stub`, resolved by the
+test that reads this fragment to `/home/ubuntu/work/streamer-stub`); the
+`<stub>` token is substituted at resolve time the way `<root>` and `<engine>`
+already are in `commands.py`. `<stub>` is the stub DIRECTORY, so the argv
+that reaches a mode is `<stub>/bin/<script> <flag>` — never `<stub>` alone
+(that is a directory, not an executable) and never `<stub>/bin/hold.sh brb`
+(hold.sh dispatches on `argv[0]`'s basename via `case "${0##*/}"`, so a bare
+`hold.sh` basename falls through to the usage error instead of pausing). The
+four commands pass the measured explicit flags: `sb-status`
+=`hold.sh --status`, `brb`=`hold.sh --pause`, `back`=`hold.sh --off`,
+`panic`=`panic.sh` (no flag = the hard cut). None of them is ever executed
+by these fragments; they are declarations for the operator table and
+`commands.py run`.
 
 ```yaml
   sb-status:
     argv:
-      - <stub>
-      - sb-status
+      - <stub>/bin/hold.sh
+      - --status
     about: the streamer stub's live status (the stream is LIVE; read-only status reporting)
     workflow: read
     owner_only: false
   brb:
     argv:
-      - <stub>
-      - brb
+      - <stub>/bin/hold.sh
+      - --pause
     about: pause the streamer — operator sets the stub to be-right-back
     workflow: see
     owner_only: false
   back:
     argv:
-      - <stub>
-      - back
+      - <stub>/bin/hold.sh
+      - --off
     about: resume the streamer after brb — operator brings the stub back to live
     workflow: see
     owner_only: false
   panic:
     argv:
-      - <stub>
-      - panic
+      - <stub>/bin/panic.sh
     about: OWNER-ONLY — full emergency stop of the streamer
     workflow: see
     owner_only: true
