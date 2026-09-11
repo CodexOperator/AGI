@@ -161,4 +161,8 @@ def test_prepare_names_behind_captive_and_card_stale(prep_root, capsys,
     out = capsys.readouterr().out
     assert rc == 3
     assert "behind origin/season/s2 (5)" in out
+    # the clearing command MERGES -- `never rebase` is a standing rule of this
+    # tree (director fix-up at the SL1.02 harvest; the kid printed pull --rebase)
+    assert "git merge --no-edit origin/season/s2" in out
+    assert "rebase" not in out
     assert "card older than last commit" in out
